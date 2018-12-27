@@ -9,11 +9,14 @@
 &CMD_ISPELL ExecObject=$+ispell*:@pemit %#=[ifelse(!$v(0),+spell: Spell what?,[rjust(- +spell ----,78,-)]%r[execscript(spell.sh,trim(%0))]%r[repeat(-,78)])]
 &CMD_DICT ExecObject=$+dict*:@pemit %#=[ifelse(!$v(0),+dict: Define what?,[rjust(- +dict ----,78,-)]%r[execscript(dict.sh,trim(%0))]%r[repeat(-,78)])]
 &CMD_MATH ExecObject=$+math*:@pemit %#=[ifelse(!$v(0),+math: do what?,[rjust(- +math ----,78,-)]%rMath: %0%rResult: [execscript(math.sh,%0)][repeat(-,78)])]
+&CMD_PASTEBINREAD ExecObject=$+pastebinread*:@pemit %#=[ifelse(!$v(0),+pastebinread: Please give the pastebin hash %(example: ES8amsGh%),setq(0,execscript(pastebinread.sh,trim(%0))))][ifelse(!!$r(0),[rjust(- +pastebinread %[hash: [trim(%0)]%] ----,78,-)]%r%q0[repeat(-,78)],+pastebinread: There was no matching hash to read.)]
+&CMD_PASTEBINWRITE ExecObject=$+pastebinwrite*:@break [!gt(strlen(%0),40)]=@pemit %#=+pastebinwrite: You need to have at least 40 chars to post on pastebin;@break [lt(secs(),get(%#/_PASTEBIN))]=@pemit %#=+pastebinwrite: Sorry, you need to wait 10 minutes until your next pastebin post.;&_PASTEBIN %#=[add(secs(),600)];@set %#/_pastebin=royalty;@set %#/_pastebin=hidden;@pemit %#=[rjust(- +pastebinpush: %[[strlen(%0)] chars%]----,78,-)]%r[execscript(pastebinwrite.sh,trim(edit(%0,%r,@@@)))][repeat(-,78)]
 @set ExecObject/CMD_MATH = no_parse
 &CMD_THES ExecObject=$+thes*:@pemit %#=[ifelse(!$v(0),+thes: Thesaurus on what?,[rjust(- +thes ----,78,-)]%r[setq(0,execscript(thes.sh,trim(%0)))][ifelse(!!^r(0),%q0,Nothing found for word.)]%r[repeat(-,78)])]
 &COMPILE ExecObject=$+compile*:@assert [u(CANCOMPILE,%#)]=@pemit %#=+compile: Permission denied;@pemit %#=[execscript(compile.sh,%0)]
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
 &FUN_MATH ExecObject=[chomp(execscript(math.sh,objeval(%#,%0)))]
+
 @startup ExecObject=@dolist lattr(me/fun_*)=@function/priv/pres [after(##,_)]=me/##
 @set ExecObject=INHERIT SIDEFX SAFE IND
 @tr/quiet ExecObject/startup

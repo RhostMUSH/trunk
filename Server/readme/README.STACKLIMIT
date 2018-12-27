@@ -12,6 +12,14 @@ We have reasonably set it to 10000 without too much issue, but keep
 in mind, the overhead is higher for every stack you throw on the 
 process table.  Higher stack means more memory used.
 
+Also be aware that your shell stack limit directly is affected
+to this value.  
+
+Type: ulimit -a  
+
+This will show you your shell stack limits.  Do NOT set the
+STACKMAX value higher than your shell's stack value.
+
 The value in ~/Rhost/Server/hdrs/debug.h is currently set as:
 
 #define STACKMAX 1000

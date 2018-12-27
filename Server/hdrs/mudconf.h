@@ -44,6 +44,8 @@ struct confdata {
 	char ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
+	int	api_port;	/* API port -- Ashen-Shugar 6/2017 */
+	int	api_nodns;	/* Disable DNS lookup on api */
         int     debug_id;       /* shared memory key for debug monitor */
 	int	authenticate;	/* Do we wish to use AUTH protocol? */
 	int	init_size;	/* initial db size */
@@ -95,6 +97,7 @@ struct confdata {
 	char	postdump_msg[128];  /* Message displayed after @dump-ing */
         char  spam_msg[128];    /* Message displayed when spammonitor kicks in */
         char  spam_objmsg[128]; /* Message displayed when object spammonitor kicks in */
+	int	mailmutt;	/* Is MUTT the mail prorgram of choice */
 	int	whereis_notify;
 	int	max_size;
 	int	name_spaces;	/* allow player names to have spaces */
@@ -288,6 +291,9 @@ struct confdata {
         char    autoreg_host[LBUF_SIZE]; /* noguest host names */
         char    validate_host[LBUF_SIZE]; /* Invalidate autoregister email masks */
         char    goodmail_host[LBUF_SIZE]; /* Good hosts to allow to autoregister ALWAYS */
+        char    forbidapi_host[LBUF_SIZE]; /* Forbid API host names */
+        char    passapi_host[LBUF_SIZE]; /* Allow API unrestricted (minus forbid) host names */
+        char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
@@ -299,6 +305,7 @@ struct confdata {
         int     max_sitecons;	/* Define maximum number of connects from a site */
 	int	mail_def_object;	/* Default object to use global mail eval aliases */
 	int	mail_autodeltime;	/* Autodelete on mail - time in days */
+	int	guest_randomize;	/* Randomize guest connects */
         char    guest_namelist[1000]; /* A string of guest names that can be used */
         int	nonindxtxt_maxlines; /* Maximum lines a non-indexed .txt file can have */
         int     hackattr_nowiz;	/* _attributes are not wiz only by default */
@@ -327,6 +334,7 @@ struct confdata {
 	int	lastsite_paranoia;	/* Enable paranoia level on connections */
 	int	pcreate_paranoia;	/* Enable paranoia level on creations */
 	int	max_lastsite_cnt;	/* Count of maximum lastsite information */
+	int	max_lastsite_api;	/* API Count of maximum lastsite information */
 	int	min_con_attempt;	/* Minimum ammount of time between connections */
         int	lattr_default_oldstyle;	/* lattr's output is snuffed? */
 	int	formats_are_local;	/* A_*_FMT's are local to self */
@@ -398,6 +406,7 @@ struct confdata {
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
+        int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
@@ -419,7 +428,15 @@ struct confdata {
 	int	penn_setq;	/* Do penn setq formatting */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
+	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
 	dbref	file_object;	/* The file object to override @list_file foo */
+	int	rollbackmax;	/* Maximum rollback with @retry option */
+	int	exec_secure;	/* Execscript is overly secure -- this is default */
+	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
+	int	null_is_idle;	/* Treat '@@@' like idle for, well, idle */
+	int	iter_loop_max;	/* Infinite iter loop counter */
+	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
+	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -453,8 +470,10 @@ struct confdata {
 	int	mysql_port;
 #endif
 	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
-    int allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
-    int allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
+	int 	allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
+	int 	allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
+	int	posesay_funct;	/* Enable function evaluaton to pose/say fluffing */
+	int	mtimer;		/* The milisecond timer offset range (default 10) */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */
@@ -564,6 +583,20 @@ struct statedata {
         /* command profiling */
         int     objevalst;
 	int	breakst;
+	int	jumpst;
+	double	total_bytesin;
+	double	total_bytesout;
+	double	daily_bytesin;
+	double	daily_bytesout;
+	double	avg_bytesin;
+	double	avg_bytesout;
+	time_t	reset_daily_bytes;
+	char	gotolabel[16];
+  int gotostate;
+	int	rollbackcnt;
+	int	rollbackstate;
+	int	inlinestate;
+	char	rollback[LBUF_SIZE];
 	int	breakdolist;
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player*/
@@ -608,6 +641,8 @@ struct statedata {
 	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
 	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
+	int	chkcpu_inline;	/* We are inline */
+        char    chkcpu_inlinestr[SBUF_SIZE]; /* Name of the inline process */
 	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
 	int	ahear_count;	/* Current ahear nest count */
 	dbref	ahear_lastplr;	/* Last Player to try the ahear thingy */
@@ -730,7 +765,10 @@ struct statedata {
         int	heavy_cpu_lockdown;	/* Lock down a function if heavilly abused */
 	int	cmp_lastsite;    	/* Last site that connected */
 	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
+	int	api_lastsite;    	/* API Last site that connected */
+	int	api_lastsite_cnt; 	/* API Number of times last site connected */
 	int	last_con_attempt;
+	int	last_apicon_attempt;
         int     last_pcreate_cnt;
         int     last_pcreate_time;
 	int	reverse_wild;	/* @wipe and such have wildmatches REVERSED */
@@ -779,6 +817,12 @@ struct statedata {
 	time_t	mysql_last;	/* Last mysql hang time */
 	int	argtwo_fix;	/* Arg 2 fix test for '=' */
         int     zone_return;	/* Return value of zonecmd() function */
+	int	posesay_fluff;	/* Allow pose/say fluffing */
+	dbref	posesay_dbref;	/* Allow pose/say fluffing */
+	int	trace_indent;	/* Trace indention */
+	int	mail_inline;	/* Do not let mail work inline other mail */
+        int	iter_special;	/* Special iter handler for 'inf' args */
+	int	nested_control;	/* Nested controlock */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */
@@ -838,6 +882,9 @@ extern STATEDATA mudstate;
 #define H_NOAUTH	0x0020  /* Don't use AUTH protocol - Thorin 5/00 */
 #define H_NODNS		0x0040  /* Don't do reverse DNS lookups - Thorin 5/00 */
 #define H_AUTOSITE	0x0080  /* Site was automatically updated */
+#define H_FORBIDAPI	0x0100	/* Forbid API from connecting */
+#define H_PASSPROXY	0x0200  /* Linked to suspect_list for bypassing proxies */
+#define H_PASSAPI	0x0400	/* Pass any API site restrictions (minus forbid) */
 
 /* Logging options */
 

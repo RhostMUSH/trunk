@@ -68,7 +68,7 @@ years in the past, the program will operate as expected until the year
 Note that "Jan-23-2005" is the date of the authoring of this code.
 
 Programmers who have available to them 64-bit time values as a 'long
-long' type can use gmtime64_r() instead, which correctly converts the
+long' type can use mush_gmtime64_r() instead, which correctly converts the
 time even on 32-bit systems. Whether you have 64-bit time values
 will depend on the operating system.
 
@@ -82,37 +82,37 @@ savings time adjustments.
 
 The function prototypes are:
 
-    double pivot_time_t (const time_t * now, double *t);
-    double mktime64 (struct tm *t);
-    struct tm *localtime64_r (const double *t, struct tm *p);
-    struct tm *pivotal_localtime_r (const time_t * now, const time_t * t, struct tm *p);
-    struct tm *gmtime64_r (const double *t, struct tm *p);
-    struct tm *pivotal_gmtime_r (const time_t * now, const time_t * t, struct tm *p);
+    double mush_pivot_time_t (const time_t * now, double *t);
+    double mush_mktime64 (struct tm *t);
+    struct tm *mush_localtime64_r (const double *t, struct tm *p);
+    struct tm *mush_pivotal_localtime_r (const time_t * now, const time_t * t, struct tm *p);
+    struct tm *mush_gmtime64_r (const double *t, struct tm *p);
+    struct tm *mush_pivotal_gmtime_r (const time_t * now, const time_t * t, struct tm *p);
 
-pivot_time_t() takes a 64-bit time that may have had its top 32-bits set
+mush_pivot_time_t() takes a 64-bit time that may have had its top 32-bits set
 to zero, and adjusts it so that it is in the range explained above. You
-can use pivot_time_t() to convert any time that may be incorrect.
-pivot_time_t() returns its argument unchanged if either now is NULL or
+can use mush_pivot_time_t() to convert any time that may be incorrect.
+mush_pivot_time_t() returns its argument unchanged if either now is NULL or
 sizeof(time_t) is not 4.
 
-mktime64() is a 64-bit equivalent of mktime().
+mush_mktime64() is a 64-bit equivalent of mktime().
 
-localtime64_r() is a 64-bit equivalent of localtime_r().
+mush_localtime64_r() is a 64-bit equivalent of localtime_r().
 
-pivotal_localtime_r() is 32-bit equivalent of localtime_r() with
+mush_pivotal_localtime_r() is 32-bit equivalent of localtime_r() with
 pivoting.
 
-gmtime64_r() is a 64-bit equivalent of gmtime_r().
+mush_gmtime64_r() is a 64-bit equivalent of gmtime_r().
 
-pivotal_gmtime_r() is a 32-bit equivalent of gmtime_r() with pivoting.
+mush_pivotal_gmtime_r() is a 32-bit equivalent of gmtime_r() with pivoting.
 
 Note that none of these functions handle leap seconds.
 
-RATIONALE: The purpose of pivotal_gmtime_r() is as a replacement for the
+RATIONALE: The purpose of mush_pivotal_gmtime_r() is as a replacement for the
 functions gmtime(), localtime() and their corresponding reentrant
 versions gmtime_r() and localtime_r().
 
-pivotal_gmtime_r() is meant for 32-bit systems that must still correctly
+mush_pivotal_gmtime_r() is meant for 32-bit systems that must still correctly
 convert 32-bit time into broken down time format through the year 2038.
 Since most programs tend to operate within a range of time no more than
 68 years in the future or the past, it is possible to determine the
@@ -120,7 +120,7 @@ correct interpretation of a 32-bit time value in spite of the wrap that
 occurs in the year 2038.
 
 Many databases are likely to store time in 32-bit format and not be
-easily upgradeable to 64-bit. By using pivot_time_t(), these time values
+easily upgradeable to 64-bit. By using mush_pivot_time_t(), these time values
 can be correctly used.
 
 
@@ -150,7 +150,7 @@ static const int days[4][13] = {
 #define LEAP_CHECK(n)	((!(((n) + 1900) % 400) || (!(((n) + 1900) % 4) && (((n) + 1900) % 100))) != 0)
 #define WRAP(a,b,m)	((a) = ((a) <  0  ) ? ((b)--, (a) + (m)) : (a))
 
-double pivot_time_t (const time_t * now, double *_t)
+double mush_pivot_time_t (const time_t * now, double *_t)
 {
     double t;
     t = *_t;
@@ -165,13 +165,13 @@ double pivot_time_t (const time_t * now, double *_t)
     return t;
 }
 
-static struct tm *_gmtime64_r (const time_t * now, double *_t, struct tm *p)
+static struct tm *_mush_gmtime64_r (const time_t * now, double *_t, struct tm *p)
 {
     int v_tm_sec, v_tm_min, v_tm_hour, v_tm_mon, v_tm_wday, v_tm_tday;
     int leap;
     double t;
     long m;
-    t = pivot_time_t (now, _t);
+    t = mush_pivot_time_t (now, _t);
     if ( t > 182000000000000.0 )
        t = 182000000000000.0;
     if ( t < -182000000000000.0 )
@@ -224,21 +224,21 @@ static struct tm *_gmtime64_r (const time_t * now, double *_t, struct tm *p)
     return p;
 }
 
-struct tm *gmtime64_r (const double *_t, struct tm *p)
+struct tm *mush_gmtime64_r (const double *_t, struct tm *p)
 {
     double t;
     t = *_t;
-    return _gmtime64_r (NULL, &t, p);
+    return _mush_gmtime64_r (NULL, &t, p);
 }
 
-struct tm *pivotal_gmtime_r (const time_t * now, const time_t * _t, struct tm *p)
+struct tm *mush_pivotal_gmtime_r (const time_t * now, const time_t * _t, struct tm *p)
 {
     double t;
     t = *_t;
-    return _gmtime64_r (now, &t, p);
+    return _mush_gmtime64_r (now, &t, p);
 }
 
-double mktime64 (struct tm *t)
+double mush_mktime64 (struct tm *t)
 {
     int i, y;
     long day = 0;
@@ -267,34 +267,34 @@ double mktime64 (struct tm *t)
     return r;
 }
 
-static struct tm *_localtime64_r (const time_t * now, double *_t, struct tm *p)
+static struct tm *_mush_localtime64_r (const time_t * now, double *_t, struct tm *p)
 {
     double tl;
     time_t t;
     struct tm tm, tm_localtime, tm_gmtime;
-    _gmtime64_r (now, _t, &tm);
+    _mush_gmtime64_r (now, _t, &tm);
     if (tm.tm_year > (2037 - 1900))
         tm.tm_year = 2037 - 1900;
-    t = mktime64 (&tm);
+    t = mush_mktime64 (&tm);
     localtime_r (&t, &tm_localtime);
     gmtime_r (&t, &tm_gmtime);
     tl = *_t;
-    tl += (mktime64 (&tm_localtime) - mktime64 (&tm_gmtime));
-    _gmtime64_r (now, &tl, p);
+    tl += (mush_mktime64 (&tm_localtime) - mush_mktime64 (&tm_gmtime));
+    _mush_gmtime64_r (now, &tl, p);
     p->tm_isdst = tm_localtime.tm_isdst;
     return p;
 }
 
-struct tm *pivotal_localtime_r (const time_t * now, const time_t * _t, struct tm *p)
+struct tm *mush_pivotal_localtime_r (const time_t * now, const time_t * _t, struct tm *p)
 {
     double tl;
     tl = *_t;
-    return _localtime64_r (now, &tl, p);
+    return _mush_localtime64_r (now, &tl, p);
 }
 
-struct tm *localtime64_r (const double *_t, struct tm *p)
+struct tm *mush_localtime64_r (const double *_t, struct tm *p)
 {
     double tl;
     tl = *_t;
-    return _localtime64_r (NULL, &tl, p);
+    return _mush_localtime64_r (NULL, &tl, p);
 }

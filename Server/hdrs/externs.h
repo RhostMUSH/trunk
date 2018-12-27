@@ -149,6 +149,8 @@ extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
 extern char *	FDECL(mushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
 #define exec(a, b, c, d, e, f, g, h, i) mushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
+extern char *	FDECL(cpumushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
+#define cpuexec(a, b, c, d, e, f, g, h, i) cpumushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
 
 /* From flags.c */
 extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
@@ -299,7 +301,7 @@ extern int	FDECL(can_set_home, (dbref, dbref, dbref));
 extern dbref	FDECL(new_home, (dbref));
 extern dbref	FDECL(clone_home, (dbref, dbref));
 extern void	FDECL(divest_object, (dbref));
-extern dbref	FDECL(create_obj, (dbref, int, char *, int));
+extern dbref	FDECL(create_obj, (dbref, int, char *, char *, int, int));
 extern void	FDECL(destroy_obj, (dbref, dbref, int));
 extern void	FDECL(empty_obj, (dbref));
 
@@ -307,7 +309,7 @@ extern void	FDECL(empty_obj, (dbref));
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
 extern int	FDECL(check_pass, (dbref, const char *, int));
 extern dbref	FDECL(connect_player, (char *, char *, char *));
-extern dbref	FDECL(create_player, (char *, char *, dbref, int));
+extern dbref	FDECL(create_player, (char *, char *, dbref, int, char *, int));
 extern int	FDECL(add_player_name, (dbref, char *));
 extern int	FDECL(delete_player_name, (dbref, char *));
 extern dbref	FDECL(lookup_player, (dbref, char *, int));
@@ -322,7 +324,7 @@ extern int	FDECL(protectname_check, (char *, dbref, int));
 extern void	FDECL(protectname_list, (dbref, int, dbref));
 extern dbref	FDECL(protectname_alias, (char *, dbref));
 extern dbref	FDECL(protectname_unalias, (char *, dbref));
-extern int	FDECL(reg_internal, (char *, char *, char *, int, char *));
+extern int	FDECL(reg_internal, (char *, char *, char *, int, char *, char *, int));
 
 /* From predicates.c */
 extern int	FDECL(isreal_chk, (dbref, dbref, int));
@@ -402,7 +404,7 @@ extern char *	FDECL(replace_string_ansi, (const char *, const char *,
 			const char *, int, int));
 extern char *	FDECL(replace_tokens, (const char *, const char *, const char *, const char *));
 extern void     FDECL(split_ansi, (char *, char *, ANSISPLIT *));
-extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *));
+extern char *   FDECL(rebuild_ansi, (char *, ANSISPLIT *, int));
 
 extern char *	FDECL(replace_string_inplace, (const char *,  const char *,
 			char *));
@@ -572,6 +574,13 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define AFLAGS_DEL	0x00000010
 #define AFLAGS_SEARCH	0x00000020
 
+#define API_STATUS	0x00000001
+#define API_PASSWORD	0x00000002
+#define API_IP		0x00000004
+#define API_ENABLE	0x00000008
+#define API_DISABLE	0x00000010
+#define API_CHKPASSWD	0x00000020
+
 #define AREG_LOAD	0x00000001
 #define AREG_UNLOAD	0x00000002
 #define AREG_LIST	0x00000004
@@ -607,6 +616,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CLONE_SET_LOC	0x00000010	/* ARG2 is location of cloned object */
 #define	CLONE_SET_NAME	0x00000020	/* ARG2 is alternate name of cloned object */
 #define	CLONE_PARENT	0x00000040	/* Set parent on obj instd of cloning attrs */
+#define CLONE_ANSI	0x00000080	/* Ansify the name */
 
 #define CONV_ALTERNATE	0x00000001
 #define CONV_ALL	0x00000002
@@ -619,12 +629,15 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CRE_LOCATION	0x00000001	/* Create object in my location */
 #define	CRE_SET_LOC	0x00000002	/* ARG2 is location of new object */
 
+#define CREATE_ANSI     0x00000001	/* Combine @create and @extansi together */
+
 #define DECOMP_ALL	0x00000000	/* Decompile everything - default */
 #define DECOMP_FLAGS    0x00000001	/* Decompile flags */
 #define DECOMP_ATTRS	0x00000002	/* Decompile Attrs */
 #define DECOMP_TREE	0x00000004	/* Decompile Penn Trees */
 #define DECOMP_REGEXP	0x00000008	/* Decompile by Regexp */
 #define DECOMP_TF	0x00000010	/* Stupid /tf compatibility to @decompile for PennMUSH */
+#define DECOMP_NOEXTRA	0x00000020	/* no extra fluff in @decompile/tf */
 
 #define	DBCK_DEFAULT	0x00000001	/* Get default tests too */
 #define	DBCK_REPORT	0x00000002	/* Report info to invoker */
@@ -648,6 +661,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DEST_PURGE	0x00000008	/* @destroy/purge */
 
 #define	DIG_TELEPORT	0x00000001	/* teleport to room after @digging */
+#define DIG_ANSI	0x00000002	/* ANSI in @dig */
 
 #define DOLIST_SPACE    0x00000000	/* expect spaces as delimiter */
 #define DOLIST_DELIMIT  0x00000001       /* expect custom delimiter */
@@ -750,6 +764,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define LSET_LIST       1       /* @lset/list */
 
+#define NAME_ANSI       1	/* Combine @name and @extansi together */
+
 #define ICMD_DISABLE	0
 #define ICMD_IGNORE	1
 #define ICMD_ON		2
@@ -820,6 +836,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define NEWS_ARTICLELIFE  0x40000000
 
 #define HELP_SEARCH       0x00000040
+#define HELP_QUERY        0x00000080
 
 #define NEWSDB_DEFAULT	0x00000000
 #define NEWSDB_UNLOAD	0x00000001
@@ -845,6 +862,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
+#define OPEN_ANSI	2	/* Open with ansi */
 
 #define PAGE_LAST	1
 #define PAGE_RET	2
@@ -860,6 +878,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	PCRE_PLAYER	1	/* create new player */
 #define PCRE_REG     	2	/* Register on @pcreate */
 #define	PCRE_ROBOT	4	/* create robot player */
+#define PCRE_ANSI	8	/* Ansi on player create */
 
 #define LABEL_ADD	1	/* Add the label at position(s) */
 #define LABEL_DEL	2	/* Delete the label */
@@ -943,6 +962,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define QUOTA_ROOM	4096
 #define QUOTA_ALL	8192
 
+#define RECOVER_DETAIL	1
+
 #define REC_TYPE	1
 #define REC_OWNER	2
 #define REC_COUNT	4
@@ -950,10 +971,17 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define REC_DEST	16
 #define REC_FREE	32
 
+#define REALITY_RESET	1
+
 #define REBOOT_SILENT 	0x00000001	/* @reboot silently */
 #define REBOOT_PORT	0x00000002	/* What is @reboot/port ? */
 
 #define REGISTER_MSG	1	/* Include a message to @register to output the password */
+#define REGISTER_ANSI	2	/* Allow ANSI for @register */
+
+#define ROLLBACK_RETRY	1	/* @rollback works like @retry */
+#define ROLLBACK_WAIT   2 	/* @rollback works with @wait */
+#define ROLLBACK_LABEL	4	/* @rollback with /label.  Works in every mode */
 
 #define	RWHO_START	1	/* Start transmitting to remote RWHO srvr */
 #define	RWHO_STOP	2	/* Close connection to remote RWHO srvr */
@@ -987,6 +1015,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SET_TREECHK	16	/* Verify we can set trees */
 #define SET_MUFFLE	32	/* Totally  muffle set messages */
 #define SET_BYPASS	64	/* Internal to set attribs on tree objects */
+#define SET_STRICT	128	/* Strict set of attribute 'as is', no specialness */
 
 #define	SHUTDN_NORMAL	0	/* Normal shutdown */
 #define	SHUTDN_PANIC	1	/* Write a panic dump file */
@@ -1042,9 +1071,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_NOAUTH	32
 #define SITE_NODNS	64
 #define SITE_ALL	128
-#define SITE_PER	256
-#define SITE_TRU	512
-#define SITE_LIST	1024	/* List @site/list information */
+#define SITE_FORAPI	256
+#define SITE_PASSPROX	512
+#define SITE_PASSAPI	1024
+#define SITE_PER	2048
+#define SITE_TRU	4096
+#define SITE_LIST	8192	/* List @site/list information */
 
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
 
@@ -1137,6 +1169,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define BLACKLIST_LIST	1	/* List blacklist */
 #define BLACKLIST_CLEAR	2	/* Clear blacklist */
 #define BLACKLIST_LOAD	4	/* Load blacklist.txt file */
+#define BLACKLIST_MASK	8	/* Load blacklist.txt file */
 
 #define WAIT_PID        1       /* Re-wait a PID process */
 #define WAIT_UNTIL	2	/* Wait until specified time */
@@ -1147,6 +1180,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
+#define DYN_SUGGEST	8	/* Allow suggestions in dynhelp -- multi-option */
+#define DYN_QUERY	16	/* Do a line by line 'comparison' of the code */
 
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */

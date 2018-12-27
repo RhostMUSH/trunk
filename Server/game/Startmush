@@ -8,7 +8,9 @@ then
    CYGWIN=1
 fi
 # enforce CYGWIN mode for Windows 10 bash
-if [ $(grep -c Microsoft /proc/version 2>/dev/null) -gt 0 -o $(grep -ci cygwin /proc/version 2>/dev/null) -gt 0 ]
+lc_chk1=`cat /proc/version 2>/dev/null|grep -c "Microsoft"`
+lc_chk2=`cat /proc/version 2>/dev/null|grep -ci "cygwin"`
+if [ ${lc_chk1} -gt 0 -o ${lc_chk2} -gt 0 ]
 then
    CYGWIN=1
 fi
@@ -65,22 +67,38 @@ then
    lc_pid_chk=`ps -p ${lc_pid}|grep -c rhost`
 fi
 
+gl_shm=`echo ${DEBUG_ID}|awk '{printf("%x", $0)}'`
+gl_shmchk=`ipcs -m 2>/dev/null|grep "${gl_shm}"`
+lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
+lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
+
 if [ ${lc_pid_chk} -gt 0 ]
 then
-   lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
-   lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
    echo "Rhost is already running on pid ${lc_pid} [port: ${lc_port}, debug id: ${lc_debugid}]"
    ps -lp ${lc_pid}
    echo ""
    if [ -f /usr/bin/ipcs ]
    then
-      gl_shm=$(echo ${DEBUG_ID}|awk '{printf("%x", $0)}')
       echo "Shared Memory Segment ${DEBUG_ID} [${gl_shm}]"
       ipcs -m|egrep "(key|${gl_shm})"
       echo ""
    fi
    echo "If you wish to kill this process at the shell, please do the following:"
    echo "kill -USR2 ${lc_pid}"
+   exit 1
+fi
+if [ -n "${gl_shmchk}" ]
+then
+   if [ -f /usr/bin/ipcs ]
+   then
+      echo "Shared Memory Segment [debug_id: ${DEBUG_ID}] [shmid: ${gl_shm}]"
+      ipcs -m|egrep "(key|${gl_shm})"
+      echo ""
+   fi
+   echo "There is an existing shared memory segment that the mush will try to use."
+   echo "If this is because you kill -9'd your mush process then you may need"
+   echo "to start your mush with 'Startmush -f'."
+   echo ""
    exit 1
 fi
 
@@ -120,15 +138,15 @@ fi
 if [ -r $INPUT_DB ]; then
 	mv -f $INPUT_DB $SAVE_DB
 fi
-if [ -r $LOGNAME.old ]; then
+if [ -r $MUSHLOGNAME.old ]; then
 	echo "Archiving old log."
-	LOGARCHIVE=$LOGNAME.`date +%Y%m%d`_`date +%H%M`
-	mv -f $LOGNAME.old $LOGARCHIVE
+	LOGARCHIVE=$MUSHLOGNAME.`date +%Y%m%d`_`date +%H%M`
+	mv -f $MUSHLOGNAME.old $LOGARCHIVE
 	gzip $LOGARCHIVE
 	mv -f $LOGARCHIVE.gz oldlogs
 fi
-if [ -r $LOGNAME ]; then
-   mv -f $LOGNAME $LOGNAME.old
+if [ -r $MUSHLOGNAME ]; then
+   mv -f $MUSHLOGNAME $MUSHLOGNAME.old
 fi
 #
 #	If we have a good checkpoint database, make it the input database.
@@ -148,6 +166,7 @@ fi
 #
 # Make sure the port '42010' matches the port of the debugmon.
 # In your mushname.conf file!
+gl_newdb=0
 if [ "$1" = "-f" ]
 then
    DEBUG_OVERRIDE=1
@@ -157,9 +176,9 @@ if [ -f "$INPUT_DB" ]
 then
    if [ ${CYGWIN} -eq 1 ]
    then
-      (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+      (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
    else
-      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
    fi
 else
    echo "There was no valid database information found."
@@ -227,29 +246,37 @@ else
          then
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             fi
          else
             echo "The database wasn't loaded properly.  Going to initialize a new db.  RETURN to continue, ^C to abort."
             read ANS
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
             fi
+            gl_newdb=1
          fi
       else
          if [ ${CYGWIN} -eq 1 ]
          then
-            (nohup ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
          else
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$LOGNAME 2>&1 &)
+            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
          fi
+         gl_newdb=1
       fi
-      echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
+      if [ ${gl_newdb} -eq 1 ]
+      then
+         echo "Have fun with your new mush.  #1's initial password will be 'Nyctasia'"
+      else
+         echo "Have fun with your imported db.  If you don't remember #1's password set newpass_god 777 in your netrhost.conf file."
+         echo "Once your game is up remove the newpass_god parameter as this resets #1's password if enabled on every reboot!"
+      fi
       echo "Don't forget to @shutdown as soon as you connect to save the new database."
    else
       echo "You have some trouble with your database files.  Please review the problem."

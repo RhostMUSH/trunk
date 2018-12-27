@@ -16,7 +16,12 @@ FORCE_MYSQL=0
 MYSQL_VER=$(mysql_config --version 2>/dev/null)
 if [ -z "${MYSQL_VER}" ]
 then
+   MYSQL_VER=$(./mysql_config --version 2>/dev/null)
+fi
+if [ -z "${MYSQL_VER}" ]
+then
    MYSQL_VER=0
+   MYSQL_VER2=$(mysql -V|awk '{print $5}')
 fi
 # load in mysql goodness
 mysql_host=$(grep ^mysql_host ../game/rhost_mysql.conf 2>/dev/null|awk '{print $2}')
@@ -48,7 +53,7 @@ if [ -f /sbin/ldconfig ]
 then
    LDCONFIG="/sbin/ldconfig"
 else
-   for i in $(slocate ldconfig)
+   for i in $(slocate ldconfig 2>/dev/null)
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
@@ -63,7 +68,7 @@ elif [ -f /usr/bin/gcc ]
 then
    MYGCC=/usr/bin/gcc
 else
-   for i in $(slocate gcc)
+   for i in $(slocate gcc 2>/dev/null)
    do
       if [ $(file "$i"|grep -c ELF) -gt 0 ]
       then
@@ -217,6 +222,7 @@ DEFA[3]="-DM_SUB"
 ###################################################################
 mysql_set_args() {
 looper=1
+sql_vals=0
 while [ ${looper} -eq 1 ]
 do
 clear
@@ -240,21 +246,27 @@ clear
            ;;
       1) echo "[${mysql_host}]: "|tr -d '\012'
          sqlval=mysql_host
+         ((sql_vals++))
          ;;
       2) echo "[${mysql_user}]: "|tr -d '\012'
          sqlval=mysql_user
+         ((sql_vals++))
          ;;
       3) echo "[${mysql_pass}]: "|tr -d '\012'
          sqlval=mysql_pass
+         ((sql_vals++))
          ;;
       4) echo "[${mysql_dbname}]: "|tr -d '\012'
          sqlval=mysql_dbname
+         ((sql_vals++))
          ;;
       5) echo "[${mysql_socket}]: "|tr -d '\012'
          sqlval=mysql_socket
+         ((sql_vals++))
          ;;
       6) echo "[${mysql_port}]: "|tr -d '\012'
          sqlval=mysql_port
+         ((sql_vals++))
          ;;
       *) echo "Invalid argument"
          echo "<ENTER RETURN TO CONTINUE>"
@@ -268,25 +280,37 @@ clear
       eval ${sqlval}=\${SQLANS}
    fi
 done
-echo "Creating new file."
+if [ ${sql_vals} -eq 0 ]
+then
+   echo "No changes.  Aborted by user."
+else
+   echo "Creating new file."
+   cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
+   echo "# Generated from make config" >> ../game/rhost_mysql.conf
+   echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
+   echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
+   echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
+   echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
+   echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
+   echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
+   echo "Finished."
+fi
+echo "< HIT RETURN KEY TO CONTINUE >"
 read ANS
-cat ../bin/mysql.blank > ../game/rhost_mysql.conf 2>/dev/null
-echo "# Generated from make config" >> ../game/rhost_mysql.conf
-echo "mysql_host ${mysql_host}" >> ../game/rhost_mysql.conf
-echo "mysql_user ${mysql_user}" >> ../game/rhost_mysql.conf
-echo "mysql_pass ${mysql_pass}" >> ../game/rhost_mysql.conf
-echo "mysql_base ${mysql_dbname}" >> ../game/rhost_mysql.conf
-echo "mysql_socket ${mysql_socket}" >> ../game/rhost_mysql.conf
-echo "mysql_port ${mysql_port}" >> ../game/rhost_mysql.conf
 }
 
 mysqlmenu() {
 if [ "${MYSQL_VER}" = "0" ]
 then
-   echo "MySQL client is not installed on this server.  Can not install module."
+   echo "WARNING: MySQL config is not being detected on this server."
+   echo "         if you do not have mysql libraries installed, enabling"
+   echo "         this will cause the compile to fail."
+   if [ -n "$MYSQL_VER2}" ]
+   then
+      echo "         I think MySQL may be installed and version is ${MYSQL_VER2}"
+   fi
    echo "<ENTER RETURN TO CONTINUE>"
    read ANS
-   return 200
 fi
 clear
 echo "               RhostMUSH MySQL / MariaDB Configuration Utility"
@@ -389,7 +413,7 @@ echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[1
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
-echo "--------------------------- Beta/Unsupported Additions -----------------------"
+echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
@@ -397,6 +421,7 @@ echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
 echo "      [x]tra default cores (MUX, TinyMUSH3, Penn, Rhost-Default)"
 echo "      Or, you may select a numer to toggle on/off"
+echo "      '#' means you may drill down into that option for a sub-menu."
 echo ""
 echo "Please Enter selection: "|tr -d '\012'
 }
@@ -1362,6 +1387,16 @@ saveopts() {
    fi
 }
 
+###################################################################
+# LOADTEMPLATE - Load the template for default compiles
+###################################################################
+loadtemplate() {
+   if [ -f asksource.save_template ]
+   then
+      . ./asksource.save_template 2>/dev/null
+   fi
+}
+###################################################################
 
 ###################################################################
 # LOADLASTSTATE - Load the last state
@@ -1467,6 +1502,19 @@ setopts() {
 # SETDEFAULTS - Assign default DEFS required for platform
 ###################################################################
 setdefaults() {
+  # check for utmpx.h else fall back to utmp.h
+  lc_utmp=$(echo '#include <utmpx.h>' | cpp -H -o /dev/null 2>&1 | head -n1|grep -c "/utmpx.h")
+  if [ ${lc_utmp} -eq 0 ]
+  then
+     lc_utmp=$(echo '#include <utmp.h>' | cpp -H -o /dev/null 2>&1 | head -n1|grep -c "/utmp.h")
+     if [ ${lc_utmp} -eq 0 ]
+     then
+        DEFS="-DUTMP_MISSING ${DEFS}"
+     else
+        DEFS="-DUTMP_ONLY ${DEFS}"
+     fi
+  fi
+
   # compile timeout.c incase we need it
   ${MYGCC} ../src/timeout.c -o ../bin/timeout > /dev/null 2>&1
   echo "Configuring default definitions..."
@@ -1956,6 +2004,11 @@ updatemakefile() {
 # MAIN - Main system call and loop
 ###################################################################
 main() {
+   if [ "$1" = "default" ]
+   then
+      loadtemplate
+      REPEAT=0
+   fi
    loadlaststate
    while [ ${REPEAT} -eq 1 ]
    do
@@ -2024,11 +2077,14 @@ main() {
    setlibs
    updatemakefile
    savelaststate
-   echo "< HIT RETURN KEY TO CONTINUE >"
-   read ANS
+   if [ "$1" != "default" ]
+   then
+      echo "< HIT RETURN KEY TO CONTINUE >"
+      read ANS
+   fi
 }
 
 ###################################################################
 # Ok, let's run it
 ###################################################################
-main
+main "$1"

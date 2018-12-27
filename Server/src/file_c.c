@@ -243,7 +243,8 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
-    int aflags, nomatch;
+    int aflags, nomatch, chk_tog;
+    time_t chk_stop;
     dbref aowner;
     ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
@@ -257,10 +258,10 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
     if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
        nomatch = 0;
        if ( s_site ) {
-          atr = atr_str(s_site);
+          atr = atr_str3(s_site);
        }
        if ( !atr ) {
-          atr = atr_str(site_info[num]);
+          atr = atr_str3(site_info[num]);
        }
        if ( !atr ) {
           nomatch = 1;
@@ -278,9 +279,22 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
              sprintf(sarray[3], "#%d", NOTHING);
+             chk_stop = mudstate.chkcpu_stopper;
+             chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
-             retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
+                               EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY TXTFILE PROCESS",
+                                  (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
+                STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                   log_name_and_loc(mudconf.file_object);
+                   sprintf(atext, " CPU txtfile overload on attribute %s", (char *)atr->name);
+                   log_text(atext);
+                ENDLOG
+             }
+             mudstate.chkcpu_stopper = chk_stop;
+             mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -299,8 +313,9 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
                 remaining = strlen(lbuf1);
 	        while (remaining > 0) {
 	           cnt = WRITE(fd, start, remaining);
-	           if (cnt < 0)
-		       return;
+	           if (cnt < 0) {
+		       break;
+                   }
 	           remaining -= cnt;
 	           start += cnt;
 	        }
@@ -317,6 +332,50 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
           free_lbuf(atext);
        }
        if ( nomatch ) {
+          if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
+             lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
+             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+             start = lbuf1;
+             remaining = strlen(lbuf1);
+	     while (remaining > 0) {
+	        cnt = WRITE(fd, start, remaining);
+	        if (cnt < 0)
+		   break;
+	        remaining -= cnt;
+	        start += cnt;
+	     }
+             free_lbuf(lbuf1);
+          } else {
+             fp = fcache[num].fileblock;
+             while (fp != NULL) {
+	         start = fp->data;
+	         remaining = fp->hdr.nchars;
+	         while (remaining > 0) {
+	             cnt = WRITE(fd, start, remaining);
+	             if (cnt < 0)
+		         return;
+	             remaining -= cnt;
+	             start += cnt;
+	         }
+	         fp = fp->hdr.nxt;
+             }
+          }
+       }
+    } else {
+       if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
+          lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
+          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+          start = lbuf1;
+          remaining = strlen(lbuf1);
+          while (remaining > 0) {
+             cnt = WRITE(fd, start, remaining);
+             if (cnt < 0)
+             break;
+             remaining -= cnt;
+             start += cnt;
+          }
+          free_lbuf(lbuf1);
+       } else {
           fp = fcache[num].fileblock;
           while (fp != NULL) {
 	      start = fp->data;
@@ -331,20 +390,6 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
 	      fp = fp->hdr.nxt;
           }
        }
-    } else {
-       fp = fcache[num].fileblock;
-       while (fp != NULL) {
-	   start = fp->data;
-	   remaining = fp->hdr.nchars;
-	   while (remaining > 0) {
-	       cnt = WRITE(fd, start, remaining);
-	       if (cnt < 0)
-		   return;
-	       remaining -= cnt;
-	       start += cnt;
-	   }
-	   fp = fp->hdr.nxt;
-       }
     }
     return;
 }
@@ -357,7 +402,8 @@ fcache_dump(DESC * d, int num, char *s_site)
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf2ptr, *lbuf3ptr;
 #endif
-    int aflags, nomatch, i_length;
+    int aflags, nomatch, i_length, chk_tog;
+    time_t chk_stop;
     dbref aowner;
     ATTR *atr = NULL;
     char *site_info[]={"connect", "badsite", "down", "full", "guest", "register", "newuser", 
@@ -370,10 +416,10 @@ fcache_dump(DESC * d, int num, char *s_site)
     if ( Good_chk(mudconf.file_object) && Immortal(Owner(mudconf.file_object)) ) {
        nomatch = 0;
        if ( s_site ) {
-          atr = atr_str(s_site);
+          atr = atr_str3(s_site);
        }
        if ( !atr ) {
-          atr = atr_str(site_info[num]);
+          atr = atr_str3(site_info[num]);
        }
        if ( !atr ) {
           nomatch = 1;
@@ -394,9 +440,22 @@ fcache_dump(DESC * d, int num, char *s_site)
                 sprintf(sarray[3], "#%d", NOTHING);
              else
                 sprintf(sarray[3], "#%d", d->player);
+             chk_stop = mudstate.chkcpu_stopper;
+             chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);
-             retbuff = exec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
+             retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
+             if ( !chk_tog && mudstate.chkcpu_toggle ) {
+                broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY TXTFILE PROCESS",
+                                  (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
+                STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+                   log_name_and_loc(mudconf.file_object);
+                   sprintf(atext, " CPU txtfile overload on attribute %s", (char *)atr->name);
+                   log_text(atext);
+                ENDLOG
+             }
+             mudstate.chkcpu_stopper = chk_stop;
+             mudstate.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -427,18 +486,36 @@ fcache_dump(DESC * d, int num, char *s_site)
           free_lbuf(atext);
        }
        if ( nomatch ) {
+          if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
+             lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
+             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+             i_length = strlen(lbuf1);
+             queue_write(d, lbuf1, i_length);
+             queue_write(d, "\r\n", 2);
+             free_lbuf(lbuf1);
+          } else {
+             fp = fcache[num].fileblock;
+             while (fp != NULL) {
+  	         queue_write(d, fp->data, fp->hdr.nchars);
+	         fp = fp->hdr.nxt;
+             }
+          }
+       }
+    } else {
+       if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
+          lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
+          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+          i_length = strlen(lbuf1);
+          queue_write(d, lbuf1, i_length);
+          queue_write(d, "\r\n", 2);
+          free_lbuf(lbuf1);
+       } else {
           fp = fcache[num].fileblock;
+
           while (fp != NULL) {
   	      queue_write(d, fp->data, fp->hdr.nchars);
 	      fp = fp->hdr.nxt;
           }
-       }
-    } else {
-       fp = fcache[num].fileblock;
-
-       while (fp != NULL) {
-  	   queue_write(d, fp->data, fp->hdr.nchars);
-	   fp = fp->hdr.nxt;
        }
     }
 }

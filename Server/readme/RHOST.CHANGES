@@ -1,3 +1,49 @@
+                         RhostMUSH 4.0 Update File
+MUX passwords didn't work properly because of a memcmp() bug.
+				- Thanks Locke
+@nuke didn't properly wipe mail if issued from a non-player.
+				- Thanks Benzaiten & Rockpath
+@protect set/unset the wrong flags.
+				- Thanks Rockpath
+Help file typos fixed
+				- Thanks Rockpath
+Bug in EVAL could overwrite static pointer to attribute fetches
+				- Thanks Ixokai
+Bug in printf that could cause a SIGSEGV
+				- Thanks Ixokai
+Bug in AUTH and API handling where AUTH lookups happened with internal checks
+				- Thanks Neil "Polk" Stevens 
+@set and set() now allow optionally setting contents starting with '_'.
+				- Thanks Gallifrey@BrazilMUX
+Added better user error handling to the build script.
+				- Thanks qa'toq
+Due to an insanely old bug in singleuser mode with attribute caps, flatfiles
+   would cut off attributes at 750 on dbloading.
+				- Thanks Aqua@MuxNexus
+@recover/detail to show attributes and details of recoverable item
+				- Thanks Ixokai
+Suggestions in help files inspired from PennMUSH.
+				- Thanks PennMUSH (Raevnos)
+@door/push could crash with non-players
+				- Thanks Xperta/Paige
+Startmush had a confusing message for Nyctasia as #1's password
+				- Thanks Ixokai
+@rxlevel/@txlevel handle bits as well as tabs
+				- Thanks Myrddin
+@fpose/nospace didn't work because of wrong bitwise flags
+				- Thanks Myrddin
+Potential crash with freeing unitialized buffering in trace stack in eval.c
+				- Thanks Myrddin
+Crash with trace located as a 32 byte SBUF if compiled for that
+				- Thanks Myrddin
+idle_timeout included in the netrhost.conf by default as highly utilized
+				- Thanks skew
+all l*() math functions allowed empty args for backward compatibility
+				- Thanks skew
+Found bug in lattr() with command  matching.
+				- Thanks Damascus
+
+
                          RhostMUSH 3.9.5 Update File
 Softcode overrides for connect files
 				- Thanks Matrix
@@ -88,6 +134,16 @@ Nested /notrace on @function/@lfunction was broke.
 Idea and general code for NO_CONNECT message -- Kage
 				- Thanks Kage
 Alternate date formats for convtime()
+				- Thanks Ixokai
+Typos in help.txt
+				- Thanks Kilmoran
+all localization didn't save state for register names.
+				- Thanks Myrddin
+All locatization with CLEAR didn't wipe and reset register names.
+				- Thanks Myrddin
+&SPEECH_PREFIX/&SPEECH_SUFFIX for say/pose pre and post processing.
+				- Thanks MuSoapBox (Auspice, Sparks, Seamus, faraday, Thenomain, and others)
+] for @hook/ignore and @hook/permit was broken.
 				- Thanks Ixokai
 
 

@@ -56,11 +56,19 @@ int alarm_msec(double time)
 {
 struct itimerval it_val;
 double time_rounded;
+double i_rounder;
   // This function will _never_ stop the timer; use alarm_stop() for that.
-  time = (time <= 0 ? 0.1 : time );
-  time_rounded = roundf(time * 10) / 10; // Round to one decimal place
+  i_rounder = 0.1;
+  if ( mudconf.mtimer != 0 )
+     i_rounder = 1.0 / (double)mudconf.mtimer;
+  time = (time <= 0 ? i_rounder : time );
+  time_rounded = roundf(time * (double)mudconf.mtimer) / (double)mudconf.mtimer; // Round to specified decimal place
   it_val.it_value.tv_sec = floor(time_rounded); // Second
-  it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,1.0)); // Decimal
+  if ( mudconf.mtimer == 1 ) {
+     it_val.it_value.tv_usec = 0;
+  } else {
+     it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,((double)mudconf.mtimer / 10.0))); // Decimal
+  }
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
 /* Debugging
@@ -96,7 +104,8 @@ double time_ng(double *t)
   clock_gettime(CLOCK_REALTIME, &spec);
   s = spec.tv_sec;
   ms = round(spec.tv_nsec / 1.0e6);
-  result = s + (floor((((1000.0+ms)/1000.0)-1.0) * 10) / 10);
+  /* result = s + (floor((((1000.0+ms)/1000.0)-1.0) * 10) / 10); */
+  result = (double)s + (floor((((1000.0+ms)/1000.0)-1.0) * (double)mudconf.mtimer) / (double)mudconf.mtimer);
   /*if(t != NULL)
     *t = result;*/
   return result;
@@ -104,7 +113,11 @@ double time_ng(double *t)
 
 double NDECL(next_timer)
 {
-double	result;
+double	result, i_rounder;
+          
+	i_rounder = 0.1;
+	if ( mudconf.mtimer != 0 )
+		i_rounder = 1.0 / (double)mudconf.mtimer;
 
 	result = mudstate.dump_counter;
 	if (mudstate.check_counter < result)
@@ -118,7 +131,7 @@ double	result;
 /*	result = result-(mudstate.nowmsec); */
         result = (mudstate.nowmsec) - result;
 	if (result <= 0.0)
-		result = 0.1;
+		result = i_rounder;
 	return result;
 }
 
@@ -134,7 +147,7 @@ void NDECL(init_timer)
 		mudconf.check_interval : mudconf.check_offset) + mudstate.nowmsec;
 	mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
 	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
-	mudstate.mstats_counter = 15 + mudstate.nowmsec;
+	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
 	alarm_msec (next_timer());
 }
 
@@ -149,10 +162,10 @@ char	*cmdsave;
 
 	if (!mudstate.alarm_triggered) return;	
 	mudstate.alarm_triggered = 0;
-  mudstate.lastnowmsec = mudstate.nowmsec;
+	mudstate.lastnowmsec = mudstate.nowmsec;
 	mudstate.lastnow = mudstate.now;
 	mudstate.nowmsec = time_ng(NULL);
-  mudstate.now = (time_t) floor(mudstate.nowmsec);
+	mudstate.now = (time_t) floor(mudstate.nowmsec);
 
 	do_second();
 	local_second();

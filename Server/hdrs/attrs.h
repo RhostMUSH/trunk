@@ -37,7 +37,7 @@
 #define AF_DEFAULT	0x04000000	/* TM3 Default Compatibility */
 #define AF_ATRLOCK	0x08000000	/* Attribute has to pass global attribute lock */
 #define AF_LOGGED	0x10000000	/* The attribute is logged for sets/removes */
-/* AF_REGEXP is 0x2000000 */
+/* AF_REGEXP is         0x20000000 */
 #define AF_UNSAFE	0x40000000	/* Attribute is 'unsafe' and is u()'d at obj lvl */
 
 typedef struct afstruct {

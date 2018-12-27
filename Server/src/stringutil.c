@@ -395,7 +395,7 @@ char *replace_string_ansi(const char *s_old, const char *new,
          }
       }
    }
-   result = rebuild_ansi(outbuff2, outsplit2);
+   result = rebuild_ansi(outbuff2, outsplit2, 0);
    free_lbuf(outbuff);
    free_lbuf(outbuff2);
    free_lbuf(inbuff);
@@ -872,7 +872,7 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
 }
 
 char *
-rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
+rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
    char *s_buffer;
 #ifdef ZENTY_ANSI
    char *s_inptr, *s_buffptr, *s_format;
@@ -944,7 +944,10 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       if ( (s_ptr->s_fghex[0] == '0') && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
            isxdigit(s_ptr->s_fghex[2]) && isxdigit(s_ptr->s_fghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_fghex, s_last.s_fghex)) ) {
-         i_ansi = 1;
+         if ( i_ansi < 0 )
+            i_ansi |= 1;
+         else
+            i_ansi = 1;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
@@ -953,13 +956,16 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
       if ( (s_ptr->s_bghex[0] == '0') && (ToUpper(s_ptr->s_bghex[1]) == 'X') && 
            isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
-         i_ansi = 1;
+         if ( i_ansi < 0 )
+            i_ansi |= 2;
+         else
+            i_ansi = 2;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
          i_normalize = 1;
       }
-      if ( i_ansi != 1 ) {
+      if ( (i_ansi != 1) && (i_ansi != 3) ) {
          if ( s_ptr->c_fgansi && ((i_ansi == -1) || (s_ptr->c_fgansi != s_last.c_fgansi)) ) {
             if ( isAnsi[(int) (s_ptr->c_fgansi)] ) {
                safe_chr('%', s_buffer, &s_buffptr);
@@ -968,6 +974,8 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split) {
                i_normalize = 1;
             }
          }
+      }
+      if ( (i_ansi != 2) && (i_ansi != 3) ) {
          if ( s_ptr->c_bgansi && ((i_ansi == -1) || (s_ptr->c_bgansi != s_last.c_bgansi)) ) {
             if ( isAnsi[(int) (s_ptr->c_bgansi)] ) {
                safe_chr('%', s_buffer, &s_buffptr);
@@ -1847,7 +1855,7 @@ trigger_cluster_action(dbref thing, dbref player)
          } else if ( (mudstate.clust_time + mudconf.clusterfunc_cap) < mudstate.now ) {
             s_strtok = atr_get(thing, attr->number, &aowner, &aflags);
             if ( s_strtok && *s_strtok ) {
-               s_tmpstr = exec(thing, thing, thing, EV_STRIP | EV_FCHECK | EV_EVAL, 
+               s_tmpstr = cpuexec(thing, thing, thing, EV_STRIP | EV_FCHECK | EV_EVAL, 
                                s_strtok, (char **)NULL, 0, (char **)NULL, 0);
                free_lbuf(s_tmpstr);
                mudstate.clust_time = mudstate.now;
@@ -1940,7 +1948,7 @@ utf8toucp(char *utf)
         i_b3 = strtol(tmp, &ptr, 16);
         strncpy(tmp, utf+6, 2);
         i_b4 = strtol(tmp, &ptr, 16);
-        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) - (i_b4 - 128);
+        i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) + (i_b4 - 128); // Math fix. Add i_b4, don't subtract. By eery
         sprintf(ucp, "%04x", i_ucp);
     } else {
         sprintf(ucp, "0020");

@@ -1,0 +1,26 @@
+@@ This is the main medusa object -- An alternative to site-banning
+@@
+@@ This was created to counter-act the subset of trolls that get a kick
+@@ of being able to force a site-admin to sitelock them.  They believe
+@@ it as some weird badge of honor or entitlement and get a tickle out
+@@ of it.  However, I find turning them into an object lesson as a, well,
+@@ object annoys the hell out of them.  So I came up with this tool.
+@@
+@@ Essentially add their wildcarded DNS site to &SITES.  If you have IP only
+@@ then use the IP, it's fine.  If you have a 'good' player, add them to 
+@@ the excempt list (their dbref#) and it'll bypass them from being medusa'd.
+@@
+@@ The existing SITES is ones from a known troll, provied for your pleasure.
+@@
+@@ Versioning:
+@@ Owner              Date       Description
+@@ ------------------ ---------- --------------------------------------------
+@@ Ashen-Shugar       07/18/2017 Original deployment
+@@
+@create Global: The Medusa Object=10
+@Aconnect Global: The Medusa Object=@swi/f [!!and(wildmatch(v(sites),lookup_site(%#)),!match(v(exempt),%#))]=1,{@set %#=slave fubar}
+@Adisconnect Global: The Medusa Object=@swi/f [!!wildmatch(v(sites),lookup_site(%#))]=1,{@set %#=!slave !fubar}
+@Startup Global: The Medusa Object=@dolist search(eplayer=[lit([hasflag(##,guest)])])={@swi/f [hasflag(##,connect)]=0,@set ##=!fubar !slave}
+&SITES Global: The Medusa Object=*.static.midphase.com *static.bresnan.net
+&VERSION Global: The Medusa Object=1.0.0 07/18/2017
+@set Global: The Medusa Object=INDESTRUCTABLE SAFE INHERIT

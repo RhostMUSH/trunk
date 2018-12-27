@@ -446,6 +446,24 @@ list_bufstat(dbref player, int poolnum, const char *pool_name)
     free_mbuf(buff);
 }
 
+void
+showTrackedPacketStats(dbref player) 
+{
+    char *buff;
+
+    buff = unsafe_tprintf("\nNetwork Stats (Bytes)   Daily-In:     Average-In:   Total-In:\n"
+                          "                        %-13.0f %-13.0f %-16.0f"
+                          "\n\n                        Daily-Out:    Average-Out:  Total-Out:\n"
+                          "                        %-13.0f %-13.0f %-16.0f",
+                          mudstate.daily_bytesin, 
+                         ((mudstate.avg_bytesin == 0) ? mudstate.daily_bytesin : mudstate.avg_bytesin), 
+                          mudstate.total_bytesin,
+                          mudstate.daily_bytesout, 
+                         ((mudstate.avg_bytesout == 0) ? mudstate.daily_bytesout : mudstate.avg_bytesout), 
+                          mudstate.total_bytesout);
+   notify(player, buff);
+}
+
 void 
 list_bufstats(dbref player)
 {
@@ -456,7 +474,7 @@ list_bufstats(dbref player)
 	list_bufstat(player, i, poolnames[i]);
 
     showTrackedBufferStats(player);
-
+    showTrackedPacketStats(player);
     showdbstats(player);
 
 }

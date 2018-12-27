@@ -89,6 +89,8 @@ NDECL(cf_init)
 	strcpy(mudconf.ip_address, "0.0.0.0");
     mudconf.port = 6250;
     mudconf.html_port = 6251;
+    mudconf.api_port = -1;
+    mudconf.api_nodns = 0;
     mudconf.debug_id = 44660;
     mudconf.authenticate = 1;
     mudconf.init_size = 1000;
@@ -149,6 +151,8 @@ NDECL(cf_init)
     memset(mudconf.nobroadcast_host, 0, sizeof(mudconf.nobroadcast_host));
     memset(mudconf.guest_namelist, 0, sizeof(mudconf.guest_namelist));
     memset(mudconf.log_command_list, 0, sizeof(mudconf.log_command_list));
+    mudconf.mailmutt = 0;
+    mudconf.guest_randomize = 0; /* Randomize guests */
     mudconf.mailsub = 1;
     mudconf.mailbox_size = 99;
     mudconf.mailmax_send = 100;
@@ -299,6 +303,7 @@ NDECL(cf_init)
     mudconf.function_max = 1000;	/* Maximum functions allowed period */
     mudconf.blind_snuffs_cons = 0;	/* BLIND flag snuff connect/disconnect */
     mudconf.atrperms_max = 100;		/* Maximum attribute prefix perms */
+    mudconf.atrperms_checkall = 0;	/* Check all attrib perms -- can be expensive */
     mudconf.safer_ufun = 0;		/* are u()'s and the like protected */
     mudconf.listen_parents = 0;		/* ^listens do parents */
     mudconf.icmd_obj = -1;		/* @icmd eval object */
@@ -322,14 +327,26 @@ NDECL(cf_init)
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
     mudconf.objid_offset = 0;		/* seconds of offset that it should use */
     mudconf.hook_offline = 0;		/* Trigger @hook/after on offline player create */
+    mudconf.protect_addenh = 0;		/* Enhanced @protect/add */
+    mudconf.posesay_funct = 0;		/* Enable functions in SPEECH_PREFIX/SPEECH_SUFFIX */
+    mudconf.rollbackmax = 1000;		/* Maximum rollback value (10-10000) */
+    mudconf.exec_secure = 1;		/* execscript() escapes out everything by default */
+    mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
+    mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
+    mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
+    mudconf.vlimit = 400;		/* Runtime vlimit here */
+    mudconf.mtimer = 10;
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
     memset(mudconf.cap_preposition, '\0', sizeof(mudconf.cap_preposition));
     memset(mudconf.atrperms, '\0', sizeof(mudconf.atrperms));
     memset(mudconf.tor_localhost, '\0', sizeof(mudconf.tor_localhost));
-    memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+    memset(mudconf.tree_character, '\0', sizeof(mudconf.tree_character));
+    memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
+    memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
     strcpy(mudconf.tree_character, (char *)"`");
+    memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -338,6 +355,19 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
+    mudstate.mail_inline = 0;		/* Mail is inline */
+    mudstate.iter_special = 0;		/* iter inf special */
+    mudstate.trace_indent = 0;		/* Initialize trace indent */
+    mudstate.total_bytesin = 0;		/* Bytes total into the mush */
+    mudstate.total_bytesout = 0;	/* Bytes total out of the mush */
+    mudstate.daily_bytesin = 0;		/* Bytes total in for current day */
+    mudstate.daily_bytesout = 0;	/* Bytes total out for current day */
+    mudstate.avg_bytesin = 0;		/* Bytes total in avg */
+    mudstate.avg_bytesout = 0;		/* Bytes total out avg */
+    mudstate.reset_daily_bytes = time(NULL); /* Reset marker for daily totals */
+    mudstate.posesay_dbref = -1;	/* Dbref# of person doing @emit/say/pose */
+    mudstate.posesay_fluff = 0;		/* Pose and say fluff */
     mudstate.no_hook = 0;		/* Do not process hooks */
     mudstate.no_hook_count = 0;		/* Count of times hook include can be called per command */
     mudstate.zone_return = 0;		/* State data of zonecmd() */
@@ -348,6 +378,13 @@ NDECL(cf_init)
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
     mudstate.breakst = 0;
+    mudstate.jumpst = 0;
+    memset(mudstate.gotolabel, '\0', 16);
+    mudstate.gotostate = 0;
+    mudstate.rollbackcnt = 0;
+    mudstate.rollbackstate = 0;
+    mudstate.inlinestate = 0;
+    memset(mudstate.rollback, '\0', LBUF_SIZE);
     mudstate.breakdolist = 0;
     mudstate.dolistnest = 0;
     mudstate.twinknum = -1;		/* Dbref of originator if inside a twinklock */
@@ -384,7 +421,10 @@ NDECL(cf_init)
     mudstate.ahear_currtime = 0;
     mudstate.ahear_lastplr = -1;
     mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_inline = 0;
+    memset(mudstate.chkcpu_inlinestr, '\0', SBUF_SIZE);
     mudstate.chkcpu_locktog = 0;
+    mudstate.chkcpu_stopper = time(NULL);
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
     mudstate.curr_percentsubs = 0; /* Counter for substitutions called */
     mudstate.cntr_reset = time_ng(NULL);
@@ -506,7 +546,6 @@ NDECL(cf_init)
     mudconf.robot_toggles.word6 = 0;
     mudconf.robot_toggles.word7 = 0;
     mudconf.robot_toggles.word8 = 0;
-    mudconf.vlimit = 400;
     mudconf.vattr_flags = AF_ODARK;
     mudconf.abort_on_bug = 0;
     mudconf.rwho_transmit = 0;
@@ -632,11 +671,15 @@ NDECL(cf_init)
     /* Connection security level */
     mudstate.cmp_lastsite = -1;
     mudstate.cmp_lastsite_cnt = 0;
+    mudstate.api_lastsite = -1;
+    mudstate.api_lastsite_cnt = 0;
     mudconf.lastsite_paranoia = 0; /* 0-off, 1-register, 2-forbid */
     mudconf.pcreate_paranoia = 0; /* 0-off, 1-register, 2-forbid */
     mudconf.max_lastsite_cnt = 20;	/* Shouldn't connect more than 20 times in X period */
+    mudconf.max_lastsite_api = 60;	/* API Shouldn't connect more than 60 times in X period */
     mudconf.min_con_attempt = 60;	/* 60 seconds default */
     mudstate.last_con_attempt = 0;
+    mudstate.last_apicon_attempt = 0;
     mudconf.max_pcreate_lim = -1;
     mudconf.max_pcreate_time = 60;
     mudstate.last_pcreate_time = 0;
@@ -756,6 +799,7 @@ NDECL(cf_init)
     for (i = 0; i < MAX_GLOBAL_REGS; i++) {
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
+	mudstate.global_regs_backup[i] = NULL;
     }
     mudstate.remote = NOTHING;
     mudstate.remotep = NOTHING;
@@ -800,7 +844,7 @@ NDECL(cf_init)
     mudconf.ntfy_nest_lim = 20;
     mudconf.cache_trim = 0;
     mudconf.cache_steal_dirty = 1;
-    mudconf.vlimit = 750;
+    mudconf.vlimit = 100000; /* we need this to be very large for db conversions */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.vattr_limit_checkwiz = 0; /* Check if wizards check vattr limits */
     mudstate.logging = 0;
@@ -824,6 +868,7 @@ NDECL(cf_init)
 
 #ifndef STANDALONE
 
+#ifdef REALITY_LEVELS
 static int
 countwordsnew(char *str)
 {
@@ -843,6 +888,7 @@ countwordsnew(char *str)
     }
     return n;
 }
+#endif
 
 /* ---------------------------------------------------------------------------
  * cf_log_notfound: Log a 'parameter not found' error.
@@ -1161,6 +1207,28 @@ CF_HAND(cf_mailint)
 	return 0;
     }
 }
+
+CF_HAND(cf_timerint)
+{
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < extra2) || (vp_old > extra)) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
+        }
+	return -1;
+    } else if ( (vp_old != 1) && (vp_old != 10) && (vp_old != 100) && (vp_old != 1000) ) {
+        if ( !mudstate.initializing) {
+           notify(player, unsafe_tprintf("Value must be 1, 10, 100, or 1000.", extra2, extra));
+        }
+	return -1;
+    } else {
+        *vp = vp_old;
+	return 0;
+    }
+}
+
 CF_HAND(cf_verifyint)
 {
     int vp_old = 0;
@@ -1846,7 +1914,7 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
       return 1;
    }
 
-   ap = atr_str((char *)"AFLAG_EVAL");
+   ap = atr_str_atrpeval((char *)"AFLAG_EVAL");
    if ( !ap ) {
       return 1;
    }
@@ -1862,11 +1930,11 @@ atrpEval(int key, char *s_attr, dbref player, dbref target, int i_type)
    mybuff[1] = alloc_sbuf("atrpEval2");
    mybuff[2] = alloc_sbuf("atrpEval3");
    mybuff[3] = NULL;
-   strncpy(mybuff[0], s_attr, SBUF_SIZE);
+   strncpy(mybuff[0], s_attr, SBUF_SIZE-1);
    sprintf(mybuff[1], "#%d", target);
    sprintf(mybuff[2], "%d", i_type);
    mudstate.insideaflags = 1;
-   retval = exec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
+   retval = cpuexec(player, player, player, EV_STRIP | EV_FCHECK | EV_EVAL,
                             atext, mybuff, 3, (char **)NULL, 0);
    mudstate.insideaflags = 0;
    free_sbuf(mybuff[0]);
@@ -1887,10 +1955,14 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
    dbref i_player;
+   int i_return;
 
    i_player = player;
-   if ( Typeof(player) != TYPE_PLAYER )
+   if ( Typeof(player) != TYPE_PLAYER ) {
       i_player = Owner(player);
+   }
+   
+   i_return = -1;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
       if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
@@ -1908,11 +1980,20 @@ attrib_cansee(dbref player, const char *name, dbref owner, dbref target)
                  ((HasPriv(player, NOTHING, POWER_EX_FULL, POWER5, NOTHING) && ExFullWizAttr(player)) && atrvWiz(atrp->flag_see)) ||
                   atrpEval(atrp->flag_see, (char *)name, player, target, 0) ||
                   atrpCit(atrp->flag_see) ) {
-               return 1;
+               i_return = 1;
+            } else {
+               if ( i_return == -1 ) {
+                  i_return = 0;
+               }
             }
-            return 0;
+            if ( !mudconf.atrperms_checkall ) {
+               return i_return;
+            }
          }
       }
+   }
+   if ( i_return == -1 ) {
+      i_return = 1;
    }
    return 1;
 }
@@ -1922,10 +2003,14 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
 {
    ATRP *atrp;
    dbref i_player;
+   int i_return;
 
    i_player = player;
-   if ( Typeof(player) != TYPE_PLAYER )
+   if ( Typeof(player) != TYPE_PLAYER ) {
       i_player = Owner(player);
+   }
+
+   i_return = -1;
 
    for (atrp = atrp_head; atrp; atrp = atrp->next) {
       if ( ((atrp->owner == -1) || (atrp->owner == owner)) && 
@@ -1942,13 +2027,22 @@ attrib_canset(dbref player, const char *name, dbref owner, dbref target)
                  (!(Wanderer(player) || Guest(player)) && atrpPreReg(atrp->flag_set)) ||
                   atrpEval(atrp->flag_set, (char *)name, player, target, 1) ||
                   atrpCit(atrp->flag_set) ) {
-               return 1;
+               i_return = 1;
+            } else {
+               if ( i_return == -1 ) {
+                  i_return = 0;
+               }
             }
-            return 0;
+            if ( !mudconf.atrperms_checkall ) {
+               return i_return;
+            }
          }
       }
    }
-   return 1;
+   if ( i_return == -1 ) {
+      i_return = 1;
+   }
+   return i_return;
 }
 
 char *
@@ -2026,10 +2120,10 @@ add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
    i_see = i_set = i_owner = i_target = i_enactor = -1; 
    t_strtok = strtok_r(s_output, " \t", &t_strtokptr);
    if ( t_strtok ) {
-      i_see = atoi(t_strtok);
+      i_set = atoi(t_strtok);
       t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
       if ( t_strtok ) {
-         i_set = atoi(t_strtok);
+         i_see = atoi(t_strtok);
          t_strtok = strtok_r(NULL, " \t", &t_strtokptr);
          if ( t_strtok ) {
             if ( *t_strtok == '#' )
@@ -2071,7 +2165,7 @@ add_perms(dbref player, char *s_input, char *s_output, char **cargs, int ncargs)
          return;
       }
    }
-   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt, mudconf.atrperms_max));
+   notify(player, unsafe_tprintf("Entry added [%d of %d used].", i_atrperms_cnt + 1, mudconf.atrperms_max));
    atrp  = (ATRP *) malloc(sizeof(ATRP));
    atrp->name = alloc_sbuf("attribute_perm_array");
    memset(atrp->name, '\0', SBUF_SIZE);
@@ -2359,6 +2453,9 @@ display_perms(dbref player, int i_page, int i_key, char *fname)
        notify(player, safe_tprintf(tprbuff, &tprpbuff, 
                                    "----------------------------[%6d/%6d max]-------------------------------", 
                                    i_cnt, ((mudconf.atrperms_max > 10000) ? 10000 : mudconf.atrperms_max)));
+    if ( mudconf.atrperms_checkall ) {
+       notify(player, "All @aflag permissions are checked against lowest permission.");
+    }
     notify(player, "Note: Immortals are treated as god with regards to seeing attributes.");
     free_lbuf(tprbuff);
 }
@@ -2609,22 +2706,27 @@ CF_HAND(cf_atrperms)
 CF_HAND(cf_string_chr)
 {
     int retval;
+    long l_diff;
     char *buff;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -2639,22 +2741,27 @@ CF_HAND(cf_string_chr)
 CF_HAND(cf_string)
 {
     int retval;
+    long l_diff;
     char *buff;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -2665,22 +2772,27 @@ CF_HAND(cf_string)
 CF_HAND(cf_string_sub)
 {
     int retval;
+    long l_diff;
     char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-:", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
     retval = 0;
-    if (strlen(str) >= extra) {
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
 	str[extra - 1] = '\0';
 	if (mudstate.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
-	    sprintf(buff, "%.3900s: String truncated", cmd);
-	    log_text(buff);
-	    free_lbuf(buff);
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
 	    ENDLOG
 	} else {
-	    notify(player, "String truncated");
+	    buff = alloc_lbuf("cf_string.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
 	}
 	retval = 1;
     }
@@ -3322,7 +3434,9 @@ CF_HAND2(cf_site)
 	  cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
 	  return -1;
        }
-       maskval = (0xFFFFFFFFUL << (32 - maskval));
+       if ( maskval != 0 ) {
+          maskval = (0xFFFFFFFFUL << (32 - maskval));
+       }
        mask_num.s_addr = htonl(maskval);
     } else
        mask_num.s_addr = inet_addr(mask_txt);
@@ -3411,8 +3525,14 @@ CF_HAND(cf_cf_access)
 {
     CONF *tp;
     char *ap;
-
+    /* eat all starting spaces  and skip if blank line */
+    for (ap = str; *ap && isspace((int)*ap); ap++);
+    if ( !*ap ) {
+       return 0;
+    }
+    /* grab the first word */
     for (ap = str; *ap && !isspace((int)*ap); ap++);
+
     if (*ap)
 	*ap++ = '\0';
 
@@ -3580,6 +3700,9 @@ CONF conftable[] =
      {(char *) "exits_connect_rooms",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
      (char *) "Is a room with an exit considered floating?"},
+    {(char *) "exit_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default exit separation." },
     {(char *) "cache_depth",
      cf_int, CA_DISABLED, &mudconf.cache_depth, 0, 0, CA_WIZARD,
      (char *) "Show what the current cache debth is.\r\n"\
@@ -3600,6 +3723,9 @@ CONF conftable[] =
     {(char *) "atrperms",
      cf_atrperms, CA_GOD | CA_IMMORTAL, (int *) mudconf.atrperms, LBUF_SIZE - 2, 0, CA_WIZARD,
      (char *) "Prefix permission masks for attributes."},
+    {(char *) "atrperms_checkall",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_checkall, 0, 0, CA_WIZARD,
+     (char *) "Are @aflag attribute permissions checked to lowest?"},
     {(char *) "atrperms_max",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.atrperms_max, 0, 0, CA_WIZARD,
      (char *) "Max Attribute Prefix Permissions?\r\n"
@@ -3729,6 +3855,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_dest_limit, 0, 0, CA_WIZARD,
      (char *) "Max times user allowed to use @destroy.\r\n"\
               "                             Default: 1000   Value: %d"},
+    {(char *) "max_lastsite_api",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_lastsite_api, 500, 1, CA_WIZARD,
+     (char *) "Max times API samesite allowed to connect in row.\r\n"\
+              "(Range: 1-500 - 120+ warn)   Default: 60   Value: %d"},
     {(char *) "max_lastsite_cnt",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_lastsite_cnt, 0, 0, CA_WIZARD,
      (char *) "Max times samesite allowed to connect in row.\r\n"\
@@ -3736,7 +3866,7 @@ CONF conftable[] =
     {(char *) "max_name_protect",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_name_protect, 100, 0, CA_WIZARD,
      (char *) "Max name protections a player is allowed.\r\n"\
-              "                             Default: 0   Value: %d"},
+              "     (Range: 0-100)          Default: 0   Value: %d"},
     {(char *) "max_pcreate_lim",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_pcreate_lim, 0, 0, CA_WIZARD,
      (char *) "Max times a player can create on connect screen.\r\n"\
@@ -3794,6 +3924,13 @@ CONF conftable[] =
     {(char *) "ansi_txtfiles",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_txtfiles, 0, 0, CA_WIZARD,
      (char *) "Are .txt files processed for ansi?"},
+    {(char *) "api_port",
+     cf_int, CA_DISABLED, &mudconf.api_port, 0, 0, CA_WIZARD,
+     (char *) "Specifies what the API port is.  '-1' disables this.\r\n"\
+              "                             Default: -1   Value: %d"},
+    {(char *) "api_nodns",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.api_nodns, 0, 0, CA_WIZARD,
+     (char *) "Are site DNS lookups done for the API layer?"},
     {(char *) "authenticate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.authenticate, 0, 0, CA_WIZARD,
      (char *) "Are site AUTH/IDENT lookups done?"},
@@ -3827,6 +3964,9 @@ CONF conftable[] =
     {(char *) "dump_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.dump_msg, 128, 0, CA_WIZARD,
      (char *) "Message seen BEFORE database dumps."},
+    {(char *) "posesay_funct",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.posesay_funct, 0, 0, CA_PUBLIC,
+     (char *) "Does SPEECH_PREFIX/SPEECH_SUFFIX allow functions?"},
     {(char *) "postdump_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.postdump_msg, 128, 0, CA_WIZARD,
      (char *) "Message seen AFTER database dumps."},
@@ -3866,6 +4006,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.examine_restrictive, 0, 0, CA_PUBLIC,
      (char *) "What level is restrictions on Examine?\r\n"\
               "  (0-off 1-6 level based)    Default: 0   Value: %d"},
+    {(char *) "exec_secure",
+     cf_bool, CA_DISABLED, &mudconf.exec_secure, 0, 0, CA_WIZARD,
+     (char *) "Is execscript() escaping everything?"},
     {(char *) "exit_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_flags, 0, 0, CA_PUBLIC,
      (char *) "These are default flags set on new exits."},
@@ -3923,10 +4066,17 @@ CONF conftable[] =
     {(char *) "tree_character",
      cf_string_chr, CA_GOD | CA_IMMORTAL, (int *) mudconf.tree_character, 2, 0, CA_WIZARD,
      (char *) "The character for the tree seperator."},
+    {(char *) "forbidapi_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     H_FORBIDAPI, 0, CA_WIZARD,
+     (char *) "This specifies sites for forbid that are API."},
     {(char *) "forbid_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
      H_FORBIDDEN, 0, CA_WIZARD,
      (char *) "This specifies sites for forbid."},
+    {(char *) "forbidapi_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbidapi_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to forbid API."},
     {(char *) "forbid_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to forbid."},
@@ -4050,6 +4200,9 @@ CONF conftable[] =
     {(char *) "goodmail_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to ALLOW ALWAYS from autoreg."},
+    {(char *) "guest_randomize",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.guest_randomize, 0, 0, CA_WIZARD,
+     (char *) "Guests connect in random order?"},
     {(char *) "guest_file",
      cf_string, CA_DISABLED, (int *) mudconf.guest_file, 32, 0, CA_WIZARD,
      (char *) "File used for guest connections."},
@@ -4084,6 +4237,9 @@ CONF conftable[] =
     {(char *) "help_index",
      cf_string, CA_DISABLED, (int *) mudconf.help_indx, 32, 0, CA_WIZARD,
      (char *) "Index used for help."},
+    {(char *) "help_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.help_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default help separation." },
     {(char *) "hide_nospoof",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hide_nospoof, 0, 0, CA_WIZARD,
      (char *) "Is the NOSPOOF flag hidden from others?"},
@@ -4177,6 +4333,10 @@ CONF conftable[] =
     {(char *) "ip_address",
      cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
      (char *) "IP address for the MUSH to listen on."},
+    {(char *) "iter_loop_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.iter_loop_max, 0, 0, CA_PUBLIC,
+     (char *) "Maximum iteration allowed for iter() infinite looops.\r\n"\
+              "                             Default: 100000   Value: %d"},
     {(char *) "kill_guarantee_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.killguarantee, 0, 0, CA_PUBLIC,
      (char *) "How much money to guarentee a kill?\r\n"\
@@ -4296,6 +4456,9 @@ CONF conftable[] =
     {(char *) "mailprog",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.mailprog, 16, 0, CA_WIZARD,
      (char *) "Program used for autoregistering (Def. elm)."},
+    {(char *) "mailmutt",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.mailmutt, 0, 0, CA_PUBLIC,
+     (char *) "Do you want MUTT compatibility for mail?"},
     {(char *) "mailsub",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.mailsub, 0, 0, CA_WIZARD,
      (char *) "Are subjects included in autoregistration?"},
@@ -4350,6 +4513,10 @@ CONF conftable[] =
     {(char *) "motd_message",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
+    {(char *) "mtimer",
+     cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 1000, 1, CA_WIZARD,
+     (char *) "The milisecond timer offset to be used.\r\n"\
+              "                             Default: 10   Value: %d"},
     {(char *) "muddb_name",
      cf_string, CA_DISABLED, (int *) mudconf.muddb_name, 32, 0, CA_PUBLIC,
      (char *) "The name used for the RhostMUSH DB's (mail/news)."},
@@ -4433,6 +4600,9 @@ CONF conftable[] =
     {(char *) "notonerr_return",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.notonerr_return, 0, 0, CA_PUBLIC,
      (char *) "Does #-1 return a '0' on boolean logic?"},
+    {(char *) "null_is_idle",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.null_is_idle, 0, 0, CA_PUBLIC,
+     (char *) "Will '@@' be treated like 'idle' for updating idle time?"},
     {(char *) "num_guests",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_num_guests, 0, 0, CA_WIZARD,
      (char *) "Maximum number of guests allowed.\r\n"\
@@ -4496,6 +4666,20 @@ CONF conftable[] =
     {(char *) "partial_deconn",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.partial_deconn, 0, 0, CA_PUBLIC,
      (char *) "Partial deconn trig master-room @adisconnect?"},
+    {(char *) "passapi_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     H_PASSAPI, 0, CA_WIZARD,
+     (char *) "Site list for specifying those who pass api checks (forbid overrides)."},
+    {(char *) "passapi_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.passapi_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to pass API."},
+    {(char *) "passproxy_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.suspect_list,
+     H_PASSPROXY, 0, CA_WIZARD,
+     (char *) "Site list for specifying those who pass proxy checks."},
+    {(char *) "passproxy_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.passproxy_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to bypass proxy checks."},
     {(char *) "paycheck",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.paycheck, 0, 0, CA_PUBLIC,
      (char *) "Money player receives daily on connect.\r\n"\
@@ -4581,6 +4765,9 @@ CONF conftable[] =
     {(char *) "float_precision",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.float_precision, 48, 1, CA_WIZARD,
      (char *) "The decimal placement of float precision for math functions.   Default: 0   Value: %d"},
+    {(char *) "protect_addenh",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.protect_addenh, 0, 0, CA_WIZARD,
+     (char *) "Will you allow arguments to @protect/add?"},
     {(char *) "proxy_checker",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.proxy_checker, 0, 0, CA_WIZARD,
      (char *) "The Proxy Checker.  0 off, >0 on, 2 block guests, 4 block register.\r\n"\
@@ -4611,6 +4798,10 @@ CONF conftable[] =
     {(char *) "quotas",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.quotas, 0, 0, CA_PUBLIC,
      (char *) "Are @quotas being used?"},
+    {(char *) "rollbackmax",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.rollbackmax, 10000, 10, CA_WIZARD,
+     (char *) "Max rollback (retry) count allowed.\r\n"\
+              "      Range: 10-10000        Default: 1000   Value: %d"},
     {(char *) "rooms_can_open",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.rooms_can_open, 0, 0, CA_PUBLIC,
      (char *) "Are rooms able to use @open/open()?"},
@@ -4845,8 +5036,8 @@ CONF conftable[] =
      (char *) "Quota that each thing takes up.\r\n"\
               "                             Default: 1   Value: %d"},
     {(char *) "timeslice",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 0, 0, CA_WIZARD,
-     (char *) "N/A\r\n"\
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 100000, 1, CA_WIZARD,
+     (char *) "Timeslice for next player commands (must be >0)\r\n"\
               "                             Default: 1000   Value: %d"},
     {(char *) "trace_output_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.trace_limit, 0, 0, CA_WIZARD,
@@ -5460,6 +5651,9 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_verifyint) ||
+           (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
@@ -5479,6 +5673,9 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_int_runtime) ||
            (tp->interpreter == cf_mailint) ||
            (tp->interpreter == cf_vint) ||
+           (tp->interpreter == cf_verifyint) ||
+           (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
           (check_access(player, tp->flags2, 0, 0))) {
@@ -5567,6 +5764,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_int_runtime) ||
                     (tp->interpreter == cf_mailint) ||
                     (tp->interpreter == cf_vint) ||
+                    (tp->interpreter == cf_timerint) ||
                     (tp->interpreter == cf_chartoint) ||
                     (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {

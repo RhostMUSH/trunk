@@ -171,6 +171,8 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_SAY:
                 pbuf = atr_get(player, A_SAYSTRING, &aowner, &aflags);
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
+                mudstate.posesay_dbref = player;
                 if ( SafeLog(player) ) {
                    if ( pbuf && *pbuf ) {
                       if ( no_ansi ) {
@@ -271,11 +273,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
 #endif /* REALITY_LEVELS */
                    }
                 }
+                mudstate.posesay_fluff = 0;
+                mudstate.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
                 free_lbuf(pbuf);
 		break;
 	case SAY_POSE:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
+                mudstate.posesay_dbref = player;
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
@@ -313,10 +319,14 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
+                mudstate.posesay_fluff = 0;
+                mudstate.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_POSE_NOSPC:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
+                mudstate.posesay_fluff = 1;
+                mudstate.posesay_dbref = player;
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
@@ -354,9 +364,13 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
+                mudstate.posesay_fluff = 0;
+                mudstate.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_EMIT:
+                mudstate.posesay_fluff = 1;
+                mudstate.posesay_dbref = player;
 	        if (say_flags2 & SAY_SUBSTITUTE)
 		  mudstate.emit_substitute = 1;
 		if ((say_flags & SAY_HERE) || !say_flags) {
@@ -377,6 +391,8 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		if (say_flags & SAY_ROOM) {
                    if ((Typeof(loc) == TYPE_ROOM) && (say_flags & SAY_HERE)) {
                       mudstate.emit_substitute = 0;
+                      mudstate.posesay_fluff = 0;
+                      mudstate.posesay_dbref = -1;
                       return;
                    }
                    depth = 0;
@@ -384,6 +400,8 @@ void do_say (dbref player, dbref cause, int key, char *message)
                       loc = Location(loc);
                       if ((loc == NOTHING) || (loc == Location(loc))) {
                          mudstate.emit_substitute = 0;
+                         mudstate.posesay_fluff = 0;
+                         mudstate.posesay_dbref = -1;
                          return;
                       }
                    }
@@ -403,6 +421,8 @@ void do_say (dbref player, dbref cause, int key, char *message)
 #endif /* REALITY_LEVELS */
                    }
 		}
+                mudstate.posesay_fluff = 0;
+                mudstate.posesay_dbref = -1;
 		mudstate.emit_substitute = 0;
 		break;
 	case SAY_SHOUT:
@@ -607,15 +627,17 @@ static void page_return (dbref player, dbref target, const char *tag,
                          int anum, const char *dflt, const char *s_pagestr)
 {
    dbref aowner;
-   int aflags, i_pagebuff;
+   int aflags, i_pagebuff, chk_tog;
    char *str, *str2, *tpr_buff, *tprp_buff, *s_pagebuff[2];
    struct tm *tp;
-   time_t t;
+   time_t t, chk_stop;
 
    if (Wizard(player))
       mudstate.droveride = 1;
    str = atr_pget(target, anum, &aowner, &aflags);
    if (*str) {
+      chk_stop = mudstate.chkcpu_stopper;
+      chk_tog  = mudstate.chkcpu_toggle;
       mudstate.chkcpu_stopper = time(NULL);
       mudstate.chkcpu_toggle = 0;
       s_pagebuff[1] = NULL;
@@ -626,8 +648,8 @@ static void page_return (dbref player, dbref target, const char *tag,
          s_pagebuff[0] = NULL;
          i_pagebuff = 0;
       }
-      str2 = exec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
-                  s_pagebuff, i_pagebuff, (char **)NULL, 0);
+      str2 = cpuexec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
+                     s_pagebuff, i_pagebuff, (char **)NULL, 0);
       t = time(NULL);
       tp = localtime(&t);
       if (*str2) {
@@ -642,6 +664,8 @@ static void page_return (dbref player, dbref target, const char *tag,
          free_lbuf(tpr_buff);
       }
       free_lbuf(str2);
+      mudstate.chkcpu_stopper = chk_stop;
+      mudstate.chkcpu_toggle = chk_tog;
    } else if (dflt && *dflt) {
       notify_with_cause(player, target, dflt);
    }
@@ -1696,6 +1720,10 @@ ZLISTNODE *z_ptr, *y_ptr;
    if ((Flags3(player) & NO_PESTER) && (key & (PEMIT_PEMIT|PEMIT_LIST|PEMIT_WHISPER|PEMIT_CONTENTS))) {
       notify(player, "Permission denied.");
       return;
+   }
+   /* If NS, strip FPOSE but leave NS -- fall-through on a switch */
+   if ( key & PEMIT_FPOSE_NS ) {
+      key &=~PEMIT_FPOSE;
    }
    if ( key & SIDEEFFECT ) {
       key &=~SIDEEFFECT;

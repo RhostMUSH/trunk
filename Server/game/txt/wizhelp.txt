@@ -427,20 +427,20 @@
   slay            WHO             wizhelp        mail            wmail
   channel         cd              news           newsdb
  
-  @admin          @aflags         @apply_marked  @areg           @attribute 
-  @blacklist      @boot           @chown         @chownall       @clone     
-  @conncheck      @convert        @cut           @dbck           @dbclean
-  @depower        @destroy        @disable       @doing          @dump       
-  @dynhelp        @enable         @fixdb         @flag           @flagdef    
-  @freeze         @function       @halt          @hide           @hook       
-  @icmd           @kick           @limit         @list           @list_file  
-  @listmotd       @lock           @log           @logrotate      @mark       
-  @mark_all       @money          @motd          @newpassword    @nuke       
-  @pcreate        @poor           @power         @progreset      @protect    
-  @ps             @purge          @quota         @readcache      @reboot     
-  @recover        @reclist        @remote        @rwho           @site       
-  @shutdown       @snapshot       @thaw          @timewarp       @toad       
-  @tor            @turtle         @wall          +players
+  @admin          @aflags         @api           @apply_marked   @areg       
+  @attribute      @blacklist      @boot          @chown          @chownall   
+  @clone          @conncheck      @convert       @cut            @dbck       
+  @dbclean        @depower        @destroy       @disable        @doing      
+  @dump           @dynhelp        @enable        @fixdb          @flag      
+  @flagdef        @freeze         @function      @halt           @hide       
+  @hook           @icmd           @kick          @limit          @list       
+  @list_file      @listmotd       @lock          @log            @logrotate   
+  @mark           @mark_all       @money         @motd           @newpassword
+  @nuke           @pcreate        @poor          @power          @progreset  
+  @protect        @ps             @purge         @quota          @readcache  
+  @reboot         @recover        @reclist       @remote         @rwho       
+  @site           @shutdown       @snapshot      @thaw           @timewarp   
+  @toad           @tor            @turtle        @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -453,16 +453,199 @@
 & topics
   Help available on the following Topics:
  
-  CAUTIONS           CONFIG PARAMETERS  DEBUG FEATURES     FILES
-  FLAGS              INHERITANCE        LOGGING            MASTER ROOM
-  PERMISSIONS        SEARCH CRITERIA    SITE LISTS         TOGGLES
-  POWER LIST         DEPOWER LIST       AUTOREGISTRATION   CLOAKING
-  ALT INVENTORIES    CPU                GUEST SETUP        NEWS SETUP
-  HELP SETUP         PLUSHELP SETUP     HUH SETUP          ELSEFILE SETUP
-  REALITY LEVELS     MAIL ALIASES       HOOK SETUP         FUNCTION OVERLOADING
-  FLAG ALIAS         ATTRIB CONTLOCKS   GLOBAL INHERITANCE ATTRIB FORMATTING
-  SIGNALS            TOR                CONTROL            CUSTOMIZED CONNECT
-  SPECIAL ATTRIBS
+  API                   CAUTIONS         CONFIG PARAMETERS  DEBUG FEATURES   
+  FILES                 FLAGS            INHERITANCE        LOGGING          
+  MASTER ROOM           PERMISSIONS      SEARCH CRITERIA    SITE LISTS       
+  TOGGLES               POWER LIST       DEPOWER LIST       AUTOREGISTRATION 
+  CLOAKING              ALT INVENTORIES  CPU                GUEST SETUP      
+  NEWS SETUP            HELP SETUP       PLUSHELP SETUP     HUH SETUP        
+  ELSEFILE SETUP        REALITY LEVELS   MAIL ALIASES       HOOK SETUP       
+  FUNCTION OVERLOADING  FLAG ALIAS       ATTRIB CONTLOCKS   GLOBAL INHERITANCE
+  ATTRIB FORMATTING     SIGNALS          TOR                CONTROL          
+  CUSTOMIZED CONNECT    SPECIAL ATTRIBS
+
+& API
+  Topic: API
+  
+  RhostMUSH has a process where it allows API connections to happen on another
+  port.  It requires to have the api_port specified to a unique port for the
+  API handler, then various optional config parameters to optimize how the
+  API works.  The API, unlike normal connections, allows any valid dbref# to
+  talk to the mush from the API engine.  It does this through multi-factor
+  authentication including host match and password authentication.
+  
+  It uses Basic Authorization and encapsulates.  Example of using curl for
+  login authentication to the API's object would be:
+             curl --user "#123:foobar"
+  
+  The dbref# would be #123, and the password you want to authenticate would
+  be 'foobar'.
+  
+  The API handler uses headers only.  No data is recognized.
+  
+  The following config options exist:
+    api_port          -- Port that the API engine listens on
+    api_nodns         -- Optionally disable DNS lookups.  Auth lookups
+                         are already disabled.
+    forbidapi_host    -- Forbid the given hostname from connecting to 
+                         the API
+    forbidapi_site    -- Forbid the given IP from connecting to the API
+    passapi_host      -- Allow hostname to bypasses the max_lastsite_api 
+                         restriction
+    passapi_site      -- Allow IP mask to bypasses the max_lastsite_api 
+                         restriction
+    max_lastsite_api  -- Maximum number of connections from a given site
+                         to the API handler a minute before auto-forbid.
+  
+  To configure a dbref# to be allowed to process API requests, you must 
+  configure the dbref#.  To do this you use the @api command.  If you wish
+  to monitor all API connections, you can do so with a specific @power.
+  The @power acts as an additional 'power up' to the existing MONITOR_SITE
+  and for busy API systems can be quite spammy.  You have been warned.
+  
+  The following @powers are relevant to the API subsystem:
+    API               -- The main API enable/disable control mechanism
+                         that specifies if a dbref# can be used for API
+                         processing.  @api interfaces this.
+    MONITORAPI        -- The MONITOR filter for API connections.
+  
+  The following attributes are relevant to the API subsystem:
+    _APIPASSWD        -- The attribute the encrypted password is stored
+                         for the dbref#.  @api interfaces this.
+    _APIIP            -- The allowable ip addresses that can use that
+                         specific dbref# for connections.  Defaults to
+                         just localhost.
+  
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API SETUP
+  Topic: API SETUP
+  
+  To setup and initialize a dbref# for use for the API subsystem, you would
+  use the @api command to configure it.  The following steps are required.
+  
+  1.  @api/enable <target>
+      -- This will tag the target to be API enabled.  It essentially sets
+         the target with the API @power.  While any valid dbref# will work
+         if you plan to use players you want to take extra percautions.
+  
+  2.  @api/password <target>=<password>
+      -- This sets a password hash of <password> that you then use to connect
+         to the target dbref# using the API subsystem.  If it doesn't match
+         the password it can't connect.
+  
+  3.  @api/ip <taget>=<site(s)>  
+      -- This is a list of wild-carded IP addresses that you wish to allow
+         connectivity through the API to that specific dbref#.  This is an
+         optional step and if not specified defaults to localhost only.
+  
+  4.  @api/status <target>
+      -- This will check the target object to make sure it's ready for API
+         connectivity.
+  
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API PROCESSING
+  Topic: API PROCESSING
+  
+  To actually execute an API request, you need to send a web request to the 
+  API handler.  The API handler handles two request types.  POST and GET.
+  You use the POST handler to push (or execute) code on the mush, and the GET
+  handler to fetch (or receive) results from the mush.  It does this by using
+  HTTP headers only to configure the requests.  It uses customized headers.
+  
+  The following headers are available with the following options:
+  POST:
+     header - Exec:
+       -- The Exec: header is used to tell the mush what code to execute.
+          You would ensapsulate the code you want to run in double quotes.
+          You may specify more than one command by using semi-colons.
+          An empty Exec: call returns an error.
+          Example:  Exec: "@emit test1;@emit test2"
+     header - Time:
+       -- The Time: header is used to tell the queue how long to push the
+          request for.   If no Time: header is specified, it defaults to '0'.
+          If a negative value is fed to this, it defaults to '0'.  You may
+          use fractional values.
+          Example:  Time: "100.5"
+  
+  GET:
+     header - Exec:
+       -- The Exec: header is used to tell the mush what code to execute.
+          Unlike the POST requester, this only accepts functions/strings.
+          Example:  Exec: "[lattr(#123/foo)]"
+     header - Parse:
+       -- This specifies the type of parsing you wish to apply to the 
+          return string.  If not specified it assumes 'parse'.
+          The following applies:
+            parse       -- default.  Just parse the function as normal.
+            noparse     -- just evaluate percent substitutions, not code.
+            ansiparse   -- parse and return the ansi as translated encoding.
+            ansinoparse -- evaluate percent subs and translate ansi.
+            ansionly  -- do not parse and return the string as translated.
+          Example: Parse: "parse"
+     header - Encode: 
+       -- This will tell it to encode the Return: value in base64.
+          Options you can pass this is 'yes' to enable, and 'no' to disable.
+          No is the default value.  This is handy when you have multi-line
+          input that headers may not necessarily handle.
+  
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api return' for values you can expect back from the API }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+
+& API RETURN
+  Topic: API RETURN
+  
+  When the mush responds to your API requests, it will do so with headers
+  only.  There is no data submitted.  If there is header data it does not
+  recognize or is malformed, it will return an appropiate error message.
+  
+  The following return encoding can be expected
+  POST:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:37:52 2017
+      Exec: <STRING>
+  
+  GET:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:51:16 2017
+      Exec: <STRING>
+      Return: <VALUE>
+
+  
+      -- <CODE> may be any of the following with matching <STRING>
+         200 - OK            <STRING>: Ok - Executed
+         400 - Bad Request   <STRING>: Error - Invalid Headers Supplied
+         400 - Bad Request   <STRING>: Error - Empty String
+         404 - Not Found     <STRING>: Error - Invalid target
+         403 - Forbidden     <STRING>: Error - Permission Denied
+         403 - Forbidden     <STRING>: Error - IP not allowed
+         403 - Forbidden     <STRING>: Error - Malformed User or Password
+   
+      -- <VALUE> is the actual return value for a GET fetch.  This is what
+         the evaluated string will have been.
+  
+  GET Examples (this is from a command line using the 'curl' application)
+> curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
+  
+  POST Example: (this is from a command line using the 'curl' application)
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
+  
+  See Also: @api 
+   
+{ see 'wizhelp api setup' for steps on how to set up a dbref# for use }
+{ see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+  
+
 
 & SPECIAL ATTRIBS
   There are special attributes you can set on objects that will have
@@ -920,6 +1103,8 @@
   
   MAILPROG          -- Defines the mail program used with autoregistration.
                        Default:  elm
+  MAILMUTT          -- Defines if the mail program used is mutt.
+                       Default:  no
   MAILSUB           -- Defines if the mail program used recognizes subjects.
                        Default:  yes
   OFFLINE_REG       -- Enables off-line (ie: connect screen) registration.
@@ -1295,6 +1480,45 @@
   completely.
   
   See Also: help toggles, help toggle list, help @toggle
+
+& @api
+  Command: @api[/switch] <target> [=<value>]
+  
+  The @api command is used to enable/disable a target from using the API 
+  interface as well as enable authentication through both password and
+  IP.   This is the central tool for configurating an object to be allowed
+  for the API interface.
+  
+  The following switches exist:
+    /status    -- (default) show the current API status of the target object
+    /enable    -- entables the target to use the API interface.  This will
+                  effectively @power the object API
+    /disable   -- disables the target from using the API interface.  This will
+                  remove the API @power
+    /password  -- this will set the password into the _APIPASSWD attribute
+                  on the target in a hash.  This should NOT BE CONFUSED with
+                  the @password or @newpassword command.  TOTALLY different.
+    /chkpasswd -- This will compare the password in the hash to one you enter
+    /ip        -- This will set IP range(s) that is allowed to use the target.
+                  If this is unset, it defaults to localhost.
+   
+  Examples: 
+    > @api/enable #12345
+    @api: Target is now allowed to process API handling
+    > @api/ip #12345=123.123.*.*
+    @api: IP allow list set
+    > @api/password #12345=foobar
+    @api: Password set
+    > @api/chkpasswd #12345=bob
+    @api: Password did not match.
+    > @api/chkpasswd #12345=foobar
+    @api: Password matched.
+    > @api/disable #12345
+    @api: Target is no longer allowed to process API handling
+  
+  See Also: API, api_port, api_nodns, forbidapi_host, forbidapi_site, 
+            passapi_host, passapi_site, max_lastsite_api
+
 & @DEPOWER
   Command: @depower[[/switch] <user>=[@o|@g|@a] arg ...]
   
@@ -1672,15 +1896,16 @@
   
   There are various powers available to be set with @power.  These are:
   
-   *BOOT            CHANGE_QUOTAS   CHOWN_ANYWHERE   *CHOWN_ME     
-   *CHOWN_OTHER    *EXAMINE_ALL     EXAMINE_FULL     *EXECSCRIPT    
-    FREE_QUOTA      FORMATTING      FREE_PAGE         FREE_WALL     
-    FULLTEL        *GRAB_PLAYER    *HALT_QUEUE        HALT_QUEUE_ALL
-   *HIDEBIT        *JOIN_PLAYER     LONG_FINGERS     *NO_BOOT      
-   *NOFORCE        *NOKILL          NOWHO             PCREATE    
-   *PURGE          *SEARCH_ANY     *SECURITY         *SEE_QUEUE
-    SEE_QUEUE_ALL   SHUTDOWN       *STAT_ANY         *STEAL          
-   *TEL_ANYWHERE   *TEL_ANYTHING   *WHO_UNFIND       *WIZ_WHO
+    API            *BOOT            CHANGE_QUOTAS     CHOWN_ANYWHERE 
+   *CHOWN_ME       *CHOWN_OTHER    *EXAMINE_ALL       EXAMINE_FULL     
+   *EXECSCRIPT      FREE_QUOTA      FORMATTING        FREE_PAGE       
+    FREE_WALL       FULLTEL        *GRAB_PLAYER      *HALT_QUEUE      
+    HALT_QUEUE_ALL *HIDEBIT        *JOIN_PLAYER       LONG_FINGERS   
+    MONITORAPI     *NO_BOOT        *NOFORCE          *NOKILL          
+    NOWHO           PCREATE        *PURGE            *SEARCH_ANY   
+   *SECURITY       *SEE_QUEUE       SEE_QUEUE_ALL     SHUTDOWN     
+   *STAT_ANY       *STEAL          *TEL_ANYWHERE     *TEL_ANYTHING
+   *WHO_UNFIND      WIZ_IDLE       *WIZ_SPOOF        *WIZ_WHO        
    *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
@@ -1689,6 +1914,41 @@
   Help is available separately to explain what each power does by typing:
       wizhelp power <power>
 
+& POWER WIZ_SPOOF
+  Power argument: @power[/switch] <user>=[@g|@a|@c] wiz_spoof
+  
+  This power grants the target the ability to spoof as if they were a wizard.
+  The SPOOF flag overrides this @power
+  
+  See Also: SPOOF
+ 
+& POWER WIZ_IDLE
+  Power argument: @power[/switch] <user>=[@g|@a|@c] wiz_idle
+  
+  This power grants the target player the ability to use the enhanced
+  idle features normally allowable only to wizards.
+ 
+& POWER API
+  Power argument: @power[/switch] <user>=[@g|@a|@c] api
+  
+  This power is set/removed with the @api command.  You may specify this
+  through the @power system as well.  This essentially is a toggle power
+  to empower the target from being able to use the API system.
+  
+  Without this power, API will not work on the target.
+  
+  See Also: @api
+  
+& POWER MONITORAPI
+  Power argument: @power[/switch] <user>=[@g|@a|@c] monitorapi
+  
+  This is a filter @power that if set will monitor all API connections
+  to the mush.  This filter was created because it can get VERY VERY
+  spammy.  Upwards to hundreds of connections a minute spammy.
+  But hey, it's useful so it's in here.
+  
+  See Also: MONITOR
+  
 & POWER FORMATTING
   Power argument: @power[/switch] <user>=[@g|@a|@c] formatting
   
@@ -2357,10 +2617,13 @@
     /REGISTER      - removes site information for register only sites.
     /SUSPECT       - removes site information for suspect sites.
     /FORBID        - removes site information for forbidden sites.
+    /FORBIDAPI     - removes site information for API forbidden sites.
     /PERMIT        - removes site information for unrestricted sites.
     /TRUST         - removes site information for trusted sites.
     /NOAUTH        - removes site information for authentication checks.
     /NOHOST        - removes site information for DNS checks.
+    /PASSPROX      - removes site information for bypassing proxy checks.
+    /PASSAPI       - removes site information for API bypasses
     /ALL           - removes all matching site information.
     /LIST          - show the raw *_host listings that you can use for
                      removal.  Handy if you use the optional connection args.
@@ -2372,7 +2635,8 @@
             @site/permit 123.123.123.0=/24
   
   See Also:  @admin, permit_site, register_site, suspect_site, forbid_site,
-             noguest_site, trust_site, noautoreg_site, @list 
+             noguest_site, trust_site, passproxy_site, forbidapi_site,
+             passapi_site, noautoreg_site, nodns_site, noauth_site, @list 
 
 & @convert
   Command: @convert[/alternate] <player>
@@ -2392,7 +2656,7 @@
  
 & blacklist.txt
 & @blacklist
-  Command: @blacklist[/<switch>]
+  Command: @blacklist[/<switch>] [<argument>]
   
   This command lists, loads, or clears the current blacklists.  Blacklists are
   similiar to forbid sites, except it keeps them in a separate list to avoid
@@ -2404,14 +2668,71 @@
   blacklist.  There is a script that can be ran that will populate this
   file with all known TOR exit points.
   
+  You may optionally have a netmask (in ipv4 or CIDR noation) after the IP
+  in the blacklist.txt.  If no masks is seen, it will assume /32.  
+  
   The following switches exist for @blacklist:
     /load  - Load in all sites in the blacklist.txt file
     /clear - purges the blacklist
-    /list  - lists all sites in the blacklist
+    /list  - lists all sites in the blacklist.  This shows 4 to a line.
+    /mask  - like list but will show the IP and associated NETMASK.  This
+             shows 2 IP's and 2 NETMASK's to a line.
+  
+{ see 'wizhelp @blacklist2' for arguments and examples }
+
+& @blacklist2
+  (CONTINUED)
+  Command: @blacklist[/<switch>] [<argument>]
   
   If no switch is specified, it gives a summary of sites in the blacklist.
   
+  /list and /mask may specify a page value <argument> or the argument 'all'.  
+  If you do not specify a value <argument> it defaults to '1'.  You must 
+  specify '0' or 'all' to get a complete listing.
+  
+  It is STRONGLY suggested you use the paging values with most blacklists 
+  that hold proxies, it could contain tens of thousands of entries.  
+  Using /list or /mask with the '0' or 'all' argument will list ALL sites
+  and can be extremely long and spammy.
+  
+    Examples:
+    > @blacklist/list 1   (shows page 1)
+    > @blacklist/list     (shows page 1)
+    > @blacklist/list all (shows all sites)
+    > @blacklist/list 0   (shows all sites)
+    > @blacklist/mask 20  (shows page 20) 
+    > @blacklist/mask all (shows all sites)
+    > @blacklist/mask 0   (shows all sites)
+  
+  With /list, any entry that has a [M] before the IP signifies that there
+  is a non-standard netmask associated with the IP.  A nonstandard netmask
+  is considered one that is not /32 (255.255.255.255).
+  
+  { 'wizhelp blacklist file' for an example of the blacklist.txt file }
+  
   See Also: forbid_site, @site
+
+& blacklist file
+  Topic: blacklist file contents
+  
+  The blacklist.txt file (which will reside in the game directory) will
+  look like the following as an example:
+  
+     123.123.123.123
+     122.122.122.0 /24
+     122.122.0.0 255.255.0.0
+  
+  If you do not specify a netmask, it will assume 255.255.255.255 (/32) as
+  the netmask.  You may use CIDR notation (ie: /24) or the ipv4 notation
+  instead (ie: 255.255.255.0).  
+  
+  IP and NETMASK needs to be separated by a white space.  This can be
+  one or more spaces and/or one or more tabs.
+  
+  If the IP or netmask is invalid, it will skip the entry.
+  
+  See Also: @site, @blacklist
+  
 & @boot
   Command: @boot[/<switches>] <player>
   
@@ -2767,12 +3088,10 @@
   The function definitions created by @function are not stored in the database
   so they need to be re-created each time the RhostMUSH is started.  It is
   recommended that the Startup attribute for player #1 include code to
-  set up all global functions.  The privalaged and preserved, protect, and
+  set up all global functions.  The privileged and preserved, protect, and
   notrace switches may be combined.
    
-  Function definitions may not be removed (aside from shutting down and
-  restarting the RhostMUSH, but they may be redefined so that they point to an
-  unused attribute.  This command may normally only be invoked by player #1.
+  Function definitions may be removed or redefined on the fly.
   
   {see 'wizhelp @function2' for examples}
 
@@ -2790,7 +3109,7 @@
              @function/min myfunction=3
   
   Note: With the /list switch, the following letters represent the following:
-             W - privalaged
+             W - privileged
              p - preserved
              + - protected
              t - notrace
@@ -2892,7 +3211,7 @@
     Allocs     - The total number of buffers ever allocated from the pool.
     Lost       - The number of buffers lost due to buffer header corruption.
     Total Mem  - The total memory required for each catagory (in-use memory)
-
+  
   Information is reported for the following pools:
     Sbufs      - Small buffers, for when you need only a little space.
     Mbufs      - Medium-sized buffers, for when an sbuf is too small but an 
@@ -2906,12 +3225,33 @@
                  queue. (@wait, @trigger, @switch, @dolist, etc).
     Pcaches    - Total number of cache entries of players.
     ZListNodes - Zone buffers, used to hold the zone linking information.
- 
+   
+  Information is given for current Tprintf dynamic allocation buffers:
+    Current    - Current allocated dynamic (unsafe_tprintf) buffers
+    Maximum    - Current maximum ever allocated
+    Average    - Average allocated over period of time
+  
+  Information is given for total network usage:
+    Total-In   - Total bytes of all inbound traffic for current reboot
+    Daily-In   - Total inbound for current 24 hour period for current reboot
+    Avg-In     - Total inbound daily average for current reboot
+    Total-Out  - Total bytes of all outbound traffic for current reboot
+    Daily-Out  - Total outbound for current 24 hour period for current reboot
+    Avg-Out    - Total outbound daily average for current reboot
+   
   Information is given for total ammounts with disk/memory use:
     DB Size         - Gives the total size of the database in Kbytes
     DB Top          - Gives the size of the database since last startup
     DB Object Size  - Gives size of a single object
+    VHash Size      - Gives total memory of all overhead of all user-attribs
     Total Mem       - Gives total memory that the RhostMUSH is taking up in K
+  
+  Misc statistics:
+    Total Lbufs used in Q-regs: These are always allocated.
+    Total Sbufs used in Q-regs: These are always allocated.  
+    Highest debugmon stack depth: How many stack levels the mush has reached
+    Current debugmon stack depth: Current stack depth (should be around 7)
+  
   See Also: @list buffers.
 
 & @list attr_permissions
@@ -3275,17 +3615,24 @@
   
   Lists the contents of the site access and suspect lists.
  
-    Address - The address to which this entry applies.
-    Mask    - The mask that is ANDed to both the input address and the address
-              in the entry when checking to see if this entry is to be used.
-    Status  - Indicates what type of access or restriction is to be applied.
-              The following statuses may occur in the site access list:
+    Address   - The address to which this entry applies.
+    Mask      - The mask that is ANDed to both the input address and the address
+                in the entry when checking to see if this entry is to be used.
+    Max-Conns - Maximum connections allowed before site restriction is
+                enabled.  'Restricted' means use default method.  N/A in this
+                field means it's not applicable.
+    Status    - Indicates what type of access or restriction is to be applied.
+                The following statuses may occur in the site access list:
  
                 Forbidden    - Connections from this site are rejected.
+                               (AutoSite) means the block was automatic.
+                Forbid API   - API connections from this site are rejected.
+                               (AutoSite) means the block was automatic.
                 Registration - Connections from this site are accepted,
                                new characters may not be created with the
                                'create' command, players wanting a character
                                must get a wizard to create one for them.
+                               (AutoSite) means the block was automatic.
                 Unrestricted - Connections from this site are accepted,
                                new characters may be created with the 'create'
                                command.
@@ -3300,13 +3647,15 @@
                                disconnects from this site.
                 Trusted      - Don't notify wizards of connects or disconnects
                                from this site.
+                Proxy Bypass - Sites will bypass the automatic proxy detection
+                API Bypass   - Sites will bypass the max connections api limit
                 NoGuest      - Disallows guests from connecting by this site
                 NoAutoReg    - This site can not autoregister
  
-  See Also: forbid_site, permit_site, register_site, suspect_site, trust_site,
-            noguest_site, noautoreg_site, forbid_host, suspect_host, 
+  See Also: forbid_site, forbidapi_site, permit_site, register_site, suspect_site, 
+            trust_site, noguest_site, noautoreg_site, forbid_host, suspect_host, 
             register_host, noguest_host, noautoreg_host, validate_host,
-            nobroadcast_host
+            nobroadcast_host, passproxy_host, passapi_site, passapi_host
 
 & @list switches
   Command: @list switches
@@ -3580,15 +3929,21 @@
   
   Super-royalty have the added ability to specify the dbref# they wish
   to use for that player.  The dbref# *must* be in the free list else
-  it will default to the highest dbref# on the free list automatically.
+  it will default to the highest dbref# on the free list automatically,
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Optional switches are:
       /register - Allows you to email a registration email to the
                   target email.  Only wizards and higher may use this.
+      /ansi     - Combines @pcreate with @extansi to ansify the name
+                  of the player.  This follows @extansi permissions.
   
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
             @pcreate/reg NewPlayer=myfriend@myemail.net
+            @pcreate/ansi [ansi(hb,Blueboy)]=test123
    
   You may use the lastcreate() function to see the last player @pcreate'd.
   
@@ -3694,7 +4049,7 @@
   See Also: @dbck, @recover, @reclist, @dbclean
 
 & @recover
-  Command: @recover <#dbref>
+  Command: @recover[/<switch>] <#dbref>
   
   This command will recover from destruction the specified dbref# shown
   as previously destroyed in the recover list by the @reclist command.
@@ -3710,8 +4065,27 @@
   
   Items @purged are gone for good.
   
-  Example:  @recover #123
+  The following switches are available:
+    /detail - Instead of recovering the object list details of the
+              object in question.  This will display the dbref#,
+              flags, and attributes on the object.  The Rectime is
+              the time (in secs()) the object was destroyed.
+    
+  Example:  
+    > @recover/detail #123
+    MyObj(#123$Ih)
+    Type: THING Flags: RECOVER INHERIT HALTED
+    FOO: $fooz:@pipe/on va;think test;@pipe/off
+    VA: xyz
+    OOC: $ooc *:@pemit %#=[parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
+    AnsiName([$]): %cr%chMy%cn%cc%chO%cn%cb%chbj%cn
+    TRACE_GREP: sub(
+    TRACE_COLOR_WATSON: +pink
+    Rectime([$Mi]): 1507055461
   
+    > @recover #123
+    Restored.
+   
   See Also: @purge, @reclist
 
 & @reclist
@@ -3746,6 +4120,9 @@
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
   
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
+  
   Example:  @create #5 An Object
   
   See Also: @dig, @open, @pcreate
@@ -3756,6 +4133,9 @@
   that you wish to use for the room.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Example:  @dig #5 An Object
   
@@ -3768,6 +4148,9 @@
   that you wish to use for the exit.  The #dbref *must* be in the free
   list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Note: @reclist/free to display the free list.
+        @stat to show the 'next free dbref#'
   
   Example:  @open #5 An Exit <AE>;ae;an exit=#12345
   
@@ -3882,6 +4265,9 @@
   have.  This can be based on who can SET it, who can SEE it, as well as
   lock that specific mask by owner or by individual object.  Owner and
   object are specified by their dbref#'s.
+  
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
    
   Individual help and examples are available on each attribute prefix switch:
      'wizhelp @aflags perm'    -- help on displaying prefix permissions.
@@ -3891,7 +4277,7 @@
      'wizhelp @aflags args'    -- explains the arguments to @aflags
      'wizhelp @aflags bits'    -- help on the level bits for see/set perms
   
-  See Also: atrperms, atrperms_max
+  See Also: atrperms, atrperms_max, atrperms_checkall
 
 & @aflags bits
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
@@ -3901,6 +4287,9 @@
   permissions or <set> permissions.  <set> permissions handles setting and 
   UN-setting.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   The following bits exist for the <set> and <see> parameters:
       0 - Unable to <set/see> if target is a guest or wanderer
       1 - Normal mortal or higher may <set/see>
@@ -3923,6 +4312,9 @@
 & @aflags args
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   The arguments are the following:
     <prefix>   --  The prefix is the attribute prefix that the permissions 
                    masking is applied.  Any attribute that starts with the
@@ -3962,6 +4354,9 @@
   the owner, target, or enactor, set the value to '#-1' which means 'global' 
   or 'all'.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/mod boogie=6 3
             @aflags/mod boogie #1234 #9876=5 5 #-1 #9876 #-1
   
@@ -3998,6 +4393,9 @@
   
   If there are no matching prefixes, it'll alert you of that fact.
    
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   See Also: @aflags, @aflags add, @aflags mod, @aflags perm
 
 & @aflags add
@@ -4013,6 +4411,9 @@
   are defined by any entry that matches the prefix, the owner, and 
   the target.  If you wish to modify an entry, use @aflags/mod.
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/add boogie=7 6
             @aflags/add boogie=7 6 #1234 #9876 #123
   
@@ -4030,6 +4431,9 @@
   the results (20 lines per page).  Otherwise it will display all
   the results without page breaks (default).
   
+  Permissions are handled by FIRST MATCH in the array.  To see the order
+  of permissions please check @aflags/list.
+   
   Example:  @aflags/perm
             @aflags/perm 2
 
@@ -4474,26 +4878,27 @@
   image file and the object in question.  The following switches exist:
   
     /list      - Syntax: @snapshot/list  (default)
-                 This lists all image files you currently have to disk.
+                   This lists all image files you currently have to disk.
     /verify    - Syntax: @snapshot/verify <imagefile>
-                 This issues a sanity check on the image file and lets
-                 you know if the file is valid or corrupt.
+                   This issues a sanity check on the image file and lets
+                   you know if the file is valid or corrupt.
     /del       - Syntax: @snapshot/del <imagefile(s)>
-                 This deletes the specified image file(s) from the drive.
-                 You may specify more than one in a space-delimited list.
-    /unload    - Syntax: @snapshot/unload <target> [=<optional prefix>]
-                 This makes a snapshot file of the specified target and
-                 creates an optional prefix name for it.  Default name
-                 will be the dbref#.  '123.img' for example.
+                   This deletes the specified image file(s) from the drive.
+                   You may specify more than one in a space-delimited list.
+    /unload    - Syntax: @snapshot/unload <target> [=<optional suffix>]
+                   This makes a snapshot file of the specified target and
+                   creates an optional suffix name for it.  Default name
+                   will be the dbref#.  '123.img' for example.  The new
+                   name will be 123_<suffix>.img.
     /unall     - Syntax: @snapshot/unall <list of targets>
-                 This works like /unload but takes a list of targets.
-                 You can not specify a destination name with this arg.
+                   This works like /unload but takes a list of targets.
+                   You can not specify a destination name with this arg.
     /load      - Syntax: @snapshot/load <target> = <imagefile>
-                 This will load the image file onto the specified object.
-                 The object types MUST be the same, the object MUST be
-                 a valid object, and some things (like location) will
-                 be skipped on the restore.  Parents and Zones will be
-                 set if validated.
+                   This will load the image file onto the specified object.
+                   The object types MUST be the same, the object MUST be
+                   a valid object, and some things (like location) will
+                   be skipped on the restore.  Parents and Zones will be
+                   set if validated.
     /overwrite - when specified with /unload or /unall will allow
                  overwriting the target file.
   
@@ -4515,8 +4920,8 @@
   changes override the current default settings and are only good for
   the current boot of the machine (i.e.  Cleared on @shutdowns and @reboots).
   
-  The @toggledef handles all TOGGLES.
-  The @flagdef handlds all FLAGS. 
+  The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
+  The @flagdef handlds all FLAGS.      (help @flagdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -4571,8 +4976,12 @@
   
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
-  the same time.  (i.e.  @flagdef/set marker0=god immortal !royalty mortal)
- 
+  the same time.  
+  
+  Examples:
+    InGame command -> @flagdef/set marker0=!god !immortal !royalty mortal
+    netrhost.conf  -> flag_access_set marker0 !god !immortal !royalty mortal 
+  
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
@@ -4600,8 +5009,12 @@
    
   If you wish to remove a permission, you can use '!permission' to unset a
   given permission.  You may specify multiple permissions to set and remove at
-  the same time.  (i.e.  @flagdef/type marker0=immortal !royalty room)
-
+  the same time.  
+  
+  Examples: 
+    InGame command -> @flagdef/type marker0=immortal !royalty room
+    netrhost.conf  -> flag_access_type marker0 immortal !royalty room
+  
   {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
   See Also: @flag, @flagdef, @toggledef
@@ -4732,9 +5145,12 @@
   files you wish to read.  Use a '^' to specify sub-directories.  '.' is not
   valid as part of the filename (or path).
   
+  Note: For /search and /query you must have wildcards for patterns.
+  
   Available switches:
     /parse   - this will parse the help evaluating all %n's/functions.
     /search  - search content and list topics containing '<topic>'.
+    /query   - like /search, but gives details on matching lines of '<topic>'
     /nolabel - snuff the hilight index of the topic <topic> when showing.
   
   Example:
@@ -5478,8 +5894,9 @@
   admin_object             ahear_maxcount           ahear_maxtime          
   alias                    allow_ansinames          allow_whodark          
   alt_inventories          altover_inv              always_blind           
-  ansi_default             ansi_textfiles           areg_file              
-  areg_lim                 aregh_file               atrperms               
+  ansi_default             ansi_textfiles           api_nodns
+  api_port                 areg_file                areg_lim               
+  aregh_file               atrperms                 atrperms_checkall
   atrperms_max             attr_access              attr_alias             
   attr_cmd_access          authenticate             bad_name               
   badsite_file             bcc_hidden               blind_snuffs_cons      
@@ -5493,7 +5910,7 @@
   conn_timeout             connect_file             connect_reg_file       
   cpu_secure_lvl           cpuintervalchk           cputimechk             
   crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            default_home             delim_null               
+  dark_sleepers            default_home             delim_null             
   descs_are_local          dig_cost                 door_file              
   door_index               down_file                down_motd_message      
   dump_interval            dump_message             dump_offset            
@@ -5507,30 +5924,32 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index               examine_flags             examine_public_attrs   
-  examine_restrictive       exit_attr_default         exit_flags              
-  exit_parent               exit_quota                exit_toggles
-  exits_connect_rooms       expand_goto               fascist_teleport        
-  file_object               find_money_chance         flag_alias              
-  flag_name                 flag_access_see           flag_access_set         
-  flag_access_type          flag_access_unset         float_precision         
-  forbid_host               forbid_site               fork_dump               
-  format_compatbility       fork_vfork                format_contents         
-  format_exits              format_name               formats_are_local       
-  full_file                 full_motd_message         function_access         
-  function_alias            function_invocation_limit function_max
-  function_recursion_limit  gdbm_cache_size           gdbm_database           
-  global_aconnect           global_adisconnect        global_ansimask         
-  global_attrdefault        global_clone_exit         global_clone_obj        
-  global_clone_player       global_clone_room         global_clone_thing      
-  global_error_obj          global_parent_exit        global_parent_obj       
-  global_parent_player      global_parent_room        global_parent_thing     
-  good_name                 goodmail_host             gconf_file              
-  guest_char_num            guest_file                guest_namelist          
-  guild_attrname            guild_default             guild_hdr               
-  hackattr_nowiz            hackattr_see              hasattrp_compat         
-  heavy_cpu_max             help_file                 help_index              
-  hide_nospoof              hook_cmd                  hook_obj                
+  error_index             examine_flags              examine_public_attrs
+  examine_restrictive     exec_secure                exit_attr_default       
+  exit_flags              exit_parent                exit_quota              
+  exit_separator          exit_toggles               exits_connect_rooms  
+  expand_goto             fascist_teleport           file_object   
+  find_money_chance       flag_alias                 flag_name           
+  flag_access_see         flag_access_set            flag_access_type 
+  flag_access_unset       float_precision            forbid_host 
+  forbid_site             forbidapi_host             forbidapi_site 
+  fork_dump               format_compatbility        fork_vfork 
+  format_contents         format_exits               format_name 
+  formats_are_local       full_file                  full_motd_message
+  function_access         function_alias             function_invocation_limit
+  function_max            function_recursion_limit   gdbm_cache_size 
+  gdbm_database           global_aconnect            global_adisconnect 
+  global_ansimask         global_attrdefault         global_clone_exit  
+  global_clone_obj        global_clone_player        global_clone_room  
+  global_clone_thing      global_error_obj           global_parent_exit
+  global_parent_obj       global_parent_player       global_parent_room
+  global_parent_thing     good_name                  goodmail_host  
+  gconf_file              guest_char_num             guest_file 
+  guest_namelist          guest_randomize            guild_attrname  
+  guild_default           guild_hdr                  hackattr_nowiz
+  hackattr_see            hasattrp_compat            heavy_cpu_max 
+  help_file               help_index                 help_separator
+  hide_nospoof            hook_cmd                   hook_obj               
   hook_offline
   
 { 'wizhelp config parameters3' for more }
@@ -5544,22 +5963,23 @@
   ifelse_compat            ifelse_substitution      imm_nomod
   include                  includecnt               includenest
   initial_size             input_database           internal_compress_string
-  inventory_name           kill_guarantee_cost      kill_max_cost
-  kill_min_cost            lastsite_paranoia        lattr_default_oldstyle
-  lcon_checks_dark         lfunction_max            list_access
-  list_max_chars           listen_parents           link_cost
-  lnum_compat              lock_recursion_limit     log
-  log_command_list         log_maximum              log_network_errors
-  log_options              login_to_prog            logout_cmd_access
-  logout_cmd_alias         look_moreflags           look_obey_terse
-  machine_command_cost     mail_anonymous           mail_autodeltime
-  mail_default             mail_def_object          mail_hidden
-  mail_tolist              mail_verbosity           mailbox_size
-  maildelete               mailinclude_file         mailprog
-  mailsub                  mailmax_send             master_room
-  match_own_commands       manlog_file              map_delim_space
-  max_cpu_cycles           max_dest_limit           max_folders
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim
+  inventory_name           iter_loop_max            kill_guarantee_cost    
+  kill_max_cost            kill_min_cost            lastsite_paranoia      
+  lattr_default_oldstyle   lcon_checks_dark         lfunction_max          
+  list_access              list_max_chars           listen_parents         
+  link_cost                lnum_compat              lock_recursion_limit   
+  log                      log_command_list         log_maximum            
+  log_network_errors       log_options              login_to_prog          
+  logout_cmd_access        logout_cmd_alias         look_moreflags         
+  look_obey_terse          machine_command_cost     mail_anonymous         
+  mail_autodeltime         mail_default             mail_def_object        
+  mail_hidden              mail_tolist              mail_verbosity         
+  mailbox_size             maildelete               mailinclude_file       
+  mailmutt                 mailprog                 mailsub                
+  mailmax_send             master_room              match_own_commands     
+  manlog_file              map_delim_space          max_cpu_cycles         
+  max_dest_limit           max_folders              max_lastsite_api       
+  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
   max_pcreate_time         max_percentsubs          max_players
   
 { 'wizhelp config parameters4' for more }
@@ -5567,30 +5987,32 @@
 & CONFIG PARAMETERS4
   Topic: CONFIG PARAMETERS (continued)
   
-  max_sitecons             max_vattr_limit          maximum_size
-  min_con_attempt          money_lim_off            money_lim_gm
-  money_lim_arch           money_lim_counc          money_name_plural
-  money_name_singular      motd_file                motd_message
-  mud_name                 muddb_name               must_unlquota
-  mux_child_compat         mus_lcon_compat          name_with_desc
-  nand_compat              newpass_god              news_file
-  news_index               newuser_file             no_startup
-  noauth_site              noautoreg_host           noautoreg_site
-  nobroadcast_host         noguest_host             noguest_site
-  nodns_site               nonindxtxt_maxlines      noregist_onwho
-  noshell_prog             nospam_connect           notify_recursion_limit
-  notonerr_return          num_guests               oattr_enable_altname
-  oattr_uses_altname       objid_localtime          objid_offset
-  offline_reg              old_elist                online_reg               
-  open_cost                output_database          output_limit           
-  page_cost                paranoid_allocate        paranoid_exit_linking  
-  parent_follow            parentable_control_lock  partial_conn           
-  partial_deconn           paycheck                 pcreate_paranoia       
-  pemit_any_object         pemit_far_players        penn_playercmds        
-  penn_setq                penn_switches            permit_site            
-  player_attr_default      player_dark              player_flags           
-  player_listen            player_match_commands    player_match_own_command
-  player_name_spaces       player_parent            player_queue_limit     
+  max_sitecons             max_vattr_limit           maximum_size
+  min_con_attempt          money_lim_off             money_lim_gm
+  money_lim_arch           money_lim_counc           money_name_plural
+  money_name_singular      motd_file                 motd_message
+  mtimer                   mud_name                  muddb_name              
+  must_unlquota            mux_child_compat          mux_lcon_compat 
+  name_with_desc           nand_compat               newpass_god             
+  news_file                news_index                newuser_file            
+  no_startup               noauth_site               noautoreg_host          
+  noautoreg_site           nobroadcast_host          noguest_host            
+  noguest_site             nodns_site                nonindxtxt_maxlines     
+  noregist_onwho           noshell_prog              nospam_connect          
+  notify_recursion_limit   notonerr_return           null_is_idle            
+  num_guests               oattr_enable_altname      oattr_uses_altname      
+  objid_localtime          objid_offset              offline_reg             
+  old_elist                online_reg                open_cost               
+  output_database          output_limit              page_cost               
+  paranoid_allocate        paranoid_exit_linking     parent_follow           
+  parentable_control_lock  partial_conn              partial_deconn          
+  passapi_host             passapi_site              passproxy_host          
+  passproxy_site           paycheck                  pcreate_paranoia        
+  pemit_any_object         pemit_far_players         penn_playercmds         
+  penn_setq                penn_switches             permit_site             
+  player_attr_default      player_dark               player_flags            
+  player_listen            player_match_commands     player_match_own_command
+  player_name_spaces       player_parent             player_queue_limit      
   player_quota           
   
 { 'wizhelp config parameters5' for more }
@@ -5600,29 +6022,29 @@
 
   player_starting_home      player_starting_room      player_toggles
   plushelp_file             plushelp_index            port                    
-  proxy_checker             postdump_message          power_access            
-  public_flags              queue_active_chunk        queue_compatible        
-  queue_idle_chunk          quiet_look                quiet_whisper           
-  quit_file                 quotas                    read_remote_desc        
-  read_remote_name          recycling                 register_create_file    
-  register_host             register_site             regtry_limit            
-  restrict_home             restrict_sidefx           retry_limit             
-  robot_cost                robot_flags               robot_speech            
-  robot_toggles             room_aconnect             room_adisconnect        
-  room_attr_default         room_flags                room_parent             
-  room_quota                room_toggles              roomlog_path            
-  round_kludge              rwho_data_port            rwho_dump_interval      
-  rwho_host                 rwho_info_port            rwho_password           
-  rwho_transmit             sacrifice_adjust          sacrifice_factor        
-  safe_wipe                 safer_passwords           safer_ufun              
-  search_cost               secure_atruselock         secure_dark             
-  secure_functions          secure_jumpok             see_owned_dark          
-  showother_altname         shs_reverse               sidefx_maxcalls         
-  sidefx_returnval          sideeffects               signal_action           
-  signal_cron               signal_object             signal_object_type      
-  space_compress            spam_limit                spam_msg                
-  spam_objmsg               sqlite_db_path            sqlite_query_limit      
-  stack_limit
+  proxy_checker             posesay_funct             postdump_message        
+  power_access              protect_addenh            public_flags            
+  queue_active_chunk        queue_compatible          queue_idle_chunk        
+  quiet_look                quiet_whisper             quit_file               
+  quotas                    read_remote_desc          read_remote_name        
+  recycling                 register_create_file      register_host           
+  register_site             regtry_limit              restrict_home           
+  restrict_sidefx           retry_limit               robot_cost              
+  robot_flags               robot_speech              robot_toggles           
+  room_aconnect             room_adisconnect          room_attr_default       
+  room_flags                room_parent               room_quota              
+  room_toggles              roomlog_path              round_kludge            
+  rwho_data_port            rwho_dump_interval        rwho_host               
+  rwho_info_port            rwho_password             rwho_transmit           
+  sacrifice_adjust          sacrifice_factor          safe_wipe               
+  safer_passwords           safer_ufun                search_cost             
+  secure_atruselock         secure_dark               secure_functions        
+  secure_jumpok             see_owned_dark            showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_cron             
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -5959,8 +6381,21 @@
   Note #3: When you delete an attribute, you do not need to specify bitmasks.
   Note #4: Specify owner and/or target if you want a specific duplicate prefix.
   
-  See Also: atrperms_max, @aflags
+  See Also: atrperms_max, atrperms_checkall, @aflags
 
+& atrperms_checkall
+  Config parameter: atrperms_checkall <boolean>   Default: 0
+  
+  This will enable checking all @aflag restricted attribute prefixes for any
+  attribute read or set.  This could potentially be costly depending on the
+  number of attributes flags you use.
+  
+  This will use the lowest matching permission for the attribute.
+  
+  Without this enabled, it will take them in order of when they were set.
+  This order can be seen with the @aflags command.
+  
+  See Also: atrperms_max, atrperms, @aflags
 & atrperms_max
   Config Parameter: atrperms_max <value>    Default: 100
   
@@ -6534,6 +6969,16 @@
   There is nothing to block immortals as immortals are considered #1.
   The current setting is visible through @list options.
 
+& exec_secure
+  Config parameter: exec_secure <boolean>.  Default: 1
+  
+  Tells execscript() to escape all characters that are passed into it.  This
+  is the default behavior.  If you specify '0' then it will only escape out
+  non-alphanumeric characters.  Ergo, it will only then escape out characters
+  that are not A-Z, a-z, or 0-9.
+  
+  See Also: execscript()
+
 & exit_attr_default
   Config parameter: exit_attr_default <dbref>.  Default: -1
   
@@ -6560,6 +7005,15 @@
   See Also: @list, exit_toggles, player_flags, robot_flags, room_flags, 
             thing_flags.
 
+& exit_separator
+  Config parameter: exit_separator <string>.   Default: %b%b
+  
+  Specifies the string that will separate exits by default when you look
+  at a location.  It defaults to two spaces.  You may have up to 31
+  characters separating exit names.
+  
+  See Also: format_exits
+  
 & exit_toggles
   Config parameter: exit_toggles <toggles>.  Default: blank
   
@@ -6649,6 +7103,7 @@
     site_noguest    NO_GUEST        Shown to player who hits max guests
     site_register   REGISTER        Shown to player who hits max registers
     site_forbid     FORBID          Shown to player who hits max forbids
+    site_Forbidapi  FORBIDAPI       Shown to max connections for API
     site_noconnect  NOCONNECT       Shown to player set NO_CONNECT
     site_nopossess  NOPOSSESS       Shown to player set NO_POSSESS
   
@@ -6853,8 +7308,23 @@
   attacked with spoofed IP header information.  You can review DNS 
   difficulties by reviewing the mush.log file.
 
+& passapi_host
+  Config parameter: passapi_host <!host> <host> ... <host>
+  
+  This parameter takes the hostname and allows passing the max_lastsite_api
+  count value.  This does not allow bypassing forbidapi settings.
+  
+  Example:  @admin passapi_host=localhost
+  
+  See Also: passapi_site, @site
+   
+& forbidapi_host
 & forbid_host
   Config parameter: forbid_host <!host> <host> ... <host>
+                    forbidapi_host <!host> <host> ... <host>
+  
+  The forbidapi_host works like forbid_host, except it handles ONLY the
+  api port connections.  It will not affect other connections to the mush.
   
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be allowed to connect and will be rejected
@@ -6882,8 +7352,23 @@
   See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
             validate_host, @site
 
+& passapi_site
+  Config parameter: passapi_site <addr> mask>
+  
+  This parameter will bypass the site counter restriction for any site(s)
+  matching.  This will not bypass the forbidapi_site parameter, but only
+  bypasses the max_lastsite_api count value restriction.  This only effects
+  API connections.
+  
+  See Also: API, forbidapi_site, SITE LISTS, @site
+   
+& forbidapi_site
 & forbid_site
-  Config parameter: forbid_site <addr> <mask>.
+  Config parameter: forbid_site <addr> <mask>
+                    forbidapi_site <addr> <mask>
+  
+  The forbidapi_site works like forbid_site, except it handles ONLY the
+  api port connections.  It will not affect other connections to the mush.
   
   Indicates that connections are to be rejected from sites whose address
   matches the specified address when ANDed with the mask.  The contents of
@@ -6939,7 +7424,7 @@
   includes both ExitFormat and DarkExitFormat.  If either of these 
   attributes exist, it will take presidence over the default 'Exits'.
   
-  See Also: format_contents, format_name
+  See Also: format_contents, format_name, exit_separator
 
 & format_name
   Config parameter: format_name <yes/no>.  Default: no
@@ -7316,7 +7801,8 @@
   
   Specifies the file that is to be shown to people connecting to the
   guest character in place of the motd file.
-  See Also: guest_char_num.
+  
+  See Also: guest_char_num
 
 & guest_namelist
   Config parameter: guest_namelist <val !val val>.  Default: (none)
@@ -7332,6 +7818,8 @@
   dbref#'s, or aliases when you enter the names.  Again, it'll convert
   it to dbref#'s regardless of how you specify.
   
+  You may randomize the selection if you have guest_randomize enabled.  
+  
   Examples:
     > @admin guest_namelist=Fred Tom #123
     Entry updated.  3 added.
@@ -7343,7 +7831,16 @@
   
   Any players over 31 total added to the list will be ignored.
   
-  See Also: guest_file, num_guests
+  See Also: guest_file, num_guests, guest_randomize
+
+& guest_randomize
+  Config parameter: guest_randomize <boolean>.   Default: off (0)
+  
+  This parameter will randomize guest connections to randomly select
+  a guest based on the free list of guests currently available.  This
+  also takes into account the guest_namelist.
+  
+  See Also: guest_namelist, num_guests
 
 & guild_attrname
   Config parameter: guild_attrname <string>.  Default: Guild
@@ -7431,6 +7928,14 @@
   
   See Also: help, @readcache, help_file
 
+& help_separator
+  Config parameter: help_separator <string>.  Default: %b%b
+  
+  Specifies the default separator for help entries when displaying a list,
+  including suggestions. 
+  
+  See Also: @dynhelp, dynhelp(), textfile(), exit_separator
+  
 & hide_nospoof
   Config parameter: hide_nospoof <ON(1)/OFF(0)>  Default: OFF
   
@@ -7673,6 +8178,21 @@
   when ALT_INVENTORIES are enabled.  If no string is specified, the default
   of 'backpack' is used.  Ansi, tabs, and carriage returns are stripped.
 
+& iter_loop_max
+  Config parameter: iter_loop_max <value>.  Default: 100000
+  
+  The default loop maximum that iter() allows with the special substitution
+  of :<value>:<method>:.  Such as ':100:>:' or ':0:<:'.  This should be
+  careful on any modification because while function invocations are taken
+  into account it is possible to use iter() without any evaluation per
+  say.  So this is a necesssary evil and 100,000 is considered a good
+  value to hit.
+  
+  Of note, anything over a million tends to trigger a 1 second CPU alarm
+  so something to keep in mind based on the hardware.
+  
+  See Also: (normal 'help') iter()
+  
 & ip_address
   Config parameter: ip_address <address>.  Default: 0.0.0.0
   
@@ -8043,6 +8563,20 @@
   Specifies the total number of mail folders that a player may have at
   any given time.  The player may never have more than max_folders.
 
+& max_lastsite_api
+  Config parameter: max_lastsite_api <num>.  Default: 60
+  
+  Sets the maximum number of times a site can connect to the API handler
+  in a given minute.  The range for this value must be between 1 and 500.
+  
+  The maximum average connections an API handler can accept is around 400
+  on a somewhat slower system.
+  
+  Be aware that if you hit MAX connections for a given IP in a minute,
+  that connection will automatically be set FORBID for security reasons.
+  
+  See Also: forbidapi_host, forbidapi_site
+ 
 & max_lastsite_cnt
   Config parameter: max_lastsite_cnt <num>.  Default: 20
   
@@ -8197,6 +8731,34 @@
   @listmotd command.
   See Also: @listmotd, @motd, motd_file.
 
+& mtimer
+  Config parameter: mtimer <value>.  Default: 10 (miliseconds)
+  
+  This specifies the queue interval that you wish to have for the timer
+  for each queue slice.  The default is 10 miliseconds.  You may specify
+  a multiple of 10 starting at '1' for 1 second up to 1000 for 1 milisecond.
+  
+  So valid values are: 1, 10, 100, 1000.
+  
+  Due note, due to the single threaded engine of a mush and the overhead 
+  involved with all the processing and checks, setting the value to 1000
+  will occasionally lag a few miliseconds and not be a true 1/1000 value.
+  
+  The lag will include, but not be limited to network latency.  When you
+  consider that most network latency is 20 ms, 1/1000th ms will most
+  likely be very noticeable :)
+  
+  Anything up to and including 100 should be mostly fine however, minus
+  again network latency.
+   
+  Specifying an invalid value will revert to the previous value.
+  
+  Rhost's default is 10 miliseconds.
+  MUX2's default is 10 miliseconds.
+  PennMUSH and TinyMUSH3's default is 1 second.
+  
+  See Also: @ps, pid()
+ 
 & mud_name
   Config parameter: mud_name <string>.  Default: RhostMUSH
   
@@ -8312,7 +8874,7 @@
             (this clears the noautoreg_host list)
   
   See Also:  forbid_host, noguest_host, register_host, suspect_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & noautoreg_site
   Config parameter: noautoreg_site <site> <mask>
@@ -8321,7 +8883,7 @@
   This is effectively the same as forbid_site but only effects the
   built-in autoregistration.
   
-  See Also: forbid_site
+  See Also: forbid_site, forbidapi_site
 
 & noguest_host
   Config parameter: noguest_host <!host> <host> ... <host>
@@ -8350,7 +8912,7 @@
          the raw site information that you can use to remove the site.
    
   See Also:  forbid_host, suspect_host, register_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & noguest_site
   Config parameter: noguest_site <site> <mask>
@@ -8358,7 +8920,7 @@
   Establishes sites that are not permitted to use the guest characters.
   This is effectively the same as forbid_site but only effects guests.
   
-  See Also: forbid_site
+  See Also: forbid_site, forbidapi_site
 
 & nonindxtxt_maxlines
   Config parameter: nonindxtxt_maxlines <value>.    Default: 200
@@ -8484,12 +9046,22 @@
   Specifies the cost of using the page command.
   See Also: page.
 
+& null_is_idle
+  Config parameter: null_is_idle <boolean>.  Default: 0
+  
+  This parameter, if enabled, will treat '@@' like IDLE with regards to 
+  updating a player's idle time.  This is mostly because players can't
+  seem to be able to do a simple modification in their client to change
+  '@@' to 'idle', so this will do it for them.  
+  
 & num_guests
   Config parameter: num_guests <ammount>.  Default: 0
   
   Specifies the total number of guest characters allowed to connect at one 
   time.  Do note that each and every guest will be unique and that if more 
   are required, more need to be @pcreated.
+  
+  See Also: guest_namelist, guest_randomize
 
 & comcost
   Config parameter: comcost <ammount>.  Default: 5
@@ -8500,7 +9072,7 @@
 & wall_cost
   Config parameter: wall_cost <ammount>.  Default: 250
   
-  Specifies the cost of using a @wall if you're not privalaged.
+  Specifies the cost of using a @wall if you're not privileged.
   Privalaged is defined of having at least a GUILDMASTER bit.
 
 & paranoid_allocate
@@ -8637,7 +9209,8 @@
   with the mask.  This directive is typically used to enable connections from
   a few selected hosts or subnets that would otherwise be disallowed by a
   forbid_site directive.  The default is all sites permitted, none forbidden.
-  See Also: badsite_file, forbid_site, register_site, SITE LISTS.
+  See Also: badsite_file, forbid_site, register_site, forbidapi_site, 
+            SITE LISTS.
 
 & player_attr_default
   Config parameter: player_attr_default <dbref>.  Default: -1
@@ -8795,13 +9368,45 @@
   positives, issuing option 2 or 4 (or an option of 6 which combines them)
   can effectively block innocent players.  The option however, is there
   anyway.
+  
+  You may use the @admin site restrictions 'passproxy_site' and 
+  'passproxy_host' to set up site restrictions that automatically bypass
+  these proxy checks.
+  
+  See Also: passproxy_site, passproxy_host, @site, @admin
+
+& api_port
+  Config parameter: api_port <port>.  Default: -1
+  
+  Specifies the IP port on which the API handler for the game listens 
+  for new connections.  This must be a unique port ID and not match
+  the other 'port' config option.
+  
+  See Also: ip_address, port, api_nodns
+
+& api_nodns
+  Config parameter: api_nodns <boolean>.  Default: 0
+  
+  Specifies that API connections should not use the DNS lookup.  Please
+  not that AUTH lookups automatically do not occur for API connections.
+  
+  See Also: api_port
 
 & port
   Config parameter: port <port>.  Default: 6250
   
   Specifies the IP port on which the game listens for new connections.
-  See Also: ip_address.
+  See Also: ip_address, api_port.
 
+& posesay_funct
+  Config parameter: posesay_funct <yes/no>.  Default: no
+  
+  Specifies if the SPEECH_PREFIX and SPEECH_SUFFIX attributes evaluate
+  functions.  As this could potentially be cpu intensive, by default this
+  is disabled.  If these attributes break cpu alerts, the cpu alerter
+  will stop it then set the attribute NO_COMMAND so it won't be 
+  processed again.
+  
 & postdump_message
   Config parameter: postdump_message <message>.  Default: blank
   
@@ -8832,6 +9437,12 @@
   addition to the owner.  The higher power (for @power) or harsher restriction
   (for @depower) between the two will be chosen.
 
+& protect_addenh
+  Config parameter: protect_addenh <boolean>.  Default: 0
+  
+  If enabled, allows @protect/add to be given an argument to add names to and
+  not just the current player's name.
+  
 & queue_active_chunk
   Config parameter: queue_idle_chunk <num>.  Default: 0
   
@@ -8955,14 +9566,15 @@
          the raw site information that you can use to remove the site.
   
   See Also:  forbid_host, suspect_host, noguest_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
 
 & register_site
   Config parameter: register_site <addr> <mask>.
   
   Indicates that registration is to be enforced for sites whose address
   matches the specified address when ANDed with the mask.
-  See Also: forbid_site, noguest_site, permit_site, REGISTRATION, SITE LISTS.
+  See Also: forbid_site, forbidapi_site, noguest_site, permit_site, 
+            REGISTRATION, SITE LISTS.
 
 & regtry_limit
   Config parameter: regtry_limit <count>.  Default: 1
@@ -9230,7 +9842,7 @@
   @wipe from working on that specific target that has either of those flags.
 
 & safer_ufun
-  Config parameter: safer_ufun <yes/no>.  Default: o
+  Config parameter: safer_ufun <yes/no>.  Default: no
   
   If this is enabled, then any attribute that is evaluated on something that
   you do not control will be evaluated either at your level or the object
@@ -9702,6 +10314,34 @@
     > think round( 2.5, 0 )
     3
 
+& passproxy_host
+  Config parameter: passproxy_host <!host> <host> ... <host>
+  
+  Indicates that connections matching the wildcard match of the specified
+  sites in their DNS HOST will be marked as bypassing automatic proxy
+  detection upon socket connection.  This works like 'passproxy_site' but deals
+  with DNS wildcard name conventions.  This will add or remove to existing or 
+  from existing site information already specified with passproxy_host.  You 
+  may use '!ALL' to clear the suspect host table.
+  
+  Example:  @admin passproxy_host=*.aol.com 
+            (bypasses proxy any site matching *.aol.com)
+            @admin passproxy_host=!ALL
+            (this clears the passproxy_host list)
+  
+  See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
+             validate_host, forbidapi_host, suspect_host, @site
+  
+  
+& passproxy_site
+  Config parameter: passproxy_site <addr> <mask>
+  
+  Indicates that sites whose address matches the specified address when ANDed
+  with the mask are to be allowed through automated proxy detection.  This
+  proxy detection is enabled with the proxy_checker @admin config parameter.
+  
+  See Also: proxy_checker, @site, @admin, @list, SITE LISTS
+ 
 & suspect_host
   Config parameter: suspect_host <!host> <host> ... <host>
   
@@ -9718,10 +10358,10 @@
             (this clears the suspect_host list)
   
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             validate_host, @site
+             validate_host, forbidapi_host, @site
   
 & suspect_site
-  Config parameter: suspect_site <addr> <mask>.
+  Config parameter: suspect_site <addr> <mask>
   
   Indicates that sites whose address matches the specified address when ANDed
   with the mask are to be considered suspect, and any player creates, connects
@@ -9975,7 +10615,7 @@
             (this clears the validate_host list)
  
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             suspect_host, goodmail_host, @site
+             suspect_host, goodmail_host, forbidapi_host, @site
 
 & vattr_command
   Config parameter: vattr_command <alias> <user-attribute>
@@ -10444,6 +11084,7 @@
     eval          - The function forces evaluation (useful for @function)
     no_eval       - The function forces non-evaluation (useful for @function)
     bypass        - The function is ignored for sandbox()
+    noparse       - The function does not parse functions (but does subs)
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions
@@ -10522,8 +11163,10 @@
   for those sites), while people connecting from elsewhere on the 135.246
   net are allowed to create their own characters.
  
-  See Also: @admin, @list site_information, forbid_site, permit_site,
-            register_site, suspect_site, trust_site, noguest_site.
+  See Also: @admin, @list site_information, forbid_site, forbidapi_site, 
+            permit_site, register_site, suspect_site, trust_site, 
+            noguest_site, passapi_site
+
 & function list
 & functions
   Help is available for the following RhostMUSH wizard only functions:
@@ -10551,14 +11194,19 @@
   directory's sub-directory 'scripts'.  It is case sensitive and strips
   illegal characters (like, .., /, $, etc) from the script name.
   
-  This requires the EXECSCRIPT @power of GUILDMASTER to use the function.
-  It requires the ARCHITECT level to allow the use of passing arguments
-  to the script.  Unlike other powers, this power is not inheritable.
+  MUSH Requirements:
+     - @power of EXECSCRIPT (guildmaster to use, arch+ to pass vars)
+     - SIDEFX flag
+     - EXECSCRIPT_VARS (optional)  --> passed as enviornment var MUSHL_VARS
+       This is set on the thing with execscript() on it to define what
+       variables it has that will be passed as MUSHV_<args> to the script
+  
+  Note: The EXECSCRIPT @power is not inheritable.
   
   You can pass a maximum of 9 arguments to the script not including the
-  script name.
+  script name.  It combines all arguments into a singular argument to script.
   
-  The following variables are available from inside the scripts called:
+  The following global variables are available from inside the scripts called:
     MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
     MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
     MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
@@ -10567,6 +11215,15 @@
     MUSH_OWNER        - dbref# of player's owner by name of owner.
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
+    MUSHL_VARS        - All the variables you want the script to see which
+                        is passed as the mush attribute EXECSCRIPT_VARS
+                        on the container that is executing execscript()
+    MUSHV_<arg>       - Dynamic variables passed from above EXECSCRIPT_VARS
+    MUSHQ_<arg>       - SetQ registers (0-9 and a-z) 
+    MUSHQN_<arg>      - Label names of registers (0-9 and a-z)
+    MUSHN_<arg>       - Register name contents of the setq register.
+                        Note: setq 0 label of 'bob' will have MUSHQ_0 and
+                              MUSHN_BOB have the same contents.
   
   Examples:
     > say execscript(hello.sh)
@@ -10575,8 +11232,152 @@
     You say "hello from the script with args: 'test'"
   
   See 'writing scripts' for help on dos and don'ts in writing execscripts.
+  See 'working with execscript' to use registers and variables and callbacks.
+
     
-  See Also: POWER EXECSCRIPT
+  See Also: POWER EXECSCRIPT, exec_secure
+
+& WORKING WITH EXECSCRIPT
+  Topic: Working with Execscript
+  
+  The file that will be passed back to the mush is the name of the 
+  executing script with '.set' after it.  With the example 'myscript.sh'
+  the loader file will be 'myscript.sh.set'.
+ 
+  Note1: you may start lines with a '#' for comments.
+  Note2: you may continue content by ending previous line with a <ctrl>M
+         (which is a line feed)
+  Note3: A maximum of 1000 lines are read (including comments)
+  
+  The file loader after the execscript is executed is the name of the
+  script plus '.set' after it.  So if execscript called myscript.sh then
+  the loader script it calls after execution is myscript.sh.set.  This file
+  will be not be triggered if it detects the file existing prior to 
+  the executing of the script.  This is a safty margin.
+  
+  The following registers are passed to the script as environment variables:
+    MUSHQ_<reg>   - Where <reg> is 0-9 or a-z for the SETQ registers.
+    MUSHQN_<reg>  - The label name of the <reg> defined above.
+    MUSHN_<label> - The label contents of the named register.
+  
+  The following variables are passed to the script as environment variables:
+    MUSHL_VARS    - This is the contents of the EXECSCRIPT_VARS mush attribute
+                    that has a space seperated list of attribute names you
+                    wish to pass to the script.
+    MUSHV_<arg>   - Each <arg> is a mush attribute variable from MUSHL_VARS.
+  
+{ see 'working with execscript2' for details and examples }
+
+& WORKING WITH EXECSCRIPT2
+  Topic: Working with Execscript Part 2
+  
+  The list of variables you wish to pass will be from the object issuing
+  the execscript (not the executor, but the container) as a space separated 
+  list stored in the variable EXECSCRIPT_VARS.  Let's assume the execscript
+  is on object #123
+  
+  Example: 
+    > @set #123=SIDEFX INHERIT
+    > @power/counc #123=EXECSCRIPT
+    > &EXECSCRIPT_VARS #123=foo bar baz
+    > &FOO #123=This is my foo variable
+    > &BAR #123=This is my bar variable
+    > &BAZ #123=This is my baz variable
+    > &EXEC_ONE #123=$run1:@pemit %#=[execscript(hi.sh)]
+    > &EXEC_TWO #123=$run2 *:@pemit %#=[setq(0,foo,bar)][execscript(hi.sh,%0)]
+  
+  The EXECSCRIPT_VARS contents as passed as environment variable MUSHL_VARS.
+  This will always be a space delimited list of variables you want your script
+  to see.  The contents of the example is 'foo bar baz' which are then defined
+  as the environment variables with contents:
+     environment MUSHV_FOO containing 'This is my foo variable' from &FOO
+     environment MUSHV_BAR containing 'This is my bar variable' from &BAR
+     environment MUSHV_BAZ containing 'This is my baz variable' from &BAZ
+  
+  All registers that are defined are allocated and defined as environments
+  with labels if declared.  It only assigns registers and labels where defined.
+     environment variable MUSHQ_0 containing 'foo' from setq 0 contents
+     environment variable MUSHQN_0 containing 'bar' from setq 0 label
+     environment variable MUSHN_BAR containing 'foo' from setq 0 contents
+  
+  Notice the difference between 'run1' and 'run2' above is that run1 just
+  execs the script.  No registers are passed, but EXECSCRIPT_VARS passes
+  three variables that will be seen by your script.  'run2' in addition
+  passes argument 0 (%0) to the script, as well as sets a register and
+  label.
+  
+  At the end of the execscript() the mush does house keeping and
+  will remove all environment variables that were originally set.
+  
+{ See 'working with execscript3' for passing information back into the mush}
+  
+& WORKING WITH EXECSCRIPT3
+  Topic: Working with Execscript Part 3
+  
+  If you wish to have variables and registers pushed back to the mush,
+  you must stage a file to be read at the end of your script execution.
+  
+  The filename created will be <scriptname>.set.  This file will be removed
+  after the end of processing. 
+  
+  Yes yes, I know, this isn't exactly clean, but it's one of the few
+  'clean' ways a child can refer back to the parent short of writing
+  complex (and not fully platform supported) shared memory.  We took
+  the easy way out here.
+  
+  The file that will be read is the name of the script execscript() called
+  with a '.set' appended to it.  
+  
+  So if your script was called 'myscript.sh'.  The file it would read
+  in would be called 'myscript.sh.set'.  Again, this file is removed after
+  it runs.  
+  
+  The syntax of this file will be as follows.
+  
+  To set registers back to the mush you would use:
+    <register> Q      -- This clears the register
+    <register> Q bob  -- This sets the register to contents 'bob'
+    <label>    QN boo -- This sets register with label' <label> 'boo'
+  
+  To set variables back to the mush you would use:
+    <variable> <dbref#>      -- This clears the attribute on dbref#
+    <variable> <dbref#> bob  -- This sets 'bob' to the attribute
+  
+{ see 'working with execscript4' for examples and descriptions }
+
+& WORKING WITH EXECSCRIPT4
+  Topic: Working with Execscript Part 4
+  
+  To continue, you again would still be using the .set file.  For
+  the example we were using 'myscript.sh.set' because the example
+  execscript() was myscript.sh.
+  
+  Example <script>.set file contents:
+     W Q
+     0 Q Setting Register 0
+     A Q Setting register A
+     snork QN Setting register with label snork 
+     BOB #456 This is my BOB attribute
+     SEX #123 Male
+     DESC #123 This is my desc%r%rI like my %crred%cn desc.
+     MULTILINE #123 Multi Line Input^M
+     More for the line^M
+     And the end
+     WIPEATTR #123
+   
+  To describe what the examples do: 
+     W Q  -- this clears register W
+     0 Q <string> -- This sets <string> into register 0 (%q0)
+     A Q <string> -- This sets <String> into register A (%qa)
+     snork QN <string> -- sets string to register with label 'snork'
+     BOB #456 <string> -- Same as &BOB #456=<string>
+     SEX #123 <string> -- Same as @sex #123=<string>
+     DESC #123 <string> -- Same as @desc #123=<string>
+     MULTILINE #123 <string> -- Each ^M says to keep reading
+                                until no ^M or end of file
+     WIPEATTR #123 -- same as &WIPEATTR #123 or @wipe #123/WIPEATTR
+  
+  See also: execscript(), WRITING SCRIPTS, POWER EXECSCRIPT
 
 & WRITING SCRIPTS
   Topic: Writing Scripts
@@ -10787,16 +11588,26 @@
   Function: ishidden(<player>)
   
   Returns a TRUE(1) if the given player is set UNFINDABLE.
-
-& DYNHELP()
-  Function: dynhelp(<helpfile>,<topic>[[,<target player>],<parsekey>])
   
-  This function will read the matching 'helpfile.txt' file, search
-  the 'helpfile.indx' for the topic, and return to the enactor
-  (or targetted player), the result.  If you specify a parsekey of
-  '1' (or true), it will parse the help file.  A '2' will issue content
-  searches.  Keep in mind that as a function, this will strip ansi codes.
-  If you want to display ansi codes in .txt files and parse it, use @dynhelp.
+  Example:
+    > say ishidden(#1)
+    You say "1" 
+  
+& DYNHELP()
+  Function: dynhelp(<helpfile>,<topic>[[[,<target>],<parsekey>],<suggest>])
+  
+  This function will read the matching <helpfile> file (such as help.txt), 
+  search the indx file (such as help.indx) for the topic, and return to the 
+  enactor (or target player), the result.  You may use any help file that 
+  has a matching .indx file.  
+  
+  If you specify a <parsekey> of '1' (or true), it will parse the help 
+  file.  A '2' will issue content searches.  Keep in mind that as a 
+  function, this will strip ansi codes.  If you want to display ansi 
+  codes in .txt files and parse it, use @dynhelp.  
+  
+  The <suggest> option enables suggestions if the help topic is not found.
+   
   You may specify either '/' or '^' here for path information.
   
   This function does NOT return the output into a buffer.  This is a
@@ -10814,17 +11625,17 @@
   See Also: @dynhelp, textfile()
 
 & TEXTFILE()
-  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[<sep>]]])
+  Function: textfile(<helpfile>,<topic>[,<parsekey>[,<type>[,<sep>[,<sug>]]]])
+  
+  This function was coded to provide Penn and MUX2 compatibility.
   
   This function works similarilly to dynhelp(), except that the resulting
   string is returned to the controlling command and not as a side-effect.
   This is a possible limitation as the string that it returns has to be
   limited to an LBUF in size, or it will be cut off.
   
-  You may specify a parsekey of '1' to let textfile() know that it needs 
+  You may specify a <parsekey> of '1' to let textfile() know that it needs 
   to parse the input and evaluate it.  A '2' will enable content searches.
-  
-  This function was coded to provide Penn and MUX2 compatibility.
   
   You may specify a <type> of '1' if you wish the function to return the
   wildcarded list of matches without the standard help entry header of
@@ -10833,6 +11644,9 @@
   You may specify a separate separator <sep> to be used for returned
   arguments for matches.  It will default to two spaces.
   
+  The optional <sug> is for suggestion enabling.  Enabling this will have
+  it return suggestions if a lookup doesn't match.
+   
   Example:
     > think textfile(help,mail)
     (returns the 'mail' topic in the help file)
@@ -11350,18 +12164,32 @@
   
   See Also: size(), msizetot()
 
+& mailmutt
+  Config parameter: mailmutt <yes/no>.  Default: NO
+  
+  Specifies if the mail program being used is MUTT.
+  This is required to add an additional parameter to the email program.
+  
+  See Also: mailsub, mailprog
+
 & mailprog
   Config parameter: mailprog <string>.  Default: elm
+  
   Specifies the mail program used to send autoregistration email.
-  See Also: mailsub
+  
+  See Also: mailsub, mailmutt
 
 & mailsub
   Config parameter: mailsub <yes/no>.  Default:  YES
+  
   Specifies if a '-s' is used with the mailprogram defined by 'mailprog'
   config parameter.  The '-s' would be the subject line.
+  
+  See Also: mailmutt, mailprog
 
 & mail_anonymous
   Config parameter: mail_anonymous <string>.  Default: *Anonymous*
+  
   Defines the 'anonymous' name seen when a player reads/stats/other a
   mail that was sent anonymously.
   
@@ -11369,6 +12197,7 @@
 
 & mail_autodeltime
   Config parameter: mail_autodeltime <days>.  Default: 21
+  
   Specifies the time, in days, that mail is auto-purged from non-wizards.
   This does effect councilors and lower.
   
@@ -11376,6 +12205,7 @@
 
 & mail_def_object
   Config parameter: mail_def_object <dbref>.  Default: -1
+  
   Specifies the dbref# (without the '#') of the object that houses the
   global dymamic mail aliases.  Global dynamic mail aliases are literally
   functions that return a list of dbref#.  The syntax would be:
@@ -11390,12 +12220,14 @@
   
 & mail_hidden
   Config parameter: mail_hidden <on/off>.  Default: off
+  
   Specifies if mail/anon will hide who the message was originally sent
   to.  Like the /anon switch itself, WIZARD and higher can see through
   hidden/anonymous names to the real sender behind it.
   
 & mail_tolist
   Config parameter: mail_tolist <yes/no>.  Default: NO
+  
   Specifies if the To: list in mail is automatically added in any sent
   mail, showing everyone who the mail want sent to.  If this is enabled,
   using '@' when sending mail will do the reverse of what it says and
@@ -11403,6 +12235,7 @@
 
 & mail_verbosity
   Config parameter: mail_verbosity <yes/no>.  Default: NO
+  
   Specifies if subjects are displayed with the 'You have new mail' message
   that a player receives, as well if players receive this message even
   if they're disconnected.  This is tied in as both have to do with
@@ -11412,11 +12245,14 @@
 
 & mail_default
   Config parameter: mail_default <yes/no>.  Default: NO
+  
   Specifies if 'mail' will return 'mail/status' instead of the default
   of 'mail/quick'.  This is done for backward compatibility to other
   mail systems.
 
 & CLOAKING
+  Topic: CLOAKING
+  
   Cloaking on RhostMUSH is unique from other server types.  If you happen
   to be bitlevel 5 or higher (ROYALTY (wizard) or IMMORTAL (super-royalty))
   and set both the UNFINDABLE and DARK flags, you are considered WIZCLOAKED.
@@ -11437,6 +12273,8 @@
   the appropiate @admin parameters)
 
 & ALT INVENTORIES
+  Topic: ALT INVENTORIES
+  
   RhostMUSH allows alternate inventory types.  They are pretty robust with
   what they allow.  To successfully set up alternate inventories, the
   following are used for configuration.
@@ -11463,6 +12301,8 @@
   { type 'wizhelp alt inventories2' for step-by-step examples to configure }
 
 & ALT INVENTORIES2
+  Topic: ALT INVENTORIES
+  
   Alternate Inventories - A tutorial...
   [ Ok, let's first enable alternate inventories, worn, and wielded. ]
     > @admin alt_inventories=1
@@ -11514,6 +12354,8 @@
   See Also: wizhelp wmail alias, help mail alias
 
 & guest setup
+  Topic: GUEST SETUP
+  
   Setting up guests is relatively simple.  You have to do the following 
   things in order, however.
   
@@ -11540,6 +12382,7 @@
 
 & mailinclude_file
   Config parameter: mailinclude_file <string>  (Default 'autoreg_include.txt')
+  
   Specifies the text file that is included when someone autoregisters.  If
   no text file is found, or the file is invalid, it sends the base information
   to the user (login, password, and who it's from).
@@ -11547,6 +12390,8 @@
   Note: this has some protection and requires the file end in '.txt'.
 
 & news setup
+  Topic: NEWS SETUP
+  
   The news.txt file (and help.txt file) uses a unique index system for 
   references.  You design the file with a '&' to start an index key and the
   text after it is the content of that topic.  The main topic is *ALWAYS* 
@@ -11556,6 +12401,8 @@
 { For help on how to set one up, please see:  'wizhelp news setup2' }
   
 & news setup2
+  Topic: NEWS SETUP
+  
   This is an example of how a news.txt file will look like:
   
     & help
@@ -11587,6 +12434,8 @@
 { wizhelp news setup3 to continue }
 
 & news setup3
+  Topic: NEWS SETUP
+  
   Once the .txt file is finished, you need to create the index for the text
   file.  To do this, from within the txt directory you would type 
   the following:
@@ -11609,22 +12458,30 @@
   wizhelp.txt, error.txt, and all other text files.
  
 & help setup
+  Topic: HELP SETUP
+  
   The help.txt file is set up like the news.txt file.  To see how this file
   is designed and updated, please refer to 'wizhelp news setup'.
   
   See Also: news setup
 
 & plushelp setup
+  Topic: PLUSHELP SETUP
+  
   The plushelp.txt file is set up like the news.txt file.  To see how this
   file is designed and updated, please refer to 'wizhelp news setup'.
 
 & elsefile setup
+  Topic: ELSEFILE SETUP
+  
   You may set up ANY file to be read from within the mush by using the
   @dynhelp command or dynhelp() function.  The only stipulation to this
   is that the file MUST end in '.txt' and the file MUST have a matching
   '.indx' at the same location.
 
 & hook setup
+  Topic: HOOK SETUP
+  
   Hooks are set up by following the shown methods.
   1)  You must first create and setup a hook object to store the data.
       Once you have @created the object, the object needs to be defined
@@ -11662,6 +12519,8 @@
 { see 'wizhelp hook setup2' for examples }
 
 & hook setup2
+  Topic: HOOK SETUP 
+  
   > @create HookObject
   HookObject created as object #1234
   > @admin hook_obj=1234             (and/or in netrhost.conf: hook_obj 1234)
@@ -11697,6 +12556,8 @@
 { see 'wizhelp hook setup3' for special situations }
   
 & hook setup3
+  Topic: HOOK SETUP
+  
   Special commands like ':' for pose, and '"' for say are handled specially.
   The following are issued with @hook or hook_cmd:
   
@@ -11707,9 +12568,13 @@
      F - This is matching as '#' and looks for <char>_@force on HOOK_OBJ.
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
+     N - This is the same as ']' and looks for <char>_N on HOOK_OBJ.
   
   Example:
     > &A_POSE #1234=<function-executed-after-:/;/pose> 
+    Set.
+    > &A_N #1234=<function executed-after ] syntax>
+    Set.
   
   You must use the letter representation instead of the special char when
   issuing '@hook' or 'hook_cmd'.
@@ -11719,10 +12584,13 @@
     > @hook/before P             (handles ':' and ';')
     > @hook/before mail          (handles the 'mail' command)
     > @hook/before M             (handles the '-' input for mail)
+    > @hook/after N              (handles the ']' input for no-parsing)
   
   See Also: hook_obj, hook_cmd, hook setup
 
 & huh setup
+  Topic: HUH SETUP
+  
   The error.txt file is used to define what a player can see when they
   type a non-existant command. (and get the Huh? (Type 'help' for help).
   This allows you to randomize the messages a player can get.
@@ -11738,7 +12606,7 @@
   if the 'wiz_override' admin param is enabled, this toggle is disregarded.
   
 & @rxlevel
-  Command: @rxlevel <target>=<list>
+  Command: @rxlevel[/<switch>] <target>=[<list>]
   
   Sets or clears the Rx levels for the target. If a level name in list is
   prefixed with !, then the level is cleared.
@@ -11746,16 +12614,26 @@
   The @rxlevel is used for RECEIVING reality levels.  It determines what
   the target can see/hear/interact with.
   
+  You may use the following switches:
+    /reset -- will reset (clear) the reality.  Using this switch you do not 
+              have to specify <list>.  <list> will be applied after
+              clearing.
+  
   Example: @rxlevel *Joe=!Real Umbra
 
 & @txlevel
-  Command: @txlevel <target>=<list>
+  Command: @txlevel[/<switch>] <target>=[<list>]
   
   Sets or clears the Tx levels for the target. If a level name in list is
   prefixed with !, then the level is cleared.
   
   The @txlevel is used for TRANSMITTING reality levels.  It determines what
   things outside of the target can see/hear/interact on.
+  
+  You may use the following switches:
+    /reset -- will reset the reality.  Using this switch you do not have
+              to specify <list>.  <list> will be applied after
+              clearing.
   
   Example: @txlevel *Joe=Real !Umbra
 
@@ -11986,7 +12864,7 @@
   have access to the 'real' add() function, while everyone below would
   access the softcoded add() function.
   
-  @function/privalaged will take the level of the object the @function
+  @function/privilege will take the level of the object the @function
   is on for permission checks (which can allow a lot of flexability)
   
   Example:

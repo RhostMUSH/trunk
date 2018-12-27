@@ -775,6 +775,10 @@ POWENT pow_table[] =
   {"EXAMINE_FULL", POWER_EX_FULL, 'x', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"EXECSCRIPT", POWER_EXECSCRIPT, '$', POWER4, 0, POWER_LEVEL_COUNC, pw_imm},
   {"FORMATTING", POWER_FORMATTING, '^', POWER4, 0, POWER_LEVEL_NA, pw_imm},
+  {"API", POWER_API, 'z', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"MONITORAPI", POWER_MONITORAPI, '8', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"WIZ_IDLE", POWER_WIZ_IDLE, '@', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"WIZ_SPOOF", POWER_WIZ_SPOOF, '~', POWER5, 0, POWER_LEVEL_COUNC, pw_wiz},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -2617,7 +2621,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -2633,7 +2637,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
 char *
 unparse_object_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *fp, name_str[31], *nfmt;
+    char *buf, *buf2, *fp, name_str[101], *nfmt;
     int exam, aowner;
     dbref aflags;
 
@@ -2649,7 +2653,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     } else {
         buf2 = atr_get(target, A_ALTNAME, &aowner, &aflags);
         memset(name_str, 0, sizeof(name_str));
-        strncpy(name_str, buf2, 30); 
+        strncpy(name_str, buf2, 100); 
         free_lbuf(buf2);
 	if (obey_myopic)
 	    exam = MyopicExam(player, target);
@@ -2666,9 +2670,9 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
                  !could_doit(player,target,A_LALTNAME,0,0) )
 	       sprintf(buf, "%s(#%d%s)", name_str, target, fp);
             else if ( name_str[0] == '\0' )
-	       sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp );
+	       sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp );
             else 
-	       sprintf(buf, "%.3500s(#%d%.400s) {%.60s}", Name(target), target, fp, name_str );
+	       sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str );
 	    free_mbuf(fp);
 	} else {
 	    /* show only the name. */
@@ -2676,9 +2680,9 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
                  !could_doit(player,target,A_LALTNAME,0,0) )
                strcpy(buf, name_str);
             else if ( name_str[0] == '\0' )
-               sprintf(buf, "%.3900s", Name(target));
+               sprintf(buf, "%.3800s", Name(target));
             else
-               sprintf(buf, "%.3900s {%.60s}", Name(target), name_str );
+               sprintf(buf, "%.3800s {%.100s}", Name(target), name_str );
 	}
     }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
@@ -2687,7 +2691,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -2908,10 +2912,56 @@ parse_ansi_name(dbref target, char *ansibuf)
 }
 #endif
 
+#ifdef ZENTY_ANSI
+#define CF_ANSI_BLACK SAFE_ANSI_BLACK
+#define CF_ANSI_RED SAFE_ANSI_RED
+#define CF_ANSI_GREEN SAFE_ANSI_GREEN
+#define CF_ANSI_YELLOW SAFE_ANSI_YELLOW
+#define CF_ANSI_BLUE SAFE_ANSI_BLUE
+#define CF_ANSI_MAGENTA SAFE_ANSI_MAGENTA
+#define CF_ANSI_CYAN SAFE_ANSI_CYAN
+#define CF_ANSI_WHITE SAFE_ANSI_WHITE
+#define CF_ANSI_BBLACK SAFE_ANSI_BBLACK
+#define CF_ANSI_BRED SAFE_ANSI_BRED
+#define CF_ANSI_BGREEN SAFE_ANSI_BGREEN
+#define CF_ANSI_BYELLOW SAFE_ANSI_BYELLOW
+#define CF_ANSI_BBLUE SAFE_ANSI_BBLUE
+#define CF_ANSI_BMAGENTA SAFE_ANSI_BMAGENTA
+#define CF_ANSI_BCYAN SAFE_ANSI_BCYAN
+#define CF_ANSI_BWHITE SAFE_ANSI_BWHITE
+#define CF_ANSI_HILITE SAFE_ANSI_HILITE
+#define CF_ANSI_INVERSE SAFE_ANSI_INVERSE
+#define CF_ANSI_BLINK SAFE_ANSI_BLINK
+#define CF_ANSI_UNDERSCORE SAFE_ANSI_UNDERSCORE
+#define CF_ANSI_NORMAL SAFE_ANSI_NORMAL
+#else
+#define CF_ANSI_BLACK ANSI_BLACK
+#define CF_ANSI_RED ANSI_RED
+#define CF_ANSI_GREEN ANSI_GREEN
+#define CF_ANSI_YELLOW ANSI_YELLOW
+#define CF_ANSI_BLUE ANSI_BLUE
+#define CF_ANSI_MAGENTA ANSI_MAGENTA
+#define CF_ANSI_CYAN ANSI_CYAN
+#define CF_ANSI_WHITE ANSI_WHITE
+#define CF_ANSI_BBLACK ANSI_BBLACK
+#define CF_ANSI_BRED ANSI_BRED
+#define CF_ANSI_BGREEN ANSI_BGREEN
+#define CF_ANSI_BYELLOW ANSI_BYELLOW
+#define CF_ANSI_BBLUE ANSI_BBLUE
+#define CF_ANSI_BMAGENTA ANSI_BMAGENTA
+#define CF_ANSI_BCYAN ANSI_BCYAN
+#define CF_ANSI_BWHITE ANSI_BWHITE
+#define CF_ANSI_HILITE ANSI_HILITE
+#define CF_ANSI_INVERSE ANSI_INVERSE
+#define CF_ANSI_BLINK ANSI_BLINK
+#define CF_ANSI_UNDERSCORE ANSI_UNDERSCORE
+#define CF_ANSI_NORMAL ANSI_NORMAL
+#endif
+
 char *
 unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[31], *nfmt;
+    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[101], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -2947,82 +2997,82 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
              switch (*s) {
              case 'h':		/* hilite */
                  if ( mudconf.global_ansimask & MASK_HILITE )
-	            strcat(buf2, ANSI_HILITE);
+	            strcat(buf2, CF_ANSI_HILITE);
 	         break;
              case 'i':		/* inverse */
                  if ( mudconf.global_ansimask & MASK_INVERSE )
-	            strcat(buf2, ANSI_INVERSE);
+	            strcat(buf2, CF_ANSI_INVERSE);
 	         break;
              case 'f':		/* flash */
                  if ( mudconf.global_ansimask & MASK_BLINK )
-	            strcat(buf2, ANSI_BLINK);
+	            strcat(buf2, CF_ANSI_BLINK);
 	         break;
              case 'n':		/* normal */
-	         strcat(buf2, ANSI_NORMAL);
+	         strcat(buf2, CF_ANSI_NORMAL);
 	         break;
              case 'x':		/* black fg */
                  if ( mudconf.global_ansimask & MASK_BLACK )
-	            strcat(buf2, ANSI_BLACK);
+	            strcat(buf2, CF_ANSI_BLACK);
 	         break;
              case 'r':		/* red fg */
                  if ( mudconf.global_ansimask & MASK_RED )
-	            strcat(buf2, ANSI_RED);
+	            strcat(buf2, CF_ANSI_RED);
 	         break;
              case 'g':		/* green fg */
                  if ( mudconf.global_ansimask & MASK_GREEN )
-	            strcat(buf2, ANSI_GREEN);
+	            strcat(buf2, CF_ANSI_GREEN);
 	         break;
              case 'y':		/* yellow fg */
                  if ( mudconf.global_ansimask & MASK_YELLOW )
-	            strcat(buf2, ANSI_YELLOW);
+	            strcat(buf2, CF_ANSI_YELLOW);
 	         break;
              case 'b':		/* blue fg */
                  if ( mudconf.global_ansimask & MASK_BLUE )
-	            strcat(buf2, ANSI_BLUE);
+	            strcat(buf2, CF_ANSI_BLUE);
 	         break;
              case 'm':		/* magenta fg */
                  if ( mudconf.global_ansimask & MASK_MAGENTA )
-	            strcat(buf2, ANSI_MAGENTA);
+	            strcat(buf2, CF_ANSI_MAGENTA);
 	         break;
              case 'c':		/* cyan fg */
                  if ( mudconf.global_ansimask & MASK_CYAN )
-	            strcat(buf2, ANSI_CYAN);
+	            strcat(buf2, CF_ANSI_CYAN);
 	         break;
              case 'w':		/* white fg */
                  if ( mudconf.global_ansimask & MASK_WHITE )
-	            strcat(buf2, ANSI_WHITE);
+	            strcat(buf2, CF_ANSI_WHITE);
 	         break;
              case 'X':		/* black bg */
                  if ( mudconf.global_ansimask & MASK_BBLACK )
-	            strcat(buf2, ANSI_BBLACK);
+	            strcat(buf2, CF_ANSI_BBLACK);
 	         break;
              case 'R':		/* red bg */
                  if ( mudconf.global_ansimask & MASK_BRED )
-	            strcat(buf2, ANSI_BRED);
+	            strcat(buf2, CF_ANSI_BRED);
 	         break;
              case 'G':		/* green bg */
                  if ( mudconf.global_ansimask & MASK_BGREEN )
-	            strcat(buf2, ANSI_BGREEN);
+	            strcat(buf2, CF_ANSI_BGREEN);
 	         break;
              case 'Y':		/* yellow bg */
                  if ( mudconf.global_ansimask & MASK_BYELLOW )
-	            strcat(buf2, ANSI_BYELLOW);
+	            strcat(buf2, CF_ANSI_BYELLOW);
 	         break;
              case 'B':		/* blue bg */
                  if ( mudconf.global_ansimask & MASK_BBLUE )
-	            strcat(buf2, ANSI_BBLUE);
+	            strcat(buf2, CF_ANSI_BBLUE);
 	         break;
              case 'M':		/* magenta bg */
                  if ( mudconf.global_ansimask & MASK_BMAGENTA )
-	            strcat(buf2, ANSI_BMAGENTA);
+	            strcat(buf2, CF_ANSI_BMAGENTA);
 	         break;
              case 'C':		/* cyan bg */
                  if ( mudconf.global_ansimask & MASK_BCYAN )
-	            strcat(buf2, ANSI_BCYAN);
+	            strcat(buf2, CF_ANSI_BCYAN);
 	         break;
              case 'W':		/* white bg */
                  if ( mudconf.global_ansimask & MASK_BWHITE )
-	            strcat(buf2, ANSI_BWHITE);
+	            strcat(buf2, CF_ANSI_BWHITE);
 	         break;
              }
              s++;
@@ -3031,7 +3081,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 #endif       
         buf3 = atr_get(target, A_ALTNAME, &aowner, &aflags);
         memset(name_str, 0, sizeof(name_str));
-        strncpy(name_str, buf3, 30);
+        strncpy(name_str, buf3, 100);
         free_lbuf(buf3);
 	if (obey_myopic)
 	    exam = MyopicExam(player, target);
@@ -3046,47 +3096,47 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 	    fp = unparse_flags(player, target);
             if ( !Wizard(player) && name_str[0] != '\0' &&
                  !could_doit(player,target,A_LALTNAME,0,0) )
-	       sprintf(buf, "%s%s%s(#%d%s)", buf2, name_str,  ANSI_NORMAL, target, fp);
+	       sprintf(buf, "%.100s%s%s(#%d%s)", buf2, name_str,  CF_ANSI_NORMAL, target, fp);
             else if ( name_str[0] == '\0' ) {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, ANSI_NORMAL, target, fp);
+	             sprintf(buf, "%.3400s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
                   else
-	             sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
+	             sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp);
                } else
-	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), ANSI_NORMAL, target, fp);
+	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
             } else {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3500s%s(#%d%.400s) {%.60s}", ansibuf, ANSI_NORMAL, target, fp, name_str);
+	             sprintf(buf, "%.3400s%s(#%d%.400s) {%.100s}", ansibuf, CF_ANSI_NORMAL, target, fp, name_str);
                   else
-	             sprintf(buf, "%.3500s(#%d%.400s) {%.60s}", Name(target), target, fp, name_str);
+	             sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str);
                } else
-	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s) {%.60s}", buf2, Name(target), 
-                          ANSI_NORMAL, target, fp, name_str);
+	          sprintf(buf, "%.100s%.3400s%s(#%d%.300s) {%.100s}", buf2, Name(target), 
+                          CF_ANSI_NORMAL, target, fp, name_str);
             }
 	    free_mbuf(fp);
 	} else {
 	    /* show only the name. */
             if ( !Wizard(player) && name_str[0] != '\0' &&
                  !could_doit(player,target,A_LALTNAME,0,0) )
-               sprintf(buf, "%.100s%.3800s%s", buf2, name_str,  ANSI_NORMAL);
+               sprintf(buf, "%.100s%.3800s%s", buf2, name_str,  CF_ANSI_NORMAL);
             else if ( name_str[0] == '\0' ) {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-                     sprintf(buf, "%.3900s%s", ansibuf, ANSI_NORMAL);
+                     sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
                   else
                      sprintf(buf, "%.3900s", Name(target));
                } else
-                  sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), ANSI_NORMAL);
+                  sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
             } else {
                if ( ExtAnsi(target) ) {
                   if ( ansi_ok == 0 )
-                     sprintf(buf, "%.3800s%s {%.60s}", ansibuf, ANSI_NORMAL, name_str);
+                     sprintf(buf, "%.3800s%s {%.100s}", ansibuf, CF_ANSI_NORMAL, name_str);
                   else
-                     sprintf(buf, "%.3800s {%.60s}", Name(target), name_str);
+                     sprintf(buf, "%.3800s {%.100s}", Name(target), name_str);
                } else
-                  sprintf(buf, "%.100s%.3800s%s {%.60s}", buf2, Name(target), ANSI_NORMAL, name_str);
+                  sprintf(buf, "%.100s%.3700s%s {%.100s}", buf2, Name(target), CF_ANSI_NORMAL, name_str);
             }
 	}
     free_lbuf(ansibuf);
@@ -3098,7 +3148,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -3154,82 +3204,82 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
              switch (*s) {
                 case 'h':		/* hilite */
                     if ( mudconf.global_ansimask & MASK_HILITE )
-	               strcat(buf2, ANSI_HILITE);
+	               strcat(buf2, CF_ANSI_HILITE);
 	            break;
                 case 'i':		/* inverse */
                     if ( mudconf.global_ansimask & MASK_INVERSE )
-	               strcat(buf2, ANSI_INVERSE);
+	               strcat(buf2, CF_ANSI_INVERSE);
 	            break;
                 case 'f':		/* flash */
                     if ( mudconf.global_ansimask & MASK_BLINK )
-	               strcat(buf2, ANSI_BLINK);
+	               strcat(buf2, CF_ANSI_BLINK);
 	            break;
                 case 'n':		/* normal */
-	            strcat(buf2, ANSI_NORMAL);
+	            strcat(buf2, CF_ANSI_NORMAL);
 	            break;
                 case 'x':		/* black fg */
                     if ( mudconf.global_ansimask & MASK_BLACK )
-	               strcat(buf2, ANSI_BLACK);
+	               strcat(buf2, CF_ANSI_BLACK);
 	            break;
                 case 'r':		/* red fg */
                     if ( mudconf.global_ansimask & MASK_RED )
-	               strcat(buf2, ANSI_RED);
+	               strcat(buf2, CF_ANSI_RED);
 	            break;
                 case 'g':		/* green fg */
                     if ( mudconf.global_ansimask & MASK_GREEN )
-	               strcat(buf2, ANSI_GREEN);
+	               strcat(buf2, CF_ANSI_GREEN);
 	            break;
                 case 'y':		/* yellow fg */
                     if ( mudconf.global_ansimask & MASK_YELLOW )
-	               strcat(buf2, ANSI_YELLOW);
+	               strcat(buf2, CF_ANSI_YELLOW);
 	            break;
                 case 'b':		/* blue fg */
                     if ( mudconf.global_ansimask & MASK_BLUE )
-	               strcat(buf2, ANSI_BLUE);
+	               strcat(buf2, CF_ANSI_BLUE);
 	            break;
                 case 'm':		/* magenta fg */
                     if ( mudconf.global_ansimask & MASK_MAGENTA )
-	               strcat(buf2, ANSI_MAGENTA);
+	               strcat(buf2, CF_ANSI_MAGENTA);
 	            break;
                 case 'c':		/* cyan fg */
                     if ( mudconf.global_ansimask & MASK_CYAN )
-	               strcat(buf2, ANSI_CYAN);
+	               strcat(buf2, CF_ANSI_CYAN);
 	            break;
                 case 'w':		/* white fg */
                     if ( mudconf.global_ansimask & MASK_WHITE )
-	               strcat(buf2, ANSI_WHITE);
+	               strcat(buf2, CF_ANSI_WHITE);
 	            break;
                 case 'X':		/* black bg */
                     if ( mudconf.global_ansimask & MASK_BBLACK )
-	               strcat(buf2, ANSI_BBLACK);
+	               strcat(buf2, CF_ANSI_BBLACK);
 	            break;
                 case 'R':		/* red bg */
                     if ( mudconf.global_ansimask & MASK_BRED )
-	               strcat(buf2, ANSI_BRED);
+	               strcat(buf2, CF_ANSI_BRED);
 	            break;
                 case 'G':		/* green bg */
                     if ( mudconf.global_ansimask & MASK_BGREEN )
-	               strcat(buf2, ANSI_BGREEN);
+	               strcat(buf2, CF_ANSI_BGREEN);
 	            break;
                 case 'Y':		/* yellow bg */
                     if ( mudconf.global_ansimask & MASK_BYELLOW )
-	               strcat(buf2, ANSI_BYELLOW);
+	               strcat(buf2, CF_ANSI_BYELLOW);
 	            break;
                 case 'B':		/* blue bg */
                     if ( mudconf.global_ansimask & MASK_BBLUE )
-	               strcat(buf2, ANSI_BBLUE);
+	               strcat(buf2, CF_ANSI_BBLUE);
 	            break;
                 case 'M':		/* magenta bg */
                     if ( mudconf.global_ansimask & MASK_BMAGENTA )
-	               strcat(buf2, ANSI_BMAGENTA);
+	               strcat(buf2, CF_ANSI_BMAGENTA);
 	            break;
                 case 'C':		/* cyan bg */
                     if ( mudconf.global_ansimask & MASK_BCYAN )
-	               strcat(buf2, ANSI_BCYAN);
+	               strcat(buf2, CF_ANSI_BCYAN);
 	            break;
                 case 'W':		/* white bg */
                     if ( mudconf.global_ansimask & MASK_BWHITE )
-	               strcat(buf2, ANSI_BWHITE);
+	               strcat(buf2, CF_ANSI_BWHITE);
 	            break;
              }
              s++;
@@ -3249,21 +3299,21 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
 	    fp = unparse_flags(player, target);
             if ( ExtAnsi(target) ) {
                if ( ansi_ok == 0 )
-	          sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, ANSI_NORMAL, target, fp);
+	          sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
                else
 	          sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
             } else
-	       sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), ANSI_NORMAL, target, fp);
+	       sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
 	    free_mbuf(fp);
 	} else {
 	       /* show only the name. */
             if ( ExtAnsi(target) ) {
                if ( ansi_ok == 0 )
-                  sprintf(buf, "%.3900s%s", ansibuf, ANSI_NORMAL);
+                  sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
                else
                   sprintf(buf, "%.3900s", Name(target));
             } else
-               sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), ANSI_NORMAL);
+               sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
 	}
     free_lbuf(ansibuf);
     }
@@ -3274,7 +3324,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
-          buf2 = exec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
+          buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
           if ( Wizard(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
@@ -3312,82 +3362,82 @@ ansi_exitname(dbref target)
           switch (*s) {
              case 'h':		/* hilite */
                  if ( mudconf.global_ansimask & MASK_HILITE )
-	            strcat(buf2, ANSI_HILITE);
+	            strcat(buf2, CF_ANSI_HILITE);
 	         break;
              case 'i':		/* inverse */
                  if ( mudconf.global_ansimask & MASK_INVERSE )
-	            strcat(buf2, ANSI_INVERSE);
+	            strcat(buf2, CF_ANSI_INVERSE);
 	         break;
              case 'f':		/* flash */
                  if ( mudconf.global_ansimask & MASK_BLINK )
-	            strcat(buf2, ANSI_BLINK);
+	            strcat(buf2, CF_ANSI_BLINK);
 	         break;
              case 'n':		/* normal */
-	         strcat(buf2, ANSI_NORMAL);
+	         strcat(buf2, CF_ANSI_NORMAL);
 	         break;
              case 'x':		/* black fg */
                  if ( mudconf.global_ansimask & MASK_BLACK )
-	            strcat(buf2, ANSI_BLACK);
+	            strcat(buf2, CF_ANSI_BLACK);
 	         break;
              case 'r':		/* red fg */
                  if ( mudconf.global_ansimask & MASK_RED )
-	            strcat(buf2, ANSI_RED);
+	            strcat(buf2, CF_ANSI_RED);
 	         break;
              case 'g':		/* green fg */
                  if ( mudconf.global_ansimask & MASK_GREEN )
-	            strcat(buf2, ANSI_GREEN);
+	            strcat(buf2, CF_ANSI_GREEN);
 	         break;
              case 'y':		/* yellow fg */
                  if ( mudconf.global_ansimask & MASK_YELLOW )
-	            strcat(buf2, ANSI_YELLOW);
+	            strcat(buf2, CF_ANSI_YELLOW);
 	         break;
              case 'b':		/* blue fg */
                  if ( mudconf.global_ansimask & MASK_BLUE )
-	            strcat(buf2, ANSI_BLUE);
+	            strcat(buf2, CF_ANSI_BLUE);
 	         break;
              case 'm':		/* magenta fg */
                  if ( mudconf.global_ansimask & MASK_MAGENTA )
-	            strcat(buf2, ANSI_MAGENTA);
+	            strcat(buf2, CF_ANSI_MAGENTA);
 	         break;
              case 'c':		/* cyan fg */
                  if ( mudconf.global_ansimask & MASK_CYAN )
-	            strcat(buf2, ANSI_CYAN);
+	            strcat(buf2, CF_ANSI_CYAN);
 	         break;
              case 'w':		/* white fg */
                  if ( mudconf.global_ansimask & MASK_WHITE )
-	            strcat(buf2, ANSI_WHITE);
+	            strcat(buf2, CF_ANSI_WHITE);
 	         break;
              case 'X':		/* black bg */
                  if ( mudconf.global_ansimask & MASK_BBLACK )
-	            strcat(buf2, ANSI_BBLACK);
+	            strcat(buf2, CF_ANSI_BBLACK);
 	         break;
              case 'R':		/* red bg */
                  if ( mudconf.global_ansimask & MASK_BRED )
-	            strcat(buf2, ANSI_BRED);
+	            strcat(buf2, CF_ANSI_BRED);
 	         break;
              case 'G':		/* green bg */
                  if ( mudconf.global_ansimask & MASK_BGREEN )
-	            strcat(buf2, ANSI_BGREEN);
+	            strcat(buf2, CF_ANSI_BGREEN);
 	         break;
              case 'Y':		/* yellow bg */
                  if ( mudconf.global_ansimask & MASK_BYELLOW )
-	            strcat(buf2, ANSI_BYELLOW);
+	            strcat(buf2, CF_ANSI_BYELLOW);
 	         break;
              case 'B':		/* blue bg */
                  if ( mudconf.global_ansimask & MASK_BBLUE )
-	            strcat(buf2, ANSI_BBLUE);
+	            strcat(buf2, CF_ANSI_BBLUE);
 	         break;
              case 'M':		/* magenta bg */
                  if ( mudconf.global_ansimask & MASK_BMAGENTA )
-	            strcat(buf2, ANSI_BMAGENTA);
+	            strcat(buf2, CF_ANSI_BMAGENTA);
 	         break;
              case 'C':		/* cyan bg */
                  if ( mudconf.global_ansimask & MASK_BCYAN )
-	            strcat(buf2, ANSI_BCYAN);
+	            strcat(buf2, CF_ANSI_BCYAN);
 	         break;
              case 'W':		/* white bg */
                  if ( mudconf.global_ansimask & MASK_BWHITE )
-	            strcat(buf2, ANSI_BWHITE);
+	            strcat(buf2, CF_ANSI_BWHITE);
 	         break;
           }
           s++;

@@ -20,19 +20,25 @@
   
   You may use the /search switch for content searching.  Eg: help/search *mail*
   
+  You may use the /query switch for detailed searching.  Eg: help/query *mail*
+  
   Command syntax help is available by issuing /syntax. Eg: @emit/syntax
   
   If there are any errors in the help text, please notify a Wizard.
   An HTML version of all the help contained here is available at
   http://rhostmush.com/autohelp/help.html
   
+& plushelp
 & +help
   If enabled (please check @list options), this will work just like normal
   'help' does, but for +help.  This is intended for TINY/MUX compatibility
   and is disabled by default.
   
-  The /search switch works for +help as well.
+  The following switches work for +help:
+    /search -- allow wildcard patterning for searches (Eg: help/search *@mail*)
+    /query  -- allow detailed searching and return (Eg: help/query *@mail*)
   
+  See Also: help 
 
 & register
 & connect
@@ -99,18 +105,18 @@
   train     use         version      wield        whisper       who        
   worn
   
-  @@              @break      @chown    @clone        @create    @decompile
-  @destroy        @dig        @doing    @dolist       @drain     @edit 
-  @emit           @entrances  @eval     @extansi      @femit     @find      
-  @force          @fpose      @fsay     @halt         @hide      @include
-  @label          @last       @link     @list         @listmotd  @lfunction  
-  @lock           @lset       @mailsig  @mvattr       @name      @notify     
-  @oemit          @open       @parent   @password     @pemit     @pipe       
-  @program        @protect    @ps       @quitprogram  @quota     @register   
-  @robot          @search     @set      @skip         @sql       @sqlconnect 
-  @sqldisconnect  @stats      @sudo     @sweep        @switch    @teleport   
-  @trigger        @unlink     @unlock   @verb         @wait      @wall       
-  @wipe        
+  @@           @break          @chown    @clone    @create       @decompile
+  @destroy     @dig            @doing    @dolist   @drain        @edit 
+  @emit        @entrances      @eval     @extansi  @femit        @find      
+  @force       @fpose          @fsay     @goto     @halt         @hide
+  @include     @jump           @label    @last     @link         @list
+  @listmotd    @lfunction      @lock     @lset     @mailsig      @mvattr
+  @name        @notify         @oemit    @open     @parent       @password
+  @pemit       @pipe           @program  @protect  @ps           @quitprogram
+  @quota       @register       @robot    @search   @set          @skip
+  @sql         @sqlconnect     @sqldisconnect      @stats        @sudo
+  @sweep       @switch         @teleport @trigger  @unlink       @unlock
+  @verb        @wait           @wall     @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -146,34 +152,473 @@
 & topics
   Help available on the following Topics:
  
-  ALT INVENTORIES     ALTNAMES          ANSINAMES            ARBITRARY COMMANDS
-  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS   ATTRIBUTE OWNERSHIP  ATTRIBUTE TREES
-  BANG NOTATION       BEING KILLED      BOGUS COMMANDS       BOOLEAN VALUES    
-  CHANGES             CHANNEL           COLORS               COMMAND EVALUATION
-  CONTROL             COPYRIGHT         COSTS                CREDITS         
-  CLUSTERS            DROP-TO           ENACTOR              EXITS           
-  FAILURE             FLAG ALIAS        FLAG LIST            FLAGS           
-  FUNCTION ALIASES    FUNCTION LIST     FUNCTION TYPES       FUNCTIONS       
-  GENDER              GOALS             GUESTS               HERE              
-  HOMES               LINKING           LISTENING            LISTS            
-  LOOPING             MAIL              ME                   MONEY          
-  MOVING              OBJECT TYPES      PARENT OBJECTS       PUPPETS       
-  QUICKREFERENCE      REALITY LEVELS    REGEXPS              REGEXP SYNTAX    
-  REGEXP CLASSES      REGEXP EXAMPLES   ROBBERY              ROYALTY          
-  SEARCH CLASSES      SEMAPHORES        SENSES               SETQ_TEMPLATES   
-  SQL                 SQLESCAPE         SIDEEFFECTS          SINGLETHREADING  
-  SPECIAL CHARACTERS  SPOOFING          STACK                SUBSTITUTIONS      
-  SUCCESS             SWITCHES          TOGGLES              USEFUL             
-  USER ATTRIBUTES     UNICODE SUPPORT   VARIABLE EXITS       VATOVZ
-  VERBS               WANDERER          ZATOZZ               ZONES
-  $-COMMANDS          #LAMBDA           ATTRIB FORMATTING    MAX ARGS
-  WILDCARDS
+  ALT INVENTORIES     ALTNAMES           ANSINAMES           API
+  ARBITRARY COMMANDS  ATTRIB FORMATTING  ATTRIBUTE USELOCKS  ATTRIBUTE FLAGS 
+  ATTRIBUTE OWNERSHIP ATTRIBUTE TREES    BANG NOTATION       BEING KILLED    
+  BOGUS COMMANDS      BOOLEAN VALUES     CHANGES             CHANNEL         
+  CODING              COLORS             COMMAND EVALUATION  CONTROL         
+  COPYRIGHT           COSTS              CREDITS             CLUSTERS        
+  DROP-TO             ENACTOR            EXITS               FAILURE         
+  FLAG ALIAS          FLAG LIST          FLAGS               FUNCTION ALIASES
+  FUNCTION LIST       FUNCTION TYPES     FUNCTIONS           GENDER          
+  GOALS               GUESTS             HERE                HOMES           
+  LINKING             LISTENING          LISTS               LOOPING         
+  MAIL                MAX ARGS           ME                  MONEY           
+  MOVING              OBJECT TYPES       PARENT OBJECTS      PUPPETS         
+  QUICKREFERENCE      REALITY LEVELS     REGEXPS             REGEXP SYNTAX   
+  REGEXP CLASSES      REGEXP EXAMPLES    ROBBERY             ROYALTY         
+  SEARCH CLASSES      SEMAPHORES         SENSES              SETQ_TEMPLATES  
+  SIDEEFFECTS         SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING        
+  SQL                 SQLESCAPE          STACK               SUBSTITUTIONS   
+  SUCCESS             SWITCHES           TOGGLES             USEFUL          
+  USER ATTRIBUTES     VARIABLE EXITS     VATOVZ              VERBS           
+  WANDERER            WILDCARDS          ZATOZZ              ZONES           
+  $-COMMANDS          #LAMBDA          
+  
+& API
+  Topic: API
+
+  RhostMUSH has a process where it allows API connections to happen on another
+  port.  It requires to have the api_port specified to a unique port for the
+  API handler, then various optional config parameters to optimize how the
+  API works.  The API, unlike normal connections, allows any valid dbref# to
+  talk to the mush from the API engine.  It does this through multi-factor
+  authentication including host match and password authentication.
+  
+  Keep in mind, the API port is NOT the mush port.  It is a different port.
+  There is also quite a lot of protection on the API port which will
+  automatically disable the object or the IP from connecting if abused.
+  
+  It uses Basic Authorization and encapsulates.  Example of using curl for
+  login authentication to the API's object would be:
+             curl --user "#123:foobar"
+
+  The dbref# would be #123, and the password you want to authenticate would
+  be 'foobar'.
+
+  Example curl commands that are used for the API handler are:
+  GET Examples (this is from a command line using the 'curl' application)
+> curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
+  
+  POST Example: (this is from a command line using the 'curl' application)
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
+  
+  To have a target dbref# enabled for API processing, please alert a staff
+  on your game as it requires staff approval and authentication to enable
+  the dbref# to be useable for the API sub engine.
+  
+{ see 'help api return' for expected return codes }
+
+& API RETURN
+  Topic: API RETURN
+
+  When the mush responds to your API requests, it will do so with headers
+  only.  There is no data submitted.  If there is header data it does not
+  recognize or is malformed, it will return an appropiate error message.
+
+  The following return encoding can be expected
+  POST:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:37:52 2017
+      Exec: <STRING>
+
+  GET:
+      HTTP/1.1 <CODE> OK
+      Content-type: text/plain
+      Date: Thu Jul  6 14:51:16 2017
+      Exec: <STRING>
+      Return: <VALUE>
+
+
+      -- <CODE> may be any of the following with matching <STRING>
+         200 - OK            <STRING>: Ok - Executed
+         400 - Bad Request   <STRING>: Error - Invalid Headers Supplied
+         400 - Bad Request   <STRING>: Error - Empty String
+         404 - Not Found     <STRING>: Error - Invalid target
+         403 - Forbidden     <STRING>: Error - Permission Denied
+         403 - Forbidden     <STRING>: Error - IP not allowed
+         403 - Forbidden     <STRING>: Error - Malformed User or Password
+
+      -- <VALUE> is the actual return value for a GET fetch.  This is what
+         the evaluated string will have been.
+  
+  For help on setting up, authentication, or administration of the API 
+  engine, please refer to the wizhelp topics for the API.
+
+& CODING
+  Topic: CODING
+  
+  This topic discusses the ins and outs of mush programming.  While not a 
+  complete document by any regard, it should help you understand the basics
+  and get around programming on a mush.
+  
+  There are sub-topics available with coding that you may reference at
+  anytime.  These are:
+  
+    CODING QUEUE   -- A quick overview of how the queue works in the mush
+    CODING COMMAND -- A quick overview of what defines a command
+    CODING FUNCT   -- A quick overview of what defines a function
+    CODING NEST    -- A quick overview of operators to nest commands
+    CODING ATTRIB  -- A quick overview of setting attributes
+    CODING REGS    -- A quick overview of temporary registers/arguments
+    CODING SUBS    -- A quick overview of substitutions
+  
+    WILDCARDS      -- Help on how wildcards work
+    REGEXP         -- If you feel adventurous for regular expressions
+  
+  To continue with the overview and explain how a general layout works,
+  please see 'CODING2'.
+  
+& CODING SUBS
+  Topic: CODING SUBS
+  
+  Substitutions are a quick reference to call a value that may dynamically
+  change.  For example, '%n' will reference the name of whatever is 
+  executing the code, and '%#' is the dbref# that is calling.  For a list
+  of all substitutions, please see 'help substitutions'.  It lists all
+  the subs as well as a short description of how they work.  Don't hesitate
+  to play with the values to see how they work.  You won't hurt anything
+  by doing so :)
+  
+  Examples:
+  > say %# %n
+  You say "#123 Bob"
+  > say [setq(0,foo)]Register is: %q0
+  You say "Register is: foo"
+  
+& CODING2
+  Topic: CODING2
+  
+  When you start coding on a mush, each sequence usually starts with a
+  command, which then uses functions to manipulate the data the command
+  is calling.  You may also make soft-coded commands ($-commands in help)
+  by starting a command with a '$' and then any wildcards with '*' for
+  1 or more characters or '?' meaning one character only.  You may use
+  the ^ command for having objects listen for a word sequence.  Please
+  refer to 'help monitor' to explain a bit more on how ^ sequences work.
+  
+  When you establish a softcoded command, the sequence works as follows:
+  &ATTRIBUTE TARGET=$command *:COMMAND1;COMMAND2;...;COMMANDx
+  
+  Example: (assuming you own an object 'Fred' with dbref #123)
+  &BOO #123=$boo *:@pemit %#=You have booed '%0'.
+  
+  Breaking this down.  #123 is the dbref# of 'Fred'.  The dbref# will
+  always be unique in a mush database.  BOO is the attribute that you
+  set with the '&' command.  'boo' is the command it will be looking
+  for, identified with the '$' starter character.  You have one argument
+  being passed signified with the '*' character.  The command it is
+  executing is '@pemit', and it's using the percent substitutions '%#'
+  which is specifying the dbref# of whatever is enacting the command,
+  which in this case would be you.  The '%0' at the end is the argument
+  that aligns with the wildcard.  All arguments start at '0' and go
+  from 0-9.  You can have more than 9 arguments but that becomes more
+  complex code.  So if you had two *'s and one ?, the first two *'s 
+  would be %0 and %1 respectively, and the ? would be %2.
+  
+  So, we have set our BOO attribute to the 'boo' command.  Let's now
+  execute the command:
+  > boo
+  Huh? (Type 'help' for help)
+  
+  Ok, wait a second.  Why didn't it see the command?  The answer if
+  you look at the command makes sense.  It's expecting an argument
+  AFTER a space.  If you wanted the argument to be optional you would
+  instead set it like:
+  &BOO #123=$boo*:@pemit %#=You have booed '%0'.
+  
+  Notice no space between 'boo' and '*'.  So let's try it again:
+  > boo
+  You have booed ''
+  > boo abc123
+  You have booed 'abc123'
+  
+{ help coding3 to learn how to nest commands }
+
+& CODING3
+  Topic: CODING3
+  
+  You may nest commands together with the ';' identifier.  This will
+  link commands together.  If you with to 'cluster' commands together,
+  you may use the {}'s characters to surround a list of commands you
+  wish to link together.
+  
+  For example:
+  $foo *:@switch %0=yes,{@emit 1;@emit 2;@emit 3},no,{@emit A;@emit B;@emit C}
+  
+  In this example, if you typed 'foo yes' it would display 1, 2, and 3.
+  If you typed 'foo no' it would instead display A, B, and C.
+  
+  The @switch command (which you may shorten to @swi), executes a 'switch'
+  or evaluation based on what you specified.  In this case you are comparing
+  '%0' (or what is typed after foo), to two expected arguments.  'yes' or
+  'no'.  @switch allows multiple arguments, as well as a default value.
+  Note with how it's set up above, if foo does not have a 'yes' or 'no' value
+  you will get no output since @switch is expecting 'yes' or 'no' only and
+  has no default case to fall back on.
+  
+  You may notice that you use {}'s to cluster the commands for each separate
+  conditional.  You may nest {}'s inside each other for nested @switches or
+  other commands that allow arguments passed to them of commands.  Such
+  example commands are @switch, @ifelse, @skip, @sudo, @force, @wait, and
+  so forth.
+
+& CODING ATTRIB
+  Topic: CODING ATTRIB
+  
+  Attributes are a 'permanent' storage of values.  The content that can be
+  stored on attributes are limited by the buffer limit for the mush in
+  question.  The buffer limit can be 4K, 8K, 16K, 32K, or 64K.  You may
+  find out the size of the buffer with the command:
+  
+  > say config(lbuf_size)
+  You say "32768"   (note, this would be 32K) 
+  > say config(sbuf_size)
+  You say "64"
+  
+  When setting attributes, you give it three arguments.  The name of
+  the attribute (which we will be calling ATTRIBUTE), the target that
+  you will set the attribute on (which we will be calling TARGET), and
+  the contents you wish to set to this (which we will be calling CONTENT).
+  The attribute can be most characters (primarilly alpha-numeric) that is
+  under an SBUF in size.  This is by default 32 bytes, but can be extended 
+  to 64 bytes.  
+  
+  When setting attributes there are multiple methods to do so.  First,
+  we will cover commands that allow you to do so.
+  Setting attributes:
+    > &ATTRIBUTE TARGET=CONTENTS     (& is shorthand for '@set')
+    > @set TARGET=ATTRIBUTE:CONTENTS (this works like the & command above)
+  
+  Fetching attributes: (note: examine and @decompile allow wildcards)
+    > examine TARGET
+    > examine TARGET/ATTRIBUTE
+    > @decompile TARGET
+    > @decompile TARGET/ATTRIBUTE
+  
+  Editing attributes: (note: @edit allows wildcards)
+    > @edit TARGET/ATTRIBUTE=OLD,NEW
+  
+  Copying Attributes: (note: @cpattr allows wildcards)
+    > @cpattr TARGET/ATTRIBUTE=DESTINATION
+    > @cpattr TARGET/ATTRIBUTE=DESTINATION/NEWATTRIBUTE
+  
+  Moving Attributes:
+    > @cpattr/clear TARGET/ATTRIBUTE=DESTINATION
+    > @cpattr/clear TARGET/ATTRIBUTE=DESTINATION/NEWATTRIBUTE
+    > @mvattr TARGET=ATTRIBUTE,NEWATTRIBUTE
+  
+  Clearing Attributes: (note: @wipe allows wildcards)
+    > @wipe TARGET/ATTRIBUTE 
+    > &ATTRIBUTE TARGET
+    > @set TARGET=ATTRIBUTE:
+  
+{ See 'help coding attrib2' for functions used to manipulate attributes }
+
+& CODING ATTRIB2
+  Topic: CODING ATTRIB2
+  
+  Just like commands, you may use functions to set and clear attributes.
+  Since these affect objects and 'events' as a side-effect, these are 
+  considered 'side effect functions' and will require the SIDEFX flag to
+  be set on anything DIRECTLY using these functions.  
+  
+  The following functions are used to manipulate attribute data.
+  Setting attributes:
+    > @eval set(TARGET, ATTRIBUTE:CONTENTS)
+  
+  Fetching attributes: (note: lattr takes wildcards)
+    > @eval lattr(TARGET/ATTRIBUTE)
+    > @eval get(TARGET/ATTRIBUTE)
+    > @eval xget(TARGET,ATTRIBUTE)
+  
+  Fetching & Executing attributes: (not a complete list)
+    > @eval u(TARGET/ATTRIBUTE)
+    > @eval ueval(TARGET/ATTRIBUTE/CITIZEN)
+    > @eval ulocal(TARGET/ATTRIBUTE)
+    > @eval eval(TARGET,ATTRIBUTE)
+    > @eval subeval(TARGET,ATTRIBUTE)
+  
+  Editing attributes:
+    > @eval edit(CONTENTS,OLD,NEW)
+ 
+  Clearing attributes: (note: wipe allows wildcards)
+    > @eval wipe(TARGET/ATTRIBUTE)
+    > @eval set(TARGET,ATTRIBUTE:)
+  
+  This list is not complete and there are quite a few functions that allow
+  manipulation of attributes and data.  Please review help files for these.
+   
+& CODING REGS
+  Topic: CODING REGS
+  
+  Registers (and arguments) are special substitutions that hold the values
+  that you have either set before time or are passing into a command or
+  function.  To store temporary values, you use two functions to do so:
+  > say setq(0,bob)
+  You say ""
+   
+  This will store 'bob' to register '0'.  This function as seen returns
+  nothing.  You have 36 registers that you can use.  0-9 and a-z.  
+  You may label these registers with any name you want that is 32 characters 
+  or less in length.  The label may contain spaces.
+  
+  > say setr(0,bob)
+  You say "bob"
+  
+  This function works just like setq(), but notice it not only stores the 
+  value, but it returns the value you have set.  This is intentional and
+  used when you plan to store the value but still need to have the results
+  returned for evaluation.  Like setq(), you may specify labels where the
+  same rules apply.
+  
+  Arguments are temporary only for the runtime of that given command or
+  function.   With commands you can have:
+  $foo *=*:@emit Args: %0 and %1.
+  
+  The command 'foo' has two arguments.  argument 0 (%0) will be before the
+  '=' and argument 1 (%1) will be after the '='.  You may pass this multiple
+  words.  You can use '*' or '?' for wildcards.  You may also use regular
+  expressions if you feel adventerous, but that is for advanced coding.
+  
+  See 'help wildcard' to see more on normal wildcarding.
+  See 'help regexp' to see more on regular expressions.
+
+& CODING QUEUE
+  Topic: CODING QUEUE
+  
+  The mush queue is a single threaded interpreted parser.  It works by pushing
+  and popping entries into and out of the queue based on a timed or event
+  driven engine.  Each time something is pushed onto the queue, it is
+  evaluated then popped off.  If you have a command that has itself other
+  commands, then it queues those results, so please keep that in mind when
+  programming.
+  
+  An example of how you would queue a command is as follows.
+  
+  > @wait 0={think 1;think 2;@switch 1=1,think 3;think 4}
+  1
+  2
+  4
+  3
+
+  WAAIIIIT a minute.  Why was this out of order?  The reason why is because
+  of how the queue works.  The command 'think' pushes the contents on the
+  queue.  The command '@switch' pushes the contents on the queue.  However,
+  the contents of @switch is, itself, a command and the @switch command
+  then queues and executes its own arguments.  This requires a SECOND call
+  to the queue.  Remember, the queue is processed linearilly and in order.
+  
+  So to wrap up, the first order of queue would be:
+  -> think, think, @switch, think
+  
+  The second order of queue would be:
+  -> think
+
+& CODING COMMAND
+  Topic: CODING COMMAND
+  
+  To see commands please type:  @list commands.  'help' available on each.
+  
+  A 'command' is defined as a call to a process that essentailly forks its
+  own sandbox for running its pre-defined execution.  Examples of commands
+  are 'think', '@emit', '@pemit', 'page', 'say', 'pose', and so forth.  
+  Commands should not be confused with functions, since a segment MUST
+  start with a command, and you can't start a segment with a function.
+  
+  It's easier to consider that each command starts its own sandbox, and
+  functions are used to manipulate the environment of that given command.
+  
+  You may nest commands together and link them one after another, in
+  such a situation, the environment 'pokes holes' into each sandboxed
+  environment and allows the commands that follow the previous command
+  to be able to see and inherit values that may have been manipulated or
+  seen by the previous command.
+  
+  One way that you can preserve values to pass to other commands is with
+  arguments.  Most commands accept arguments to them which you can string
+  and pass along.
+  
+  The other way is setting registers, which are essentially pre-allocated
+  buffers that you may store values into that can be accessed by any
+  command following the previous commands in the sequence.  Once the
+  command sequence is finished, the registers are reset and cleared
+  automatically.  There is no way to preserve these values and it is
+  always considered to be temporary until the process of all the commands
+  in the sequence is completed.
+
+
+& CODING FUNCT
+  Topic: CODING FUNCT
+  
+  'help function type' is very informative and it's requested you check
+  that out for a list of functions for every 'type'.
+  
+  To see functions please type: @list functions.  'help' available on each.
+  
+  A 'function' is considered a method to manipulate, display, or set the
+  environment that the command has set up.  There are literally hundreds
+  of functions that you may use, and with the use of @lfunction 
+  (or @function for wizards) you may define any number of additional
+  functions with softcode for the game and user-space to use.  The mushing
+  language is highly extensible and allows some heavy modifications.
+  
+  You may nest functions or string them together.
+  
+  Example of nesting functions:
+  > say [add(sub(mul(3,3),2,div(10,5)),20)]
+  You say "25"
+  The above example is doing:  ((3 * 3) - 2 - (10 / 5)) + 20
+  
+  Example of stringing functions:
+  > say [add(1,1)][sub(4,3)][mul(10,10)]
+  You say "21100"
+  The above example is displaying '2' '1' and '100' strung together.
+  
+  All functions allow manipulation of the input and/or output of each given
+  command, and some special functions like sideeffects allow you to do 
+  things outside of that given command.  Again, help is available on them all.
+  
+  With the use of functions and commands, you will find MUSH an extensive
+  interpreted language and quite powerful in its own right.
+   
+& CODING NEST
+  Topic: CODING NEST
+  
+  You may nest commands or functions with the use of {}'s, []'s, or ()'s.  The
+  previous is mostly used for command nesting, and the latter used for
+  function nesting and declaration.
+  
+  Command Nesting: An example of command nesting
+  $foo*:@wait 10={@emit 1;@swi [trim(%0)]=bob,{@emit bob;@emit was;@emit here}}
+  
+  In this example, if you specify 'bob' as the argument to foo, it will
+  display '1', 'bob', 'was', 'here' on separate lines.  Notice the trim()
+  function around the argument (%0).  This is trimming extra spaces around the
+  argument so that you don't have ' bob', ' bob ', or 'bob ' as commands which
+  based on comparisons may or may not work as expected.  It's essentially one 
+  of the ways to control the data that you are being given.
+  
+  If you pass 'foo' anything but 'bob', all you will get is '1' and nothing
+  else.
+  
+  Function Nesting: An example of function nesting 
+  > say [add(sub(1,1),2)]
+  You say '2'
+  
+  You are, in this example, subtracting 1 and 1, passing that nested value to
+  the 'add' function and then adding that result to the number '2'.  So
+  in this case, 1 - 1 is 0, and 0 + 2 is 2, so you will be returning '2'
   
 & \*
 & \?
 & WILDCARDS
 & GLOBBING
-  Topic:  WILDCARDS [* and ?]
+  Topic:  WILDCARDS [* and ?]  (also referred to as GLOBBING)
+  
+  Note: RhostMUSH also supports regular expressions.  Please refer to 
+        'help REGEXPS'
   
   Wildcards are the standard globbing mechanism for the mush engine.  With the
   wildcards, the '*' character is considered 0 or more characters and the '?'
@@ -226,7 +671,7 @@
   Additional matching:
     You may use regular expressions instead of globbing if you set the 
     attribute in question REGEXP (help attribute flag).  To use 
-    regular expressions instead, please check 'help regexp'.
+    regular expressions instead, please check 'help REGEXPS'.
   
   See Also: ATTRIBUTE FLAG, REGEXP, $-command
 
@@ -343,27 +788,6 @@
   
   See Also: @cluster, cluster functions
   
-& SETQ_TEMPLATES
-  You can specify 'templates' for setq registers to automatically have 
-  pre-defined labels for each individual object.  This is done by setting
-  a string in the attribute 'SETQ_TEMPLATE' on the object.  The attribute
-  should be in the format:  <register>:<string>
-  
-  So an example would be:   0:foobar 1:xyzzy q:myqreg
-  
-  This would set a template on an object where it would preassign the
-  label 'foobar' to register 0, 'xyzzy' to register 1, and 'myqreg' to
-  register q.
-  
-  Note:  These are only useful for the immediate calling $commands.
-  They are not transversed through u() functions, @triggers, or other
-  action based events.
-  
-  You may redefine these labels as you would normally with nameq(), 
-  setq(), or setr().
-  
-  See Also: nameq(), setq(), setr()
-  
 & #LAMBDA
   Object type: #lambda
   
@@ -390,15 +814,24 @@
   
   You may globally set the attribute SINGLETHREAD as well.
   
+& BANGS NOTATION
 & BANG NOTATION
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
   'not-not' functionality.  This works similiarilly to the C equivelant of
-  using 'bangs'.  You may also specify '!$' and '!!$' for FALSE or TRUE
-  conditions on functions that return string values.  Finally, you may
-  specify '!^' and '!!^' for true-boolean FALSE or TRUE conditions on
-  functions that return true-boolean based on the function t()'.
+  using 'bangs'.  A value of '1' means the condition was matched, '0' not.
+  The following formats are available with BANG support ([] is return value):
+    !   - 'not' BOOLEAN/MATH value.         Example:   !match(me,you)   [1]
+    !!  - 'not not' BOOLEAN/MATH value.     Example:  !!match(me,you)   [0]
+    !$  - 'not' STRING value.               Example:  !$grep(me,you)    [1]
+    !!$ - 'not not' STRING value.           Example: !!$grep(me,you)    [0]
+    !^  - 'not' TRUE BOOLEAN (like t())     Example:  !^grep(me,you)    [1]
+    !!^ - 'not not' TRUE BOOLEAN (like t()) Example: !!^grep(me,you)    [0]
   
+  You may also use these in %q<> substitutions,  %-<num> arguments, %i
+  substitutions and %d substitutions.
   
+  See 'help t()' for how TRUE BOOLEAN works.
+    
   Example:
     > say match(one two three four five,four)
     You say "4"
@@ -414,9 +847,15 @@
     You say "0"
     > say !!$space(1000)                  (spaces are not-null strings)
     You say "1" 
+    > say [setq(0,space(1000))]%q<!!$0> // %q<!!^0>     (process register 0)
+    YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
+    > say u(#lambda/[lit(%-!!$0 // %-!!^0)],space(10))  (process argument 0)
+    YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
   
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
+  
+  See Also: %-, %q, %i, %d, t()
   
 & VARIABLE EXITS
   Variable exits are done somewhat differently than Penn and TinyMUSH3.  First,
@@ -572,7 +1011,11 @@
   *NOT* working on players.  Talk to your local administration to see if 
   this option has been enabled or disabled.
   
-  See Also: ARBITRARY COMMANDS
+  For normal globbing command syntax, please refer to:
+                    'help ARBITRARY COMMANDS'
+  
+  For regular expression (regex) command syntax, please refer to:
+                    'help REGEXPS'
   
 & colors
   
@@ -847,11 +1290,13 @@
   delete any name you, yourself, have protected.  Wizards may remove any
   protected name.  Immortals bypass protected names.
   
+  Note: See @list options system to see what is enabled.
+  
   Switches available:
     /list    - (default) - list the names you current have protected.  This
                does not take any arguments.
     /add     - Add your current name to your protected name list.  This does
-               not take any arguments.
+               not take any arguments unless protect_addenh is enabled.
     /del     - Remove the specified name from your protected name list.  This
                requires an argument.
     /alias   - Adds the protected name as an alias.  This will work like 
@@ -1879,6 +2324,30 @@
   
   See Also: rest(), before(), after(), extract(), extractword()
   
+& STDERR()
+  Function: stderr(<string> [,<key>])
+  
+  This function will take the input string and optionally redirect it based
+  on it being a recognized function error (starting with #-1) or not.  By
+  default, this function will null out the error entirely.  
+  
+  The following keys are available:
+    0 - null the output of the string that starts with #-1 (default)
+    1 - null the output of the string that starts with #-1
+        In addition, notify() to the player the actual error that started
+        with #-1 so it's no longer part of the function stack.
+  
+  Examples:
+    > say [iter(1 3 5 [lrand(1,3)],##)]
+    You say "1 3 5 #-1 FUNCTION (LRAND) EXPECTS 3 OR 4 ARGUMENTS [RECEIVED 2]" 
+    > say [iter(1 3 5 [stderr(lrand(1,3))],##)]
+    You say "1 3 5"
+    > say [iter(1 3 5 [stderr(lrand(1,3),1)],##)]
+    STDError: #-1 FUNCTION (LRAND) EXPECTS 3 OR 4 ARGUMENTS [RECEIVED 2]
+    You say "1 3 5"
+  
+  See Also: null(), @@()
+
 & FIRSTOF()
 & ALLOF()
 & STRFIRSTOF()
@@ -2127,11 +2596,24 @@
   
 & pose
   Command: pose[/<switches>] <message>
+  
   Displays <message> to everyone in your current room, preceded by your name
-  and optionally a space.  Example: the command 'pose jumps for joy' produces
-  '<yourname> jumps for joy'.
+  and optionally a space.  
   
   No switches are available for the ':' or ';' shorthands.
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose/emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose/emit.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
    
   The following switches are available:
      /default - (default) Put a space between your name and the message
@@ -2141,6 +2623,10 @@
      /noansi   - Show the string literally and don't process ansi.  Only
                  useful with ZENTY_ANSI enabled (at compiletime).
  
+  Example: (assuming your name is Bob)
+    > pose jumps for joy
+    Bob jumps for joy
+  
   See Also: page, say, whisper, :, ;, "
   
 & quit    
@@ -2151,6 +2637,7 @@
   
 & read
   Command: read [<object>]
+  
   Displays the description of <object>, or the room you're in if you don't
   specify an object.  Specifying object as <name> or #<dbref> or 'me' or
   'here' is legal.  You can also use look to look at objects held by other
@@ -2168,23 +2655,57 @@
   
 & ;
   Command: ;<message>
+  
   This command is much like the ':' command, except that no space is inserted
-  between your name and the action.  Example: the command ';'s watch beeps.'
-  produces '<yourname>'s watch beeps.'.
- 
+  between your name and the action.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
+  
+  Example: (assuming your name is Bob)
+    > ;'s watch beeps.
+    Bob's watch beeps.
+   
   Warning: This command does not work in command lists run from an attribute
   because the ';' is treated as the command separator.  Use pose/nospace
   instead.
   
   If you have a space after the ';' it will use the ':' format instead.
- 
+   
   See Also: page, pose, say, whisper, :, "
   
 & :
   Command: :<message>
+   
   Displays <message> to everyone in your current room, preceded by your name
-  and a space.  Example: the command ':jumps for joy' produces
-  '<yourname> jumps for joy'.
+  and a space.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
+  
+  Example: (assuming your name is Bob)
+    > :jumps for joy
+    Bob jumps for joy
   
   If you have a space after the ':' it will use the ';' format instead.
   
@@ -2192,38 +2713,102 @@
   
 & "
   Command: "<message>
-  Says <message> out loud to everyone in your current room.  Example:
-  the command '"Where is the movie theater?' produces
-  '<yourname> says "Where is the movie theater>"'.  Note that the closing
-  double quote is automatically added.
+  
+  Says <message> out loud to everyone in your current room.  
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
+  
+  Example: (assuming your name is Bob)
+   > "Where is the movie theater?
+   Bob says "Where is the movie theater>"  
+  
+  Note that the closing double quote is automatically added.
   
   See Also: page, pose, say, :, ", @saystring
   
 & #
   Command: #<number> <command>
-  Forces the object whose database number is <number> to perform <command>.
-  Example: '#1033 move north' forces object #1033 to go north (assuming that
-  you control it).  The same restrictions that apply to @force also apply to
-  this command.
   
-  See Also: @force
+  Forces the object whose database number is <number> to perform <command>.
+  
+  Example: 
+    > #1033 move north 
+
+  This forces object #1033 to go north (assuming that you control it).  
+  The same restrictions that apply to @force also apply to this command.
+  
+  See Also: @force, @sudo
   
 & \\
   Command: \\<message>
+  
   Outputs <message> to everyone in your current room without embellishment.
-  Example: the command '\\A chill falls over the room.' produces
-  'A chill falls over the room.'
+  
+  You may use two special attributes for pre and post processing of any
+  emits you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original @emit that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
+  
+  Example: 
+    > \\A chill falls over the room.
+    A chill falls over the room.
   
   See Also: @emit, @oemit, NOSPOOF
   
+& SPEECH_PREFIX
+& SPEECH_SUFFIX
+  Topic: special attributes
+  
+  These attributes are settable with &SPEECH_PREFIX and &SPEECH_SUFFIX.
+  They are pre and post handlers for the say and pose commands which will
+  be triggered upon these commands being issued.  These will only evaluate
+  substitutions and will not evaluate functions.
+  
+  If these attributes are set NO_COMMAND they will not return any message.
+  
+  See Also: say, pose, ", :, ;
+   
 & say
   Command: say[/<switches>] <message>
+  
   Says <message> out loud to everyone in your current room. You can also
   use '"<message>'.  No switches are allowed with the '"' shorthand.
   
   The following switches exist for the say command:
     /noansi    - Show the string literally and don't process ansi.  Only
                  useful with ZENTY_ANSI enabled (at compiletime).
+  
+  You may use two special attributes for pre and post processing of any
+  says you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the say/pose.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the say/pose.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original say/pose that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   See Also: page, pose, whisper, :, ;, ", @saystring
   
@@ -2498,7 +3083,7 @@
     > test 0
       Before assert
   
-  See Also: $-COMMAND, @@, @break, @skip
+  See Also: $-COMMAND, @@, @break, @skip, @jump, @rollback, @goto
 
 & @break
   Command: @break[/switch] <value> [=<command(s)>]
@@ -2524,7 +3109,7 @@
     > testme 1
       Before break
   
-  See Also: $-COMMAND, @@, @assert, @skip
+  See Also: $-COMMAND, @@, @assert, @skip, @jump, @rollback, @goto
   
 & @chown
   Command: @chown <object>[=<player>]
@@ -2580,16 +3165,25 @@
 & @clone2
   The following switches are available:
      /cost       - Treat the argument after the = as the cost of the new
-                   object, not the name.
+                   object, not the name.  Can not be used with /ansi.
      /inherit    - Don't reset the INHERIT bit on the new object.
      /inventory  - Create the new object in your inventory (or your exitlist,
                    in the case of cloning exits).
      /location   - Create the new object in your location (default).
      /parent     - Set the new object's parent to be the template object and
                    don't copy the attributes.
+     /ansi       - Combine @clone and @extansi together.  This follows
+                   @extansi permissions and can not be used with /cost.
    
   You may use the lastcreate() function to see the last room that @clone'd.
   This would be based on the type of thing you @cloned.
+  
+  Examples:
+    > @clone RedWagon
+    RedWagon cloned, new copy is object #17447.
+    > @clone/ansi RedWagon=[ansi(hb,BlueWagon)]
+    Ansi string entered for BlueWagon of 'BlueWagon'. (this would be in blue)
+    RedWagon cloned as BlueWagon, new copy is object #17444.
   
   See Also: @create, @decompile, @destroy, VISUAL, lastcreate()
   
@@ -2916,13 +3510,26 @@
   See Also:  clusters, cluster functions, cluster commands, >
 
 & @create
-  Command: @create <name> [=<cost>]
+  Command: @create[/<switch>] <name> [=<cost>]
+  
   Creates a thing with the specified name.  Creation costs either <cost>
   or 10 coins, whichever is greater. The value of a thing is proportional
   to its cost, specifically, value=(cost/5)-1.  The value may not be greater
   than 100, values that would be greater than 100 are rounded down to 100.
   
   You may use the lastcreate() function to see the last thing @create'd
+  
+  Available switches:
+    /ansi - This combines @create with @extansi to essentially auto-ansify
+            the object that you create with <name>.  This follows 
+            permissions of @extansi.
+  
+  Examples:
+    > @create MyObj
+    MyObj created as object #17508
+    > @create/ansi [ansi(hy,MyObj)]
+    Ansi string entered for MyObj of 'MyObj'. ('MyObj' would be in yellow)
+    MyObj created as object #17508
   
   See Also: @destroy, TYPES OF OBJECTS, lastcreate()
   
@@ -2944,6 +3551,8 @@
       /regexp  - use regular expression matching
       /tree    - Examine based on Penn trees using '`' as a separator.
       /tf      - allows prefix formatting for clients.
+      /noextra - when used in junction with /tf removes the additional
+                 flags and other information from attribute displaying.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
@@ -3004,10 +3613,29 @@
   'Kitchen' back to where you are.  Only the first Exit name is displayed in
   the Obvious exits list.
  
-  If you specify the /teleport switch, then you are @teleported to the
-  room after it is created and any exits are opened.
+  The following switches are available:
+    /teleport - You are @teleported to the room after it is created 
+                and any exits are opened.
+    /ansi     - Combines @dig with @extansi.  @extansi colorization is
+                applied to the room AND THE EXITS that you specify.  This
+                follows permissions of @extansi.
  
   You may use the lastcreate() function to see the last room that @dig'd.
+  
+  Examples:
+    > @dig A Room=Exit In <EI>;exit in;ei,Exit Out <EO>;exit out;eo
+    A Room created with room number 17506.
+    Opened.
+    Linked.
+    Opened.
+    Linked.
+  
+    > @dig/ansi [ansi(hb,Blue Room)]=[ansi(hb,Exit In)] [ansi(hr,<EI>)]
+    Ansi string entered for Blue Room of 'Blue Room'.  (This would be blue)
+    Blue Room created with room number 17503.
+    Ansi string entered for Exit In <EI> of 'Exit In <EI>'. (this would be red)
+    Opened.
+    Linked.
   
   See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
             lastcreate()
@@ -3088,7 +3716,7 @@
     @dolist/delimit , {Frodo, Bilbo Baggins, Gandalf} = page ## = HELP!!!!
     @wait me=@emit Zapping Finished;@dolist/notify bob joe=@emit Zapped ##
   
-  See Also: iter(), parse(), list()
+  See Also: iter(), parse(), list(), inf()
   
 & @drain
   Command: @drain[</switch>] <object>
@@ -3149,6 +3777,7 @@
   
 & @emit
   Command: @emit[/<switches>] <message>
+  
   Sends <message> to everyone in your current location without prefixing it by
   your character name.  You can also send the message to everyone in the room
   that contains the object you are inside with the /room switch.
@@ -3167,6 +3796,19 @@
   
   If both /here and /room switches are specified, the message is sent to both 
   places.  If neither is specified, /here is assumed.
+  
+  You may use two special attributes for pre and post processing of any
+  emits you receive.  These attributes will have substitutions evaluated
+  but will not evaluate functions.  If these attributes are set NO_COMMAND
+  then they will not be processed.
+    SPEECH_PREFIX  -- Contents will be evaluated before the @emit.
+    SPEECH_SUFFIX  -- Contents will be evaluated after the @emit.
+  
+  Both of these attributes handle three arguments.  These are:
+    %0 - The original @emit that triggered the attribute.
+    %1 - The date in the form MM/DD/YYYY
+    %2 - The time in the form HH:MM:SS
+    %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
  
   Some MUSHes may restrict the use of this command.
   
@@ -3645,6 +4287,7 @@
   Displays the current message-of-the-day.  Note that it is displayed when
   you connect to your character.
   
+& locks
 & @lock
   Command: @lock[/<whichlock>] <object>=<key>
            @lock <object>/<attrib>
@@ -3699,6 +4342,7 @@
   
 { 'help @lock locks2' for more  or 'help @lock type <type>' for locktype help}
   
+& @lock/receivelock
 & @lock type ReceiveLock
   Lock Type: ReceiveLock
   Syntax   : @lock/receive <target>=<key>
@@ -3712,6 +4356,7 @@
   Rooms, Exits:
      This lock is meaningless on exits and rooms.
   
+& @lock/parentlock
 & @lock type ParentLock
   Lock Type: ParentLock
   Syntax   : @lock/parent <target>=<key>
@@ -3720,6 +4365,7 @@
      This lock determins who may parent (@parent) an item to the target.  If
      you do not pass the lock, you will be unable to parent something to it.
   
+& @lock/pagelock
 & @lock type PageLock
   Lock Type: PageLock
   Syntax   : @lock/page <target>=<key>
@@ -3733,6 +4379,7 @@
   Rooms, Exits, Objects:
      This lock is meaningless on rooms, exits, and objects.
   
+& @lock/linklock
 & @lock type LinkLock
   Lock Type: LinkLock
   Syntax   : @lock/link <target>=<key>
@@ -3746,6 +4393,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/leavelock
 & @lock type LeaveLock
   Lock Type: LeaveLock
   Syntax   : @lock/leave <target>=<key>
@@ -3758,6 +4406,7 @@
   Exits, Rooms:
      This lock is meaningless on rooms and exits.
   
+& @lock/givelock
 & @lock type GiveLock
   Lock Type: GiveLock
   Syntax   : @lock/give <target>=<key>
@@ -3770,6 +4419,7 @@
   Exits, Rooms:
      This lock is meaningless on rooms and exits.
   
+& @lock/enterlock
 & @lock type EnterLock
   Lock Type: EnterLock
   Syntax   : @lock/enter <target>=<key>
@@ -3788,6 +4438,7 @@
   Exits:
      This lock is meaningless for exits.
   
+& @lock/defaultlock
 & @lock type DefaultLock
   Lock Type: Defaultlock 
   Syntax   : @lock <target>=<key>
@@ -3833,6 +4484,7 @@
   
 { 'help @lock locks3' for more  or 'help @lock type <type>' for locktype help}
   
+& @lock/zonetolock
 & @lock type ZoneToLock
   Lock Type: ZoneToLock
   Syntax   : @lock/zoneto <target>=<key>
@@ -3842,6 +4494,7 @@
      zone.  This works similiar to the ParentLock with regards to @parents.
      If the lock does not exist, only those who control the item may @zone it.
   
+& @lock/zonewizlock
 & @lock type ZoneWizLock
   Lock Type: ZoneWizLock
   Syntax   : @lock/zonewiz <target>=<key>
@@ -3856,6 +4509,7 @@
      If it is WIZARD or higher owned, then it follows normal permissions on
      that target to what they can do with it.
   
+& @lock/twinklock
 & @lock type TwinkLock
   Lock Type: TwinkLock
   Syntax   : @lock/twink <target>=<key>
@@ -3888,10 +4542,11 @@
      > @lock/twink player=CANUSE/1
   
   Special note:  You can set the item NOMODIFY if you want it to just have
-                 examine privalages and not modify privalages.  You may
+                 examine privileges and not modify privileges.  You may
                  also customize your @lock/twink to check %w against the
                  target player dbref# with a complex lock.
   
+& @lock/userlock
 & @lock type UserLock
   Lock Type: UserLock
   Syntax   : @lock/user <target>=<key>
@@ -3919,6 +4574,7 @@
      In condition 2 and 3, if the lock doesn't exist, it assumes pass 
      automatically.
   
+& @lock/uselock
 & @lock type UseLock
   Lock Type: UseLock
   Syntax   : @lock/use <target>=<key>
@@ -3938,6 +4594,7 @@
     
   See Also: SHOWFAILCMD
  
+& @lock/tportlock
 & @lock type TportLock
   Lock Type: TportLock
   Syntax   : @lock/tport <target>=<key>
@@ -3951,6 +4608,7 @@
   Players, Exits:
      This lock is meaningless on players and exits.
   
+& @lock/teloutlock
 & @lock type TeloutLock
   Lock Type: TeloutLock
   Syntax   : @lock/telout <target>=<key>
@@ -3965,6 +4623,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/speechlock
 & @lock type SpeechLock
   Lock Type: SpeechLock
   Syntax   : @lock/speech <target>=<key>
@@ -3979,6 +4638,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/droplock
 & @lock type DropLock
   Lock Type: DropLock
   Syntax   : @lock/drop <target>=<key>
@@ -4009,6 +4669,7 @@
   
   See Also: mail lock
   
+& @lock/givetolock
 & @lock type GiveToLock
   Lock Type: GiveToLock
   Syntax   : @lock/giveto <target>=<key>
@@ -4023,6 +4684,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/getfromlock
 & @lock type GetFromLock
   Lock Type: GetFromLock
   Syntax   : @lock/getfrom <target>=<key>
@@ -4040,6 +4702,7 @@
   Exits:
      This lock is meaningless on exits.
   
+& @lock/droptolock
 & @lock type DropToLock
   Lock Type: DropToLock
   Syntax   : @lock/dropto <target>=<key>
@@ -4054,6 +4717,7 @@
   Exits, Players:
      This lock is meaningless on players and exits.
   
+& @lock/openlock
 & @lock type OpenLock
   Lock Type: OpenLock
   Syntax   : @lock/open <target>=<key>
@@ -4067,6 +4731,7 @@
   Players, Exits:
      This lock is meaningless on players and exits.
   
+& @lock/darklock
 & @lock type DarkLock
   Lock Type: DarkLock
   Syntax   : @lock/dark <target>=<key>
@@ -4084,6 +4749,7 @@
      normally.  Please note that all items inside that room that are dark
      are treated on a separate basis for the DarkLocks.
   
+& @lock/chownlock
 & @lock type ChownLock
   Lock Type: ChownLock
   Syntax   : @lock/chown <target>=<key>
@@ -4398,13 +5064,27 @@
   See Also: @mvattr, @set, &
   
 & @name
-  Command: @name <object> = <new name>
+  Command: @name[/<switch>] <object> = <new name>
   
   Changes the name of <object>.  <object> can be a thing, player, exit, or
   room, specified as <name> or #<dbref> or 'me' or 'here'.
  
   See '@list options' as to whether or not a player name may contain 
   spaces.  The default for RhostMUSH is to disallow spaces in player names.
+  
+  The following switches exist for name:
+    /ansi - combine @name and @extansi to both (re)name the item and
+            set the specified ansiname for it at the same time.
+            It does this by stripping all special characters for the real
+            name then applying the accented/ansified name entered for the
+            extansified name.  This follows permissions for @extansi.
+    
+  Examples:
+    > @name me=Bob
+      Name set.
+    > @name/ansi me=[ansi(hr,B,hb,o,hr,b)]
+      Ansi string entered for Bob of 'Bob'.  (note: 'Bob' would be colorized)
+      Name set.
   
   See Also: name(), @protect, @list options, @alias, @ansiname, @extansi, 
             @caption, @titlecaption
@@ -4442,14 +5122,21 @@
   
 & @open
   Command: @open[/<switches>] <direction list> [=<number>[,<direction list>]]
+  
   Creates an exit in the specified direction(s). If <number> is specified,
   it is linked to that room. Otherwise, it is created unlinked. You or anyone
   else may use the '@link' command to specify where the unlinked exit leads.
-  Opening an exit costs 1 coin. If you specify <number>, linking costs 1 more
-  coin.  You can specify a second direction list (after the comma), which is 
+  Opening an exit costs 1 coin. 
+  
+  If you specify <number>, linking costs 1 more coin.  
+  
+  You can specify a second direction list (after the comma), which is 
   automatically opened in the room that the new exit goes TO and which is
-  linked back to where you are.  I.e.  @open north;n=#1234,south;s
-  would open exit 'north;n' from here to #1234, and an exit 'south;s'
+  linked back to where you are.  
+  
+              I.e.  @open north;n=#1234,south;s
+  
+  This would open exit 'north;n' from here to #1234, and an exit 'south;s'
   from #1234 to here, assuming you have rights to open exits and link to
   the rooms in question.
   
@@ -4459,8 +5146,25 @@
   The following switches are available:
      /location  - Create the exit in your location (default).
      /inventory - Create the exit on yourself.
+     /ansi      - Combine @open and @extansi to colorize with the names.
+                  This follows the permissions of @extansi.
   
   You may use the lastcreate() function to see the last thing @open'd
+  
+  Examples:
+    > @open North <N>;north;n=#1234,South <S>;south;s
+    Opened.
+    Linked.
+    Opened.
+    Linked.
+  
+    > @open/ansi [ansi(hb,North <N>)];north;n=#1234,[ansi(hr,South <S>)];south;s
+    Ansi string entered for North <N> of 'North <N>'. (this is in blue)
+    Opened.
+    Linked.
+    Ansi string entered for South <S> of 'South <S>'. (this is in red)
+    Opened.
+    Linked.
   
   See Also: @dig, @link, LINKING, lastcreate()
   
@@ -4832,6 +5536,8 @@
     /message - in addition to emailing the user the password, message the
                user online what their password is.  This switch may be
                disabled on the RhostMUSH you connect to.
+    /ansi    - Combines @register with @extansi to colorize the player
+               name.  This follows @extansi permissions.
   
   The switches will only affect the online @register command and will not
   impact the offline method at all.
@@ -4840,6 +5546,9 @@
     > @register player=my@email
     Autoregistration completed.   
     > @register A Player With Spaces=my@email
+    Autoregistration completed.   
+    > @register/ansi [ansi(hb,Player)]=my@email
+    Ansi string entered for Player of 'Player' (this would be in blue)
     Autoregistration completed.   
     > @register/message player=my@email
     Autoregistration completed.   
@@ -4930,9 +5639,10 @@
            &`<tree`attribute> <object>[=<value>] (for setting a tree variable)
  
   The available switches are:
-        /QUIET - sets/removes the target without the 'Set.' or 'Cleared.' 
-        /NOISY - sets/removes the target with a verbose SET message.
-        /TREE  - sets a TREE (with branches) of a given attribute.
+        /QUIET  - sets/removes the target without the 'Set.' or 'Cleared.' 
+        /NOISY  - sets/removes the target with a verbose SET message.
+        /TREE   - sets a TREE (with branches) of a given attribute.
+        /STRICT - bypasses special meaning of '_' on attribute setting.
    
   The first form sets (or clears) the indicated flag(s) on <object>, It 
   accepts multiple flags for arguments if so desired. the second form sets 
@@ -4940,6 +5650,8 @@
   attribute if there is no attribute named <attribute>.  The third form 
   copies an attribute from another object, and the fourth form sets 
   (or clears) an attribute flag on the <attr> attribute of <object>.
+  
+  Note: the third form will be ignored if using /strict.
    
   When setting attributes on an object, you may also use the command
   '@<attribute> <object> = <value>' if the attribute is a predefined
@@ -5069,7 +5781,8 @@
     > @switch/first FooFoo=*boo*,say yes,*oo*,say maybe,say no
     You say "maybe"
   
-  See Also: switch(), case(), ifelse()
+  See Also: switch(), case(), ifelse(), @skip, @break, @assert, @jump,
+            @rollback, @goto
   
 & @teleport
   Simple:  @teleport [<object>=] <location>
@@ -5721,6 +6434,8 @@
   
 & @extansi
   Command: @extansi[/<switch>] <object> = <string>
+  
+  Note: @name/ansi combines this feature with @name
   
   The @extansi command allows you to set multi-color names for an item.  This
   only effects contents, inventories, and the normal 'look'.  It will not
@@ -6603,6 +7318,34 @@
   
   See Also: give, @agfail, @ogfail, @lock
   
+& @goto
+  Command: @goto[/label] <textlabel>
+ 
+  This command is similiar to @jump, in that it can be used to skip commands
+  following it in the queue, up to a certain point. Unlike @jump, this command
+  does not skip a specified amount of commands, but lets you skip all commands
+  until a specified, text-based label is reached.
+
+  This makes it, yes, quite similiar to classic GOTO commands from other
+  programming languages, with the exception that the @goto command only allows
+  you to skip *forward*, never backward. For backward jumps, see @rollback.
+
+  Example:
+    > @wait 0={th a; th b;@goto foo;th c;th d;@goto/label foo;th e;th f}
+    a
+    b
+    e
+    f
+
+  Notes:
+    1) @goto'ing to a label that does not exist later in the code makes
+       @goto jump the entire remainder of the queue. This can actually be used
+       to skip out of loops and command queues entirely.
+    2) Labels can have a maximum of 16 characters. Any additional characters
+       used in a label's name get ignored.
+
+  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback, @jump
+
 & @idesc
   Command: @idesc[/<switch>] <object> = <message>
   Attribute: Idesc
@@ -6678,7 +7421,7 @@
     Player says "boo"
     Player says "baa"
   
-  See Also: @include, @force, @trigger, @skip 
+  See Also: @include, @force, @trigger, @skip, @jump, @rollback, @goto
   
 & @if
 & @ifelse
@@ -6707,7 +7450,9 @@
     2
     4
   
-  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch
+  See Also: @include, @force, @trigger, @skip, @break, @assert, @switch,
+            @jump, @rollback, @goto
+
 
 & @attach
 & @include
@@ -6769,7 +7514,7 @@
     inny2: bah!
     test2
   
-  See Also: @trigger, @force, @sudo, @skip
+  See Also: @trigger, @force, @sudo, @skip, @jump, @rollback, @goto
 
 & @infilter
   Command: @infilter[/<switch>] <object> = <pattern>[, <pattern>...]
@@ -6823,6 +7568,258 @@
     Wizard waves some more.
   
   See Also: @filter, @infilter, @listen, @prefix
+  
+& @retry
+& @rollback
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+           @rollback/label[/<switch>] <label>|<args...>
+  
+  You may specify the /label switch with any other syntax with @rollback.  To
+  utilize a label, you would prepend the argument with <label>|.  So for
+  example, instead of @rollback <count> you would do 
+  @rollback/label <label>|<count>.  And instead of @rollback/retry <boolean>
+  you would use @rollback/retry/label <label>|<boolean>.  All other arguments
+  will align after the <label>| portion.
+  
+  The rollback command has multiple facets that allow you flexibility to
+  'roll back' the current queue and re-issue the command sequence a number
+  of times.  There's three distinct flavors of the @rollback command that can
+  be used.  On most RhostMUSH's, the @rollback/retry will be aliased to @retry
+  which for the most part mimic's penn's @retry command.  You may optionally
+  pass 10 arguments to @rollback.  The arguments as well as the <boolean> wil
+  be re-evaluated on every pass.
+  
+  NOTE:  All %0-%9 arguments are RESET TO THEIR ORIGINAL VALUES after the end
+         of the rollback segment.  This is intentional.
+  
+{ see 'help @rollback2' for the arguments that can be passed}
+
+& @rollback2
+  (CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+           @rollback/label[/<switch>] <label>|<args...>
+  
+  The arguments that are passed are:
+    <label>    - The optional label (@goto label) you wish to pass to the
+                 @rollback.  The label and other arguments will be separated
+                 by the pipe(|) character.
+    <count>    - The number of arguments you wish to roll back to.  If you
+                 specify the /retry it ignores this option and always rolls
+                 back to the start of the command queue.  This is only
+                 evaluated once.  Must be greater than zero(0).
+    <repeats>  - The number of times you wish to repeat the rolled back
+                 segment.  The default maximum is 1000 retries, regardless
+                 of the option you specify.  This is only evaluated once.
+                 This value defaults to '1'.  Must be greater than zero(0).
+    <waittime> - The waittime that you wish to use in the @wait for the
+                 rolled back segment.  Defaults to '0'.  This is evaluated
+                 for every rollback.  Must be zero(0) or greater.
+    <boolean>  - This is evaluated to a 'true(1)' or 'false(0)' value on
+                 every rollback pass.  The retry will continue until a
+                 false condition is met or until the MAX (1000 default)
+                 rollback count threshold is met.
+  
+  The switches available are:
+    /wait      - Slice the rolled back section into its own waited queue.
+    /retry     - retry everything from before the @rollback segment.  
+    /label     - specify a @goto label that @rollback will apply.
+  
+{ see 'help @rollback3' for examples on condition 1 }
+{ see 'help @rollback4' for examples on condition 2 }
+{ see 'help @rollback5' for examples on condition 3 }
+
+& @rollback3
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+           @rollback/label[/<switch>] <label>|<args...>
+  
+  The first condition is the standard default method for @rollback.  With
+  this method you specify a <count> of how many arguments you wish to roll
+  back to.  If <count> exceeds the total number of commands in the argument
+  list, it grabs the all the arguments.  If the value is zero, it ignores
+  the @rollback in the entirity and continues on to the next command.
+   
+  You may specify a <repeats> value if you wish to have more than one repeat
+  of the subset of previous commands.  The default value for this is one(1).
+  
+  You may specify optional arguments to pass to the retried commands.  This
+  will override the originally passed arguments and will be evaluated for
+  every rollback.  This allows you to specify a new set of arguments for
+  every rollback run.  Once the rollback is completed, the arguments are
+  reset to their original values.
+  
+  All passed arguments are re-evaluated on every retry.
+   
+  Examples: (condition 1)
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback 2/2=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      2-15
+      3-15
+      END-5
+  
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback 2=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      END-5
+  
+    > &FOO me=$foo *:think 1-%0;@goto/label foo;think 2-%0;think 3-%0;
+              @rollback/label foo|5=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      end-5
+
+  
+{ see 'help @rollback3' for examples on condition 1 }
+{ see 'help @rollback4' for examples on condition 2 }
+{ see 'help @rollback5' for examples on condition 3 }
+
+& @rollback4
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+           @rollback/label[/<switch>] <label>|<args...>
+  
+  The second condition allows you to toss the rolled back segment of code into
+  its own separate wait queue.  The <count> and <repeats> are set initially on
+  the first pass and will not be re-evaluated.  The actual waittime is 
+  re-evaluated for every rollback segment, meaning for every rollback you can 
+  give it a unique wait time.  Be aware that once the <waittime> is a negative 
+  number, the @rollback will abort itself.
+  
+  All passed arguments are re-evaluated on every retry.
+  
+  Examples: (condition 2)
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback/wait 2/2/100=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+    1-5
+    2-5
+    3-5
+    end-5
+
+    (then 100 seconds later -- specified by the wait value)
+    2-10
+    3-10
+    2-15
+    3-15
+
+    > &FOO me=$foo *:think 1-%0;think 2-%0;@goto/label foo;think 3-%0;
+              @rollback/wait/label foo|2/2/100=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+    1-5
+    2-5
+    3-5
+    end-5
+ 
+    (then 100 seconds later)
+    3-10
+    3-15
+
+  
+{ see 'help @rollback3' for examples on condition 1 }
+{ see 'help @rollback4' for examples on condition 2 }
+{ see 'help @rollback5' for examples on condition 3 }
+
+& @rollback5
+(CONTINUED)
+  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
+           @rollback/retry <boolean> [=<arg0, ..., argN>]
+           @rollback/label[/<switch>] <label>|<args...>
+  
+  The third condition is commonly referred to as the @retry option.  This will
+  effectively retry the entire code segment prior to the @rollback in the
+  entirity until <boolean> is false(0) or until the maximum rollback threshold
+  is met, which by default is 1000 retries.  The <boolean> value is evaluated
+  for every rollback pass to see if the new condition will be true or false.
+  
+  All passed arguments are re-evaluated on every retry.
+  
+  Examples: (condition 3)  
+    > &FOO me=$foo *:think 1-%0;think 2-%0;think 3-%0;
+              @rollback/retry [gt(%0,1)]=[sub(%0,1)];think end-%0
+    Set.
+    > foo 3
+    1-3
+    2-3
+    3-3
+    1-2
+    2-2
+    3-2
+    1-1
+    2-1
+    3-1
+    end-3
+  
+    > &FOO me=$foo *:think 1-%0;@goto/label foo;think 2-%0;think 3-%0;
+              @rollback/retry/label foo|[gt(%0,1)]=[sub(%0,1)];think end-%0
+    Set.
+    > foo 3
+    1-3
+    2-3
+    3-3
+    2-2
+    3-2
+    2-1
+    3-1
+    end-3
+  
+  See Also: @jump, @skip, @include, @break, @assert, @sudo, @switch @goto
+  
+& @jump
+  Command: @jump[/<switch>] <amount> [=<evaluation>]
+  
+  This command will skip ahead <amount> number of commands in the current
+  queue.  This effectively 'skips' execution of commands until the number
+  of commands are met.  If <amount> exceeds the number of commands in the
+  current queue, it will gracefully end the command sequence as if the
+  @jump was the last command in the sequence.
+  
+  You can not nest @jumps.  A value for <amount> that is zero or less than
+  zero will assume nothing to be @jump'd and the @jump will be ignored.
+  
+  You may specify an optionale valuation to be evaluated for the @jump
+  processing.  This is intended to execute commands whenever @jump is
+  called.  If a zero or less than zero value is passed, the <evaluation>
+  is not triggered.
+   
+  The following switches exist:
+    /queued  -- The <evaluation> passed to @jump is queued (default)
+    /inline  -- The <evaluation> passed to @jump is in-line.
+  
+  Example:
+    > &FOO me=$foo:say one;@jump 2;say two;say three;say four
+    You say "one"
+    You say "four"
+ 
+  See Also: @break, @assert, @skip, @force, @sudo, @switch, @rollback, @goto
   
 & @kill
   Command: @kill[/<switch>] <object> = <message>
@@ -6925,6 +7922,11 @@
   performed on the resulting text.  The result of that substitution is 
   returned as the function result.
   
+  Any function that starts with a _ that matches a hardcode function you can
+  use to override the hardcoded function with sandbox.
+  Example:  @lfunction _ladd=me/my_add_function
+            say sandbox([add(1,1)] is my own add function,add,1)
+  
   You may only have 20 localized functions defined.
   
   The following switches exist:
@@ -6950,7 +7952,7 @@
   The function definitions created by @lfunction are not stored in the database
   so they need to be re-created each time the RhostMUSH is started.  It is
   recommended that the Startup attribute for the target include code to set up
-  all global functions.  The privalaged and preserved, protect, and notrace 
+  all global functions.  The privileged and preserved, protect, and notrace 
   switches may be combined.
    
   All global functions have precedence over local functions.  All built-in
@@ -6971,7 +7973,7 @@
              @lfunction/min myfunction=3
   
   Note: With the /list switch, the following letters represent the following:
-             W - privalaged
+             W - privileged
              p - preserved
              + - protected
              t - notrace
@@ -7867,9 +8869,18 @@
  
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
- 
-  Example: @startup me = @vz me=MUSH was last restarted at [time()].
-           @startup me = home
+  
+  Be aware that @startup could potentially have a race condition on some
+  functions and commands.  This is because at the time of the @startup
+  the game is still in a 'starting state' which limits some features,
+  such as new sockets.  To get around this limitation, please put a small
+  wait before the @startup.
+   
+  Examples: 
+    > @startup me = @vz me=MUSH was last restarted at [time()].
+    > @startup me = home
+    > @startup me = @wait 1=think [execscript(runme.sh)]
+        
   
 & @success
   Command: @success[/<switch>] <object> = <message>
@@ -8647,10 +9658,48 @@
   ANSICOLOR flag.  Without this flag, all ansi codes are stripped before
   you see them.
   
+  You may use ansi with ansi() or %c (or if configured %x/%m substitutions).
+  See '@list options system' to see what options are configured for ANSI.
+  
   You need both the ANSI and ANSICOLOR flags to see ansi color.
+  
+  For 256 color you need the XTERMCOLOR flag in addition to ANSI and 
+  ANSICOLOR.
+  
+{ 'help ansi usage' on how to use ansi}
   
   See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
   
+& ANSI USAGE
+  Topic: ANSI USAGE
+  
+  Note: Make sure to @list options to see what percent subs handle ANSI!
+  
+  To use ANSI, you may use the ansi() function or ANSI substitutions.  You
+  may reference 'help ansi()' to see what syntaxes are allowed for ANSI.
+  
+  To enable ansi, you would set up the flags to see ansi.
+  The following flags are required:
+    ANSI       - This is the central ansi handler.  This handles base ANSI 
+                 codes like hilight, flash, and underscore but not color.
+    ANSICOLOR  - This, in addition to ANSI, will enable you the base set 
+                 of ansicodes.  This is the base 16 color set.
+    XTERMCOLOR - This, with the addition of ANSI and ANSICOLOR, allows
+                 the extended 256 color set.
+  
+  To use the ANSI function you would use:
+    16 color mode:
+    > think ansi(hr,this is highlight red)
+    > think %ch%crthis is highlight red%cn
+  
+  Do note that as far as the parser is concerned, ansi() and the %c subs
+  are exactly the same.  Also be aware that if ANSI subs are %x only, 
+  use %x instead of %c.
+  
+    256 color mode: 
+    > think ansi(+pink,this is pink)
+    > think ansi(0xda,this is also pink)
+    
 & XTERMCOLOR
   Flag: XTERMCOLOR([t])
   
@@ -8847,7 +9896,12 @@
   number of trace output lines that may be produced by an evaluation is limited
   to 200.  Bottom-up trace output is not limited.
   
-  See Also: VERBOSE, PUPPET, %_, trace(), chktrace()
+  You may set a TRACETAB attribute to a value between 0 and 10 to indent 
+  related trace output if you prefer that.
+   
+  You may use LABELS (help @label and help %_) for advanced tracing.
+   
+  See Also: VERBOSE, PUPPET, %_, trace(), chktrace(), TRACETAB
 
 & NOSPOOF
 & NO_SPOOF
@@ -9027,6 +10081,9 @@
 & ARBITRARY COMMANDS
   Topic: ARBITRARY COMMANDS
  
+  If you wish to see the help for regular expression pattern matching, please
+  refer to 'help REGEXPS'.
+  
   You may define commands that are triggered whenever someone enters a command
   that matches the command template (wildcarding allowed).  These commands
   are called arbitrary commands, user-defined commands, or $-commands (for how
@@ -9062,7 +10119,10 @@
   The following attributes are never checked for $-commands: ALIAS CHARGES
   DESC DROP FAIL IDESC ODESC ODROP OFAIL OSUCC SEX SUCC.
   
-  All $commands and ^listen pairs may be parsed using regular expressions.   
+  You may set the attribute with the $command or ^listen REGEXP which will
+  allow matching against regular expressions instead of globbing.  In 
+  such a case, all $commands and ^listen pairs would be parsed using 
+  regular expressions.   
   
   See Also: @set, &, VATOVZ, ZATOZZ, $-COMMANDS, REGEXPS
   
@@ -9124,6 +10184,9 @@
   attribute flag on an attribute.  If you need this, please ask a staff
   about providing this for you.  This can be bypassed if it's configured
   to globally allow it via the secure_atruselock config parameter.
+  
+  You may specify %0 to %9 as the arguments passed in the ^listen or
+  $command for to this lock.
   
   Attribute uselocks are a method where you can specify individual uselocks
   per command per object.  The path it takes to check uselocks are as 
@@ -10046,27 +11109,27 @@
  
   Help is available for the following functions:
  
- @@()               ABS()               ACCENT()             ACOS()        
- ADD()              AFTER()             AINDEX()             AIINDEX()         
- ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
- ANDFLAG()          ANDFLAGS()          ANSI()               APOSS()     
- ARRAY()            ART()               ASC()                ASIN()           
- ATAN()             ATAN2()             ATTRCNT()            AVG()            
- BEFORE()           BETWEEN()           BITTYPE()            BOUND()          
- BRACKETS()         CAND()              CAPSTR()             CASE()           
- CASEALL()          CAT()               CEIL()               CENTER()         
- CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()       
- CHOMP()            CHR()               CITER()              CLONE()          
- CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
- CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()   
- CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP() 
- CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()      
- CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()
- CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL() 
- CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()           
- CNAME()            COLORS()            COLUMNS()            COMP()           
- CON()              CONFIG()            CONN()               CONTROLS()       
- CONVSECS()    
+ @@()               ABS()              ACCENT()            ACOS()        
+ ADD()              AFTER()            AINDEX()            AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
+ ANDFLAG()          ANDFLAGS()         ANSI()              ANSIPOS()
+ APOSS()            ARRAY()            ART()               ASC()            
+ ASIN()             ATAN()             ATAN2()             ATTRCNT()       
+ AVG()              BEFORE()           BETWEEN()           BITTYPE()    
+ BOUND()            BRACKETS()         CAND()              CAPSTR()       
+ CASE()             CASEALL()          CAT()               CEIL()           
+ CENTER()           CHARIN()           CHAROUT()           CHKREALITY()     
+ CHKTRACE()         CHOMP()            CHR()               CITER()   
+ CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
+ CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
+ CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()
+ CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
+ CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
+ CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
+ CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()   
+ CMDS()             CNAME()            COLORS()            COLUMNS() 
+ COMP()             CON()              CONFIG()            CONN() 
+ CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -10089,43 +11152,45 @@
   HASATTRP()      HASFLAG()     HASTOGGLE()    HASTYPE()       HASQUOTA()  
   HASRXLEVEL()    HASTXLEVEL()  HOME()         IBREAK()        IDLE()      
   IFELSE()        IINDEX()      ILEV()         INC()           INDEX()     
-  INPROGRAM()     INSERT()      INUM()         INZONE()        ISALNUM()   
-  ISALPHA()       ISCLUSTER()   ISDBREF()      ISDIGIT()       ISHIDDEN()  
-  ISNUM()         ISOBJID()     ISPUNCT()      ISSPACE()       ISWORD()      
-  ISXDIGIT()      ITER()        ITEXT()        KEEPFLAGS()     KEEPTYPE()    
-  LADD()          LAND()        LAST()         LASTCREATE()    LATTR()       
-  LAVG()          LCMDS()       LCON()         LCSTR()         LDELETE()     
-  LDIV()          LEMIT()       LEFT()         LEXITS()        LFLAGS()      
-  LINK()          LIST()        LISTCOMMANDS() LISTDIFF()      LISTFUNCTIONS()
+  INF()           INPROGRAM()   INSERT()       INUM()          INZONE()      
+  ISALNUM()       ISALPHA()     ISCLUSTER()    ISDBREF()       ISDIGIT()     
+  ISHIDDEN()      ISNUM()       ISOBJID()      ISPUNCT()       ISSPACE()     
+  ISWORD()        ISXDIGIT()    ITER()         ITEXT()         KEEPFLAGS()   
+  KEEPTYPE()      LADD()        LAND()         LAST()          LASTCREATE()  
+  LATTR()         LAVG()        LCMDS()        LCON()          LCSTR()       
+  LDELETE()       LDIV()        LEMIT()        LEFT()          LEXITS()      
+  LFLAGS()        LINK()        LIST()         LISTCOMMANDS()  LISTDIFF()    
+  LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
 & FUNCTION LIST3
     
-  LISTFLAGS()   LISTINTER()    LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS() LISTTOGGLES()  LISTUNION()    LIT()            LJC()          
-  LJUST()       LLOC()         LMAX()         LMIN()           LMUL()         
-  LN()          LNOR()         LNUM()         LNUM2()          LOC()          
-  LOCALFUNC()   LOCALIZE()     LOCATE()       LOCK()           LOCKCHECK()
-  LOCKDECODE()  LOCKENCODE()   LOG()          LOR()            LRAND()       
-  LREPLACE()    LROOMS()       LSET()         LSUB()           LT()           
-  LTE()         LTOGGLES()     LWHO()         LXNOR()          LXOR()         
-  LZONE()       MAILQUICK()    MAP()          MATCH()          MASK()         
-  MAX()         MEMBER()       MERGE()        MID()            MIN()          
-  MIX()         MOD()          MODULO()       MODIFYTIME()     MONEY()        
-  MONEYNAME()   MOON()         MUDNAME()      MUL()            MUNGE()        
-  MWORDS()      NAME()         NAMEQ()        NAND()           NCOMP()        
-  NEARBY()      NEQ()          NEXT()         NOR()            NOSTR()        
-  NOT()         NOTCHR()       NPEMIT()       NSITER()         NUM()          
-  NUMMATCH()    NULL()         NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
-  OBJ()         OBJEVAL()      OBJID()        OEMIT()          OPEN()         
-  OR()          ORCHR()        ORFLAG()       ORFLAGS()        OWNER()        
-  PACK()        PACKMATH()     PARENMATCH()   PARENT()         PARSE()        
-  PARSESTR()    PEDIT()        PEMIT()        PFIND()          PGREP()        
-  PI()          PID()          PMATCH()       PORT()           POS()          
-  POSS()        POWER()        POWER10()      PRINTF()         PRIVATIZE()    
-  PROGRAMMER()  PTIMEFMT()     PUSHREGS()     QUOTA()          R()            
-  RACE()        RAND()         RANDPOS()      RANDMATCH()      RANDEXTRACT() 
+  LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS()  LISTTOGGLES() LISTUNION()    LIT()            LJC()          
+  LJUST()        LLOC()        LMAX()         LMIN()           LMUL()         
+  LN()           LNOR()        LNUM()         LNUM2()          LOC()          
+  LOCALFUNC()    LOCALIZE()    LOCATE()       LOCK()           LOCKCHECK()
+  LOCKDECODE()   LOCKENCODE()  LOG()          LOR()            LRAND()       
+  LREPLACE()     LROOMS()      LSET()         LSUB()           LT()           
+  LTE()          LTOGGLES()    LWHO()         LXNOR()          LXOR()         
+  LZONE()        MAILQUICK()   MAP()          MATCH()          MASK()         
+  MAX()          MEMBER()      MERGE()        MID()            MIN()          
+  MIX()          MOD()         MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()    MOON()        MSECS()        MUDNAME()        MUL()          
+  MUNGE()        MWORDS()      NAME()         NAMEQ()          NAND()         
+  NCOMP()        NEARBY()      NEQ()          NEXT()           NOR()          
+  NOSTR()        NOT()         NOTCHR()       NPEMIT()         NSITER()       
+  NUM()          NUMMATCH()    NULL()         NUMMEMBER()      NUMPOS()       
+  NUMWILDMATCH() OBJ()         OBJEVAL()      OBJID()          OEMIT()        
+  OPEN()         OR()          ORCHR()        ORFLAG()         ORFLAGS()      
+  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
+  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
+  PGREP()        PI()          PID()          PMATCH()         PORT()         
+  POS()          POSS()        POWER()        POWER10()        PRINTF()       
+  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
+  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -10149,20 +11214,21 @@
   SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
   SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
   SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
-  STARTSECS()     STATS()         STEP()         STR()          STRCAT()     
-  STRDISTANCE()   STREQ()         STREVAL()      STRFUNC()      STRIP()      
-  STRIPACCENTS()  STRIPANSI()     STRLEN()       STRMATCH()     STRMATH()    
-  SUB()           SUBEVAL()       SUBJ()         SUBNETMATCH()  SWITCH()     
-  SWITCHALL()     T()             TAN()          TEL()          TIME()       
-  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
-  TOOCT()         TOTCMDS()       TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE() 
+  STARTSECS()     STATS()         STDERR()       STEP()         STR()        
+  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
+  STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
+  SWITCH()        SWITCHALL()     T()            TAN()          TEL()        
+  TEMPLATE()      TIME()          TIMEFMT()      TOBIN()        TODEC()      
+  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE()     TRIM()
 
 { 'help function list5' for more }
 
 & FUNCTION LIST5
   
-  TRIM()         TRUNC()       TXLEVEL()       TYPE()          U() 
+  TRREVERSE()    TRUNC()       TXLEVEL()       TYPE()          U() 
   U2()           UCSTR()       UDEFAULT()      UDEFAULT2()     UEVAL()
   ULDEFAULT()    U2LDEFAULT()  ULOCAL()        ULOCAL2()       UNESCLIST()
   UNPACK()       V()           VADD()          VALID()         VATTRCNT()   
@@ -10199,7 +11265,7 @@
 & FUNCTION CLASSES
   Topic: FUNCTION CLASSES
    
-  Ansi:                 ANSI() STRIPANSI() COLORS()
+  Ansi:                 ANSI() ANSIPOS() EDITANSI() STRIPANSI() COLORS() 
               See Also: help ansi functions
   
   Arithmetic:           ABS() ADD() AVG() BETWEEN() BOUND() DEC() DICE()
@@ -10231,12 +11297,12 @@
                       STARTSECS() STARTTIME() VERSION()
             See Also: help game information functions
   
-  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() CITER() 
+  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ARRAY() CITER() 
                       DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
                       EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
-                      IBREAK() IINDEX() ILEV() INDEX() INSERT() INUM() ITER()
-                      ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() LAST() 
-                      LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
+                      IBREAK() IINDEX() ILEV() INDEX() INF() INSERT() INUM() 
+                      ITER() ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() 
+                      LAST() LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
                       LISTMATCH() LISTUNION() LMAX() LMIN() LMUL() LNOR()
                       LNUM() LNUM2() LOR() LRAND() LREPLACE() LSUB() LXNOR() 
                       LXOR() MAP() MATCH() MEMBER() MIX() MUNGE() NSITER() 
@@ -10245,7 +11311,7 @@
                       REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
                       SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
                       STRFUNC() STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH()
-                      WHILE() WILDMATCH()
+                      TRREVERSE() WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -10264,7 +11330,7 @@
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() TRACE()
+                      SOUNDEX() SOUNDLIKE() STDERR() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -10324,13 +11390,13 @@
                        SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
                        STRLEN() STRMATCH() SUBEVAL() SUBNETMATCH() SWITCH() 
-                       SWITCHALL() T() TOTPOS() TR() TRANSLATE() TRIM() UCSTR()
-                       UNESCLIST() WORDPOS() WORDS() WRAP() WRAPCOLUMNS() 
-                       XORCHR()
+                       SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
+                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
-  Time:                CONVSECS() CONVTIME() PTIMEFMT() SECS() SINGLETIME()
-                       TIME() TIMEFMT()
+  Time:                CONVSECS() CONVTIME() MSECS() PTIMEFMT() SECS() 
+                       SINGLETIME() TIME() TIMEFMT()
              See Also: help time functions  
   
   { 'help function classes6' for more }
@@ -10675,6 +11741,7 @@
 & %i
 & %d
 & %q
+& %q<
 & %v
 & %0
 & %1
@@ -10708,16 +11775,23 @@
     %%      = literal '%' character.
     %0-%9   = Value of positional parameter/stack location 0 through 9.
     %-<num> = Stack 10+ that are comma delimited or if <num> specified
-              the positional stack location 0 through 999.
-    %-m     = The last command executed that the @hook picked up
+              the positional stack location 0 through 999.  BANGS supported.
+    %-m     = The last command executed that issued @hook.  
     %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
+              BANGS supported.
     %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
-              Only useable with /inline only.
+              Only useable with /inline only.  BANGS supported.
     %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
+              Note: You may use %q<label> or %q<0> as well.  BANGS supported.
     %qa-%qz = Extended value of registers.
     %va-%vz = Contents of attribute va through vz.
   
-  Note: %q<label> works for setq labels.  ie.  [setq(0,foo,bar)]%q<bar>
+    NOTE: Anything that says BANGS supported may use BANGS for the process.
+          example: %-!!$22 (see if arg 22 contains a string)
+                   %q<!!$0> (see if register 0 is a string)
+                   %q<!!$foo> (see if register with label 'foo' is a string)
+                   %i!!$0 (see if iter()'s itext(0) is a string)
+                   %d!!$0 (see if @dolist/inline's dtext(0) is a string)
   
 { 'help substitutions2' for more }
 
@@ -10872,6 +11946,7 @@
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
+& TRACETAB
 & %_vars
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
@@ -10908,6 +11983,8 @@
                       'TRACE_COLOR_BOB'.  This will set a specific color
                       for the given label to use.  This will have priority
                       over the global TRACE_COLOR definition.
+  
+  TRACETAB         -- Specify how many spaces to indent on each parse
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
@@ -11486,15 +12563,25 @@
   
 & pickrand()
 & randextract()
-  Function: randextract(<string>[, <numwords>, <delim>, <type>, <output sep>])
+  Function: randextract(<str>[, <numwords>, <delim>, <type>, <osep>, <weight>])
   
   The randextract() function is unique but somewhat similar to extract(). 
   The randextract() function takes <numwords> number of words from the string
-  <string> and returns those words in random order.  You may specify an 
+  <str> and returns those words in random order.  You may specify an 
   optional delimiter <delim> other than a space (the default).  You may also 
   specify what <type> of randextract() you wish to perform.  The following 
-  types exist.  You may specify an optional output separator else it uses
-  the same character as the delimiter.
+  types exist.  You may specify an optional output separator <osep> else it 
+  uses the same character as the delimiter.  You may apply a <weight> to each
+  word (using the same separator) that is a 1 to 1 order to the words in
+  <str>.  Any weights not applied to a word is assigned a normal weight of
+  '0'.  Each weight is a fuzzy multiplier of how often a word will be allowed 
+  to be picked with randextract.  It does this by applying a filter of weights
+  PRIOR to extracting the list.  Weight values start at '0' and max at '100'.
+  A weight of 100 you can be fairly assured will always appear.  Two weights
+  of 100 will have a 50/50 chance of appearing while the remaining would
+  have a rough estimate of a 1/100 chance of appearing.
+  
+  Valid types are:
       L - Grab given number of words lineally from the first random selection
       R - Grab <numwords> number of words but do not duplicate matches
       D - Grab <numwords> number of words and allow duplicate matches
@@ -11510,6 +12597,10 @@
     You say "this test a"
     > say randextract(this is a test,3,,D)
     You say "this a this"
+    > say randextract(this is a test,3,,D,,0 3 0)
+    You say "is this is is this test is this is is" (is has a 3x more chance)
+    > say randextract(this is a test,10,,D,,0 3 0)
+    You say "is is is this is is this is is is" (is has a 10x more chance)
   
   See Also: randpos(), randmatch(), extract(), extractword(), index(), rand()
   
@@ -11649,9 +12740,18 @@
 
 & TESTLOCK()
   Function: testlock(<key>, <target> [,<type>])
+            testlock(<key>, <target1> [... <targetN>], <type>, <sep>[, <osep>])
   
-  The testlock function will evaluate a lock that you pass against the
-  target <target>.  It will evaluate permissions based on the enactor.
+  The first example of the testlock function will evaluate a lock that you 
+  pass against the target <target>.  It will evaluate permissions based 
+  on the enactor.
+  
+  The second example of the testlock function will evaluate a lock that you
+  pass against a list of target(s).  It will return each target's dbref#
+  based on the <key> and only evaluates <key> once for quicker processing.
+  You may specify an optional <sep> seperator, or leave blank for a default
+  of a space.  An optional <osep> for an output seperator may be specified
+  or it defaults to what the <sep> value is.
   
   The key <key> may be any normal key found in locks.  Please see
   'help @lock' for more information on how locks work and keys available.
@@ -11667,6 +12767,8 @@
     You say "0"
     > say testlock(*tester,*tester)
     You say "1"
+    > say testlock(*tester|*bob,*tester *bob *foo,,%b)
+    You say "#123 #234"
   
   See Also: lockencode(), lockdecode(), lockcheck(), lock(), elock(), @lock
   
@@ -11830,7 +12932,7 @@
                         help printf borders   (a quick example on borders)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
-            wrapcolumns(), array()
+            wrapcolumns(), array(), template()
 
 & PRINTF BORDERS
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -11937,6 +13039,11 @@
              Use of /w<number>/ cuts off on the line when '|' and '"' is used.
                examples: /w1/ -- when using '|"' cut off after first line.
              Valid values: 0 - (LBUF - 100) (0 is unlimited)
+         # - Convert tabs to spaces.  You may specify a value between #'s
+             to specify a specific number of spaces (from 1 to 10) otherwise
+             if uses the default of four (4) spaces.
+               examples: #   -- Convert all tabs to 4 spaces
+                         #7# -- Convert all tabs to 7 spaces
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
@@ -11946,7 +13053,8 @@
   Note: The ` and ' code fields won't work on single line columns.
         The * option is not compatible with the & option.
    
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
+            template()
   
 & PRINTF SYNTAX 
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -11973,7 +13081,8 @@
   
   CR -- Carrage Return, LN - Line, SP - Space
    
-  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns()
+  See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(),
+            template()
 
 & PRINTF EXAMPLES
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
@@ -12436,7 +13545,7 @@
     gh
     ij
   
-  See Also: printf(), setq(), setr(), r(), substitutions
+  See Also: printf(), setq(), setr(), r(), template(), substitutions
 
 & APOSS()
   Function: aposs(<object>)
@@ -12652,25 +13761,32 @@
   See Also: @cluster 
 
 & SQUISH()
-  Function squish(<string>[,<delimeter>])
+  Function squish(<string>[,<delimeter> [,<count>])
   
   This function will remove multiple spaces (or specified delimiter) from
   the string.  This is meant for the ability to remove excess spaces from
-  strings.
+  strings.  The delimeter defaults to a space.
+  
+  You may specify a <count> of how many repeated characters will be 
+  inserted between the values in the string.  The count defaults to 1.
   
   Examples:
     > @wait 0=@va me=Test[space(20)]Test
     Set.
-    > say v(va)
+    > say u(va)
     You say "Test                    Test"
-    > say squish(v(va))
+    > say squish(u(va))
     You say "Test Test"
+    > say squish(u(va),,5)
+    You say "Test     Test"
     > @vb me=TestaaaaaaaaaaaaaaaaaTest
     Set.
-    > say v(vb)
+    > say u(vb)
     You say "TestaaaaaaaaaaaaaaaaaTest"
-    > say squish(v(vb),a)
+    > say squish(u(vb),a)
     You say "TestaTest"
+    > say squish(u(vb),a,5)
+    You say "TestaaaaaTest"
   
   See Also: s(), strip(), creplace(), trim()
   
@@ -12735,6 +13851,8 @@
 & T()
   Function: t(<string>)
   
+  This is a TRUE BOOLEAN function.
+  
   Returns a '0' if the string is null (empty), a '0', or a # followed by any
   negative number, or a string containing nothing but spaces.  
   Otherwise, it returns a '1'.
@@ -12778,7 +13896,7 @@
     > say mix(do_moremath,1,2,3,4,5,6,7 8,9 10 11 12,)
     You say "37 18 11 12"
   
-  See Also: map(), iter(), merge(), elements(), list(), elementpos()
+  See Also: map(), iter(), merge(), elements(), list(), elementpos(), inf()
   
 & TIME()
   Function: time()
@@ -12791,7 +13909,7 @@
     > say time()
     You say "Thu Dec 19 09:48:06 1991"
   
-  See Also: convsecs(), convtime(), secs()
+  See Also: convsecs(), convtime(), secs(), msecs()
  
 & timezone list
   Zone   Zone Name                           Zone Location    UTC/GMT Offset
@@ -13328,7 +14446,7 @@
     > say min(2,4)
     You say "2"
     > say min(-100,50,0,25)
-    You say "-10"
+    You say "-100"
    
   See Also: max(), alphamin(), alphamax()
   
@@ -13586,12 +14704,14 @@
   See Also: dist2d()
   
 & REMIT()
-  Function: remit(<list of locations>,<string> [,<to-reality-toggle>])
+  Function: remit(<list of locations>, <string> [,<to-reality-tog>] [,<key>])
   
   The remit() side-effect function is used to emit the given <string> to every
   location specified in the <list of locations>.
   
-  This works similarilly to @pemit/list/contents.
+  This works similarilly to @pemit/list/contents.  By default ## is substitute
+  for every <location> in the list.  This evaluates by default for every 
+  location in the list.
   
   This function relies on the config parameter 'pemit_any_object' to
   be enabled to allow remitting to any room, otherwise, it will only
@@ -13600,10 +14720,14 @@
   This side-effect must be enabled (@list options to see if it is) before it
   can be used.  Anything using it must have the SIDEFX flag set.
    
-  If the <to-reality-toggle> is set to '1', then it assumes the remit is
+  If the <to-reality-tog> is set to '1', then it assumes the remit is
   a 'to-reality' model, in which the <list of locations> takes the form:
   
        reality1 reality2 ... realityN/location1 location2 ... locationN
+  
+  Following <key> values exist:
+    1 - Disable ## from evaluating in <string>.
+    2 - Only evaluate once.  By default this disables ## from evaluating.
  
   Example:
     > say remit(here #0,Boo)
@@ -13713,14 +14837,27 @@
   See Also: alphamin(), alphamax(), comp(), strdistance()
   
 & COMP()
-  Function: comp(<string1>, <string2>)
- 
-  Comp compares two strings.  It returns 0 if they are the same, 1 if
+  Function: comp(<string1>, <string2> [,<type>])
+   
+  Comp compares two values.  It returns 0 if they are the same, 1 if
   string2 is less than/precedes alphabetically string1, and -1 
   otherwise.
   
+  The following <type> types are available:
+    A - Always case-sensitive (default)
+    I - Always case-insensitive 
+    D - Dbrefs of valid objects (warns if invalid dbref#'s)
+    N - Integers
+    F - Floating point numbers
+  
   Example:
     > say comp(is,is)
+    You say "0"
+    > say comp(is,is,a)
+    You say "0"
+    > say comp(is,IS)
+    You say "1"
+    > say comp(is,IS,i)
     You say "0"
   
   See Also: alphamin(), alphamax(), ncomp(), strdistance()
@@ -13917,9 +15054,12 @@
     0 - list all protected names of the target player (default)
     1 - list only the protected names that are marked as aliases.
     2 - list only the protected names that are not marked as aliases.
+    3 - list protect names that are marked as aliases and the @alias.
+    4 - list only the @alias
   
   If the player is invalid, it returns an error, otherwise it returns an
-  empty string if nothing is found for that criteria.
+  empty string if nothing is found for that criteria.  If the key is outside
+  of the range, it uses the default.
   
   The default deliminator is a colon (:).
   
@@ -14025,28 +15165,36 @@
    >say squish([space(10)]hi![space(10)]Bye![space(10)])
     You say "hi! Bye!"
   
-  See Also: s()
+  See Also: s(), trim(), edit(), tr()
   
 & S()
   Function: s(string)
  
-  This function performs pronoun substitution in a string, and then returns
-  that string.  As usually, %n is the name, %s the subjective pronoun, %o the
-  objective, %p the possessive, and %a the absolute possessive.  It is
-  important to note that the pronoun is that of the triggering object.
+  This function works like eval() in that it evaluates the string doing full 
+  pronoun substitution and function evaluation and then returns that string.  
+  As usually, %n is the name, %s the subjective pronoun, %o the objective, 
+  %p the possessive, and %a the absolute possessive.  It is important to 
+  note that the pronoun is that of the triggering object.
  
   So, if the ve of an object were: "[s(This is %n)], and I were to 
   type @trigger <object>/ve, it would return "This is <myname>", but 
   if vf were @trigger me/ve, then triggering the vf makes the ve 
   return "This is <object>"
   
+  As stated, this will also evaluate functions as well.  If you wish to
+  only evaluate substitutions, please refer to the subeval() function.
+  
   Example:
     > @sex me=male
     Set.
-    > s(this [add(1,1)] %s)
+    > s(this [add(1,1)] %p)
     You say "this 2 his" 
+    > eval(this [add(1,1)] %p)
+    You say "this 2 his" 
+    > subeval(this [add(1,1)] %p)
+    You say "this [add(1,1)] his" 
   
-  See Also: SUBSTITUTIONS
+  See Also: SUBSTITUTIONS, eval(), subeval(), ueval(), streval(), u(), v()
   
 & SAFEBUFF()
   Function: safebuff(<list> [,<delim>])
@@ -14319,7 +15467,7 @@
     > say elist(one/two/three,what a life,/,/)
     You say "one,/two,/what a life/three"
   
-  See Also: iter(), citer(), nsiter(), list()
+  See Also: iter(), citer(), nsiter(), list(), inf()
   
 & CREPLACE()
   Function: creplace(<string>, <position>, <string2>[, <type>][,<range>])
@@ -15079,6 +16227,9 @@
   However, if the TRACE flag was set on the object prior to execution, then
   you would see trace output for everything up to the trace(0) call.
   
+  You may specify a TRACETAB attribute that contains a number between 0-10
+  to indent related trace output.
+  
   See Also: %_, TRACE, VERBOSE, PUPPET, chktrace()
   
 & MATCH()
@@ -15166,14 +16317,14 @@
             randextract()
   
 & EXTRACTWORD()
-  Function: extractword(<string> [,<first>, <len>[, <delim>], <sep>] ,<del>]])
+  Function: extractword(<strng>[,<first>,<len>[,<dlim>],<sep>],<del>],<mod>]]])
   
   Extractword returns a string of <len> length words, starting with the first
   word.  This works effectively like extract(), however, the deliminiter 
-  <delim> and separator <sep> can be multi-character.  In addition, the
+  <dlim> and separator <sep> can be multi-character.  In addition, the
   separator may also contain ansi or special characters.
   
-  If you specify only <string> and no other arguments, it returns the first
+  If you specify only <strng> and no other arguments, it returns the first
   word of the string as if the first() function.
   
   If you specify a negative number to <first>, it counts backwards from the end
@@ -15186,6 +16337,10 @@
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
   where the words choosen are all the words EXCEPT the range specified.
+  
+  If you specify the <mod> toggle to '1' it will apply a modulo to the <first>
+  argument against the total words in <strng> and wrap-around the value
+  automatically.
    
   Unlike extract(), extractword() is also ansi-aware.
   
@@ -15618,10 +16773,12 @@
   Function: loc(<object>)
  
   Returns the number of the location where <object> is.  You must either
-  control the object or be nearby for it to work.  When used on an exit it
-  returns the destination of the exit.  You can also use loc() to find the
-  location of players that are not set UNFINDABLE.
- 
+  control the object or be nearby for it to work.  You can also use loc() 
+  to find the location of players that are not set UNFINDABLE (or DARK).
+  
+  When used on an exit it returns the *destination* of the exit, not the
+  location. Use the home() function on exits to find their location.
+  
   Example:
     > look
     Mortal's Room(#367R)
@@ -15639,7 +16796,7 @@
     > say loc(here)
     You say "#367"
   
-  See Also: rloc(), room(), where()
+  See Also: rloc(), room(), where(), home()
   
 & RLOC()
   Function: rloc(<object>,<levels>)
@@ -15658,6 +16815,11 @@
   rloc(<object>,0) is the same as num(<object>), and rloc(<object>,1) is the
   same as loc(<object>).
   
+  When used on an exit, it will return the exits dbref#.  Exits do not have
+  a nested location so it returns itself.  If you want the exit's location 
+  use the home() function. If you want the exit's destination use the loc()
+  function.
+   
   Example:
     > look
     Object(#123p)
@@ -15672,7 +16834,7 @@
     > say rloc(me,2)
     You say "#124"
   
-  See Also: loc(), where()
+  See Also: loc(), where(), home()
   
 & ERROR()
   Function: error([<target>])
@@ -16188,7 +17350,7 @@
     > say reboottime()
     You say "Sat Dec  7 00:09:13 1991
     
-  See Also: convtime(), starttime(), rebootsecs(), startsecs()
+  See Also: convtime(), starttime(), rebootsecs(), startsecs(), msecs()
   
 & STARTTIME()
   Function: starttime()
@@ -16200,7 +17362,7 @@
     > say starttime()
     You say "Sat Dec  7 00:09:13 1991
   
-  See Also: convtime(), reboottime(), startsecs(), rebootsecs()
+  See Also: convtime(), reboottime(), startsecs(), rebootsecs(), msecs()
   
 & REBOOTSECS()
   Function: rebootsecs()
@@ -16211,7 +17373,7 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), startsecs(), reboottime()
+  See Also: startime(), secs(), startsecs(), reboottime(), msecs()
   
 & STARTSECS()
   Function: startsecs()
@@ -16222,7 +17384,7 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), rebootsecs(), reboottime()
+  See Also: startime(), secs(), rebootsecs(), reboottime(), msecs()
   
 & WRITABLE()
   Function: writable(<player>, <target>/<attrib>)
@@ -16299,7 +17461,7 @@
   The width can not be above 4000 characters.
   
   See Also: ljust(), rjust(), center(), columns(), wrapcolumns(), printf(),
-            array()
+            array(), template()
   
 & WRAPCOLUMNS()
   Function: wrapcolumns()  Syntax follows:
@@ -16378,7 +17540,7 @@
     > @emit wrapcolumns(this is a test of wrapcolumns,10,3,R,0,1,<*,|,*>,1)
       <* this is a|   test of|wrapcolumn*>
   
-  See Also: columns(), wrap(), printf(), array()
+  See Also: columns(), wrap(), printf(), array(), template()
   
 & COLORS()
   Function: colors([[<value>], [<key>]])
@@ -16390,6 +17552,7 @@
   Valid optional <value> parameters:
     0-2     - page value of the total list of colornames available. (0 def)
     string  - the string of the color name you wish to see the value of.
+              You may use the literal string or +string (like pink or +pink)
     *wild*  - the list of colors that match the wildcard (* and ? accepted)
    any ansi - With the '(n)ame' option you may specify anything you'd pass
               ansi() and have it return the names matching the encoding.
@@ -16494,7 +17657,7 @@
       <*-=*=--this|-=*=--=*is|-=*=--=*=a*>
       <*-=*=--test|-=*=--=*of|-=*columns*>
   
-  See Also: wrapcolumns(), wrap(), array(), printf()
+  See Also: wrapcolumns(), wrap(), array(), printf(), template()
   
 & PTIMEFMT()
   ptimefmt(<format>[, <secs>])
@@ -16618,7 +17781,7 @@
   'P'    AM or PM                 AM/PM
   'p'    am or pm                 am/pm
   
-  See Also: timefmt examples, secs()
+  See Also: timefmt examples, secs(), msecs()
   
 & TIMEFMT DATE
   The following format specifiers are available for processing the <secs>
@@ -16638,7 +17801,7 @@
   'Y'    Year                     0..????
   'y'    Year (two digit)         0..99
   
-  See Also: timefmt examples, secs()
+  See Also: timefmt examples, secs(), msecs()
   
 & TIMEFMT ELAPSED
   The following format specifiers are available for processing the <secs>
@@ -16827,18 +17990,25 @@
                   02F tells it to print the minute field and pad with zeroes 
                       if the total character count is less than two. IE: '12'
   
+& MSECS()
 & SECS()
   Function: secs()
+            msecs()
  
   Returns the number of elapsed seconds since midnight, January 1, 1970.
   This is an easy way to time things.
- 
+  
+  The msecs() function works like secs() but gives the fractional milisecond
+  of the current time.
+   
   Example:
      > say secs()
      You say "692636020"
      ... wait a bit ...
      > say secs()
      You say "692636043"
+     > say msecs()
+     You say "692636049.7"
   
   See Also: convsecs(), convtime(), time(), timefmt()
   
@@ -16884,7 +18054,10 @@
   home(<object>)
  
   Returns the object's home.
- 
+  
+  If used on an exit, it will return the exit's *location*.  Exits do
+  not have a 'home' other than their location.
+   
   Example:
     > exam me
     Mortal(#226Pc)
@@ -16897,7 +18070,7 @@
     > say home(me)
     You say "#367"
   
-  See Also: loc(), room(), @link
+  See Also: loc(), room(), rloc(), @link
   
 & MONEY()
   Function: money(<object>)
@@ -17304,35 +18477,48 @@
   See Also: lcstr(), ucstr(), caplist()
 
 & CAPLIST()
-  Function: caplist(<list>[,<delim>[,<osep>[,<key>[,<type>]]]])
-
+  Function: caplist(<list> [,<delim> [,<osep> [,<key> [,<type> [,<chars>]]]]])
+  
   Returns <list> with the first character of each word capitalized.  You may
   specify an optional <delim> as a delimiter for the list input, otherwise the
   default of space will be used.  You may also specify an optional <osep>
-  as a separator for the list that is returned.
+  as a separator for the list that is returned.  If <type> is 512 you may 
+  specify the characters you wish to capitalize after.
   
   Additionally, an optional <key> may be specified which alters the behavior
   of the function slightly.  The key must be one of the following characters:
     - L:    Reduces the entire list to lower case before capitalization is
-            performed.
+            performed.  Allows <type> value.
     - N:    Performs capitalization naturally, and does not affect any other
             characters in the list (default).
     - T:    Performs a 'true' capitalization based on currently English
-            definition for titles.
+            definition for titles.  Allows <type> value.
   
-  A <type> of '1' will work with <key> values of 'L' or 'T' to optionally 
-  capitalize all words contained in a hyphon, optionally.  The default
-  behavior is to capitalize only the start of the word.  This <type> value
-  has no influence on the 'N' <key> type.
+  Note: If you specify a <type> with 'T' the character override will not
+  follow the 'true' capitalization.
+    
+  The following <type> values exist for special handling with <key>
+  'L' or 'T'.  These work as bitmasks so add the values to combine:
+       1  - capitalize all words after a hyphon -
+       2  - capitalize all words after a right parenthesis (
+       4  - capitalize all words after a right bracket [
+       8  - capitalize all words after a right brace {
+      16  - capitalize all words after a double quote "
+      32  - capitalize all words after a single quote '
+      64  - capitalize all words after a period .
+     128  - capitalize all words after an underscore _
+     256  - capitalize all words after a backtick `
+     512  - capitalize all words after the specified character list <chars>
    
-  Example:
+  Examples:
     > say caplist(the mAn in thE mOon).
     You say "The MAn In ThE MOon."
-
     > say caplist(the mAn in thE mOon,,|,L).
     You say "The|Man|In|The|Moon."
+    > say caplist(000.abc 111.cde 135.moon,,,L,512,.)
+    You say "000.Abc 111.Cde 135.Moon"
   
-  See Also: capstr()
+  See Also: capstr(), ucstr(), lcstr(), regedit()
 
 & LCSTR()
   Function: lcstr(<string>)
@@ -17508,11 +18694,16 @@
   
   See Also: revwords()
   
+& TRREVERSE()
 & REVERSE()
   Function: reverse(<string>)
+            trreverse(<string>)
  
   Reverses the order of the characters of <string>.
- 
+  
+  trreverse() works like reverse() except it transposes characters that 
+  are reverseable.  Ergo, > to <, ] to [, } to { and so forth.
+   
   Examples:
     > say reverse(This is a test)
     You say "tset a si sihT"
@@ -17520,6 +18711,10 @@
     You say "...yllaeR ,tset a si sihT"
     > say reverse(A man, a plan, a canal -- Panama!)
     You say "!amanaP -- lanac a ,nalp a ,nam A"
+    > say reverse(>>test<<)
+    You say "<<tset>>"
+    > say trreverse(>>test<<)
+    You say ">>tset<<"
   
   See Also: revwords()
   
@@ -17538,7 +18733,7 @@
     > say revwords(Was it a cat I saw?)
     You say "saw? I cat a it Was"
   
-  See Also: reverse()
+  See Also: reverse(), trreverse()
   
 & BEFORE()
   Function: before(<string1>, <string2> [,<key>])
@@ -17631,7 +18826,10 @@
   Returns the number of the room that <obj> is in, or would be in if it
   executed LEAVE commands until it got to a room.  You can find out the
   containing room of objects you own, nearby objects, and findable players.
- 
+  
+  If used on an exit, it returns the exits *destination*.  If you wish to
+  return the location of the exit, use the home() function.
+   
   Example:
     > I
     You are carrying:
@@ -17774,7 +18972,7 @@
   This example shows that the ilev() is in the 3rd (starting at 0)
   level of iter.
   
-  See Also: inum(), itext(), iter(), ibreak(), list()
+  See Also: inum(), itext(), iter(), ibreak(), list(), inf()
   
 & INUM()
   Function: inum(<n> [,<key>])
@@ -17804,7 +19002,7 @@
   > say [iter(red blue green,iter(fish shoe, [itext(1)]:[itext(0)]))]
   You say, "red:fish red:shoe blue:fish blue:shoe green:fish green:shoe"
   
-  See Also: iter(), itext(), ilev(), ibreak(), list()
+  See Also: iter(), itext(), ilev(), ibreak(), list(), inf()
 
 & IBREAK()
   Function: ibreak(<n>)
@@ -17836,11 +19034,13 @@
   > say [iter(red blue green,iter(fish shoe, [inum(1)]:[itext(1)][ibreak(0)]))]
   You say, "1:red 2:blue 3:green"
   
-  See Also: iter(), itext(), ilev(), inum(), list()
+  See Also: iter(), itext(), ilev(), inum(), list(), inf()
 
   
+& INF()
 & ITER()
   Function: iter(<list>, <eval>[, <delim> [, <output separator>]])
+             inf(<list>, <eval>[, <delim> [, <output separator>]])
  
   <list> is a <delimiter>-separated list of strings, which can be object
   numbers, attributes, or arbitrary words.  <eval> is a string that is to be
@@ -17853,7 +19053,13 @@
   
   You may use %i0-%i9 for itext(0) to itext(9).  
   You may use %il for the outermost layer, equiv to itext(ilev())
-   
+  
+  The inf() function is special in that it allows <list> to be passed a 
+  special handler of :<value>:<key>: where <value> is a positive or negative 
+  number, and <key> is > or <.  Such as ':50:>:'   
+  
+  You may not mix the special handler and other values.
+  
   Examples:
     > say iter(This is a test,-## #@-)
     You say "-This 1- -is 2- -a 3- -test 4-"
@@ -17867,6 +19073,10 @@
     You say "This***is***a***test"
     > say iter(This is a test,%i0,,***)
     You say "This***is***a***test"
+    > say iter(:1000:>:,%i0)
+    You say ":1000:>:"         (iter does not allow the special <list>)
+    > say inf(:1000:>:,%i0)
+    You say "1000 1001 ..."    (it'll print values from 1000 to the LBUF size)
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
             inum(), ilev(), ibreak()
@@ -17904,7 +19114,7 @@
     > say nsiter(Was it a cat I saw,words(##),s)
     You say "141"
   
-  See Also: iter(), citer(), @dolist, parse(), list()
+  See Also: iter(), citer(), @dolist, parse(), list(), inf()
   
 & MUNGE()
   Function: munge([<obj>/]<attr>,<list 1>,<list 2>[[,<delim>][,<sep>]])
@@ -17975,7 +19185,7 @@
     > say citer(bob,## WHEE ##,@)
     You say "b WHEE b@o WHEE o@b WHEE b"
   
-  See Also: iter(), nsiter(), list(), @dolist, creplace(), foreach()
+  See Also: iter(), nsiter(), list(), @dolist, creplace(), foreach(), inf()
   
 & LOCATE()
   Function: locate(<looker>,<string>,<where>)
@@ -18352,7 +19562,7 @@
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
     You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
   
-  See Also: accents(), edit(), regedit(), pemit(), @edit
+  See Also: ansipos(), accents(), edit(), regedit(), pemit(), @edit
 
 & PEDIT()
   Function: pedit(<string>,<from>,<to>[,<from>,<to>,...])
@@ -18431,7 +19641,7 @@
   
   This function provided for TinyMUSH 3.0 compatibility.
   
-  See Also: map(), step(), foreach(), iter()
+  See Also: map(), step(), foreach(), iter(), inf()
   
 & STR()
   Function: str(<string>,<match>)
@@ -18795,22 +20005,43 @@
              @lfunction
   
 & PRIVATIZE()
-  Function: privatize(<value>)
+  Function: privatize(<boolean>)
+            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
   
-  This function takes two values.  1 to enable or 0 to disable (default).
-  When enabled, any function call that is using localization for registers,
-  such as localize(), ulocal(), ueval(), uzfun(), etc, will be initialized
-  to a null (empty string) instead of housing the contents that was passed
-  to it (which is the default).  Keep in mind, this only initializes the
-  localized values, and once the localization is finished, the values are
-  returned to their previous value, as how localization is intended.
+  This function has two uses.  
   
-  The Values allowed are:
+  First, if you just pass a boolean (1) value to the function, it will 
+  optionally privatize everything that is localized.  It does this by 
+  initializing to null every register that is referenced within the localized
+  register.  A boolean of '0' turns off privatization.
+  
+  The second option allows you to pass a string to be evaluated which will
+  combine localize() and privatize() for the duration of the evaluation
+  of the string.  
+  
+  The register list can be 0-9 or a-z.  You can not use labels.  These will
+  be, by default, what registers will be privatized/localized.  
+  
+  The <key> if '1' will reverse the effect of <register-list> and effective
+  turn the list to an omission list.
+  
+  Once privatization is finished, functionality returns as normally expected. 
+  
+  The <boolean> allowed are:
     1 - Toggle on the feature to initialize to null all registers (%q0-z)
         that are used in localized functions (localize(), ulocal(), etc)
     0 - Toggle off the feature to initialize to null registers (default).
   
-  Example:
+{ see 'help privatize2' for examples }
+& PRIVATIZE2
+  (CONTINUED)
+  Function: privatize(<boolean>)
+            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
+  
+  For Example 1, we will show the difference between calling the function,
+  localizing the function, the privatizing before localizing the function.
+
+  Example: (option 1)
     > @va me=(before R0: [r(0)])[setq(0,internal)] --My R0:[r(0)]--
     Set.
     > say [setq(0,external)][r(0)][u(va)][r(0)]
@@ -18820,6 +20051,21 @@
     > say [privatize(1)][setq(0,external)][r(0)][localize(u(va))][r(0)]
     You say "external--(before R0: ) My R0:internal--external"
   
+  For Example 2, we show what it's like to essentially privatize a specific
+  evaluation which auto-localizes the results.
+  
+  Example: (option 2)
+    > @va me=[setr(0,ONE)]:[r(1)]
+    Set.
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va))], %q0:%q1
+    You say "TWO:CHEESE, ONE:, TWO:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),0)], %q0:%q1
+    You say "TWO:CHEESE, ONE:CHEESE, TWO:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),1)], %q0:%q1
+    You say "TWO:CHEESE, ONE:, ONE:CHEESE"
+    > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),0,1)], %q0:%q1
+    You say "TWO:CHEESE, ONE:, ONE:CHEESE"
+
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
             sandbox(), subeval(), @lfunction
 
@@ -19132,7 +20378,8 @@
     > say [@@(this is a test[setq(0,test)])]- [r(0)]
     You say "- "
   
-  See Also: localize(), eval(), subeval(), null(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), null(), privatize(), sandbox(), 
+            stderr()
   
 & NULL()
   Function: null(<string>)
@@ -19145,7 +20392,8 @@
     > say [null(this is a test[setq(0,test)])]- [r(0)]
     You say "- test"
   
-  See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox()
+  See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox(),
+            stderr()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -19170,7 +20418,7 @@
   
   This function provided for compatibility with TinyMUSH 3.0
   
-  See Also: while(), map(), munge(), iter(), columns()
+  See Also: while(), map(), munge(), iter(), columns(), inf()
   
 & ZONECMDCHK
   Toggle: ZONECMDCHK(k)
@@ -19412,16 +20660,21 @@
   
   See Also: switch(), reswitchi(), reswitchi(), reswitchall(), regexps
 
+& if()
 & ifelse()
   Function: ifelse(<expression>,<true string>[,<false string>])
  
   This function returns <true string> if <expression> is true (not 0), 
   <false string> otherwise. Much more efficient than an equivalent
   switch(). To check if a string contains text or not, use strlen() within
-  the test case.  The false string is optional and if nothing is specified, 
-  it will return an empty string if a false match is met.  This will 
-  effectively mimic the if() function found on other servers.
+  the test case.  
   
+  The false string is optional and if nothing is specified, it will return 
+  an empty string if a false match is met.  This will effectively mimic 
+  the if() function found on other servers.
+  
+  This function is aliased to if().
+   
   Example:
     > say ifelse(v(test),Test exists!,Test doesn't exist.)
     You say "Test doesn't exist."
@@ -19959,12 +21212,17 @@
   worked with @set will work with set().  It follows the same permissions and
   restrictions of the command.  The SIDEFX flag is required to use set().
   
-  You may specify the optional <tree> of '1' to specifically set a TREE with
-  all branches filled (that do not exist) on the target.  A TREE set will
-  also verify permission on every branch of that tree prior to setting.  
-  Failure to set any of the branches, for any reason, will disallow 
+  You may specify the optional <tree> of '1' or '3' to specifically set a 
+  TREE with all branches filled (that do not exist) on the target.  A TREE 
+  set will also verify permission on every branch of that tree prior to 
+  setting.  Failure to set any of the branches, for any reason, will disallow 
   setting the attribute as well.
   
+  You may specify an optional <tree> of '2' or '3' to specify that all
+  attributes set will ignore the special case of '_' (third example above) 
+  when setting attributes.  Otherwise, doing '_foo/bar' will try to fetch
+  attribute 'bar' from object '_foo' and set it to that attribute. 
+    
   The <tree> toggle is ignored on any method of set() that does not 
   set or clear attributes.
    
@@ -19974,6 +21232,10 @@
   > @set me=safe
   Set.
   > say set(me,safe)
+  You say ""
+  > say set(me,_content_)
+  You say "No match."
+  > say set(me,_content_,2)
   You say ""
   
   See Also: lset(), rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
@@ -20053,17 +21315,18 @@
   You say ""
   
 & PEMIT()
-  Function: pemit(<object> [<object2> ...],<string> [,<key>])
+  Function: pemit(<object1> [<object2> ... <objectN>], <string> [,<key>])
   
   The pemit() function is a side-effect for the @pemit/list command.  All
   restrictions and permissions of that command follow this function.  The
-  SIDEFX flag is required to use pemit().
+  SIDEFX flag is required to use pemit().  Pemit() by default evaluates
+  for every target in the list.  It does NOT evaluate ## by default.
   
-  You may specify an optional <key> of '1' if you wish to have ##
-  substituted for every target object in the list.  Keep in mind the '##'
-  is pre-processed like iter's ## would be and could be a security risk
-  if used improperly.  I'd strongly suggest filtering the target list
-  as dbref#'s to keep it safe.
+  The following key values are allowable:
+    1 - will have ## substituted for every target object in the list.  Keep 
+        in mind the '##' is pre-processed like iter's ## would be and could 
+        be a security risk if used improperly.  
+    2 - only evaluate once.  This by default disables ## from evaluation.
   
   Type @list options to see if this side-effect is enabled.
   
@@ -20164,13 +21427,16 @@
   See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
   
 & LISTMATCH()
-  Function: listmatch(<string>, <pattern>[, <delimiter>])
+  Function: listmatch(<string>, <pattern>[, <delimiter> [,<args>]])
  
   The listmatch() function tries to match <pattern> against <string>. If it
   succeeds, it returns a list of the text that matched each wildcard (up to
   ten) in <pattern>. Normally, the list is space-separated, but if
   <delimiter> is specified, the list will be separated by that instead.
- 
+  
+  You may specify the optional <args> that you want to display in a space
+  delimited list.
+   
   If it fails, or <pattern> contains no wildcards, it returns an empty
   string.
  
@@ -20179,37 +21445,16 @@
     You say "This is a "
     > say listmatch(hit the troll with the sword, hit * with *, /)
     You say "the troll/the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 0 1)
+    You say "the troll/the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 1)
+    You say "the sword"
+    > say listmatch(hit the troll with the sword, hit * with *, /, 0)
+    You say "the troll"
     > say listmatch(kow, wok)
     You say ""
   
   See Also: setqmatch(), match(), totmatch(), wildmatch()
-  
-& SETQMATCH()
-  Function: setqmatch(<string>, <pattern>[,delim])
- 
-  The setqmatch() function tries to match <pattern> against <string>. If it
-  succeeds, it returns 1 and puts the text that matched each wildcard (up to
-  ten) into successive setq registers. The first wildcard's match goes into
-  register 0, the second into register 1, etc.
- 
-  (If it reaches '10' and there's more, dump the remaining into
-   '10' if '10' is a '*' wildcard and not a '?' wildcard)
- 
-  If it fails, it returns 0.  If optional delimiter of 'n' is specified,
-  then it returns nothing for failures or successes.  Default is 'y' for
-  returning values.
- 
-  Example:
-    > say setqmatch(This is a test, *test) -- [r(0)]
-    You say "1 -- This is a "
-    > say setqmatch(open the door hal, open * ???) -- [r(0)] -- [r(2)]
-    You say "1 -- the door -- a"
-    > say setqmatch(kow, wok)
-    You say "0"
-    > say setqmatch(kow, wok, n)
-    You say ""
-  
-  See Also: listmatch(), match(), totmatch(), wildmatch(), setq()
   
 & LIST()
   Function: list(<list>, <eval>[, <delim> ][, <header>][, <target>])
@@ -20258,7 +21503,7 @@
     2
     BB
     
-  See Also: nsiter(), citer(), @dolist, parse(), list()
+  See Also: nsiter(), citer(), @dolist, parse(), list(), inf()
   
 & DIGEST()
   Function: digest(<algorithm>, <string>)
@@ -20395,16 +21640,22 @@
   See Also: @wipe, @set, &, set()
   
 & ZEMIT()
-  Function: zemit(<list of zones>,<text>)
+  Function: zemit(<list of zones>, <text> [,<key>])
   
   The zemit() function returns 'text' to every room of every zone in
   the specified list.  If the target zone is not a zonemaster, but still
   is contained in a zone, then it will just return the text to that room.
+  This function by default evaluates '##' for each zone in the list and
+  evaluates separately for every zone member.
   
   This works similiarilly to @pemit/zone/list
   
   Check @list options to see if this side-effect is enabled.  
   Anything using this side-effect must have the SIDEFX flag set.
+  
+  Following <key> values exist:
+    1 - disable ## substitution.
+    2 - evaluate only once for every zone in list (disables ## automatically)
   
   Examples:
     > @zone here=#0
@@ -21453,7 +22704,14 @@
  
   This function converts seconds to a single time element which is
   the lowest approximation to the given number of <seconds>.
- 
+  
+  The following letters are relevant:
+    s - second    d - day     y - year               e - epoch
+    m - minute    w - week    C - century
+    h - hour      M - month   a - annum(Millennium)
+  
+  Note:  an epoch is 1 million years or more.
+    
   Example:
     > say singletime(45)
     You say "45s"
@@ -21463,6 +22721,7 @@
     You say "1d"
  
   Related Topics: secs(), time(), timefmt()
+
 & CTU()
   Function: ctu(<number>, <units-from>, <units-to>)
   
@@ -21830,6 +23089,46 @@
  
   See also: merge(), foreach(), garble(), creplace(), edit(), editansi()
 
+& TEMPLATE()
+  Function: template(<string>, <arg0> [,<arg1>, ..., <arg9>])
+  
+  This function will take an input string <string> as the template string
+  and do substitution based on the arguments you pass to it.  It will
+  walk through each of the arguments one character at a time and replace
+  the specified characters in the template.  The following characters
+  specify each of the template replacements in question:
+  
+    1 or more 0's -- will be a one to one replacement of chars in arg0
+    1 or more 1's -- will be a one to one replacement of chars in arg1
+    1 or more 2's -- will be a one to one replacement of chars in arg2
+    1 or more 3's -- will be a one to one replacement of chars in arg3
+    1 or more 4's -- will be a one to one replacement of chars in arg4
+    1 or more 5's -- will be a one to one replacement of chars in arg5
+    1 or more 6's -- will be a one to one replacement of chars in arg6
+    1 or more 7's -- will be a one to one replacement of chars in arg7
+    1 or more 8's -- will be a one to one replacement of chars in arg8
+    1 or more 9's -- will be a one to one replacement of chars in arg9
+  
+  You may have any order of substitions in the template.  You may
+  use numbers that have no arguments.  In such a case the template will
+  be replaced with a space character.  If the argument is shorter than
+  the number of substitutions in the template, spaces are used as filler.
+  
+  Tabs will be replaced with a single space. 
+  
+  This function is ansi and accent aware.
+  
+  Examples:
+    > say template(test <0123> test <0123> test,aaaaaaa,bbbbbbb,cccccc,dddddd)
+    You say "test <abcd> test <abcd> test"
+    > say template(test 001 wheee 100,----,<>)
+    You say "test --< wheee >--"
+    > think think template(>>> 000000 <<<%r>>> 000000 <<<,abcde%rtuvwy)
+    >>> abcde  <<<
+    >>> tuvwy  <<<
+  
+  See Also: printf(), edit(), regedit(), template()
+
 & TRUNC()
   Function: trunc(<number>)
  
@@ -22034,7 +23333,7 @@
     > say [foreach(ansi,ansi(hr,r,hb,b,hc,c,hg,g),@@,@@,1)]
     You say "-r--b--c--g-"  (r is red, b is blue, c is cyan, g is green)
     
-  See Also: @dolist, iter(), map(), citer(), nsiter(), list()
+  See Also: @dolist, iter(), map(), citer(), nsiter(), list(), inf()
   
 & PARSE()
   Function: parse(<list>,<eval>[,<delimiter> [,<output separator>]])
@@ -22065,7 +23364,7 @@
     > say nsiter(Was it a cat I saw,words(##),s)
     You say "141"
   
-  See Also: iter(), citer(), @dolist, parse(), list()
+  See Also: iter(), citer(), @dolist, parse(), list(), inf()
   
   
 & PARSESTR()
@@ -22185,7 +23484,7 @@
   Note: It will auto-close double quotes if it detects a non-escaped odd count.
         Also note the colorizations will be displayed appropiately.
   
-  See Also: garble(), parse(), iter(), strmath(), spellnum()
+  See Also: garble(), parse(), iter(), strmath(), spellnum(), inf()
   
 & controls()
   Function: controls(<object>,<victim>)
@@ -22226,7 +23525,7 @@
   You say "2 3 4 5 6"
   
   See Also: filter(), fold(), iter(), parse(), u(), munge(), citer(), 
-            nsiter(), sortlist()
+            nsiter(), sortlist(), inf()
   
 & filter()
   Function: filter([<obj>/]<attr>,<list>[,<delim>[,<sep>][,<arg1>,...,<argN>]])
@@ -22250,7 +23549,8 @@
     > say filter(object/is_odd,1@2@3@4@5,@,|)
     You say "1|3|5"
   
-  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), sortlist()
+  See Also: u(), map(), fold(), citer(), nsiter(), munge(), list(), 
+            sortlist(), inf()
   
 & fold()
   Function: fold([<obj>/]<attr>, <list>[, <base-case>[, <delim>])
@@ -22274,7 +23574,7 @@
     > say fold(object/add_nums,1 2 3 4 5)
     You say "15"
   
-  See Also: u(), iter(), map(), filter(), citer(), nsiter(), list()
+  See Also: u(), iter(), map(), filter(), citer(), nsiter(), list(), inf()
   
 & RJ()
 & RJUST()
@@ -22302,7 +23602,7 @@
     > say =[printf($:.:5s,bar)]=       (The default justification is right)
     You say "=..bar="
   
-  See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap()
+  See Also: rjc(), ljust(), ljc(), strlen(), printf(), wrap(), template()
   
 & RJC()
   Function: rjc(<string>, <length> [,<fill>])     'Right Justify and Cut'
@@ -22320,7 +23620,7 @@
     > say -[rjc(this is foo,6)]-
     You say "-this i-"
    
-  See Also: rjust(), ljc(), ljust(), printf(), wrap()
+  See Also: rjust(), ljc(), ljust(), printf(), wrap(), template()
  
 & STRDISTANCE()
   Function: strdistance(<string1>, <string2> [,<type> [,<damareu match>]])
@@ -22365,7 +23665,7 @@
     > say -[ljc(this is foo,6)]-
     You say "-this i-"
    
-  See Also: ljust(), rjc(), rjust(), printf(), wrap()
+  See Also: ljust(), rjc(), rjust(), printf(), wrap(), template()
  
 & LJ()
 & LJUST()
@@ -22393,7 +23693,7 @@
     > say =[printf($:.:-5s,bar)]=      (the '-' specifies left justifies)
     You say "=bar..="
   
-  See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap()
+  See Also: ljc(), rjust(), rjc(), strlen(), printf(), wrap(), template()
   
 & BITTYPE()
   Function: bittype(<object> [,<type>])
@@ -22590,7 +23890,7 @@
             setq(!,<string>,<label>)
             setq(+,<string>,<label>)
   
-      -- Penn Compatibility (if enabled) 
+      -- Penn Compatibility (if enabled via penn_setq admin param) 
             setq(<label|register>,<string>)
             setq(+,<string>,<label>)
             setq(!,<string>,<label>)
@@ -22640,7 +23940,7 @@
             setq_old(!,<string>,<label>)
             setq_old(+,<string>,<label>)
   
-      -- Penn Compatibility (if enabled) 
+      -- Penn Compatibility (if enabled via penn_setq admin param) 
             setq_old(<label|register>,<string>)
             setq_old(+,<string>,<label>)
             setq_old(!,<string>,<label>)
@@ -22664,13 +23964,61 @@
 
   See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
   
+& SETQMATCH()
+  Function: setqmatch(<string>, <pattern>[,delim])
+ 
+  The setqmatch() function tries to match <pattern> against <string>. If it
+  succeeds, it returns 1 and puts the text that matched each wildcard (up to
+  ten) into successive setq registers. The first wildcard's match goes into
+  register 0, the second into register 1, etc.
+ 
+  (If it reaches '10' and there's more, dump the remaining into
+   '10' if '10' is a '*' wildcard and not a '?' wildcard)
+ 
+  If it fails, it returns 0.  If optional delimiter of 'n' is specified,
+  then it returns nothing for failures or successes.  Default is 'y' for
+  returning values.
+ 
+  Example:
+    > say setqmatch(This is a test, *test) -- [r(0)]
+    You say "1 -- This is a "
+    > say setqmatch(open the door hal, open * ???) -- [r(0)] -- [r(2)]
+    You say "1 -- the door -- a"
+    > say setqmatch(kow, wok)
+    You say "0"
+    > say setqmatch(kow, wok, n)
+    You say ""
+  
+  See Also: listmatch(), match(), totmatch(), wildmatch(), setq()
+  
+& SETQ_TEMPLATES
+  You can specify 'templates' for setq registers to automatically have 
+  pre-defined labels for each individual object.  This is done by setting
+  a string in the attribute 'SETQ_TEMPLATE' on the object.  The attribute
+  should be in the format:  <register>:<string>
+  
+  So an example would be:   0:foobar 1:xyzzy q:myqreg
+  
+  This would set a template on an object where it would preassign the
+  label 'foobar' to register 0, 'xyzzy' to register 1, and 'myqreg' to
+  register q.
+  
+  Note:  These are only useful for the immediate calling $commands.
+  They are not transversed through u() functions, @triggers, or other
+  action based events.
+  
+  You may redefine these labels as you would normally with nameq(), 
+  setq(), or setr().
+  
+  See Also: nameq(), setq(), setr()
+  
 & SETR()
   Function: setr(<register>,<string>[,<label>])
             setr(<label>,<string>[,<label>])
             setr(!,<string>,<label>)
             setr(+,<string>,<label>)
   
-      -- Penn Compatibility (if enabled) 
+      -- Penn Compatibility (if enabled via penn_setq admin param) 
             setr(<label|register>,<string>)
             setr(+,<string>,<label>)
             setr(!,<string>,<label>)
@@ -22709,7 +24057,7 @@
             setr_old(!,<string>,<label>)
             setr_old(+,<string>,<label>)
   
-      -- Penn Compatibility (if enabled) 
+      -- Penn Compatibility (if enabled via penn_setq admin param) 
             setr_old(<label|register>,<string>)
             setr_old(+,<string>,<label>)
             setr_old(!,<string>,<label>)
@@ -22779,10 +24127,10 @@
     > say printf($:-:^5s,a)            (the '^' specifies center justify)
     You say "--a--"
   
-  See Also: ljust(), rjust(), ljc(), rjc(), printf()
+  See Also: ljust(), rjust(), ljc(), rjc(), printf(), template()
   
 & INSERT()
-  Function: insert(<list>, <pos> [<pos2>..<posN>], <word>[[,<sep>] [,<osep>]])
+  Function: insert(<list>, <pos> [..<posN>], <word>[[,<sep>] [,<osep>]], <key>)
    
   This function inserts a word into <list> so that the word becomes the
   <pos>'th element of the list, and all subsequent list elements are moved
@@ -22801,12 +24149,39 @@
   The <osep> output delimiter may be more than one character, and if 
   enabled, '@@' can be used as another method for a null.  You may specify 
   an empty <osep> as well.
-   
+  
+  The following <key>s exist for insert:
+    0 - (default) do normal insert
+    1 - Append the text to the position(s)
+    2 - Prepend the text to the position(s)
+    3 - Box in the position(s) with the text (prepend and append)
+    4 - Transpose box in the position(s) with the text (prepend and append)
+  
+{ see 'help insert2' for examples } 
+
+& INSERT2 
+ (CONTINUED)
+  Function: insert(<list>,<pos> [..<posN>],<word>[[,<sep>][,<osep>][,<key>]])
+  
+  Note: if you leave the <osep> output seperator null when using <key>, it 
+        assumes you want an empty (null) output seperator.  To have it use 
+        the same seperator explicitly specify the <osep> if you plan to 
+        use <key>.  You only need to explicitly set <osep> if you use <key>
+        or if you plan to use a different output seperator.
+  
   Examples:
     > say insert(This is a test, 4, new)
     You say "This is a new test"
     > say insert(Yet@Another@List, 3, Funky, @)
     You say "Yet@Another@Funky@List"
+    > say insert(1|2|3,2,>>,|,|,1)
+    You say "1|2>>|3"
+    > say insert(1|2|3,2,>>,|,|,2)
+    You say "1|>>2|3"
+    > say insert(1|2|3,2,>>,|,|,3)
+    You say "1|>>2>>|3"
+    > say insert(1|2|3,2,>>,|,|,4)          (this transposes the > character)
+    You say "1|>>2<<|3"
   
   See Also: extract(), extractword(), ldelete(), replace(), iindex(), aindex(),
             rindex()
@@ -22949,6 +24324,7 @@
   Function: ishidden(<player>)
   
   This function currently is not available to non-bitted players.
+  This returns TRUE if the playere is set hidden.
   
   Example:
     > say ishidden(#1)
@@ -23152,6 +24528,7 @@
   
 { 'help ansi2' for more -- The 256 Color Support}
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
 
 & ANSI2
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -23192,6 +24569,7 @@
      
 { 'help ansi3' for more -- about XTERMCOLOR and ANSI examples }
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
   
 & ANSI3
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -23231,6 +24609,7 @@
    
 { 'help ansi4' for more -- Flags required and information }
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
 
 & ANSI4
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -23250,6 +24629,7 @@
             SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
 
 { 'help ansi quirks' for work arounds on weird ansi problems}
+{ 'help ansi usage' on how to use ansi}
   
 & ANSI QUIRKS
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -23284,10 +24664,24 @@
     You say "%cn"                              (the %cn is highlight red)
     > say ansi(hr,chr(37))                     
     You say "%"                                (the % is highlight red)
+  
+{ 'help ansi usage' on how to use ansi}
     
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
             SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
 
+& ANSIPOS()
+  Function: ansipos(<string>, <position>)
+  
+  This function returns the markup of the ansified string based on the
+  position specified.  This will return the foreground, background, 
+  accents and UTF8 encoding for that position.
+  
+  Examples:
+    > think [ansipos([ansi(+orange,orange)],5)]This string is orange%cn
+  
+  See Also: editansi(), pos(), ansi(), stripansi()
+  
 & STRIPANSI()
   Function: stripansi(<string>)
   
@@ -23297,7 +24691,7 @@
     > say stripansi(ansi(hr,red))
     You say "red"
   
-  See Also: NO_FLASH, ANSI, ANSICOLOR, stripaccents()
+  See Also: NO_FLASH, ANSI, ANSICOLOR, stripaccents(), ansipos()
   
 & CLUSTER_ADD()
   Function: cluster_add(<cluster>, <object>)
@@ -24306,7 +25700,7 @@
    Note: For folder help please type 'help folder'
   
    Important topics:
-      'HELP MAIL MAIN' for main index.    
+      'HELP MAIL MAIN' for main index.    -- this is very helpful
       'HELP MAIL TOPICS' for topical help.
   
    Important initial help entries:
@@ -24340,11 +25734,48 @@
     mail-writing           mail-reading            mail-deleting
     mail-folders           mail-admin              mail-reviewing
     mail-sharing           mail-examples           mail-other
-    mail-aliases           mail-filtering
+    mail-aliases           mail-filtering          mail-attributes
   
     A tutorial can be seen with:
     mail tutorial
   
+& &MAILNOTIFY
+& @MAILNOTIFY
+& MAILNOTIFY
+  Attribute: &MAILNOTIFY
+  
+  This attribute, when set on a player, will send a message to the person
+  mailing them depending on the evaluated text in the attribute.
+  
+  If the message evaluates to an empty string, no message is sent.
+  
+  The following arguments are passed for evaluation:
+              %0  - the dbref# of the player (or #-1 if anonymous)
+              %1  - the subject of the message
+              %2  - the body of the message
+              %3  - the date/time of the message
+  
+  Examples:
+    > &mailnotify me=Hi, [name(%0)]!  You sent me mail!
+    Set.
+    > think [name(me)]
+    Bob
+    > mail me=Test!
+    Hi, Bob!  You sent me mail!
+    Mail: You have new mail from -> Bob
+    Mail: Message sent to -> Bob
+    Mail: Done
+    > think [name(me)]
+    Betty
+    > mail bob=Test!
+    Hi, Betty! You sent me mail!
+    Mail: Message sent to -> Bob
+    Mail: Done
+  
+  See Also: @mailsig, &mailfilter
+
+& &MAILFILTER
+& @MAILFILTER
 & MAILFILTER
   Attribute: &MAILFILTER
   
@@ -24373,7 +25804,7 @@
       Mail: You have new mail from -> Tony [Subj: You smell]
       Mail: Auto-Moved to folder -> Junk
   
-  See Also: @mailsig
+  See Also: @mailsig, &mailnotify
  
 & mail-filtering
   You can specify mail filtering by using the MAILFILTER attribute.  This
@@ -24619,7 +26050,7 @@
       mail massmail          mail credits            mail send examples
       mail line examples     mail write examples     mail signature
       mail cmdlist           mail technical          mail tutorial
-      mail quicklist         mail setup_aliases
+      mail quicklist         mail setup_aliases      mail attributes
   
   help on options can be seen by using the help command with any topic.
   
@@ -24635,6 +26066,29 @@
   
   See help on the BRANDY_MAIL @toggle as well. (help brandy_mail toggle)
   
+& mail-attributes
+& mail attributes
+  Topic: MAIL ATTRIBUTES
+  
+  The following attributes have special meaning in the mail system.
+    @mailsig     -- The signature that is assigned to any mail sent.
+    &mailfilter  -- This is evaluated to auto-filter what folder mail goes to.
+    &mailnotify  -- This is evaluated to auto-send notification to senders.
+    @mailtime    -- (Wizard only) Sets the auto-delete time on a player.
+    @mailsmax    -- (Wizard only) Sets the maximum saved messages on a player.
+    MailLock     -- (Internal) This is the lock mail/lock sets
+  
+  The following wildcard patterns are used for mail:
+    mail &foo=text    -- This will check your personal FOO attribute for
+                         the player list you want to send to.
+                         This is non-evaluated.
+    mail ~foo=text    -- This will check your personal FOO attribute for
+                         the player list you want to send to.
+                         This is evaluated.
+  
+  See Also: @mailsig, &mailfilter, &mailnotify, mail lock, mail setup_aliases
+  For wizards, wizhelp: @mailsmax, @mailtime
+
 & mail creating
   Please see 'help mail send'
   
@@ -27227,6 +28681,14 @@
   mail write cmdlist    - lists all commands with the mail line-editor
   folder cmdlist        - lists all commands with the mail folder system
   page                  - lists differences in the page system
+  goto                  - for movement (or just type the exit name)
+  look                  - to look at something.  Specify optional target.
+  drop                  - to drop something
+  get                   - to get something
+  inventory             - to see your inventory
+  say                   - to say something (use " as shorthand)
+  pose                  - to pose/emote something (use : as shorthand)
+  @emit                 - to emit something (use \\ as shorthand)
   WHO                   - needs to be capitalized to who (unless changed)
   QUIT                  - needs to be capitalized to quit (unless changed)
   LOGOUT                - needs to be capitalized to logout (unless changed)
@@ -27280,7 +28742,48 @@
 
   See Also: UTF8 TOGGLE
   
+& MUDDIFF
+  Topic: MUDDIFF
+  
+  Ok, so you come from a mudding background and want to jump on the mush
+  bandwagon.  The biggest thing behind the scenes is the power of the 
+  interpreted coding system (help coding).  Otherwise, here's the base
+  set of command differences you can use to get around things.
+  
+  As all muds are slightly different for command syntax, we obviously
+  can not cover all bases, but hopefully it's close enough you can grok
+  the changes.
+  
+  Mud Command                           Mush Equiv
+  ------------------------------------  -------------------------------------
+  tell <player> <message>               page <player>=<message>
+  emote <text>                          pose <text> (or :<text>)
+  say <text>                            say <text> (or "<text>)
+  spoof <text>                          @emit <text> (or \\<text>)
+  inventory                             inventory
+  score                                 score (fairly meaningless)
+  examine/decompile                     examine/@decompile
+  oset <id>=<attrib>:<value>            &<attrib> <object>=<value> or
+                                        @set <object>=<attrib>:<value>
+  mset <id>=<attrib>:<value>            & or @set again.
+  @force                                @force
+  @teleport                             @teleport
+  home                                  home
+  look                                  look
+  goto/move                             goto/move (or just type exitname)
+  save                                  [mush saves automatically]
+  quit                                  quit
+  
+  There's obviously other similar commands, but this should get you going
+  on the basics.
+  
+  See Also: DIFFERENCES, CODING
+
 & DIFFERENCES
+  Topic: DIFFERENCES
+  
+  If you are coming from a MUD/LP, type 'help muddiff' for those.
+  
   First we'll touch on the TinyMUX differences.
   1) Paging.
      In mux, you can type: page <player-list>=topic, but you need to 
@@ -27313,6 +28816,8 @@
   { type 'help differences2' for tinymush differences. }
   
 & DIFFERENCES2
+  Topic: DIFFERENCES
+  
   Welp, there's not many differences to be honest.  However, as most TinyMUSH's
   use the brandy mailer, you may use the mail method above to make a syntax
   that you'd be compatible with.
@@ -27485,6 +28990,9 @@
   
   (This help text is largely from PennMUSH, with permission)
   
+  If you wish to see the help for the normal globbing command execution,
+  please refer to the help 'ARBITRARY COMMANDS'.
+  
   The majority of matching in MUSH is done with wildcard ("globbing")
   patterns. There is a second type of matching, using regular expressions,
   that is available in certain circumstances.
@@ -27509,10 +29017,16 @@
   player to enter a string and a number ('+setnum <player>=<number>',
   for example), you might do it like this:
   
-  &DO_NUM Command Object=$^\+setnum (.+)=([0-9]+)$: @va me=Data: %1 = %2
-  @set Command Object/DO_NUM = regexp
+  > &DO_NUM Command Object=$^\+setnum (.+)=([0-9]+)$: @va me=Data: %1 = %2
+  Set.
+  > @set Command Object/DO_NUM = regexp
+  Set.
+  > +setnum cookie=30
+  > ex Command Object/va
+  Data: cookies = 30
   
-  Then, '+setnum cookies=30' would set VA to "Data: cookies = 30".
+  How it works:
+  '+setnum cookies=30' would set VA to "Data: cookies = 30".
   This eliminates your having to check to see if the player entered
   a number, since the regular expression matches only numbers.
   Furthermore, the '+' guarantees that there needs to be at least
@@ -27568,7 +29082,7 @@
               or,  extends the meaning of ( after a (
        *      0 or more quantifier
        +      1 or more quantifier
-
+  
 {continued in 'help regexp syntax3'}
 
 & REGEXP SYNTAX3
@@ -27884,6 +29398,7 @@
   aindex()      - Appends a string at a position in another string.
   aiindex()     - Similar to aindex(), but allows adding to an empty string.
   andflags()    - Checks if a target has all the indicated flags.
+  array()       - Break up a string into an array list of registers
   caplist()     - Performs a capstr() on a list of words.
   citer()       - Similar to iter(), but by character instead of word.
   delextract()  - Returns words specified that are not present in a list.
@@ -27901,6 +29416,7 @@
   iindex()      - Similar to index, but inserts <string> at <position>.
   ilev()        - Returns the level of recursion you are at in iter().
   index()       - Like extract(), but supports items being more than one word.
+  inf()         - Like iter() but allows special list args for Infinite vals.
   insert()      - Inserts a word into a list.
   inum()        - The equivalant of #@ inside an iter()
   iter()        - Iterates over a list, and processes code for each member.
@@ -27976,6 +29492,7 @@
   totmatch()    - Returns all matches of a pattern against a string.
   totmember()   - Returns all matches of a pattern against a list.
   totwildmatch()- Like wildmatch(), but returns every match.
+  trreverse()   - Like reverse() but transposes characters.
   while()       - Evaluates a list until a condition is reached.
   wildmatch()   - Matches a pattern against a string.
   
@@ -28234,6 +29751,7 @@
   space()       - Returns X number of whitespace.
   splice()      - Splices two lists together.
   squish()      - Removes excess spaces or delimiters from a string.
+  stderr()      - Convert all #-1 errors to notify() and not the stack.
   str()         - Like after(), and similar to C strstr().
   strdistance() - Calculates the levenshtein distance between two strings.
   streq()       - Compares two strings, returning true if they match.
@@ -28249,6 +29767,7 @@
   switch()      - Powerful string-pattern conditional.
   switchall()   - Like switch(), but matches all occurrences of a pattern.
   t()           - Unifies MUSH responses of 0, null or #-* to return 0.
+  template()    - Direct WYSIWYG substitution in a template string.
   totpos()      - Returns all the positions of a match in a string.
   tr()          - Transforms a string based on find and replace lists.
   translate()   - Translates special characters to percent substitutions.
@@ -28266,6 +29785,7 @@
   Function Lists: Ansi Functions
       
   ansi()        - ANSI formats a string.
+  ansipos()     - ANSI substitutions based on the position of the ansi string.
   colors()      - List colors or optionally display value of color.
   editansi()    - Edit the ANSI of a string.
   stripansi()   - Strips ANSI characters from a string.
@@ -28427,7 +29947,7 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 4.0.0p0
+  Current Revision: 4.0.0p1
 
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
@@ -28444,7 +29964,7 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
-    4.0.0: 4.0.0p0
+    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -28714,7 +30234,7 @@
   * @ansiname now allows raw ansi [ASH]
   * dig(), create(), open(), clone() all optionally return dbref#'s [ASH]
   * @list options now shows more (and valuable) information [ASH]
-  * @function/list now shows flags for privalaged/preserved functions [ASH]
+  * @function/list now shows flags for privileged/preserved functions [ASH]
   * mail/status and mail/read now show connected players [ASH]
   * mail/write and - now show how many characters you have written [ASH]
   * mail/forward and mail/reply now recognize the BRANDY_MAIL @toggle [ASH]
@@ -30754,10 +32274,243 @@
     
   New Features
   ------------
+  * # option to printf for converting tabs to specified number of spaces [ASH]
+  * BANG support is now supported in %-<num> regs and %q<> regs [ASH]
+  * BANG support is now supported in %i<num> and %d<num> substitutions [ASH]
+  * SPEECH_PREFIX and SPEECH_SUFFIX attributes for prefix and suffix
+    processing of say ("), pose (: & ;), and @emit (//)  messages.  
+    Note: if set NO_COMMAND these will not process [ASH]
+  * Added argument %3 to SPEECH_PREFIX/SUFFIX for dbref# of enactor.  This
+    follows rules of 'spoofing' and spoofers show up as #-1.  [ASH]
+  * @admin param posesay_funct will optionally allow SPEECH_PREFIX and
+    SPEECH_SUFFIX to evaluate functions as long as not set NO_COMMAND.  [ASH]
+  * privatize() handles localize level of evaluation [ASH]
+  * @jump added to jump 'ahead' a set number of commands in sequence [ASH]
+  * @rollback to allow rolling back in the command queue based on varying
+    abilities [ASH]
+  * @goto command, a command similiar to @jump, using numerical labels. [AMB]
+  * @list alloc now lists network statistics for current running mush [ASH]
+  * @rollback handles /label to be compatible with @goto [ASH]
+  * msecs() like secs() but shows milisecond counts [ASH]
+  * exec_secure for execscript(_) config param (default 1) which does as it 
+    does now.  setting it to '0' escapes all characters but alphanumeric [ASH]
+  * A form of REST API has been added.  Please refer to documentation in-game
+    in help and wizhelp for how to use the API handler. [ASH]
+  * @api command to empower/enable API handling of a target [ASH]
+  * forbidapi_host/forbidapi_site for API handling [ASH]
+  * api_port for the unique port for the API handler [ASH]
+  * api_nodns to disable DNS lookups for all API handling [ASH]
+  * max_lastsite_api to set maximum API connections a minute [ASH]
+  * @power API (used with @api) for empowering objects [ASH]
+  * @power MONITORAPI (used with MONITOR_SITE) for filtering API [ASH]
+  * @admin param guest_randomize if enabled will randomly select a guest
+    each time one connects [ASH]
+  * passproxy_site/passproxy_host for bypassing the automatic proxy
+    detection subsystem.
   
   Changes
   ------------
+  * increased the size of altname to 100 characters due to unicode [ASH]
+  * laxed some restrictions (like line length) for execscript [ASH]
+  * TESTLOCK() now handles more arguments for multi-targets [ASH]
+  * attribute uselocks now pass args %0-%9 that $commands have [ASH]
+  * listmatch() takes optional 4th arg to specify args to display [ASH]
+  * increased spellnum() to decillion [ASH]
+  * Added additional time formats to convtime() [ASH]
+  * moved up initializers for cpu alerts to be more aggressive [ASH]
+  * @decompile/tf will now, if passed /noextra in addition, surpress the
+    additional information on decompile (like attribute flags) [ASH]
+  * added negative time values for some sequences for convtime() [ASH]
+  * Split up and improved the CPU alarm subsystem [ASH]
+  * decode64 handles carrage returns where before it did not [ASH]
   
   Bug Fixes
   ------------
   * permission combination sets on connect screen could cause a crash [ASH]
+  * small bug in backend ansi handler that wouldn't allow background 16color
+    with foreground 256color [ASH]
+  * lnum2() didn't work properly with lnum_compat enabled [ASH]
+  * a one off unitialized variable for loading in command tables [ASH]
+  * small cleanup with compiling without ZENTY_ANSI [ASH]
+  * handler cleaned up for no-op handling [ASH,AMB]
+  * small parsing issue with bang notation with functions caused cutoff [ASH]
+  * rare issue of not null terminating string for a parser condition [ASH]
+  * the mail fix routine didn't range-check player lookups properly [ASH]
+  * possible out of bounds with UTF8 on notify to port [ASH]
+  * trim didn't default to 'space' if third argument existed and null [ASH]
+  * fix for *BSD missing 'daylight' timezone variable definition [ASH]
+  * /0 CIDR notation would not set properly [ASH]
+  * all localization doesn't keep setq names properly + clear [ASH] 
+  * fix that @jump could potentially blow the stack of the mush
+    to fix a stack leak, you must @shutdown then start mush [ASH]
+  * @rollback had a missing buffer free [ASH]
+  * ] for @hook/ignore and @hook/permit was broken [ASH]
+  * @goto could potentially overflow a buffer [ASH]
+  * off by one argument handler for @rollback [ASH]
+  * segments not initialized properly for CPU alarms [ASH]
+  * error in CPUTIME not always being initialized properly [ASH]
+  * Some CPU handlers were broke and far too aggressive [ASH]
+  * bug in @dolist/inline that wouldn't fully honor CPU protection [ASH]
+  * MUX password check algo didn't fully work because memcmp() is stupid [ASH]
+  * Bug with @nuke on wiping mail if issued from a non-player [ASH]
+  * Fixed an ancient crashbug in right() when second arg was missing [AMB]
+  * potatoe sent invalid data-stream of NULL followed by CRLF.  We ignore
+    this now and no longer update idle time [ASH]
+  * bug in @protect that didn't set/unset the proper flags [ASH]
+  * The base UTF8 conversion had a math error in stringutil.c [eery]
+  * UTF8 ran into codepoint corruption due to missing terminator [eery]
+
+& 4.0.0p1
+  Release Date: 09/08/17
+  Status: Alpha
+    
+  New Features
+  ------------
+  * @name/ansi combines @name and @extansi.  If you do not have @extansi
+    access, @name/ansi will fail as well [ASH]
+  * @pcreate, @create, @open, @dig, @clone, and @register now handle
+    /ansi as well [ASH]
+  * ansipos() to return the markup of the ansi and accents of the given
+    position in the string. [ASH]
+  * added @admin param 'null_is_idle' to treat @@ like IDLE to stop @@
+    from updating idle times. [ASH]
+  * @power wiz_idle to allow target players the enhanced idle features [ASH]
+  * attribute 'mailnotify' (set via &mailnotify) will evaluate the attribute
+    and send to the target person who is issuing mail [ASH]
+  * WIZ_SPOOF @power to grant spoofing ability to target [ASH]
+  * Attribute TRACETAB to control how many spaces(0-10) to indent on trace
+    output for those who prefer PENN's debug format [ASH]
+  * passapi_host and passapi_site to bypass max api connections [ASH]
+  * trreverse().  Works like reverse() but transposes characters like <> [ASH]
+  * insert() now has additional arguments to append, prepend, and box
+    (including transposing box) arguments [ASH]  
+  * noparse @admin function_access parameter [ASH]
+  * @admin param iter_loop_max to control maximum cycles of iter special
+    processing [ASH]
+  * inf() (an iter() clone) allows special string substitutions for input 
+    of :<value>:>: or :<value>:<: for 'infinite loop' checks.  Normal 
+    function invocation and cpu alarms as well as the @admin param 
+    iter_loop_max dictates maximums for the looping [ASH]
+  * extractword() takes an optional MOD argument that allows applying a modulo
+    to the 'first' value for automatic wrap-around.
+  * @recover has a /detail switch that now will show attribute details of the
+    target object.
+  
+  Changes
+  ------------
+  * objid's are now statically stored on things to finally get around
+    weird timezone issues [ASH]
+  * More aggressively handle API processing [ASH]
+  * colors() works with +<color> as well as <color> now [ASH]
+  * Initial fix for stored procedures in MySQL [ASH]
+  * optional argument to set() and @set to allow setting attributes with
+    a content that starts with '_'  [ASH]
+  * COMP() now handles case insensitive, numbers, floats, and dbref#s [ASH]
+  * squish() now offers a second argument to specify count for filler [ASH]
+  * laxed permissions for exits so that they can fetch lcon/lexits on
+    both source and destination points it is linked to [ASH]
+  
+  Bug Fixes
+  ------------
+  * ANSI16 conversion had bad entries for highlighted yellow [Polk]
+  * EVAL locks had a race condition on redefining calling attrib [ASH]
+  * ANSI didn't fully honor ZENTY_ANSI when ZENTY_ANSI was enabled [ASH]
+  * compiler warnings when ZENTY_ANSI not specified [ASH]
+  * crash bug in printf [ASH]
+  * printf tab replacement did not reset value for next arg [ASH]
+  * mail functions could potentially crash the game if mail is off [ASH]
+  * API would wrongly do AUTH checks even if the code ignored lookups [ASH]
+  * cleanup @reboot data to strip API lookups and other things [ASH]
+  * Nospoof didn't work if you were @toggled UTF8
+  * bug in objid where the validation check wouldn't always work [ASH]
+  * insert(), ldelete(), and replace() didn't fully work with output
+    seperators [ASH]
+  * mail attributes allowed evaluation of mail functions and it likely
+    shouldn't for security reasons [ASH]
+  * timeslice config param could crash the game if used [ASH]
+  * corrupted LBUF in functions.c [ASH]
+  * flatfiles loaded with dbref#'s having more than 750 attributes 
+    could be cut off.  [ASH]
+
+& 4.0.0p2
+  Release Date: 05/26/18
+  Status: Alpha
+    
+  New Features
+  ------------
+  * exit_separator @admin param to specify separator between exits [ASH]
+  * help_separator @admin param to specify separator between help [ASH]
+  * @dynhelp/suggest for suggestions if not finding help entry [ASH] 
+  * dynhelp() and textfile() optionally allow suggestions [ASH]
+  * randextract() optionally has weighted values [ASH]
+  * execscript() modified to pass back and forth registers and vars [ASH]
+  * execscript() passes register names as well [ASH]
+  * Added /query to help, +help, @dynhelp (but not functions) [ASH]
+  * Added /reset switch to @txlevel and @rxlevel to force a clearing
+    of the reality prior to any new sets [ASH]
+  * atrperms_checkall to go through all prefix matching for the lowest
+    permission match [ASH]
+  * added NETMASK support to @blacklist [ASH]
+  * stderr() will convert output starting with #-1 to notify() and remove
+    from the stack. [ASH]
+  
+  Changes
+  ------------
+  * help allows suggestions when it can not find help entry [ASH]
+  * listprotection() has additional arguments to handle @alias [ASH]
+  * Added comments and continous lines to content for execscript [ASH]
+  * Added MUTT compatibility to autoreg mail handling [ASH]
+  * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
+  * @rxlevel/@txlevel follow NOISY @toggle parameters [ASH]
+  * Options to pemit(), remit(), and zemit() to disable multi-parsing and ## 
+    evaluation [ASH]
+  * sending kill -HUP (SIGHUP) to the main mush process will now
+    not only sync the database but issue a flatfile dump in the
+    form netrhost.SIGHUP.flat [ASH]
+  * All l*() math functions will return '0' now if fed empty lists [ASH]
+  * added parameters to caplist()
+  * singletime() now handles eons
+  
+  Bug Fixes
+  ------------
+  * door.c could crash if non-player executed @door/push [ASH]
+  * help separator bug with /search
+  * @tel target= will now give an error message [ASH]
+  * cleanup script for execscript a bit too aggressive [ASH]
+  * @fpose/nospace didn't work properly [ASH]
+  * initializing of unitialized variables for trace [ASH]
+  * trace buffers were insufficiently sized on 32 byte SBUFS [ASH]
+  * cleanup of possible buffer null terminate on SBUF [ASH]
+  * 3rd arg to strmath() wasn't evaluating [ASH]
+  * door only did LF and not CRLF [ASH]
+  * cleanup of an unused variable in functions.c [ASH]
+  * site paranoia was a bit too, well, paranoid [ASH]
+  * some cleanup to @snapshot on making restrictions on filenames [ASH]
+  * mktime64 was defined in IBM so had to be renamed [ASH]
+  * cleanup of DOORS and potential API connections on @reboot [ASH]
+  * @invformat didn't handle parents [ASH]
+  * lattr() with command checking didn't cleanly check commands [ASH]
+
+& 4.0.0p3
+  Release Date: 12/06/18
+  Status: Alpha
+    
+  New Features
+  ------------
+  * queue timer allows specifying offset from 1 second to 1 milisecond [ASH]
+  * Sites that do not properly send AUTH data or RDNS data get auto-added
+    to the NoAUTH and NoDNS entires to avoid future lag [ASH]
+  * template() function to do auto-replace in a defined template string [ASH]
+  
+  Changes
+  ------------
+  * @blacklist modified to be more user friendly for display values.
+    Must now specify '0' or 'all' to get a full listing (spammy) [ASH]
+  * printf() will now show you the location in the format string erroring [ASH]
+  * the config file handler will now skip lines with nothing but whitespace
+    or entirely blank lines w/o errors [ASH]
+  * caplist() handles more cases of how to capitalize after special chars [ASH]
+  
+  Bug Fixes
+  ------------
+  * some cleanup on milisecond timers

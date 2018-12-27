@@ -13,6 +13,63 @@
 extern void do_halt(dbref player, dbref cause, int key, char *target);
 
 
+char *
+name_rlevel(RLEVEL i_level, RLEVEL i_player, int i_key) {
+   char *buff, *buff2, *bp2, *buff3, *bp3;
+   int i, chk_z, chk_x, chk_y, i_first, i_second;
+   
+   buff = alloc_lbuf("name_RxLevel");
+   bp2 = buff2 = alloc_lbuf("name_RxLevel_check");
+   bp3 = buff3 = alloc_lbuf("name_RxLevel_check_again");
+
+   chk_x = sizeof( mudconf.reality_level );
+   chk_y = sizeof( mudconf.reality_level[0] );
+   if ( chk_y == 0 ) {
+      chk_z = 0;
+   } else {
+      chk_z = chk_x / chk_y;
+   }
+   i_first = i_second = 0;
+   for(i = 0; (i < mudconf.no_levels) && (i < chk_z); ++i) {
+      if((i_level & mudconf.reality_level[i].value) == mudconf.reality_level[i].value) {
+         if ( !i_key ) {
+            if ( i_first ) {
+               safe_chr(' ', buff2, &bp2);
+            }
+            safe_str(mudconf.reality_level[i].name, buff2, &bp2);
+            i_first = 1;
+         } else {
+            if ( ( ((i_player & mudconf.reality_level[i].value) == mudconf.reality_level[i].value) && (i_key == 1)) ||
+                 (!((i_player & mudconf.reality_level[i].value) == mudconf.reality_level[i].value) && (i_key == 2))) {
+               if ( i_second ) {
+                  safe_chr(' ', buff3, &bp3);
+               } else {
+                  safe_str((char *)"[again] ", buff3, &bp3);
+               }
+               safe_str(mudconf.reality_level[i].name, buff3, &bp3);
+               i_second = 1;
+            } else {
+               if ( i_first ) {
+                  safe_chr(' ', buff2, &bp2);
+               }
+               safe_str(mudconf.reality_level[i].name, buff2, &bp2);
+               i_first = 1;
+            }
+         }
+      }
+   }
+   if ( *buff2 && *buff3 ) {
+      sprintf(buff, "%.*s %.*s", (LBUF_SIZE / 2) - 1, buff2, (LBUF_SIZE / 2) -1, buff3);
+   } else if ( *buff2 ) {
+      strcpy(buff, buff2);
+   } else {
+      strcpy(buff, buff3);
+   }
+   free_lbuf(buff2);
+   free_lbuf(buff3);
+   return(buff);
+}
+
 RLEVEL RxLevel(dbref thing)
 {
     char *buff;
@@ -76,12 +133,23 @@ RLEVEL TxLevel(dbref thing)
 
 RLEVEL find_rlevel(char *name)
 {
-    int i;
+    int i, i_mask, i_cmp;
 
-    for(i=0; i < mudconf.no_levels; ++i) {
-        if(!strcasecmp(name, mudconf.reality_level[i].name)) {
-             return mudconf.reality_level[i].value;
-        }
+    i_mask = 0;
+    if ( (*name == '0') && (ToLower(*(name+1)) == 'x') && isxdigit(*(name+2)) ) {
+       sscanf(name, "%x", &i_cmp);
+       for(i=0; i < mudconf.no_levels; ++i) {
+          if ( (mudconf.reality_level[i].value &~ i_cmp) == 0 ) {
+             i_mask |= mudconf.reality_level[i].value;
+          }
+       }
+       return i_mask;
+    } else {
+       for(i=0; i < mudconf.no_levels; ++i) {
+           if(!strcasecmp(name, mudconf.reality_level[i].name)) {
+                return mudconf.reality_level[i].value;
+           }
+       }
     }
     return 0;
 }
@@ -200,19 +268,44 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
     int negate, i;
-    RLEVEL result, ormask, andmask;
-    char lname[17], *buff;
+    RLEVEL result, ormask, andmask, i_rlevel;
+    char lname[17], *buff, *buff2, *buff3;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
     if (!arg || !*arg) {
-        notify_quiet(player, "I don't know what you want to set!");
+        if ( key & REALITY_RESET ) {
+           buff = alloc_lbuf("do_rxlevel");
+           result = 0xffffffff;
+           andmask = 0;
+           ormask = 0;
+           buff3 = name_rlevel(result, RxLevel(thing), 2);
+           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+           notify_quiet(player, buff);
+           sprintf(buff, "%08X %08X", ((RxLevel(thing) & andmask) | ormask), TxLevel(thing));
+           atr_add_raw(thing, A_RLEVEL, buff);
+           free_lbuf(buff);
+           free_lbuf(buff3);
+        } else {
+           notify_quiet(player, "I don't know what you want to set!");
+        }
         return;
     }
     ormask = 0;
-    andmask = ~ormask;
+    buff2 = alloc_lbuf("do_rxlevel_display_set");
+    if ( key & REALITY_RESET ) {
+       andmask = 0;
+       result = 0xffffffff;
+       buff3 = name_rlevel(result, RxLevel(thing), 2);
+       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+       free_lbuf(buff3);
+       notify_quiet(player, buff2);
+    } else {
+       andmask = ~ormask;
+    }
+    i_rlevel = RxLevel(thing);
     while(*arg)
     {
         negate = 0;
@@ -244,14 +337,29 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
         if(negate)
         {
             andmask &= ~result;
-            notify_quiet(player, "Cleared.");
+            if ( TogNoisy(player) ) {
+               buff3 = name_rlevel(result, i_rlevel, 2);
+               sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+               free_lbuf(buff3);
+               notify_quiet(player, buff2);
+            } else {
+               notify_quiet(player, "Cleared.");
+            }
         }
         else
         {
             ormask |= result;
-            notify_quiet(player, "Set.");
+            if ( TogNoisy(player) ) {
+               buff3 = name_rlevel(result, i_rlevel, 1);
+               sprintf(buff2, "Set - %s (set RxLevel %s)", Name(thing), buff3);
+               free_lbuf(buff3);
+               notify_quiet(player, buff2);
+            } else {
+               notify_quiet(player, "Set.");
+            }
         }
     }
+    free_lbuf(buff2);
     /* Set the RxLevel */
     buff = alloc_lbuf("do_rxlevel");
     sprintf(buff, "%08X %08X", ((RxLevel(thing) & andmask) | ormask), TxLevel(thing));
@@ -263,19 +371,44 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
     int negate, i;
-    RLEVEL result, ormask, andmask;
-    char lname[17], *buff;
+    RLEVEL result, ormask, andmask, i_tlevel;
+    char lname[17], *buff, *buff2, *buff3;
 
     /* find thing */
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
     if (!arg || !*arg) {
-        notify_quiet(player, "I don't know what you want to set!");
+        if ( key & REALITY_RESET ) {
+           buff = alloc_lbuf("do_rxlevel");
+           result = 0xffffffff;
+           andmask = 0;
+           ormask = 0;
+           buff3 = name_rlevel(result, TxLevel(thing), 2);
+           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+           notify_quiet(player, buff);
+           sprintf(buff, "%08X %08X", RxLevel(thing), ((TxLevel(thing) & andmask) | ormask));
+           atr_add_raw(thing, A_RLEVEL, buff);
+           free_lbuf(buff);
+           free_lbuf(buff3);
+        } else {
+           notify_quiet(player, "I don't know what you want to set!");
+        }
         return;
     }
     ormask = 0;
-    andmask = ~ormask;
+    buff2 = alloc_lbuf("do_rxlevel_display_set");
+    if ( key & REALITY_RESET ) {
+       andmask = 0;
+       result = 0xffffffff;
+       buff3 = name_rlevel(result, TxLevel(thing), 2);
+       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+       free_lbuf(buff3);
+       notify_quiet(player, buff2);
+    } else {
+       andmask = ~ormask;
+    }
+    i_tlevel = TxLevel(thing);
     while(*arg)
     {
         negate = 0;
@@ -307,14 +440,29 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
         if(negate)
         {
             andmask &= ~result;
-            notify_quiet(player, "Cleared.");
+            if ( TogNoisy(player) ) {
+               buff3 = name_rlevel(result, i_tlevel, 2);
+               sprintf(buff2, "Set - %s (cleared TxLevel %s)", Name(thing), buff3);
+               free_lbuf(buff3);
+               notify_quiet(player, buff2);
+            } else {
+               notify_quiet(player, "Cleared.");
+            }
         }
         else
         {
             ormask |= result;
-            notify_quiet(player, "Set.");
+            if ( TogNoisy(player) ) {
+               buff3 = name_rlevel(result, i_tlevel, 1);
+               sprintf(buff2, "Set - %s (set TxLevel %s)", Name(thing), buff3);
+               free_lbuf(buff3);
+               notify_quiet(player, buff2);
+            } else {
+               notify_quiet(player, "Set.");
+            }
         }
     }
+    free_lbuf(buff2);
     /* Set the TxLevel */
     buff = alloc_lbuf("do_txlevel");
     sprintf(buff, "%08X %08X", RxLevel(thing), ((TxLevel(thing) & andmask) | ormask));
@@ -375,16 +523,19 @@ int *desclist_match(dbref player, dbref thing)
 void did_it_rlevel(dbref player, dbref thing, int what, const char *def, int owhat, 
 	const char *odef, int awhat, char *args[], int nargs)
 {
-char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt;
+char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt,
+        *saveregname[MAX_GLOBAL_REGS], *npt;
 char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
 int     i, i_rlvl, *desclist, found_a_desc, x, i_didsave, i_currattr, did_allocate_buff;
+time_t  chk_stop;
 ATTR 	*tst_glb, *format_atr;
 
 	nocandoforyou = !(!(Toggles2(thing) & TOG_SILENTEFFECTS));
 	/* message to player */
 
+        chk_stop = mudstate.chkcpu_stopper;
         mudstate.chkcpu_stopper = time(NULL);
         chkoldstate = mudstate.chkcpu_toggle;
 	cpustopper = 0;
@@ -420,8 +571,11 @@ ATTR 	*tst_glb, *format_atr;
              i_didsave = 1;
              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                 savereg[x] = alloc_lbuf("ulocal_reg");
+                saveregname[x] = alloc_sbuf("ulocal_regname");
                 pt = savereg[x];
+                npt = saveregname[x];
                 safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
              }
           }
 	  for(i = 1; i < desclist[0]; ++i)
@@ -704,8 +858,11 @@ ATTR 	*tst_glb, *format_atr;
            i_didsave = 0;
            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
               pt = mudstate.global_regs[x];
+              npt = mudstate.global_regsname[x];
               safe_str(savereg[x],mudstate.global_regs[x],&pt);
+              safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
               free_lbuf(savereg[x]);
+              free_sbuf(saveregname[x]);
            }
         }
 
@@ -729,6 +886,7 @@ ATTR 	*tst_glb, *format_atr;
 					free_lbuf(buff);
 					free_lbuf(charges);
 					mudstate.chkcpu_toggle = chkoldstate;
+                                        mudstate.chkcpu_stopper = chk_stop;
 					return;
 				}
 			}
@@ -782,11 +940,15 @@ ATTR 	*tst_glb, *format_atr;
          i_didsave = 0;
          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
             pt = mudstate.global_regs[x];
+            npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);
+            safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
             free_lbuf(savereg[x]);
+            free_sbuf(saveregname[x]);
          }
       }
       mudstate.chkcpu_toggle = chkoldstate;
+      mudstate.chkcpu_stopper = chk_stop;
 }
 
 void 

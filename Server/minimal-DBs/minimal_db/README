@@ -1,12 +1,22 @@
-All .txt files must be mkindx'd.
+The 'retired' directory has older image files if you're interested
+
+Please use the netrhost.conf file with the database as they're linked.
+
 The flatfile must be loaded in as a new db
+
 This is a minimal db with basic 'features' built in.
 
-the reimaged.db.flat needs to be loaded in, it's the latest one.
-the reimaged.conf file needs to be copied over the netrhost.conf in your game directory.
+Copy the txt files into the Rhost's txt directory off game.
+    cp txt/* ~/Rhost/Server/game/txt
 
-
+mkindx the files (substitute FILENAME with the filename)
+    cd ~/Rhost/Server/game/txt
+    ../mkindx FILENAME.txt FILENAME.indx
+ 
 Steps:
+1) Using the Startmush utility for the first time, select the load db method
+
+--- or ---
 
 1) copy the netrhost.conf file into the games directory
 2) make any relevant changes you wish

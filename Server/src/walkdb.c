@@ -44,9 +44,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 		char *command, char *cargs[], int ncargs)
 {
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
-        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr;
+        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
    time_t i_now;
-   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak;
+   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline;
 
    pid_val = 0;
    i_storebreak = mudstate.breakst;
@@ -102,8 +102,10 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    if ( i_clearreg || i_localize ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
+         saveregname[x] = alloc_sbuf("ulocal_regname");
       }
    }
+   s_rollback = alloc_lbuf("s_rollback_dolist");
    while (curr && *curr) {
       if ((x % 25) == 0)
          cache_reset(0);
@@ -126,36 +128,60 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   *savereg[x] = '\0';
+                  *saveregname[x] = '\0';
                   pt = savereg[x];
+                  npt = saveregname[x];
                   safe_str(mudstate.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
                      *mudstate.global_regs[x] = '\0';
+                     *mudstate.global_regsname[x] = '\0';
                   }
                }
             }
-            i_now = mudstate.now;
-
+            if ( mudstate.chkcpu_inline ) {
+               i_now = mudstate.now;
+            } else {
+               i_now = time(NULL);
+            }
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;
-            while ( !mudstate.breakdolist && buff3tok && !mudstate.breakst ) { 
+            strcpy(s_rollback, mudstate.rollback);
+            i_jump = mudstate.jumpst;
+            i_rollback = mudstate.rollbackcnt;
+            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            if ( buff3tok ) {
+               strcpy(mudstate.rollback, buff3tok);
+            }
+            i_chkinline = mudstate.chkcpu_inline;
+            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@dolist/inline");
+            mudstate.chkcpu_inline = 1;
+            while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
                   process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook);
                }
-               if ( time(NULL) > (i_now + 3) ) {
+               if ( mudstate.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
                       notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
                    }
                    i_nobreak=0;
-                   mudstate.breakdolist=1;
+                   mudstate.breakdolist = 1;
                    break;
                }
             }
+            mudstate.chkcpu_inline = i_chkinline;
+            mudstate.jumpst = i_jump;
+            mudstate.rollbackcnt = i_rollback;
+            strcpy(mudstate.rollback, s_rollback);
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                   pt = mudstate.global_regs[x];
+                  npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                   *savereg[x] = '\0';
+                  *saveregname[x] = '\0';
                }
             }
             free_lbuf(buff3);
@@ -174,6 +200,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
       }
       cntr++;
    }
+   free_lbuf(s_rollback);
    if ( i_inline ) {
       if ( desc_in_use != NULL ) {
          mudstate.breakst = i_storebreak;
@@ -182,6 +209,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    if ( i_clearreg || i_localize ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          free_lbuf(savereg[x]);
+         free_sbuf(saveregname[x]);
       }
    }
    free_lbuf(tpr_buff);
@@ -198,9 +226,11 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    }
    if ( cntr == 1 )
       notify (player, "That's terrific, but what should I do with the list?");
+/*
    if ( (mudstate.dolistnest == 0) && mudstate.breakdolist ) {
       mudstate.chkcpu_toggle = 1;
    }
+*/
 }
 
 /* Regular @find command */

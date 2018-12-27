@@ -8,8 +8,17 @@
 
 if [ -d ./Server/game ]
 then
-   echo "You don't want to do this.  If you want the latest distro, please"
-   echo "go into the 'Server' directory and type './patch.sh'"
+   if [ ! -f ./Server/bin/netrhost ]
+   then
+      echo "You already have Rhost, but you will want to compile it first."
+      echo "Please go into the 'Server' directory then type 'make confsource'"
+      echo ""
+      echo "You may later patch your game with whatever is current by typing"
+      echo "'./patch.sh' from within the Server directory."
+   else
+      echo "You don't want to do this.  If you want the latest distro, please"
+      echo "go into the 'Server' directory and type './patch.sh'"
+   fi
    exit 0
 fi
 echo "This will pull the latest GIT distribution from the primary trunk."

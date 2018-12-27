@@ -39,6 +39,7 @@
 #define MF_BFAIL        0x0400
 #define MF_COMPFAIL     0x0800
 #define MF_CPUEXT       0x1000
+#define MF_API		0x2000
 
 /* Object types */
 #define TYPE_ROOM       0x0
@@ -95,7 +96,7 @@
 #define GUILDMASTER     0x00000400      /* Player has gm privs */
 #define NO_WALLS        0x00000800      /* So to stop normal walls */
 #define REQUIRE_TREES 	0x00001000	/* Trees are required on this target for attrib sets */
-/* 0x00002000 free */                   /* #define OLD_NOROBOT	0x00002000 */
+/* ----FREE----         0x00002000 */   /* #define OLD_NOROBOT	0x00002000 */
 #define SCLOAK		0x00004000
 #define CLOAK		0x00008000
 #define FUBAR		0x00010000
@@ -245,7 +246,7 @@
 #define TOG_ACCENTS		0x00400000	/* Accents being displayed */
 #define TOG_PREMAILVALIDATE	0x00800000	/* Pre-Validate the mail send list before sending mail */
 #define TOG_SAFELOG             0x01000000	/* Allow 'clean logging' by the player */
-#define TOG_UTF8			0x02000000	/* UTF8 being displayed */
+#define TOG_UTF8                0x02000000	/* UTF8 being displayed */
 /* 0x04000000 free */
 #define TOG_NODEFAULT		0x08000000	/* Allow target to inherit default attribs */
 #define TOG_EXFULLWIZATTR	0x10000000	/* Examine Wiz attribs */
@@ -312,10 +313,10 @@
 #define POWER_NOWHO             4
 #define POWER_FULLTEL_ANYWHERE  6
 #define POWER_EX_FULL           8
-/* 10 free */
-/* 12 free */
-/* 14 free */
-/* 16 free */
+#define POWER_API		10
+#define POWER_MONITORAPI	12
+#define POWER_WIZ_IDLE		14
+#define POWER_WIZ_SPOOF		16
 /* 18 free */
 /* 20 free */
 /* 22 free */

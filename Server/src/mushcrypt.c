@@ -19,7 +19,7 @@
 #endif
 #include "debug.h"
 #include "sha1.h"
-#include "ansi.h"
+#include "rhost_ansi.h"
 
 #define FILENUM MUSHCRYPT_C
 
@@ -293,9 +293,9 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
   pdec = decoded;
   if ( !key ) {
      while ( pdec && *pdec ) {
-        if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec)) )
+        if ( !((*pdec == BEEP_CHAR) || isprint(*pdec) || isascii(*pdec) || (*pdec == '\n') || (*pdec == '\r')) )
            *pdec = '?';
-        if ( !(*pdec == BEEP_CHAR) && (((int)*pdec > 255) || ((int)*pdec < 32)) )
+        if ( !(*pdec == BEEP_CHAR) && !(*pdec == '\n') && !(*pdec == '\r') && (((int)*pdec > 255) || ((int)*pdec < 32)) )
            *pdec = '?';
         pdec++;
      }
@@ -374,7 +374,8 @@ check_mux_password(const char *saved, const char *password)
    decode_base64(end, strlen(end), decoded, &dp, 1);
 
    /* Compare stored to hashed */
-   return_chk = (memcmp(decoded, hash, rlen) == 0);
+// return_chk = (memcmp(decoded, hash, rlen) == 0);
+   return_chk = (strcmp(decoded, (char *)hash) == 0);
    free_lbuf(decoded);
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
    EVP_MD_CTX_free(ctx);

@@ -19,5 +19,5 @@ do
       rm -f index.html index.txt 2>/dev/null
    fi
 done
-grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" temp.tmp|grep ^[0-9]|cut -f1 -d":"|sort -nu > temp.txt
+grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" temp.tmp|grep -v $(ip route get 1 | awk '{print $NF;exit}')|grep ^[0-9]|cut -f1 -d":"|sort -nu > temp.txt
 rm -f temp.tmp

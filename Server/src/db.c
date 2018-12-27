@@ -35,7 +35,7 @@ int malloc_count = 0;
 
 #endif /* TEST_MALLOC */
 
-extern double mktime64(struct tm *);
+extern double mush_mktime64(struct tm *);
 extern double safe_atof(char *);
 extern int FDECL(do_convtime, (char *, struct tm *));
 
@@ -1332,6 +1332,182 @@ NDECL(init_attrtab)
  */
 
 ATTR *
+atr_str_objid(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_objid");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str_exec(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_exec");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str_atrpeval(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_atrpeval");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str_parseatr(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_parseatr");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
 atr_str_notify(char *s)
 {
     char *buff, *p, *q;
@@ -1648,6 +1824,150 @@ anum_extend(int newtop)
 /* ---------------------------------------------------------------------------
  * atr_num: Look up an attribute by number.
  */
+ATTR *
+atr_num_objid(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_exec(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_aladd(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_pinfo(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_ex(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
 
 ATTR *
 atr_num4(int anum)
@@ -1709,6 +2029,35 @@ atr_num3(int anum)
 
 ATTR *
 atr_num2(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_lattr(int anum)
 {
     VATTR *va;
     static ATTR tattr;
@@ -2023,7 +2372,7 @@ al_add(dbref thing, int attrnum)
     if ((attrnum >= A_USER_START) && (db[thing].nvattr >= mudconf.vlimit)) {
       if (mudstate.vlplay != NOTHING) {
 #ifndef STANDALONE
-	attr = atr_num(attrnum);
+	attr = atr_num_aladd(attrnum);
         notify_quiet(mudstate.vlplay,"Variable attribute limit reached.");
 	STARTLOG(LOG_SECURITY, "SEC", "VLIMIT")
 	  log_text("Variable attribute limit reached -> Player: ");
@@ -2070,7 +2419,7 @@ al_add(dbref thing, int attrnum)
           }
        }
        if ( player != NOTHING ) {
-	  attr = atr_num(attrnum);
+	  attr = atr_num_aladd(attrnum);
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
@@ -2124,7 +2473,7 @@ al_add(dbref thing, int attrnum)
        }
     }
     if ( attrnum > 2000000000 ) {
-       attr = atr_num(attrnum);
+       attr = atr_num_aladd(attrnum);
        broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
                          NULL, NULL, thing, 0, 0, NULL);
        STARTLOG(LOG_SECURITY, "SEC", "VCEILING")
@@ -2225,7 +2574,7 @@ al_delete(dbref thing, int attrnum)
           }
        }
        if ( player != NOTHING ) {
-	  attr = atr_num(attrnum);
+	  attr = atr_num_aladd(attrnum);
           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
@@ -2431,7 +2780,7 @@ atr_clr(dbref thing, int atr)
 	s_Flags(thing, Flags(thing) & ~HAS_STARTUP);
 	break;
     case A_PROTECTNAME:
-	s_Flags4(thing, Flags(thing) & ~HAS_PROTECT);
+	s_Flags4(thing, Flags4(thing) & ~HAS_PROTECT);
 	break;
     case A_FORWARDLIST:
 	s_Flags2(thing, Flags2(thing) & ~HAS_FWDLIST);
@@ -2481,7 +2830,7 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	s_Flags(thing, Flags(thing) | HAS_STARTUP);
 	break;
     case A_PROTECTNAME:
-	s_Flags4(thing, Flags(thing) | HAS_PROTECT);
+	s_Flags4(thing, Flags4(thing) | HAS_PROTECT);
 	break;
     case A_FORWARDLIST:
 	s_Flags2(thing, Flags2(thing) | HAS_FWDLIST);
@@ -2649,7 +2998,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
             }
 	}
 	if ((lev == 0) && Good_obj(Parent(parent))) {
-	    ap = atr_num(atr);
+	    ap = atr_num_pinfo(atr);
 	    if (!ap || ap->flags & AF_PRIVATE)
 		break;
 	}
@@ -2744,7 +3093,7 @@ atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
 		return 1;
 	}
 	if ((lev == 0) && Good_obj(Parent(parent))) {
-	    ap = atr_num(atr);
+	    ap = atr_num_pinfo(atr);
 	    if (!ap || ap->flags & AF_PRIVATE)
 		break;
 	}
@@ -3394,7 +3743,7 @@ NDECL(db_make_minimal)
     /* Safer passwords don't allow #1 creation here.  Bad bad mojo */
     safepwd_chk = mudconf.safer_passwords;
     mudconf.safer_passwords = 0;
-    obj = create_player((char *) "Wizard", (char *) "Nyctasia", NOTHING, 0);
+    obj = create_player((char *) "Wizard", (char *) "Nyctasia", NOTHING, 0, (char *)"Wizard", 0);
     mudconf.safer_passwords = safepwd_chk;
     s_Flags(obj, Flags(obj) | IMMORTAL);
     s_Flags2(obj, Flags2(obj) & ~WANDERER);
@@ -3414,12 +3763,13 @@ parse_dbref_special(char *s) {
    char *p, *q, *r;
    int x;
 #ifndef STANDALONE
-   char *atext;
-   int aflags;
+   char *atext, *buff;
+   int aflags, i_id, i_id_found;
    double y, z;
    struct tm *ttm;
    long l_offset, mynow;
    dbref aowner;
+   ATTR *a_id;
 #endif
 
    r = q = strchr(s, ':');
@@ -3439,32 +3789,62 @@ parse_dbref_special(char *s) {
       if ( NoTimestamp(x) ) {
          return ((x >= 0) ? x : NOTHING);
       }
-      atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
-      if ( atext && *atext ) {
-         if ( mudconf.objid_localtime ) {
-            ttm = localtime(&mudstate.now);
-         } else {
-            ttm = localtime(&mudstate.now);
-            mynow = mktime(ttm);
-            ttm = gmtime(&mudstate.now);
-            mynow -= mktime(ttm);
-         }
-         l_offset = (long) mktime(ttm) - (long) mktime64(ttm);
-         if (do_convtime(atext, ttm)) {
-            if ( mudconf.objid_localtime ) {
-               y = (double)(mktime64(ttm) + l_offset);
-            } else {
-               y = (double)(mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+      i_id = mkattr("__OBJID_INTERNAL");
+      i_id_found = 0;
+      if (i_id > 0) {
+         a_id = atr_num_objid(i_id);
+         if (a_id) {
+            i_id_found = 1;
+            atext = atr_get(x, a_id->number, &aowner, &aflags);
+            if ( atext && *atext ) {
+               i_id_found = 2;
+               y = safe_atof(atext);
             }
-            z = safe_atof(q);
-            if ( y == z ) {
-               free_lbuf(atext);
-               return ((x >= 0) ? x : NOTHING);
-            }
+            free_lbuf(atext);
          }
       }
-      x = -1;
-      free_lbuf(atext);
+
+      if ( i_id_found == 2 ) {
+         z = safe_atof(q);
+         if ( y == z ) {
+            return ((x >= 0) ? x : NOTHING);
+         }
+         x = -1;
+      } else {
+         atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
+         if ( atext && *atext ) {
+            if ( mudconf.objid_localtime ) {
+               ttm = localtime(&mudstate.now);
+            } else {
+               ttm = localtime(&mudstate.now);
+               mynow = mktime(ttm);
+               ttm = gmtime(&mudstate.now);
+               mynow -= mktime(ttm);
+            }
+            l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
+            if (do_convtime(atext, ttm)) {
+               if ( mudconf.objid_localtime ) {
+                  y = (double)(mush_mktime64(ttm) + l_offset);
+               } else {
+                  y = (double)(mush_mktime64(ttm) + l_offset + mynow + mudconf.objid_offset);
+               }
+               if ( i_id_found == 1 ) {
+                  buff = alloc_sbuf("create_objid");
+                  sprintf(buff, "%.0f", y);
+                  atr_add_raw(x, a_id->number, buff);
+                  atr_set_flags(x, a_id->number, AF_INTERNAL|AF_GOD);
+                  free_sbuf(buff);
+               }
+               z = safe_atof(q);
+               if ( y == z ) {
+                  free_lbuf(atext);
+                  return ((x >= 0) ? x : NOTHING);
+               }
+            }
+         }
+         free_lbuf(atext);
+         x = -1;
+      }
    }
 #endif
    return ((x >= 0) ? x : NOTHING);

@@ -28,11 +28,23 @@ then
 fi
 
 cat hidemyass_static.txt >> blacklist.txt
+cat freeproxy.txt >> blacklist.txt
+cat rebroproxy.txt >> blacklist.txt
 
+wget -q -O - https://free-proxy-list.net/|sed "s/<td>/\n/g"|sed "s/<\/td>/\n/g"|grep "^[1-9].*\." >> blacklist.txt
 wget -q -O - http://proxy-ip-list.com/download/free-proxy-list.txt|tr '\015' '\012'|egrep -v "(^$|^#)"|cut -f1 -d ":" >> blacklist.txt
 
 # This is massive, and will grab a ton of sites
 wget -q -O - http://www.shallalist.de/Downloads/shallalist.tar.gz|tar -zxvOf - BL/anonvpn/domains 2>/dev/null|grep -v "[A-Za-z]" >> blacklist.txt
+
+# This will grab the ninja free lists
+wget -q -O - https://freevpn.ninja/free-proxy/txt|cut -f1 -d":"|grep -v sock >> blacklist.txt
+
+# daily proxy lists
+year=$(date +%Y)
+mon=$(date +%m)
+day=$(date +%d)
+curl http://proxy-daily.com/${year}/${mon}/${day}-${mon}-${year}-proxy-list/ 2>/dev/null|sed 's/> /\n/g'|sed 's/</\n/g'|grep ^[0-9]|grep ':'|cut -f1 -d":" >> blacklist.txt
 
 ./proxysnarf.sh
 cat blacklist.txt temp.txt| sort -u > blacklist.tmp

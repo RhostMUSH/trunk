@@ -83,6 +83,23 @@ CMDENT * lookup_orig_command(char *cmdname);
  *    switch bitwise
  */
 
+NAMETAB api_sw[] =
+{
+    {(char *) "status", 2, CA_PUBLIC, 0, API_STATUS},
+    {(char *) "password", 2, CA_PUBLIC, 0, API_PASSWORD},
+    {(char *) "ip", 2, CA_PUBLIC, 0, API_IP},
+    {(char *) "enable", 2, CA_PUBLIC, 0, API_ENABLE},
+    {(char *) "disable", 2, CA_PUBLIC, 0, API_DISABLE},
+    {(char *) "chkpasswd", 2, CA_PUBLIC, 0, API_CHKPASSWD},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB rollback_sw[] =
+{
+    {(char *) "retry", 2, CA_PUBLIC, 0, ROLLBACK_RETRY},
+    {(char *) "wait", 2, CA_PUBLIC, 0, ROLLBACK_WAIT},
+    {(char *) "label", 2, CA_PUBLIC, 0, ROLLBACK_LABEL | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB admin_sw[] =
 {
     {(char *) "load", 2, CA_IMMORTAL, 0, ADMIN_LOAD},
@@ -95,6 +112,11 @@ NAMETAB break_sw[] =
 {
     {(char *) "queued", 1, CA_PUBLIC, 0, 0}, /* Default value -- no need to label it */
     {(char *) "inline", 1, CA_PUBLIC, 0, BREAK_INLINE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB gotolabel_sw[] =
+{
+    {(char *) "label", 1, CA_PUBLIC, 0, GOTO_LABEL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB evaltab_sw[] =
@@ -182,6 +204,7 @@ NAMETAB attrib_sw[] =
 NAMETAB blacklist_sw[] =
 {
     {(char *) "list", 2, CA_IMMORTAL, 0, BLACKLIST_LIST},
+    {(char *) "mask", 2, CA_IMMORTAL, 0, BLACKLIST_MASK},
     {(char *) "clear", 1, CA_IMMORTAL, 0, BLACKLIST_CLEAR},
     {(char *) "load", 2, CA_IMMORTAL, 0, BLACKLIST_LOAD},
     {NULL, 0, 0, 0, 0}};
@@ -243,6 +266,7 @@ NAMETAB clone_sw[] =
     {(char *) "location", 1, CA_PUBLIC, 0, CLONE_LOCATION},
     {(char *) "parent", 2, CA_PUBLIC, 0, CLONE_PARENT | SW_MULTIPLE},
     {(char *) "preserve", 2, CA_WIZARD, 0, CLONE_PRESERVE | SW_MULTIPLE},
+    {(char *) "ansi", 2, CA_PUBLIC, 0, CLONE_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB convert_sw[] =
@@ -250,6 +274,11 @@ NAMETAB convert_sw[] =
     {(char *) "alternate", 3, CA_IMMORTAL, 0, CONV_ALTERNATE},
     {(char *) "all", 3, CA_IMMORTAL, 0, CONV_ALL | SW_MULTIPLE},
     {(char *) "override", 1, CA_IMMORTAL, 0, CONV_OVER | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB create_sw[] =
+{
+    {(char *) "ansi", 1, CA_PUBLIC, 0, CREATE_ANSI},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB decomp_sw[] =
@@ -260,6 +289,7 @@ NAMETAB decomp_sw[] =
     {(char *) "tree", 2, CA_PUBLIC, 0, DECOMP_TREE},
     {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
+    {(char *) "noextra", 2, CA_PUBLIC, 0, DECOMP_NOEXTRA | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbclean_sw[] =
@@ -283,6 +313,7 @@ NAMETAB destroy_sw[] =
 NAMETAB dig_sw[] =
 {
     {(char *) "teleport", 1, CA_PUBLIC, 0, DIG_TELEPORT},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, DIG_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB doing_sw[] =
@@ -331,8 +362,10 @@ NAMETAB dump_sw[] =
 NAMETAB dynhelp_sw[] =
 {
     {(char *) "parse", 1, CA_WIZARD, 0, DYN_PARSE},
-    {(char *) "search", 1, CA_WIZARD, 0, DYN_SEARCH},
+    {(char *) "search", 2, CA_WIZARD, 0, DYN_SEARCH},
+    {(char *) "query", 2, CA_WIZARD, 0, DYN_QUERY},
     {(char *) "nolabel", 1, CA_WIZARD, 0, DYN_NOLABEL | SW_MULTIPLE},
+    {(char *) "suggest", 2, CA_WIZARD, 0, DYN_SUGGEST | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB edit_sw[] =
@@ -434,7 +467,7 @@ NAMETAB fsay_sw[] =
 NAMETAB fpose_sw[] =
 {
     {(char *) "default", 1, CA_PUBLIC, 0, 0},
-    {(char *) "nospace", 1, CA_PUBLIC, 0, SAY_NOSPACE},
+    {(char *) "nospace", 1, CA_PUBLIC, 0, PEMIT_FPOSE_NS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB lfunction_sw[] =
@@ -466,6 +499,7 @@ NAMETAB function_sw[] =
 NAMETAB genhelp_sw[] =
 {
     {(char *) "search", 1, CA_PUBLIC, 0, HELP_SEARCH},
+    {(char *) "query", 1, CA_PUBLIC, 0, HELP_QUERY},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB get_sw[] =
@@ -703,6 +737,11 @@ NAMETAB motd_sw[] =
     {(char *) "wizard", 1, CA_WIZARD, 0, MOTD_WIZ},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB name_sw[] =
+{
+    {(char *) "ansi", 3, CA_PUBLIC, 0, NAME_ANSI},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB newsdb_sw[] =
 {
     {(char *) "dbinfo", 3, CA_IMMORTAL, 0, NEWSDB_DBINFO},
@@ -786,6 +825,7 @@ NAMETAB open_sw[] =
 {
     {(char *) "inventory", 1, CA_PUBLIC, 0, OPEN_INVENTORY},
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, OPEN_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB newpassword_sw[] =
@@ -796,6 +836,7 @@ NAMETAB newpassword_sw[] =
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, PCRE_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pipe_sw[] =
@@ -865,6 +906,16 @@ NAMETAB depower_sw[] =
     {(char *) "purge", 1, CA_PUBLIC, 0, POWER_PURGE},
     {(char *) "check", 2, CA_PUBLIC, 0, POWER_CHECK},
     {(char *) "remove", 1, CA_PUBLIC, 0, POWER_REMOVE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB reality_sw[] =
+{
+    {(char *) "reset", 1, CA_WIZARD, 0, REALITY_RESET},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB recover_sw[] =
+{
+    {(char *) "detail", 1, CA_WIZARD, 0, RECOVER_DETAIL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB rpage_sw[] =
@@ -942,6 +993,7 @@ NAMETAB reclist_sw[] =
 NAMETAB register_sw[] =
 {
     {(char *) "message", 1, CA_PUBLIC, 0, REGISTER_MSG},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, REGISTER_ANSI},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB rwho_sw[] =
@@ -966,6 +1018,7 @@ NAMETAB set_sw[] =
     {(char *) "quiet", 1, CA_PUBLIC, 0, SET_QUIET},
     {(char *) "noisy", 1, CA_PUBLIC, 0, SET_NOISY},
     {(char *) "tree", 1, CA_PUBLIC, 0, SET_TREE},
+    {(char *) "strict", 1, CA_PUBLIC, 0, SET_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB skip_sw[] =
@@ -975,8 +1028,10 @@ NAMETAB skip_sw[] =
 
 NAMETAB site_sw[] =
 {
+  {(char *) "passapi", 1, CA_IMMORTAL, 0, SITE_PASSAPI},
   {(char *) "register", 1, CA_IMMORTAL, 0, SITE_REG},
   {(char *) "forbidden", 1, CA_IMMORTAL, 0, SITE_FOR},
+  {(char *) "forbidapi", 1, CA_IMMORTAL, 0, SITE_FORAPI},
   {(char *) "suspect", 1, CA_IMMORTAL, 0, SITE_SUS},
   {(char *) "noguest", 3, CA_IMMORTAL, 0, SITE_NOG},
   {(char *) "all", 1, CA_IMMORTAL, 0, SITE_ALL},
@@ -985,6 +1040,7 @@ NAMETAB site_sw[] =
   {(char *) "noautoreg", 6, CA_IMMORTAL, 0, SITE_NOAR},
   {(char *) "noauth", 6, CA_IMMORTAL, 0, SITE_NOAUTH},
   {(char *) "nodns", 3, CA_IMMORTAL, 0, SITE_NODNS},
+  {(char *) "passproxy", 3, CA_IMMORTAL, 0, SITE_PASSPROX},
   {(char *) "list", 2, CA_IMMORTAL, 0, SITE_LIST},
   {NULL, 0, 0, 0, 0}};
 
@@ -1156,6 +1212,8 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_aflags},
     {(char *) "@alias", NULL, CA_NO_GUEST | CA_NO_SLAVE, 0,
      0, CS_TWO_ARG, 0, do_alias},
+    {(char *) "@api", api_sw, CA_GOD | CA_IMMORTAL, 0,
+     0, CS_TWO_ARG, 0, do_api},
     {(char *) "@apply_marked", NULL, CA_WIZARD | CA_GBL_INTERP, 0,
      0, CS_ONE_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
      0, do_apply_marked},
@@ -1188,7 +1246,7 @@ CMDENT command_table[] =
      CS_INTERP | CS_TWO_ARG, 0, do_convert},
     {(char *) "@cpattr", cpattr_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP | CS_ARGV, 0, do_cpattr},
-    {(char *) "@create", NULL,
+    {(char *) "@create", create_sw,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_CONTENTS | CA_NO_GUEST | CA_NO_WANDER, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_create},
     {(char *) "@cut", NULL, CA_WIZARD | CA_LOCATION, 0,
@@ -1278,6 +1336,10 @@ CMDENT command_table[] =
     {(char *) "@include", include_sw, CA_GBL_INTERP, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_STRIP_AROUND,
      0, do_include},
+    {(char *) "@jump", break_sw, CA_PUBLIC, CA_NO_CODE,
+     0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_jump},
+    {(char *) "@goto", gotolabel_sw, CA_PUBLIC, CA_NO_CODE,
+     0, CS_ONE_ARG | CS_INTERP, 0, do_goto},
     {(char *) "@kick", kick_sw, CA_WIZARD, 0,
      QUEUE_KICK, CS_ONE_ARG | CS_INTERP, 0, do_queue},
     {(char *) "@label", label_sw, CA_GBL_INTERP, CA_NO_CODE,
@@ -1316,7 +1378,7 @@ CMDENT command_table[] =
      CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV, 0, do_mvattr},
 /* Removed CA_GBL_BUILD from @name : ASH 08/23/98 */
-    {(char *) "@name", NULL,
+    {(char *) "@name", name_sw,
      CA_NO_SLAVE | CA_NO_GUEST, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
     {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
@@ -1366,7 +1428,7 @@ CMDENT command_table[] =
      0, CS_NO_ARGS, 0, do_reboot},
     {(char *) "@reclist", reclist_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_reclist},
-    {(char *) "@recover", NULL, CA_IMMORTAL, 0,
+    {(char *) "@recover", recover_sw, CA_IMMORTAL, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_recover},
     {(char *) "@register", register_sw, CA_PUBLIC, 0,
      0, CS_TWO_ARG, 0, do_register},
@@ -1376,10 +1438,13 @@ CMDENT command_table[] =
     {(char *) "@robot", NULL,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_NO_GUEST | CA_PLAYER | CA_NO_WANDER, CA_NO_CODE,
      PCRE_ROBOT, CS_TWO_ARG, 0, do_pcreate},
+    {(char *) "@rollback", rollback_sw, 0, CA_NO_CODE,
+     0, CS_ROLLBACK | CS_TWO_ARG | CS_ARGV | CS_CMDARG,
+     0, do_rollback},
     {(char *) "@rwho", rwho_sw, CA_GOD, 0,
      0, CS_NO_ARGS, 0, do_rwho},
 #ifdef REALITY_LEVELS
-    {(char *) "@rxlevel", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@rxlevel", reality_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
     0, CS_TWO_ARG | CS_INTERP, 0, do_rxlevel},
 #endif /* REALITY_LEVELS */
     {(char *) "@search", search_sw, 0, 0,
@@ -1435,7 +1500,7 @@ CMDENT command_table[] =
     {(char *) "@turtle", turtle_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_turtle},
 #ifdef REALITY_LEVELS
-    {(char *) "@txlevel", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@txlevel", reality_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_txlevel},
 #endif /* REALITY_LEVELS */ 
     {(char *) "@unlink", NULL, CA_NO_SLAVE | CA_GBL_BUILD, 0,
@@ -1619,7 +1684,7 @@ dbref TopLocation(dbref num) {
 }
 
 char *
-time_format_2(time_t dt2, char *buf2)
+cmd_time_format_2(time_t dt2, char *buf2)
 {
     struct tm *delta;
     time_t dt;
@@ -1821,6 +1886,7 @@ NDECL(init_cmdtab)
 
     for (cp = command_table; cp->cmdname; cp++) {
       cp->cmdtype = CMD_BUILTIN_e;
+      cp->hookmask = 0;
       hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
     }
 
@@ -2050,8 +2116,9 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
 {
    dbref thing2;
    int attrib2, aflags_set, i_cpuslam, x, retval, no_hook;
-   time_t i_now;
-   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr;
+   time_t i_now, i_rollback, i_jump;
+   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr,
+        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
 
    if ( mudstate.no_hook ) {
       return 0;
@@ -2071,8 +2138,11 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                savereg[x] = alloc_lbuf("ulocal_reg");
+               saveregname[x] = alloc_sbuf("ulocal_regname");
                pt = savereg[x];
+               npt = saveregname[x];
                safe_str(mudstate.global_regs[x],savereg[x],&pt);
+               safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
             }
          }
          cputext = alloc_lbuf("store_text_process_hook");
@@ -2087,22 +2157,35 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
               (hook_type & HOOK_INCLUDE) && (( hook_type & HOOK_BEFORE) || (hook_type & HOOK_AFTER)) ) {
             result = alloc_lbuf("hook_result_fake");
             sprintf(result, "%s", (char *)"0");
-            i_now = mudstate.now;
+            i_now = time(NULL);
             no_hook = mudstate.no_hook;
             mudstate.no_hook = 1;
             atextptr = atext;
             if ( mudstate.no_hook_count < 5 ) {
+               s_rollback = alloc_lbuf("s_rollback_hook");
+               strcpy(s_rollback, mudstate.rollback);
+               if ( atextptr ) {
+                  strcpy(mudstate.rollback, atextptr);
+               }
+               i_rollback = mudstate.rollbackcnt;
+               i_jump = mudstate.jumpst;
+               mudstate.rollbackcnt = i_jump = 0;
                while (atextptr) {
                   cp = parse_to(&atextptr, ';', 0);
                   if (cp && *cp && !mudstate.breakst) {
                      process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1);
                      if ( time(NULL) > (i_now + 5) ) {
-                         notify(player, "@skip:  Aborted for high utilization.");
+                         notify(player, "@hook:  Aborted for high utilization.");
+                         mudstate.chkcpu_toggle=1;
                          mudstate.breakst=1;
                          break;
                      }
                   }
                }
+               mudstate.jumpst = i_jump;
+               mudstate.rollbackcnt = i_rollback;
+               strcpy(mudstate.rollback, s_rollback);
+               free_lbuf(s_rollback);
             }
             mudstate.no_hook_count++;
             mudstate.no_hook = no_hook;
@@ -2114,8 +2197,11 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          if ( save_flg ) {
             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
                pt = mudstate.global_regs[x];
+               npt = mudstate.global_regsname[x];
                safe_str(savereg[x],mudstate.global_regs[x],&pt);
+               safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
                free_lbuf(savereg[x]);
+               free_sbuf(saveregname[x]);
             }
          }
          if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
@@ -2157,7 +2243,8 @@ void
 process_error_control(dbref player, CMDENT *cmdp, char *s_command)
 {
     char *s_uselock, *dx_tmp;
-    int chk_stop, chk_tog;
+    int chk_tog;
+    time_t chk_stop;
     ATTR *hk_ap2;
 
     if ( (cmdp && (cmdp->hookmask & HOOK_FAIL)) && 
@@ -2410,7 +2497,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
     else
 	interp = 0;
 
-   if ( mudstate.trainmode )
+   if ( mudstate.trainmode || (cmdp->callseq & CS_ROLLBACK) )
         interp = interp & ~EV_EVAL & ~EV_STRIP;
 
     switch (cmdp->callseq & CS_NARG_MASK) {
@@ -2428,8 +2515,8 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	/* Interpret if necessary */
 
 	if (interp & EV_EVAL)
-	    buf1 = exec(player, cause, cause, interp | EV_FCHECK | EV_TOP,
-			arg, cargs, ncargs, (char **)NULL, 0);
+	    buf1 = cpuexec(player, cause, cause, interp | EV_FCHECK | EV_TOP,
+			   arg, cargs, ncargs, (char **)NULL, 0);
 	else
 	    buf1 = parse_to(&arg, '\0', interp | EV_TOP);
 
@@ -2470,13 +2557,13 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    arg = &tchar;
 	    *arg = '\0';
 	}
-        if ( mudstate.trainmode ) {
+        if ( mudstate.trainmode || (cmdp->callseq & CS_ROLLBACK) ) {
            buf1 = alloc_lbuf("temp_buffer_for_parser");
            if ( buf2 && *buf2 )
               sprintf(buf1, "%s", buf2);
         } else {
-	   buf1 = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL | EV_TOP,
-		       buf2, cargs, ncargs, (char **)NULL, 0);
+	   buf1 = cpuexec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL | EV_TOP,
+		          buf2, cargs, ncargs, (char **)NULL, 0);
 	}
 
 	if (cmdp->callseq & CS_ARGV) {
@@ -2508,9 +2595,8 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    /* Arg2 is normal style.  Interpret if needed */
 
 	    if (interp & EV_EVAL) {
-		buf2 = exec(player, cause, cause,
-			    interp | EV_FCHECK | EV_TOP,
-			    arg, cargs, ncargs, (char **)NULL, 0);
+		buf2 = cpuexec(player, cause, cause, interp | EV_FCHECK | EV_TOP,
+			       arg, cargs, ncargs, (char **)NULL, 0);
 	    } else {
 		buf2 = parse_to(&arg, '\0',
 				interp | EV_STRIP_LS | EV_STRIP_TS | EV_TOP);
@@ -2696,8 +2782,8 @@ int cmdtest(dbref player, char *cmd)
                }
                if ( *buff2 ) {
                   mudstate.insideicmds = 1;
-                  mbuf = exec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, 
-                              (char **)NULL, 0, (char **)NULL, 0);
+                  mbuf = cpuexec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, 
+                                 (char **)NULL, 0, (char **)NULL, 0);
                   mudstate.insideicmds = 0;
                   if ( *mbuf ) {
                      if ( atoi(mbuf) == 2 )
@@ -2840,6 +2926,43 @@ process_command(dbref player, dbref cause, int interactive,
     if (!command)
 	abort();
 
+    /* For all valid commands we must initialize the timers */
+    mudstate.heavy_cpu_recurse = 0;
+    mudstate.heavy_cpu_tmark1 = time(NULL);
+    mudstate.chkcpu_toggle = 0;
+    mudstate.chkcpu_stopper = time(NULL);
+    mudstate.chkcpu_locktog = 0;
+    mudstate.stack_val = 0;
+    mudstate.stack_toggle = 0;
+    mudstate.sidefx_currcalls = 0;
+    mudstate.curr_percentsubs = 0;
+    mudstate.tog_percentsubs = 0;
+    mudstate.sidefx_toggle = 0;
+    mudstate.log_maximum = 0;
+
+    /* profiling */
+    mudstate.evalcount = 0;
+    mudstate.funccount = 0;
+    mudstate.attribfetchcount = 0;
+    itimer.it_interval.tv_sec = 0;
+    itimer.it_interval.tv_usec = 0;
+    itimer.it_value.tv_usec = 0;
+    itimer.it_value.tv_sec = 1000;
+    setitimer(ITIMER_PROF, &itimer, NULL);
+
+//  if ( !mudstate.rollbackstate )
+       mudstate.rollbackcnt++;
+    if ( mudstate.jumpst > 0 ) {
+       mudstate.jumpst--;
+       DPOP;
+       return;
+    }
+    if ( mudstate.gotostate > 0 ) {
+       if ( strncasecmp(command,"@goto/label ",12) ) {
+         DPOP;
+         return;
+       }
+    }
     if ( inhook ) {
        mudstate.no_hook = 1;
     } else {
@@ -2863,30 +2986,9 @@ process_command(dbref player, dbref cause, int interactive,
     *(check2 + 1) = '\0';
 
     /* Robustify player */
-
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_command >";
     mudstate.last_cmd_timestamp = mudstate.now;
-    mudstate.heavy_cpu_recurse = 0;
-    mudstate.heavy_cpu_tmark1 = time(NULL);
-    mudstate.stack_val = 0;
-    mudstate.stack_toggle = 0;
-    mudstate.sidefx_currcalls = 0;
-    mudstate.curr_percentsubs = 0;
-    mudstate.tog_percentsubs = 0;
-    mudstate.sidefx_toggle = 0;
-    mudstate.log_maximum = 0;
-    mudstate.chkcpu_stopper = time(NULL);
-
-    /* profiling */
-    mudstate.evalcount = 0;
-    mudstate.funccount = 0;
-    mudstate.attribfetchcount = 0;
-    itimer.it_interval.tv_sec = 0;
-    itimer.it_interval.tv_usec = 0;
-    itimer.it_value.tv_usec = 0;
-    itimer.it_value.tv_sec = 1000;
-    setitimer(ITIMER_PROF, &itimer, NULL);
 
     if (!Good_obj(player) || !Good_obj(cause)) {
 	STARTLOG(LOG_BUGS, "CMD", "PLYR")
@@ -3251,7 +3353,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
-          itimer.it_value.tv_sec = 0;
+//        itimer.it_value.tv_sec = 0;
+          itimer.it_value.tv_sec = 1000;
           itimer.it_value.tv_usec = 0;
           setitimer(ITIMER_PROF, &itimer, NULL);
           mudstate.shell_program = 0;
@@ -3308,6 +3411,8 @@ process_command(dbref player, dbref cause, int interactive,
                            break;
                case '-' :  sprintf(s_uselock, "I_%s", "mail");
                            break;
+               case ']' :  sprintf(s_uselock, "I_%s", "N");
+                           break;
                default  :  sprintf(s_uselock, "I_%s", "error");
                            break;
             }
@@ -3328,6 +3433,8 @@ process_command(dbref player, dbref cause, int interactive,
                            break;
                case '-' :  sprintf(s_uselock, "P_%s", "mail");
                            break;
+               case ']' :  sprintf(s_uselock, "P_%s", "N");
+                           break;
                default  :  sprintf(s_uselock, "P_%s", "error");
                            break;
             }
@@ -3341,12 +3448,14 @@ process_command(dbref player, dbref cause, int interactive,
             dx_tmp++;
          }
 	 hk_ap2 = atr_str(s_uselock);
+         chk_stop = mudstate.chkcpu_stopper;
+         chk_tog  = mudstate.chkcpu_toggle;
          mudstate.chkcpu_stopper = time(NULL);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
          hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, prefix_cmds[i]->hookmask, lst_cmd);
-         mudstate.chkcpu_toggle = 0;
-         mudstate.chkcpu_locktog = 0;
+         mudstate.chkcpu_toggle = chk_tog;
+         mudstate.chkcpu_stopper = chk_stop;
          free_sbuf(s_uselock);
          if ( !hk_retval && (prefix_cmds[i]->hookmask & HOOK_IGNORE) )
             cval = 2;
@@ -3367,28 +3476,42 @@ process_command(dbref player, dbref cause, int interactive,
 	}
 	else
 	  msave = NULL;
+        chk_stop = mudstate.chkcpu_stopper;
+        chk_tog  = mudstate.chkcpu_toggle;
         mudstate.chkcpu_stopper = time(NULL);
         mudstate.chkcpu_toggle = 0;
         mudstate.chkcpu_locktog = 0;
 	process_cmdent(prefix_cmds[i], NULL, player, cause,
 		       interactive, command, command, args, nargs, 0, lst_cmd);
         if ( mudstate.chkcpu_toggle ) {
+           mudstate.chkcpu_toggle = 0;
            if ( mudstate.curr_cpu_user != player ) {
               mudstate.curr_cpu_user = player;
               mudstate.curr_cpu_cycle = 0;
            }
            mudstate.curr_cpu_cycle++;
            notify(player, "Overload on CPU detected.  Process aborted.");
-           if ( mudstate.chkcpu_locktog )
+           if ( mudstate.chkcpu_locktog ) {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (LOCK-EVAL)",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
-           else
+           } else if ( mudstate.chkcpu_inline ) {
+              broadcast_monitor(player, MF_CPU, unsafe_tprintf("CPU RUNAWAY INLINE PROCESS [%s]", mudstate.chkcpu_inlinestr),
+			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           } else {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           }
 	   cpulbuf = alloc_lbuf("process_commands.LOG.badcpu");
+           if ( HasPriv(player, NOTHING, POWER_API, POWER5, NOTHING) ) {
+              /* Remove API from the object -- one chance only */
+              sprintf(cpulbuf, "%s", (char *)"API");
+              power_set(player, GOD, cpulbuf, POWER_LEVEL_OFF);
+              sprintf(cpulbuf, " CPU [possible API] overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           } else {
+              sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           }
            STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
 	   log_name_and_loc(player);
-           sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
            log_text(cpulbuf);
            free_lbuf(cpulbuf);
            ENDLOG
@@ -3556,7 +3679,9 @@ process_command(dbref player, dbref cause, int interactive,
               mudstate.curr_cpu_cycle = 0;
            }
 	}
-        mudstate.chkcpu_toggle = 0;
+        mudstate.chkcpu_locktog = 0;
+	mudstate.chkcpu_toggle = chk_tog;
+	mudstate.chkcpu_stopper = chk_stop;
         mudstate.chkcpu_locktog = 0;
 	if ( mudstate.stack_toggle ) {
            cpulbuf = alloc_lbuf("stack_limit");
@@ -3650,7 +3775,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  mudstate.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
-          itimer.it_value.tv_sec = 0;
+//        itimer.it_value.tv_sec = 0;
+          itimer.it_value.tv_sec = 1000;
           itimer.it_value.tv_usec = 0;
           setitimer(ITIMER_PROF, &itimer, NULL);
           DPOP; /* #29 */
@@ -3687,7 +3813,8 @@ process_command(dbref player, dbref cause, int interactive,
 	mudstate.debug_cmd = cmdsave;
         getitimer(ITIMER_PROF, &itimer);
         reportcputime(player, &itimer);
-        itimer.it_value.tv_sec = 0;
+//      itimer.it_value.tv_sec = 0;
+        itimer.it_value.tv_sec = 1000;
         itimer.it_value.tv_usec = 0;
         setitimer(ITIMER_PROF, &itimer, NULL);
         DPOP; /* #29 */
@@ -3750,12 +3877,15 @@ process_command(dbref player, dbref cause, int interactive,
                          dx_tmp++;
                       }
                       hk_ap2 = atr_str(s_uselock);
+                      chk_stop = mudstate.chkcpu_stopper;
+                      chk_tog  = mudstate.chkcpu_toggle;
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
                       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask, lst_cmd);
-                      mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
+		      mudstate.chkcpu_toggle = chk_tog;
+		      mudstate.chkcpu_stopper = chk_stop;
                       free_sbuf(s_uselock);
                       if ( !hk_retval && (goto_cmdp->hookmask & HOOK_IGNORE) ) {
                          cval = 2;
@@ -3807,7 +3937,8 @@ process_command(dbref player, dbref cause, int interactive,
 		      mudstate.exitcheck = 0;
                       getitimer(ITIMER_PROF, &itimer);
                       reportcputime(player, &itimer);
-                      itimer.it_value.tv_sec = 0;
+//                    itimer.it_value.tv_sec = 0;
+                      itimer.it_value.tv_sec = 1000;
                       itimer.it_value.tv_usec = 0;
                       setitimer(ITIMER_PROF, &itimer, NULL);
                       DPOP; /* #29 */
@@ -3840,11 +3971,14 @@ process_command(dbref player, dbref cause, int interactive,
                          dx_tmp++;
                       }
                       hk_ap2 = atr_str(s_uselock);
+		      chk_stop = mudstate.chkcpu_stopper;
+		      chk_tog  = mudstate.chkcpu_toggle;
                       mudstate.chkcpu_stopper = time(NULL);
                       mudstate.chkcpu_toggle = 0;
                       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask, lst_cmd);
-                      mudstate.chkcpu_toggle = 0;
                       mudstate.chkcpu_locktog = 0;
+		      mudstate.chkcpu_toggle = chk_tog;
+		      mudstate.chkcpu_stopper = chk_stop;
                       free_sbuf(s_uselock);
                       if ( !hk_retval && (goto_cmdp->hookmask & HOOK_IGNORE) ) {
                          cval = 2;
@@ -3894,7 +4028,8 @@ process_command(dbref player, dbref cause, int interactive,
 		     mudstate.exitcheck = 0;
                      getitimer(ITIMER_PROF, &itimer);
                      reportcputime(player, &itimer);
-                     itimer.it_value.tv_sec = 0;
+//                   itimer.it_value.tv_sec = 0;
+                     itimer.it_value.tv_sec = 1000;
                      itimer.it_value.tv_usec = 0;
                      setitimer(ITIMER_PROF, &itimer, NULL);
                      DPOP; /* #29 */
@@ -4042,12 +4177,15 @@ process_command(dbref player, dbref cause, int interactive,
             dx_tmp++;
          }
          hk_ap2 = atr_str(s_uselock);
+         chk_stop = mudstate.chkcpu_stopper;
+         chk_tog  = mudstate.chkcpu_toggle;
          mudstate.chkcpu_stopper = time(NULL);
          mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
          hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, cmdp->hookmask, lst_cmd);
-         mudstate.chkcpu_toggle = 0;
          mudstate.chkcpu_locktog = 0;
+         mudstate.chkcpu_toggle = chk_tog;
+         mudstate.chkcpu_stopper = chk_stop;
          free_sbuf(s_uselock);
          if ( !hk_retval && (cmdp->hookmask & HOOK_IGNORE) )
             cval = 2;
@@ -4056,30 +4194,45 @@ process_command(dbref player, dbref cause, int interactive,
     }
     if ( (cmdp != NULL) && !((cmdp->perms & CA_IGNORE_MASK) && 
         igcheck(player,cmdp->perms)) && (cval != 2) && (cval2 != 2) ) {
+        chk_stop = mudstate.chkcpu_stopper;
+        chk_tog  = mudstate.chkcpu_toggle;
         mudstate.chkcpu_stopper = time(NULL);
         mudstate.chkcpu_toggle = 0;
         mudstate.chkcpu_locktog = 0;
-        if ( cval2 > 0 )
+        if ( cval2 > 0 ) {
            cmdp->perms |= CA_DISABLED;
+        }
 	process_cmdent(cmdp, slashp, player, cause, interactive, arg,
 		       command, args, nargs, cval, lst_cmd);
         if ( mudstate.chkcpu_toggle ) {
+           mudstate.chkcpu_toggle = 0;
            if ( mudstate.curr_cpu_user != player ) {
               mudstate.curr_cpu_user = player;
               mudstate.curr_cpu_cycle = 0;
            }
            mudstate.curr_cpu_cycle++;
            notify(player, "Overload on CPU detected.  Process aborted.");
-           if ( mudstate.chkcpu_locktog )
+           if ( mudstate.chkcpu_locktog ) {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (LOCK-EVAL)",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
-           else
+           } else if ( mudstate.chkcpu_inline ) {
+              broadcast_monitor(player, MF_CPU, unsafe_tprintf("CPU RUNAWAY INLINE PROCESS [%s]", mudstate.chkcpu_inlinestr),
+			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           } else {
               broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS",
 			                     (char *)lst_cmd, NULL, cause, 0, 0, NULL);
+           }
 	   cpulbuf = alloc_lbuf("process_commands.LOG.badcpu");
+           if ( HasPriv(player, NOTHING, POWER_API, POWER5, NOTHING) ) {
+              /* Remove API from the object -- one chance only */
+              sprintf(cpulbuf, "%s", (char *)"API");
+              power_set(player, GOD, cpulbuf, POWER_LEVEL_OFF);
+              sprintf(cpulbuf, " CPU [possible API] overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           } else {
+              sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
+           }
            STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
 	   log_name_and_loc(player);
-           sprintf(cpulbuf, " CPU overload%s %.3900s", (mudstate.chkcpu_locktog ? " (lock-eval):" : ":"), lst_cmd);
            log_text(cpulbuf);
            free_lbuf(cpulbuf);
            ENDLOG
@@ -4247,8 +4400,9 @@ process_command(dbref player, dbref cause, int interactive,
               mudstate.curr_cpu_cycle = 0;
            }
 	}
-        mudstate.chkcpu_toggle = 0;
         mudstate.chkcpu_locktog = 0;
+        mudstate.chkcpu_toggle = chk_tog;
+        mudstate.chkcpu_stopper = chk_stop;
 	if ( mudstate.stack_toggle ) {
            cpulbuf = alloc_lbuf("stack_limit");
            notify(player, "Stack limit exceeded.  Process aborted.");
@@ -4339,7 +4493,8 @@ process_command(dbref player, dbref cause, int interactive,
 
         getitimer(ITIMER_PROF, &itimer);
         reportcputime(player, &itimer);
-        itimer.it_value.tv_sec = 0;
+//      itimer.it_value.tv_sec = 0;
+        itimer.it_value.tv_sec = 1000;
         itimer.it_value.tv_usec = 0;
         setitimer(ITIMER_PROF, &itimer, NULL);
 	mudstate.debug_cmd = cmdsave;
@@ -4383,7 +4538,8 @@ process_command(dbref player, dbref cause, int interactive,
 		  do_leave(player, player, 0);
                 getitimer(ITIMER_PROF, &itimer);
                 reportcputime(player, &itimer);
-                itimer.it_value.tv_sec = 0;
+//              itimer.it_value.tv_sec = 0;
+                itimer.it_value.tv_sec = 1000;
                 itimer.it_value.tv_usec = 0;
                 setitimer(ITIMER_PROF, &itimer, NULL);
                 DPOP; /* #29 */
@@ -4409,7 +4565,8 @@ process_command(dbref player, dbref cause, int interactive,
 		      do_enter_internal(player, pcexit, 0);
                     getitimer(ITIMER_PROF, &itimer);
                     reportcputime(player, &itimer);
-                    itimer.it_value.tv_sec = 0;
+//                  itimer.it_value.tv_sec = 0;
+                    itimer.it_value.tv_sec = 1000;
                     itimer.it_value.tv_usec = 0;
                     setitimer(ITIMER_PROF, &itimer, NULL);
                     DPOP; /* #29 */
@@ -4579,7 +4736,8 @@ process_command(dbref player, dbref cause, int interactive,
     }
     getitimer(ITIMER_PROF, &itimer);
     reportcputime(player, &itimer);
-    itimer.it_value.tv_sec = 0;
+//  itimer.it_value.tv_sec = 0;
+    itimer.it_value.tv_sec = 1000;
     itimer.it_value.tv_usec = 0;
     setitimer(ITIMER_PROF, &itimer, NULL);
     mudstate.debug_cmd = cmdsave;
@@ -4887,6 +5045,7 @@ NAMETAB access_nametab2[] =
     {(char *) "no_eval", 5, CA_WIZARD, 0, CA_NO_EVAL},
     {(char *) "eval", 5, CA_WIZARD, 0, CA_EVAL},
     {(char *) "bypass", 5, CA_WIZARD, 0, CA_SB_BYPASS},
+    {(char *) "noparse", 5, CA_WIZARD, 0, CA_NO_PARSE},
     {NULL, 0, 0, 0, 0}};
 
 static void 
@@ -4981,7 +5140,7 @@ list_cmdswitches(dbref player, char *s_mask, int key)
 	    if (check_access(player, cmdp->perms, cmdp->perms2, 0)) {
 		if (!(cmdp->perms & CF_DARK)) {
                     if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)cmdp->cmdname)) ) {
-		       sprintf(buff, "%.31s:", cmdp->cmdname);
+		       sprintf(buff, "%.30s:", cmdp->cmdname);
 		       display_nametab(player, cmdp->switches,
 				       buff, 0);
                     }
@@ -5872,6 +6031,10 @@ list_options_mail(dbref player)
                      "Mail program used with autoregistration.", " ",
                      mudconf.mailprog));
       notify(player, unsafe_tprintf("%-28.28s %c %s",
+                     "mailmutt",
+                     (mudconf.mailmutt ? 'Y' : 'N'),
+                     "Does the mail program use mutt syntax?"));
+      notify(player, unsafe_tprintf("%-28.28s %c %s",
                      "mailsub",
                      (mudconf.mailsub ? 'Y' : 'N'),
                      "Does the mail program use subjects?"));
@@ -5956,8 +6119,9 @@ list_options_convtime(dbref player)
       fclose(fp);
       notify(player, "------------------------------------------------------------------------------");
       notify(player, "Key: %a/%A - Weekday Name (Www), %b/%B - Month Name (Mmm), %D - %m/%d/%y");
-      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy)");
+      notify(player, "     %m    - month (01-12),      %d    - day (01-31),      %Y - year (yyyy+)");
       notify(player, "     %H    - hour (00-23),       %M    - minute (00-59),   %S - second (00-59)");
+      notify(player, "     %I    - hour (01-12),       AM|PM - Morning/After");
       notify(player, "------------------------------------------------------------------------------");
       free_lbuf(s_line);
    }
@@ -6121,6 +6285,18 @@ list_options_system(dbref player)
        notify(player, "@@ recognized as null output seperator ------------------------- ENABLED");
     else
        notify(player, "@@ recognized as null output seperator ------------------------- DISABLED");
+    if ( mudconf.protect_addenh )
+       notify(player, "@protect/add protect_addenh argument for player name adding ---- ENABLED");
+    else
+       notify(player, "@protect/add protect_addenh argument for player name adding ---- DISABLED");
+    if ( mudconf.posesay_funct )
+       notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- ENABLED");
+    else
+       notify(player, "Attributes SPEECH_PREFIX and SPEECH_SUFFIX allow functions ----- DISABLED");
+    if ( mudconf.null_is_idle )
+       notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
+    else
+       notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
@@ -6139,9 +6315,9 @@ list_options_system(dbref player)
        strncpy(playerchktime,(char *) ctime(&i_count), 24);
        notify(player, "\r\n--- System Timers and Triggers -----------------------------------------------");
        notify(player, unsafe_tprintf("--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
-                      dbchktime, time_format_2(c_count - mudstate.now, buf2),
-                      dbdumptime, time_format_2(d_count - mudstate.now, buf3),
-                      playerchktime, time_format_2(i_count - mudstate.now, buf4)));
+                      dbchktime, cmd_time_format_2(c_count - mudstate.now, buf2),
+                      dbdumptime, cmd_time_format_2(d_count - mudstate.now, buf3),
+                      playerchktime, cmd_time_format_2(i_count - mudstate.now, buf4)));
 
        memset(newstime, 0, sizeof(newstime));
        memset(mailtime, 0, sizeof(mailtime));
@@ -6460,8 +6636,11 @@ list_options_config(dbref player)
           notify(player,buff);
           notify(player, unsafe_tprintf("                   Current mail used: %s.", 
                          mudconf.mailprog));       
+          if ( mudconf.mailmutt > 0 )
+             notify(player, "                   mail uses mutt compatibility.");
+          else
           if ( mudconf.mailsub > 0 )
-             notify(player, "                   Subjects in mail are allowed.");
+             notify(player, "                   mail does not use mutt compatibility.");
           else
              notify(player, "                   Subjects in mail are not allowed.");
           notify(player, unsafe_tprintf("                   Mail file included: %s.", mudconf.mailinclude_file));
@@ -7354,8 +7533,11 @@ list_options(dbref player)
        notify(player,buff);
        notify(player, 
 	      unsafe_tprintf("                   Current mail used: %s.", mudconf.mailprog));
+       if ( mudconf.mailmutt > 0 )
+          notify(player, "                   Mail uses mutt compatibility.");
+       else
        if ( mudconf.mailsub > 0 )
-          notify(player, "                   Subjects in mail are allowed.");
+          notify(player, "                   Mail does not use mutt compatibility.");
        else
           notify(player, "                   Subjects in mail are not allowed.");
        notify(player, unsafe_tprintf("                   Mail file included: %s.", mudconf.mailinclude_file));
@@ -7735,7 +7917,7 @@ list_functionperms(dbref player, char *s_mask, int key)
    } else {
        notify(player, "--- Function Permissions ---");
    }
-   s_buf = alloc_sbuf("list_functionperms");
+   s_buf = alloc_mbuf("list_functionperms");
    for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
         fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
       if ( chk_tog || check_access(player, fp->perms, fp->perms2, 0)) {
@@ -7773,7 +7955,7 @@ list_functionperms(dbref player, char *s_mask, int key)
          }
       }
    }
-   free_sbuf(s_buf);
+   free_mbuf(s_buf);
 }
 
 static void
@@ -7827,8 +8009,8 @@ list_guestparse(dbref player)
    strncpy(instr, mudconf.guest_namelist, 1000);
    tprp_buff = tpr_buff = alloc_lbuf("list_guestparse");
    if ( Guildmaster(player) ) { 
-      notify(player, unsafe_tprintf("--------------- Total Current Guests Allowed: %d", 
-             mudconf.max_num_guests));
+      notify(player, unsafe_tprintf("--------------- Total Current Guests Allowed: %d [randomized: %s]", 
+             mudconf.max_num_guests, (mudconf.guest_randomize ? (char *)"yes" : (char *)"no")));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "Guest Number", "Guest Name", 
                      "Valid     Guest/Player           On"));
       notify(player, unsafe_tprintf("%-15.15s %-20.20s %-s", "---------------", "--------------------", 
@@ -9075,8 +9257,9 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
 }
 
 void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL, *cp;
-  int i_evaled = 0;
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
@@ -9086,12 +9269,41 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
   if (is_number(arg1_eval) && (atoi(arg1_eval) == 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
-          while (arg2) {
+          s_rollback = alloc_lbuf("s_rollback_assert");
+          strcpy(s_rollback, mudstate.rollback);
+          i_rollback = mudstate.rollbackcnt;
+          i_jump = mudstate.jumpst;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@assert/inline");
+          i_chkinline = mudstate.chkcpu_inline;
+          if ( mudstate.chkcpu_inline ) {
+             i_now = mudstate.now;
+          } else {
+             i_now = time(NULL);
+          }
+          mudstate.chkcpu_inline = 1;
+          i_orig = mudstate.chkcpu_toggle;
+          while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@assert:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
           }
+          mudstate.chkcpu_toggle = i_orig;
+          mudstate.chkcpu_inline = i_chkinline;
+          mudstate.jumpst = i_jump;
+          mudstate.rollbackcnt = i_rollback;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9102,24 +9314,139 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
      free_lbuf(arg1_eval);
 }
 
+void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
+
+  if ( mudstate.jumpst > 0 ) {
+     notify_quiet(player, "Can not call @jump inside another @jump state... yet...");
+     return;
+  }
+  if ( mudconf.break_compatibility ) {
+     arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
+     i_evaled = 1;
+  } else {
+     arg1_eval = arg1;
+  }
+  if (is_number(arg1_eval) && (atoi(arg1_eval) > 0)) {
+    if ( arg2 && *arg2 ) {
+       if ( key == BREAK_INLINE) {
+          s_rollback = alloc_lbuf("s_rollback_jump");
+          strcpy(s_rollback, mudstate.rollback);
+          i_jump = mudstate.jumpst;
+          i_rollback = mudstate.rollbackcnt;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@jump");
+          i_chkinline = mudstate.chkcpu_inline;
+          if ( mudstate.chkcpu_inline ) {
+             i_now = mudstate.now;
+          } else {
+             i_now = time(NULL);
+          }
+          mudstate.chkcpu_inline = 1;
+          i_orig = mudstate.chkcpu_toggle;
+          while (arg2 && !mudstate.chkcpu_toggle) {
+             cp = parse_to(&arg2, ';', 0);
+             if (cp && *cp) {
+                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+             }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@jump:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
+          }
+          mudstate.chkcpu_inline = i_chkinline;
+          mudstate.rollbackcnt = i_rollback;
+          mudstate.jumpst = i_jump;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
+          mudstate.chkcpu_toggle = i_orig;
+       } else {
+          wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+       }
+    }
+    mudstate.jumpst = atoi(arg1_eval);
+/*
+    if ( mudstate.rollbackstate != 0 ) {
+       mudstate.jumpst--;
+    } 
+*/
+  }
+  if ( i_evaled )
+     free_lbuf(arg1_eval);
+}
+
+void do_goto(dbref player, dbref cause, int key, char *label) {
+  if(key == GOTO_LABEL)
+  {
+      if(!strncasecmp(mudstate.gotolabel,label,16)) {
+          mudstate.gotostate = 0;
+          memset(mudstate.gotolabel,'\0',16);
+      }
+  }
+  else
+  {
+      mudstate.gotostate = 1;
+      memset(mudstate.gotolabel,'\0',16);
+      strncpy(mudstate.gotolabel,label,15);
+  }
+}
+
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
-  char *arg1_eval = NULL, *cp;
-  int i_evaled = 0;
+  char *arg1_eval = NULL, *cp, *s_rollback;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  time_t i_now;
 
   if ( mudconf.break_compatibility ) {
      arg1_eval = exec(player, cause, cause, EV_EVAL | EV_FCHECK, arg1, (char **)NULL, 0, (char **)NULL, 0);
      i_evaled = 1;
   } else
      arg1_eval = arg1;
+
   if (is_number(arg1_eval) && (atoi(arg1_eval) != 0)) {
     if ( arg2 && *arg2 ) {
        if ( key == BREAK_INLINE) {
-          while (arg2) {
+          i_orig = mudstate.chkcpu_toggle;
+          s_rollback = alloc_lbuf("s_rollback_break");
+          strcpy(s_rollback, mudstate.rollback);
+          i_jump = mudstate.jumpst;
+          i_rollback = mudstate.rollbackcnt;
+          mudstate.jumpst = mudstate.rollbackcnt = 0;
+          if ( arg2 ) {
+             strcpy(mudstate.rollback, arg2);
+          }
+          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@break/inline");
+          i_chkinline = mudstate.chkcpu_inline;
+          if ( mudstate.chkcpu_inline ) {
+             i_now = mudstate.now;
+          } else {
+             i_now = time(NULL);
+          }
+          mudstate.chkcpu_inline = 1;
+          while (arg2 && !mudstate.chkcpu_toggle) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
              }
+             if ( time(NULL) > (i_now + 5) ) {
+                notify(player, "@break:  Aborted for high utilization.");
+                mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
+                break;
+             }
           }
+          mudstate.chkcpu_inline = i_chkinline;
+          mudstate.jumpst = i_jump;
+          mudstate.rollbackcnt = i_rollback;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
+          mudstate.chkcpu_toggle = i_orig;
        } else {
           wait_que(player, cause, 0, NOTHING, arg2, cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
        }
@@ -9584,6 +9911,8 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
 
 void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
+   char *s_rollback;
+   int i_rollback, i_jump;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 0 ) {
@@ -9591,13 +9920,22 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
       return;
    }
 
-   if ( Wizard(player) && string && *string ) {
+   if ( (Wizard(player) || HasPriv(player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && string && *string ) {
       if ( (*string == '@') && (*(string+1) == '@') ) {
          notify_quiet(player, string+2);
       } else {
          mudstate.train_cntr++;
          getitimer(ITIMER_PROF, &itimer);
+         s_rollback = alloc_lbuf("s_rollback_idle");
+         strcpy(s_rollback, mudstate.rollback);
+         i_jump = mudstate.jumpst;
+         i_rollback = mudstate.rollbackcnt;
+         strcpy(mudstate.rollback, string);
          process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
+         mudstate.jumpst = i_jump;
+         mudstate.rollbackcnt = i_rollback;
+         strcpy(mudstate.rollback, s_rollback);
+         free_lbuf(s_rollback);
          setitimer(ITIMER_PROF, &itimer, NULL); 
          mudstate.train_cntr--;
       }
@@ -9613,7 +9951,8 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
 void do_train(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
    dbref loc, obj;
-   char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff;
+   char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff, *s_rollback;
+   int i_jump, i_rollback;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 2 ) {
@@ -9648,18 +9987,31 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    free_lbuf(newstring);
    mudstate.train_cntr++;
    getitimer(ITIMER_PROF, &itimer);
+   s_rollback = alloc_lbuf("s_rollback_train");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.rollbackcnt = mudstate.jumpst = 0;
+   if ( string ) {
+      strcpy(mudstate.rollback, string);
+   }
    process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook);
+   mudstate.rollbackcnt = i_rollback;
+   mudstate.jumpst = i_jump;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.train_cntr--;
 }
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], int nargs, char *cargs[], int ncargs)
 {
-   char *retbuff, *cp, *mys, *s_buildptr, *s_build;
+   char *retbuff, *cp, *mys, *s_buildptr, *s_build, *s_rollback;
    time_t i_now;
-   int old_trainmode, i_breakst, i_joiner;
+   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump, i_chkinline, i_orig;
 
    if ( !nargs || !args[0] || !*args[0] )
       return;
+   i_orig = mudstate.chkcpu_toggle;
    i_breakst = mudstate.breakst;
    char c_dummy[]="0";
    if ( !s_boolian || !*s_boolian ) {
@@ -9674,6 +10026,12 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       i_evalResult=tboolchk(retbuff);
    else
       i_evalResult=atoi(retbuff);
+
+   s_rollback = alloc_lbuf("s_rollback_skip");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
    if ( *retbuff && (((i_evalResult == 0) && !(key & SKIP_IFELSE)) ||
                      ((i_evalResult != 0) &&  (key & SKIP_IFELSE))) ) {
     /* I have no idea why this is here, but I left it in incase I need 
@@ -9688,7 +10046,17 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             safe_chr(',', mys, &s_buildptr);
             safe_str(args[i_joiner], mys, &s_buildptr);
          }
-         i_now = mudstate.now;
+         if ( mys ) {
+            strcpy(mudstate.rollback, mys);
+         }
+         sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+         if ( mudstate.chkcpu_inline ) {
+            i_now = mudstate.now;
+         } else {
+            i_now = time(NULL);
+         }
+         i_chkinline = mudstate.chkcpu_inline;
+         mudstate.chkcpu_inline = 1;
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9696,14 +10064,26 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
+                   mudstate.chkcpu_toggle=1;
                    break;
                }
             }
          }
+         mudstate.chkcpu_inline = i_chkinline;
          free_lbuf(s_build);
       } else {
          mys = args[0];
-         i_now = mudstate.now;
+         if ( mudstate.chkcpu_inline ) {
+            i_now = mudstate.now;
+         } else {
+            i_now = time(NULL);
+         }
+         if ( mys ) {
+            strcpy(mudstate.rollback, mys);
+         }
+         i_chkinline = mudstate.chkcpu_inline;
+         sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+         mudstate.chkcpu_inline = 1;
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst) {
@@ -9711,15 +10091,27 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
+                   mudstate.chkcpu_toggle=1;
                    break;
                }
             }
          }
+         mudstate.chkcpu_inline = i_chkinline;
       }
       mudstate.trainmode = old_trainmode;
    } else if ( *retbuff && (i_evalResult == 0) && (key & SKIP_IFELSE) && (nargs > 1) && args[1] && *args[1] ) {
       mys = args[1];
-      i_now = mudstate.now;
+      if ( mudstate.chkcpu_inline ) {
+         i_now = mudstate.now;
+      } else {
+         i_now = time(NULL);
+      }
+      if ( mys ) {
+         strcpy(mudstate.rollback, mys);
+      }
+      i_chkinline = mudstate.chkcpu_inline;
+      sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
+      mudstate.chkcpu_inline = 1;
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst) {
@@ -9727,11 +10119,18 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate.breakst=1;
+                mudstate.chkcpu_toggle=1;
                 break;
             }
          }
       }
+      mudstate.chkcpu_inline = i_chkinline;
    }
+   mudstate.chkcpu_toggle = i_orig;
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback); 
    if ( !s_boolian || !*s_boolian ) {
       retbuff = NULL;
    }
@@ -9746,8 +10145,9 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS];
-   int old_trainmode, x, i_breakst, forcehalted_state;
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback, i_chkinline, i_orig;
+   time_t i_now;
 
    if ( !s_command || !*s_command ) {
       return;
@@ -9771,6 +10171,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       return;
    }
 
+   i_orig = mudstate.chkcpu_toggle;
    forcehalted_state = mudstate.force_halt;
    if ( Halted(target) && ForceHalted(player) ) {
       mudstate.force_halt = target;
@@ -9783,30 +10184,64 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
+         saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
+         npt = saveregname[x];
          safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
          if ( key & SUDO_CLEAR ) {
             *mudstate.global_regs[x] = '\0';
+            *mudstate.global_regsname[x] = '\0';
          }
       }
    }
 
    i_breakst = mudstate.breakst;
-   while (s_command) {
+   s_rollback = alloc_lbuf("s_rollback_sudo");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
+   if ( s_command ) {
+      strcpy(mudstate.rollback, s_command);
+   }
+   i_chkinline = mudstate.chkcpu_inline;
+   sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@sudo");
+   if ( mudstate.chkcpu_inline ) {
+      i_now = mudstate.now;
+   } else {
+      i_now = time(NULL);
+   }
+   mudstate.chkcpu_inline = 1;
+   while (s_command && !mudstate.chkcpu_toggle) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook);
+         if ( time(NULL) > (i_now + 5) ) {
+            notify(player, "@sudo:  Aborted for high utilization.");
+            mudstate.breakst=1;
+            mudstate.chkcpu_toggle=1;
+            break;
+         }
       }
    }
+   mudstate.chkcpu_toggle = i_orig;
+   mudstate.chkcpu_inline = i_chkinline;
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
-
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback); 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          pt = mudstate.global_regs[x];
+         npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
          free_lbuf(savereg[x]);
+         free_sbuf(saveregname[x]);
       }
    }
 
@@ -9818,6 +10253,8 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
    dbref loc;
+   char *s_rollback;
+   int i_rollback, i_jump;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 2 ) {
@@ -9829,14 +10266,24 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
       notify(player, "Bad location.");
       return;
    }
-   if ( !*string || !string || !*(string+1) || !(string+1) ) {
+   if ( !string || !*string || !(string+1) || !*(string+1) ) {
       notify(player, "] requires an argument.");
       return;
    }
    mudstate.train_cntr++;
    mudstate.trainmode = 1;
    getitimer(ITIMER_PROF, &itimer);
+   s_rollback = alloc_lbuf("s_rollback_nocmd");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.jumpst = mudstate.rollbackcnt = 0;
+   strcpy(mudstate.rollback, string+1);
    process_command(player, cause, 1, string+1, args, nargs, 0, mudstate.no_hook);
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback);
    setitimer(ITIMER_PROF, &itimer, NULL); 
    mudstate.trainmode = 0;
    mudstate.train_cntr--;
@@ -9963,21 +10410,27 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
 
    thing = match_thing(player, name);
    if ( thing == NOTHING || !Good_obj(thing) || Recover(thing) || Going(thing) ) {
-      notify(player, "Permission denied.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Permission denied.");
+      }
       return;
    }
    if ( !(Controls(player, thing) || could_doit(player, thing, A_LTWINK, 0, 0)) ||
         ((Cloak(thing) && SCloak(thing) && Immortal(thing) && !Immortal(player)) ||
          (Cloak(thing) && !Wizard(player))) ) {
-      notify(player, "Permission denied.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Permission denied.");
+      }
       return;
    }
    if ( !ExtAnsi(thing) ) {
-      notify(player, "Target is not toggled EXTANSI.");
+      if ( !(key & SIDEEFFECT) ) {
+         notify(player, "Target is not toggled EXTANSI.");
+      }
       return;
    }
    if ( !*instr || !instr ) {
-      if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+      if (!(key & SET_QUIET) && !(key & SIDEEFFECT) && !Quiet(player) && !Quiet(thing)) {
           notify(player, "Ansi string cleared.");
       }
       atr_clr(thing, A_ANSINAME);
@@ -9997,17 +10450,19 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
 #endif
 
       if ( strcmp(extansi_strip(retbuff), namebuff) != 0 ) {
-         notify(player, unsafe_tprintf("String '%s' does not match the name of the target, '%s'.",
-				extansi_strip(retbuff),
-				Name(thing)));
+         if ( !(key & SIDEEFFECT) ) {
+            notify(player, unsafe_tprintf("String '%s' does not match the name of the target, '%s'.",
+				   extansi_strip(retbuff),
+				   Name(thing)));
+         }
          free_lbuf(retbuff);
          free_lbuf(namebuff);
          return;
 #undef extansi_strip
       } else {
-         if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
-                notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
-                strip_returntab(retbuff,3)));
+         if (!(key & SET_QUIET) && !(key & SIDEEFFECT) && !Quiet(player) && !Quiet(thing)) {
+            notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
+                   strip_returntab(retbuff,3)));
          }
          atr_add_raw(thing, A_ANSINAME, 
                      unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), ANSI_NORMAL));
@@ -10060,19 +10515,33 @@ void do_protect(dbref player, dbref cause, int key, char *name)
    }
 
    if ( (key & PROTECT_DEL) && (!*name || !ok_player_name(name)) ) {
-      notify(player, "@protect with /del or /add requires valid name");
+      notify(player, "@protect with /del requires valid name");
+      return;
+   }
+   if ( (key & PROTECT_ADD) && mudconf.protect_addenh && *name && !ok_player_name(name) ) {
+      notify(player, "@protect with /add requires valid name");
       return;
    }
    s_protect_ptr = s_protect_buff=alloc_lbuf("do_protect");
    switch (key ) {
       case PROTECT_ADD:
-         i_return = (dbref) protectname_add(Name(player), player);
+         if ( mudconf.protect_addenh && *name && badname_check(name, player)) {
+            i_return = (dbref) protectname_add(name, player);
+         } else {
+            i_return = (dbref) protectname_add(Name(player), player);
+         }
          if ( i_return == 1 ) {
             notify(player, unsafe_tprintf("You have reached the maximum of %d protected names.", mudconf.max_name_protect));
          } else if ( i_return == 2 ) {
-            notify(player, "Your current name is already protected.");
+            if ( mudconf.protect_addenh && *name )
+               notify(player, "That name is already protected.");
+            else
+               notify(player, "Your current name is already protected.");
          } else {
-            notify(player, "Your current name has been added to your protect list.");
+            if ( mudconf.protect_addenh && *name ) 
+               notify(player, "The name has been added to your protect list.");
+            else
+               notify(player, "Your current name has been added to your protect list.");
             for ( bp=mudstate.protectname_head; bp; bp=bp->next ) {
                if ( bp->i_name == player ) {
                   if ( i_first )
@@ -10310,7 +10779,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                                  "M %-30.30s | %s", "('-' hook on 'mail')", s_ptrbuff));
                else if ( strcmp(cmdp->cmdname, "N") == 0 ) 
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                 "N %-30.30s | %s", "('-' hook on 'no parsing')", s_ptrbuff));
+                                 "N %-30.30s | %s", "(']' hook on 'no parsing')", s_ptrbuff));
                else 
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                  "%-32.32s | %s", cmdp->cmdname, s_ptrbuff));
@@ -11730,6 +12199,8 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                s_instr = alloc_lbuf("cluster_wipe");
                endtme = time(NULL);
                starttme = mudstate.chkcpu_stopper;
+               if ( endtme < starttme )
+                  endtme = starttme;
                if ( mudconf.cputimechk < 10 )
                   timechk = 10;
                else if ( mudconf.cputimechk > 3600 )
@@ -11890,8 +12361,9 @@ do_progreset(dbref player, dbref cause, int key, char *name)
 void
 do_blacklist(dbref player, dbref cause, int key, char *name) 
 {
-   char *s_buff, *s_buffptr, *tmpbuff;
-   int i_loop_chk, i_page, i_page_val, i_invalid;
+   char *s_buff, *s_buffptr, *tmpbuff, *s_addrip, *s_addrmask, *s_addrtok;
+   int i_loop_chk, i_page, i_page_val, i_invalid, i_maskcnt;
+   unsigned long maskval;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
    BLACKLIST *b_lst_ptr, *b_lst_ptr2;
@@ -11905,14 +12377,102 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
    }
  
    switch (key) {
-      case BLACKLIST_LIST:
-         i_page = i_page_val = 0;
+      case BLACKLIST_MASK:
+         i_page = 0;
+         i_page_val = 1;
          if ( !mudstate.bl_list ) {
             notify(player, "@blacklist: List is currently empty.");
             break;
          }
-         if ( name && *name )
-            i_page_val = atoi(name);
+         if ( stricmp(name, (char *)"all") == 0 ) {
+            i_page_val = 0;
+         } else if ( !name || !*name ) {
+            i_page_val = 1;
+         } else if ( name && *name ) {
+            if ( isdigit(*name) ) {
+               i_page_val = atoi(name);
+            }
+         }
+         if ( i_page_val < 0 ) {
+            i_page_val = 1;
+         }
+         if ( i_page_val > ((mudstate.blacklist_cnt / 40) + 1) ) {
+            i_page_val = (mudstate.blacklist_cnt / 40 + 1);
+         }
+         if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 40) + 1)) ) {
+            notify(player, "@blacklist: Value specified must be a valid page value.");
+            break;
+         }
+         s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
+         tmpbuff = alloc_lbuf("do_blacklistLBUF2");
+         s_addrip = alloc_lbuf("do_blacklistLBUF3");
+         memset(tmpbuff, '\0', LBUF_SIZE);
+         i_loop_chk=0;
+         b_lst_ptr = mudstate.bl_list;
+         notify(player, "==============================================================================");
+         if ( i_page_val > 0 ) {
+            sprintf(tmpbuff, "= (Paged List : %7d entries)      Black List [mask]      Page %3d/%3d    =", 
+                    mudstate.blacklist_cnt, i_page_val, (mudstate.blacklist_cnt/40)+1);
+         } else {
+            sprintf(tmpbuff, "= (Full List : %7d entries)     Black List [mask]                        =",
+                    mudstate.blacklist_cnt);
+         }
+         notify(player, tmpbuff);
+         notify(player, "==============================================================================");
+         while ( b_lst_ptr ) {
+            i_loop_chk++;
+            if ( (i_loop_chk % 40) == 1 )
+               i_page++;
+            if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
+               b_lst_ptr = b_lst_ptr->next;
+               continue;
+            }
+            if ( (i_loop_chk % 2) != 0 ) {
+               sprintf(s_addrip, "[%s]", inet_ntoa(b_lst_ptr->mask_addr));
+               if ( !*s_buff ) {
+                  sprintf(s_buff, "   %-16s %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+               } else {
+                  sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+               }
+            } else {
+               sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr), s_addrip);
+               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+               notify(player, s_buff);
+               memset(s_buff, '\0', LBUF_SIZE);
+            }
+            b_lst_ptr = b_lst_ptr->next;
+         } 
+         free_lbuf(tmpbuff);
+         if ( (i_loop_chk % 2) != 0 ) {
+            notify(player, s_buff);
+         }
+         notify(player, "==============================================================================");
+         free_lbuf(s_buff);
+         free_lbuf(s_addrip);
+         break;
+      case BLACKLIST_LIST:
+         i_page = 0;
+         i_page_val = 1;
+         if ( !mudstate.bl_list ) {
+            notify(player, "@blacklist: List is currently empty.");
+            break;
+         }
+         if ( stricmp(name, (char *)"all") == 0 ) {
+            i_page_val = 0;
+         } else if ( !name || !*name ) {
+            i_page_val = 1;
+         } else if ( name && *name ) {
+            if ( isdigit(*name) ) {
+               i_page_val = atoi(name);
+            }
+         }
+         if ( i_page_val < 0 ) {
+            i_page_val = 1;
+         }
+         if ( i_page_val > ((mudstate.blacklist_cnt / 80) + 1) ) {
+            i_page_val = (mudstate.blacklist_cnt / 80 + 1);
+         }
          if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_cnt / 80) + 1)) ) {
             notify(player, "@blacklist: Value specified must be a valid page value.");
             break;
@@ -11924,9 +12484,11 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          b_lst_ptr = mudstate.bl_list;
          notify(player, "==============================================================================");
          if ( i_page_val > 0 ) {
-            sprintf(tmpbuff, "= (Paged List)                    Black List                  %3d/%3d        =", i_page_val, (mudstate.blacklist_cnt/80)+1);
+            sprintf(tmpbuff, "= (Paged List : %7d entries)      Black List             Page %3d/%3d    =", 
+                    mudstate.blacklist_cnt, i_page_val, (mudstate.blacklist_cnt/80)+1);
          } else {
-            sprintf(tmpbuff, "= (Full List)                     Black List                                 =");
+            sprintf(tmpbuff, "= (Full List : %7d entries)     Black List                               =",
+                    mudstate.blacklist_cnt);
          }
          notify(player, tmpbuff);
          notify(player, "==============================================================================");
@@ -11939,14 +12501,18 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                continue;
             }
             if ( (i_loop_chk % 4) != 0 ) {
+               s_addrip = (char *)" ";
+               if ( strcmp("255.255.255.255", inet_ntoa(b_lst_ptr->mask_addr)) != 0 ) {
+                  s_addrip = (char *)"[M]";
+               }
                if ( !*s_buff ) {
-                  sprintf(s_buff, "   %-18s", (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                } else {
-                  sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                   memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                }
             } else {
-               sprintf(tmpbuff, "%s %-18s", s_buff, (char *)inet_ntoa(b_lst_ptr->site_addr));
+               sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
                notify(player, s_buff);
                memset(s_buff, '\0', LBUF_SIZE);
@@ -11969,12 +12535,12 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             notify(player, "@blacklist: Error opening blacklist.txt file for reading.");
             break;
          }
-         s_buff = alloc_sbuf("do_blacklist");
-         i_loop_chk = i_invalid = 0;
+         s_buff = alloc_mbuf("do_blacklist");
+         i_loop_chk = i_invalid = i_maskcnt = 0;
          mudstate.bl_list = b_lst_ptr2 = NULL;
-         inet_aton((char *)"255.255.255.255", &in_tempaddr2);
          while ( !feof(f_in) ) {
-            fgets(s_buff, SBUF_SIZE-2, f_in);
+            inet_aton((char *)"255.255.255.255", &in_tempaddr2);
+            fgets(s_buff, MBUF_SIZE-2, f_in);
             if ( feof(f_in) ) 
                break;
             if ( i_loop_chk > 100000 ) {
@@ -11982,12 +12548,35 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                break;
             }
             i_loop_chk++;
-            if ( !inet_aton(s_buff, &in_tempaddr) ) {
+            s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
+            if ( s_addrip ) {
+               s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
+            }
+            if ( s_addrmask ) {
+               if ( *s_addrmask == '/' ) {
+                  maskval = atol(s_addrmask+1);
+                  if (((long)maskval < 0) || (maskval > 32)) {
+                     i_invalid++;
+                     continue;
+                  }
+                  if ( maskval != 0 ) {
+                     maskval = (0xFFFFFFFFUL << (32 - maskval));
+                  }
+                  in_tempaddr2.s_addr = htonl(maskval);
+               } else {
+                  if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+                     i_invalid++;
+                     continue;
+                  }
+               }
+               i_maskcnt++;
+            }
+            if ( !inet_aton(s_addrip, &in_tempaddr) ) {
                i_invalid++;
                continue;
             }
             b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST)+1);
-            sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_buff,2));
+            sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
             b_lst_ptr->site_addr = in_tempaddr;
             b_lst_ptr->mask_addr = in_tempaddr2;
             b_lst_ptr->next = NULL;
@@ -12001,10 +12590,10 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             }
             mudstate.blacklist_cnt++;
          }
-         free_sbuf(s_buff);
+         free_mbuf(s_buff);
          s_buffptr = s_buff = alloc_lbuf("do_blacklistLBUF");
-         notify(player, safe_tprintf(s_buff, &s_buffptr, "Blacklist loaded.  %d entries total.  %d read in, %d ignored.", 
-                        i_loop_chk, mudstate.blacklist_cnt, i_invalid));
+         notify(player, safe_tprintf(s_buff, &s_buffptr, "Blacklist loaded.  %d entries total.  %d read in, %d ignored, %d custom netmasks.", 
+                        i_loop_chk, mudstate.blacklist_cnt, i_invalid, i_maskcnt));
          free_lbuf(s_buff);
          fclose(f_in);
          break;

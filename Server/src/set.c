@@ -9,6 +9,7 @@ char *index(const char *, int);
 
 #include "mudconf.h"
 #include "config.h"
+#include "command.h"
 #include "db.h"
 #include "match.h"
 #include "interface.h"
@@ -27,6 +28,7 @@ extern dbref    FDECL(match_thing, (dbref, char *));
 extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int));
 extern int count_chars(const char *, const char c);
 static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
+extern double safe_atof(char *);
 
 int
 allowed_to_lock( dbref player, int aflags, int key)
@@ -145,84 +147,134 @@ dbref	mat;
 	}
 }
 
-void do_name(dbref player, dbref cause, int key, const char *name, 
-		const char *newname)
+void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 {
-dbref	thing;
-int	i_chk1, i_chk2;
-char	*buff;
+   dbref thing;
+   int i_chk1, i_chk2, i_ansi;
+   char *buff, *buff2, *s_namebuff, *s_tmp;
+   CMDENT *cmdp;
 
-	if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
-		return;
+   if ((thing = match_controlled_or_twinked(player, name)) == NOTHING) {
+      return;
+   }
 
-	/* check for bad name */
-	if (*newname == '\0') {
-		notify_quiet(player, "Give it what new name?");
-		return;
-	}
+   /* check for bad name */
+   if (*newname == '\0') {
+      notify_quiet(player, "Give it what new name?");
+      return;
+   }
 
-	if ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
-		(Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
-	  notify(player, "Permission denied.");
-	  return;
-	}
+   if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
+        (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
+      notify(player, "Permission denied.");
+      return;
+   }
 
-        i_chk1 = i_chk2 = 0;
-	/* check for renaming a player */
-	if (isPlayer(thing)) {
-		buff = trim_spaces((char *)strip_all_special(newname));
-                i_chk1 = protectname_check(Name(thing), player, 0);
-                i_chk2 = protectname_check(buff, player, 0);
-		if (!ok_player_name(buff) || !i_chk2 ||
-			   !badname_check(buff, player)) {
-			notify_quiet(player, "You can't use that name.");
-			free_lbuf(buff);
-			return;
-		} else if (string_compare(buff, Name(thing)) &&
-			   (lookup_player(NOTHING, buff, 0) != NOTHING)) {
+   i_ansi = 0;
+   if ( key & NAME_ANSI ) {
+      cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+      if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+         notify(player, "Permission denied.");
+         return;
+      }
+      i_ansi = 1;
+   }
+   s_namebuff = alloc_lbuf("do_name_ansi");
+   s_tmp = alloc_lbuf("do_name_tmpbuf");
+   sprintf(s_tmp, "#%d", thing);
+   strcpy(s_namebuff, strip_all_special(newname));
 
-			/* string_compare allows changing foo to Foo, etc. */
+   i_chk1 = i_chk2 = 0;
+   /* check for renaming a player */
+   if ( isPlayer(thing) ) {
+      buff = trim_spaces((char *)s_namebuff);
+      buff2 = trim_spaces((char *)newname);
+      i_chk1 = protectname_check(Name(thing), player, 0);
+      i_chk2 = protectname_check(buff, player, 0);
+      if (!ok_player_name(buff) || !i_chk2 || !badname_check(buff, player)) {
+         notify_quiet(player, "You can't use that name.");
+         free_lbuf(buff);
+         free_lbuf(buff2);
+         free_lbuf(s_namebuff);
+         free_lbuf(s_tmp);
+         return;
+      } else if (string_compare(buff, Name(thing)) && (lookup_player(NOTHING, buff, 0) != NOTHING)) {
+         /* string_compare allows changing foo to Foo, etc. */
+         if ( i_chk2 != 2 ) {
+            notify_quiet(player, "That name is already in use.");
+            free_lbuf(buff);
+            free_lbuf(buff2);
+            free_lbuf(s_namebuff);
+            free_lbuf(s_tmp);
+            return;
+         }
+      }
 
-                        if ( i_chk2 != 2 ) {
-			   notify_quiet(player, "That name is already in use.");
-			   free_lbuf(buff);
-			   return;
-                        }
-		}
+      /* everything ok, notify */
+      STARTLOG(LOG_SECURITY,"SEC","CNAME")
+         log_name(thing),
+         log_text((char *)" renamed to ");
+         log_text(buff);
+      ENDLOG
 
-		/* everything ok, notify */
-		STARTLOG(LOG_SECURITY,"SEC","CNAME")
-			log_name(thing),
-			log_text((char *)" renamed to ");
-			log_text(buff);
-		ENDLOG
-		if (Suspect(thing)) {
-			raw_broadcast(0, WIZARD,
-				"[Suspect] %s renamed to %s",Name(thing),buff);
-		}
+      if (Suspect(thing)) {
+         raw_broadcast(0, WIZARD, "[Suspect] %s renamed to %s",Name(thing),buff);
+      }
 
-                if ( i_chk1 != 2 ) {
-		   delete_player_name(thing, Name(thing));
-                }
-		s_Name(thing, buff);
-                if ( i_chk2 != 2 ) {
-		   add_player_name(thing, Name(thing));
-                }
-		if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT))
-			notify_quiet(player, "Name set.");
-		free_lbuf(buff);
-		return;
-	} else {
-		if (!ok_name(newname)) {
-			notify_quiet(player, "That is not a reasonable name.");
-			return;
-		}
+      if ( i_chk1 != 2 ) {
+         delete_player_name(thing, Name(thing));
+      }
 
-		/* everything ok, change the name */
-		s_Name(thing, strip_all_special(newname));
-		if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT))
-			notify_quiet(player, "Name set.");
-	}
+      s_Name(thing, buff);
+
+      if ( i_chk2 != 2 ) {
+         add_player_name(thing, Name(thing));
+      }
+
+      if ( i_ansi ) {
+         s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
+         do_extansi(player, player, 0, s_tmp, buff2);
+      }
+
+      if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
+         notify_quiet(player, "Name set.");
+      }
+      free_lbuf(buff);
+      free_lbuf(buff2);
+      free_lbuf(s_namebuff);
+      free_lbuf(s_tmp);
+      return;
+  } else {
+     if (!ok_name(s_namebuff)) {
+        notify_quiet(player, "That is not a reasonable name.");
+        free_lbuf(s_namebuff);
+        free_lbuf(s_tmp);
+        return;
+     }
+
+     /* everything ok, change the name */
+     s_Name(thing, s_namebuff);
+     if ( i_ansi ) {
+        s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
+        if ( Typeof(thing) == TYPE_EXIT ) {
+           buff2 = newname;
+           while ( buff2 && *buff2 ) {
+             if ( *buff2 == ';' ) {
+                *buff2 = '\0';
+                break;
+             }
+             buff2++;
+           }
+        }
+        do_extansi(player, player, 0, s_tmp, newname);
+     }
+     if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
+        notify_quiet(player, "Name set.");
+     }
+  }
+  free_lbuf(s_namebuff);
+  free_lbuf(s_tmp);
 }
 
 /* ---------------------------------------------------------------------------
@@ -284,6 +336,9 @@ char	*oldalias, *trimalias;
 			atr_add(thing, A_ALIAS, trimalias, Owner(player),
 				aflags);
 			if (add_player_name(thing, trimalias)) {
+				if ( strchr(trimalias, ';') != NULL ) {
+					notify_quiet(player, "Warning: ';' detected.  If you want multiple aliases, use @protect.");
+				}
 				if (!Quiet(player))
 					notify_quiet(player, "Alias set.");
 			} else {
@@ -949,8 +1004,8 @@ ATTR	*attr;
          buff2 = alloc_lbuf("global_attr_chk");
          atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
          if ( *buff2 ) {
-            buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
+            buff2ret = cpuexec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
+                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
             if ( atoi(buff2ret) == 0 ) {
                free_lbuf(buff2);
                free_lbuf(buff2ret);
@@ -1503,7 +1558,7 @@ int     ibf = -1;
 		buff=alloc_lbuf("do_set");
 
 		/* check for _ */
-		if (*p == '_') {
+		if (*p == '_' && !(key & SET_STRICT)) {
 			strcpy(buff, p + 1);
 			if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
 			    (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
@@ -1775,7 +1830,7 @@ int	aflags;
 
 	/* Get the named attribute from the object if we can */
 
-	attr = atr_str(str);
+	attr = atr_str_parseatr(str);
 	free_lbuf(buff);
 	if (!attr) {
 		*atr = NOTHING;
@@ -1827,17 +1882,16 @@ int	aflags;
 
 	/* Get the named attribute from the object if we can */
 
-	attr = atr_str(str);
+	attr = atr_str_parseatr(str);
 	free_lbuf(buff);
 	if (!attr) {
 		*atr = NOTHING;
 	} else {
-		atr_pget_info(*thing, attr->number, &aowner, &aflags);
-		if (!See_attr(player, *thing, attr, aowner, aflags, 1)) {
-			*atr = NOTHING;
-		} else {
-			*atr = attr->number;
-		}
+		*atr = attr->number;
+  		atr_pget_info(*thing, attr->number, &aowner, &aflags);
+  		if (!See_attr(player, *thing, attr, aowner, aflags, 1)) {
+  			*atr = NOTHING;
+  		}
 	}
 	return 1;
 }
@@ -1861,7 +1915,7 @@ int	ca, ok, aflags, i_nowild;
         }
 	atr_push();
 	for (ca=atr_head(thing, &as); ca; ca=atr_next(&as)) {
-		attr = atr_num(ca);
+		attr = atr_num_pinfo(ca);
 
 		/* Discard bad attributes and ones we've seen before. */
 
@@ -1970,7 +2024,7 @@ ATTR	*attr;
 
         if ( check_cluster ) {
 		check_exclude = 0;
-		attr = atr_str("_CLUSTER");
+		attr = atr_str_atrpeval("_CLUSTER");
                 if ( attr ) {
                    s_text = atr_get(*thing, attr->number, &aowner, &aflags);
                    if ( *s_text ) {
@@ -2100,11 +2154,11 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                    if ( i_compat == 2 ) {
                       *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
                                              (i_redeye ? ANSI_RED : ANSI_HILITE),
-                                             to, ANSI_NORMAL), src, i_type, i_compat);
+                                             to, ANSI_NORMAL), src, i_type);
                    } else {
                       *rdst = replace_string(from, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s", 
                                              (i_redeye ? ANSI_RED : ANSI_HILITE),
-                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type, i_compat);
+                                             strip_all_ansi(to), ANSI_NORMAL), src, i_type);
                    }
 #endif
                    free_lbuf(tpr_buff);
@@ -2416,13 +2470,352 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    }
 }
 
+/* @rollback <steps> [= <args>]   @rollback/label <label>|<steps> [=<args>]
+   @rollback <steps>/<count> [= <args>]   @rollback/label <label>|<steps>/<count> [= <args>]
+   @rollback/retry <boolean> [= <args>]   @rollback/retry/label <label>|<boolean> [= <args>]
+   @rollback/wait <steps>/<count>[</wait-value>] [= <args>]   @rollback/wait/label <label>|<steps>/<count>[</wait-value>] [= <args>]  
+*/
+void do_rollback(dbref player, dbref cause, int key, char *in_string,
+                 char *argv[], int nargs, char *cargs[], int ncargs)
+{
+   char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_teval[10], *s_store[10], *t_string, 
+        *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
+        labelorig[16], labelbak[16];
+   int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
+       i_waitcnt, i_waitfirst, i_dolabel, i_gotostate, i_orig, i_chkinline;
+   double i_wait;
+   time_t  i_now;
+
+   if ( !*(mudstate.rollback) ) {
+      return;
+   }
+
+   string = in_string;
+   i_dolabel = 0;
+   if ( key & ROLLBACK_LABEL ) {
+      if ( (string = strchr(string, '|')) != NULL ) {
+         *string = '\0';
+         string++;
+         i_dolabel = 1;
+         i_gotostate = mudstate.gotostate;
+         mudstate.gotostate = 1;
+         memset(mudstate.gotolabel,'\0',16);
+         memset(labelorig, '\0', 16);
+         memset(labelbak, '\0', 16);
+         strncpy(labelbak, mudstate.gotolabel, 15);
+         strncpy(mudstate.gotolabel, in_string, 15);
+      } else {
+         notify_quiet(player, "@rollback/label expects a label");
+         return;
+      }
+   }
+
+   i_rollbackstate = mudstate.rollbackstate;
+   mudstate.rollbackstate = 1;
+   i_jump = mudstate.jumpst;
+   i_rollbackcnt = mudstate.rollbackcnt;
+   t_string = alloc_lbuf("do_rollback_string");
+   strcpy(t_string, string);
+
+   s_tmp = exec(player, cause, cause, EV_EVAL | EV_FCHECK, t_string, cargs, ncargs, (char **)NULL, 0);
+
+   if ( key & ROLLBACK_RETRY ) {
+      if ( atoi(s_tmp) != 0 ) {
+         i_step = i_rollbackcnt;
+         i_count = mudconf.rollbackmax;
+      } else {
+         i_step = 0;
+         i_count = 0;
+      }
+   } else if ( key & ROLLBACK_WAIT ) {
+      /* @wait state is handled differently */
+      if ( i_dolabel ) {
+         mudstate.gotostate = i_gotostate;
+         strncpy(mudstate.gotolabel, labelbak, 15);
+      }
+      i_step = atoi(s_tmp);
+      i_count = 1;
+      if ( (cp = strchr(s_tmp, '/')) != NULL ) {
+         i_count = atoi(cp+1);
+      } 
+
+      if ( (i_step <= 0) || (i_count <= 0) ) {
+         free_lbuf(t_string);
+         mudstate.rollbackstate = i_rollbackstate;
+         free_lbuf(s_tmp);
+         return; 
+      }
+
+      if ( i_count > mudconf.rollbackmax ) {
+         i_count = mudconf.rollbackmax;
+      }
+ 
+      i_wait = 0;
+      if ( cp && (cp2 = strchr(cp+1, '/')) != NULL ) {
+         i_wait = safe_atof(cp2+1);
+      }
+
+      if ( i_wait < 0 ) {
+         free_lbuf(t_string);
+         mudstate.rollbackstate = i_rollbackstate;
+         free_lbuf(s_tmp);
+         return; 
+      }
+      /* Grab the command stack and populate it here */
+      s_buff = alloc_lbuf("do_rollback_wait");
+      s_waitbuffptr = s_waitbuff = alloc_lbuf("do_rollback_waitbuff");
+      strcpy(s_buff, mudstate.rollback);
+      s_buffptr = s_buff;
+      i_waitfirst = 0;
+      if ( i_dolabel ) {
+         safe_str("@goto ", s_waitbuff, &s_waitbuffptr);
+         safe_str(in_string, s_waitbuff, &s_waitbuffptr);
+         i_waitfirst = 1;
+      }
+
+      i_waitcnt = 0;
+      while ( s_buffptr ) {
+         if ( i_waitcnt < (mudstate.rollbackcnt - i_step - 1)) {
+            cp = parse_to(&s_buffptr, ';', 0);
+         } else {
+            break;
+         }
+         i_waitcnt++;
+      }
+
+      while ( s_buffptr ) {
+         if ( i_waitcnt < (mudstate.rollbackcnt - 1) ) {
+            if ( i_waitfirst ) {
+               safe_chr(';', s_waitbuff, &s_waitbuffptr);
+            }
+            cp = parse_to(&s_buffptr, ';', 0);
+            safe_str(cp, s_waitbuff, &s_waitbuffptr);
+            i_waitfirst = 1;
+         } else {
+            break;
+         }
+         i_waitcnt++;
+      }
+
+      if ( *s_waitbuff ) {
+         for (i = 0; i < 10; i++ ) {
+            s_store[i] = alloc_lbuf("do_rollback_store");
+            s_eval[i] = alloc_lbuf("do_rollback_args");
+            s_teval[i] = alloc_lbuf("do_rollback_stackbuff");
+            *s_eval[i] = '\0';
+            if ( (i < ncargs) && cargs[i] ) {
+               strcpy(s_eval[i], cargs[i]);
+            }
+         }
+         while ( i_count > 0 ) {
+            for (i = 0; i < 10; i++ ) {
+               if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
+                  strcpy(s_store[i], argv[i]);
+                  s_tmp2 = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
+                  strcpy(s_teval[i], s_tmp2);
+                  free_lbuf(s_tmp2);
+                  if ( mudstate.chkcpu_toggle ) {
+                     break;
+                  }
+               }
+            }
+            for ( i = 0; i < 10; i++ ) {
+               strcpy(s_eval[i], s_teval[i]);
+            }
+            if ( mudstate.chkcpu_toggle ) {
+               break;
+            }
+            wait_que(player, cause, i_wait, NOTHING, s_waitbuff, s_eval, 10, mudstate.global_regs, mudstate.global_regsname);
+            i_count--;
+            if ( i_count > 0 ) {
+               strcpy(t_string, string);
+               s_tmp2 = exec(player, cause, cause, EV_EVAL | EV_FCHECK, t_string, s_eval, 10, (char **)NULL, 0);
+               if ( (cp = strchr(s_tmp2, '/')) != NULL ) {
+                  cp2 = strchr(cp+1, '/');
+               }
+               if ( cp2 ) {
+                  i_wait = safe_atof(cp2+1);
+               }
+               free_lbuf(s_tmp2);
+               if ( i_wait < 0 ) {
+                  break;
+               }
+            }
+         }
+         for (i = 0; i < 10; i++ ) {
+            free_lbuf(s_eval[i]);
+            free_lbuf(s_teval[i]);
+            free_lbuf(s_store[i]);
+         }
+      }
+      free_lbuf(s_waitbuff);
+      free_lbuf(s_buff);
+      free_lbuf(s_tmp);
+      free_lbuf(t_string);
+      mudstate.rollbackstate = i_rollbackstate;
+      return; /* Wait is special condition */
+   } else {
+      i_step = atoi(s_tmp);
+      i_count = 1;
+      if ( strchr(s_tmp, '/') != NULL ) {
+         i_count = atoi(strchr(s_tmp, '/')+1);
+      } 
+  
+      if ( (i_step <= 0) || (i_count <= 0) ) {
+         free_lbuf(t_string);
+         mudstate.rollbackstate = i_rollbackstate;
+         free_lbuf(s_tmp);
+         return; 
+      }
+      if ( i_count > mudconf.rollbackmax ) {
+         i_count = mudconf.rollbackmax;
+      }
+   }
+   free_lbuf(s_tmp);
+
+   for (i = 0; i < 10; i++ ) {
+      s_store[i] = alloc_lbuf("do_rollback_store");
+      s_teval[i] = alloc_lbuf("do_rollback_stackbuff");
+      if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
+         strcpy(s_store[i], argv[i]);
+         s_eval[i] = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], cargs, ncargs, (char **)NULL, 0);
+      } else {
+         s_eval[i] = alloc_lbuf("do_rollback_args");
+         *s_eval[i] = '\0';
+         if ( (i < ncargs) && cargs[i] ) {
+            strcpy(s_eval[i], cargs[i]);
+         }
+      }
+   }
+
+   s_buff = alloc_lbuf("do_rollback");
+
+   i_orig = mudstate.chkcpu_toggle;
+   i_chkinline = mudstate.chkcpu_inline;
+   sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@rollback");
+   if ( mudstate.chkcpu_inline ) {
+      i_now = mudstate.now;
+   } else {
+      i_now = time(NULL);
+   }
+   mudstate.chkcpu_inline = 1;
+   while ( !mudstate.chkcpu_toggle && (i_count > 0) ) {
+      strcpy(s_buff, mudstate.rollback);
+      s_buffptr = s_buff;
+      i_loop = 0;
+      mudstate.rollbackcnt = i_rollbackcnt - i_step - 1;
+      if ( mudstate.rollbackcnt < 0 )
+         mudstate.rollbackcnt = 0; 
+      mudstate.jumpst = 0;
+      mudstate.gotostate = 0;
+      if ( i_dolabel ) {
+         mudstate.gotostate = 1;
+      }
+      while (s_buffptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
+         i_loop++;
+         cp = parse_to(&s_buffptr, ';', 0);
+         if ( !cp )
+            break;
+         if ( i_loop < (i_rollbackcnt - i_step) ) 
+            continue; 
+         if ( i_loop >= i_rollbackcnt )
+            break;
+         if (cp && *cp) {
+            process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook);
+         }
+         if ( time(NULL) > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
+            notify(player, "@rollback:  Aborted for high utilization.");
+            mudstate.breakst=1;
+            mudstate.chkcpu_toggle =1;
+            break;
+         }
+      }
+      mudstate.jumpst = i_jump;
+      if ( mudstate.chkcpu_toggle )
+         break;
+      i_count--;
+
+      if ( i_count > 0 ) {
+         if ( i_dolabel) {
+            strncpy(mudstate.gotolabel, in_string, 15);
+            mudstate.gotostate = 1;
+         }
+         if ( (i_step <= 0) ) {
+            free_lbuf(t_string);
+            free_lbuf(s_buff);
+            mudstate.rollbackcnt = i_rollbackcnt;
+            mudstate.rollbackstate = i_rollbackstate;
+            mudstate.jumpst = i_jump;
+            for (i = 0; i < 10; i++ ) {
+               free_lbuf(s_eval[i]);
+               free_lbuf(s_teval[i]);
+               free_lbuf(s_store[i]);
+            }
+            if ( i_dolabel ) {
+               mudstate.gotostate = i_gotostate;
+               strncpy(mudstate.gotolabel, labelbak, 15);
+            }
+            return; 
+         }
+
+         if ( key & ROLLBACK_RETRY ) {
+            strcpy(t_string, string);
+            s_tmp = exec(player, cause, cause, EV_EVAL | EV_FCHECK, t_string, s_eval, 10, (char **)NULL, 0);
+            if ( atoi(s_tmp) == 0 ) {
+               i_step = 0;
+               i_count = 0;
+               free_lbuf(s_tmp);
+               break;
+            }
+            free_lbuf(s_tmp);
+         }
+         if ( mudstate.chkcpu_toggle )
+            break;
+         for (i = 0; i < 10; i++ ) {
+            if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
+               strcpy(s_store[i], argv[i]);
+               s_tmp = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
+               strcpy(s_teval[i], s_tmp);
+               free_lbuf(s_tmp);
+               if ( mudstate.chkcpu_toggle )
+                  break;
+            }
+         }
+         for (i = 0; i < 10; i++ ) {
+            strcpy(s_eval[i], s_teval[i]);
+         }
+         if ( mudstate.chkcpu_toggle )
+            break;
+      }
+
+   }
+   mudstate.chkcpu_inline = i_chkinline;
+   mudstate.chkcpu_toggle = i_orig;
+   free_lbuf(s_buff);
+   free_lbuf(t_string);
+   for (i = 0; i < 10; i++ ) {
+      free_lbuf(s_eval[i]);
+      free_lbuf(s_teval[i]);
+      free_lbuf(s_store[i]);
+   }
+   if ( i_dolabel ) {
+      mudstate.gotostate = i_gotostate;
+      strncpy(mudstate.gotolabel, labelbak, 15);
+   }
+   mudstate.rollbackcnt = i_rollbackcnt;
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackstate = i_rollbackstate;
+
+}
+
 void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
    dbref thing, owner, target;
-   int attrib, flags, i, x, i_savebreak;
+   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline;
    time_t  i_now;
-   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS];
+   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS],
+        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
 
    if ( desc_in_use != NULL ) {
       notify_quiet(player, "You can not use @include at command line.");
@@ -2489,16 +2882,35 @@ void do_include(dbref player, dbref cause, int key, char *string,
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
+         saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
+         npt = saveregname[x];
          safe_str(mudstate.global_regs[x],savereg[x],&pt);
+         safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
          if ( key & INCLUDE_CLEAR ) {
             *mudstate.global_regs[x] = '\0';
+            *mudstate.global_regsname[x] = '\0';
          }
       }
    }
    i_savebreak = mudstate.breakst;
-   i_now = mudstate.now;
-   while (buff1ptr && !mudstate.breakst) {
+   if ( mudstate.chkcpu_inline ) {
+      i_now = mudstate.now;
+   } else {
+      i_now = time(NULL);
+   }
+   s_rollback = alloc_lbuf("s_rollback_include");
+   strcpy(s_rollback, mudstate.rollback);
+   i_jump = mudstate.jumpst;
+   i_rollback = mudstate.rollbackcnt;
+   mudstate.rollbackcnt = mudstate.jumpst = 0;
+   if ( buff1ptr ) {
+      strcpy(mudstate.rollback, buff1ptr);
+   }
+   chk_tog = mudstate.chkcpu_toggle;
+   i_chkinline = mudstate.chkcpu_inline;
+   mudstate.chkcpu_inline = 1;
+   while (buff1ptr && !mudstate.breakst && !mudstate.chkcpu_toggle) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook);
@@ -2511,11 +2923,20 @@ void do_include(dbref player, dbref cause, int key, char *string,
          break;
       }
    }
+   mudstate.chkcpu_toggle = chk_tog;
+   mudstate.chkcpu_inline = i_chkinline;
+   mudstate.jumpst = i_jump;
+   mudstate.rollbackcnt = i_rollback;
+   strcpy(mudstate.rollback, s_rollback);
+   free_lbuf(s_rollback);
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
          pt = mudstate.global_regs[x];
+         npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);
+         safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
          free_lbuf(savereg[x]);
+         free_sbuf(saveregname[x]);
       }
    }
    free_lbuf(buff1);

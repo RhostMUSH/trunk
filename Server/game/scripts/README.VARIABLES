@@ -1,0 +1,81 @@
+Mush variables are as follows:
+
+----------------------------------------------------------- Built in variables:
+Variable                   Description
+MUSH_PLAYER                player dbref# 
+MUSH_CAUSE                 cause dbref#
+MUSH_CALLER                caller dbref#
+MUSH_OWNER                 owner of player dbref#
+MUSH_FLAGS                 space delimited list of flags on player
+MUSH_TOGGLES               space delimited list of toggles on player
+MUSH_OFLAGS                space delimited list of flags of player owner
+MUSH_OTOGGLES              space delimited list of toggles of player owner
+MUSHL_VARS                 space delimited list of MUSH attributes from player
+                           This is passed from the mush's EXECSCRIPT_VARS attr
+----------------------------------------------------------- Dynamic variables:
+MUSHV_<arg>                <arg> variable passed from MUSHL_VARS
+                           These are the attributes from EXECSCRIPT_VARS
+----------------------------------------------------------- Register variables:
+MUSHQ_<arg>                setq registers 0-9 and a-z
+MUSHQN_<arg>               labels that are assigned the setq vars
+MUSHN_<arg>                The labels that were defined by any register
+                           Note: they must be ASCII-7 clean and contain no
+                                 white spaces
+
+
+The script executed with execscript() will read in a file with the same name
+as the script ending in '.set'.  This is a loader object that will set attributes
+and registers back into the mush that you wish to pass from the script. The
+fields are SPACE SEPARATED.  The values are NOT evaluated.
+
+The format of the fields are:
+----------------------------------------------------------- Dynamic variables:
+VARNAME        OWNER        CONTENTS (or leave null to clear)
+
+Examples:
+SEX #123 Male
+DESC #123 %r%tThis is a willow tree of unique description%r%rIt sways in the wind.
+RED #123 This is the color %ch%crred%cn.
+WIPETHISATTR #123
+MULTILINE #123 This is a line
+that continues on
+because of the line feed
+on the lines above
+
+----------------------------------------------------------- Register variables:
+REGISTER       Q            CONTENTS (or leave null to clear)
+
+Examples: (The last example clears register 0)
+W Q This is stored in register W
+1 Q This is stored in register 1
+0 Q
+foo QN this sets register with label 'foo'
+
+
+Example bash script:---------------------------------------------------------
+
+#!/bin/bash
+echo "This was called by player ${MUSH_PLAYER} that is owned by ${MUSH_OWNER}"
+echo "Displaying Registers:"
+regs="0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
+for list in ${regs}
+do
+   eval echo "Register ${list}: \${MUSHQ_${list}}"
+done
+echo "Displaying variables:"
+for vars in ${MUSHL_VARS}
+do
+    eval echo "Variable ${vars}: \${MUSHV_${vars}}"
+done
+
+
+Notes and warnings:--------------------------------------------------------
+
+While MUSHL_VARS are sanitized on what is allowable as a mush variable, this
+is not necessarilly sanitized on what the calling script can fetch as a valid
+variable.  Of note, you can not set environment variables that contain an
+equals sign.  Be aware of this limitation.
+
+Remember, MUSHL_VARS is the environment variable seen by the script.
+This is EXECSCRIPT_VARS on the mush itself, that is the attribute set
+on the target that contains the execscript() that is being executed.

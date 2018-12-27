@@ -1,0 +1,140 @@
+Ok.  Your database won't come up.
+
+If you are reading this, then likely the scenerio is one of the following:
+
+1.  The mush says it can't find your database files.
+2.  The mush says it can't read or load your database files.
+3.  The mush seems to load fine but I can't log in anyone and when I do
+    all the names and attributes of things seem to be gone!
+4.  Bringing up your mail database
+
+
+First thing is first.  Don't have a panic attack.
+
+------------------------------------------------------------------------
+For #1:
+
+A.  Check the names of the database files in your 'data' directory.
+
+They should be named something like:
+netrhost.db
+netrhost.db.old
+netrhost.db.old.prev
+netrhost.gdbm.dir
+netrhost.gdbm.pag
+
+And you may see a netrhost.db.flat
+
+B.  Next, check your netrhost.conf file.
+If you never touched the *database or muddb_name params, you should be good.
+
+Verify your *database params (and muddb_name) are still set to 'netrhost' as 
+part of the name.  Ergo, the default values and you didn't change them.  
+These should match up with the filenames in your data directory.
+
+If these names do not match up, it can't find the database files to load.
+So you shouldn't have to change these names, ever. :)
+
+C.  Next, check your mush.config file.
+If you never modified this file, you should be good.
+
+The gamename should be 'netrhost' for this file.  This does NOT control
+the name of your game.  This controls the name of all the files 
+as associated to the mush.  So changing this means the netrhost.conf
+file, all your database files, and so forth.  Please don't change this :)
+
+------------------------------------------------------------------------
+For #2:
+
+Double check #1.  Make sure everything is named properly.
+
+A.  Verify you have enough disk space. (quota)
+
+Some account have a limited quota to run in.  If you reached or exceed
+your disk quota, you can have a corrupted database.  So always keep
+your eye on the size.  quota -s to see a human readable format to see
+how much quota you have left.  You want to make sure current in use is
+below the 'grace' and soft/hard limits shown.  If not, you're out of
+space.
+  
+You will need to remove some files before you repair and bring up your
+mush again.  Try to keep your quota at least 200 megs free to allow
+plenty of wonderful growth space for the mush.
+
+B.  Verify you have enough disk space.  (system)
+
+The second way you can run out of disk space is by the filesystem itself.
+do a df -h . in your 'game' directory'.  That is df -h <period>.
+This will return how much disk space is being used and how much remains.
+If it shows 100% used, you're out of disk space and the db is corrupt.
+
+At this point, you're pretty screwed.  You can see if anything exists
+in your system to free up some space, but if the filesystem itself
+is filled, reach out to the owner of the server and let them know.
+It's a much bigger deal than just your mush if that's the case.
+
+Until this issue is resolved, you can not repair and bring up your mush.
+No disk to run the game.
+
+
+------------------------------------------------------------------------
+For #3:
+
+Ok, at this point you likely had your mush up when the physical server
+went down hard.  Weither through an emergency shutdown or a physical
+power outage, your db likely was brought down hard during a write,
+so it left it in a corrupt state.  These things happen.  This is
+why we always strongly request you make daily flatfile dumps.
+
+So, to recover your database.
+
+A.  The bad news
+
+If you have no flatfile backup or never bothered with backups?
+I'm sorry, at this point you're SOA.  There's no easy way to
+recover a corrupted binary database.  If you absolutely need
+data out of it we may be able to help you to piece meal things
+out of it, but otherwise it's a lost cause.  You'll have to start
+over from scratch.  I'm sorry.
+
+B.  The good news
+If you made backups, or if the server had a normal shutdown, you
+likely have a flatfile backup.  You will see a netrhost.db.flat
+in either the 'data' directory or 'prevflat' directory.  That
+is your manual flatfile backup.
+
+If the server had a normal shutdown, you will see a file called
+netrhost.db.TERMFLAT.  This is a scram-emergency db flatfile.
+It attempts to write this at the time of server shutdown to
+hopefully keep a clean backup in the case of issues since
+it identifies the server is coming down hard.  Make sure
+if you plan to use the TERMFLAT as your recovery flatfile
+that the very last line shows something like ** END OF DUMP **.
+That shows you had a successful backup.
+
+Now, to restore your database?
+Please refer to the file 'README.DBLOADING'.
+
+------------------------------------------------------------------------
+For #4:
+
+Your mail db may or may not come up at this point.  
+
+A.  If your mail database came up and does not show 
+    'Mail: mail is currently off' then you should be good to go.
+
+Please issue: 
+wmail/fix
+wmail/lfix
+
+This will put your mail system in sync with your current database and
+fix up any errors that may exist.  wmail/fix fixes the mail, wmail/lfix
+loads in the fixes.
+
+B.  If your mail database is not up and shows
+    'Mail: mail is currently off' then your mail db is currupt.
+
+To fix your mail db please refer to file 'README.MAILCANNOTLOAD'
+
+
+Best of luck!

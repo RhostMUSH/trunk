@@ -9,18 +9,12 @@ gdbmdir= ./src/gdbm-1.8.3/
 qdbmdir= ./src/qdbm/
 bindir = ./bin
 
-CHK = $(shell uname -s|grep -ic "bsd")
-CHK2 = $(shell gmake --version|grep -ic "GNU")
-ifeq "$(CHK)" "1"
-   ifeq "$(CHK2)" "0"
-      MAKE=make
-   else
-      MAKE=gmake
-   endif
-else
+CHK = $(shell gmake --version 2>/dev/null|grep -ic "GNU")
+ifeq "$(CHK)" "0"
    MAKE=make
+else
+   MAKE=gmake
 endif
-
 
 all: instructions
 
@@ -33,6 +27,9 @@ instructions:
 	@echo "make confsource"
 	@echo "   This ties 'config' and 'source' together into a single"
 	@echo "   command, for ease of use."
+	@echo "make default"
+	@echo "   This auto-configures the most commonly used default values"
+	@echo "   If you don't want to use the menu this can get you running"
 	@echo "make source"
 	@echo "   If you have a source code included distribution, then this"
 	@echo "   will cause rhost to get compiled"
@@ -70,6 +67,15 @@ instructions:
 	@echo
 config:
 	@(cd $(bindir) ; ./asksource.sh)
+default:
+	@(cd $(bindir) ; ./asksource.sh default)
+	@(cd $(srcdir) ; ./do_compile.sh)
+	(cd $(srcdir) ; $(MAKE))
+	@echo
+	@echo " *******************************************************"
+	@echo "  If the build succeeded you might want to 'make links' " 
+	@echo " *******************************************************"
+	@echo 
 confsource: config source
 	@echo
 source:

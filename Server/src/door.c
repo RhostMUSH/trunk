@@ -233,7 +233,7 @@ static int addDoor(const char *doorName,
   if (pFnInit) {
     if (pFnInit() < 0) {
       LOGTEXT("ERR", -1, 
-	      unsafe_tprintf("Could not initialize door '%s'\n", doorName));
+	      unsafe_tprintf("Could not initialize door '%s'\r\n", doorName));
       goto error;
     }
   }
@@ -242,7 +242,7 @@ static int addDoor(const char *doorName,
     if (pFnOpen(gaDoors[gnDoors]->pDescriptor, 0, NULL, gnDoors) < 0) {
       gaDoors[gnDoors]->doorStatus = OFFLINE_e;
       LOGTEXT("ERR", -1,
-	      unsafe_tprintf("Failed to open internal door '%s'\n", doorName));
+	      unsafe_tprintf("Failed to open internal door '%s'\r\n", doorName));
     }
   }
 
@@ -478,7 +478,7 @@ int process_door_input(DESC * d)
       *pt = '\0';
       if ((strlen(d->door_raw) + strlen(buf)) < LBUF_SIZE - sizeof(CBLKHDR) -2) {
 	strcat(d->door_raw,buf);
-	strcat(d->door_raw,"\n");
+	strcat(d->door_raw,"\r\n");
 	save_door(d,d->door_raw);
 	if (*(pt+1) == '\0') {
 	  free_lbuf(d->door_raw);
@@ -498,9 +498,9 @@ int process_door_input(DESC * d)
       }
     }
   }
-  if ((strlen(buf) < LBUF_SIZE - sizeof(CBLKHDR) -1) && (*(buf + got - 1) == '\n'))
+  if ((strlen(buf) < LBUF_SIZE - sizeof(CBLKHDR) -1) && (*(buf + got - 1) == '\n')) {
     save_door(d, buf);
-  else {
+  } else {
     pt = buf + got -2;
     while ((*pt != '\n') && (pt > buf))
       pt--;
@@ -558,12 +558,12 @@ void queue_door_string(DESC *d, const char *s, int addnl)
 	len = strlen(new);
 	if (addnl) {
 	  if (len >= LBUF_SIZE-1) {
+	    *(new + LBUF_SIZE - 2) = '\r';
 	    *(new + LBUF_SIZE - 1) = '\n';
 	    *(new + LBUF_SIZE) = '\0';
 	    len = LBUF_SIZE - 1;
-	  }
-	  else {
-	    strcat(new, "\n");
+	  } else {
+	    strcat(new, "\r\n");
 	    len++;
 	  }
 	}
@@ -762,7 +762,7 @@ void openDoor(dbref player,
     } else {
        notify(player, "Only players can open a door.");
     }
-  } else if (desc_in_use->flags & DS_HAS_DOOR) {
+  } else if (desc_in_use && (desc_in_use->flags & DS_HAS_DOOR) ) {
     if ( player != cause ) {
        notify(cause, "Target already has a door open on the attempted connection.");
     } else {

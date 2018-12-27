@@ -37,6 +37,7 @@ extern int shutdown_flag; /* if non-zero, interface should shut down */
 #define R_REBOOT	10	/* @reboot done */
 #define R_HACKER        11      /* User tried to hack connect screen */
 #define R_NODESCRIPTOR  12      /* No 'free' descriptors - actually buffer zone */
+#define R_API		13	/* API Connection */
 
 extern NAMETAB logout_cmdtable[];
 
@@ -155,6 +156,7 @@ struct descriptor_data {
 #define DS_AUTH_CONNECTING      0x0040          /* AUTH doing non-blocking connect */
 #define DS_HAVEpFX		0x0080		/* Target has prefix */
 #define DS_HAVEsFX		0x0100		/* Target has suffix */
+#define DS_API			0x0200		/* Target is an API handler */
 
 extern DESC *descriptor_list;
 extern DESC *desc_in_use;

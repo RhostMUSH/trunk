@@ -265,6 +265,7 @@ void local_mysql_init(void) {
   /* Add the commands to the command table */
   for (cmdp = mysql_cmd_table; cmdp->cmdname; cmdp++) {
     cmdp->cmdtype = CMD_LOCAL_e;
+    cmdp->hookmask = 0;
     hashadd(cmdp->cmdname, (int *) cmdp, &mudstate.command_htab);
   }
 
@@ -377,6 +378,35 @@ static int sql_init(dbref player) {
      } \
  }
  
+/* Borrowed from PennMUSH */
+static void
+free_sql_query(MYSQL_RES *qres)
+{
+   int affected_rows = 0;
+
+   /* Read in anything else to clear the query */
+   while (mysql_fetch_row(qres))
+      ;
+
+   /* Free the query */
+   mysql_free_result(qres);
+
+   if ( affected_rows)
+   ;
+
+   while (mysql_more_results(mysql_struct)) {
+      affected_rows = mysql_affected_rows(mysql_struct);
+      /***************************************************************************
+       * We are assuming the first result is the only result we wanted. After all,
+       * we do not support multi-query or multiple results.
+       * As such, we're cleaning the rest up with empty strings - just so we can
+       * free the remaining results from the structure.
+       ***************************************************************************/
+      mysql_next_result(mysql_struct);
+   }
+}
+
+
 static int sql_query(dbref player, 
 		     char *q_string, char row_delim, char field_delim, char *buff, char **bp) {
   MYSQL_RES *qres;
@@ -557,7 +587,8 @@ static int sql_query(dbref player,
   qres = mysql_store_result(mysql_struct);
   got_rows = mysql_num_rows(qres);
   if (got_rows == 0) {
-    mysql_free_result(qres);
+/*  mysql_free_result(qres); */
+    free_sql_query(qres);
     free_lbuf(tpr_buff);
     return 0;
   }
@@ -618,7 +649,8 @@ static int sql_query(dbref player,
   numRowsRetrieved += got_rows;
   queryCount++;
 
-  mysql_free_result(qres);
+/*  mysql_free_result(qres); */
+  free_sql_query(qres);
   free_lbuf(tpr_buff);
   return 0;
 }

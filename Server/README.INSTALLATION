@@ -57,11 +57,11 @@ I.    What RhostMUSH is about and what's so great about RhostMUSH.
 RhostMUSH was founded in 1989, originally by Natasha Davis (Nyctasia) and as 
 a branch from the original release of TinyMUD code.  It was her desire to make
 a game that was flexible, with multiple levels of progression and highly 
-customizeable.  She lost time and interested and passed the game to 
+customizeable.  She lost time and interest and passed the game to 
 Steve Shivers (Seawolf), Mike McDermott (Thorin), and Jace Hoppel (Ashen-Shugar)
 
 Through their work, the stability improved, we fixed it to be multi-platform
-and as bug free as we could possibly be.  We introduced several methods both 
+and as bug free as we could possibly make it.  We introduced several methods both 
 in game and in source that allowed consistent memory bounds checking and 
 various alerts for any mischievous naughtyness in-game or possibilities of any
 hacks, patches, or alterations in the code causing leaks or issues.  
@@ -122,8 +122,7 @@ not limited to:
 - Titles and Captions to a player's name
   @caption and @titlecaption
 
-- Have an alternate name with locks for NPC 
-  obfuscation.
+- Have an alternate name with locks for NPC obfuscation.
   @altname
   @lock/altname
 
@@ -132,8 +131,7 @@ not limited to:
   name.
   @protect
 
-- Actively control how dark works both game-wide
-  and individually.
+- Actively control how dark works both game-wide and individually.
   @depower dark
   @admin allow_whodark, sweep_dark, command_dark, lcon_checks_dark,
          secure_dark, see_owned_dark, idle_wiz_dark, player_dark
@@ -154,10 +152,10 @@ not limited to:
   @admin sub_override, @hook
 
 - Localize command and function overrides in a sandbox.
-  @icmd, @lfunction
+  @icmd, @lfunction, subeval(), sandbox()
 
 - Have multiple zones which can optionally belong to
-  multiple zones
+  multiple targets (multiple zones per target allowable!)
   @zone, zones, lzone(), zonecmd()
 
 - Optionally control, enable, or disable sideeffects
@@ -190,6 +188,7 @@ not limited to:
   @admin file_object
 
 - Advanced tracing methods for debugging your code including labels!
+  Commands: @label
   Functions: parenmatch(), trace()
   Toggles: CPUTIME
   Flags: TRACE
@@ -224,7 +223,7 @@ The flexibility to customize RhostMUSH is what is most daunting.
 Don't fret, you don't need to do it to run RhostMUSH successfully.
 In fact, the default configuration is mostly compatible with
 MUSH and will work correctly out of the box for most needs.  For those
-wishing to play, of course the sky is the limit of what you wnat to
+wishing to play, of course the sky is the limit of what you want to
 do.  
 
 Have fun!
@@ -269,6 +268,11 @@ If you plan to use 'make confsource' to recompile your source, you should first
 issue a 'make clean' before re-issuing a 'make confsource'.  'make confsource'
 remembers the last options you used.
 
+A failure to issue 'make clean' prior to re-compiling with 'make confsource' or
+re-compiling with 'make source' can potentially leave stale object files which
+may cause unforseen issues when running code, including but not limited to 
+random crashes.  Generally whenever recompiling it's good to always make clean
+first.
 ---------------------- NOTE ABOUT PATCHING    ----------------------------------
 There's two ways you can look to patch the source.  If you plan to run the
 RhostMUSH source from a git repository, then please use the git repo to
@@ -458,7 +462,7 @@ co #1 Nyctasia
 
 --- Create yourself your own immortal player then log off #1 and into this
     immortal player
-    Note: Pick what you wnat for playername and playerpassword
+    Note: Pick what you want for playername and playerpassword
 @pcreate PLAYERNAME=PLAYERPASSWORD
 @set *playername=!wanderer immortal
 

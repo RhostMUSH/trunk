@@ -1,5 +1,6 @@
 /* player.c */
 
+/* This is for Miyo.  Hi Miyo!  --Ash */
 #ifdef SOLARIS
 /* Solaris is stupid on declarations */
 char *index(const char *, int);
@@ -11,6 +12,7 @@ char *index(const char *, int);
 
 #include "mudconf.h"
 #include "config.h"
+#include "command.h"
 #include "db.h"
 #include "interface.h"
 #include "externs.h"
@@ -342,53 +344,55 @@ int totfail, newfail, totsucc;
  * create_player: Create a new player.
  */
 
-dbref create_player(char *name, char *password, dbref creator, int isrobot)
+dbref create_player(char *name, char *password, dbref creator, int isrobot, char *ansiname, int isansi)
 {
-  dbref	player;
-  char	*pbuf;
-  int atr = 0;
+   dbref player;
+   char *pbuf;
+   int atr = 0;
 
-	/* Make sure the password is OK.  Name is checked in create_obj */
+   /* Make sure the password is OK.  Name is checked in create_obj */
 
-	pbuf = trim_spaces(password);
-	if (!ok_password(pbuf, creator, 0)) {
-		free_lbuf(pbuf);
-		return NOTHING;
-	}
+   pbuf = trim_spaces(password);
+   if (!ok_password(pbuf, creator, 0)) {
+      free_lbuf(pbuf);
+      return NOTHING;
+   }
 
-	/* If so, go create him */
+   /* If so, go create him */
 
-	player = create_obj(creator, TYPE_PLAYER, name, isrobot);
-	if (player == NOTHING) {
-		free_lbuf(pbuf);
-		return NOTHING;
-	}
+   player = create_obj(creator, TYPE_PLAYER, name, ansiname, isrobot, isansi);
+   if (player == NOTHING) {
+      free_lbuf(pbuf);
+      return NOTHING;
+   }
 
-	/* initialize everything */
+   /* initialize everything */
 
-	s_Pass(player, mush_crypt(pbuf, 0));
-	s_Home(player, start_home());
-	if (!mudconf.start_build)
-          s_Flags2(player, Flags2(player) | WANDERER);
+   s_Pass(player, mush_crypt(pbuf, 0));
+   s_Home(player, start_home());
+   if (!mudconf.start_build) {
+      s_Flags2(player, Flags2(player) | WANDERER);
+   }
 
 	
-	/* We need to try find the attr... */
-	if (mudconf.guild_attrname[0] != '\0') {
-	   atr = mkattr(mudconf.guild_attrname);
-	   if (atr > 0) {
-	     if ( strlen(strip_ansi(mudconf.guild_default)) < 1 )
-	       atr_add_raw(player, atr,(char *)"Wanderer");
-             else
-	       atr_add_raw(player, atr,(char *)strip_ansi(mudconf.guild_default));
-	   }
-	}
+   /* We need to try find the attr... */
+   if (mudconf.guild_attrname[0] != '\0') {
+      atr = mkattr(mudconf.guild_attrname);
+      if (atr > 0) {
+         if ( strlen(strip_ansi(mudconf.guild_default)) < 1 ) {
+            atr_add_raw(player, atr,(char *)"Wanderer");
+         } else {
+	    atr_add_raw(player, atr,(char *)strip_ansi(mudconf.guild_default));
+         }
+      }
+   }
 
-	sprintf(pbuf,"%d",mudconf.start_quota);
-	atr_add_raw(player, A_QUOTA,pbuf);
-	sprintf(pbuf,"%d",mudconf.start_quota - 1);
-	atr_add_raw(player, A_RQUOTA,pbuf);
-	free_lbuf(pbuf);
-	return player;
+   sprintf(pbuf,"%d",mudconf.start_quota);
+   atr_add_raw(player, A_QUOTA,pbuf);
+   sprintf(pbuf,"%d",mudconf.start_quota - 1);
+   atr_add_raw(player, A_RQUOTA,pbuf);
+   free_lbuf(pbuf);
+   return player;
 }
 
 /* ---------------------------------------------------------------------------
@@ -857,7 +861,7 @@ int protectname_check ( char *protect_name, dbref checker, int key ) {
             else
                return 1;
          } else {
-            if ( Immortal(checker) && !key )
+            if ( Good_chk(checker) && Immortal(checker) && !key )
                return 1;
             return 0;
          }
@@ -874,7 +878,7 @@ BADNAME *bp;
 	 * then return false.  If no matches in the list, return true.
 	 */
 
-	if (Immortal(checker))
+	if (Good_chk(checker) && Immortal(checker))
 		return 1;
 
 	for (bp=mudstate.badname_head; bp; bp=bp->next) {
@@ -1015,7 +1019,7 @@ char	*buff, *bufp;
 	free_lbuf(buff);
 }
 
-int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
+int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char *ansiname, int isansi)
 {
   DESC *d;
   char rpass[9], work, *pt1, *pt2, *buff, readstr[80], instr_buff[1000], *tmp_email, *tmp_email_ptr, *s_filename;
@@ -1148,7 +1152,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
   if ( buff2 ) {
      sprintf(buff2, "%s", rpass);
   }
-  player = create_player(name, rpass, NOTHING, 0);
+  player = create_player(name, rpass, NOTHING, 0, ansiname, isansi);
   if (player == NOTHING) {
     if ( !key ) {
        STARTLOG(LOG_SECURITY | LOG_PCREATES, "AUTOREG", "BAD")
@@ -1167,9 +1171,6 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
        broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
     code = 1;
   } else {
-    mudstate.chkcpu_stopper = time(NULL);
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_locktog = 0;
     move_object(player, mudconf.start_room);
     time(&now);
     sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->addr,d->userid,ctime(&now));
@@ -1217,9 +1218,11 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
                               d->descriptor, 0, 0, "There is an error in the autoreg_include file!");
       }
       if (mudconf.mailsub)
-        sprintf(buff,"%s -s \"%s autoregistration\" %s < mailtemp",mudconf.mailprog,mudconf.mud_name,email);
+        sprintf(buff,"%s -s \"%s autoregistration\" %s%s < mailtemp", 
+                mudconf.mailprog, mudconf.mud_name, (mudconf.mailmutt ? "-- " : " "), email);
       else
-        sprintf(buff,"%s %s < mailtemp",mudconf.mailprog,email);
+        sprintf(buff,"%s %s%s < mailtemp", 
+                mudconf.mailprog, (mudconf.mailmutt ? "-- " : " "), email);
       system(buff);
       system("rm mailtemp");
       if ( !key ) {
@@ -1265,20 +1268,32 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2)
 void do_register(dbref player, dbref cause, int key, char *name, char *email)
 {
   dbref p2;
+  int i_ansi;
   DESC *d, *e;
   time_t now, dtime;
-  char *buff, *buff2;
+  char *buff, *buff2, *ansibuff;
+  CMDENT *cmdp;
+
+
 
   if (!mudconf.online_reg) {
     notify(player, "Autoregistration is disabled.");
-  }
-  else if (!Guest(player)) {
+  } else if (!Guest(player)) {
     notify(player,"You already have a character.");
-  }
-  else if ((strlen(name) > MBUF_SIZE) || (strlen(email) > MBUF_SIZE)) {
+  } else if ((strlen(name) > MBUF_SIZE) || (strlen(email) > MBUF_SIZE)) {
     notify(player,"Arguments too long.");
-  }
-  else {
+  } else {
+    i_ansi = 0;
+    if ( key & REGISTER_ANSI ) {
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+           cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
+          notify(player, "Permission denied.");
+          return;
+       }
+       i_ansi = 1;
+       key &= ~REGISTER_ANSI;
+    }
     time(&now);
     dtime = 0;
     p2 = player;
@@ -1289,32 +1304,32 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
 	dtime = now - d->last_time;
       }
     }
+    ansibuff = alloc_lbuf("do_register_ansi");
+    sprintf(ansibuff, "%s", strip_all_special(name));
     if (e && (e->host_info & H_NOAUTOREG)) {
       notify(player,"Permission denied.");
       buff = alloc_lbuf("do_register");
-      strcpy(buff,name);
+      strcpy(buff,ansibuff);
       strcat(buff,"/");
       strcat(buff,email);
       broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL (NoAutoReg)", e->userid, e->addr, e->descriptor, 0, 0, buff);
       free_lbuf(buff);
-    }
-    else if (e && (e->regtries_left <= 0)) {
+    } else if (e && (e->regtries_left <= 0)) {
       notify(player,"Registration limit reached.");
       buff = alloc_lbuf("do_register");
-      strcpy(buff,name);
+      strcpy(buff,ansibuff);
       strcat(buff,"/");
       strcat(buff,email);
       broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", e->userid, e->addr, e->descriptor, 0, 0, buff);
       free_lbuf(buff);
-    }
-    else if (e) {
+    } else if (e) {
       buff2 = alloc_lbuf("do_register");
-      switch (reg_internal(name,email,(char *)e, 0, buff2)) {
+      switch (reg_internal(ansibuff,email,(char *)e, 0, buff2, name, i_ansi)) {
         case 0:
 	  (e->regtries_left)--;
 	  notify(player,"Autoregistration completed.");
           if ( (key & REGISTER_MSG) && *buff2 ) {
-             notify(player, unsafe_tprintf("Your password for account '%s' is: %s", name, buff2));
+             notify(player, unsafe_tprintf("Your password for account '%s' is: %s", ansibuff, buff2));
           }
 	  break;
         case 1:
@@ -1341,5 +1356,6 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
       }
       free_lbuf(buff2);
     }
+    free_lbuf(ansibuff);
   }
 }
