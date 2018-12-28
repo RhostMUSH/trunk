@@ -171,9 +171,9 @@
   SIDEEFFECTS         SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING        
   SQL                 SQLESCAPE          STACK               SUBSTITUTIONS   
   SUCCESS             SWITCHES           TOGGLES             USEFUL          
-  USER ATTRIBUTES     VARIABLE EXITS     VATOVZ              VERBS           
-  WANDERER            WILDCARDS          ZATOZZ              ZONES           
-  $-COMMANDS          #LAMBDA          
+  UNICODE SUPPORT     USER ATTRIBUTES    VARIABLE EXITS      VATOVZ         
+  VERBS               WANDERER           WILDCARDS           ZATOZZ          
+  ZONES               $-COMMANDS         #LAMBDA          
   
 & API
   Topic: API
@@ -23062,7 +23062,7 @@
   
 & TR()
   Function: tr(<string>, <find>, <replace> [,<type>])
-
+  
   This function translates every character in <string> that exists in
   <find> to the character at an identical position in <replace>. 
   
@@ -23086,7 +23086,9 @@
       You say, "uryyb"
     > say tr(uryyb, a-z, n-za-m)
       You say, "hello"
- 
+    > say tr(This is a TEST,a-mn-zA-MN-Z,n-za-mN-ZA-M)  (rot13)
+      You ssay, "Guvf vf n GRFG"
+  
   See also: merge(), foreach(), garble(), creplace(), edit(), editansi()
 
 & TEMPLATE()
@@ -23123,7 +23125,7 @@
     You say "test <abcd> test <abcd> test"
     > say template(test 001 wheee 100,----,<>)
     You say "test --< wheee >--"
-    > think think template(>>> 000000 <<<%r>>> 000000 <<<,abcde%rtuvwy)
+    > think template(>>> 000000 <<<%r>>> 000000 <<<,abcde%rtuvwy)
     >>> abcde  <<<
     >>> tuvwy  <<<
   
@@ -23131,10 +23133,10 @@
 
 & TRUNC()
   Function: trunc(<number>)
- 
+   
   Returns the value of <number> after truncating off any fractional value.
   <number> may be a floating point number, and an integer result is returned.
- 
+   
   Examples:
     > say trunc(5)
     You say "5"
