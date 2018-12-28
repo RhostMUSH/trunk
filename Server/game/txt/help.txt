@@ -22928,7 +22928,8 @@
     > say %f^Khazad ai-menu!%fn
     You say "Kh(a-with-^)z(a-with-^)d (ai-with-^)-m(e-with-^)n(u-with-^)!"
   
-  See Also: ACCENTS, chr(), asc(), tr(), stripaccents(), substitutions.
+  See Also: ACCENTS, chr(), asc(), tr(), stripaccents(), substitutions,
+            UNICODE SUPPORT
 
 & STRIPACCENTS()
   Function: stripaccents(<string>)
@@ -28348,6 +28349,10 @@
   
   Accents are displayed by using the accent() function or the %f
   substitution.
+  
+  You can not set this when already toggled UTF8.
+  
+  See Also: accents(), UTF8 TOGGLE, UNICODE SUPPORT
 
 & UTF8 TOGGLE
   Toggle: UTF8
@@ -28355,7 +28360,12 @@
   When set on a player, and as long as ZENTY_ANSI has been compiled
   into the RhostMUSH in question, this allows the player to see
   strings including extended character sets using UTF8 encoding.
-
+  
+  You can not have the UTF8 toggle with the ACCENT toggle enabled.
+  Attempting to do so will give you an error message.
+   
+  See Also: UNICODE SUPPORT, ACCENT TOGGLE
+  
 & MAILVALIDATE TOGGLE
   Toggle: MAILVALIDATE
   
@@ -28374,6 +28384,7 @@
   Architect and above on a player which they control given that the
   player is also Architect or above in level. Additionally it can
   be set by a wizard on any player.
+  
 & NOTIFY_LINK TOGGLE
   Toggle: NOTIFY_LINK
   
@@ -28676,6 +28687,8 @@
   See Also: ZONES, IC, COMBAT, ZONEMASTER, @zone
   
 & USEFUL
+  Topic: USEFUL
+  
   The following topics should be of greater import to learn for new users.
   
   news cmdlist          - lists all commands with the news system
@@ -28703,6 +28716,8 @@
                          help differences
   
 & USER ATTRIBUTES
+  Topic: USER ATTRIBUTES
+  
   User attributes are defined as personally designed or created attribute
   names by the user.  These can be mostly anything you want, up to the
   length of the current SBUF (32 or 64 characters) and starting with
@@ -28723,11 +28738,13 @@
 
 & UTF8 SUPPORT
 & UNICODE SUPPORT
+  Topic: UNICODE SUPPORT
+  
   RhostMUSH servers can now support unicode characters. Currently this only
   supports UTF8 encoding of these characters. In order to make use of this
   feature RhostMUSH must be compiled with ZHENTY ANSI support. This works
   alongside ACCENTS support but is independent of it.
-
+  
   For a player to see unicode characters they must enable the UTF8 toggle.
   This toggle is mutually exclusive from the ACCENTS toggle but also works
   alongside it, allowing accents sent by players with one toggle to be 
@@ -28735,13 +28752,13 @@
   these extended characters removed as normal. Similarly, unicode characters
   beyond the supported range for ACCENTS will be removed for players with
   that toggle.
-
+  
   Unicode characters are encoded by the parser in the format %<u####> where
   the ####s represent the unicode code point for the character. 
-
+  
   A complete list of unicode characters can be found here: 
   http://unicode.org/charts/
-
+  
   See Also: UTF8 TOGGLE
   
 & MUDDIFF
