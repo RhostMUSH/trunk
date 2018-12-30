@@ -28356,7 +28356,7 @@
 
 & UTF8 TOGGLE
   Toggle: UTF8
-  
+   
   When set on a player, and as long as ZENTY_ANSI has been compiled
   into the RhostMUSH in question, this allows the player to see
   strings including extended character sets using UTF8 encoding.
