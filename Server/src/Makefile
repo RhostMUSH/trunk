@@ -124,7 +124,7 @@ DR_OBJ = $(DRMUSHOBJ) $(DREMPIREOBJ) $(DRMAILOBJ)
 DR_HDR = $(DREMPIREHDR)
 
 #HSPACE
-HSPACE_O= hspace/hscelestial.o hspace/hsclass.o hspace/hscmds.o \
+#HSPACE_O= hspace/hscelestial.o hspace/hsclass.o hspace/hscmds.o \
           hspace/hsconf.o hspace/hsconsole.o hspace/hsconsolecmds.o \
           hspace/hsdb.o hspace/hseng.o hspace/hsengcmds.o hspace/hsengines.o \
           hspace/hsfuel.o hspace/hsfuncs.o hspace/hsinterface.o \
