@@ -67,6 +67,24 @@ else
    MYSQL_O=
 endif
 
+#HSPACE Objects
+ifeq "$(HSPACE)" "1"
+    HSPACE_O=hspace/hscelestial.o hspace/hsclass.o hspace/hscmds.o \
+             hspace/hsconf.o hspace/hsconsole.o hspace/hsconsolecmds.o \
+             hspace/hsdb.o hspace/hseng.o hspace/hsengcmds.o hspace/hsengines.o \
+             hspace/hsfuel.o hspace/hsfuncs.o hspace/hsinterface.o \
+             hspace/hsmain.o hspace/hsmissile.o hspace/hsnavcmds.o \
+             hspace/hsuniverse.o hspace/hsobjects.o hspace/hspace.o \
+             hspace/hsplanet.o hspace/hsship.o hspace/hsshipeng.o \
+             hspace/hsshipnav.o hspace/hstrig.o hspace/hsutils.o \
+             hspace/hsweapon.o hspace/hscomm.o hspace/hsterritory.o
+	
+	HSPACE_LIB=-lstdc++
+else
+    HSPACE_O=
+	HSPACE_LIB=
+endif
+
 CHK = $(shell uname -s|grep -c "Darwin")
 ifeq "$(CHK)" "1"
    EXTLIBS=
@@ -150,7 +168,7 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
           compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
           local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
-          sqlite.o $(DR_OBJ) $(MYSQL_O)
+          sqlite.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
 
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
@@ -309,7 +327,7 @@ DEFS = $(CUSTDEFS) -Wall
 
 # MORELIBS is handled by the asksource.sh script for auto-generation.
 # any customization add to this but do not remove CUSTMORELIBS
-MORELIBS = $(CUSTMORELIBS) -lstdc++
+MORELIBS = $(CUSTMORELIBS)
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
@@ -496,3 +514,4 @@ clean:
 	echo '' > .depend
 
 include .depend
+

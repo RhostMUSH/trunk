@@ -1,0 +1,333 @@
+# Configuration file for Hemlock Space (HSPACE).
+# Change any options as you feel necessary, but be sure you are aware of
+# the effects the change will have.
+#
+# Please note that many of these configuration options are not currently
+# implemented.  They come from version 3.x of HSpace and will probably
+# be used once again in the future.  In any case, set the options you
+# want to change in case they are currently used (most are).
+
+# Set this to 1 if you want all space commands to be logged to
+# the log file.
+LOG_COMMANDS=0
+
+# The name of the unit of distance in your game.  This is the abbreviation
+# of the unit (e.g. km).
+UNIT_NAME=hm
+
+# By setting this variable to 1, HSpace will age and decay ships for
+# you by a predefined aging algorithm.  Attributes of wear and tear
+# for each ship component are stored on the navigation console.  If
+# you won't be using any sort of ship component repair system, it is
+# recommended that you keep this turned off by leaving it set to 0.
+DECAY_SHIPS=0
+
+# Set this to 1 if you want fuel systems to present both reactable and
+# burnable fuels for ship reactors, engines, etc.  If this is set to 0,
+# then only one fuel source (burnable) is presented and used by systems.
+USE_TWO_FUELS=1
+
+# This is the fuel ratio, which you can change to increase or decrease
+# fuel used by a ship's reactor.  The number here is the number of 
+# units of power a reactor can produce per unit of fuel per hour.  For
+# example, a value of 50 indicates a ratio of 1:50.  That is, 1 unit of
+# fuel is used by the reactor each hour for each 50 units of power it
+# currently outputs.  If you've specified that the fuel system should
+# model two fuels, this fuel is deducted from reactable fuels and not
+# burnable.
+FUEL_RATIO=200
+
+# Set this to the sublight to hyperspace speed ratio for when jump
+# drives are engaged.  For example, if you're traveling at 100 units/hour,
+# and this value is set to 500, then you'll travel 50,000 units/hour in
+# hyperspace.
+JUMP_SPEED_MULTIPLIER=20
+
+# Set this to 2 if you want vessels in hyperspace to identified fully
+# on other vessels' sensors.
+# Set it to 1 if you want vessels in hyperspace to only be detected.
+# Set it to 0 if you don't want vessels in hyperspace to be seen
+# at all on other vessels' sensors.
+# These settings work vice versa for vessels in hyperspace detecting
+# objects not in hyperspace.
+SENSE_HYPERVESSELS=1
+
+# Set this to the maximum distance you want any ship sensors to see.
+# This is useful for filtering out big objects (like stars) that
+# would normally appear on sensors from far, far away.
+MAX_SENSOR_RANGE=8000
+
+# Afterburning allows ships to increase their speed by some factor
+# while still at sublight speeds.  In real life it is accomplished
+# by dumping fuel into the engines, essentially turning the engines into
+# big rockets.  Engines in HSpace can be capable of afterburning.  Set
+# this value to the increase in speed you want engines to experience
+# when afterburning.  This value is multiplied by the maximum capable
+# speed of the engines to determine afterburn speed.  If the engines
+# aren't capable of afterburning, this value is ignored.
+AFTERBURN_RATIO=2
+
+# Set this to the ratio of fuel consumption increase that you
+# want engines to experience while afterburning.  If you set it
+# to a value of 1, engines just consume fuel during afterburn
+# like they do during non-afterburn.  Anything greater than 1
+# multiplies fuel consumption during afterburn.
+AFTERBURN_FUEL_RATIO=7
+
+# The minimum flight training is a handy way of restricting brand newbies
+# from hopping in a space ship when they have no business being in real
+# space.  This is not the number of minutes, hours, or days that a player
+# must spend in a simulator before being able to "man" the navigation of
+# a real ship.  Rather, it is an arbitary level to which a player must 
+# attain by using various space commands in a simulator.  Each command is
+# worth a very small number of points.  As the players use various commands
+# in a simulator, they gain more points until this number is reached.  If
+# you do not wish to restrict players to gaining simulator time, set this
+# to 0.
+MIN_TRAINING=10
+
+# If you are using commlinks in your game and the HSPACE_COMM
+# flag, set this option value to 1.  If you do not intend to use
+# commlinks, then set it to 0.  Enabling this option does consume
+# extra processing time when messages are broadcast through space,
+# so you don't want to enable it unless you're going to use it.
+USE_COMM_OBJECTS=1
+
+# Some games allow puppets to fly ships.  Others do not.  If you
+# prefer to restrict use of any ship consoles to only players, set
+# this variable to 1.
+FORBID_PUPPETS=0
+
+# When one ship scans another, HSpace can notify the target ship that
+# they are being scanned.  If you would like this, change this option
+# to a value of 1.  Otherwise, set it to 0 for no notification.
+NOTIFY_SHIPSCAN=1
+
+# Set this to 1 if you want to allow firing weapons while cloaked.  Else,
+# set it to 0 to disallow this feature.
+FIRE_WHILE_CLOAKED=0
+
+# This is the amount of time that must pass before a sim user's simtime
+# may increase.  Essentially, it sets training increase per time and
+# prevents sim users from looping a lot of commands to increae their
+# sim training.  If you're not partaking of sim training and such, this
+# can be ignored or set to 0.
+TRAIN_INTERVAL=5
+
+# Set this to 0 if you do not want to allow pilots to strafe fuel
+# from nearby planets.  This is typically disabled if you want to
+# use your own ship refueling scenario.  Leave it set to 1 if you
+# want to use the HSpace strafing ability.
+ALLOW_STRAFING=0
+
+# Set this to the total number of seconds you want to have between
+# the time a ship begins drop-to-planet procedures and the time they
+# touch the ground.
+SECONDS_TO_DROP=30
+
+# Set this as the maximum distance a vessel can be away from its target
+# vessel and still be able to dock in that target vessel.  This is measured 
+# in whole hetrameres.
+MAX_DOCK_DIST=5
+
+# Set this to the maximum speed you wish vessels to be traveling when
+# they attempt to land on a planet.  Thus, if they're going too fast
+# they cannot begin to land.
+MAX_LAND_SPEED=2000
+
+# Set this as the maximum distance a vessel can be away from a target
+# planet and still commence landing procedures.
+MAX_DROP_DIST=20
+
+# Set this to the maximum distance two vessels can be from each other
+# and still aqcuire a boarding link.
+MAX_BOARD_DIST=5
+
+# This is the maximum distance a vessel may be from a planet to strafe
+# fuel from its atmosphere.  This has no effect if ALLOW_STRAFING is
+# set to 0.
+MAX_STRAFE_DIST=500
+
+# Set this to the maximum distance two ships may be apart from each other
+# and still transfer cargo between the ships.
+MAX_CARGO_DIST=2
+
+# Set this to the maximum size ship that can dock in another ship.  This 
+# exists for realism.  How realistic is it for a battleship to dock in a
+# destroyer?  The size is on a scale from 1 - 10 and is recorded for each
+# ship in the ship classes database.  Size 4 is approximately a corvette,
+# which is considered to be about the upper range of dockable vessels.
+MAX_DOCK_SIZE=4
+
+# This is probably set fine, but you may want to change it if you are on
+# a machine with low CPU availability.  This setting is measured in
+# seconds and is the time between each cycle of the space system.  The
+# higher this number, the "slower" the space system is.  Ships change
+# coordinates only once per cycle, sensors are sweeped once per cycle, etc.
+CYCLE_INTERVAL=1
+
+# By default, HSpace allows 15 universes to exist in the game.  Increase
+# or decrease as you desire, but do not decrease it below the number of
+# universe you already have in the game.  Otherwise, bad things are 
+# going to befall you.
+MAX_UNIVERSES=15
+
+# When your universes become too full of ships, you will probably want
+# to increase this variable.  Try to keep it lower to avoid unnecessarily
+# eating up system memory.  You must reboot your game after changing this
+# number.  If you modify this number while the game is running, do NOT
+# reload the configuration file.  Shutdown and reboot.
+MAX_SHIPS=500
+
+# Active ships are those that are undocked and should be checked for
+# things like traveling and other active-ship sorts of status checks.
+# By decreasing this, you can speed your game up slightly.  You may
+# need to increase it if you have a lot of people traveling around in
+# the universes.  This will typically be just a fraction of MAX_SHIPS,
+# because it's unusual to have every ship in the universe out running
+# around.  If you modify this number while the game is running, do NOT
+# reload the configuration file.  Shutdown and reboot.
+MAX_ACTIVE_SHIPS=50
+
+# Specify the maximum number of planets you want to allow per universe
+# here.  Like MAX_SHIPS, try to keep this number lower to avoid eating
+# up system memory.  If you run out of room in your universes, increase
+# this number and reboot your game.  If you modify this number while the
+# game is running, do NOT reload the configuration file.  Shutdown and
+# reboot.
+MAX_PLANETS=50
+
+# If you want the space system to start cycling immediately upon reboot,
+# set this to 1.  Else, set this to 0.
+AUTOSTART=1
+
+# The AFTERWORLD.  Set this to the dbref number of the room where players
+# go when they die in space.  You will most definitely need to change this.
+AFTERWORLD=320
+
+# Set this to the dbref number of your space administrator.  The player
+# who this dbref refers to must be set with the WIZARD flag unless the
+# player is god (dbref 1).
+SPACE_WIZ=1
+
+
+# The following are various messages that can be changed.
+
+# This message is given to a console operator when an illegal action is
+# attempted while the ship is in hyperspace.
+SHIP_IS_JUMPING=Ship is currently traveling in hyperspace.
+
+# This is the message shown to players inside the ship when the ship
+# goes into jump mode.
+SHIP_JUMPS=The ship hums loudly as it enters into hyperspace.
+
+# This message is shown to players inside the ship when it drops out
+# of hyperspace.
+END_JUMP=The ship reverberates as it drops out of hyperspace.
+
+# This is the message shown to players in the ship rooms when
+# the afterburners are engaged.
+AFTERBURN_ENGAGE=The ship shudders as the afterburners are engaged.
+
+# This is the message shown to players in the ship rooms when
+# the afterburners are disengaged.
+AFTERBURN_DISENGAGE=The ship shakes as the afterburners are disengaged.
+
+# This is the message shown to players inside the ship when the ship
+# lifts off from the ground.
+LIFT_OFF=The ship sways and bumps as it lifts from the surface of the ground.
+
+# This message is shown to players inside the ship when it lands on
+# a celestial surface.
+LANDING_MSG=The ship sways and bumps as it makes contact with the ground surface.
+
+# This is the message shown to players inside the ship when the ship
+# begins the drop toward a planet.
+BEGIN_DESCENT=The ship shudders as the drop rockets engage and the ship begins its descent.
+
+# This message is shown to players in the ship when power to life
+# support is cut.
+LIFE_CUT=The air suddenly becomes stale as life support loses power.
+
+# This message is shown to players in the ship when power to the
+# jump drives is cut.
+JUMPERS_CUT=You hear a large powerdrop as the jump drives power down.
+
+# This message is shown to players in the ship when power to the
+# engines is cut.
+ENGINES_CUT=The incessant hum from the ship's engines suddenly fades away.
+
+# This is the message that everyone sees when the ship's engines
+# activate.
+ENGINES_ACTIVATING=You feel a sudden rumble as the engines activate.
+
+# This message is shown to players in the ship when the ship speeds
+# up.
+SPEED_INCREASE=You feel a sudden jerk as the ship speeds up.
+
+# This message is shown to players in the ship when the ship's speed
+# decreases.
+SPEED_DECREASE=You feel the ship begin to slow.
+
+# This message is shown to players in the ship when the ship's
+# engines switch from forward to reverse momentum.
+ENGINE_REVERSE=You feel a sudden and powerful force as the reverse thrusters engage.
+
+# This message is shown to players in the ship when the ship's engines
+# switch from reverse to forward momentum.
+ENGINE_FORWARD=You feel a sudden and powerful force as the main engines engage.
+
+# This is the message that players inside the ship receive when the
+# ship stops.
+SPEED_HALT=You feel a slight force as the ship glides to a halt ... 
+
+# Console operators receive this message when a movement action is
+# attempted while the engines are offline.
+ENGINES_OFFLINE=Engines are currently offline.
+
+# Console operators receive this message when an action is attempted
+# while the main power system is offline on the ship.
+REACTOR_OFFLINE=Main reactor is currently offline.
+ 
+# Console operators receive this message when an illegal action is
+# attempted while the ship is docking.
+SHIP_IS_DOCKING=The ship is currently in docking procedures ...
+
+# Console operators receive this message when an illegal action is
+# attempted while the ship is undocking.
+SHIP_IS_UNDOCKING=The ship is currently undocking ...
+
+# Console operators receive this message when an illegal action is
+# attempted while the ship is docked.
+SHIP_IS_DOCKED=Ship is currently docked.
+
+# The following configurations probably shouldn't be changed unless you
+# are sure of what you're doing.
+OBJECTDB=space/objectdb
+CLASSDB=space/classdb
+WEAPONDB=space/weapondb
+UNIVDB=space/univdb
+PICTURE_DIR=space/pics
+TERRITORYDB=space/territorydb
+
+# Set to 1 rooms @space/addsroom'ed are automaticly zoned to the shipobject,
+# if there is no Zone-Lock present they are zonelocked to the Space Wiz.
+AUTOZONE=1
+
+# Messages displayed to the ship when various systems are
+# activated.
+REACTOR_ACTIVATING=Lights around you flicker on as the main reactor powers up.
+
+THRUSTERS_ACTIVATING=A loud roar is heard as the steering thrusters activate.
+
+LIFE_ACTIVATING=The air turns fresh and a gentle hum can be heard as life support is activated.
+
+COMPUTER_ACTIVATING=Terminals all around you power up as the computer systems are powered.
+
+# The distance at which a ship with sensor rating 1 DETECTS a
+# ship with size 1.
+DETECTDIST=70
+
+# The distance at which a ship with sensor rating 1 IDENTIFIES
+# a ship with size 1
+IDENTDIST=30
