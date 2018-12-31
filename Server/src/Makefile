@@ -78,11 +78,8 @@ ifeq "$(HSPACE)" "1"
              hspace/hsplanet.o hspace/hsship.o hspace/hsshipeng.o \
              hspace/hsshipnav.o hspace/hstrig.o hspace/hsutils.o \
              hspace/hsweapon.o hspace/hscomm.o hspace/hsterritory.o
-	
-	HSPACE_LIB=-lstdc++
 else
     HSPACE_O=
-	HSPACE_LIB=
 endif
 
 CHK = $(shell uname -s|grep -c "Darwin")
@@ -104,7 +101,7 @@ else
    endif
 endif
 
-# CPP = gcc -E	# This is broken in autoconf.  Sigh.
+# CPP = gcc -E  # This is broken in autoconf.  Sigh.
 CPP = $(CC) -E
 # Sometime, LIBS won't allow '-lndbm' here.  If so, remove it.
 # If using CYGWIN, comment out the whole line.
@@ -130,11 +127,11 @@ UDBO_FLG = -DCACHE_OBJS
 
 UDB_SRC = udb_misc.c
 UDB_OBJ = udb_misc.o
-UDB_INC	= udb.h udb_defs.h
+UDB_INC = udb.h udb_defs.h
 
 # Source common to netmush and standalone code
-COM_SRC	=
-COM_OBJ	=
+COM_SRC =
+COM_OBJ =
 
 # Door Configurations
 DR_SRC = $(DRMUSHSRC) $(DREMPIRESRC) $(DRMAILSRC)
@@ -142,54 +139,54 @@ DR_OBJ = $(DRMUSHOBJ) $(DREMPIREOBJ) $(DRMAILOBJ)
 DR_HDR = $(DREMPIREHDR)
 
 # Everything needed to use the database in standalone mode.
-SA_SRC	= sa-db.c sa-db_rw.c sa-boolexp.c sa-unparse.c sa-compress.c \
-	  sa-pred.c sa-stringu.c sa-conf.c sa-log.c sa-object.c \
-	  sa-vattr.c sa-htab.c sa-player_c.c sa-flags.c debug.c \
-	  sa-tprintf.c
-SA_OBJ	= sa-db.o sa-db_rw.o sa-boolexp.o sa-unparse.o sa-compress.o \
-	  sa-pred.o sa-stringu.o sa-conf.o sa-log.o sa-object.o \
-	  sa-vattr.o sa-htab.o sa-player_c.o sa-flags.o debug.o \
-	  sa-tprintf.o
+SA_SRC  = sa-db.c sa-db_rw.c sa-boolexp.c sa-unparse.c sa-compress.c \
+      sa-pred.c sa-stringu.c sa-conf.c sa-log.c sa-object.c \
+      sa-vattr.c sa-htab.c sa-player_c.c sa-flags.c debug.c \
+      sa-tprintf.c
+SA_OBJ  = sa-db.o sa-db_rw.o sa-boolexp.o sa-unparse.o sa-compress.o \
+      sa-pred.o sa-stringu.o sa-conf.o sa-log.o sa-object.o \
+      sa-vattr.o sa-htab.o sa-player_c.o sa-flags.o debug.o \
+      sa-tprintf.o
 
 # Distribution source files
-D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
-	  create.c game.c help.c look.c match.c move.c player.c predicates.c \
-	  rob.c set.c speech.c wiz.c walkdb.c timer.c boolexp.c log.c cque.c \
-	  unparse.c eval.c command.c wild.c netcommon.c functions.c vattr.c \
-	  db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
-	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
-          local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
-          sqlite.c $(DR_SRC) $(MYSQL_C)
+D_SRC   = door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
+      create.c game.c help.c look.c match.c move.c player.c predicates.c \
+      rob.c set.c speech.c wiz.c walkdb.c timer.c boolexp.c log.c cque.c \
+      unparse.c eval.c command.c wild.c netcommon.c functions.c vattr.c \
+      db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
+      compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
+      local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
+      sqlite.c $(DR_SRC) $(MYSQL_C)
 
-D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
-	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
-	  rob.o set.o speech.o wiz.o walkdb.o timer.o boolexp.o log.o cque.o \
-	  unparse.o eval.o command.o wild.o netcommon.o functions.o vattr.o \
-	  db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
-          compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
-          local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
-          sqlite.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
+D_OBJ   = door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
+      create.o game.o help.o look.o match.o move.o player.o predicates.o \
+      rob.o set.o speech.o wiz.o walkdb.o timer.o boolexp.o log.o cque.o \
+      unparse.o eval.o command.o wild.o netcommon.o functions.o vattr.o \
+      db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
+      compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
+      local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
+      sqlite.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
 
-D_INC	= door.h shs.h news.h mail.h debug.h \
-	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
-	  command.h rwho_clilib.h  config.h db.h externs.h mudconf.h misc.h \
-	  vattr.h file_c.h fifo.h alloc.h attrs.h levels.h timez.h \
-          local.h utils.h pcre.h pcre_extensions.h sha1.h $(DR_HDRS)
+D_INC   = door.h shs.h news.h mail.h debug.h \
+      copyright.h flags.h help.h htab.h interface.h match.h functions.h \
+      command.h rwho_clilib.h  config.h db.h externs.h mudconf.h misc.h \
+      vattr.h file_c.h fifo.h alloc.h attrs.h levels.h timez.h \
+      local.h utils.h pcre.h pcre_extensions.h sha1.h $(DR_HDRS)
 
 D_FLG   = -DMUSH_BUILD_DATE="\"`cat date.txt`\""
 
 # RWHO source files
-WHO_SRC	= rwho_clilib.c
-WHO_OBJ	= rwho_clilib.o
-WHO_FLG	= -DRWHO_IN_USE
-RWHO_FL	= -DLOCAL_RWHO_SERVER
+WHO_SRC = rwho_clilib.c
+WHO_OBJ = rwho_clilib.o
+WHO_FLG = -DRWHO_IN_USE
+RWHO_FL = -DLOCAL_RWHO_SERVER
 
 # Version number routine
-VER_SRC	= version.c
-VER_OBJ	= version.o
-VER_INC	= patchlevel.h
-VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
-	  -DMUSH_BUILD_NUM="\"`sh ./buildnum.sh`\""
+VER_SRC = version.c
+VER_OBJ = version.o
+VER_INC = patchlevel.h
+VER_FLG = -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
+      -DMUSH_BUILD_NUM="\"`sh ./buildnum.sh`\""
 
 # ===================== CONFIGURATION SECTION ====================
 #
@@ -331,148 +328,148 @@ MORELIBS = $(CUSTMORELIBS)
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
-GAME	= /usr/games/lib/mush
+GAME    = /usr/games/lib/mush
 
 # If you want to be able to transmit RWHO data, uncomment these lines:
-WHO_S	= $(WHO_SRC)
-WHO_O	= $(WHO_OBJ)
-WHO_F	= $(WHO_FLG)
+WHO_S   = $(WHO_SRC)
+WHO_O   = $(WHO_OBJ)
+WHO_F   = $(WHO_FLG)
 
 # If you want to allow the local RWHO command (only recommended if you are on
 # the same machine or subnet as the RWHO server), uncomment these lines:
-#RWHO_F	= $(RWHO_FL)
+#RWHO_F = $(RWHO_FL)
 
 # Select the level at which you want cacheing to be performed.  Prior releases
 # of MUSH only supported attribute-level cacheing.
 # 
 # ----- Attribute-level cacheing.
-#UDB_S	= $(UDBA_SRC) $(UDB_SRC)
-#UDB_O	= $(UDBA_OBJ) $(UDB_OBJ)
-#UDB_F	= $(UDBA_FLG)
+#UDB_S  = $(UDBA_SRC) $(UDB_SRC)
+#UDB_O  = $(UDBA_OBJ) $(UDB_OBJ)
+#UDB_F  = $(UDBA_FLG)
 
 # ----- Object-level cacheing.
-UDB_S	= $(UDBO_SRC) $(UDB_SRC)
-UDB_O	= $(UDBO_OBJ) $(UDB_OBJ)
-UDB_F	= $(UDBO_FLG)
+UDB_S   = $(UDBO_SRC) $(UDB_SRC)
+UDB_O   = $(UDBO_OBJ) $(UDB_OBJ)
+UDB_F   = $(UDBO_FLG)
 
 # Select the networking support you have.  Currently only BSD networking
 # is supported.
 #
 # ----- BSD networking
-NET_S	= bsd.c
-NET_O	= bsd.o
+NET_S   = bsd.c
+NET_O   = bsd.o
 
 # ================== END OF CONFIGURATION SECTION =================
 
 
-DEBUG	= $(OPTIM)
+DEBUG   = $(OPTIM)
 ALLCFLAGS = $(CFLAGS) $(DEBUG) $(DEFS) $(MOREDEFS) $(D_FLG) $(WHO_F) $(RWHO_F) $(RLIM_F) $(UDB_F) -I$(incdir) $(CRYPT_SCHEME) $(CYGWIN)
 
 # Auxiliary source files: only used by offline utilities.
 # This one is for NON-html auto help creation
-AUX_SRC	= dbconvert.c mkindx.c unsplit.c
+AUX_SRC = dbconvert.c mkindx.c unsplit.c
 #
 # Use this one if you intend to auto create help files via html.
-#AUX_SRC	= dbconvert.c mkindx.c mkhtml.c unsplit.c
+#AUX_SRC    = dbconvert.c mkindx.c mkhtml.c unsplit.c
 
 
 #Auxiliary files
-A_INST	= README NOTES HIGHLIGHTS CREDITS CHANGES
-A_TXT	= badsite.txt connect.txt create_reg.txt down.txt guest.txt help.txt \
-	  motd.txt news.txt newuser.txt quit.txt register.txt wizhelp.txt \
-	  wizmotd.txt full.txt
-A_SH	= db_load db_unload db_check buildnum.sh
-A_RT	= Startmush mush.config
-A_CONF	= netmush.conf alias.conf compat.conf
-A_MISC	= buildnum.data
-A_VMS	= vms_dbm.c vms_dbm.h startmush.com compile.com link.com
-A_AUTO	= configure configure.in autoconf.h.in Makefile.in .depend
-AUXIL	= $(A_INST) $(A_TXT) $(A_SH) $(A_CONF) $(A_MISC) $(A_RT) $(A_VMS) \
-	  $(A_AUTO)
+A_INST  = README NOTES HIGHLIGHTS CREDITS CHANGES
+A_TXT   = badsite.txt connect.txt create_reg.txt down.txt guest.txt help.txt \
+      motd.txt news.txt newuser.txt quit.txt register.txt wizhelp.txt \
+      wizmotd.txt full.txt
+A_SH    = db_load db_unload db_check buildnum.sh
+A_RT    = Startmush mush.config
+A_CONF  = netmush.conf alias.conf compat.conf
+A_MISC  = buildnum.data
+A_VMS   = vms_dbm.c vms_dbm.h startmush.com compile.com link.com
+A_AUTO  = configure configure.in autoconf.h.in Makefile.in .depend
+AUXIL   = $(A_INST) $(A_TXT) $(A_SH) $(A_CONF) $(A_MISC) $(A_RT) $(A_VMS) \
+      $(A_AUTO)
 
 #Installation files
-INSTALL_PROG	= $(bindir)/netrhost $(bindir)/netrhost.debugmon \
+INSTALL_PROG    = $(bindir)/netrhost $(bindir)/netrhost.debugmon \
                   $(bindir)/murboot $(bindir)/dbconvert \
                   $(bindir)/mkhtml $(bindir)/mkindx $(bindir)/db_load \
                   $(bindir)/db_unload $(bindir)/db_check $(R_SERV)
-INSTALL_TARG	= $(INSTALL_PROG) *.txt *.conf
-REINSTALL_TARG	= $(INSTALL_PROG) help.txt wizhelp.txt alias.conf compat.conf
+INSTALL_TARG    = $(INSTALL_PROG) *.txt *.conf
+REINSTALL_TARG  = $(INSTALL_PROG) help.txt wizhelp.txt alias.conf compat.conf
 
 #compiliation source files
-ALLSRC	= $(D_SRC) $(UDB_SRC) $(UDBA_SRC) $(UDBO_SRC) $(VER_SRC) \
-	  $(WHO_SRC) $(COM_SRC) $(SA_SRC) $(AUX_SRC) $(LIB_SRC)
-ALLINC	= $(D_INC) $(UDB_INC) $(VER_INC) $(NET_INC) $(LIB_INC)
-SRC	= $(D_SRC) $(COM_SRC) $(UDB_S) $(WHO_S)
-OBJ	= $(D_OBJ) $(COM_OBJ) $(UDB_O) $(WHO_O)
+ALLSRC  = $(D_SRC) $(UDB_SRC) $(UDBA_SRC) $(UDBO_SRC) $(VER_SRC) \
+      $(WHO_SRC) $(COM_SRC) $(SA_SRC) $(AUX_SRC) $(LIB_SRC)
+ALLINC  = $(D_INC) $(UDB_INC) $(VER_INC) $(NET_INC) $(LIB_INC)
+SRC = $(D_SRC) $(COM_SRC) $(UDB_S) $(WHO_S)
+OBJ = $(D_OBJ) $(COM_OBJ) $(UDB_O) $(WHO_O)
 
 # Files in the standard distribution
-DIST	= $(ALLSRC) $(ALLINC) $(AUXIL)
+DIST    = $(ALLSRC) $(ALLINC) $(AUXIL)
 
-OUT	= $(bindir)/netrhost $(bindir)/netrhost.debugmon $(bindir)/murboot \
+OUT = $(bindir)/netrhost $(bindir)/netrhost.debugmon $(bindir)/murboot \
           $(bindir)/mkhtml $(bindir)/mkindx $(bindir)/dbconvert
 
 .c.o:
-	$(CC) $(ALLCFLAGS) -c $<
+    $(CC) $(ALLCFLAGS) -c $<
 
 # paths is likely to remain broken
 all: rundate $(OUT)
 
 rundate:
-	@$(bindir)/dodate.sh
+    @$(bindir)/dodate.sh
 
-#.PHONY:	all
+#.PHONY:    all
 
 new-install: $(INSTALL_TARG)
-	-mkdir $(GAME)
-	cp $(INSTALL_TARG) $(GAME)
+    -mkdir $(GAME)
+    cp $(INSTALL_TARG) $(GAME)
 
 install: $(REINSTALL_TARG)
-	cp $(REINSTALL_TARG) $(GAME)
+    cp $(REINSTALL_TARG) $(GAME)
 
 TAGS: *.c *.h
-	etags *.c *.h
+    etags *.c *.h
 
 $(bindir)/murboot: murboot.o
-	$(CC) $(ALLCFLAGS) -o $(bindir)/murboot murboot.o
+    $(CC) $(ALLCFLAGS) -o $(bindir)/murboot murboot.o
 
 $(bindir)/mkhtml: mkhtml.o
-	$(CC) $(ALLCFLAGS) -o $(bindir)/mkhtml mkhtml.o
+    $(CC) $(ALLCFLAGS) -o $(bindir)/mkhtml mkhtml.o
 
 $(bindir)/mkindx: mkindx.o
-	$(CC) $(ALLCFLAGS) -o $(bindir)/mkindx mkindx.o
+    $(CC) $(ALLCFLAGS) -o $(bindir)/mkindx mkindx.o
 
 $(bindir)/unsplit: unsplit.o
-	$(CC) $(ALLCFLAGS) -o $(bindir)/unsplit unsplit.o
+    $(CC) $(ALLCFLAGS) -o $(bindir)/unsplit unsplit.o
 
 $(bindir)/dbconvert: dbconvert.o $(SA_OBJ) $(UDB_O) $(ALLOC_O)$(LIBOBJS)
-	$(CC) $(ALLCFLAGS) -o $(bindir)/dbconvert dbconvert.o $(SA_OBJ) $(COM_OBJ) $(UDB_O) $(ALLOC_O) $(LIBS) $(MORELIBS) $(LIBOBJS)
+    $(CC) $(ALLCFLAGS) -o $(bindir)/dbconvert dbconvert.o $(SA_OBJ) $(COM_OBJ) $(UDB_O) $(ALLOC_O) $(LIBS) $(MORELIBS) $(LIBOBJS)
 
-saber:	$(SRC)
-	#load $(SRC)
+saber:  $(SRC)
+    #load $(SRC)
 
 saber-o: $(OBJ) $(LIBOBJS)
-	#load $(OBJ) $(VER_OBJ) $(LIBS) $(MORELIBS)
+    #load $(OBJ) $(VER_OBJ) $(LIBS) $(MORELIBS)
 
 debugmon.o: debugmon.c $(incdir)/debug.h
-	$(CC) -g $(ALLCFLAGS) -c debugmon.c
+    $(CC) -g $(ALLCFLAGS) -c debugmon.c
 
 $(bindir)/netrhost.debugmon: debugmon.o debug.o
-	$(CC) -o $(bindir)/netrhost.debugmon debugmon.o debug.o $(MORELIBS)
+    $(CC) -o $(bindir)/netrhost.debugmon debugmon.o debug.o $(MORELIBS)
 
 $(bindir)/netrhost: $(OBJ) $(LIBOBJS)
-	$(CC) $(ALLCFLAGS) $(VER_FLG) -c $(VER_SRC)
-	- ( test -f $(bindir)/netrhost && mv -f $(bindir)/netrhost netrhost~ )
-	$(CC) $(ALLCFLAGS) -o $(bindir)/netrhost $(OBJ) $(LIBOBJS) $(VER_OBJ) $(LIBS) $(MORELIBS)
+    $(CC) $(ALLCFLAGS) $(VER_FLG) -c $(VER_SRC)
+    - ( test -f $(bindir)/netrhost && mv -f $(bindir)/netrhost netrhost~ )
+    $(CC) $(ALLCFLAGS) -o $(bindir)/netrhost $(OBJ) $(LIBOBJS) $(VER_OBJ) $(LIBS) $(MORELIBS)
 
 dist.tar.Z: $(DIST)
-	-rm -f buildnum.data
-	echo 0 > buildnum.data
-	tar cvhf - $(DIST) | compress -c > dist.tar.Z.NEW
-	mv dist.tar.Z.NEW dist.tar.Z
+    -rm -f buildnum.data
+    echo 0 > buildnum.data
+    tar cvhf - $(DIST) | compress -c > dist.tar.Z.NEW
+    mv dist.tar.Z.NEW dist.tar.Z
 
 depend: $(ALLSRC) unsplit
-	for i in $(D_SRC) $(COM_SRC) $(SA_SRC) $(UDBA_SRC) $(UDBO_SRC) $(AUX_SRC) $(WHO_SRC) $(LIB_SRC); do $(CPP) $(ALLCFLAGS) -M $$i; done | sed -e 's:/usr[^ ]* ::g' | ./unsplit > .depend~
-	mv .depend~ .depend
+    for i in $(D_SRC) $(COM_SRC) $(SA_SRC) $(UDBA_SRC) $(UDBO_SRC) $(AUX_SRC) $(WHO_SRC) $(LIB_SRC); do $(CPP) $(ALLCFLAGS) -M $$i; done | sed -e 's:/usr[^ ]* ::g' | ./unsplit > .depend~
+    mv .depend~ .depend
 
 index: help.indx news.indx wizhelp.indx error.indx
 
@@ -486,32 +483,32 @@ index: help.indx news.indx wizhelp.indx error.indx
 #
 #index: help.indx news.indx wizhelp.indx error.indx doorconf.indx
 #doorconf.indx: doorconf.txt
-#	./mkindx doorconf.txt doorconf.indx
+#   ./mkindx doorconf.txt doorconf.indx
 #
 
 error.indx: error.txt
-	./mkindx error.txt error.indx
+    ./mkindx error.txt error.indx
 
 help.indx: help.txt
-	./mkindx help.txt help.indx
+    ./mkindx help.txt help.indx
 
 news.indx: news.txt
-	./mkindx news.txt news.indx
+    ./mkindx news.txt news.indx
 
 wizhelp.indx: wizhelp.txt
-	./mkindx wizhelp.txt wizhelp.indx
+    ./mkindx wizhelp.txt wizhelp.indx
 
 verify:
-	runtest --tool mush --src ./testsuite
+    runtest --tool mush --src ./testsuite
 
 realclean:
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT) netrhost~ 
-	echo '' > .depend
+    -rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT) netrhost~ 
+    echo '' > .depend
 
 clean:
-	-cp -f $(bindir)/netrhost $(bindir)/netrhost~
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT)
-	echo '' > .depend
+    -cp -f $(bindir)/netrhost $(bindir)/netrhost~
+    -rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT)
+    echo '' > .depend
 
 include .depend
 

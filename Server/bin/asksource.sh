@@ -1941,9 +1941,9 @@ setlibs() {
    fi
    if [ "${XB[7]}" = "X" ]
    then
-      echo "Addhing HSpace library"
-     MORELIBS="${MORELIBS} \${HSPACE_LIB}"
-   fi
+      echo "Adding stdc++ library for HSpace...."
+      MORELIBS="${MORELIBS} -lstdc++"
+   fi     
    MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 
@@ -2008,11 +2008,11 @@ updatemakefile() {
    fi
    if [ "${XB[7]}" = "X" ]
    then
-      echo "Generating Makefile for HSpace v4.2. Please wait..."
-	  echo "# HSpace v4.2 features" >> ../src/custom.defs
-	  echo "HSPACE=1" >> ../src/custom.defs
-	  echo "HSPACE=1" >> ../src/do_compile.var
-   fi	  
+      echo "Generating Makefile for HSpace. Please wait..."
+      echo "# HSpace Support" >> ../src/custom.defs
+      echo "HSPACE=1" >> ../src/custom.defs
+      echo "HSPACE=1" >> ../src/do_compile.var
+   fi
 }
 
 ###################################################################
