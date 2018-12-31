@@ -204,7 +204,7 @@ DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
 DEFB[5]="-DQDBM"
-DEFB[7]="-DUSE_HSPACE"
+DEFB[7]="-DHSPACE"
 
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
@@ -1940,9 +1940,9 @@ setlibs() {
    fi
    if [ "${XB[7]}" = "X" ]
    then
-      echo "Addhing HSpace library"
-     MORELIBS="${MORELIBS} \${HSPACE_LIB}"
-   fi
+      echo "Adding stdc++ library for HSpace...."
+      MORELIBS="${MORELIBS} -lstdc++"
+   fi     
    MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 
@@ -2007,11 +2007,11 @@ updatemakefile() {
    fi
    if [ "${XB[7]}" = "X" ]
    then
-      echo "Generating Makefile for HSpace v4.2. Please wait..."
-	  echo "# HSpace v4.2 features" >> ../src/custom.defs
-	  echo "USE_HSPACE=1" >> ../src/custom.defs
-	  echo "USE_HSPACE=1" >> ../src/do_compile.var
-   fi	  
+      echo "Generating Makefile for HSpace. Please wait..."
+      echo "# HSpace Support" >> ../src/custom.defs
+      echo "HSPACE=1" >> ../src/custom.defs
+      echo "HSPACE=1" >> ../src/do_compile.var
+    fi
 }
 
 ###################################################################
