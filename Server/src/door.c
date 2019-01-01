@@ -564,7 +564,7 @@ void queue_door_string(DESC *d, const char *s, int addnl)
 	    len = LBUF_SIZE - 1;
 	  } else {
 	    strcat(new, "\r\n");
-	    len++;
+	    len+=2;
 	  }
 	}
 	queue_door_write(d, new, len);
