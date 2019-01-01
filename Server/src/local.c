@@ -33,9 +33,9 @@
 #endif /* SQLITE */
 
 #ifdef HSPACE
-    extern void local_hs_init(void);
-    extern void hsDumpDatabases(void);
-	extern void hsCycle(void);
+extern void local_hs_init(void);
+extern void hsDumpDatabases(void);
+extern void hsCycle(void);
 #endif
 
 void local_startup(void) {
