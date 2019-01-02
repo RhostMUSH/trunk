@@ -235,6 +235,11 @@ char	*cmdsave;
 	}
 #endif
 
+// Perform HSpace tasks if activated
+#ifdef HSPACE
+    hsCycle();
+#endif
+
 	/* reset alarm */
 
 	alarm_msec (next_timer());

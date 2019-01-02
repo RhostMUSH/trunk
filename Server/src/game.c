@@ -1641,6 +1641,11 @@ dump_database_internal(int panic_dump)
     free_mbuf(outfn);
     free_mbuf(prevfile);
     local_dump(panic_dump);
+	
+	// Dump HSpace database if activated
+#ifdef HSPACE
+	hsDumpDatabases();
+#endif
 
     /* This is broke, I don't know why yet */
     reset_signals();  	/* Resume normal signal handling. */
@@ -2444,6 +2449,11 @@ main(int argc, char *argv[])
       }
     }
     local_startup();
+	
+	// HSpace startup
+#ifdef HSPACE
+    local_hs_init();
+#endif
     /* --- main mush loop --- */
     shovechars(mudconf.port, mudconf.ip_address);
     /* --- end main mush loop --- */

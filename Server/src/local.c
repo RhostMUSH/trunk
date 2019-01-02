@@ -32,12 +32,6 @@
    extern void local_sqlite_init(void);
 #endif /* SQLITE */
 
-#ifdef HSPACE
-extern void local_hs_init(void);
-extern void hsDumpDatabases(void);
-extern void hsCycle(void);
-#endif
-
 void local_startup(void) {
 #ifdef SQLITE
    local_sqlite_init();
@@ -46,10 +40,6 @@ void local_startup(void) {
    local_mysql_init();
 #endif
    load_regexp_functions();
-// Initialize HSpace if activated
-#ifdef HSPACE
-   local_hs_init();
-#endif
 }
 
 /* Called immediatly after the main game loop exits. At this point
@@ -73,10 +63,6 @@ void local_load_reboot(void) {
 /* Called after Rhost has finished dumping her databases */
 void local_dump(int bPanicDump) {
 
-// Dump HSpace database if activated
-#ifdef HSPACE
-	hsDumpDatabases();
-#endif
 }
 
 /* Called after Rhost has finished her internal db checks */
@@ -94,10 +80,6 @@ void local_tick(void) {
  */
 void local_second(void) {
 
-// Perform HSpace tasks if activated
-#ifdef HSPACE
-  hsCycle();
-#endif
 }
 
 /* Called when a player connects and after all connect/aconnect

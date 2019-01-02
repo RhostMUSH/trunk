@@ -100,6 +100,9 @@ NAMETAB eng_sw[] = {
     {0, 0, 0, 0}
 };
 
+extern void local_hs_init(void);
+extern void hsDumpDatabases(void);
+extern void hsCycle(void);
 extern char *hsFunction(char *, dbref, char **);
 
 void do_hs_space(dbref player, dbref cause, int key, char *arg_left, char *arg_right)
