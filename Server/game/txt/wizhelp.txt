@@ -2668,7 +2668,7 @@
   blacklist.  There is a script that can be ran that will populate this
   file with all known TOR exit points.
   
-  You may optionally have a netmask (in ipv4 or CIDR noation) after the IP
+  You may optionally have a netmask (in ipv4 or CIDR notation) after the IP
   in the blacklist.txt.  If no masks is seen, it will assume /32.  
   
   The following switches exist for @blacklist:
@@ -2679,6 +2679,7 @@
              shows 2 IP's and 2 NETMASK's to a line.
   
 { see 'wizhelp @blacklist2' for arguments and examples }
+{ 'wizhelp blacklist file' for an example of the blacklist.txt file }
 
 & @blacklist2
   (CONTINUED)

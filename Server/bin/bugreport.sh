@@ -13,7 +13,7 @@ fi
 #################################
 # Environments
 VERSION="1.1"
-MAILID="bugs@rhostmush.org"
+MAILID="rhostmush@gmail.com"
 SUBJ="RhostMUSH Automated Bug Report"
 LOGID="$(id|cut -f1 -d")"|cut -f2 -d"(")"
 MYHOST=`hostname`

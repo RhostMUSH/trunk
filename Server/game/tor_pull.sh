@@ -7,8 +7,9 @@ then
 fi
 if [ -f Tor_ip_list_EXIT.csv ]
 then
-  rm -f blacklist.txt
-  cat Tor_ip_list_EXIT.csv > blacklist.txt
+  mv -f blacklist.txt blacklist.tor
+  cat Tor_ip_list_EXIT.csv blacklist.tor 2>/dev/null| sort -u > blacklist.txt
+  rm -f blacklist.tor
 fi
 
 # Additional TorProject list.
@@ -22,8 +23,9 @@ then
     then
       cat bulk2.txt >> blacklist.txt
     else
-      rm -f blacklist.txt
-      cat bulk2.txt 2>/dev/null|sort -u > blacklist.txt
+      mv -f blacklist.txt blacklist.tor
+      cat bulk2.txt blacklist.tor 2>/dev/null|sort -u > blacklist.txt
+      rm -f blacklist.tor
     fi
 fi
 
