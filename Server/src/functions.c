@@ -31212,7 +31212,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
           break;
        case SET_INTERSECT: /* Copy only elements in both lists */
           while ((i1 < n1) && (i2 < n2)) {
-              val = strcmp(ptrs1[i1], ptrs2[i2]);
+              val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
               if (!val) {
                  /* Got a match, copy it */
                  if (!first)
@@ -31235,14 +31235,14 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
            break;
        case SET_DIFF:    /* Copy elements unique to list1 */
           while ((i1 < n1) && (i2 < n2)) {
-             val = strcmp(ptrs1[i1], ptrs2[i2]);
+             val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
              if (!val) {
                 /* Got a match, increment pointers */
                 oldp = ptrs1[i1];
                 while ((i1 < n1) && !strcmp(ptrs1[i1], oldp))
                    i1++;
                 while ((i2 < n2) && !strcmp(ptrs2[i2], oldp))
-                    i2++;
+                   i2++;
              } else if (val < 0) {
                /* Item in list1 not in list2, copy */
                if (!first)
@@ -31258,7 +31258,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                 oldp = ptrs2[i2];
                 i2++;
                 while ((i2 < n2) && !strcmp(ptrs2[i2], oldp))
-                    i2++;
+                   i2++;
              }
           }
           /* Copy remainder of list1 */
