@@ -42,6 +42,8 @@ all l*() math functions allowed empty args for backward compatibility
 				- Thanks skew
 Found bug in lattr() with command  matching.
 				- Thanks Damascus
+Bug in final sorting for setunion/setdiff/setinter.
+				- Thanks Aqua
 
 
                          RhostMUSH 3.9.5 Update File

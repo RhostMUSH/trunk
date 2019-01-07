@@ -31351,8 +31351,8 @@ FUNCTION(fun_listinter)
 
 FUNCTION(fun_setunion)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31374,14 +31374,19 @@ FUNCTION(fun_setunion)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_UNION, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setunion");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_UNION, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 
 FUNCTION(fun_setdiff)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31403,14 +31408,19 @@ FUNCTION(fun_setdiff)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_DIFF, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setdiff");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_DIFF, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 
 FUNCTION(fun_setinter)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31432,7 +31442,12 @@ FUNCTION(fun_setinter)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_INTERSECT, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setinter");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_INTERSECT, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 

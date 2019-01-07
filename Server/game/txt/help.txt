@@ -32533,3 +32533,4 @@
   Bug Fixes
   ------------
   * some cleanup on milisecond timers
+  * setunion/setinter/setdiff didn't properly sort final lists [ASH]
