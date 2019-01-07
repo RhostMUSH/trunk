@@ -32534,3 +32534,4 @@
   ------------
   * some cleanup on milisecond timers
   * setunion/setinter/setdiff didn't properly sort final lists [ASH]
+  * logic for setunion() didn't always work on conditional type setting [ASH]

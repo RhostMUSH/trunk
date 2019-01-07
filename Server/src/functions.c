@@ -31078,25 +31078,75 @@ FUNCTION(fun_sortby)
 #define SET_INTERSECT   2
 #define SET_DIFF        3
 
+int
+handle_set_comp(char *str1, char *str2, int sort_type) {
+   int i1, i2, result;
+   double d1, d2;
+
+   result = 0;
+   switch (sort_type) {
+      case FLOAT_LIST: /* Compare floats */
+         d1 = safe_atof(str1);
+         d2 = safe_atof(str2);
+         if ( d1 < d2 ) {
+            result = -1;
+         } else if ( d1 == d2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case DBREF_LIST: /* Compare dbref */
+         i1 = dbnum(str1);
+         i2 = dbnum(str2);
+         if ( i1 < i2 ) {
+            result = -1;
+         } else if ( i1 == i2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case NUMERIC_LIST: /* Compare numeric */
+         i1 = atoi(str1);
+         i2 = atoi(str2);
+         if ( i1 < i2 ) {
+            result = -1;
+         } else if ( i1 == i2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case ALPHANUM_LIST: /* Alphanum list */
+      default: /* Alphanum list -- default */
+         result = strcmp(str1, str2);
+         break;
+   }
+   return(result);
+}
+
 static void
 handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type)
 {
     char *list1, *list2, *oldp;
     char *ptrs1[LBUF_SIZE], *ptrs2[LBUF_SIZE];
     char *startpoint = "";
-    int i1, i2, n1, n2, val, first;
+    int i1, i2, n1, n2, val, first, i_cmp;
 
     list1 = alloc_lbuf("fun_setunion.1");
+    memset(list1, '\0', LBUF_SIZE);
     strcpy(list1, fargs[0]);
     n1 = list2arr(ptrs1, LBUF_SIZE, list1, sep);
     do_asort(ptrs1, n1, sort_type);
 
     list2 = alloc_lbuf("fun_setunion.2");
+    memset(list2, '\0', LBUF_SIZE);
     strcpy(list2, fargs[1]);
     n2 = list2arr(ptrs2, LBUF_SIZE, list2, sep);
     do_asort(ptrs2, n2, sort_type);
 
-    i1 = i2 = 0;
+    i_cmp = i1 = i2 = 0;
     first = 1;
     oldp = startpoint;
 
@@ -31122,9 +31172,10 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                 if (!first)
                    safe_chr(osep, buff, bufcx);
                 first = 0;
-                if (strcmp(ptrs1[i1], ptrs2[i2]) < 0) {
+                i_cmp = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
+                if (i_cmp < 0) {
                     safe_str(ptrs1[i1], buff, bufcx);
-                   oldp = ptrs1[i1];
+                    oldp = ptrs1[i1];
                     i1++;
                 } else {
                     safe_str(ptrs2[i2], buff, bufcx);
