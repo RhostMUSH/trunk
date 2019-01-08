@@ -1,0 +1,19 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@  HSPACE HELPER OBJECT
+@@
+@@  This object is intended to provide some initial gobal
+@@  softcode for use with the HSpace for RhostMUSH BETA
+@@  feature.
+@@
+@@  Included Helpers:
+@@  * hshelp command
+@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+@create HSpace Helper=10
+&C.HSHELP HSpace Helper=$hshelp:@dynhelp hspace=%#
+&C.HSHELP_TOPIC HSpace Helper=$hshelp *:@dynhelp hspace/%0=%#
+@rxlevel HSpace Helper=
+@txlevel HSpace Helper=
+@set HSpace Helper=ROYALTY
+@toggle HSpace Helper=EXTANSI
