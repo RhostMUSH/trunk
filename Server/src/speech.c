@@ -169,7 +169,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 
 	switch (key) {
 	case SAY_SAY:
-                pbuf = atr_get(player, A_SAYSTRING, &aowner, &aflags);
+                pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
@@ -503,7 +503,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		default:
 			buf2 = alloc_lbuf("do_say.wizshout");
 			bp = buf2;
-                        pbuf = atr_get(player, A_SAYSTRING, &aowner, &aflags);
+                        pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
                         if ( pbuf && *pbuf ) {
                            tprp_buff = tpr_buff = alloc_lbuf("do_say");
                            safe_str(safe_tprintf(tpr_buff, &tprp_buff, " %.30s \"", pbuf), buf2, &bp);
@@ -2252,7 +2252,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_FSAY:
                   tprp_buff = tpr_buff = alloc_lbuf("do_pemit");
-                  pbuf = atr_get(player, A_SAYSTRING, &aowner, &aflags);
+                  pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
                   if ( SafeLog(target) && (target == player) ) {
                      if ( pbuf && *pbuf ) {
 		        notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result));
@@ -2617,7 +2617,7 @@ void do_com(dbref player, dbref cause, int key,
     com_send(chan,mess);
   }
   else if (arg2[0] == '"'){
-    pbuf = atr_get(player, A_SAYSTRING, &aowner2, &aflags2);
+    pbuf = atr_pget(player, A_SAYSTRING, &aowner2, &aflags2);
     if ( pbuf && *pbuf )
        sprintf(mess, "[%s] %s %.30s, ",chan,Name(player), pbuf);
     else

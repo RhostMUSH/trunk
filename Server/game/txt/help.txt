@@ -32545,6 +32545,7 @@
   * the config file handler will now skip lines with nothing but whitespace
     or entirely blank lines w/o errors [ASH]
   * caplist() handles more cases of how to capitalize after special chars [ASH]
+  * @saystring is now inherited thorugh parent chains
   
   Bug Fixes
   ------------
