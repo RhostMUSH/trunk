@@ -1196,9 +1196,14 @@
   to indicate the status of the attribute.  The list of flag letters that
   show up is shown in 'help examine2'
   
-{ 'help examine2' for more }
+{ 'help examine2' for what the flag letters mean }
+{ 'help examine3' for what the global flag letters mean }
+{ 'help examine4' for what the switches are and examples }
   
 & examine2
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   The following flag letters show up with attributes when examined:
     + - The attribute is locked, it does not change ownership when the
         object is @chowned and may not be modified.
@@ -1221,9 +1226,13 @@
     B - The attribute is modifiable by Architect or higher only.
     g - The attribute is modifiable by Guildmaster or higher only.
   
-{ 'help examine3' for more }
+{ 'help examine3' for what the global flag letters mean }
+{ 'help examine4' for what the switches are and examples }
   
 & examine3
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   If expanded looks are enabled (@list options to verify), you may also
   see global attributes on attributes.  These are surrounded by []'s.
   The following global attributes can exist:
@@ -1248,8 +1257,12 @@
     B - The attribute is modifiable by Architect or higher only.
     g - The attribute is modifiable by Guildmaster or higher only.
   
-{ 'help examine4' for more }
+{ 'help examine4' for what the switches are and examples }
+
 & examine4
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   If you specify a wildcarded attribute name, then only those attributes
   that match are shown.  So, 'exam me/v?' will show all your attributes that
   start with v and are two characters long.
@@ -1267,6 +1280,7 @@
                 Only useful with using #obj/attr format.
      /regexp  - Use regular expression for wildcard matches.
      /cluster - Examines the specified cluster (and all members).
+     /display - Ansify matching parenthesis, braces,and brackets.
   
   
   Example:
@@ -32520,6 +32534,8 @@
   * Sites that do not properly send AUTH data or RDNS data get auto-added
     to the NoAUTH and NoDNS entires to avoid future lag [ASH]
   * template() function to do auto-replace in a defined template string [ASH]
+  * examine/display allows ansifying parenthesis, braces, and brackets
+    like parenmatch() [ASH]
   
   Changes
   ------------

@@ -699,6 +699,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EXAM_TREE	32	/* Examine Tree like Penn */
 #define EXAM_REGEXP	64	/* Examine by Regexp */
 #define EXAM_CLUSTER    128     /* Examine by Cluster */
+#define EXAM_DISPLAY	256	/* Do  ansified display of examine */
 
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */

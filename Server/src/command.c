@@ -400,6 +400,7 @@ NAMETAB examine_sw[] =
     {(char *) "tree", 1, CA_PUBLIC, 0, EXAM_TREE | SW_MULTIPLE},
     {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
     {(char *) "cluster", 1, CA_PUBLIC, 0, EXAM_CLUSTER},
+    {(char *) "display", 1, CA_PUBLIC, 0, EXAM_DISPLAY | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB extansi_sw[] =

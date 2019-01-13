@@ -5,6 +5,7 @@ then
    exit 1
 fi
 gl_arg=$(echo "$1"|tr 'A-Z' 'a-z')
+export LANG=en_US
 if [ "${gl_arg}" = "moon" ]
 then
    lynx --dump wttr.in/moon|perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($_)'|head -23
