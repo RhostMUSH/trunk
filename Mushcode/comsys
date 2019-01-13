@@ -12,6 +12,7 @@
 @@ 1.2.2   11/24/17     Ashen-Shugar   Fix for version checking at start (warning only)
 @@                                     Fix on comcfg/notify with case sensitivity
 @@ 1.2.3   09/25/18     Ashen-Shugar   Add timestamp capability to channel output
+@@ 1.2.4   01/13/19     Ashen-Shugar   @cboot/@clist fixes.  channels() function.
 @@
 @@ You need -DHACK_ATTR, -DTINY_U, -DSIDEEFFECTS all defined for this to work at compiletime!
 @@
@@ -32,7 +33,7 @@ think %r[space(9)]---> If these tests failed, you are given [ansi(hrf,10 seconds
 think Continuing with loading of script...
 @@
 @create ChanSys=10
-@startup ChanSys=@function/priv cemit=[v(F-DB)]/fun_cemit
+@startup ChanSys=@function/priv cemit=[v(F-DB)]/fun_cemit;@function/priv/pres channels=[v(F-DB)]/fun_channels
 &CMD_CHAN ChanSys=$^@chan(((n)?(e)?(l)?)?)(/.*)?( .*)?$:@include me/do_parsechan[match(v(cmd_switches),ifelse(!!pos(/,first(%0)),after(first(%0),/),help))]
 @set ChanSys/CMD_CHAN=regexp
 &CMD_ADDCOM ChanSys=$addcom *=*:@pemit %#=[u(ADDCOMMSG[setr(0,u(addcomf,setr(1,first(lcstr(secure(%0)))),setr(2,lcstr(secure(%1)))))],r(1),r(2))];@break [not(match(11,r(0)))];&_CH_ALIST %#=[setunion(get(%#/_ch_alist),[r(1)]:[r(2)])];&CHLIST_[r(2)] [v(STOR-DB)]=[null(ifelse(match(get([v(STOR-DB)]/chlist_[r(2)]),%#),,u([v(FX-DB)]/do_alias,xxx,:has joined this channel.,xxx:[r(2)])))][setunion(get([v(STOR-DB)]/chlist_[secure(%1)]),%#)]
@@ -101,6 +102,7 @@ think Continuing with loading of script...
 @parent ChanSys=ChanFunc
 &F_USER_COMSET ChanFunc=[ifelse(member(4 5 7,%2),0,localize([setq(z,grab(get(%0/_ch_comset),+all:*))][ifelse(!$r(z),setq(z,grab(get(%0/_ch_comset),%1:*)))][add(0,after(%qz,:))]))]
 &FUN_CEMIT ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,u(F_CHK_CEMIT,%0,%1))][ifelse(match(111,r(2)),u([v(FX-DB)]/do_genpemit,[r(8)][u([v(FX-DB)]/do_chcnt,r(1))][setq(5,[setq(3,default([v(F-DB)]/ch_template1_%q1,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%q1,get([v(F-DB)]/ch_template2)))][u(F_DO_CEMIT,%0,%1,%#)])][ulocal([v(FX-DB)]/do_hist1,secs())],r(5)))]
+&FUN_CHANNELS ChanFunc=[switch([setq(0,ifelse(words(%0),%0,%#))][and(!!^setr(1,pfind(%q0)),controls(%#,%q1))][gt(words(%2),0)],10,u([v(F-DB)]/clist_func,%q1,ifelse(words(%1),%1,%b)),11,u([v(F-DB)]/clist_onlinefunc,%q1,ifelse(words(%1),%1,%b)))]
 &STRIP_ALL ChanFunc=[ifelse(strmatch(stripaccents(),*NOT FOUND),stripansi(%0),stripansi(stripaccents(%0)))]
 &FUN_CNAME ChanFunc=[u(fun_captiontitle,%0)][switch([strmatch(name(%0),u(strip_all,get(%0/ansiname)))][hastoggle(%0,extansi)][hasattr(%0,ansiname)],111,[get(%0/ansiname)][ansi(n,)],001,ansi(get(%0/ansiname),name(%0)),name(%0))][u(fun_caption,%0)]
 &FUN_CAPTION ChanFunc=[ifelse(hasattr(%0,caption),%b[get(%0/caption)])]
@@ -153,8 +155,9 @@ think Continuing with loading of script...
 &CLIST2 ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,44)][ljust(--Flags--,11,-)][space(3)][rjust(Users,7)][rjust(Messages,11)])][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),printf([space(4)]$-44s$-11s$-3s$7s$11s,u(do_chancolor_##,##),[ifelse(match(get([v(STOR-DB)]/commask_chanlist),##),M,-)][ifelse(match(get(%#/_ch_gagged),##),g,-)][ifelse(match(get([v(STOR-DB)]/chlist_##),%#),o,-)][ifelse(hasattr([v(F-DB)]/##_lock),L,-)][switch(u([v(F-DB)]/f_user_comset,%#,##,0),1,A-,2,AT,3,-T,--)]-----,ifelse(match(get(%#/_ch_lock),##),%bL%b),words(get([v(STOR-DB)]/chlist_##)),add(0,get([v(STOR-DB)]/chused_##)))))]---- End of list of channels ----%rKey: M (alias enabled), g (gagged), o (online), L (locked), %r[space(5)]A (no-ansi), T (no-comtitle)
 &CLIST3 ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Channel Alias ReName)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ifelse(hasattr([v(F-DB)],do_chancolor_over_##),u(do_chancolor_over_##,##),u(do_chancolor_##,##))]))]---- End of list of channels ----
 &CLIST4 ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,*** [ljust(Channel,25)][space(3)]Notify[space(4)]Broadcast)][list(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%#,ALL),gte(bittype(%#),5)),[space(4)][u(do_chancolor_##)][space(sub(25,strlen(##)))][ifelse(match(get(%#/_ch_lock),##),%bL%b,%b%b%b)][ljust(switch([or(match(get([v(F-DB)]/notify_list),0),and(hasattr([v(F-DB)]/notify_list),!match(get([v(F-DB)]/notify_list),##)))][or(match(get(%#/_ch_notify),##),match(get(%#/_ch_notify),+all))],1?,[ansi(c,IGNORED)],?1,[ansi(hr,DISABLED)],[ansi(hg,enabled)]),10)][switch([or(match(get(%#/_ch_unnotify),##),match(get(%#/_ch_unnotify),+all))][or(match(get([v(F-DB)]/notify_list),0),and(hasattr([v(F-DB)]/notify_list),!match(get([v(F-DB)]/notify_list),##)))],?1,[ansi(c,IGNORED)],1?,[ansi(hr,DISABLED)],[ansi(hg,enabled)])]))]---- End of list of channels ----
-@@ &CLIST5 ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,[printf($-15:.:s $-25:.:s $-15:.:s,Left-Border,Channel-Name,Right-Border)][iter(get([v(STOR-DB)]/ch_list),%r[printf($-15s $-25s $-15s,default([v(F-DB)]/ch_template1_%i0,get([v(F-DB)]/ch_template1)),u(do_chancolor_%i0),default([v(F-DB)]/ch_template2_%i0,get([v(F-DB)]/ch_template2)))])]%r---- End of list of channels ----)]
-&CLIST5 ChanFunc=[list(get([v(STOR-DB)]/ch_list),[printf($-15s $-25s $-15s,default([v(F-DB)]/ch_template1_%i0,get([v(F-DB)]/ch_template1)),u(do_chancolor_%i0),default([v(F-DB)]/ch_template2_%i0,get([v(F-DB)]/ch_template2)))],,[printf($-15:.:s $-25:.:s $-15:.:s,Left-Border,Channel-Name,Right-Border)])]---- End of list of channels ----
+&CLIST5 ChanFunc=[list(u([v(F-DB)]/clist_func,%#),[printf($-15s $-25s $-15s,default([v(F-DB)]/ch_template1_%i0,get([v(F-DB)]/ch_template1)),u(do_chancolor_%i0),default([v(F-DB)]/ch_template2_%i0,get([v(F-DB)]/ch_template2)))],,[printf($-15:.:s $-25:.:s $-15:.:s,Left-Border,Channel-Name,Right-Border)])]---- End of list of channels ----
+&CLIST_FUNC ChanFunc=[trim(squish(iter(get([v(STOR-DB)]/ch_list),ifelse(or(uldefault([v(F-DB)]/##_lock,1,%0,ALL),gte(bittype(%0),5)),##),,ifelse(!$v(1),%b,%1))))]
+&CLIST_ONLINEFUNC ChanFunc=[trim(squish(iter(get([v(STOR-DB)]/ch_list),ifelse(match(get([v(STOR-DB)]/CHLIST_##),%0),##),,ifelse(!$v(1),%b,%1))))]
 &FN_COMSET0 ChanFunc=ComSys: COMSET -- Invalid switch specified. Use /set, /unset, or /list.
 &FN_COMSET1 ChanFunc=[switch([and(!match(%0,+all),match(get(%2/_ch_comset),+all:*))][!!match([get([v(STOR-DB)]/CH_LIST)] +all,%0)][gt(add(0,%1),0)],1??,ComSys: COMSET - Either clear +all or reset value,?0?,ComSys: COMSET - Channel [secure(%0)] not found,??0,ComSys: COMSET - Value must be between 1-3,011,ComSys: COMSET - %0 set with permission %1[u([v(FX-DB)]/do_comset_set,%2,%0,%1)],ComSys: Woopse!  Something bad happened.)]
 &FN_COMSET2 ChanFunc=[switch(!!match(get(%2/_ch_comset),%0:*),0,ComSys: COMSET - Specific entry not found to remove,1,ComSys: COMSET - %0 removed[u([v(FX-DB)]/do_comset_unset,%2,%0)])]
@@ -274,13 +277,13 @@ think Continuing with loading of script...
 &DOPLRLISTCLR_T ChanFunc=[ansi(hb,T)][space(4)]
 &DOPLRLISTCLR_E ChanFunc=[ansi(hg,E)][space(4)]
 &DOPLRLISTCLR_P ChanFunc=[ansi(hy,P)][space(4)]
-&CBOOTF ChanFunc=[gte(bittype(%2),5)][and(match(get([V(STOR-DB)]/ch_list),%1),isdbref(pfind(%0)))]
+&CBOOTF ChanFunc=[gte(bittype(%2),5)][and(match(get([V(STOR-DB)]/ch_list),%1),isdbref(pfind(%0)),match(get([v(STOR-DB)]/chlist_%1),pfind(%0)))]
 &CBOOTMSG00 ChanFunc=ComSys: You don't have access to @cboot.
 &CBOOTMSG01 ChanFunc=[u(cbootmsg00,%0,%1,%2)]
-&CBOOTMSG10 ChanFunc=[ifelse(isdbref(pfind(%0)),ComSys: The target channel does not exist.,ComSys: The target specified is not valid.)]
+&CBOOTMSG10 ChanFunc=[switch([isdbref(pfind(%0))][!!match(get([v(STOR-DB)]/ch_list),%1)][!match(get([v(STOR-DB)]/chlist_%1),%0)],0??,ComSys: The target specified is not valid.,10?,ComSys: The target channel does nto exist.,ComSys: The target is not on that channel.)]
 &CBOOTMSG11 ChanFunc=ComSys: [capstr(lcstr(type(pfind(%0))))] [name(pfind(%0))] has been booted from [u([v(F-DB)]/do_chancolor_%1)].
 &DOCBOOT ChanFunc=[u([v(FX-DB)]/do_cboot,%0,%1,%2)]
-&VERSION ChanFunc=1.2.3 09/24/2018
+&VERSION ChanFunc=1.2.4 01/13/2019
 &COMHELP_SYNTAX ChanFunc=comhelp|addcom <alias>=<channel>|=<channel> <message>|.<channel> <message>|<alias> <message>|<alias> on|<alias> off|<alias> who|<alias> last [<value>]|delcom <channel>|@clist[/full /alias /notify /borders]|comlist|comtitle <channel>=<title>|comcfg[/<switch>]|@cemit <channel>=<message>|@cboot <target>=<channel>|commask <channel>=<alias>|comprefix[/clear] [<character(s)>]|comoptions|@channel|comall|comgag[/on /off /list] <channel>|comnotify[/<switches>]|comset[/<switch>] <channel> [<1-3>]
 &COMHELP_REFERENCE ChanFunc=Show this screen.|Adds aliases to channel.|Method to talk on channel.|no-eval talk on channel.|Method to talk on channel.|Join a channel.|Leave a channel.|See who's on channel.|List channel history.|Remove alias (doesn't leave)|Lists available channels.|Lists connected channels.|Set channel comtitle.|Config comsys (see /help)|Emit over channel.|Boot target from channel.|Set name alias.|Config personal prefixes.|List speaking options.|@chan interface. (@chan/help)|List all users on chans.|Turn gagging on/off/list.|Notification Broadcasts|Set/Unset/List channel options
 &COMOPTIONS_SYNTAX ChanFunc=<alias>:<message>|<alias>;<message>|<alias>"<message>|<alias>`<player> <message>|<alias>`<player(s)>` <message>
@@ -426,3 +429,6 @@ comcfg/chancolor newbie=[ansi(h,Newbie)]
 comcfg/chanadd Public=New Player Channel
 comcfg/chancolor public=[ansi(hb,Public)]
 @swi/f [isdbref(globalroom())]=1,{@pemit %#=Installing into your globalroom %([name(globalroom())]%([globalroom()][flags(globalroom())]%);@tel/quiet ChanSys=globalroom();@pemit %#=Installation Completed. (type 'comhelp' for help)},{@pemit %#=Either the global room isn't configured or you have no access to it.  You will need to manually place the object into the global room.%rInstallation Completed. (type 'comhelp' for help)}
+
+
+
