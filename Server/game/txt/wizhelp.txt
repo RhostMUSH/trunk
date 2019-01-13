@@ -3160,14 +3160,14 @@
   Lists information from internal databases.  Information is available
   about the following options:
  
-    advbuffers          allocations         attr_permissions    attributes 
-    bad_names           buffers             commands            costs     
-    db_stats            default_flags       flags               functions 
-    funperms            globals             hashstats           logging   
-    options             permissions         process             site_info   
-    switches            user_attributes     toggles             mail_globals  
-    guest_names        *rlevels             cmdslogged          powers  
-    depowers           *stacks              vattrcmds
+    advbuffers      allocations       attr_permissions  attributes 
+    bad_names       buffers           commands          config_permissions
+    costs           db_stats          default_flags     flags             
+    functions       funperms          globals           hashstats         
+    logging         options           permissions       process         
+    site_info       switches          user_attributes   toggles         
+    mail_globals    guest_names      *rlevels           cmdslogged      
+    powers          depowers         *stacks            vattrcmds
  
   Type wizhelp @list <option> for help with a particular option.
   
@@ -3175,6 +3175,14 @@
   
   Example:  @list alloc
 
+& @list config_permissions
+  Command: @list config_permissions
+  
+  This will show you all the config options and permissions for them.
+  You may change these permissions with the @admin param  'config_access'.
+  
+  See Also: config_access
+  
 & @list vattrcmds
   Command: @list vattrcmds
   
@@ -6698,6 +6706,7 @@
   be specified in the configuration file at startup.  Setting privileges
   to anything other than disabled or god is meaningless unless the 
   restriction on the @admin command is weakened.
+  
   See Also: @admin, @list config_permissions, PERMISSIONS.
 
 & conn_timeout
