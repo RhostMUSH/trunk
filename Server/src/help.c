@@ -179,7 +179,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     FILE *fp;
     char *p, *line;
     int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header,
-        i_cntr;
+        i_cntr, i_tier0chk;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
@@ -372,6 +372,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
         }
         s_buffptr = s_buff = alloc_lbuf("help_topical");
         s_tmpbuff = alloc_lbuf("help_wild_checker");
+notify(1234, "Test1");
 	for (htab_entry = (struct help_entry *) hash_firstentry(htab);
 	     htab_entry != NULL;
 	     htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -405,33 +406,37 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                s_nbuff[0] = topic;
                s_nbuff[1] = htab_entry->keyorig;
                s_buffptr = s_buff;
+               i_tier0chk = 0;
                if ( i_tier0 < 3 ) {
                   sprintf(s_tmpbuff, "*%.*s*", LBUF_SIZE-100, topic);
                   if ( quick_wild(s_tmpbuff, htab_entry->keyorig) ) {
                      sprintf(s_tier0[i_tier0], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
                      i_tier0++;
+                     i_tier0chk = 1;
                   }
                }
-               fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
-               switch(atoi(s_buff)) {
-                  case 1: /* case 1 */
-                     if ( i_tier1 < 3 ) {
-                        sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                        i_tier1++;
-                     }
-                     break;
-                  case 2: /* case 2 */
-                     if ( i_tier2 < 3 ) {
-                        sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                        i_tier2++;
-                     }
-                     break;
-                  case 3: /* case 3 */
-                     if ( i_tier3 < 3 ) {
-                        sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                        i_tier3++;
-                     }
-                     break;
+               if ( !i_tier0chk ) {
+                  fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
+                  switch(atoi(s_buff)) {
+                     case 1: /* case 1 */
+                        if ( i_tier1 < 3 ) {
+                           sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                           i_tier1++;
+                        }
+                        break;
+                     case 2: /* case 2 */
+                        if ( i_tier2 < 3 ) {
+                           sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                           i_tier2++;
+                        }
+                        break;
+                     case 3: /* case 3 */
+                        if ( i_tier3 < 3 ) {
+                           sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                           i_tier3++;
+                        }
+                        break;
+                  }
                }
             }
 	}
@@ -597,7 +602,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
         *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
    int first, found, matched, one_through, space_compress, i_noindex, i_header;
-   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr;
+   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk;
    FILE *fp_indx, *fp_help;
 
    if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
@@ -815,36 +820,40 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
       }
       if ( i_suggest && !matched ) {
+         i_tier0chk = 0;
          if ( i_tier0 < 3 ) {
             sprintf(s_tmpbuff, "*%.*s*", LBUF_SIZE - 100, msg);
             if ( quick_wild(s_tmpbuff, entry.topic) ) {
                sprintf(s_tier0[i_tier0], "%.*s", SBUF_SIZE-1, entry.topic);
                i_tier0++;
+               i_tier0chk = 1;
             }
          }
          s_buffptr = s_buff;
          s_nbuff[0] = msg;
          s_nbuff[1] = entry.topic;
-         fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
-         switch(atoi(s_buff)) {
-            case 1: /* case 1 */
-               if ( i_tier1 < 3 ) {
-                  sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                  i_tier1++;
-               }
-               break;
-            case 2: /* case 2 */
-               if ( i_tier2 < 3 ) {
-                  sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                  i_tier2++;
-               }
-               break;
-            case 3: /* case 3 */
-               if ( i_tier3 < 3 ) {
-                  sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
-                  i_tier3++;
-               }
-               break;
+         if ( !i_tier0chk ) {
+            fun_strdistance(s_buff, &s_buffptr, 1, 1, 1, s_nbuff, 2, (char **)NULL, 0);
+            switch(atoi(s_buff)) {
+               case 1: /* case 1 */
+                  if ( i_tier1 < 3 ) {
+                     sprintf(s_tier1[i_tier1], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                     i_tier1++;
+                  }
+                  break;
+               case 2: /* case 2 */
+                  if ( i_tier2 < 3 ) {
+                     sprintf(s_tier2[i_tier2], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                     i_tier2++;
+                  }
+                  break;
+               case 3: /* case 3 */
+                  if ( i_tier3 < 3 ) {
+                     sprintf(s_tier3[i_tier3], "%.*s", SBUF_SIZE - 1, s_nbuff[1]);
+                     i_tier3++;
+                  }
+                  break;
+            }
          }
       }
    }

@@ -44,6 +44,8 @@ Found bug in lattr() with command  matching.
 				- Thanks Damascus
 Bug in final sorting for setunion/setdiff/setinter.
 				- Thanks Aqua
+Duplicate entries possible with help suggestions.
+				- Thanks Alley
 
 
                          RhostMUSH 3.9.5 Update File
