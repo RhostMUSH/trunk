@@ -14428,7 +14428,7 @@ FUNCTION(fun_parenmatch)
     int aflags, anum, tcnt, i_type, i_indent, i_extra;
     ATTR *ap;
     char *atext, *atextptr, *revatext, *revatextptr;
-    char *tbuff, *tbuffptr, *p_extra;
+    char *tbuff, *tbuffptr, *p_extra, *s_stripansi;
 
     if (mudstate.last_cmd_timestamp == mudstate.now) {
        mudstate.heavy_cpu_recurse += 1;
@@ -14515,16 +14515,18 @@ FUNCTION(fun_parenmatch)
 
     tcnt = 0;
     tbuffptr = tbuff = alloc_lbuf("fun_parenmatch");
-    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
+    s_stripansi = alloc_lbuf("fun_parenmatch_stripansi");
+    strcpy(s_stripansi, strip_ansi(atext));
+    tcnt = paren_match(s_stripansi, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
     if ( tcnt > 0 ) {
        revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
-       atextptr = strip_escapes(atext);
+       atextptr = strip_escapes(s_stripansi);
        do_reverse(atextptr, revatext, &revatextptr, 0);
        free_lbuf(atextptr);
        tbuffptr = tbuff;
        tcnt = paren_match2(revatext);
        free_lbuf(revatext);
-       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent, i_extra);
+       tcnt = paren_match(s_stripansi, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(s_stripansi)-tcnt) : -1), i_type, i_indent, i_extra);
        free_lbuf(atext);
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
@@ -14533,6 +14535,7 @@ FUNCTION(fun_parenmatch)
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
     }
+    free_lbuf(s_stripansi);
 }
 
 FUNCTION(fun_parenstr)
@@ -14547,10 +14550,10 @@ FUNCTION(fun_parenstr)
    tcnt = i_type = 0;
    sbuff = alloc_lbuf("parenstrbuff");
    if ( *fargs[0] == '!' ) {
-      strcpy(sbuff, fargs[0]+1);
+      strcpy(sbuff, strip_ansi(fargs[0]+1));
       i_type = 1;
    } else {
-      strcpy(sbuff, fargs[0]);
+      strcpy(sbuff, strip_ansi(fargs[0]));
    }
    tbuffptr = tbuff = alloc_lbuf("parenstr");
    tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0, 0);

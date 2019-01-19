@@ -32561,3 +32561,4 @@
   * logic for setdiff/setinter didn't always work on conditional types [ASH]
   * duplciate entries could be seen with suggestions for help entries [ASH]
   * Long standing issue with @extansi that put a raw ansi normal [ASH]
+  * marginal cleanup of parenmatch()/parenstr() to handle raw ansi [ASH]
