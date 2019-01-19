@@ -15211,7 +15211,7 @@
   See Also: SUBSTITUTIONS, eval(), subeval(), ueval(), streval(), u(), v()
   
 & SAFEBUFF()
-  Function: safebuff(<list> [,<delim>])
+  Function: safebuff(<list> [[,<delim>, [<length>]])
   
   This function will return the list, by cutting off from the end any partial
   string, based on the delimeter you specify <delim>.  If no delimeter is
@@ -15222,15 +15222,20 @@
   the buffer is cut back.  Thus, any ansi sequence given to this function
   will be removed.
   
+  You may specify an optional length to which it will apply the logic
+  to go to the first buffer.
+  
   Example:
     > say search(eval=*)
     You say "#0 #1 ... #883 #884 #88" (in this case, '#885' would be cut off)
     > say safebuff(search(eval=*))
     You say "#0 #1 ... #883 #884" (the partial string '#885' was omitted)
+    > say safebuff(aaa aa aaaa,,8)
+    You say "aaa aa"
   
   In the above examples, the '...' would be the huge ammount of output.
   
-  See Also: lit(), s(), t()
+  See Also: lit(), s(), t(), printf(), ljc(), rjc()
   
 & ELEMENTPOS()
   Function: elementpos(<string>, <positions> [,<delim>])
@@ -32546,6 +32551,7 @@
     or entirely blank lines w/o errors [ASH]
   * caplist() handles more cases of how to capitalize after special chars [ASH]
   * @saystring is now inherited thorugh parent chains
+  * safebuff() allows an optional cut-off value [ASH]
   
   Bug Fixes
   ------------
@@ -32554,3 +32560,4 @@
   * logic for setunion() didn't always work on conditional type setting [ASH]
   * logic for setdiff/setinter didn't always work on conditional types [ASH]
   * duplciate entries could be seen with suggestions for help entries [ASH]
+  * Long standing issue with @extansi that put a raw ansi normal [ASH]

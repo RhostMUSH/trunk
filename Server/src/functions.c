@@ -2488,25 +2488,43 @@ FUNCTION(fun_singletime)
 
 FUNCTION(fun_safebuff)
 {
-  char sep, *s_ptr, *s_tmp, *noansi_buff;
+  char sep, *s_ptr, *s_tmp, *noansi_buff, *s_cutbuff;
+  int i_cutter;
 #ifdef ZENTY_ANSI
   int i_cntr;
 #endif
 
-  if (!fn_range_check("SAFEBUFF", nfargs, 1, 2, buff, bufcx)) {
+  if (!fn_range_check("SAFEBUFF", nfargs, 1, 3, buff, bufcx)) {
     return;
   }
   if ( !*fargs[0] )
      return;
 
-
+  s_cutbuff = alloc_lbuf("fun_safebuff");
+  memset(s_cutbuff, '\0', LBUF_SIZE);
+  i_cutter = 0;
+  if ( (nfargs > 2) && *fargs[2] ) {
+    i_cutter = atoi(fargs[2]);
+    if ( (i_cutter <= 0) || (i_cutter >= (LBUF_SIZE - 24)) ) {
+       strcpy(s_cutbuff, fargs[0]);
+       i_cutter = 0;
+    } else {
+       strncpy(s_cutbuff, fargs[0], i_cutter);
+    }
+  } else {
+    strcpy(s_cutbuff, fargs[0]);
+  }
+  
+  if ( i_cutter == 0 ) {
 #ifdef ZENTY_ANSI
-  if ( (strlen(fargs[0]) < (LBUF_SIZE - 24)) ) {
+     if ( (strlen(s_cutbuff) < (LBUF_SIZE - 24)) ) {
 #else
-  if ( (strlen(fargs[0]) < (LBUF_SIZE - 2)) ) {
+     if ( (strlen(s_cutbuff) < (LBUF_SIZE - 2)) ) {
 #endif
-    safe_str(fargs[0], buff, bufcx);
-    return;
+       safe_str(s_cutbuff, buff, bufcx);
+       free_lbuf(s_cutbuff);
+       return;
+     }
   }
 
   if ( (nfargs > 1) && (*fargs[1]) )
@@ -2515,13 +2533,13 @@ FUNCTION(fun_safebuff)
     sep = ' ';
 
   noansi_buff = alloc_lbuf("fun_safebuff");
-  strcpy(noansi_buff, strip_all_special(fargs[0]));
+  strcpy(noansi_buff, strip_all_special(s_cutbuff));
   s_tmp = noansi_buff;
   s_ptr = s_tmp + strlen(s_tmp) - 1;
 
 #ifdef ZENTY_ANSI
   i_cntr = 0;
-  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || i_cntr < 24 ) {
+  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || ((i_cutter == 0) && (i_cntr < 24)) ) {
      s_ptr--;
      i_cntr++;
   }
@@ -2536,6 +2554,7 @@ FUNCTION(fun_safebuff)
   }
   safe_str(s_tmp, buff, bufcx);
   free_lbuf(noansi_buff);
+  free_lbuf(s_cutbuff);
 }
 
 /* Borrowed from PENN with permission */

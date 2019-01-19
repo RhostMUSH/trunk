@@ -10465,8 +10465,13 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
             notify(player, unsafe_tprintf("Ansi string entered for %s of '%s'.", namebuff, 
                    strip_returntab(retbuff,3)));
          }
+#ifdef ZENTY_ANSI
+         atr_add_raw(thing, A_ANSINAME, 
+                     unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), SAFE_ANSI_NORMAL));
+#else
          atr_add_raw(thing, A_ANSINAME, 
                      unsafe_tprintf("%.3900s%s", strip_returntab(retbuff,3), ANSI_NORMAL));
+#endif
       }
       free_lbuf(retbuff);
       free_lbuf(namebuff);
