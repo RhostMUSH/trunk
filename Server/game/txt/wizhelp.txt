@@ -2578,7 +2578,7 @@
 & @cmdquota
   Command: @cmdquota <player> = <1-99999>
   
-  This sets a tempoary maximum command quota for the target player's current
+  This sets a temporary maximum command quota for the target player's current
   connections.  This only works for connected players, and only sets it
   for the duration of the player being connected.  Once logged out of 
   their account, the value is reset to default maximum for either player
