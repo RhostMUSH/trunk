@@ -2589,7 +2589,7 @@
   You may use @conncheck/quota to see command quotas of connected sockets. 
   
   Example:
-    > @quota tinyplayer=10000
+    > @cmdquota tinyplayer=10000
     @cmdquota: The target player tinyplayer for their online duration has
                command quota of 10000.
                Once this value is below 100 it will regenerate as normal.
