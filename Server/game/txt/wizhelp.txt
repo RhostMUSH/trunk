@@ -429,18 +429,19 @@
  
   @admin          @aflags         @api           @apply_marked   @areg       
   @attribute      @blacklist      @boot          @chown          @chownall   
-  @clone          @conncheck      @convert       @cut            @dbck       
-  @dbclean        @depower        @destroy       @disable        @doing      
-  @dump           @dynhelp        @enable        @fixdb          @flag      
-  @flagdef        @freeze         @function      @halt           @hide       
-  @hook           @icmd           @kick          @limit          @list       
-  @list_file      @listmotd       @lock          @log            @logrotate   
-  @mark           @mark_all       @money         @motd           @newpassword
-  @nuke           @pcreate        @poor          @power          @progreset  
-  @protect        @ps             @purge         @quota          @readcache  
-  @reboot         @recover        @reclist       @remote         @rwho       
-  @site           @shutdown       @snapshot      @thaw           @timewarp   
-  @toad           @tor            @turtle        @wall           +players
+  @clone          @cmdquota       @conncheck     @convert        @cut          
+  @dbck           @dbclean        @depower       @destroy        @disable      
+  @doing          @dump           @dynhelp       @enable         @fixdb        
+  @flag           @flagdef        @freeze        @function       @halt        
+  @hide           @hook           @icmd          @kick           @limit        
+  @list           @list_file      @listmotd      @lock           @log          
+  @logrotate      @mark           @mark_all      @money          @motd         
+  @newpassword    @nuke           @pcreate       @poor           @power        
+  @progreset      @protect        @ps            @purge          @quota        
+  @readcache      @reboot         @recover       @reclist        @remote       
+  @rwho           @site           @shutdown      @snapshot       @thaw         
+  @timewarp       @toad           @tor           @turtle         @wall         
+  +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -2574,12 +2575,37 @@
   
   See Also: attr_access
  
+& @cmdquota
+  Command: @cmdquota <player> = <1-99999>
+  
+  This sets a tempoary maximum command quota for the target player's current
+  connections.  This only works for connected players, and only sets it
+  for the duration of the player being connected.  Once logged out of 
+  their account, the value is reset to default maximum for either player
+  or wizard, depending on their bitlevel.
+  
+  The value must be greater than 0 and less than 100,000.
+   
+  You may use @conncheck/quota to see command quotas of connected sockets. 
+  
+  Example:
+    > @quota tinyplayer=10000
+    @cmdquota: The target player tinyplayer for their online duration has
+               command quota of 1000.
+               Once this value is below 100 it will regenerate as normal.
+  
+  See Also: command_quota_max, wizcommand_quota_max, @conncheck
+ 
 & @conncheck
-  Command: @conncheck
+  Command: @conncheck[/<switch>]
   
   This works like WHO or DOING but shows full email idents as well.
   This is only useable by Super-Royalty (Immortals).  This command also
   shows what DOORS (help @door) that people are currently using.
+  
+  The following switches exist:
+    /quota - show the command quotas for all connected sockets/ports.
+  
 
 & @remote
   Command: @remote <location>=<command>
@@ -6077,7 +6103,8 @@
   who_showwiz               who_wizlevel              who_whowiztype          
   whohost_size              wiz_override              wiz_uselock             
   wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        zone_parents
+  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max
+  zone_parents
 
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -6670,7 +6697,9 @@
   users each timeslice.  Each command a user types in (commands executed by
   machines do not count) decreases the quota by 1, and the user's commands are
   only executed if the quota is greater than zero.
-  See Also: command_quota_max, timeslice.
+  
+  See Also: command_quota_max, wizcommand_quota_max, timeslice,
+            @cmdquota
 
 & command_quota_max
   Config parameter: command_quota_max <amount>. Default: 100
@@ -6680,7 +6709,9 @@
   Each command a user types in (commands executed by machines do not count)
   decreases the quota by 1, and the user's commands are only executed if the
   quota is greater than zero.
-  See Also: command_quota_increment, timeslice.
+  
+  See Also: command_quota_increment, wizcommand_quota_max, timeslice,
+            @cmdquota
 
 & compress_program
   Config parameter: compress_program <path>.  Default: /usr/ucb/compress
@@ -10822,6 +10853,18 @@
   halt the object performing the command.
   
   See Also: player_queue_limit
+
+& wizcommand_quota_max
+  Config parameter: wizcommand_quota_max <amount>. Default: 100
+  
+  Specifies the maximum value for the command quota for connected wizards+.
+  A wizard's command quota is only increased if it is below this value.
+  Each command a wizard types in (commands executed by machines do not count)
+  decreases the quota by 1, and the wizard's commands are only executed if the
+  quota is greater than zero.
+  
+  See Also: command_quota_increment, command_quota_max, timeslice,
+            @cmdquota
 
 & wizmax_vattr_limit
   Config parameter: wizmax_vattr_limit <num>    Default: 1000000

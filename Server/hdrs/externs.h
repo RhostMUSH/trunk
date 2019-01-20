@@ -618,6 +618,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CLONE_PARENT	0x00000040	/* Set parent on obj instd of cloning attrs */
 #define CLONE_ANSI	0x00000080	/* Ansify the name */
 
+#define CONNCHECK_QUOTA 0x00000001	/* Check command quotas of connected ports */
+
 #define CONV_ALTERNATE	0x00000001
 #define CONV_ALL	0x00000002
 #define CONV_OVER	0x00000004

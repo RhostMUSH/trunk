@@ -269,6 +269,11 @@ NAMETAB clone_sw[] =
     {(char *) "ansi", 2, CA_PUBLIC, 0, CLONE_ANSI | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB conncheck_sw[] =
+{
+    {(char *) "quota", 1, CA_PUBLIC, 0, CONNCHECK_QUOTA},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB convert_sw[] =
 {
     {(char *) "alternate", 3, CA_IMMORTAL, 0, CONV_ALTERNATE},
@@ -1241,7 +1246,9 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_clone},
     {(char *) "@cluster", cluster_sw, CA_WIZARD, CA_CLUSTER, 0, 
      CS_ONE_ARG | CS_CMDARG, 0, do_cluster},
-    {(char *) "@conncheck", NULL, CA_GOD | CA_IMMORTAL, 0, 0,
+    {(char *) "@cmdquota", NULL, CA_IMMORTAL, CA_NO_CODE, 0, 
+     CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_cmdquota},
+    {(char *) "@conncheck", conncheck_sw, CA_GOD | CA_IMMORTAL, 0, 0,
      CS_NO_ARGS, 0, do_conncheck},
     {(char *) "@convert", convert_sw, CA_IMMORTAL, 0, 0,
      CS_INTERP | CS_TWO_ARG, 0, do_convert},
@@ -13568,6 +13575,52 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
               notify_quiet(player, "@label: Unrecognized switch.");
            }
            break;
+   }
+}
+
+void
+do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
+   int i_cmdquota, i_cntr;
+   dbref target;
+   DESC *d;
+
+   target = lookup_player(player, name, 0);
+
+   if ( !Good_chk(target) ) {
+      notify_quiet(player, "That is not a player.");
+      return;
+   } 
+
+   if ( !controls(player, target) ) {
+      notify_quiet(player, "Permission denied.");
+      return;
+   }
+
+   i_cmdquota = atoi(cmdquota);
+  
+   if ( (i_cmdquota <= 0) || (i_cmdquota >= 100000) ) {
+      notify_quiet(player, "New command quota must be between 0 and 100,000");
+      return;
+   }
+
+   i_cntr = 0;
+   DESC_ITER_ALL(d) {
+      if ( d->player == target ) {
+         d->quota = i_cmdquota;
+         if ( (Wizard(d->player) && (i_cmdquota == mudconf.wizcmd_quota_max)) ||
+              (!Wizard(d->player) && (i_cmdquota == mudconf.cmd_quota_max)) ) {
+            d->flags &= ~MF_CMDQUOTA;
+         } else {
+            d->flags |= MF_CMDQUOTA;
+         }
+         i_cntr++;
+      }
+   }
+   if ( i_cntr ) {
+      notify_quiet(player, unsafe_tprintf("@cmdquota: The target player %s for their online duration has command quota of %d.", Name(target), i_cmdquota));
+      notify_quiet(player, unsafe_tprintf("           Once this value is below %d it will regenerate as normal.", (Wizard(target) ? mudconf.wizcmd_quota_max : mudconf.cmd_quota_max)));
+   } else {
+      notify_quiet(player, unsafe_tprintf("@cmdquota: The target player %s is not connected.", Name(target)));
    }
 }
 

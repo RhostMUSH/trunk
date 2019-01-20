@@ -32541,6 +32541,9 @@
   * template() function to do auto-replace in a defined template string [ASH]
   * examine/display allows ansifying parenthesis, braces, and brackets
     like parenmatch() [ASH]
+  * @conncheck has a /quota switch to show connected command quotas [ASH]
+  * wizard command @cmdquota to alter on-line command quotas of players [ASH]
+  * wizcommand_quota_max to set wizard command quotas [ASH]
   
   Changes
   ------------

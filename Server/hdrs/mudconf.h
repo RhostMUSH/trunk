@@ -207,6 +207,7 @@ struct confdata {
 	char	many_coins[32];	/* name of many coins (ie. "pennies") */
 	int	timeslice;	/* How often do we bump people's cmd quotas? */
 	int	cmd_quota_max;	/* Max commands at one time */
+	int	wizcmd_quota_max;	/* Max wizard commands at one time */
 	int	cmd_quota_incr;	/* Bump #cmds allowed by this each timeslice */
 	int	control_flags;	/* Global runtime control flags */
 	int	log_options;	/* What gets logged */

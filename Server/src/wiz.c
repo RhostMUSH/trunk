@@ -883,24 +883,31 @@ void do_conncheck(dbref player, dbref cause, int key)
   DESC *d, *dnext;
   char buff[MBUF_SIZE], buff2[MBUF_SIZE], *tpr_buff, *tprp_buff;
 
-  notify(player,unsafe_tprintf("%-23s Port  %-16s Port    Cmds User@Site","Name", "Door Name"));
+  if ( key & CONNCHECK_QUOTA ) {
+    notify(player,unsafe_tprintf("%-23s Port  %-16s Port CmdQtas User@Site","Name", "Door Name"));
+  } else {
+    notify(player,unsafe_tprintf("%-23s Port  %-16s Port    Cmds User@Site","Name", "Door Name"));
+  }
   DESC_SAFEITER_ALL(d, dnext) {
     // LENSY: FIX ME
-    if ((d->flags & DS_HAS_DOOR) && (d->door_num >= 0)) 
+    if ( (d->flags & DS_HAS_DOOR) && (d->door_num >= 0) ) {
       sprintf(buff2, "%4d  %-16s", d->door_desc, returnDoorName(d->door_num));
-    else
+    } else {
       strcpy(buff2, "NONE");
-    if (d->flags & DS_CONNECTED) 
+    }
+    if (d->flags & DS_CONNECTED) {
       strcpy(buff,Name(d->player));
-    else
+    } else {
       strcpy(buff,"NONE");
+    }
     tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
-    if (*(d->userid))
-      notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
-             buff,buff2,d->descriptor,d->command_count,d->userid,d->addr));
-    else
-      notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
-             buff,buff2,d->descriptor,d->command_count,d->addr));
+    if (*(d->userid)) {
+      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->addr));
+    } else {
+      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->addr));
+    }
     free_lbuf(tpr_buff);
   }
 }

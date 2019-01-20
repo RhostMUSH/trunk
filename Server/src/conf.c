@@ -564,6 +564,7 @@ NDECL(cf_init)
     mudconf.room_adconn = 0;
     mudconf.timeslice = 1000;
     mudconf.cmd_quota_max = 100;
+    mudconf.wizcmd_quota_max = 1000;
     mudconf.cmd_quota_incr = 1;
     mudconf.control_flags = 0xffffffff;		/* Everything for now... */
     mudconf.log_options = LOG_ALWAYS | LOG_BUGS | LOG_SECURITY |
@@ -5104,6 +5105,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.who_wizlevel, 0, 0, CA_PUBLIC,
      (char *) "Define level of wiz to show in WHO/DOING.\r\n"\
               "        -- 0 is all wizards  Default: 0   Value: %d"},
+    {(char *) "wizcommand_quota_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.wizcmd_quota_max, 0, 0, CA_WIZARD,
+     (char *) "Max commands allowed per timeslice per wizard.\r\n"\
+              "      -- This is not used    Default: 1000   Value: %d"},
     {(char *) "wizmax_vattr_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.wizmax_vattr_limit, 0, 0, CA_WIZARD,
      (char *) "Max times wizard can create new user attribs.\r\n"\

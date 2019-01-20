@@ -41,6 +41,7 @@ CMD_TWO_ARG_CMDARG(do_break);
 CMD_TWO_ARG_CMDARG(do_assert);
 CMD_ONE_ARG(do_progreset);		/* Force reset of the program prompt */
 CMD_NO_ARG(do_buff_free);
+CMD_TWO_ARG(do_cmdquota);		/* Establish command quota for target player */
 CMD_ONE_ARG(do_channel);
 CMD_NO_ARG(do_conncheck);
 CMD_TWO_ARG(do_chown);			/* Change object or attribute owner */

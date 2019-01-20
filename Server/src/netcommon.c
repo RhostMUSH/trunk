@@ -1167,9 +1167,24 @@ update_quotas(struct timeval last, struct timeval current)
 
     if (nslices > 0) {
 	DESC_ITER_ALL(d) {
+            /* IF customquotas exceed the max current values, ignore it and carry on */
+            if ( (d->flags & MF_CMDQUOTA) ) {
+               if ( Good_chk(d->player) && 
+                    ((Wizard(d->player) && d->quota > mudconf.wizcmd_quota_max) ||
+                     (!Wizard(d->player) && d->quota > mudconf.cmd_quota_max)) ) {
+                  continue;
+               }
+               /* Cleanup the flag */
+               d->flags &= ~MF_CMDQUOTA;
+            }
 	    d->quota += mudconf.cmd_quota_incr * nslices;
-	    if (d->quota > mudconf.cmd_quota_max)
-		d->quota = mudconf.cmd_quota_max;
+            if ( Good_chk(d->player) && Wizard(d->player) ) {
+	       if (d->quota > mudconf.wizcmd_quota_max)
+		   d->quota = mudconf.wizcmd_quota_max;
+            } else {
+	       if (d->quota > mudconf.cmd_quota_max)
+		   d->quota = mudconf.cmd_quota_max;
+            }
 	}
     }
     retval = msec_add(last, nslices * mudconf.timeslice);
