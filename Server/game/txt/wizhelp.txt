@@ -2576,7 +2576,7 @@
   See Also: attr_access
  
 & @cmdquota
-  Command: @cmdquota <player> = <1-99999>
+  Command: @cmdquota[/<switch>] <player|port> = <1-99999>
   
   This sets a temporary maximum command quota for the target player's current
   connections.  This only works for connected players, and only sets it
@@ -2585,13 +2585,15 @@
   or wizard, depending on their bitlevel.
   
   The value must be greater than 0 and less than 100,000.
+  
+  Following switches are available:
+    /port -- specify a port/descriptor instead of a player for target.
    
   You may use @conncheck/quota to see command quotas of connected sockets. 
   
   Example:
     > @cmdquota tinyplayer=10000
-    @cmdquota: The target player tinyplayer for their online duration has
-               command quota of 10000.
+    @cmdquota: tinyplayer online command quota duration has been set to 10000.
                Once this value is below 100 it will regenerate as normal.
   
   See Also: command_quota_max, wizcommand_quota_max, @conncheck

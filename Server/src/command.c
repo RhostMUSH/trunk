@@ -215,6 +215,11 @@ NAMETAB boot_sw[] =
     {(char *) "quiet", 1, CA_WIZARD, 0, BOOT_QUIET | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB cmdquota_sw[] = {
+  {(char *) "port", 1, CA_WIZARD, 0, CMDQUOTA_PORT},
+  {NULL, 0, 0, 0, 0}
+};
+
 NAMETAB chown_sw[] = {
   {(char *) "preserve", 1, CA_WIZARD, 0, CHOWN_PRESERVE},
   {NULL, 0, 0, 0, 0}
@@ -1246,7 +1251,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_clone},
     {(char *) "@cluster", cluster_sw, CA_WIZARD, CA_CLUSTER, 0, 
      CS_ONE_ARG | CS_CMDARG, 0, do_cluster},
-    {(char *) "@cmdquota", NULL, CA_IMMORTAL, CA_NO_CODE, 0, 
+    {(char *) "@cmdquota", cmdquota_sw, CA_WIZARD, CA_NO_CODE, 0, 
      CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_cmdquota},
     {(char *) "@conncheck", conncheck_sw, CA_GOD | CA_IMMORTAL, 0, 0,
      CS_NO_ARGS, 0, do_conncheck},
@@ -13580,20 +13585,25 @@ do_label(dbref player, dbref cause, int key, char *s_label, char *s_target)
 
 void
 do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
-   int i_cmdquota, i_cntr;
+   int i_cmdquota, i_cntr, i_port;
    dbref target;
    DESC *d;
 
-   target = lookup_player(player, name, 0);
+   if ( key & CMDQUOTA_PORT ) {
+      target = NOTHING;
+      i_port = atoi(name);
+   } else {
+      i_port = -1;
+      target = lookup_player(player, name, 0);
+      if ( !Good_chk(target) ) {
+         notify_quiet(player, "That is not a player.");
+         return;
+      } 
 
-   if ( !Good_chk(target) ) {
-      notify_quiet(player, "That is not a player.");
-      return;
-   } 
-
-   if ( !controls(player, target) ) {
-      notify_quiet(player, "Permission denied.");
-      return;
+      if ( !controls(player, target) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
    }
 
    i_cmdquota = atoi(cmdquota);
@@ -13605,7 +13615,8 @@ do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
 
    i_cntr = 0;
    DESC_ITER_ALL(d) {
-      if ( d->player == target ) {
+      if ( ((target != NOTHING) && (d->player == target)) ||
+           ((target == NOTHING) && (d->descriptor == i_port)) ) {
          d->quota = i_cmdquota;
          if ( (Wizard(d->player) && (i_cmdquota == mudconf.wizcmd_quota_max)) ||
               (!Wizard(d->player) && (i_cmdquota == mudconf.cmd_quota_max)) ) {
@@ -13617,10 +13628,18 @@ do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
       }
    }
    if ( i_cntr ) {
-      notify_quiet(player, unsafe_tprintf("@cmdquota: The target player %s for their online duration has command quota of %d.", Name(target), i_cmdquota));
+      if ( target == NOTHING ) {
+         notify_quiet(player, unsafe_tprintf("@cmdquota: Port %d online command quota duration has been set to %d.", i_port, i_cmdquota));
+      } else {
+         notify_quiet(player, unsafe_tprintf("@cmdquota: %s online command quota duration has been set to %d.", Name(target), i_cmdquota));
+      }
       notify_quiet(player, unsafe_tprintf("           Once this value is below %d it will regenerate as normal.", (Wizard(target) ? mudconf.wizcmd_quota_max : mudconf.cmd_quota_max)));
    } else {
-      notify_quiet(player, unsafe_tprintf("@cmdquota: The target player %s is not connected.", Name(target)));
+      if ( target == NOTHING ) {
+         notify_quiet(player, unsafe_tprintf("@cmdquota: The target port %d is not available.", i_port));
+      } else {
+         notify_quiet(player, unsafe_tprintf("@cmdquota: The target player %s is not connected.", Name(target)));
+      }
    }
 }
 
