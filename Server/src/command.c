@@ -12456,11 +12456,14 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          notify(player, "==============================================================================");
          if ( i_page_val > 0 ) {
             sprintf(tmpbuff, "= (Paged List : %7d entries)      %-10s [mask]      Page %3d/%3d    =", 
-                    mudstate.blacklist_cnt, (i_nodns ? "NoDNS List" : "Black List"),
-                    i_page_val, (mudstate.blacklist_cnt/40)+1);
+                    (i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt), 
+                    (i_nodns ? "NoDNS List" : "Black List"),
+                    i_page_val, 
+                    ((i_nodns? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt)/40)+1);
          } else {
             sprintf(tmpbuff, "= (Full List : %7d entries)     %-10s [mask]                        =",
-                    mudstate.blacklist_cnt, (i_nodns ? "NoDNS List" : "Black List"));
+                    (i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt), 
+                    (i_nodns ? "NoDNS List" : "Black List"));
          }
          notify(player, tmpbuff);
          notify(player, "==============================================================================");
@@ -12548,11 +12551,14 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          notify(player, "==============================================================================");
          if ( i_page_val > 0 ) {
             sprintf(tmpbuff, "= (Paged List : %7d entries)      %-10s             Page %3d/%3d    =", 
-                    mudstate.blacklist_cnt, (i_nodns ? "NoDNS List" : "Black List"),
-                    i_page_val, (mudstate.blacklist_cnt/80)+1);
+                    (i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt), 
+                    (i_nodns ? "NoDNS List" : "Black List"),
+                    i_page_val, 
+                    ((i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt)/80)+1);
          } else {
             sprintf(tmpbuff, "= (Full List : %7d entries)     %-10s                               =",
-                    mudstate.blacklist_cnt, (i_nodns ? "NoDNS List" : "Black List"));
+                    (i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt), 
+                    (i_nodns ? "NoDNS List" : "Black List"));
          }
          notify(player, tmpbuff);
          notify(player, "==============================================================================");
