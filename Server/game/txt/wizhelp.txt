@@ -7363,6 +7363,8 @@
   configured wrong.  This also helps in conditions where you may be
   attacked with spoofed IP header information.  You can review DNS 
   difficulties by reviewing the mush.log file.
+  
+  See Also: @blacklist, @site, blacklist_nodns.txt
 
 & passapi_host
   Config parameter: passapi_host <!host> <host> ... <host>
@@ -9446,7 +9448,7 @@
   Specifies that API connections should not use the DNS lookup.  Please
   not that AUTH lookups automatically do not occur for API connections.
   
-  See Also: api_port
+  See Also: api_port, @blacklist, blacklist_nodns.txt
 
 & port
   Config parameter: port <port>.  Default: 6250
