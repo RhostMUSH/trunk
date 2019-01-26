@@ -967,7 +967,10 @@ addrout(struct in_addr a, int i_key)
 	struct hostent *he;
 
         /* check the nodns_site list */
-        if( (i_key && mudconf.api_nodns) || site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ) {
+
+        if ( (i_key && mudconf.api_nodns) || 
+             site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ||
+             blacklist_check(a, 1) ) {
           retval = inet_ntoa(a);
           RETURN(retval); /* #3 */
         }
@@ -1205,7 +1208,7 @@ new_connection(int sock, int key)
 #endif
 
     /* DO BLACKLIST CHECK HERE */
-    if ( blacklist_check(addr.sin_addr) || i_chktor  ) {
+    if ( blacklist_check(addr.sin_addr, 0) || i_chktor  ) {
        STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
           buff = alloc_mbuf("new_connection.LOG.badsite");
           sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",

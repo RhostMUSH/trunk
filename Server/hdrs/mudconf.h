@@ -802,6 +802,7 @@ struct statedata {
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
 	int	blacklist_cnt;
+	int	blacklist_nodns_cnt;
 	int	wipe_state;	/* do_wipe state counter */
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
@@ -812,6 +813,7 @@ struct statedata {
 	int	dumpstatechk;	/* Dump state check */
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
+        BLACKLIST *nd_list; 	/* The nodns list */
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */

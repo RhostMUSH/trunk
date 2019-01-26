@@ -2682,9 +2682,11 @@
   
   See Also: @quota
  
+& blacklist_nodns.txt
 & blacklist.txt
 & @blacklist
   Command: @blacklist[/<switch>] [<argument>]
+           @blacklist/nodns[/<switch>] [<argument>]
   
   This command lists, loads, or clears the current blacklists.  Blacklists are
   similiar to forbid sites, except it keeps them in a separate list to avoid
@@ -2696,6 +2698,12 @@
   blacklist.  There is a script that can be ran that will populate this
   file with all known TOR exit points.
   
+  The second argument, like the normal @blacklist, only applies to NoDNS 
+  entries.
+  
+  The blacklist file will be blacklist.txt
+  The NoDNS blacklist file will be blacklist_nodns.txt
+  
   You may optionally have a netmask (in ipv4 or CIDR notation) after the IP
   in the blacklist.txt.  If no masks is seen, it will assume /32.  
   
@@ -2705,6 +2713,10 @@
     /list  - lists all sites in the blacklist.  This shows 4 to a line.
     /mask  - like list but will show the IP and associated NETMASK.  This
              shows 2 IP's and 2 NETMASK's to a line.
+  
+  The following feature switches can be used with the above 4 switches:
+    /nodns - If this is used with any of the 4 main switches, it will 
+             work against the NoDNS lists and not the blacklists.
   
 { see 'wizhelp @blacklist2' for arguments and examples }
 { 'wizhelp blacklist file' for an example of the blacklist.txt file }
@@ -2741,6 +2753,7 @@
   
   See Also: forbid_site, @site
 
+& blacklist_nodns file
 & blacklist file
   Topic: blacklist file contents
   

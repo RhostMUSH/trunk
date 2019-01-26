@@ -5655,18 +5655,32 @@ NDECL(process_commands)
     VOIDRETURN; /* #148 */
 }
 
+/* Types are:
+ * 0 - Blacklist
+ * 1 - NoDNS
+ */
 int
-blacklist_check(struct in_addr host)
+blacklist_check(struct in_addr host, int i_type)
 {
    int i_return;
    BLACKLIST *b_host;
 
    DPUSH;
    i_return=0;
-   if ( mudstate.blacklist_cnt < 1 ) {
+   if ( ((i_type == 0) && (mudstate.blacklist_cnt < 1)) ||
+        ((i_type == 1) && (mudstate.blacklist_nodns_cnt < 1)) ) {
       RETURN(i_return);
    }
-   b_host = mudstate.bl_list;
+   b_host = NULL;
+   switch ( i_type ) {
+      case 0: /* Blacklist */
+         b_host = mudstate.bl_list;
+         break;
+      case 1: /* NoDNS */
+         b_host = mudstate.nd_list;
+         break;
+   }
+
    while ( b_host ) {
       if ( (host.s_addr & b_host->mask_addr.s_addr) == b_host->site_addr.s_addr ) {
          i_return=1;
@@ -5899,12 +5913,12 @@ list_siteinfo(dbref player)
     DPUSH; /* #152 */
     
     s_buff = alloc_mbuf("list_siteinfo");
-    if ( mudstate.blacklist_cnt > 0 ) {
-       sprintf(s_buff, "Blacklist: There are currently %d entries in the blacklist.",
-               mudstate.blacklist_cnt); 
+    if ( (mudstate.blacklist_cnt > 0) || (mudstate.blacklist_nodns_cnt > 0) ) {
+       sprintf(s_buff, "Blacklist: blacklist %d entries, NoDNS %d entries.",
+               mudstate.blacklist_cnt, mudstate.blacklist_nodns_cnt); 
        notify(player, s_buff);
     } else {
-       notify(player, "Blacklist: Blacklists are currently not populated.");
+       notify(player, "Blacklist: All blacklists are currently not populated.");
     }
     free_mbuf(s_buff);
     list_sites(player, mudstate.access_list, "Site Access",

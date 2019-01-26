@@ -396,7 +396,8 @@ NDECL(cf_init)
     mudstate.includenest = 0;
     mudstate.wipe_state = 0;		/* State of @wipe/wipe() */
     mudstate.blacklist_cnt = 0;		/* Total number of blacklisted elements */
-    mudstate.bl_list = NULL;
+    mudstate.bl_list = NULL;		/* Blacklist */
+    mudstate.nd_list = NULL;		/* NoDNS */
     mudstate.log_chk_reboot = 0;
     mudstate.f_logfile_name = NULL;
     mudstate.last_network_owner = -1;	/* Last user with network issue */

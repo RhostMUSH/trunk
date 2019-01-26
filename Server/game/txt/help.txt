@@ -32544,6 +32544,7 @@
   * @conncheck has a /quota switch to show connected command quotas [ASH]
   * wizard command @cmdquota to alter on-line command quotas of players [ASH]
   * wizcommand_quota_max to set wizard command quotas [ASH]
+  * @blacklist has the /nodns switch for DNS lookup bypassing [ASH]
   
   Changes
   ------------
