@@ -6089,6 +6089,20 @@ list_options_values_parse(dbref player, int p_val, char *s_val)
 }
 
 static void
+list_options_display_parse(dbref player,  char *s_val)
+{
+   char *s_buff, *s_buffptr;
+
+   DPUSH; /* #45 */
+
+   s_buffptr = s_buff = alloc_lbuf("list_options_display");
+   cf_display(player, s_val, 0, s_buff, &s_buffptr, 1);
+   notify(player, s_buff);
+   free_lbuf(s_buff);
+   DPOP; /* #45 */
+}
+
+static void
 list_options_mysql(dbref player)
 {
 #ifdef MYSQL_VERSION
@@ -8433,9 +8447,12 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               } else
                  p_val = 0;
               list_options_values_parse(player, p_val, s_ptr);
+           } else if ( stricmp(s_ptr2, "display") == 0 ) {
+              s_ptr = strtok_r(NULL, " ", &tstrtokr);
+              list_options_display_parse(player, s_ptr);
            } else
               notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system, mysql, convtime");
+                                   " mail, values, boolean, config, system, mysql, convtime, display");
         } else {
 	   list_options(player);
         }

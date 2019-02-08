@@ -32545,6 +32545,7 @@
   * wizard command @cmdquota to alter on-line command quotas of players [ASH]
   * wizcommand_quota_max to set wizard command quotas [ASH]
   * @blacklist has the /nodns switch for DNS lookup bypassing [ASH]
+  * Added sub-option 'display' to @list options to work like config() [ASH]
   
   Changes
   ------------

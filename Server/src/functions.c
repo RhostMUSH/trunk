@@ -3843,9 +3843,9 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 FUNCTION(fun_config)
 {
    if ( *fargs[0] ) {
-      cf_display(player, fargs[0], 0, buff, bufcx);
+      cf_display(player, fargs[0], 0, buff, bufcx, 0);
    } else {
-      cf_display(player, fargs[0], 1, buff, bufcx);
+      cf_display(player, fargs[0], 1, buff, bufcx, 0);
    }
 }
 

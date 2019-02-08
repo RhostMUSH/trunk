@@ -5708,13 +5708,17 @@ void list_options_values(dbref player, int p_val, char *s_val)
  * sane fashion.
  */
 
-void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc)
+void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc, int i_type)
 {
     CONF *tp;
     int first, bVerboseSideFx = 0, i_wild = 0;
     static char tempbuff[LBUF_SIZE/2];
     char *t_pt, *t_buff;
 
+    if ( (i_type == 1 ) && (!param_name || !*param_name) ) {
+       safe_str("#-1 VALUE EXPECTED", buff, bufc);
+       return;
+    }
     if ( *param_name && ((strchr(param_name, '*') != NULL) || (strchr(param_name, '*') != NULL)) ) {
        i_wild = 1;
     }
@@ -5742,14 +5746,41 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
           notify(player, t_buff);
        free_lbuf(t_buff);
     } else  if ( stricmp(param_name, (char *)"lbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", LBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"lbuf_size", 
+                  (char *)"LBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  LBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", LBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else  if ( stricmp(param_name, (char *)"mbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", MBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"mbuf_size", 
+                  (char *)"MBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  MBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", MBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else  if ( stricmp(param_name, (char *)"sbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", SBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"sbuf_size", 
+                  (char *)"SBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  SBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", SBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else {
        if (stricmp(param_name, "sideeffects_txt") == 0) {
 	 param_name[11] = '\0';
@@ -5774,9 +5805,13 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_chartoint) ||
                     (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {
-
-                   sprintf(tempbuff, "%d", *(tp->loc));
-                   safe_str(tempbuff, buff, bufc);
+                   if ( i_type == 1 ) {
+                      sprintf(tempbuff, "%-28.28s %.900s", tp->pname, tp->extrach);
+                      safe_str(unsafe_tprintf(tempbuff, *(tp->loc)), buff, bufc);
+                   } else {
+                      sprintf(tempbuff, "%d", *(tp->loc));
+                      safe_str(tempbuff, buff, bufc);
+                   }
                    return;
                } else if ( (tp->interpreter == cf_string) ||
                          (tp->interpreter == cf_atrperms) ||
@@ -5785,11 +5820,31 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {
-    		   if (tp->interpreter == cf_sidefx) {
-		     sideEffectMaskToString(*tp->loc, buff, bufc);
-		   } else {
-		     safe_str((char *)tp->loc, buff, bufc);
-		   }
+                   if ( i_type == 1 ) {
+    		      if (tp->interpreter == cf_sidefx) {
+		         sideEffectMaskToString(*tp->loc, buff, bufc);
+                         sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %.1000s", 
+                                 tp->pname, 
+                                 (char *)"Sideeffect string mask values",
+                                 (char *)"String Value:",
+                                 buff);
+                         *bufc = buff;
+                         safe_str(tempbuff, buff, bufc);
+		      } else {
+                         sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %.1000s", 
+                                 tp->pname, 
+                                 tp->extrach,
+                                 (char *)"String Value:",
+                                 (char *)tp->loc);
+                         safe_str(tempbuff, buff, bufc);
+		      }
+                   } else {
+    		      if (tp->interpreter == cf_sidefx) {
+		        sideEffectMaskToString(*tp->loc, buff, bufc);
+		      } else {
+		        safe_str((char *)tp->loc, buff, bufc);
+		      }
+                  }
 		 return;
                }
                safe_str("#-1 PERMISSION DENIED", buff, bufc);

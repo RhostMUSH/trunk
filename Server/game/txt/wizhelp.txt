@@ -3532,12 +3532,20 @@
     config         - list config information
     mail           - list current mail configuration
     system         - list system configuration parameters
+    mysql          - list MySQL parameters (if enabled)
+    convtime       - list convtime extended formats
+    display        - display target config parameter ( works like config() )
   
   You may page the value by applying a number (from 1 to max-pages) after the
-  parameter.  For example:
+  parameter.  This works for boolean and values.  For example:
     > @list options boolean        - lists first page
     > @list options boolean 3      - lists third page
     > @list options boolean *mail* - list all options that contain 'mail'
+  
+  The display parameter works by specifying the parameter after.  For example:
+    > @list optiohs display global_error_obj
+      global_error_obj             Object who's @va is executed for non-cmds.
+                                   Default: -1   Value: 123
   
   See Also: @admin
 

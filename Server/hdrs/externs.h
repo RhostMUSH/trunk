@@ -79,7 +79,7 @@ extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
 extern int	FDECL(cf_modify_multibits, (int *, int *, char *, long, long, dbref, char *));
 extern void	FDECL(list_options_boolean, (dbref, int, char *));
 extern void	FDECL(list_options_values, (dbref, int, char *));
-extern void	FDECL(cf_display, (dbref, char *, int, char *, char **));
+extern void	FDECL(cf_display, (dbref, char *, int, char *, char **, int));
 extern void     FDECL(sideEffectMaskToString, (int, char *, char **));
 /* From udb_achunk.c */
 extern int	NDECL(dddb_close);
