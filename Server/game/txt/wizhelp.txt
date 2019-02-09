@@ -3536,6 +3536,8 @@
     convtime       - list convtime extended formats
     display        - display target config parameter ( works like config() )
   
+  Individual help is available on each sub option.
+   
   You may page the value by applying a number (from 1 to max-pages) after the
   parameter.  This works for boolean and values.  For example:
     > @list options boolean        - lists first page
@@ -3548,6 +3550,114 @@
                                    Default: -1   Value: 123
   
   See Also: @admin
+
+& @list options boolean
+  Command Subtopic: @list options boolean
+  
+  This will allow you to query boolean based config parameters.  The following
+  arguments are used with this sub-topic:
+  
+    > @list options boolean <wild>   -- List booleans based on wildcard where
+                                        <wild> uses '*' or '?' globbing.
+      Example: @list options boolean *command*
+  
+    > @list options boolean [1-N]    -- Page 1 to page N of display
+      Example: @list options boolean 1
+  
+    > @list options boolean <config> -- Display statistics of specified param
+      Example: @list options boolean wiz_uselock
+  
+  See Also: @list options
+
+& @list options values
+  Command Subtopic: @list options values
+  
+  This will allow you to query value (int/float) based config parameters.  The 
+  following arguments are used with this sub-topic:
+  
+    > @list options values <wild>   -- List values based on wildcard where
+                                        <wild> uses '*' or '?' globbing.
+      Example: @list options values *command*
+  
+    > @list options values [1-N]    -- Page 1 to page N of display
+      Example: @list options values 1
+  
+    > @list options values <config> -- Display statistics of specified param
+      Example: @list options values wiz_uselock
+  
+  See Also: @list options
+
+& @list options config
+  Command Subtopic: @list options config
+  
+  This will list a (spammy) list of all the major config settings that
+  RhostMUSH has.  This is a subset of the base '@list options' that is
+  far far more spammy.
+  
+  You may wish to use the sub-topic 'display' to break down individual
+  config parameters.
+  
+  See Also: @list options
+
+& @list options mail
+  Command Subtopic: @list options mail
+  
+  This will list all mail related config parametes and their existing
+  settings.  The mail parameters are used for the auto-registration
+  system.
+  
+  See Also: AUTOREG, @list options
+
+& @list options system
+  Command Subtopic: @list options system
+  
+  This will list the key compile time options that RhostMUSH has been
+  compiled and configured with.  As RhostMUSH is highly configurable
+  it is useful for staff and end-users to know how the RhostMUSH they
+  are currently on is configured and what options may or may not
+  be available in a single display.
+  
+  See Also: @list options
+
+& @list options mysql
+  Command Subtopic: @list options mysql
+  
+  This will list all MySQL config parameters that RhostMUSH is 
+  currently using.  If MySQL is not compiled into the base code
+  then it will alert you of this fact.
+  
+  See Also: @list options
+  
+& @list options convtime
+  Command Subtopic: @list options convtime
+  
+  This will list all advanced formatting that convtime() will handle.
+  This will require the config parameter to allow enhanced convtime
+  formats to be enabled.
+  
+  See Also: enhanced_convtime, @list options
+
+& @list options display
+  Config Subtopic: @list options display
+  
+  This will give detailed display values on any given config parameter
+  in the mush.  It handles all string, int, float, or boolean value.
+  
+  Some internal parameters and non-standard parameters will be unable
+  to be queried by this method, but the majority of the approximate 500
+  config parameters will be available with this method.
+  
+  All display values will be in alpha-numerical order.
+  
+  The following options exist for the display value: 
+    > @list options display <wild>   -- Display values based on wildcard where
+                                        <wild> uses '*' or '?' globbing.
+      Example: @list options display *command*
+  
+    > @list options display <config> -- Display statistics of specified param
+      Example: @list options display wiz_uselock
+ 
+  See Also: config(), @list options 
 
 & @list permissions
   Command: @list permissions
@@ -13077,4 +13187,7 @@
   Refer to the normal help on 'mail status' for additional help.
   
   See Also: mailquota(), mailquick()
+
+& CONFIG()
+  Please see normal help on the config() function.
 

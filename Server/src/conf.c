@@ -59,7 +59,9 @@ CF_HAND(cf_dynstring);
 extern double FDECL(time_ng, (double*));
 extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, int *, int));
 extern double FDECL(safe_atof, (char *));
-
+extern int FDECL(list2arr, (char **, int, char *, char));
+extern void FDECL(ns_do_asort, (char **, int, int));
+extern void FDECL(ns_arr2list, (char **, int, char *, char **, char));
 
 /* ---------------------------------------------------------------------------
  * cf_init: Initialize mudconf to default values.
@@ -3630,6 +3632,9 @@ CONF conftable[] =
      cf_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure command access permissions."},
+    {(char *) "accent_extend",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
+     (char *) "Are accents extended past 250 to 255??"},
     {(char *) "ahear_maxcount",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxcount, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear iterations?\r\n"\
@@ -3638,12 +3643,16 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxtime, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear time laps (in seconds)?\r\n"\
               "                             Default: 60   Value: %d"},
-    {(char *) "vattr_command",
-     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
-     (char *) "Define dynamic VATTR commands."},
     {(char *) "alias",
      cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_htab, 0, 0, CA_WIZARD,
      (char *) "Define command alises."},
+    {(char *) "allow_ansinames",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
+     (char *) "Allow names to be ansified?\r\n"\
+              "                             Default: 15   Value: %d"},
+    {(char *) "allow_whodark",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.allow_whodark, 0, 0, CA_PUBLIC,
+     (char *) "Allow dark players to hide from WHO/DOING?"},
     {(char *) "alt_inventories",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.alt_inventories, 0, 0, CA_PUBLIC,
      (char *) "Enable alternate inventories (worn/wield)."},
@@ -3657,6 +3666,12 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.areg_lim, 0, 0, CA_WIZARD,
      (char *) "Specify limit on registers from single email.\r\n"\
               "                             Default: 3   Value: %d"},
+    {(char *) "areg_file",
+     cf_string, CA_DISABLED, (int *) mudconf.areg_file, 32, 0, CA_WIZARD,
+     (char *) "Specify the auto-register txt file."},
+    {(char *) "aregh_file",
+     cf_string, CA_DISABLED, (int *) mudconf.aregh_file, 32, 0, CA_WIZARD,
+     (char *) "Specify the auto-register with connects file." },
     {(char *) "attr_access",
      cf_attr_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
@@ -3668,19 +3683,6 @@ CONF conftable[] =
      cf_acmd_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure attribute access permissions."},
-    {(char *) "allow_ansinames",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
-     (char *) "Allow names to be ansified?\r\n"\
-              "                             Default: 15   Value: %d"},
-    {(char *) "allow_whodark",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.allow_whodark, 0, 0, CA_PUBLIC,
-     (char *) "Allow dark players to hide from WHO/DOING?"},
-    {(char *) "areg_file",
-     cf_string, CA_DISABLED, (int *) mudconf.areg_file, 32, 0, CA_WIZARD,
-     (char *) "Specify the auto-register txt file."},
-    {(char *) "aregh_file",
-     cf_string, CA_DISABLED, (int *) mudconf.aregh_file, 32, 0, CA_WIZARD,
-     (char *) "Specify the auto-register with connects file." },
     {(char *) "bad_name",
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Specify a list of bad player names."},
@@ -3699,12 +3701,6 @@ CONF conftable[] =
     {(char *) "break_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.break_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are @break/@assert double-evalled and earlier 3.9 compatable?"},
-     {(char *) "exits_connect_rooms",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
-     (char *) "Is a room with an exit considered floating?"},
-    {(char *) "exit_separator",
-     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
-     (char *) "Specify the characters for default exit separation." },
     {(char *) "cache_depth",
      cf_int, CA_DISABLED, &mudconf.cache_depth, 0, 0, CA_WIZARD,
      (char *) "Show what the current cache debth is.\r\n"\
@@ -3914,9 +3910,6 @@ CONF conftable[] =
     {(char *) "delim_null",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.delim_null, 0, 0, CA_PUBLIC,
      (char *) "Are @@ in output seperator considered a null?"},
-    {(char *) "accent_extend",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
-     (char *) "Are accents extended past 250 to 255??"},
     {(char *) "admin_object",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.admin_object, 0, 0, CA_WIZARD,
      (char *) "The object that will be used to load and save inline conf parameters.   Default: -1   Value: %d"},
@@ -4021,6 +4014,12 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.exit_quota, 0, 0, CA_PUBLIC,
      (char *) "How much quota does an exit take up?\r\n"\
               "                             Default: 1   Value: %d"},
+    {(char *) "exits_connect_rooms",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
+     (char *) "Is a room with an exit considered floating?"},
+    {(char *) "exit_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default exit separation." },
     {(char *) "expand_goto",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.expand_goto, 0, 0, CA_PUBLIC,
      (char *) "Does exit movement expand to 'goto'?"},
@@ -5068,6 +5067,9 @@ CONF conftable[] =
     {(char *) "vattr_limit_checkwiz",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.vattr_limit_checkwiz, 0, 0, CA_WIZARD,
      (char *) "Are wizards and higher checked for vattr max?"},
+    {(char *) "vattr_command",
+     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
+     (char *) "Define dynamic VATTR commands."},
     {(char *) "vlimit",
      cf_vint, CA_GOD | CA_IMMORTAL, &mudconf.vlimit, 0, 0, CA_WIZARD,
      (char *) "Maximum user attributes allowed.  Don't touch\r\n"\
@@ -5711,9 +5713,9 @@ void list_options_values(dbref player, int p_val, char *s_val)
 void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc, int i_type)
 {
     CONF *tp;
-    int first, bVerboseSideFx = 0, i_wild = 0;
-    static char tempbuff[LBUF_SIZE/2];
-    char *t_pt, *t_buff;
+    int first, bVerboseSideFx = 0, i_wild = 0, i_nitems;
+    static char tempbuff[LBUF_SIZE/2], *tempbuff2[LBUF_SIZE/2];
+    char *t_pt, *t_buff, *c_icheck, *t_buff2;
 
     if ( (i_type == 1 ) && (!param_name || !*param_name) ) {
        safe_str("#-1 VALUE EXPECTED", buff, bufc);
@@ -5721,6 +5723,16 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
     }
     if ( *param_name && ((strchr(param_name, '*') != NULL) || (strchr(param_name, '*') != NULL)) ) {
        i_wild = 1;
+    }
+    if ( !i_wild && (i_type == 1) ) {
+       c_icheck = param_name;
+       while ( c_icheck ) {
+          if ( !isdigit(*c_icheck) )
+             break;
+          c_icheck++;
+       }
+       if ( !c_icheck )
+          i_wild = 1;
     }
     if ( key || i_wild || (*param_name == '1') || (*param_name == '0') ) {
        first = 0;
@@ -5742,6 +5754,14 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
               }
            }
        }
+       t_buff2 = alloc_lbuf("cf_display2");
+       strcpy(t_buff2, buff);
+       i_nitems = list2arr(tempbuff2, LBUF_SIZE / 2, t_buff2, (char)' ');
+       ns_do_asort(tempbuff2, i_nitems, 1); /* 1 == ALPHANUM_LIST */
+       *buff='\0';
+       *bufc = buff;
+       ns_arr2list(tempbuff2, i_nitems, buff, bufc, (char)' ');
+       free_lbuf(t_buff2);
        if ( *t_buff )
           notify(player, t_buff);
        free_lbuf(t_buff);

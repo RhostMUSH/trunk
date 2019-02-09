@@ -2192,6 +2192,11 @@ arr2list(char *arr[], int alen, char *list, char **listcx, char sep)
     }
 }
 
+void 
+ns_arr2list(char *arr[], int alen, char *list, char **listcx, char sep) {
+   arr2list(arr, alen, list, listcx, sep);
+}
+
 static int
 dbnum(char *dbr)
 {
@@ -30690,6 +30695,12 @@ do_asort(char *s[], int n, int sort_type)
             break;
     }
 }
+
+void
+ns_do_asort(char *s[], int n, int sort_type) {
+   do_asort(s, n, sort_type);
+}
+
 
 FUNCTION(fun_sortlist)
 {

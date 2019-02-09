@@ -32557,6 +32557,7 @@
   * caplist() handles more cases of how to capitalize after special chars [ASH]
   * @saystring is now inherited thorugh parent chains
   * safebuff() allows an optional cut-off value [ASH]
+  * @list options display and config() now sort the lists properly [ASH]
   
   Bug Fixes
   ------------
