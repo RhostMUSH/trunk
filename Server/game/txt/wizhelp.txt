@@ -466,7 +466,7 @@
   NEWS SETUP               PERMISSIONS              PLUSHELP SETUP     
   POWER LIST               PROXY SETUP              REALITY LEVELS   
   SEARCH CRITERIA          SIGNALS                  SITE LISTS       
-  SPECIAL ATTRIBS           TOGGLES                 TOR                
+  SPECIAL ATTRIBS          TOGGLES                  TOR                
 
 & API
   Topic: API
