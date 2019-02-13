@@ -32546,6 +32546,7 @@
   * wizcommand_quota_max to set wizard command quotas [ASH]
   * @blacklist has the /nodns switch for DNS lookup bypassing [ASH]
   * Added sub-option 'display' to @list options to work like config() [ASH]
+  * sconnect_reip, sconnect_cmd, sconnect_host for SCONNECT/PROXY support [ASH]
   
   Changes
   ------------

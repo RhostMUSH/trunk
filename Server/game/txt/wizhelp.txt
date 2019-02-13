@@ -454,16 +454,19 @@
 & topics
   Help available on the following Topics:
  
-  API                   CAUTIONS         CONFIG PARAMETERS  DEBUG FEATURES   
-  FILES                 FLAGS            INHERITANCE        LOGGING          
-  MASTER ROOM           PERMISSIONS      SEARCH CRITERIA    SITE LISTS       
-  TOGGLES               POWER LIST       DEPOWER LIST       AUTOREGISTRATION 
-  CLOAKING              ALT INVENTORIES  CPU                GUEST SETUP      
-  NEWS SETUP            HELP SETUP       PLUSHELP SETUP     HUH SETUP        
-  ELSEFILE SETUP        REALITY LEVELS   MAIL ALIASES       HOOK SETUP       
-  FUNCTION OVERLOADING  FLAG ALIAS       ATTRIB CONTLOCKS   GLOBAL INHERITANCE
-  ATTRIB FORMATTING     SIGNALS          TOR                CONTROL          
-  CUSTOMIZED CONNECT    SPECIAL ATTRIBS
+  ALT INVENTORIES          ATTRIB CONTLOCKS         ATTRIB FORMATTING     
+  AUTOREGISTRATION         API                      CAUTIONS         
+  CLOAKING                 CONFIG PARAMETERS        CONTROL          
+  CPU                      CUSTOMIZED CONNECT       DEBUG FEATURES   
+  DEPOWER LIST             ELSEFILE SETUP           FILES               
+  FLAGS                    FLAG ALIAS               FUNCTION OVERLOADING  
+  GLOBAL INHERITANCE       GUEST SETUP              HELP SETUP       
+  HOOK SETUP               HUH SETUP                INHERITANCE      
+  LOGGING                  MAIL ALIASES             MASTER ROOM           
+  NEWS SETUP               PERMISSIONS              PLUSHELP SETUP     
+  POWER LIST               PROXY SETUP              REALITY LEVELS   
+  SEARCH CRITERIA          SIGNALS                  SITE LISTS       
+  SPECIAL ATTRIBS           TOGGLES                 TOR                
 
 & API
   Topic: API
@@ -831,6 +834,50 @@
   gives the general control flow.
   
   See Also: CONTROL FLOW, PERMISSION
+
+& PROXY SETUP
+  RhostMUSH allows you to do site redefinition for proxy connections like
+  SCONNECT or similar site redirection software.  This allows you to use
+  external applications to use SSL/TLS connections to then connect to the
+  mush for encrypted or even high availability or load balanced connections
+  to the mush itself.
+  
+  To enable and allow proxy redefinition of sites for connections you must
+  configure the capability to do so.  This is only used for the connect
+  screen and can not be used for already connected players.  This is only
+  relevant for the current connection of that player.
+  
+  The following parameters are used to handle the PROXY connections.
+  
+    sconnect_reip    -- This is a toggle that must be enabled to allow
+                        the re-definition of the site the connection is
+                        using.
+  
+                        Syntax:  sconnect_reip 1
+  
+    sconnect_host    -- This is the host list of what hosts are allowed
+                        to issue a re-definition of the currently connected
+                        host.  If this is not set, it will default to
+                        localhost only.  Any sites that are not allowed
+                        that manage to issue the redefinition command will
+                        be logged accordingly.  This allows wildcarding.
+  
+                        Syntax: sconnect_host *.comcast.com localhost
+  
+    sconnect_cmd     -- The command (case sensitive) that is used to 
+                        specify the new ip/dns address for that connected
+                        session only.  
+  
+                        Syntax: sconnect_cmd Pr0xY 
+  
+  Assuming that the sconnect_cmd is 'Pr0xY' as above Syntax example, at
+  connect screen you would type:
+    Pr0xY mynewsite.com
+  
+  This will reassign your displayed site as 'mynewsite.com' if the site
+  you are really connected from matches the allowable sites to do so.
+  
+  See Also: sconnect_reip, sconnect_host, sconnect_cmd
 
 & TOR 
   RhostMUSH has some fairly advanced features for proxy and masquarding
@@ -6205,7 +6252,8 @@
   rwho_data_port            rwho_dump_interval        rwho_host               
   rwho_info_port            rwho_password             rwho_transmit           
   sacrifice_adjust          sacrifice_factor          safe_wipe               
-  safer_passwords           safer_ufun                search_cost             
+  safer_passwords           safer_ufun                sconnect_cmd
+  sconnect_host             sconnect_reip             search_cost             
   secure_atruselock         secure_dark               secure_functions        
   secure_jumpok             see_owned_dark            showother_altname       
   shs_reverse               sidefx_maxcalls           sidefx_returnval        
@@ -10044,6 +10092,48 @@
   
   Note:  Guest players still are allowed 'guest' as their password.
 
+& sconnect_cmd
+  Config parameter: sconnect_cmd <string>.   Default: (NULL)
+  
+  This will specify the special command that will allow changing the 
+  percevied hostname of the currently connected socket.  This is intended
+  to be used with SCONNECT or similar SSL proxy software to change the
+  IP address of the incoming connection.  The command is CASE SENSITIVE
+  and can be up to 31 characters long.  It is strongly recommended to
+  make this something hard to guess and randomized.
+  
+  Only sites that match the sconnect_host parameter will be able to
+  be matched against this command.  If sconnect_host is not set to
+  anything it will default to localhost.
+  
+  This requires sconnect_reip to be enabled.
+  
+  See Also: sconnect_host, sconnect_reip
+
+& sconnect_reip
+  Config parameter: sconnect_reip <on/off>    Default: off (0)
+  
+  This will enable the ability to use SCONNECT re-iping of the
+  currently connected descriptor.  If this is enabled, then the
+  command matching 'sconnect_cmd' will be used to specify the new
+  IP/DNS address you wish displayed for that currenct connection.
+  
+  This is intended for SCONNECT or similar proxy connections to
+  the mush.
+  
+  See Also: sconnect_cmd, sconnect_host
+
+& sconnect_host
+  Config parameter: sconnect_host <host(s)>   Default: localhost
+  
+  This specifies the hosts that you wish to be allowed to use
+  the sconnect_cmd command to remap what the displayed IP/DNS
+  address that the connected player is coming from.  This is
+  intended for SCONNECT or proxy connections where you wish
+  to hard-set the real IP of where they are coming from.
+  
+  See Also: sconnect_cmd, sconnect_reip 
+  
 & search_cost
   Config parameter: search_cost <amount>.  Default: 100
   

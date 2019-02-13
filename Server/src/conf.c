@@ -349,6 +349,9 @@ NDECL(cf_init)
     memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
     strcpy(mudconf.tree_character, (char *)"`");
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+    memset(mudconf.sconnect_cmd, '\0', sizeof(mudconf.sconnect_cmd));
+    memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
+    mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -4915,6 +4918,15 @@ CONF conftable[] =
     {(char *) "safer_passwords",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_passwords, 0, 0, CA_PUBLIC,
      (char *) "Enforcement of harder passwords?"},
+    {(char *) "sconnect_cmd",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.sconnect_cmd, 31, 0, CA_WIZARD,
+     (char *) NULL},
+    {(char *) "sconnect_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.sconnect_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "Site NAME list for SCONNECT allowable hosts."},
+    {(char *) "sconnect_reip",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.sconnect_reip, 0, 0, CA_WIZARD,
+     (char *) "Allow SCONNECT based re-ip of connections?"},
     {(char *) "search_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.searchcost, 0, 0, CA_PUBLIC,
      (char *) "Cost of a @search.\r\n"\

@@ -4840,7 +4840,7 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
 #ifdef HAS_OPENSSL
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
@@ -4924,8 +4924,42 @@ do_command(DESC * d, char *command)
      * normal logged-in command processor or to create/connect
      * cval: 0 normal, 1 disable, 2 ignore
      */
+    
+    if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+         !strcmp(mudconf.sconnect_cmd, command) ) {
+       s_rollback = alloc_lbuf("sconnect_handler");
+       if ( !*(mudconf.sconnect_host) ) {
+          sprintf(s_rollback, "%s", (char *)"localhost 127.0.0.1");
+       } else {
+          strcpy(s_rollback, mudconf.sconnect_host);
+       }
 
-    if ( InProgram(d->player) && (command[0] == '|') && 
+       addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & MF_API));
+
+       if ( lookup(addroutbuf, s_rollback, 1, &aflags) ) {
+          process_output(d);
+          sprintf(s_rollback, "%.50s -> %.50s ", addroutbuf, arg);
+          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
+                            d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+          STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+             log_text(s_rollback);
+          ENDLOG
+          free_lbuf(s_rollback);
+          memset(d->addr, '\0', sizeof(d->addr));
+          strncpy(d->addr, arg, 50);
+          RETURN(0); /* #147 */
+       } else {
+          sprintf(s_rollback, "DENIED: %.50s -> %.50s ", addroutbuf, arg);
+          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FAIL]", NULL, s_rollback,
+                            d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+          STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+             log_text(s_rollback);
+          ENDLOG
+       }
+       free_lbuf(s_rollback);
+    }
+
+    if ( d->player && InProgram(d->player) && (command[0] == '|') && 
          !((NoShProg(d->player) && !mudconf.noshell_prog) || 
            (!Immortal(d->player) && mudconf.noshell_prog && !NoShProg(d->player))) ) 
        cp = (NAMETAB *) hashfind(command+1, &mudstate.logout_cmd_htab);

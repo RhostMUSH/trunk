@@ -297,6 +297,9 @@ struct confdata {
         char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
+	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */
+	char	sconnect_host[LBUF_SIZE]; /* sites for allowable sconnect re-iper */
+	int	sconnect_reip;	/* Toggle for sconnect re-iper */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
         int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
