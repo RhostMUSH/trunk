@@ -32547,6 +32547,7 @@
   * @blacklist has the /nodns switch for DNS lookup bypassing [ASH]
   * Added sub-option 'display' to @list options to work like config() [ASH]
   * sconnect_reip, sconnect_cmd, sconnect_host for SCONNECT/PROXY support [ASH]
+  * added sconnect handlers and configuration as scripts [Oleo/Adrick/Ash]
   
   Changes
   ------------

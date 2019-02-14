@@ -1,0 +1,86 @@
+;
+; stunnel configuration for providing TLS connections to MU games without
+; having to actually put the code into the game engine. That is not pleasant.
+; No, really.
+;
+; Timeout and close the session if we are idle for too long
+;
+TIMEOUTclose = 2
+
+;
+; Where the file containing the stunnel pid will get written. The user that
+; is running stunnel MUST have access to write this directory and file
+;
+; The pid should be a location you control
+pid = PID_FILE/stunnel.pid
+
+;
+; Logging parameters
+;
+; debug   --> Be really verbose about things. This is best, so you don't
+;             have to turn it on and then wait for a problem to happen again.
+;             If it's already spitting out as much as it can, you've got
+;             your info as soon as a problem comes up.
+; syslog  --> Use the standard system logging facility to write things
+;             This will come out in the default log, unless you modify
+;             the system log configuration to put it to a separate file
+;             Unless you control the syslog you likely can't write here
+; service --> The syslog service you want the messages to come out under.
+;             Allows you to find the messages just from stunnel.
+;             Unless you control the syslog you likely can't write here
+; logId   --> Make sure each connection has a unique ID so you can trace
+;             things, if necessary.
+; output  --> the full path of the logfile and where you wish to have it.
+;
+;syslog = yes
+;service = stunnel
+output = LOG_FILE/stunnel.log
+debug = 7
+logId = unique
+
+;
+; Where our certificate and key are. You can generate your own self-signed
+; cert, if you want, via openssl. Or you can use something like
+; letsencrypt.org to get your own, fully-reconized and known keys. Whatever
+; works for you.
+;
+; Example:
+; cert = /home/bob/Rhost/Server/sconnect/cert.pem
+; key = /home/bob/Rhost/Server/sconnect/key.pem
+;
+cert = CERT_FILE
+key = KEY_FILE
+
+;
+; Example config block. You need one per game you want to provide
+; this service for.
+;
+; [<name>]
+; accept = <listen IP>:<listen port>
+; exec = <path to where you put it>/warpbubble
+; execargs = <path to where you put it>/warpbubble <actual host of game>:<actual port of game> <MU* COMMAND>
+;
+; <name> is arbitrary. Whatever makes sense to you.
+;
+; <listen IP> and <listen port> are the IP you want strunnel to bind,
+; and the port you want it to listen for connections on that IP. This
+; needs to be a DIFFERENT port than the port the game actually runs on.
+;
+; <path to where you put it> is wherever you put the gtunnel script.
+; absolute path. Not relative (no ./ or ~/ or such)
+;
+; <actual host of game> is the actual host your game is running on.
+;
+; <actual port of game> is the actual port your game is running on.
+;
+; <MU* COMMAND> is whatever 'connect screen' command your MU* is configured
+;               to use in order to pass the real IP of the connection through
+;               This is controlled by the sconnect_cmd @admin param 
+;
+; Example:
+;
+; [bob-SSL]
+; accept  = 123.45.67.89:1235
+; exec = /games/bob/scripts/warpbubble
+; execargs = /games/bob/scripts/warpbubble localhost:1234 TLSIP
+;

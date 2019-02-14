@@ -1,0 +1,8 @@
+Issue this command if you wish to grab the latest stunnel and configure and set it up locally.
+
+It is STRONGLY suggested you use the system dependant one, but you  may use this
+if you're stuck with no other option.
+
+Good luck.
+
+Run: ./compile.sh to pull it down and set it up

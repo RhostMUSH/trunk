@@ -1,0 +1,35 @@
+README                     -- this file
+stunnel.conf.example       -- The example stunnel.conf file.  If you wish to
+                              create this manually you're welcome to.  Just
+                              make sure the end file is stunnel.conf
+stunnel_setup.sh           -- the script to build a stunnel.conf file for you
+                              which will be dropped at your specified location.
+warpbubble.pl              -- the perl script that handles stunnel to mush 
+                              connectivity.
+
+You need to set up your netrhost.conf file with the appropriate changes
+to enable stunnel/SSL proxy connectivity.
+
+sconnect_reip 1            -- This enables the SSL tunnel layer handler
+                              within rhost.
+sconnect_cmd XYZZY         -- this will set the secret SSL command
+                              handshake command to XYZZY.  This is case
+                              sensitive and can be up to 31 characters.
+                              Please make sure to only use alphanumeric.
+sconnect_host wildcards    -- This allows wildcarded sites (one or more)
+                              to allow to access the sconnect/stunnel
+                              handler.  This defaults to 'localhost' so
+                              if you have 'localhost.localdomain' instead
+                              then you must set this to whatever is seen
+                              as 'localhost' to you.  You can verify this
+                              by checking your /etc/hosts file.
+
+When you have your stunnel.conf file to the way you want, you then
+issue the following command to run your SSL layer.
+
+                stunnel stunnel.conf
+
+Please be aware that the port that the SSL layer is on must be opened
+in any firewall rule you specified to allow the connectivity.
+
+Happy SSLing.
