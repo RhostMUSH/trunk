@@ -4,6 +4,7 @@ stunnel.conf.example       -- The example stunnel.conf file.  If you wish to
                               make sure the end file is stunnel.conf
 stunnel_setup.sh           -- the script to build a stunnel.conf file for you
                               which will be dropped at your specified location.
+stunnel_kill.sh            -- Stop/terminate the stunnel process.
 warpbubble.pl              -- the perl script that handles stunnel to mush 
                               connectivity.
 

@@ -129,7 +129,7 @@ Updating stunnel configuration..."
 # Make a substitution to put the proper ket/cert paths in place
 #
 ##############################################################################
-sed -e "s/CERT_FILE/$ecert/g" -e "s/KEY_FILE/$ekey/g" -e "s/LOG_FILE/$logfile/g" -e "s/PID_FILE/$pidfile/g" $stunnel_template | tr '|' '/' > stunnel.conf
+sed -e "s~CERT_FILE~${ecert}~g" -e "s~KEY_FILE~${ekey}~g" -e "s~LOG_FILE~${logfile}~g" -e "s~PID_FILE~${pidfile}~g" ${stunnel_template} | tr '|' '/' > stunnel.conf
 
 ##############################################################################
 #
