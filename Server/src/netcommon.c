@@ -1168,14 +1168,14 @@ update_quotas(struct timeval last, struct timeval current)
     if (nslices > 0) {
 	DESC_ITER_ALL(d) {
             /* IF customquotas exceed the max current values, ignore it and carry on */
-            if ( (d->flags & MF_CMDQUOTA) ) {
+            if ( (d->flags & DS_CMDQUOTA) ) {
                if ( Good_chk(d->player) && 
                     ((Wizard(d->player) && d->quota > mudconf.wizcmd_quota_max) ||
                      (!Wizard(d->player) && d->quota > mudconf.cmd_quota_max)) ) {
                   continue;
                }
                /* Cleanup the flag */
-               d->flags &= ~MF_CMDQUOTA;
+               d->flags &= ~DS_CMDQUOTA;
             }
 	    d->quota += mudconf.cmd_quota_incr * nslices;
             if ( Good_chk(d->player) && Wizard(d->player) ) {
@@ -3303,6 +3303,9 @@ dump_users(DESC * e, char *match, int key)
                          *fp++ = 'g';
                    }
                 }
+                if ( (e->flags & DS_CONNECTED) && Wizard(e->player) && (d->flags & DS_SSL) ) {
+                   *fp++ = '$';
+                }
 		if (Dark(d->player) && (e->flags & DS_CONNECTED)) {
 		    if (d->flags & DS_AUTODARK)
 			*fp++ = 'd';
@@ -3400,6 +3403,9 @@ dump_users(DESC * e, char *match, int key)
                            else if ( Guildmaster(d->player) && mudconf.who_wizlevel < 2 )
                               *fp++ = 'g';
                         }
+                    }
+                    if ( (e->flags & DS_CONNECTED) && Wizard(e->player) && (d->flags & DS_SSL) ) {
+                       *fp++ = '$';
                     }
 		    if (Dark(d->player) && (e->flags & DS_CONNECTED)) {
 			if (d->flags & DS_AUTODARK)
@@ -4934,7 +4940,7 @@ do_command(DESC * d, char *command)
           strcpy(s_rollback, mudconf.sconnect_host);
        }
 
-       addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & MF_API));
+       addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
 
        if ( lookup(addroutbuf, s_rollback, 1, &aflags) ) {
           process_output(d);
@@ -4947,6 +4953,7 @@ do_command(DESC * d, char *command)
           free_lbuf(s_rollback);
           memset(d->addr, '\0', sizeof(d->addr));
           strncpy(d->addr, arg, 50);
+          d->flags |= DS_SSL;
           RETURN(0); /* #147 */
        } else {
           sprintf(s_rollback, "DENIED: %.50s -> %.50s ", addroutbuf, arg);

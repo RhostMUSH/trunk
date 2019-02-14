@@ -157,6 +157,8 @@ struct descriptor_data {
 #define DS_HAVEpFX		0x0080		/* Target has prefix */
 #define DS_HAVEsFX		0x0100		/* Target has suffix */
 #define DS_API			0x0200		/* Target is an API handler */
+#define DS_CMDQUOTA		0x0400		/* Target is an CMDQUOTA handler */
+#define DS_SSL      		0x0800		/* Target is on an SSL handler */
 
 extern DESC *descriptor_list;
 extern DESC *desc_in_use;

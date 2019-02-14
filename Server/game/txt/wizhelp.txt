@@ -2493,7 +2493,7 @@
                     U - hidden (@hide)  H - unfindable     D - dark
                     * - staff (opt)     W - Wizard (opt)   a - councilor (opt)
                     B - architect (opt) g - GuildMstr(opt) d - idle dark
-                    h - idle unfindable 
+                    h - idle unfindable $ - SSL connected
      Host         - The Internet host name or address from where the player 
                     has connected.  This can be cut off with 'whohost_size'
 

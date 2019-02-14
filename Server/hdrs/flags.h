@@ -40,7 +40,6 @@
 #define MF_COMPFAIL     0x0800
 #define MF_CPUEXT       0x1000
 #define MF_API		0x2000
-#define MF_CMDQUOTA	0x4000
 
 /* Object types */
 #define TYPE_ROOM       0x0

@@ -1608,7 +1608,7 @@ shutdownsock(DESC * d, int reason)
     i_sitecnt = i_guestcnt = 0;
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
     if (reason == R_LOGOUT) {
-        addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & MF_API));
+        addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & DS_API));
         t_addroutbuf = alloc_mbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {

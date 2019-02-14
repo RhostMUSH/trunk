@@ -13741,9 +13741,9 @@ do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
          d->quota = i_cmdquota;
          if ( (Wizard(d->player) && (i_cmdquota == mudconf.wizcmd_quota_max)) ||
               (!Wizard(d->player) && (i_cmdquota == mudconf.cmd_quota_max)) ) {
-            d->flags &= ~MF_CMDQUOTA;
+            d->flags &= ~DS_CMDQUOTA;
          } else {
-            d->flags |= MF_CMDQUOTA;
+            d->flags |= DS_CMDQUOTA;
          }
          i_cntr++;
       }
