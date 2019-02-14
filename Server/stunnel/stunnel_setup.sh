@@ -45,7 +45,7 @@ fi
 #
 ##############################################################################
 port=`awk '$1=="port" {print $2}' ${game}/netrhost.conf`
-sslport=`expr $port + 1`
+sslporttmp=`expr $port + 1`
 name=`awk '$1=="mud_name"' ${game}/netrhost.conf | sed -e 's/mud_name //g'`
 sconnect_command=`awk '$1=="sconnect_cmd" {print $2}' ${game}/netrhost.conf`
 
@@ -69,6 +69,12 @@ echo -n "Where would you like the stunnel log file stored? [default: $current]: 
 read logfile
 echo -n "Where would you like the stunnel pid lock file stored? [default: $current]: "
 read pidfile
+echo -n "what do you wish to have as your sslport? [default: $sslporttmp]: "
+read sslport
+
+if [ -z $sslport ]; then
+    sslport=$sslporttmp
+fi
 
 if [ -z $logfile ]; then
     logfile=$current
