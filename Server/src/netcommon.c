@@ -4846,8 +4846,8 @@ extern int igcheck(dbref, int);
 int 
 do_command(DESC * d, char *command)
 {
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
 #ifdef HAS_OPENSSL
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
@@ -4858,6 +4858,8 @@ do_command(DESC * d, char *command)
     int aflags, i_cputog, i_encode64, i_snarfing, i_parse, i_usepass;
     dbref aowner, thing;
     ATTR *atrp;
+#else
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
 #endif
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
