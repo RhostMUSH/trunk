@@ -4931,6 +4931,7 @@ do_command(DESC * d, char *command)
      * cval: 0 normal, 1 disable, 2 ignore
      */
     
+#ifdef HAS_OPENSSL
     if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
        s_rollback = alloc_lbuf("sconnect_handler");
@@ -4965,6 +4966,7 @@ do_command(DESC * d, char *command)
        }
        free_lbuf(s_rollback);
     }
+#endif
 
     if ( d->player && InProgram(d->player) && (command[0] == '|') && 
          !((NoShProg(d->player) && !mudconf.noshell_prog) || 
