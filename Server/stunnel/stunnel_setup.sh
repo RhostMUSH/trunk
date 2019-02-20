@@ -18,6 +18,8 @@ current=`pwd`
 stunnel_template="stunnel.conf.example"
 game="${current}/../game"
 bubble="${current}/warpbubble.pl"
+configfile="warpbubble.conf"
+configtmp="$current/$configfile"
 
 ##############################################################################
 # validate the config of the game has the sconnect settings
@@ -121,12 +123,32 @@ distinguished_name=req
 subjectAltName=DNS:example.com,DNS:example.net,IP:10.0.0.1
 " > /tmp/mconf.$$
 
-openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout $key -out $cert -extensions san -subj '/CN=example.com' -config /tmp/mconf.$$
+if [ -f $key -o -f $cert ]
+then
+   echo "It appears you already have your key and cert files:"
+   ls -l $key
+   ls -l $cert
+   echo -n "Do you really wish to overwrite these with new keys? [Default: no]: "
+   read ans
+   if [ -z "$ans" ]
+   then
+      ans="no"
+   fi
+   ans=`echo $ans|tr 'a-z' 'A-Z'`
+   if [ "$ans" != "NO" ]
+   then
+      openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout $key -out $cert -extensions san -subj '/CN=example.com' -config /tmp/mconf.$$
+      echo "Certificate creation complete..."
+      rm -f /tmp/mconf.$$
+   fi
+else
+  openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout $key -out $cert -extensions san -subj '/CN=example.com' -config /tmp/mconf.$$
+  echo "Certificate creation complete..."
+  rm -f /tmp/mconf.$$
+fi
 
-rm -f /tmp/mconf.$$
 
 echo "
-Certificate creation complete...
 
 Updating stunnel configuration..."
 
@@ -143,12 +165,38 @@ sed -e "s~CERT_FILE~${ecert}~g" -e "s~KEY_FILE~${ekey}~g" -e "s~LOG_FILE~${logfi
 # and name and such.
 #
 ##############################################################################
+echo -n "Enter full config file path or NONE to just pass as arguments [default: $configtmp]: "
+read configpath
+if [ -z $configpath ]; then
+    configpath=$configtmp
+fi
+
+touch $configpath
+if [ ! -f $configpath ]
+then
+   configpath="NONE"
+fi
+
+if [ "$configpath" = "NONE" ]
+then
 echo "
 [${name}-SSL]
 accept = $sslport
 exec = $bubble
-execargs = $bubble localhost:$port $sconnect_command
+execargs = $bubble $sconnect_command localhost $port
 " >> stunnel.conf
+else
+echo "
+[${name}-SSL]
+accept = $sslport
+exec = $bubble
+execargs = $bubble --conf=$configpath
+" >> stunnel.conf
+mv -f $configpath $configpath.prev 2>/dev/null
+echo "host: localhost
+port: $port
+command: $sconnect_command" > $configpath
+fi
 
 echo "
 stunnel configuration complete...Enjoy!

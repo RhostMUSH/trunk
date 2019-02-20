@@ -5,8 +5,11 @@ stunnel.conf.example       -- The example stunnel.conf file.  If you wish to
 stunnel_setup.sh           -- the script to build a stunnel.conf file for you
                               which will be dropped at your specified location.
 stunnel_kill.sh            -- Stop/terminate the stunnel process.
+stunnel_start.sh           -- Start the stunnel process.
 warpbubble.pl              -- the perl script that handles stunnel to mush 
                               connectivity.
+stunnel_src                -- If you do not have stunnel, this directory will
+                              allow you to download, compile and locally install.
 
 You need to set up your netrhost.conf file with the appropriate changes
 to enable stunnel/SSL proxy connectivity.
@@ -28,7 +31,7 @@ sconnect_host wildcards    -- This allows wildcarded sites (one or more)
 When you have your stunnel.conf file to the way you want, you then
 issue the following command to run your SSL layer.
 
-                stunnel stunnel.conf
+                ./stunnel_start.sh
 
 Please be aware that the port that the SSL layer is on must be opened
 in any firewall rule you specified to allow the connectivity.
