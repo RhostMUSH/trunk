@@ -1611,9 +1611,11 @@ void
 do_cpattr(dbref player, dbref cause, int key, char *source,
 	  char *destlist[], int nargs)
 {
-    char *sep1, *as, *buf, *dest, *pt2, *sepsave, *bk_source, *buff2, *buff2ret;
+    char *sep1, *as, *buf, *dest, *pt2, *sepsave, *bk_source, *buff2, *buff2ret,
+         *s_bad, *s_badptr;
     dbref thing1, thing2, aowner, aowner2;
-    int wyes, aflags, ca, ca2, ca3, mt, t2, verbose, ex1, twk1, clr1, clr2, chkv1, aflags2, no_set;
+    int wyes, aflags, ca, ca2, ca3, mt, t2, verbose, ex1, twk1, clr1, clr2, chkv1, 
+        aflags2, no_set, i_verify, i_bad;
     ATTR *attr;
     ATRST *pt1;
     char tbuf[80], *tpr_buff, *tprp_buff, *tstrtokr;
@@ -1637,6 +1639,11 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     }
     *sep1 = '\0';
     sepsave = sep1;
+    i_verify = i_bad = 0;
+    if ( key & CPATTR_VERIFY ) {
+       i_verify = 1;
+       key &= ~CPATTR_VERIFY;
+    } 
     if (strpbrk(sep1 + 1, "?\\*"))
 	wyes = 1;
     else
@@ -1656,8 +1663,9 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     if ((key & CPATTR_VERB) != 0) {
 	verbose = 1;
 	key &= ~CPATTR_VERB;
-    } else
+    } else {
 	verbose = 0;
+    }
     atrpt = atrpt2 = NULL;
     for (ca = atr_head(thing1, &as); ca; ca = atr_next(&as)) {
 	attr = atr_num(ca);
@@ -1723,10 +1731,27 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 		if (ok_attr_name(pt2)) {
 		    ca3 = 1;
 		    ca2 = mkattr(pt2);
-		} else
+		} else {
+                    if ( i_verify ) {
+                       tprp_buff = tpr_buff;
+                       if (!i_bad) {
+                          s_badptr = s_bad = alloc_lbuf("cpattr_verify_bad");
+                          safe_str("\t-> Invalid Attributes [", s_bad, &s_badptr);
+                          safe_str(pt2, s_bad, &s_badptr);
+                       } else {
+                          safe_chr(',', s_bad, &s_badptr);
+                          safe_str(pt2, s_bad, &s_badptr);
+                       }
+                       i_bad = 1;
+	               if (pt2)
+		           pt2 = strtok_r(NULL, "/", &tstrtokr);
+                       continue;
+                    }
 		    ca3 = 0;
-	    } else
+                }
+	    } else {
 		ca3 = 0;
+            }
             buff2 = alloc_lbuf("cpattr_atrlock");
 	    for (pt1 = atrpt; pt1; pt1 = pt1->next) {
                 no_set = 0;
@@ -1873,8 +1898,14 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	*as = '\0';
 	notify(player, sep1);
 	free_lbuf(sep1);
-    } else
+    } else {
 	notify(player, "Cpattr: Nothing copied.");
+    }
+    if ( i_bad ) {
+       safe_chr(']', s_bad, &s_badptr);
+       notify(player, s_bad);
+       free_lbuf(s_bad);
+    }
     atrptclr();
     free_lbuf(bk_source);
 }

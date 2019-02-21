@@ -628,6 +628,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define CPATTR_CLEAR	0x00000001
 #define CPATTR_VERB	0x00000002
+#define CPATTR_VERIFY	0x00000004	/* Force verification on destionation attributes */
 
 #define	CRE_INVENTORY	0x00000000	/* Create object in my inventory */
 #define	CRE_LOCATION	0x00000001	/* Create object in my location */
@@ -1188,6 +1189,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
 #define DYN_SUGGEST	8	/* Allow suggestions in dynhelp -- multi-option */
 #define DYN_QUERY	16	/* Do a line by line 'comparison' of the code */
+#define DYN_SUBEVAL	32	/* Just do percent substitution replacments */
 
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */

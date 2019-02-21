@@ -5026,54 +5026,76 @@
   You can only copy from objects and attributes you control and only onto
   objects and attributes you control.  You have to specify a valid attribute
   to copy as well.  There are switches available for @cpattr.  These are:
-      /clear  - this erases the attribute on the originating object if
-                a copy was successful.
+  
+      /clear   - this erases the attribute on the originating object if
+                 a copy was successful.
+      /verbose - this will expand wildcard attributes that are copied from
+                 source.
+      /verify  - this will verify the destination attribute and not use
+                 default behavior (see below) if the attribute is not valid.
+  
+  Note: default behavior if the destination attribute is invalid is to use
+        the source attribute for the destination instead.  Using the /verify
+        switch overrides this behavior and will skip any invalid attribute
+        naming conventions. 
   
   You may specify the same object if you wish to move attributes on the same
   object.  You may specify wildcards for attributes.
   
 { 'help cpattr2' for examples on all combinations and explanations }
   
+& @CPATTR2
 & CPATTR2
   Command: @cpattr (Continued 2 of 3)
   Syntax:  @cpattr <object>/<attribute>=<object1>/<attr1>/<attr2>
     
       - This will copy the given attribute to 'attr1' and 'attr2' of the
         the destination object.  You may specify from one to any number
-        of destination attributes.
+        of destination attributes.  You may use the /verify switch to
+        enforce destination attribute validation.
   
   Syntax: @cpattr <object>/<attribute>=<object1>,<object2>/<attr1>
   
       - This will copy the given attribute to an attribute of the same name
         on the first object and copy it with the name 'attr1' on the second
         object.  Any number of objects may be listed.  You may specify
-        multiple attributes per object as well.
- 
+        multiple attributes per object as well.  You may use the /verify
+        switch to enforce destination attribute validation.
+   
   Syntax: @cpattr <object>/<wildcard>=<object1>,...,<objectX>
  
       - This will copy all attributes matching the wildcard to the destination
         object(s).  You may specify from one to any number of destination
-        objects but must control the objects to copy the attributes.
+        objects but must control the objects to copy the attributes.  You may
+        use the /verbose switch to expand wildcards to all the attributes that
+        matched, and you may use the /verify switch to validate attributes.
+        However, in this syntax, using /validate is redundant as source 
+        attributes will all be valid.
    
 { 'help cpattr3' for more }
   
+& @CPATTR3
 & CPATTR3
   Command: @cpattr (Continued 3 of 3)
   Syntax: @cpattr <attribute>=<object>/<attrib>,...
   
       - This copies the attribute on the ENACTOR to the target.  You can
-        specify multiple targets.
+        specify multiple targets.  You may usethe /verify switch to enforce
+        attribute validation.
   
   Syntax: @cpattr/clear <args>
- 
+   
       - The clear switch is usable with all the previous mentioned @cpattr
         commands. (help cpattr2 for help on these).  This will work just like
         the prior, except this will also purge (remove) the attributes that
         are being copied from the original object.  This acts basically like
-        a move.
+        a move.  You may use the /verify switch to verify on the /clear to
+        enforce clearing will not happen on bad destination naming.
  
   @cpattr returns detailed information of objects copied from and to and
-  any attributes successfully copied.
+  any attributes successfully copied.  With the /verify switch it will also
+  list any invalid attributes attempting to be copied.  /verbose will expand
+  all wildcards on source being copied.
    
   See Also: @mvattr, @set, &
   
@@ -32548,6 +32570,7 @@
   * Added sub-option 'display' to @list options to work like config() [ASH]
   * sconnect_reip, sconnect_cmd, sconnect_host for SCONNECT/PROXY support [ASH]
   * added sconnect handlers and configuration as scripts [Oleo/Adrick/Ash]
+  * @cpattr has /verify switch that validates attributes being copied [ASH]
   
   Changes
   ------------

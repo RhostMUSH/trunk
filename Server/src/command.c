@@ -261,7 +261,8 @@ NAMETAB cluster_sw[] = {
 NAMETAB cpattr_sw[] =
 {
     {(char *) "clear", 1, CA_PUBLIC, 0, CPATTR_CLEAR},
-    {(char *) "verbose", 1, CA_PUBLIC, 0, CPATTR_VERB | SW_MULTIPLE},
+    {(char *) "verbose", 4, CA_PUBLIC, 0, CPATTR_VERB | SW_MULTIPLE},
+    {(char *) "verify", 4, CA_PUBLIC, 0, CPATTR_VERIFY | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB clone_sw[] =
