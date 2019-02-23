@@ -1373,6 +1373,24 @@ new_connection(int sock, int key)
 	   log_text(buff);
 	   free_mbuf(buff);
 	   ENDLOG
+        } else {
+           buff1 = inet_ntoa(addr.sin_addr);
+           if ( !(*mudstate.nospam_lastsite) || (strcmp(mudstate.nospam_lastsite, buff1) != 0) ) {
+              if ( mudstate.nospam_counter > 0 ) {
+                 STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
+                    buff = alloc_mbuf("new_connection.LOG.badsite");
+                    sprintf(buff, "[%s] Connection refused [total %d times].",
+                            mudstate.nospam_lastsite, mudstate.nospam_counter);
+                    log_text(buff);
+                    free_mbuf(buff);
+                 ENDLOG
+              }
+              memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
+              sprintf(mudstate.nospam_lastsite, "%.*s", sizeof(mudstate.nospam_lastsite) - 1, buff1);
+              mudstate.nospam_counter = 1;
+           } else {
+              mudstate.nospam_counter++;
+           }
         }
         if ( maxsitecon >= mudconf.max_sitecons ) {
   	   broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
@@ -1406,6 +1424,19 @@ new_connection(int sock, int key)
 	d = NULL;
     } else {
 	buff = alloc_mbuf("new_connection.sitename");
+        if ( mudconf.nospam_connect ) {
+           if ( *mudstate.nospam_lastsite ) {
+              if ( mudstate.nospam_counter > 0 ) {
+                 STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
+                    sprintf(buff, "[%s] Connection refused [total %d times].",
+                            mudstate.nospam_lastsite, mudstate.nospam_counter);
+                    log_text(buff);
+                 ENDLOG
+              }
+              memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
+              mudstate.nospam_counter = 0;
+           }
+        }
         memset(buff, 0, MBUF_SIZE);
   	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
 	STARTLOG(LOG_NET, "NET", "CONN")

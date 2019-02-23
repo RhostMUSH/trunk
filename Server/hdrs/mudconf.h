@@ -829,6 +829,8 @@ struct statedata {
 	int	mail_inline;	/* Do not let mail work inline other mail */
         int	iter_special;	/* Special iter handler for 'inf' args */
 	int	nested_control;	/* Nested controlock */
+	int	nospam_counter;	/* Counter for nospam connect enabled */
+	char	nospam_lastsite[60]; /* lastsite comparison to nospam connect */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

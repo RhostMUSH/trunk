@@ -677,6 +677,8 @@ NDECL(cf_init)
                                  */
     /* Connection security level */
     mudstate.cmp_lastsite = -1;
+    mudstate.nospam_counter = 0;
+    memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
     mudstate.cmp_lastsite_cnt = 0;
     mudstate.api_lastsite = -1;
     mudstate.api_lastsite_cnt = 0;
