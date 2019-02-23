@@ -4597,7 +4597,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.noshell_prog, 0, 0, CA_PUBLIC,
      (char *) "Can you issue commands outside a @program?"},
     {(char *) "nospam_connect",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.nospam_connect, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.nospam_connect, 0, 0, CA_WIZARD,
      (char *) "Are forbidden sites logged?"},
     {(char *) "notify_recursion_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ntfy_nest_lim, 0, 0, CA_WIZARD,

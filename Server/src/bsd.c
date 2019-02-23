@@ -1373,7 +1373,7 @@ new_connection(int sock, int key)
 	   log_text(buff);
 	   free_mbuf(buff);
 	   ENDLOG
-        } else {
+        } else if ( mudconf.nospam_connect == 1 ) {
            buff1 = inet_ntoa(addr.sin_addr);
            if ( !(*mudstate.nospam_lastsite) || (strcmp(mudstate.nospam_lastsite, buff1) != 0) ) {
               if ( mudstate.nospam_counter > 0 ) {
@@ -1424,7 +1424,7 @@ new_connection(int sock, int key)
 	d = NULL;
     } else {
 	buff = alloc_mbuf("new_connection.sitename");
-        if ( mudconf.nospam_connect ) {
+        if ( mudconf.nospam_connect == 1 ) {
            if ( *mudstate.nospam_lastsite ) {
               if ( mudstate.nospam_counter > 0 ) {
                  STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")

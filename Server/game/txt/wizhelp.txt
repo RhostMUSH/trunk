@@ -8620,6 +8620,11 @@
   Real twinkish players may try multiple connects to overload a log file and
   this config parameter will help remove that.
   
+  The valid values for this are:
+    0 - disabled (default)
+    1 - enabled but still log site with counter once spam stops
+    2 - do not log site (useful if you're being spammed by multiple sites)
+   
   Keep in mind, this does not effect the MONITOR information on-line of people
   trying to connect from forbid sites, only the log file.
 
