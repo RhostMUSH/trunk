@@ -13,6 +13,7 @@
 @@                                     Fix on comcfg/notify with case sensitivity
 @@ 1.2.3   09/25/18     Ashen-Shugar   Add timestamp capability to channel output
 @@ 1.2.4   01/13/19     Ashen-Shugar   @cboot/@clist fixes.  channels() function.
+@@ 1.2.5   02/25/19     Ashen-Shugar   modified comall to optionally specify channel
 @@
 @@ You need -DHACK_ATTR, -DTINY_U, -DSIDEEFFECTS all defined for this to work at compiletime!
 @@
@@ -63,7 +64,7 @@ think Continuing with loading of script...
 &CMD_COMOPTIONS ChanSys=$comoptions:@pemit %#=ComSys: Options used to communicate on Version [ansi(hb,first(v(version)))] of AshComV2 %[[ansi(hc,rest(v(version)))]%];@pemit %#=ComSys: Help Completed.[list(lnum(1,words(get([v(F-DB)]/comoptions_syntax),|)),[space(5)][ljust([extract(get([v(F-DB)]/comoptions_syntax),##,1,|)]%b,35,.)] [extract(get([v(F-DB)]/comoptions_reference),##,1,|)])]
 &CMD_COMMASK ChanSys=$commask *=*:@pemit %#=[u(COMMASKMSG[setr(0,u(commaskf,secure(%0),secure(%1),%#))],secure(%0),secure(%1))];@break [not(match(r(0),10))];&_CH_MASK_[first(secure(%0))] %#=[secure(%1)]
 &CMD_COMPREFIX ChanSys=$comprefix*:@pemit %#=[u(COMPREFIXM[setr(0,u(comprefixf,trim(%0)))],trim(%0))];@break [!match(11,%q0)];&_COM_PREFIX %#=[trim(remove(lcstr(%0),/clear))]
-&CMD_COMALL ChanSys=$comall:@pemit %#=[ifelse(gte(bittype(%#),5),u(do_comall),ComSys: Permission Denied.)]
+&CMD_COMALL ChanSys=$comall*:@pemit %#=[ifelse(gte(bittype(%#),5),u(do_comall,trim(%0)),ComSys: Permission Denied.)]
 &CMD_COMGAG ChanSys=$comgag*:@pemit %#=[u(FN_COMGAG[match(/on /off /list,first(%0))],rest(%0))]
 &CMD_COMNOTIFY ChanSys=$comnotify*:@pemit %#=[u(FN_COMNOTIFY[match(/enable /disable /list /on /off /compress,first(%0))],rest(%0))]
 &CMD_COMSET ChanSys=$comset*:@pemit %#=[u([v(F-DB)]/FN_COMSET[match(/set /unset /list,first(%0))],first(rest(%0)),rest(rest(%0)),%#)]
@@ -283,13 +284,13 @@ think Continuing with loading of script...
 &CBOOTMSG10 ChanFunc=[switch([isdbref(pfind(%0))][!!match(get([v(STOR-DB)]/ch_list),%1)][!match(get([v(STOR-DB)]/chlist_%1),%0)],0??,ComSys: The target specified is not valid.,10?,ComSys: The target channel does nto exist.,ComSys: The target is not on that channel.)]
 &CBOOTMSG11 ChanFunc=ComSys: [capstr(lcstr(type(pfind(%0))))] [name(pfind(%0))] has been booted from [u([v(F-DB)]/do_chancolor_%1)].
 &DOCBOOT ChanFunc=[u([v(FX-DB)]/do_cboot,%0,%1,%2)]
-&VERSION ChanFunc=1.2.4 01/13/2019
+&VERSION ChanFunc=1.2.5 02/25/2019
 &COMHELP_SYNTAX ChanFunc=comhelp|addcom <alias>=<channel>|=<channel> <message>|.<channel> <message>|<alias> <message>|<alias> on|<alias> off|<alias> who|<alias> last [<value>]|delcom <channel>|@clist[/full /alias /notify /borders]|comlist|comtitle <channel>=<title>|comcfg[/<switch>]|@cemit <channel>=<message>|@cboot <target>=<channel>|commask <channel>=<alias>|comprefix[/clear] [<character(s)>]|comoptions|@channel|comall|comgag[/on /off /list] <channel>|comnotify[/<switches>]|comset[/<switch>] <channel> [<1-3>]
 &COMHELP_REFERENCE ChanFunc=Show this screen.|Adds aliases to channel.|Method to talk on channel.|no-eval talk on channel.|Method to talk on channel.|Join a channel.|Leave a channel.|See who's on channel.|List channel history.|Remove alias (doesn't leave)|Lists available channels.|Lists connected channels.|Set channel comtitle.|Config comsys (see /help)|Emit over channel.|Boot target from channel.|Set name alias.|Config personal prefixes.|List speaking options.|@chan interface. (@chan/help)|List all users on chans.|Turn gagging on/off/list.|Notification Broadcasts|Set/Unset/List channel options
 &COMOPTIONS_SYNTAX ChanFunc=<alias>:<message>|<alias>;<message>|<alias>"<message>|<alias>`<player> <message>|<alias>`<player(s)>` <message>
 &COMOPTIONS_REFERENCE ChanFunc=Pose a message.|Possessive-Pose a message.|Say a message (default).|Com-to a specified person.|Com-to multiple people.
 &DOLAST_BACKUP ChanFunc=[u([v(FX-DB)]/do_pemit,[setq(7,min(get([v([r(1)]_history)]/hval),max(min(ifelse(words(%1),%1,10),setr(0,words(setdiff(lattr([v([r(1)]_HISTORY)]/hist_time_*),#-1 NO MATCH)))),min(%1,r(0)),1)))][center(- history listing for [r(1)] <Recalling [r(7)] lines...> -,78,-)])][ifelse(words(setdiff(lattr([v([r(1)]_history)]/hist_*),#-1 NO MATCH)),list(u(do_histlinecnt,max(sub(get([setr(6,v([r(1)]_HISTORY))]/cval),1),0),get([r(6)]/hval),r(7)),[setq(9,get([r(6)]/hist_data_##))][u(do_histline,get([r(6)]/hist_time_##))]),[center(** No History Available **,78)]%r)][repeat(-,78)]
-&DO_COMALL ChanFunc=[u([v(FX-DB)]/do_genpemit,%#,Listing all channels and players on channels:%r[repeat(-,78)])][list(get([v(STOR-DB)]/ch_list),[u(do_chancolor,itext(0))]%r[space(5)][wrap(elist(iter(get([v(STOR-DB)]/chlist_[itext(0)]),name(itext(0)),,#),,#),69,l,,,5)])][repeat(-,78)]
+&DO_COMALL ChanFunc=[setq(w,0)][setq(y,)][switch([!!words(%0)][!!match(get([v(STOR-DB)]/ch_list),%0)],11,[setq(y,%0)][setq(w,1)],00,setq(y,get([v(STOR-DB)]/ch_list)))][ifelse(words(%qy),[u([v(FX-DB)]/do_genpemit,%#,[ifelse(%qw,Listing players on channel [u(do_chancolor,%0)],Listing all channels and players on channels)]:%r[repeat(-,78)])][list(%qy,[u(do_chancolor,itext(0))]%r[space(5)][wrap(elist(iter(get([v(STOR-DB)]/chlist_[itext(0)]),name(itext(0)),,#),,#),69,l,,,5)])][repeat(-,78)],ComSys: comall - Unrecognized channel '%0')]
 &CMD_SWITCHES ChanFunc=help list title on off who recall all gag ungag desc add brief buffer chown combine uncombine decompile delete hide unhide join leave mogrifier mute unmute name privs quiet rename what wipe
 &CMD_SWITCHES_INDEX ChanFunc=@chan[nel]/help|@chan[nel]/list|@chan[nel]/title <channel>[=<title>]|@chan[nel]/on <channel>[=<player>]|@chan[nel]/off <channel>[=<player>]|@chan[nel]/who <channel>|@chan[nel]/recall <channel>[=<lines>]|@chan[nel]/all|@chan[nel]/gag [<channel:+all>]|@chan[nel]/ungag [<channel:+all>]|@chan[nel]/desc|@chan[nel]/add|@chan[nel]/brief|@chan[nel]/buffer|@chan[nel]/chown|@chan[nel]/combine|@chan[nel]/uncombine|@chan[nel]/decompile|@chan[nel]/delete|@chan[nel]/hide|@chan[nel]/unhide|@chan[nel]/join <channel>[=<player>]|@chan[nel]/leave <channel>[=<player>]|@chan[nel]/mogrifier|@chan[nel]/mute|@chan[nel]/unmute|@chan[nel]/name|@chan[nel]/privs|@chan[nel]/quiet|@chan[nel]/rename|@chan[nel]/what|@chan[nel]/wipe
 &CMD_SWITCHES_SHORT ChanFunc=this listing|lists channels|sets/displays channel title|joins channel|leaves channel|lists who's on channel|recalls channel history|join all channels|gag channel/+all|ungag channel/+all|see: comcfg/redesc|see: comcfg/chanadd|show quick channel list|see: comcfg/hist|see: comcfg/lock|combine notify (dis)con output|uncombine notify (dis)con output|not implemented|see: comcfg/chandel|see: commask|see: commask|joins channel|leaves channel|not implemented|see: comcfg/plrlock|see: comcfg/plrunlock|see: comcfg/chancolor|see: comcfg/lock or comcfg/locklist|see: comnotify|see: comcfg/chancolor|chan description listing|see: comcfg/prune
@@ -429,6 +430,3 @@ comcfg/chancolor newbie=[ansi(h,Newbie)]
 comcfg/chanadd Public=New Player Channel
 comcfg/chancolor public=[ansi(hb,Public)]
 @swi/f [isdbref(globalroom())]=1,{@pemit %#=Installing into your globalroom %([name(globalroom())]%([globalroom()][flags(globalroom())]%);@tel/quiet ChanSys=globalroom();@pemit %#=Installation Completed. (type 'comhelp' for help)},{@pemit %#=Either the global room isn't configured or you have no access to it.  You will need to manually place the object into the global room.%rInstallation Completed. (type 'comhelp' for help)}
-
-
-
