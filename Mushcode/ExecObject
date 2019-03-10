@@ -15,8 +15,8 @@
 @set ExecObject/CMD_MATH = no_parse
 &CMD_THES ExecObject=$+thes*:@pemit %#=[ifelse(!$v(0),+thes: Thesaurus on what?,[rjust(- +thes ----,78,-)]%r[setq(0,execscript(thes.sh,trim(%0)))][ifelse(!!^r(0),%q0,Nothing found for word.)]%r[repeat(-,78)])]
 &CMD_COMPILE ExecObject=$+compile*:@assert [u(CANCOMPILE,%#)]=@pemit %#=+compile: Permission denied;@pemit %#=[execscript(compile.sh,%0)]
-&CMD_WEATHER ExecObject=$+weather*:@pemit %#=[ifelse(!$v(0),+weather: Please specify a location,edit(execscript(weather.sh,trim(%0)),?,%<176>))
-&CMD_WEATHER ExecObject=$+forcast*:@pemit %#=[ifelse(!$v(0),+forcast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))
+&CMD_WEATHER ExecObject=$+weather*:@pemit %#=[ifelse(!$v(0),+weather: Please specify a location,edit(execscript(weather.sh,trim(%0)),?,%<176>))]
+&CMD_FORCAST ExecObject=$+forcast*:@pemit %#=[ifelse(!$v(0),+forcast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))]
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
 &FUN_MATH ExecObject=[chomp(execscript(math.sh,objeval(%#,%0)))]
 
