@@ -7291,7 +7291,7 @@
     > @fail table = It's too heavy to lift!                            <thing>
     > @fail doorway = The doorknob does not turn.                       <exit>
   
-  See Also: get, @afail, @ofail, FAILURE
+  See Also: get, @afail, @ofail, FAILURE, SHOWFAILCMD
   
 & @filter
   Command: @filter[/<switch>] <object> = <pattern>[, <pattern>...]
@@ -9030,7 +9030,7 @@
  
   Example: @ufail robot = The robot pointedly ignores you.
    
-  See Also: @aufail, @oufail, @use
+  See Also: @aufail, @oufail, @use, SHOWFAILCMD
   
 & @use
   Command: @use[/<switch>] <object> = <message>
@@ -9116,6 +9116,8 @@
   If the object is set SHOWFAILCMD in addition to STOP, then the
   error is showed appropiately and all command processing is 
   stopped at that point as well.
+  
+  See Also: @ufail, @fail
   
 & BOUNCE
 & BOUNCEFORWARD
@@ -10752,7 +10754,7 @@
   (because it is unlinked or locked). You fail to use a room when you fail
   to look around (because it's locked).
   
-  See Also: get, look, @afail, @fail, @lock, @ofail
+  See Also: get, look, @afail, @fail, @lock, @ofail, SHOWFAILCMD
   
 & FLAGS
   Topic: FLAGS
