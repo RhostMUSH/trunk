@@ -372,7 +372,6 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
         }
         s_buffptr = s_buff = alloc_lbuf("help_topical");
         s_tmpbuff = alloc_lbuf("help_wild_checker");
-notify(1234, "Test1");
 	for (htab_entry = (struct help_entry *) hash_firstentry(htab);
 	     htab_entry != NULL;
 	     htab_entry = (struct help_entry *) hash_nextentry(htab)) {
