@@ -25602,6 +25602,7 @@
      change     cshare     current     create     delete     list      move   
      rename     share      cmdlist
   
+& folder quicklist
 & folder cmdlist
   Topic: folder quick-reference help
   
@@ -25743,6 +25744,8 @@
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball|1-N]
   
+   ---- For the main mail help file please see:  HELP MAIL MAIN ----
+  
    Note: For folder help please type 'help folder'
   
    Important topics:
@@ -25750,9 +25753,11 @@
       'HELP MAIL TOPICS' for topical help.
   
    Important initial help entries:
-      'HELP MAIL CMDLIST' for a command listing and quick description
+      'HELP MAIL CMDLIST' for the mail command listing and descriptions
+      'HELP FOLDER CMDLIST' for the folder command listing and descriptions
       'HELP MAIL DTUTOR' for a quick tutorial on how to use mail
       'HELP MAIL BTUTOR' for a quick tutorial on the mail editor (optional)
+      'HELP MAIL PTUTOR' for a quick tutorial on Penn @mail syntax (optional)
   
   If you are used to the MUX standard of @mail or the softcoded BrandyMail
   you will want to use the BRANDY_MAIL toggle.  
@@ -26163,7 +26168,7 @@
   
   
 & mail cmdlist
-  Topic: mail command list of commands (in alphabetical order)
+  Topic: mail command list of commands (in alphabetical order) [1/3]
   
   mail                       - This is short for 'mail/quick'
   mail/alias                 - This lists all global mail aliases.
@@ -26186,7 +26191,7 @@
   
   { see help mail cmdlist2 for more }
 & mail cmdlist2
-  Topic: mail quicklist of commands (CONTINUED)
+  Topic: mail quicklist of commands (CONTINUED) [2/3]
   
   mail/number <target>[=<arg>] - This displays the target player's mail.  You
                                must pass that person's sharelock before you
@@ -26210,7 +26215,7 @@
   { see help mail cmdlist3 for more }
   
 & mail cmdlist3
-  Topic: mail quicklist of commands (CONTINUED)
+  Topic: mail quicklist of commands (CONTINUED) [3/3]
   
   mail[/send] [<arg>]<player-list>=[<subject>//]<body> - This sends mail to
                                the targeted player(s).  The /send switch is
@@ -28023,13 +28028,38 @@
   The second is if you wish to just get on your feet with the mail system
   and learn the bare-bone basics (non-brandy interface)
   
-  For the brandy interface tutorial, please type:
+  For the brandy interface tutorial (+mail & MUX/TM3 @mail), please type:
   
                        help mail btutor
+  
+  For the penn interface tutorial (Penn @mail), please type:
+  
+                       help mail ptutor
   
   For the default bare-bone tutorial, please type:
  
                        help mail dtutor
+  
+& mail ptutor
+  Topic: mail ptutor (Penn format handler)
+  
+  Honestly, there's little that this interface changes from the
+  default mail handler.  The important things are as follows:
+  
+  - This requires the PENN_MAIL @toggle to be set on the player
+    (@set me=penn_mail)
+  - This will change the format of sending mail from the default
+    of:
+                 mail player(s)=subject//body
+    to:
+                 mail player(s)=subject/body
+  
+    Yes, it only removes the extra / in sending.
+  
+  For all the other Penn-mail syntax, please check your RhostMUSH for
+  a @mail compatible wrapper package (available with all RhostMUSHs)
+  
+  See Also: penn_mail
   
 & mail dtutor
   Topic: mail dtutor (Default Bare-Bone Tutorial)
@@ -28057,6 +28087,10 @@
   
 & mail btutor
   Topic: mail btutor (Enhanced Line Editor (Brandy) Interface)
+  
+  Note: Some RhostMUSH's will have a bunch of @mail aliases to mimic
+        the MUX/TM3 (and in some cases the +mail) interfaces.  If
+        so please refer to these help files.
   
   Welcome to the mail system tutorial (brandy interface).  This will
   not cover all the commands, but will give you a good heads up on
