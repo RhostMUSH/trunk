@@ -17347,11 +17347,11 @@ FUNCTION(fun_eval)
 FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
-   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, 
+   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_flags[MAX_GLOBAL_REGS];
-   dbref aowner;
+   dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
    ATTR *attr;
@@ -17490,38 +17490,70 @@ FUNCTION(fun_execscript)
             s_varupper++;
          }
          s_varstok = strtok_r(s_vars, (char *)" ", &s_varstokptr);
-         s_varset = alloc_sbuf("execscript_variables");
+         s_varset = alloc_mbuf("execscript_variables");
          i_count = 0;
          while ( s_varstok && *s_varstok ) {
-            if ( ok_attr_name(s_varstok) ) {
+            if ( (*s_varstok == '#') && (strchr(s_varstok, '/') != NULL) ) {
+               s_atrchr = s_atrname = strchr(s_varstok, '/');
+               *(s_atrname++) = '\0';
+               d_atrname = parse_dbref(s_varstok+1);
+               if ( !Good_chk(d_atrname) || !controls(player, d_atrname) ) {
+                  d_atrname = NOTHING;
+               }
+            } else {
+               s_atrchr = NULL;
+               s_atrname = s_varstok;
+               d_atrname = player;
+            }
+            if ( Good_chk(d_atrname) && ok_attr_name(s_atrname) ) {
                if ( i_count ) {
                   safe_chr(' ', sptr, &sptr2);
                }
-               safe_str(s_varstok, sptr, &sptr2);
+               if ( d_atrname != player ) {
+                  sprintf(s_varset, "D%d_%.*s", d_atrname, SBUF_SIZE, s_atrname);
+               } else {
+                  sprintf(s_varset, "%.*s", SBUF_SIZE, s_atrname);
+               }
+               safe_str(s_varset, sptr, &sptr2);
                i_count=1;
-               attr = atr_str(s_varstok);
+               attr = atr_str(s_atrname);
                if ( attr ) {
-                  s_vars2 = atr_pget(player, attr->number, &aowner, &aflags);
+                  s_vars2 = atr_pget(d_atrname, attr->number, &aowner, &aflags);
                   if ( *s_vars2 ) {
-                     sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+                     if ( d_atrname != player ) {
+                        sprintf(s_varset, "MUSHV_D%d_%.*s", d_atrname, SBUF_SIZE, s_atrname);
+                     } else {
+                        sprintf(s_varset, "MUSHV_%.*s", SBUF_SIZE, s_atrname);
+                     }
                      i_varset = setenv(s_varset, s_vars2, 1);
                      if ( i_varset != 0 ) {
-                        sprintf(s_buff, "Warning: Unable to set environment variable %.*s", (LBUF_SIZE-100), s_varstok);
+                        sprintf(s_buff, "Warning: Unable to set environment variable %.*s", (LBUF_SIZE-100), s_atrname);
                         notify_quiet(player, s_buff);
                      }
                   }
                   free_lbuf(s_vars2);
                }
             } else {
-               sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s'", (LBUF_SIZE-100), s_varstok);
+               if ( !Good_chk(d_atrname) ) {
+                  sprintf(s_buff, "Warning: Skipping invalid target dbref '%d'", d_atrname);
+               } else {
+                  if ( d_atrname != player ) {
+                     sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s' on object %d", (LBUF_SIZE-100), s_atrname, d_atrname);
+                  } else {
+                     sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s'", (LBUF_SIZE-100), s_atrname);
+                  }
+               }
                notify_quiet(player, s_buff);
+            }
+            if ( s_atrchr ) {
+               *s_atrchr = '/';
             }
             s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
          }
          setenv((char *)"MUSHL_VARS", sptr, 1);
          s_varsbak = alloc_lbuf("svars_backup");
          strcpy(s_varsbak, sptr);
-         free_sbuf(s_varset);
+         free_mbuf(s_varset);
       }
       free_lbuf(s_buff);
       free_lbuf(s_vars);
@@ -17653,7 +17685,7 @@ FUNCTION(fun_execscript)
    }
 
    /* We also set the variables in use -back- based on setq regs and contents of MUSHL_VARS */
-   s_varset = alloc_sbuf("execscript_variables2");
+   s_varset = alloc_mbuf("execscript_variables2");
    if ( !i_noex ) {
       sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
       s_buff = alloc_lbuf("fun_execscript_errors");
@@ -17836,7 +17868,7 @@ FUNCTION(fun_execscript)
             *s_varupper = ToUpper(*s_varupper);
             s_varupper++;
          }
-         sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+         sprintf(s_varset, "MUSHV_%s", s_varstok);
          unsetenv(s_varset);
          s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
       }
@@ -17853,7 +17885,7 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_OWNERTOGGLES");
 
    free_lbuf(s_nregs);
-   free_sbuf(s_varset);
+   free_mbuf(s_varset);
    free_lbuf(s_combine);
 }
 

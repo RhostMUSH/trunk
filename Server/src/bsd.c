@@ -1386,7 +1386,7 @@ new_connection(int sock, int key)
                  ENDLOG
               }
               memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
-              sprintf(mudstate.nospam_lastsite, "%.*s", sizeof(mudstate.nospam_lastsite) - 1, buff1);
+              sprintf(mudstate.nospam_lastsite, "%.*s", (int)sizeof(mudstate.nospam_lastsite) - 1, buff1);
               mudstate.nospam_counter = 1;
            } else {
               mudstate.nospam_counter++;

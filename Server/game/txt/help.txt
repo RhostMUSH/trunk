@@ -32619,6 +32619,7 @@
   * @saystring is now inherited thorugh parent chains
   * safebuff() allows an optional cut-off value [ASH]
   * @list options display and config() now sort the lists properly [ASH]
+  * execscript() allows you to pass vars from other objects you control [ASH]
   
   Bug Fixes
   ------------
@@ -32629,3 +32630,4 @@
   * duplciate entries could be seen with suggestions for help entries [ASH]
   * Long standing issue with @extansi that put a raw ansi normal [ASH]
   * marginal cleanup of parenmatch()/parenstr() to handle raw ansi [ASH]
+  * warning in bsd.c with an unsigned int to int typecast under clang [ASH]

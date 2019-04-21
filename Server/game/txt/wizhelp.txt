@@ -11478,16 +11478,41 @@
   illegal characters (like, .., /, $, etc) from the script name.
   
   MUSH Requirements:
-     - @power of EXECSCRIPT (guildmaster to use, arch+ to pass vars)
+     - @power of EXECSCRIPT 
+       --- set to guildmaster to use 
+       --- set to Architect or higher to be able to pass arguments to
+           the execscript() function.
      - SIDEFX flag
-     - EXECSCRIPT_VARS (optional)  --> passed as enviornment var MUSHL_VARS
-       This is set on the thing with execscript() on it to define what
-       variables it has that will be passed as MUSHV_<args> to the script
+       --- This is required as execscript() is effectively a sideeffect
+     - EXECSCRIPT_VARS 
+       --- This is optional  
+       --- This is passed as the enviornment variable MUSHL_VARS to the
+           script or program called by execscript()
+       --- This is set on the thing with execscript() on it to define what
+           variables it has that will be passed as MUSHV_<args> to the script
+       --- The following variables can be set in the EXECSCRIPT_VARS
+           attribute of the thing/player directly calling execscript()
+           -- Example: &EXECSCRIPT_VARS me=FOO BAR #0/FOO #10/BAR
+              -- FOO - the variable 'FOO' off the executor of execscript()
+              -- BAR - the variable 'BAR' off the executor of execscript()
+              -- #0/FOO  - FOO off object #0 (if executor controls #0)
+              -- #10/BAR - BAR off object #10 (if executor controls #10)
+           -- These variables will be passed to the calling script as:
+              -- MUSHV_FOO -- The FOO variable contents
+              -- MUSHV_BAR -- The BAR variable contents
+              -- MUSHV_D0_FOO -- The FOO off #0
+              -- MUSHV_D10_BAR -- The BAR off #10
   
   Note: The EXECSCRIPT @power is not inheritable.
   
   You can pass a maximum of 9 arguments to the script not including the
   script name.  It combines all arguments into a singular argument to script.
+  
+  { 'wizhelp execscript2' for environment variables passed to the script }
+  
+& EXECSCRIPT2
+  (CONTINUED)
+  Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
   
   The following global variables are available from inside the scripts called:
     MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
@@ -11557,15 +11582,16 @@
   The list of variables you wish to pass will be from the object issuing
   the execscript (not the executor, but the container) as a space separated 
   list stored in the variable EXECSCRIPT_VARS.  Let's assume the execscript
-  is on object #123
+  is on object #123 so default attributes will be on #123.
   
   Example: 
     > @set #123=SIDEFX INHERIT
     > @power/counc #123=EXECSCRIPT
-    > &EXECSCRIPT_VARS #123=foo bar baz
+    > &EXECSCRIPT_VARS #123=foo bar baz #0/desc
     > &FOO #123=This is my foo variable
     > &BAR #123=This is my bar variable
     > &BAZ #123=This is my baz variable
+    > @desc #0=This is #0's description
     > &EXEC_ONE #123=$run1:@pemit %#=[execscript(hi.sh)]
     > &EXEC_TWO #123=$run2 *:@pemit %#=[setq(0,foo,bar)][execscript(hi.sh,%0)]
   
@@ -11573,21 +11599,27 @@
   This will always be a space delimited list of variables you want your script
   to see.  The contents of the example is 'foo bar baz' which are then defined
   as the environment variables with contents:
-     environment MUSHV_FOO containing 'This is my foo variable' from &FOO
-     environment MUSHV_BAR containing 'This is my bar variable' from &BAR
-     environment MUSHV_BAZ containing 'This is my baz variable' from &BAZ
+     MUSHV_FOO containing 'This is my foo variable' from &FOO #123
+     MUSHV_BAR containing 'This is my bar variable' from &BAR #123
+     MUSHV_BAZ containing 'This is my baz variable' from &BAZ #123
+     MUSHV_D0_DESC containing 'This is #0's description' from @desc #0
   
   All registers that are defined are allocated and defined as environments
   with labels if declared.  It only assigns registers and labels where defined.
+  
+  Based on the above code, when issuing 'run2' with an argument:
      environment variable MUSHQ_0 containing 'foo' from setq 0 contents
      environment variable MUSHQN_0 containing 'bar' from setq 0 label
      environment variable MUSHN_BAR containing 'foo' from setq 0 contents
   
+  Note: none of the environments will be set with 'run1'
+   
   Notice the difference between 'run1' and 'run2' above is that run1 just
   execs the script.  No registers are passed, but EXECSCRIPT_VARS passes
   three variables that will be seen by your script.  'run2' in addition
   passes argument 0 (%0) to the script, as well as sets a register and
-  label.
+  label.  This is done via setq with function setq (help setq):
+                setq(<register>, <content> [,<label>]
   
   At the end of the execscript() the mush does house keeping and
   will remove all environment variables that were originally set.
@@ -11605,8 +11637,8 @@
   
   Yes yes, I know, this isn't exactly clean, but it's one of the few
   'clean' ways a child can refer back to the parent short of writing
-  complex (and not fully platform supported) shared memory.  We took
-  the easy way out here.
+  complex (and not fully platform supported) shared memory or a complex
+  call-back API interface into the handler.  We took the easy way out here.
   
   The file that will be read is the name of the script execscript() called
   with a '.set' appended to it.  
