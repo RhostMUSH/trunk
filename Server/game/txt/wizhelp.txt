@@ -6389,12 +6389,41 @@
 & admin_object
   Config parameter: admin_object <dbref>   Default: -1
   
+  Note: For use of how to interactive with admin_object, see: 'wizhelp @admin'
+  
   Specifies the object that all @admin config parmeters are loaded or unloaded
   to and from the shell.  It will read and write from/to the rhost_ingame.conf
   file.  This should be toward the bottom of your netrhost.conf file in the
   form 'include rhost_ingame.conf'.  If it is not, please add this toward the
   bottom of your netrhost.conf file right ABOVE the section that states it
-  is for local aliases/parameters.
+  is for local aliases/parameters.  The _LINE attributes MUST be in numerical
+  order and starts at '0'.  The admin object MUST be owned by an immortal.
+  The syntax of the lines are what would be normally put into a config file.
+  
+  Note: The admin object as it is dbref #123 in this example will have to 
+        have an netrhost.conf file entry of:
+                               admin_object #123 
+  @reboot the mush after netrhost.conf file changes.
+   
+  Example admin_object setup:
+  > @create AdminObject      (note, must be done from an immortal player)  
+    AdminObject created as object #123
+  > &_LINE0 AdminObject=function_invocation_limit 100000
+    Set.
+  > &_LINE1 AdminObject=idle_timeout -1
+    Set.
+  > &_LINE2 AdminObject=notaconfig 123
+    Set.
+  > @admin/save
+  @admin: skipping invalid config option 'notaconfig' in attribute '_LINE2'.
+  @admin: completed writing 2 (of 3) lines into rhost_ingame.conf.
+  > @admin/list
+  @admin: listing config params in 'rhost_ingame.conf' [dbref #123]:
+     0000 : function_invocation_limit 100000
+     0001 : idle_timeout -1
+  @admin: listing completed.
+  > @admin/execute
+  @admin: executed 2 lines from rhost_ingame.conf
   
   See Also: @admin
 
