@@ -1,4 +1,3 @@
-#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -2036,11 +2035,85 @@ main() {
       if [ ${BETAOPT} -eq 2 ]
       then
           BETACONTINUE=2
+          lc_stack=$(ulimit -s)
+          if [ -z "${lc_stack}" ]
+          then
+             lc_stack=1024
+          fi
           while [ $BETACONTINUE -eq 2 ]
           do
              lbufmenu
              read ANS
              parse $ANS
+             if [ "${XL[5]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 16384 ]
+                then
+                   echo "You must have stack size set to 16384 or higher to use 64K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 16500 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[5]=" "
+                   if [ ${lc_stack} -ge 8192 ]
+                   then
+                      XL[4]="X"
+                   elif [ ${lc_stack} -ge 4096 ]
+                   then
+                      XL[3]="X"
+                   elif [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[4]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 8192 ]
+                then
+                   echo "You must have stack size set to 8192 or higher to use 32K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 8400 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[4]=" "
+                   if [ ${lc_stack} -ge 4096 ]
+                   then
+                      XL[3]="X"
+                   elif [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[3]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 4096 ]
+                then
+                   echo "You must have stack size set to 4096 or higher to use 16K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 4200 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[3]=" "
+                   if [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[2]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 2048 ]
+                then
+                   echo "You must have stack size set to 2048 or higher to use 8K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 2100 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[2]=" "
+                   XL[1]="X"
+                fi
+             fi
           done
           BETAOPT=0
       fi
