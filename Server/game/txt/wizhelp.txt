@@ -6399,7 +6399,10 @@
   is for local aliases/parameters.  The _LINE attributes MUST be in numerical
   order and starts at '0'.  The admin object MUST be owned by an immortal.
   The syntax of the lines are what would be normally put into a config file.
-  
+  Some config parameters will not be able to be set with this method.  These
+  are generally constrained to system level changes that could potentially
+  cause harm so is locked to the shell.
+   
   Note: The admin object as it is dbref #123 in this example will have to 
         have an netrhost.conf file entry of:
                                admin_object #123 
