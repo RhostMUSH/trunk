@@ -2968,6 +2968,59 @@ atr_get_info(dbref thing, int atr, dbref * owner, int *flags)
 }
 
 #ifndef STANDALONE
+char *
+atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags, int *retobj)
+{
+    char *buff;
+    dbref parent;
+    int lev, i_player, i_chk;
+    ATTR *ap;
+    ZLISTNODE *z_ptr;
+
+    i_chk = 0;
+    if ( *retobj != -1 ) {
+       i_player = *retobj;
+       if ( Good_obj(i_player) && Wizard(i_player) )
+          i_chk = 1;
+       *retobj = -1;
+    }
+
+    ITER_PARENTS(thing, parent, lev) {
+        if ( !i_chk && NoEx(parent) && (parent != thing) )
+            break;
+	buff = atr_get_raw(parent, atr);
+	if (buff && *buff) {
+	    atr_decode(buff, s, thing, owner, flags, atr);
+	    if ((lev == 0) || !(*flags & AF_PRIVATE)) {
+                *retobj = parent;
+		return s;
+            }
+	}
+	if ((lev == 0) && Good_obj(Parent(parent))) {
+	    ap = atr_num_pinfo(atr);
+	    if (!ap || ap->flags & AF_PRIVATE)
+		break;
+	}
+    }
+#ifndef STANDALONE
+    /* First, inherit from the zonemaster, if enabled */
+    if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
+       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+          if ( ZoneParent(z_ptr->object) ) {
+	     buff = atr_get_raw(z_ptr->object, atr);
+	     if (buff && *buff) {
+	         atr_decode(buff, s, thing, owner, flags, atr);
+		 if ( !(*flags * AF_PRIVATE)) {
+		   return s;
+		 }
+	     }
+          }
+       }
+    }
+#endif
+    *s = '\0';
+    return s;
+}
 
 char *
 atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *retobj)
@@ -3057,6 +3110,11 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
             if ( !(*flags * AF_PRIVATE)) {
                return s;
             }
+        } else {
+           s = atr_pget_str_globalchk(s, gbl_parent, atr, owner, flags, retobj);
+           if ( s && *s ) {
+              return s;
+           }
         }
     }
 #endif
@@ -3077,13 +3135,56 @@ atr_pget_ash(dbref thing, int atr, dbref * owner, int *flags, int line_num, char
 }
 
 int 
+atr_pget_info_globalchk(dbref thing, int atr, dbref * owner, int *flags)
+{
+    char *buff;
+    dbref parent;
+    int lev;
+    ATTR *ap;
+    ZLISTNODE *z_ptr;
+
+    ITER_PARENTS(thing, parent, lev) {
+	buff = atr_get_raw(parent, atr);
+	if (buff && *buff) {
+	    atr_decode(buff, NULL, thing, owner, flags, atr);
+	    if ((lev == 0) || !(*flags & AF_PRIVATE))
+		return 1;
+	}
+	if ((lev == 0) && Good_obj(Parent(parent))) {
+	    ap = atr_num_pinfo(atr);
+	    if (!ap || ap->flags & AF_PRIVATE)
+		break;
+	}
+    }
+#ifndef STANDALONE
+    /* First, inherit from the zonemaster, if enabled */
+    if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
+       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+          if ( ZoneParent(z_ptr->object) ) {
+	     buff = atr_get_raw(z_ptr->object, atr);
+	     if (buff && *buff) {
+	         atr_decode(buff, NULL, thing, owner, flags, atr);
+		 if ( !(*flags & AF_PRIVATE) ) {
+		   return 1;
+		 }
+	     }
+          }
+       }
+    }
+#endif
+    return 0;
+}
+
+int 
 atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
 {
     char *buff;
     dbref parent, gbl_parent;
-    int lev;
+    int lev, i_return;
     ATTR *ap;
     ZLISTNODE *z_ptr;
+
+    i_return = 0;
 
     ITER_PARENTS(thing, parent, lev) {
 	buff = atr_get_raw(parent, atr);
@@ -3150,6 +3251,11 @@ atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
         if ( buff && *buff ) {
 	    atr_decode(buff, NULL, thing, owner, flags, atr);
 	    return 1;
+        } else {
+           i_return = atr_pget_info_globalchk(gbl_parent, atr, owner, flags);
+           if ( i_return ) {
+              return i_return;
+           }
         }
     }
 #endif

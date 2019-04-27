@@ -46,6 +46,8 @@ Bug in final sorting for setunion/setdiff/setinter.
 				- Thanks Aqua
 Duplicate entries possible with help suggestions.
 				- Thanks Alley
+Global parents (ancestors) should inherit from its own parents.
+				- Thanks Matrix
 
 
                          RhostMUSH 3.9.5 Update File
