@@ -969,13 +969,9 @@
   This space reserved.
   
 & COPYRIGHT
-  All modifications and changes to the hardcode of this mush called RhostMUSH
-  are privileged. Any copying of code in part or in full of the changes we have
-  done is not allowed.  If concepts or ideas are borrowed, it is requested
-  that permission be gotten first and required that credits be given to this
-  mush for ideas gotten from this server.  This text can not be modified,
-  changed, or removed on other servers.
-  
+  RhostMUSH is open source and freely distributed.  You can get it
+  on github at https://github.com/RhostMUSH/trunk
+
 & VATOVZ
   Command: @va[/<switch>] <object>=<string>
            ...
@@ -1116,7 +1112,7 @@
   
   See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
   
-& changes
+& historical
   For a list of actual changes, see 'help revis'.
   
   RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
@@ -30081,7 +30077,10 @@
   lparent()     - Returns all the parents of an object.
   die()         - Rolls a set of dice for random number generation.
 
+& changes
 & revisions
+  For historical changes file, please see 'help historical'
+  
   All credits to players, codebases, or other is presented in the RHOST.CHANGES
   file in the readme directory in the source distribution.  The credits are too
   diverse and well too detailed to be sufficient as a small snippit in online
@@ -30107,8 +30106,10 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 4.0.0p1
-
+  ***************************************************************************
+  *** Current Revision: 4.0.0p3
+  ***************************************************************************
+  
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
     1.5.0: 1.5.0p0 (NycMUSE
@@ -30125,6 +30126,8 @@
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3
+  
+  See Also: historical, credits
 
 & 1.0.0p0
   Release Date: Aug 1 1989
