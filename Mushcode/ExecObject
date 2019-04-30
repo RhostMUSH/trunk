@@ -16,8 +16,10 @@
 &CMD_THES ExecObject=$+thes*:@pemit %#=[ifelse(!$v(0),+thes: Thesaurus on what?,[rjust(- +thes ----,78,-)]%r[setq(0,execscript(thes.sh,trim(%0)))][ifelse(!!^r(0),%q0,Nothing found for word.)]%r[repeat(-,78)])]
 &CMD_COMPILE ExecObject=$+compile*:@assert [u(CANCOMPILE,%#)]=@pemit %#=+compile: Permission denied;@pemit %#=[execscript(compile.sh,%0)]
 &CMD_WEATHER ExecObject=$+weather*:@pemit %#=[ifelse(!$v(0),+weather: Please specify a location,edit(execscript(weather.sh,trim(%0)),?,%<176>))]
-&CMD_FORCAST ExecObject=$+forcast*:@pemit %#=[ifelse(!$v(0),+forcast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))]
+&CMD_FORECAST ExecObject=$+forecast*:@pemit %#=[ifelse(!$v(0),+forcast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))]
+&CMD_LOGSEARCH ExecObject=$+logsearch*:@assert [u(CANLOGSEARCH,%#)]=@pemit %#=+logsearch: Permission denied;@pemit %#=[execscript(logsearch.sh,trim(%0))]
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
+&CANLOGSEARCH ExecObject=[gte(bittype(%0),5)]
 &FUN_MATH ExecObject=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,after(%0,=))],[setq(0,%0)][setq(1,20000)])][chomp(execscript(math.sh,objeval(%#,%q0),objeval(%#,%q1)))]
 @startup ExecObject=@dolist lattr(me/fun_*)=@function/priv/pres [after(##,_)]=me/##
 @set ExecObject=INHERIT SIDEFX SAFE IND
