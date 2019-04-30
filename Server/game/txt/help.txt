@@ -32699,3 +32699,4 @@
   * Long standing issue with @extansi that put a raw ansi normal [ASH]
   * marginal cleanup of parenmatch()/parenstr() to handle raw ansi [ASH]
   * warning in bsd.c with an unsigned int to int typecast under clang [ASH]
+  * initialized OpenSSL variable for mux password compat [ASH]

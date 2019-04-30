@@ -356,6 +356,9 @@ check_mux_password(const char *saved, const char *password)
    /* decode the salt */
    decode_base64(start, strlen(start), decoded, &dp, 1);
 
+   /* Need to initialize hash because some versions of OpenSSL does not */
+   memset(hash, 0, sizeof(hash));
+
    /* Double-hash the password */
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
    EVP_DigestInit(ctx, md);
