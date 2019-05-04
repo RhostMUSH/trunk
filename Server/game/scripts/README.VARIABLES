@@ -39,7 +39,7 @@ RED #123 This is the color %ch%crred%cn.
 WIPETHISATTR #123
 MULTILINE #123 This is a line
 that continues on
-because of the line feed
+because of the line feed (a control-M) on each line
 on the lines above
 
 ----------------------------------------------------------- Register variables:
