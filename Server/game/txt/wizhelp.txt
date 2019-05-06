@@ -466,7 +466,8 @@
   NEWS SETUP               PERMISSIONS              PLUSHELP SETUP     
   POWER LIST               PROXY SETUP              REALITY LEVELS   
   SEARCH CRITERIA          SIGNALS                  SITE LISTS       
-  SPECIAL ATTRIBS          TOGGLES                  TOR                
+  SPECIAL ATTRIBS          SSL SETUP                TOGGLES                
+  TOR                
 
 & API
   Topic: API
@@ -835,6 +836,7 @@
   
   See Also: CONTROL FLOW, PERMISSION
 
+& SSL SETUP
 & PROXY SETUP
   RhostMUSH allows you to do site redefinition for proxy connections like
   SCONNECT or similar site redirection software.  This allows you to use

@@ -12,7 +12,8 @@ stunnel_src                -- If you do not have stunnel, this directory will
                               allow you to download, compile and locally install.
 
 You need to set up your netrhost.conf file with the appropriate changes
-to enable stunnel/SSL proxy connectivity.
+to enable stunnel/SSL proxy connectivity.  These *MUST BE ADDED* to your
+netrhost.conf file prior to launching RhostMUSH.
 
 sconnect_reip 1            -- This enables the SSL tunnel layer handler
                               within rhost.

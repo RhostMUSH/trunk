@@ -50,6 +50,6 @@ curl http://proxy-daily.com/${year}/${mon}/${day}-${mon}-${year}-proxy-list/ 2>/
 
 ./proxysnarf.sh
 cat blacklist.txt temp.txt| sort -u > blacklist.tmp
-cat blacklist.tmp > blacklist.txt
+grep -v "127.0.0.1" blacklist.tmp > blacklist.txt
 
 rm -f Tor_ip_list_EXIT.csv bulk.txt bulk2.txt blacklist.tmp

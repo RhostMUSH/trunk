@@ -21,6 +21,9 @@ This will bring up a menu where you can selection options.
 Now, things that are important before you actually start building.
 
 The main parts of making your RhostMUSH, easy pleasy:
+0.  The stunnel directory contains TLS/SSL connectivity.  This has to be linked
+    to another port and will tunnel to the mush port.  The README file explains
+    how to set up and configure your TLS/SSL connection.
 1.  ./patch.sh -- This makes sure you have the latest code.
     If you got this by git clone https://github.com/RhostMUSH/trunk
     then you can ignore patching.  You can use ./patch.sh at any
