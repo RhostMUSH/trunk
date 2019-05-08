@@ -4988,12 +4988,17 @@ do_command(DESC * d, char *command)
           i_retvar = maxsitecon = 0;
 
           /* Convert IP to DNS if we can */
-          if (mudconf.use_hostname) {
+          if ( i_valid && mudconf.use_hostname) {
              memset((void*)&p_sock, 0 , sizeof(p_sock));
              p_sock.sin_family = AF_INET;
              if ( *arg && (inet_aton(arg, &(p_sock.sin_addr)) != 0) )  {
-                if ( getnameinfo((struct sockaddr*)&p_sock, sizeof(struct sockaddr), s_sitetmp, LBUF_SIZE - 1, NULL, 0, NI_NAMEREQD) ) {
+                /* If site is set not do do DNS, don't do it */
+                if ( site_check(p_sock.sin_addr, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS || blacklist_check(p_sock.sin_addr, 1) ) {
                    sprintf(s_sitetmp, "%.*s", (LBUF_SIZE-1), arg);
+                } else {
+                   if ( getnameinfo((struct sockaddr*)&p_sock, sizeof(struct sockaddr), s_sitetmp, LBUF_SIZE - 1, NULL, 0, NI_NAMEREQD) ) {
+                      sprintf(s_sitetmp, "%.*s", (LBUF_SIZE-1), arg);
+                   }
                 }
              }
           } else {
