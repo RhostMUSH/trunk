@@ -4874,7 +4874,7 @@ do_command(DESC * d, char *command)
     dbref aowner, thing;
     ATTR *atrp;
 #else
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
 #endif
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
@@ -4948,8 +4948,8 @@ do_command(DESC * d, char *command)
      * cval: 0 normal, 1 disable, 2 ignore
      */
     
-    addroutbuf = NULL;
 #ifdef HAS_OPENSSL
+    addroutbuf = NULL;
     if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
        s_rollback = alloc_lbuf("sconnect_handler");
@@ -4974,7 +4974,7 @@ do_command(DESC * d, char *command)
                 sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
                 broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BLACKLIST/TOR]", NULL, s_rollback,
                                   d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                STARTLOG(LOG_ALWAYS, "NET", "SSL");
                    log_text("[BLACKLIST/TOR] ");
                    log_text(s_rollback);
                 ENDLOG
@@ -5020,7 +5020,7 @@ do_command(DESC * d, char *command)
                 sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
                 broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
                                   d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                STARTLOG(LOG_ALWAYS, "NET", "SSL");
                    log_text("[FORBIDDEN] ");
                    log_text(s_rollback);
                 ENDLOG
@@ -5035,18 +5035,61 @@ do_command(DESC * d, char *command)
              strcpy(s_sitebuff, mudconf.register_host);
              if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ||
                   (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
-                queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
-                process_output(d);
-                d->host_info |= H_REGISTRATION;
-                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
-                broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
-                                  d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
-                   log_text("[REGISTERED] ");
-                   log_text(s_rollback);
-                ENDLOG
                 i_valid = 2;
              }
+
+             /* Do noguest site checks -- flag noguest, log, continue on */
+             strcpy(s_sitebuff, mudconf.noguest_host);
+             if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_NOGUEST) == H_NOGUEST) ||
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                if ( i_valid == 2 ) {
+                   i_valid |= 4;
+                } else {
+                   i_valid = 4;
+                }
+             }
+            
+             switch(i_valid) {
+                case 2: /* Register */
+                   queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
+                   process_output(d);
+                   d->host_info |= H_REGISTRATION;
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
+                                     d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                      log_text("[REGISTERED] ");
+                      log_text(s_rollback);
+                   ENDLOG
+                   break;
+                case 4: /* Noguest */
+                   queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
+                   process_output(d);
+                   d->host_info |= H_NOGUEST;
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST]", NULL, s_rollback,
+                                     d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                      log_text("[NOGUEST] ");
+                      log_text(s_rollback);
+                   ENDLOG
+                   i_valid = 2;
+                   break;
+                case 6: /* Register & NoGuest */
+                   queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
+                   process_output(d);
+                   d->host_info |= H_NOGUEST | H_REGISTRATION;
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & NOGUEST]", NULL, s_rollback,
+                                     d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                      log_text("[REGISTER & NOGUEST] ");
+                      log_text(s_rollback);
+                   ENDLOG
+                   i_valid = 2;
+                   break;
+             }
+             
              free_lbuf(s_sitebuff);
           }
 
@@ -5079,7 +5122,7 @@ do_command(DESC * d, char *command)
              sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BADIP]", NULL, s_rollback,
                                d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-             STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+             STARTLOG(LOG_ALWAYS, "NET", "SSL");
                 log_text("[BADIP] ");
                 log_text(s_rollback);
              ENDLOG
@@ -5087,7 +5130,7 @@ do_command(DESC * d, char *command)
              sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
                                d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-             STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+             STARTLOG(LOG_ALWAYS, "NET", "SSL");
                 log_text("[OK] ");
                 log_text(s_rollback);
              ENDLOG
@@ -5103,7 +5146,7 @@ do_command(DESC * d, char *command)
           sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
           broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [DENIED]", NULL, s_rollback,
                             d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-          STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+          STARTLOG(LOG_ALWAYS, "NET", "SSL");
              log_text("[DENIED] ");
              log_text(s_rollback);
           ENDLOG
