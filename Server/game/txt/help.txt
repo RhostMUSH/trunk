@@ -32688,6 +32688,7 @@
   * @list options display and config() now sort the lists properly [ASH]
   * execscript() allows you to pass vars from other objects you control [ASH]
   * Global parents (ancestors) now will inherit from their own parents [ASH]
+  * Protection on SSL handler against brute force attacks [ASH]
   
   Bug Fixes
   ------------

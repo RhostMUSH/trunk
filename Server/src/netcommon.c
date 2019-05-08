@@ -4950,9 +4950,46 @@ do_command(DESC * d, char *command)
     
 #ifdef HAS_OPENSSL
     addroutbuf = NULL;
+    if ( !d->player && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+         !strcmp(mudconf.sconnect_cmd, command) ) {
+       addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
+       s_rollback = alloc_lbuf("sconnect_handler");
+       queue_string(d, "SSL attempt to negotiate without SSL enabled.\r\n");
+       process_output(d);
+       sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [SSL DISABLED]", NULL, s_rollback,
+                         d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+       STARTLOG(LOG_ALWAYS, "NET", "SSL");
+          log_text("[DISABLED] ");
+          log_text(s_rollback);
+       ENDLOG
+       free_lbuf(s_rollback);
+       shutdownsock(d, R_BOOT);
+       RETURN(0); /* #147 */
+    }
     if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
        s_rollback = alloc_lbuf("sconnect_handler");
+       addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
+       if ( d->flags & DS_SSL ) {
+          queue_string(d, "SSL attempt to negotiate twice.\r\n");
+          process_output(d);
+          sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [HACKING]", NULL, s_rollback,
+                            d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+          STARTLOG(LOG_ALWAYS, "NET", "SSL");
+             log_text("[HACKING] ");
+             log_text(s_rollback);
+          ENDLOG
+          /* We're disabling the SSL handler at this point as it's been comprimised */
+          STARTLOG(LOG_ALWAYS, "NET", "SSL");
+             log_text("SSL handler [sconnect_reip] has been disabled as secret [sconnect_cmd] was guessed");
+          ENDLOG
+          mudconf.sconnect_reip = 0;
+          shutdownsock(d, R_BOOT);
+          free_lbuf(s_rollback);
+          RETURN(0); /* #147 */
+       }
        if ( !*(mudconf.sconnect_host) ) {
           sprintf(s_rollback, "%s", (char *)"localhost 127.0.0.1");
        } else {
