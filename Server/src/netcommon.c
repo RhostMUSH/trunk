@@ -74,6 +74,7 @@ extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char *
 extern CMDENT * lookup_command(char *);
 extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
 extern int encode_base64(const char *, int, char *, char **);
+extern int check_tor(struct in_addr, int);
 
 
 /* for aconnect: player = room, target = connecting player */
@@ -2272,7 +2273,16 @@ announce_connect(dbref player, DESC * d, int dc)
     time_str = ctime(&mudstate.now);
     time_str[strlen(time_str) - 1] = '\0';
     record_login(player, 1, time_str, d->addr, &totsucc, &totfail, &newfail);
-    atr_add_raw(player, A_LASTIP, inet_ntoa(d->address.sin_addr));
+    if ( !(d->flags & DS_SSL) ) {
+       atr_add_raw(player, A_LASTIP, inet_ntoa(d->address.sin_addr));
+    } else {
+       if ( d->doing[0] != '\0' ) {
+          atr_add_raw(player, A_LASTIP, d->doing);
+          d->doing[0] = '\0';
+       } else {
+          atr_add_raw(player, A_LASTIP, d->addr);
+       }
+    }
     if ( num > 1 ) {
        if (Suspect(player))
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [SUSPECT]",
@@ -4847,7 +4857,12 @@ int
 do_command(DESC * d, char *command)
 {
 #ifdef HAS_OPENSSL
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, 
+         *s_sitetmp, *s_sitebuff;
+    int maxsitecon, i_retvar, i_valid;
+    struct sockaddr_in p_sock;
+    struct in_addr p_addr;
+    DESC *dssl, *dsslnext;
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
@@ -4859,7 +4874,7 @@ do_command(DESC * d, char *command)
     dbref aowner, thing;
     ATTR *atrp;
 #else
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf;
 #endif
     struct SNOOPLISTNODE *node;
     DESC *sd, *d2;
@@ -4933,6 +4948,7 @@ do_command(DESC * d, char *command)
      * cval: 0 normal, 1 disable, 2 ignore
      */
     
+    addroutbuf = NULL;
 #ifdef HAS_OPENSSL
     if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
@@ -4945,26 +4961,155 @@ do_command(DESC * d, char *command)
 
        addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
 
+       i_valid = 0;
        if ( lookup(addroutbuf, s_rollback, 1, &aflags) ) {
+          /* We need to be repetitive and do site check on the SSL redirected IP now */
+          /* This will always be valid because of what is going to it -- but check it anyway */
+          if ( inet_aton(arg, &p_addr) ) {
+             i_valid = 1;
+             /* Blacklist check and TOR check first */
+             if ( blacklist_check(p_addr,0) || check_tor(p_addr, mudconf.port) ) {
+                queue_string(d, "SSL Connections are not allowed from your site.\r\n");
+                process_output(d);
+                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+                broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BLACKLIST/TOR]", NULL, s_rollback,
+                                  d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                   log_text("[BLACKLIST/TOR] ");
+                   log_text(s_rollback);
+                ENDLOG
+                free_lbuf(s_rollback);
+                shutdownsock(d, R_BOOT);
+                RETURN(0); /* #147 */
+             }
+          }
+          /* Allocate tmp buffering */
+          s_sitetmp = alloc_lbuf("SSL_site_tmp");
+          i_retvar = maxsitecon = 0;
+
+          /* Convert IP to DNS if we can */
+          if (mudconf.use_hostname) {
+             memset((void*)&p_sock, 0 , sizeof(p_sock));
+             p_sock.sin_family = AF_INET;
+             if ( *arg && (inet_aton(arg, &(p_sock.sin_addr)) != 0) )  {
+                if ( getnameinfo((struct sockaddr*)&p_sock, sizeof(struct sockaddr), s_sitetmp, LBUF_SIZE - 1, NULL, 0, NI_NAMEREQD) ) {
+                   sprintf(s_sitetmp, "%.*s", (LBUF_SIZE-1), arg);
+                }
+             }
+          } else {
+             sprintf(s_sitetmp, "%.*s", (LBUF_SIZE-1), arg);
+          }
+
+          /* Count connections */
+          DESC_SAFEITER_ALL(dssl, dsslnext) {
+             if ( strcmp(s_sitetmp, dssl->addr) == 0 ) {
+                maxsitecon++;
+             }
+          }
+
+          /* Do site checks if incoming remap site is valid */
+          if ( i_valid ) {
+             s_sitebuff = alloc_lbuf("SSL_site_buff");
+
+             /* Do forbid site checks */
+             strcpy(s_sitebuff, mudconf.forbid_host);
+             if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                queue_string(d, "SSL Connections are not allowed from your site.\r\n");
+                process_output(d);
+                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
+                                  d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                   log_text("[FORBIDDEN] ");
+                   log_text(s_rollback);
+                ENDLOG
+                free_lbuf(s_rollback);
+                free_lbuf(s_sitebuff);
+                free_lbuf(s_sitetmp);
+                shutdownsock(d, R_BOOT);
+                RETURN(0); /* #147 */
+             }
+
+             /* Do register site checks -- flag register, log, continue on */
+             strcpy(s_sitebuff, mudconf.register_host);
+             if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ||
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
+                process_output(d);
+                d->host_info |= H_REGISTRATION;
+                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
+                                  d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                   log_text("[REGISTERED] ");
+                   log_text(s_rollback);
+                ENDLOG
+                i_valid = 2;
+             }
+             free_lbuf(s_sitebuff);
+          }
+
+          /* If they gave us a bad IP, we should push it in lastsite but log it anyway */
+          if ( !i_valid ) {
+             /* We're doing a bit of tricky-dicky here because d->doing is unused on new connections (until connected) */
+             /* This will be the IP address stored in &LASTIP */
+             memset(d->doing, '\0', sizeof(d->doing));
+             strncpy(d->doing, arg, 50);
+
+             /* d->addr is a string that shows on the WHO and stored in &LASTSITE */
+             memset(d->addr, '\0', sizeof(d->addr));
+             strncpy(d->addr, arg, 50);
+          } else {
+             /* We're doing a bit of tricky-dicky here because d->doing is unused on new connections (until connected) */
+             /* This will be the IP address stored in &LASTIP */
+             memset(d->doing, '\0', sizeof(d->doing));
+             strncpy(d->doing, arg, 50);
+
+             /* d->addr is a string that shows on the WHO and stored in &LASTSITE */
+             memset(d->addr, '\0', sizeof(d->addr));
+             strncpy(d->addr, s_sitetmp, 50);
+          }
+
+          /* Flag the connection SSL as we're successful at this point and log and continue */
+          d->flags |= DS_SSL;
+
+          /* i_valid = 2 if it's register only, we don't want to do double logging here */
+          if ( !i_valid ) {
+             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+             broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BADIP]", NULL, s_rollback,
+                               d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+             STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                log_text("[BADIP] ");
+                log_text(s_rollback);
+             ENDLOG
+          } else if ( i_valid == 1 ) { 
+             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+             broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
+                               d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+             STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+                log_text("[OK] ");
+                log_text(s_rollback);
+             ENDLOG
+          }
+          free_lbuf(s_rollback);
+          free_lbuf(s_sitetmp);
+          RETURN(0); /* #147 */
+       } else {
+
+          /* We shouldn't get here unless you misconfigured your SSL connector or someone guessed your secret */
+          queue_string(d, "SSL Connections are not allowed from your site.\r\n");
           process_output(d);
-          sprintf(s_rollback, "%.50s -> %.50s ", addroutbuf, arg);
-          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
+          sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [DENIED]", NULL, s_rollback,
                             d->descriptor, 0, ntohs(d->address.sin_port), NULL);
           STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
+             log_text("[DENIED] ");
              log_text(s_rollback);
           ENDLOG
           free_lbuf(s_rollback);
-          memset(d->addr, '\0', sizeof(d->addr));
-          strncpy(d->addr, arg, 50);
-          d->flags |= DS_SSL;
+          shutdownsock(d, R_BOOT);
           RETURN(0); /* #147 */
-       } else {
-          sprintf(s_rollback, "DENIED: %.50s -> %.50s ", addroutbuf, arg);
-          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FAIL]", NULL, s_rollback,
-                            d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-          STARTLOG(LOG_ALWAYS, "WIZ", "SSL");
-             log_text(s_rollback);
-          ENDLOG
        }
        free_lbuf(s_rollback);
     }
@@ -5016,12 +5161,12 @@ do_command(DESC * d, char *command)
        queue_string(d, "Content-type: text/plain\r\n");
        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
        queue_string(d, "Exec: Error - Invalid Headers Supplied\r\n");
+       process_output(d);
        shutdownsock(d, R_API);
        mudstate.debug_cmd = cmdsave;
        if ( chk_perm && cp ) {
           cp->perm = store_perm;
        }
-       process_output(d);
        RETURN(0); /* #147 */
     }
 
