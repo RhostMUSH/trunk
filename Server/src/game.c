@@ -786,7 +786,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
         if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_PREFIX");
            if ( ap_attrpipe ) {
-              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
               if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
@@ -863,7 +863,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
         if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_SUFFIX");
            if ( ap_attrpipe ) {
-              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
               if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");

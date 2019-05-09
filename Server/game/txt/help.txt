@@ -32689,6 +32689,7 @@
   * execscript() allows you to pass vars from other objects you control [ASH]
   * Global parents (ancestors) now will inherit from their own parents [ASH]
   * Protection on SSL handler against brute force attacks [ASH]
+  * SPEECH_PREFIX/SPEECH_SUFFIX inherit from parents [ASH]
   
   Bug Fixes
   ------------
