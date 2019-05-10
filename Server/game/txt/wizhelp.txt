@@ -150,8 +150,8 @@
   1992 during a surge of Trolls and people attempting to hack and damage
   mushes.
   
-  At this time there is and will be no decisions where removing @snoop will
-  occur.  It's here, and it's here for life.  We have, however, put in a 
+  At this time there is not nor will be any effort to removing @snoop.
+  It's here, and it's here for life.  We have, however, put in a 
   method in the hardcode to hard-remove the feature from the codebase at
   compile time for anyone who feels this violates their beliefs.  We, again,
   try to be open to everyone's ideals of how they want to run their mush.
