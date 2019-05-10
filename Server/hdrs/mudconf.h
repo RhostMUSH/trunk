@@ -611,6 +611,8 @@ struct statedata {
 	dbref	store_lastx2;	/* Store the previous created exit# for dig */
 	dbref	store_loc;	/* Store target location for open/dig */
         int     evalcount;
+	int	allocsin;
+	int	allocsout;
         int     funccount;
         int     attribfetchcount;
 	int	func_reverse;

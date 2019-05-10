@@ -32674,6 +32674,7 @@
   * sconnect_reip, sconnect_cmd, sconnect_host for SCONNECT/PROXY support [ASH]
   * added sconnect handlers and configuration as scripts [Oleo/Adrick/Ash]
   * @cpattr has /verify switch that validates attributes being copied [ASH]
+  * @blacklist supports /add, /del, and /search by IP [ASH]
   
   Changes
   ------------

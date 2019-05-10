@@ -97,6 +97,44 @@
   
   Help is available on each of these switches by typing: wizhelp news <switch>
   
+& @snoop
+  Command: @snoop[/switch] <target> [=<owner>]
+  
+  Note: By adding -DNO_SNOOP to your compile options you can disable @snoop
+        entirely, but this capability exists with @hooking and many other
+        softcode alternatives.  This just is an all-in-one tool for it that
+        allows game owners much better accountability of its use.
+  
+  This can only be ran by IMMORTALS or by #1.  This is a hardcoded limitation.
+  
+  The @snoop command is a monitoring and administrative tool that connects a
+  port listener to the player's descriptor.  Once connected, anything that
+  the target player sees, does, or interacts with is passed along to the
+  watchers who are tagged to montior this user.
+  
+  A player disconnecting automatically turns of the snoop process.  You may
+  optionally set up a log monitoring that can be automated.
+  
+  The following switches exist:
+    /on       -- This is the default switch.  It turns on snooping on the
+                 specific target.
+    /off      -- This turns off all logging on the target, including file
+                 logging.
+    /log      -- Specify that it should make a file log of the target
+                 player.  All logs are timestamped.  The filename will be
+                 snoop<dbref>.txt located in your 'game' directory.
+   /status    -- Show status of all currently active @snoops.
+  
+  Examples: (Assume player Troll is dbref #123)
+    > @snoop Troll            (online monitoring of Troll player)
+    > @snoop Troll=Wizard     (online monitoring of Troll to player Wizard)
+    > @snoop/off Troll        (disable monitoring of Troll player)
+    > @snoop/off Troll=Wizard (disable monitoring of Troll from player wizard)
+    > @snoop/log Troll        (logs in 'game' to snoop123.txt)
+    > @snoop/status           (shows all current active snoops)
+  
+  See Also: @hook, SUSPECT, LOGROOM TOGGLE, log_command_list 
+  
 & newsdb unload
   Command: newsdb/unload
   
@@ -439,9 +477,9 @@
   @newpassword    @nuke           @pcreate       @poor           @power        
   @progreset      @protect        @ps            @purge          @quota        
   @readcache      @reboot         @recover       @reclist        @remote       
-  @rwho           @site           @shutdown      @snapshot       @thaw         
-  @timewarp       @toad           @tor           @turtle         @wall         
-  +players
+  @rwho           @site           @shutdown      @snapshot       @snoop
+  @thaw           @timewarp       @toad          @tor            @turtle     
+  @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -2737,6 +2775,8 @@
   Command: @blacklist[/<switch>] [<argument>]
            @blacklist/nodns[/<switch>] [<argument>]
   
+  NOTE:  If you @blacklist 127.0.0.1 you may inadvertently disable SSL tunnels
+  
   This command lists, loads, or clears the current blacklists.  Blacklists are
   similiar to forbid sites, except it keeps them in a separate list to avoid
   spamming the site list.  You can have a maximum of 100,000 entries in the
@@ -2757,11 +2797,15 @@
   in the blacklist.txt.  If no masks is seen, it will assume /32.  
   
   The following switches exist for @blacklist:
-    /load  - Load in all sites in the blacklist.txt file
-    /clear - purges the blacklist
-    /list  - lists all sites in the blacklist.  This shows 4 to a line.
-    /mask  - like list but will show the IP and associated NETMASK.  This
-             shows 2 IP's and 2 NETMASK's to a line.
+    /load   - Load in all sites in the blacklist.txt file
+    /clear  - purges the blacklist
+    /list   - lists all sites in the blacklist.  This shows 4 to a line.
+    /mask   - like list but will show the IP and associated NETMASK.  This
+              shows 2 IP's and 2 NETMASK's to a line.
+    /search - search for a wildcard IP address (@blacklist/search 127.*)
+    /add    - Add an IP with a mask (syntax: @blacklist/add IP MASK)
+    /del    - Delete an IP with a mask (syntax: @blacklist/del IP MASK)
+              Note: MASK if not specified assumes 255.255.255.255
   
   The following feature switches can be used with the above 4 switches:
     /nodns - If this is used with any of the 4 main switches, it will 
@@ -2793,6 +2837,9 @@
     > @blacklist/mask 20  (shows page 20) 
     > @blacklist/mask all (shows all sites)
     > @blacklist/mask 0   (shows all sites)
+    > @blacklist/search 50.42.* (shows all sites starting with 50.42.)
+    > @blacklist/add 12.12.12.0 255.255.255.0 (add IP with MASK)
+    > @blacklist/del 12.12.12.0 255.255.255.0 (delete IP with MASK)
   
   With /list, any entry that has a [M] before the IP signifies that there
   is a non-standard netmask associated with the IP.  A nonstandard netmask
@@ -8608,8 +8655,10 @@
   existing command logging information already specified with log_command_list.
   You may use '!ALL' to clear the log_command_list.
   
-  Example:  @admin log_command_list=@boot @nuke @tel* !@amove
-            (logs all @boot, @nuke, @teleport, and removes @amove)
+  This can also log softcoded commands.
+   
+  Example:  @admin log_command_list=@boot @nuke @tel* +staff !@amove
+            (logs all @boot, @nuke, @teleport, +staff, and removes @amove)
             @admin log_command_list=!ALL
             (this clears the log_command_list command logging parameter)
   
@@ -10139,12 +10188,18 @@
   to be used with SCONNECT or similar SSL proxy software to change the
   IP address of the incoming connection.  The command is CASE SENSITIVE
   and can be up to 31 characters long.  It is strongly recommended to
-  make this something hard to guess and randomized.
+  make this something hard to guess, long, and randomized.
   
   Only sites that match the sconnect_host parameter will be able to
   be matched against this command.  If sconnect_host is not set to
   anything it will default to localhost.
   
+  Sites that manage to figure out your sconnect cmd will cause SSL 
+  connectivity to be disabled as it does this for DoS/intrusion protection. 
+  
+  Only sites that pass sconnect_host can attempt to issue your
+  unique key for SCONNECT.
+   
   This requires sconnect_reip to be enabled.
   
   See Also: sconnect_host, sconnect_reip

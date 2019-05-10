@@ -157,6 +157,7 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
     POOLHDR *ph;
     POOLFTR *pf;
 
+    mudstate.allocsin++;
     if (mudconf.paranoid_alloc)
 	pool_check(tag, line_num, file_name);
     do {
@@ -277,6 +278,7 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
     if (mudconf.paranoid_alloc)
 	pool_check(ph->buf_tag, line_num, file_name);
 
+    mudstate.allocsout++;
     /* Make sure the buffer header is good.  If it isn't, log the error and
      * throw away the buffer. */
 

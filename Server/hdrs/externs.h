@@ -1177,6 +1177,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define BLACKLIST_LOAD	4	/* Load blacklist.txt file */
 #define BLACKLIST_MASK	8	/* Load blacklist.txt file */
 #define BLACKLIST_NODNS 16	/* DNS toggle for @blacklist */
+#define BLACKLIST_ADD	32	/* Hot-Add an entry to @blacklist (with matching mask) */
+#define BLACKLIST_DEL	64	/* Hot-Delete an entry to @blacklist (with matching mask) */
+#define BLACKLIST_SRCH	128	/* Search by wildcard IP address */
 
 #define WAIT_PID        1       /* Re-wait a PID process */
 #define WAIT_UNTIL	2	/* Wait until specified time */

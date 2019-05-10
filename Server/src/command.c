@@ -208,6 +208,9 @@ NAMETAB blacklist_sw[] =
     {(char *) "clear", 1, CA_IMMORTAL, 0, BLACKLIST_CLEAR},
     {(char *) "load", 2, CA_IMMORTAL, 0, BLACKLIST_LOAD},
     {(char *) "nodns", 3, CA_IMMORTAL, 0, BLACKLIST_NODNS | SW_MULTIPLE},
+    {(char *) "add", 2, CA_IMMORTAL, 0, BLACKLIST_ADD},
+    {(char *) "delete", 3, CA_IMMORTAL, 0, BLACKLIST_DEL},
+    {(char *) "search", 2, CA_IMMORTAL, 0, BLACKLIST_SRCH},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB boot_sw[] =
@@ -2709,12 +2712,14 @@ void reportcputime(dbref player, struct itimerval *itimer)
     else
        hundinterval = hundstart - hundend; 
     tprp_buff = tpr_buff = alloc_lbuf("reportcputime");
-    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "[CPU: %2ld.%02ld  EVALS: %4d  FUNCS: %4d  ATRFETCH: %4d]",
+    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "[CPU: %2ld.%02ld  EVALS: %4d  FUNCS: %4d  ATRFETCH: %4d  ALLOCS: %4d]",
                                       hundinterval / 100,
                                       hundinterval % 100,
                                       mudstate.evalcount,
                                       mudstate.funccount,
-                                      mudstate.attribfetchcount));
+                                      mudstate.attribfetchcount,
+                                      mudstate.allocsin
+                                     ));
     free_lbuf(tpr_buff);
   }
   DPOP; /* #28 */
@@ -2958,6 +2963,8 @@ process_command(dbref player, dbref cause, int interactive,
     /* profiling */
     mudstate.evalcount = 0;
     mudstate.funccount = 0;
+    mudstate.allocsin = 0;
+    mudstate.allocsout = 0;
     mudstate.attribfetchcount = 0;
     itimer.it_interval.tv_sec = 0;
     itimer.it_interval.tv_usec = 0;
@@ -12403,7 +12410,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
    unsigned long maskval;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
-   BLACKLIST *b_lst_ptr, *b_lst_ptr2;
+   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3;
   
    i_nodns = 0;
    if ( key & BLACKLIST_NODNS ) {
@@ -12449,7 +12456,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                i_page_val = (mudstate.blacklist_nodns_cnt / 40 + 1);
             }
             if ( (i_page_val < 0) || (i_page_val > ((mudstate.blacklist_nodns_cnt / 40) + 1)) ) {
-               notify(player, "@blacklist (NoDNS): Value specified must be a valid page value.");
+               notify(player, "@blacklist: (NoDNS) Value specified must be a valid page value.");
                break;
             }
          } else {
@@ -12516,6 +12523,76 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          notify(player, "==============================================================================");
          free_lbuf(s_buff);
          free_lbuf(s_addrip);
+         break;
+      case BLACKLIST_SRCH:
+         if ( !name || !*name ) {
+            notify(player, "@blacklist/search: Argument expected.");
+            break;
+         }
+         if ( (i_nodns && !mudstate.nd_list) || (!i_nodns && !mudstate.bl_list) ) {
+            if ( i_nodns ) {
+               notify(player, "@blacklist/search: (NoDNS) List is currently empty.");
+            } else {
+               notify(player, "@blacklist/search: List is currently empty.");
+            }
+            break;
+         }
+         if ( i_nodns ) {
+            b_lst_ptr = mudstate.nd_list;
+         } else {
+            b_lst_ptr = mudstate.bl_list;
+         }
+         notify(player, "==============================================================================");
+         if ( i_nodns ) {
+            notify(player, "= Search of Matching IP's (NoDNS)                                            =");
+         } else {
+            notify(player, "= Search of Matching IP's                                                    =");
+         }
+         notify(player, "==============================================================================");
+         tmpbuff = alloc_lbuf("blacklist_search");
+         s_buff = alloc_lbuf("blacklist_search2");
+         s_buffptr = alloc_lbuf("blacklist_search3");
+         i_loop_chk = 0;
+         memset(s_buff, '\0', LBUF_SIZE);
+         memset(tmpbuff, '\0', LBUF_SIZE);
+         while ( b_lst_ptr ) {
+            sprintf(s_buffptr, "%s", (char *)inet_ntoa(b_lst_ptr->site_addr));
+            if ( quick_wild(name, s_buffptr) ) {
+               i_loop_chk++;
+               s_addrip = (char *)" ";
+               if ( strcmp("255.255.255.255", inet_ntoa(b_lst_ptr->mask_addr)) != 0 ) {
+                  s_addrip = (char *)"[M]";
+               }
+               if ( (i_loop_chk % 4) != 0 ) {
+                  if ( !*s_buff ) {
+                     sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  } else {
+                     sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                     memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+                  }
+               } else {
+                  sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
+                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
+                  notify(player, s_buff);
+                  memset(s_buff, '\0', LBUF_SIZE);
+               }
+            }
+            b_lst_ptr = b_lst_ptr->next;
+         }
+         if ( (i_loop_chk % 4) != 0 ) {
+            notify(player, s_buff);
+         }
+         if( !i_loop_chk ) {
+            notify(player, "=                                NO MATCHES                                  =");
+         } else {
+            notify(player, "==============================================================================");
+            sprintf(s_buff,"=                           %6d  MATCHES                                  =", i_loop_chk);
+            notify(player, s_buff);
+         }
+         notify(player, "==============================================================================");
+         free_lbuf(s_buff);
+         free_lbuf(tmpbuff);
+         free_lbuf(s_buffptr);
          break;
       case BLACKLIST_LIST:
          i_page = 0;
@@ -12588,11 +12665,11 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                b_lst_ptr = b_lst_ptr->next;
                continue;
             }
+            s_addrip = (char *)" ";
+            if ( strcmp("255.255.255.255", inet_ntoa(b_lst_ptr->mask_addr)) != 0 ) {
+               s_addrip = (char *)"[M]";
+            }
             if ( (i_loop_chk % 4) != 0 ) {
-               s_addrip = (char *)" ";
-               if ( strcmp("255.255.255.255", inet_ntoa(b_lst_ptr->mask_addr)) != 0 ) {
-                  s_addrip = (char *)"[M]";
-               }
                if ( !*s_buff ) {
                   sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(b_lst_ptr->site_addr));
                } else {
@@ -12682,7 +12759,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                i_invalid++;
                continue;
             }
-            b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST)+1);
+            b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
             sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
             b_lst_ptr->site_addr = in_tempaddr;
             b_lst_ptr->mask_addr = in_tempaddr2;
@@ -12722,6 +12799,211 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                         i_invalid, i_maskcnt));
          free_lbuf(s_buff);
          fclose(f_in);
+         break;
+      case BLACKLIST_ADD:
+         if ( i_nodns ) {
+            if ( mudstate.blacklist_nodns_cnt > 100000 ) {
+               notify(player, "@blacklist/add: (NoDNS) Maximum 100,000 entries have been reached.  Not added.");
+               break;
+            }
+         } else {
+            if ( mudstate.blacklist_cnt > 100000 ) {
+               notify(player, "@blacklist/add: Maximum 100,000 entries have been reached.  Not added.");
+               break;
+            }
+         }
+         tmpbuff = alloc_lbuf("blacklist_add");
+         memset(tmpbuff, '\0', LBUF_SIZE);
+         sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
+
+         s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
+         if ( !s_addrip || !*s_addrip || !inet_aton(s_addrip, &in_tempaddr) ) {
+            if ( i_nodns ) {
+               notify(player, "@blacklist/add: (NoDNS) Invalid IP address specified.");
+            } else {
+               notify(player, "@blacklist/add: Invalid IP address specified.");
+            }
+            free_lbuf(tmpbuff);
+            break;
+         }
+
+         i_invalid = 0;
+         s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
+
+         if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
+            maskval = atol(s_addrmask+1);
+            if (((long)maskval < 0) || (maskval > 32)) {
+               i_invalid = 1;
+            }
+            if ( maskval != 0 ) {
+               maskval = (0xFFFFFFFFUL << (32 - maskval));
+            }
+            in_tempaddr2.s_addr = htonl(maskval);
+         } else if ( s_addrmask && *s_addrmask ) {
+            if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+               i_invalid = 1;
+            }
+         } else {
+            i_invalid = 1;
+         }
+         if ( i_invalid ) {
+            if ( i_nodns ) {
+               notify(player, "@blacklist/add: (NoDNS) Invalid MASK address specified.");
+            } else {
+               notify(player, "@blacklist/add: Invalid MASK address specified.");
+            }
+            free_lbuf(tmpbuff);
+            break;
+         }
+
+         b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
+         sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
+         b_lst_ptr->site_addr = in_tempaddr;
+         b_lst_ptr->mask_addr = in_tempaddr2;
+         b_lst_ptr->next = NULL;
+         if ( i_nodns ) {
+            if ( mudstate.nd_list == NULL) {
+               mudstate.nd_list = b_lst_ptr;
+            } else {
+               b_lst_ptr2 = mudstate.nd_list;
+               while ( b_lst_ptr2->next != NULL )
+                  b_lst_ptr2=b_lst_ptr2->next;
+               b_lst_ptr2->next = b_lst_ptr;
+            }
+            mudstate.blacklist_nodns_cnt++;
+         } else {
+            if ( mudstate.bl_list == NULL) {
+               mudstate.bl_list = b_lst_ptr;
+            } else {
+               b_lst_ptr2 = mudstate.bl_list;
+               while ( b_lst_ptr2->next != NULL )
+                  b_lst_ptr2=b_lst_ptr2->next;
+               b_lst_ptr2->next = b_lst_ptr;
+            }
+            if ( i_nodns ) {
+               mudstate.blacklist_nodns_cnt++;
+            } else {
+               mudstate.blacklist_cnt++;
+            }
+         }
+       
+         s_buff = alloc_lbuf("blacklist_add2");
+         sprintf(s_buff, "@blacklist/add: %s '%s' with MASK '%s' added [%d entries total].", 
+                 (i_nodns ? "(NoDNS) IP" : "IP"), 
+                 s_addrip, 
+                 s_addrmask, 
+                 (i_nodns ? mudstate.blacklist_nodns_cnt : mudstate.blacklist_cnt));
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         free_lbuf(tmpbuff);
+         break;
+      case BLACKLIST_DEL:
+         tmpbuff = alloc_lbuf("blacklist_del");
+         memset(tmpbuff, '\0', LBUF_SIZE);
+         sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
+
+         s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
+         if ( !s_addrip || !*s_addrip || !inet_aton(s_addrip, &in_tempaddr) ) {
+            if ( i_nodns ) {
+               notify(player, "@blacklist/del: (NoDNS) Invalid IP address specified.");
+            } else {
+               notify(player, "@blacklist/del: Invalid IP address specified.");
+            }
+            free_lbuf(tmpbuff);
+            break;
+         }
+
+         i_invalid = 0;
+         s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
+
+         if ( !s_addrmask ) {
+            s_addrmask = (char *)"255.255.255.255";
+         }
+
+         if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
+            maskval = atol(s_addrmask+1);
+            if (((long)maskval < 0) || (maskval > 32)) {
+               i_invalid = 1;
+            }
+            if ( maskval != 0 ) {
+               maskval = (0xFFFFFFFFUL << (32 - maskval));
+            }
+            in_tempaddr2.s_addr = htonl(maskval);
+         } else if ( s_addrmask && *s_addrmask ) {
+            if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+               i_invalid = 1;
+            }
+         } else {
+            i_invalid = 1;
+         }
+
+         if ( i_invalid ) {
+            if ( i_nodns ) {
+               notify(player, "@blacklist/del: (NoDNS) Invalid MASK address specified.");
+            } else {
+               notify(player, "@blacklist/del: Invalid MASK address specified.");
+            }
+            free_lbuf(tmpbuff);
+            break;
+         }
+         if ( i_nodns ) {
+            b_lst_ptr = mudstate.nd_list;
+         } else {
+            b_lst_ptr = mudstate.bl_list;
+         }
+         s_buff = alloc_lbuf("blacklist_del");
+         if ( b_lst_ptr == NULL ) {
+            sprintf(s_buff, "@blacklist/del: %s is empty.",
+                    (i_nodns ? "(NoDNS) list" : "list"));
+            notify(player, s_buff);
+         } else {
+             i_invalid = 1;
+             b_lst_ptr3 = b_lst_ptr;
+             while ( b_lst_ptr ) {
+                if ( (b_lst_ptr->site_addr.s_addr == in_tempaddr.s_addr) &&
+                     (b_lst_ptr->mask_addr.s_addr == in_tempaddr2.s_addr) ) {
+                   b_lst_ptr2 = b_lst_ptr; 
+                   if ( i_nodns ) {
+                      if ( b_lst_ptr == mudstate.nd_list ) {
+                         mudstate.nd_list = b_lst_ptr->next;
+                      }
+                   } else {
+                      if ( b_lst_ptr == mudstate.bl_list ) {
+                         mudstate.bl_list = b_lst_ptr->next;
+                      }
+                   }
+                   b_lst_ptr3->next = b_lst_ptr->next;
+                   free(b_lst_ptr2);
+                   sprintf(s_buff, "@blacklist/del: %s '%s' with mask '%s' deleted.",
+                           (i_nodns ? "(NoDNS) IP" : "IP"),
+                           s_addrip, s_addrmask);
+                   notify(player, s_buff);
+                   if ( i_nodns ) {
+                      mudstate.blacklist_nodns_cnt--;
+                      if ( mudstate.blacklist_nodns_cnt == 0 ) {
+                         mudstate.nd_list = NULL;
+                      }
+                   } else {
+                      mudstate.blacklist_cnt--;
+                      if ( mudstate.blacklist_cnt == 0 ) {
+                         mudstate.bl_list = NULL;
+                      }
+                   }
+                   i_invalid = 0;
+                   break;
+                }
+                b_lst_ptr3 = b_lst_ptr;
+                b_lst_ptr = b_lst_ptr->next;
+             }
+         }
+         if ( i_invalid ) {
+            sprintf(s_buff, "@blacklist/del: %s '%s' with mask '%s' was not found.",
+                    (i_nodns ? "(NoDNS) IP" : "IP"),
+                    s_addrip, s_addrmask);
+            notify(player, s_buff);
+         }
+         free_lbuf(s_buff);
+         free_lbuf(tmpbuff);
          break;
       case BLACKLIST_CLEAR:
          i_loop_chk=0;
