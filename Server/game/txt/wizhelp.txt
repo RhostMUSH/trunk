@@ -167,7 +167,7 @@
   @snoop does not disable an admin's capability to monitor everything 
   a player does on the mush.
   
-  What @snoop does allow is an all-in-one tool that make sit so the staff
+  What @snoop does allow is an all-in-one tool that makes it so the staff
   no longer are required to softcode an alternative tool, which opens up
   avenues of poorly coded softcode to be accessed by normal players to
   infiltrate a game.  @snoop gives the staff absolute control of auditing
