@@ -97,9 +97,12 @@
   
   Help is available on each of these switches by typing: wizhelp news <switch>
   
+& snoop
 & @snoop
   Command: @snoop[/switch] <target> [=<owner>]
   
+  See 'snoop history' on reasons for adding this.
+   
   Note: By adding -DNO_SNOOP to your compile options you can disable @snoop
         entirely, but this capability exists with @hooking and many other
         softcode alternatives.  This just is an all-in-one tool for it that
@@ -134,6 +137,45 @@
     > @snoop/status           (shows all current active snoops)
   
   See Also: @hook, SUSPECT, LOGROOM TOGGLE, log_command_list 
+  
+& snoop history
+  Topic: SNOOP HISTORY
+  
+  Snoop was part of the lpmud/diku/mud engine since the late 1980's.  Due to 
+  various moral convictions and security paranoia of various admins, it was 
+  improved upon or deleted out of codebases over the years.  
+  
+  RhostMUSH was one of those that decided to improve upon the feature set and
+  had it added since RhostMUSH's conception in 1989 and improved upon it in
+  1992 during a surge of Trolls and people attempting to hack and damage
+  mushes.
+  
+  At this time there is and will be no decisions where removing @snoop will
+  occur.  It's here, and it's here for life.  We have, however, put in a 
+  method in the hardcode to hard-remove the feature from the codebase at
+  compile time for anyone who feels this violates their beliefs.  We, again,
+  try to be open to everyone's ideals of how they want to run their mush.
+  
+  To date, the snooping ability exists in many main-stream games that are
+  paid for by their playerbase, included, but not limited to Runescape, 
+  World of Warcraft, Everquest, and others.
+  
+  Every MUSH, from TinyMUSH, PennMUSH, MUX, and others allow, through
+  softcode, the ability to duplicate nearly every aspect of @snoop as it
+  stands, including, but not limited to monitoring pages, whispers, all
+  commands entered, all output of all commands, and so forth.  Disabling
+  @snoop does not disable an admin's capability to monitor everything 
+  a player does on the mush.
+  
+  What @snoop does allow is an all-in-one tool that make sit so the staff
+  no longer are required to softcode an alternative tool, which opens up
+  avenues of poorly coded softcode to be accessed by normal players to
+  infiltrate a game.  @snoop gives the staff absolute control of auditing
+  of who uses the command and what goes on their game.  It's a tool,
+  nothing more.
+  
+  We leave it up to each game maintainer to allow or disallow its use
+  within its game.  We provide the tools, not the use-case of using it. 
   
 & newsdb unload
   Command: newsdb/unload
