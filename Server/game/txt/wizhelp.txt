@@ -115,7 +115,7 @@
   the target player sees, does, or interacts with is passed along to the
   watchers who are tagged to montior this user.
   
-  A player disconnecting automatically turns of the snoop process.  You may
+  A player disconnecting automatically turns off the snoop process.  You may
   optionally set up a log monitoring that can be automated.
   
   The following switches exist:
