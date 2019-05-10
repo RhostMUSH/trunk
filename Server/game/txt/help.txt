@@ -28552,9 +28552,10 @@
     Set.
     > timehog
     Toy says "1040"
-    Toy> [CPU:  7.74  EVALS: 2005  FUNCS: 1003  ATRFETCH:    1]
+    Toy> [CPU:  7.74  EVALS: 2005  FUNCS: 1003  ATRFETCH:    1  Allocs:   176]
   
-  For explanations of what CPU, EVALS, FUNCS, and ATRFETCH is, see CPUTIME2
+  For explanations of what CPU, EVALS, FUNCS, ATRFETCH, and ALLOCS are, 
+  see CPUTIME2
   
 & CPUTIME2
   Toggle: CPUTIME (continued)
@@ -28570,6 +28571,9 @@
   
   ATRFETCH    - The total number of attribute fetches (IE: the number of
                 times it has to read any attribute)
+  ALLOCS      - The total number of buffer allocations that occurred with
+                the running of the command.  While this is a minor overhead
+                it still remains an overhead.
                 
 & VANILLA_ERRORS TOGGLE
   Toggle: VANILLA_ERRORS
