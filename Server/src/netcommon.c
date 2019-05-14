@@ -5090,42 +5090,100 @@ do_command(DESC * d, char *command)
                    i_valid = 4;
                 }
              }
+
+             /* Do suspect site checks -- flag suspect, log, continue on */
+             strcpy(s_sitebuff, mudconf.suspect_host);
+             if ( (site_check(p_addr, mudstate.access_list, 1, 0, 0) | 
+                   site_check(p_addr, mudstate.suspect_list, 0, 0, 0)) ||
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                if ( (i_valid == 2) || (i_valid == 4) || (i_valid == 6) ) {
+                   i_valid |= 8;
+                } else {
+                   i_valid = 8;
+                }
+             }
             
              switch(i_valid) {
                 case 2: /* Register */
+                case 10: /* Suspect * Register */
                    queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
-                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
-                                     d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   if ( i_valid == 10 ) {
+                      d->host_info |= H_SUSPECT;
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & SUSPECT]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   } else {
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   }
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
-                      log_text("[REGISTERED] ");
+                      if ( i_valid == 10 ) {
+                         log_text("[REGISTERED & SUSPECT] ");
+                      } else {
+                         log_text("[REGISTERED] ");
+                      }
                       log_text(s_rollback);
                    ENDLOG
+                   i_valid = 2;
                    break;
                 case 4: /* Noguest */
+                case 12: /* Suspect * Noguest */
                    queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_NOGUEST;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
-                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST]", NULL, s_rollback,
-                                     d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   if ( i_valid == 12 ) {
+                      d->host_info |= H_SUSPECT;
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST & SUSPECT]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   } else {
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   }
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
-                      log_text("[NOGUEST] ");
+                      if ( i_valid == 12 ) {
+                         log_text("[NOGUEST & SUSPECT] ");
+                      } else {
+                         log_text("[NOGUEST] ");
+                      }
                       log_text(s_rollback);
                    ENDLOG
                    i_valid = 2;
                    break;
                 case 6: /* Register & NoGuest */
+                case 14: /* Suspect, Register, Noguest */
                    queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_NOGUEST | H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
-                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & NOGUEST]", NULL, s_rollback,
+                   if ( i_valid == 14 ) {
+                      d->host_info |= H_SUSPECT;
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER, NOGUEST & SUSPECT]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   } else {
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & NOGUEST]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                   }
+                   STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                      if ( i_valid == 14 ) {
+                         log_text("[REGISTER, NOGUEST & SUSPECT] ");
+                      } else {
+                         log_text("[REGISTER & NOGUEST] ");
+                      }
+                      log_text(s_rollback);
+                   ENDLOG
+                   i_valid = 2;
+                   break;
+                case 8: /* Suspect */
+                   /* We don't notify them of site being suspect */
+                   d->host_info |= H_SUSPECT;
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [SUSPECT]", NULL, s_rollback,
                                      d->descriptor, 0, ntohs(d->address.sin_port), NULL);
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
-                      log_text("[REGISTER & NOGUEST] ");
+                      log_text("[SUSPECT] ");
                       log_text(s_rollback);
                    ENDLOG
                    i_valid = 2;
