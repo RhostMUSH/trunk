@@ -22,23 +22,80 @@ configfile="warpbubble.conf"
 configtmp="$current/$configfile"
 
 ##############################################################################
+# validate we have stunnel in our path, if not build it
+##############################################################################
+stunnel -version > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+   ./stunnel -version > /dev/null 2>&1
+   if [ $? -ne 0 ]
+   then
+      echo "You do not have a OS built stunnel installed.  We'll install local."
+      echo "Pulling down latest stunnel and compiling.  Please wait..."|tr -d '\012'
+      cd ./stunnel_src
+      ./compile.sh > /dev/null 2>&1
+      echo "...completed"
+      cd ..
+      ./stunnel -version > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         echo "We were unable to compile stunnel locally."
+         echo "please to into the 'stunnel_src' directory and type './compile.sh'"
+         echo "Any errors if you can not work through, please report to the"
+         echo "staff of RhostMUSH on their Dev site or on github."
+         exit 1
+      fi
+   fi
+   gl_stunnel_ver=`./stunnel -version 2>&1|head -1`
+else
+   gl_stunnel_ver=`stunnel -version 2>&1|head -1`
+fi
+##############################################################################
 # validate the config of the game has the sconnect settings
 ##############################################################################
 gl_chk_reip=`grep -c "^sconnect_reip" ${game}/netrhost.conf`
+gl_arg_reip=`grep "^sconnect_reip" ${game}/netrhost.conf|awk '{print $2}'`
+if [ ${gl_chk_reip} -eq 0 ]
+then
+   gl_chk_reip=`grep -c "^sconnect_reip" ${game}/rhost_ingame.conf`
+   gl_arg_reip=`grep "^sconnect_reip" ${game}/rhost_ingame.conf|awk '{print $2}'`
+fi
 gl_chk_cmd=`grep -c "^sconnect_cmd" ${game}/netrhost.conf`
+gl_arg_cmd=`grep "^sconnect_cmd" ${game}/netrhost.conf|awk '{print $2}'`
+if [ ${gl_chk_cmd} -eq 0 ]
+then
+   gl_chk_cmd=`grep -c "^sconnect_cmd" ${game}/rhost_ingame.conf`
+   gl_arg_cmd=`grep "^sconnect_cmd" ${game}/rhost_ingame.conf|awk '{print $2}'`
+fi
 
 if [ ${gl_chk_reip} -eq 0 ]
 then
-   echo "You need to define sconnect_reip to '1' in your netrhost.conf file."
+   echo "You need to define sconnect_reip to '1' in your netrhost.conf or rhost_ingame.conf file."
    echo "netrhost.conf syntax:  sconnect_reip 1"
    exit 1
 fi
 if [ ${gl_chk_cmd} -eq 0 ]
 then
-   echo "You need to define sconnect_cmd to a string for the stunnel command"
-   echo "in your netrhost.conf file.  Any case-sensitive non-space string allowed"
-   echo "netrhost.conf syntax example:  sconnect_cmd MyCommandName"
+   echo "You need to define sconnect_cmd to a one word string for the stunnel command"
+   echo "in your netrhost.conf or rhost_ingame.conf file.  Any case-sensitive non-space"
+   echo "one word string is allowed. You will want this to be hard to guess."
+   echo ""
+   echo "syntax example:  sconnect_cmd MyCommandName"
    exit 1
+fi
+echo "Your STUNNEL version is: ${gl_stunnel_ver}"
+if [ "${gl_arg_reip}" = "1" ]
+then
+   echo "Your sconnect_reip is: '${gl_arg_reip}'"
+else
+   echo "Your sconnect_reip is: '${gl_arg_reip}'  (Note: You need it set to '1' to enable SSL)"
+fi
+gl_cmdlen=`echo "${gl_arg_cmd}"|wc -c`
+if [ "${gl_cmdlen}" -le 8 ]
+then
+   echo "Your sconnect_cmd is: '${gl_arg_cmd}' (Note: You likely want this  8 characters or longer)"
+else
+   echo "Your sconnect_cmd is: '${gl_arg_cmd}'"
 fi
 
 ##############################################################################
@@ -47,9 +104,15 @@ fi
 #
 ##############################################################################
 port=`awk '$1=="port" {print $2}' ${game}/netrhost.conf`
+apiport=`awk '$1=="api_port" {print $2}' ${game}/netrhost.conf`
 sslporttmp=`expr $port + 1`
+if [ "${sslporttmp}" = "${apiport}" ]
+then
+   sslporttmp=`expr $port + 2`
+fi
 name=`awk '$1=="mud_name"' ${game}/netrhost.conf | sed -e 's/mud_name //g'`
-sconnect_command=`awk '$1=="sconnect_cmd" {print $2}' ${game}/netrhost.conf`
+#sconnect_command=`awk '$1=="sconnect_cmd" {print $2}' ${game}/netrhost.conf`
+sconnect_command="${gl_arg_cmd}"
 
 
 ##############################################################################
@@ -201,4 +264,3 @@ fi
 echo "
 stunnel configuration complete...Enjoy!
 "
-
