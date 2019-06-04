@@ -32,8 +32,8 @@ pid = PID_FILE/stunnel.pid
 ;             things, if necessary.
 ; output  --> the full path of the logfile and where you wish to have it.
 ;
-;syslog = yes
 ;service = stunnel
+syslog = no
 output = LOG_FILE/stunnel.log
 debug = 7
 logId = unique
