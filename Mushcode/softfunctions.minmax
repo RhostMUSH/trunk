@@ -74,9 +74,17 @@
 &FUNFLAG_LETQ soft=no_eval
 &FUN_SORTKEY soft=[munge(#lambda/%[sort%(%%0%,%2%,%3%)%],iter(%1,edit(u(%0,itext(0)),%b,),ifelse(!$v(3),%b,%3),ifelse(!$v(3),%b,%3)),%1,ifelse(!$v(3),%b,%3),ifelse(!$v(4),ifelse(!$v(3),%b,%3),%4))]
 &MINMAX_SORTKEY soft=2 5
+@@ - first attempt
 @@ &FUN_ALIGN soft=[printf([iter(%0,$[case(mid(%i0,0,1),<,-[delete(%i0,0,1)],>,[delete(%i0,0,1)],_,_[delete(%i0,0,1)],-,^[delete(%i0,0,1)],=,_[delete(%i0,0,1)],-%i0)]|"s)],%1,%2,%3,%4,%5,%6,%7,%8,%9)]
-&FUN_ALIGNFILTER soft=[iter(%0,$[before(strip(pedit(%i0,=,_,-,^,<,-,.,),$#Xx>),%()][ifelse(wildmatch(*>* *<* *=* *-* *_*,%i0),,-)][ifelse(!^or(pos(x,%i0),pos(X,%i0)),|")][ifelse(and(!^pos($,%i0),gt(%2,%1)),:%3:)]s)]
-&FUN_ALIGN soft=[printf([alignfilter(%0,words(%0),sub(%+,1),v(sub(%+,1)))],%1,%2,%3,%4,%5,%6,%7,%8,%9,v(10),v(11),v(12),v(13),v(14),v(15),v(16),v(17),v(18),v(19),v(20),v(21),v(22),v(23),v(24),v(25),v(26),v(27))]
+@@ - second attempt
+@@ &FUN_ALIGN soft=[printf([alignfilter(%0,words(%0),sub(%+,1),v(sub(%+,1)))],%1,%2,%3,%4,%5,%6,%7,%8,%9,v(10),v(11),v(12),v(13),v(14),v(15),v(16),v(17),v(18),v(19),v(20),v(21),v(22),v(23),v(24),v(25),v(26),v(27))]
+@@ &FUN_ALIGNFILTER soft=[iter(%0,$[before(strip(pedit(%i0,=,_,-,^,<,-,.,),$#Xx>),%()][ifelse(wildmatch(*>* *<* *=* *-* *_*,%i0),,-)][ifelse(!^or(pos(x,%i0),pos(X,%i0)),|")][ifelse(and(!^pos($,%i0),gt(%2,%1)),:%3:)]s)]
+@@ - final attempt
+&FUNPV_ALIGN soft=[u(align_handler[eq(add(words(%0),1),%+)],%+,%-0,%-1,%-2,%-3,%-4,%-5,%-6,%-7,%-8,%-9,%-10,%-11,%-12,%-13,%-14,%-15,%-16,%-17,%-18,%-19,%-20,%-21,%-22,%-23,%-24,%-25,%-26,%-27,%-28)]
+&ALIGN_HANDLER1 soft=[strfunc(printf,[u(format_align2-1,%1)][beep()][iter(lnum(2,add(%0,2)),%-##,,[beep()])],[beep()])]
+&ALIGN_HANDLER0 soft=[strfunc(printf,[u(format_align2-0,%1,%0,v(add(words(%1),2)),v(add(words(%1),3)))][beep()][iter(lnum(2,add(%0,2)),%-##,,[beep()][v(add(words(%1),1))]%r[beep()])],[beep()])]
+&FORMAT_ALIGN2-1 soft=[iter(%0,$[before(strip(pedit(%i0,=,_,-,^,<,-,.,),$#Xx>),%()][ifelse(wildmatch(*>* *<* *=* *-* *_*,%i0),,-)][ifelse(!^or(pos(x,%i0),pos(X,%i0)),|")]s)]
+&FORMAT_ALIGN2-0 soft=[iter(%0,$[ifelse(!!$v(2),:%2:)][before(strip(pedit(%i0,=,_,-,^,<,-,.,),$#Xx>),%()][ifelse(wildmatch(*>* *<* *=* *-* *_*,%i0),,-)][ifelse(!^or(pos(x,%i0),pos(X,%i0)),|")]s,,$1&.:%3:s)]
 &FUN_NCOND soft=[strfunc(switch,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &FUN_NCONDALL soft=[strfunc(switchall,0 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
 &FUN_COND soft=[strfunc(switch,1 [iter(lnum(0,%+),ifelse(mod(%i0,2),%%%i0,%[t%(%%%i0%)%]))],%b)]
