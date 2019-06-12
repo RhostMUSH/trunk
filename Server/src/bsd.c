@@ -326,7 +326,7 @@ int make_socket(int port, char* address)
         server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
-	log_perror("NET", "FAIL", NULL, "bind");
+	log_perror("NET", "FAIL", unsafe_tprintf("failed to bind to port <%d>",port), "bind");
 	close(s);
         DPOP; /* #1 */
 	exit(4);
