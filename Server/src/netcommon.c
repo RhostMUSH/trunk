@@ -4857,12 +4857,6 @@ int
 do_command(DESC * d, char *command)
 {
 #ifdef HAS_OPENSSL
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, 
-         *s_sitetmp, *s_sitebuff;
-    int maxsitecon, i_retvar, i_valid;
-    struct sockaddr_in p_sock;
-    struct in_addr p_addr;
-    DESC *dssl, *dsslnext;
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
@@ -4870,16 +4864,19 @@ do_command(DESC * d, char *command)
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass;
     double i_time;
-    int aflags, i_cputog, i_encode64, i_snarfing, i_parse, i_usepass;
+    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass;
     dbref aowner, thing;
     ATTR *atrp;
-#else
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime;
 #endif
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf,
+         *s_sitetmp, *s_sitebuff;
+    int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
+        maxsitecon, i_retvar, i_valid, aflags;
     struct SNOOPLISTNODE *node;
-    DESC *sd, *d2;
+    struct sockaddr_in p_sock;
+    struct in_addr p_addr;
+    DESC *sd, *d2, *dssl, *dsslnext;
     NAMETAB *cp;
-    int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump;
 
     DPUSH; /* #147 */
 
@@ -4948,7 +4945,6 @@ do_command(DESC * d, char *command)
      * cval: 0 normal, 1 disable, 2 ignore
      */
     
-#ifdef HAS_OPENSSL
     addroutbuf = NULL;
     if ( !d->player && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
@@ -5256,7 +5252,6 @@ do_command(DESC * d, char *command)
        }
        free_lbuf(s_rollback);
     }
-#endif
 
     if ( d->player && InProgram(d->player) && (command[0] == '|') && 
          !((NoShProg(d->player) && !mudconf.noshell_prog) || 
