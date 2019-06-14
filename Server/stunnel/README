@@ -20,7 +20,8 @@ sconnect_reip 1            -- This enables the SSL tunnel layer handler
 sconnect_cmd XYZZY         -- this will set the secret SSL command
                               handshake command to XYZZY.  This is case
                               sensitive and can be up to 31 characters.
-                              Please make sure to only use alphanumeric.
+                              Please make sure to only use printable 
+                              non-whitespace characters.  Ergo: one word
 sconnect_host wildcards    -- This allows wildcarded sites (one or more)
                               to allow to access the sconnect/stunnel
                               handler.  This defaults to 'localhost' so
@@ -28,6 +29,12 @@ sconnect_host wildcards    -- This allows wildcarded sites (one or more)
                               then you must set this to whatever is seen
                               as 'localhost' to you.  You can verify this
                               by checking your /etc/hosts file.
+
+Note: the sconnect_host is optional.  If you do not specify it, it will
+      default to two values:  'localhost' and '127.0.0.1'.
+  
+Be aware that if you have DNS host lookups disabled on your mush, you
+MUST have 127.0.0.1 as an entry for your sconnect_host file.
 
 When you have your stunnel.conf file to the way you want, you then
 issue the following command to run your SSL layer.
