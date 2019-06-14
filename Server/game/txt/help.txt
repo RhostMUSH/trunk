@@ -6386,9 +6386,6 @@
   player name and not already in use.  Only if both checks succeed is the
   alias set.
  
-  Optional switches are /quiet to suppress output or /noisy to give 
-  verbose output.
-  
   See Also: @name, @protect, listprotection()
   
 & @amhear
