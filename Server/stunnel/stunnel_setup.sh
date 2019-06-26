@@ -20,6 +20,7 @@ game="${current}/../game"
 bubble="${current}/warpbubble.pl"
 configfile="warpbubble.conf"
 configtmp="$current/$configfile"
+timeoutdef=12
 
 ##############################################################################
 # validate we have stunnel in our path, if not build it
@@ -136,22 +137,41 @@ echo -n "Where would you like the stunnel pid lock file stored? [default: $curre
 read pidfile
 echo -n "what do you wish to have as your sslport? [default: $sslporttmp]: "
 read sslport
+echo -n "What idle timeout in hours do you want for SSL sessions? [default: $timeoutdef hours]: "
+read timeoutnew
+echo -n "What is the name of your MUSH? [default: $name]: "
+read newname
 
-if [ -z $sslport ]; then
-    sslport=$sslporttmp
+if [ -z "$newname" ]; then
+   newname=$name
 fi
 
-if [ -z $logfile ]; then
+if [ -z "$timeoutnew" ]; then
+   timeoutnew=$timeoutdef
+fi # timeoutnew
+
+timeoutchk=`echo $timeoutnew|tr -cd '[0-9]'`
+if [ "$timeoutchk" != "$timeoutnew" ]; then
+   timeoutnew=$timeoutdef
+fi
+
+timeoutexp=`expr $timeoutnew * 3600`
+
+if [ -z "$sslport" ]; then
+    sslport=$sslporttmp
+fi # sslport
+
+if [ -z "$logfile" ]; then
     logfile=$current
-fi # if [-z logfile]; then
+fi # logfile
 
-if [ -z $pidfile ]; then
+if [ -z "$pidfile" ]; then
     pidfile=$current
-fi # if [-z pidfile]; then
+fi # pidfile
 
-if [ -z $where ]; then
+if [ -z "$where" ]; then
     where=$current
-fi # if [ -z where ]; then
+fi # where
 
 echo "Creating certificate files..."
 
@@ -243,17 +263,21 @@ fi
 if [ "$configpath" = "NONE" ]
 then
 echo "
-[${name}-SSL]
+[${newname}-SSL]
 accept = $sslport
 exec = $bubble
 execargs = $bubble $sconnect_command localhost $port
+; the default value of this is 43200 (12 hours)
+TIMEOUTidle=$timeoutchk
 " >> stunnel.conf
 else
 echo "
-[${name}-SSL]
+[${newname}-SSL]
 accept = $sslport
 exec = $bubble
 execargs = $bubble --conf=$configpath
+; the default value of this is 43200 (12 hours)
+TIMEOUTidle=$timeoutchk
 " >> stunnel.conf
 mv -f $configpath $configpath.prev 2>/dev/null
 echo "host: localhost
