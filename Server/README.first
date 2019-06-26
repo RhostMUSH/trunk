@@ -1,5 +1,8 @@
 Welcome to OpenSource Rhostmush!
 
+If you want to set up SSL connectivity, please see README.SSL in the
+readme directory.
+ 
 It is assumed that you have gotten to this point with the following command:
 
 git clone https://github.com/RhostMUSH/trunk Rhost
