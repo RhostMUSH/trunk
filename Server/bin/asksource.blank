@@ -109,13 +109,29 @@ then
    X[25]="X"
 fi
 # disable debugmon if on win10 bash
-if [ $(grep -c Microsoft /proc/version) -gt 0 -o $(grep -ic cygwin /proc/version) -gt 0 ]
+if [ "$(grep -c Microsoft /proc/version 2>/dev/null)" -gt 0 -o "$(grep -ic cygwin /proc/version 2>/dev/null)" -gt 0 ]
 then
    X[19]="X"
 fi
-gl_ldd=$(ldd --version 2>/dev/null|head -1|cut -f2 -d')')
-gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
-gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+ldd --version > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+   pkg --version > /dev/null 2>&1
+   if [ $? -eq 0 ]
+   then
+      gl_ldd=$(pkg info|grep -i "^glib-"|cut -f2 -d".")
+      gl_ldd1=$(echo ${gl_ldd}|cut -f2 -d"-"|cut -f1 -d".")
+      gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+   else
+      # we have no idea of the version.  Pretend no.
+      gl_ldd1=0
+      gl_ldd2=0
+   fi        
+else
+   gl_ldd=$(ldd --version 2>/dev/null|head -1|cut -f2 -d')')
+   gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
+   gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+fi
 if [ -z "${gl_ldd1}" ]
 then
    gl_ldd1=0
