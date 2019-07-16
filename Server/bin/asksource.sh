@@ -179,7 +179,7 @@ done
 # Load default options
 if [ -f ./asksource.default ]
 then
-   . ./asksource.default
+   . $(pwd)/asksource.default
 fi
 DEF[1]="-DUSE_SIDEEFFECT"
 DEF[2]="-DTINY_U"
@@ -1229,7 +1229,7 @@ xtraopts() {
       else
          MARKER=""
       fi
-      . ${DUMPFILE} 2>/dev/null
+      . $(pwd)/${DUMPFILE} 2>/dev/null
       echo "Loading default config options from slot ${SAVEANS} [${MARKER:-GENERIC}]"
    elif [ "${DUMPFILE}" = "/" ]
    then
@@ -1306,7 +1306,7 @@ loadopts() {
       else
          MARKER=""
       fi
-      . ${DUMPFILE} 2>/dev/null
+      . $(pwd)/${DUMPFILE} 2>/dev/null
       echo "Loading previous config options from slot ${SAVEANS} [${MARKER:-GENERIC}]"
    elif [ "${DUMPFILE}" = "/" ]
    then
@@ -1410,7 +1410,7 @@ saveopts() {
 loadtemplate() {
    if [ -f asksource.save_template ]
    then
-      . ./asksource.save_template 2>/dev/null
+      . $(pwd)/asksource.save_template 2>/dev/null
    fi
 }
 ###################################################################
@@ -1419,12 +1419,12 @@ loadtemplate() {
 # LOADLASTSTATE - Load the last state
 ###################################################################
 loadlaststate() {
+   DUMPFILE="asksource.save_default"
    if [ ! -f ${DUMPFILE} ]
    then
       return
    fi
-   DUMPFILE=asksource.save_default
-   . ${DUMPFILE} 2>/dev/null
+   . $(pwd)/${DUMPFILE} 2>/dev/null
 }
 
 ###################################################################
