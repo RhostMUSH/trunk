@@ -25364,8 +25364,10 @@ FUNCTION(fun_array)
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       i_type = atoi(fargs[4]);
-      if ( i_type != 0 )
-         i_type = 1;
+      if ( i_type < 0 )
+         i_type = 0;
+      if ( i_type > 3 )
+         i_type = 3;
    }
    if ( (i_width == 0) && !sep )
       sep = ' ';
@@ -25400,7 +25402,7 @@ FUNCTION(fun_array)
    p_out = outsplit;
 
    /* Over then down */
-   if ( !i_type ) {
+   if ( !(i_type & 1) ) {
       i = 0;
       memset(s_output, '\0', LBUF_SIZE);
       s_outptr = s_output;
@@ -25425,9 +25427,11 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
                }
                if ( i > 0 ) {
                   p_in = p_in - (s_inptr - s_ptr2);
@@ -25477,9 +25481,11 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = i_width;
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
                }
                if ( i > 0 ) {
                   s_inptr = s_ptr2;
@@ -25516,9 +25522,11 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
                }
                if ( i > 0 ) {
                   p_in = p_in - (s_inptr - s_ptr2);

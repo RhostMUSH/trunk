@@ -13601,13 +13601,16 @@
   on <reg count>.  Registers start from 0-9 then go to a-z.  Registers
   are cleared automatically before being utilized.
   
-  You may specify an optional delimiter.  By default, it takes any white
-  space.  You may optionally specify the type.  A type of '1' will take
-  the virtual register count down then over.  The default '0' does it
-  in a normal sequential order.
+  You may specify an optional delimiter <delim>.  By default, it takes any 
+  white space.  You may optionally specify the type <type>.  A type of '1' 
+  will take the virtual register count down then over.  A type of '2' will
+  split based on character and not attempt to break on word.  A type of '3'
+  combines the down then over with type '2'.  The default '0' does it in a 
+  normal sequential order.
   
-  If you specify width of '0' and specify a delimeter, then it will ignore
-  width of the values and split the array based on the delimiter only.
+  If you specify width <width> of '0' and specify a delimeter <delim>, then it 
+  will ignore width of the values and split the array based on the 
+  delimiter <delim> only.
   
   If you wish to store the setq registers prior to this function, please
   utilize the pushregs() function to back-up your registers.
@@ -32693,6 +32696,7 @@
   * Protection on SSL handler against brute force attacks [ASH]
   * SPEECH_PREFIX/SPEECH_SUFFIX inherit from parents [ASH]
   * Modified source so using STUNNEL no longer requires SSL libs [ASH]
+  * Array handled to split on char and not 'word' [ASH]
   
   Bug Fixes
   ------------
