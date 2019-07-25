@@ -25320,7 +25320,7 @@ FUNCTION(fun_lcmds)
 FUNCTION(fun_array)
 {
    char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
-   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS];
+   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS], i_widthexp, i_widthchk, i_widthtmp;
    time_t it_now;
    ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
 
@@ -25369,7 +25369,7 @@ FUNCTION(fun_array)
       if ( i_type > 3 )
          i_type = 3;
    }
-   if ( (i_width == 0) && !sep )
+   if ( !(i_type & 2) && (i_width == 0) && !sep )
       sep = ' ';
 
    if ( sep == '\n' )
@@ -25391,6 +25391,12 @@ FUNCTION(fun_array)
    s_output = alloc_lbuf("fun_array2");
    split_ansi(strip_ansi(fargs[0]), s_input, insplit);
 
+   i_widthexp = 0;
+   if ( !i_width && (i_type & 2) && !sep ) {
+      i_width = strlen(s_input) / i_regs;
+      i_widthexp = strlen(s_input) % i_regs;
+   }
+
 
    for ( i = 0; i < i_regs; i++ ) {
       if ( !mudstate.global_regs[i] )
@@ -25407,6 +25413,12 @@ FUNCTION(fun_array)
       memset(s_output, '\0', LBUF_SIZE);
       s_outptr = s_output;
       i_kill = 0;
+      if ( i_widthexp ) {
+         i_widthchk = i_width + 1;
+         i_widthexp--;
+      } else {
+         i_widthchk = i_width;
+      }
       while ( s_inptr && *s_inptr) {
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
@@ -25418,7 +25430,13 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0)) ) ) {
+         if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0)) ) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             if ( sep == '\r' ) {
                s_inptr++;
                p_in++;
@@ -25427,11 +25445,9 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               if ( !(i_type & 2) ) {
-                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                     s_ptr2--;
-                     i--;
-                  }
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
                }
                if ( i > 0 ) {
                   p_in = p_in - (s_inptr - s_ptr2);
@@ -25475,17 +25491,28 @@ FUNCTION(fun_array)
    } else {
       i = i_regcurr = 0;
       s_inptr = s_input;
+      if ( i_widthexp ) {
+         i_widthchk = i_width + 1;
+         i_widthexp--;
+      } else {
+         i_widthchk = i_width;
+      }
+      i_widthtmp = i_widthchk;
       while ( s_inptr && *s_inptr) {
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0))) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             if ( !sep ) {
                s_ptr2 = s_inptr;
-               i = i_width;
-               if ( !(i_type & 2) ) {
-                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                     s_ptr2--;
-                     i--;
-                  }
+               i = i_widthchk;
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
                }
                if ( i > 0 ) {
                   s_inptr = s_ptr2;
@@ -25506,6 +25533,7 @@ FUNCTION(fun_array)
       memset(s_output, '\0', LBUF_SIZE);
       s_outptr = s_output;
       i_kill = 0;
+      i_widthchk = i_widthtmp;
       while ( s_inptr && *s_inptr) {
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
@@ -25517,16 +25545,20 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0))) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               if ( !(i_type & 2) ) {
-                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                     s_ptr2--;
-                     i--;
-                  }
+               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                  s_ptr2--;
+                  i--;
                }
                if ( i > 0 ) {
                   p_in = p_in - (s_inptr - s_ptr2);
