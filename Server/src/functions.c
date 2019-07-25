@@ -25445,14 +25445,16 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  p_in = p_in - (s_inptr - s_ptr2);
-                  *(s_output + i) = '\0';
-                  s_inptr = s_ptr2;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     p_in = p_in - (s_inptr - s_ptr2);
+                     *(s_output + i) = '\0';
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } else {
@@ -25510,12 +25512,14 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = i_widthchk;
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  s_inptr = s_ptr2;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } 
@@ -25556,14 +25560,16 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  p_in = p_in - (s_inptr - s_ptr2);
-                  *(s_output + i) = '\0';
-                  s_inptr = s_ptr2;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     p_in = p_in - (s_inptr - s_ptr2);
+                     *(s_output + i) = '\0';
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } else {
