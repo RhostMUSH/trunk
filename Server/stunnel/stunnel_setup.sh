@@ -268,7 +268,7 @@ accept = $sslport
 exec = $bubble
 execargs = $bubble $sconnect_command localhost $port
 ; the default value of this is 43200 (12 hours)
-TIMEOUTidle=$timeoutchk
+TIMEOUTidle=$timeoutexp
 " >> stunnel.conf
 else
 echo "
@@ -277,7 +277,7 @@ accept = $sslport
 exec = $bubble
 execargs = $bubble --conf=$configpath
 ; the default value of this is 43200 (12 hours)
-TIMEOUTidle=$timeoutchk
+TIMEOUTidle=$timeoutexp
 " >> stunnel.conf
 mv -f $configpath $configpath.prev 2>/dev/null
 echo "host: localhost
