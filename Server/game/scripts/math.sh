@@ -10,7 +10,16 @@ else
    gl_scale=$(expr ${gl_scale} + 0 2>/dev/null)
    if [ -z "${gl_scale}" ]
    then
-      gl_scale=20000
+      gl_scale=255
    fi
-   echo "scale=${gl_scale};${gl_arg}"|bc 2>&1
+   if [ ${gl_scale} -gt 255 ]
+   then
+      gl_scale=255
+   fi
+   if [ ${gl_scale} -lt 0 ]
+   then
+      gl_scale=0
+   fi
+   echo "scale=${gl_scale};${gl_arg}"|bc 2>&1|tr -d '\\\012'
 fi
+
