@@ -2190,7 +2190,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
                mudstate.rollbackcnt = i_jump = 0;
                while (atextptr) {
                   cp = parse_to(&atextptr, ';', 0);
-                  if (cp && *cp && !mudstate.breakst) {
+                  if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
                      process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1);
                      if ( time(NULL) > (i_now + 5) ) {
                          notify(player, "@hook:  Aborted for high utilization.");
@@ -9345,7 +9345,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           }
           mudstate.chkcpu_inline = 1;
           i_orig = mudstate.chkcpu_toggle;
-          while (arg2 && !mudstate.chkcpu_toggle) {
+          while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
@@ -9408,7 +9408,7 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
           }
           mudstate.chkcpu_inline = 1;
           i_orig = mudstate.chkcpu_toggle;
-          while (arg2 && !mudstate.chkcpu_toggle) {
+          while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
@@ -9488,7 +9488,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
              i_now = time(NULL);
           }
           mudstate.chkcpu_inline = 1;
-          while (arg2 && !mudstate.chkcpu_toggle) {
+          while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
                 process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
@@ -10118,7 +10118,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          mudstate.chkcpu_inline = 1;
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
-            if (cp && *cp && !mudstate.breakst) {
+            if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
@@ -10145,7 +10145,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          mudstate.chkcpu_inline = 1;
          while (mys) {
             cp = parse_to(&mys, ';', 0);
-            if (cp && *cp && !mudstate.breakst) {
+            if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
@@ -10173,7 +10173,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       mudstate.chkcpu_inline = 1;
       while (mys) {
          cp = parse_to(&mys, ';', 0);
-         if (cp && *cp && !mudstate.breakst) {
+         if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
             process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
@@ -10272,7 +10272,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       i_now = time(NULL);
    }
    mudstate.chkcpu_inline = 1;
-   while (s_command && !mudstate.chkcpu_toggle) {
+   while (s_command && !mudstate.chkcpu_toggle && !mudstate.breakst) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
          process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook);

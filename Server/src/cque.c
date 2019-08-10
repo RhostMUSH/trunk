@@ -119,7 +119,7 @@ void execute_entry(BQUE *queue)
 		      memset(mudstate.rollback, '\0', LBUF_SIZE);
        		   }
     		}
-		while (command && !mudstate.breakst) {
+		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
 			desc_in_use = NULL;
