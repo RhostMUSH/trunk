@@ -4734,7 +4734,7 @@ process_command(dbref player, dbref cause, int interactive,
                   mudstate.global_error_inside = 1;
                   i_now = mudstate.now;
                   lcbuf_temp_ptr = lcbuf;
-                  while (lcbuf_temp_ptr && !mudstate.chkcpu_toggle) {
+                  while (lcbuf_temp_ptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
                      lcbuf_temp = parse_to(&lcbuf_temp_ptr, ';', 0);
                      if (lcbuf_temp && *lcbuf_temp) {
                         process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, mudstate.no_hook);
