@@ -2596,7 +2596,7 @@
       U - hidden (@hide)      H - unfindable         D - dark
       * - all staff (opt)     W - Wizard (opt)       a - councilor (opt)
       B - architect (opt)     g - GuildMstr(opt)     d - idle dark
-      h - idle unfindable 
+      h - idle unfindable     $ - SSL Connected
    
   Example:  DOING Nyc
   
@@ -2616,6 +2616,9 @@
 
 & @admin
   Command: @admin[/<switch>] <param>=<value>
+  
+  You may display most config options with the 'config()' function or with
+  the command '@list options display' where you specify the config option.
   
   Sets a RhostMUSH configuration parameter to the indicated value.
   Type 'wizhelp config parameters' for a list of the config parameters that
@@ -2654,7 +2657,7 @@
   loaded as a comment and have a '#' when you save.  Any lines over 1000
   will not be read.
   
-  See Also: admin_object
+  See Also: admin_object, @list, config()
 
 & @apply_marked
   Command: @apply_marked <command>
@@ -2737,6 +2740,7 @@
   The following switches exist:
     /quota - show the command quotas for all connected sockets/ports.
   
+  See Also: @cmdquota, WHO, DOING
 
 & @remote
   Command: @remote <location>=<command>
@@ -3353,6 +3357,8 @@
   Options with a '*' by them may not be enabled at compiletime.
   
   Example:  @list alloc
+  
+  See Also: @admin, config()
 
 & @list config_permissions
   Command: @list config_permissions
@@ -13448,4 +13454,5 @@
 
 & CONFIG()
   Please see normal help on the config() function.
-
+  
+  See Also: @admin
