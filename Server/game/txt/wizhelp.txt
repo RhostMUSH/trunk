@@ -3689,7 +3689,7 @@
     > @list options boolean *mail* - list all options that contain 'mail'
   
   The display parameter works by specifying the parameter after.  For example:
-    > @list optiohs display global_error_obj
+    > @list options display global_error_obj
       global_error_obj             Object who's @va is executed for non-cmds.
                                    Default: -1   Value: 123
   
