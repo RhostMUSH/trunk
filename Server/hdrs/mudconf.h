@@ -357,6 +357,7 @@ struct confdata {
 	int	global_clone_exit;	/* Global that exits are @cloned from */
 	int	zone_parents;		/* Zones inherit attributes to children */
 	int	global_error_obj;	/* Object that handles all 'unfound' commands */
+	int	global_error_cmd;	/* Does the global error object allow commands */
 	int	signal_object;		/* Signal Handling Object */
 	int	signal_object_type;	/* functions or trigger like a startup */
         int	look_moreflags;		/* Show global flags on attributes */
@@ -672,6 +673,7 @@ struct statedata {
 	char	ng_doing_hdr[81];
 	char	guild_hdr[12];
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
+	int	global_error_inside;	/* Are we inside the global error obj */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */

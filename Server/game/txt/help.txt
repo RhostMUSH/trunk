@@ -32679,6 +32679,7 @@
   * added sconnect handlers and configuration as scripts [Oleo/Adrick/Ash]
   * @cpattr has /verify switch that validates attributes being copied [ASH]
   * @blacklist supports /add, /del, and /search by IP [ASH]
+  * @admin param global_error_cmd allows global error obj to process cmds [ASH]
   
   Changes
   ------------

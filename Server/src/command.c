@@ -2934,7 +2934,7 @@ process_command(dbref player, dbref cause, int interactive,
     struct itimerval itimer;
     DESC *d;
     ATTR *hk_ap2, *ap_log;
-    time_t chk_stop;
+    time_t chk_stop, i_now;
 #ifdef ENH_LOGROOM
     char *s_logroom;
     int i_loc;
@@ -4718,7 +4718,7 @@ process_command(dbref player, dbref cause, int interactive,
     /* If we still didn't find anything, tell how to get help. */
 
     if (!succ && (sflag < 2) ) {
-        if ( Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
+        if ( !mudstate.global_error_inside && Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
              !Going(mudconf.global_error_obj) ) {
             if ( *lst_cmd ) {
                memset(arr_prog, 0, sizeof(arr_prog));
@@ -4729,17 +4729,37 @@ process_command(dbref player, dbref cause, int interactive,
                }
                lcbuf = atr_get(mudconf.global_error_obj, A_VA, &aowner2, &aflags2);
                mudstate.nocodeoverride = 1;
-               i_trace = 0;
-               i_trace = mudstate.notrace;
-               mudstate.notrace = 1;
-               lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
-                                 EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
-                                 arr_prog, narg_prog, (char **)NULL, 0);
-               mudstate.notrace = i_trace;
+               if ( mudconf.global_error_cmd ) {
+                  i_trace = mudstate.global_error_inside;
+                  mudstate.global_error_inside = 1;
+                  i_now = mudstate.now;
+                  lcbuf_temp_ptr = lcbuf;
+                  while (lcbuf_temp_ptr && !mudstate.chkcpu_toggle) {
+                     lcbuf_temp = parse_to(&lcbuf_temp_ptr, ';', 0);
+                     if (lcbuf_temp && *lcbuf_temp) {
+                        process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, mudstate.no_hook);
+                     }
+                     if ( time(NULL) > (i_now + 5) ) {
+                        notify(player, "global handler:  Aborted for high utilization.");
+                        mudstate.breakst=1;
+                        mudstate.chkcpu_toggle=1;
+                        break;
+                     }
+                  }
+                  mudstate.global_error_inside = i_trace;
+               } else {
+                  i_trace = 0;
+                  i_trace = mudstate.notrace;
+                  mudstate.notrace = 1;
+                  lcbuf_temp = exec(mudconf.global_error_obj, cause, cause, 
+                                    EV_EVAL | EV_FCHECK | EV_STRIP | EV_TOP, lcbuf,
+                                    arr_prog, narg_prog, (char **)NULL, 0);
+                  mudstate.notrace = i_trace;
+                  notify(player, lcbuf_temp);
+                  free_lbuf(lcbuf_temp);
+               }
                mudstate.nocodeoverride = 0;
-               notify(player, lcbuf_temp);
                free_lbuf(lcbuf);
-               free_lbuf(lcbuf_temp);
            }
         } else {
 	   notify(player, errmsg(player));

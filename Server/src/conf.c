@@ -360,6 +360,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
     mudstate.iter_special = 0;		/* iter inf special */
@@ -453,6 +454,7 @@ NDECL(cf_init)
     mudconf.global_clone_player = -1; /* Player Global Clone for Attribute Cloning */
     mudconf.global_clone_exit = -1; /* Exit Global Clone for Attribute Cloning */
     mudconf.global_error_obj = -1; /* Global Error Object for all 'nonexisting' commands - @va */
+    mudconf.global_error_cmd = 0; /* Global Error Object allows commands -- could cause loops */
     mudconf.global_attrdefault = -1; /* Global Attribute Handler for Locks */
     mudconf.signal_object = -1; /* Signal handling object */
     mudconf.signal_object_type = 0; /* Signal object handling type */
@@ -4180,6 +4182,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.global_error_obj, 0, 0, CA_PUBLIC,
      (char *) "Object who's @va is executed for non-cmds.\r\n"\
               "                             Default: -1   Value: %d"},
+    {(char *) "global_error_cmd",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.global_error_cmd, 0, 0, CA_WIZARD,
+     (char *) "Do global error objects allow executing commands?"},
     {(char *) "global_parent_exit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.global_parent_exit, 0, 0, CA_PUBLIC,
      (char *) "Object that EXIT attributes are inherited from.\r\n"\

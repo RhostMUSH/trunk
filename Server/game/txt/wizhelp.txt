@@ -6253,16 +6253,16 @@
   gdbm_database           global_aconnect            global_adisconnect 
   global_ansimask         global_attrdefault         global_clone_exit  
   global_clone_obj        global_clone_player        global_clone_room  
-  global_clone_thing      global_error_obj           global_parent_exit
-  global_parent_obj       global_parent_player       global_parent_room
-  global_parent_thing     good_name                  goodmail_host  
-  gconf_file              guest_char_num             guest_file 
-  guest_namelist          guest_randomize            guild_attrname  
-  guild_default           guild_hdr                  hackattr_nowiz
-  hackattr_see            hasattrp_compat            heavy_cpu_max 
-  help_file               help_index                 help_separator
-  hide_nospoof            hook_cmd                   hook_obj               
-  hook_offline
+  global_clone_thing      global_error_cmd           global_error_obj         
+  global_parent_exit      global_parent_obj          global_parent_player     
+  global_parent_room      global_parent_thing        good_name                
+  goodmail_host           gconf_file                 guest_char_num           
+  guest_file              guest_namelist             guest_randomize          
+  guild_attrname          guild_default              guild_hdr                
+  hackattr_nowiz          hackattr_see               hasattrp_compat          
+  heavy_cpu_max           help_file                  help_index               
+  help_separator          hide_nospoof               hook_cmd                 
+  hook_obj                hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7947,6 +7947,16 @@
     
   See Also: ATRLOCK
 
+& global_error_cmd
+  Config parameter: global_error_cmd <yes/no>.   Default: no (0)
+  
+  This will specify if the global_error_obj error handling will handle
+  commands and not just functions.  There is built in protection against
+  looping but you should still be careful with the instance when using
+  this option.
+  
+  See Also: global_error_obj
+
 & global_error_obj
   Config parameter: global_error_obj <dbref>.    Default: -1
   
@@ -7976,6 +7986,8 @@
     Test
     > @pmit me=Test
     You typed '@pmit me=Test'
+  
+  See Also: global_error_cmd
 
 & global_clone_obj
   Config parameter: global_clone_obj <dbref>.    Default: -1
