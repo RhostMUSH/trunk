@@ -36043,7 +36043,7 @@ FUN flist[] =
 #ifdef USECRYPT
     {"DECRYPT", fun_decrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
-    {"DEFAULT", fun_default, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"DEFAULT", fun_default, 2, FN_NO_EVAL, CA_PUBLIC, 0},
     {"DELETE", fun_delete, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"DELEXTRACT", fun_delextract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -36104,7 +36104,7 @@ FUN flist[] =
     {"FOREACH", fun_foreach, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FULLNAME", fun_fullname, 1, 0, CA_PUBLIC, 0},
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"GET", fun_get, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GET", fun_get, 1, 0, CA_PUBLIC, 0},
     {"GET_EVAL", fun_get_eval, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
