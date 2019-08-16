@@ -32712,3 +32712,4 @@
   * initialized OpenSSL variable for mux password compat [ASH]
   * SSL connectivity didn't honor nodns/noguest/register/forbid [ASH]
   * SSL connectivity didn't honor suspect [ASH]
+  * doors could potentially hang for short durations on bad sites [ASH]

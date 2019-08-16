@@ -83,6 +83,10 @@ char *index(const char *, int);
 extern int ndescriptors;
 extern int maxd;
 
+extern int FDECL(alarm_msec, (double));
+extern double NDECL(next_timer);
+extern void FDECL(make_nonblocking, (int));
+
 static door_t **gaDoors = NULL;
 static int gnDoors = 0;
 #ifdef ENABLE_DOORS
@@ -377,10 +381,11 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)
     }
     else {
       hp = gethostbyname(host);
-      if (hp == NULL)
+      if (hp == NULL) {
 	new_port = -1;
-      else 
+      } else  {
 	bcopy(hp->h_addr, (char *)&(sin.sin_addr), sizeof(sin.sin_addr));
+      }
     }
     if (new_port != -1) {
       if (isdigit((int)*port)) {
@@ -394,25 +399,33 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)
 	  sin.sin_port = sp->s_port;
       }
       new_port = socket(AF_INET, SOCK_STREAM, 0);
-      if (new_port < 0)
+      if (new_port < 0) {
 	new_port = -1;
-      else {
+      } else {
+        make_nonblocking(new_port);
 	sin.sin_family = AF_INET;
+        alarm_msec(3);
 	if (connect(new_port, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-	  close(new_port);
-	  new_port = -1;
+           if( errno != EINPROGRESS ) {
+	      close(new_port);
+	      new_port = -1;
+           } else {
+	      ndescriptors++;
+	      if (new_port >= maxd)
+	        maxd = new_port + 1;
+	      new_port = setup_player(d, new_port, doorIdx);
+           }
 	} else {
 	  ndescriptors++;
 	  if (new_port >= maxd)
 	    maxd = new_port + 1;
 	  new_port = setup_player(d, new_port, doorIdx);
 	}
+        mudstate.alarm_triggered = 0;
+        alarm_msec(next_timer());
       }
     }
   }
-  
-
-  
   RETURN(new_port); /* 6 */
 }
 
