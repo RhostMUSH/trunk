@@ -134,7 +134,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
   } 
   country = args[0];
   password = args[1];
-  sprintf(buf2, "%s %s", "localhost", "1665");
+  sprintf(buf2, "%s %s", "localhost", "6665");
 
 /*pt = doorparm("empire"); */
   pt = buf2;
@@ -149,7 +149,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     return -1;
   }
   *pt2 = '\0';
-  sock_req = door_tcp_connect(pt,pt2+1, d, id);
+  sock_req = door_tcp_connect(pt,pt2+1, d, id, 0);
 
   if (sock_req < 0) {
     queue_string(desc_in_use, "Connection to empire server failed.\r\n");

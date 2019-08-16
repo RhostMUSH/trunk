@@ -32,7 +32,7 @@ int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
      if ( s_addy )
         s_port = strtok_r(NULL, " \t\r\n", &s_strtok);
      if ( s_addy && s_port )
-        sock = door_tcp_connect(s_addy, s_port, d, id);
+        sock = door_tcp_connect(s_addy, s_port, d, id, 1);
      else
         sock = -1;
      if (sock < 0) {

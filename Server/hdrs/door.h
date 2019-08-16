@@ -40,7 +40,7 @@ typedef struct _door {
 /* Public prototypes */
 extern void FDECL(door_raw_input, (DESC *, char *));
 extern void FDECL(door_raw_output, (DESC *, char *));
-extern int FDECL(door_tcp_connect, (char *, char *, DESC *, int));
+extern int FDECL(door_tcp_connect, (char *, char *, DESC *, int, int));
 extern int FDECL(door_connect, (char *, char *, DESC *, int));
 extern int FDECL(process_door_output, (DESC *));
 extern int FDECL(process_door_input, (DESC *));

@@ -365,7 +365,7 @@ static int setup_player(DESC *d, int sock, int doorIdx) {
   return sock;
 }
 
-int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)
+int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonblock)
 {
   int new_port;
   struct servent *sp;
@@ -402,7 +402,9 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx)
       if (new_port < 0) {
 	new_port = -1;
       } else {
-        make_nonblocking(new_port);
+        if ( i_nonblock ) {
+           make_nonblocking(new_port);
+        }
 	sin.sin_family = AF_INET;
         alarm_msec(3);
 	if (connect(new_port, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
