@@ -155,7 +155,7 @@ if [ "$timeoutchk" != "$timeoutnew" ]; then
    timeoutnew=$timeoutdef
 fi
 
-timeoutexp=`expr $timeoutnew * 3600`
+timeoutexp=`expr $timeoutnew \* 3600`
 
 if [ -z "$sslport" ]; then
     sslport=$sslporttmp
