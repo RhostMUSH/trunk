@@ -534,20 +534,20 @@
 & topics
   Help available on the following Topics:
  
-  ALT INVENTORIES          ATTRIB CONTLOCKS         ATTRIB FORMATTING     
-  AUTOREGISTRATION         API                      CAUTIONS         
-  CLOAKING                 CONFIG PARAMETERS        CONTROL          
-  CPU                      CUSTOMIZED CONNECT       DEBUG FEATURES   
-  DEPOWER LIST             ELSEFILE SETUP           FILES               
-  FLAGS                    FLAG ALIAS               FUNCTION OVERLOADING  
-  GLOBAL INHERITANCE       GUEST SETUP              HELP SETUP       
-  HOOK SETUP               HUH SETUP                INHERITANCE      
-  LOGGING                  MAIL ALIASES             MASTER ROOM           
-  NEWS SETUP               PERMISSIONS              PLUSHELP SETUP     
-  POWER LIST               PROXY SETUP              REALITY LEVELS   
-  SEARCH CRITERIA          SIGNALS                  SITE LISTS       
-  SPECIAL ATTRIBS          SSL SETUP                TOGGLES                
-  TOR                
+  ALT INVENTORIES          ANCESTORS                ATTRIB CONTLOCKS       
+  ATTRIB FORMATTING        AUTOREGISTRATION         API                    
+  CAUTIONS                 CLOAKING                 CONFIG PARAMETERS      
+  CONTROL                  CPU                      CUSTOMIZED CONNECT     
+  DEBUG FEATURES           DEPOWER LIST             ELSEFILE SETUP         
+  FILES                    FLAGS                    FLAG ALIAS             
+  FUNCTION OVERLOADING     GLOBAL INHERITANCE       GUEST SETUP            
+  HELP SETUP               HOOK SETUP               HUH SETUP              
+  INHERITANCE              LOGGING                  MAIL ALIASES           
+  MASTER ROOM              NEWS SETUP               PERMISSIONS            
+  PLUSHELP SETUP           POWER LIST               PROXY SETUP           
+  REALITY LEVELS           SEARCH CRITERIA          SIGNALS                
+  SITE LISTS               SPECIAL ATTRIBS          SSL SETUP              
+  TOGGLES                  TOR                
 
 & API
   Topic: API
@@ -1047,6 +1047,8 @@
   %0 to the attribute).  You need to specify the target attribute DEFAULT
   to inherit the formatting (locally or globally works).
   
+  You may specify '@list options values *_attr_default' to see values.
+  
   For example:
     > @admin player_attr_default=3
     > @desc #3=%t-< %0 >-
@@ -1061,6 +1063,8 @@
             exit_attr_default
  
 & global parenting
+  Topic: global auto-parenting (auto-@parenting)
+  
   Global parents are issued through 4 global attributes.  These actually
   set a @parent on the target matching the global attribute.  All checks,
   consistancy, and sanity filtering is done prior to the @parent set.
@@ -1071,6 +1075,8 @@
         room_parent       (for room types)
         exit_parent       (for exit types)
   
+  You may specify '@list options values *_parent' to see values.
+  
   For example:
     > @admin player_parent=3
     > @pcreate MyTestPlayer=goober
@@ -1079,7 +1085,11 @@
   
   See Also: player_parent, thing_parent, room_parent, exit_parent
 
+& ancestors
+& global inheritance
 & global attributes
+  Topic: global inherintance (ancestors)
+  
   Global attributes works similiarilly to global parenting, except no actual
   @parent is set on any target nor required.  There are actually 6 different
   parameters for global inheritance.  These are:
@@ -1100,6 +1110,8 @@
   
   Please note that global_parent_obj will not be used if there exists a 
   specified type global parent (ie: global_parent_player).
+  
+  You may specify '@list options values global_parent*' to see values.
   
   See Also: global_parent_obj, global_parent_player, global_parent_thing, 
             global_parent_room, global_parent_exit, zone_parents
@@ -8003,6 +8015,8 @@
   See Also: global_clone_thing, global_clone_room, global_clone_exit,
             global_clone_player
 
+& ancestor obj
+& ancestor_obj
 & global_parent_obj
   Config parameter: global_parent_obj <dbref>.    Default: -1
   
@@ -8019,6 +8033,8 @@
   
       Self -> @parent -> Zone -> Global Parent Type -> Global Parent Object
   
+  You may specify '@list options values global_parent*' to see values.
+  
   See Also: room_parent, thing_parent, exit_parent, player_parent,
             global_parent_room, global_parent_thing, global_parent_exit,
             global_parent_player
@@ -8034,6 +8050,8 @@
   See Also: global_clone_thing, global_clone_room, global_clone_obj,
             global_clone_player
 
+& ancestor exit
+& ancestor_exit
 & global_parent_exit
   Config parameter: global_parent_exit <dbref>.    Default: -1
   
@@ -8044,6 +8062,8 @@
   garbage and/or recovery data types.
   
   This only effects exits.
+  
+  You may specify '@list options values global_parent*' to see values.
   
   See Also: global_parent_room, global_parent_thing, global_parent_player
             global_parent_obj
@@ -8059,6 +8079,8 @@
   See Also: global_clone_thing, global_clone_exit, global_clone_obj,
             global_clone_player
 
+& ancestor room
+& ancestor_room
 & global_parent_room
   Config parameter: global_parent_room <dbref>.    Default: -1
   
@@ -8069,6 +8091,8 @@
   garbage and/or recovery data types.
   
   This only effects rooms.
+  
+  You may specify '@list options values global_parent*' to see values.
   
   See Also: global_parent_exit, global_parent_thing, global_parent_player
             global_parent_obj
@@ -8084,6 +8108,8 @@
   See Also: global_clone_room, global_clone_exit, global_clone_obj,
             global_clone_player
 
+& ancestor thing
+& ancestor_thing
 & global_parent_thing
   Config parameter: global_parent_thing <dbref>.    Default: -1
   
@@ -8094,6 +8120,8 @@
   garbage and/or recovery data types.
   
   This only effects things.
+  
+  You may specify '@list options values global_parent*' to see values.
   
   See Also: global_parent_exit, global_parent_room, global_parent_player
             global_parent_obj
@@ -8109,6 +8137,8 @@
   See Also: global_clone_room, global_clone_exit, global_clone_obj,
             global_clone_thing
 
+& ancestor player
+& ancestor_player
 & global_parent_player
   Config parameter: global_parent_player <dbref>.    Default: -1
   
@@ -8119,6 +8149,8 @@
   garbage and/or recovery data types.
   
   This only effects players.
+  
+  You may specify '@list options values global_parent*' to see values.
   
   See Also: global_parent_exit, global_parent_room, global_parent_thing
             global_parent_obj

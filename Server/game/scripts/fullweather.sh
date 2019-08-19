@@ -6,4 +6,4 @@ then
    exit 1
 fi
 export LANG=en_US
-lynx -width=1000 --dump wttr.in/$1
+lynx -width=1000 --dump wttr.in/$1|grep -e "^[+|]"|sed "s/mph /mph/g"|sed "s/\.\.\./ /g"
