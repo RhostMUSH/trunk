@@ -10986,7 +10986,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             /* say check */
             found = 0;
             ap2 = atr_str("M_SAY");
-            if ( ap ) {
+            if ( ap2 ) {
                sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
                if ( sub_buff2 && *sub_buff2 ) {
                   notify(player, unsafe_tprintf("%-32s | %s", (char *)"say, \"", "ENABLED"));
@@ -11001,7 +11001,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             /* pose check */
             found = 0;
             ap2 = atr_str("M_POSE");
-            if ( ap ) {
+            if ( ap2 ) {
                sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
                if ( sub_buff2 && *sub_buff2 ) {
                   notify(player, unsafe_tprintf("%-32s | %s", (char *)"pose, :, ;", "ENABLED"));
@@ -11014,7 +11014,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             }
             found = 0;
             ap2 = atr_str("M_@emit");
-            if ( ap ) {
+            if ( ap2 ) {
                sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
                if ( sub_buff2 && *sub_buff2 ) {
                   notify(player, unsafe_tprintf("%-32s | %s", (char *)"@emit, \\\\", "ENABLED"));
