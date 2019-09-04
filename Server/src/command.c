@@ -10969,8 +10969,63 @@ void do_hook(dbref player, dbref cause, int key, char *name)
             }
             free_sbuf(sub_ptrbuff);
          }
-         if ( !found )
+         if ( !found ) {
             notify(player, unsafe_tprintf("%20s -- No percent substitions defined --", " "));
+         }
+         notify(player, unsafe_tprintf("%.32s-+-%s",
+                "--------------------------------",
+                "--------------------------------------------"));
+         notify(player, unsafe_tprintf("%.32s-+-%s",
+                "--------------------------------",
+                "--------------------------------------------"));
+         notify(player, unsafe_tprintf("%-32s | %s", "Say/Pose/@emit Morgrifies", "Morgrify Status"));
+         notify(player, unsafe_tprintf("%.32s-+-%s",
+                "--------------------------------",
+                "--------------------------------------------"));
+         if ( Good_chk(mudconf.hook_obj) ) {
+            /* say check */
+            found = 0;
+            ap2 = atr_str("M_SAY");
+            if ( ap ) {
+               sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
+               if ( sub_buff2 && *sub_buff2 ) {
+                  notify(player, unsafe_tprintf("%-32s | %s", (char *)"say, \"", "ENABLED"));
+                  found = 1;
+               }
+               free_lbuf(sub_buff2);
+            }
+            if ( !found ) {
+               notify(player, unsafe_tprintf("%-32s | %s", (char *)"say, \"", "DISABLED"));
+            }
+
+            /* pose check */
+            found = 0;
+            ap2 = atr_str("M_POSE");
+            if ( ap ) {
+               sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
+               if ( sub_buff2 && *sub_buff2 ) {
+                  notify(player, unsafe_tprintf("%-32s | %s", (char *)"pose, :, ;", "ENABLED"));
+                  found = 1;
+               }
+               free_lbuf(sub_buff2);
+            }
+            if ( !found ) {
+               notify(player, unsafe_tprintf("%-32s | %s", (char *)"pose, :, ;", "DISABLED"));
+            }
+            found = 0;
+            ap2 = atr_str("M_@emit");
+            if ( ap ) {
+               sub_buff2 = atr_pget(mudconf.hook_obj, ap2->number, &aobj, &aflags);
+               if ( sub_buff2 && *sub_buff2 ) {
+                  notify(player, unsafe_tprintf("%-32s | %s", (char *)"@emit, \\\\", "ENABLED"));
+                  found = 1;
+               }
+               free_lbuf(sub_buff2);
+            }
+            if ( !found ) {
+               notify(player, unsafe_tprintf("%-32s | %s", (char *)"@emit, \\\\", "DISABLED"));
+            }
+         }
          notify(player, unsafe_tprintf("%.32s-+-%s",
                 "--------------------------------",
                 "--------------------------------------------"));

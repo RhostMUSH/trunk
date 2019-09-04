@@ -543,11 +543,11 @@
   FUNCTION OVERLOADING     GLOBAL INHERITANCE       GUEST SETUP            
   HELP SETUP               HOOK SETUP               HUH SETUP              
   INHERITANCE              LOGGING                  MAIL ALIASES           
-  MASTER ROOM              NEWS SETUP               PERMISSIONS            
-  PLUSHELP SETUP           POWER LIST               PROXY SETUP           
-  REALITY LEVELS           SEARCH CRITERIA          SIGNALS                
-  SITE LISTS               SPECIAL ATTRIBS          SSL SETUP              
-  TOGGLES                  TOR                
+  MASTER ROOM              MOGRIFY                  NEWS SETUP             
+  PERMISSIONS              PLUSHELP SETUP           POWER LIST             
+  PROXY SETUP              REALITY LEVELS           SEARCH CRITERIA        
+  SIGNALS                  SITE LISTS               SPECIAL ATTRIBS        
+  SSL SETUP                TOGGLES                  TOR                
 
 & API
   Topic: API
@@ -5376,7 +5376,9 @@
   
   This command will set up 'hooks' to be applied to various commands or
   attributes.  You may specify multiple hooks on items.  The HOOK_OBJ is
-  an @admin param that specifies the hook object.  The following hooks exist:
+  an @admin param that specifies the hook object.  
+  
+  The following hooks exist:
          /before    - Set up a BEFORE hook on a command.  This will execute
                       functionality BEFORE the command/attribute is done.
                       The attribute is 'b_<command>' on the HOOK_OBJ.
@@ -5429,8 +5431,16 @@
     ---------------------------------+---------------------------------------
                          -- No percent substitions defined --
     ---------------------------------+---------------------------------------
+    Say/Pose/@emit Morgrifies        | Morgrify Status
+    ---------------------------------+---------------------------------------------
+    say, "                           | DISABLED
+    pose, :, ;                       | DISABLED
+    @emit, \\                        | DISABLED
+    ---------------------------------+---------------------------------------------
+    The hook object is currently: #123 (VALID)
   
-  See Also: hook_obj, hook_cmd, HOOK SETUP, sub_override, sub_include
+  See Also: hook_obj, hook_cmd, HOOK SETUP, sub_override, sub_include,
+            morgrify
 
 & @limit
   Command: @limit[/<switch>] <player> [=<newvalue>]
@@ -8359,6 +8369,37 @@
   
   See Also: HOOK SETUP, @hook, hook_obj, hook_offline
                       
+& morgrification
+& mogrify
+& hook_mogrifiers
+& hook_mogrify
+  Config parameter: hook_obj (Topic: morgrify)
+   
+  This requires a valid hook_obj to be set.  See wizhelp on hook_obj.
+  
+  Mogrifiers are special conditionals for the hook object.  They will
+  only mogrify say, pose, and @emit.  If they exist, they are always
+  on.  The following morgrifiers are allowable:
+         M_SAY    -- this handles 'say' and the '"' shorthand.
+         M_POSE   -- this handles 'pose' and the ':'/';' shorthand.
+         M_@EMIT  -- this handles '@emit' and the '\\' shorthand.
+  
+  When these attributes exist on the hook object, the command is
+  then on morgrified.  If the morgrification returns an empty string,
+  the command is not executed and is ignored.  Morgrification is done
+  through function evaluation.  
+  
+  The following special arguments are allowable to the morgrifier.
+    %0 - the 'finished' output of what say, pose, or @emit would show.
+    %1 - the 'raw' output of what the target typed in.
+    %2 - the dbref# of the target triggering the command.
+    %3 - (Only for pose) -- boolean set to '1' if a pose/nospace (;)
+  
+  The only way to disable morgrification of a command is to move, or
+  remove, the M_ attribute.
+  
+  See Also: @hook, hook_obj
+   
 & hook_obj
   Config parameter: hook_obj <dbref>.  Default: -1
   
@@ -8371,7 +8412,7 @@
           B_<command> - before configuration
          AF_<command> - fail configuration
          AO_<command> - after offline (connect screen) configuration 
-   
+          M_<command> - Morgrification.  See 'help hook_morgrify'
   Percent substitutions are handled differently than normal '@hooks' and
   can be seen with reviewing wizhelp on 'sub_override'.
   
@@ -8383,7 +8424,7 @@
                                 HOOK SETUP
   
   See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
-            hook_offline
+            hook_offline, hook_morgrify
   
 & hook_offline
   Config parameter: hook_offline <on/off>.  Default: off

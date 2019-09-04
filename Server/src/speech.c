@@ -105,14 +105,19 @@ void do_think (dbref player, dbref cause, int key, char *message)
 void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
-  char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff;
-  int	say_flags, depth, aflags, say_flags2, no_ansi;
+  char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_morgrify, *s_execmorgrify, *s_array[4], *s_trash;
+  int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify, i_atr;
+  ATTR  *atr_p;
   
 	/* Convert prefix-coded messages into the normal type */
         no_ansi = key & (SAY_NOANSI);
         say_flags2 = key & (SAY_SUBSTITUTE);
 	say_flags  = key & (SAY_NOTAG|SAY_HERE|SAY_ROOM);
 	key &= ~(SAY_NOTAG|SAY_HERE|SAY_ROOM|SAY_SUBSTITUTE|SAY_NOANSI);
+        s_morgrify = NULL;
+        s_execmorgrify = NULL;
+        i_morgrify = 0;
+        i_atr = -1;
 
 	if (key == SAY_PREFIX) {
 		switch (*message++) {
@@ -173,64 +178,412 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
+                if ( Good_chk(mudconf.hook_obj) ) {
+                   atr_p = atr_str4("M_SAY");
+                   if ( atr_p ) {
+                      i_morgrify = 1;
+                   }
+                }
                 if ( SafeLog(player) ) {
                    if ( pbuf && *pbuf ) {
                       if ( no_ansi ) {
-		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		            noansi_notify(player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
+                         
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		            notify(player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
                    } else {
                       if ( no_ansi ) {
-		         noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		            noansi_notify(player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-		         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		            notify(player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
                    }
                 } else {
                    if ( no_ansi ) {
-		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = NULL;
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 3, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		         noansi_notify(player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-		      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "You say \"%s\"", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = NULL;
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 3, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+		         notify(player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
                 }
                 tprp_buff = tpr_buff;
                 if ( Anonymous(player) && Cloak(player) ) {
                    if ( pbuf && *pbuf ) {
 #ifdef REALITY_LEVELS
-                      
                       if ( no_ansi ) {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), MSG_NO_ANSI );
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, MSG_NO_ANSI);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #else
                       if ( no_ansi ) {
-                         noansi_notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            noansi_notify_except(loc, player, player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %.30s \"%s\"", pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #endif /* REALITY_LEVELS */
                    } else {
 #ifdef REALITY_LEVELS
                       if ( no_ansi ) {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), MSG_NO_ANSI);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, MSG_NO_ANSI);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #else
                       if ( no_ansi ) {
-                         noansi_notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            noansi_notify_except(loc, player, player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone says \"%s\"", message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -238,37 +591,229 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    if ( pbuf && *pbuf ) {
 #ifdef REALITY_LEVELS
                       if ( no_ansi ) {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message), MSG_NO_ANSI);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, MSG_NO_ANSI);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #else
                       if ( no_ansi ) {
-                         noansi_notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            noansi_notify_except(loc, player, player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #endif /* REALITY_LEVELS */
                    } else {
 #ifdef REALITY_LEVELS
                       if ( no_ansi ) {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message), MSG_NO_ANSI);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, MSG_NO_ANSI);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except_rlevel(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except_rlevel(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #else
                       if ( no_ansi ) {
-                         noansi_notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message));
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", Name(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            noansi_notify_except(loc, player, player, s_execmorgrify);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       } else {
-                         notify_except(loc, player, player,
-                              safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message), 0);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         if ( i_morgrify ) {
+                            s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                            if ( s_morgrify && *s_morgrify ) {
+                               s_array[0] = tpr_buff;
+                               s_array[1] = message;
+                               s_array[2] = alloc_lbuf("say_morg_dbref");
+                               s_array[3] = NULL;
+                               sprintf(s_array[2], "#%d", player);
+                               s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                        s_array, 3, (char **)NULL, 0);
+                               free_lbuf(s_array[2]);
+                            } else {
+                               i_morgrify = 0;
+                               s_execmorgrify = tpr_buff;
+                            }
+                            free_lbuf(s_morgrify);
+                         } else {
+                            s_execmorgrify = tpr_buff;
+                         }
+                         if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                            notify_except(loc, player, player, s_execmorgrify, 0);
+                         }
+                         if ( i_morgrify && s_execmorgrify ) {
+                            free_lbuf(s_execmorgrify);
+                         }
                       }
 #endif /* REALITY_LEVELS */
                    }
@@ -282,40 +827,254 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
+                if ( Good_chk(mudconf.hook_obj) ) {
+                   atr_p = atr_str4("M_POSE");
+                   if ( atr_p ) {
+                      i_morgrify = 1;
+                   }
+                }
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message), MSG_NO_ANSI);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message), 0);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #else
                    if ( no_ansi ) {
-                      noansi_notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone %s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #endif /* REALITY_LEVELS */
                 } else {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
-                      notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message), MSG_NO_ANSI);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_except_rlevel(loc, player, -1,
-                        safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message), 0);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #else
                    if ( no_ansi ) {
-                      noansi_notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", Name(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"0");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -327,40 +1086,254 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
+                if ( Good_chk(mudconf.hook_obj) ) {
+                   atr_p = atr_str4("M_POSE");
+                   if ( atr_p ) {
+                      i_morgrify = 1;
+                   }
+                }
                 if ( Anonymous(player) && Cloak(player) ) {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message), MSG_NO_ANSI);
+                       s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            sprintf(s_array[2], "#%d", player);
+                            strcpy(s_array[3], (char *)"1");
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message), 0);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #else
                    if ( no_ansi ) {
-                      noansi_notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "Someone%s", message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #endif /* REALITY_LEVELS */
                 } else {
 #ifdef REALITY_LEVELS
                    if ( no_ansi ) {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message), MSG_NO_ANSI);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_except_rlevel(loc, player, -1,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message), 0);
+                       s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #else
                    if ( no_ansi ) {
-                      noansi_notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", Name(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    } else {
-                      notify_all_from_inside(loc, player,
-                           safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message));
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message);
+                      if ( i_morgrify ) {
+                         s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                         if ( s_morgrify && *s_morgrify ) {
+                            s_array[0] = tpr_buff;
+                            s_array[1] = message;
+                            s_array[2] = alloc_lbuf("say_morg_dbref");
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            strcpy(s_array[3], (char *)"1");
+                            sprintf(s_array[2], "#%d", player);
+                            s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                     s_array, 4, (char **)NULL, 0);
+                            free_lbuf(s_array[2]);
+                            free_lbuf(s_array[3]);
+                         } else {
+                            i_morgrify = 0;
+                            s_execmorgrify = tpr_buff;
+                         }
+                         free_lbuf(s_morgrify);
+                      } else {
+                         s_execmorgrify = tpr_buff;
+                      }
+                      if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                         notify_all_from_inside(loc, player, ss_execmorgrify);
+                      }
+                      if ( i_morgrify && s_execmorgrify ) {
+                         free_lbuf(s_execmorgrify);
+                      }
                    }
 #endif /* REALITY_LEVELS */
                 }
@@ -371,22 +1344,52 @@ void do_say (dbref player, dbref cause, int key, char *message)
 	case SAY_EMIT:
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
+                if ( Good_chk(mudconf.hook_obj) ) {
+                   atr_p = atr_str4("M_@EMIT");
+                   if ( atr_p ) {
+                      i_morgrify = 1;
+                   }
+                }
 	        if (say_flags2 & SAY_SUBSTITUTE)
 		  mudstate.emit_substitute = 1;
 		if ((say_flags & SAY_HERE) || !say_flags) {
+                   if ( i_morgrify ) {
+                      s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                      if ( s_morgrify && *s_morgrify ) {
+                         s_array[0] = message;
+                         s_array[1] = message;
+                         s_array[2] = alloc_lbuf("say_morg_dbref");
+                         s_array[3] = NULL;
+                         sprintf(s_array[2], "#%d", player);
+                         s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                  s_array, 3, (char **)NULL, 0);
+                         free_lbuf(s_array[2]);
+                      } else {
+                         i_morgrify = 0;
+                         s_execmorgrify = message;
+                      }
+                      free_lbuf(s_morgrify);
+                   } else {
+                      s_execmorgrify = message;
+                   }
+                   if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
 #ifdef REALITY_LEVELS
-                   if ( no_ansi ) {
-                      notify_except_rlevel(loc, player, -1, message, MSG_NO_ANSI);
-                   } else {
-                      notify_except_rlevel(loc, player, -1, message, 0);
-                   }
+                      if ( no_ansi ) {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                      } else {
+                         notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                      }
 #else
-                   if ( no_ansi ) {
-                      noansi_notify_all_from_inside(loc, player, message);
-                   } else {
-                      notify_all_from_inside(loc, player, message);
-                   }
+                      if ( no_ansi ) {
+                         noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                      } else {
+                         notify_all_from_inside(loc, player, s_execmorgrify);
+                      }
 #endif /* REALITY_LEVELS */
+                   }
+                   if ( i_morgrify && s_execmorgrify ) {
+                      free_lbuf(s_execmorgrify);
+                   }
                 }
 		if (say_flags & SAY_ROOM) {
                    if ((Typeof(loc) == TYPE_ROOM) && (say_flags & SAY_HERE)) {
@@ -405,20 +1408,44 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          return;
                       }
                    }
-                   if (Typeof(loc) == TYPE_ROOM) {
+                   if ( i_morgrify ) {
+                      s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
+                      if ( s_morgrify && *s_morgrify ) {
+                         s_array[0] = message;
+                         s_array[1] = message;
+                         s_array[2] = alloc_lbuf("say_morg_dbref");
+                         s_array[3] = NULL;
+                         sprintf(s_array[2], "#%d", player);
+                         s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
+                                                  s_array, 3, (char **)NULL, 0);
+                         free_lbuf(s_array[2]);
+                      } else {
+                         i_morgrify = 0;
+                         s_execmorgrify = message;
+                      }
+                      free_lbuf(s_morgrify);
+                   } else {
+                      s_execmorgrify = message;
+                   }
+                   if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
+                      if (Typeof(loc) == TYPE_ROOM) {
 #ifdef REALITY_LEVELS
-                      if ( no_ansi ) {
-                         notify_except_rlevel(loc, player, -1, message, MSG_NO_ANSI);
-                      } else {
-                         notify_except_rlevel(loc, player, -1, message, 0);
-                      }
+                         if ( no_ansi ) {
+                            notify_except_rlevel(loc, player, -1, s_execmorgrify, MSG_NO_ANSI);
+                         } else {
+                            notify_except_rlevel(loc, player, -1, s_execmorgrify, 0);
+                         }
 #else
-                      if ( no_ansi ) {
-                         noansi_notify_all_from_inside(loc, player, message);
-                      } else {
-                         notify_all_from_inside(loc, player, message);
-                      }
+                         if ( no_ansi ) {
+                            noansi_notify_all_from_inside(loc, player, s_execmorgrify);
+                         } else {
+                            notify_all_from_inside(loc, player, s_execmorgrify);
+                         }
 #endif /* REALITY_LEVELS */
+                      }
+                   }
+                   if ( i_morgrify && s_execmorgrify ) {
+                      free_lbuf(s_execmorgrify);
                    }
 		}
                 mudstate.posesay_fluff = 0;
