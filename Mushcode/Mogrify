@@ -10,7 +10,7 @@
 @@
 @@ This is a suite that uses a cingle color for all messaging, including on @emit.  'says' in @emit and pose are highlighted, says are not themselves
 @@ if a player has an attribute existing called 'NOCOLOR' it won't colorize their name
-&M_SAY #HOOKOBJ=[ifelse(hastoggle(%2,variable),%k,%n)] [default(%2/saystring,says%,)] [localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(ifelse(!hasattr(%i0,NOCOLOR),get(#41/namecolor)),$1)])),,)]"%qz")]
+&M_SAY #HOOKOBJ=[ifelse(hastoggle(%2,variable),%k,%n)] [default(%2/saystring,says%,)] [localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(ifelse(!hasattr(%i0,NOCOLOR),get(#41/namecolor)),$1)])),,)]"[editansi(%qz,n,h)]")]
 &M_POSE #HOOKOBJ=[parsestr([ifelse(%3,;,:)][localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(ifelse(!hasattr(%i0,NOCOLOR),get(#41/namecolor)),$1)])),,)]%qz)],editansi(%0,n,h),",",,&[ifelse(hastoggle(%2,variable),%k,%n)])]
 &M_@EMIT #HOOKOBJ=[parsestr([localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(ifelse(!hasattr(%i0,NOCOLOR),get(#41/namecolor)),$1)])),,)][editansi(%qz,n,h)])],editansi(%0,n,h),",")]
 @@ global color of namesis cyan
