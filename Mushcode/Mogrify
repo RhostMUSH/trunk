@@ -1,8 +1,9 @@
-@@ This colorizes names in poses and says that match a players C_<dbref> attribute.  So if Bob had dbref #123, then C_#123 with a contents of 'r' would make
-@@ bob's name 'red'
+@@ This will colorize based on  the target players color specification.  &NAMECOLOR me=<ansi-color>.  It only does single color highlights and does this intentionally
+@@ Example: &NAMECOLOR *bob=hr  --> bob's name 'red'
+@@
 @@ Colorize all of say
-&M_SAY #HOOKOBJ=[ifelse(hastoggle(%2,variable),%k,%n)] [default(%2/saystring,says%,)] [localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%#/C_%i0),$1)])),,)]"%qz")]
+&M_SAY #HOOKOBJ=[ifelse(hastoggle(%2,variable),%k,%n)] [default(%2/saystring,says%,)] [localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%i0/namecolor),$1)])),,)]"%qz")]
 @@ Colorize all of pose within 'say' area
-&M_POSE #HOOKOBJ=[parsestr([ifelse(%3,;,:)]%1,[localize([setq(z,%0)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%#/C_%i0),$1)])),,)]%qz)],",",,&[ifelse(hastoggle(%2,variable),%k,%n)])]
+&M_POSE #HOOKOBJ=[parsestr([ifelse(%3,;,:)]%1,[localize([setq(z,%0)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%i0/namecolor),$1)])),,)]%qz)],",",,&[ifelse(hastoggle(%2,variable),%k,%n)])]
 @@ Colorize allofpose and highlight say area
-&M_POSE #HOOKOBJ=[parsestr([ifelse(%3,;,:)][localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%#/C_%i0),$1)])),,)]%qz)],editansi(%0,n,h),",",,&[ifelse(hastoggle(%2,variable),%k,%n)])]
+&M_POSE #HOOKOBJ=[parsestr([ifelse(%3,;,:)][localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(get(%i0/namecolor),$1)])),,)]%qz)],editansi(%0,n,h),",",,&[ifelse(hastoggle(%2,variable),%k,%n)])]
