@@ -8708,6 +8708,7 @@ struct timefmt_format {
   int specialpadder;
   int nolaster;
   int tabtospace;
+  int doindent;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -8926,7 +8927,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
        *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
@@ -8983,8 +8984,15 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
-             if ( *s == '\n' )
+             if ( *s == '\n' ) {
                 i_linecnt++;
+                if ( fm->doindent ) {
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      i_chk++;
+                   }
+                }
+             }
           }
           if ( idx > (LBUF_SIZE - 12) )
              break;
@@ -9002,10 +9010,16 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                 }
                 if ( *t ) 
                    t++;
-                i_chk = strlen(strip_all_special(t));
+                i_chk = strlen(strip_all_special(t)) + fm->doindent;
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
                 *t++ = '\r';
                 *t++ = '\n';
+                if ( fm->doindent ) {
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      idx++;
+                   }
+                }
                 u = s_padstring2;
                 while ( *u ) {
                    *t++ = *u++;
@@ -9013,7 +9027,16 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              } else {
                 *t++ = '\r';
                 *t++ = '\n';
-                i_chk = 0;
+                if ( fm->doindent ) {
+                   i_chk=0;
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      idx++;
+                      i_chk++;
+                   }
+                } else {
+                   i_chk = 0;
+                }
              }
              i_linecnt++;
              idx+=2;
@@ -10568,6 +10591,34 @@ FUNCTION(fun_printf)
                         fm.breakonreturn = 1;
                         formatpass = 1;
                         break;
+                     case ';': /* Indent with | option */
+                        if ( fm.fieldwidth == 0 ) {
+                           safe_str( "#-1 FIELD WIDTH EXPECTED PRIOR TO INDENT [WIDTH > 0]", s_errbuff, &s_errbuffptr );
+                           fmterror = 1;
+                           break;
+                        }
+                        if ( fm.doindent > 0 ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [INDENT NEXT LINE ALREADY SPECIFIED]", s_errbuff, &s_errbuffptr );
+                           fmterror = 1;
+                           break;
+                        } else {
+                           if ( *(pp+1) && (strchr(pp+1, ';') != NULL) ) {
+                              fm.doindent = atoi(pp+1);
+                              if ( fm.doindent < 0 )
+                                 fm.doindent = 0;
+                              if ( fm.doindent > (fm.fieldwidth - 1) )
+                                 fm.doindent = fm.fieldwidth - 1;
+                              pp = strchr(pp+1,';');
+                           } else {
+                              if ( fm.fieldwidth > 4 ) {
+                                 fm.doindent = 4;
+                              } else {
+                                 fm.doindent = fm.fieldwidth - 1;
+                              }
+                           }
+                        }
+                        formatpass = 1;
+                        break;
                      case '#': /* tabs to spaces */
                         if ( fm.tabtospace > 0 ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED [TAB TO SPACE ALREADY SPECIFIED]", s_errbuff, &s_errbuffptr );
@@ -10672,6 +10723,7 @@ FUNCTION(fun_printf)
                         fm.morepadd = 0;
                         fm.nolaster = 0;
                         fm.tabtospace = 0;
+			fm.doindent = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -10693,6 +10745,7 @@ FUNCTION(fun_printf)
                      fm.cutatlength_line = 0;
                      fm.nolaster = 0;
                      fm.tabtospace = 0;
+                     fm.doindent = 0;
                   }
                } /* For */
                pp--;

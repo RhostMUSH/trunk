@@ -13050,6 +13050,8 @@
     - - left justify the column
     | - wrap column if length of argument is greater than the field width
     " - wrap column on a space character (tab, space, etc) if possible
+    ; - handle indentation
+    / - handle cutting
    10 - set column width to 10 characters
     7 - set column width to 7 characters
   
@@ -13139,6 +13141,12 @@
              if uses the default of four (4) spaces.
                examples: #   -- Convert all tabs to 4 spaces
                          #7# -- Convert all tabs to 7 spaces
+         ; - indent the next wrapped line of text (used with | option only)
+             must be placed after the width value.  The maximum allowed
+             will be width - 1.  It will shorten to this if too large.
+             The maximum indent is 70 characters.
+               examples: ;   -- indent default 4 (or width - 1) spaces
+                         ;8; -- indent 8 spaces (or width -1) spaces
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
