@@ -8709,6 +8709,7 @@ struct timefmt_format {
   int nolaster;
   int tabtospace;
   int doindent;
+  int doindentline;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -8986,7 +8987,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              i_lastspace = 0;
              if ( *s == '\n' ) {
                 i_linecnt++;
-                if ( fm->doindent ) {
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
                       i_chk++;
@@ -9017,7 +9018,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
                 *t++ = '\r';
                 *t++ = '\n';
-                if ( fm->doindent ) {
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
                       idx++;
@@ -9032,7 +9033,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              } else {
                 *t++ = '\r';
                 *t++ = '\n';
-                if ( fm->doindent ) {
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
                    i_chk=0;
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
@@ -10615,6 +10616,14 @@ FUNCTION(fun_printf)
                                  fm.doindent = 0;
                               if ( fm.doindent > (fm.fieldwidth - 1) )
                                  fm.doindent = fm.fieldwidth - 1;
+                              if ( strchr(pp+1, '.') != NULL ) {
+                                 if ( strchr(pp+1, '.') < strchr(pp+1, ';') ) {
+                                    fm.doindentline = atoi(strchr(pp+1, '.')+1);
+                                    if ( fm.doindentline < 0 ) {
+                                       fm.doindentline = 0;
+                                    }
+                                 }
+                              }
                               pp = strchr(pp+1,';');
                            } else {
                               if ( fm.fieldwidth > 4 ) {
@@ -10731,6 +10740,7 @@ FUNCTION(fun_printf)
                         fm.nolaster = 0;
                         fm.tabtospace = 0;
 			fm.doindent = 0;
+			fm.doindentline = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -10753,6 +10763,7 @@ FUNCTION(fun_printf)
                      fm.nolaster = 0;
                      fm.tabtospace = 0;
                      fm.doindent = 0;
+                     fm.doindentline = 0;
                   }
                } /* For */
                pp--;

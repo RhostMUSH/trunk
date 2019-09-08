@@ -13144,9 +13144,11 @@
          ; - indent the next wrapped line of text (used with | option only)
              must be placed after the width value.  The maximum allowed
              will be width - 1.  It will shorten to this if too large.
-             The maximum indent is 70 characters.
-               examples: ;   -- indent default 4 (or width - 1) spaces
-                         ;8; -- indent 8 spaces (or width -1) spaces
+             The maximum indent is 70 characters.  A period followed by
+             a number will specify the line it should start indenting.
+               examples: ;     -- indent default 4 (or width - 1) spaces
+                         ;8;   -- indent 8 spaces (or width -1) spaces
+                         ;8.3; -- indent 8 spaces after line 3.
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
