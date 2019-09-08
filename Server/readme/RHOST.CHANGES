@@ -48,6 +48,8 @@ Duplicate entries possible with help suggestions.
 				- Thanks Alley
 Global parents (ancestors) should inherit from its own parents.
 				- Thanks Matrix
+parsestr() was missing a prefix handler for the | option.
+				- Thanks Aqua
 
 
                          RhostMUSH 3.9.5 Update File
