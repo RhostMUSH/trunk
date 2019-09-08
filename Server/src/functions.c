@@ -8990,6 +8990,9 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
                       i_chk++;
+                      idx++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
                    }
                 }
              }
@@ -9018,6 +9021,8 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
                       idx++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
                    }
                 }
                 u = s_padstring2;
@@ -9033,6 +9038,8 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                       *t++ = ' ';
                       idx++;
                       i_chk++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
                    }
                 } else {
                    i_chk = 0;
