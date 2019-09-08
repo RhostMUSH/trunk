@@ -28202,11 +28202,12 @@ FUNCTION(fun_parsestr)
 {
    char sep;
    char *s_tmpbuff, *s_fargs0, *s_fargs9, *args_ptr, *osep_pre, *osep_post, *savebuff[6],
-        *cp, *atextbuf, *atextbufptr, *c_transform, *p_transform, *target_result, *objstring, *result;
+        *cp, *atextbuf, *atextbufptr, *c_transform, *p_transform, *target_result, *objstring, *result,
+        *emit_result;
    int aflags, i_cntr, first, i_pass, i_type;
    dbref aname, target;
 
-   if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
+   if (!fn_range_check("PARSESTR", nfargs, 2, 11, buff, bufcx))
      return;
 
    if ( !*fargs[0] )
@@ -28303,6 +28304,13 @@ FUNCTION(fun_parsestr)
          }
          free_lbuf(s_tmpbuff);
       }
+   }
+
+   /* EMIT special prefix handling */
+   emit_result = NULL;
+   if ( (nfargs > 10) && *fargs[10] ) {
+      emit_result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                         fargs[10], cargs, ncargs, (char **)NULL, 0);
    }
 
    /* Handle FARGS8 -- Over-handler to check for transform evaluation */
@@ -28403,6 +28411,9 @@ FUNCTION(fun_parsestr)
            safe_str(s_fargs0+1, atextbuf, &atextbufptr);
      /* Handle emotes/emits */
      } else if ( *s_fargs0 == '|' ) {
+        if ( emit_result && *emit_result ) {
+           safe_str(emit_result, atextbuf, &atextbufptr);
+        }
         safe_str(s_fargs0+1, atextbuf, &atextbufptr);
      } else {
         safe_str(savebuff[1], atextbuf, &atextbufptr);
@@ -28463,17 +28474,20 @@ FUNCTION(fun_parsestr)
      }
      result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, 
                    atextbuf, savebuff, 5, (char **)NULL, 0);
-     if ( first )
+     if ( first ) {
        safe_str(osep_pre, buff, bufcx);
+     }
      first = 1;
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
    free_lbuf(atextbuf);
-   if ( c_transform )
+   if ( c_transform ) {
       free_lbuf(c_transform);
-   if ( p_transform )
+   }
+   if ( p_transform ) {
       free_lbuf(p_transform);
+   }
    free_lbuf(savebuff[0]);
    free_lbuf(savebuff[1]);
    free_lbuf(savebuff[2]);
@@ -28483,6 +28497,9 @@ FUNCTION(fun_parsestr)
    free_lbuf(osep_post);
    free_lbuf(s_fargs0);
    free_lbuf(s_fargs9);
+   if ( emit_result ) {
+      free_lbuf(emit_result);
+   }
 }
 
 /* ---------------------------------------------------------------------------

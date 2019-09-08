@@ -23475,8 +23475,8 @@
   
 & PARSESTR()
   Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
-                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
-                       [,<prefix>]]]]])
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>
+                       [,<prefix> [,<oocprefix>]]]]]]])
   
   This function takes an input string and parses it, based on the 
   delimiters, in a 'staggered' method, and passes each substring to
@@ -23499,6 +23499,7 @@
                    processing on. (good for punctuation)
     <transeval> -- How you wish to parse the special processing string.
     <prefix>    -- The optional eval'd prefix to use for the 'say' string.
+    <oocprefix> -- optional prefix to use when the @emit (|) option used.
   
   Note on <eval>: All arguments passed will be as in the <eval> and <transeval>
             %0  -- The string being passed for evaluation.      
@@ -32699,6 +32700,7 @@
   * SPEECH_PREFIX/SPEECH_SUFFIX inherit from parents [ASH]
   * Modified source so using STUNNEL no longer requires SSL libs [ASH]
   * Array handled to split on char and not 'word' [ASH]
+  * parsestr has new argument to special prefix @emit handling [ASH]
   
   Bug Fixes
   ------------
