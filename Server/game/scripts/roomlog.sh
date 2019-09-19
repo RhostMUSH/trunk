@@ -4,16 +4,17 @@ then
    echo -e "Which room log do you wish to view?"
    cntr=0
    cd roomlogs
-   for i in $(ls room*)
+   for i in $(ls *)
    do
       lc_lines="$(wc -l $i|awk '{print $1}')"
       lc_pages="$(expr ${lc_lines} / 20 + 1)"
-      if [ $(expr $cntr % 3) -eq 0 ]
+      if [ $(expr $cntr % 2) -eq 0 ]
       then
-         printf "\n%-18s [%d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
+         printf "\n%-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
       else
-         printf "n%-18s [%d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
+         printf "        %-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
       fi
+      ((cntr++))
    done
 else
    lc_file=$(echo "$@"|awk '{print $1}')
@@ -27,7 +28,7 @@ else
    then
       lc_page=1
    fi
-   lc_chk="$(echo "${lc_file}"|grep -c "^room")"
+   lc_chk="$(echo "${lc_file}"|grep -c "^[a-z0-9A-Z_-]")"
    if [ "${lc_chk}" -eq 0 ]
    then
       echo -e "Invalid room log name."
@@ -36,7 +37,7 @@ else
       echo -e "Invalid room log name."
    else
       ((lc_pagestart=((${lc_page}-1)*20)+1))
-      ((lc_pageend=${lc_pagestart}+20))
+      ((lc_pageend=${lc_pagestart}+19))
       echo "------------------------------------------------------------------------------"
       sed -n "${lc_pagestart},${lc_pageend}p" roomlogs/${lc_file}.log
       echo -e "------------------------------------------------------------------------------"
