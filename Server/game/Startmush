@@ -2,6 +2,33 @@
 #
 #	Startmush - Kick off the netmush process.
 #
+lc_chk=`echo "$1"|tr '[:upper:]' '[:lower:]'`
+case "${lc_chk}" in
+   -h|--help|-help) # help entry
+      echo "Syntax: $0 [-h|-f|-i|-cyg]"
+      echo "        -h   -- show this screen"
+      echo "        -f   -- force Startmush to overwrite shared memory segment."
+      echo "        -i   -- reindex all txt files then exit."
+      echo "        -cyg -- force a CYGWIN/Win10-Bash run for Startmush"
+      exit 0
+      ;;
+   -i) # reindex
+      for files in `grep -l "^& " txt/*.txt`
+      do
+         basename /dev/null > /dev/null 2>&1
+         if [ $? -eq 0 ]
+         then
+            lc_basename=`basename ${files}`
+         else
+            lc_basename=`echo "${files}"|grep -o '[^/]*$'`
+         fi
+         lc_indx="`echo "${files}"|cut -f1 -d"."`.indx"
+         lc_mkindx=`./mkindx "${files}" "${lc_indx}"`
+         echo "${lc_basename}: ${lc_mkindx}"
+      done
+      exit 0
+      ;;
+esac 
 CYGWIN=0
 if [ "$1" = "-cyg" -o "$2" = "-cyg" ]
 then
