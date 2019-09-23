@@ -994,14 +994,15 @@
   RhostMUSH will react to given signals sent from the unix command line.
   The following signals are available:
   
-         SIGUSR1   - Force a reboot of the server.  This can be reconfigured
-                     to a custom behavior with the signal_object config 
-                     parameter.  The type of execution is handled with the
-                     signal_object_type config parameter.
-         SIGUSR2   - Force a shutdown of the server.
+         SIGUSR1   - Force a reboot (@reboot) of the server.  This can be 
+                     reconfigured to a custom behavior with the signal_object 
+                     config parameter.  The type of execution is handled with 
+                     the signal_object_type config parameter.
+         SIGUSR2   - Force a shutdown (@shutdown) of the server.
          SIGTERM   - Force an IMMEDIATE shutdown of the server.
                      This attempts to dump a flatfile then immediately closes
-                     the game WITHOUT saving to the database.
+                     the game WITHOUT saving to the database.  
+         SIGHUP    - Force a flatfile (@dump/flat) on the system.
                      
   See Also: config parameters, signal_object, signal_object_type
 
