@@ -32726,3 +32726,4 @@
   * SSL connectivity didn't honor nodns/noguest/register/forbid [ASH]
   * SSL connectivity didn't honor suspect [ASH]
   * doors could potentially hang for short durations on bad sites [ASH]
+  * UTF8 didn't null terminate properly in some cases [ASH]

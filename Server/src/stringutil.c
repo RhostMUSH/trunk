@@ -1878,6 +1878,7 @@ encode_utf8(char *utf)
     int i_ucp;
     
     result = (char*)malloc(12);
+    memset(result, '\0', 12);
     
     // Convert UTF-8 Bytes to Unicode Code Point
     ucp = utf8toucp(utf);
@@ -1917,6 +1918,8 @@ utf8toucp(char *utf)
     
     tmp = (char*)malloc(3);
     ucp = (char*)malloc(12);
+    memset(tmp, '\0', 3);
+    memset(ucp, '\0', 12);
     
     i_bytecnt = strlen(utf) / 2;
     
