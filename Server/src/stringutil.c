@@ -1889,17 +1889,23 @@ encode_utf8(char *myutf)
         case DOUBLE_QUOTE_LEFT:
         case DOUBLE_QUOTE_RIGHT:
         case DOUBLE_QUOTE_REVERSED:
-            if (!mudconf.allow_fancy_quotes)
+            if (!mudconf.allow_fancy_quotes) {
                 sprintf(result, "%c", ASCII_DOUBLE_QUOTE);
+            } else {
+                sprintf(result, "%c<u%.20s>", '%', ucp);
+            }
             break;
-        
+
         case FULLWIDTH_COLON:
-            if (!mudconf.allow_fullwidth_colon)
+            if (!mudconf.allow_fullwidth_colon) {
                 sprintf(result, "%c", ASCII_COLON);
+            } else {
+                sprintf(result, "%c<u%.20s>", '%', ucp);
+            }
             break;
         case ASCII_SPACE:
             sprintf(result, "%s", (char *)" ");
-            break;            
+            break;
         default:
             sprintf(result, "%c<u%.20s>", '%', ucp);
             break;
