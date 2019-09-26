@@ -1872,16 +1872,16 @@ trigger_cluster_action(dbref thing, dbref player)
  * the unicode code point.
  ***/
 char *
-encode_utf8(char *utf) 
+encode_utf8(char *myutf) 
 {
     char *ucp, *result;
     int i_ucp;
     
-    result = (char*)malloc(12);
-    memset(result, 0, 12);
+    result = alloc_sbuf("encode_utf8");
+    memset(result, '\0', SBUF_SIZE);
     
     // Convert UTF-8 Bytes to Unicode Code Point
-    ucp = utf8toucp(utf);
+    ucp = utf8toucp(myutf);
     
     // Encode into parser string
     i_ucp = (int)strtol(ucp, NULL, 16);
@@ -1890,66 +1890,66 @@ encode_utf8(char *utf)
         case DOUBLE_QUOTE_RIGHT:
         case DOUBLE_QUOTE_REVERSED:
             if (!mudconf.allow_fancy_quotes)
-                sprintf(ucp, "%c", ASCII_DOUBLE_QUOTE);
+                sprintf(result, "%c", ASCII_DOUBLE_QUOTE);
             break;
         
         case FULLWIDTH_COLON:
             if (!mudconf.allow_fullwidth_colon)
-                sprintf(ucp, "%c", ASCII_COLON);
+                sprintf(result, "%c", ASCII_COLON);
             break;
         case ASCII_SPACE:
-            sprintf(result, " ");
+            sprintf(result, "%s", (char *)" ");
             break;            
         default:
-            sprintf(result, "%c<u%s>", '%', ucp);
+            sprintf(result, "%c<u%.20s>", '%', ucp);
             break;
     }
     
-    free(ucp);
+    free_sbuf(ucp);
     
     return  result;
 }
 
 char *
-utf8toucp(char *utf)
+utf8toucp(char *myutf)
 {
-    char *ucp, *ptr, *tmp;
+    char *ucp, *ptr, tmp[4];
     int i_b1, i_b2, i_b3, i_b4, i_bytecnt, i_ucp;
     
-    tmp = (char*)malloc(3);
-    ucp = (char*)malloc(12);
-    memset(tmp, 0, 3);
-    memset(ucp, 0, 12);
+/*  tmp = (char*)malloc(3); */
+    ucp = alloc_sbuf("utf8toucp");
+    memset(tmp, '\0', 4);
+    memset(ucp, '\0', SBUF_SIZE);
     
-    i_bytecnt = strlen(utf) / 2;
+    i_bytecnt = strlen(myutf) / 2;
     
     // Convert UTF-8 Bytes to Unicode Code Point
     if (i_bytecnt == 1) {
-        return utf;
+        return myutf;
     } else if (i_bytecnt == 2) {
-        strncpy(tmp, utf, 2);
+        strncpy(tmp, myutf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+2, 2);
+        strncpy(tmp, myutf+2, 2);
         i_b2 = strtol(tmp, &ptr, 16);       
         i_ucp = ((i_b1 - 192) * 64) + (i_b2 - 128);
         sprintf(ucp, "%04x", i_ucp);
     } else if (i_bytecnt == 3) {
-        strncpy(tmp, utf, 2);
+        strncpy(tmp, myutf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+2, 2);
+        strncpy(tmp, myutf+2, 2);
         i_b2 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+4, 2);
+        strncpy(tmp, myutf+4, 2);
         i_b3 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 224) * 4096) + ((i_b2 - 128) * 64) + (i_b3 - 128);
         sprintf(ucp, "%04x", i_ucp);
     } else if (i_bytecnt == 4) {
-        strncpy(tmp, utf, 2);
+        strncpy(tmp, myutf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+2, 2);
+        strncpy(tmp, myutf+2, 2);
         i_b2 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+4, 2);
+        strncpy(tmp, myutf+4, 2);
         i_b3 = strtol(tmp, &ptr, 16);
-        strncpy(tmp, utf+6, 2);
+        strncpy(tmp, myutf+6, 2);
         i_b4 = strtol(tmp, &ptr, 16);
         i_ucp = ((i_b1 - 240) * 262144) + ((i_b2 - 128) * 4096) + ((i_b3 - 128) * 64) + (i_b4 - 128); // Math fix. Add i_b4, don't subtract. By eery
         sprintf(ucp, "%04x", i_ucp);
@@ -1957,7 +1957,7 @@ utf8toucp(char *utf)
         sprintf(ucp, "0020");
     }
     
-    free(tmp);
+/*  free(tmp); */
     
     return  ucp;
 }
@@ -1969,36 +1969,36 @@ utf8toucp(char *utf)
 char *
 ucptoutf8(char *ucp)
 {
-    char *ptr, *utf;
+    char *ptr, *myutf;
     int i_ucp, i_b1, i_b2, i_b3, i_b4;
     
-    utf = (char *)malloc(10);
-    memset(utf, '\0', 10);
+    myutf = alloc_sbuf("ucptoutf8");
+    memset(myutf, '\0', SBUF_SIZE);
     
     i_ucp = strtol(ucp, &ptr, 16);
     
     if ( i_ucp > 31 && i_ucp <= 127) {  // Single byte, return value and not return code
-        sprintf(utf, "%02x", i_ucp);
+        sprintf(myutf, "%02x", i_ucp);
     } else if (i_ucp <= 2047) { // 2 byte
         i_b1 = (i_ucp / 64) + 192;
         i_b2 = (i_ucp % 64) + 128;      
-        sprintf(utf, "%02x%02x", i_b1, i_b2);
+        sprintf(myutf, "%02x%02x", i_b1, i_b2);
     } else if (i_ucp <= 65535) { // 3 byte
         i_b1 = (i_ucp / 4096) + 224;
         i_b2 = ((i_ucp % 4096) / 64) + 128;
         i_b3 = (i_ucp % 64) + 128;
-        sprintf(utf, "%02x%02x%02x", i_b1, i_b2, i_b3);
+        sprintf(myutf, "%02x%02x%02x", i_b1, i_b2, i_b3);
     } else if (i_ucp <= 1114111) { // 4 byte
         i_b1 = (i_ucp / 262144) + 240;
         i_b2 = ((i_ucp % 262144) / 4096) + 128;
         i_b3 = ((i_ucp % 4096) / 64) + 128;
         i_b4 = (i_ucp % 64) + 128;
-        sprintf(utf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
+        sprintf(myutf, "%02x%02x%02x%02x", i_b1, i_b2, i_b3, i_b4);
     } else { // Invalid, return space
-        sprintf(utf, " ");
+        sprintf(myutf, " ");
     }
     
-    return utf;
+    return myutf;
 }
 
 #endif

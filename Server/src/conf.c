@@ -2847,8 +2847,7 @@ int validate_aliases(dbref player,
   if (!alias || !*alias) {
     /* Not much we can do here in a generic fashion.. */
     ;
-  }
-  else if (strcmp("!", orig) == 0) {
+  } else if (strcmp("!", orig) == 0) {
     /* We want to remove the alias
      * - orig is assumed to be the alias
      */

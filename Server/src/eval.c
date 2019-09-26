@@ -934,6 +934,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         i_utfcnt++;
                         tmp++;
                     }
+		    free_sbuf(tmpptr);
                     safe_chr(' ', buff2, &bufc2);
                     safe_chr(' ', buff, &bufc);
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
