@@ -2384,6 +2384,7 @@ process_input(DESC * d)
             sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=3;
             in+=12;
@@ -2396,6 +2397,7 @@ process_input(DESC * d)
             sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=2;
             in+=10;
@@ -2408,6 +2410,7 @@ process_input(DESC * d)
             sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=1;
             in+=8;
@@ -2463,10 +2466,6 @@ process_input(DESC * d)
        d->input_size += in;
     if ( lost > 0 )
        d->input_lost += lost;
-    
-    if (tmpptr) {
-        free_sbuf(tmpptr);
-    }
     
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
