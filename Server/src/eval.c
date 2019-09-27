@@ -823,7 +823,11 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     s_intbuf[3] = '\0';
     ch = ch1 = ch2 = '\0';
 
-    while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
+    while( *string && 
+           ((bufc - buff) < (LBUF_SIZE-24)) &&
+           ((bufc2 - buff2) < (LBUF_SIZE-24)) &&
+           ((bufc_utf - buff_utf) < (LBUF_SIZE-24))
+         ) {
         if(*string == '\\') {
             string++;
             safe_chr('\\', buff, &bufc);

@@ -32728,3 +32728,4 @@
   * doors could potentially hang for short durations on bad sites [ASH]
   * UTF8 didn't null terminate properly in some cases [ASH]
   * A bunch of small one off bugs in the UTF8 handler that borked BSD [ASH]
+  * buffering didn't account for non-ASCII7 entirely cleanly (noncrash) [ASH]
