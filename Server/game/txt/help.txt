@@ -1292,15 +1292,21 @@
 & @protect
   Command: @protect[/<switch>] [<player-name>]
   
-  This command 'protects' your current user name from being used by anyone
-  else.  Essentially this 'locks in' your name so that if you ever switch
-  your name to something else, no one else will be able to use the name
-  that you have marked for protection.  You have full access to any name
-  you protect.  You can only protect your currently active name.  You may
-  delete any name you, yourself, have protected.  Wizards may remove any
-  protected name.  Immortals bypass protected names.
+  This command 'protects' your current user name or if enabled the specified
+  player name from being used by anyone else.  Essentially this 'locks in' 
+  your name so that if you ever switch your name to something else, no one 
+  else will be able to use the name that you have marked for protection.  
+  You have full access to any name you protect.  
   
-  Note: See @list options system to see what is enabled.
+  You can only protect your currently active name unless the enhanced 
+  options are enabled.  You may delete any name you, yourself, have protected.
+  Wizards may remove any protected name.  Immortals bypass protected names and
+  may also remove them.
+  
+  Any name that you have already added you may /alias or /unalias by name
+  regardless of the enhanced option being enabled.
+  
+  Note: See @list options system to see if the enhanced option is enabled.
   
   Switches available:
     /list    - (default) - list the names you current have protected.  This
@@ -1313,14 +1319,42 @@
                @alias with regards to player lookups.
     /unalias - This removes the protected name as an alias.  You can not
                remove the active playername as an alias.
+ 
+{ 'help @protect2' for examples and @admin params effective } 
+
+& @protect2
+  (CONTINUED)
+  Command: @protect[/<switch>] [<player-name>]  
+  
+  The following wizard @admin parameters exist:
+    protect_addenh   -- this is the toggle that enables/disables enhanced adds
+    max_name_protect -- this controls total number of names to be protected
   
   Examples:
-    > say name(me)
-    You say "Bob"
+    > say [name(me)] [num(me)]
+    You say "Bob #123"
     > @protect/add
     Your current name has been added to your protect list.
+    > @protect/add Simon            (if enhanced mode enabled)
+    The name has been added to your protect list.
+    > @protect/add Fred             (if enhanced mode enabled)
+    The name has been added to your protect list.
     > @protect/del Bob
     You have successfully deleted 'Bob' from your protect list.
+    > @protect/alias Simon
+    You have successfully activated 'simon' as an alias.
+    > @protect/alias Fred
+    You have successfully activated 'fred' as an alias.
+    > @protect/unalias Fred
+    You have successfully de-activated 'fred' as an alias.
+    > @protect/list
+    +------------------------------+----------------------------------+-------+
+    | Player Name Protected        | Dbref#   [ Player Name         ] | Alias |
+    +------------------------------+----------------------------------+-------+
+    | Simon                        | #123     [ Bob                 ] |   Y   |
+    | Fred                         | #123     [ Bob                 ] |   N   |
+    +------------------------------+----------------------------------+-------+
+    You have 2 out of 10 names protected.
   
   See Also: @name, @alias, listprotection()
   
