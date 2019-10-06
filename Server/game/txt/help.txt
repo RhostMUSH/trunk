@@ -1306,8 +1306,12 @@
   Any name that you have already added you may /alias or /unalias by name
   regardless of the enhanced option being enabled.
   
-  Note: See @list options system to see if the enhanced option is enabled.
-  
+  Notes: 
+    - See @list options system to see if the enhanced option is enabled.
+    - An @alias is already a protected name, but you can NOT switch to it.
+    - You can @protect/add or /del an @alias'd name, but can not /alias it.
+    - If you @protect/del an @alias name, it does not remove the @alias
+   
   Switches available:
     /list    - (default) - list the names you current have protected.  This
                does not take any arguments.
@@ -6421,7 +6425,11 @@
   When setting an alias, the alias is checked to see that it is both a legal
   player name and not already in use.  Only if both checks succeed is the
   alias set.
- 
+  
+  You can not @name yourself to any name you set an @alias to, nor any name
+  anyone else sets an @alias to.  If you wish to be able to switch into
+  and out of protected names, please use the @protect system and not @alias.
+   
   See Also: @name, @protect, listprotection()
   
 & @amhear
