@@ -1322,11 +1322,13 @@
  
 { 'help @protect2' for examples and @admin params effective } 
 
+& protect_addenh
+& max_name_protect
 & @protect2
   (CONTINUED)
   Command: @protect[/<switch>] [<player-name>]  
   
-  The following wizard @admin parameters exist:
+  The following wizard @admin parameters exist (see wizhelp for help):
     protect_addenh   -- this is the toggle that enables/disables enhanced adds
     max_name_protect -- this controls total number of names to be protected
   
