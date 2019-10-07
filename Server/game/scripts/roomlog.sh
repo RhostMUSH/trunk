@@ -1,21 +1,26 @@
 #!/bin/bash
 if [ -z "$@" ]
 then
-   echo -e "Which room log do you wish to view?"
    cntr=0
    cd roomlogs
-   for i in $(ls *)
-   do
-      lc_lines="$(wc -l $i|awk '{print $1}')"
-      lc_pages="$(expr ${lc_lines} / 20 + 1)"
-      if [ $(expr $cntr % 2) -eq 0 ]
-      then
-         printf "\n%-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
-      else
-         printf "        %-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
-      fi
-      ((cntr++))
-   done
+   if [ "$(ls -1)" = "" ]
+   then
+      echo "No logs."
+   else
+      echo -e "Which room log do you wish to view?"
+      for i in $(ls *)
+      do
+         lc_lines="$(wc -l $i|awk '{print $1}')"
+         lc_pages="$(expr ${lc_lines} / 20 + 1)"
+         if [ $(expr $cntr % 2) -eq 0 ]
+         then
+            printf "\n%-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
+         else
+            printf "        %-23s [%3d pages]" "$(echo "$i"|cut -f1 -d".")" "${lc_pages}"
+         fi
+         ((cntr++))
+      done
+   fi
 else
    lc_file=$(echo "$@"|awk '{print $1}')
    lc_page=$(echo "$@"|awk '{print $2}')
