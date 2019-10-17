@@ -49,7 +49,53 @@ The main parts of making your RhostMUSH, easy pleasy:
 5.  If you wish to port in an old flatfile, please refer to the readme directory
     on how to port your flatfile in (README.DBLOADING).
 
-At this point you can modify your netrhost.conf file settings in your game directory.
+
+There are pre-loaded flatfile databases you can use at this point.  The netrhost.db.flat
+and corrisponding netrhost.conf file will be located in the minimal-DBs/minimal_db directory.
+
+
+------------------------------------------------------------------------------
+To load a prebuild flatfile:
+------------------------------------------------------------------------------
+To use these follow these steps:
+1.  Make a backup of your existing netrhost.conf file
+    --> cp game/netrhost.conf game/netrhost.conf.backup
+2.  Copy the netrhost.conf file into your game directory
+    --> cp -f ./minimal-DBs/minimal_db/netrhost.conf ./game/netrhost.conf
+3.  At this point you can modify your netrhost.conf file settings in your game directory.
+    Using an editor modify the 'port' and 'debug_id' respectively in your netrhost.conf as stated.
+    The 'port' will be the port the mush listens on, the debug_id is for the debug-stack and is
+    your port with a '5' at the end.  So if your port is 4444, the debug_id is 44445
+4.  Load in the flatfile into the mush (You could do this in the Startmush as well)
+    Manually:
+    --> cd game
+    --> ./db_load data/netrhost.gdbm ../minimal-DBs/minimal_db/netrhost.db.flat data/netrhost.db.new
+
+    Start your mush:
+    --> ./Startmush
+
+    This will load the db that you loaded. 
+
+    ---------------OR-------
+
+    From Startmush:
+    --> ./Startmush
+
+    when prompted, hit <RETURN> for searching then select the number of the netrhost.db.flat that is
+    listed as ~/minimal-DBs/minimal_db/netrhost.db.flat
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+If you wish to start from scratch, do this instead:
+------------------------------------------------------------------------------
+1.  You can modify your netrhost.conf file settings in your game directory.
+    Using an editor modify the 'port' and 'debug_id' respectively in your netrhost.conf as stated.
+    The 'port' will be the port the mush listens on, the debug_id is for the debug-stack and is
+    your port with a '5' at the end.  So if your port is 4444, the debug_id is 44445
+2.  Start your mush:
+    --> ./Startmush
+------------------------------------------------------------------------------
+
 You can use the 'vi' editor or 'nano' if you like a more menu driven DOS like experience.
 You can of course use any other editor you're familar with.
 
@@ -58,7 +104,7 @@ For a more thorough understanding of how to set things up, keep reading!
 If you have syntax issues running 'make config', 'make confsource' 
 or 'make bugreport' please run the script: ./bin/script_setup.sh
 
-Now... things you need to do.
+Now... things you may need to do on errors.
 
 1) run ./dirsetup.sh
 
@@ -104,8 +150,18 @@ Now... things you need to do.
 
 	--------------
 
-4) Go into the game directory and modify the netrhost.conf file
-  
+4) You now have a choice of optionally starting at 4A or starting barebones at 4B
+
+   4A) Copy an existing flatfile and corresponding netrhost.conf file
+       Default provied example:
+       1.  cp game/netrhost.conf game/netrhost.conf.backup
+       2.  cp -f minimal-DBs/minimal_db/netrhost.conf game/netrhost.conf
+       3.  cd game
+       4.  ./db_load data/netrhost.gdbm ../minimal-DBs/minimal_db/netrhost.db.flat data/netrhost.db.new
+
+      (Go to 4B)
+
+   4B) Go into the game directory and modify the netrhost.conf file
 	The next step is configuring the mush to your config standards.
 	There is a file in the game subdirectory called 'netrhost.conf'.
 	You hand-edit this file and just follow what it says each 
@@ -118,7 +174,7 @@ Now... things you need to do.
 
    To login:  co Wizard Nyctasia
 
-6) Things to do once you have connected.
+6) Things to do once you have connected. (if you did 4A this will be done for you)
    a.  @dig your master room and in your netrhost.conf file define master_room
        to this dbref (without the #.  So like master_room 2)
    b.  Create an immortal holder charater (@pcreate then @set immortal)
