@@ -663,7 +663,7 @@ struct statedata {
 	int	shutdown_flag;	/* Should interface be shut down? */
 	int	reboot_flag;
 	char	version[256];	/* MUSH version string */
-	char	short_ver[64];	/* Short version number (for RWHO) */
+	char	short_ver[128];	/* Short version number (for RWHO) */
 	time_t	start_time;	/* When was MUSH started */
 	time_t	reboot_time;
         time_t  mushflat_time;  /* When was MUSH last @dump/flatted */
