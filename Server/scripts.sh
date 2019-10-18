@@ -3,6 +3,7 @@ lc_script="./shell_patch/Server/game/scripts"
 lc_bin="./shell_patch/Server/bin"
 lc_src="./shell_patch/Server/src"
 lc_main="./shell_patch/Server"
+lc_readme="./shell_patch/Server/readme"
 lc_date=$(date +"%s")
 function update_git
 {
@@ -55,11 +56,15 @@ function cleanup_git
 
 function help
 {
+   echo "Syntax:  $0 <argument>"
+   echo ""
    echo "This will update your scripts.  This expects an argument."
    echo "Please select the following:"
    echo "   -h -- show this help."
    echo "   -e -- update all execscripts."
    echo "   -b -- update all bin scripts."
+   echo "   -r -- update all readmes."
+   echo "   -p -- update patcher and this script."
    echo "   -c -- convert old makefile with new makefile."
 }
 
@@ -119,6 +124,81 @@ function update_bins
    if [ -n "${lc_update}" ]
    then
       echo "Updated scripts: ${lc_update}"
+   else
+      echo "Nothing updated."
+   fi
+   cleanup_git
+}
+
+function update_patcher
+{
+   update_git
+   lc_update=""
+   for i in $(ls ${lc_main}/*.sh)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i "${lc_file}" > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_main}/${lc_file}" "${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="${lc_file}"
+         else
+            lc_update="${lc_update} ${lc_file}"
+         fi
+      fi 
+   done
+   if [ -n "${lc_update}" ]
+   then
+      echo "Updated patcher shells: ${lc_update}"
+   else
+      echo "Nothing updated."
+   fi
+   cleanup_git
+}
+
+function update_readme
+{
+   update_git
+   lc_update=""
+   for i in $(ls ${lc_main}/README*)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i "${lc_file}" > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_main}/${lc_file}" "${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="${lc_file}"
+         else
+            lc_update="${lc_update} ${lc_file}"
+         fi
+      fi 
+   done
+
+   for i in $(ls ${lc_readme}/*)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i ./readme/${lc_file} > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f ./readme/${lc_file} ./readme/${lc_file}.${lc_date} 2>/dev/null
+         cp -pf ${lc_readme}/${lc_file} ./readme/${lc_file}
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="${lc_file}"
+         else
+            lc_update="${lc_update} ${lc_file}"
+         fi
+      fi 
+   done
+   if [ -n "${lc_update}" ]
+   then
+      echo "Updated readmes: ${lc_update}"
    else
       echo "Nothing updated."
    fi
@@ -234,6 +314,13 @@ EOF
 }
 
 #### main
+lc_path="$(pwd)"
+lc_path="${lc_path##*/}"
+if [ "${lc_path}" != "Server" -o ! -d "game" ]
+then
+   echo "$0: error -- must execute from 'Server' subdirectory"
+   exit 1
+fi
 case "$@" in
    -e|-E|--exec|--execscript|--execscripts) # execscripts
       update_execscripts
@@ -243,6 +330,12 @@ case "$@" in
       ;;
    -c|-C|--convert) # do convert
       update_convert
+      ;;
+   -r|-R|--readme) # update readmes
+      update_readme
+      ;;
+   -p|-P|--patch|--patcher) # update patcher
+      update_patcher
       ;;
    *) # help only
       help
