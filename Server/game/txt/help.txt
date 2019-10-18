@@ -32792,3 +32792,6 @@
   
   Bug Fixes
   ------------
+  * version/short_ver didn't have bounds checking for custom versions
+    if someone decided to change the strings to ridiculously large 
+    values [ASH]
