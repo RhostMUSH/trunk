@@ -16,9 +16,9 @@
 #define EXT_MUSH_VER ""
 #endif
 
-#define PATCHLEVEL		3		/* Patch sequence number     */
+#define PATCHLEVEL		4		/* Patch sequence number     */
 #define PATCHLEVELEXT		""
-#define	MUSH_RELEASE_DATE	"12/06/2018"	/* Source release date       */
+#define	MUSH_RELEASE_DATE	"10/17/2019"	/* Source release date       */
 
 /* Define if an ALPHA release */
 #define ALPHA 1   		

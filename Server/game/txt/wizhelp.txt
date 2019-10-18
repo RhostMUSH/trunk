@@ -6375,12 +6375,13 @@
   safer_passwords           safer_ufun                sconnect_cmd
   sconnect_host             sconnect_reip             search_cost             
   secure_atruselock         secure_dark               secure_functions        
-  secure_jumpok             see_owned_dark            showother_altname       
-  shs_reverse               sidefx_maxcalls           sidefx_returnval        
-  sideeffects               signal_action             signal_cron             
-  signal_object             signal_object_type        space_compress          
-  spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        stack_limit
+  secure_jumpok             see_owned_dark            sha2rounds
+  showother_altname         shs_reverse               sidefx_maxcalls         
+  sidefx_returnval          sideeffects               signal_action           
+  signal_cron               signal_object             signal_object_type      
+  space_compress            spam_limit                spam_msg                
+  spam_objmsg               sqlite_db_path            sqlite_query_limit      
+  stack_limit
 
 { 'wizhelp config parameters6' for more}
 
@@ -10430,6 +10431,22 @@
   look at a room.  It does not affect the inventory or examine commands,
   both of which show all objects.
 
+& sha2rounds
+  Config parameter: sha2rounds <value>.    Default: 5000
+  
+  This specifies the rounds of recursion that the SHA2 encryption for
+  passwords will use when encrypting passwords.  Please be aware that
+  this is arthremetically expensive and the larger the value the longer
+  it takes to both encrypt and decrypt passwords.  5000 is generally
+  considered safe and is actually the default standard for UNIX system
+  passwords for the Linux archtype.
+  
+  If you're paranoid you may set a higher range, up to 999999.
+  
+  This requires GLIBC 2.7 or higher.  If you do not have the right
+  version of GLIBC it will fall back to the much less secure, but
+  viable DES encryption method.
+ 
 & showother_altname
   Config parameter: showother_altname <yes/no>.  Default: no
   

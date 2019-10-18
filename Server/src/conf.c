@@ -338,6 +338,7 @@ NDECL(cf_init)
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
+    mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -3603,8 +3604,18 @@ CF_HAND(cf_include)
 	    *ap++ = '\0';	/* trim command */
 	for (; *ap && isspace((int)*ap); ap++);	/* skip spaces */
 	for (zp = ap; *zp && (*zp != '#'); zp++);	/* find comment */
-	if (*zp)
-	    *zp = '\0';		/* zap comment */
+	if (*zp) {
+        /* If it's a comment but immediately followed by an integer or a '-' it's not a comment */
+           if ( *(zp+1) && ((*(zp+1) == '-') || isdigit(*(zp+1))) ) {
+              *zp = ' '; /* zap with space then recheck for comment */
+	      for (zp = ap; *zp && (*zp != '#'); zp++);	/* find comment */
+	      if (*zp) {
+	         *zp = '\0';	/* zap comment */
+              }
+           } else {
+	      *zp = '\0';	/* zap comment */
+           }
+        }
 	for (zp = zp - 1; zp >= ap && isspace((int)*zp); zp--)
 	    *zp = '\0';		/* zap trailing spcs */
 
@@ -4954,6 +4965,10 @@ CONF conftable[] =
     {(char *) "see_owned_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.see_own_dark, 0, 0, CA_PUBLIC,
      (char *) "Can you see dark things you control?"},
+    {(char *) "sha2rounds",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.sha2rounds, 999999, 5000, CA_WIZARD,
+     (char *) "SHA2 round recursion for password encryptions.\r\n"\
+              "    [5000-999999]            Default: 5000        Value: %d"},
     {(char *) "showother_altinv",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.showother_altinv, 0, 0, CA_PUBLIC,
      (char *) "Alt inventories shown when you look?"},

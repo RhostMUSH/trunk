@@ -6308,15 +6308,21 @@ list_options_system(dbref player)
        notify(player, "ANSI handler for functions() ----------------------------------- DISABLED");
     }
     notify(player, unsafe_tprintf(
-                       "Floating point precision --------------------------------------- %d DECIMALS",
-                       mudconf.float_precision));
+                   "Floating point precision --------------------------------------- %d DECIMALS",
+                   mudconf.float_precision));
     if ( mudconf.accent_extend ) {
        notify(player, "ASCII 250-255 encoding ----------------------------------------- ENABLED");
     } else {
        notify(player, "ASCII 250-255 encoding ----------------------------------------- DISABLED");
     }
 #ifdef CRYPT_GLIB2
-    notify(player, "Player password encryption method ------------------------------ SHA512");
+    if ( mudconf.sha2rounds != 5000 ) {
+       notify(player, unsafe_tprintf(
+                      "Player password encryption method ---[ rounds: %7d]--------- SHA512",
+                      mudconf.sha2rounds));
+    } else {
+       notify(player, "Player password encryption method ------------------------------ SHA512");
+    }
 #else
     notify(player, "Player password encryption method ------------------------------ DES");
 #endif

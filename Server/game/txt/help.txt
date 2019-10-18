@@ -30166,7 +30166,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.0.0p3
+  *** Current Revision: 4.0.0p4
   ***************************************************************************
   
   Available Revisions:
@@ -30184,7 +30184,7 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
-    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3
+    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
   
   See Also: historical, credits
 
@@ -32773,3 +32773,20 @@
   * UTF8 didn't null terminate properly in some cases [ASH]
   * A bunch of small one off bugs in the UTF8 handler that borked BSD [ASH]
   * buffering didn't account for non-ASCII7 entirely cleanly (noncrash) [ASH]
+
+& 4.0.0p4
+  Release Date: 10/17/19
+  Status: Alpha
+    
+  New Features
+  ------------
+  * sha2rounds @admin param to increase round recursion for SHA2.  The
+    default value to this is 5000.  [ASH] 
+  
+  Changes
+  ------------
+  * config files now allow dbref# syntax for numberical values.
+    i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
+  
+  Bug Fixes
+  ------------

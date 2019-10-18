@@ -442,6 +442,7 @@ struct confdata {
 	int	iter_loop_max;	/* Infinite iter loop counter */
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
+        int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -513,6 +514,7 @@ struct confdata {
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	char	sub_include[200];
 	int	old_elist;		/* Old elist processing */
+        int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 #endif	/* STANDALONE */
 };
 
