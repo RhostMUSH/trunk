@@ -32782,10 +32782,12 @@
   ------------
   * sha2rounds @admin param to increase round recursion for SHA2.  The
     default value to this is 5000.  [ASH] 
+  * vercustomstr @admin param to allow a 20 character customised version
+    suffix [ASH]
   
   Changes
   ------------
-  * config files now allow dbref# syntax for numberical values.
+  * config files now allow dbref# syntax for numberical values. [ASH]
     i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
   
   Bug Fixes

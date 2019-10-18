@@ -18,6 +18,7 @@
 #include "udb_defs.h"
 #include "debug.h"
 
+
 /* ---------------------------------------------------------------------------
  * CONFPARM: Data used to find fields in CONFDATA.
  */
@@ -41,6 +42,7 @@ struct confparm {
 CONFDATA mudconf;
 STATEDATA mudstate;
 
+extern void NDECL(init_version);
 #ifndef STANDALONE
 extern int FDECL(pstricmp, (char *, char *, int));
 extern NAMETAB logdata_nametab[];
@@ -339,6 +341,7 @@ NDECL(cf_init)
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
+    memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -2750,6 +2753,38 @@ CF_HAND(cf_string_chr)
     return retval;
 }
 
+CF_HAND(cf_stringver)
+{
+    int retval;
+    long l_diff;
+    char *buff;
+
+    /* Copy the string to the buffer if it is not too big */
+
+    retval = 0;
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
+	str[extra - 1] = '\0';
+	if (mudstate.initializing) {
+	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
+		buff = alloc_lbuf("cf_stringver.LOG");
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
+	    ENDLOG
+	} else {
+	    buff = alloc_lbuf("cf_stringver.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
+	}
+	retval = 1;
+    }
+    strcpy((char *) vp, str);
+    init_version();
+    return retval;
+}
+
 CF_HAND(cf_string)
 {
     int retval;
@@ -5103,6 +5138,10 @@ CONF conftable[] =
     {(char *) "vattr_command",
      cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
      (char *) "Define dynamic VATTR commands."},
+    {(char *) "vercustomstr",
+     cf_stringver, CA_GOD | CA_IMMORTAL, (int *) mudconf.vercustomstr, SBUF_SIZE-1, 0, CA_WIZARD,
+     (char *) "Extra string used for @version\r\n"\
+              "                                 (default NULL)"},
     {(char *) "vlimit",
      cf_vint, CA_GOD | CA_IMMORTAL, &mudconf.vlimit, 0, 0, CA_WIZARD,
      (char *) "Maximum user attributes allowed.  Don't touch\r\n"\
@@ -5870,6 +5909,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                          (tp->interpreter == cf_atrperms) ||
                          (tp->interpreter == cf_string_sub) ||
                          (tp->interpreter == cf_string_chr) ||
+                         (tp->interpreter == cf_stringver) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {

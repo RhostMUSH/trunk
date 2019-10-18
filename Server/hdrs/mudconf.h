@@ -443,6 +443,7 @@ struct confdata {
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
+	char	vercustomstr[SBUF_SIZE];
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -515,6 +516,7 @@ struct confdata {
 	char	sub_include[200];
 	int	old_elist;		/* Old elist processing */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
+	char	vercustomstr[SBUF_SIZE];
 #endif	/* STANDALONE */
 };
 

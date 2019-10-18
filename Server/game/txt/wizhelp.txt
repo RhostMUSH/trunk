@@ -6399,14 +6399,14 @@
   trace_output_limit        trace_topdown             tree_character
   trust_site                uncompress_program        unowned_safe            
   user_attr_flags           validate_host             vattr_command
-  vattr_limit_checkwiz      vlimit                    wait_cost               
-  wall_cost                 whereis_notify            wizmax_dest_limit       
-  wizmax_vattr_limit        who_default               who_unfindable          
-  who_showwiz               who_wizlevel              who_whowiztype          
-  whohost_size              wiz_override              wiz_uselock             
-  wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max
-  zone_parents
+  vattr_limit_checkwiz      vercustomstr              vlimit                  
+  wait_cost                 wall_cost                 whereis_notify          
+  wizmax_dest_limit         wizmax_vattr_limit        who_default             
+  who_unfindable            who_showwiz               who_wizlevel            
+  who_whowiztype            whohost_size              wiz_override            
+  wiz_uselock               wizard_help_file          wizard_help_index       
+  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
+  wizcommand_quota_max       zone_parents
 
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -11181,6 +11181,18 @@
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
             max_vattr_limit, lfunction_max
  
+& vercustomstr
+  Config parameter: vercustomstr <string>.  Default: (null)
+  
+  This provides an optional suffix for @version and INFO's version for
+  customizing a version string with a personal touch.
+  
+  This is intended for those who want to build custom versions and have
+  an ideal place to put the string.
+  
+  20 characters are allowed for this custom string.  The variable is
+  evaluated so escape out special characters.
+
 & vlimit
   Config parameter: vlimit <ammount>.  Default 750
   
