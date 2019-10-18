@@ -662,7 +662,7 @@ struct statedata {
 	int	rwho_on;	/* Have we connected to an RWHO server? */
 	int	shutdown_flag;	/* Should interface be shut down? */
 	int	reboot_flag;
-	char	version[128];	/* MUSH version string */
+	char	version[256];	/* MUSH version string */
 	char	short_ver[64];	/* Short version number (for RWHO) */
 	time_t	start_time;	/* When was MUSH started */
 	time_t	reboot_time;
