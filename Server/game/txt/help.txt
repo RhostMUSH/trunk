@@ -32797,3 +32797,4 @@
     if someone decided to change the strings to ridiculously large 
     values [ASH]
   * @dynhelp didn't honor help_separator [ASH]
+  * temporary static buffer for SSl could be overwritten in display [ASH]

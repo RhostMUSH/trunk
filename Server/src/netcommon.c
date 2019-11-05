@@ -4868,7 +4868,7 @@ do_command(DESC * d, char *command)
     dbref aowner, thing;
     ATTR *atrp;
 #endif
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf,
+    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
         maxsitecon, i_retvar, i_valid, aflags;
@@ -4992,7 +4992,9 @@ do_command(DESC * d, char *command)
           strcpy(s_rollback, mudconf.sconnect_host);
        }
 
+       addrsav = alloc_mbuf("address_save");
        addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
+       sprintf(addrsav, "%.*s", (MBUF_SIZE - 10), addroutbuf);
 
        i_valid = 0;
        if ( lookup(addroutbuf, s_rollback, 1, &aflags) ) {
@@ -5004,7 +5006,7 @@ do_command(DESC * d, char *command)
              if ( blacklist_check(p_addr,0) || check_tor(p_addr, mudconf.port) ) {
                 queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                 process_output(d);
-                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
                 broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BLACKLIST/TOR]", NULL, s_rollback,
                                   d->descriptor, 0, ntohs(d->address.sin_port), NULL);
                 STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5013,6 +5015,7 @@ do_command(DESC * d, char *command)
                 ENDLOG
                 free_lbuf(s_rollback);
                 shutdownsock(d, R_BOOT);
+                free_mbuf(addrsav);
                 RETURN(0); /* #147 */
              }
           }
@@ -5055,7 +5058,7 @@ do_command(DESC * d, char *command)
                   (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
                 queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                 process_output(d);
-                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                 broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
                                   d->descriptor, 0, ntohs(d->address.sin_port), NULL);
                 STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5066,6 +5069,7 @@ do_command(DESC * d, char *command)
                 free_lbuf(s_sitebuff);
                 free_lbuf(s_sitetmp);
                 shutdownsock(d, R_BOOT);
+                free_mbuf(addrsav);
                 RETURN(0); /* #147 */
              }
 
@@ -5105,7 +5109,7 @@ do_command(DESC * d, char *command)
                    queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_REGISTRATION;
-                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 10 ) {
                       d->host_info |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & SUSPECT]", NULL, s_rollback,
@@ -5129,7 +5133,7 @@ do_command(DESC * d, char *command)
                    queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_NOGUEST;
-                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 12 ) {
                       d->host_info |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST & SUSPECT]", NULL, s_rollback,
@@ -5153,7 +5157,7 @@ do_command(DESC * d, char *command)
                    queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
                    process_output(d);
                    d->host_info |= H_NOGUEST | H_REGISTRATION;
-                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 14 ) {
                       d->host_info |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER, NOGUEST & SUSPECT]", NULL, s_rollback,
@@ -5175,7 +5179,7 @@ do_command(DESC * d, char *command)
                 case 8: /* Suspect */
                    /* We don't notify them of site being suspect */
                    d->host_info |= H_SUSPECT;
-                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+                   sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [SUSPECT]", NULL, s_rollback,
                                      d->descriptor, 0, ntohs(d->address.sin_port), NULL);
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5215,7 +5219,7 @@ do_command(DESC * d, char *command)
 
           /* i_valid = 2 if it's register only, we don't want to do double logging here */
           if ( !i_valid ) {
-             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BADIP]", NULL, s_rollback,
                                d->descriptor, 0, ntohs(d->address.sin_port), NULL);
              STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5223,7 +5227,7 @@ do_command(DESC * d, char *command)
                 log_text(s_rollback);
              ENDLOG
           } else if ( i_valid == 1 ) { 
-             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, s_sitetmp, arg);
+             sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
                                d->descriptor, 0, ntohs(d->address.sin_port), NULL);
              STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5233,13 +5237,14 @@ do_command(DESC * d, char *command)
           }
           free_lbuf(s_rollback);
           free_lbuf(s_sitetmp);
+          free_mbuf(addrsav);
           RETURN(0); /* #147 */
        } else {
 
           /* We shouldn't get here unless you misconfigured your SSL connector or someone guessed your secret */
           queue_string(d, "SSL Connections are not allowed from your site.\r\n");
           process_output(d);
-          sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
+          sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
           broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [DENIED]", NULL, s_rollback,
                             d->descriptor, 0, ntohs(d->address.sin_port), NULL);
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
@@ -5248,6 +5253,7 @@ do_command(DESC * d, char *command)
           ENDLOG
           free_lbuf(s_rollback);
           shutdownsock(d, R_BOOT);
+          free_mbuf(addrsav);
           RETURN(0); /* #147 */
        }
        free_lbuf(s_rollback);
