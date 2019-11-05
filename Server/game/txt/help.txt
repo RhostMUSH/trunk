@@ -32789,9 +32789,11 @@
   ------------
   * config files now allow dbref# syntax for numberical values. [ASH]
     i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
+  * major cleanup of internal parsing of help files [ASH]
   
   Bug Fixes
   ------------
   * version/short_ver didn't have bounds checking for custom versions
     if someone decided to change the strings to ridiculously large 
     values [ASH]
+  * @dynhelp didn't honor help_separator [ASH]

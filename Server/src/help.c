@@ -17,6 +17,7 @@
 
 extern void fun_strdistance(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
+extern int FDECL(parse_dynhelp, (dbref, dbref, int, char *, char *, char *, char *, int, int, char *));
 
 int
 pstricmp(char *buf1, char *buf2, int len)
@@ -236,6 +237,20 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
               return;
           }
           i_header = 0;
+          s_hbuff2 = alloc_lbuf("help_buff");
+          if ( *(mudconf.help_separator) ) {
+             strcpy(s_hbuff2, mudconf.help_separator);
+             s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                            (char **)NULL, 0, (char **)NULL, 0);
+             if ( !*s_hbuff ) {
+                sprintf(s_hbuff2, "%s", (char *)"  ");
+             } else {
+                sprintf(s_hbuff2, "%s", s_hbuff);
+             }
+             free_lbuf(s_hbuff);
+          } else {
+             sprintf(s_hbuff2, "%s", (char *)"  ");
+          }
           for (;;) {
              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
                 break;
@@ -293,21 +308,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                    i_cntr++;
                 } else {
                    if ( i_found ) {
-                      if ( *(mudconf.help_separator) ) {
-                         s_hbuff2 = alloc_lbuf("help_buff");
-                         strcpy(s_hbuff2, mudconf.help_separator);
-                         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                        (char **)NULL, 0, (char **)NULL, 0);
-                         if ( !*s_hbuff ) {
-		            safe_str((char *) "  ", topic_list, &buffp);
-                         } else {
-		            safe_str(s_hbuff, topic_list, &buffp);
-                         }
-                         free_lbuf(s_hbuff);
-                         free_lbuf(s_hbuff2);
-                      } else {
-		         safe_str((char *) "  ", topic_list, &buffp);
-                      }
+                      safe_str(s_hbuff2, topic_list, &buffp);
                    }
                    i_found = matched = 1;
 		   safe_str(htab_entry->key, topic_list, &buffp);
@@ -317,21 +318,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
           }
           if ( (key != 2) && (!i_found && quick_wild(topic, s_tmpbuff)) ) {
              if ( matched ) {
-                if ( *(mudconf.help_separator) ) {
-                   s_hbuff2 = alloc_lbuf("help_buff");
-                   strcpy(s_hbuff2, mudconf.help_separator);
-                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                  (char **)NULL, 0, (char **)NULL, 0);
-                   if ( !*s_hbuff ) {
-                      safe_str((char *) "  ", topic_list, &buffp);
-                   } else {
-		      safe_str(s_hbuff, topic_list, &buffp);
-                   }
-                   free_lbuf(s_hbuff);
-                   free_lbuf(s_hbuff2);
-                } else {
-                   safe_str((char *) "  ", topic_list, &buffp);
-                }
+                safe_str(s_hbuff2, topic_list, &buffp);
              }
              matched = 1;
              safe_str(htab_entry->key, topic_list, &buffp);
@@ -355,6 +342,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        if ( i_cntr > 2000 ) {
           notify(player, "Warning: /query matches discarded after 2000 matches.");
        }
+       free_lbuf(s_hbuff2);
        return;
     }
 
@@ -372,6 +360,20 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
         }
         s_buffptr = s_buff = alloc_lbuf("help_topical");
         s_tmpbuff = alloc_lbuf("help_wild_checker");
+        s_hbuff2 = alloc_lbuf("help_buff");
+        if ( *(mudconf.help_separator) ) {
+           strcpy(s_hbuff2, mudconf.help_separator);
+           s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                          (char **)NULL, 0, (char **)NULL, 0);
+           if ( !*s_hbuff ) {
+              sprintf(s_hbuff2, "%s", (char *)"  ");
+           } else {
+              sprintf(s_hbuff2, "%s", s_hbuff);
+           }
+           free_lbuf(s_hbuff);
+        } else {
+           sprintf(s_hbuff2, "%s", (char *)"  ");
+        }
 	for (htab_entry = (struct help_entry *) hash_firstentry(htab);
 	     htab_entry != NULL;
 	     htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -382,21 +384,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 		    buffp = topic_list;
 		}
                 if ( matched ) {
-                   if ( *(mudconf.help_separator) ) {
-                      s_hbuff2 = alloc_lbuf("help_buff");
-                      strcpy(s_hbuff2, mudconf.help_separator);
-                      s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                     (char **)NULL, 0, (char **)NULL, 0);
-                      if ( !*s_hbuff ) {
-		         safe_str((char *) "  ", topic_list, &buffp);
-                      } else {
-		         safe_str(s_hbuff, topic_list, &buffp);
-                      }
-                      free_lbuf(s_hbuff);
-                      free_lbuf(s_hbuff2);
-                   } else {
-		      safe_str((char *) "  ", topic_list, &buffp);
-                   }
+		   safe_str(s_hbuff2, topic_list, &buffp);
                 }
 		matched = 1;
 		safe_str(htab_entry->key, topic_list, &buffp);
@@ -443,19 +431,11 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	if (matched == 0) {
             if ( i_tier0 || i_tier1 || i_tier2 || i_tier3 ) {
                s_buffptr = s_buff;
-	       safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:", topic), s_buff, &s_buffptr);
+	       safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:  ", topic), s_buff, &s_buffptr);
                if ( i_tier0 > 0 ) {
                   for (i=0; i<i_tier0; i++) {
-                     if ( matched && *(mudconf.help_separator) ) {
-                        s_hbuff2 = alloc_lbuf("help_buff");
-                        strcpy(s_hbuff2, mudconf.help_separator);
-                        s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                       (char **)NULL, 0, (char **)NULL, 0);
-		        safe_str(s_hbuff, s_buff, &s_buffptr);
-                        free_lbuf(s_hbuff);
-                        free_lbuf(s_hbuff2);
-                     } else {
-                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     if ( matched ) {
+                        safe_str(s_hbuff2, s_buff, &s_buffptr);
                      }
                      safe_str(s_tier0[i], s_buff, &s_buffptr);
                      matched = 1;
@@ -463,16 +443,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                }
                if ( i_tier1 > 0 ) {
                   for (i=0; i<i_tier1; i++) {
-                     if ( matched && *(mudconf.help_separator) ) {
-                        s_hbuff2 = alloc_lbuf("help_buff");
-                        strcpy(s_hbuff2, mudconf.help_separator);
-                        s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                       (char **)NULL, 0, (char **)NULL, 0);
-		        safe_str(s_hbuff, s_buff, &s_buffptr);
-                        free_lbuf(s_hbuff);
-                        free_lbuf(s_hbuff2);
-                     } else {
-                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     if ( matched ) {
+                        safe_str(s_hbuff2, s_buff, &s_buffptr);
                      }
                      safe_str(s_tier1[i], s_buff, &s_buffptr);
                      matched = 1;
@@ -480,16 +452,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                }
                if ( !i_tier1 && (i_tier2 > 0) ) {
                   for (i=0; i<i_tier2; i++) {
-                     if ( matched && *(mudconf.help_separator) ) {
-                        s_hbuff2 = alloc_lbuf("help_buff");
-                        strcpy(s_hbuff2, mudconf.help_separator);
-                        s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                       (char **)NULL, 0, (char **)NULL, 0);
-		        safe_str(s_hbuff, s_buff, &s_buffptr);
-                        free_lbuf(s_hbuff);
-                        free_lbuf(s_hbuff2);
-                     } else {
-                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     if ( matched ) {
+                        safe_str(s_hbuff2, s_buff, &s_buffptr);
                      }
                      safe_str(s_tier2[i], s_buff, &s_buffptr);
                      matched = 1;
@@ -497,16 +461,8 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                }
                if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
                   for (i=0; i<i_tier3; i++) {
-                     if ( matched && *(mudconf.help_separator) ) {
-                        s_hbuff2 = alloc_lbuf("help_buff");
-                        strcpy(s_hbuff2, mudconf.help_separator);
-                        s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                       (char **)NULL, 0, (char **)NULL, 0);
-		        safe_str(s_hbuff, s_buff, &s_buffptr);
-                        free_lbuf(s_hbuff);
-                        free_lbuf(s_hbuff2);
-                     } else {
-                        safe_str((char *) "  ", s_buff, &s_buffptr);
+                     if ( matched ) {
+                        safe_str(s_hbuff2, s_buff, &s_buffptr);
                      }
                      safe_str(s_tier3[i], s_buff, &s_buffptr);
                      matched = 1;
@@ -529,6 +485,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
            free_sbuf(s_tier3[i]);
         }
         free_lbuf(s_buff);
+        free_lbuf(s_hbuff2);
 	return;
     }
 
@@ -664,6 +621,20 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       s_buff = alloc_lbuf("help_query");
       s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
       i_cntr = 0;
+      s_hbuff2 = alloc_lbuf("help_buff");
+      if ( *(mudconf.help_separator) ) {
+         strcpy(s_hbuff2, mudconf.help_separator);
+         s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                        (char **)NULL, 0, (char **)NULL, 0);
+         if ( !*s_hbuff ) {
+            sprintf(s_hbuff2, "%s", (char *)"  ");
+         } else {
+            sprintf(s_hbuff2, "%s", s_hbuff);
+         }
+         free_lbuf(s_hbuff);
+      } else {
+         sprintf(s_hbuff2, "%s", (char *)"  ");
+      }
       while ( fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1 ) { 
          for (p = entry.topic; *p; p++)
              *p = ToLower((int)*p);
@@ -741,7 +712,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                      if ( i_type ) {
                         safe_str(sep, tmp, &p_tmp);
                      } else {
-                        safe_str("  ", tmp, &p_tmp);
+                        safe_str(s_hbuff2, tmp, &p_tmp);
                      }
                   }
                   safe_str(entry.topic, tmp, &p_tmp);
@@ -751,6 +722,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             }
          }
       }
+      free_lbuf(s_hbuff2);
       if ( i_cntr > 2000 ) {
          notify(player, "Warning: /query matches discarded after 2000 matches.");
       }
@@ -798,6 +770,20 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       s_buffptr = s_buff = alloc_lbuf("dynhelp_topical");
       i_tier0 = i_tier1 = i_tier2 = i_tier3 = 0;
    }
+   s_hbuff2 = alloc_lbuf("help_buff");
+   if ( *(mudconf.help_separator) ) {
+      strcpy(s_hbuff2, mudconf.help_separator);
+      s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                     (char **)NULL, 0, (char **)NULL, 0);
+      if ( !*s_hbuff ) {
+         sprintf(s_hbuff2, "%s", (char *)"  ");
+      } else {
+         sprintf(s_hbuff2, "%s", s_hbuff);
+      }
+      free_lbuf(s_hbuff);
+   } else {
+      sprintf(s_hbuff2, "%s", (char *)"  ");
+   }
    while (!found && ((fread((char *)&entry, sizeof(help_indx), 1, fp_indx) == 1))) {
       for (p = entry.topic; *p; p++)
           *p = ToLower((int)*p);
@@ -811,7 +797,9 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                if ( i_type ) {
                   safe_str(sep, tmp, &p_tmp);
                } else {
-                  safe_str("  ", tmp, &p_tmp);
+                  if ( matched ) {
+                     safe_str(s_hbuff2, tmp, &p_tmp);
+                  }
                }
             }
             safe_str(entry.topic, tmp, &p_tmp);
@@ -860,19 +848,11 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       free_lbuf(s_tmpbuff);
       if ( i_tier0 || i_tier1 || i_tier2 || i_tier3 ) {
          s_buffptr = s_buff;
-	 safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:", msg), s_buff, &s_buffptr);
+	 safe_str(unsafe_tprintf("No entry for '%s'.  Suggestions:  ", msg), s_buff, &s_buffptr);
          if ( i_tier0 > 0 ) {
             for (i=0; i<i_tier0; i++) {
-               if ( matched && *(mudconf.help_separator) ) {
-                  s_hbuff2 = alloc_lbuf("help_buff");
-                  strcpy(s_hbuff2, mudconf.help_separator);
-                  s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                 (char **)NULL, 0, (char **)NULL, 0);
-		  safe_str(s_hbuff, s_buff, &s_buffptr);
-                  free_lbuf(s_hbuff);
-                  free_lbuf(s_hbuff2);
-               } else {
-                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               if ( matched ) {
+                  safe_str(s_hbuff2, s_buff, &s_buffptr);
                }
                safe_str(s_tier0[i], s_buff, &s_buffptr);
                matched = 1;
@@ -880,16 +860,8 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
          if ( i_tier1 > 0 ) {
             for (i=0; i<i_tier1; i++) {
-               if ( matched && *(mudconf.help_separator) ) {
-                  s_hbuff2 = alloc_lbuf("help_buff");
-                  strcpy(s_hbuff2, mudconf.help_separator);
-                  s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                 (char **)NULL, 0, (char **)NULL, 0);
-		  safe_str(s_hbuff, s_buff, &s_buffptr);
-                  free_lbuf(s_hbuff);
-                  free_lbuf(s_hbuff2);
-               } else {
-                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               if ( matched ) {
+                  safe_str(s_hbuff2, s_buff, &s_buffptr);
                }
                safe_str(s_tier1[i], s_buff, &s_buffptr);
                matched = 1;
@@ -897,16 +869,8 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
          if ( !i_tier1 && (i_tier2 > 0) ) {
             for (i=0; i<i_tier2; i++) {
-               if ( matched && *(mudconf.help_separator) ) {
-                  s_hbuff2 = alloc_lbuf("help_buff");
-                  strcpy(s_hbuff2, mudconf.help_separator);
-                  s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                 (char **)NULL, 0, (char **)NULL, 0);
-		  safe_str(s_hbuff, s_buff, &s_buffptr);
-                  free_lbuf(s_hbuff);
-                  free_lbuf(s_hbuff2);
-               } else {
-                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               if ( matched ) {
+                  safe_str(s_hbuff2, s_buff, &s_buffptr);
                }
                safe_str(s_tier2[i], s_buff, &s_buffptr);
                matched = 1;
@@ -914,16 +878,8 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
          if ( !i_tier1 && !i_tier2 && (i_tier3 > 0) ) {
             for (i=0; i<i_tier3; i++) {
-               if ( matched && *(mudconf.help_separator) ) {
-                  s_hbuff2 = alloc_lbuf("help_buff");
-                  strcpy(s_hbuff2, mudconf.help_separator);
-                  s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                 (char **)NULL, 0, (char **)NULL, 0);
-		  safe_str(s_hbuff, s_buff, &s_buffptr);
-                  free_lbuf(s_hbuff);
-                  free_lbuf(s_hbuff2);
-               } else {
-                  safe_str((char *) "  ", s_buff, &s_buffptr);
+               if ( matched ) {
+                  safe_str(s_hbuff2, s_buff, &s_buffptr);
                }
                safe_str(s_tier3[i], s_buff, &s_buffptr);
                matched = 1;
@@ -935,6 +891,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       matched = 0;
    }
    tf_fclose(fp_indx);
+   free_lbuf(s_hbuff2);
    if ( found ) {
       memset(filename, 0, sizeof(filename));
       tpass = fhelp;
@@ -1022,6 +979,15 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          if ( key & DYN_PARSE ) {
             result = cpuexec(player, cause, cause,
                             EV_STRIP | EV_FCHECK | EV_EVAL, line, (char**)NULL, 0, (char **)NULL, 0);
+            if ( t_val ) {
+               safe_str(result, t_buff, &t_bufptr);
+               safe_str("\r\n", t_buff, &t_bufptr);
+            } else
+               notify(player, result);
+            free_lbuf(result);
+         } else if ( key & DYN_SUBEVAL ) {
+            result = cpuexec(player, cause, cause,
+                            EV_FIGNORE | EV_NOFCHECK | EV_EVAL, line, (char**)NULL, 0, (char **)NULL, 0);
             if ( t_val ) {
                safe_str(result, t_buff, &t_bufptr);
                safe_str("\r\n", t_buff, &t_bufptr);
@@ -1215,6 +1181,20 @@ errmsg(dbref player)
 	offset = htab_entry->pos;
     else {
 	matched = 0;
+        s_hbuff2 = alloc_lbuf("help_buff");
+        if ( *(mudconf.help_separator) ) {
+           strcpy(s_hbuff2, mudconf.help_separator);
+           s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                          (char **)NULL, 0, (char **)NULL, 0);
+           if ( !*s_hbuff ) {
+              sprintf(s_hbuff2, "%s", (char *)"  ");
+           } else {
+              sprintf(s_hbuff2, "%s", s_hbuff);
+           }
+           free_lbuf(s_hbuff);
+        } else {
+           sprintf(s_hbuff2, "%s", (char *)"  ");
+        }
 	for (htab_entry = (struct help_entry *) hash_firstentry(htab);
 	     htab_entry != NULL;
 	     htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -1226,21 +1206,7 @@ errmsg(dbref player)
 		    buffp = topic_list;
 		}
 		safe_str(htab_entry->key, topic_list, &buffp);
-		if ( *(mudconf.help_separator) ) {
-                   s_hbuff2 = alloc_lbuf("help_buff");
-                   strcpy(s_hbuff2, mudconf.help_separator);
-                   s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                                  (char **)NULL, 0, (char **)NULL, 0);
-                   if ( !*s_hbuff ) {
-		      safe_str((char *) "  ", topic_list, &buffp);
-                   } else {
-		      safe_str(s_hbuff, topic_list, &buffp);
-                   }
-                   free_lbuf(s_hbuff);
-                   free_lbuf(s_hbuff2);
-		} else {
-		   safe_str((char *) "  ", topic_list, &buffp);
-		}
+		safe_str(s_hbuff2, topic_list, &buffp);
 	    }
 	}
 	if (matched == 0)
@@ -1249,6 +1215,7 @@ errmsg(dbref player)
 	    strcpy(errbuf, dmsg);
 	    free_lbuf(topic_list);
 	}
+        free_lbuf(s_hbuff2);
 	return errbuf;
     }
     sprintf(filename, "%s/%s", mudconf.txt_dir, mudconf.error_file);
