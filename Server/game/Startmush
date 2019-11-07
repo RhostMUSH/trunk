@@ -203,9 +203,9 @@ if [ -f "$INPUT_DB" ]
 then
    if [ ${CYGWIN} -eq 1 ]
    then
-      (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+      (nohup ./netrhost $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
    else
-      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+      (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
    fi
 else
    echo "There was no valid database information found."
@@ -273,27 +273,27 @@ else
          then
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+               (nohup ./netrhost $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
             fi
          else
             echo "The database wasn't loaded properly.  Going to initialize a new db.  RETURN to continue, ^C to abort."
             read ANS
             if [ ${CYGWIN} -eq 1 ]
             then
-               (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+               (nohup ./netrhost -s $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
             else
-               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+               (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
             fi
             gl_newdb=1
          fi
       else
          if [ ${CYGWIN} -eq 1 ]
          then
-            (nohup ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+            (nohup ./netrhost -s $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
          else
-            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf >$MUSHLOGNAME 2>&1 &)
+            (nohup ./netrhost.debugmon ${DEBUG_ID} ./netrhost -s $GAMENAME.conf > $MUSHLOGNAME 2>&1 &)
          fi
          gl_newdb=1
       fi
