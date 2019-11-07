@@ -328,79 +328,105 @@ Follow what it asks for and just let it do its thing.
 
 
 --------------------------------------------------------------------------------
-III.  What to type to configure and get your RhostMUSH up and running
+IV.  What to type to configure and get your RhostMUSH up and running
 --------------------------------------------------------------------------------
-Once your source is compiled, you need to modify your ./game/netrhost.conf file with whatever changes you need.
-Don't feel overwhelmed, it's all very well documented.
 
-Backups are already handled and integrated with a script 'backup_flat.sh'.  If you wish to customize this, feel
-free.  Again, it is well documented and just require changing settings at the top of this script.
+You may configure Rhost three ways.   
 
-By default, it does 7 contiguous backups.  You may increase or decrease this value to any value you want.
+---- 1. Use a blank database:
+  Modify your ./game/netrhost.conf file or what settings you want.
+  Don't feel overwhelmed, it's all very well documented.
 
-It will, by default, backup all your txt/*.txt files, your netrhost.conf file, your netrhost.db.flat (mush db)
-file, your RhostMUSH.dump.* (mail db) files, your RhostMUSH.news.* (internal news/bbs db -- if used), your
-RhostMUSH.areg.* (the autoregistration db -- if used), and any sqlite database you currently may be using 
-which are OPTIONALLY backed up if you remove the '#' from before it.
+---- 2. Use Ambrosia's default database
+  Follow minimal-DBs/Amb-MinimalRhost/IMPORTANT_README
+  
+  The netrhost.conf file you will copy is in minimal-DBs/Amb-MinimalRhost/game
+  Copy this netrhost.conf file into your 'game' directory.
 
-The backup script also will optionally rcp/scp, ftp, or mail any backups you want to a remote destination.
-Be forewarned, the backup files can potentially get rather large for larger games, even compressed.  The
-average size for these files will be 1-5MB.  It could potentially get over 10-20MB in size for 
-excessively large games, so plan accordingly.
+  You will want the custom txt files under Amb-MinimalRhost/txt in your game/txt
+  directory and to mkindx all the txt files.  You can run ./Startmush -i to index.
+  
+  When ./Startmush prompts you to load a flatfile, say 'yes' and hit <RETURN>
+  to have it search for flatfiles, then select netrhost.db.flat from under
+  the minimal-DBs/Amb-MinimalRhost directory.
+  
+  The main steps to make sure you do for Ambrosia's db:
+  ~/Server/minimal-DBs/Amb-MinimalRhost/netrhost.db.flat -- Ambrosia's secure and featured minimal db.
+    - Use the matching netrhost.conf file under the Amb-MinimalRhost/game directory
+    - Load in the settings specified in the Amb-MinimalRhost/bin directory.
+      - Copy this file into your ~/Server/bin directory
+      - From 'Server' directory type: make clean
+      - From 'Server' directory type: make confsource and 'l'oad option 0
+      - Specify any -additional- options you want at this point.
+      - Recompile your code
+    - Copy the files in Amb-MinimalRhost/game/txt into your ~/Server/game/txt directory
+    - from your ~/Server/game txt file run on each of the txt files:
+      ../mkindx <txtfile>.txt <txtfile>.indx
+      Where <txtfile> is the name of the file (minus the .txt extension)
+    - If running, @reboot your game.
 
-Be aware that the backup system will NOT make successful backups if you run out of disk space.  This includes
-actually running out of disk space or running out of disk quota.  There is a mechanism inside the backup
-script to specify an email address that you wish to get alerts from in these instances.  I recommend using
-it.
-
-If you make changes to your backup_flat.sh script with an already active and running mush and wish to just 
-restart the backup procedure just issue:
-./backup_restart.sh
-
-Then to start your mush, go to the 'game' directory and type:
-
-./Startmush
-
-No, you do not need a & at the end.  It has script magic that will background the process for you.
+---- 3. Use the generic default database
+  Copy the netrhost.conf from minimal-DBs/minimal_db to your game directory.
  
-Startmush will prompt you if this is the first time you'll be running your mush.  At this point say
-yes.  It will then ask you if you have a flatfile to load.  If you do, please specify the FULL PATH
-of the flatfile, including all extentions of the flatfile name that you wish to use.  If you are 
-unsure of the path but know it's under the 'Rhost' directory, just hit RETURN at this point and
-it will scan your Rhost directory and subdirectories for any Rhost flatfile that it detects that
-can be loaded.  At this point select it (by name or by number) and it'll attempt to load the flatfile.
-If it succeeds, it'll start the mush with the relevant data.
+  When ./Startmush prompts you to load a flatfile, say 'yes' and hit <RETURN>
+  to have it search for flatfiles, then select netrhost.db.flat from under
+  the minimal-DBs/minimal_db directory.
+  
+Once you have done step 1, 2, *or* 3.  You can start your mush up.
+At this point type from the game directory:
+    ./Startmush
 
-~/Server/minimal-DBs/Amb-MinimalRhost/netrhost.db.flat -- Ambrosia's secure and featured minimal db.
-  - Use the matching netrhost.conf file under the Amb-MinimalRhost/game directory
-  - Load in the settings specified in the Amb-MinimalRhost/bin directory.
-    - Copy this file into your ~/Server/bin directory
-    - From 'Server' directory type: make clean
-    - From 'Server' directory type: make confsource and 'l'oad option 0
-    - Specify any -additional- options you want at this point.
-    - Recompile your code
-  - Copy the files in Amb-MinimalRhost/game/txt into your ~/Server/game/txt directory
-  - from your ~/Server/game txt file run on each of the txt files:
-    ../mkindx <txtfile>.txt <txtfile>.indx
-    Where <txtfile> is the name of the file (minus the .txt extension)
-  - If running, @reboot your game.
+Backups for RhostMUSH:
+  Backups are already handled and integrated with a script 'backup_flat.sh'.  
+  If you wish to customize this, feel free.  Again, it is well documented and 
+  just require changing settings at the top of this script.
 
-~/Server/minimal-DBs/minimal_db/reimaged.db.flat       -- Default pre-loaded minimal db
-  - Use the matching reimaged.conf file (rename to netrhost.conf) and put in your game directory
+  By default, it does 7 contiguous backups.  You may increase or decrease 
+  this value to any value you want.
 
-If it says the shared ID is already in use, please verify that it is the right shared debug id, then type:
-./Startmush -f
+  It will, by default, backup all your txt/*.txt files, your netrhost.conf 
+  file, your netrhost.db.flat (mush db) file, your RhostMUSH.dump.* 
+  (mail db) files, your RhostMUSH.news.* (internal news/bbs db -- if used), 
+  your RhostMUSH.areg.* (the autoregistration db -- if used), and any sqlite 
+  database you currently may be using which are OPTIONALLY backed up if you 
+  remove the '#' from before it.
 
+  The backup script also will optionally rcp/scp, ftp, or mail any backups 
+  you want to a remote destination.  Be forewarned, the backup files can 
+  potentially get rather large for larger games, even compressed.  The 
+  average size for these files will be 1-5MB.  It could potentially get 
+  over 10-20MB in size for excessively large games, so plan accordingly.
 
-Your mush will over time build up a sizeable log file.  To rotate this use
-the @logrotate command.  See wizhelp on @logrotate
+  Be aware that the backup system will NOT make successful backups if you 
+  run out of disk space.  This includes actually running out of disk space 
+  or running out of disk quota.  There is a mechanism inside the backup 
+  script to specify an email address that you wish to get alerts from 
+  in these instances.  I recommend using it.
 
+  If you make changes to your backup_flat.sh script with an already 
+  active and running mush and wish to just restart the backup procedure 
+  just issue: ./backup_restart.sh
 
+If you run into issues:
+  Probelm: If it says the shared ID is already in use 
+        A1: please verify that it is the right shared debug_id in your 
+            netrhost.conf file
+        A2: Force a start by ./Startmush -f
 
+  Problem: Your log file is massive and your mush is running
+        A1: To rotate this use the @logrotate command.  
+            See wizhelp on @logrotate
+
+  Problem: The database flatfile you're loading can't load because
+           a db is already defined.
+       A1: remove netrhost.db* and netrhost.gdbm* from your data directory
+
+  Problem: The mail database won't load and mail shows 'offline'
+       A1: wmail/load 
 
 --------------------------------------------------------------------------------
-IV.   What to type to get the basics running if you did not choose a 
-      pre-existing flatfile in step III.
+V.   What to type to get the basics running if you did not choose a 
+     pre-existing flatfile in step IV.
 --------------------------------------------------------------------------------
 If you decided to get a bare-bone configuration, you will find your mush
 has just two things.  The #1 (God) player and the starting room #0.  That's it.
@@ -557,7 +583,7 @@ no changes depending on the complexity of the code in question.
 
  
 --------------------------------------------------------------------------------
-V.    Considerations to locking down restrictions in RhostMUSH
+VI.    Considerations to locking down restrictions in RhostMUSH
 --------------------------------------------------------------------------------
 Sometimes, you want to have things run at various privilage levels and do not
 want to have things with too much access.  Weither that is online objects or
@@ -608,7 +634,7 @@ TOR/Proxy blocking:     : @blacklist (see shell's tor_pull.sh)
                           @tor (see wizhelp)
 
 --------------------------------------------------------------------------------
-VI.   What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
+VII.   What FLAGS, TOGGLES, POWERS, and DEPOWERS mean in RhostMUSH
 --------------------------------------------------------------------------------
 Flags:    Flags are pretty much exactly the same as any other mush.  It's a flag
           that you set or unset on a target which then enables/disables or 
@@ -637,7 +663,7 @@ Toggles:  Toggles were designed as a single point flag that immediately enables
           depowered.
 
 --------------------------------------------------------------------------------
-VII.  Extended lockdown of the mush and considerations.
+VIII.  Extended lockdown of the mush and considerations.
 --------------------------------------------------------------------------------
 These are flags, powers, toggles, and various conditions for consideration
 when you decide to use some of the advanced features of RhostMUSH.
@@ -857,8 +883,8 @@ Site Restrictions:
     nobroadcast_host - Snuff online site broadcasts via MONITOR for specified site
 
 --------------------------------------------------------------------------------
-VIII. Methods to block anonymous connections and the pros and cons 
-      of doing so.
+IX. Methods to block anonymous connections and the pros and cons 
+    of doing so.
 --------------------------------------------------------------------------------
   Now let's assume you have some troll attempting to use proxies to connect.
   There's multiple ways to stop this.
@@ -889,8 +915,8 @@ VIII. Methods to block anonymous connections and the pros and cons
 
 
 --------------------------------------------------------------------------------
-IX.   What may need to be modified to get softcode from PennMUSH, 
-      TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
+X.   What may need to be modified to get softcode from PennMUSH, 
+     TinyMUSH2, TinyMUSH3, or MUX2 to work on Rhost
 --------------------------------------------------------------------------------
 RhostMUSH, for the most part, will work out of the box with most softcode gotten
 from other codebases.  There are, however, exceptions.  Most of these exceptions
@@ -1030,8 +1056,8 @@ Problematic commands:
 27. Multiple aliases are supported via @protect.
 
 --------------------------------------------------------------------------------
-X.    The differences to expect to the end user between PennMUSH, MUX,
-      and RhostMUSH as of 08/06/2016.
+XI.    The differences to expect to the end user between PennMUSH, MUX,
+       and RhostMUSH as of 08/06/2016.
 --------------------------------------------------------------------------------
 The largest end user experience will mostly resolve around some look and feel.
 The general look and feel of how to set attributes, work with commands and 
