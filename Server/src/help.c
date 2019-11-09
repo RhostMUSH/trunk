@@ -212,6 +212,20 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
        s_buff = alloc_lbuf("help_query");
        s_buff2ptr = s_buff2 = alloc_lbuf("help_query2");
        i_cntr = 0;
+       s_hbuff2 = alloc_lbuf("help_buff");
+       if ( *(mudconf.help_separator) ) {
+          strcpy(s_hbuff2, mudconf.help_separator);
+          s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
+                         (char **)NULL, 0, (char **)NULL, 0);
+          if ( !*s_hbuff ) {
+             sprintf(s_hbuff2, "%s", (char *)"  ");
+          } else {
+             sprintf(s_hbuff2, "%s", s_hbuff);
+          }
+          free_lbuf(s_hbuff);
+       } else {
+          sprintf(s_hbuff2, "%s", (char *)"  ");
+       }
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -237,20 +251,6 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
               return;
           }
           i_header = 0;
-          s_hbuff2 = alloc_lbuf("help_buff");
-          if ( *(mudconf.help_separator) ) {
-             strcpy(s_hbuff2, mudconf.help_separator);
-             s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
-                            (char **)NULL, 0, (char **)NULL, 0);
-             if ( !*s_hbuff ) {
-                sprintf(s_hbuff2, "%s", (char *)"  ");
-             } else {
-                sprintf(s_hbuff2, "%s", s_hbuff);
-             }
-             free_lbuf(s_hbuff);
-          } else {
-             sprintf(s_hbuff2, "%s", (char *)"  ");
-          }
           for (;;) {
              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
                 break;
