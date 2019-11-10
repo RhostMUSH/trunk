@@ -4099,18 +4099,46 @@
   
   Note that with attribute locking, a ROYALTY object can read any attribute of
   any object, including attributes invisible to players.
- 
+   
   Player #1 may also make attribute locks of the form <attr-num>:<value>
   Note that if <attr-num> is not a valid attribute number, the lock will
   never succeed.
   
   Available Locktypes:
   
-       LockType:  AllowPage - allows cloaked wizzes to enable/disable locking 
-                              off receiving of pages.  Not yet enabled.
        LockType:  AltName   - defines who is allowed to see the real name
                               or not with the altname in {}'s after.
+  
+  Individual help is available with 'wizhelp @lock type <type>'
 
+& @lock/altname
+& @lock type altname
+  Lock Type: Altname
+  Syntax   : @lock/altname <target>=<key>
+  
+  Players, Objects:
+     The Altname lock controls who sees through the @altname that is set on
+     them.  Without passing this lock or without being a wizard or owning
+     the object, you will only see the @altname of the target.  
+     This only impacts looking and contents.
+  
+  Rooms, Exits:
+     This has no effect on these data types.
+  
+  Examples:
+    > look bob
+    Bob(#123)
+    You see nothing special.
+    > @altname Bob=Fred
+    Set.
+    > look bob
+    Bob(#123) {Fred}
+    You see nothing special.
+    > look fred
+    Bob(#123) {Fred}
+    You see nothing special.
+  
+  See Also: @altname
 
 & @log
   Command: @log[/<switches>] <text>
