@@ -32798,3 +32798,4 @@
     values [ASH]
   * @dynhelp didn't honor help_separator [ASH]
   * temporary static buffer for SSl could be overwritten in display [ASH]
+  * Fix long-existing typecast bugs for compiler [ASH]

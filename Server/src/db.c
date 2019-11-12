@@ -3054,7 +3054,7 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
 	         atr_decode(buff, s, thing, owner, flags, atr);
-		 if ( !(*flags * AF_PRIVATE)) {
+		 if ( !(*flags & AF_PRIVATE)) {
 		   return s;
 		 }
 	     }
@@ -3108,7 +3108,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
 	         atr_decode(buff, s, thing, owner, flags, atr);
-		 if ( !(*flags * AF_PRIVATE)) {
+		 if ( !(*flags & AF_PRIVATE)) {
 		   return s;
 		 }
 	     }
@@ -3151,7 +3151,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	buff = atr_get_raw(gbl_parent, atr);
         if ( buff && *buff ) {
 	    atr_decode(buff, s, thing, owner, flags, atr);
-            if ( !(*flags * AF_PRIVATE)) {
+            if ( !(*flags & AF_PRIVATE)) {
                return s;
             }
         } else {

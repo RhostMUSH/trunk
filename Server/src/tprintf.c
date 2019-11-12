@@ -130,7 +130,7 @@ va_dcl
   if (ret <= length) {
      *bp += ret + 1;
   } else {
-     for (bp2 = *bp; bp2 != '\0' && bp2 != &buff[end]; bp2++);
+     for (bp2 = *bp; (*bp2 != '\0') && (bp2 != &buff[end]); bp2++);
      *bp = bp2;
   }
   return buff;
