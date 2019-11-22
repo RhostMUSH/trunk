@@ -914,6 +914,17 @@ cf_log_notfound(dbref player, char *cmd, const char *thingname,
 		char *thing)
 {
     char *buff;
+    /* If command handler is null let's ignore it */
+    if ( !thing || !*thing ) {
+       return;
+    }
+    buff = thing;
+    while ( *buff && isspace(*buff) ) {
+       buff++;
+    }
+    if ( !*buff ) {
+       return;
+    }
 
     /* Modified this so buffers are cut off on unrecognized commands */
     if (mudstate.initializing) {
