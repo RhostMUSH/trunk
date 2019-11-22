@@ -52,6 +52,8 @@ parsestr() was missing a prefix handler for the | option.
 				- Thanks Aqua
 conf files didn't ignore spaces/blank lines
 				- Thanks ELpH
+Erraneous warning when vattr_cmds not defined
+				- Thanks ELpH
 
 
                          RhostMUSH 3.9.5 Update File

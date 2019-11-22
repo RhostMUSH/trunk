@@ -3625,8 +3625,11 @@ CF_HAND(cf_include)
 
     fp = fopen(str, "r");
     if (fp == NULL) {
-	cf_log_notfound(player, cmd, "Config file", str);
-	return -1;
+        if ( strcmp(str, "rhost_vattr.conf") != 0 ) {
+	   cf_log_notfound(player, cmd, "Config file", str);
+	   return -1;
+        }
+        return 0;
     }
     buf = alloc_lbuf("cf_include");
     fgets(buf, LBUF_SIZE, fp);
