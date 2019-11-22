@@ -4570,7 +4570,11 @@ CONF conftable[] =
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
     {(char *) "mtimer",
+#ifdef BSD_LIKE
+     cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 10, 1, CA_WIZARD,
+#else
      cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 1000, 1, CA_WIZARD,
+#endif
      (char *) "The milisecond timer offset to be used.\r\n"\
               "                             Default: 10   Value: %d"},
     {(char *) "muddb_name",
