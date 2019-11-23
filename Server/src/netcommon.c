@@ -4861,10 +4861,10 @@ do_command(DESC * d, char *command)
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
     char *s_usepass, *s_usepassptr,
-         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_strtok, *s_strtokr, *s_buffer,
+         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass;
+    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5480,15 +5480,19 @@ do_command(DESC * d, char *command)
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
+            s_snarfing4 = alloc_lbuf("cmd_get4");
             s_buffer = alloc_lbuf("cmd_get_buff");
             s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
             s_user = alloc_lbuf("cmd_get_user");
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
-            i_parse = i_snarfing = i_usepass = 0;
+            i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
             while ( s_strtok ) {
                if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
                   i_snarfing = 1;
+               }
+               if ( !i_snarfing4 && (sscanf(s_strtok, "Origin: %[^\n]", s_snarfing4) == 1) ) {
+                  i_snarfing4 = 1;
                }
                if ( sscanf(s_strtok, "Parse: %[^\n]", s_snarfing2) == 1 ) {
                   /* Default behavior -- set to 0 */
@@ -5639,6 +5643,11 @@ do_command(DESC * d, char *command)
                               mudstate.chkcpu_toggle = i_cputog;
                               queue_string(d, "HTTP/1.1 200 OK\r\n");
                               queue_string(d, "Content-type: text/plain\r\n");
+                              if ( i_snarfing4 ) {
+                                 queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
+                                 queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
+                                 queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                              }
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Ok - Executed\r\n");
                               if ( i_encode64 ) {
@@ -5686,6 +5695,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing2);
             free_lbuf(s_snarfing3);
+            free_lbuf(s_snarfing4);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);
@@ -5722,15 +5732,19 @@ do_command(DESC * d, char *command)
             break;
 #else
             s_snarfing = alloc_lbuf("cmd_post");
+            s_snarfing4 = alloc_lbuf("cmd_post2");
             s_buffer = alloc_lbuf("cmd_post_buff");
             s_usepassptr = s_usepass = alloc_lbuf("cmd_post_userpass");
             s_user = alloc_lbuf("cmd_post_user");
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
-            i_snarfing = i_usepass = 0;
+            i_snarfing = i_usepass = i_snarfing4 = 0;
             i_time = 0.0;
             while ( s_strtok ) {
                if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
+                  i_snarfing = 1;
+               }
+               if ( !i_snarfing4 && (sscanf(s_strtok, "Origin: %[^\n]", s_snarfing4) == 1) ) {
                   i_snarfing = 1;
                }
                if ( sscanf(s_strtok, "Time: %lf", &i_time) == 1 ) {
@@ -5792,6 +5806,11 @@ do_command(DESC * d, char *command)
 	                      wait_que(thing, thing, i_time, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
                               queue_string(d, "HTTP/1.1 200 OK\r\n");
                               queue_string(d, "Content-type: text/plain\r\n");
+                              if ( i_snarfing4 ) {
+                                 queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
+                                 queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
+                                 queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                              }
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Ok - Queued\r\n");
                            } else {
@@ -5823,6 +5842,7 @@ do_command(DESC * d, char *command)
                free_lbuf(s_user);
             }
             free_lbuf(s_snarfing);
+            free_lbuf(s_snarfing4);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);

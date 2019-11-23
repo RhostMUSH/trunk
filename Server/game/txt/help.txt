@@ -32793,6 +32793,7 @@
   * Snuff erraneous warnings on empty lines in conf files [ASH]
   * Added update to help showing the requirement of the config power_objects
     to be enabled for the API subsystem.
+  * API subsystem is now CORS aware
   
   Bug Fixes
   ------------
