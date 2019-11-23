@@ -32791,6 +32791,8 @@
     i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
   * major cleanup of internal parsing of help files [ASH]
   * Snuff erraneous warnings on empty lines in conf files [ASH]
+  * Added update to help showing the requirement of the config power_objects
+    to be enabled for the API subsystem.
   
   Bug Fixes
   ------------

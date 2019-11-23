@@ -1627,6 +1627,9 @@
 & @api
   Command: @api[/switch] <target> [=<value>]
   
+  Note:  This requires the config parameter power_objects to be enabled.
+         This is because this sets the API power on non-player types.
+  
   The @api command is used to enable/disable a target from using the API 
   interface as well as enable authentication through both password and
   IP.   This is the central tool for configurating an object to be allowed
@@ -1660,7 +1663,7 @@
     @api: Target is no longer allowed to process API handling
   
   See Also: API, api_port, api_nodns, forbidapi_host, forbidapi_site, 
-            passapi_host, passapi_site, max_lastsite_api
+            passapi_host, passapi_site, max_lastsite_api, power_objects
 
 & @DEPOWER
   Command: @depower[[/switch] <user>=[@o|@g|@a] arg ...]
@@ -9911,7 +9914,11 @@
   If enabled, then non-players will be checked for @powers and @depowers in
   addition to the owner.  The higher power (for @power) or harsher restriction
   (for @depower) between the two will be chosen.
-
+  
+  This is required for the @api command and the API subsystem to function.
+  
+  See Also: @api
+  
 & protect_addenh
   Config parameter: protect_addenh <boolean>.  Default: 0
   
