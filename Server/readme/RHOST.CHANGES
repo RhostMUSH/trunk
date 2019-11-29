@@ -54,6 +54,8 @@ conf files didn't ignore spaces/blank lines
 				- Thanks ELpH
 Erraneous warning when vattr_cmds not defined
 				- Thanks ELpH
+Added ability to specify subdirectories in a controlled method via @admin for execscript()
+				- Thanks Kumakun
 
 
                          RhostMUSH 3.9.5 Update File
