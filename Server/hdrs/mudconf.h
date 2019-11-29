@@ -409,6 +409,7 @@ struct confdata {
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+	char	execscriptpath[LBUF_SIZE];	/* execscript path overrides */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
         int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */

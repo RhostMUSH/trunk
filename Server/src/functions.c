@@ -1325,6 +1325,8 @@ extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 extern void do_zone(dbref, dbref, int, char *, char *);
 extern int attrib_canset(dbref, const char *, dbref, dbref);
+extern int lookup(char *, char *, int, int *);
+
 int do_convtime(char *, struct tm *);
 
 /* pom.c nefinitions */
@@ -17418,10 +17420,10 @@ FUNCTION(fun_eval)
 FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
-   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr,
+   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_flags[MAX_GLOBAL_REGS];
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS];
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -17453,9 +17455,53 @@ FUNCTION(fun_execscript)
       safe_str("#-1 NO FILE SPECIFIED", buff, bufcx);
       return;
    }
-   if ( (strstr(fargs[0], "..") != NULL) || (strchr(fargs[0], '$') != NULL) || (strchr(fargs[0], '/')) ) {
+   if ( (strstr(fargs[0], "..") != NULL) || (strchr(fargs[0], '$') != NULL) ) {
       safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
       return;
+   }
+   if ( (strchr(fargs[0], '/') != NULL) ) {
+      if ( !*(strchr(fargs[0], '/')+1) ) {
+         safe_str("#-1 NO FILE SPECIFIED AFTER PATH", buff, bufcx);
+         return;
+      }
+      if ( strchr(strchr(fargs[0], '/')+1, '/') != NULL ) {
+         safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+         return;
+      }
+      if ( *mudconf.execscriptpath && (strchr(fargs[0], '/') != NULL) ) {
+         s_execorp = mudconf.execscriptpath;
+         while ( *s_execorp && (isalnum(*s_execorp) || isspace(*s_execorp)) ) {
+            s_execorp++;
+         }
+         if ( *s_execorp ) {
+            safe_str("#-1 INVALID CHARS IN OVERRIDE.  MUST BE WHITESPACE OR ALPHANUMERIC.", buff, bufcx);
+            return;
+         }
+         s_execor = alloc_lbuf("execscript_exceptions");
+         s_execorp = alloc_lbuf("execscript_exceptions2");
+         strcpy(s_execor, mudconf.execscriptpath);
+         strcpy(s_execorp, fargs[0]);
+         s_tptr = s_execorp;
+         i_execor = 0;
+         while ( *s_tptr ) {
+            if ( *s_tptr == '/' ) {
+               *s_tptr = '\0';
+               break;
+            }
+            s_tptr++;
+         }
+         if ( !lookup(s_execorp, s_execor, -2, &i_execor) ) {
+            free_lbuf(s_execor);
+            free_lbuf(s_execorp);
+            safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+            return;
+         }
+         free_lbuf(s_execor);
+         free_lbuf(s_execorp);
+      } else {
+         safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+         return;
+      }
    }
 
    s_combine = alloc_lbuf("fun_execscript");

@@ -6290,33 +6290,33 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index             examine_flags              examine_public_attrs
-  examine_restrictive     exec_secure                exit_attr_default       
-  exit_flags              exit_parent                exit_quota              
-  exit_separator          exit_toggles               exits_connect_rooms  
-  expand_goto             fascist_teleport           file_object   
-  find_money_chance       flag_alias                 flag_name           
-  flag_access_see         flag_access_set            flag_access_type 
-  flag_access_unset       float_precision            forbid_host 
-  forbid_site             forbidapi_host             forbidapi_site 
-  fork_dump               format_compatbility        fork_vfork 
-  format_contents         format_exits               format_name 
-  formats_are_local       full_file                  full_motd_message
-  function_access         function_alias             function_invocation_limit
-  function_max            function_recursion_limit   gdbm_cache_size 
-  gdbm_database           global_aconnect            global_adisconnect 
-  global_ansimask         global_attrdefault         global_clone_exit  
-  global_clone_obj        global_clone_player        global_clone_room  
-  global_clone_thing      global_error_cmd           global_error_obj         
-  global_parent_exit      global_parent_obj          global_parent_player     
-  global_parent_room      global_parent_thing        good_name                
-  goodmail_host           gconf_file                 guest_char_num           
-  guest_file              guest_namelist             guest_randomize          
-  guild_attrname          guild_default              guild_hdr                
-  hackattr_nowiz          hackattr_see               hasattrp_compat          
-  heavy_cpu_max           help_file                  help_index               
-  help_separator          hide_nospoof               hook_cmd                 
-  hook_obj                hook_offline
+  error_index                examine_flags        examine_public_attrs
+  examine_restrictive        exec_secure          execscriptpath
+  exit_attr_default          exit_flags           exit_parent              
+  exit_quota                 exit_separator       exit_toggles             
+  exits_connect_rooms        expand_goto          fascist_teleport         
+  file_object                find_money_chance    flag_alias               
+  flag_name                  flag_access_see      flag_access_set          
+  flag_access_type           flag_access_unset    float_precision          
+  forbid_host                forbid_site          forbidapi_host           
+  forbidapi_site             fork_dump            format_compatbility      
+  fork_vfork                 format_contents      format_exits             
+  format_name                formats_are_local    full_file                
+  full_motd_message          function_access      function_alias           
+  function_invocation_limit  function_max         function_recursion_limit 
+  gdbm_cache_size            gdbm_database        global_aconnect          
+  global_adisconnect         global_ansimask      global_attrdefault       
+  global_clone_exit          global_clone_obj     global_clone_player      
+  global_clone_room          global_clone_thing   global_error_cmd         
+  global_error_obj           global_parent_exit   global_parent_obj        
+  global_parent_player       global_parent_room   global_parent_thing      
+  good_name                  goodmail_host        gconf_file               
+  guest_char_num             guest_file           guest_namelist           
+  guest_randomize            guild_attrname       guild_default            
+  guild_hdr                  hackattr_nowiz       hackattr_see             
+  hasattrp_compat            heavy_cpu_max        help_file                
+  help_index                 help_separator       hide_nospoof             
+  hook_cmd                   hook_obj             hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7385,6 +7385,17 @@
   
   See Also: execscript()
 
+& execscriptpath
+  Config parameter: execscriptpath <strings>.  Default: (empty)
+  
+  This parameter will specify a space separated list of alphanumerical 
+  directories that you wish to have as subdirectories under the 'scripts'
+  directory.  This only allows one level of subdirectories, only allows
+  alpha-numerical characters and will not allow any other character 
+  including wildcards.
+  
+  See Also: execscript()
+  
 & exit_attr_default
   Config parameter: exit_attr_default <dbref>.  Default: -1
   
@@ -11755,6 +11766,9 @@
   Note:  This function issues a shell interpreter so will have some
          overhead compared to calling it natively through an API.
   
+  Note2: You may specify subdirectory overrides with the @admin param
+         execscriptpath.  This only allows alphanumerical characters.
+    
   Requirements:  /usr/bin/timeout (on MacOSX link to /usr/local/bin/gtimeout)
                  script/binary existing in ~/game/scripts and chmod u+rx
                  @powered EXECSCRIPT GM or higher

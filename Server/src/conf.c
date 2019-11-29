@@ -351,6 +351,7 @@ NDECL(cf_init)
     memset(mudconf.tree_character, '\0', sizeof(mudconf.tree_character));
     memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
     memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
+    memset(mudconf.execscriptpath, '\0', sizeof(mudconf.execscriptpath));
     strcpy(mudconf.tree_character, (char *)"`");
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
     memset(mudconf.sconnect_cmd, '\0', sizeof(mudconf.sconnect_cmd));
@@ -4070,6 +4071,10 @@ CONF conftable[] =
     {(char *) "exec_secure",
      cf_bool, CA_DISABLED, &mudconf.exec_secure, 0, 0, CA_WIZARD,
      (char *) "Is execscript() escaping everything?"},
+    {(char *) "execscriptpath",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.execscriptpath, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "Specified valid sub-directories that execscript can override."},
+
     {(char *) "exit_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_flags, 0, 0, CA_PUBLIC,
      (char *) "These are default flags set on new exits."},

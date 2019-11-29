@@ -32784,6 +32784,8 @@
     default value to this is 5000.  [ASH] 
   * vercustomstr @admin param to allow a 20 character customised version
     suffix [ASH]
+  * @admin param execscriptpath to specify alphanumerical subdirectories
+    that may be searched for execscript as overrides [ASH]
   
   Changes
   ------------
