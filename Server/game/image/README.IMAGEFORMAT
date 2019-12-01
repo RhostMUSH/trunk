@@ -9,7 +9,7 @@ STRING     Wizard   NAME: of the target.  Verbatum, no quotes surround it
 *INT       345      EXITS: The first exit in a linked list exit table (-1 if none)
 *INT       0        LINK: This is the 'home' of the object or what it's linked to (-1 for none)
 *INT       123      NEXT: The next thing after this item for a content holder
-*STRING    #123     LOCK: The boolean string lock if it exists.  (empty if no lock)
+STRING     #123     LOCK: The boolean string lock if it exists.  (empty if no lock)
 *INT       1        OWNER: The dbref# owner of the target.  For players same dbref as player.
 INT        789      PARENT: The parent of the target.  (-1 if none)
 *INT       99999    MONEY: The int value of the money the players has.
