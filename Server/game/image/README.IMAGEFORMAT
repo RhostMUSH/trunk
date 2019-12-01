@@ -4,15 +4,15 @@ Data Type  Example  Description
 ---------  -------  ----------------------------------------------------------
 INT        3        TYPE: room 0, thing 1, exit 2, player 3, zone 4, garbage 5
 STRING     Wizard   NAME: of the target.  Verbatum, no quotes surround it
-INT        123      LOCATION: dbref# of the target.  No prepending '#' used.
-INT        234      CONTENTS: The first content in a linked list content table (-1 if none)
-INT        345      EXITS: The first exit in a linked list exit table (-1 if none)
-INT        0        LINK: This is the 'home' of the object or what it's linked to (-1 for none)
-INT        123      NEXT: The next thing after this item for a content holder
-STRING     #123     LOCK: The boolean string lock if it exists.  (empty if no lock)
-INT        1        OWNER: The dbref# owner of the target.  For players same dbref as player.
+*INT       123      LOCATION: dbref# of the target.  No prepending '#' used.
+*INT       234      CONTENTS: The first content in a linked list content table (-1 if none)
+*INT       345      EXITS: The first exit in a linked list exit table (-1 if none)
+*INT       0        LINK: This is the 'home' of the object or what it's linked to (-1 for none)
+*INT       123      NEXT: The next thing after this item for a content holder
+*STRING    #123     LOCK: The boolean string lock if it exists.  (empty if no lock)
+*INT       1        OWNER: The dbref# owner of the target.  For players same dbref as player.
 INT        789      PARENT: The parent of the target.  (-1 if none)
-INT        99999    MONEY: The int value of the money the players has.
+*INT       99999    MONEY: The int value of the money the players has.
 INT        194592   FLAGS1: The first word of flags (@set flags) on a player      (see FLAGS)
 INT        194222   FLAGS2: The second word of flags (@set flags) on a player     (see FLAGS)
 INT        199999   FLAGS3: The third word of flags (@set flags []) on a player   (see FLAGS)
@@ -34,6 +34,7 @@ STRING     Ugly     ATTRIBUTECONTENTS: Contents of the next attribute
 STRING     $6$xy$xy PASSWORDCONTENTS: The SHA512 password (if glibc 2.7+ supported on system) (see PASS)
 <          <        This is the marker to specify the end of the attribute contents.  This is always the last line
 
+NOTE:  Any Data type starting with '*' is ignored when @snapshot/loading.
 
 The structure above with the examples would look like this in the file:
 
