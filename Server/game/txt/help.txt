@@ -712,6 +712,16 @@
   passed into the formatting as '%0'.  Local formatting has priority
   over global formatting.
   
+  The DEFAULT attribute flag can be set in two ways.
+    1.  Individually on the attribute: @set #dbref/attribute=default
+    2.  Set it globally through two methods:
+        A.  Internal (built-in): @admin attr_access=attribute default  
+        B.  User defined:        @attribute/access attribute=default
+  
+  Option #1 will be cleared if or when the attribute is cleared.
+  Option #2-A can be done through the netrhost.conf file for permanence.
+  Option #2-B is always permanent and doesn't have to be re-issued.
+  
   Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
         See '@list options system' to discover which method is in use.
   
