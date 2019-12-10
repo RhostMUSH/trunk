@@ -122,11 +122,16 @@ then
       ipcs -m|egrep "(key|${gl_shm})"
       echo ""
    fi
-   echo "There is an existing shared memory segment that the mush will try to use."
-   echo "If this is because you kill -9'd your mush process then you may need"
-   echo "to start your mush with 'Startmush -f'."
-   echo ""
-   exit 1
+   if [ "$1" != "-f" ]
+   then
+      echo "There is an existing shared memory segment that the mush will try to use."
+      echo "If this is because you kill -9'd your mush process then you may need"
+      echo "to start your mush with 'Startmush -f'."
+      echo ""
+      exit 1
+   else
+      echo "Existing shared memory space detected.  Reusing space shown above with '-f' force option."
+   fi
 fi
 
 if [ ! -r ./netrhost ]; then
