@@ -1065,11 +1065,18 @@ NAMETAB snapshot_sw[] =
   {(char *) "load", 2, CA_IMMORTAL, 0, SNAPSHOT_LOAD},
   {(char *) "unload", 3, CA_IMMORTAL, 0, SNAPSHOT_UNLOAD},
   {(char *) "list", 2, CA_IMMORTAL, 0, SNAPSHOT_LIST},
-  {(char *) "delete", 2, CA_IMMORTAL, 0, SNAPSHOT_DEL},
+  {(char *) "delete", 3, CA_IMMORTAL, 0, SNAPSHOT_DEL},
   {(char *) "verify", 2, CA_IMMORTAL, 0, SNAPSHOT_VERIFY},
   {(char *) "unall", 3, CA_IMMORTAL, 0, SNAPSHOT_UNALL},
   {(char *) "overwrite", 2, CA_IMMORTAL, 0, SNAPSHOT_OVER | SW_MULTIPLE},
+  {(char *) "powers", 2, CA_IMMORTAL, 0, SNAPSHOT_POWER | SW_MULTIPLE},
+  {(char *) "depowers", 3, CA_IMMORTAL, 0, SNAPSHOT_DPOWER | SW_MULTIPLE},
+  {(char *) "flags", 2, CA_IMMORTAL, 0, SNAPSHOT_FLAGS | SW_MULTIPLE},
+  {(char *) "toggles", 2, CA_IMMORTAL, 0, SNAPSHOT_TOGGL | SW_MULTIPLE},
+  {(char *) "attributes", 2, CA_IMMORTAL, 0, SNAPSHOT_ATTRS | SW_MULTIPLE},
+  {(char *) "other", 2, CA_IMMORTAL, 0, SNAPSHOT_OTHER | SW_MULTIPLE},
   {NULL, 0, 0, 0, 0}};
+
 
   /* snoop code -Thorin */
 NAMETAB snoop_sw[] =
@@ -5461,7 +5468,8 @@ CF_HAND(cf_cmd_vattr)
 
   if ( mudstate.initializing == 1) {
      if ( (fp = fopen("rhost_vattr.conf", "a")) != NULL ) {
-        fprintf(fp, "vattr_command %s %s\n", orig, alias);
+/*      fprintf(fp, "vattr_command %s %s\n", orig, alias); */
+        fprintf(fp, "vattr_command %s %s\n", alias, orig);
         fclose(fp);
      }
      DPOP; /* #40A */

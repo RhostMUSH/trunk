@@ -1068,6 +1068,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SNAPSHOT_VERIFY 16	/* Verify and sanity check snapshot file */
 #define SNAPSHOT_UNALL	32	/* Unload for a list */
 #define SNAPSHOT_OVER	64	/* Overwrite file if it exists */
+#define SNAPSHOT_ATTRS  128	/* load attributes only */
+#define SNAPSHOT_POWER	256	/* load powers only */
+#define SNAPSHOT_FLAGS	512	/* load flags only */
+#define SNAPSHOT_TOGGL	1024	/* load toggles only */
+#define SNAPSHOT_OTHER  2048	/* load other only */
+#define SNAPSHOT_DPOWER 4096	/* load depowers only */
 
 #define SITE_REG	1
 #define SITE_FOR	2

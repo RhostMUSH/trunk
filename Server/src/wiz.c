@@ -24,7 +24,7 @@ char *strtok_r(char *, const char *, char **);
 #include "rhost_ansi.h"
 
 extern void remote_write_obj(FILE *, dbref, int, int);
-extern int remote_read_obj(FILE *, dbref, int, int, int*);
+extern int remote_read_obj(FILE *, dbref, int, int, int*, int);
 extern int remote_read_sanitize(FILE *, dbref, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
 
@@ -2537,16 +2537,42 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
    char *tpr_buff, *tprp_buff, *s_mbname, *s_pt, *s_name, *s_alias, *s_aliastmp;
    char *s_strtok, *s_strtokptr, *tpr_buff2, *tprp_buff2, *tpr_buff3, *tprp_buff3;
    FILE *f_snap;
-   int i_dirnums, i_flag, i_count, i_player, i_connect, aflags;
+   int i_dirnums, i_flag, i_count, i_player, i_connect, aflags, i_tkey;
    int i_found1, i_found2, i_found3, i_over;
    dbref thing, aowner;
 
-   i_flag = i_count = i_over = 0;
+   i_tkey = i_flag = i_count = i_over = 0;
    /* Overwrite file if exists */
    if ( key & SNAPSHOT_OVER ) {
       key &= ~SNAPSHOT_OVER;
       i_over = 1;
    } 
+
+   if ( key & SNAPSHOT_POWER ) {
+      key &= ~SNAPSHOT_POWER;
+      i_tkey |= SNAPSHOT_POWER;
+   }
+   if ( key & SNAPSHOT_DPOWER ) {
+      key &= ~SNAPSHOT_DPOWER;
+      i_tkey |= SNAPSHOT_DPOWER;
+   }
+   if ( key & SNAPSHOT_FLAGS ) {
+      key &= ~SNAPSHOT_FLAGS;
+      i_tkey |= SNAPSHOT_FLAGS;
+   }
+   if ( key & SNAPSHOT_TOGGL ) {
+      key &= ~SNAPSHOT_TOGGL;
+      i_tkey |= SNAPSHOT_TOGGL;
+   }
+   if ( key & SNAPSHOT_ATTRS ) {
+      key &= ~SNAPSHOT_ATTRS;
+      i_tkey |= SNAPSHOT_ATTRS;
+   }
+   if ( key & SNAPSHOT_OTHER ) {
+      key &= ~SNAPSHOT_OTHER;
+      i_tkey |= SNAPSHOT_OTHER;
+   }
+
    switch ( key ) {
       case SNAPSHOT_NOOPT:
       case SNAPSHOT_LIST: 
@@ -2828,7 +2854,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             free_lbuf(s_name);
             free_lbuf(s_alias);
          }
-         i_dirnums = remote_read_obj(f_snap, thing, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS, &i_count);
+         i_dirnums = remote_read_obj(f_snap, thing, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS, &i_count, i_tkey);
          /* Now we can set their new alias and reset their connect flag */
          if ( i_player ) {
             s_name = alloc_lbuf("@snapshot_name");

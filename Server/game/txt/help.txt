@@ -32817,3 +32817,4 @@
   * Fix long-existing typecast bugs for compiler [ASH]
   * BSD select() does not like milisecond timers over 10ms [ASH]
   * snuff erranous warning when no vattr_cmds are defined [ASH]
+  * vattr_command had the alias and attribute switched on .conf [ASH]
