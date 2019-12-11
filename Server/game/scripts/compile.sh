@@ -6,10 +6,25 @@ then
    echo "   status    -- status of the source (compiling or completed)."
    echo "   rollback  -- roll back to the previous combined binary."
    echo "   recompile -- recompile the source."
+   echo "   force     -- if a previous compile hung, try again."
    exit 0
 fi
 arg=$(echo $1)
 case "${arg}" in
+   force) # force recompile
+      if [ -d ../rhost_tmp ]
+      then
+         echo "Cleaning up cached source files..."
+         rm -rf ../rhost_tmp
+      fi
+      if [ -f ../src/x ]
+      then
+         echo "Cleaning up old compile marker..."
+         rm -f ../src/x
+      fi
+      echo "Y"|./patch.sh > ./src/x 2>&1 &
+      echo "Compiling..."
+      ;;
    patch) # compile source
       if [ -d ../rhost_tmp ]
       then
