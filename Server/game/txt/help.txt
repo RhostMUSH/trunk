@@ -30176,7 +30176,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.0.0p4
+  *** Current Revision: 4.1.0p0
   ***************************************************************************
   
   Available Revisions:
@@ -30195,6 +30195,7 @@
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
+    4.1.0: 4.1.0p0
   
   See Also: historical, credits
 
@@ -32818,3 +32819,20 @@
   * BSD select() does not like milisecond timers over 10ms [ASH]
   * snuff erranous warning when no vattr_cmds are defined [ASH]
   * vattr_command had the alias and attribute switched on .conf [ASH]
+
+& 4.1.0p0
+  Release Date: 12/15/19
+  Status: Alpha
+    
+  New Features
+  ------------
+  * Initial prep-work to allow future of websockets [ASH]
+  
+  Changes
+  ------------
+  * Modification of DESC internal handler to handle adding on the fly
+    additions to the descriptor table to allow @reboots to handle
+    w/o crashing [ASH] 
+  
+  Bug Fixes
+  ------------

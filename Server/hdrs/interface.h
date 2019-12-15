@@ -81,6 +81,16 @@ struct SNOOPLISTNODE {
  * then an @reboot will write out the old records to a file, then read
  * them in with the new structure and everything will be hosed!
  *    - Thorin 01/1997
+ * 
+ * This has been modified.  Going forward from Rhost 4.0.0p4 any changes
+ * to this file is allowed but ONLY FOR ADDING NEW DATA AT THE END.
+ * You can not:
+ *   1.  Alter any of the field values including sizes
+ *   2.  Change the order of any of the values.
+ *   3.  Shrink/remove fields after adding them
+ *
+ * If you do any of the two with the DESC data, a @reboot WILL CRASH.
+ *    - Ashen-Shugar 12/2019
 */
 
 /* OK, let's make a temporary player desc data descriptor here */

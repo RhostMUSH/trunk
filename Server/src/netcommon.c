@@ -794,9 +794,9 @@ int dump_reboot_db( void )
 {
   DESC* d;
   struct SNOOPLISTNODE* slnptr;
-  FILE* rebootfile = NULL, *suffixfile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8];
-  int i_prefix, i_suffix;
+  FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[38 + 6];
+  int i_prefix, i_suffix, i_descsize;
 
   DPUSH; /* #107 */
 
@@ -805,13 +805,25 @@ int dump_reboot_db( void )
   ENDLOG
 
   strcpy(rebootfilename, mudconf.muddb_name);
+  strcpy(rebootsizeref, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
   strcat(rebootfilename, ".reboot");
   strcat(suffixfilename, ".fx");
+  strcat(rebootsizeref, ".size");
 
   rebootfile = fopen(rebootfilename, "wb");
   suffixfile = fopen(suffixfilename, "wb");
+  sizefile = fopen(rebootsizeref, "wb");
 
+  if ( sizefile ) {
+     i_descsize = sizeof(DESC);
+     if ( !fwrite(&i_descsize, sizeof(i_descsize), 1, sizefile) ) {
+        STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
+      log_text((char *) "Error writing to reboot file.");
+    ENDLOG
+     }
+     fclose(sizefile);
+  }
   if( !rebootfile || !suffixfile) {
     STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
       log_text((char *) "Unable to open reboot file for writing.");
@@ -938,9 +950,9 @@ int load_reboot_db( void )
   DESC* d;
   DESC* prev;
   DESC* tempd;
-  FILE* rebootfile = NULL, *suffixfile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8], *s_text;
-  int i_prefix, i_suffix, i_fxchk;
+  FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[32 + 6], *s_text;
+  int i_prefix, i_suffix, i_fxchk, i_descsize;
 
   DPUSH; /* #108 */
 
@@ -951,18 +963,52 @@ int load_reboot_db( void )
   i_fxchk = ndescriptors = 0;
 
   strcpy(rebootfilename, mudconf.muddb_name);
-  strcat(rebootfilename, ".reboot");
+  strcpy(rebootsizeref, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
+  strcat(rebootfilename, ".reboot");
   strcat(suffixfilename, ".fx");
+  strcat(rebootsizeref, ".size");
 
   rebootfile = fopen(rebootfilename, "rb");
-
   if( !rebootfile ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Unable to open reboot file for reading.");
     ENDLOG
     RETURN(0); /* #108 */
   }
+
+  sizefile = fopen(rebootsizeref, "rb");
+
+  i_descsize = sizeof(DESC);
+  if ( sizefile ) {
+     if ( !fread(&i_descsize, sizeof(i_descsize), 1, sizefile) ) {
+        STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+           log_text((char *) "Error reading DESC SIZE file for assigning DESC size. This can potentially cause a crash on reboot.  Assuming same size DESC");
+        ENDLOG
+        i_descsize = sizeof(DESC);
+     }
+     fclose(sizefile);
+     unlink(rebootsizeref);
+     sizefile = NULL;
+  } else {
+     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+        log_text((char *) "Unable to open DESC SIZE file for reading. This can potentially cause a crash on reboot.  Assuming same size DESC.");
+     ENDLOG
+  }
+
+  if ( i_descsize > sizeof(DESC) ) {
+     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+        log_text((char *) "Size of DESC being loaded is larger than in-game DESC.  Trimming value impossible. This would cause corruption on reboot.");
+     ENDLOG
+     if ( sizefile ) {
+        fclose(sizefile);
+        unlink(rebootsizeref);
+     }
+     fclose(rebootfile);
+     unlink(rebootfilename);
+     RETURN(0);
+  }
+
 
   suffixfile = fopen(suffixfilename, "rb");
   if ( !suffixfile ) 
@@ -1021,7 +1067,7 @@ int load_reboot_db( void )
   s_text = alloc_lbuf("reboot_fx");
   while(!feof(rebootfile)) {
     d = alloc_desc("reboot_sock");
-    if( !fread(d, sizeof(DESC), 1, rebootfile) ) {
+    if( !fread(d, i_descsize, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
         break;
       }
