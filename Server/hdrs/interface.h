@@ -104,6 +104,59 @@ struct descriptor_data_online {
   dbref player;
 };
 
+/* We define this to allow people who are on older systems to boot new desc data w/o crashing */
+typedef struct descriptor_data_orig DESCORIG;
+struct descriptor_data_orig {
+  int descriptor;
+  int flags;
+  int retries_left;
+  int regtries_left;
+  int command_count;
+  int timeout;
+  int host_info;
+  char addr[51];
+  char doing[256];
+  dbref player;
+  char *output_prefix;
+  char *output_suffix;
+  int output_size;
+  int output_tot;
+  int output_lost;
+  TBLOCK *output_head;
+  TBLOCK *output_tail;
+  int input_size;
+  int input_tot;
+  int input_lost;
+  CBLK *input_head;
+  CBLK *input_tail;
+  CBLK *raw_input;
+  char *raw_input_at;
+  time_t connected_at;
+  time_t last_time;
+  int quota;
+  struct sockaddr_in address;	/* added 3/6/90 SCG */
+  struct descriptor_data *hashnext;
+  struct descriptor_data *next;
+  struct descriptor_data **prev;
+  struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
+  int logged;
+  int authdescriptor;		    /* added 2/95 Thorin */
+  char userid[MBUF_SIZE];	    /* added 2/95 thorin */
+  int door_desc;		/* added 11/15/97 Seawolf */
+  int door_num;			/* added 11/15/97 Seawolf */
+  TBLOCK *door_output_head;
+  TBLOCK *door_output_tail;
+  int door_output_size;
+  CBLK *door_input_head;
+  CBLK *door_input_tail;
+  int door_int1;
+  int door_int2;
+  int door_int3;
+  char *door_lbuf;
+  char *door_mbuf;
+  char *door_raw;
+};
+
 typedef struct descriptor_data DESC;
 struct descriptor_data {
   int descriptor;

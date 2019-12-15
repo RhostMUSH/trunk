@@ -985,15 +985,15 @@ int load_reboot_db( void )
         STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
            log_text((char *) "Error reading DESC SIZE file for assigning DESC size. This can potentially cause a crash on reboot.  Assuming same size DESC");
         ENDLOG
-        i_descsize = sizeof(DESC);
      }
      fclose(sizefile);
      unlink(rebootsizeref);
      sizefile = NULL;
   } else {
      STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-        log_text((char *) "Unable to open DESC SIZE file for reading. This can potentially cause a crash on reboot.  Assuming same size DESC.");
+        log_text((char *) "Unable to open DESC SIZE file for reading. This can potentially cause a crash on reboot.  Assuming baseline DESC.");
      ENDLOG
+     i_descsize = sizeof(DESCORIG);
   }
 
   if ( i_descsize > sizeof(DESC) ) {
