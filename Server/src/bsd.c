@@ -1487,7 +1487,8 @@ static const char *disc_reasons[] =
     "Reboot",
     "Attempted Hacking",
     "Too Many Open OS-Based Descriptors",
-    "API Connection"
+    "API Connection",
+    "WebSockets Connection"
 };
 
 /* Disconnect reasons that get fed to A_ADISCONNECT via announce_disconnect */
@@ -1507,7 +1508,8 @@ static const char *disc_messages[] =
     "reboot",
     "hacking",
     "nodescriptor",
-    "api"
+    "api",
+    "websockets"
 };
 
 void 
@@ -1626,6 +1628,9 @@ shutdownsock(DESC * d, int reason)
         }
         if ( d->flags & DS_API ) {
 	    reason = R_API;
+        }
+        if ( d->flags & DS_WEBSOCKETS ) {
+	    reason = R_WEBSOCKETS;
         }
 	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
 	    buff = alloc_mbuf("shutdownsock.LOG.neverconn");
@@ -2318,7 +2323,7 @@ int
 process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
-    int got, in, lost, in_get;
+    int got, in, lost, in_get, got2;
     char *p, *pend, *q, *qend, qfind[SBUF_SIZE], *qf, *tmpptr = NULL, tmpbuf[SBUF_SIZE];
     char *cmdsave;
 
@@ -2336,7 +2341,8 @@ process_input(DESC * d)
 #ifdef ENABLE_WEBSOCKETS
     if (d->flags & DS_WEBSOCKETS) {
         /* Process using WebSockets framing. */
-        got = in = process_websocket_frame(d, buf, got);
+        got2 = got;
+        got = in = process_websocket_frame(d, buf, got2);
     }
 #endif
     if (!d->raw_input) {

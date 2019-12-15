@@ -148,8 +148,10 @@ complete_handshake(DESC *d)
   static size_t RESPONSE_LEN = 0;
 
   char buf[LBUF_SIZE];
-  char *bp = buf;
+  char *bp;
 
+  memset(buf, '\0', LBUF_SIZE);
+  bp = buf;
   if (!RESPONSE_LEN) {
     RESPONSE_LEN = strlen(RESPONSE);
   }
@@ -163,6 +165,7 @@ complete_handshake(DESC *d)
   memcpy(bp, "\r\n\r\n", 4);
   bp += 4;
 
+  fprintf(stderr, "HANDSHAKE: \"%s\"\n", "[SENT]");
   queue_write(d, (char *)buf, bp - buf);
   process_output(d);
 
@@ -211,8 +214,7 @@ process_websocket_request(DESC *d, const char *command)
 
     d->flags &= ~DS_API;
     d->flags |= DS_WEBSOCKETS_REQUEST;
-    d->timeout = -1; /* Set timeout to infinity */
-
+    d->timeout = mudconf.idle_timeout; /* Set timeout to base mush timeout value */
     
     /* If there is a newline, we have a multi-line request to process. */
     if (strstr(command, "\n")) {
@@ -226,6 +228,9 @@ process_websocket_request(DESC *d, const char *command)
       while (cptr != NULL) {
         hptr = strsep(&cptr, "\n");
         process_websocket_header(d, hptr);
+      }
+      if ( (hptr != NULL) && (cptr == NULL) ) {
+        process_websocket_header(d, cptr);
       }
     } else {
       fprintf(stderr, "REQUEST: \"%s\"\n", command);
@@ -248,7 +253,7 @@ process_websocket_header(DESC *d, const char *command)
   }
   
   /* TODO: Full implementation should verify entire request. */
-  if (*command == '\0') {
+  if ( (command == NULL) || (*command == '\0') || (*command == '\n') ) {
     if (!d->checksum[0]) {
       abort_handshake(d);
 
@@ -259,6 +264,7 @@ process_websocket_header(DESC *d, const char *command)
       return 0;
     }
 
+    fprintf(stderr, "HANDSHAKE: \"%s\"\n", "[INIT]");
     complete_handshake(d);
 
     STARTLOG(LOG_ALWAYS, "NET", "WS")
@@ -274,8 +280,10 @@ process_websocket_header(DESC *d, const char *command)
     /* Re-using Pueblo checksum field for storing WebSockets key. */
     char *value = skip_space(command + KEY_HEADER_LEN);
     
+    fprintf(stderr, "KEYGEN: \"%s\"\n", value);
     if (value && strlen(value) == WEBSOCKET_KEY_LEN) {
       memcpy(d->checksum, value, WEBSOCKET_KEY_LEN + 1);
+       fprintf(stderr, "KEYGEN: \"%s\"\n", "[VALIDATED]");
     }
     
   }

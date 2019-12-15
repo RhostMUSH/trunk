@@ -3000,21 +3000,16 @@ NDECL(check_idle)
 	    }
 	} else {
             if ( (d->connected_at > mudstate.now) ||
-                 ((d->connected_at + mudconf.conn_timeout + 60) < mudstate.now) )
+                 ((d->connected_at + mudconf.conn_timeout + 60) < mudstate.now) ) {
                idletime = 0;
-            else
+            } else {
 	       idletime = mudstate.now - d->connected_at;
-#ifdef ENABLE_WEBSOCKETS
-             if (!(d->flags & DS_WEBSOCKETS)) {
-#endif
-	      if (idletime > mudconf.conn_timeout) {
+            }
+	    if (idletime > mudconf.conn_timeout) {
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
-	      }
-#ifdef ENABLE_WEBSOCKETS
-            }
-#endif
+	    }
             if ( (idletime > 5) && (d->flags & DS_API) ) {
 		shutdownsock(d, R_API);
             }
