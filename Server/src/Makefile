@@ -152,7 +152,7 @@ D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
 	  db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
 	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
           local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
-          sqlite.c $(DR_SRC) $(MYSQL_C)
+          sqlite.c websock.c $(DR_SRC) $(MYSQL_C)
 
 D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
@@ -161,13 +161,13 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  db.o db_rw.o compress.o stringutil.o object.o conf.o flags.o htab.o \
           compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
           local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
-          sqlite.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
+          sqlite.o websock.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
 
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
 	  command.h rwho_clilib.h  config.h db.h externs.h mudconf.h misc.h \
 	  vattr.h file_c.h fifo.h alloc.h attrs.h levels.h timez.h \
-          local.h utils.h pcre.h pcre_extensions.h sha1.h $(DR_HDRS)
+          local.h utils.h pcre.h pcre_extensions.h sha1.h websock.h $(DR_HDRS)
 
 D_FLG   = -DMUSH_BUILD_DATE="\"`cat date.txt`\""
 

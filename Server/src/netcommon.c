@@ -36,6 +36,9 @@ char *index(const char *, int);
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 #include "door.h"
+#ifdef ENABLE_WEBSOCKETS
+#include "websock.h"
+#endif
 
 #include "debug.h"
 #define FILENUM NETCOMMON_C
@@ -1822,6 +1825,13 @@ queue_write(DESC * d, const char *b, int n)
     if (n <= 0) {
 	VOIDRETURN; /* #117 */
     }
+
+#ifdef ENABLE_WEBSOCKETS
+    /* Convert to a WebSockets frame before queuing output */
+    if (d->flags & DS_WEBSOCKETS) {
+        to_websocket_frame(&b, &n, WEBSOCKET_CHANNEL_TEXT);
+    }
+#endif
 
     if (d->output_size + n > mudconf.output_limit)
 	process_output(d);
@@ -4926,6 +4936,15 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+#ifdef ENABLE_WEBSOCKETS
+    if (d->flags & DS_WEBSOCKETS_REQUEST) {
+        /* Parse WebSockets handshake, if sent line by line. */
+        /* Since we are using the API port this gets done all at once in the GET request. */
+        process_websocket_header(d, command);
+        RETURN(0);
+    }
+#endif
+
     time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
@@ -4979,6 +4998,16 @@ do_command(DESC * d, char *command)
 	}
     }
     /* Split off the command from the arguments */
+
+#ifdef ENABLE_WEBSOCKETS 
+    if (!(d->flags & DS_CONNECTED)) {
+        if (process_websocket_request(d, command)) {
+            /* Continue processing as a WebSockets upgrade request. */
+            /* If the entire header is passed in command, we might be done. */
+            RETURN(0);
+        }
+    }
+#endif
 
     arg = command;
     while (*arg && !isspace((int)*arg))

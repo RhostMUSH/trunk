@@ -32827,6 +32827,7 @@
   New Features
   ------------
   * Initial prep-work to allow future of websockets [ASH]
+  * Grapenut's WebSockets are now enabled for API handling [ASH]
   
   Changes
   ------------

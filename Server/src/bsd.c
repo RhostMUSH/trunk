@@ -51,6 +51,9 @@ void bzero(void *, int);
 #include "rhost_utf8.h"
 #include "local.h"
 #include "door.h"
+#ifdef ENABLE_WEBSOCKETS
+#include "websock.h"
+#endif
 
 #include "debug.h"
 #define FILENUM BSD_C
@@ -2330,6 +2333,12 @@ process_input(DESC * d)
 	mudstate.debug_cmd = cmdsave;
 	RETURN(0); /* #16 */
     }
+#ifdef ENABLE_WEBSOCKETS
+    if (d->flags & DS_WEBSOCKETS) {
+        /* Process using WebSockets framing. */
+        got = in = process_websocket_frame(d, buf, got);
+    }
+#endif
     if (!d->raw_input) {
 	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
 	d->raw_input_at = d->raw_input->cmd;

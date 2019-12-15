@@ -19,6 +19,9 @@
 #include <sys/select.h>
 #endif
 
+/* Define websocket handler checksum length -- IF YOU CHANGE YOU MUST @shutdown then Startmush */
+#define WEBSOCKETS_CHECKSUM_LEN 40
+
 /* these symbols must be defined by the interface */
 
 extern int shutdown_flag; /* if non-zero, interface should shut down */
@@ -92,6 +95,7 @@ struct SNOOPLISTNODE {
  * If you do any of the two with the DESC data, a @reboot WILL CRASH.
  *    - Ashen-Shugar 12/2019
 */
+
 
 /* OK, let's make a temporary player desc data descriptor here */
 typedef struct descriptor_data_online DESC_ONLINE;
@@ -207,6 +211,8 @@ struct descriptor_data {
   char *door_lbuf;
   char *door_mbuf;
   char *door_raw;
+  char checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
+  long ws_frame_len;
 };
 
 /* flags in the flag field */
@@ -222,6 +228,9 @@ struct descriptor_data {
 #define DS_API			0x0200		/* Target is an API handler */
 #define DS_CMDQUOTA		0x0400		/* Target is an CMDQUOTA handler */
 #define DS_SSL      		0x0800		/* Target is on an SSL handler */
+#define DS_WEBSOCKETS_REQUEST   0x1000          /* Target is negotiating websockets */
+#define DS_WEBSOCKETS           0x2000          /* Target is a websocket */
+
 
 extern DESC *descriptor_list;
 extern DESC *desc_in_use;
