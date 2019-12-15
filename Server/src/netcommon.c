@@ -3004,11 +3004,17 @@ NDECL(check_idle)
                idletime = 0;
             else
 	       idletime = mudstate.now - d->connected_at;
-	    if (idletime > mudconf.conn_timeout) {
+#ifdef ENABLE_WEBSOCKETS
+             if (!(d->flags & DS_WEBSOCKETS)) {
+#endif
+	      if (idletime > mudconf.conn_timeout) {
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
-	    }
+	      }
+#ifdef ENABLE_WEBSOCKETS
+            }
+#endif
             if ( (idletime > 5) && (d->flags & DS_API) ) {
 		shutdownsock(d, R_API);
             }

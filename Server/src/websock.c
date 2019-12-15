@@ -211,6 +211,8 @@ process_websocket_request(DESC *d, const char *command)
 
     d->flags &= ~DS_API;
     d->flags |= DS_WEBSOCKETS_REQUEST;
+    d->timeout = -1; /* Set timeout to infinity */
+
     
     /* If there is a newline, we have a multi-line request to process. */
     if (strstr(command, "\n")) {
