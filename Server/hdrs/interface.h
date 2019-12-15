@@ -41,6 +41,7 @@ extern int shutdown_flag; /* if non-zero, interface should shut down */
 #define R_HACKER        11      /* User tried to hack connect screen */
 #define R_NODESCRIPTOR  12      /* No 'free' descriptors - actually buffer zone */
 #define R_API		13	/* API Connection */
+#define R_WEBSOCKETS	14	/* Websocket connection */
 
 extern NAMETAB logout_cmdtable[];
 
