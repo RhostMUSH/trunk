@@ -13659,6 +13659,9 @@
 & ARRAY()
   Function: array(<string>, <reg count>, <width> [[,<delim> [,<type> [,<sep>]])
   
+  Note: Registers split into array are overwritten.  Use with caution or
+        localize().
+  
   This function will take an input string and split it out, based on width,
   rounding to the first viable word (if possible) and spit it out into setq
   registers based on the number of registers you wish to split it in based
@@ -13670,7 +13673,8 @@
   will take the virtual register count down then over.  A type of '2' will
   split based on character and not attempt to break on word.  A type of '3'
   combines the down then over with type '2'.  The default '0' does it in a 
-  normal sequential order.
+  normal sequential order.  A <type> of '2' and a <delim> NULL (empty value)
+  will split the string in segments equally based on the number of registers.
   
   If you specify width <width> of '0' and specify a delimeter <delim>, then it 
   will ignore width of the values and split the array based on the 
@@ -13685,12 +13689,30 @@
   
   This function is ansi aware. 
   
+{ see 'help array2' for examples }
+ 
+& array2
+  (CONTINUED)
+  Function: array(<string>, <reg count>, <width> [[,<delim> [,<type> [,<sep>]])
+    
+  Fields with '*' are optional:
+      <string>    -- String you wish to split
+      <reg count> -- Number of setq registers to split into (36 max)
+                     This always starts with register '0'.
+      <width>     -- Optional width to cut on, '0' split on <delim>
+ *    <delim>     -- Optional delimiter to split on (NULL/empty value allowed)
+ *    <type>      -- 0 - default -- split in sequential (over then down) order
+                     1 - take the split down then over
+                     2 - Split based on character (or position if passed NULL)
+                     3 - Combine type 1 & 2
+ *    <sep>       -- Specify separator you wish for array elements (%r default)
+  
   Examples:
     > think array(abcdefghij,2,2)%q0
     ab
     ef
     ij
-    
+
     > think array(abcdefghij,2,2,,,%b)%q0
     ab ef ij
 
@@ -13706,6 +13728,9 @@
     > think array(abcdefghij,2,2,,1)%q1
     gh
     ij
+  
+    > think array(abcdefghij,3,0,,2)%q0 - %q1 - %q2
+    abcd - efg - hij
   
   See Also: printf(), setq(), setr(), r(), template(), substitutions
 
