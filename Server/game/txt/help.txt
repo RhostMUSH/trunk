@@ -13712,19 +13712,19 @@
     ab
     ef
     ij
-
+  
     > think array(abcdefghij,2,2,,,%b)%q0
     ab ef ij
-
+  
     > think array(abcdefgh,2,2)%q1
     cd
     eh
-
+  
     > think array(abcdefghij,2,2,,1)%q0
     ab
     cd
     ef
-
+  
     > think array(abcdefghij,2,2,,1)%q1
     gh
     ij
