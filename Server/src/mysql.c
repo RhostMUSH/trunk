@@ -57,6 +57,7 @@ int mysql_check_bool=0;
 int mysql_last_check=0;
 
 int sql_shutdown(dbref player);
+int local_mysql_ping(MYSQL *mysql_struct, dbref player);
 static int sql_init(dbref player);
 static int sql_query(dbref player, 
 		     char *q_string, char row_delim, char field_delim, char *buff, char **bp);
@@ -180,7 +181,7 @@ FUNCTION(local_fun_sql_escape) {
     }
   }
 
-  if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+  if ( mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
      sql_shutdown(player);
   }
   if (!mysql_struct) {
@@ -193,14 +194,14 @@ FUNCTION(local_fun_sql_escape) {
     }
   }
   /* If there's a valid structure, but it's not responding yet, wait until it does */
-  if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+  if (mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
       retries = 0;
-      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
          nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
   }
-  if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
+  if (!mysql_struct || (local_mysql_ping(mysql_struct, player) != 0)) {
     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
     log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
     log_text("Failure to connect to SQL database in sql-escape.");
@@ -233,7 +234,7 @@ FUNCTION(local_fun_sql_ping) {
       safe_str("1", buff, bufcx);
    } else {
       s_buf = alloc_sbuf("sql_ping");
-      sprintf(s_buf, "%d", mysql_ping(mysql_struct));
+      sprintf(s_buf, "%d", local_mysql_ping(mysql_struct, player));
       safe_str(s_buf, buff, bufcx);
       free_sbuf(s_buf);
    }
@@ -287,6 +288,28 @@ void local_mysql_init(void) {
   sql_init(-1);
 }
 
+
+int local_mysql_ping(MYSQL *mysql_struct, dbref player)
+{
+  int mysql_return;
+
+  alarm_msec(5);
+  mysql_return = mysql_ping(mysql_struct);
+  if ( mudstate.alarm_triggered ) {
+     notify(player, "The SQL engine forced a failure on a timeout.");
+     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
+        log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
+        log_text("Timeout Failure to respond to SQL database in sql-query.");
+     ENDLOG
+     sql_shutdown(player);
+     mudstate.alarm_triggered = 0;
+     alarm_msec(next_timer());
+     return 0;
+  }
+  mudstate.alarm_triggered = 0;
+  alarm_msec(next_timer());
+  return mysql_return;
+}
 
 int sql_shutdown(dbref player) {
 
@@ -439,7 +462,7 @@ static int sql_query(dbref player,
     }
   }
 
-  if ( mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+  if ( mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
      sql_shutdown(player);
   }
   if (!mysql_struct) {
@@ -452,14 +475,14 @@ static int sql_query(dbref player,
     }
   }
   /* If there's a valid structure, but it's not responding yet, wait until it does */
-  if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+  if (mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
       retries = 0;
-      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
          nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
   }
-  if (!mysql_struct || (mysql_ping(mysql_struct) != 0)) {
+  if (!mysql_struct || (local_mysql_ping(mysql_struct, player) != 0)) {
     notify(player, "No SQL database connection.");
     STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
     log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
@@ -521,9 +544,9 @@ static int sql_query(dbref player,
       retries++;
     }
     
-    if (mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+    if (mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
       retries = 0;
-      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (mysql_ping(mysql_struct) != 0) ) {
+      while ((retries < MYSQL_RETRY_TIMES) && mysql_struct && (local_mysql_ping(mysql_struct, player) != 0) ) {
          nanosleep((struct timespec[]){{0, 500000000}}, NULL);
          retries++;
       }
