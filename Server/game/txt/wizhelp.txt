@@ -704,7 +704,7 @@
       Date: Thu Jul  6 14:51:16 2017
       Exec: <STRING>
       Return: <VALUE>
-
+  
   
       -- <CODE> may be any of the following with matching <STRING>
          200 - OK            <STRING>: Ok - Executed
@@ -722,7 +722,7 @@
 > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
   
   POST Example: (this is from a command line using the 'curl' application)
-> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi." --head http://localhost:2222
   
   See Also: @api 
    

@@ -177,7 +177,7 @@
   
 & API
   Topic: API
-
+  
   RhostMUSH has a process where it allows API connections to happen on another
   port.  It requires to have the api_port specified to a unique port for the
   API handler, then various optional config parameters to optimize how the
@@ -192,16 +192,16 @@
   It uses Basic Authorization and encapsulates.  Example of using curl for
   login authentication to the API's object would be:
              curl --user "#123:foobar"
-
+  
   The dbref# would be #123, and the password you want to authenticate would
   be 'foobar'.
-
+  
   Example curl commands that are used for the API handler are:
   GET Examples (this is from a command line using the 'curl' application)
 > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
   
   POST Example: (this is from a command line using the 'curl' application)
-> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi." --head http://localhost:2222
   
   To have a target dbref# enabled for API processing, please alert a staff
   on your game as it requires staff approval and authentication to enable
