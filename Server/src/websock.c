@@ -5,6 +5,7 @@
  * conform to various pertinent standards.
  */
 
+#ifdef ENABLE_WEBSOCKETS
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
@@ -536,4 +537,4 @@ to_websocket_frame(const char **bp, int *np, char channel)
   *bp = buf;
   *np = dst - buf;
 }
-
+#endif
