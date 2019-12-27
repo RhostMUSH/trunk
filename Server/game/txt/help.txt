@@ -5331,6 +5331,8 @@
   
   The following switches are available:
     /attribute -- Set the specified attribute into the attribute.
+                  Note: <password> can't exceed 2048 characters.
+                        This may change based on crypto settings.
   
   If the system uses the old DES style of passwords, you are limited
   to 8 character passwords.
@@ -16728,6 +16730,9 @@
     SET -- this will set the <password>.  You may abbreviate this.
     CHK -- this will check against <password>.  You may abbreviate this.
   
+  Note: <password> can not exceed 2048 characters.  DoS/DDoS limitation.
+        This may change based on crypto settings.
+    
   Examples:
     > say attrpass(me/va, test, set)
     You say "1"

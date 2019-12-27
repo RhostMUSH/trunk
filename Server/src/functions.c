@@ -13369,11 +13369,12 @@ FUNCTION(fun_hastype)
 FUNCTION(fun_attrpass)
 {
   dbref thing, aowner;
-  int i_len, attrib, i_alloc, aflags;
+  int i_len, attrib, i_alloc, aflags, i_size;
   char *atr_gotten;
   ATTR *attr;
 
   i_len = strlen(fargs[2]);
+  i_size = 0;
   if ( (i_len < 1) || (i_len > 3) ) {
      safe_str("#-1 ATTRPASS REQUIRES SET OR CHK AS THIRD ARGUMENT", buff, bufcx);
      return;
@@ -13381,7 +13382,14 @@ FUNCTION(fun_attrpass)
   if ( strncasecmp("set", fargs[2], i_len) == 0 ) {
     mudstate.store_passwd = -1;
     do_password(player, cause, (SIDEEFFECT|PASS_ATTRIB), fargs[0], fargs[1]);
-    ival(buff, bufcx, mudstate.store_passwd);
+    if ( mudstate.store_passwd < 0 ) {
+       atr_gotten = alloc_lbuf("attrpass_buffer");
+       sprintf(atr_gotten, "#-1 PASSWORD LENGTH EXCEEDS %d CHARACTERS", abs(mudstate.store_passwd));
+       safe_str(atr_gotten, buff, bufcx);
+       free_lbuf(atr_gotten);
+    } else {
+       ival(buff, bufcx, mudstate.store_passwd);
+    }
   } else if ( strncasecmp("chk", fargs[2], i_len) == 0 ) {
     if ( !parse_attrib(player, fargs[0], &thing, &attrib)) {
        safe_str("#-1 NO MATCHING ATTRIBUTE", buff, bufcx);
@@ -13397,6 +13405,43 @@ FUNCTION(fun_attrpass)
     }
     if (SCloak(thing) && Cloak(thing) && !Immortal(player)) {
        safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    i_len = strlen(fargs[1]);
+    if ( (mudconf.sha2rounds > 700000) && (i_len > 16) ) {
+       i_len = -1;
+       i_size = 16;
+    } else if ( (mudconf.sha2rounds > 600000) && (i_len > 24) ) {
+       i_len = -1;
+       i_size = 24;
+    } else if ( (mudconf.sha2rounds > 500000) && (i_len > 32) ) {
+       i_len = -1;
+       i_size = 32;
+    } else if ( (mudconf.sha2rounds > 400000) && (i_len > 64) ) {
+       i_len = -1;
+       i_size = 64;
+    } else if ( (mudconf.sha2rounds > 300000) && (i_len > 128) ) {
+       i_len = -1;
+       i_size = 128;
+    } else if ( (mudconf.sha2rounds > 200000) && (i_len > 256) ) {
+       i_len = -1;
+       i_size = 256;
+    } else if ( (mudconf.sha2rounds > 100000) && (i_len > 512) ) {
+       i_len = -1;
+       i_size = 512;
+    } else if ( (mudconf.sha2rounds > 50000) && (i_len > 1048) ) {
+       i_len = -1;
+       i_size = 1024;
+    } else if ( i_len > 2048 ) {
+       i_len = -1;
+       i_size = 2048;
+    } 
+
+    if ( i_len == -1 ) {
+       atr_gotten = alloc_lbuf("attrpass_buffer");
+       sprintf(atr_gotten, "#-1 PASSWORD LENGTH EXCEEDS %d CHARACTERS", i_size);
+       safe_str(atr_gotten, buff, bufcx);
+       free_lbuf(atr_gotten);
        return;
     }
     attr = atr_num(attrib); /* We need the attr's flags for this: */

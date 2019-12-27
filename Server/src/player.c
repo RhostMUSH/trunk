@@ -403,11 +403,11 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
 void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpass)
 {
    dbref thing, aowner;
-   int aflags, atr, newkey, i_side;
+   int aflags, atr, newkey, i_side, i_len, i_size;
    char *target, *s_dbref, *s_attr;
    ATTR *attr;
 
-   i_side = 0;
+   i_side = i_size = 0;
    if ( key & SIDEEFFECT ) {
       key &= ~SIDEEFFECT;
       i_side = 1;
@@ -420,6 +420,43 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
          if ( (s_attr = strchr(s_dbref, '/')) != NULL ) {
             *s_attr = '\0';
             s_attr++;
+            i_len = strlen(newpass);
+            if ( (mudconf.sha2rounds > 700000) && (i_len > 16) ) {
+               i_len = -1;
+               i_size = 16;
+            } else if ( (mudconf.sha2rounds > 600000) && (i_len > 24) ) {
+               i_len = -1;
+               i_size = 24;
+            } else if ( (mudconf.sha2rounds > 500000) && (i_len > 32) ) {
+               i_len = -1;
+               i_size = 32;
+            } else if ( (mudconf.sha2rounds > 400000) && (i_len > 64) ) {
+               i_len = -1;
+               i_size = 64;
+            } else if ( (mudconf.sha2rounds > 300000) && (i_len > 128) ) {
+               i_len = -1;
+               i_size = 128;
+            } else if ( (mudconf.sha2rounds > 200000) && (i_len > 256) ) {
+               i_len = -1;
+               i_size = 256;
+            } else if ( (mudconf.sha2rounds > 100000) && (i_len > 512) ) {
+               i_len = -1;
+               i_size = 512;
+            } else if ( (mudconf.sha2rounds > 50000) && (i_len > 1048) ) {
+               i_len = -1;
+               i_size = 1024;
+            } else if ( i_len > 2048 ) {
+               i_len = -1;
+               i_size = 2048;
+            } 
+            if ( i_len == -1 ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, unsafe_tprintf("Permission denied - password length can not exceed %d characters.", i_size));
+               }
+               mudstate.store_passwd = i_size * -1;
+               return;
+            }
             init_match(player, s_dbref, NOTYPE);
             match_everything(0);
             thing = match_result();
