@@ -849,6 +849,11 @@ NAMETAB newpassword_sw[] =
     {(char *) "des", 1, CA_WIZARD, 0, NEWPASSWORD_DES},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB password_sw[] =
+{
+    {(char *) "attribute", 1, CA_PUBLIC, 0, PASS_ATTRIB | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
@@ -1422,7 +1427,7 @@ CMDENT command_table[] =
     {(char *) "@parent", NULL,
      CA_NO_SLAVE | CA_GBL_BUILD | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
      0, CS_TWO_ARG, 0, do_parent},
-    {(char *) "@password", NULL, CA_NO_GUEST, 0,
+    {(char *) "@password", password_sw, CA_NO_GUEST, 0,
      PASS_MINE, CS_TWO_ARG, 0, do_password},
     {(char *) "@pcreate", pcreate_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER | CA_GBL_BUILD, 0,
      PCRE_PLAYER, CS_TWO_ARG, 0, do_pcreate},

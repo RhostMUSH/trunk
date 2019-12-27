@@ -18,6 +18,7 @@ char *index(const char *, int);
 #include "externs.h"
 #include "alloc.h"
 #include "attrs.h"
+#include "match.h"
 
 #define	NUM_GOOD	4	/* # of successful logins to save data for */
 #define NUM_BAD		3	/* # of failed logins to save data for */
@@ -401,22 +402,116 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
 
 void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpass)
 {
-dbref	aowner;
-int	aflags;
-char	*target;
+   dbref thing, aowner;
+   int aflags, atr, newkey, i_side;
+   char *target, *s_dbref, *s_attr;
+   ATTR *attr;
 
-	target = atr_get(player, A_PASS, &aowner, &aflags);
-	if (!*target || !check_pass(player, oldpass, 0)) {
-		notify(player, "Sorry.");
-	} else if (!ok_password(newpass, player, 0)) {
- 		notify(player, "Bad new password.");
-	} else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
-		notify(player, "Sorry.");
-	} else {
-		atr_add_raw(player, A_PASS, mush_crypt(newpass, 0));
-		notify(player, "Password changed.");
-	}
-	free_lbuf(target);
+   i_side = 0;
+   if ( key & SIDEEFFECT ) {
+      key &= ~SIDEEFFECT;
+      i_side = 1;
+   }
+   newkey = (key & ~(PASS_ANY|PASS_MINE));
+   switch(newkey) {
+      case PASS_ATTRIB: /* Handle the @password/generate object/attribute=password syntax */
+         s_dbref = alloc_lbuf("do_password_attrib");
+         strcpy(s_dbref, oldpass);
+         if ( (s_attr = strchr(s_dbref, '/')) != NULL ) {
+            *s_attr = '\0';
+            s_attr++;
+            init_match(player, s_dbref, NOTYPE);
+            match_everything(0);
+            thing = match_result();
+            if ( !Good_chk(thing) || !Controls(player, thing) ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Invalid target specified.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            if ( !*s_attr ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Invalid target specified.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            atr = mkattr(s_attr);
+            if (atr <= 0) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Couldn't create attribute.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            attr = atr_num(atr);
+            /* We do not want to allow *Password sets with this */
+            if ( !attr || (attr->number == A_PASS) ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Couldn't create attribute.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            atr_get_info(thing, attr->number, &aowner, &aflags);
+            if ( !Set_attr(player, thing, attr, aflags) ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Couldn't create attribute.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            if (attr->flags & AF_IS_LOCK) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - Can't set locks.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            if ( (aflags & AF_NOCMD) && !Immortal(player) ) {
+               free_lbuf(s_dbref);
+               if ( !i_side ) {
+                  notify(player, "Permission denied - No match.");
+               }
+               mudstate.store_passwd = 0;
+               return;
+            }
+            atr_add_raw(thing, attr->number, mush_crypt(newpass, 0));
+            if ( !i_side ) {
+               notify(player, unsafe_tprintf("Set - %s/%s: set with encrypted password.", Name(thing), attr->name));
+            }
+            mudstate.store_passwd = 1;
+            free_lbuf(s_dbref);
+         } else {
+            free_lbuf(s_dbref);
+            if ( !i_side ) {
+               notify(player, "Permission denied - Invalid attribute specified.");
+            }
+            mudstate.store_passwd = 0;
+         }
+         break;
+      default: /* Handle the default @password voodoo */
+         target = atr_get(player, A_PASS, &aowner, &aflags);
+         if ( !*target || !check_pass(player, oldpass, 0) ) {
+            notify(player, "Sorry.");
+         } else if (!ok_password(newpass, player, 0)) {
+            notify(player, "Bad new password.");
+         } else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
+            notify(player, "Sorry.");
+         } else {
+            atr_add_raw(player, A_PASS, mush_crypt(newpass, 0));
+            notify(player, "Password changed.");
+         }
+         free_lbuf(target);
+         break;
+   }
 }
 
 /* ---------------------------------------------------------------------------

@@ -13366,6 +13366,69 @@ FUNCTION(fun_hastype)
   }
 }
 
+FUNCTION(fun_attrpass)
+{
+  dbref thing, aowner;
+  int i_len, attrib, i_alloc, aflags;
+  char *atr_gotten;
+  ATTR *attr;
+
+  i_len = strlen(fargs[2]);
+  if ( (i_len < 1) || (i_len > 3) ) {
+     safe_str("#-1 ATTRPASS REQUIRES SET OR CHK AS THIRD ARGUMENT", buff, bufcx);
+     return;
+  }
+  if ( strncasecmp("set", fargs[2], i_len) == 0 ) {
+    mudstate.store_passwd = -1;
+    do_password(player, cause, (SIDEEFFECT|PASS_ATTRIB), fargs[0], fargs[1]);
+    ival(buff, bufcx, mudstate.store_passwd);
+  } else if ( strncasecmp("chk", fargs[2], i_len) == 0 ) {
+    if ( !parse_attrib(player, fargs[0], &thing, &attrib)) {
+       safe_str("#-1 NO MATCHING ATTRIBUTE", buff, bufcx);
+       return;
+    }
+    if (attrib == NOTHING) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+    if (Cloak(thing) && !Wizard(player)) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    if (SCloak(thing) && Cloak(thing) && !Immortal(player)) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    attr = atr_num(attrib); /* We need the attr's flags for this: */
+    if (!attr || (attr->number == A_PASS) ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+    i_alloc = 0;
+    if (attr->flags & AF_IS_LOCK) {
+       safe_str("#-1 CAN'T CHECK LOCKS", buff, bufcx);
+       return;
+    } else {
+       i_alloc = 1;
+       atr_gotten = atr_pget(thing, attrib, &aowner, &aflags);
+    }
+
+    /* Perform access checks.  c_r_p fills buff with an error message
+     * if needed.
+     */
+    if ( check_read_perms(player, thing, attr, aowner, aflags, buff, bufcx) ) {
+       ival(buff, bufcx, mush_crypt_validate(player, fargs[1], atr_gotten, 0));
+    }
+    if ( i_alloc ) {
+       free_lbuf(atr_gotten);
+    }
+    return;
+  } else {
+     safe_str("#-1 ATTRPASS REQUIRES SET OR CHK AS THIRD ARGUMENT", buff, bufcx);
+  }
+  return;
+}
+
 FUNCTION(fun_cloak)
 {
   dbref obj, target;
@@ -36071,6 +36134,7 @@ FUN flist[] =
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRCNT", fun_attrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ATTRPASS", fun_attrpass, 3, 0, CA_PUBLIC, CA_NO_CODE},
     {"AVG", fun_avg, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},

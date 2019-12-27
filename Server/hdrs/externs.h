@@ -880,6 +880,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define	PASS_ANY	1	/* name=newpass */
 #define	PASS_MINE	2	/* oldpass=newpass */
+#define PASS_ATTRIB	4	/* Password attribute */
 
 #define	PCRE_PLAYER	1	/* create new player */
 #define PCRE_REG     	2	/* Register on @pcreate */

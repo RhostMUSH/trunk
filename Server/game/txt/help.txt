@@ -5324,8 +5324,13 @@
   
 & @password
   Command: @password <old password>=<new password>
+           @password/attribute <target>/<attribute>=<password>
  
-  This command changes your password.
+  This command changes your password.  This will also optionally set
+  a password into a user-defined attribute that they have access to.
+  
+  The following switches are available:
+    /attribute -- Set the specified attribute into the attribute.
   
   If the system uses the old DES style of passwords, you are limited
   to 8 character passwords.
@@ -5343,8 +5348,29 @@
   
   Please see @list options system to see what method of password
   algo is currently in place.
-   
-  See Also: @name
+ 
+  Of interest, breaking apart the SHA512 password segment, you will 
+  see a string in the form:
+      $6$<seed>$<passwd> 
+  
+  The breakdown:
+      $6$      -- The type of encryption.  In this case SHA2 format.
+      <seed>   -- the randomized seed that is applied to the passwd.
+      <passwd> -- the encrypted SHA512 hashed password
+  
+  Examples:
+    > @password myoldeasypass=Ui8^lpV4.Tx2n@vwy   (set a very complex pass)
+    Set.
+    > @password/attribute me/va=test
+    Set - Bob/VA: set with encrypted password.
+    > say v(va)
+    You say "$6$MDf;-r|gv$Uiwe7VYT6zy5XIjKQb1AeVFWZrih62L.." (90+ chars)
+    > say attrpass(me/va,notest,chk)
+    You say "0"
+    > say attrpass(me/va,test,chk)
+    You say "1"
+  
+  See Also: @name, attrpass()
   
 & @lemit
   Command: @lemit <message>
@@ -11258,27 +11284,27 @@
  
   Help is available for the following functions:
  
- @@()               ABS()              ACCENT()            ACOS()        
- ADD()              AFTER()            AINDEX()            AIINDEX()         
- ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
- ANDFLAG()          ANDFLAGS()         ANSI()              ANSIPOS()
- APOSS()            ARRAY()            ART()               ASC()            
- ASIN()             ATAN()             ATAN2()             ATTRCNT()       
- AVG()              BEFORE()           BETWEEN()           BITTYPE()    
- BOUND()            BRACKETS()         CAND()              CAPSTR()       
- CASE()             CASEALL()          CAT()               CEIL()           
- CENTER()           CHARIN()           CHAROUT()           CHKREALITY()     
- CHKTRACE()         CHOMP()            CHR()               CITER()   
- CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
- CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
- CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()
- CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
- CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
- CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
- CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()   
- CMDS()             CNAME()            COLORS()            COLUMNS() 
- COMP()             CON()              CONFIG()            CONN() 
- CONTROLS()         CONVSECS()    
+ @@()                 ABS()              ACCENT()           ACOS()        
+ ADD()                AFTER()            AINDEX()           AIINDEX()         
+ ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
+ ANDFLAG()            ANDFLAGS()         ANSI()             ANSIPOS()
+ APOSS()              ARRAY()            ART()              ASC()            
+ ASIN()               ATAN()             ATAN2()            ATTRCNT()       
+ ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
+ BITTYPE()            BOUND()            BRACKETS()         CAND()             
+ CAPSTR()             CASE()             CASEALL()          CAT()              
+ CEIL()               CENTER()           CHARIN()           CHAROUT()          
+ CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
+ CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
+ CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
+ CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
+ CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
+ CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
+ CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
+ CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()     
+ CLUSTER_XGET()       CMDS()             CNAME()            COLORS()           
+ COLUMNS()            COMP()             CON()              CONFIG()           
+ CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -16660,6 +16686,7 @@
   
 & ATTRCNT()
   Function: attrcnt(<object> [,<key>])
+  
   This returns the total number of attributes that the target object has.
   This gets around some limitations of words(lattr(<object>)) due to the
   parser limitation.  This attribute has the sideeffect of repairing
@@ -16680,6 +16707,38 @@
     You say "20"
   
   See Also: words(), lattr(), vattrcnt()
+  
+& ATTRPASS()
+  Function: attrpass(<object>/<attribute>, <password>, <type>)
+ 
+  This function will set or check the password of the given attribute
+  on the given target.  You must control both the target <object> and
+  the destination <attribute> to either set or check the password.
+  
+  You can not use this function to set or check the default player
+  password attribute.  Attempting to do so will fail.  For immortals
+  there is a password function utility to do so.  This does not view
+  the password, as being hashed this is impossible.  It will only
+  allow a comparison of the password to the hashed value for 
+  validation. 
+  
+  A return code for both SET or CHK of '1' means a success.  0 is failure. 
+  
+  The following <type> are available for this function:
+    SET -- this will set the <password>.  You may abbreviate this.
+    CHK -- this will check against <password>.  You may abbreviate this.
+  
+  Examples:
+    > say attrpass(me/va, test, set)
+    You say "1"
+    > say attrpass(me/va, test, chk)
+    You say "1"
+    > say attrpass(me/va, notest, chk)
+    You say "0"
+    > say attrpass(me/_wizonly, test, set)
+    You say "0"     (a normal player can't chk/set wizard attributes)
+  
+  See Also: @password, testlock()
   
 & VALID()
   Function: valid(<option>, <string>)
@@ -32865,6 +32924,8 @@
   ------------
   * Initial prep-work to allow future of websockets [ASH]
   * Grapenut's WebSockets are now enabled for API handling [ASH]
+  * @password/attribute for setting passwords to attributes [ASH]
+  * attrpass() for setting/checking attribute passwords [ASH]
   
   Changes
   ------------

@@ -416,6 +416,7 @@ NDECL(cf_init)
     mudstate.store_lastcr = -1;
     mudstate.store_lastx1 = -1;
     mudstate.store_lastx2 = -1;
+    mudstate.store_passwd = -1;
     mudstate.shifted = 0;
     mudstate.trainmode = 0;           /* initialize trainmode variable */
     mudstate.outputflushed = 0;               /* initialize output buffer variable */

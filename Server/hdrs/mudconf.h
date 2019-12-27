@@ -616,6 +616,7 @@ struct statedata {
 	dbref	store_lastx1;	/* Store the last created exit# for dig */
 	dbref	store_lastx2;	/* Store the previous created exit# for dig */
 	dbref	store_loc;	/* Store target location for open/dig */
+        dbref   store_passwd;	/* Store the password foodoo */
         int     evalcount;
 	int	allocsin;
 	int	allocsout;
