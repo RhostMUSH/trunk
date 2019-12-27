@@ -50,7 +50,10 @@ logId = unique
 ;
 cert = CERT_FILE
 key = KEY_FILE
-
+; 
+; socket entries to enforce buffer sizes for reads and writes to MAX allowed in Rhost
+socket = l:SO_RCVBUF=65536
+socket = r:SO_SNDBUF=65536
 ;
 ; Example config block. You need one per game you want to provide
 ; this service for.
