@@ -2359,7 +2359,7 @@ process_input(DESC * d)
 //fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
     for (q = buf, qend = buf + got; q < qend; q++) {
 	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
-	      *p = '\0';
+  	      *p++ = '\0';
 		if (p > d->raw_input->cmd) {
 			save_command(d, d->raw_input);
 			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
