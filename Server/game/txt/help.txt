@@ -673,7 +673,7 @@
     attribute in question REGEXP (help attribute flag).  To use 
     regular expressions instead, please check 'help REGEXPS'.
   
-  See Also: ATTRIBUTE FLAG, REGEXP, $-command
+  See Also: ATTRIBUTE FLAG, REGEXP, $-command, ^-listens
 
 & MAX ARGS
   Topic: MAX ARGS
@@ -1022,6 +1022,8 @@
   
   For regular expression (regex) command syntax, please refer to:
                     'help REGEXPS'
+  
+  See Also: ^-listens, lcmds(), lattr()
   
 & colors
   
@@ -8170,7 +8172,7 @@
 & @listen
   Command: @listen[/<switch>] <object> = <string>
   Attribute: Listen
- 
+   
   This attribute contains a wildcard pattern that the object listens for.
   Anything spoken, posed, emitted, or whispered in the room that <object> is
   in, as well as messages resulting from using objects (such as Opay and Succ
@@ -8183,15 +8185,17 @@
   have a chance to match it.  Objects whose Listen attribute is set to
   anything will be listed when a @sweep command is run by someone in the
   same room.
- 
+   
   If the @listen pattern is matched, then the object's contents will
   hear the message also, prefixed by the text in @inprefix if it is set.  Any
   text that matches any pattern specified in @infilter will not be sent to
   the contents.
- 
+   
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
- 
+  
+  You may specify command based listens with the ^ syntax (help ^-listens)  
+  
   Example: @listen camera = * has arrived.
            @ahear camera = @va me = %va %0
   
@@ -9810,9 +9814,11 @@
   
   It is generally good practice to NOT EVER set yourself inherit.
   
+& ^-command
+& ^-listen
 & MONITOR
   Flag: MONITOR(M)
-  
+    
   This flag does NOT return player connection/disconnection information.
   Check help @toggle for that.
    
@@ -9822,9 +9828,22 @@
   wildcarded <pattern>, then <commandlist> is executed, substituting %0 for
   the text that matched the first wildcard, %1 for the second, and so on.
   All matching attributes are executed, not just the first.
-  Parents of MONITOR objects are never checked for ^-patterns.
- 
-  See Also: LISTENING, PUPPET
+  
+  ^-listens are never checked on players.
+  
+  Note: Parents of MONITOR objects by default are never checked 
+        for ^-patterns.  This can be enabled with the 'listen_parents'
+        config parameter, but there will be a computational cost involved.
+   
+  Example:
+    > say %n
+    You say "Bob"
+    > &MY_LISTEN MyObject=^* says "*":@pemit %#=Object: %0 said '%1'
+    > say "Moo"
+    You say "Moo"
+    Object: Bob said 'Moo'
+    
+  See Also: LISTENING, PUPPET, @listen, @ahear, $-commands, lcmds(), lattr()
   
 & ANSI
   Flag: ANSI(<)
@@ -10269,9 +10288,11 @@
   and have failed (so an arbitrary command that matches 'page *' will never
   be performed).
  
-  You define an arbitrary command by storing a string of the form
-  '$<template>:<commandlist>' in an attribute of an object, then the command
-  will be available to anyone who carries the object, is in the same room as
+  You define an arbitrary command by storing a string of the form:
+              '$<template>:<commandlist>' 
+  
+  This will go in an attribute of an object, then the command will be 
+  available to anyone who carries the object, is in the same room as
   the object, or is inside the object.  Only use user-named attributes and
   VA-VZ for arbitrary commands, as many of the predefined attributes are not
   for arbitrary commands.  <template> is the pattern to check for (it may
@@ -18945,7 +18966,7 @@
     > say lattr(me/^..$,,,1)
     You say "VA VB VC VE VV XX"
  
-  See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr()
+  See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr(), lcmds()
   
 & FLIP()
   Function: flip(<string>)
