@@ -32960,6 +32960,7 @@
   * Modification of DESC internal handler to handle adding on the fly
     additions to the descriptor table to allow @reboots to handle
     w/o crashing [ASH] 
+  * minor improvement on return handler of account_login() [ASH]
   
   Bug Fixes
   ------------

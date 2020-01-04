@@ -4147,7 +4147,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 {
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
         buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
-   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest,
+   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return,
        ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
@@ -4161,6 +4161,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    DPUSH; /* #146 */
 
    bittemp = bitcmp = 0;
+   i_return = 1;
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
 
@@ -4913,6 +4914,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    } else {
       if ( !softcode_trigger(d, msg) ) {
          welcome_user(d);
+         i_return = 0;
       }
       if ( Good_obj(d->player) && !TogHideIdle(d->player) ) {
          d->command_count++;
@@ -4926,7 +4928,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       mudstate.guest_status |= bittemp;
    }
    mudstate.debug_cmd = cmdsave;
-   RETURN(1); /* #146 */
+   RETURN(i_return); /* #146 */
 }
 int
 check_connect_ex(DESC * d, char *msg, int key, int i_attr)

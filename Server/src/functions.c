@@ -21428,7 +21428,13 @@ FUNCTION(fun_account_login)
       if ( (i_port == d->descriptor) && !(d->flags & DS_CONNECTED) ) {
          s_buff = alloc_lbuf("fun_account_login");
          sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
-         ival(buff, bufcx, check_connect_ex(d, s_buff, 1, i_attr));
+         if (check_connect_ex(d, s_buff, 1, i_attr))
+            ;
+         if ( d->flags & DS_CONNECTED ) {
+            ival(buff, bufcx, 1);
+         } else {
+            ival(buff, bufcx, 0);
+         }
          free_lbuf(s_buff);
          return;
       }
