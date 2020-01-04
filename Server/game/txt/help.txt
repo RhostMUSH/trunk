@@ -32953,6 +32953,7 @@
   * @password/attribute for setting passwords to attributes [ASH]
   * attrpass() for setting/checking attribute passwords [ASH]
   * account_login() customized login functionality [ASH]
+  * account_owner() for 'ownership' of a central account [ASH]
   
   Changes
   ------------

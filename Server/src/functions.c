@@ -21334,6 +21334,67 @@ FUNCTION(fun_asin)
        fval(buff, bufcx, val);
     }
 }
+/**** arguments
+ * arg0 - player/attribute
+ * arg1 - password
+ * arg2 - port
+ */
+FUNCTION(fun_account_owner)
+{
+   char *s_buff, *s_buffptr, *s_array[3], *s_tmp, *s_tmp2;
+   int i_port;
+   DESC *d, *dnext;
+  
+   if ( !Immortal(player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   if ( nfargs == 1 ) {
+      i_port = atoi(fargs[0]);
+      DESC_SAFEITER_ALL(d, dnext) {
+         if ( i_port == d->descriptor ) {
+            ival(buff, bufcx, d->account_owner);
+         }
+      }
+      return;
+   }
+
+   if ( nfargs != 4 ) {
+      safe_str("#-1 FUNCTION (ACCOUNT_OWNER) EXPECTS 1 OR 4 ARGUMENTS [RECEIVED ", buff, bufcx);
+      ival(buff, bufcx, nfargs);
+      safe_chr(']', buff, bufcx);
+      return;
+   }
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] || !*fargs[3] ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+
+   i_port = atoi(fargs[2]);
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( i_port == d->descriptor ) {
+         s_buffptr = s_buff = alloc_lbuf("account_owner");
+         s_tmp = alloc_lbuf("account_owner2");
+         s_tmp2 = alloc_lbuf("account_owner3");
+         strcpy(s_tmp, (char *)"chk");
+         sprintf(s_tmp2, "%s/%s", fargs[0], fargs[1]);
+         s_array[0] = s_tmp2;
+         s_array[1] = fargs[3];
+         s_array[2] = s_tmp;
+         fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
+         safe_str(s_buff, buff, bufcx);
+         if ( atoi(s_buff) ) {
+            d->account_owner = lookup_player(player, fargs[0], 0);
+         }         
+         free_lbuf(s_buff);
+         free_lbuf(s_tmp);
+         free_lbuf(s_tmp2);
+         return;
+      }
+   }
+   ival(buff, bufcx, 0);
+}
 
 FUNCTION(fun_account_login)
 {
@@ -36201,6 +36262,7 @@ FUN flist[] =
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ACCOUNT_LOGIN", fun_account_login, 4, 0, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},

@@ -2157,6 +2157,10 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->last_time = 0;
     d->snooplist = NULL;
     d->logged = 0;
+    d->checksum[0] = '\0';
+    d->ws_frame_len = 0;
+    d->account_owner = NOTHING;
+
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */
     strncpy(d->addr, addr, 50);

@@ -1070,6 +1070,9 @@ int load_reboot_db( void )
   s_text = alloc_lbuf("reboot_fx");
   while(!feof(rebootfile)) {
     d = alloc_desc("reboot_sock");
+    d->account_owner = NOTHING;
+    d->ws_frame_len = 0;
+    d->checksum[0] = '\0';
     if( !fread(d, i_descsize, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
         break;

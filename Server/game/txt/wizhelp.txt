@@ -7584,7 +7584,7 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-  See Also: logout_cmd_access, account_login()
+  See Also: logout_cmd_access, account_login(), account_owner()
   
 { see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
@@ -12382,7 +12382,35 @@
   
   That would connect you as normal.
   
-  See Also: file_object
+  See Also: file_object, account_owner()
+
+& ACCOUNT_OWNER()
+  Function: account_owner(<player>, <attribute>, <port>, <password>)
+            account_owner(<port>)
+  
+  This function will set or display the account 'owner' for the current
+  connection.  This is used to help identify a singular 'owner' for
+  account login permissions if you wish to use such a system for
+  login features.  This should be used in junction with account_login()
+  and the @admin file_object connect screen softcode command structure.
+  
+  See 'wizhhelp account_login' on syntax on how to work through this.
+  
+  Examples:
+    > WHO Bo
+      Player Name          On For Idle  Room     Ports Host
+      Bob                   00:11   0s  #0          18 [localhost]
+      1 Player logged in. (Bummer.)
+    > say %#
+      You say "#111"
+    > say account_owner(18)
+      You say "-1"
+    > say account_owner(Bob, _ACCT, 18, zappo)
+      You say "1"
+    > say account_owner(18)  
+      You say "111"
+  
+  See Also: account_login(), admin_object
 
 & AFLAGS()
   Function: aflags(<attribute>)
