@@ -1326,6 +1326,8 @@ extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 extern void do_zone(dbref, dbref, int, char *, char *);
 extern int attrib_canset(dbref, const char *, dbref, dbref);
 extern int lookup(char *, char *, int, int *);
+extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
+
 
 int do_convtime(char *, struct tm *);
 
@@ -5034,7 +5036,7 @@ FUNCTION(fun_checkpass)
    }
 
    // Hey, we've got a player. Let's check the password.
-   ival(buff, bufcx, (int) check_pass(thing, fargs[1], 0));
+   ival(buff, bufcx, (int) check_pass(thing, fargs[1], 0, 0, NOTHING));
 }
 
 FUNCTION(fun_digest)
@@ -21333,6 +21335,46 @@ FUNCTION(fun_asin)
     }
 }
 
+FUNCTION(fun_account_login)
+{
+   DESC *d, *dnext;
+   int i_port, i_attr;
+   char *s_buff;
+   dbref i_player;
+   ATTR *attr;
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] || !*fargs[3] ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   if ( !Immortal(player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   i_player = lookup_player(player, fargs[0], 0);
+   if ( !Good_chk(i_player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   attr = atr_str(fargs[1]);
+   if ( !attr ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   i_attr = attr->number;
+   i_port = atoi(fargs[2]);
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( (i_port == d->descriptor) && !(d->flags & DS_CONNECTED) ) {
+         s_buff = alloc_lbuf("fun_account_login");
+         sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
+         ival(buff, bufcx, check_connect_ex(d, s_buff, 1, i_attr));
+         free_lbuf(s_buff);
+         return;
+      }
+   }
+   ival(buff, bufcx, 0);
+}
+
 FUNCTION(fun_acos)
 {
     double val;
@@ -36158,6 +36200,7 @@ FUN flist[] =
     {"ABS", fun_abs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ACCOUNT_LOGIN", fun_account_login, 4, 0, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},

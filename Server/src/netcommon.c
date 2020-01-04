@@ -4131,8 +4131,16 @@ softcode_trigger(DESC *d, const char *msg) {
     return(i_found);
 }
 
+/* Connect types
+ * co - connect normal
+ * cd - connect dark
+ * ch - connect hidden
+ * zz - use functional account via account_login()
+ * reg - registration connect
+ */
+
 static int 
-check_connect(DESC * d, const char *msg)
+check_connect(DESC * d, const char *msg, int key, int i_attr)
 {
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
         buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
@@ -4175,7 +4183,7 @@ check_connect(DESC * d, const char *msg)
    overf = parse_connect(msg, command, user, password);
    if ( strlen(user) > 120 )
       overf = 0;
-   if ( !((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2))) )
+   if ( !(!strncmp(cchk, "co", 2) || !strncmp(cchk, "cd", 2) || !strncmp(cchk, "ch", 2) || ((key == 1) && !strncmp(cchk, "zz", 2))) )
       overf = 1;
    if ( strlen(msg) > 2000 )
       overf = 0;
@@ -4216,6 +4224,15 @@ check_connect(DESC * d, const char *msg)
       comptest = stricmp(buff2, "guest");
    } else {
       comptest = 1;
+   }
+
+   if ( (key == 1) && !strncmp(cchk, "zz", 2) && (stricmp(buff2, "guest") == 0) ) {
+      queue_string(d,"Guests can not connect with this method.\r\n");
+      free_mbuf(command);
+      free_mbuf(user);
+      free_mbuf(password);
+      mudstate.debug_cmd = cmdsave;
+      RETURN(1); /* #146 */
    }
    player2 = lookup_player(NOTHING, user, 0);
    is_guest = 0;
@@ -4364,7 +4381,8 @@ check_connect(DESC * d, const char *msg)
          strcat(user, buff2);
       }
    }
-   if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ) {
+   if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ||
+        ((key == 1) && !strncmp(cchk, "zz", 2)) ) {
       /* See if this connection would exceed the max #players */
       if (mudconf.max_players > mudstate.max_logins_allowed)
          mudconf.max_players = mudstate.max_logins_allowed;
@@ -4391,7 +4409,7 @@ check_connect(DESC * d, const char *msg)
          dc = 2;
       else
          dc =0;
-      player = connect_player(user, password, (char *)d);
+      player = connect_player(user, password, (char *)d, key, i_attr);
       player2 = lookup_player(NOTHING, user, 0);
       if (player == NOPERM) {
          queue_string(d, "Connections to that player are not allowed from your site.\r\n");
@@ -4906,6 +4924,14 @@ check_connect(DESC * d, const char *msg)
    }
    mudstate.debug_cmd = cmdsave;
    RETURN(1); /* #146 */
+}
+int
+check_connect_ex(DESC * d, char *msg, int key, int i_attr)
+{
+   int i_return;
+
+   i_return = check_connect(d, msg, key, i_attr);
+   return(i_return);
 }
 
 extern int igcheck(dbref, int);
@@ -5432,7 +5458,7 @@ do_command(DESC * d, char *command)
 	       RETURN(1); /* #147 */
 	   } else {
 	       mudstate.debug_cmd = cmdsave;
-               retval = check_connect(d, command);
+               retval = check_connect(d, command, 0, NOTHING);
 	       if ( chk_perm && cp )
 	         cp->perm = store_perm;
 	       RETURN(retval); /* #147 */

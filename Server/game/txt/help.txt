@@ -32952,6 +32952,7 @@
   * Grapenut's WebSockets are now enabled for API handling [ASH]
   * @password/attribute for setting passwords to attributes [ASH]
   * attrpass() for setting/checking attribute passwords [ASH]
+  * account_login() customized login functionality [ASH]
   
   Changes
   ------------

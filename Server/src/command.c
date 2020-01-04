@@ -8100,7 +8100,7 @@ list_guestparse(dbref player)
                tonchr = '*';
             else
                tonchr = ' ';
-            if (!check_pass(validplr, "guest", 0)) {
+            if (!check_pass(validplr, "guest", 0, 0, NOTHING)) {
                sprintf(dodbref, "%2s/%-7s DBRef #%-10d     %c", "No", "passwd", validplr, tonchr);
             } else if ( !Guest(validplr) ) {
                sprintf(dodbref, "%2s/%-7s DBRef #%-10d     %c", "No", "!guest", validplr, tonchr);
@@ -8126,7 +8126,7 @@ list_guestparse(dbref player)
                   tonchr = '*';
                else
                   tonchr = ' ';
-               if (!check_pass(validplr, "guest", 0)) {
+               if (!check_pass(validplr, "guest", 0, 0, NOTHING)) {
                   sprintf(dodbref, "%2s/%-7s DBRef #%-10d     %c", "No", "passwd", validplr, tonchr);
                } else if ( !Guest(validplr) ) {
                   sprintf(dodbref, "%2s/%-7s DBRef #%-10d     %c", "No", "!guest", validplr, tonchr);

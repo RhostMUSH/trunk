@@ -1869,6 +1869,35 @@ anum_extend(int newtop)
  * atr_num: Look up an attribute by number.
  */
 ATTR *
+atr_num_chkpass(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
 atr_num_objid(int anum)
 {
     VATTR *va;

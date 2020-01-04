@@ -7584,7 +7584,7 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-  See Also: logout_cmd_access
+  See Also: logout_cmd_access, account_login()
   
 { see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
@@ -11752,13 +11752,13 @@
 & functions
   Help is available for the following RhostMUSH wizard only functions:
   
-  AFLAGS()      BEEP()        BYPASS()      CANSEE()        CHECKPASS()
-  CHKGARBAGE()  CLOAK()       DOING()       DYNHELP()       HASDEPOWER()
-  HASPOWER()    HASTOGGLE()   ISHIDDEN()    LATTRP()        LDEPOWERS()
-  LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE() LPOWERS()       LTOGGLES()
-  MAILALIAS()   MAILQUICK()   MAILQUOTA()   MAILSIZE()      MAILSTATUS()
-  MSIZETOT()    NSLOOKUP()    QUOTA()       SIZE()          TEXTFILE()
-  MAILREAD()    MAILSEND()    EXECSCRIPT()
+  ACCOUNT_LOGIN()  AFLAGS()      BEEP()        BYPASS()       CANSEE()      
+  CHECKPASS()      CHKGARBAGE()  CLOAK()       DOING()        DYNHELP()     
+  EXECSCRIPT()     HASDEPOWER()  HASPOWER()    HASTOGGLE()    ISHIDDEN()    
+  LATTRP()         LDEPOWERS()   LOGTOFILE()   LOGSTATUS()    LOOKUP_SITE()
+  LPOWERS()        LTOGGLES()    MAILALIAS()   MAILQUICK()    MAILQUOTA() 
+  MAILSIZE()       MAILSTATUS()  MSIZETOT()    NSLOOKUP()     QUOTA()     
+  SIZE()           TEXTFILE()    MAILREAD()    MAILSEND()   
 
 & EXECSCRIPT()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
@@ -12338,6 +12338,52 @@
   This returns a string of toggles the given player has.  This is
   permission dependant.  Ie: You must have control over the target
   player to see their toggles.
+
+& ACCOUNT_LOGIN()
+  Function: account_login(<player>, <attribute>, <port>, <password>)
+  
+  This function is intended to be use with the file_object @admin
+  config parameter as it gives an alternative way to login to a
+  player character.  
+  
+  This is done by matching the target <player> with the HASHED
+  attribute password <attribute> that is stored on the player.
+  
+  They can not use the built in password method for this and
+  they must use a new hashed attribute for connection
+  purposes.  
+  
+  To set the password in the attribute, use the @password/attribute
+  or attrpass() function to do so.  Normal help is available on
+  @password and attrpass() to set attribute based hashes.
+  
+  It is *STRONGLY SUGGESTED* when setting attributes to be used
+  in this manner that you use wizard/immortal only attributes.
+  
+  There is some small amount of security risk to this feature,
+  however only immortals can use this function.  That fact
+  is hardcoded in and can not be overridden.
+  
+  In this example %1 is the arguments, %4 the port. 
+  Example:
+    > think config(file_object)
+      123
+    > &FAKECOMMANDS #123=mylogin
+      Set
+    > &RUN_MYLOGIN #123=[ifelse(account_login(first(%1),_ACCT,%4,rest(%1)),
+               Connected.,Failed to connect.  Invalid user or password.)]
+      Set.
+    > @password/attribute *Tester/_ACCT=zappo
+      Set - Tester/_ACCT: set with encrypted password.
+
+  
+  Then on the connect screen you would type:
+    > mylogin tester zappo
+  
+  That would connect you as normal.
+  
+  See Also: file_object
+
 & AFLAGS()
   Function: aflags(<attribute>)
   

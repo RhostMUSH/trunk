@@ -192,11 +192,12 @@ int	aflags, i;
  * check_pass: Test a password to see if it is correct.
  */
 
-int check_pass(dbref player, const char *password, int flag)
+int check_pass(dbref player, const char *password, int flag, int key, int i_attr)
 {
 dbref	aowner;
 int	aflags;
 char	*target;
+ATTR *attr;
 
 /* This is needed to prevent entering the raw encrypted password from
  * working.  Do it better if you like, but it's needed. */
@@ -206,10 +207,17 @@ char	*target;
      (password[0] == 'X') && (password[1] == 'X'))
    return 0;
  
- if (flag == 0) {
+ 
+ if ( key == 1 ) {
+   attr = atr_num_chkpass(i_attr);
+   if ( attr ) {
+      target = atr_get(player, attr->number, &aowner, &aflags);
+   } else {
+      return 0;
+   }
+ } else if (flag == 0) {
    target = atr_get(player, A_PASS, &aowner, &aflags);
- }
- else {
+ } else {
    target = atr_get(player, A_MPASS, &aowner, &aflags);
  }
  
@@ -284,7 +292,7 @@ int check_site(dbref player, DESC *d)
  * connect_player: Try to connect to an existing player.
  */
 
-dbref connect_player(char *name, char *password, char *d2)
+dbref connect_player(char *name, char *password, char *d2, int key, int i_attr)
 {
 dbref	player, aowner;
 int	aflags;
@@ -308,7 +316,7 @@ int totfail, newfail, totsucc;
 		record_login(player, 0, time_str, host, &totsucc, &totfail, &newfail);
 		return NOPERM;
 	} 
-	if (!check_pass(player, password, 0)) {
+	if (!check_pass(player, password, 0, key, i_attr)) {
 		broadcast_monitor(player,MF_SITE|MF_FAIL|MF_COMPFAIL,"FAIL",userid,host,0,0,0,NULL);
 		record_login(player, 0, time_str, host, &totsucc, &totfail, &newfail);
 		return NOTHING;
@@ -536,7 +544,7 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
          break;
       default: /* Handle the default @password voodoo */
          target = atr_get(player, A_PASS, &aowner, &aflags);
-         if ( !*target || !check_pass(player, oldpass, 0) ) {
+         if ( !*target || !check_pass(player, oldpass, 0, 0, NOTHING) ) {
             notify(player, "Sorry.");
          } else if (!ok_password(newpass, player, 0)) {
             notify(player, "Bad new password.");
