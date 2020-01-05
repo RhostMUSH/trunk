@@ -21685,7 +21685,7 @@
   See Also: @link, SIDEEFFECTS
   
 & CREATE()
-  Function: create(<name>, [<arguments> [,<type>]])
+  Function: create(<name>, [<arguments> [,<type> [,<target-owner>]])
   
   @create:  create(<name>,<value>,t) (default)
     This will create an object with name <name> of value <value>.  The 't'
@@ -21706,6 +21706,15 @@
     <link> is unspecified, then the exit will be un-linked and will need to
     be @linked later (if so desired).
   
+  @pcreate: create(<name>, <password>, p)
+    This will create the target player.  You need to have access to @pcreate
+    to be able to use this feature of create().
+  
+  @robot:   create(<name>, <password>, p, <target-owner>)
+    This will create the target robot player.  You need to have access to
+    both the @robot feature as well as control the target-owner to create
+    a robot.  To create a robot that you own, make target-owner yourself.
+  
   The SIDEFX flag needs to be set to use this function. 
   Type @list options to see if this side-effect is enabled.
   
@@ -21713,8 +21722,11 @@
   > say create(An Object,10)  (this will create 'An Object' with value of '10')
   > say create(An Object)     (this will create 'An Object' with default cost)
   
-  See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
+  See Also: @create, @dig, @open, @pcreate, dig(), open(), SIDEEFFECTS
   
+& @pcreate
+  See wizhelp @pcreate
+
 & LISTMATCH()
   Function: listmatch(<string>, <pattern>[, <delimiter> [,<args>]])
  
@@ -32961,6 +32973,7 @@
     additions to the descriptor table to allow @reboots to handle
     w/o crashing [ASH] 
   * minor improvement on return handler of account_login() [ASH]
+  * Added ability to pcreate users from create() [ASH]
   
   Bug Fixes
   ------------

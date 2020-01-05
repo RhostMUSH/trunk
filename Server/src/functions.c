@@ -34422,6 +34422,7 @@ FUNCTION(fun_create)
 {
    char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
    int nitems;
+   dbref thing;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_CREATE) ) {
@@ -34429,7 +34430,7 @@ FUNCTION(fun_create)
       return;
    }
 
-   if (!fn_range_check("CREATE", nfargs, 1, 3, buff, bufcx))
+   if (!fn_range_check("CREATE", nfargs, 1, 4, buff, bufcx))
       return;
 
    mudstate.store_lastcr = -1;
@@ -34483,6 +34484,27 @@ FUNCTION(fun_create)
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 break;
+      case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate.command_htab);
+                 if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
+                       cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
+                    notify(player, "Permission denied.");
+                    break;
+                 }
+                 if ( (nfargs > 3) ) {
+                    if ( *fargs[3] ) {
+                       thing = lookup_player(player, fargs[3], 0);
+                       if ( !Good_chk(thing) || !Controls(player, thing) ) {
+                          notify(player, "Invalid target for @robot.");
+                       } else {
+                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT), fargs[0], fargs[1]);
+                       }
+                    } else {
+                       notify(player, "Invalid target for @robot.");
+                    }
+                 } else {
+                    do_pcreate(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                 }
                  break;
       default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
