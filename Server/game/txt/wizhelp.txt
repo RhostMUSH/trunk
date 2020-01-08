@@ -13597,7 +13597,7 @@
         and is limited to alphanumeric characters only.
 
 & MAILSEND()
-  Function: mailsend(<player>, <subject>, <body> [,<key>])
+  Function: mailsend(<player>, <subject>, <body> [,<key> ] [,<sender>])
   
   This will send a <player> a mail message with the specified subject
   of <subject> (which may be empty) and body <body> which must not
@@ -13605,8 +13605,12 @@
   
   If you specify a <key> of 1, the mail is sent anonymously.
   
+  If you specify a <sender>, then the mail will be from the sender and
+  not from the enactor.  You must be able to control sender, and sender
+  must be a valid player.
+   
   Note: This function requires the SIDEFX flag to run.
-    
+     
   Example:
     > say mailsend(test, Hey!, This is a mail)
     Mail: Message sent to -> Test

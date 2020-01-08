@@ -34673,6 +34673,7 @@ FUNCTION(fun_mailsend)
    CMDENT *cmdp;
    char *s_body, *s_bodyptr;
    int i_key;
+   dbref i_target;
 
    if ( !(mudconf.sideeffects & SIDE_MAIL) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -34690,7 +34691,7 @@ FUNCTION(fun_mailsend)
       return;
    }
 
-   if (!fn_range_check("MAILSEND", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("MAILSEND", nfargs, 3, 5, buff, bufcx))
       return;
    if ( mudstate.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
@@ -34716,16 +34717,24 @@ FUNCTION(fun_mailsend)
          i_key = M_ANON;
    }
    i_key |= M_SEND;
+   i_target = player;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_target = lookup_player(player, fargs[4], 0);
+      if ( !Good_chk(i_target) || !Controls(player, i_target) ) {
+         safe_str("#-1 INVALID TARGET PLAYER", buff, bufcx);
+         return;
+      }
+   }
    s_bodyptr = s_body = alloc_lbuf("fun_mailsend");
    if ( *fargs[1] ) {
      safe_str(fargs[1], s_body, &s_bodyptr);
      safe_str("//", s_body, &s_bodyptr);
    }
    safe_str(fargs[2], s_body, &s_bodyptr);
-   if ( !isPlayer(player) && Good_chk(Owner(player)) ) {
-      do_mail(Owner(player), cause, i_key, fargs[0], s_body);
+   if ( !isPlayer(i_target) && Good_chk(Owner(i_target)) ) {
+      do_mail(Owner(i_target), cause, i_key, fargs[0], s_body);
    } else {
-      do_mail(player, cause, i_key, fargs[0], s_body);
+      do_mail(i_target, cause, i_key, fargs[0], s_body);
    }
    free_lbuf(s_body);
 }

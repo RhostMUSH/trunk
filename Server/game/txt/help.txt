@@ -32974,6 +32974,7 @@
     w/o crashing [ASH] 
   * minor improvement on return handler of account_login() [ASH]
   * Added ability to pcreate users from create() [ASH]
+  * mailsend() has new option to specify optional sender [ASH]
   
   Bug Fixes
   ------------
