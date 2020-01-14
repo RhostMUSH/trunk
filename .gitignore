@@ -3,11 +3,14 @@
 *.db.flat
 *.diff
 *.gamelog.*.gz
+*.log
+*.log.old
 *.log.*.gz
 *.o
 *.orig
 *.pid
 *.rej
+*.swp
 *.tmp
 /Server/bin/a.out
 /Server/bin/asksource.save*
@@ -18,8 +21,6 @@
 /Server/bin/timeout
 /Server/game/*.fx
 /Server/game/*.gamelog
-/Server/game/*.log
-/Server/game/*.log.old
 /Server/game/*.reboot
 /Server/game/core
 /Server/game/data/*
@@ -37,7 +38,6 @@
 /Server/src/do_compile.var
 /Server/src/gdbm-*/*.la
 /Server/src/gdbm-*/*.lo
-/Server/src/gdbm-*/*.log
 /Server/src/gdbm-*/*.status
 /Server/src/gdbm-*/.libs/
 /Server/src/gdbm-*/autoconf.h
@@ -51,7 +51,6 @@
 /Server/src/qdbm-*/Makefile
 /Server/src/qdbm-*/cbcodec
 /Server/src/qdbm-*/cbtest
-/Server/src/qdbm-*/config.log
 /Server/src/qdbm-*/config.status
 /Server/src/qdbm-*/crmgr
 /Server/src/qdbm-*/crtest
