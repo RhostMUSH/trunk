@@ -2441,7 +2441,7 @@ dbref objecttag_get(char *tag)
   }
 
   /* Convert to all lowercase */
-  lcnp = lcname = alloc_lbuf("add_tag");
+  lcnp = lcname = alloc_lbuf("get_tag");
   safe_str(strip_all_ansi(tag), lcname, &lcnp);
   for (lcnp=lcname; *lcnp; lcnp++) {
    *lcnp = ToLower((int)*lcnp);
@@ -2453,6 +2453,7 @@ dbref objecttag_get(char *tag)
   }
 
   hashp = hashfind(lcname, &mudstate.objecttag_htab);
+  free_lbuf(lcname);
   if(hashp != NULL)
   {
     storedtag = (TAGENT *)hashp;
@@ -2481,7 +2482,7 @@ int objecttag_remove(char *tag)
   }
 
   /* Convert to all lowercase */
-  lcnp = lcname = alloc_lbuf("add_tag");
+  lcnp = lcname = alloc_lbuf("rem_tag");
   safe_str(strip_all_ansi(tag), lcname, &lcnp);
   for (lcnp=lcname; *lcnp; lcnp++) {
    *lcnp = ToLower((int)*lcnp);
