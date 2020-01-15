@@ -2160,6 +2160,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->checksum[0] = '\0';
     d->ws_frame_len = 0;
     d->account_owner = NOTHING;
+    memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
 
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */

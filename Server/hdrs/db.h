@@ -69,6 +69,7 @@ extern ATTR *	FDECL(atr_str_exec, (char *s));
 extern ATTR *	FDECL(atr_str_objid, (char *s));
 extern ATTR *	FDECL(atr_num_bool, (int anum));
 extern ATTR *	FDECL(atr_str_bool, (char *s));
+extern ATTR *	FDECL(atr_str_cluster, (char *s));
 
 extern ATTR attr[];
 

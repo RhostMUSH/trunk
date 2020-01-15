@@ -716,41 +716,41 @@ int has_aflag(dbref player, dbref thing, int anum, char *fname)
 void 
 fwdlist_set(dbref thing, FWDLIST * ifp)
 {
-    FWDLIST *fp, *xfp;
-    int i, stat;
-    char *logbuf;
+   FWDLIST *fp, *xfp;
+   int i, stat;
+   char *logbuf;
 
-    /* If fwdlist is null, clear */
+/* If fwdlist is null, clear */
 
-    if (!ifp || (ifp->count <= 0)) {
-	fwdlist_clr(thing);
-	return;
-    }
-    /* Copy input forwardlist to a correctly-sized buffer */
+   if (!ifp || (ifp->count <= 0)) {
+      fwdlist_clr(thing);
+      return;
+   }
+   /* Copy input forwardlist to a correctly-sized buffer */
 
-    fp = (FWDLIST *) XMALLOC(sizeof(int) * ((ifp->count) + 1), "fwdlist_set");
+   fp = (FWDLIST *) XMALLOC(sizeof(int) * ((ifp->count) + 1), "fwdlist_set");
 
-    for (i = 0; i < ifp->count; i++) {
-	fp->data[i] = ifp->data[i];
-    }
-    fp->count = ifp->count;
+   for (i = 0; i < ifp->count; i++) {
+      fp->data[i] = ifp->data[i];
+   }
+   fp->count = ifp->count;
 
-    /* Replace an existing forwardlist, or add a new one */
+   /* Replace an existing forwardlist, or add a new one */
 
-    xfp = fwdlist_get(thing);
-    if (xfp) {
-	XFREE(xfp, "fwdlist_set");
-	nhashrepl(thing, (int *) fp, &mudstate.fwdlist_htab);
-    } else {
-    	stat = nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
-      stat = (stat < 0) ? 0 : 1;
-      if(!stat) {
-        logbuf = alloc_lbuf("fwdlist_add");
-        sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
-        free(fp);
-        free(logbuf);
-      }
-    }
+   xfp = fwdlist_get(thing);
+   if (xfp) {
+      XFREE(xfp, "fwdlist_set");
+      nhashrepl(thing, (int *) fp, &mudstate.fwdlist_htab);
+   } else {
+       stat = nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
+       stat = (stat < 0) ? 0 : 1;
+       if(!stat) {
+          logbuf = alloc_lbuf("fwdlist_add");
+          sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
+          free(fp);
+          free(logbuf);
+       }
+   }
 }
 
 void 
@@ -1339,6 +1339,50 @@ NDECL(init_attrtab)
 /* ---------------------------------------------------------------------------
  * atr_str: Look up an attribute by name.
  */
+
+ATTR *
+atr_str_cluster(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_objid");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
 
 ATTR *
 atr_str_objid(char *s)
@@ -2511,9 +2555,9 @@ al_add(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
-                     (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
+                     (i_array[1] == -2 ? (Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "VMAXIMUM")
                      log_text("Variable attribute new creation maximum reached -> Player: ");
@@ -2882,8 +2926,8 @@ atr_clr(dbref thing, int atr)
 	break;
 #endif
     case A_OBJECTTAG:
-  s_Flags4(thing, Flags4(thing) & ~HAS_OBJECTTAG);
-  break;
+	s_Flags4(thing, Flags4(thing) & ~HAS_OBJECTTAG);
+	break;
     }
 }
 
@@ -2932,8 +2976,8 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	break;
 #endif
     case A_OBJECTTAG:
-  s_Flags4(thing, Flags4(thing) | HAS_OBJECTTAG);
-  break;
+	s_Flags4(thing, Flags4(thing) | HAS_OBJECTTAG);
+	break;
     }
 }
 

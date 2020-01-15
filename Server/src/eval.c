@@ -1901,13 +1901,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case '$':
                 i = -1;
                 dstr++;
+                if ( !*dstr) {
+                   dstr--;
+                   break;
+                }
                 if ( isdigit((unsigned char)*dstr) ) {
                    i = *dstr - '0';
                    dstr++;
-                   if ( isdigit((unsigned char)*dstr) ) {
+                   if ( !*dstr ) {
+                      dstr--;
+                   } else if ( isdigit((unsigned char)*dstr) ) {
                       i *= 10;
                       i += *dstr - '0';
                       dstr++;
+                      if ( !*dstr ) {
+                         dstr--;
+                      }
                    }
                 }
                 if ( i != -1 ) {

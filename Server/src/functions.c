@@ -21354,6 +21354,7 @@ FUNCTION(fun_account_owner)
       DESC_SAFEITER_ALL(d, dnext) {
          if ( i_port == d->descriptor ) {
             ival(buff, bufcx, d->account_owner);
+            break;
          }
       }
       return;
@@ -21386,6 +21387,8 @@ FUNCTION(fun_account_owner)
          safe_str(s_buff, buff, bufcx);
          if ( atoi(s_buff) ) {
             d->account_owner = lookup_player(player, fargs[0], 0);
+            memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+            strncpy(d->account_rawpass, fargs[3], sizeof(d->account_rawpass) - 1);
          }         
          free_lbuf(s_buff);
          free_lbuf(s_tmp);
@@ -21404,7 +21407,10 @@ FUNCTION(fun_account_login)
    dbref i_player;
    ATTR *attr;
 
-   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] || !*fargs[3] ) {
+   if (!fn_range_check("ACCOUNT_LOGIN", nfargs, 3, 4, buff, bufcx)) {
+      return;
+   }
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
       ival(buff, bufcx, 0);
       return;
    }
@@ -21427,7 +21433,11 @@ FUNCTION(fun_account_login)
    DESC_SAFEITER_ALL(d, dnext) {
       if ( (i_port == d->descriptor) && !(d->flags & DS_CONNECTED) ) {
          s_buff = alloc_lbuf("fun_account_login");
-         sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
+         if ( nfargs > 3 ) {
+             sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
+         } else {
+             sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->account_rawpass);
+         }
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
          if ( d->flags & DS_CONNECTED ) {
@@ -36327,7 +36337,7 @@ FUN flist[] =
     {"ABS", fun_abs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"ACCOUNT_LOGIN", fun_account_login, 4, 0, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
@@ -37077,7 +37087,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     ATTR *ap;
     char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
          s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
-         *s_buffptr, *logbuf;
+         *s_buffptr; 
+/* --- this isn't used right now
+    char *logbuf;
+*/
     int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2, stat;
     dbref obj, aowner, aowner2;
 
@@ -37592,11 +37605,13 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
-           logbuf = alloc_lbuf("");
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+/* --- no need for this right now
+           logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD USER @LFUNC HASH: %s", ufp->name);
-           free(ufp);
            free(logbuf);
+*/
+           free(ufp);
            free_sbuf(np);
            return;
          }
@@ -37610,11 +37625,13 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
-           logbuf = alloc_lbuf("");
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+/* --- no need for this right now
+           logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD @FUNC HASH: %s", ufp->name);
-           free(ufp);
            free(logbuf);
+*/
+           free(ufp);
            free_sbuf(np);
            return;
 				}

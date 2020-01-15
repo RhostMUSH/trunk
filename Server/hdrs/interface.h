@@ -215,6 +215,7 @@ struct descriptor_data {
   char checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
   long ws_frame_len;
   dbref account_owner;		/* For softcoded account systems */
+  char account_rawpass[100];		/* For raw account password */
 };
 
 /* flags in the flag field */
