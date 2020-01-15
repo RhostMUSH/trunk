@@ -625,6 +625,7 @@ ATTR attr[] =
     {"*Email", A_EMAIL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL, NULL},
     {"*Pfail", A_PFAIL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL, NULL},
     {"RLevel", A_RLEVEL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
+    {"____ObjectTag", A_OBJECTTAG, AF_DARK | AF_NOPROG | AF_NOCMD, NULL},
     {NULL, 0, 0, NULL}};
 
 #ifndef STANDALONE
@@ -716,7 +717,8 @@ void
 fwdlist_set(dbref thing, FWDLIST * ifp)
 {
     FWDLIST *fp, *xfp;
-    int i;
+    int i, stat;
+    char *logbuf;
 
     /* If fwdlist is null, clear */
 
@@ -740,7 +742,14 @@ fwdlist_set(dbref thing, FWDLIST * ifp)
 	XFREE(xfp, "fwdlist_set");
 	nhashrepl(thing, (int *) fp, &mudstate.fwdlist_htab);
     } else {
-	nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
+    	stat = nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
+      stat = (stat < 0) ? 0 : 1;
+      if(!stat) {
+        logbuf = alloc_lbuf("fwdlist_add");
+        sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
+        free(fp);
+        free(logbuf);
+      }
     }
 }
 
@@ -2872,6 +2881,9 @@ atr_clr(dbref thing, int atr)
 	pcache_reload(thing);
 	break;
 #endif
+    case A_OBJECTTAG:
+  s_Flags4(thing, Flags4(thing) & ~HAS_OBJECTTAG);
+  break;
     }
 }
 
@@ -2919,6 +2931,9 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	pcache_reload(thing);
 	break;
 #endif
+    case A_OBJECTTAG:
+  s_Flags4(thing, Flags4(thing) | HAS_OBJECTTAG);
+  break;
     }
 }
 

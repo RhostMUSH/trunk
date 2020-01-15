@@ -1125,6 +1125,13 @@ NAMETAB switch_sw[] =
     {(char *) "localize", 1, CA_PUBLIC, 0, SWITCH_LOCALIZE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB tag_sw[] =
+{
+    {(char *) "add", 1, CA_ADMIN, 0, TAG_ADD},
+    {(char *) "remove", 1, CA_ADMIN, 0, TAG_REMOVE},
+    {(char *) "list", 1, CA_ADMIN, 0, TAG_LIST},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB tel_sw[] =
 {
     {(char *) "list", 1, CA_PUBLIC, 0, TEL_LIST},
@@ -1509,6 +1516,9 @@ CMDENT command_table[] =
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
      0, do_switch},
+    {(char *) "@tag", tag_sw,
+     CA_NO_SLAVE | CA_NO_GUEST , CA_NO_CODE,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_tag},
     {(char *) "@teleport", tel_sw, CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_INTERP, 0, do_teleport},
     {(char *) "@thaw", thaw_sw, CA_WIZARD, 0,
@@ -1860,8 +1870,8 @@ NDECL(init_cmdtab)
     CMDENT *cp;
     ATTR *ap;
     char *p, *q;
-    int anum, sbuf_cntr;
-    char *cbuff;
+    int anum, sbuf_cntr, stat;
+    char *cbuff, *logbuf;
 
     DPUSH; /* #25 */
 
@@ -1907,7 +1917,14 @@ NDECL(init_cmdtab)
 	    cp->handler = do_setattr;
             cp->hookmask = 0;
 	    cp->cmdtype = CMD_ATTR_e;
-	    hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
+	    stat = hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
+      stat = (stat < 0) ? 0 : 1;
+      if(!stat) {
+        logbuf = alloc_lbuf("add_command");
+        sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
+        free(cp);
+        free(logbuf);
+      }
 	}
     }
     free_sbuf(cbuff);
@@ -1917,7 +1934,13 @@ NDECL(init_cmdtab)
     for (cp = command_table; cp->cmdname; cp++) {
       cp->cmdtype = CMD_BUILTIN_e;
       cp->hookmask = 0;
-      hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
+      stat = hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
+      stat = (stat < 0) ? 0 : 1;
+      if(!stat) {
+        logbuf = alloc_lbuf("add_command");
+        sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
+        free(logbuf);
+      }
     }
 
     /* Load the command prefix table.  Note - these commands can never
@@ -5447,11 +5470,11 @@ CF_HAND(cf_attr_access)
  */
 CF_HAND(cf_cmd_vattr)
 {
-  char *orig, *alias, *tstrtokr, *cbuff, *p, *q;
+  char *orig, *alias, *tstrtokr, *cbuff, *p, *q, *logbuf;
   CMDENT *cmdp, *cp;
   VATTR *va;
   ATTR *atr;
-  int sbuf_cntr;
+  int sbuf_cntr, stat;
   FILE *fp;
 
   DPUSH /* #40A */
@@ -5573,7 +5596,14 @@ CF_HAND(cf_cmd_vattr)
   cp->handler = do_setattr;
   cp->hookmask = 0;
   cp->cmdtype = CMD_ATTR_e;
-  hashadd(cp->cmdname, (int *) cp, &mudstate.command_vattr_htab);
+  stat = hashadd(cp->cmdname, (int *) cp, &mudstate.command_vattr_htab);
+  stat = (stat < 0) ? 0 : 1;
+  if(!stat) {
+    logbuf = alloc_lbuf("add_vattr_cmd");
+    sprintf(logbuf,"UNABLE TO ADD VATTR COMMAND HASH: %s", cp->cmdname);
+    free(cp);
+    free(logbuf);
+  }
   free_sbuf(cbuff);
   DPOP; /* #40A */
   return 0;
@@ -5592,12 +5622,13 @@ CF_HAND(cf_cmd_vattr)
 
 CF_HAND(cf_cmd_alias)
 {
-    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff, *tstrtokr;
+    char *alias, *orig, *ap, *p, *tpr_buff, *tprp_buff, *tstrtokr, *logbuf;
 
     CMDENT *cmdp, *cp, *cmdp2;
     ALIASENT *aliasp, *alias2p;
 
     NAMETAB *nt = NULL;
+    int stat;
     int retval;
     int bReplaceAlias = 0, bHasSwitches = 0;
     int key = 0, perms = 0, perms2 = 0;
@@ -5782,7 +5813,16 @@ CF_HAND(cf_cmd_alias)
     if (bReplaceAlias && alias2p) {
       hashrepl(alias, (int *) aliasp, &mudstate.cmd_alias_htab);
     } else {
-      hashadd(alias, (int *) aliasp, &mudstate.cmd_alias_htab);
+      stat = hashadd(alias, (int *) aliasp, &mudstate.cmd_alias_htab);
+      stat = (stat < 0) ? 0 : 1;
+      if(!stat) {
+        logbuf = alloc_lbuf("add_command_alias");
+        sprintf(logbuf,"UNABLE TO ADD COMMAND ALIAS HASH: %s", aliasp->aliasname);
+        free(aliasp);
+        free(logbuf);
+        DPOP; /* #40 */
+        return -1;
+      }
     }
     
     DPOP; /* #40 */

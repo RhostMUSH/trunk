@@ -36288,6 +36288,35 @@ FUNCTION(fun_cluster_stats)
    } /* Switch */
 }
 
+/*
+ * Tag: Retrieve the #dbref behind the named tag. Else return #-1
+ * merely a call to objecttag_get().
+ */
+
+FUNCTION(fun_tag)
+{
+  	dbref thing;
+    char* s_thing;
+
+    thing = objecttag_get(fargs[0]);
+    if (!Good_obj(thing)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else if (Cloak(thing) && (SCloak(thing)) && !Immortal(player)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else if (Cloak(thing) && !Wizard(player)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else
+    {
+      s_thing = alloc_sbuf("fun_tag");
+      sprintf(s_thing, "#%d", thing);
+      safe_str(s_thing, buff, bufcx);
+  	  free_sbuf(s_thing);
+    }
+}
+
 /* ---------------------------------------------------------------------------
  * flist: List of existing functions in alphabetical order.
  */
@@ -36863,12 +36892,13 @@ FUN flist[] =
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
-    {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"TAG", fun_tag, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TANH", fun_tanh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
     {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
@@ -37047,8 +37077,8 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     ATTR *ap;
     char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
          s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
-         *s_buffptr;
-    int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2;
+         *s_buffptr, *logbuf;
+    int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2, stat;
     dbref obj, aowner, aowner2;
 
     i_local = 0;
@@ -37559,21 +37589,41 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       ufp->owner = Owner(player);
       ufp->orig_owner = Owner(obj);
       if ( i_local ) {
+         stat = hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
+         stat = (stat < 0) ? 0 : 1;
+         if(!stat) {
+           logbuf = alloc_lbuf("");
+           notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+           sprintf(logbuf,"UNABLE TO ADD USER @LFUNC HASH: %s", ufp->name);
+           free(ufp);
+           free(logbuf);
+           free_sbuf(np);
+           return;
+         }
          if (!ulfun_head) {
             ulfun_head = ufp;
          } else {
             for (ufp2 = ulfun_head; ufp2->next; ufp2 = ufp2->next);
             ufp2->next = ufp;
          }
-         hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
       } else {
-         if (!ufun_head) {
-            ufun_head = ufp;
-         } else {
-            for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
-            ufp2->next = ufp;
-         }
-         hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
+         stat = hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
+         stat = (stat < 0) ? 0 : 1;
+         if(!stat) {
+           logbuf = alloc_lbuf("");
+           notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+           sprintf(logbuf,"UNABLE TO ADD @FUNC HASH: %s", ufp->name);
+           free(ufp);
+           free(logbuf);
+           free_sbuf(np);
+           return;
+				}
+        if (!ufun_head) {
+           ufun_head = ufp;
+        } else {
+           for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
+           ufp2->next = ufp;
+        }
       }
    }
    ufp->obj = obj;

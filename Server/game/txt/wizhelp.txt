@@ -520,8 +520,8 @@
   @progreset      @protect        @ps            @purge          @quota        
   @readcache      @reboot         @recover       @reclist        @remote       
   @rwho           @site           @shutdown      @snapshot       @snoop
-  @thaw           @timewarp       @toad          @tor            @turtle     
-  @wall           +players
+  @tag            @thaw           @timewarp      @toad          @tor
+  @turtle         @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -547,7 +547,8 @@
   PERMISSIONS              PLUSHELP SETUP           POWER LIST             
   PROXY SETUP              REALITY LEVELS           SEARCH CRITERIA        
   SIGNALS                  SITE LISTS               SPECIAL ATTRIBS        
-  SSL SETUP                TOGGLES                  TOR                
+  SSL SETUP                TAGS                     TOGGLES
+  TOR                
 
 & API
   Topic: API
@@ -1299,6 +1300,41 @@
   
   See Also: AUTOREGISTRATION
 
+& TAGS
+  The Rhost tag system exists to make it easier for coders to avoid having
+  to use hardcoded #dbrefs inside their mushcode.
+ 
+  It does this by allowing admins to assign #dbrefs to named 'tags', that
+  then can be used inside mushcode instead of said #dbrefs.
+ 
+  For example, instead of using
+    @trigger #4/UPDATE_WEATHER
+  one would use the following line inside mushcode with this system:
+    @trigger [tag(weather_globals)]/UPDATE_WEATHER 
+ 
+  This also makes writing of portable mushcode much easier - old workarounds
+  in such systems included storing the new #dbrefs on creation on special
+  attributes, and then reading those attributes with v() to make us of them
+  inside the mushcode.
+ 
+  The tag system has a couple advantages compared to this workaround:
+ 
+    * They can be easily added by putting a line like
+        @tag/add weather_globals=[lastcreate(me,t)]
+      at the end of an object's automated creation process in the .txt file.
+    * Tags are available globally - they can be listed with @tag/list, and
+      tag() works independently of any attributes and possible access
+      permissions to those attributes.
+    * Tags are sanity checked - they always point at a valid object or #-1.
+      Object destruction removes the according tag. If a tag returns a
+      valid #dbref, it is ensured that this tag was assigned to this #dbref
+      during the current object's lifetime.
+    * Tags are easy to use on the fly in the client, by entering lines like
+      "ex tag(weather_globals)", making them also handy for everyday admin
+      maintenance purposes.
+ 
+  Also See: wizhelp @tag, help tag()
+ 
 & TOGGLES
   Information is available on the following toggles:
  
@@ -5265,6 +5301,41 @@
   
   See the normal help on this command.
 
+& @tag
+  Command: @tag <tagname>
+           @tag/list
+           @tag/add <tagname>=<#dbref>
+           @tag/remove <tagname>
+  
+  This command gets used to manage and list the named tags of Rhost's tag
+  system (see wizhelp tags).
+ 
+  The first form lists the #dbref stored behind the tag named <tagname>. If
+  the tag does not exist, #-1 gets returned. This also goes for tags that
+  previously existed, but the #dbref stored behind them has been @destroyed
+  in the meantime - even if a new object once more is valid behind this
+  #dbref.
+ 
+  @tag/list lists all current valid tags and the #dbref associated with them.
+ 
+  @tag/add gets used to add a tag. If a named tag already exists, an error
+  is returned.
+ 
+  @tag/remove removes an existing tag. If the tag named <tagname> does not
+  exist, an error is returned.
+ 
+  The following sanity checks are performend for tags:
+ 
+  * Tagnames cannot be more than 32 characters in length
+  * Tagnames cannot cointain whitespace.
+  * Tags need to be supplied with a valid, existing object's #dbref on
+     creation.
+  * Up to 16 tags can reference the same #dbref
+  * Unicode is valid in tagnames!
+  * On destruction of an object, all referencing tags get also removed.
+ 
+  See also: wizhelp tags, help tag()
+   
 & @toggledef
 & @flagdef
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]

@@ -11416,11 +11416,11 @@
   STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
   STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
   STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
-  SWITCH()        SWITCHALL()     T()            TAN()          TEL()        
-  TEMPLATE()      TIME()          TIMEFMT()      TOBIN()        TODEC()      
-  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
-  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
-  TRANSLATE()     TRIM()
+  SWITCH()        SWITCHALL()     T()            TAG ()         TAN()
+  TEL()           TEMPLATE()      TIME()         TIMEFMT()      TOBIN()
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()
+  TRACE()         TRANSLATE()     TRIM()
 
 { 'help function list5' for more }
 
@@ -11528,7 +11528,7 @@
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() STDERR() TRACE()
+                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -23361,6 +23361,23 @@
     You say "-5"
   
   See Also: div(), floor(), mod(), round(), trunc()
+
+& TAG()
+  Function: tag(<string>)
+ 
+  This function returns the #dbref stored behind the tag named <string>.
+  These tags get created with Rhost's tag system ( see 'wizhelp @tag' and
+  'wizhelp tags' ) by admins, and can be useful to avoid having hardcoded
+  #dbrefs in mushcode.
+ 
+  These tags can also be used on-the-fly in the client, for example using
+  something like 'ex tag(weather_globals)' to examine the object of which
+  the #dbref is stored in the 'weather_globals' tag.
+ 
+  If a non-existant tagname is supplied in the tag() function, it always
+  returns #-1.
+ 
+  Also See: wizhelp tags, wizhelp @tag
   
 & TR()
   Function: tr(<string>, <find>, <replace> [,<type>])
@@ -29906,6 +29923,7 @@
   setr_old() - Like setr(), but uses old MUSH style evaluation.
   soundex() - Returns the soundex pattern of a word.
   soundlike() - Compares the soundex of two words.
+  tag() - Returns the #dbref stored behind a named tag.
   trace() - Controls the trace flag on an object.
 
 & object information functions

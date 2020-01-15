@@ -697,6 +697,7 @@ struct statedata {
 	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
 	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
 	HASHTAB player_htab;	/* Player name->number hashtable */
+	HASHTAB objecttag_htab;	/* Tag->number hastable */
 	NHSHTAB	desc_htab;	/* Socket descriptor hashtable */
 	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
 	NHSHTAB	parent_htab;	/* Parent $-command exclusion */

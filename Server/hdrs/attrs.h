@@ -252,6 +252,8 @@ typedef struct afstruct {
 #define A_PROTECTNAME	249	/* Protect Name and/or other foo */
 #define A_TITLE		250	/* Title of player */
 
+#define A_OBJECTTAG     251 /* Internal ____OBJECTTAG Attribute */
+
 #define	A_VLIST		252
 #define	A_LIST		253
 #define	A_STRUCT	254

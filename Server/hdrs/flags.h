@@ -176,7 +176,7 @@
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
 #define XTERMCOLOR      0x00800000      /* Extended AnSI Xterm colors */
 #define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
-/* 0x02000000 free */
+#define HAS_OBJECTTAG   0x02000000      /* Has ____ObjectTag attribute set */
 /* 0x04000000 free */
 /* 0x08000000 free */
 /* 0x10000000 free */
@@ -849,6 +849,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define H_Listen(x)     ((Flags2(x) & HAS_LISTEN) != 0)
 #define H_Protect(x)	((Flags4(x) & HAS_PROTECT) != 0)
 #define H_Attrpipe(x)	((Flags4(x) & HAS_ATTRPIPE) != 0)
+#define H_ObjectTag(x)    ((Flags4(x) & HAS_OBJECTTAG) != 0)
 
 #define s_Halted(x)     s_Flags((x), Flags(x) | HALT)
 #define s_Going(x)      s_Flags((x), Flags(x) | GOING)

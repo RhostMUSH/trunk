@@ -304,6 +304,9 @@ extern void	FDECL(divest_object, (dbref));
 extern dbref	FDECL(create_obj, (dbref, int, char *, char *, int, int));
 extern void	FDECL(destroy_obj, (dbref, dbref, int));
 extern void	FDECL(empty_obj, (dbref));
+extern int FDECL(objecttag_add, (char*, dbref));
+extern dbref FDECL(objecttag_get, (char*));
+extern int FDECL(objecttag_remove, (char*));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
@@ -1205,6 +1208,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
 #define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
+
+#define TAG_ADD	1	/* Set new object tag */
+#define TAG_REMOVE	2 /* Remove existing tag */
+#define TAG_LIST	4	/* List all object tags */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */

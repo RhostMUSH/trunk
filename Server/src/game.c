@@ -2126,7 +2126,7 @@ NDECL(process_preload)
 	   }
         }
 
-	/* Look for a FORWARDLIST attribute */
+	/* Look for a PROTECTNAME attribute */
 
         if (H_Protect(thing)) {
 	    (void) atr_get_str(tstr, thing, A_PROTECTNAME,
@@ -2150,17 +2150,36 @@ NDECL(process_preload)
                }
             }
         }
-	if (H_Fwdlist(thing)) {
-	    (void) atr_get_str(tstr, thing, A_FORWARDLIST,
+
+	/* Look for a FORWARDLIST attribute */
+
+     	if (H_Fwdlist(thing)) {
+	      (void) atr_get_str(tstr, thing, A_FORWARDLIST,
 			       &aowner, &aflags);
-	    if (*tstr) {
-		fwdlist_load(fp, GOD, tstr);
-		if (fp->count > 0)
-		    fwdlist_set(thing, fp);
-	    }
-	    cache_reset(0);
-	}
+  	    if (*tstr) {
+  	    	fwdlist_load(fp, GOD, tstr);
+      		if (fp->count > 0)
+    		    fwdlist_set(thing, fp);
+  	    }
+  	    cache_reset(0);
+    	}
+
+	/* Look for an OBJECTTAG attribute */
+
+     	if (H_ObjectTag(thing)) {
+	      (void) atr_get_str(tstr, thing, A_OBJECTTAG,
+			       &aowner, &aflags);
+  	    if (*tstr) {
+          strcpy(tstr2, tstr);
+          s_strtok = strtok_r(tstr2, " ", &s_strtokr);
+          while( s_strtok ) {
+     		    objecttag_add(s_strtok, thing);
+            s_strtok = strtok_r(NULL, " ", &s_strtokr);
+          }
+  	    }
+    	}
     }
+
     free_lbuf(fp);
     free_lbuf(tstr);
     free_lbuf(tstr2);
@@ -2238,6 +2257,7 @@ main(int argc, char *argv[])
     initDoorSystem();
 #endif
     hashinit(&mudstate.player_htab, 521);
+    hashinit(&mudstate.objecttag_htab, 131);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
     nhashinit(&mudstate.desc_htab, 131);
@@ -2376,6 +2396,7 @@ main(int argc, char *argv[])
     hashreset(&mudstate.attr_name_htab);
     nhashreset(&mudstate.attr_num_htab);
     hashreset(&mudstate.player_htab);
+    hashreset(&mudstate.objecttag_htab);
     nhashreset(&mudstate.fwdlist_htab);
     hashreset(&mudstate.news_htab);
     hashreset(&mudstate.help_htab);
