@@ -37087,10 +37087,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     ATTR *ap;
     char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
          s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
-         *s_buffptr; 
-/* --- this isn't used right now
-    char *logbuf;
-*/
+         *s_buffptr, *logbuf; 
     int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2, stat;
     dbref obj, aowner, aowner2;
 
