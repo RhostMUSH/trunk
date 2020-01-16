@@ -1999,7 +1999,7 @@ updatemakefile() {
       echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
       echo "COMP=qdbm" > ../src/do_compile.var
    else
-      echo "CUSTLIBS = -L../src/gdbm-1.8.3/.libs/ -lgdbm_compat -L../src/gdbm-1.8.3/ -lgdbm" >> ../src/custom.defs
+      echo "CUSTLIBS = -L../src/gdbm/.libs/ -lgdbm_compat -L../src/gdbm/ -lgdbm" >> ../src/custom.defs
       echo "COMP=gdbm" > ../src/do_compile.var
    fi
    chmod 755 ../src/do_compile.var

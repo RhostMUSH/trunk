@@ -5,7 +5,7 @@
 
 SHELL  = /bin/sh
 srcdir = ./src
-gdbmdir= ./src/gdbm-1.8.3/
+gdbmdir= ./src/gdbm/
 qdbmdir= ./src/qdbm/
 bindir = ./bin
 
