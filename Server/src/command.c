@@ -1922,6 +1922,7 @@ NDECL(init_cmdtab)
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
         sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
+        log_text(logbuf);
         free(cp);
         free(logbuf);
       }
@@ -1939,6 +1940,7 @@ NDECL(init_cmdtab)
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
         sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
+        log_text(logbuf);
         free(logbuf);
       }
     }
@@ -5601,6 +5603,7 @@ CF_HAND(cf_cmd_vattr)
   if(!stat) {
     logbuf = alloc_lbuf("add_vattr_cmd");
     sprintf(logbuf,"UNABLE TO ADD VATTR COMMAND HASH: %s", cp->cmdname);
+    log_text(logbuf);
     free(cp);
     free(logbuf);
   }
@@ -5818,6 +5821,7 @@ CF_HAND(cf_cmd_alias)
       if(!stat) {
         logbuf = alloc_lbuf("add_command_alias");
         sprintf(logbuf,"UNABLE TO ADD COMMAND ALIAS HASH: %s", aliasp->aliasname);
+        log_text(logbuf);
         free(aliasp);
         free(logbuf);
         DPOP; /* #40 */

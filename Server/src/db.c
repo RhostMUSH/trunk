@@ -747,6 +747,7 @@ fwdlist_set(dbref thing, FWDLIST * ifp)
        if(!stat) {
           logbuf = alloc_lbuf("fwdlist_add");
           sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
+          log_text(logbuf);
           free(fp);
           free(logbuf);
        }

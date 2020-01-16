@@ -37606,11 +37606,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
-/* --- no need for this right now
            logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD USER @LFUNC HASH: %s", ufp->name);
+           log_text(logbuf);
            free(logbuf);
-*/
            free(ufp);
            free_sbuf(np);
            return;
@@ -37626,11 +37625,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
-/* --- no need for this right now
            logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD @FUNC HASH: %s", ufp->name);
+           log_text(logbuf);
            free(logbuf);
-*/
            free(ufp);
            free_sbuf(np);
            return;
