@@ -883,17 +883,27 @@ void do_conncheck(dbref player, dbref cause, int key)
   DESC *d, *dnext;
   char buff[MBUF_SIZE], buff2[MBUF_SIZE], *tpr_buff, *tprp_buff;
 
-  if ( key & CONNCHECK_QUOTA ) {
+  if ( key & CONNCHECK_ACCT ) {
+    notify(player,unsafe_tprintf("%-23s %-16s Dbref  Port    Cmds User@Site","Name", "Account Name"));
+  } else if ( key & CONNCHECK_QUOTA ) {
     notify(player,unsafe_tprintf("%-23s Port  %-16s Port CmdQtas User@Site","Name", "Door Name"));
   } else {
     notify(player,unsafe_tprintf("%-23s Port  %-16s Port    Cmds User@Site","Name", "Door Name"));
   }
   DESC_SAFEITER_ALL(d, dnext) {
     // LENSY: FIX ME
-    if ( (d->flags & DS_HAS_DOOR) && (d->door_num >= 0) ) {
-      sprintf(buff2, "%4d  %-16s", d->door_desc, returnDoorName(d->door_num));
+    if ( key & CONNCHECK_ACCT ) {
+       if ( d->account_owner > 0 ) {
+          sprintf(buff2, "%-15.15s #%d", Name(d->account_owner), d->account_owner);
+       } else {
+         strcpy(buff2, "NONE");
+       }
     } else {
-      strcpy(buff2, "NONE");
+       if ( (d->flags & DS_HAS_DOOR) && (d->door_num >= 0) ) {
+         sprintf(buff2, "%4d  %-16s", d->door_desc, returnDoorName(d->door_num));
+       } else {
+         strcpy(buff2, "NONE");
+       }
     }
     if (d->flags & DS_CONNECTED) {
       strcpy(buff,Name(d->player));

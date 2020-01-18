@@ -42,6 +42,7 @@ extern int shutdown_flag; /* if non-zero, interface should shut down */
 #define R_NODESCRIPTOR  12      /* No 'free' descriptors - actually buffer zone */
 #define R_API		13	/* API Connection */
 #define R_WEBSOCKETS	14	/* Websocket connection */
+#define R_SU            15      /* Account was SU'd */
 
 extern NAMETAB logout_cmdtable[];
 

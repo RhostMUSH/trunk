@@ -1488,7 +1488,8 @@ static const char *disc_reasons[] =
     "Attempted Hacking",
     "Too Many Open OS-Based Descriptors",
     "API Connection",
-    "WebSockets Connection"
+    "WebSockets Connection",
+    "SU Account",
 };
 
 /* Disconnect reasons that get fed to A_ADISCONNECT via announce_disconnect */
@@ -1509,7 +1510,8 @@ static const char *disc_messages[] =
     "hacking",
     "nodescriptor",
     "api",
-    "websockets"
+    "websockets",
+    "su"
 };
 
 void 
@@ -1528,7 +1530,7 @@ shutdownsock(DESC * d, int reason)
        i_addflags = MF_API;
     }
 
-    if ( (reason == R_LOGOUT) &&
+    if ( ((reason == R_LOGOUT) || (reason == R_SU)) &&
          (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) {
 	reason = R_QUIT;
         if( d->flags & DS_API ) {
@@ -1575,7 +1577,7 @@ shutdownsock(DESC * d, int reason)
 	 * to a different character).
 	 */
 
-	if (reason != R_LOGOUT) {
+	if ( (reason != R_LOGOUT) && (reason != R_SU) ) {
 	    fcache_dump(d, FC_QUIT, (char *)NULL);
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
 		buff = alloc_mbuf("shutdownsock.LOG.disconn");
@@ -1623,7 +1625,7 @@ shutdownsock(DESC * d, int reason)
 	ENDLOG
 	announce_disconnect(d->player, d, disc_messages[reason]);
     } else {
-	if (reason == R_LOGOUT) {
+	if ( (reason == R_LOGOUT) || (reason == R_SU) ) {
 	    reason = R_QUIT;
         }
         if ( d->flags & DS_API ) {
@@ -1646,7 +1648,7 @@ shutdownsock(DESC * d, int reason)
     clearstrings(d);
     i_sitecnt = i_guestcnt = 0;
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
-    if (reason == R_LOGOUT) {
+    if ( (reason == R_LOGOUT) || (reason == R_SU) ) {
         addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & DS_API));
         t_addroutbuf = alloc_mbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
@@ -1739,7 +1741,9 @@ shutdownsock(DESC * d, int reason)
 	}
 	d->snooplist = NULL;
 	d->logged = 0;
-	welcome_user(d);
+        if ( !mudstate.no_announce ) {
+	   welcome_user(d);
+        }
     } else {
 	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
 	shutdown(d->descriptor, 2);

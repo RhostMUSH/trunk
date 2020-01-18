@@ -1,0 +1,19 @@
+                           Welcome to RhostMUSH
+
+ /~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\ 
+((  To create new character     ----------=>   create <player> <password>  ))
+ )) To continue old character   ----------=>   connect <player> <password>(( 
+((  To connect a guest          ----------=>   connect guest guest         ))
+ )) To create a central account ----------=>   acct create <player> <pwd> (( 
+((  To login to your account    ----------=>   acct login <player> <pwd>   ))
+ )) To see who is on            ----------=>   WHO                        (( 
+((  To quit your character      ----------=>   QUIT                        ))
+ )) To get help once connected  ----------=>   help (i.e. : help commands)(( 
+((                                                                         ))
+ )) Note: use double quotes around name for names with spaces.            (( 
+((  Example: cr "player with spaces" password                              ))
+ \_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/
+  ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  
+
+
+

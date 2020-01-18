@@ -3009,6 +3009,11 @@ NDECL(check_idle)
             } else {
 	       idletime = mudstate.now - d->connected_at;
             }
+            if ( d->account_owner != NOTHING ) {
+               if ( idletime < mudconf.idle_timeout ) {
+                  idletime = 0;
+               }
+            }
 	    if (idletime > mudconf.conn_timeout) {
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
@@ -4386,7 +4391,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          strcat(user, buff2);
       }
    }
-   if ( (!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)) ||
+   if ( (!(mudconf.connect_methods & 1) && ((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)))) ||
         ((key == 1) && !strncmp(cchk, "zz", 2)) ) {
       /* See if this connection would exceed the max #players */
       if (mudconf.max_players > mudstate.max_logins_allowed)
@@ -4686,7 +4691,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             }
          }
       }
-   } else if (!strncmp(cchk, "cr", 2)) {
+   } else if ( !(mudconf.connect_methods & 2) && !strncmp(cchk, "cr", 2) ) {
       /* Enforce game down */
       if (!(mudconf.control_flags & CF_LOGIN)) {
          failconn("CRE", "Create", "Logins Disabled", d,
@@ -4846,7 +4851,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             }
          }
       }
-   } else if (mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
+   } else if ( !(mudconf.connect_methods & 4) && mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
       if (d->host_info & H_NOAUTOREG) {
          buff3 = alloc_lbuf("reg.fail");
          queue_string(d, "Permission denied.\r\n");

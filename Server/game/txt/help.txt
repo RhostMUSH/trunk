@@ -32984,6 +32984,8 @@
   * attrpass() for setting/checking attribute passwords [ASH]
   * account_login() customized login functionality [ASH]
   * account_owner() for 'ownership' of a central account [ASH]
+  * account_su() to allow suing between accounts [ASH]
+  * connect_methods @admin param to disable hardcoded connects [ASH]
   
   Changes
   ------------
@@ -32993,6 +32995,7 @@
   * minor improvement on return handler of account_login() [ASH]
   * Added ability to pcreate users from create() [ASH]
   * mailsend() has new option to specify optional sender [ASH]
+  * @conncheck/account for account membership viewing [ASH]
   
   Bug Fixes
   ------------

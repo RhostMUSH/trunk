@@ -282,6 +282,7 @@ NAMETAB clone_sw[] =
 NAMETAB conncheck_sw[] =
 {
     {(char *) "quota", 1, CA_PUBLIC, 0, CONNCHECK_QUOTA},
+    {(char *) "account", 1, CA_PUBLIC, 0, CONNCHECK_ACCT},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB convert_sw[] =
@@ -1074,12 +1075,14 @@ NAMETAB snapshot_sw[] =
   {(char *) "verify", 2, CA_IMMORTAL, 0, SNAPSHOT_VERIFY},
   {(char *) "unall", 3, CA_IMMORTAL, 0, SNAPSHOT_UNALL},
   {(char *) "overwrite", 2, CA_IMMORTAL, 0, SNAPSHOT_OVER | SW_MULTIPLE},
+/* -- this isn't fully baked yet and I'm lazy
   {(char *) "powers", 2, CA_IMMORTAL, 0, SNAPSHOT_POWER | SW_MULTIPLE},
   {(char *) "depowers", 3, CA_IMMORTAL, 0, SNAPSHOT_DPOWER | SW_MULTIPLE},
   {(char *) "flags", 2, CA_IMMORTAL, 0, SNAPSHOT_FLAGS | SW_MULTIPLE},
   {(char *) "toggles", 2, CA_IMMORTAL, 0, SNAPSHOT_TOGGL | SW_MULTIPLE},
   {(char *) "attributes", 2, CA_IMMORTAL, 0, SNAPSHOT_ATTRS | SW_MULTIPLE},
   {(char *) "other", 2, CA_IMMORTAL, 0, SNAPSHOT_OTHER | SW_MULTIPLE},
+*/
   {NULL, 0, 0, 0, 0}};
 
 
@@ -1277,7 +1280,7 @@ CMDENT command_table[] =
      CS_ONE_ARG | CS_CMDARG, 0, do_cluster},
     {(char *) "@cmdquota", cmdquota_sw, CA_WIZARD, CA_NO_CODE, 0, 
      CS_TWO_ARG | CS_CMDARG | CS_INTERP, 0, do_cmdquota},
-    {(char *) "@conncheck", conncheck_sw, CA_GOD | CA_IMMORTAL, 0, 0,
+    {(char *) "@conncheck", conncheck_sw, CA_WIZARD, 0, 0,
      CS_NO_ARGS, 0, do_conncheck},
     {(char *) "@convert", convert_sw, CA_IMMORTAL, 0, 0,
      CS_INTERP | CS_TWO_ARG, 0, do_convert},
@@ -1922,7 +1925,6 @@ NDECL(init_cmdtab)
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
         sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
-        log_text(logbuf);
         free(cp);
         free(logbuf);
       }
@@ -1940,7 +1942,6 @@ NDECL(init_cmdtab)
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
         sprintf(logbuf,"UNABLE TO ADD COMMAND HASH: %s", cp->cmdname);
-        log_text(logbuf);
         free(logbuf);
       }
     }
@@ -5603,7 +5604,6 @@ CF_HAND(cf_cmd_vattr)
   if(!stat) {
     logbuf = alloc_lbuf("add_vattr_cmd");
     sprintf(logbuf,"UNABLE TO ADD VATTR COMMAND HASH: %s", cp->cmdname);
-    log_text(logbuf);
     free(cp);
     free(logbuf);
   }
@@ -5821,7 +5821,6 @@ CF_HAND(cf_cmd_alias)
       if(!stat) {
         logbuf = alloc_lbuf("add_command_alias");
         sprintf(logbuf,"UNABLE TO ADD COMMAND ALIAS HASH: %s", aliasp->aliasname);
-        log_text(logbuf);
         free(aliasp);
         free(logbuf);
         DPOP; /* #40 */

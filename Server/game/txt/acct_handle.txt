@@ -1,0 +1,15 @@
+                                  Account Menu
+ /~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\=/~\ 
+((  To list your account mail   ----------=>   mail/list                   ))
+ )) To read your account mail   ----------=>   mail #                     (( 
+((  To send mail                ----------=>   mail <player>=<subj>/<msg>  ))
+ )) To list owned accounts      ----------=>   acct list                  (( 
+((  To login shared account     ----------=>   acct connect <player>       ))
+ )) To create a shared account  ----------=>   acct player <new name>     (( 
+((  To login to master account  ----------=>   acct master                 ))
+ )) To logout shared account    ----------=>   acct logoff                (( 
+((  To QUIT                     ----------=>   QUIT                        ))
+ )) To see who's connected      ----------=>   WHO                        (( 
+((  To login normally           ----------=>   connect <player> <password> ))
+ \_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/=\_/
+  ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  

@@ -357,6 +357,7 @@ NDECL(cf_init)
     memset(mudconf.sconnect_cmd, '\0', sizeof(mudconf.sconnect_cmd));
     memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
     mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
+    mudconf.connect_methods = 0;	/* Disable optionally connect methods */
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -365,6 +366,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
@@ -3857,6 +3859,10 @@ CONF conftable[] =
     {(char *) "connect_file",
      cf_string, CA_DISABLED, (int *) mudconf.conn_file, 32, 0, CA_WIZARD,
      (char *) "Define the connect file."},
+    {(char *) "connect_methods",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.connect_methods, 0, 0, CA_WIZARD,
+     (char *) "Disable connect methods  on connect screen.\r\n"\
+              "                             Default: 0   Value: %d"},
     {(char *) "connect_reg_file",
      cf_string, CA_DISABLED, (int *) mudconf.creg_file, 32, 0, CA_WIZARD,
      (char *) "Define the registration file."},

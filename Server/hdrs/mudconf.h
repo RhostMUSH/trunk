@@ -444,7 +444,8 @@ struct confdata {
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
-	char	vercustomstr[SBUF_SIZE];
+	char	vercustomstr[SBUF_SIZE]; /* Customized string for @version */
+	int	connect_methods;	/* Disable optionally connect methods */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -842,6 +843,7 @@ struct statedata {
 	int	nested_control;	/* Nested controlock */
 	int	nospam_counter;	/* Counter for nospam connect enabled */
 	char	nospam_lastsite[60]; /* lastsite comparison to nospam connect */
+	int	no_announce;	/* Do not handle announcements */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

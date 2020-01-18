@@ -534,21 +534,21 @@
 & topics
   Help available on the following Topics:
  
-  ALT INVENTORIES          ANCESTORS                ATTRIB CONTLOCKS       
-  ATTRIB FORMATTING        AUTOREGISTRATION         API                    
-  CAUTIONS                 CLOAKING                 CONFIG PARAMETERS      
-  CONTROL                  CPU                      CUSTOMIZED CONNECT     
-  DEBUG FEATURES           DEPOWER LIST             ELSEFILE SETUP         
-  FILES                    FLAGS                    FLAG ALIAS             
-  FUNCTION OVERLOADING     GLOBAL INHERITANCE       GUEST SETUP            
-  HELP SETUP               HOOK SETUP               HUH SETUP              
-  INHERITANCE              LOGGING                  MAIL ALIASES           
-  MASTER ROOM              MOGRIFY                  NEWS SETUP             
-  PERMISSIONS              PLUSHELP SETUP           POWER LIST             
-  PROXY SETUP              REALITY LEVELS           SEARCH CRITERIA        
-  SIGNALS                  SITE LISTS               SPECIAL ATTRIBS        
-  SSL SETUP                TAGS                     TOGGLES
-  TOR                
+  ACCOUNT MEMBERSHIP       ALT INVENTORIES          ANCESTORS              
+  ATTRIB CONTLOCKS         ATTRIB FORMATTING        AUTOREGISTRATION       
+  API                      CAUTIONS                 CLOAKING               
+  CONFIG PARAMETERS        CONTROL                  CPU                    
+  CUSTOMIZED CONNECT       DEBUG FEATURES           DEPOWER LIST           
+  ELSEFILE SETUP           FILES                    FLAGS                  
+  FLAG ALIAS               FUNCTION OVERLOADING     GLOBAL INHERITANCE     
+  GUEST SETUP              HELP SETUP               HOOK SETUP             
+  HUH SETUP                INHERITANCE              LOGGING                
+  MAIL ALIASES             MASTER ROOM              MOGRIFY                
+  NEWS SETUP               PERMISSIONS              PLUSHELP SETUP         
+  POWER LIST               PROXY SETUP              REALITY LEVELS         
+  SEARCH CRITERIA          SIGNALS                  SITE LISTS             
+  SPECIAL ATTRIBS          SSL SETUP                TAGS                   
+  TOGGLES                  TOR                
 
 & API
   Topic: API
@@ -2790,9 +2790,10 @@
   shows what DOORS (help @door) that people are currently using.
   
   The following switches exist:
-    /quota - show the command quotas for all connected sockets/ports.
+    /quota   - show the command quotas for all connected sockets/ports.
+    /account - show account information for all connected players
   
-  See Also: @cmdquota, WHO, DOING
+  See Also: @cmdquota, WHO, DOING, ACCOUNT MEMBERSHIP
 
 & @remote
   Command: @remote <location>=<command>
@@ -6344,15 +6345,16 @@
   cluster_cap              clusterfunc_cap          comcost                
   command_dark             command_quota_increment  command_quota_max      
   compress_program         compression              config_access          
-  conn_timeout             connect_file             connect_reg_file       
-  cpu_secure_lvl           cpuintervalchk           cputimechk             
-  crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            default_home             delim_null             
-  descs_are_local          dig_cost                 door_file              
-  door_index               down_file                down_motd_message      
-  dump_interval            dump_message             dump_offset            
-  earn_limit               empower_fulltel          enable_tstamps         
-  enforce_unfindable       enhanced_convtime        error_file 
+  conn_timeout             connect_file             connect_methods
+  connect_reg_file         cpu_secure_lvl           cpuintervalchk         
+  cputimechk               crash_database           create_max_cost        
+  create_min_cost          dark_sleepers            default_home           
+  delim_null               descs_are_local          dig_cost               
+  door_file                door_index               down_file              
+  down_motd_message        dump_interval            dump_message           
+  dump_offset              earn_limit               empower_fulltel        
+  enable_tstamps           enforce_unfindable       enhanced_convtime      
+  error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7191,6 +7193,25 @@
   WHO and QUIT commands.
   See Also: connect_reg_file
 
+& connect_methods
+  Config parameter: connect_methods <mask>.  Default: 0
+  
+  This specifies a bitwise mask to optionally disable the hardcoded connect
+  commands.  The following bitwise masks must be added to disable them
+  accordingly.
+  
+    1 -- Disable co (connect), cd (connect dark), ch (connect hidden)
+    2 -- Disable cr (create)
+    4 -- Disable reg (register)
+  
+  Add them to disable the types. '7' would disable all of them.
+  
+  Note of warning:  If you disable all connection attempts and have
+  no other method of connecting enabled (such as the account management),
+  then you nor anyone else will be able to log into the mush.  Use with
+  caution!!!
+  
+  See Also: ACCOUNT MANAGEMENT
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
   
@@ -11823,13 +11844,14 @@
 & functions
   Help is available for the following RhostMUSH wizard only functions:
   
-  ACCOUNT_LOGIN()  AFLAGS()      BEEP()        BYPASS()       CANSEE()      
-  CHECKPASS()      CHKGARBAGE()  CLOAK()       DOING()        DYNHELP()     
-  EXECSCRIPT()     HASDEPOWER()  HASPOWER()    HASTOGGLE()    ISHIDDEN()    
-  LATTRP()         LDEPOWERS()   LOGTOFILE()   LOGSTATUS()    LOOKUP_SITE()
-  LPOWERS()        LTOGGLES()    MAILALIAS()   MAILQUICK()    MAILQUOTA() 
-  MAILSIZE()       MAILSTATUS()  MSIZETOT()    NSLOOKUP()     QUOTA()     
-  SIZE()           TEXTFILE()    MAILREAD()    MAILSEND()   
+  ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  AFLAGS()      BEEP()
+  BYPASS()         CANSEE()         CHECKPASS()   CHKGARBAGE()  CLOAK()     
+  DOING()          DYNHELP()        EXECSCRIPT()  HASDEPOWER()  HASPOWER()  
+  HASTOGGLE()      ISHIDDEN()       LATTRP()      LDEPOWERS()   LOGTOFILE() 
+  LOGSTATUS()      LOOKUP_SITE()    LPOWERS()     LTOGGLES()    MAILALIAS() 
+  MAILQUICK()      MAILQUOTA()      MAILSIZE()    MAILSTATUS()  MSIZETOT()  
+  NSLOOKUP()       QUOTA()          SIZE()        TEXTFILE()    MAILREAD()  
+  MAILSEND()   
 
 & EXECSCRIPT()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
@@ -12412,6 +12434,7 @@
 
 & ACCOUNT_LOGIN()
   Function: account_login(<player>, <attribute>, <port>, <password>)
+            account_login(<player>, <attribute>, <port>)
   
   This function is intended to be use with the file_object @admin
   config parameter as it gives an alternative way to login to a
@@ -12435,13 +12458,29 @@
   however only immortals can use this function.  That fact
   is hardcoded in and can not be overridden.
   
+  If you specify the three argument method of account_login(),
+  it will use the account_owner() password that has been
+  cached for that session as the password to enter.
+  
+{ see 'wizhelp account_login2' for examples }
+
+& ACCOUNT_LOGIN2
+  (CONTINUED)
+  Function: account_login(<player>, <attribute>, <port>, <password>)
+            account_login(<player>, <attribute>, <port>)
+  
   In this example %1 is the arguments, %4 the port. 
   Example:
     > think config(file_object)
       123
-    > &FAKECOMMANDS #123=mylogin
+    > &FAKECOMMANDS #123=mylogin|myloginpwd|myowner
       Set
+    > &RUN_MYOWNER #123=[ifelse(account_owner(first(%1),_ACCT,%4,rest(%1)),
+               Connected.,Failed to connect.  Invalid user or password.)]
     > &RUN_MYLOGIN #123=[ifelse(account_login(first(%1),_ACCT,%4,rest(%1)),
+               Connected.,Failed to connect.  Invalid user or password.)]
+      Set.
+    > &RUN_MYLOGINPWD #123=[ifelse(account_login(first(%1),_ACCT,%4),
                Connected.,Failed to connect.  Invalid user or password.)]
       Set.
     > @password/attribute *Tester/_ACCT=zappo
@@ -12451,19 +12490,28 @@
   Then on the connect screen you would type:
     > mylogin tester zappo
   
+  Or using the Single Signon you can do passwordless with:
+    > myowner testmaster zappo    (the master account -- caches the passwd)
+    > myloginpwd tester           (a member of the master account)
+  
   That would connect you as normal.
   
-  See Also: file_object, account_owner()
+  See Also: file_object, account_owner(), account_su(), ACCOUNT MEMBERSHIP
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
             account_owner(<port>)
+            account_owner(<port>, logoff)
   
   This function will set or display the account 'owner' for the current
   connection.  This is used to help identify a singular 'owner' for
   account login permissions if you wish to use such a system for
   login features.  This should be used in junction with account_login()
   and the @admin file_object connect screen softcode command structure.
+  
+  The first option will 'login' you to the master account specified.
+  The second option will show -1 if not logged in or the master account.
+  The third option will log out off the master account.
   
   See 'wizhhelp account_login' on syntax on how to work through this.
   
@@ -12481,8 +12529,29 @@
     > say account_owner(18)  
       You say "111"
   
-  See Also: account_login(), admin_object
+  See Also: account_login(), account_su(), file_object, ACCOUNT MEMBERSHIP
 
+& ACCOUNT_SU()
+  Function: account_su(<player>, <port>, <attribute>)
+  
+  This function will switch user in-game to the account with the 
+  specified attribute.  The target player must already be signed
+  in to the master account via account_owner() to cache the
+  password information or this function will fail. 
+  
+  Examples:
+    > WHO Bo
+      Player Name          On For Idle  Room     Ports Host
+      Bob                   00:11   0s  #0          18 [localhost]
+      1 Player logged in. (Bummer.)
+    > think account_su(Betty, 18, _ACCT)
+    > WHO Be
+      Player Name          On For Idle  Room     Ports Host
+      Betty                 00:00   0s  #0          18 [localhost]
+      1 Player logged in. (Bummer.)
+   
+  See Also: account_owner(), account_login(), file_object, ACCOUNT MEMBERSHIP
+  
 & AFLAGS()
   Function: aflags(<attribute>)
   
@@ -13769,3 +13838,47 @@
   Please see normal help on the config() function.
   
   See Also: @admin
+
+& ACCOUNT MEMBERSHIP
+  Topic: ACCOUNT MEMBERSHIP
+  
+  RhostMUSH offers the capability to engineer a single signon account
+  membership subsystem for logging in.  It does this through softcode
+  wrapping built in feature sets.  RhostMUSH utilizes the file_object
+  @admin parameter by setting up wrapped code to utilize the central
+  handler.
+  
+  The softcode scrambles the normal password attribute and utilizes
+  the attribute '_ACCT' (which you can alter how you see fit) to
+  handle the hashed password entries.
+  
+  It uses execscript() to call the supporting .txt files for connect
+  handling.  The txt files are acct_connect.sh and acct_account.txt.
+  
+  The first is the 'normal' connect screen that introduces account
+  subsystem commands to manage a central account login.
+  
+  Once logged in it will display the account handler commands for
+  you to login and manage your account and sub-memberships.
+  
+  There is a global command that will set up supporting commands for
+  the account information.  These commands are:
+     +su <player>     -- this swiches users to your other accounts
+     +accts           -- this lists all accounts tied to the master
+     +allaccts        -- staff command to list all accounts
+     +allaccts <user> -- staff command to list target accounts
+  
+  The built in commands to help processing are:
+     @conncheck/account -- Show all account statistics of logged in users
+  
+  The built in functions to that are used in the wrappers:
+     account_su()    -- switch users to accounts
+     account_owner() -- login or display the master account handler
+     account_login() -- login to the mush with the account user
+  
+  Admin parameters you will find useful:
+     file_object     -- main handler for wrapping features
+     connect_methods -- disable hardcoded methods to login to the mush
+  
+  See Also: account_su(), account_owner(), account_login(), file_object,
+            connect_methods, @conncheck

@@ -21345,7 +21345,7 @@ FUNCTION(fun_account_owner)
    int i_port;
    DESC *d, *dnext;
   
-   if ( !Immortal(player) ) {
+   if ( !Immortal(player) || !Immortal(Owner(player)) ) {
       ival(buff, bufcx, 0);
       return;
    }
@@ -21360,8 +21360,29 @@ FUNCTION(fun_account_owner)
       return;
    }
 
+   if ( nfargs == 2 ) {
+      if ( stricmp(fargs[1], "logoff") != 0) {
+         safe_str("#-1 REQUIRES 'logoff' FOR SECOND ARGUMENT", buff, bufcx);
+         return;
+      }
+      i_port = atoi(fargs[0]);
+      DESC_SAFEITER_ALL(d, dnext) {
+         if ( i_port == d->descriptor ) {
+            if ( d->account_owner < 0 ) {
+               safe_str("#-1 YOU ARE ALREADY LOGGED OFF", buff, bufcx);
+            } else {
+               d->account_owner = NOTHING;
+               memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+               ival(buff, bufcx, 1);
+            }
+            return;
+         }
+      }
+      ival(buff, bufcx, 0);
+      return;
+   }
    if ( nfargs != 4 ) {
-      safe_str("#-1 FUNCTION (ACCOUNT_OWNER) EXPECTS 1 OR 4 ARGUMENTS [RECEIVED ", buff, bufcx);
+      safe_str("#-1 FUNCTION (ACCOUNT_OWNER) EXPECTS 1, 2, OR 4 ARGUMENTS [RECEIVED ", buff, bufcx);
       ival(buff, bufcx, nfargs);
       safe_chr(']', buff, bufcx);
       return;
@@ -21397,6 +21418,76 @@ FUNCTION(fun_account_owner)
       }
    }
    ival(buff, bufcx, 0);
+}
+
+/* --- fun account su
+ * account_su(new-user, port, attribute)
+ * will only work if you have a valid account session
+ */
+FUNCTION(fun_account_su)
+{
+   dbref target;
+   char *s_buff, *s_buffptr, *s_tmp, *s_tmp2, *s_array[3];
+   int i_attr, i_noannounce, i_port, i_return;
+   ATTR *attr;
+   DESC *d, *dnext;
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2]) {
+      safe_str("#-1 INVALID ARGUMENTS", buff, bufcx);
+      return;
+   }
+   target = lookup_player(player, fargs[0], 0);
+   if ( target == cause ) {
+      safe_str("#-1 SAME PLAYER", buff, bufcx);
+      return;
+   }
+   i_port = atoi(fargs[1]);
+
+   attr = atr_str(fargs[2]);
+   if ( !attr ) {
+      safe_str("#-1 INVALID ATTRIBUTE", buff, bufcx);
+      return;
+   }
+   i_attr = attr->number;
+
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( i_port == d->descriptor ) {
+         if ( d->account_owner < 0 ) {
+            safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
+            return;
+         }
+         s_buffptr = s_buff = alloc_lbuf("account_su");
+         s_tmp = alloc_lbuf("account_su2");
+         s_tmp2 = alloc_lbuf("account_su3");
+         strcpy(s_tmp, (char *)"chk");
+         sprintf(s_tmp2, "%s/%s", fargs[0], fargs[2]);
+         s_array[0] = s_tmp2;
+         s_array[1] = d->account_rawpass;
+         s_array[2] = s_tmp;
+         fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
+         i_return = atoi(s_buff);
+         if ( !i_return ) {
+            free_lbuf(s_buff);
+            free_lbuf(s_tmp);
+            free_lbuf(s_tmp2);
+            safe_str("#-1 INVALID PASSWORD FOR USER", buff, bufcx);
+            return;
+         }
+         i_noannounce = mudstate.no_announce;
+         mudstate.no_announce = 1;
+         shutdownsock(d, R_SU);
+         mudstate.no_announce = i_noannounce;
+         sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->account_rawpass);
+         if (check_connect_ex(d, s_buff, 1, i_attr))
+            ;
+         d->last_time = mudstate.now;
+         free_lbuf(s_buff);
+         free_lbuf(s_tmp);
+         free_lbuf(s_tmp2);
+         return;
+      }
+   }  
+   safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
 }
 
 FUNCTION(fun_account_login)
@@ -22669,19 +22760,31 @@ FUNCTION(fun_home)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_money: Return an object's value
+ * fun_money: Return or set an object's value
  */
 
 FUNCTION(fun_money)
 {
     dbref it;
 
+   if (!fn_range_check("MONEY", nfargs, 1, 2, buff, bufcx))
+      return;
+
     it = match_thing(player, fargs[0]);
-    if ((it == NOTHING) || !Examinable(player, it)) {
-       safe_str("#-1", buff, bufcx);
+    if ( (nfargs > 1) && *fargs[1] ) {
+       if ( !Good_chk(it) || !Wizard(player) || !Controls(player, it) ) {
+          safe_str("#-1", buff, bufcx);
+       } else {
+          s_Pennies(it, atoi(fargs[1]));
+          ival(buff, bufcx, Pennies(it));
+       }
     } else {
-       ival(buff, bufcx, Pennies(it));
-    }
+       if ((it == NOTHING) || !Examinable(player, it)) {
+          safe_str("#-1", buff, bufcx);
+       } else {
+          ival(buff, bufcx, Pennies(it));
+       }
+   }
 }
 
 FUNCTION(fun_moneyname)
@@ -22691,17 +22794,20 @@ FUNCTION(fun_moneyname)
    i_good = 1;
    if (!fn_range_check("MONEYNAME", nfargs, 0, 1, buff, bufcx))
       return;
-   if ( (nfargs == 1) && *fargs[0] )
+
+   if ( (nfargs == 1) && *fargs[0] ) {
       i_val = atoi(fargs[0]);
-   else {
+   } else {
       i_val = i_good =  0;
    }
-   if ( !i_good )
+
+   if ( !i_good ) {
       safe_str(mudconf.one_coin, buff, bufcx);
-   else if ( (i_val == 0) || (i_val < -1) || (i_val > 1) )
+   } else if ( (i_val == 0) || (i_val < -1) || (i_val > 1) ) {
       safe_str(mudconf.many_coins, buff, bufcx);
-   else
+   } else {
       safe_str(mudconf.one_coin, buff, bufcx);
+   }
 }
 
 /* ---------------------------------------------------------------------------
@@ -36339,6 +36445,7 @@ FUN flist[] =
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_SU", fun_account_su, 3, 0, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -36687,7 +36794,7 @@ FUN flist[] =
     {"MODIFYTIME", fun_modifytime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"MODULO", fun_modulo, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MOON", fun_moon, 1, FN_VARARGS, CA_PUBLIC, 0},
-    {"MONEY", fun_money, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"MONEY", fun_money, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MONEYNAME", fun_moneyname, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"MOVE", fun_move, 2, 0, CA_PUBLIC, 0},
@@ -37087,7 +37194,10 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     ATTR *ap;
     char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
          s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
-         *s_buffptr, *logbuf; 
+         *s_buffptr; 
+/* --- this isn't used right now
+    char *logbuf;
+*/
     int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2, stat;
     dbref obj, aowner, aowner2;
 
@@ -37603,10 +37713,11 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+/* --- no need for this right now
            logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD USER @LFUNC HASH: %s", ufp->name);
-           log_text(logbuf);
            free(logbuf);
+*/
            free(ufp);
            free_sbuf(np);
            return;
@@ -37622,10 +37733,11 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
          stat = (stat < 0) ? 0 : 1;
          if(!stat) {
            notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+/* --- no need for this right now
            logbuf = alloc_lbuf("");
            sprintf(logbuf,"UNABLE TO ADD @FUNC HASH: %s", ufp->name);
-           log_text(logbuf);
            free(logbuf);
+*/
            free(ufp);
            free_sbuf(np);
            return;

@@ -747,7 +747,9 @@ fwdlist_set(dbref thing, FWDLIST * ifp)
        if(!stat) {
           logbuf = alloc_lbuf("fwdlist_add");
           sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
-          log_text(logbuf);
+	  STARTLOG(LOG_ALWAYS, "BUG", "FWDLIST")
+             log_text(logbuf);
+          ENDLOG
           free(fp);
           free(logbuf);
        }
@@ -1291,7 +1293,7 @@ do_fixdb(dbref player, dbref cause, int key, char *arg1, char *arg2)
 	    STARTLOG(LOG_SECURITY, "SEC", "CNAME")
 		log_name(thing),
 		log_text((char *) " renamed to ");
-	    log_text(arg2);
+	        log_text(arg2);
 	    ENDLOG
 		if (Suspect(player)) {
 		raw_broadcast(0, WIZARD,
