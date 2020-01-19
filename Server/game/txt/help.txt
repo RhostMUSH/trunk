@@ -32996,6 +32996,7 @@
   * Added ability to pcreate users from create() [ASH]
   * mailsend() has new option to specify optional sender [ASH]
   * @conncheck/account for account membership viewing [ASH]
+  * updated minimal db with latest comsys and account subsys [ASH]
   
   Bug Fixes
   ------------
