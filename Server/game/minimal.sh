@@ -27,6 +27,15 @@ mv -f netrhost.conf netrhost.conf.orig
 cp -f ../minimal-DBs/minimal_db/netrhost.conf .
 echo "Loading in flatfile..."
 ./db_load data/netrhost.gdbm ../minimal-DBs/minimal_db/netrhost.db.flat data/netrhost.db.new
+echo "Loading in customized txt files to allign with the database and indexing them..."
+curr=`pwd`
+cd ../minimal-DBs/minimal_db/txt/
+for i in *.txt
+do
+   cp -f $i $curr/txt
+   xxx=`echo $i|cut -f1 -d"."`
+   $curr/mkindx txt/$i txt/$xxx.indx
+done
 echo "All information loaded.  Please modify port, debug_id, and any other information in netrhost.conf now."
 exit 0
 
