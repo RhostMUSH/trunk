@@ -7,7 +7,7 @@ then
    echo "Aborted by user."
    exit 1
 fi
-ls data/netrhost.gdbm* > /dev/null 2>&1
+ls ./data/netrhost.gdbm* > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
    echo "You currently have an active game and database."
@@ -18,9 +18,14 @@ then
       echo "Aborted by user."
       exit 1
    fi
-   mkdir -f data/minimal 2>/dev/null
-   mv -f data/netrhost.gdbm* data/minimal
-   mv -f data/netrhost.db* data/minimal
+   mkdir ./data/minimal 2>/dev/null
+   if [ ! -d ./data/minimal ]
+   then
+      echo "Unable to make directory ./data/minimal.  Aborting"
+      exit 1
+   fi
+   mv -f ./data/netrhost.gdbm* data/minimal
+   mv -f ./data/netrhost.db* data/minimal
 fi
 echo "Backing up original netrhost.conf and copying new one over..."
 mv -f netrhost.conf netrhost.conf.orig
@@ -34,7 +39,7 @@ for i in *.txt
 do
    cp -f $i $curr/txt
    xxx=`echo $i|cut -f1 -d"."`
-   $curr/mkindx txt/$i txt/$xxx.indx
+   $curr/mkindx $curr/txt/$i $curr/txt/$xxx.indx
 done
 echo "All information loaded.  Please modify port, debug_id, and any other information in netrhost.conf now."
 exit 0
