@@ -53,6 +53,14 @@ The main parts of making your RhostMUSH, easy pleasy:
 There are pre-loaded flatfile databases you can use at this point.  The netrhost.db.flat
 and corrisponding netrhost.conf file will be located in the minimal-DBs/minimal_db directory.
 
+You may auto-load the minimal db and corresponding netrhost.conf file with the
+command:
+
+          ./minimal.sh
+
+This is ran from within the 'game' directory.  Once this is ran, you will need
+to customize the netrhost.conf file for your purposes.  The port and debug_id must
+be changed at the very least.  Keep the debug_id coordinated to the port as described.
 
 ------------------------------------------------------------------------------
 To load a prebuild flatfile:

@@ -1,0 +1,16 @@
+The following scripts are used in this directory:
+
+Startmush               -- used to Start up the mush
+backup_flat.sh          -- Used to run backups with @dump/flat within the game 
+                           (Started with Startmush automatically)
+backup_restart.sh       -- Restart the backup_flat.sh if changes are done
+compress_logs.sh        -- Compress logs in 'oldlogs'.  Ran with Startmush
+findit.sh               -- Internal script used to check for flatfile validity
+mailhide.sh             -- Wrapper to hide from address using the 'mail' progam
+minimal.sh              -- Auto-load the minimal db into the mush
+proxysnarf.sha          -- Internal script for the tor_pull.sh tor proxy blacklist
+tor_pullit.sh           -- Internal script for the tor_pull.sh for proxy blacklist
+recovery.sh             -- If your db is corrupt, run this to auto-revert to an
+                           earlier flatfile
+tor_pull.sh             -- Create a blacklist.txt file that can be loaded via the
+                           internal @blacklist command for proxy handling
