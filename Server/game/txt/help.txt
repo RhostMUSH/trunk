@@ -32986,6 +32986,7 @@
   * account_owner() for 'ownership' of a central account [ASH]
   * account_su() to allow suing between accounts [ASH]
   * connect_methods @admin param to disable hardcoded connects [ASH]
+  * Tag system for avoiding hardcoded #dbrefs in softcode [AMB]
   
   Changes
   ------------
