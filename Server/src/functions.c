@@ -36776,7 +36776,7 @@ FUN flist[] =
 #ifdef REALITY_LEVELS
     {"LISTRLEVELS", fun_listrlevels, 0, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
-    {"LISTTAGS", fun_listtags, 2, 0, CA_WIZARD, CA_NO_CODE},
+    {"LISTTAGS", fun_listtags, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
