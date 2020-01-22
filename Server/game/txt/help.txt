@@ -33003,6 +33003,7 @@
   * @conncheck/account for account membership viewing [ASH]
   * updated minimal db with latest comsys and account subsys [ASH]
   * Added an optional wildcard string argument to @tag/list [AMB]
+  * Added matching against #<tagname> as a #dbref replacement. [AMB]
   
   Bug Fixes
   ------------
