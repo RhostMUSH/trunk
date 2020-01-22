@@ -192,6 +192,14 @@ absolute_name(need_pound)
 	    return NOTHING;
 	} else {
 	    mname++;
+      /* Check for tags here */
+      if(*mname) {
+        if(!is_number(mname)) {
+          match = objecttag_get(mname);
+          if(Good_obj(match))
+            return match;
+        }
+      }
 	}
     }
     if (*mname) {

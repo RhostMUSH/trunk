@@ -23376,8 +23376,12 @@
  
   If a non-existant tagname is supplied in the tag() function, it always
   returns #-1.
+
+  NOTE: An alternative to using tag() is to look up a tag with #<tagname>
+   as a replacement for #dbref. For example, "tag(weather_globals)" and
+  "#weather_globals" will return the same #dbref.
  
-  Also See: wizhelp tags, wizhelp @tag
+  Also See: help wizhelp tags, wizhelp @tag
   
 & TR()
   Function: tr(<string>, <find>, <replace> [,<type>])

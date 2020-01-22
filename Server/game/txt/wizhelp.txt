@@ -1311,6 +1311,10 @@
     @trigger #4/UPDATE_WEATHER
   one would use the following line inside mushcode with this system:
     @trigger [tag(weather_globals)]/UPDATE_WEATHER 
+
+  An alternative to tag() is actually to use #<tagname> - this will match
+  against existing tag names, in a similiar format to #dbrefs, making it an
+  easy to use replacement.
  
   This also makes writing of portable mushcode much easier - old workarounds
   in such systems included storing the new #dbrefs on creation on special
