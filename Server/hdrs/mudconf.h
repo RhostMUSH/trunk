@@ -207,6 +207,7 @@ struct confdata {
 	char	many_coins[32];	/* name of many coins (ie. "pennies") */
 	int	timeslice;	/* How often do we bump people's cmd quotas? */
 	int	cmd_quota_max;	/* Max commands at one time */
+	int	wizcmd_quota_max;	/* Max wizard commands at one time */
 	int	cmd_quota_incr;	/* Bump #cmds allowed by this each timeslice */
 	int	control_flags;	/* Global runtime control flags */
 	int	log_options;	/* What gets logged */
@@ -296,6 +297,9 @@ struct confdata {
         char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
+	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */
+	char	sconnect_host[LBUF_SIZE]; /* sites for allowable sconnect re-iper */
+	int	sconnect_reip;	/* Toggle for sconnect re-iper */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
         int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
@@ -353,6 +357,7 @@ struct confdata {
 	int	global_clone_exit;	/* Global that exits are @cloned from */
 	int	zone_parents;		/* Zones inherit attributes to children */
 	int	global_error_obj;	/* Object that handles all 'unfound' commands */
+	int	global_error_cmd;	/* Does the global error object allow commands */
 	int	signal_object;		/* Signal Handling Object */
 	int	signal_object_type;	/* functions or trigger like a startup */
         int	look_moreflags;		/* Show global flags on attributes */
@@ -404,6 +409,7 @@ struct confdata {
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
+	char	execscriptpath[LBUF_SIZE];	/* execscript path overrides */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
         int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */
@@ -437,6 +443,8 @@ struct confdata {
 	int	iter_loop_max;	/* Infinite iter loop counter */
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
+        int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
+	char	vercustomstr[SBUF_SIZE];
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -508,6 +516,8 @@ struct confdata {
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	char	sub_include[200];
 	int	old_elist;		/* Old elist processing */
+        int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
+	char	vercustomstr[SBUF_SIZE];
 #endif	/* STANDALONE */
 };
 
@@ -606,7 +616,10 @@ struct statedata {
 	dbref	store_lastx1;	/* Store the last created exit# for dig */
 	dbref	store_lastx2;	/* Store the previous created exit# for dig */
 	dbref	store_loc;	/* Store target location for open/dig */
+        dbref   store_passwd;	/* Store the password foodoo */
         int     evalcount;
+	int	allocsin;
+	int	allocsout;
         int     funccount;
         int     attribfetchcount;
 	int	func_reverse;
@@ -651,8 +664,8 @@ struct statedata {
 	int	rwho_on;	/* Have we connected to an RWHO server? */
 	int	shutdown_flag;	/* Should interface be shut down? */
 	int	reboot_flag;
-	char	version[128];	/* MUSH version string */
-	char	short_ver[64];	/* Short version number (for RWHO) */
+	char	version[256];	/* MUSH version string */
+	char	short_ver[128];	/* Short version number (for RWHO) */
 	time_t	start_time;	/* When was MUSH started */
 	time_t	reboot_time;
         time_t  mushflat_time;  /* When was MUSH last @dump/flatted */
@@ -666,6 +679,7 @@ struct statedata {
 	char	ng_doing_hdr[81];
 	char	guild_hdr[12];
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
+	int	global_error_inside;	/* Are we inside the global error obj */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */
@@ -683,6 +697,7 @@ struct statedata {
 	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
 	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
 	HASHTAB player_htab;	/* Player name->number hashtable */
+	HASHTAB objecttag_htab;	/* Tag->number hastable */
 	NHSHTAB	desc_htab;	/* Socket descriptor hashtable */
 	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
 	NHSHTAB	parent_htab;	/* Parent $-command exclusion */
@@ -801,6 +816,7 @@ struct statedata {
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
 	int	blacklist_cnt;
+	int	blacklist_nodns_cnt;
 	int	wipe_state;	/* do_wipe state counter */
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
@@ -811,6 +827,7 @@ struct statedata {
 	int	dumpstatechk;	/* Dump state check */
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
+        BLACKLIST *nd_list; 	/* The nodns list */
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
@@ -823,6 +840,8 @@ struct statedata {
 	int	mail_inline;	/* Do not let mail work inline other mail */
         int	iter_special;	/* Special iter handler for 'inf' args */
 	int	nested_control;	/* Nested controlock */
+	int	nospam_counter;	/* Counter for nospam connect enabled */
+	char	nospam_lastsite[60]; /* lastsite comparison to nospam connect */
 #else
   dbref remote; /* Remote location for @remote */
   dbref remotep;/* Remote location for @remote player */

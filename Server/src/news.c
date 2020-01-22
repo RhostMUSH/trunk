@@ -4271,7 +4271,7 @@ void news_off(dbref player, dbref cause, int key, char *buf1, char *buf2)
     memset(newname_name, 0, sizeof(newname_name));
 
     sprintf(flatfile_name, "%s/%s.news.flat", mudconf.data_dir, mudconf.muddb_name);
-    sprintf(flatfile_name, "%s/%s.news.deleted_news", mudconf.data_dir, mudconf.muddb_name);
+    sprintf(newname_name, "%s/%s.news.del", mudconf.data_dir, mudconf.muddb_name);
 
     retval = rename(flatfile_name, newname_name);
     if ( retval == 0 )

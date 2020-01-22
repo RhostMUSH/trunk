@@ -27,6 +27,7 @@ char *index(const char *, int);
 extern int count_chars(const char *, const char c);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern POWENT * FDECL(find_power, (dbref, char *));
+extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 void
 look_inv_parse(dbref player, dbref cause, int i_attr) {
@@ -1281,7 +1282,7 @@ prtflags(dbref player, int aflags, char *xbuf, char *xbufp)
 
 static void 
 view_atr(dbref player, dbref thing, ATTR * ap, char *text,
-	 dbref aowner, int aflags, int skip_tag, int pobj)
+	 dbref aowner, int aflags, int skip_tag, int pobj, int i_display)
 {
     char *buf = NULL, *buf2 = NULL, *tpr_buff, *tprp_buff;
     char xbuf[32], ybuf[32], zbuf[32];
@@ -1321,7 +1322,14 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
                           ANSIEX(ANSI_NORMAL));
             buf = text;
             raw_notify(player, buf2, 0, 0);
-	    noansi_notify(player, buf);
+
+            if ( i_display ) {
+               tprp_buff = tpr_buff;
+               fun_parenstr(tpr_buff, &tprp_buff, player, thing, thing, &buf, 1, (char **)NULL, 0);
+	       noansi_notify(player, tpr_buff);
+            } else {
+	       noansi_notify(player, buf);
+            }
             free_lbuf(tpr_buff);
         }
 	return;
@@ -1370,7 +1378,13 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
     buf = text;
     if( buf2 && *buf2 )
         raw_notify(player, buf2, 0, 0);
-    noansi_notify(player, buf);
+    if ( i_display ) {
+        tprp_buff = tpr_buff;
+        fun_parenstr(tpr_buff, &tprp_buff, player, thing, thing, &buf, 1, (char **)NULL, 0);
+	noansi_notify(player, tpr_buff);
+    } else {
+       noansi_notify(player, buf);
+    }
     free_lbuf(tpr_buff);
 }
 
@@ -1597,9 +1611,11 @@ void
 do_cpattr(dbref player, dbref cause, int key, char *source,
 	  char *destlist[], int nargs)
 {
-    char *sep1, *as, *buf, *dest, *pt2, *sepsave, *bk_source, *buff2, *buff2ret;
+    char *sep1, *as, *buf, *dest, *pt2, *sepsave, *bk_source, *buff2, *buff2ret,
+         *s_bad, *s_badptr;
     dbref thing1, thing2, aowner, aowner2;
-    int wyes, aflags, ca, ca2, ca3, mt, t2, verbose, ex1, twk1, clr1, clr2, chkv1, aflags2, no_set;
+    int wyes, aflags, ca, ca2, ca3, mt, t2, verbose, ex1, twk1, clr1, clr2, chkv1, 
+        aflags2, no_set, i_verify, i_bad;
     ATTR *attr;
     ATRST *pt1;
     char tbuf[80], *tpr_buff, *tprp_buff, *tstrtokr;
@@ -1623,6 +1639,11 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     }
     *sep1 = '\0';
     sepsave = sep1;
+    i_verify = i_bad = 0;
+    if ( key & CPATTR_VERIFY ) {
+       i_verify = 1;
+       key &= ~CPATTR_VERIFY;
+    } 
     if (strpbrk(sep1 + 1, "?\\*"))
 	wyes = 1;
     else
@@ -1642,8 +1663,9 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
     if ((key & CPATTR_VERB) != 0) {
 	verbose = 1;
 	key &= ~CPATTR_VERB;
-    } else
+    } else {
 	verbose = 0;
+    }
     atrpt = atrpt2 = NULL;
     for (ca = atr_head(thing1, &as); ca; ca = atr_next(&as)) {
 	attr = atr_num(ca);
@@ -1709,10 +1731,27 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 		if (ok_attr_name(pt2)) {
 		    ca3 = 1;
 		    ca2 = mkattr(pt2);
-		} else
+		} else {
+                    if ( i_verify ) {
+                       tprp_buff = tpr_buff;
+                       if (!i_bad) {
+                          s_badptr = s_bad = alloc_lbuf("cpattr_verify_bad");
+                          safe_str("\t-> Invalid Attributes [", s_bad, &s_badptr);
+                          safe_str(pt2, s_bad, &s_badptr);
+                       } else {
+                          safe_chr(',', s_bad, &s_badptr);
+                          safe_str(pt2, s_bad, &s_badptr);
+                       }
+                       i_bad = 1;
+	               if (pt2)
+		           pt2 = strtok_r(NULL, "/", &tstrtokr);
+                       continue;
+                    }
 		    ca3 = 0;
-	    } else
+                }
+	    } else {
 		ca3 = 0;
+            }
             buff2 = alloc_lbuf("cpattr_atrlock");
 	    for (pt1 = atrpt; pt1; pt1 = pt1->next) {
                 no_set = 0;
@@ -1859,15 +1898,21 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	*as = '\0';
 	notify(player, sep1);
 	free_lbuf(sep1);
-    } else
+    } else {
 	notify(player, "Cpattr: Nothing copied.");
+    }
+    if ( i_bad ) {
+       safe_chr(']', s_bad, &s_badptr);
+       notify(player, s_bad);
+       free_lbuf(s_bad);
+    }
     atrptclr();
     free_lbuf(bk_source);
 }
 
 static void 
 look_atrs1(dbref player, dbref thing, dbref othing,
-	   int check_exclude, int hash_insert, int i_tree, dbref i_cluster, int override)
+	   int check_exclude, int hash_insert, int i_tree, dbref i_cluster, int override, int i_display)
 {
     dbref aowner;
     int ca, aflags;
@@ -1900,7 +1945,7 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 		    nhashadd(ca, (int *) attr, &mudstate.parent_htab);
                  if ( !override || (override && !(aflags & AF_INTERNAL)) ) {
 		    view_atr(player, thing, attr, buf,
-			     aowner, aflags, 0, (thing != othing ? thing : (i_cluster != NOTHING ? i_cluster : -1)));
+			     aowner, aflags, 0, (thing != othing ? thing : (i_cluster != NOTHING ? i_cluster : -1)), i_display);
                  }
 	      }
            }
@@ -1910,13 +1955,13 @@ look_atrs1(dbref player, dbref thing, dbref othing,
 }
 
 static void 
-look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_cluster, int override)
+look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_cluster, int override, int i_display)
 {
     dbref parent;
     int lev, check_exclude, hash_insert;
 
     if (!check_parents) {
-	look_atrs1(player, thing, thing, 0, 0, i_tree, i_cluster, override);
+	look_atrs1(player, thing, thing, 0, 0, i_tree, i_cluster, override, i_display);
     } else {
 	hash_insert = 1;
 	check_exclude = 0;
@@ -1925,7 +1970,7 @@ look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_clus
 	    if (!Good_obj(Parent(parent)))
 		hash_insert = 0;
 	    look_atrs1(player, parent, thing,
-		       check_exclude, hash_insert, i_tree, i_cluster, override);
+		       check_exclude, hash_insert, i_tree, i_cluster, override, i_display);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
              if ( NoEx(Parent(parent)) && !Wizard(player) )
@@ -1941,7 +1986,7 @@ look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_clus
 void
 look_atrs_redir(dbref player, dbref thing, int check_parents, int i_tree, dbref i_cluster, int override)
 {
-   look_atrs(player, thing, check_parents, i_tree, i_cluster, override);
+   look_atrs(player, thing, check_parents, i_tree, i_cluster, override, 0);
 }
 
 long 
@@ -2080,7 +2125,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
 #endif /* REALITY_LEVELS */
 
     if (!mudconf.quiet_look && (!Terse(player) || !(isRoom(thing) && Terse(thing)) || mudconf.terse_look)) {
-	look_atrs(player, thing, 0, 0, NOTHING, 0);
+	look_atrs(player, thing, 0, 0, NOTHING, 0, 0);
     }
 }
 
@@ -2244,7 +2289,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
     /* tell him the attributes, contents and exits */
 
     if ((key & LK_SHOWATTR) && !mudconf.quiet_look && !is_terse)
-	look_atrs(player, loc, 0, 0, NOTHING, 0);
+	look_atrs(player, loc, 0, 0, NOTHING, 0, 0);
     if (!is_terse || mudconf.terse_contents)
 	look_contents(player, loc, "Contents:");
     if ((key & LK_SHOWEXIT) && (!is_terse || mudconf.terse_exits)) {
@@ -2481,14 +2526,14 @@ debug_examine(dbref player, dbref thing)
 
 	buf = atr_get(thing, ca, &aowner, &aflags);
 	if (Read_attr(player, thing, attr, aowner, aflags, 0))
-	    view_atr(player, thing, attr, buf, aowner, aflags, 0, -1);
+	    view_atr(player, thing, attr, buf, aowner, aflags, 0, -1, 0);
 	free_lbuf(buf);
     }
 }
 
 static void 
 exam_wildattrs(dbref player, dbref thing, int do_parent,
-	       OBLOCKMASTER * master, int key, dbref i_cluster, int *i_found)
+	       OBLOCKMASTER * master, int key, dbref i_cluster, int *i_found, int i_display)
 {
     int atr, aflags, got_any, pobj;
     char *buf;
@@ -2531,20 +2576,20 @@ exam_wildattrs(dbref player, dbref thing, int do_parent,
 	    Read_attr(player, thing, ap, aowner, aflags, 0)) {
 	    got_any = 1;
 	    view_atr(player, thing, ap, buf,
-		     aowner, aflags, 0, pobj);
+		     aowner, aflags, 0, pobj, i_display);
 	} else if ((Typeof(thing) == TYPE_PLAYER) &&
 		   Read_attr(player, thing, ap, aowner, aflags, 0)) {
 	    got_any = 1;
 	    if (aowner == Owner(player)) {
 		view_atr(player, thing, ap, buf,
-			 aowner, aflags, 0, pobj);
+			 aowner, aflags, 0, pobj, i_display);
 	    } else if ((atr == A_DESC) &&
 		       (mudconf.read_rem_desc ||
 			nearby(player, thing))) {
 		show_desc(player, thing, 0);
 	    } else if (atr != A_DESC) {
 		view_atr(player, thing, ap, buf,
-			 aowner, aflags, 0, pobj);
+			 aowner, aflags, 0, pobj, i_display);
 	    } else {
 		notify(player,
 		       "<Too far away to get a good look>");
@@ -2553,14 +2598,14 @@ exam_wildattrs(dbref player, dbref thing, int do_parent,
 	    got_any = 1;
 	    if (aowner == Owner(player)) {
 		view_atr(player, thing, ap, buf,
-			 aowner, aflags, 0, pobj);
+			 aowner, aflags, 0, pobj, i_display);
 	    } else if ((atr == A_DESC) &&
 		       (mudconf.read_rem_desc ||
 			nearby(player, thing))) {
 		show_desc(player, thing, 0);
 	    } else if (nearby(player, thing)) {
 		view_atr(player, thing, ap, buf,
-			 aowner, aflags, 0, pobj);
+			 aowner, aflags, 0, pobj, i_display);
 	    } else {
 		notify(player,
 		       "<Too far away to get a good look>");
@@ -2587,7 +2632,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
     BOOLEXP *bool;
     int control, aflags, do_parent, echeck, aflags2, keyfound;
     OBLOCKMASTER master;
-    int cntr=0, i_tree=0, i_regexp=0, i_cluster=0, i_found=0;
+    int cntr=0, i_tree=0, i_regexp=0, i_cluster=0, i_found=0, i_display=0;
     ATTR *a_chk;
 
     /* This command is pointless if the player can't hear. */
@@ -2595,6 +2640,10 @@ do_examine(dbref player, dbref cause, int key, char *name)
     if (!Hearer(player))
 	return;
 
+    if ( key & EXAM_DISPLAY ) {
+       i_display = 1;
+       key &= ~EXAM_DISPLAY;
+    }
     if ( key & EXAM_REGEXP ) {
        i_regexp = 1;
        key &= ~EXAM_REGEXP;
@@ -2689,9 +2738,9 @@ do_examine(dbref player, dbref cause, int key, char *name)
              }
           }
           if ( i_cluster ) {
-	     exam_wildattrs(player, thing, do_parent, &master, 1, thing, &i_found);
+	     exam_wildattrs(player, thing, do_parent, &master, 1, thing, &i_found, i_display);
           } else {
-	     exam_wildattrs(player, thing, do_parent, &master, keyfound, NOTHING, &i_found);
+	     exam_wildattrs(player, thing, do_parent, &master, keyfound, NOTHING, &i_found, i_display);
           }
 	  olist_cleanup(&master);
           if ( mudstate.outputflushed ) {
@@ -2713,7 +2762,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
                             strcpy(temp2, name);
                          }
                          if ( parse_attrib_wild(player, temp2, &i_cluster_db, 0, 1, 0, &master, 0, i_regexp, i_tree) ) {
-	                    exam_wildattrs(player, i_cluster_db, 0, &master, 1, i_cluster_db, &i_found);
+	                    exam_wildattrs(player, i_cluster_db, 0, &master, 1, i_cluster_db, &i_found, i_display);
                          }
 	                 olist_cleanup(&master);
                          if ( mudstate.outputflushed ) {
@@ -2825,7 +2874,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	    if (Examinable(player, thing) ||
 		(aowner == Owner(player))) {
 		view_atr(player, thing, atr_num(A_DESC), temp,
-			 aowner, aflags, 1, -1);
+			 aowner, aflags, 1, -1, i_display);
 	    } else {
 		show_desc(player, thing, 0);
 	    }
@@ -2942,7 +2991,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
        } else {
           i_cluster_db = NOTHING;
        }
-       look_atrs(player, thing, do_parent, i_tree, i_cluster_db, 0);
+       look_atrs(player, thing, do_parent, i_tree, i_cluster_db, 0, i_display);
        if ( i_cluster && !mudstate.outputflushed ) {
           a_chk = atr_str("_CLUSTER");
           if ( a_chk ) {
@@ -2952,7 +3001,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
                 while ( s_clustertk && *s_clustertk ) {
                    i_cluster_db = match_thing(player, s_clustertk);
                    if ( Good_chk(i_cluster_db) && (i_cluster_db != thing) ) {
-                      look_atrs(player, i_cluster_db, do_parent, i_tree, i_cluster_db, 0);
+                      look_atrs(player, i_cluster_db, do_parent, i_tree, i_cluster_db, 0, i_display);
                       if ( mudstate.outputflushed ) {
                           break;
                       }

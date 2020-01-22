@@ -50,3 +50,7 @@ hsutils.o: hstypes.h hsutils.h
 hsweapon.o: hsweapon.h hsobjects.h hsinterface.h hspace.h hsutils.h hsmissile.h hstypes.h
 hscomm.o: hsobjects.h hsuniverse.h
 hsterritory.o: hsterritory.h hsobjects.h hsconf.h hsuniverse.h hsinterface.h hsutils.h
+
+clean: 
+	-rm -f *.o
+

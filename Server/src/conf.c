@@ -18,6 +18,7 @@
 #include "udb_defs.h"
 #include "debug.h"
 
+
 /* ---------------------------------------------------------------------------
  * CONFPARM: Data used to find fields in CONFDATA.
  */
@@ -41,6 +42,7 @@ struct confparm {
 CONFDATA mudconf;
 STATEDATA mudstate;
 
+extern void NDECL(init_version);
 #ifndef STANDALONE
 extern int FDECL(pstricmp, (char *, char *, int));
 extern NAMETAB logdata_nametab[];
@@ -59,7 +61,9 @@ CF_HAND(cf_dynstring);
 extern double FDECL(time_ng, (double*));
 extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, int *, int));
 extern double FDECL(safe_atof, (char *));
-
+extern int FDECL(list2arr, (char **, int, char *, char));
+extern void FDECL(ns_do_asort, (char **, int, int));
+extern void FDECL(ns_arr2list, (char **, int, char *, char **, char));
 
 /* ---------------------------------------------------------------------------
  * cf_init: Initialize mudconf to default values.
@@ -336,6 +340,8 @@ NDECL(cf_init)
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
+    mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
+    memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
     memset(mudconf.cap_articles, '\0', sizeof(mudconf.cap_articles));
@@ -345,8 +351,12 @@ NDECL(cf_init)
     memset(mudconf.tree_character, '\0', sizeof(mudconf.tree_character));
     memset(mudconf.exit_separator, '\0', sizeof(mudconf.exit_separator));
     memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
+    memset(mudconf.execscriptpath, '\0', sizeof(mudconf.execscriptpath));
     strcpy(mudconf.tree_character, (char *)"`");
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
+    memset(mudconf.sconnect_cmd, '\0', sizeof(mudconf.sconnect_cmd));
+    memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
+    mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -355,6 +365,7 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
     mudstate.iter_special = 0;		/* iter inf special */
@@ -396,7 +407,8 @@ NDECL(cf_init)
     mudstate.includenest = 0;
     mudstate.wipe_state = 0;		/* State of @wipe/wipe() */
     mudstate.blacklist_cnt = 0;		/* Total number of blacklisted elements */
-    mudstate.bl_list = NULL;
+    mudstate.bl_list = NULL;		/* Blacklist */
+    mudstate.nd_list = NULL;		/* NoDNS */
     mudstate.log_chk_reboot = 0;
     mudstate.f_logfile_name = NULL;
     mudstate.last_network_owner = -1;	/* Last user with network issue */
@@ -404,6 +416,7 @@ NDECL(cf_init)
     mudstate.store_lastcr = -1;
     mudstate.store_lastx1 = -1;
     mudstate.store_lastx2 = -1;
+    mudstate.store_passwd = -1;
     mudstate.shifted = 0;
     mudstate.trainmode = 0;           /* initialize trainmode variable */
     mudstate.outputflushed = 0;               /* initialize output buffer variable */
@@ -447,6 +460,7 @@ NDECL(cf_init)
     mudconf.global_clone_player = -1; /* Player Global Clone for Attribute Cloning */
     mudconf.global_clone_exit = -1; /* Exit Global Clone for Attribute Cloning */
     mudconf.global_error_obj = -1; /* Global Error Object for all 'nonexisting' commands - @va */
+    mudconf.global_error_cmd = 0; /* Global Error Object allows commands -- could cause loops */
     mudconf.global_attrdefault = -1; /* Global Attribute Handler for Locks */
     mudconf.signal_object = -1; /* Signal handling object */
     mudconf.signal_object_type = 0; /* Signal object handling type */
@@ -564,6 +578,7 @@ NDECL(cf_init)
     mudconf.room_adconn = 0;
     mudconf.timeslice = 1000;
     mudconf.cmd_quota_max = 100;
+    mudconf.wizcmd_quota_max = 1000;
     mudconf.cmd_quota_incr = 1;
     mudconf.control_flags = 0xffffffff;		/* Everything for now... */
     mudconf.log_options = LOG_ALWAYS | LOG_BUGS | LOG_SECURITY |
@@ -670,6 +685,8 @@ NDECL(cf_init)
                                  */
     /* Connection security level */
     mudstate.cmp_lastsite = -1;
+    mudstate.nospam_counter = 0;
+    memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
     mudstate.cmp_lastsite_cnt = 0;
     mudstate.api_lastsite = -1;
     mudstate.api_lastsite_cnt = 0;
@@ -899,6 +916,17 @@ cf_log_notfound(dbref player, char *cmd, const char *thingname,
 		char *thing)
 {
     char *buff;
+    /* If command handler is null let's ignore it */
+    if ( !thing || !*thing ) {
+       return;
+    }
+    buff = thing;
+    while ( *buff && isspace(*buff) ) {
+       buff++;
+    }
+    if ( !*buff ) {
+       return;
+    }
 
     /* Modified this so buffers are cut off on unrecognized commands */
     if (mudstate.initializing) {
@@ -2738,6 +2766,38 @@ CF_HAND(cf_string_chr)
     return retval;
 }
 
+CF_HAND(cf_stringver)
+{
+    int retval;
+    long l_diff;
+    char *buff;
+
+    /* Copy the string to the buffer if it is not too big */
+
+    retval = 0;
+    l_diff = strlen(str);
+    if (l_diff >= extra) {
+	str[extra - 1] = '\0';
+	if (mudstate.initializing) {
+	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
+		buff = alloc_lbuf("cf_stringver.LOG");
+	        sprintf(buff, "%.3900s: String truncated", cmd);
+	        log_text(buff);
+	        free_lbuf(buff);
+	    ENDLOG
+	} else {
+	    buff = alloc_lbuf("cf_stringver.LOG");
+            sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+	    notify(player, buff);
+            free_lbuf(buff);
+	}
+	retval = 1;
+    }
+    strcpy((char *) vp, str);
+    init_version();
+    return retval;
+}
+
 CF_HAND(cf_string)
 {
     int retval;
@@ -2836,8 +2896,7 @@ int validate_aliases(dbref player,
   if (!alias || !*alias) {
     /* Not much we can do here in a generic fashion.. */
     ;
-  }
-  else if (strcmp("!", orig) == 0) {
+  } else if (strcmp("!", orig) == 0) {
     /* We want to remove the alias
      * - orig is assumed to be the alias
      */
@@ -3568,8 +3627,11 @@ CF_HAND(cf_include)
 
     fp = fopen(str, "r");
     if (fp == NULL) {
-	cf_log_notfound(player, cmd, "Config file", str);
-	return -1;
+        if ( strcmp(str, "rhost_vattr.conf") != 0 ) {
+	   cf_log_notfound(player, cmd, "Config file", str);
+	   return -1;
+        }
+        return 0;
     }
     buf = alloc_lbuf("cf_include");
     fgets(buf, LBUF_SIZE, fp);
@@ -3593,8 +3655,18 @@ CF_HAND(cf_include)
 	    *ap++ = '\0';	/* trim command */
 	for (; *ap && isspace((int)*ap); ap++);	/* skip spaces */
 	for (zp = ap; *zp && (*zp != '#'); zp++);	/* find comment */
-	if (*zp)
-	    *zp = '\0';		/* zap comment */
+	if (*zp) {
+        /* If it's a comment but immediately followed by an integer or a '-' it's not a comment */
+           if ( *(zp+1) && ((*(zp+1) == '-') || isdigit(*(zp+1))) ) {
+              *zp = ' '; /* zap with space then recheck for comment */
+	      for (zp = ap; *zp && (*zp != '#'); zp++);	/* find comment */
+	      if (*zp) {
+	         *zp = '\0';	/* zap comment */
+              }
+           } else {
+	      *zp = '\0';	/* zap comment */
+           }
+        }
 	for (zp = zp - 1; zp >= ap && isspace((int)*zp); zp--)
 	    *zp = '\0';		/* zap trailing spcs */
 
@@ -3628,6 +3700,9 @@ CONF conftable[] =
      cf_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure command access permissions."},
+    {(char *) "accent_extend",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
+     (char *) "Are accents extended past 250 to 255??"},
     {(char *) "ahear_maxcount",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxcount, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear iterations?\r\n"\
@@ -3636,12 +3711,16 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ahear_maxtime, 0, 0, CA_PUBLIC,
      (char *) "Maximum listen/ahear time laps (in seconds)?\r\n"\
               "                             Default: 60   Value: %d"},
-    {(char *) "vattr_command",
-     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
-     (char *) "Define dynamic VATTR commands."},
     {(char *) "alias",
      cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_htab, 0, 0, CA_WIZARD,
      (char *) "Define command alises."},
+    {(char *) "allow_ansinames",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
+     (char *) "Allow names to be ansified?\r\n"\
+              "                             Default: 15   Value: %d"},
+    {(char *) "allow_whodark",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.allow_whodark, 0, 0, CA_PUBLIC,
+     (char *) "Allow dark players to hide from WHO/DOING?"},
     {(char *) "alt_inventories",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.alt_inventories, 0, 0, CA_PUBLIC,
      (char *) "Enable alternate inventories (worn/wield)."},
@@ -3655,6 +3734,12 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.areg_lim, 0, 0, CA_WIZARD,
      (char *) "Specify limit on registers from single email.\r\n"\
               "                             Default: 3   Value: %d"},
+    {(char *) "areg_file",
+     cf_string, CA_DISABLED, (int *) mudconf.areg_file, 32, 0, CA_WIZARD,
+     (char *) "Specify the auto-register txt file."},
+    {(char *) "aregh_file",
+     cf_string, CA_DISABLED, (int *) mudconf.aregh_file, 32, 0, CA_WIZARD,
+     (char *) "Specify the auto-register with connects file." },
     {(char *) "attr_access",
      cf_attr_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
@@ -3666,19 +3751,6 @@ CONF conftable[] =
      cf_acmd_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure attribute access permissions."},
-    {(char *) "allow_ansinames",
-     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
-     (char *) "Allow names to be ansified?\r\n"\
-              "                             Default: 15   Value: %d"},
-    {(char *) "allow_whodark",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.allow_whodark, 0, 0, CA_PUBLIC,
-     (char *) "Allow dark players to hide from WHO/DOING?"},
-    {(char *) "areg_file",
-     cf_string, CA_DISABLED, (int *) mudconf.areg_file, 32, 0, CA_WIZARD,
-     (char *) "Specify the auto-register txt file."},
-    {(char *) "aregh_file",
-     cf_string, CA_DISABLED, (int *) mudconf.aregh_file, 32, 0, CA_WIZARD,
-     (char *) "Specify the auto-register with connects file." },
     {(char *) "bad_name",
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Specify a list of bad player names."},
@@ -3697,12 +3769,6 @@ CONF conftable[] =
     {(char *) "break_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.break_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are @break/@assert double-evalled and earlier 3.9 compatable?"},
-     {(char *) "exits_connect_rooms",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
-     (char *) "Is a room with an exit considered floating?"},
-    {(char *) "exit_separator",
-     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
-     (char *) "Specify the characters for default exit separation." },
     {(char *) "cache_depth",
      cf_int, CA_DISABLED, &mudconf.cache_depth, 0, 0, CA_WIZARD,
      (char *) "Show what the current cache debth is.\r\n"\
@@ -3912,9 +3978,6 @@ CONF conftable[] =
     {(char *) "delim_null",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.delim_null, 0, 0, CA_PUBLIC,
      (char *) "Are @@ in output seperator considered a null?"},
-    {(char *) "accent_extend",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.accent_extend, 0, 0, CA_WIZARD,
-     (char *) "Are accents extended past 250 to 255??"},
     {(char *) "admin_object",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.admin_object, 0, 0, CA_WIZARD,
      (char *) "The object that will be used to load and save inline conf parameters.   Default: -1   Value: %d"},
@@ -4009,6 +4072,10 @@ CONF conftable[] =
     {(char *) "exec_secure",
      cf_bool, CA_DISABLED, &mudconf.exec_secure, 0, 0, CA_WIZARD,
      (char *) "Is execscript() escaping everything?"},
+    {(char *) "execscriptpath",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.execscriptpath, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "Specified valid sub-directories that execscript can override."},
+
     {(char *) "exit_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.exit_flags, 0, 0, CA_PUBLIC,
      (char *) "These are default flags set on new exits."},
@@ -4019,6 +4086,12 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.exit_quota, 0, 0, CA_PUBLIC,
      (char *) "How much quota does an exit take up?\r\n"\
               "                             Default: 1   Value: %d"},
+    {(char *) "exits_connect_rooms",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.exits_conn_rooms, 0, 0, CA_WIZARD,
+     (char *) "Is a room with an exit considered floating?"},
+    {(char *) "exit_separator",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.exit_separator, 31, 0, CA_WIZARD,
+     (char *) "Specify the characters for default exit separation." },
     {(char *) "expand_goto",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.expand_goto, 0, 0, CA_PUBLIC,
      (char *) "Does exit movement expand to 'goto'?"},
@@ -4174,6 +4247,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.global_error_obj, 0, 0, CA_PUBLIC,
      (char *) "Object who's @va is executed for non-cmds.\r\n"\
               "                             Default: -1   Value: %d"},
+    {(char *) "global_error_cmd",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.global_error_cmd, 0, 0, CA_WIZARD,
+     (char *) "Do global error objects allow executing commands?"},
     {(char *) "global_parent_exit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.global_parent_exit, 0, 0, CA_PUBLIC,
      (char *) "Object that EXIT attributes are inherited from.\r\n"\
@@ -4514,7 +4590,11 @@ CONF conftable[] =
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.motd_msg, 1024, 0, CA_WIZARD,
      (char *) "Text used for @motd online."},
     {(char *) "mtimer",
+#ifdef BSD_LIKE
+     cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 10, 1, CA_WIZARD,
+#else
      cf_timerint, CA_GOD | CA_IMMORTAL, &mudconf.mtimer, 1000, 1, CA_WIZARD,
+#endif
      (char *) "The milisecond timer offset to be used.\r\n"\
               "                             Default: 10   Value: %d"},
     {(char *) "muddb_name",
@@ -4591,7 +4671,7 @@ CONF conftable[] =
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.noshell_prog, 0, 0, CA_PUBLIC,
      (char *) "Can you issue commands outside a @program?"},
     {(char *) "nospam_connect",
-     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.nospam_connect, 0, 0, CA_WIZARD,
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.nospam_connect, 0, 0, CA_WIZARD,
      (char *) "Are forbidden sites logged?"},
     {(char *) "notify_recursion_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.ntfy_nest_lim, 0, 0, CA_WIZARD,
@@ -4914,6 +4994,15 @@ CONF conftable[] =
     {(char *) "safer_passwords",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_passwords, 0, 0, CA_PUBLIC,
      (char *) "Enforcement of harder passwords?"},
+    {(char *) "sconnect_cmd",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.sconnect_cmd, 31, 0, CA_WIZARD,
+     (char *) NULL},
+    {(char *) "sconnect_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.sconnect_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "Site NAME list for SCONNECT allowable hosts."},
+    {(char *) "sconnect_reip",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.sconnect_reip, 0, 0, CA_WIZARD,
+     (char *) "Allow SCONNECT based re-ip of connections?"},
     {(char *) "search_cost",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.searchcost, 0, 0, CA_PUBLIC,
      (char *) "Cost of a @search.\r\n"\
@@ -4935,6 +5024,10 @@ CONF conftable[] =
     {(char *) "see_owned_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.see_own_dark, 0, 0, CA_PUBLIC,
      (char *) "Can you see dark things you control?"},
+    {(char *) "sha2rounds",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.sha2rounds, 999999, 5000, CA_WIZARD,
+     (char *) "SHA2 round recursion for password encryptions.\r\n"\
+              "    [5000-999999]            Default: 5000        Value: %d"},
     {(char *) "showother_altinv",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.showother_altinv, 0, 0, CA_PUBLIC,
      (char *) "Alt inventories shown when you look?"},
@@ -5066,6 +5159,13 @@ CONF conftable[] =
     {(char *) "vattr_limit_checkwiz",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.vattr_limit_checkwiz, 0, 0, CA_WIZARD,
      (char *) "Are wizards and higher checked for vattr max?"},
+    {(char *) "vattr_command",
+     cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
+     (char *) "Define dynamic VATTR commands."},
+    {(char *) "vercustomstr",
+     cf_stringver, CA_GOD | CA_IMMORTAL, (int *) mudconf.vercustomstr, SBUF_SIZE-1, 0, CA_WIZARD,
+     (char *) "Extra string used for @version\r\n"\
+              "                                 (default NULL)"},
     {(char *) "vlimit",
      cf_vint, CA_GOD | CA_IMMORTAL, &mudconf.vlimit, 0, 0, CA_WIZARD,
      (char *) "Maximum user attributes allowed.  Don't touch\r\n"\
@@ -5104,6 +5204,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.who_wizlevel, 0, 0, CA_PUBLIC,
      (char *) "Define level of wiz to show in WHO/DOING.\r\n"\
               "        -- 0 is all wizards  Default: 0   Value: %d"},
+    {(char *) "wizcommand_quota_max",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.wizcmd_quota_max, 0, 0, CA_WIZARD,
+     (char *) "Max commands allowed per timeslice per wizard.\r\n"\
+              "      -- This is not used    Default: 1000   Value: %d"},
     {(char *) "wizmax_vattr_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.wizmax_vattr_limit, 0, 0, CA_WIZARD,
      (char *) "Max times wizard can create new user attribs.\r\n"\
@@ -5702,15 +5806,29 @@ void list_options_values(dbref player, int p_val, char *s_val)
  * sane fashion.
  */
 
-void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc)
+void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc, int i_type)
 {
     CONF *tp;
-    int first, bVerboseSideFx = 0, i_wild = 0;
-    static char tempbuff[LBUF_SIZE/2];
-    char *t_pt, *t_buff;
+    int first, bVerboseSideFx = 0, i_wild = 0, i_nitems;
+    static char tempbuff[LBUF_SIZE/2], *tempbuff2[LBUF_SIZE/2];
+    char *t_pt, *t_buff, *c_icheck, *t_buff2;
 
+    if ( (i_type == 1 ) && (!param_name || !*param_name) ) {
+       safe_str("#-1 VALUE EXPECTED", buff, bufc);
+       return;
+    }
     if ( *param_name && ((strchr(param_name, '*') != NULL) || (strchr(param_name, '*') != NULL)) ) {
        i_wild = 1;
+    }
+    if ( !i_wild && (i_type == 1) ) {
+       c_icheck = param_name;
+       while ( c_icheck ) {
+          if ( !isdigit(*c_icheck) )
+             break;
+          c_icheck++;
+       }
+       if ( !c_icheck )
+          i_wild = 1;
     }
     if ( key || i_wild || (*param_name == '1') || (*param_name == '0') ) {
        first = 0;
@@ -5732,18 +5850,53 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
               }
            }
        }
+       t_buff2 = alloc_lbuf("cf_display2");
+       strcpy(t_buff2, buff);
+       i_nitems = list2arr(tempbuff2, LBUF_SIZE / 2, t_buff2, (char)' ');
+       ns_do_asort(tempbuff2, i_nitems, 1); /* 1 == ALPHANUM_LIST */
+       *buff='\0';
+       *bufc = buff;
+       ns_arr2list(tempbuff2, i_nitems, buff, bufc, (char)' ');
+       free_lbuf(t_buff2);
        if ( *t_buff )
           notify(player, t_buff);
        free_lbuf(t_buff);
     } else  if ( stricmp(param_name, (char *)"lbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", LBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"lbuf_size", 
+                  (char *)"LBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  LBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", LBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else  if ( stricmp(param_name, (char *)"mbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", MBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"mbuf_size", 
+                  (char *)"MBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  MBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", MBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else  if ( stricmp(param_name, (char *)"sbuf_size") == 0 ) {
-       sprintf(tempbuff, "%d", SBUF_SIZE);
-       safe_str(tempbuff, buff, bufc);
+       if ( i_type == 1 ) {
+          sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %d", 
+                  (char *)"sbuf_size", 
+                  (char *)"SBUF size configured for the mush.",
+                  (char *)"Compiletime Value:", 
+                  SBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       } else {
+          sprintf(tempbuff, "%d", SBUF_SIZE);
+          safe_str(tempbuff, buff, bufc);
+       }
     } else {
        if (stricmp(param_name, "sideeffects_txt") == 0) {
 	 param_name[11] = '\0';
@@ -5768,22 +5921,47 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                     (tp->interpreter == cf_chartoint) ||
                     (tp->interpreter == cf_recurseint) ||
 		    (tp->interpreter == cf_sidefx && !bVerboseSideFx)) {
-
-                   sprintf(tempbuff, "%d", *(tp->loc));
-                   safe_str(tempbuff, buff, bufc);
+                   if ( i_type == 1 ) {
+                      sprintf(tempbuff, "%-28.28s %.900s", tp->pname, tp->extrach);
+                      safe_str(unsafe_tprintf(tempbuff, *(tp->loc)), buff, bufc);
+                   } else {
+                      sprintf(tempbuff, "%d", *(tp->loc));
+                      safe_str(tempbuff, buff, bufc);
+                   }
                    return;
                } else if ( (tp->interpreter == cf_string) ||
                          (tp->interpreter == cf_atrperms) ||
                          (tp->interpreter == cf_string_sub) ||
                          (tp->interpreter == cf_string_chr) ||
+                         (tp->interpreter == cf_stringver) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {
-    		   if (tp->interpreter == cf_sidefx) {
-		     sideEffectMaskToString(*tp->loc, buff, bufc);
-		   } else {
-		     safe_str((char *)tp->loc, buff, bufc);
-		   }
+                   if ( i_type == 1 ) {
+    		      if (tp->interpreter == cf_sidefx) {
+		         sideEffectMaskToString(*tp->loc, buff, bufc);
+                         sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %.1000s", 
+                                 tp->pname, 
+                                 (char *)"Sideeffect string mask values",
+                                 (char *)"String Value:",
+                                 buff);
+                         *bufc = buff;
+                         safe_str(tempbuff, buff, bufc);
+		      } else {
+                         sprintf(tempbuff, "%-28.28s %.900s\r\n%-28s %.1000s", 
+                                 tp->pname, 
+                                 tp->extrach,
+                                 (char *)"String Value:",
+                                 (char *)tp->loc);
+                         safe_str(tempbuff, buff, bufc);
+		      }
+                   } else {
+    		      if (tp->interpreter == cf_sidefx) {
+		        sideEffectMaskToString(*tp->loc, buff, bufc);
+		      } else {
+		        safe_str((char *)tp->loc, buff, bufc);
+		      }
+                  }
 		 return;
                }
                safe_str("#-1 PERMISSION DENIED", buff, bufc);

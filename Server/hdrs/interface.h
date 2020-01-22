@@ -19,6 +19,9 @@
 #include <sys/select.h>
 #endif
 
+/* Define websocket handler checksum length -- IF YOU CHANGE YOU MUST @shutdown then Startmush */
+#define WEBSOCKETS_CHECKSUM_LEN 40
+
 /* these symbols must be defined by the interface */
 
 extern int shutdown_flag; /* if non-zero, interface should shut down */
@@ -38,6 +41,7 @@ extern int shutdown_flag; /* if non-zero, interface should shut down */
 #define R_HACKER        11      /* User tried to hack connect screen */
 #define R_NODESCRIPTOR  12      /* No 'free' descriptors - actually buffer zone */
 #define R_API		13	/* API Connection */
+#define R_WEBSOCKETS	14	/* Websocket connection */
 
 extern NAMETAB logout_cmdtable[];
 
@@ -81,7 +85,18 @@ struct SNOOPLISTNODE {
  * then an @reboot will write out the old records to a file, then read
  * them in with the new structure and everything will be hosed!
  *    - Thorin 01/1997
+ * 
+ * This has been modified.  Going forward from Rhost 4.0.0p4 any changes
+ * to this file is allowed but ONLY FOR ADDING NEW DATA AT THE END.
+ * You can not:
+ *   1.  Alter any of the field values including sizes
+ *   2.  Change the order of any of the values.
+ *   3.  Shrink/remove fields after adding them
+ *
+ * If you do any of the two with the DESC data, a @reboot WILL CRASH.
+ *    - Ashen-Shugar 12/2019
 */
+
 
 /* OK, let's make a temporary player desc data descriptor here */
 typedef struct descriptor_data_online DESC_ONLINE;
@@ -92,6 +107,59 @@ struct descriptor_data_online {
   int height;
   char addr[255];
   dbref player;
+};
+
+/* We define this to allow people who are on older systems to boot new desc data w/o crashing */
+typedef struct descriptor_data_orig DESCORIG;
+struct descriptor_data_orig {
+  int descriptor;
+  int flags;
+  int retries_left;
+  int regtries_left;
+  int command_count;
+  int timeout;
+  int host_info;
+  char addr[51];
+  char doing[256];
+  dbref player;
+  char *output_prefix;
+  char *output_suffix;
+  int output_size;
+  int output_tot;
+  int output_lost;
+  TBLOCK *output_head;
+  TBLOCK *output_tail;
+  int input_size;
+  int input_tot;
+  int input_lost;
+  CBLK *input_head;
+  CBLK *input_tail;
+  CBLK *raw_input;
+  char *raw_input_at;
+  time_t connected_at;
+  time_t last_time;
+  int quota;
+  struct sockaddr_in address;	/* added 3/6/90 SCG */
+  struct descriptor_data *hashnext;
+  struct descriptor_data *next;
+  struct descriptor_data **prev;
+  struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
+  int logged;
+  int authdescriptor;		    /* added 2/95 Thorin */
+  char userid[MBUF_SIZE];	    /* added 2/95 thorin */
+  int door_desc;		/* added 11/15/97 Seawolf */
+  int door_num;			/* added 11/15/97 Seawolf */
+  TBLOCK *door_output_head;
+  TBLOCK *door_output_tail;
+  int door_output_size;
+  CBLK *door_input_head;
+  CBLK *door_input_tail;
+  int door_int1;
+  int door_int2;
+  int door_int3;
+  char *door_lbuf;
+  char *door_mbuf;
+  char *door_raw;
 };
 
 typedef struct descriptor_data DESC;
@@ -144,6 +212,10 @@ struct descriptor_data {
   char *door_lbuf;
   char *door_mbuf;
   char *door_raw;
+  char checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
+  long ws_frame_len;
+  dbref account_owner;		/* For softcoded account systems */
+  char account_rawpass[100];		/* For raw account password */
 };
 
 /* flags in the flag field */
@@ -157,6 +229,11 @@ struct descriptor_data {
 #define DS_HAVEpFX		0x0080		/* Target has prefix */
 #define DS_HAVEsFX		0x0100		/* Target has suffix */
 #define DS_API			0x0200		/* Target is an API handler */
+#define DS_CMDQUOTA		0x0400		/* Target is an CMDQUOTA handler */
+#define DS_SSL      		0x0800		/* Target is on an SSL handler */
+#define DS_WEBSOCKETS_REQUEST   0x1000          /* Target is negotiating websockets */
+#define DS_WEBSOCKETS           0x2000          /* Target is a websocket */
+
 
 extern DESC *descriptor_list;
 extern DESC *desc_in_use;
@@ -193,7 +270,7 @@ extern int	FDECL(fetch_connect, (dbref));
 extern void	NDECL(check_idle);
 extern void	NDECL(process_commands);
 extern int	FDECL(site_check, (struct in_addr, SITE *, int, int, int));
-extern int	FDECL(blacklist_check, (struct in_addr host));
+extern int	FDECL(blacklist_check, (struct in_addr host, int));
 extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref, int));
 extern dbref	FDECL(find_connected_name, (dbref, char *));
 

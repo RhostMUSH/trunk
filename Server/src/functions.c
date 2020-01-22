@@ -1325,6 +1325,10 @@ extern CMDENT * lookup_command(char *);
 extern void mail_read_func(dbref, char *, dbref, char *, int, char *, char **);
 extern void do_zone(dbref, dbref, int, char *, char *);
 extern int attrib_canset(dbref, const char *, dbref, dbref);
+extern int lookup(char *, char *, int, int *);
+extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
+
+
 int do_convtime(char *, struct tm *);
 
 /* pom.c nefinitions */
@@ -2192,6 +2196,11 @@ arr2list(char *arr[], int alen, char *list, char **listcx, char sep)
     }
 }
 
+void 
+ns_arr2list(char *arr[], int alen, char *list, char **listcx, char sep) {
+   arr2list(arr, alen, list, listcx, sep);
+}
+
 static int
 dbnum(char *dbr)
 {
@@ -2488,25 +2497,43 @@ FUNCTION(fun_singletime)
 
 FUNCTION(fun_safebuff)
 {
-  char sep, *s_ptr, *s_tmp, *noansi_buff;
+  char sep, *s_ptr, *s_tmp, *noansi_buff, *s_cutbuff;
+  int i_cutter;
 #ifdef ZENTY_ANSI
   int i_cntr;
 #endif
 
-  if (!fn_range_check("SAFEBUFF", nfargs, 1, 2, buff, bufcx)) {
+  if (!fn_range_check("SAFEBUFF", nfargs, 1, 3, buff, bufcx)) {
     return;
   }
   if ( !*fargs[0] )
      return;
 
-
+  s_cutbuff = alloc_lbuf("fun_safebuff");
+  memset(s_cutbuff, '\0', LBUF_SIZE);
+  i_cutter = 0;
+  if ( (nfargs > 2) && *fargs[2] ) {
+    i_cutter = atoi(fargs[2]);
+    if ( (i_cutter <= 0) || (i_cutter >= (LBUF_SIZE - 24)) ) {
+       strcpy(s_cutbuff, fargs[0]);
+       i_cutter = 0;
+    } else {
+       strncpy(s_cutbuff, fargs[0], i_cutter);
+    }
+  } else {
+    strcpy(s_cutbuff, fargs[0]);
+  }
+  
+  if ( i_cutter == 0 ) {
 #ifdef ZENTY_ANSI
-  if ( (strlen(fargs[0]) < (LBUF_SIZE - 24)) ) {
+     if ( (strlen(s_cutbuff) < (LBUF_SIZE - 24)) ) {
 #else
-  if ( (strlen(fargs[0]) < (LBUF_SIZE - 2)) ) {
+     if ( (strlen(s_cutbuff) < (LBUF_SIZE - 2)) ) {
 #endif
-    safe_str(fargs[0], buff, bufcx);
-    return;
+       safe_str(s_cutbuff, buff, bufcx);
+       free_lbuf(s_cutbuff);
+       return;
+     }
   }
 
   if ( (nfargs > 1) && (*fargs[1]) )
@@ -2515,13 +2542,13 @@ FUNCTION(fun_safebuff)
     sep = ' ';
 
   noansi_buff = alloc_lbuf("fun_safebuff");
-  strcpy(noansi_buff, strip_all_special(fargs[0]));
+  strcpy(noansi_buff, strip_all_special(s_cutbuff));
   s_tmp = noansi_buff;
   s_ptr = s_tmp + strlen(s_tmp) - 1;
 
 #ifdef ZENTY_ANSI
   i_cntr = 0;
-  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || i_cntr < 24 ) {
+  while( ((s_ptr >= s_tmp) && (*s_ptr != sep)) || ((i_cutter == 0) && (i_cntr < 24)) ) {
      s_ptr--;
      i_cntr++;
   }
@@ -2536,6 +2563,7 @@ FUNCTION(fun_safebuff)
   }
   safe_str(s_tmp, buff, bufcx);
   free_lbuf(noansi_buff);
+  free_lbuf(s_cutbuff);
 }
 
 /* Borrowed from PENN with permission */
@@ -3824,9 +3852,9 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 FUNCTION(fun_config)
 {
    if ( *fargs[0] ) {
-      cf_display(player, fargs[0], 0, buff, bufcx);
+      cf_display(player, fargs[0], 0, buff, bufcx, 0);
    } else {
-      cf_display(player, fargs[0], 1, buff, bufcx);
+      cf_display(player, fargs[0], 1, buff, bufcx, 0);
    }
 }
 
@@ -5008,7 +5036,7 @@ FUNCTION(fun_checkpass)
    }
 
    // Hey, we've got a player. Let's check the password.
-   ival(buff, bufcx, (int) check_pass(thing, fargs[1], 0));
+   ival(buff, bufcx, (int) check_pass(thing, fargs[1], 0, 0, NOTHING));
 }
 
 FUNCTION(fun_digest)
@@ -8684,6 +8712,8 @@ struct timefmt_format {
   int specialpadder;
   int nolaster;
   int tabtospace;
+  int doindent;
+  int doindentline;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -8902,7 +8932,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
        *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
@@ -8959,8 +8989,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
-             if ( *s == '\n' )
+             if ( *s == '\n' ) {
                 i_linecnt++;
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      i_chk++;
+                      idx++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
+                   }
+                }
+             }
           }
           if ( idx > (LBUF_SIZE - 12) )
              break;
@@ -8978,10 +9018,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                 }
                 if ( *t ) 
                    t++;
-                i_chk = strlen(strip_all_special(t));
+                i_chk = strlen(strip_all_special(t)) + fm->doindent;
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
                 *t++ = '\r';
                 *t++ = '\n';
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      idx++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
+                   }
+                }
                 u = s_padstring2;
                 while ( *u ) {
                    *t++ = *u++;
@@ -8989,7 +9037,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              } else {
                 *t++ = '\r';
                 *t++ = '\n';
-                i_chk = 0;
+                if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
+                   i_chk=0;
+                   for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
+                      *t++ = ' ';
+                      idx++;
+                      i_chk++;
+                      if ( idx > (LBUF_SIZE - 12) )
+                         break;
+                   }
+                } else {
+                   i_chk = 0;
+                }
              }
              i_linecnt++;
              idx+=2;
@@ -10544,6 +10603,42 @@ FUNCTION(fun_printf)
                         fm.breakonreturn = 1;
                         formatpass = 1;
                         break;
+                     case ';': /* Indent with | option */
+                        if ( fm.fieldwidth == 0 ) {
+                           safe_str( "#-1 FIELD WIDTH EXPECTED PRIOR TO INDENT [WIDTH > 0]", s_errbuff, &s_errbuffptr );
+                           fmterror = 1;
+                           break;
+                        }
+                        if ( fm.doindent > 0 ) {
+                           safe_str( "#-1 FIELD SPECIFIER EXPECTED [INDENT NEXT LINE ALREADY SPECIFIED]", s_errbuff, &s_errbuffptr );
+                           fmterror = 1;
+                           break;
+                        } else {
+                           if ( *(pp+1) && (strchr(pp+1, ';') != NULL) ) {
+                              fm.doindent = atoi(pp+1);
+                              if ( fm.doindent < 0 )
+                                 fm.doindent = 0;
+                              if ( fm.doindent > (fm.fieldwidth - 1) )
+                                 fm.doindent = fm.fieldwidth - 1;
+                              if ( strchr(pp+1, '.') != NULL ) {
+                                 if ( strchr(pp+1, '.') < strchr(pp+1, ';') ) {
+                                    fm.doindentline = atoi(strchr(pp+1, '.')+1);
+                                    if ( fm.doindentline < 0 ) {
+                                       fm.doindentline = 0;
+                                    }
+                                 }
+                              }
+                              pp = strchr(pp+1,';');
+                           } else {
+                              if ( fm.fieldwidth > 4 ) {
+                                 fm.doindent = 4;
+                              } else {
+                                 fm.doindent = fm.fieldwidth - 1;
+                              }
+                           }
+                        }
+                        formatpass = 1;
+                        break;
                      case '#': /* tabs to spaces */
                         if ( fm.tabtospace > 0 ) {
                            safe_str( "#-1 FIELD SPECIFIER EXPECTED [TAB TO SPACE ALREADY SPECIFIED]", s_errbuff, &s_errbuffptr );
@@ -10648,6 +10743,8 @@ FUNCTION(fun_printf)
                         fm.morepadd = 0;
                         fm.nolaster = 0;
                         fm.tabtospace = 0;
+			fm.doindent = 0;
+			fm.doindentline = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -10669,6 +10766,8 @@ FUNCTION(fun_printf)
                      fm.cutatlength_line = 0;
                      fm.nolaster = 0;
                      fm.tabtospace = 0;
+                     fm.doindent = 0;
+                     fm.doindentline = 0;
                   }
                } /* For */
                pp--;
@@ -13269,6 +13368,114 @@ FUNCTION(fun_hastype)
   }
 }
 
+FUNCTION(fun_attrpass)
+{
+  dbref thing, aowner;
+  int i_len, attrib, i_alloc, aflags, i_size;
+  char *atr_gotten;
+  ATTR *attr;
+
+  i_len = strlen(fargs[2]);
+  i_size = 0;
+  if ( (i_len < 1) || (i_len > 3) ) {
+     safe_str("#-1 ATTRPASS REQUIRES SET OR CHK AS THIRD ARGUMENT", buff, bufcx);
+     return;
+  }
+  if ( strncasecmp("set", fargs[2], i_len) == 0 ) {
+    mudstate.store_passwd = -1;
+    do_password(player, cause, (SIDEEFFECT|PASS_ATTRIB), fargs[0], fargs[1]);
+    if ( mudstate.store_passwd < 0 ) {
+       atr_gotten = alloc_lbuf("attrpass_buffer");
+       sprintf(atr_gotten, "#-1 PASSWORD LENGTH EXCEEDS %d CHARACTERS", abs(mudstate.store_passwd));
+       safe_str(atr_gotten, buff, bufcx);
+       free_lbuf(atr_gotten);
+    } else {
+       ival(buff, bufcx, mudstate.store_passwd);
+    }
+  } else if ( strncasecmp("chk", fargs[2], i_len) == 0 ) {
+    if ( !parse_attrib(player, fargs[0], &thing, &attrib)) {
+       safe_str("#-1 NO MATCHING ATTRIBUTE", buff, bufcx);
+       return;
+    }
+    if (attrib == NOTHING) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+    if (Cloak(thing) && !Wizard(player)) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    if (SCloak(thing) && Cloak(thing) && !Immortal(player)) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    i_len = strlen(fargs[1]);
+    if ( (mudconf.sha2rounds > 700000) && (i_len > 16) ) {
+       i_len = -1;
+       i_size = 16;
+    } else if ( (mudconf.sha2rounds > 600000) && (i_len > 24) ) {
+       i_len = -1;
+       i_size = 24;
+    } else if ( (mudconf.sha2rounds > 500000) && (i_len > 32) ) {
+       i_len = -1;
+       i_size = 32;
+    } else if ( (mudconf.sha2rounds > 400000) && (i_len > 64) ) {
+       i_len = -1;
+       i_size = 64;
+    } else if ( (mudconf.sha2rounds > 300000) && (i_len > 128) ) {
+       i_len = -1;
+       i_size = 128;
+    } else if ( (mudconf.sha2rounds > 200000) && (i_len > 256) ) {
+       i_len = -1;
+       i_size = 256;
+    } else if ( (mudconf.sha2rounds > 100000) && (i_len > 512) ) {
+       i_len = -1;
+       i_size = 512;
+    } else if ( (mudconf.sha2rounds > 50000) && (i_len > 1048) ) {
+       i_len = -1;
+       i_size = 1024;
+    } else if ( i_len > 2048 ) {
+       i_len = -1;
+       i_size = 2048;
+    } 
+
+    if ( i_len == -1 ) {
+       atr_gotten = alloc_lbuf("attrpass_buffer");
+       sprintf(atr_gotten, "#-1 PASSWORD LENGTH EXCEEDS %d CHARACTERS", i_size);
+       safe_str(atr_gotten, buff, bufcx);
+       free_lbuf(atr_gotten);
+       return;
+    }
+    attr = atr_num(attrib); /* We need the attr's flags for this: */
+    if (!attr || (attr->number == A_PASS) ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+    i_alloc = 0;
+    if (attr->flags & AF_IS_LOCK) {
+       safe_str("#-1 CAN'T CHECK LOCKS", buff, bufcx);
+       return;
+    } else {
+       i_alloc = 1;
+       atr_gotten = atr_pget(thing, attrib, &aowner, &aflags);
+    }
+
+    /* Perform access checks.  c_r_p fills buff with an error message
+     * if needed.
+     */
+    if ( check_read_perms(player, thing, attr, aowner, aflags, buff, bufcx) ) {
+       ival(buff, bufcx, mush_crypt_validate(player, fargs[1], atr_gotten, 0));
+    }
+    if ( i_alloc ) {
+       free_lbuf(atr_gotten);
+    }
+    return;
+  } else {
+     safe_str("#-1 ATTRPASS REQUIRES SET OR CHK AS THIRD ARGUMENT", buff, bufcx);
+  }
+  return;
+}
+
 FUNCTION(fun_cloak)
 {
   dbref obj, target;
@@ -14409,7 +14616,7 @@ FUNCTION(fun_parenmatch)
     int aflags, anum, tcnt, i_type, i_indent, i_extra;
     ATTR *ap;
     char *atext, *atextptr, *revatext, *revatextptr;
-    char *tbuff, *tbuffptr, *p_extra;
+    char *tbuff, *tbuffptr, *p_extra, *s_stripansi;
 
     if (mudstate.last_cmd_timestamp == mudstate.now) {
        mudstate.heavy_cpu_recurse += 1;
@@ -14496,16 +14703,18 @@ FUNCTION(fun_parenmatch)
 
     tcnt = 0;
     tbuffptr = tbuff = alloc_lbuf("fun_parenmatch");
-    tcnt = paren_match(atext, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
+    s_stripansi = alloc_lbuf("fun_parenmatch_stripansi");
+    strcpy(s_stripansi, strip_ansi(atext));
+    tcnt = paren_match(s_stripansi, tbuff, &tbuffptr, -1, i_type, i_indent, i_extra);
     if ( tcnt > 0 ) {
        revatextptr = revatext = alloc_lbuf("fun_parentmatch_rev");
-       atextptr = strip_escapes(atext);
+       atextptr = strip_escapes(s_stripansi);
        do_reverse(atextptr, revatext, &revatextptr, 0);
        free_lbuf(atextptr);
        tbuffptr = tbuff;
        tcnt = paren_match2(revatext);
        free_lbuf(revatext);
-       tcnt = paren_match(atext, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(atext)-tcnt) : -1), i_type, i_indent, i_extra);
+       tcnt = paren_match(s_stripansi, tbuff, &tbuffptr, (tcnt > 0 ? (strlen(s_stripansi)-tcnt) : -1), i_type, i_indent, i_extra);
        free_lbuf(atext);
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
@@ -14514,6 +14723,7 @@ FUNCTION(fun_parenmatch)
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
     }
+    free_lbuf(s_stripansi);
 }
 
 FUNCTION(fun_parenstr)
@@ -14528,10 +14738,10 @@ FUNCTION(fun_parenstr)
    tcnt = i_type = 0;
    sbuff = alloc_lbuf("parenstrbuff");
    if ( *fargs[0] == '!' ) {
-      strcpy(sbuff, fargs[0]+1);
+      strcpy(sbuff, strip_ansi(fargs[0]+1));
       i_type = 1;
    } else {
-      strcpy(sbuff, fargs[0]);
+      strcpy(sbuff, strip_ansi(fargs[0]));
    }
    tbuffptr = tbuff = alloc_lbuf("parenstr");
    tcnt = paren_match(sbuff, tbuff, &tbuffptr, -1, i_type, 0, 0);
@@ -17320,11 +17530,11 @@ FUNCTION(fun_eval)
 FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
-   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, 
+   char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_flags[MAX_GLOBAL_REGS];
-   dbref aowner;
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS];
+   dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
    ATTR *attr;
@@ -17355,9 +17565,53 @@ FUNCTION(fun_execscript)
       safe_str("#-1 NO FILE SPECIFIED", buff, bufcx);
       return;
    }
-   if ( (strstr(fargs[0], "..") != NULL) || (strchr(fargs[0], '$') != NULL) || (strchr(fargs[0], '/')) ) {
+   if ( (strstr(fargs[0], "..") != NULL) || (strchr(fargs[0], '$') != NULL) ) {
       safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
       return;
+   }
+   if ( (strchr(fargs[0], '/') != NULL) ) {
+      if ( !*(strchr(fargs[0], '/')+1) ) {
+         safe_str("#-1 NO FILE SPECIFIED AFTER PATH", buff, bufcx);
+         return;
+      }
+      if ( strchr(strchr(fargs[0], '/')+1, '/') != NULL ) {
+         safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+         return;
+      }
+      if ( *mudconf.execscriptpath && (strchr(fargs[0], '/') != NULL) ) {
+         s_execorp = mudconf.execscriptpath;
+         while ( *s_execorp && (isalnum(*s_execorp) || isspace(*s_execorp)) ) {
+            s_execorp++;
+         }
+         if ( *s_execorp ) {
+            safe_str("#-1 INVALID CHARS IN OVERRIDE.  MUST BE WHITESPACE OR ALPHANUMERIC.", buff, bufcx);
+            return;
+         }
+         s_execor = alloc_lbuf("execscript_exceptions");
+         s_execorp = alloc_lbuf("execscript_exceptions2");
+         strcpy(s_execor, mudconf.execscriptpath);
+         strcpy(s_execorp, fargs[0]);
+         s_tptr = s_execorp;
+         i_execor = 0;
+         while ( *s_tptr ) {
+            if ( *s_tptr == '/' ) {
+               *s_tptr = '\0';
+               break;
+            }
+            s_tptr++;
+         }
+         if ( !lookup(s_execorp, s_execor, -2, &i_execor) ) {
+            free_lbuf(s_execor);
+            free_lbuf(s_execorp);
+            safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+            return;
+         }
+         free_lbuf(s_execor);
+         free_lbuf(s_execorp);
+      } else {
+         safe_str("#-1 INVALID CHARS IN FILENAME", buff, bufcx);
+         return;
+      }
    }
 
    s_combine = alloc_lbuf("fun_execscript");
@@ -17463,38 +17717,70 @@ FUNCTION(fun_execscript)
             s_varupper++;
          }
          s_varstok = strtok_r(s_vars, (char *)" ", &s_varstokptr);
-         s_varset = alloc_sbuf("execscript_variables");
+         s_varset = alloc_mbuf("execscript_variables");
          i_count = 0;
          while ( s_varstok && *s_varstok ) {
-            if ( ok_attr_name(s_varstok) ) {
+            if ( (*s_varstok == '#') && (strchr(s_varstok, '/') != NULL) ) {
+               s_atrchr = s_atrname = strchr(s_varstok, '/');
+               *(s_atrname++) = '\0';
+               d_atrname = parse_dbref(s_varstok+1);
+               if ( !Good_chk(d_atrname) || !controls(player, d_atrname) ) {
+                  d_atrname = NOTHING;
+               }
+            } else {
+               s_atrchr = NULL;
+               s_atrname = s_varstok;
+               d_atrname = player;
+            }
+            if ( Good_chk(d_atrname) && ok_attr_name(s_atrname) ) {
                if ( i_count ) {
                   safe_chr(' ', sptr, &sptr2);
                }
-               safe_str(s_varstok, sptr, &sptr2);
+               if ( d_atrname != player ) {
+                  sprintf(s_varset, "D%d_%.*s", d_atrname, SBUF_SIZE, s_atrname);
+               } else {
+                  sprintf(s_varset, "%.*s", SBUF_SIZE, s_atrname);
+               }
+               safe_str(s_varset, sptr, &sptr2);
                i_count=1;
-               attr = atr_str(s_varstok);
+               attr = atr_str(s_atrname);
                if ( attr ) {
-                  s_vars2 = atr_pget(player, attr->number, &aowner, &aflags);
+                  s_vars2 = atr_pget(d_atrname, attr->number, &aowner, &aflags);
                   if ( *s_vars2 ) {
-                     sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+                     if ( d_atrname != player ) {
+                        sprintf(s_varset, "MUSHV_D%d_%.*s", d_atrname, SBUF_SIZE, s_atrname);
+                     } else {
+                        sprintf(s_varset, "MUSHV_%.*s", SBUF_SIZE, s_atrname);
+                     }
                      i_varset = setenv(s_varset, s_vars2, 1);
                      if ( i_varset != 0 ) {
-                        sprintf(s_buff, "Warning: Unable to set environment variable %.*s", (LBUF_SIZE-100), s_varstok);
+                        sprintf(s_buff, "Warning: Unable to set environment variable %.*s", (LBUF_SIZE-100), s_atrname);
                         notify_quiet(player, s_buff);
                      }
                   }
                   free_lbuf(s_vars2);
                }
             } else {
-               sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s'", (LBUF_SIZE-100), s_varstok);
+               if ( !Good_chk(d_atrname) ) {
+                  sprintf(s_buff, "Warning: Skipping invalid target dbref '%d'", d_atrname);
+               } else {
+                  if ( d_atrname != player ) {
+                     sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s' on object %d", (LBUF_SIZE-100), s_atrname, d_atrname);
+                  } else {
+                     sprintf(s_buff, "Warning: Skipping invalid attribute '%.*s'", (LBUF_SIZE-100), s_atrname);
+                  }
+               }
                notify_quiet(player, s_buff);
+            }
+            if ( s_atrchr ) {
+               *s_atrchr = '/';
             }
             s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
          }
          setenv((char *)"MUSHL_VARS", sptr, 1);
          s_varsbak = alloc_lbuf("svars_backup");
          strcpy(s_varsbak, sptr);
-         free_sbuf(s_varset);
+         free_mbuf(s_varset);
       }
       free_lbuf(s_buff);
       free_lbuf(s_vars);
@@ -17626,7 +17912,7 @@ FUNCTION(fun_execscript)
    }
 
    /* We also set the variables in use -back- based on setq regs and contents of MUSHL_VARS */
-   s_varset = alloc_sbuf("execscript_variables2");
+   s_varset = alloc_mbuf("execscript_variables2");
    if ( !i_noex ) {
       sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
       s_buff = alloc_lbuf("fun_execscript_errors");
@@ -17809,7 +18095,7 @@ FUNCTION(fun_execscript)
             *s_varupper = ToUpper(*s_varupper);
             s_varupper++;
          }
-         sprintf(s_varset, "MUSHV_%.*s", (SBUF_SIZE-7), s_varstok);
+         sprintf(s_varset, "MUSHV_%s", s_varstok);
          unsetenv(s_varset);
          s_varstok = strtok_r(NULL, (char *)" ", &s_varstokptr);
       }
@@ -17826,7 +18112,7 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_OWNERTOGGLES");
 
    free_lbuf(s_nregs);
-   free_sbuf(s_varset);
+   free_mbuf(s_varset);
    free_lbuf(s_combine);
 }
 
@@ -21047,6 +21333,123 @@ FUNCTION(fun_asin)
        }
        fval(buff, bufcx, val);
     }
+}
+/**** arguments
+ * arg0 - player/attribute
+ * arg1 - password
+ * arg2 - port
+ */
+FUNCTION(fun_account_owner)
+{
+   char *s_buff, *s_buffptr, *s_array[3], *s_tmp, *s_tmp2;
+   int i_port;
+   DESC *d, *dnext;
+  
+   if ( !Immortal(player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   if ( nfargs == 1 ) {
+      i_port = atoi(fargs[0]);
+      DESC_SAFEITER_ALL(d, dnext) {
+         if ( i_port == d->descriptor ) {
+            ival(buff, bufcx, d->account_owner);
+            break;
+         }
+      }
+      return;
+   }
+
+   if ( nfargs != 4 ) {
+      safe_str("#-1 FUNCTION (ACCOUNT_OWNER) EXPECTS 1 OR 4 ARGUMENTS [RECEIVED ", buff, bufcx);
+      ival(buff, bufcx, nfargs);
+      safe_chr(']', buff, bufcx);
+      return;
+   }
+
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] || !*fargs[3] ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+
+   i_port = atoi(fargs[2]);
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( i_port == d->descriptor ) {
+         s_buffptr = s_buff = alloc_lbuf("account_owner");
+         s_tmp = alloc_lbuf("account_owner2");
+         s_tmp2 = alloc_lbuf("account_owner3");
+         strcpy(s_tmp, (char *)"chk");
+         sprintf(s_tmp2, "%s/%s", fargs[0], fargs[1]);
+         s_array[0] = s_tmp2;
+         s_array[1] = fargs[3];
+         s_array[2] = s_tmp;
+         fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
+         safe_str(s_buff, buff, bufcx);
+         if ( atoi(s_buff) ) {
+            d->account_owner = lookup_player(player, fargs[0], 0);
+            memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+            strncpy(d->account_rawpass, fargs[3], sizeof(d->account_rawpass) - 1);
+         }         
+         free_lbuf(s_buff);
+         free_lbuf(s_tmp);
+         free_lbuf(s_tmp2);
+         return;
+      }
+   }
+   ival(buff, bufcx, 0);
+}
+
+FUNCTION(fun_account_login)
+{
+   DESC *d, *dnext;
+   int i_port, i_attr;
+   char *s_buff;
+   dbref i_player;
+   ATTR *attr;
+
+   if (!fn_range_check("ACCOUNT_LOGIN", nfargs, 3, 4, buff, bufcx)) {
+      return;
+   }
+   if ( !*fargs[0] || !*fargs[1] || !*fargs[2] ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   if ( !Immortal(player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   i_player = lookup_player(player, fargs[0], 0);
+   if ( !Good_chk(i_player) ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   attr = atr_str(fargs[1]);
+   if ( !attr ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+   i_attr = attr->number;
+   i_port = atoi(fargs[2]);
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( (i_port == d->descriptor) && !(d->flags & DS_CONNECTED) ) {
+         s_buff = alloc_lbuf("fun_account_login");
+         if ( nfargs > 3 ) {
+             sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
+         } else {
+             sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->account_rawpass);
+         }
+         if (check_connect_ex(d, s_buff, 1, i_attr))
+            ;
+         if ( d->flags & DS_CONNECTED ) {
+            ival(buff, bufcx, 1);
+         } else {
+            ival(buff, bufcx, 0);
+         }
+         free_lbuf(s_buff);
+         return;
+      }
+   }
+   ival(buff, bufcx, 0);
 }
 
 FUNCTION(fun_acos)
@@ -25261,7 +25664,7 @@ FUNCTION(fun_lcmds)
 FUNCTION(fun_array)
 {
    char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
-   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS];
+   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS], i_widthexp, i_widthchk, i_widthtmp;
    time_t it_now;
    ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
 
@@ -25305,10 +25708,12 @@ FUNCTION(fun_array)
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       i_type = atoi(fargs[4]);
-      if ( i_type != 0 )
-         i_type = 1;
+      if ( i_type < 0 )
+         i_type = 0;
+      if ( i_type > 3 )
+         i_type = 3;
    }
-   if ( (i_width == 0) && !sep )
+   if ( !(i_type & 2) && (i_width == 0) && !sep )
       sep = ' ';
 
    if ( sep == '\n' )
@@ -25330,6 +25735,12 @@ FUNCTION(fun_array)
    s_output = alloc_lbuf("fun_array2");
    split_ansi(strip_ansi(fargs[0]), s_input, insplit);
 
+   i_widthexp = 0;
+   if ( !i_width && (i_type & 2) && !sep ) {
+      i_width = strlen(s_input) / i_regs;
+      i_widthexp = strlen(s_input) % i_regs;
+   }
+
 
    for ( i = 0; i < i_regs; i++ ) {
       if ( !mudstate.global_regs[i] )
@@ -25341,11 +25752,17 @@ FUNCTION(fun_array)
    p_out = outsplit;
 
    /* Over then down */
-   if ( !i_type ) {
+   if ( !(i_type & 1) ) {
       i = 0;
       memset(s_output, '\0', LBUF_SIZE);
       s_outptr = s_output;
       i_kill = 0;
+      if ( i_widthexp ) {
+         i_widthchk = i_width + 1;
+         i_widthexp--;
+      } else {
+         i_widthchk = i_width;
+      }
       while ( s_inptr && *s_inptr) {
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
@@ -25357,7 +25774,13 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0)) ) ) {
+         if ( *s_inptr && ( (sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0)) ) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             if ( sep == '\r' ) {
                s_inptr++;
                p_in++;
@@ -25366,14 +25789,16 @@ FUNCTION(fun_array)
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  p_in = p_in - (s_inptr - s_ptr2);
-                  *(s_output + i) = '\0';
-                  s_inptr = s_ptr2;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     p_in = p_in - (s_inptr - s_ptr2);
+                     *(s_output + i) = '\0';
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } else {
@@ -25412,18 +25837,33 @@ FUNCTION(fun_array)
    } else {
       i = i_regcurr = 0;
       s_inptr = s_input;
+      if ( i_widthexp ) {
+         i_widthchk = i_width + 1;
+         i_widthexp--;
+      } else {
+         i_widthchk = i_width;
+      }
+      i_widthtmp = i_widthchk;
       while ( s_inptr && *s_inptr) {
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0))) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             if ( !sep ) {
                s_ptr2 = s_inptr;
-               i = i_width;
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  s_inptr = s_ptr2;
+               i = i_widthchk;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } 
@@ -25441,6 +25881,7 @@ FUNCTION(fun_array)
       memset(s_output, '\0', LBUF_SIZE);
       s_outptr = s_output;
       i_kill = 0;
+      i_widthchk = i_widthtmp;
       while ( s_inptr && *s_inptr) {
          *s_outptr = *s_inptr;
          clone_ansisplitter(p_out, p_in);
@@ -25452,19 +25893,27 @@ FUNCTION(fun_array)
          s_outptr++;
          p_out++;
          i++;
-         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_width) && (i_width != 0))) ) {
+         if ( *s_inptr && ((sep && (*s_inptr == sep)) || ((i == i_widthchk) && (i_widthchk != 0))) ) {
+            if ( i_widthexp ) {
+               i_widthchk = i_width + 1;
+               i_widthexp--;
+            } else {
+               i_widthchk = i_width;
+            }
             i = 0;
             if ( !sep ) {
                s_ptr2 = s_inptr;
                i = strlen(s_output);
-               while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
-                  s_ptr2--;
-                  i--;
-               }
-               if ( i > 0 ) {
-                  p_in = p_in - (s_inptr - s_ptr2);
-                  *(s_output + i) = '\0';
-                  s_inptr = s_ptr2;
+               if ( !(i_type & 2) ) {
+                  while ( (i > 0) && *s_ptr2 && !isspace(*s_ptr2) ) {
+                     s_ptr2--;
+                     i--;
+                  }
+                  if ( i > 0 ) {
+                     p_in = p_in - (s_inptr - s_ptr2);
+                     *(s_output + i) = '\0';
+                     s_inptr = s_ptr2;
+                  }
                }
                i = 0;
             } else {
@@ -28097,11 +28546,12 @@ FUNCTION(fun_parsestr)
 {
    char sep;
    char *s_tmpbuff, *s_fargs0, *s_fargs9, *args_ptr, *osep_pre, *osep_post, *savebuff[6],
-        *cp, *atextbuf, *atextbufptr, *c_transform, *p_transform, *target_result, *objstring, *result;
+        *cp, *atextbuf, *atextbufptr, *c_transform, *p_transform, *target_result, *objstring, *result,
+        *emit_result;
    int aflags, i_cntr, first, i_pass, i_type;
    dbref aname, target;
 
-   if (!fn_range_check("PARSESTR", nfargs, 2, 10, buff, bufcx))
+   if (!fn_range_check("PARSESTR", nfargs, 2, 11, buff, bufcx))
      return;
 
    if ( !*fargs[0] )
@@ -28198,6 +28648,13 @@ FUNCTION(fun_parsestr)
          }
          free_lbuf(s_tmpbuff);
       }
+   }
+
+   /* EMIT special prefix handling */
+   emit_result = NULL;
+   if ( (nfargs > 10) && *fargs[10] ) {
+      emit_result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                         fargs[10], cargs, ncargs, (char **)NULL, 0);
    }
 
    /* Handle FARGS8 -- Over-handler to check for transform evaluation */
@@ -28298,6 +28755,9 @@ FUNCTION(fun_parsestr)
            safe_str(s_fargs0+1, atextbuf, &atextbufptr);
      /* Handle emotes/emits */
      } else if ( *s_fargs0 == '|' ) {
+        if ( emit_result && *emit_result ) {
+           safe_str(emit_result, atextbuf, &atextbufptr);
+        }
         safe_str(s_fargs0+1, atextbuf, &atextbufptr);
      } else {
         safe_str(savebuff[1], atextbuf, &atextbufptr);
@@ -28358,17 +28818,20 @@ FUNCTION(fun_parsestr)
      }
      result = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, 
                    atextbuf, savebuff, 5, (char **)NULL, 0);
-     if ( first )
+     if ( first ) {
        safe_str(osep_pre, buff, bufcx);
+     }
      first = 1;
      safe_str(result, buff, bufcx);
      free_lbuf(result);
    }
    free_lbuf(atextbuf);
-   if ( c_transform )
+   if ( c_transform ) {
       free_lbuf(c_transform);
-   if ( p_transform )
+   }
+   if ( p_transform ) {
       free_lbuf(p_transform);
+   }
    free_lbuf(savebuff[0]);
    free_lbuf(savebuff[1]);
    free_lbuf(savebuff[2]);
@@ -28378,6 +28841,9 @@ FUNCTION(fun_parsestr)
    free_lbuf(osep_post);
    free_lbuf(s_fargs0);
    free_lbuf(s_fargs9);
+   if ( emit_result ) {
+      free_lbuf(emit_result);
+   }
 }
 
 /* ---------------------------------------------------------------------------
@@ -30669,6 +31135,12 @@ do_asort(char *s[], int n, int sort_type)
     }
 }
 
+void
+ns_do_asort(char *s[], int n, int sort_type) {
+   do_asort(s, n, sort_type);
+}
+
+
 FUNCTION(fun_sortlist)
 {
    char *s_strtok[MAX_ARGS], *s_strtokr[MAX_ARGS], *s_buff[MAX_ARGS], sep[2], *osep, sorttype, *s_chk, *s_osep;
@@ -31078,25 +31550,75 @@ FUNCTION(fun_sortby)
 #define SET_INTERSECT   2
 #define SET_DIFF        3
 
+int
+handle_set_comp(char *str1, char *str2, int sort_type) {
+   int i1, i2, result;
+   double d1, d2;
+
+   result = 0;
+   switch (sort_type) {
+      case FLOAT_LIST: /* Compare floats */
+         d1 = safe_atof(str1);
+         d2 = safe_atof(str2);
+         if ( d1 < d2 ) {
+            result = -1;
+         } else if ( d1 == d2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case DBREF_LIST: /* Compare dbref */
+         i1 = dbnum(str1);
+         i2 = dbnum(str2);
+         if ( i1 < i2 ) {
+            result = -1;
+         } else if ( i1 == i2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case NUMERIC_LIST: /* Compare numeric */
+         i1 = atoi(str1);
+         i2 = atoi(str2);
+         if ( i1 < i2 ) {
+            result = -1;
+         } else if ( i1 == i2 ) {
+            result = 0;
+         } else {
+            result = 1;
+         }
+         break;
+      case ALPHANUM_LIST: /* Alphanum list */
+      default: /* Alphanum list -- default */
+         result = strcmp(str1, str2);
+         break;
+   }
+   return(result);
+}
+
 static void
 handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type)
 {
     char *list1, *list2, *oldp;
     char *ptrs1[LBUF_SIZE], *ptrs2[LBUF_SIZE];
     char *startpoint = "";
-    int i1, i2, n1, n2, val, first;
+    int i1, i2, n1, n2, val, first, i_cmp;
 
     list1 = alloc_lbuf("fun_setunion.1");
+    memset(list1, '\0', LBUF_SIZE);
     strcpy(list1, fargs[0]);
     n1 = list2arr(ptrs1, LBUF_SIZE, list1, sep);
     do_asort(ptrs1, n1, sort_type);
 
     list2 = alloc_lbuf("fun_setunion.2");
+    memset(list2, '\0', LBUF_SIZE);
     strcpy(list2, fargs[1]);
     n2 = list2arr(ptrs2, LBUF_SIZE, list2, sep);
     do_asort(ptrs2, n2, sort_type);
 
-    i1 = i2 = 0;
+    i_cmp = i1 = i2 = 0;
     first = 1;
     oldp = startpoint;
 
@@ -31122,9 +31644,10 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                 if (!first)
                    safe_chr(osep, buff, bufcx);
                 first = 0;
-                if (strcmp(ptrs1[i1], ptrs2[i2]) < 0) {
+                i_cmp = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
+                if (i_cmp < 0) {
                     safe_str(ptrs1[i1], buff, bufcx);
-                   oldp = ptrs1[i1];
+                    oldp = ptrs1[i1];
                     i1++;
                 } else {
                     safe_str(ptrs2[i2], buff, bufcx);
@@ -31161,7 +31684,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
           break;
        case SET_INTERSECT: /* Copy only elements in both lists */
           while ((i1 < n1) && (i2 < n2)) {
-              val = strcmp(ptrs1[i1], ptrs2[i2]);
+              val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
               if (!val) {
                  /* Got a match, copy it */
                  if (!first)
@@ -31184,14 +31707,14 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
            break;
        case SET_DIFF:    /* Copy elements unique to list1 */
           while ((i1 < n1) && (i2 < n2)) {
-             val = strcmp(ptrs1[i1], ptrs2[i2]);
+             val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
              if (!val) {
                 /* Got a match, increment pointers */
                 oldp = ptrs1[i1];
                 while ((i1 < n1) && !strcmp(ptrs1[i1], oldp))
                    i1++;
                 while ((i2 < n2) && !strcmp(ptrs2[i2], oldp))
-                    i2++;
+                   i2++;
              } else if (val < 0) {
                /* Item in list1 not in list2, copy */
                if (!first)
@@ -31207,7 +31730,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                 oldp = ptrs2[i2];
                 i2++;
                 while ((i2 < n2) && !strcmp(ptrs2[i2], oldp))
-                    i2++;
+                   i2++;
              }
           }
           /* Copy remainder of list1 */
@@ -31351,8 +31874,8 @@ FUNCTION(fun_listinter)
 
 FUNCTION(fun_setunion)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31374,14 +31897,19 @@ FUNCTION(fun_setunion)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_UNION, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setunion");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_UNION, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 
 FUNCTION(fun_setdiff)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31403,14 +31931,19 @@ FUNCTION(fun_setdiff)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_DIFF, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setdiff");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_DIFF, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 
 FUNCTION(fun_setinter)
 {
-    char sep, osep;
-    int sort_type;
+    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    int sort_type, nitems;
 
     if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
        return;
@@ -31432,7 +31965,12 @@ FUNCTION(fun_setinter)
     else
        sort_type = ALPHANUM_LIST;
 
-    handle_sets(fargs, buff, bufcx, SET_INTERSECT, sep, osep, sort_type);
+    s_buffptr = s_buff = alloc_lbuf("fun_setinter");
+    handle_sets(fargs, s_buff, &s_buffptr, SET_INTERSECT, sep, osep, sort_type);
+    nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
+    do_asort(s_sorter, nitems, sort_type);
+    arr2list(s_sorter, nitems, buff, bufcx, osep);
+    free_lbuf(s_buff);
     return;
 }
 
@@ -33894,6 +34432,7 @@ FUNCTION(fun_create)
 {
    char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
    int nitems;
+   dbref thing;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_CREATE) ) {
@@ -33901,7 +34440,7 @@ FUNCTION(fun_create)
       return;
    }
 
-   if (!fn_range_check("CREATE", nfargs, 1, 3, buff, bufcx))
+   if (!fn_range_check("CREATE", nfargs, 1, 4, buff, bufcx))
       return;
 
    mudstate.store_lastcr = -1;
@@ -33955,6 +34494,27 @@ FUNCTION(fun_create)
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 break;
+      case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate.command_htab);
+                 if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
+                       cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
+                    notify(player, "Permission denied.");
+                    break;
+                 }
+                 if ( (nfargs > 3) ) {
+                    if ( *fargs[3] ) {
+                       thing = lookup_player(player, fargs[3], 0);
+                       if ( !Good_chk(thing) || !Controls(player, thing) ) {
+                          notify(player, "Invalid target for @robot.");
+                       } else {
+                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT), fargs[0], fargs[1]);
+                       }
+                    } else {
+                       notify(player, "Invalid target for @robot.");
+                    }
+                 } else {
+                    do_pcreate(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                 }
                  break;
       default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
@@ -34123,6 +34683,7 @@ FUNCTION(fun_mailsend)
    CMDENT *cmdp;
    char *s_body, *s_bodyptr;
    int i_key;
+   dbref i_target;
 
    if ( !(mudconf.sideeffects & SIDE_MAIL) ) {
       notify(player, "#-1 FUNCTION DISABLED");
@@ -34140,7 +34701,7 @@ FUNCTION(fun_mailsend)
       return;
    }
 
-   if (!fn_range_check("MAILSEND", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("MAILSEND", nfargs, 3, 5, buff, bufcx))
       return;
    if ( mudstate.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
@@ -34166,16 +34727,24 @@ FUNCTION(fun_mailsend)
          i_key = M_ANON;
    }
    i_key |= M_SEND;
+   i_target = player;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_target = lookup_player(player, fargs[4], 0);
+      if ( !Good_chk(i_target) || !Controls(player, i_target) ) {
+         safe_str("#-1 INVALID TARGET PLAYER", buff, bufcx);
+         return;
+      }
+   }
    s_bodyptr = s_body = alloc_lbuf("fun_mailsend");
    if ( *fargs[1] ) {
      safe_str(fargs[1], s_body, &s_bodyptr);
      safe_str("//", s_body, &s_bodyptr);
    }
    safe_str(fargs[2], s_body, &s_bodyptr);
-   if ( !isPlayer(player) && Good_chk(Owner(player)) ) {
-      do_mail(Owner(player), cause, i_key, fargs[0], s_body);
+   if ( !isPlayer(i_target) && Good_chk(Owner(i_target)) ) {
+      do_mail(Owner(i_target), cause, i_key, fargs[0], s_body);
    } else {
-      do_mail(player, cause, i_key, fargs[0], s_body);
+      do_mail(i_target, cause, i_key, fargs[0], s_body);
    }
    free_lbuf(s_body);
 }
@@ -35729,6 +36298,35 @@ FUNCTION(fun_cluster_stats)
    } /* Switch */
 }
 
+/*
+ * Tag: Retrieve the #dbref behind the named tag. Else return #-1
+ * merely a call to objecttag_get().
+ */
+
+FUNCTION(fun_tag)
+{
+  	dbref thing;
+    char* s_thing;
+
+    thing = objecttag_get(fargs[0]);
+    if (!Good_obj(thing)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else if (Cloak(thing) && (SCloak(thing)) && !Immortal(player)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else if (Cloak(thing) && !Wizard(player)) {
+      safe_str("#-1", buff, bufcx);
+    }
+    else
+    {
+      s_thing = alloc_sbuf("fun_tag");
+      sprintf(s_thing, "#%d", thing);
+      safe_str(s_thing, buff, bufcx);
+  	  free_sbuf(s_thing);
+    }
+}
+
 /* ---------------------------------------------------------------------------
  * flist: List of existing functions in alphabetical order.
  */
@@ -35739,6 +36337,8 @@ FUN flist[] =
     {"ABS", fun_abs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -35760,6 +36360,7 @@ FUN flist[] =
     {"ATAN", fun_atan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRCNT", fun_attrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ATTRPASS", fun_attrpass, 3, 0, CA_PUBLIC, CA_NO_CODE},
     {"AVG", fun_avg, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -35866,7 +36467,7 @@ FUN flist[] =
 #ifdef USECRYPT
     {"DECRYPT", fun_decrypt, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
-    {"DEFAULT", fun_default, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"DEFAULT", fun_default, 2, FN_NO_EVAL, CA_PUBLIC, 0},
     {"DELETE", fun_delete, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"DELEXTRACT", fun_delextract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
@@ -35927,7 +36528,7 @@ FUN flist[] =
     {"FOREACH", fun_foreach, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FULLNAME", fun_fullname, 1, 0, CA_PUBLIC, 0},
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"GET", fun_get, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GET", fun_get, 1, 0, CA_PUBLIC, 0},
     {"GET_EVAL", fun_get_eval, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -36301,12 +36902,13 @@ FUN flist[] =
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
-    {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"TAG", fun_tag, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TANH", fun_tanh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"TEL", fun_tel, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
     {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
@@ -36485,8 +37087,8 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
     ATTR *ap;
     char *np, *bp, *tpr_buff, *tprp_buff, *atext, *tpr2_buff, *tprp2_buff, 
          s_funlocal[100], s_minargs[4], s_maxargs[4], *s_chkattr, *s_chkattrptr,
-         *s_buffptr;
-    int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2;
+         *s_buffptr, *logbuf; 
+    int atr, aflags, count, i_tcount, count_owner, i_local, i_array[LIMIT_MAX], i, aflags2, stat;
     dbref obj, aowner, aowner2;
 
     i_local = 0;
@@ -36997,21 +37599,43 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
       ufp->owner = Owner(player);
       ufp->orig_owner = Owner(obj);
       if ( i_local ) {
+         stat = hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
+         stat = (stat < 0) ? 0 : 1;
+         if(!stat) {
+           notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+           logbuf = alloc_lbuf("");
+           sprintf(logbuf,"UNABLE TO ADD USER @LFUNC HASH: %s", ufp->name);
+           log_text(logbuf);
+           free(logbuf);
+           free(ufp);
+           free_sbuf(np);
+           return;
+         }
          if (!ulfun_head) {
             ulfun_head = ufp;
          } else {
             for (ufp2 = ulfun_head; ufp2->next; ufp2 = ufp2->next);
             ufp2->next = ufp;
          }
-         hashadd2(s_funlocal, (int *) ufp, &mudstate.ulfunc_htab,1);
       } else {
-         if (!ufun_head) {
-            ufun_head = ufp;
-         } else {
-            for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
-            ufp2->next = ufp;
-         }
-         hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
+         stat = hashadd2(np, (int *) ufp, &mudstate.ufunc_htab,1);
+         stat = (stat < 0) ? 0 : 1;
+         if(!stat) {
+           notify(player, "#-1 UNABLE TO ADD FUNCTION HASH");
+           logbuf = alloc_lbuf("");
+           sprintf(logbuf,"UNABLE TO ADD @FUNC HASH: %s", ufp->name);
+           log_text(logbuf);
+           free(logbuf);
+           free(ufp);
+           free_sbuf(np);
+           return;
+				}
+        if (!ufun_head) {
+           ufun_head = ufp;
+        } else {
+           for (ufp2 = ufun_head; ufp2->next; ufp2 = ufp2->next);
+           ufp2->next = ufp;
+        }
       }
    }
    ufp->obj = obj;

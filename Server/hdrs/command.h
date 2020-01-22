@@ -41,6 +41,7 @@ CMD_TWO_ARG_CMDARG(do_break);
 CMD_TWO_ARG_CMDARG(do_assert);
 CMD_ONE_ARG(do_progreset);		/* Force reset of the program prompt */
 CMD_NO_ARG(do_buff_free);
+CMD_TWO_ARG(do_cmdquota);		/* Establish command quota for target player */
 CMD_ONE_ARG(do_channel);
 CMD_NO_ARG(do_conncheck);
 CMD_TWO_ARG(do_chown);			/* Change object or attribute owner */
@@ -174,6 +175,7 @@ CMD_ONE_ARG(do_stats);			/* Display object type breakdown */
 CMD_TWO_ARG_CMDARG(do_sudo);		/* @sudo someone to do something */
 CMD_ONE_ARG(do_sweep);			/* Check for listeners */
 CMD_TWO_ARG_ARGV_CMDARG(do_switch);	/* Execute cmd based on match */
+CMD_TWO_ARG(do_tag);		/* Manage object tags */
 CMD_TWO_ARG_ARGV(do_teleport);		/* Teleport elsewhere */
 CMD_ONE_ARG(do_thaw);			/* THAW out a frozen queue entry */
 CMD_ONE_ARG(do_think);			/* Think command (ie: @pemit me=message) */

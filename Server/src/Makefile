@@ -504,12 +504,12 @@ verify:
 	runtest --tool mush --src ./testsuite
 
 realclean:
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT) netrhost~ 
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT) netrhost~ 
 	echo '' > .depend
 
 clean:
 	-cp -f $(bindir)/netrhost $(bindir)/netrhost~
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT)
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT)
 	echo '' > .depend
 
 include .depend

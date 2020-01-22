@@ -6,6 +6,9 @@
 
 #include "copyright.h"
 
+/* Define the codebase as RhostMUSH */
+#define RHOSTMUSH 1
+
 /* ---------------------------------------------------------------------------
  * Configuration section:
  *

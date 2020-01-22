@@ -79,7 +79,7 @@ extern int	FDECL(cf_modify_bits, (int *, char *, long, long, dbref, char *));
 extern int	FDECL(cf_modify_multibits, (int *, int *, char *, long, long, dbref, char *));
 extern void	FDECL(list_options_boolean, (dbref, int, char *));
 extern void	FDECL(list_options_values, (dbref, int, char *));
-extern void	FDECL(cf_display, (dbref, char *, int, char *, char **));
+extern void	FDECL(cf_display, (dbref, char *, int, char *, char **, int));
 extern void     FDECL(sideEffectMaskToString, (int, char *, char **));
 /* From udb_achunk.c */
 extern int	NDECL(dddb_close);
@@ -304,11 +304,14 @@ extern void	FDECL(divest_object, (dbref));
 extern dbref	FDECL(create_obj, (dbref, int, char *, char *, int, int));
 extern void	FDECL(destroy_obj, (dbref, dbref, int));
 extern void	FDECL(empty_obj, (dbref));
+extern int FDECL(objecttag_add, (char*, dbref));
+extern dbref FDECL(objecttag_get, (char*));
+extern int FDECL(objecttag_remove, (char*));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
-extern int	FDECL(check_pass, (dbref, const char *, int));
-extern dbref	FDECL(connect_player, (char *, char *, char *));
+extern int	FDECL(check_pass, (dbref, const char *, int, int, int));
+extern dbref	FDECL(connect_player, (char *, char *, char *, int, int));
 extern dbref	FDECL(create_player, (char *, char *, dbref, int, char *, int));
 extern int	FDECL(add_player_name, (dbref, char *));
 extern int	FDECL(delete_player_name, (dbref, char *));
@@ -618,12 +621,17 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CLONE_PARENT	0x00000040	/* Set parent on obj instd of cloning attrs */
 #define CLONE_ANSI	0x00000080	/* Ansify the name */
 
+#define CMDQUOTA_PORT   0x00000001	/* port optiom to @cmdquota */
+
+#define CONNCHECK_QUOTA 0x00000001	/* Check command quotas of connected ports */
+
 #define CONV_ALTERNATE	0x00000001
 #define CONV_ALL	0x00000002
 #define CONV_OVER	0x00000004
 
 #define CPATTR_CLEAR	0x00000001
 #define CPATTR_VERB	0x00000002
+#define CPATTR_VERIFY	0x00000004	/* Force verification on destionation attributes */
 
 #define	CRE_INVENTORY	0x00000000	/* Create object in my inventory */
 #define	CRE_LOCATION	0x00000001	/* Create object in my location */
@@ -699,6 +707,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EXAM_TREE	32	/* Examine Tree like Penn */
 #define EXAM_REGEXP	64	/* Examine by Regexp */
 #define EXAM_CLUSTER    128     /* Examine by Cluster */
+#define EXAM_DISPLAY	256	/* Do  ansified display of examine */
 
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */
@@ -874,6 +883,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define	PASS_ANY	1	/* name=newpass */
 #define	PASS_MINE	2	/* oldpass=newpass */
+#define PASS_ATTRIB	4	/* Password attribute */
 
 #define	PCRE_PLAYER	1	/* create new player */
 #define PCRE_REG     	2	/* Register on @pcreate */
@@ -1062,6 +1072,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SNAPSHOT_VERIFY 16	/* Verify and sanity check snapshot file */
 #define SNAPSHOT_UNALL	32	/* Unload for a list */
 #define SNAPSHOT_OVER	64	/* Overwrite file if it exists */
+#define SNAPSHOT_ATTRS  128	/* load attributes only */
+#define SNAPSHOT_POWER	256	/* load powers only */
+#define SNAPSHOT_FLAGS	512	/* load flags only */
+#define SNAPSHOT_TOGGL	1024	/* load toggles only */
+#define SNAPSHOT_OTHER  2048	/* load other only */
+#define SNAPSHOT_DPOWER 4096	/* load depowers only */
 
 #define SITE_REG	1
 #define SITE_FOR	2
@@ -1170,6 +1186,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define BLACKLIST_CLEAR	2	/* Clear blacklist */
 #define BLACKLIST_LOAD	4	/* Load blacklist.txt file */
 #define BLACKLIST_MASK	8	/* Load blacklist.txt file */
+#define BLACKLIST_NODNS 16	/* DNS toggle for @blacklist */
+#define BLACKLIST_ADD	32	/* Hot-Add an entry to @blacklist (with matching mask) */
+#define BLACKLIST_DEL	64	/* Hot-Delete an entry to @blacklist (with matching mask) */
+#define BLACKLIST_SRCH	128	/* Search by wildcard IP address */
 
 #define WAIT_PID        1       /* Re-wait a PID process */
 #define WAIT_UNTIL	2	/* Wait until specified time */
@@ -1182,11 +1202,16 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
 #define DYN_SUGGEST	8	/* Allow suggestions in dynhelp -- multi-option */
 #define DYN_QUERY	16	/* Do a line by line 'comparison' of the code */
+#define DYN_SUBEVAL	32	/* Just do percent substitution replacments */
 
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
 #define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
+
+#define TAG_ADD	1	/* Set new object tag */
+#define TAG_REMOVE	2 /* Remove existing tag */
+#define TAG_LIST	4	/* List all object tags */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */

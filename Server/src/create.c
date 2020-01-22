@@ -1271,13 +1271,17 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     CMDENT *cmdp;
 
     if ( (key & PCRE_REG) && !Wizard(player) ) {
-	notify(player, "Permission denied.");
+        if ( !(key & SIDEEFFECT) ) {
+	   notify(player, "Permission denied.");
+        }
 	return;
     }
     if ( !(key & PCRE_ROBOT) && ((!Wizard(player) && !Admin(player) &&
 	 !HasPriv(player, NOTHING, POWER_PCREATE, POWER4, POWER_LEVEL_NA)) ||
 	DePriv(player, NOTHING, DP_PCREATE, POWER7, POWER_LEVEL_NA)) ) {
-	notify(player, "Permission denied.");
+        if ( !(key & SIDEEFFECT) ) {
+	   notify(player, "Permission denied.");
+        }
 	return;
     }
     i_ansi = 0;
@@ -1285,7 +1289,9 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
        cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
-          notify(player, "Permission denied.");
+          if ( !(key & SIDEEFFECT) ) {
+	     notify(player, "Permission denied.");
+          }
           return;
        }
        i_ansi = 1;
@@ -1336,13 +1342,17 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
              log_text((char *) ".  Issued by ");
              log_name(cause);
           ENDLOG
-          notify(player, "Unable to create player.  Unable to validate enactor site information.");
+          if ( !(key & SIDEEFFECT) ) {
+             notify(player, "Unable to create player.  Unable to validate enactor site information.");
+          }
           return;
        }
        switch (reg_internal(name2, pass, (char *)e, 1, NULL, name3, i_ansi)) {
           case 0:
             newplayer = lookup_player(player, name2, 0);
-            notify(player,unsafe_tprintf("Player '%s [#%d]' autoregistered to email '%s'.", name2, newplayer, pass));
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player,unsafe_tprintf("Player '%s [#%d]' autoregistered to email '%s'.", name2, newplayer, pass));
+            }
 	    STARTLOG(LOG_PCREATES, "CRE", "AREG")
 	        log_name(newplayer);
 	    log_text((char *) " created by ");
@@ -1353,15 +1363,19 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
             break;
           case 1:
             newplayer = lookup_player(player, name2, 0);
-            if ( Good_obj(newplayer) && newplayer != NOTHING )
-               notify(player,"Bad character name in autoregistration.  Player already exists.");
-            else
-               notify(player,"Bad character name in autoregistration.  Invalid characters.");
+            if ( !(key & SIDEEFFECT) ) {
+               if ( Good_obj(newplayer) && newplayer != NOTHING )
+                  notify(player,"Bad character name in autoregistration.  Player already exists.");
+               else
+                  notify(player,"Bad character name in autoregistration.  Invalid characters.");
+            }
             break;
           case 2:
             newplayer = lookup_player(player, name2, 0);
-            notify(player,"Warning: Autoregistration email send failed.  Unable to send out email.");
-            notify(player,unsafe_tprintf("Player '%s [#%d]' created but NOT emailed to '%s'.", name2, newplayer, pass));
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player,"Warning: Autoregistration email send failed.  Unable to send out email.");
+               notify(player,unsafe_tprintf("Player '%s [#%d]' created but NOT emailed to '%s'.", name2, newplayer, pass));
+            }
 	    STARTLOG(LOG_PCREATES, "CRE", "AREG")
 	        log_name(newplayer);
 	    log_text((char *) " created by ");
@@ -1371,26 +1385,39 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
 	    ENDLOG
             break;
           case 3:
-            notify(player,"Spaces in email addresses are not allowed.");
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player,"Spaces in email addresses are not allowed.");
+            }
             break;
           case 4:
-            notify(player,"@areg limit on specified email reached.  Permission denied.");
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player,"@areg limit on specified email reached.  Permission denied.");
+            }
             break;
           case 5:
-            notify(player, "Invalid email specified.");
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player, "Invalid email specified.");
+            }
             break;
           case 6:
-            notify(player, "That email address is not allowed.");
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player, "That email address is not allowed.");
+            }
             break;
           case 7:
-            notify(player, "Invalid character detected in email.");
+            if ( !(key & SIDEEFFECT) ) {
+               notify(player, "Invalid character detected in email.");
+            }
             break;
        }
     } else {
-       isrobot = (key == PCRE_ROBOT) ? 1 : 0;
+       isrobot = (key & PCRE_ROBOT) ? 1 : 0;
        newplayer = create_player(name2, pass, player, isrobot, name3, i_ansi);
+       mudstate.store_lastcr = newplayer;
        if (newplayer == NOTHING) {
-	   notify_quiet(player, unsafe_tprintf("Failure creating '%s'", name2));
+           if ( !(key & SIDEEFFECT) ) {
+	      notify_quiet(player, unsafe_tprintf("Failure creating '%s'", name2));
+           }
 	   return;
        }
        if (isrobot) {
@@ -1403,10 +1430,12 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
 	   else
 	     dest = Location(player);
 	   move_object(newplayer, dest);
-	   notify_quiet(player,
-		        unsafe_tprintf("New robot '%s' created with password '%s' [dbref #%d]",
-			        name2, pass, newplayer));
-	   notify_quiet(player, "Your robot has arrived.");
+           if ( !(key & SIDEEFFECT) ) {
+	      notify_quiet(player,
+		           unsafe_tprintf("New robot '%s' created with password '%s' [dbref #%d]",
+			           name2, pass, newplayer));
+	      notify_quiet(player, "Your robot has arrived.");
+           }
 	   STARTLOG(LOG_PCREATES, "CRE", "ROBOT")
 	       log_name(newplayer);
 	   log_text((char *) " created by ");
@@ -1414,9 +1443,11 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
 	   ENDLOG
        } else {
 	   move_object(newplayer, mudconf.start_room);
-	   notify_quiet(player,
-		        unsafe_tprintf("New player '%.32s' created with password '%.32s' [dbref #%d]",
-			        name2, pass, newplayer));
+           if ( !(key & SIDEEFFECT) ) {
+	      notify_quiet(player,
+		           unsafe_tprintf("New player '%.32s' created with password '%.32s' [dbref #%d]",
+			           name2, pass, newplayer));
+           }
 	   STARTLOG(LOG_PCREATES | LOG_WIZARD, "WIZ", "PCREA")
 	       log_name(newplayer);
 	   log_text((char *) " created by ");

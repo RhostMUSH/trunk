@@ -166,7 +166,7 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
     goto abort;
   }
 
-  sock = door_tcp_connect(host, "110", d, id);
+  sock = door_tcp_connect(host, "110", d, id, 0);
   if (sock < 0) {
     queue_string(d, "Connection to mail server failed.");
   } else {

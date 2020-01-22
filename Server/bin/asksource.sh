@@ -87,9 +87,9 @@ BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
 MORELIBS="\$(EXTLIBS)"
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
-BOPTIONS="1 2 3 4 5 6 7"
+BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
 DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
@@ -110,13 +110,29 @@ then
    X[25]="X"
 fi
 # disable debugmon if on win10 bash
-if [ $(grep -c Microsoft /proc/version) -gt 0 -o $(grep -ic cygwin /proc/version) -gt 0 ]
+if [ "$(grep -c Microsoft /proc/version 2>/dev/null)" -gt 0 -o "$(grep -ic cygwin /proc/version 2>/dev/null)" -gt 0 ]
 then
    X[19]="X"
 fi
-gl_ldd=$(ldd --version 2>/dev/null|head -1|cut -f2 -d')')
-gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
-gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+ldd --version > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+   pkg --version > /dev/null 2>&1
+   if [ $? -eq 0 ]
+   then
+      gl_ldd=$(pkg info|grep -i "^glib-"|cut -f2 -d".")
+      gl_ldd1=$(echo ${gl_ldd}|cut -f2 -d"-"|cut -f1 -d".")
+      gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+   else
+      # we have no idea of the version.  Pretend no.
+      gl_ldd1=0
+      gl_ldd2=0
+   fi        
+else
+   gl_ldd=$(ldd --version 2>/dev/null|head -1|cut -f2 -d')')
+   gl_ldd1=$(echo ${gl_ldd}|cut -f1 -d".")
+   gl_ldd2=$(echo ${gl_ldd}|cut -f2 -d".")
+fi
 if [ -z "${gl_ldd1}" ]
 then
    gl_ldd1=0
@@ -163,7 +179,7 @@ done
 # Load default options
 if [ -f ./asksource.default ]
 then
-   . ./asksource.default
+   . $(pwd)/asksource.default
 fi
 DEF[1]="-DUSE_SIDEEFFECT"
 DEF[2]="-DTINY_U"
@@ -191,6 +207,7 @@ DEF[23]=""
 DEF[24]=""
 DEF[25]="-DPCRE_BUILTIN"
 DEF[26]="-DCRYPT_GLIB2"
+DEF[27]="-DHSPACE"
 
 if [ "${MYSQL_VER}" != "0" ]
 then
@@ -205,7 +222,6 @@ DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
 DEFB[5]="-DQDBM"
-DEFB[7]="-DHSPACE"
 
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
@@ -414,11 +430,10 @@ echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[1
 echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[18]}] 18. Secured Sideeffects"
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
-echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
+echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords   [${X[27]}] 27. Enable HSpace"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
-echo "[${XB[7]}] B7. HSpace v4.2"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -685,6 +700,8 @@ info() {
      26) echo "This option encrypts your passwords using a random seed and"
          echo "the SHA512 encryption method.  It will fall back to standard"
          echo "DES encryption for compatibility regardless."
+         ;;
+     27) echo "This option enables the HSpace 4.2 library."
          ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
@@ -1215,7 +1232,7 @@ xtraopts() {
       else
          MARKER=""
       fi
-      . ${DUMPFILE} 2>/dev/null
+      . $(pwd)/${DUMPFILE} 2>/dev/null
       echo "Loading default config options from slot ${SAVEANS} [${MARKER:-GENERIC}]"
    elif [ "${DUMPFILE}" = "/" ]
    then
@@ -1292,7 +1309,7 @@ loadopts() {
       else
          MARKER=""
       fi
-      . ${DUMPFILE} 2>/dev/null
+      . $(pwd)/${DUMPFILE} 2>/dev/null
       echo "Loading previous config options from slot ${SAVEANS} [${MARKER:-GENERIC}]"
    elif [ "${DUMPFILE}" = "/" ]
    then
@@ -1396,7 +1413,7 @@ saveopts() {
 loadtemplate() {
    if [ -f asksource.save_template ]
    then
-      . ./asksource.save_template 2>/dev/null
+      . $(pwd)/asksource.save_template 2>/dev/null
    fi
 }
 ###################################################################
@@ -1405,12 +1422,12 @@ loadtemplate() {
 # LOADLASTSTATE - Load the last state
 ###################################################################
 loadlaststate() {
+   DUMPFILE="asksource.save_default"
    if [ ! -f ${DUMPFILE} ]
    then
       return
    fi
-   DUMPFILE=asksource.save_default
-   . ${DUMPFILE} 2>/dev/null
+   . $(pwd)/${DUMPFILE} 2>/dev/null
 }
 
 ###################################################################
@@ -1939,11 +1956,6 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
-   if [ "${XB[7]}" = "X" ]
-   then
-      echo "Adding stdc++ library for HSpace...."
-      MORELIBS="${MORELIBS} -lstdc++"
-   fi     
    MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 
@@ -1990,7 +2002,7 @@ updatemakefile() {
       echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
       echo "COMP=qdbm" > ../src/do_compile.var
    else
-      echo "CUSTLIBS = -L../src/gdbm-1.8.3/.libs/ -lgdbm_compat -L../src/gdbm-1.8.3/ -lgdbm" >> ../src/custom.defs
+      echo "CUSTLIBS = -L../src/gdbm/.libs/ -lgdbm_compat -L../src/gdbm/ -lgdbm" >> ../src/custom.defs
       echo "COMP=gdbm" > ../src/do_compile.var
    fi
    chmod 755 ../src/do_compile.var
@@ -2000,18 +2012,18 @@ updatemakefile() {
       echo "# This is needed if server hosting us has extreme low memory and no swap" >> ../src/custom.defs
       echo "CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192" >> ../src/custom.defs
    fi
+   if [ "${X[27]}" = "X" ]
+   then
+      echo "# HSpace Library" >> ../src/custom.defs
+      echo "Enabling HSpace library. Please wait..."
+      echo "HSPACE = 1" >> ../src/custom.defs
+      echo "HSPACE = 1" >> ../src/do_compile.var
+   fi
    if [ "${MS[1]}" = "X" ]
    then
       echo "# MySQL compatibility engine" >> ../src/custom.defs
       echo "Generating Makefile for MySQL generation.  Please wait..."
       echo "USEMYSQL = 1" >> ../src/custom.defs
-   fi
-   if [ "${XB[7]}" = "X" ]
-   then
-      echo "Generating Makefile for HSpace. Please wait..."
-      echo "# HSpace Support" >> ../src/custom.defs
-      echo "HSPACE=1" >> ../src/custom.defs
-      echo "HSPACE=1" >> ../src/do_compile.var
    fi
 }
 
@@ -2050,11 +2062,85 @@ main() {
       if [ ${BETAOPT} -eq 2 ]
       then
           BETACONTINUE=2
+          lc_stack=$(ulimit -s)
+          if [ -z "${lc_stack}" ]
+          then
+             lc_stack=1024
+          fi
           while [ $BETACONTINUE -eq 2 ]
           do
              lbufmenu
              read ANS
              parse $ANS
+             if [ "${XL[5]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 16384 ]
+                then
+                   echo "You must have stack size set to 16384 or higher to use 64K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 16500 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[5]=" "
+                   if [ ${lc_stack} -ge 8192 ]
+                   then
+                      XL[4]="X"
+                   elif [ ${lc_stack} -ge 4096 ]
+                   then
+                      XL[3]="X"
+                   elif [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[4]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 8192 ]
+                then
+                   echo "You must have stack size set to 8192 or higher to use 32K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 8400 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[4]=" "
+                   if [ ${lc_stack} -ge 4096 ]
+                   then
+                      XL[3]="X"
+                   elif [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[3]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 4096 ]
+                then
+                   echo "You must have stack size set to 4096 or higher to use 16K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 4200 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[3]=" "
+                   if [ ${lc_stack} -ge 2048 ]
+                   then
+                      XL[2]="X"
+                   else
+                      XL[1]="X"
+                   fi
+                fi
+             elif [ "${XL[2]}" = "X" ]
+             then
+                if [ ${lc_stack} -lt 2048 ]
+                then
+                   echo "You must have stack size set to 2048 or higher to use 8K lbufs."
+                   echo "Yours is currently set to ${lc_stack}.  ulimit -s 2100 to set."
+                   echo "< HIT RETURN KEY TO CONTINUE >"
+                   read ANS
+                   XL[2]=" "
+                   XL[1]="X"
+                fi
+             fi
           done
           BETAOPT=0
       fi

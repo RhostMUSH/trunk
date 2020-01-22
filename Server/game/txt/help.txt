@@ -177,7 +177,7 @@
   
 & API
   Topic: API
-
+  
   RhostMUSH has a process where it allows API connections to happen on another
   port.  It requires to have the api_port specified to a unique port for the
   API handler, then various optional config parameters to optimize how the
@@ -192,16 +192,16 @@
   It uses Basic Authorization and encapsulates.  Example of using curl for
   login authentication to the API's object would be:
              curl --user "#123:foobar"
-
+  
   The dbref# would be #123, and the password you want to authenticate would
   be 'foobar'.
-
+  
   Example curl commands that are used for the API handler are:
   GET Examples (this is from a command line using the 'curl' application)
 > curl -X GET --user "#12:ya" -H "Exec: [lnum(10)]" --head http://localhost:2222
   
   POST Example: (this is from a command line using the 'curl' application)
-> curl -X POST --user "#12:ya" -H "Exec: @emit hi!" --head http://localhost:2222
+> curl -X POST --user "#12:ya" -H "Exec: @emit hi." --head http://localhost:2222
   
   To have a target dbref# enabled for API processing, please alert a staff
   on your game as it requires staff approval and authentication to enable
@@ -673,7 +673,7 @@
     attribute in question REGEXP (help attribute flag).  To use 
     regular expressions instead, please check 'help REGEXPS'.
   
-  See Also: ATTRIBUTE FLAG, REGEXP, $-command
+  See Also: ATTRIBUTE FLAG, REGEXP, $-command, ^-listens
 
 & MAX ARGS
   Topic: MAX ARGS
@@ -711,6 +711,16 @@
   pattern formatting must be set DEFAULT (attribute flag).  The desc is
   passed into the formatting as '%0'.  Local formatting has priority
   over global formatting.
+  
+  The DEFAULT attribute flag can be set in two ways.
+    1.  Individually on the attribute: @set #dbref/attribute=default
+    2.  Set it globally through two methods:
+        A.  Internal (built-in): @admin attr_access=attribute default  
+        B.  User defined:        @attribute/access attribute=default
+  
+  Option #1 will be cleared if or when the attribute is cleared.
+  Option #2-A can be done through the netrhost.conf file for permanence.
+  Option #2-B is always permanent and doesn't have to be re-issued.
   
   Note: Most RhostMUSHes will be configured to use &FORMAT<attr>.
         See '@list options system' to discover which method is in use.
@@ -969,13 +979,9 @@
   This space reserved.
   
 & COPYRIGHT
-  All modifications and changes to the hardcode of this mush called RhostMUSH
-  are privileged. Any copying of code in part or in full of the changes we have
-  done is not allowed.  If concepts or ideas are borrowed, it is requested
-  that permission be gotten first and required that credits be given to this
-  mush for ideas gotten from this server.  This text can not be modified,
-  changed, or removed on other servers.
-  
+  RhostMUSH is open source and freely distributed.  You can get it
+  on github at https://github.com/RhostMUSH/trunk
+
 & VATOVZ
   Command: @va[/<switch>] <object>=<string>
            ...
@@ -1016,6 +1022,8 @@
   
   For regular expression (regex) command syntax, please refer to:
                     'help REGEXPS'
+  
+  See Also: ^-listens, lcmds(), lattr()
   
 & colors
   
@@ -1116,7 +1124,7 @@
   
   See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
   
-& changes
+& historical
   For a list of actual changes, see 'help revis'.
   
   RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
@@ -1196,9 +1204,14 @@
   to indicate the status of the attribute.  The list of flag letters that
   show up is shown in 'help examine2'
   
-{ 'help examine2' for more }
+{ 'help examine2' for what the flag letters mean }
+{ 'help examine3' for what the global flag letters mean }
+{ 'help examine4' for what the switches are and examples }
   
 & examine2
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   The following flag letters show up with attributes when examined:
     + - The attribute is locked, it does not change ownership when the
         object is @chowned and may not be modified.
@@ -1221,9 +1234,13 @@
     B - The attribute is modifiable by Architect or higher only.
     g - The attribute is modifiable by Guildmaster or higher only.
   
-{ 'help examine3' for more }
+{ 'help examine3' for what the global flag letters mean }
+{ 'help examine4' for what the switches are and examples }
   
 & examine3
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   If expanded looks are enabled (@list options to verify), you may also
   see global attributes on attributes.  These are surrounded by []'s.
   The following global attributes can exist:
@@ -1248,8 +1265,12 @@
     B - The attribute is modifiable by Architect or higher only.
     g - The attribute is modifiable by Guildmaster or higher only.
   
-{ 'help examine4' for more }
+{ 'help examine4' for what the switches are and examples }
+
 & examine4
+  (CONTINUED)
+  Command: examine[/<switches>] <object>[/<wild-attrib>]
+  
   If you specify a wildcarded attribute name, then only those attributes
   that match are shown.  So, 'exam me/v?' will show all your attributes that
   start with v and are two characters long.
@@ -1267,6 +1288,7 @@
                 Only useful with using #obj/attr format.
      /regexp  - Use regular expression for wildcard matches.
      /cluster - Examines the specified cluster (and all members).
+     /display - Ansify matching parenthesis, braces,and brackets.
   
   
   Example:
@@ -1282,16 +1304,26 @@
 & @protect
   Command: @protect[/<switch>] [<player-name>]
   
-  This command 'protects' your current user name from being used by anyone
-  else.  Essentially this 'locks in' your name so that if you ever switch
-  your name to something else, no one else will be able to use the name
-  that you have marked for protection.  You have full access to any name
-  you protect.  You can only protect your currently active name.  You may
-  delete any name you, yourself, have protected.  Wizards may remove any
-  protected name.  Immortals bypass protected names.
+  This command 'protects' your current user name or if enabled the specified
+  player name from being used by anyone else.  Essentially this 'locks in' 
+  your name so that if you ever switch your name to something else, no one 
+  else will be able to use the name that you have marked for protection.  
+  You have full access to any name you protect.  
   
-  Note: See @list options system to see what is enabled.
+  You can only protect your currently active name unless the enhanced 
+  options are enabled.  You may delete any name you, yourself, have protected.
+  Wizards may remove any protected name.  Immortals bypass protected names and
+  may also remove them.
   
+  Any name that you have already added you may /alias or /unalias by name
+  regardless of the enhanced option being enabled.
+  
+  Notes: 
+    - See @list options system to see if the enhanced option is enabled.
+    - An @alias is already a protected name, but you can NOT switch to it.
+    - You can @protect/add or /del an @alias'd name, but can not /alias it.
+    - If you @protect/del an @alias name, it does not remove the @alias
+   
   Switches available:
     /list    - (default) - list the names you current have protected.  This
                does not take any arguments.
@@ -1303,14 +1335,44 @@
                @alias with regards to player lookups.
     /unalias - This removes the protected name as an alias.  You can not
                remove the active playername as an alias.
+ 
+{ 'help @protect2' for examples and @admin params effective } 
+
+& protect_addenh
+& max_name_protect
+& @protect2
+  (CONTINUED)
+  Command: @protect[/<switch>] [<player-name>]  
+  
+  The following wizard @admin parameters exist (see wizhelp for help):
+    protect_addenh   -- this is the toggle that enables/disables enhanced adds
+    max_name_protect -- this controls total number of names to be protected
   
   Examples:
-    > say name(me)
-    You say "Bob"
+    > say [name(me)] [num(me)]
+    You say "Bob #123"
     > @protect/add
     Your current name has been added to your protect list.
+    > @protect/add Simon            (if enhanced mode enabled)
+    The name has been added to your protect list.
+    > @protect/add Fred             (if enhanced mode enabled)
+    The name has been added to your protect list.
     > @protect/del Bob
     You have successfully deleted 'Bob' from your protect list.
+    > @protect/alias Simon
+    You have successfully activated 'simon' as an alias.
+    > @protect/alias Fred
+    You have successfully activated 'fred' as an alias.
+    > @protect/unalias Fred
+    You have successfully de-activated 'fred' as an alias.
+    > @protect/list
+    +------------------------------+----------------------------------+-------+
+    | Player Name Protected        | Dbref#   [ Player Name         ] | Alias |
+    +------------------------------+----------------------------------+-------+
+    | Simon                        | #123     [ Bob                 ] |   Y   |
+    | Fred                         | #123     [ Bob                 ] |   N   |
+    +------------------------------+----------------------------------+-------+
+    You have 2 out of 10 names protected.
   
   See Also: @name, @alias, listprotection()
   
@@ -5012,54 +5074,76 @@
   You can only copy from objects and attributes you control and only onto
   objects and attributes you control.  You have to specify a valid attribute
   to copy as well.  There are switches available for @cpattr.  These are:
-      /clear  - this erases the attribute on the originating object if
-                a copy was successful.
+  
+      /clear   - this erases the attribute on the originating object if
+                 a copy was successful.
+      /verbose - this will expand wildcard attributes that are copied from
+                 source.
+      /verify  - this will verify the destination attribute and not use
+                 default behavior (see below) if the attribute is not valid.
+  
+  Note: default behavior if the destination attribute is invalid is to use
+        the source attribute for the destination instead.  Using the /verify
+        switch overrides this behavior and will skip any invalid attribute
+        naming conventions. 
   
   You may specify the same object if you wish to move attributes on the same
   object.  You may specify wildcards for attributes.
   
 { 'help cpattr2' for examples on all combinations and explanations }
   
+& @CPATTR2
 & CPATTR2
   Command: @cpattr (Continued 2 of 3)
   Syntax:  @cpattr <object>/<attribute>=<object1>/<attr1>/<attr2>
     
       - This will copy the given attribute to 'attr1' and 'attr2' of the
         the destination object.  You may specify from one to any number
-        of destination attributes.
+        of destination attributes.  You may use the /verify switch to
+        enforce destination attribute validation.
   
   Syntax: @cpattr <object>/<attribute>=<object1>,<object2>/<attr1>
   
       - This will copy the given attribute to an attribute of the same name
         on the first object and copy it with the name 'attr1' on the second
         object.  Any number of objects may be listed.  You may specify
-        multiple attributes per object as well.
- 
+        multiple attributes per object as well.  You may use the /verify
+        switch to enforce destination attribute validation.
+   
   Syntax: @cpattr <object>/<wildcard>=<object1>,...,<objectX>
  
       - This will copy all attributes matching the wildcard to the destination
         object(s).  You may specify from one to any number of destination
-        objects but must control the objects to copy the attributes.
+        objects but must control the objects to copy the attributes.  You may
+        use the /verbose switch to expand wildcards to all the attributes that
+        matched, and you may use the /verify switch to validate attributes.
+        However, in this syntax, using /validate is redundant as source 
+        attributes will all be valid.
    
 { 'help cpattr3' for more }
   
+& @CPATTR3
 & CPATTR3
   Command: @cpattr (Continued 3 of 3)
   Syntax: @cpattr <attribute>=<object>/<attrib>,...
   
       - This copies the attribute on the ENACTOR to the target.  You can
-        specify multiple targets.
+        specify multiple targets.  You may usethe /verify switch to enforce
+        attribute validation.
   
   Syntax: @cpattr/clear <args>
- 
+   
       - The clear switch is usable with all the previous mentioned @cpattr
         commands. (help cpattr2 for help on these).  This will work just like
         the prior, except this will also purge (remove) the attributes that
         are being copied from the original object.  This acts basically like
-        a move.
+        a move.  You may use the /verify switch to verify on the /clear to
+        enforce clearing will not happen on bad destination naming.
  
   @cpattr returns detailed information of objects copied from and to and
-  any attributes successfully copied.
+  any attributes successfully copied.  With the /verify switch it will also
+  list any invalid attributes attempting to be copied.  /verbose will expand
+  all wildcards on source being copied.
    
   See Also: @mvattr, @set, &
   
@@ -5242,8 +5326,15 @@
   
 & @password
   Command: @password <old password>=<new password>
+           @password/attribute <target>/<attribute>=<password>
  
-  This command changes your password.
+  This command changes your password.  This will also optionally set
+  a password into a user-defined attribute that they have access to.
+  
+  The following switches are available:
+    /attribute -- Set the specified attribute into the attribute.
+                  Note: <password> can't exceed 2048 characters.
+                        This may change based on crypto settings.
   
   If the system uses the old DES style of passwords, you are limited
   to 8 character passwords.
@@ -5261,8 +5352,29 @@
   
   Please see @list options system to see what method of password
   algo is currently in place.
-   
-  See Also: @name
+ 
+  Of interest, breaking apart the SHA512 password segment, you will 
+  see a string in the form:
+      $6$<seed>$<passwd> 
+  
+  The breakdown:
+      $6$      -- The type of encryption.  In this case SHA2 format.
+      <seed>   -- the randomized seed that is applied to the passwd.
+      <passwd> -- the encrypted SHA512 hashed password
+  
+  Examples:
+    > @password myoldeasypass=Ui8^lpV4.Tx2n@vwy   (set a very complex pass)
+    Set.
+    > @password/attribute me/va=test
+    Set - Bob/VA: set with encrypted password.
+    > say v(va)
+    You say "$6$MDf;-r|gv$Uiwe7VYT6zy5XIjKQb1AeVFWZrih62L.." (90+ chars)
+    > say attrpass(me/va,notest,chk)
+    You say "0"
+    > say attrpass(me/va,test,chk)
+    You say "1"
+  
+  See Also: @name, attrpass()
   
 & @lemit
   Command: @lemit <message>
@@ -6353,10 +6465,11 @@
   When setting an alias, the alias is checked to see that it is both a legal
   player name and not already in use.  Only if both checks succeed is the
   alias set.
- 
-  Optional switches are /quiet to suppress output or /noisy to give 
-  verbose output.
   
+  You can not @name yourself to any name you set an @alias to, nor any name
+  anyone else sets an @alias to.  If you wish to be able to switch into
+  and out of protected names, please use the @protect system and not @alias.
+   
   See Also: @name, @protect, listprotection()
   
 & @amhear
@@ -7255,7 +7368,7 @@
     > @fail table = It's too heavy to lift!                            <thing>
     > @fail doorway = The doorknob does not turn.                       <exit>
   
-  See Also: get, @afail, @ofail, FAILURE
+  See Also: get, @afail, @ofail, FAILURE, SHOWFAILCMD
   
 & @filter
   Command: @filter[/<switch>] <object> = <pattern>[, <pattern>...]
@@ -7571,10 +7684,10 @@
   
 & @retry
 & @rollback
-  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
-           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
-           @rollback/retry <boolean> [=<arg0, ..., argN>]
-           @rollback/label[/<switch>] <label>|<args...>
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
   You may specify the /label switch with any other syntax with @rollback.  To
   utilize a label, you would prepend the argument with <label>|.  So for
@@ -7595,13 +7708,17 @@
          of the rollback segment.  This is intentional.
   
 { see 'help @rollback2' for the arguments that can be passed}
+{ see 'help @rollback3' for examples on condition 1 <default> }
+{ see 'help @rollback4' for examples on condition 2 [/wait] }
+{ see 'help @rollback5' for examples on condition 3 [/retry] }
+{ see 'help @rollback6' for examples on condition 4 [/label] }
 
 & @rollback2
   (CONTINUED)
-  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
-           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
-           @rollback/retry <boolean> [=<arg0, ..., argN>]
-           @rollback/label[/<switch>] <label>|<args...>
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
   The arguments that are passed are:
     <label>    - The optional label (@goto label) you wish to pass to the
@@ -7615,7 +7732,7 @@
                  segment.  The default maximum is 1000 retries, regardless
                  of the option you specify.  This is only evaluated once.
                  This value defaults to '1'.  Must be greater than zero(0).
-    <waittime> - The waittime that you wish to use in the @wait for the
+    <wait>     - The wait time that you wish to use in the @wait for the
                  rolled back segment.  Defaults to '0'.  This is evaluated
                  for every rollback.  Must be zero(0) or greater.
     <boolean>  - This is evaluated to a 'true(1)' or 'false(0)' value on
@@ -7628,16 +7745,17 @@
     /retry     - retry everything from before the @rollback segment.  
     /label     - specify a @goto label that @rollback will apply.
   
-{ see 'help @rollback3' for examples on condition 1 }
-{ see 'help @rollback4' for examples on condition 2 }
-{ see 'help @rollback5' for examples on condition 3 }
+{ see 'help @rollback3' for examples on condition 1 <default> }
+{ see 'help @rollback4' for examples on condition 2 [/wait] }
+{ see 'help @rollback5' for examples on condition 3 [/retry] }
+{ see 'help @rollback6' for examples on condition 4 [/label] }
 
 & @rollback3
 (CONTINUED)
-  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
-           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
-           @rollback/retry <boolean> [=<arg0, ..., argN>]
-           @rollback/label[/<switch>] <label>|<args...>
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
   The first condition is the standard default method for @rollback.  With
   this method you specify a <count> of how many arguments you wish to roll
@@ -7693,22 +7811,23 @@
       end-5
 
   
-{ see 'help @rollback3' for examples on condition 1 }
-{ see 'help @rollback4' for examples on condition 2 }
-{ see 'help @rollback5' for examples on condition 3 }
+{ see 'help @rollback3' for examples on condition 1 <default> }
+{ see 'help @rollback4' for examples on condition 2 [/wait] }
+{ see 'help @rollback5' for examples on condition 3 [/retry] }
+{ see 'help @rollback6' for examples on condition 4 [/label] }
 
 & @rollback4
 (CONTINUED)
-  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
-           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
-           @rollback/retry <boolean> [=<arg0, ..., argN>]
-           @rollback/label[/<switch>] <label>|<args...>
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
   The second condition allows you to toss the rolled back segment of code into
   its own separate wait queue.  The <count> and <repeats> are set initially on
-  the first pass and will not be re-evaluated.  The actual waittime is 
+  the first pass and will not be re-evaluated.  The actual wait time is 
   re-evaluated for every rollback segment, meaning for every rollback you can 
-  give it a unique wait time.  Be aware that once the <waittime> is a negative 
+  give it a unique wait time.  Be aware that once the <wait> is a negative 
   number, the @rollback will abort itself.
   
   All passed arguments are re-evaluated on every retry.
@@ -7743,16 +7862,17 @@
     3-15
 
   
-{ see 'help @rollback3' for examples on condition 1 }
-{ see 'help @rollback4' for examples on condition 2 }
-{ see 'help @rollback5' for examples on condition 3 }
+{ see 'help @rollback3' for examples on condition 1 <default> }
+{ see 'help @rollback4' for examples on condition 2 [/wait] }
+{ see 'help @rollback5' for examples on condition 3 [/retry] }
+{ see 'help @rollback6' for examples on condition 4 [/label] }
 
 & @rollback5
 (CONTINUED)
-  Command: @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
-           @rollback/wait <count>[/<repeats>/<waittime>] [=<arg0, ..., argN>]
-           @rollback/retry <boolean> [=<arg0, ..., argN>]
-           @rollback/label[/<switch>] <label>|<args...>
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
   The third condition is commonly referred to as the @retry option.  This will
   effectively retry the entire code segment prior to the @rollback in the
@@ -7791,6 +7911,63 @@
     3-1
     end-3
   
+
+& @rollback6
+(CONTINUED)
+  Command: 1. @rollback <count>[/<repeats>] [=<arg0, ..., argN>]
+           2. @rollback/wait <count>[/<repeats>/<wait>] [=<arg0, ..., argN>]
+           3. @rollback/retry <boolean> [=<arg0, ..., argN>]
+           4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
+  
+  The forth argument is the  /label option to @rollback.  The given syntax
+  requires you to use the label|args syntax where 'args' will be the arguments
+  passed from condition 1, 2, or 3 depending on the additional switch you
+  provide (or not provide).
+  
+  This will roll back to the label defined with @goto/label previously in the
+  command list.
+  
+  Examples:
+  ---- Condition 1 (rollback 5, look for foo label, 1 repeat (default))
+    > &FOO me=$foo *:think 1-%0;@goto/label foo;think 2-%0;think 3-%0;
+              @rollback/label foo|5=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+      1-5
+      2-5
+      3-5
+      2-10
+      3-10
+      end-5
+
+  ---- Condition 2 (roll back 2 to label, repeat 2 with 100 second wait)
+    > &FOO me=$foo *:think 1-%0;think 2-%0;@goto/label foo;think 3-%0;
+              @rollback/wait/label foo|2/2/100=[add(%0,5)];think end-%0
+    Set.
+    > foo 5
+    1-5
+    2-5
+    3-5
+    end-5
+ 
+    (then 100 seconds later)
+    3-10
+    3-15
+  
+  ---- Condition 3 (roll back to start, look for foo label, while %0 > 1)
+    > &FOO me=$foo *:think 1-%0;@goto/label foo;think 2-%0;think 3-%0;
+              @rollback/retry/label foo|[gt(%0,1)]=[sub(%0,1)];think end-%0
+    Set.
+    > foo 3
+    1-3
+    2-3
+    3-3
+    2-2
+    3-2
+    2-1
+    3-1
+    end-3
+
   See Also: @jump, @skip, @include, @break, @assert, @sudo, @switch @goto
   
 & @jump
@@ -7995,7 +8172,7 @@
 & @listen
   Command: @listen[/<switch>] <object> = <string>
   Attribute: Listen
- 
+   
   This attribute contains a wildcard pattern that the object listens for.
   Anything spoken, posed, emitted, or whispered in the room that <object> is
   in, as well as messages resulting from using objects (such as Opay and Succ
@@ -8008,15 +8185,17 @@
   have a chance to match it.  Objects whose Listen attribute is set to
   anything will be listed when a @sweep command is run by someone in the
   same room.
- 
+   
   If the @listen pattern is matched, then the object's contents will
   hear the message also, prefixed by the text in @inprefix if it is set.  Any
   text that matches any pattern specified in @infilter will not be sent to
   the contents.
- 
+   
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
- 
+  
+  You may specify command based listens with the ^ syntax (help ^-listens)  
+  
   Example: @listen camera = * has arrived.
            @ahear camera = @va me = %va %0
   
@@ -8994,7 +9173,7 @@
  
   Example: @ufail robot = The robot pointedly ignores you.
    
-  See Also: @aufail, @oufail, @use
+  See Also: @aufail, @oufail, @use, SHOWFAILCMD
   
 & @use
   Command: @use[/<switch>] <object> = <message>
@@ -9080,6 +9259,8 @@
   If the object is set SHOWFAILCMD in addition to STOP, then the
   error is showed appropiately and all command processing is 
   stopped at that point as well.
+  
+  See Also: @ufail, @fail
   
 & BOUNCE
 & BOUNCEFORWARD
@@ -9633,9 +9814,11 @@
   
   It is generally good practice to NOT EVER set yourself inherit.
   
+& ^-command
+& ^-listen
 & MONITOR
   Flag: MONITOR(M)
-  
+    
   This flag does NOT return player connection/disconnection information.
   Check help @toggle for that.
    
@@ -9645,9 +9828,22 @@
   wildcarded <pattern>, then <commandlist> is executed, substituting %0 for
   the text that matched the first wildcard, %1 for the second, and so on.
   All matching attributes are executed, not just the first.
-  Parents of MONITOR objects are never checked for ^-patterns.
- 
-  See Also: LISTENING, PUPPET
+  
+  ^-listens are never checked on players.
+  
+  Note: Parents of MONITOR objects by default are never checked 
+        for ^-patterns.  This can be enabled with the 'listen_parents'
+        config parameter, but there will be a computational cost involved.
+   
+  Example:
+    > say %n
+    You say "Bob"
+    > &MY_LISTEN MyObject=^* says "*":@pemit %#=Object: %0 said '%1'
+    > say "Moo"
+    You say "Moo"
+    Object: Bob said 'Moo'
+    
+  See Also: LISTENING, PUPPET, @listen, @ahear, $-commands, lcmds(), lattr()
   
 & ANSI
   Flag: ANSI(<)
@@ -10092,9 +10288,11 @@
   and have failed (so an arbitrary command that matches 'page *' will never
   be performed).
  
-  You define an arbitrary command by storing a string of the form
-  '$<template>:<commandlist>' in an attribute of an object, then the command
-  will be available to anyone who carries the object, is in the same room as
+  You define an arbitrary command by storing a string of the form:
+              '$<template>:<commandlist>' 
+  
+  This will go in an attribute of an object, then the command will be 
+  available to anyone who carries the object, is in the same room as
   the object, or is inside the object.  Only use user-named attributes and
   VA-VZ for arbitrary commands, as many of the predefined attributes are not
   for arbitrary commands.  <template> is the pattern to check for (it may
@@ -10716,7 +10914,7 @@
   (because it is unlinked or locked). You fail to use a room when you fail
   to look around (because it's locked).
   
-  See Also: get, look, @afail, @fail, @lock, @ofail
+  See Also: get, look, @afail, @fail, @lock, @ofail, SHOWFAILCMD
   
 & FLAGS
   Topic: FLAGS
@@ -11109,27 +11307,27 @@
  
   Help is available for the following functions:
  
- @@()               ABS()              ACCENT()            ACOS()        
- ADD()              AFTER()            AINDEX()            AIINDEX()         
- ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
- ANDFLAG()          ANDFLAGS()         ANSI()              ANSIPOS()
- APOSS()            ARRAY()            ART()               ASC()            
- ASIN()             ATAN()             ATAN2()             ATTRCNT()       
- AVG()              BEFORE()           BETWEEN()           BITTYPE()    
- BOUND()            BRACKETS()         CAND()              CAPSTR()       
- CASE()             CASEALL()          CAT()               CEIL()           
- CENTER()           CHARIN()           CHAROUT()           CHKREALITY()     
- CHKTRACE()         CHOMP()            CHR()               CITER()   
- CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
- CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
- CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()
- CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
- CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
- CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
- CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()   
- CMDS()             CNAME()            COLORS()            COLUMNS() 
- COMP()             CON()              CONFIG()            CONN() 
- CONTROLS()         CONVSECS()    
+ @@()                 ABS()              ACCENT()           ACOS()        
+ ADD()                AFTER()            AINDEX()           AIINDEX()         
+ ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
+ ANDFLAG()            ANDFLAGS()         ANSI()             ANSIPOS()
+ APOSS()              ARRAY()            ART()              ASC()            
+ ASIN()               ATAN()             ATAN2()            ATTRCNT()       
+ ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
+ BITTYPE()            BOUND()            BRACKETS()         CAND()             
+ CAPSTR()             CASE()             CASEALL()          CAT()              
+ CEIL()               CENTER()           CHARIN()           CHAROUT()          
+ CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
+ CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
+ CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
+ CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
+ CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
+ CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
+ CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
+ CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()     
+ CLUSTER_XGET()       CMDS()             CNAME()            COLORS()           
+ COLUMNS()            COMP()             CON()              CONFIG()           
+ CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -11218,11 +11416,11 @@
   STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
   STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
   STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
-  SWITCH()        SWITCHALL()     T()            TAN()          TEL()        
-  TEMPLATE()      TIME()          TIMEFMT()      TOBIN()        TODEC()      
-  TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()      TOTMATCH()   
-  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
-  TRANSLATE()     TRIM()
+  SWITCH()        SWITCHALL()     T()            TAG ()         TAN()
+  TEL()           TEMPLATE()      TIME()         TIMEFMT()      TOBIN()
+  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()
+  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()
+  TRACE()         TRANSLATE()     TRIM()
 
 { 'help function list5' for more }
 
@@ -11330,7 +11528,7 @@
                       LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
                       PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() STDERR() TRACE()
+                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -12955,6 +13153,8 @@
     - - left justify the column
     | - wrap column if length of argument is greater than the field width
     " - wrap column on a space character (tab, space, etc) if possible
+    ; - handle indentation
+    / - handle cutting
    10 - set column width to 10 characters
     7 - set column width to 7 characters
   
@@ -13044,6 +13244,14 @@
              if uses the default of four (4) spaces.
                examples: #   -- Convert all tabs to 4 spaces
                          #7# -- Convert all tabs to 7 spaces
+         ; - indent the next wrapped line of text (used with | option only)
+             must be placed after the width value.  The maximum allowed
+             will be width - 1.  It will shorten to this if too large.
+             The maximum indent is 70 characters.  A period followed by
+             a number will specify the line it should start indenting.
+               examples: ;     -- indent default 4 (or width - 1) spaces
+                         ;8;   -- indent 8 spaces (or width -1) spaces
+                         ;8.3; -- indent 8 spaces after line 3.
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
@@ -13500,19 +13708,26 @@
 & ARRAY()
   Function: array(<string>, <reg count>, <width> [[,<delim> [,<type> [,<sep>]])
   
+  Note: Registers split into array are overwritten.  Use with caution or
+        localize().
+  
   This function will take an input string and split it out, based on width,
   rounding to the first viable word (if possible) and spit it out into setq
   registers based on the number of registers you wish to split it in based
   on <reg count>.  Registers start from 0-9 then go to a-z.  Registers
   are cleared automatically before being utilized.
   
-  You may specify an optional delimiter.  By default, it takes any white
-  space.  You may optionally specify the type.  A type of '1' will take
-  the virtual register count down then over.  The default '0' does it
-  in a normal sequential order.
+  You may specify an optional delimiter <delim>.  By default, it takes any 
+  white space.  You may optionally specify the type <type>.  A type of '1' 
+  will take the virtual register count down then over.  A type of '2' will
+  split based on character and not attempt to break on word.  A type of '3'
+  combines the down then over with type '2'.  The default '0' does it in a 
+  normal sequential order.  A <type> of '2' and a <delim> NULL (empty value)
+  will split the string in segments equally based on the number of registers.
   
-  If you specify width of '0' and specify a delimeter, then it will ignore
-  width of the values and split the array based on the delimiter only.
+  If you specify width <width> of '0' and specify a delimeter <delim>, then it 
+  will ignore width of the values and split the array based on the 
+  delimiter <delim> only.
   
   If you wish to store the setq registers prior to this function, please
   utilize the pushregs() function to back-up your registers.
@@ -13523,27 +13738,60 @@
   
   This function is ansi aware. 
   
+{ see 'help array2' for examples }
+ 
+& array2
+  (CONTINUED)
+  Function: array(<string>, <reg count>, <width> [[,<delim> [,<type> [,<sep>]])
+    
+  Fields with '*' are optional:
+      <string>    -- String you wish to split
+      <reg count> -- Number of setq registers to split into (36 max)
+                     This always starts with register '0'.
+      <width>     -- Optional width to cut on, '0' split on <delim>
+ *    <delim>     -- Optional delimiter to split on (NULL/empty value allowed)
+ *    <type>      -- 0 - default -- split in sequential (over then down) order
+                     1 - take the split down then over
+                     2 - Split based on <delim> (or position if <delim> NULL)
+                     3 - Combine type 1 & 2
+ *    <sep>       -- Specify separator you wish for array elements (%r default)
+  
   Examples:
-    > think array(abcdefghij,2,2)%q0
+    @@ split linear based on register count with default carrage return sep
+    @@ show contents of first register 
+    > think array(abcdefghij,2,2)%q0       
     ab
     ef
     ij
-    
+  
+    @@ split linear based on register count with space sep
+    @@ show contents of first register
     > think array(abcdefghij,2,2,,,%b)%q0
     ab ef ij
-
+  
+    @@ split linear based on register count with default carrage return sep
+    @@ show contents of second register
     > think array(abcdefgh,2,2)%q1
     cd
     eh
-
+  
+    @@ split down then over with return sep
+    @@ show contents of first register
     > think array(abcdefghij,2,2,,1)%q0
     ab
     cd
     ef
-
+  
+    @@ split down then over with return sep
+    @@ show contents of second register
     > think array(abcdefghij,2,2,,1)%q1
     gh
     ij
+  
+    @@ split string equally based on the number of registers
+    @@ show all registers and what they contain
+    > think array(abcdefghij,3,0,,2)%q0 - %q1 - %q2
+    abcd - efg - hij
   
   See Also: printf(), setq(), setr(), r(), template(), substitutions
 
@@ -15197,7 +15445,7 @@
   See Also: SUBSTITUTIONS, eval(), subeval(), ueval(), streval(), u(), v()
   
 & SAFEBUFF()
-  Function: safebuff(<list> [,<delim>])
+  Function: safebuff(<list> [[,<delim>, [<length>]])
   
   This function will return the list, by cutting off from the end any partial
   string, based on the delimeter you specify <delim>.  If no delimeter is
@@ -15208,15 +15456,20 @@
   the buffer is cut back.  Thus, any ansi sequence given to this function
   will be removed.
   
+  You may specify an optional length to which it will apply the logic
+  to go to the first buffer.
+  
   Example:
     > say search(eval=*)
     You say "#0 #1 ... #883 #884 #88" (in this case, '#885' would be cut off)
     > say safebuff(search(eval=*))
     You say "#0 #1 ... #883 #884" (the partial string '#885' was omitted)
+    > say safebuff(aaa aa aaaa,,8)
+    You say "aaa aa"
   
   In the above examples, the '...' would be the huge ammount of output.
   
-  See Also: lit(), s(), t()
+  See Also: lit(), s(), t(), printf(), ljc(), rjc()
   
 & ELEMENTPOS()
   Function: elementpos(<string>, <positions> [,<delim>])
@@ -16456,6 +16709,7 @@
   
 & ATTRCNT()
   Function: attrcnt(<object> [,<key>])
+  
   This returns the total number of attributes that the target object has.
   This gets around some limitations of words(lattr(<object>)) due to the
   parser limitation.  This attribute has the sideeffect of repairing
@@ -16476,6 +16730,41 @@
     You say "20"
   
   See Also: words(), lattr(), vattrcnt()
+  
+& ATTRPASS()
+  Function: attrpass(<object>/<attribute>, <password>, <type>)
+ 
+  This function will set or check the password of the given attribute
+  on the given target.  You must control both the target <object> and
+  the destination <attribute> to either set or check the password.
+  
+  You can not use this function to set or check the default player
+  password attribute.  Attempting to do so will fail.  For immortals
+  there is a password function utility to do so.  This does not view
+  the password, as being hashed this is impossible.  It will only
+  allow a comparison of the password to the hashed value for 
+  validation. 
+  
+  A return code for both SET or CHK of '1' means a success.  0 is failure. 
+  
+  The following <type> are available for this function:
+    SET -- this will set the <password>.  You may abbreviate this.
+    CHK -- this will check against <password>.  You may abbreviate this.
+  
+  Note: <password> can not exceed 2048 characters.  DoS/DDoS limitation.
+        This may change based on crypto settings.
+    
+  Examples:
+    > say attrpass(me/va, test, set)
+    You say "1"
+    > say attrpass(me/va, test, chk)
+    You say "1"
+    > say attrpass(me/va, notest, chk)
+    You say "0"
+    > say attrpass(me/_wizonly, test, set)
+    You say "0"     (a normal player can't chk/set wizard attributes)
+  
+  See Also: @password, testlock()
   
 & VALID()
   Function: valid(<option>, <string>)
@@ -18677,7 +18966,7 @@
     > say lattr(me/^..$,,,1)
     You say "VA VB VC VE VV XX"
  
-  See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr()
+  See Also: @dolist, attrcnt(), vattrcnt(), cluster_lattr(), lcmds()
   
 & FLIP()
   Function: flip(<string>)
@@ -21396,7 +21685,7 @@
   See Also: @link, SIDEEFFECTS
   
 & CREATE()
-  Function: create(<name>, [<arguments> [,<type>]])
+  Function: create(<name>, [<arguments> [,<type> [,<target-owner>]])
   
   @create:  create(<name>,<value>,t) (default)
     This will create an object with name <name> of value <value>.  The 't'
@@ -21417,6 +21706,15 @@
     <link> is unspecified, then the exit will be un-linked and will need to
     be @linked later (if so desired).
   
+  @pcreate: create(<name>, <password>, p)
+    This will create the target player.  You need to have access to @pcreate
+    to be able to use this feature of create().
+  
+  @robot:   create(<name>, <password>, p, <target-owner>)
+    This will create the target robot player.  You need to have access to
+    both the @robot feature as well as control the target-owner to create
+    a robot.  To create a robot that you own, make target-owner yourself.
+  
   The SIDEFX flag needs to be set to use this function. 
   Type @list options to see if this side-effect is enabled.
   
@@ -21424,8 +21722,11 @@
   > say create(An Object,10)  (this will create 'An Object' with value of '10')
   > say create(An Object)     (this will create 'An Object' with default cost)
   
-  See Also: @create, @dig, @open, dig(), open(), SIDEEFFECTS
+  See Also: @create, @dig, @open, @pcreate, dig(), open(), SIDEEFFECTS
   
+& @pcreate
+  See wizhelp @pcreate
+
 & LISTMATCH()
   Function: listmatch(<string>, <pattern>[, <delimiter> [,<args>]])
  
@@ -23060,6 +23361,23 @@
     You say "-5"
   
   See Also: div(), floor(), mod(), round(), trunc()
+
+& TAG()
+  Function: tag(<string>)
+ 
+  This function returns the #dbref stored behind the tag named <string>.
+  These tags get created with Rhost's tag system ( see 'wizhelp @tag' and
+  'wizhelp tags' ) by admins, and can be useful to avoid having hardcoded
+  #dbrefs in mushcode.
+ 
+  These tags can also be used on-the-fly in the client, for example using
+  something like 'ex tag(weather_globals)' to examine the object of which
+  the #dbref is stored in the 'weather_globals' tag.
+ 
+  If a non-existant tagname is supplied in the tag() function, it always
+  returns #-1.
+ 
+  Also See: wizhelp tags, wizhelp @tag
   
 & TR()
   Function: tr(<string>, <find>, <replace> [,<type>])
@@ -23372,8 +23690,8 @@
   
 & PARSESTR()
   Function: parsestr(<string>, <eval> [,<delim> [.<output> [,<type>]
-                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
-                       [,<prefix>]]]]])
+                       [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>
+                       [,<prefix> [,<oocprefix>]]]]]]])
   
   This function takes an input string and parses it, based on the 
   delimiters, in a 'staggered' method, and passes each substring to
@@ -23396,6 +23714,7 @@
                    processing on. (good for punctuation)
     <transeval> -- How you wish to parse the special processing string.
     <prefix>    -- The optional eval'd prefix to use for the 'say' string.
+    <oocprefix> -- optional prefix to use when the @emit (|) option used.
   
   Note on <eval>: All arguments passed will be as in the <eval> and <transeval>
             %0  -- The string being passed for evaluation.      
@@ -25559,6 +25878,7 @@
      change     cshare     current     create     delete     list      move   
      rename     share      cmdlist
   
+& folder quicklist
 & folder cmdlist
   Topic: folder quick-reference help
   
@@ -25700,6 +26020,8 @@
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball|1-N]
   
+   ---- For the main mail help file please see:  HELP MAIL MAIN ----
+  
    Note: For folder help please type 'help folder'
   
    Important topics:
@@ -25707,9 +26029,11 @@
       'HELP MAIL TOPICS' for topical help.
   
    Important initial help entries:
-      'HELP MAIL CMDLIST' for a command listing and quick description
+      'HELP MAIL CMDLIST' for the mail command listing and descriptions
+      'HELP FOLDER CMDLIST' for the folder command listing and descriptions
       'HELP MAIL DTUTOR' for a quick tutorial on how to use mail
       'HELP MAIL BTUTOR' for a quick tutorial on the mail editor (optional)
+      'HELP MAIL PTUTOR' for a quick tutorial on Penn @mail syntax (optional)
   
   If you are used to the MUX standard of @mail or the softcoded BrandyMail
   you will want to use the BRANDY_MAIL toggle.  
@@ -26120,7 +26444,7 @@
   
   
 & mail cmdlist
-  Topic: mail command list of commands (in alphabetical order)
+  Topic: mail command list of commands (in alphabetical order) [1/3]
   
   mail                       - This is short for 'mail/quick'
   mail/alias                 - This lists all global mail aliases.
@@ -26143,7 +26467,7 @@
   
   { see help mail cmdlist2 for more }
 & mail cmdlist2
-  Topic: mail quicklist of commands (CONTINUED)
+  Topic: mail quicklist of commands (CONTINUED) [2/3]
   
   mail/number <target>[=<arg>] - This displays the target player's mail.  You
                                must pass that person's sharelock before you
@@ -26167,7 +26491,7 @@
   { see help mail cmdlist3 for more }
   
 & mail cmdlist3
-  Topic: mail quicklist of commands (CONTINUED)
+  Topic: mail quicklist of commands (CONTINUED) [3/3]
   
   mail[/send] [<arg>]<player-list>=[<subject>//]<body> - This sends mail to
                                the targeted player(s).  The /send switch is
@@ -27980,13 +28304,38 @@
   The second is if you wish to just get on your feet with the mail system
   and learn the bare-bone basics (non-brandy interface)
   
-  For the brandy interface tutorial, please type:
+  For the brandy interface tutorial (+mail & MUX/TM3 @mail), please type:
   
                        help mail btutor
+  
+  For the penn interface tutorial (Penn @mail), please type:
+  
+                       help mail ptutor
   
   For the default bare-bone tutorial, please type:
  
                        help mail dtutor
+  
+& mail ptutor
+  Topic: mail ptutor (Penn format handler)
+  
+  Honestly, there's little that this interface changes from the
+  default mail handler.  The important things are as follows:
+  
+  - This requires the PENN_MAIL @toggle to be set on the player
+    (@set me=penn_mail)
+  - This will change the format of sending mail from the default
+    of:
+                 mail player(s)=subject//body
+    to:
+                 mail player(s)=subject/body
+  
+    Yes, it only removes the extra / in sending.
+  
+  For all the other Penn-mail syntax, please check your RhostMUSH for
+  a @mail compatible wrapper package (available with all RhostMUSHs)
+  
+  See Also: penn_mail
   
 & mail dtutor
   Topic: mail dtutor (Default Bare-Bone Tutorial)
@@ -28014,6 +28363,10 @@
   
 & mail btutor
   Topic: mail btutor (Enhanced Line Editor (Brandy) Interface)
+  
+  Note: Some RhostMUSH's will have a bunch of @mail aliases to mimic
+        the MUX/TM3 (and in some cases the +mail) interfaces.  If
+        so please refer to these help files.
   
   Welcome to the mail system tutorial (brandy interface).  This will
   not cover all the commands, but will give you a good heads up on
@@ -28415,9 +28768,10 @@
     Set.
     > timehog
     Toy says "1040"
-    Toy> [CPU:  7.74  EVALS: 2005  FUNCS: 1003  ATRFETCH:    1]
+    Toy> [CPU:  7.74  EVALS: 2005  FUNCS: 1003  ATRFETCH:    1  Allocs:   176]
   
-  For explanations of what CPU, EVALS, FUNCS, and ATRFETCH is, see CPUTIME2
+  For explanations of what CPU, EVALS, FUNCS, ATRFETCH, and ALLOCS are, 
+  see CPUTIME2
   
 & CPUTIME2
   Toggle: CPUTIME (continued)
@@ -28433,6 +28787,9 @@
   
   ATRFETCH    - The total number of attribute fetches (IE: the number of
                 times it has to read any attribute)
+  ALLOCS      - The total number of buffer allocations that occurred with
+                the running of the command.  While this is a minor overhead
+                it still remains an overhead.
                 
 & VANILLA_ERRORS TOGGLE
   Toggle: VANILLA_ERRORS
@@ -29566,6 +29923,7 @@
   setr_old() - Like setr(), but uses old MUSH style evaluation.
   soundex() - Returns the soundex pattern of a word.
   soundlike() - Compares the soundex of two words.
+  tag() - Returns the #dbref stored behind a named tag.
   trace() - Controls the trace flag on an object.
 
 & object information functions
@@ -29940,7 +30298,10 @@
   lparent()     - Returns all the parents of an object.
   die()         - Rolls a set of dice for random number generation.
 
+& changes
 & revisions
+  For historical changes file, please see 'help historical'
+  
   All credits to players, codebases, or other is presented in the RHOST.CHANGES
   file in the readme directory in the source distribution.  The credits are too
   diverse and well too detailed to be sufficient as a small snippit in online
@@ -29966,8 +30327,10 @@
   The current Lead Developer (which we change up) is marked with a '*'.
   Developers who are MIA or retired are surrounded in []'s.
    
-  Current Revision: 4.0.0p1
-
+  ***************************************************************************
+  *** Current Revision: 4.1.0p0
+  ***************************************************************************
+  
   Available Revisions:
     1.0.0: 1.0.0p0 (NycMUD)
     1.5.0: 1.5.0p0 (NycMUSE
@@ -29983,7 +30346,10 @@
     3.9.3: 3.9.3p0, 3.9.3p1, 3.9.3p2
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
-    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3
+    4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
+    4.1.0: 4.1.0p0
+  
+  See Also: historical, credits
 
 & 1.0.0p0
   Release Date: Aug 1 1989
@@ -32520,6 +32886,19 @@
   * Sites that do not properly send AUTH data or RDNS data get auto-added
     to the NoAUTH and NoDNS entires to avoid future lag [ASH]
   * template() function to do auto-replace in a defined template string [ASH]
+  * examine/display allows ansifying parenthesis, braces, and brackets
+    like parenmatch() [ASH]
+  * @conncheck has a /quota switch to show connected command quotas [ASH]
+  * wizard command @cmdquota to alter on-line command quotas of players [ASH]
+  * wizcommand_quota_max to set wizard command quotas [ASH]
+  * @blacklist has the /nodns switch for DNS lookup bypassing [ASH]
+  * Added sub-option 'display' to @list options to work like config() [ASH]
+  * sconnect_reip, sconnect_cmd, sconnect_host for SCONNECT/PROXY support [ASH]
+  * added sconnect handlers and configuration as scripts [Oleo/Adrick/Ash]
+  * @cpattr has /verify switch that validates attributes being copied [ASH]
+  * @blacklist supports /add, /del, and /search by IP [ASH]
+  * @admin param global_error_cmd allows global error obj to process cmds [ASH]
+  * morgrification for say, pose, and @emit.  (See wizhelp morgrify) [ASH]
   
   Changes
   ------------
@@ -32529,7 +32908,94 @@
   * the config file handler will now skip lines with nothing but whitespace
     or entirely blank lines w/o errors [ASH]
   * caplist() handles more cases of how to capitalize after special chars [ASH]
+  * @saystring is now inherited thorugh parent chains
+  * safebuff() allows an optional cut-off value [ASH]
+  * @list options display and config() now sort the lists properly [ASH]
+  * execscript() allows you to pass vars from other objects you control [ASH]
+  * Global parents (ancestors) now will inherit from their own parents [ASH]
+  * Protection on SSL handler against brute force attacks [ASH]
+  * SPEECH_PREFIX/SPEECH_SUFFIX inherit from parents [ASH]
+  * Modified source so using STUNNEL no longer requires SSL libs [ASH]
+  * Array handled to split on char and not 'word' [ASH]
+  * parsestr has new argument to special prefix @emit handling [ASH]
   
   Bug Fixes
   ------------
   * some cleanup on milisecond timers
+  * setunion/setinter/setdiff didn't properly sort final lists [ASH]
+  * logic for setunion() didn't always work on conditional type setting [ASH]
+  * logic for setdiff/setinter didn't always work on conditional types [ASH]
+  * duplciate entries could be seen with suggestions for help entries [ASH]
+  * Long standing issue with @extansi that put a raw ansi normal [ASH]
+  * marginal cleanup of parenmatch()/parenstr() to handle raw ansi [ASH]
+  * warning in bsd.c with an unsigned int to int typecast under clang [ASH]
+  * initialized OpenSSL variable for mux password compat [ASH]
+  * SSL connectivity didn't honor nodns/noguest/register/forbid [ASH]
+  * SSL connectivity didn't honor suspect [ASH]
+  * doors could potentially hang for short durations on bad sites [ASH]
+  * UTF8 didn't null terminate properly in some cases [ASH]
+  * A bunch of small one off bugs in the UTF8 handler that borked BSD [ASH]
+  * buffering didn't account for non-ASCII7 entirely cleanly (noncrash) [ASH]
+
+& 4.0.0p4
+  Release Date: 10/17/19
+  Status: Alpha
+    
+  New Features
+  ------------
+  * sha2rounds @admin param to increase round recursion for SHA2.  The
+    default value to this is 5000.  [ASH] 
+  * vercustomstr @admin param to allow a 20 character customised version
+    suffix [ASH]
+  * @admin param execscriptpath to specify alphanumerical subdirectories
+    that may be searched for execscript as overrides [ASH]
+  
+  Changes
+  ------------
+  * config files now allow dbref# syntax for numberical values. [ASH]
+    i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
+  * major cleanup of internal parsing of help files [ASH]
+  * Snuff erraneous warnings on empty lines in conf files [ASH]
+  * Added update to help showing the requirement of the config power_objects
+    to be enabled for the API subsystem.
+  * API subsystem is now CORS aware
+  
+  Bug Fixes
+  ------------
+  * version/short_ver didn't have bounds checking for custom versions
+    if someone decided to change the strings to ridiculously large 
+    values [ASH]
+  * @dynhelp didn't honor help_separator [ASH]
+  * temporary static buffer for SSl could be overwritten in display [ASH]
+  * Fix long-existing typecast bugs for compiler [ASH]
+  * BSD select() does not like milisecond timers over 10ms [ASH]
+  * snuff erranous warning when no vattr_cmds are defined [ASH]
+  * vattr_command had the alias and attribute switched on .conf [ASH]
+
+& 4.1.0p0
+  Release Date: 12/15/19
+  Status: Alpha
+    
+  New Features
+  ------------
+  * Initial prep-work to allow future of websockets [ASH]
+  * Grapenut's WebSockets are now enabled for API handling [ASH]
+  * @password/attribute for setting passwords to attributes [ASH]
+  * attrpass() for setting/checking attribute passwords [ASH]
+  * account_login() customized login functionality [ASH]
+  * account_owner() for 'ownership' of a central account [ASH]
+  
+  Changes
+  ------------
+  * Modification of DESC internal handler to handle adding on the fly
+    additions to the descriptor table to allow @reboots to handle
+    w/o crashing [ASH] 
+  * minor improvement on return handler of account_login() [ASH]
+  * Added ability to pcreate users from create() [ASH]
+  * mailsend() has new option to specify optional sender [ASH]
+  
+  Bug Fixes
+  ------------
+  * mysql_ping could potentially hang on certaion versions of Mysql [ASH]
+  * Potential buffer overwrite in built in news system [ASH]
+  * potential off by one for API text handler on input [ASH]

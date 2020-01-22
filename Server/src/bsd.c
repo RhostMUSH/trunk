@@ -51,6 +51,9 @@ void bzero(void *, int);
 #include "rhost_utf8.h"
 #include "local.h"
 #include "door.h"
+#ifdef ENABLE_WEBSOCKETS
+#include "websock.h"
+#endif
 
 #include "debug.h"
 #define FILENUM BSD_C
@@ -326,7 +329,7 @@ int make_socket(int port, char* address)
         server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
-	log_perror("NET", "FAIL", NULL, "bind");
+	log_perror("NET", "FAIL", unsafe_tprintf("failed to bind to port <%d>",port), "bind");
 	close(s);
         DPOP; /* #1 */
 	exit(4);
@@ -967,7 +970,10 @@ addrout(struct in_addr a, int i_key)
 	struct hostent *he;
 
         /* check the nodns_site list */
-        if( (i_key && mudconf.api_nodns) || site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ) {
+
+        if ( (i_key && mudconf.api_nodns) || 
+             site_check(a, mudstate.special_list, 1, 0, H_NODNS) & H_NODNS ||
+             blacklist_check(a, 1) ) {
           retval = inet_ntoa(a);
           RETURN(retval); /* #3 */
         }
@@ -1205,7 +1211,7 @@ new_connection(int sock, int key)
 #endif
 
     /* DO BLACKLIST CHECK HERE */
-    if ( blacklist_check(addr.sin_addr) || i_chktor  ) {
+    if ( blacklist_check(addr.sin_addr, 0) || i_chktor  ) {
        STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
           buff = alloc_mbuf("new_connection.LOG.badsite");
           sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",
@@ -1370,6 +1376,24 @@ new_connection(int sock, int key)
 	   log_text(buff);
 	   free_mbuf(buff);
 	   ENDLOG
+        } else if ( mudconf.nospam_connect == 1 ) {
+           buff1 = inet_ntoa(addr.sin_addr);
+           if ( !(*mudstate.nospam_lastsite) || (strcmp(mudstate.nospam_lastsite, buff1) != 0) ) {
+              if ( mudstate.nospam_counter > 0 ) {
+                 STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
+                    buff = alloc_mbuf("new_connection.LOG.badsite");
+                    sprintf(buff, "[%s] Connection refused [total %d times].",
+                            mudstate.nospam_lastsite, mudstate.nospam_counter);
+                    log_text(buff);
+                    free_mbuf(buff);
+                 ENDLOG
+              }
+              memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
+              sprintf(mudstate.nospam_lastsite, "%.*s", (int)sizeof(mudstate.nospam_lastsite) - 1, buff1);
+              mudstate.nospam_counter = 1;
+           } else {
+              mudstate.nospam_counter++;
+           }
         }
         if ( maxsitecon >= mudconf.max_sitecons ) {
   	   broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("MAX OPEN PORTS[%d]", maxsitecon), NULL, 
@@ -1403,6 +1427,19 @@ new_connection(int sock, int key)
 	d = NULL;
     } else {
 	buff = alloc_mbuf("new_connection.sitename");
+        if ( mudconf.nospam_connect == 1 ) {
+           if ( *mudstate.nospam_lastsite ) {
+              if ( mudstate.nospam_counter > 0 ) {
+                 STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
+                    sprintf(buff, "[%s] Connection refused [total %d times].",
+                            mudstate.nospam_lastsite, mudstate.nospam_counter);
+                    log_text(buff);
+                 ENDLOG
+              }
+              memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
+              mudstate.nospam_counter = 0;
+           }
+        }
         memset(buff, 0, MBUF_SIZE);
   	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
 	STARTLOG(LOG_NET, "NET", "CONN")
@@ -1450,7 +1487,8 @@ static const char *disc_reasons[] =
     "Reboot",
     "Attempted Hacking",
     "Too Many Open OS-Based Descriptors",
-    "API Connection"
+    "API Connection",
+    "WebSockets Connection"
 };
 
 /* Disconnect reasons that get fed to A_ADISCONNECT via announce_disconnect */
@@ -1470,7 +1508,8 @@ static const char *disc_messages[] =
     "reboot",
     "hacking",
     "nodescriptor",
-    "api"
+    "api",
+    "websockets"
 };
 
 void 
@@ -1590,6 +1629,9 @@ shutdownsock(DESC * d, int reason)
         if ( d->flags & DS_API ) {
 	    reason = R_API;
         }
+        if ( d->flags & DS_WEBSOCKETS ) {
+	    reason = R_WEBSOCKETS;
+        }
 	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
 	    buff = alloc_mbuf("shutdownsock.LOG.neverconn");
 	sprintf(buff,
@@ -1605,7 +1647,7 @@ shutdownsock(DESC * d, int reason)
     i_sitecnt = i_guestcnt = 0;
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
     if (reason == R_LOGOUT) {
-        addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & MF_API));
+        addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & DS_API));
         t_addroutbuf = alloc_mbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
@@ -2115,6 +2157,11 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->last_time = 0;
     d->snooplist = NULL;
     d->logged = 0;
+    d->checksum[0] = '\0';
+    d->ws_frame_len = 0;
+    d->account_owner = NOTHING;
+    memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */
     strncpy(d->addr, addr, 50);
@@ -2281,8 +2328,8 @@ int
 process_input(DESC * d)
 {
     static char buf[LBUF_SIZE];
-    int got, in, lost, in_get;
-    char *p, *pend, *q, *qend, qfind[12], *qf, *tmpptr = NULL, tmpbuf[15];
+    int got, in, lost, in_get, got2;
+    char *p, *pend, *q, *qend, qfind[SBUF_SIZE], *qf, *tmpptr = NULL, tmpbuf[SBUF_SIZE];
     char *cmdsave;
 
     DPUSH; /* #16 */
@@ -2296,6 +2343,13 @@ process_input(DESC * d)
 	mudstate.debug_cmd = cmdsave;
 	RETURN(0); /* #16 */
     }
+#ifdef ENABLE_WEBSOCKETS
+    if (d->flags & DS_WEBSOCKETS) {
+        /* Process using WebSockets framing. */
+        got2 = got;
+        got = in = process_websocket_frame(d, buf, got2);
+    }
+#endif
     if (!d->raw_input) {
 	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
 	d->raw_input_at = d->raw_input->cmd;
@@ -2310,7 +2364,7 @@ process_input(DESC * d)
 //fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
     for (q = buf, qend = buf + got; q < qend; q++) {
 	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
-	      *p = '\0';
+  	      *p++ = '\0';
 		if (p > d->raw_input->cmd) {
 			save_command(d, d->raw_input);
 			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
@@ -2331,7 +2385,7 @@ process_input(DESC * d)
 	    if (p < d->raw_input_at)
 		(d->raw_input_at)--;
         /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
-        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) == 255) ) {
+        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
             sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
             in+=5;
             got+=5;
@@ -2341,15 +2395,16 @@ process_input(DESC * d)
             }
             q++;
         /* This is telnet negotiation -- we eat telnet negotiation */
-        } else if ( (((int)(unsigned char)*q) == 255) && (((int)(unsigned char)*(q+1)) != 255) ) {
+        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) != 255) ) {
            q++;
         /* Else let's print printables -- This is ASCII-7 [0-128] */
   	} else if (p < pend && ((*q == '\n') || (isascii((int)*q) && isprint((int)*q))) ) {
 	    *p++ = *q;
-        } else if ((p+13) < pend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && *(q+3) && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
             sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=3;
             in+=12;
@@ -2358,10 +2413,11 @@ process_input(DESC * d)
                while ( *qf ) {
                   *p++ = *qf++;
                }
-        } else if ((p+13) < pend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
             sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=2;
             in+=10;
@@ -2370,10 +2426,11 @@ process_input(DESC * d)
             while (*qf) {
                 *p++ = *qf++;
             }   
-        } else if ((p+13) < pend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+        } else if ( ((p+13) < pend) && *q && *(q+1) && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
             sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
             
             q+=1;
             in+=8;
@@ -2429,10 +2486,6 @@ process_input(DESC * d)
        d->input_size += in;
     if ( lost > 0 )
        d->input_lost += lost;
-    
-    if (tmpptr) {
-        free(tmpptr);
-    }
     
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */

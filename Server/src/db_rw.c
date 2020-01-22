@@ -1718,13 +1718,12 @@ remote_read_sanitize(FILE *f, dbref i, int db_format, int flags)
 }
 
 int
-remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count)
+remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count, int key)
 {
    int i_ref;
    char *t_str;
    BOOLEXP *tempbool;
 
-   
    i_ref = remote_read_sanitize(f, i, db_format, flags);
    if ( i_ref != 0 ) {
       return(3);
@@ -1736,8 +1735,10 @@ remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count)
    }
    if (!(flags & V_ATRNAME)) {
       t_str = (char *)getstring_noalloc(f);
-      if ( Typeof(i) != TYPE_PLAYER ) /* Ignore name if player */
-         s_Name(i, t_str);
+      if ( !key || (key & SNAPSHOT_OTHER) ) {
+         if ( Typeof(i) != TYPE_PLAYER ) /* Ignore name if player */
+            s_Name(i, t_str);
+      }
    }
    i_ref = getref(f); 		/* Grab location - toss it away */
    if (flags & V_ZONE)
@@ -1747,55 +1748,89 @@ remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count)
    if (flags & V_LINK)
       i_ref = getref(f);	/* Grab Link - toss it away */
    i_ref = getref(f);		/* Grab Next - toss it away */
-   if (!(flags & V_ATRKEY)) {
+   if (!(flags & V_ATRKEY)) {   /* Grab lock - set if valid */
       tempbool = getboolexp(f);
-      atr_add_raw(i, A_LOCK, unparse_boolexp_quiet(GOD, tempbool));
+      if ( !key || (key & SNAPSHOT_OTHER) ) {
+         atr_add_raw(i, A_LOCK, unparse_boolexp_quiet(GOD, tempbool));
+      }
       free_boolexp(tempbool);
    }
    i_ref = getref(f);		/* Grab owner - toss it away */
    if (flags & V_PARENT) {
       i_ref = getref(f);	/* Grab parent - settem if valid */
-      if ( Good_chk(i_ref) )
-         s_Parent(i, i_ref);
+      if ( !key || (key & SNAPSHOT_OTHER) ) {
+         if ( Good_chk(i_ref) )
+            s_Parent(i, i_ref);
+      }
    }
    if (!(flags & V_ATRMONEY))
       i_ref = getref(f);	/* Grab pennies - toss it away */
    i_ref = getref(f);		/* Grab flags - settem */
-   s_Flags(i, i_ref);
+   if ( !key || (key & SNAPSHOT_FLAGS) ) {
+      s_Flags(i, i_ref);
+   }
    if (flags & V_XFLAGS) {
       i_ref = getref(f);	/* Grab flags2 - settem */
-      s_Flags2(i, i_ref);
+      if ( !key || (key & SNAPSHOT_FLAGS) ) {
+         s_Flags2(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab flags3 - settem */
-      s_Flags3(i, i_ref);
+      if ( !key || (key & SNAPSHOT_FLAGS) ) {
+         s_Flags3(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab flags4 - settem */
-      s_Flags4(i, i_ref);
+      if ( !key || (key & SNAPSHOT_FLAGS) ) {
+         s_Flags4(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab Toggles - settem */
-      s_Toggles(i, i_ref);
+      if ( !key || (key & SNAPSHOT_TOGGL) ) {
+         s_Toggles(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab Toggles2 - settem */
-      s_Toggles2(i, i_ref);
-      i_ref = getref(f);	/* Grab Toggles3 - settem */
-      s_Toggles3(i, i_ref);
-      i_ref = getref(f);	/* Grab Toggles4 - settem */
-      s_Toggles4(i, i_ref);
+      if ( !key || (key & SNAPSHOT_TOGGL) ) {
+         s_Toggles2(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab Powers1 - settem */
-      s_Toggles5(i, i_ref);
+      if ( !key || (key & SNAPSHOT_POWER) ) {
+         s_Toggles3(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab Powers2 - settem */
-      s_Toggles6(i, i_ref);
+      if ( !key || (key & SNAPSHOT_POWER) ) {
+         s_Toggles4(i, i_ref);
+      }
+      i_ref = getref(f);	/* Grab Powers3 - settem */
+      if ( !key || (key & SNAPSHOT_POWER) ) {
+         s_Toggles5(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab DePowers1 - settem */
-      s_Toggles7(i, i_ref);
+      if ( !key || (key & SNAPSHOT_DPOWER) ) {
+         s_Toggles6(i, i_ref);
+      }
       i_ref = getref(f);	/* Grab DePowers2 - settem */
-      s_Toggles8(i, i_ref);
+      if ( !key || (key & SNAPSHOT_DPOWER) ) {
+         s_Toggles7(i, i_ref);
+      }
+      i_ref = getref(f);	/* Grab DePowers3 - settem */
+      if ( !key || (key & SNAPSHOT_DPOWER) ) {
+         s_Toggles8(i, i_ref);
+      }
       db[i].zonelist = NULL;	/* Grab zones - settem if valid */
       for( i_ref = getref(f); 
          i_ref != -1; 
          i_ref = getref(f)) {
-         if ( Good_chk(i_ref) && (ZoneMaster(i_ref) || (ZoneMaster(i) && !ZoneMaster(i_ref))) )
-            zlist_add(i, i_ref); 
+         if ( Good_chk(i_ref) && (ZoneMaster(i_ref) || (ZoneMaster(i) && !ZoneMaster(i_ref))) ) {
+            if ( !key || (key & SNAPSHOT_OTHER) ) {
+               zlist_add(i, i_ref); 
+            }
+         }
       }
    }
-   if (!get_list(f, i, 1, i_count)) {
-      fprintf(stderr, "\nError reading attrs for object #%d\n", i);
-      return(2);
+   
+   if ( !key || (key & SNAPSHOT_ATTRS) ) {
+      if (!get_list(f, i, 1, i_count)) {
+         fprintf(stderr, "\nError reading attrs for object #%d\n", i);
+         return(2);
+      }
    }
    return(0);
 }

@@ -189,19 +189,19 @@ int real_hashadd2(char *str, int *hashdata, HASHTAB * htab, int bOriginal, const
 
     if (str == NULL || *str == '\0') {
       LOGTEXT("ERR", "hashadd2 was passed an empty string.");
-      return 0;
+      return -1;
     }
     if (hashdata == NULL) {
       LOGTEXT("ERR", "hashadd2 was passed a NULL data structure.");
-      return 0;
+      return -1;
     }
     if (htab == NULL) {
       LOGTEXT("ERR", "hashadd2 was passed a NULL htab.");
-      return 0;
+      return -1;
     }
     if (bOriginal !=0 && bOriginal != 1) {
       LOGTEXT("ERR", "hashadd2 was passed an invalid bOriginal value.");
-      return 0;
+      return -1;
     }
     /*
      * Make sure that the entry isn't already in the hash table.  If it
@@ -523,11 +523,11 @@ int real_nhashadd(int val, int *hashdata, NHSHTAB * htab, const char *fileName, 
 
     if (htab == NULL) {
       LOGTEXT("ERR", "nhashadd was passed a NULL htab.");
-      return 0;
+      return -1;
     }
     if (hashdata == NULL) {
       LOGTEXT("ERR", "nhashadd was passed a NULL hashdata.");
-      return 0;
+      return -1;
     }
     /*
      * Make sure that the entry isn't already in the hash table.  If it

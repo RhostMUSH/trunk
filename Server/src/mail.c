@@ -6810,7 +6810,7 @@ mail_pass(dbref player, char *buf1, char *buf2)
     } else if (ps == 1) {
 	notify_quiet(player, "Mail: Password already entered.");
     } else {
-	if ((*buf1 != '+') && (check_pass(player, buf1, 1))) {
+	if ((*buf1 != '+') && (check_pass(player, buf1, 1, 0, NOTHING))) {
 	    atr_add_raw(player, A_MPSET, "SET");
 	    notify_quiet(player, "Mail: Password accepted.");
 	} else {

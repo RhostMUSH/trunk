@@ -1,6 +1,6 @@
 #ifdef BROKEN_NDBM
   #ifndef QDBM
-    #include "../src/gdbm-1.8.3/ndbm.h"
+    #include "../src/gdbm/ndbm.h"
   #else
     #include "../src/qdbm/relic.h"
   #endif

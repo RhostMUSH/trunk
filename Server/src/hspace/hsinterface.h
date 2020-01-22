@@ -3,7 +3,7 @@
 
 // #define PENNMUSH
 //#define TM3
-#define RHOST
+//#define RHOST
 
 extern "C" {
 #include "externs.h"
@@ -16,7 +16,7 @@ extern "C" {
 #define getrandom(x)		 (random() % x)
 #define moveto(x, y)	 	 (move_via_generic(x, y, x, 0))
 #define See_All(x)		 (Admin(x))
-#define look_room(x, y, z)	 (look_in(x, y, z))
+#define look_room(x, y, z)	 (look_in(x, y, z, 1))
 #define set_name(x, y)		 (s_Name(x, y))
 
 extern "C" double makerandom();

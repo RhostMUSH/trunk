@@ -823,7 +823,11 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     s_intbuf[3] = '\0';
     ch = ch1 = ch2 = '\0';
 
-    while(*string && ((bufc - buff) < (LBUF_SIZE-24))) {
+    while( *string && 
+           ((bufc - buff) < (LBUF_SIZE-24)) &&
+           ((bufc2 - buff2) < (LBUF_SIZE-24)) &&
+           ((bufc_utf - buff_utf) < (LBUF_SIZE-24))
+         ) {
         if(*string == '\\') {
             string++;
             safe_chr('\\', buff, &bufc);
@@ -934,6 +938,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         i_utfcnt++;
                         tmp++;
                     }
+		    free_sbuf(tmpptr);
                     safe_chr(' ', buff2, &bufc2);
                     safe_chr(' ', buff, &bufc);
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
@@ -1896,13 +1901,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case '$':
                 i = -1;
                 dstr++;
+                if ( !*dstr) {
+                   dstr--;
+                   break;
+                }
                 if ( isdigit((unsigned char)*dstr) ) {
                    i = *dstr - '0';
                    dstr++;
-                   if ( isdigit((unsigned char)*dstr) ) {
+                   if ( !*dstr ) {
+                      dstr--;
+                   } else if ( isdigit((unsigned char)*dstr) ) {
                       i *= 10;
                       i += *dstr - '0';
                       dstr++;
+                      if ( !*dstr ) {
+                         dstr--;
+                      }
                    }
                 }
                 if ( i != -1 ) {

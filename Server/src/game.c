@@ -786,7 +786,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
         if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_PREFIX");
            if ( ap_attrpipe ) {
-              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
               if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
@@ -863,7 +863,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
         if ( mudstate.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_SUFFIX");
            if ( ap_attrpipe ) {
-              s_pipeattr = atr_get(target, ap_attrpipe->number, &aowner, &aflags);
+              s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
               if ( *s_pipeattr && !(aflags & AF_NOPROG) ) {
                  vap[0] = msg_ns;
                  vap[1] = alloc_mbuf("speech_prefix");
@@ -1641,11 +1641,6 @@ dump_database_internal(int panic_dump)
     free_mbuf(outfn);
     free_mbuf(prevfile);
     local_dump(panic_dump);
-	
-	// Dump HSpace database if activated
-#ifdef HSPACE
-	hsDumpDatabases();
-#endif
 
     /* This is broke, I don't know why yet */
     reset_signals();  	/* Resume normal signal handling. */
@@ -2131,7 +2126,7 @@ NDECL(process_preload)
 	   }
         }
 
-	/* Look for a FORWARDLIST attribute */
+	/* Look for a PROTECTNAME attribute */
 
         if (H_Protect(thing)) {
 	    (void) atr_get_str(tstr, thing, A_PROTECTNAME,
@@ -2155,17 +2150,36 @@ NDECL(process_preload)
                }
             }
         }
-	if (H_Fwdlist(thing)) {
-	    (void) atr_get_str(tstr, thing, A_FORWARDLIST,
+
+	/* Look for a FORWARDLIST attribute */
+
+     	if (H_Fwdlist(thing)) {
+	      (void) atr_get_str(tstr, thing, A_FORWARDLIST,
 			       &aowner, &aflags);
-	    if (*tstr) {
-		fwdlist_load(fp, GOD, tstr);
-		if (fp->count > 0)
-		    fwdlist_set(thing, fp);
-	    }
-	    cache_reset(0);
-	}
+  	    if (*tstr) {
+  	    	fwdlist_load(fp, GOD, tstr);
+      		if (fp->count > 0)
+    		    fwdlist_set(thing, fp);
+  	    }
+  	    cache_reset(0);
+    	}
+
+	/* Look for an OBJECTTAG attribute */
+
+     	if (H_ObjectTag(thing)) {
+	      (void) atr_get_str(tstr, thing, A_OBJECTTAG,
+			       &aowner, &aflags);
+  	    if (*tstr) {
+          strcpy(tstr2, tstr);
+          s_strtok = strtok_r(tstr2, " ", &s_strtokr);
+          while( s_strtok ) {
+     		    objecttag_add(s_strtok, thing);
+            s_strtok = strtok_r(NULL, " ", &s_strtokr);
+          }
+  	    }
+    	}
     }
+
     free_lbuf(fp);
     free_lbuf(tstr);
     free_lbuf(tstr2);
@@ -2243,6 +2257,7 @@ main(int argc, char *argv[])
     initDoorSystem();
 #endif
     hashinit(&mudstate.player_htab, 521);
+    hashinit(&mudstate.objecttag_htab, 131);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
     nhashinit(&mudstate.desc_htab, 131);
@@ -2381,6 +2396,7 @@ main(int argc, char *argv[])
     hashreset(&mudstate.attr_name_htab);
     nhashreset(&mudstate.attr_num_htab);
     hashreset(&mudstate.player_htab);
+    hashreset(&mudstate.objecttag_htab);
     nhashreset(&mudstate.fwdlist_htab);
     hashreset(&mudstate.news_htab);
     hashreset(&mudstate.help_htab);
@@ -2449,11 +2465,6 @@ main(int argc, char *argv[])
       }
     }
     local_startup();
-	
-	// HSpace startup
-#ifdef HSPACE
-    local_hs_init();
-#endif
     /* --- main mush loop --- */
     shovechars(mudconf.port, mudconf.ip_address);
     /* --- end main mush loop --- */

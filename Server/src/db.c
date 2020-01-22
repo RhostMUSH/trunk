@@ -625,6 +625,7 @@ ATTR attr[] =
     {"*Email", A_EMAIL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL, NULL},
     {"*Pfail", A_PFAIL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL, NULL},
     {"RLevel", A_RLEVEL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
+    {"____ObjectTag", A_OBJECTTAG, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
     {NULL, 0, 0, NULL}};
 
 #ifndef STANDALONE
@@ -715,33 +716,42 @@ int has_aflag(dbref player, dbref thing, int anum, char *fname)
 void 
 fwdlist_set(dbref thing, FWDLIST * ifp)
 {
-    FWDLIST *fp, *xfp;
-    int i;
+   FWDLIST *fp, *xfp;
+   int i, stat;
+   char *logbuf;
 
-    /* If fwdlist is null, clear */
+/* If fwdlist is null, clear */
 
-    if (!ifp || (ifp->count <= 0)) {
-	fwdlist_clr(thing);
-	return;
-    }
-    /* Copy input forwardlist to a correctly-sized buffer */
+   if (!ifp || (ifp->count <= 0)) {
+      fwdlist_clr(thing);
+      return;
+   }
+   /* Copy input forwardlist to a correctly-sized buffer */
 
-    fp = (FWDLIST *) XMALLOC(sizeof(int) * ((ifp->count) + 1), "fwdlist_set");
+   fp = (FWDLIST *) XMALLOC(sizeof(int) * ((ifp->count) + 1), "fwdlist_set");
 
-    for (i = 0; i < ifp->count; i++) {
-	fp->data[i] = ifp->data[i];
-    }
-    fp->count = ifp->count;
+   for (i = 0; i < ifp->count; i++) {
+      fp->data[i] = ifp->data[i];
+   }
+   fp->count = ifp->count;
 
-    /* Replace an existing forwardlist, or add a new one */
+   /* Replace an existing forwardlist, or add a new one */
 
-    xfp = fwdlist_get(thing);
-    if (xfp) {
-	XFREE(xfp, "fwdlist_set");
-	nhashrepl(thing, (int *) fp, &mudstate.fwdlist_htab);
-    } else {
-	nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
-    }
+   xfp = fwdlist_get(thing);
+   if (xfp) {
+      XFREE(xfp, "fwdlist_set");
+      nhashrepl(thing, (int *) fp, &mudstate.fwdlist_htab);
+   } else {
+       stat = nhashadd(thing, (int *) fp, &mudstate.fwdlist_htab);
+       stat = (stat < 0) ? 0 : 1;
+       if(!stat) {
+          logbuf = alloc_lbuf("fwdlist_add");
+          sprintf(logbuf,"UNABLE TO ADD FWDLIST HASH FOR #%d", thing);
+          log_text(logbuf);
+          free(fp);
+          free(logbuf);
+       }
+   }
 }
 
 void 
@@ -1332,6 +1342,50 @@ NDECL(init_attrtab)
  */
 
 ATTR *
+atr_str_cluster(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str_objid");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
 atr_str_objid(char *s)
 {
     char *buff, *p, *q;
@@ -1518,6 +1572,50 @@ atr_str_notify(char *s)
     /* Convert the buffer name to lowercase */
 
     buff = alloc_mbuf("atr_str_notify");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str4(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str4");
     for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
 	*p = ToLower((int)*q);
     *p = '\0';
@@ -1824,6 +1922,35 @@ anum_extend(int newtop)
 /* ---------------------------------------------------------------------------
  * atr_num: Look up an attribute by number.
  */
+ATTR *
+atr_num_chkpass(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
 ATTR *
 atr_num_objid(int anum)
 {
@@ -2429,9 +2556,9 @@ al_add(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
-                     (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
+                     (i_array[1] == -2 ? (Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
                    notify_quiet(mudstate.vlplay,"Variable attribute new creation maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "VMAXIMUM")
                      log_text("Variable attribute new creation maximum reached -> Player: ");
@@ -2799,6 +2926,9 @@ atr_clr(dbref thing, int atr)
 	pcache_reload(thing);
 	break;
 #endif
+    case A_OBJECTTAG:
+	s_Flags4(thing, Flags4(thing) & ~HAS_OBJECTTAG);
+	break;
     }
 }
 
@@ -2846,6 +2976,9 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	pcache_reload(thing);
 	break;
 #endif
+    case A_OBJECTTAG:
+	s_Flags4(thing, Flags4(thing) | HAS_OBJECTTAG);
+	break;
     }
 }
 
@@ -2968,6 +3101,59 @@ atr_get_info(dbref thing, int atr, dbref * owner, int *flags)
 }
 
 #ifndef STANDALONE
+char *
+atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags, int *retobj)
+{
+    char *buff;
+    dbref parent;
+    int lev, i_player, i_chk;
+    ATTR *ap;
+    ZLISTNODE *z_ptr;
+
+    i_chk = 0;
+    if ( *retobj != -1 ) {
+       i_player = *retobj;
+       if ( Good_obj(i_player) && Wizard(i_player) )
+          i_chk = 1;
+       *retobj = -1;
+    }
+
+    ITER_PARENTS(thing, parent, lev) {
+        if ( !i_chk && NoEx(parent) && (parent != thing) )
+            break;
+	buff = atr_get_raw(parent, atr);
+	if (buff && *buff) {
+	    atr_decode(buff, s, thing, owner, flags, atr);
+	    if ((lev == 0) || !(*flags & AF_PRIVATE)) {
+                *retobj = parent;
+		return s;
+            }
+	}
+	if ((lev == 0) && Good_obj(Parent(parent))) {
+	    ap = atr_num_pinfo(atr);
+	    if (!ap || ap->flags & AF_PRIVATE)
+		break;
+	}
+    }
+#ifndef STANDALONE
+    /* First, inherit from the zonemaster, if enabled */
+    if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
+       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+          if ( ZoneParent(z_ptr->object) ) {
+	     buff = atr_get_raw(z_ptr->object, atr);
+	     if (buff && *buff) {
+	         atr_decode(buff, s, thing, owner, flags, atr);
+		 if ( !(*flags & AF_PRIVATE)) {
+		   return s;
+		 }
+	     }
+          }
+       }
+    }
+#endif
+    *s = '\0';
+    return s;
+}
 
 char *
 atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *retobj)
@@ -3011,7 +3197,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
 	         atr_decode(buff, s, thing, owner, flags, atr);
-		 if ( !(*flags * AF_PRIVATE)) {
+		 if ( !(*flags & AF_PRIVATE)) {
 		   return s;
 		 }
 	     }
@@ -3054,9 +3240,14 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 	buff = atr_get_raw(gbl_parent, atr);
         if ( buff && *buff ) {
 	    atr_decode(buff, s, thing, owner, flags, atr);
-            if ( !(*flags * AF_PRIVATE)) {
+            if ( !(*flags & AF_PRIVATE)) {
                return s;
             }
+        } else {
+           s = atr_pget_str_globalchk(s, gbl_parent, atr, owner, flags, retobj);
+           if ( s && *s ) {
+              return s;
+           }
         }
     }
 #endif
@@ -3077,13 +3268,56 @@ atr_pget_ash(dbref thing, int atr, dbref * owner, int *flags, int line_num, char
 }
 
 int 
+atr_pget_info_globalchk(dbref thing, int atr, dbref * owner, int *flags)
+{
+    char *buff;
+    dbref parent;
+    int lev;
+    ATTR *ap;
+    ZLISTNODE *z_ptr;
+
+    ITER_PARENTS(thing, parent, lev) {
+	buff = atr_get_raw(parent, atr);
+	if (buff && *buff) {
+	    atr_decode(buff, NULL, thing, owner, flags, atr);
+	    if ((lev == 0) || !(*flags & AF_PRIVATE))
+		return 1;
+	}
+	if ((lev == 0) && Good_obj(Parent(parent))) {
+	    ap = atr_num_pinfo(atr);
+	    if (!ap || ap->flags & AF_PRIVATE)
+		break;
+	}
+    }
+#ifndef STANDALONE
+    /* First, inherit from the zonemaster, if enabled */
+    if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
+       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+          if ( ZoneParent(z_ptr->object) ) {
+	     buff = atr_get_raw(z_ptr->object, atr);
+	     if (buff && *buff) {
+	         atr_decode(buff, NULL, thing, owner, flags, atr);
+		 if ( !(*flags & AF_PRIVATE) ) {
+		   return 1;
+		 }
+	     }
+          }
+       }
+    }
+#endif
+    return 0;
+}
+
+int 
 atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
 {
     char *buff;
     dbref parent, gbl_parent;
-    int lev;
+    int lev, i_return;
     ATTR *ap;
     ZLISTNODE *z_ptr;
+
+    i_return = 0;
 
     ITER_PARENTS(thing, parent, lev) {
 	buff = atr_get_raw(parent, atr);
@@ -3150,6 +3384,11 @@ atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
         if ( buff && *buff ) {
 	    atr_decode(buff, NULL, thing, owner, flags, atr);
 	    return 1;
+        } else {
+           i_return = atr_pget_info_globalchk(gbl_parent, atr, owner, flags);
+           if ( i_return ) {
+              return i_return;
+           }
         }
     }
 #endif

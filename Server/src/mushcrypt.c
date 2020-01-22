@@ -68,10 +68,11 @@ int mush_crypt_validate(dbref player,
 			int flag) {
 #ifdef CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
-  static char crypt_buff[70]; 
+  static char crypt_buff[100];
 #endif
 #ifdef CRYPT_GLIB2
-  char crypt_salt[70], *s, *d;
+  char crypt_salt[70], crypt_repeat[30], *s, *d, *t;
+  int i_count, i_rounds;
 #endif
 
   DPUSH; /* #95 */
@@ -79,10 +80,28 @@ int mush_crypt_validate(dbref player,
 #ifdef CRYPT_ENCRYPT_DES
 #ifdef CRYPT_GLIB2
   memset(crypt_salt, '\0', 70);
+  memset(crypt_repeat, '\0', 30);
   if ( (*pEncrypted == '$') && (*(pEncrypted+1) == '6') && (*(pEncrypted+2) == '$') ) {
      s = (char *)pEncrypted;
      d = crypt_salt;
-     s+=3;
+     s += 3;
+     i_rounds = 0;
+     if ( strncmp(s, (char *)"rounds=", 7) == 0 ) {
+        i_rounds = 1;
+        s += 7;
+        t = crypt_repeat;
+        i_count = 0;
+        while ( *s && *s != '$' ) {
+           if ( i_count <= 9 ) {
+              *t = *s;
+              t++;
+           }
+           s++;
+        }
+        if ( *s == '$' ) {
+           s++;
+        }
+     }
      while ( *s && *s != '$' ) {
         if ( *s == '$' ) {
            s++;
@@ -92,7 +111,11 @@ int mush_crypt_validate(dbref player,
         s++;
         d++;
      }
-     sprintf(crypt_buff, "$6$%s$", crypt_salt);
+     if ( i_rounds ) {
+        sprintf(crypt_buff, "$6$rounds=%s$%s$", crypt_repeat, crypt_salt);
+     } else {
+        sprintf(crypt_buff, "$6$%s$", crypt_salt);
+     }
      if (strcmp(pEncrypted, crypt(pUnencrypted, crypt_buff)) == 0) {
        RETURN(1); /* #95 */
      }
@@ -141,7 +164,7 @@ char * mush_crypt(const char *key, int val) {
 #ifdef CRYPT_ENCRYPT_DES
   DPUSH; /* #96 */
 #ifdef CRYPT_GLIB2
-  char *s, s_buff[10], s_salt[20];
+  char *s, s_buff[10], s_salt[40];
   int i;
   s = s_buff;
   for ( i=0;i<9;i++) {
@@ -149,10 +172,14 @@ char * mush_crypt(const char *key, int val) {
      s++;
   }
   s_buff[9]='\0';
-  memset(s_salt, '\0', 20);
+  memset(s_salt, '\0', 40);
   s = crypt("abcde", "$6$12345$");
   if ( s && strlen(s) > 20 ) {
-     sprintf(s_salt, "$6$%s$", s_buff);
+     if ( mudconf.sha2rounds != 5000 ) {
+        sprintf(s_salt, "$6$rounds=%d$%s$", mudconf.sha2rounds, s_buff);
+     } else {
+        sprintf(s_salt, "$6$%s$", s_buff);
+     }
      if ( val ) {
         RETURN(crypt(key, "XX")); /* #96 */
      } else {
@@ -171,7 +198,7 @@ char * mush_crypt(const char *key, int val) {
 #endif
 #elif CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
-  static char crypt_buff[70];
+  static char crypt_buff[100];
   DPUSH; /* #97 */
   shsInfo.reverse_wanted = (BYTE) reverse_shs;
   shsInit(&shsInfo);
@@ -355,6 +382,9 @@ check_mux_password(const char *saved, const char *password)
    dp = decoded = alloc_lbuf("decode_buffer");
    /* decode the salt */
    decode_base64(start, strlen(start), decoded, &dp, 1);
+
+   /* Need to initialize hash because some versions of OpenSSL does not */
+   memset(hash, 0, sizeof(hash));
 
    /* Double-hash the password */
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
