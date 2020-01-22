@@ -11365,30 +11365,30 @@
 & FUNCTION LIST3
     
   LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTOGGLES() LISTUNION()    LIT()            LJC()          
-  LJUST()        LLOC()        LMAX()         LMIN()           LMUL()         
-  LN()           LNOR()        LNUM()         LNUM2()          LOC()          
-  LOCALFUNC()    LOCALIZE()    LOCATE()       LOCK()           LOCKCHECK()
-  LOCKDECODE()   LOCKENCODE()  LOG()          LOR()            LRAND()       
-  LREPLACE()     LROOMS()      LSET()         LSUB()           LT()           
-  LTE()          LTOGGLES()    LWHO()         LXNOR()          LXOR()         
-  LZONE()        MAILQUICK()   MAP()          MATCH()          MASK()         
-  MAX()          MEMBER()      MERGE()        MID()            MIN()          
-  MIX()          MOD()         MODULO()       MODIFYTIME()     MONEY()        
-  MONEYNAME()    MOON()        MSECS()        MUDNAME()        MUL()          
-  MUNGE()        MWORDS()      NAME()         NAMEQ()          NAND()         
-  NCOMP()        NEARBY()      NEQ()          NEXT()           NOR()          
-  NOSTR()        NOT()         NOTCHR()       NPEMIT()         NSITER()       
-  NUM()          NUMMATCH()    NULL()         NUMMEMBER()      NUMPOS()       
-  NUMWILDMATCH() OBJ()         OBJEVAL()      OBJID()          OEMIT()        
-  OPEN()         OR()          ORCHR()        ORFLAG()         ORFLAGS()      
-  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
-  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
-  PGREP()        PI()          PID()          PMATCH()         PORT()         
-  POS()          POSS()        POWER()        POWER10()        PRINTF()       
-  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
-  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
-  RANDEXTRACT() 
+  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTUNION()      LIT()
+  LJC()          LJUST()       LLOC()         LMAX()           LMIN()
+  LMUL()         LN()          LNOR()         LNUM()           LNUM2()
+  LOC()          LOCALFUNC()   LOCALIZE()     LOCATE()         LOCK() 
+  LOCKCHECK()    LOCKDECODE()  LOCKENCODE()   LOG()            LOR() 
+  LRAND()        LREPLACE()    LROOMS()       LSET()           LSUB()
+  LT()           LTE()         LTOGGLES()     LWHO()           LXNOR() 
+  LXOR()         LZONE()       MAILQUICK()    MAP()            MATCH()
+  MASK()         MAX()         MEMBER()       MERGE()          MID() 
+  MIN()          MIX()         MOD()          MODULO()         MODIFYTIME() 
+  MONEY()        MONEYNAME()   MOON()         MSECS()          MUDNAME() 
+  MUL()          MUNGE()       MWORDS()       NAME()           NAMEQ()
+  NAND()         NCOMP()       NEARBY()       NEQ()            NEXT()
+  NOR()          NOSTR()       NOT()          NOTCHR()         NPEMIT()
+  NSITER()       NUM()         NUMMATCH()     NULL()           NUMMEMBER()
+  NUMPOS()       NUMWILDMATCH()OBJ()          OBJEVAL()        OBJID()
+  OEMIT()        OPEN()        OR()           ORCHR()          ORFLAG()
+  ORFLAGS()      OWNER()       PACK()         PACKMATH()       PARENMATCH()
+  PARENT()       PARSE()       PARSESTR()     PEDIT()          PEMIT()
+  PFIND()        PGREP()       PI()           PID()            PMATCH()
+  PORT()         POS()         POSS()         POWER()          POWER10()
+  PRINTF()       PRIVATIZE()   PROGRAMMER()   PTIMEFMT()       PUSHREGS()
+  QUOTA()        R()           RACE()         RAND()           RANDPOS()
+  RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11416,11 +11416,11 @@
   STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
   STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
   STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
-  SWITCH()        SWITCHALL()     T()            TAG ()         TAN()
-  TEL()           TEMPLATE()      TIME()         TIMEFMT()      TOBIN()
-  TODEC()         TOGGLE()        TOHEX()        TOOCT()        TOTCMDS()
-  TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH() TR()
-  TRACE()         TRANSLATE()     TRIM()
+  SWITCH()        SWITCHALL()     T()            TAG()          TAGMATCH()
+  TAN()           TEL()           TEMPLATE()     TIME()         TIMEFMT()
+  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
+  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
+  TR()            TRACE()         TRANSLATE()    TRIM()
 
 { 'help function list5' for more }
 
@@ -11524,11 +11524,11 @@
   Logical:            AND() MASK() NAND() NOR() OR() XOR() XNOR() CAND() COR()
             See Also: help logical functions
   
-  Miscellaneous:      ASC() CHR() CNAME() ERROR() LOCKCHECK() LOCKDECODE()
-                      LOCKENCODE() LOCALIZE() MOON() NAMEQ() NULL() 
-                      PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
+  Miscellaneous:      ASC() CHR() CNAME() ERROR() LISTTAGS() LOCKCHECK()
+                      LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQ()
+                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
                       SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TRACE()
+                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TAGMATCH() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -23381,7 +23381,8 @@
    as a replacement for #dbref. For example, "tag(weather_globals)" and
   "#weather_globals" will return the same #dbref.
  
-  Also See: help wizhelp tags, wizhelp @tag
+  Also See: help wizhelp tags, wizhelp @tag, wizhelp listtags(),
+            wizhelp tagmatch()
   
 & TR()
   Function: tr(<string>, <find>, <replace> [,<type>])
@@ -32991,6 +32992,7 @@
   * account_su() to allow suing between accounts [ASH]
   * connect_methods @admin param to disable hardcoded connects [ASH]
   * Tag system for avoiding hardcoded #dbrefs in softcode [AMB]
+  * Added listtags() and tagmatch() function. [AMB]
   
   Changes
   ------------

@@ -36433,6 +36433,54 @@ FUNCTION(fun_tag)
     }
 }
 
+/*
+ * Listtags: List tag|#dbref combinations, or all tags
+ * assigned to a specific object
+ */
+
+FUNCTION(fun_listtags)
+{
+   char *s_out;
+   int aflags;
+   dbref target, aowner;
+
+   s_out = alloc_lbuf("fun_listtags");
+   if(!*fargs[0]) {
+     if(!objecttag_list(s_out))
+       sprintf(s_out, "#-1 INTERNAL ERROR");
+     safe_str(s_out, buff, bufcx);
+   } else {
+     init_match(player, fargs[0], NOTYPE);
+     match_everything(0);
+     target = match_result();
+     if(Good_obj(target))
+     {
+       if (H_ObjectTag(target)) {
+         (void) atr_get_str(s_out, target, A_OBJECTTAG,
+             &aowner, &aflags);
+         safe_str(s_out, buff, bufcx);
+       }
+     }
+   }
+   free_lbuf(s_out); 
+}
+
+/*
+ * tagmatch: List all tags matching a wildcard pattern
+ */
+
+FUNCTION(fun_tagmatch)
+{
+  char *s_out;
+
+  if(*fargs[0]) {
+    s_out = alloc_lbuf("tagmatch");
+    objecttag_match(s_out,fargs[0]);
+    safe_str(s_out, buff, bufcx);
+    free_lbuf(s_out);
+  }
+}
+
 /* ---------------------------------------------------------------------------
  * flist: List of existing functions in alphabetical order.
  */
@@ -36728,6 +36776,7 @@ FUN flist[] =
 #ifdef REALITY_LEVELS
     {"LISTRLEVELS", fun_listrlevels, 0, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
+    {"LISTTAGS", fun_listtags, 2, 0, CA_WIZARD, CA_NO_CODE},
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
@@ -37010,6 +37059,7 @@ FUN flist[] =
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},
     {"TAG", fun_tag, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TAGMATCH", fun_tagmatch, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"TAN", fun_tan, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TANH", fun_tanh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT

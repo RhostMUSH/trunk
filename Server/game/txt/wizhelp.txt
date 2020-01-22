@@ -1303,26 +1303,26 @@
 & TAGS
   The Rhost tag system exists to make it easier for coders to avoid having
   to use hardcoded #dbrefs inside their mushcode.
- 
+  
   It does this by allowing admins to assign #dbrefs to named 'tags', that
   then can be used inside mushcode instead of said #dbrefs.
- 
+  
   For example, instead of using
     @trigger #4/UPDATE_WEATHER
   one would use the following line inside mushcode with this system:
     @trigger [tag(weather_globals)]/UPDATE_WEATHER 
-
+  
   An alternative to tag() is actually to use #<tagname> - this will match
   against existing tag names, in a similiar format to #dbrefs, making it an
   easy to use replacement.
- 
+  
   This also makes writing of portable mushcode much easier - old workarounds
   in such systems included storing the new #dbrefs on creation on special
   attributes, and then reading those attributes with v() to make us of them
   inside the mushcode.
- 
+  
   The tag system has a couple advantages compared to this workaround:
- 
+  
     * They can be easily added by putting a line like
         @tag/add weather_globals=[lastcreate(me,t)]
       at the end of an object's automated creation process in the .txt file.
@@ -1336,9 +1336,42 @@
     * Tags are easy to use on the fly in the client, by entering lines like
       "ex tag(weather_globals)", making them also handy for everyday admin
       maintenance purposes.
- 
-  Also See: wizhelp @tag, help tag()
- 
+  
+  Also See: wizhelp @tag, wizhelp listtags(), wizhelp tagmatch(), help tag()
+
+& LISTTAGS()
+  function: listtags()
+            listtags(<target>)
+  
+  This function, without any argument, returns a list of all set tags.
+  The list is formatted as "tagname|#dbref tagname2|#dbref2 ..."
+  
+  An alternative is to specify a target. If the target is valid, the returned
+  list will be a list of all tags set on the object, if the form of:
+  "tagname tagname2 tagname3..."
+  
+  This function is limited to wizards by default, in order to prevent normal
+  players from listing sensitive tags and finding the #dbrefs of special
+  objects.
+  
+  Also See: wizhelp tags, wizhelp @tag, wizhelp tagmatch(), help tag()
+
+& TAGMATCH()
+  function: tagmatch(<pattern>)
+  
+  This function returns a list of tags that match the specified pattern.
+  Example:
+  > th tagmatch(*bl*) 
+  > bleat blue oblong
+  
+  Using this function with a simple '*' as the pattern will list all tags.
+  
+  This function is limited to wizards by default, in order to prevent normal
+  players from listing sensitive tags and finding the #dbrefs of special
+  objects.
+  
+  Also See: wizhelp tags, wizhelp @tag, wizhelp listtags(), help tag()
+
 & TOGGLES
   Information is available on the following toggles:
  

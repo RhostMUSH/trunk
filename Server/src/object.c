@@ -2528,6 +2528,41 @@ int objecttag_remove(char *tag)
   return 1;
 }
 
+int objecttag_list(char* buff)
+{
+  char *s_hashstr;
+  TAGENT *storedtag;
+
+  if(!buff)
+    return 0;
+  s_hashstr = alloc_lbuf("objecttag_list");
+  for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+   storedtag;
+   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+    if(storedtag) {
+      sprintf(s_hashstr, "%s|#%d ", storedtag->tagname, storedtag->tagref);
+      strcat(buff,s_hashstr);
+    }
+  }
+  free_lbuf(s_hashstr);
+  return 1;
+}
+
+void objecttag_match(char *buff, char *match)
+{
+  TAGENT *storedtag;
+  for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+   storedtag;
+   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+    if(storedtag) {
+      if(quick_wild(match, storedtag->tagname)) {
+        strcat(buff,storedtag->tagname);
+        strcat(buff," ");
+      }
+    }
+  }
+}
+
 void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
 {
   char *buff, *s_hashstr;
