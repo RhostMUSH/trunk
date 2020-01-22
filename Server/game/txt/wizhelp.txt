@@ -5304,7 +5304,8 @@
 
 & @tag
   Command: @tag <tagname>
-           @tag/list
+           @tag/list 
+           @tag/list <searchstring>
            @tag/add <tagname>=<#dbref>
            @tag/remove <tagname>
   
@@ -5318,6 +5319,9 @@
   #dbref.
  
   @tag/list lists all current valid tags and the #dbref associated with them.
+  @tag/list also accepts an optional search string as an argument. This
+  can get used to filter the taglist by names. It accepts wildcards and is
+  case-insensitive. 
  
   @tag/add gets used to add a tag. If a named tag already exists, an error
   is returned.

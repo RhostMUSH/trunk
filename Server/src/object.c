@@ -2584,8 +2584,8 @@ void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
         notify(player,"#-1 UNKNOWN ERROR");
     }
   } else if(key == TAG_LIST) {
-    if(*tagname || *target) {
-      notify(player,"#-1 Too many arguments for @tag/list. 0 Expected.");
+    if(*target) {
+      notify(player,"#-1 Too many arguments for @tag/list. Max of 1 Expected.");
     } else {
       buff = alloc_lbuf("tag_cmd");
       s_hashstr = alloc_lbuf("tag_cmd");
@@ -2596,8 +2596,15 @@ void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
        storedtag;
        storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
         if(storedtag) {
-          sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
-          strcat(buff,s_hashstr);
+          if(*tagname) {
+            if(quick_wild(tagname, storedtag->tagname)) {
+              sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
+              strcat(buff,s_hashstr);
+            }
+          } else  {
+              sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
+              strcat(buff,s_hashstr);
+          }
         }
       }
       strcat(buff,"=============================================\n");
