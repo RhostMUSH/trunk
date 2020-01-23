@@ -67,6 +67,27 @@ else
    MYSQL_O=
 endif
 
+#HSPACE Objects
+ifeq "$(HSPACE)" "1"
+    HSPACE_C=hspace.c
+
+    HSPACE_O=hspace/hscelestial.o hspace/hsclass.o hspace/hscmds.o \
+             hspace/hsconf.o hspace/hsconsole.o hspace/hsconsolecmds.o \
+             hspace/hsdb.o hspace/hseng.o hspace/hsengcmds.o hspace/hsengines.o \
+             hspace/hsfuel.o hspace/hsfuncs.o hspace/hsinterface.o \
+             hspace/hsmain.o hspace/hsmissile.o hspace/hsnavcmds.o \
+             hspace/hsuniverse.o hspace/hsobjects.o hspace/hspace.o \
+             hspace/hsplanet.o hspace/hsship.o hspace/hsshipeng.o \
+             hspace/hsshipnav.o hspace/hstrig.o hspace/hsutils.o \
+             hspace/hsweapon.o hspace/hscomm.o hspace/hsterritory.o hspace.o
+
+    HSPACE_MORELIBS=-lstdc++
+else
+    HSPACE_C=
+    HSPACE_O=
+    HSPACE_MORELIBS=
+endif
+
 CHK = $(shell uname -s|grep -c "Darwin")
 ifeq "$(CHK)" "1"
    EXTLIBS=
@@ -123,17 +144,6 @@ DR_SRC = $(DRMUSHSRC) $(DREMPIRESRC) $(DRMAILSRC)
 DR_OBJ = $(DRMUSHOBJ) $(DREMPIREOBJ) $(DRMAILOBJ)
 DR_HDR = $(DREMPIREHDR)
 
-#HSPACE
-#HSPACE_O= hspace/hscelestial.o hspace/hsclass.o hspace/hscmds.o \
-          hspace/hsconf.o hspace/hsconsole.o hspace/hsconsolecmds.o \
-          hspace/hsdb.o hspace/hseng.o hspace/hsengcmds.o hspace/hsengines.o \
-          hspace/hsfuel.o hspace/hsfuncs.o hspace/hsinterface.o \
-          hspace/hsmain.o hspace/hsmissile.o hspace/hsnavcmds.o \
-          hspace/hsuniverse.o hspace/hsobjects.o hspace/hspace.o \
-          hspace/hsplanet.o hspace/hsship.o hspace/hsshipeng.o \
-          hspace/hsshipnav.o hspace/hstrig.o hspace/hsutils.o \
-          hspace/hsweapon.o hspace/hscomm.o hspace/hsterritory.o
-
 # Everything needed to use the database in standalone mode.
 SA_SRC	= sa-db.c sa-db_rw.c sa-boolexp.c sa-unparse.c sa-compress.c \
 	  sa-pred.c sa-stringu.c sa-conf.c sa-log.c sa-object.c \
@@ -152,7 +162,7 @@ D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
 	  db.c db_rw.c compress.c stringutil.c object.c conf.c flags.c htab.c \
 	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
           local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
-          sqlite.c websock.c $(DR_SRC) $(MYSQL_C)
+          sqlite.c websock.c $(DR_SRC) $(MYSQL_C) ${HSPACE_C}
 
 D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
@@ -320,7 +330,7 @@ DEFS = $(CUSTDEFS) -Wall
 
 # MORELIBS is handled by the asksource.sh script for auto-generation.
 # any customization add to this but do not remove CUSTMORELIBS
-MORELIBS = $(CUSTMORELIBS) -lstdc++
+MORELIBS = $(CUSTMORELIBS) ${HSPACE_MORELIBS}
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
@@ -498,12 +508,12 @@ verify:
 	runtest --tool mush --src ./testsuite
 
 realclean:
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT) netrhost~ 
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT) netrhost~ 
 	echo '' > .depend
 
 clean:
 	-cp -f $(bindir)/netrhost $(bindir)/netrhost~
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT)
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT)
 	echo '' > .depend
 
 include .depend

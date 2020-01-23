@@ -31,12 +31,21 @@
    extern void local_sqlite_init(void);
 #endif /* SQLITE */
 
+#ifdef HSPACE
+    extern void local_hs_init(void);
+    extern void hsDumpDatabases(void);
+    extern void hsCycle(void);
+#endif
+
 void local_startup(void) {
 #ifdef SQLITE
    local_sqlite_init();
 #endif /* SQLITE */
 #ifdef MYSQL_VERSION
    local_mysql_init();
+#endif
+#ifdef HSPACE
+   local_hs_init();
 #endif
    load_regexp_functions();
 }
@@ -62,7 +71,9 @@ void local_load_reboot(void) {
 
 /* Called after Rhost has finished dumping her databases */
 void local_dump(int bPanicDump) {
-
+    #ifdef HSPACE
+        hsDumpDatabases();
+    #endif
 }
 
 /* Called after Rhost has finished her internal db checks */
@@ -79,7 +90,9 @@ void local_tick(void) {
 /* Called once per second
  */
 void local_second(void) {
-
+    #ifdef HSPACE
+        hsCycle();
+    #endif
 }
 
 /* Called when a player connects and after all connect/aconnect

@@ -35,4 +35,15 @@ else
    fi
 fi
 rm -f libqdbm*.so* >/dev/null 2>&1
+cd ..
+
+if [ ${HSPACE} -eq 1 ]
+then
+    echo "Building HSPace 4.2 libraries. Please wait..."
+    echo $PWD
+    cd ./hspace
+    make
+    cd ..
+fi
+
 exit 0
