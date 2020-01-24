@@ -106,7 +106,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
   char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_morgrify, *s_execmorgrify, *s_array[4], *s_trash;
-  int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify, i_atr;
+  int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify;
   ATTR  *atr_p;
   
 	/* Convert prefix-coded messages into the normal type */
@@ -117,7 +117,6 @@ void do_say (dbref player, dbref cause, int key, char *message)
         s_morgrify = NULL;
         s_execmorgrify = NULL;
         i_morgrify = 0;
-        i_atr = -1;
 
 	if (key == SAY_PREFIX) {
 		switch (*message++) {

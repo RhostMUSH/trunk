@@ -6418,7 +6418,7 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
     if ( Wizard(player) ) {
        memset(buf2, '\0', sizeof(buf2));
-       sprintf(buf2, "%35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
+       sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
        bptr = (char *)buf2;
        while ( *bptr ) {
           if ( isspace(*bptr) ) {
@@ -6430,7 +6430,7 @@ list_options_system(dbref player)
        }
        notify(player, unsafe_tprintf("Current connect command -------------%s", buf2));
        memset(buf2, '\0', sizeof(buf2));
-       sprintf(buf2, "%35s [%2.2s]", mudconf.string_conndark, mudconf.string_conndark);
+       sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conndark, mudconf.string_conndark);
        bptr = (char *)buf2;
        while ( *bptr ) {
           if ( isspace(*bptr) ) {
@@ -6442,7 +6442,7 @@ list_options_system(dbref player)
        }
        notify(player, unsafe_tprintf("Current dark connect command --------%s", buf2));
        memset(buf2, '\0', sizeof(buf2));
-       sprintf(buf2, "%35s [%2.2s]", mudconf.string_connhide, mudconf.string_connhide);
+       sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_connhide, mudconf.string_connhide);
        bptr = (char *)buf2;
        while ( *bptr ) {
           if ( isspace(*bptr) ) {
@@ -6454,7 +6454,7 @@ list_options_system(dbref player)
        }
        notify(player, unsafe_tprintf("Current hide connect command --------%s", buf2));
        memset(buf2, '\0', sizeof(buf2));
-       sprintf(buf2, "%35s [%2.2s]", mudconf.string_create, mudconf.string_create);
+       sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_create, mudconf.string_create);
        bptr = (char *)buf2;
        while ( *bptr ) {
           if ( isspace(*bptr) ) {
@@ -6466,7 +6466,7 @@ list_options_system(dbref player)
        }
        notify(player, unsafe_tprintf("Current create command --------------%s", buf2));
        memset(buf2, '\0', sizeof(buf2));
-       sprintf(buf2, "%35s [%3.3s]", mudconf.string_register, mudconf.string_register);
+       sprintf(buf2, "%35.35s [%3.3s]", mudconf.string_register, mudconf.string_register);
        bptr = (char *)buf2;
        while ( *bptr ) {
           if ( isspace(*bptr) ) {

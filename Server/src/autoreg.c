@@ -42,7 +42,7 @@
 #endif
 
 static char aregname[129 + 64];
-static char dumpname[129 + 64];
+static char dumpname[129 + 64 + 6];
 static datum keydata, infodata;
 static int maxreg;
 static char bigbuffer[NDBMBUFSZ];
