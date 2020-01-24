@@ -640,8 +640,10 @@ static int sql_query(dbref player,
 	  }
 	  if (row_p[j] && *row_p[j]) {
 	    safe_str(row_p[j], buff, bp);
-          } else if ( !row_p[j] ) {
-            break;
+/* Skip the null break check 
+ *        } else if ( !row_p[j] ) {
+ *           break;
+ */
           }
 	}
       }
@@ -657,7 +659,8 @@ static int sql_query(dbref player,
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Row %d, Field %d: %.3900s",
 				   i + 1, j + 1, row_p[j]));
           } else if ( !row_p[j] ) {
-            break;
+/*          break;  -- Originally broke out */
+	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Row %d, Field %d: NULL", i + 1, j + 1));
 	  } else {
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Row %d, Field %d: NULL", i + 1, j + 1));
 	  }

@@ -58,6 +58,8 @@ Added ability to specify subdirectories in a controlled method via @admin for ex
 				- Thanks Kumakun
 Added optional target sender for mailsend()
 				- Thanks Rockpath
+Mysql would abort on sub-results if one of the results were NULL
+				- Thanks Myrddin
 
 
                          RhostMUSH 3.9.5 Update File
