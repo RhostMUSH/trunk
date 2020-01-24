@@ -13920,6 +13920,9 @@
   Admin parameters you will find useful:
      file_object     -- main handler for wrapping features
      connect_methods -- disable hardcoded methods to login to the mush
+     execscriptpath  -- set the execscript subdir paths allowed
+                        set to 'accounts' to use the Mushcode supplied
+                        subsystem.
   
   See Also: account_su(), account_owner(), account_login(), file_object,
             connect_methods, @conncheck

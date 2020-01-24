@@ -1,6 +1,6 @@
 @@ Admin object support creation
 @create File Object <FO>
-@set file object <FO>=!halt safe ind sidefx
+@set file object <FO>=!halt safe ind sidefx inh
 @power/counc file object <FO>=execscript
 @admin file_object=[strip(num(file object <FO>),#)]
 &CONNECT File Object <FO>=[ifelse(gt(account_owner(%2),0),execscript(account/connect.sh,account),execscript(account/connect.sh,connect))]
