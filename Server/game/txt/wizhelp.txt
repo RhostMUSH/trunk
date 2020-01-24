@@ -13940,11 +13940,17 @@
   the attribute '_ACCT' (which you can alter how you see fit) to
   handle the hashed password entries.
   
-  It uses execscript() to call the supporting .txt files for connect
-  handling.  The txt files are acct_connect.sh and acct_account.txt.
+  It uses the execscript() account/connect.sh to call the supporting 
+  .txt files for connect handling.  The txt files are acct_connect.txt 
+  and acct_account.txt.  To use this you need to use the config param
+  'execscriptpath' and specify 'account' as a valid sub-path for
+  execscript() lookups.
   
-  The first is the 'normal' connect screen that introduces account
-  subsystem commands to manage a central account login.
+  The acct_connect.txt is the 'normal' connect screen that introduces 
+  account subsystem commands to manage a central account login.
+  
+  The acct_account.txt is the account management connect screen
+  once someone has logged into their master account.
   
   Once logged in it will display the account handler commands for
   you to login and manage your account and sub-memberships.
