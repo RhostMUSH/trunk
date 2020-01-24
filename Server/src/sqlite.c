@@ -78,8 +78,8 @@ FUNCTION(local_fun_sqlite_query)
     * forced free 72 chars
     */
    getcwd( tempbuff, LBUF_SIZE - 400 );
-   snprintf( dbFullPath, LBUF_SIZE, "%s/%s", tempbuff, mudconf.sqlite_db_path );
-   snprintf( dbFile, LBUF_SIZE, "%s/%s/%.200s.sqlite", tempbuff, mudconf.sqlite_db_path, fargs[0] );
+   snprintf( dbFullPath, LBUF_SIZE, "%.*s/%s", LBUF_SIZE - 400, tempbuff, mudconf.sqlite_db_path );
+   snprintf( dbFile, LBUF_SIZE, "%.*s/%s/%.200s.sqlite", LBUF_SIZE - 400, tempbuff, mudconf.sqlite_db_path, fargs[0] );
 
 #ifdef DEBUG_SQLITE
    printf( "Done\n" );
@@ -117,7 +117,7 @@ FUNCTION(local_fun_sqlite_query)
 #endif
 
    if( (tmp_dir = opendir( dbFullPath )) == NULL ) {
-      snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS DIRECTORY %s: %s", dbFullPath, strerror( errno ) );
+      snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS DIRECTORY %.*s: %s", LBUF_SIZE - 64,dbFullPath, strerror( errno ) );
       safe_str( tempbuff, buff, bufcx );
       return;
    } else {
@@ -130,7 +130,7 @@ FUNCTION(local_fun_sqlite_query)
 #endif
 
    if( access( dbFile, F_OK ) && !access( dbFile, W_OK | R_OK ) ) {
-      snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS %s: %s", dbFile, strerror( errno ) );
+      snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS %.*s: %s", LBUF_SIZE - 48, dbFile, strerror( errno ) );
       safe_str( tempbuff, buff, bufcx );
       return;
    }
@@ -318,7 +318,7 @@ void local_sqlite_init(void) {
    if( stat( mudconf.sqlite_db_path, &sb ) == -1 ) {
       getcwd( tempbuff2, LBUF_SIZE - 400 );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
-         sprintf( tempbuff, "stat - unable to read database path '%s/%s'", tempbuff2, mudconf.sqlite_db_path );
+         sprintf( tempbuff, "stat - unable to read database path '%.*s/%s'", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
          log_text(tempbuff);
       ENDLOG
       return;
@@ -326,7 +326,7 @@ void local_sqlite_init(void) {
 
    if( ~sb.st_mode & S_IFDIR ) {
       getcwd( tempbuff2, LBUF_SIZE - 400 );
-      sprintf( tempbuff, "stat - %s/%s is not a directory", tempbuff2, mudconf.sqlite_db_path );
+      sprintf( tempbuff, "stat - %.*s/%s is not a directory", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
          log_text(tempbuff);
       ENDLOG
