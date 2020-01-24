@@ -1053,6 +1053,7 @@ NAMETAB site_sw[] =
   {(char *) "passapi", 1, CA_IMMORTAL, 0, SITE_PASSAPI},
   {(char *) "register", 1, CA_IMMORTAL, 0, SITE_REG},
   {(char *) "forbidden", 1, CA_IMMORTAL, 0, SITE_FOR},
+  {(char *) "hardconn", 1, CA_IMMORTAL, 0, SITE_HARD},
   {(char *) "forbidapi", 1, CA_IMMORTAL, 0, SITE_FORAPI},
   {(char *) "suspect", 1, CA_IMMORTAL, 0, SITE_SUS},
   {(char *) "noguest", 3, CA_IMMORTAL, 0, SITE_NOG},

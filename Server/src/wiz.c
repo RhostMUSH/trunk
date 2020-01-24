@@ -2355,6 +2355,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
      do_site_buff(player, mudconf.nobroadcast_host, (char *)"nobroadcast_host");
      do_site_buff(player, mudconf.passproxy_host, (char *)"passproxy_host");
      do_site_buff(player, mudconf.passapi_host, (char *)"passapi_host");
+     do_site_buff(player, mudconf.hardconn_host, (char *)"hardconn_host");
      return;
   }
 
@@ -2399,8 +2400,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
           free(pt1);
 	  pt1 = pt2->next;
         }
-      }
-      else {
+      } else {
         pt2 = pt1;
         pt1 = pt1->next;
       }
@@ -2413,7 +2413,8 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt1 = mudstate.access_list;
     while (pt1) {
       if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
-	((key & SITE_ALL) || (!(pt1->flag) && (key & SITE_PER)) || (key == pt1->flag))) {
+	( (key & SITE_ALL) || (!(pt1->flag) && (key & SITE_PER)) ||
+          (!(pt1->flag) && (key & SITE_HARD)) || (key == pt1->flag))) {
         count = 1;
         if (!pt2) {
           pt2 = pt1->next;

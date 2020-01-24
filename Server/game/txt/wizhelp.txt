@@ -2875,6 +2875,7 @@
     /NOHOST        - removes site information for DNS checks.
     /PASSPROX      - removes site information for bypassing proxy checks.
     /PASSAPI       - removes site information for API bypasses
+    /HARDCONN      - removes site information for hardconnections.
     /ALL           - removes all matching site information.
     /LIST          - show the raw *_host listings that you can use for
                      removal.  Handy if you use the optional connection args.
@@ -2887,7 +2888,8 @@
   
   See Also:  @admin, permit_site, register_site, suspect_site, forbid_site,
              noguest_site, trust_site, passproxy_site, forbidapi_site,
-             passapi_site, noautoreg_site, nodns_site, noauth_site, @list 
+             passapi_site, noautoreg_site, nodns_site, noauth_site, 
+             hardconn_site, @list 
 
 & @convert
   Command: @convert[/alternate] <player>
@@ -4053,11 +4055,13 @@
                 API Bypass   - Sites will bypass the max connections api limit
                 NoGuest      - Disallows guests from connecting by this site
                 NoAutoReg    - This site can not autoregister
+                Hard Connect - This site can use connect screen commands.
  
-  See Also: forbid_site, forbidapi_site, permit_site, register_site, suspect_site, 
-            trust_site, noguest_site, noautoreg_site, forbid_host, suspect_host, 
-            register_host, noguest_host, noautoreg_host, validate_host,
-            nobroadcast_host, passproxy_host, passapi_site, passapi_host
+  See Also: forbid_site, forbidapi_site, permit_site, register_site, 
+            suspect_site, trust_site, noguest_site, noautoreg_site, 
+            forbid_host, suspect_host, register_host, noguest_host, 
+            noautoreg_host, validate_host, hardconn_host, nobroadcast_host, 
+            passproxy_host, passapi_site, passapi_host
 
 & @list switches
   Command: @list switches
@@ -6428,9 +6432,10 @@
   guest_char_num             guest_file           guest_namelist           
   guest_randomize            guild_attrname       guild_default            
   guild_hdr                  hackattr_nowiz       hackattr_see             
-  hasattrp_compat            heavy_cpu_max        help_file                
-  help_index                 help_separator       hide_nospoof             
-  hook_cmd                   hook_obj             hook_offline
+  hardconn_host              hardconn_site        hasattrp_compat          
+  heavy_cpu_max              help_file            help_index               
+  help_separator             hide_nospoof         hook_cmd                 
+  hook_obj                   hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -7254,7 +7259,11 @@
   then you nor anyone else will be able to log into the mush.  Use with
   caution!!!
   
-  See Also: ACCOUNT MANAGEMENT
+  You may specify site ranges that are allowed to connect through this
+  disabling with hardconn_site or hardconn_host.
+  
+  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host
+
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
   
@@ -7862,6 +7871,26 @@
   
   See Also: @blacklist, @site, blacklist_nodns.txt
 
+& hardconn_host
+  Config parameter: hardconn_host <!host> <host> ... <host>
+  
+  This parameter specifies the hostnames that are allowed to use
+  connect screen connect/create/register commands if they have been
+  disabled with the use of the connect_methods admin parameter.
+  
+  Example:  @admin hardconn_host=localhost
+  
+  See Also: hardconn_site, connect_methods
+
+& hardconn_site
+  Config parameter: forbid_site <addr> <mask>
+  
+  This is used to specify the numerical address and mask of what is
+  allowed to use connect screen connect/create/register commands if
+  the connect_methods admin parameter is specified.
+  
+  See Also: connect_methods, hardconn_host, SITE LISTS, @site
+
 & passapi_host
   Config parameter: passapi_host <!host> <host> ... <host>
   
@@ -7907,7 +7936,7 @@
             validate_host, @site
 
 & passapi_site
-  Config parameter: passapi_site <addr> mask>
+  Config parameter: passapi_site <addr> <mask>
   
   This parameter will bypass the site counter restriction for any site(s)
   matching.  This will not bypass the forbidapi_site parameter, but only
