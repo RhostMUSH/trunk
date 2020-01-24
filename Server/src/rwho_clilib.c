@@ -97,7 +97,7 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 		/* unsigned long	f; */
 		in_addr_t f;
 
-		if((f = inet_addr(server)) == -1L)
+		if((f = inet_addr(server)) == (in_addr_t)-1L)
 			return(1);
 		(void)bcopy((char *)&f,(char *)&addr.sin_addr,sizeof(f));
 	}
