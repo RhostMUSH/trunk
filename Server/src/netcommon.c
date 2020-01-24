@@ -3663,7 +3663,7 @@ do_mudwho(dbref player, dbref cause, int key, char *name, char *mud)
 			   Name(d->player),
 			   time_format_1(now - d->connected_at),
 			   time_format_2(now - d->last_time),
-			   d->doing ? d->doing : ""));
+			   *(d->doing) ? d->doing : ""));
 	    players++;
 	}
     }

@@ -30885,24 +30885,23 @@ FUNCTION(fun_editansi)
    s_array[2] = NULL;
    sprintf(s_array[1], "%c", 'X');
 
-   for ( i_loop = 1; i_loop < nfargs; i_loop++ ) {
+   for ( i_loop = 2; i_loop < nfargs; i_loop+=2 ) {
       memset(s_buff, '\0', LBUF_SIZE);
       s_buffptr = s_buff;
-      sprintf(s_array[0], "%s", fargs[i_loop]);
+      sprintf(s_array[0], "%s", fargs[i_loop-1]);
       fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
       i_omit1 = ansi_omitter;
       split_ansi(s_buff, s_combine, search_val);
       memset(s_combine, '\0', LBUF_SIZE);
       memset(s_buff, '\0', LBUF_SIZE);
       s_buffptr = s_buff;
-      sprintf(s_array[0], "%s", fargs[i_loop+1]);
+      sprintf(s_array[0], "%s", fargs[i_loop]);
       fun_ansi(s_buff, &s_buffptr, player, cause, cause, s_array, 2, (char **)NULL, 0);
       i_omit2 = ansi_omitter;
       split_ansi(s_buff, s_combine, replace_val);
       search_and_replace_ansi(s_input, a_input, search_val, replace_val, i_omit1, i_omit2);
       initialize_ansisplitter(search_val, 2);
       initialize_ansisplitter(replace_val, 2);
-      i_loop++;
    }
    free_lbuf(s_combine);
    s_combine = rebuild_ansi(s_input, a_input, 0);
