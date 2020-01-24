@@ -33016,3 +33016,4 @@
   * mysql_ping could potentially hang on certaion versions of Mysql [ASH]
   * Potential buffer overwrite in built in news system [ASH]
   * potential off by one for API text handler on input -- reverted [ASH]
+  * fix some potential buffer overflow risks [ASH]

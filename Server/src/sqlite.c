@@ -72,9 +72,14 @@ FUNCTION(local_fun_sqlite_query)
    printf( "Construct file paths..\n" );
 #endif
 
-   getcwd( tempbuff, LBUF_SIZE );
+   /* tempbuff - LBUF_SIZE - (LBUF - 400)
+    * mudconf.sqlite_db    - 128
+    * fargs[0] - LBUF_SIZE - (200 hardlimit)
+    * forced free 72 chars
+    */
+   getcwd( tempbuff, LBUF_SIZE - 400 );
    snprintf( dbFullPath, LBUF_SIZE, "%s/%s", tempbuff, mudconf.sqlite_db_path );
-   snprintf( dbFile, LBUF_SIZE, "%s/%s/%s.sqlite", tempbuff, mudconf.sqlite_db_path, fargs[0] );
+   snprintf( dbFile, LBUF_SIZE, "%s/%s/%.200s.sqlite", tempbuff, mudconf.sqlite_db_path, fargs[0] );
 
 #ifdef DEBUG_SQLITE
    printf( "Done\n" );
@@ -311,7 +316,7 @@ void local_sqlite_init(void) {
    struct stat sb;
 
    if( stat( mudconf.sqlite_db_path, &sb ) == -1 ) {
-      getcwd( tempbuff2, LBUF_SIZE );
+      getcwd( tempbuff2, LBUF_SIZE - 400 );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
          sprintf( tempbuff, "stat - unable to read database path '%s/%s'", tempbuff2, mudconf.sqlite_db_path );
          log_text(tempbuff);
@@ -320,7 +325,7 @@ void local_sqlite_init(void) {
    }
 
    if( ~sb.st_mode & S_IFDIR ) {
-      getcwd( tempbuff2, LBUF_SIZE );
+      getcwd( tempbuff2, LBUF_SIZE - 400 );
       sprintf( tempbuff, "stat - %s/%s is not a directory", tempbuff2, mudconf.sqlite_db_path );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
          log_text(tempbuff);
