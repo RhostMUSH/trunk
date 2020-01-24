@@ -1327,7 +1327,8 @@ extern void do_zone(dbref, dbref, int, char *, char *);
 extern int attrib_canset(dbref, const char *, dbref, dbref);
 extern int lookup(char *, char *, int, int *);
 extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
-
+extern int objecttag_list(char*);
+extern void objecttag_match(char *, char *);
 
 int do_convtime(char *, struct tm *);
 

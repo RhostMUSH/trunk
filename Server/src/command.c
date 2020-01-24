@@ -6243,7 +6243,7 @@ static void
 list_options_system(dbref player)
 {
    char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
-        newstime[25], mailtime[25], aregtime[25], mushtime[25];
+        newstime[25], mailtime[25], aregtime[25], mushtime[25], *bptr;
    time_t c_count, d_count, i_count;
 #ifdef MYSQL_VERSION
    char *tbuf;
@@ -6415,6 +6415,68 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
+    if ( Wizard(player) ) {
+       memset(buf2, '\0', sizeof(buf2));
+       sprintf(buf2, "%35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
+       bptr = (char *)buf2;
+       while ( *bptr ) {
+          if ( isspace(*bptr) ) {
+             *bptr = '-';
+          } else if ( !isspace(*bptr) ) {
+             break;
+          }
+          bptr++;
+       }
+       notify(player, unsafe_tprintf("Current connect command -------------%s", buf2));
+       memset(buf2, '\0', sizeof(buf2));
+       sprintf(buf2, "%35s [%2.2s]", mudconf.string_conndark, mudconf.string_conndark);
+       bptr = (char *)buf2;
+       while ( *bptr ) {
+          if ( isspace(*bptr) ) {
+             *bptr = '-';
+          } else if ( !isspace(*bptr) ) {
+             break;
+          }
+          bptr++;
+       }
+       notify(player, unsafe_tprintf("Current dark connect command --------%s", buf2));
+       memset(buf2, '\0', sizeof(buf2));
+       sprintf(buf2, "%35s [%2.2s]", mudconf.string_connhide, mudconf.string_connhide);
+       bptr = (char *)buf2;
+       while ( *bptr ) {
+          if ( isspace(*bptr) ) {
+             *bptr = '-';
+          } else if ( !isspace(*bptr) ) {
+             break;
+          }
+          bptr++;
+       }
+       notify(player, unsafe_tprintf("Current hide connect command --------%s", buf2));
+       memset(buf2, '\0', sizeof(buf2));
+       sprintf(buf2, "%35s [%2.2s]", mudconf.string_create, mudconf.string_create);
+       bptr = (char *)buf2;
+       while ( *bptr ) {
+          if ( isspace(*bptr) ) {
+             *bptr = '-';
+          } else if ( !isspace(*bptr) ) {
+             break;
+          }
+          bptr++;
+       }
+       notify(player, unsafe_tprintf("Current create command --------------%s", buf2));
+       memset(buf2, '\0', sizeof(buf2));
+       sprintf(buf2, "%35s [%3.3s]", mudconf.string_register, mudconf.string_register);
+       bptr = (char *)buf2;
+       while ( *bptr ) {
+          if ( isspace(*bptr) ) {
+             *bptr = '-';
+          } else if ( !isspace(*bptr) ) {
+             break;
+          }
+          bptr++;
+       }
+       notify(player, unsafe_tprintf("Current register command -----------%s", buf2));
+    }
 
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 

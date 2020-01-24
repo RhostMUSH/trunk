@@ -4151,10 +4151,10 @@ softcode_trigger(DESC *d, const char *msg) {
 static int 
 check_connect(DESC * d, const char *msg, int key, int i_attr)
 {
-   char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff,
-        buff2[10], cchk[4], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
-   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return,
-       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount;
+   char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, 
+        buff2[10], cchk[SBUF_SIZE], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
+   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size,
+       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
@@ -4167,7 +4167,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    DPUSH; /* #146 */
 
    bittemp = bitcmp = 0;
-   i_return = 1;
+   i_allow = i_return = 1;
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
 
@@ -4176,24 +4176,63 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    d->input_tot -= (strlen(msg) + 1);
 
    /* Crack the command apart */
-   memset(cchk, '\0', 4);
+   memset(cchk, '\0', SBUF_SIZE);
+   i_size = 1;
    if ( *msg ) {
-      cchk[0] = ToLower(*msg);
-      if ( *(msg+1) ) {
-         cchk[1] = ToLower(*(msg+1));
-         if ( *(msg+2) ) {
-            cchk[2] = ToLower(*(msg+2));
+      buff = (char *)msg;
+      buff3 = (char *)cchk;
+      dc = 0;
+      /* the connect strings are hardcoded max 31 chars */
+      while ( *buff && (dc < 31) ) {
+         if ( isspace(*buff) ) {
+            break;
          }
+         *buff3 = ToLower(*buff);   
+         buff++;
+         buff3++;
+         dc++;
       }
+      i_size = strlen(cchk);
    }
 
+   if ( mudconf.connect_methods > 0 ) {
+      addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
+      tsite_buff = alloc_lbuf("hardconn_check");
+      strcpy(tsite_buff, mudconf.hardconn_host);
+      if ( (mudconf.connect_methods & 1) && 
+           (strncmp(cchk, mudconf.string_conn, i_size) ||
+            strncmp(cchk, mudconf.string_conndark, i_size) ||
+            strncmp(cchk, mudconf.string_connhide, i_size)) ) {
+         if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+              !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+            i_allow = 0;
+         }
+      }
+      if ( i_allow && (mudconf.connect_methods & 2) && strncmp(cchk, mudconf.string_create, i_size) ) {
+         if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+              !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+            i_allow = 0;
+         }
+      }
+      if ( i_allow && (mudconf.connect_methods & 4) && strncmp(cchk, mudconf.string_register, i_size) ) {
+         if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+              !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+            i_allow = 0;
+         }
+      }
+      free_lbuf(tsite_buff);
+   }
+
+   i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
+   dc = 0;
    command = alloc_mbuf("check_conn.cmd");
    user = alloc_mbuf("check_conn.user");
    password = alloc_mbuf("check_conn.pass");
    overf = parse_connect(msg, command, user, password);
    if ( strlen(user) > 120 )
       overf = 0;
-   if ( !(!strncmp(cchk, "co", 2) || !strncmp(cchk, "cd", 2) || !strncmp(cchk, "ch", 2) || ((key == 1) && !strncmp(cchk, "zz", 2))) )
+   if ( !(!strncmp(cchk, mudconf.string_conn, i_size) || !strncmp(cchk, mudconf.string_conndark, i_size) || 
+          !strncmp(cchk, mudconf.string_connhide, i_size) || ((key == 1) && !strncmp(cchk, "zz", 2))) )
       overf = 1;
    if ( strlen(msg) > 2000 )
       overf = 0;
@@ -4230,7 +4269,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    /* Guest determination */
    strncpy(buff2, user, 5);
    *(buff2 + 5) = '\0';
-   if (!strncmp(cchk, "co", 2)) {
+   if (!strncmp(cchk, mudconf.string_conn, i_size)) {
       comptest = stricmp(buff2, "guest");
    } else {
       comptest = 1;
@@ -4250,7 +4289,9 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       is_guest = 1;
    if ( (!comptest && ((strlen(user) > 5) || (strcmp(password, "guest")))) ||
         (is_guest && !strcmp(password, "guest") && comptest) ) {
-      queue_string(d, "Use 'co guest guest' to connect to a guest character.\r\n");
+      queue_string(d, "Use '");
+      queue_string(d, mudconf.string_conn);
+      queue_string(d, " guest guest' to connect to a guest character.\r\n");
       STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
          buff = alloc_mbuf("check_conn.LOG.bad");
          sprintf(buff, "[%d/%s] Failed connect to '%s'", d->descriptor, d->addr, user);
@@ -4281,7 +4322,6 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       if ( i_sitemax == -1 ) {
          tsite_buff = alloc_lbuf("noguest_check");
          addroutbuf = (char *) addrout((d->address).sin_addr, 0);
-         strcpy(tsite_buff, addroutbuf);
          strcpy(tsite_buff, mudconf.noguest_host);
          lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
          free_lbuf(tsite_buff);
@@ -4391,7 +4431,8 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          strcat(user, buff2);
       }
    }
-   if ( (!(mudconf.connect_methods & 1) && ((!strncmp(cchk, "co", 2)) || (!strncmp(cchk, "cd", 2)) || (!strncmp(cchk, "ch", 2)))) ||
+   if ( (i_allow && ((!strncmp(cchk, mudconf.string_conn, i_size)) || 
+          (!strncmp(cchk, mudconf.string_conndark, i_size)) || (!strncmp(cchk, mudconf.string_connhide, i_size)))) ||
         ((key == 1) && !strncmp(cchk, "zz", 2)) ) {
       /* See if this connection would exceed the max #players */
       if (mudconf.max_players > mudstate.max_logins_allowed)
@@ -4413,12 +4454,12 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       }
 
       ok_to_login = (((nplayers < mudconf.max_players) || (mudconf.max_players == -1)) && (nplayers < mudstate.max_logins_allowed));
-      if (!strncmp(cchk, "cd", 2))
+      if (!strncmp(cchk, mudconf.string_conndark, i_size))
          dc = 1;
-      else if ( !strncmp(cchk, "ch", 2))
+      else if ( !strncmp(cchk, mudconf.string_connhide, i_size))
          dc = 2;
       else
-         dc =0;
+         dc = 0;
       player = connect_player(user, password, (char *)d, key, i_attr);
       player2 = lookup_player(NOTHING, user, 0);
       if (player == NOPERM) {
@@ -4691,7 +4732,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             }
          }
       }
-   } else if ( !(mudconf.connect_methods & 2) && !strncmp(cchk, "cr", 2) ) {
+   } else if ( i_allow && !strncmp(cchk, mudconf.string_create, i_size) ) {
       /* Enforce game down */
       if (!(mudconf.control_flags & CF_LOGIN)) {
          failconn("CRE", "Create", "Logins Disabled", d,
@@ -4786,7 +4827,6 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          if ( i_sitemax == -1 ) {
             tsite_buff = alloc_lbuf("register_check");
             addroutbuf = (char *) addrout((d->address).sin_addr, 0);
-            strcpy(tsite_buff, addroutbuf);
             strcpy(tsite_buff, mudconf.register_host);
             lookup(addroutbuf, tsite_buff, 1, &i_sitemax);
             free_lbuf(tsite_buff);
@@ -4851,7 +4891,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             }
          }
       }
-   } else if ( !(mudconf.connect_methods & 4) && mudconf.offline_reg && !strncmp(cchk, "reg", 3)) {
+   } else if ( i_allow && mudconf.offline_reg && !strncmp(cchk, mudconf.string_register, i_size)) {
       if (d->host_info & H_NOAUTOREG) {
          buff3 = alloc_lbuf("reg.fail");
          queue_string(d, "Permission denied.\r\n");
@@ -6227,6 +6267,9 @@ stat_string(int strtype, int flag, int key)
 	break;
     case S_ACCESS:
 	switch (flag) {
+        case H_HARDCONN:
+            str = "Hard Connect";
+            break;
         case H_PASSAPI:
             str = "API Bypass";
             break;
@@ -6306,6 +6349,7 @@ list_sites(dbref player, SITE * site_list,
              (this->flag & H_FORBIDDEN) ||
              (this->flag & H_FORBIDAPI) ||
              (this->flag & H_PASSAPI) ||
+             (this->flag & H_HARDCONN) ||
              (this->flag & H_NOGUEST) ) {
            if ( this->maxcon == -1 ) 
               strcpy(str2, (char *)"Restricted");
@@ -6408,6 +6452,7 @@ list_siteinfo(dbref player)
     list_hosts(player, mudconf.nobroadcast_host, "NoMonitor");
     list_hosts(player, mudconf.passproxy_host, "Proxy Bypass");
     list_hosts(player, mudconf.passapi_host, "API Bypass");
+    list_hosts(player, mudconf.hardconn_host, "Hard Connect");
 
     VOIDRETURN; /* #152 */
 }

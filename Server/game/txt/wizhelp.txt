@@ -6527,32 +6527,34 @@
   space_compress            spam_limit                spam_msg                
   spam_objmsg               sqlite_db_path            sqlite_query_limit      
   stack_limit
-
+  
 { 'wizhelp config parameters6' for more}
 
 & config parameters6
   Topic: CONFIG PARAMETERS (continued)
 
   start_build               starting_money            starting_quota
-  suspect_host              suspect_site              sweep_dark
-  switch_default_all        switch_search             switch_substitutions    
-  terse_shows_contents      terse_shows_exits         terse_shows_move_messages
-  thing_attr_default        thing_flags               thing_parent            
-  thing_quota               thing_toggles             timeslice               
-  toggle_access_see         toggle_access_set         toggle_access_type
-  toggle_access_unset       tor_localhost             tor_paranoid            
-  trace_output_limit        trace_topdown             tree_character
-  trust_site                uncompress_program        unowned_safe            
-  user_attr_flags           validate_host             vattr_command
-  vattr_limit_checkwiz      vercustomstr              vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  wizcommand_quota_max       zone_parents
-
+  string_conn               string_conndark           string_connhide
+  string_create             string_register           suspect_host            
+  suspect_site              sweep_dark                switch_default_all      
+  switch_search             switch_substitutions      terse_shows_contents    
+  terse_shows_exits         terse_shows_move_messages thing_attr_default      
+  thing_flags               thing_parent              thing_quota             
+  thing_toggles             timeslice                 toggle_access_see       
+  toggle_access_set         toggle_access_type        toggle_access_unset     
+  tor_localhost             tor_paranoid              trace_output_limit      
+  trace_topdown             tree_character            trust_site              
+  uncompress_program        unowned_safe              user_attr_flags         
+  validate_host             vattr_command             vattr_limit_checkwiz    
+  vercustomstr              vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max     
+  zone_parents
+  
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
 
@@ -10878,6 +10880,51 @@
   out to the file named by this directive.  The file can be used by an
   auto-restart script to decide whether or not to bring the mush back up,
   for instance.
+
+& string_conn
+  Config parameter: string_conn <string>.  Default: connect
+  
+  This parameter specifies the string that will match the 'connect' [co] 
+  string that players need to type to connect to their player.
+  
+  See Also: string_conndark, string_connhide, string_create, string_register,
+            connect_methods
+
+& string_conndark
+  Config parameter: string_conndark <string>.  Default: cdark
+  
+  This parameter specifies the string that will match the 'cdark' [cd] 
+  string that players need to type to connect DARK to their player.
+  
+  See Also: string_conn, string_connhide, string_create, string_register,
+            connect_methods
+
+& string_connhide
+  Config parameter: string_connhide <string>.  Default: chide
+  
+  This parameter specifies the string that will match the 'chide' [ch] 
+  string that players need to type to connect @hidden to their player.
+  
+  See Also: string_conn, string_conndark, string_create, string_register,
+            connect_methods
+
+& string_create
+  Config parameter: string_create <string>.  Default: create
+  
+  This parameter specifies the string that will match the 'create' [cr] 
+  string that players need to type to create a new player.
+  
+  See Also: string_conn, string_conndark, string_connhide, string_register,
+            connect_methods
+
+& string_register
+  Config parameter: string_register <string>.  Default: register
+  
+  This parameter specifies the string that will match the 'register' [reg] 
+  string that players need to type to do connect screen email registration.
+  
+  See Also: string_conn, string_conndark, string_connhide, string_create,
+            connect_methods
 
 & sub_include
   Config parameter: sub_include <string>.    Default: (empty)
