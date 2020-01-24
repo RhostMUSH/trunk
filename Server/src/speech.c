@@ -3433,12 +3433,12 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
          }
          else if ( inx < 1 ) {
             sprintf( buf2, "%-20.20s     %-20.20s", buf, tmp_word );
-            sprintf(buf, buf2);
+            sprintf(buf, "%s", buf2);
             inx++;
          }
          else {
             sprintf( buf2, "%-45.45s     %-20.20s", buf, tmp_word );
-            sprintf(buf, buf2);
+            sprintf(buf, "%s", buf2);
             inx++;
          }
       tmp_word = strtok_r( NULL, " ", &tstrtokr );
