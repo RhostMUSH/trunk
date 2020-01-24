@@ -33,6 +33,19 @@
 @set Account SubSystem <AS>=INDESTRUCTABLE SAFE INHERIT
 
 @@ things you need to do
+@@ 1. in netrhost.conf set up the following:
+@@    file_object 123 # where '123' is the dbref# of your file_object
+@@    execscriptpath account
+@@ 2. Optional settings (you may set any or none of the following)
+@@    connect_methods 7 # if you want to disable all normal connect screen commands
+@@    string_conn connect # change 'connect' to what you want connect command to be
+@@    string_conndark cdark # change 'connect dark' to what you want connect command to be
+@@    string_conndark chide # change 'connect hidden' to what you want connect command to be
+@@    string_create create # change 'create' to what you want create command to be
+@@    string_register register # change 'register' to what you want create command to be
+@@    hardconn_site 0.0.0.0 0.0.0.0 # site restriction of who can use connect commands
+@@    hardconn_host *  # wildcard hostname(s) of who can use connect commands
+@@
 think Please set the @admin parameter file_object to [num(file object <fo>)].
 think Please set the @admin parameter execscriptpath to 'account'
 think Account SubSystem <AS> needs to be placed in the master room [globalroom()].
