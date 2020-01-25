@@ -55,7 +55,7 @@ HSPACE_COMMAND hsNavCommandArray[] = {
     HSNAV_TRACTORMODE, hscTractorMode, HCP_ANY,
     HSNAV_TRACTORLOCK, hscTractorLock, HCP_ANY,
     HSNAV_TRACTORDOCK, hscTractorDock, HCP_ANY,
-    NULL, NULL, 0
+    0, NULL, 0
 };
 
 // Sets the velocity of a vessel

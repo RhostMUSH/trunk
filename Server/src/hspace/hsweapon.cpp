@@ -458,7 +458,7 @@ CHSDBWeapon *CHSWeaponDBArray::CreateWeapon(char *items)
     while (*ptr && ((ptr - items) < HS_WEAPON_NAME_LEN) && (*ptr != '"')) {
 	strName[idx++] = *ptr++;
     }
-    strName[idx] = NULL;	// Got the weapon name!
+    strName[idx] = '\0';	// Got the weapon name!
 
     if (!*ptr) {
 	return NULL;
@@ -583,7 +583,7 @@ CHSDBWeapon *CHSWeaponDBArray::CreateMissile(char *strName, int *iVals)
 BOOL CHSWeaponDBArray::GoodWeapon(int type)
 {
     // Simply check to see if the weapon type is within bounds
-    if (type >= 0 && type < m_num_weapons)
+    if (type >= 0 && (UINT)type < m_num_weapons)
 	return TRUE;
 
     return FALSE;
@@ -613,7 +613,7 @@ BOOL CHSWeaponArray::DeleteWeapon(int slot)
     if ((slot < 0) || (slot >= HS_MAX_WEAPONS))
 	return FALSE;
 
-    if (m_weapons[slot] = NULL)
+    if ((m_weapons[slot] = NULL))
 	return TRUE;
 
     // Delete the weapon in the slot and move all other
@@ -982,7 +982,6 @@ void CHSLaser::AttackObject(CHSObject * cSource,
     if (cSource->GetType() == HST_SHIP) {
 	CHSSysCloak *cCloak;
 	CHSShip *ptr;
-	float rval;
 
 	ptr = (CHSShip *) cSource;
 
@@ -1218,7 +1217,7 @@ void CHSLaser::AttackObject(CHSObject * cSource,
 	    continue;
 	}
 
-	if (cContactS && cContactD)
+	if (cContactS && cContactD) {
 	    if (cContactS->status == DETECTED
 		&& cContactD->status == DETECTED) {
 		sprintf(tbuf,
@@ -1265,7 +1264,7 @@ void CHSLaser::AttackObject(CHSObject * cSource,
 		cCTarget->HandleMessage(tbuf, MSG_SENSOR,
 					(long *) cCTarget);
 	    }
-
+        }
     }
 
 
@@ -1390,8 +1389,8 @@ void CHSLaser::Regenerate(void)
 BOOL CHSLaser::CanAttackObject(CHSObject * cObj)
 {
     // Only attack ships and missiles
-    if (cObj->GetType() == HST_SHIP || cObj->GetType() == HST_MISSILE
-	&& !NoHull()) {
+    if (cObj->GetType() == HST_SHIP 
+        || (cObj->GetType() == HST_MISSILE && !NoHull())) {
 	return TRUE;
     }
     return FALSE;

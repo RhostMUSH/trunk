@@ -745,25 +745,27 @@ HS_DAMAGE CHSEngSystem::DoDamage(void)
     // Get the current level
     lvl = GetDamageLevel();
 
+    switch (lvl) {
     // If it's not inoperable, increase it
-    if (lvl != DMG_INOPERABLE) {
-	switch (lvl) {
-	case DMG_NONE:
-	    m_damage_level = DMG_LIGHT;
-	    break;
-	case DMG_LIGHT:
-	    m_damage_level = DMG_MEDIUM;
-	    break;
-	case DMG_MEDIUM:
-	    m_damage_level = DMG_HEAVY;
-	    break;
-	case DMG_HEAVY:
-	    m_damage_level = DMG_INOPERABLE;
-	    break;
-	}
-	if (GetDamageLevel() == DMG_INOPERABLE)
-	    SetCurrentPower(0);
+    case DMG_NONE:
+        m_damage_level = DMG_LIGHT;
+        break;
+    case DMG_LIGHT:
+        m_damage_level = DMG_MEDIUM;
+        break;
+    case DMG_MEDIUM:
+        m_damage_level = DMG_HEAVY;
+        break;
+    case DMG_HEAVY:
+        m_damage_level = DMG_INOPERABLE;
+        break;
+    // Set power to 0 if inoperable
+    case DMG_INOPERABLE:
+        SetCurrentPower(0);
+    default:
+        break;
     }
+
     return GetDamageLevel();
 }
 
@@ -791,6 +793,8 @@ HS_DAMAGE CHSEngSystem::ReduceDamage(void)
 	case DMG_INOPERABLE:
 	    m_damage_level = DMG_HEAVY;
 	    break;
+        default:
+            break;
 	}
     }
 
@@ -1569,7 +1573,7 @@ SENSOR_CONTACT *CHSSysSensors::GetContactByID(int id)
 	if (!m_contact_list[idx])
 	    continue;
 
-	if (m_contact_list[idx]->m_id == id)
+	if (m_contact_list[idx]->m_id == (UINT)id)
 	    return m_contact_list[idx];
     }
 
@@ -2225,6 +2229,8 @@ int CHSSysComputer::GetOptimalPower(BOOL bDamage)
     case HST_SHIP:
 	uPower += TotalShipPower();
 	break;
+    default:
+        break;
     }
 
     return uPower;
@@ -3003,7 +3009,6 @@ CHSEngSystem *CHSSysComm::Dup(void)
 // otherwise, it is adjusted for damage and power levels.
 UINT CHSSysComm::GetMaxRange(BOOL bAdjusted)
 {
-    double dmgperc;
     CHSSysComm *ptr;
     UINT uVal;
     int iOptPower;
@@ -3753,7 +3758,7 @@ char *CHSSysJammer::GetAttributeValue(char *strName, BOOL bAdjusted)
 
     // Find the attribute name.
     if (!strcasecmp(strName, "RANGE"))
-	sprintf(rval, "%d", GetRange(bAdjusted));
+	sprintf(rval, "%f", GetRange(bAdjusted));
     else
 	return CHSEngSystem::GetAttributeValue(strName, bAdjusted);
 
@@ -3768,7 +3773,7 @@ char *CHSSysJammer::GetAttrValueString(void)
 
     // Base information plus our's.
     sprintf(rval,
-	    "%s,RANGE=%d",
+	    "%s,RANGE=%f",
 	    CHSEngSystem::GetAttrValueString(), GetRange(FALSE));
 
     return rval;
@@ -4183,7 +4188,7 @@ void CHSSysTractor::DockShip(dbref player, int id, int loc)
     tShip = (CHSShip *) cObj;
 
     // Are they too big?
-    if (tShip->GetSize() > HSCONF.max_dock_size && !cShip->IsSpacedock()) {
+    if (tShip->GetSize() > (UINT)HSCONF.max_dock_size && !cShip->IsSpacedock()) {
 	hsStdError(player,
 		   "That vessel is too large to dock in another vessel.");
 	return;

@@ -416,13 +416,6 @@ void CHSShip::Travel(void)
      * Speed is measured in Hetramere per hour 
      */
     if (dCurrentSpeed) {
-	double oldx, oldy, oldz;	// New coords after movement.
-
-	// Save current coords in case we need them.
-	oldx = m_x;
-	oldy = m_y;
-	oldz = m_z;
-
 	// Bring speed down to the unit per second level 
 	// The .0002778 is actually 1/3600.0 precomputed
 	// to save time.
@@ -582,7 +575,7 @@ void CHSShip::GiveNavigationStatus(dbref player)
     if (cSensors) {
 	SENSOR_CONTACT *cContact;
 	CHSObject *cObj;
-	double dX, dY, dZ;
+	double dX, dY;
 	char filler;
 
 	for (idx = 0; idx < HS_MAX_CONTACTS; idx++) {
@@ -595,7 +588,6 @@ void CHSShip::GiveNavigationStatus(dbref player)
 	    // Grab it's coordinates
 	    dX = cObj->GetX();
 	    dY = cObj->GetY();
-	    dZ = cObj->GetZ();
 
 	    // Check to see if it's within our map range
 	    if ((m_x - dX) > m_map_range ||
@@ -1153,7 +1145,7 @@ void CHSShip::LandVessel(dbref player, int id, int loc, char *lpstrCode)
 	cShip = (CHSShip *) cObj;
 
 	// Are we too big?
-	if (GetSize() > HSCONF.max_dock_size && !cShip->IsSpacedock()) {
+	if (GetSize() > (unsigned int)HSCONF.max_dock_size && !cShip->IsSpacedock()) {
 	    hsStdError(player,
 		       "Our vessel is too large to dock in another vessel.");
 	    return;
@@ -1298,7 +1290,7 @@ void CHSShip::InitLanding(dbref player,
 
 	sprintf(tbuf,
 		"In the distance, the %s begins docking procedures with the %s.",
-		GetName(), cObj->GetName(), cShip->GetName());
+		GetName(), cObj->GetName());
 
 	if (uDest)
 	    uDest->SendContactMessage(tbuf, IDENTIFIED, this);
@@ -2209,8 +2201,6 @@ void CHSShip::DoBreakBoardLink(dbref player, int slot)
 // another vessel.
 void CHSShip::DoBoardLink(dbref player, int id, int lhatch, int dhatch)
 {
-    int idx;
-
     CHSJumpDrive *cJumpers;
     CHSSysEngines *cEngines;
     CHSSysSensors *cSensors;
@@ -2484,7 +2474,7 @@ void CHSShip::EngageCloak(dbref player, BOOL bStat)
 	return;
     }
     // Are the jumpers engaged already?
-    if (bStat && cCloak->GetEngaged() || bStat && cCloak->IsEngaging()) {
+    if (bStat && (cCloak->GetEngaged() || cCloak->IsEngaging())) {
 	hsStdError(player, "Cloaking Device already engaged.");
 	return;
     } else if (!bStat && !cCloak->GetEngaged()) {
@@ -2598,3 +2588,4 @@ void CHSShip::GiveHatchRep(dbref player)
     notify(player, tbuf);
 
 }
+

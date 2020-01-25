@@ -194,7 +194,6 @@ void CHSMTube::AttackObject(CHSObject * cSource,
     if (cSource->GetType() == HST_SHIP) {
 	CHSSysCloak *cCloak;
 	CHSShip *ptr;
-	float rval;
 
 	ptr = (CHSShip *) cSource;
 
@@ -409,7 +408,7 @@ BOOL CHSMissileBay::SetRemaining(int type, int remaining)
     // Try to find the type in storage
     for (idx = 0; idx < HS_MAX_MISSILES; idx++) {
 	if (m_storage[idx]) {
-	    if (m_storage[idx]->m_class == type) {
+	    if (m_storage[idx]->m_class == (UINT)type) {
 
 		// If remaining is negative, erase
 		// the storage.
@@ -421,7 +420,7 @@ BOOL CHSMissileBay::SetRemaining(int type, int remaining)
 
 		    // Is number larger than max?  If so, raise
 		    // max.
-		    if (remaining > m_storage[idx]->m_maximum)
+		    if ((UINT)remaining > m_storage[idx]->m_maximum)
 			m_storage[idx]->m_maximum = remaining;
 
 		}
@@ -466,10 +465,10 @@ BOOL CHSMissileBay::GetMissile(int type, int amt)
     for (idx = 0; idx < HS_MAX_MISSILES; idx++) {
 	if (m_storage[idx]) {
 	    // Right type of weapon?
-	    if (m_storage[idx]->m_class == type) {
+	    if (m_storage[idx]->m_class == (UINT)type) {
 		// Enough left?
-		if (m_storage[idx]->m_remaining >= amt) {
-		    m_storage[idx]->m_remaining -= amt;
+		if (m_storage[idx]->m_remaining >= (UINT)amt) {
+		    m_storage[idx]->m_remaining -= (UINT)amt;
 		    return TRUE;
 		} else {
 		    // Not enough left
@@ -547,7 +546,7 @@ UINT CHSMissileBay::GetMissilesLeft(int iclass)
     int idx;
 
     for (idx = 0; idx < HS_MAX_MISSILES; idx++) {
-	if (m_storage[idx] && m_storage[idx]->m_class == iclass)
+	if (m_storage[idx] && m_storage[idx]->m_class == (UINT)iclass)
 	    return m_storage[idx]->m_remaining;
     }
 
@@ -560,7 +559,7 @@ UINT CHSMissileBay::GetMaxMissiles(int iclass)
     int idx;
 
     for (idx = 0; idx < HS_MAX_MISSILES; idx++) {
-	if (m_storage[idx] && m_storage[idx]->m_class == iclass)
+	if (m_storage[idx] && m_storage[idx]->m_class == (UINT)iclass)
 	    return m_storage[idx]->m_maximum;
     }
 

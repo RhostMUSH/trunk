@@ -25,11 +25,12 @@ public:
 	TERRTYPE GetType(void);
 	
 	// Overridables
+        virtual ~CHSTerritory() = default;
 	virtual void SaveToFile(FILE *);
 	virtual BOOL SetAttributeValue(char *, char *);
 	virtual BOOL PtInTerritory(int, double, double, double);
 protected:
-	UINT m_uid;	// Universe territory is in
+	int m_uid;	// Universe territory is in
 	int m_objnum; // Object in the game that represents this territory
 	TERRTYPE m_type;
 };

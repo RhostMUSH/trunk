@@ -808,8 +808,8 @@ HSPACE_FUNC_HDR(hsfSysAttr)
     HSS_TYPE type;
     CHSEngSystem *cSys;
     type = hsGetEngSystemType(lpstrAttr);
-    if (type == HSS_NOTYPE && cObj->GetType() == HST_SHIP
-	|| type == HSS_FICTIONAL && cObj->GetType() == HST_SHIP) {
+    if ((type == HSS_NOTYPE && cObj->GetType() == HST_SHIP)
+	|| (type == HSS_FICTIONAL && cObj->GetType() == HST_SHIP)) {
 	CHSShip *dObj;
 	dObj = (CHSShip *) cObj;
 	cSys = dObj->m_systems.GetSystemByName(lpstrAttr);
@@ -873,8 +873,8 @@ HSPACE_FUNC_HDR(hsfSysSet)
     HSS_TYPE type;
     CHSEngSystem *cSys;
     type = hsGetEngSystemType(strSysName);
-    if (type == HSS_NOTYPE && cObj->GetType() == HST_SHIP
-	|| type == HSS_FICTIONAL && cObj->GetType() == HST_SHIP) {
+    if ((type == HSS_NOTYPE && cObj->GetType() == HST_SHIP)
+	|| (type == HSS_FICTIONAL && cObj->GetType() == HST_SHIP)) {
 	CHSShip *dObj;
 	dObj = (CHSShip *) cObj;
 	cSys = dObj->m_systems.GetSystemByName(strSysName);
@@ -968,7 +968,6 @@ HSPACE_FUNC_HDR(hsfCommMsg)
 HSPACE_FUNC_HDR(hsfSetMissile)
 {
     dbref dbObj;
-    char *ptr;
 
     // Find the object in question
     dbObj = hsInterface.NoisyMatchThing(executor, args[0]);

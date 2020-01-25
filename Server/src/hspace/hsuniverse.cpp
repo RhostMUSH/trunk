@@ -122,7 +122,7 @@ CHSUniverse *CHSUniverseArray::FindUniverse(dbref objnum)
     // Run through the list of universes
     for (idx = 0; idx < HS_MAX_UNIVERSES; idx++) {
 	if (m_universes[idx]) {
-	    if (m_universes[idx]->GetID() == objnum)
+	    if (m_universes[idx]->GetID() == (UINT)objnum)
 		return m_universes[idx];
 	}
     }
@@ -520,6 +520,7 @@ void CHSUniverse::RemoveObject(CHSObject * cObj)
 	break;
 
     case HST_PLANET:
+    default:
 	break;
     }
 

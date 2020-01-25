@@ -115,7 +115,7 @@ void CHSTerritoryArray::PrintInfo(int player)
 		       unsafe_tprintf
 		       ("[%5d] %-18s RADIAL  %-3d Center: %d,%d,%d  Radius: %d",
 			m_territories[idx]->GetDbref(),
-			Name(m_territories[idx]->GetDbref()),
+			(char *)Name(m_territories[idx]->GetDbref()),
 			m_territories[idx]->GetUID(), cRadial->GetX(),
 			cRadial->GetY(), cRadial->GetZ(),
 			cRadial->GetRadius()));
@@ -125,8 +125,8 @@ void CHSTerritoryArray::PrintInfo(int player)
 		CHSCubicTerritory * cCubic;
 		cCubic = (CHSCubicTerritory *) m_territories[idx];
 		notify(player,
-		       unsafe_tprintf
-		       ("[%5d] %-18s CUBIC   %-3d Min: %d,%d,%d  Max: %d,%d,%d",
+		       (const char *)unsafe_tprintf
+		       ((const char *)"[%5d] %-18s CUBIC   %-3d Min: %d,%d,%d  Max: %d,%d,%d",
 			m_territories[idx]->GetDbref(),
 			Name(m_territories[idx]->GetDbref()),
 			m_territories[idx]->GetUID(), cCubic->GetMinX(),
@@ -158,9 +158,9 @@ BOOL CHSTerritoryArray::LoadFromFile(const char *lpstrPath)
     CHSTerritory *cTerritory = NULL;
     while (fgets(tbuf, 128, fp)) {
 	// Strip returns
-	if (ptr = strchr(tbuf, '\r'))
+	if ((ptr = strchr(tbuf, '\r')) != NULL)
 	    *ptr = '\0';
-	if (ptr = strchr(tbuf, '\n'))
+	if ((ptr = strchr(tbuf, '\n')) != NULL)
 	    *ptr = '\0';
 
 	// Pull out the key and value.
@@ -172,8 +172,8 @@ BOOL CHSTerritoryArray::LoadFromFile(const char *lpstrPath)
 	    // Grab a new territory.
 	    cTerritory = NewTerritory(NOTHING, (TERRTYPE) atoi(value));
 	    if (!cTerritory) {
-		hs_log
-		    ("ERROR: Error encountered while loading territories.");
+                hs_log
+                    ((char *)"ERROR: Error encountered while loading territories.");
 		break;
 	    }
 	} else {

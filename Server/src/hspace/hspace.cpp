@@ -177,7 +177,7 @@ void CHSpace::DoCommand(char *cmd, int switches, char *arg_left,
     // Log the command first
     if (HSCONF.log_commands) {
 	char tbuf[1024];
-	sprintf(tbuf, "CMD: (#%d) %s/%s %s=%s",
+	sprintf(tbuf, "CMD: (#%d) %s/%d %s=%s",
 		player, cmd, switches, arg_left, arg_right);
 	hs_log(tbuf);
     }

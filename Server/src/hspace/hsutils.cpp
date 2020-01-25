@@ -162,13 +162,13 @@ void extract(char *string, char *into, int start, int num, char delim)
     for (sptr = string; *sptr; sptr++) {
 	if (*sptr == delim) {
 	    uDelimsEncountered++;
-	    if ((uDelimsEncountered - start) == num) {
+	    if ((uDelimsEncountered - start) == (UINT)num) {
 		*dptr = '\0';
 		return;
-	    } else if (uDelimsEncountered > start)
+	    } else if (uDelimsEncountered > (UINT)start)
 		*dptr++ = delim;
 	} else {
-	    if (uDelimsEncountered >= start)
+	    if (uDelimsEncountered >= (UINT)start)
 		*dptr++ = *sptr;
 	}
     }

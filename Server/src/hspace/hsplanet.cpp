@@ -471,7 +471,7 @@ BOOL CHSLandingLoc::CanAccomodate(CHSObject * cObj)
 	return TRUE;
 
     // Compare current capacity and object size
-    if (m_capacity < cObj->GetSize())
+    if ((UINT)m_capacity < cObj->GetSize())
 	return FALSE;
 
     return TRUE;

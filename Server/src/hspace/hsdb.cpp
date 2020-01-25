@@ -19,7 +19,7 @@ CHSDB::CHSDB(void)
 
 BOOL CHSDB::LoadDatabases(void)
 {
-    char tbuf[256];
+    char tbuf[267];
     int cnt;
 
     // Load classes
@@ -94,7 +94,7 @@ void CHSDB::DumpTerritoryDB(char *lpstrDBPath)
 BOOL CHSDB::LoadObjectDB(void)
 {
     FILE *fp;
-    char tbuf[256];
+    char tbuf[271];
     char strKey[64];
     char strValue[64];
     char *ptr;
@@ -219,7 +219,7 @@ void CHSDB::DumpObjectDB(void)
     CHSUniverse *cUniv;
     CHSObject *cObj;
     UINT i, j;
-    char tbuf[256];
+    char tbuf[305];
 
     fp = fopen(HSCONF.objectdb, "w");
     if (!fp) {
@@ -387,7 +387,7 @@ CHSObject *CHSDB::FindObject(int objnum)
 	    if (!(unDest = uaUniverses.GetUniverse(idx)))
 		continue;
 
-	    if (cObj = unDest->FindObject(objnum))
+	    if ((cObj = unDest->FindObject(objnum)) != NULL)
 		return cObj;
 	}
 	return NULL;

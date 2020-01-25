@@ -131,6 +131,9 @@ class CHSWeapon
 public:
 	CHSWeapon(void);
 
+        // Destructor
+        virtual ~CHSWeapon() = default;
+
 	// Overridable functions.
 	virtual UINT GetPowerUsage(void);
 	virtual UINT GetRange(void);

@@ -243,7 +243,7 @@ HSPACE_COMMAND_HDR(hscActivateShip)
     // Add the ship to the first available universe
     unDest = NULL;
     for (idx = 0; idx < HS_MAX_UNIVERSES; idx++) {
-	if (unDest = uaUniverses.GetUniverse(idx))
+	if ((unDest = uaUniverses.GetUniverse(idx)) != NULL)
 	    break;
     }
     if (!unDest) {
@@ -346,24 +346,28 @@ HSPACE_COMMAND_HDR(hscAddLandingLoc)
     }
     // Determine type of object, and try to add the landing loc
     switch (cObj->GetType()) {
-    case HST_SHIP:
-	CHSShip * cShip;
-	cShip = (CHSShip *) cObj;
-	if (!cShip->AddLandingLoc(dbRoom))
-	    notify(player,
-		   "Failed to add landing loc.  Check log for details.");
-	else
-	    notify(player, "Landing location added to ship.");
-	break;
+    case HST_SHIP: {
+	    CHSShip * cShip;
+	    cShip = (CHSShip *) cObj;
+	    if (!cShip->AddLandingLoc(dbRoom))
+	        notify(player,
+	            "Failed to add landing loc.  Check log for details.");
+            else
+	        notify(player, "Landing location added to ship.");
+	    break;
+        }
 
-    case HST_PLANET:
-	CHSPlanet * cPlanet = (CHSPlanet *) cObj;
-	if (!cPlanet->AddLandingLoc(dbRoom))
-	    notify(player,
-		   "Failed to add landing loc.  Check log for details.");
-	else
-	    notify(player, "Landing location added to planet.");
-	break;
+    case HST_PLANET: {
+	    CHSPlanet * cPlanet = (CHSPlanet *) cObj;
+	    if (!cPlanet->AddLandingLoc(dbRoom))
+	        notify(player,
+		       "Failed to add landing loc.  Check log for details.");
+	    else
+	        notify(player, "Landing location added to planet.");
+	    break;
+        }
+    default: 
+        break;
     }
 }
 
@@ -878,7 +882,7 @@ HSPACE_COMMAND_HDR(hscAddObject)
     // Add the object to the first available universe
     unDest = NULL;
     for (idx = 0; idx < HS_MAX_UNIVERSES; idx++) {
-	if (unDest = uaUniverses.GetUniverse(idx))
+	if ((unDest = uaUniverses.GetUniverse(idx)) != NULL)
 	    break;
     }
     if (!unDest) {
@@ -2293,7 +2297,6 @@ HSPACE_COMMAND_HDR(hscAddMessage)
 {
     CHSConsole *cConsole;
     dbref dbObj;
-    int idx;
     BOOL Success = FALSE;
 
     // Find the game object representing the console.
@@ -2353,7 +2356,6 @@ HSPACE_COMMAND_HDR(hscDelMessage)
 {
     CHSConsole *cConsole;
     dbref dbObj;
-    int idx;
     BOOL Success = FALSE;
 
     // Find the game object representing the console.

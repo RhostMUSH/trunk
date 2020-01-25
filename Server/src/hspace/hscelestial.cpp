@@ -120,18 +120,14 @@ float CHSNebula::GetShieldaff(void)
 // Overridden from the CHSCelestial class
 void CHSNebula::WriteToFile(FILE * fp)
 {
-    int idx;
-
     // Write base class info first, then our's.
     CHSCelestial::WriteToFile(fp);
     fprintf(fp, "DENSITY=%d\n", m_density);
-    fprintf(fp, "SHIELFAFF=%d\n", m_shieldaff);
+    fprintf(fp, "SHIELFAFF=%f\n", m_shieldaff);
 }
 
 void CHSNebula::ClearObjectAttrs()
 {
-    int idx;
-
     CHSCelestial::ClearObjectAttrs();
 }
 
@@ -221,9 +217,9 @@ void CHSNebula::GiveScanReport(CHSObject * cScanner, dbref player, BOOL id)
     notify(player, tbuf);
 
     sprintf(tbuf,
-	    "%s%s| %sZ:%s %9.0f     %s%sShield Efficiency:%s %3.2f\%    %s%s|%s",
+	    "%s%s| %sZ:%s %9.0f     %s%sShield Efficiency:%s %3.2f%%    %s%s|%s",
 	    ANSI_HILITE, ANSI_BLUE, ANSI_GREEN, ANSI_NORMAL,
-	    GetZ(), " ", ANSI_HILITE, ANSI_GREEN, ANSI_NORMAL,
+	    GetZ(), ANSI_HILITE, ANSI_GREEN, ANSI_NORMAL,
 	    GetShieldaff(), ANSI_HILITE, ANSI_BLUE, ANSI_NORMAL);
     notify(player, tbuf);
     // Finish the report
@@ -279,7 +275,7 @@ void CHSAsteroid::ClearObjectAttrs()
 {
     CHSCelestial::ClearObjectAttrs();
 
-    m_density = NULL;
+    m_density = 0;
 }
 
 char *CHSAsteroid::GetAttributeValue(char *strName)
@@ -566,9 +562,9 @@ void CHSWormHole::WriteToFile(FILE * fp)
     fprintf(fp, "STABILITY=%f\n", m_stability);
     fprintf(fp, "FLUCTUATION=%f\n", m_fluctuation);
     fprintf(fp, "BASESTABILITY=%f\n", m_basestability);
-    fprintf(fp, "DESTX=%d\n", m_destx);
-    fprintf(fp, "DESTY=%d\n", m_desty);
-    fprintf(fp, "DESTZ=%d\n", m_destz);
+    fprintf(fp, "DESTX=%f\n", m_destx);
+    fprintf(fp, "DESTY=%f\n", m_desty);
+    fprintf(fp, "DESTZ=%f\n", m_destz);
     fprintf(fp, "DESTUID=%d\n", m_destuid);
 }
 
@@ -597,11 +593,11 @@ char *CHSWormHole::GetAttributeValue(char *strName)
     } else if (!strcasecmp(strName, "BASESTABILITY")) {
 	sprintf(rval, "%f", m_basestability);
     } else if (!strcasecmp(strName, "DESTX")) {
-	sprintf(rval, "%d", m_destx);
+	sprintf(rval, "%f", m_destx);
     } else if (!strcasecmp(strName, "DESTY")) {
-	sprintf(rval, "%d", m_desty);
+	sprintf(rval, "%f", m_desty);
     } else if (!strcasecmp(strName, "DESTZ")) {
-	sprintf(rval, "%d", m_destz);
+	sprintf(rval, "%f", m_destz);
     } else if (!strcasecmp(strName, "DESTUID")) {
 	sprintf(rval, "%d", m_destuid);
     } else

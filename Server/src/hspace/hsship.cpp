@@ -1636,7 +1636,7 @@ void CHSShip::HandleSensors(void)
 
 	// This is ok to do because the Next and First functions
 	// return the same first contact.
-	while(cContact = cSensors->GetNextNewContact())
+	while((cContact = cSensors->GetNextNewContact()) != NULL)
 	{
 		// Special name handling for ships.
 		if (cContact->m_obj->GetType() == HST_SHIP)
@@ -1671,7 +1671,7 @@ void CHSShip::HandleSensors(void)
 
 	// This is ok to do because the Next and First functions
 	// return the same first contact.
-	while(cContact = cSensors->GetNextLostContact())
+	while((cContact = cSensors->GetNextLostContact()) != NULL)
 	{
 		// Special name handling for ships.
 		if (cContact->m_obj->GetType() == HST_SHIP)
@@ -2123,9 +2123,9 @@ void CHSShip::GiveSensorReport(dbref player, HS_TYPE tType)
 	// pretty standard, very inefficient bubble-sort.
 	int i, j;
 	char *ptr;
-	for (i = 0; i < uBuffIdx; i++)
+	for (i = 0; (UINT)i < uBuffIdx; i++)
 	{
-		for (j = i+1; j < uBuffIdx; j++)
+		for (j = i+1; (UINT)j < uBuffIdx; j++)
 		{
 			// Compare element ranges
 			if (rangelist[i] > rangelist[j])
@@ -2144,7 +2144,7 @@ void CHSShip::GiveSensorReport(dbref player, HS_TYPE tType)
 	}
 
 	// List sorted, now print it out to the player
-	for (i = 0; i < uBuffIdx; i++)
+	for (i = 0; (UINT)i < uBuffIdx; i++)
 	{
 		notify(player, bufflist[i]);
 
@@ -2418,28 +2418,29 @@ void CHSShip::HandleMessage(char *lpstrMsg,
 		case MSG_GENERAL:
 		case MSG_ENGINEERING:
 		case MSG_COMBAT:
-		if (strlen(lpstrMsg) > 400)
-			lpstrMsg[400] = '\0';
+		        if (strlen(lpstrMsg) > 400)
+			    lpstrMsg[400] = '\0';
+
 			CHSObject *cObj;
-			cObj = (CHSObject *)data;
+                        cObj = (CHSObject *)data;
 
 			// Find our sensors
 			cSensors = (CHSSysSensors *)m_systems.GetSystem(HSS_SENSORS);
 			if (!cSensors || !cObj)
-				cContact = NULL;
+			    cContact = NULL;
 			else
-				cContact = cSensors->GetContact(cObj);
+			    cContact = cSensors->GetContact(cObj);
 
 			if (cContact)
 			{
-				sprintf(tbuf, "%s[%s%s%4d%s%s]%s - %s",
-					cObj->GetObjectColor(), ANSI_NORMAL,
-					ANSI_HILITE, cContact->m_id, ANSI_NORMAL,
-					cObj->GetObjectColor(), ANSI_NORMAL,
-					lpstrMsg);
+			    sprintf(tbuf, "%s[%s%s%4d%s%s]%s - %s",
+				    cObj->GetObjectColor(), ANSI_NORMAL,
+				    ANSI_HILITE, cContact->m_id, ANSI_NORMAL,
+				    cObj->GetObjectColor(), ANSI_NORMAL,
+				    lpstrMsg);
 			}
 			else
-				strcpy(tbuf, lpstrMsg);
+			    strcpy(tbuf, lpstrMsg);
 
 			NotifyConsoles(tbuf, msgType);
 			break;
@@ -2551,7 +2552,6 @@ BOOL CHSShip::IsDestroyed(void)
 // be if the ship is docked, dropped, or boardlinked.
 void CHSShip::DisembarkPlayer(dbref player, int id)
 {
-	int idx;
 	dbref dbLoc;
 	dbref dbDestObj;
 
@@ -2995,7 +2995,7 @@ void CHSShip::ResurrectMe(void)
 		uDest = NULL;
 		for (int idx = 0; idx < HS_MAX_UNIVERSES; idx++)
 		{
-			if (uDest = uaUniverses.GetUniverse(idx))
+			if ((uDest = uaUniverses.GetUniverse(idx)))
 				break;
 		}
 
@@ -3422,8 +3422,7 @@ dbref CHSShip::Clone(void)
 	// Start with the first registered room, and recursively
 	// clone through the exits until all rooms are visited.
 	rooms_visited[0] = NOTHING;
-	dbref dbFirstRoom = CloneRoom(m_ship_rooms[0], rooms_visited,
-		newShip);
+	CloneRoom(m_ship_rooms[0], rooms_visited, newShip);
 
 	return dbShipObj;
 }
@@ -3817,8 +3816,6 @@ char *CHSHatch::GetAttributeValue(char *strName)
 // Unused currently, might be used in the future.
 BOOL CHSHatch::SetAttributeValue(char *strName, char *strValue)
 {
-	int iVal;
-
 	// Match the name .. set the value
 	if (!strcasecmp(strName, "TARGETHATCH"))
 	{

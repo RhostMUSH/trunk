@@ -24,7 +24,7 @@ void CHSCommRelay::RelayCommlinks(HSCOMM * commdata)
 	return;
 
     int idx;
-    int uid;
+    //int uid;
     int tX, tY, tZ;
     char *s;
     char strFrq[16];
@@ -41,9 +41,9 @@ void CHSCommRelay::RelayCommlinks(HSCOMM * commdata)
 	    continue;
 
 	// Check attributes
-	if (!hsInterface.AtrGet(idx, "UID"))
-	    continue;
-	uid = atoi(hsInterface.m_buffer);
+	//if (!hsInterface.AtrGet(idx, "UID"))
+	//    continue;
+	//uid = atoi(hsInterface.m_buffer);
 
 	// Get coordinates
 	if (!hsInterface.AtrGet(idx, "X"))

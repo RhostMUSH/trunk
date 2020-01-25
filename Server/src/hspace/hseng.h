@@ -67,7 +67,7 @@ class CHSEngSystem
 {
 public:
 	CHSEngSystem(void);
-	~CHSEngSystem(void);
+	virtual ~CHSEngSystem(void);
 
 	// This function MUST be implemented in any class you
 	// derive from it.  It allows the SystemArray duplicator

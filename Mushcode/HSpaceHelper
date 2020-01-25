@@ -1,0 +1,12 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@
+@@ This is a simple helper object for HSpace. It has
+@@ some commands to help with getting started. At 
+@@ the moment that is just a +hshelp command.
+@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@create HSpace Helper Cmds=10
+@set HSpace Helper Cmds=royalty
+&C.HSHELP.INDEX HSpace Helper Cmds=$+hshelp:@dynhelp hshelp=%#
+&C.HSHELP.TOPIC HSpace Helper Cmds=$+hshelp *: @dynhelp hshelp/%0=%#
+

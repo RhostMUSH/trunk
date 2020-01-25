@@ -309,7 +309,7 @@ BOOL CHSObject::LoadFromFile(FILE * fp)
 	hs_log(tbuf);
 	uDest = NULL;
 	for (int jdx = 0; jdx < HS_MAX_UNIVERSES; jdx++) {
-	    if (uDest = uaUniverses.GetUniverse(jdx))
+	    if ((uDest = uaUniverses.GetUniverse(jdx)) != NULL)
 		break;
 	}
 	if (!uDest) {
@@ -396,13 +396,6 @@ void CHSObject::MoveTowards(double x, double y, double z, float speed)
     CHSVector tvec(d2sin_table[xyhead] * d2cos_table[zhead],
 		   d2cos_table[xyhead] * d2cos_table[zhead],
 		   d2sin_table[zhead]);
-    double oldx, oldy, oldz;	// New coords after movement.
-
-    // Save current coords in case we need them.
-    oldx = m_x;
-    oldy = m_y;
-    oldz = m_z;
-
 
     // Add to the current position .. heading vector * speed.
     m_x += tvec.i() * speed;
@@ -419,13 +412,6 @@ void CHSObject::MoveInDirection(int xyhead, int zhead, float speed)
     CHSVector tvec(d2sin_table[xyhead] * d2cos_table[zhead],
 		   d2cos_table[xyhead] * d2cos_table[zhead],
 		   d2sin_table[zhead]);
-    double oldx, oldy, oldz;	// New coords after movement.
-
-    // Save current coords in case we need them.
-    oldx = m_x;
-    oldy = m_y;
-    oldz = m_z;
-
 
     // Add to the current position .. heading vector * speed.
     m_x += tvec.i() * speed;

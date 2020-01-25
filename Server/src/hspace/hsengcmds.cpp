@@ -23,7 +23,7 @@ HSPACE_COMMAND hsEngCommandArray[] = {
     HSENG_SYSTEMPRIORITY, hscSetSystemPriority, HCP_ANY,
     HSENG_CREWREP, hscCrewRep, HCP_ANY,
     HSENG_ASSIGNCREW, hscAssignCrew, HCP_ANY,
-    NULL, NULL, 0
+    0, NULL, 0
 };
 
 HSPACE_COMMAND_HDR(hscSetSystemPower)

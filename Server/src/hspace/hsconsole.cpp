@@ -104,7 +104,7 @@ void CHSConsole::WriteObjectAttrs(void)
 
 	*tbuf = '\0';
 	for (idx = 0; idx < HS_MAX_WEAPONS; idx++) {
-	    if (cWeap = m_weapon_array->GetWeapon(idx)) {
+	    if ((cWeap = m_weapon_array->GetWeapon(idx)) != NULL) {
 		if (!*tbuf)
 		    sprintf(tbuf2, "%d", cWeap->m_class);
 		else
@@ -578,7 +578,6 @@ void CHSConsole::GiveGunneryReport(dbref player)
     // If there's a missile bay, give info for that
     if (m_missile_bay) {
 	HSMISSILESTORE *mStore;
-	int nStores = 0;
 	BOOL bHeaderPrinted = FALSE;
 	CHSDBWeapon *cDBWeap;
 
@@ -800,11 +799,6 @@ void CHSConsole::DoCycle(void)
     dbref dbUser;
     dbUser = hsInterface.ConsoleUser(m_objnum);
 
-    // Verify that the computer has enough power to
-    // power us.
-    int need;
-    need = GetMaximumPower();
-
     // Check target lock.
     if (m_target_lock && m_target_lock != NULL) {
 	BOOL bUnlock = FALSE;
@@ -866,7 +860,7 @@ void CHSConsole::DoCycle(void)
 	// Find the console's user.
 	if (dbUser != NOTHING) {
 	    for (idx = 0; idx < HS_MAX_WEAPONS; idx++) {
-		if (cWeap = m_weapon_array->GetWeapon(idx)) {
+		if ((cWeap = m_weapon_array->GetWeapon(idx)) != NULL) {
 		    if (cWeap->GetStatusChange() == STAT_READY) {
 			if (cWeap->Loadable())
 			    sprintf(tbuf,

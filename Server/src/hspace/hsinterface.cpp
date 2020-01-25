@@ -181,6 +181,8 @@ void CHSInterface::SetLock(int objnum, int lockto, HS_LOCKTYPE lock)
     case LOCK_ZONE:
 	atr_add_raw(objnum, A_LCONTROL,
 		    unparse_boolexp_quiet(objnum, key));
+    default:
+        break;
     }
     free_boolexp(key);
 }
@@ -218,8 +220,7 @@ dbref CHSInterface::ConsoleUser(int objnum)
 	// If the user is not in the same location as the object,
 	// set the lock to the object and return NOTHING.
 	if (Location(dbUser) != Location(objnum)
-	    || !HasFlag(dbUser, TYPE_PLAYER, CONNECTED)
-	    && isPlayer(dbUser)) {
+	    || (!HasFlag(dbUser, TYPE_PLAYER, CONNECTED) && isPlayer(dbUser))) {
 	    SetLock(objnum, objnum, LOCK_USE);
 
 
@@ -282,7 +283,7 @@ char *CHSInterface::EvalExpression(char *input, dbref executor,
     str = input;
 
     bp = exec(executor, caller, enactor, EV_FCHECK | EV_EVAL | EV_TOP, str,
-	      (char **) NULL, NULL, (char **) NULL, 0);
+	      (char **) NULL, 0, (char **) NULL, 0);
     *bp = '\0';
 
     return tbuf;
