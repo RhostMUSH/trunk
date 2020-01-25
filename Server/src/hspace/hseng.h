@@ -223,7 +223,6 @@ class CHSSysSensors : public CHSEngSystem
 {
 public:
 	CHSSysSensors(void);
-	~CHSSysSensors(void);
 
 	BOOL SetAttributeValue(char *, char *);
 	char *GetAttributeValue(char *, BOOL);
