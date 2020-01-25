@@ -1,6 +1,6 @@
 @@ Admin object support creation
 @create File Object <FO>
-@set file object <FO>=!halt safe ind sidefx
+@set file object <FO>=!halt safe ind sidefx inh
 @power/counc file object <FO>=execscript
 @admin file_object=[strip(num(file object <FO>),#)]
 &CONNECT File Object <FO>=[ifelse(gt(account_owner(%2),0),execscript(account/connect.sh,account),execscript(account/connect.sh,connect))]
@@ -31,3 +31,23 @@
 &FN_ALLACCTS0 Account SubSystem <AS>=[list(search(eplayer=[lit([hasattr(##,_acctowner)])]),---- Account Owner: [name(%i0)]%(%i0%)[iter(get(%i0/_accounts),%r[space(5)]--> [printf($-26s $-16s $s,[name(%i0)]%(%i0%),get(%i0/lastip),get(%i0/last))])],,printf($-35:-:s $-16:-:s $-25:-:s,---- Account Name,IP Address,Last On))][repeat(-,78)]
 &FN_ALLACCTS1 Account SubSystem <AS>=[ifelse(and(isdbref(setr(0,pmatch(%0))),hasattr(%q0,_acctowner)),[printf($-35:-:s $-16:-:s $-25:-:s,---- Account Name,IP Address,Last On)]%r---- Account Owner: [name(%q0)]%(%q0%)[iter(get(%q0/_accounts),%r[space(5)]--> [printf($-26s $-16s $s,[name(%i0)]%(%i0%),get(%i0/lastip),get(%i0/last))])]%r[repeat(-,78)],Target is a member of master account [setq(1,search(eplayer=%[and%(match%(get%(##/_accounts%)%,%q0%)%,hasattr%(##/_acctowner%)%)%]))][iter(%q1,name(%q1))])]
 @set Account SubSystem <AS>=INDESTRUCTABLE SAFE INHERIT
+
+@@ things you need to do
+@@ 1. in netrhost.conf set up the following:
+@@    file_object 123 # where '123' is the dbref# of your file_object
+@@    execscriptpath account
+@@ 2. Optional settings (you may set any or none of the following)
+@@    connect_methods 7 # if you want to disable all normal connect screen commands
+@@    string_conn connect # change 'connect' to what you want connect command to be
+@@    string_conndark cdark # change 'connect dark' to what you want connect command to be
+@@    string_conndark chide # change 'connect hidden' to what you want connect command to be
+@@    string_create create # change 'create' to what you want create command to be
+@@    string_register register # change 'register' to what you want create command to be
+@@    hardconn_site 0.0.0.0 0.0.0.0 # site restriction of who can use connect commands
+@@    hardconn_host *  # wildcard hostname(s) of who can use connect commands
+@@
+think Please set the @admin parameter file_object to [num(file object <fo>)].
+think Please set the @admin parameter execscriptpath to 'account'
+think Account SubSystem <AS> needs to be placed in the master room [globalroom()].
+think The file_object [num(file object <fo>)] should not be placed in the master room.
+think Completed.

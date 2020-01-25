@@ -1008,6 +1008,7 @@ set_start_bits(const uschar * code, uschar * start_bits, BOOL caseless,
 	       BOOL utf8, compile_data * cd)
 {
   register int c;
+  int temp;
 
 /* This next statement and the later reference to dummy are here in order to
 trick the optimizer of the IBM C compiler for OS/2 into generating correct
@@ -1234,7 +1235,8 @@ the pcre module can use all the optimization it can get). */
 	      for (c = 0; c < 16; c++)
 		start_bits[c] |= tcode[c];
 	      for (c = 128; c < 256; c++) {
-		if ((tcode[c / 8] && (1 << (c & 7))) != 0) {
+    temp = (1 << (c & 7));
+		if ((tcode[c / 8] && temp) != 0) {
 		  int d = (c >> 6) | 0xc0;	/* Set bit for this starter */
 		  start_bits[d / 8] |= (1 << (d & 7));	/* and then skip on to the */
 		  c = (c & 0xc0) + 0x40 - 1;	/* next relevant character. */

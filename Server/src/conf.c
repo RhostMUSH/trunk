@@ -358,6 +358,12 @@ NDECL(cf_init)
     memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
     mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
     mudconf.connect_methods = 0;	/* Disable optionally connect methods */
+    strcpy(mudconf.string_conn, (char *)"connect");	/* String for the connect command */
+    strcpy(mudconf.string_conndark, (char *)"cdark");	/* String for the dark connect */
+    strcpy(mudconf.string_connhide, (char *)"chide");	/* String for the hide connect */
+    strcpy(mudconf.string_create, (char *)"create");	/* String for the create command */
+    strcpy(mudconf.string_register, (char *)"register");/* String for the register connect */
+
 #ifdef MYSQL_VERSION
     strcpy(mudconf.mysql_host, (char *)"localhost");
     strcpy(mudconf.mysql_user, (char *)"dbuser");
@@ -4306,6 +4312,13 @@ CONF conftable[] =
     {(char *) "hackattr_see",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hackattr_see, 0, 0, CA_WIZARD,
      (char *) "Are _attribs NOT wizard viewable?"},
+    {(char *) "hardconn_site",
+     cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list,
+     H_HARDCONN, 0, CA_WIZARD,
+     (char *) "Site list for specifying those who are allowed to connect with connect hard commands."},
+    {(char *) "hardconn_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.hardconn_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to add to hardconnect allowance."},
     {(char *) "hasattrp_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hasattrp_compat, 0, 0, CA_PUBLIC,
      "Should hasattrp() check only parents? (YES=FALSE, NO=TRUE)"},
@@ -5089,6 +5102,21 @@ CONF conftable[] =
     {(char *) "status_file",
      cf_string, CA_DISABLED, (int *) mudconf.status_file, 128, 0, CA_WIZARD,
      (char *) "File where @shutdown commands are sent."},
+    {(char *) "string_conn",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_conn, 31, 0, CA_WIZARD,
+     (char *) "String that is used as the 'connect [co]' command."},
+    {(char *) "string_conndark",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_conndark, 31, 0, CA_WIZARD,
+     (char *) "String that is used as the 'dark connect [cd]' command."},
+    {(char *) "string_connhide",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_connhide, 31, 0, CA_WIZARD,
+     (char *) "String that is used as the 'hide connect [ch]' command."},
+    {(char *) "string_create",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_create, 31, 0, CA_WIZARD,
+     (char *) "String that is used as the 'create [cr]' command."},
+    {(char *) "string_register",
+     cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_register, 31, 0, CA_WIZARD,
+     (char *) "String that is used as the 'register [reg]' command."},
     {(char *) "sub_include",
      cf_string_sub, CA_GOD|CA_IMMORTAL, (int *) mudconf.sub_include, 26, 0, CA_WIZARD,
      (char *) "Substitutions included for percent-lookups on parser."},

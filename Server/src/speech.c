@@ -106,7 +106,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
   char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_morgrify, *s_execmorgrify, *s_array[4], *s_trash;
-  int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify, i_atr;
+  int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify;
   ATTR  *atr_p;
   
 	/* Convert prefix-coded messages into the normal type */
@@ -117,7 +117,6 @@ void do_say (dbref player, dbref cause, int key, char *message)
         s_morgrify = NULL;
         s_execmorgrify = NULL;
         i_morgrify = 0;
-        i_atr = -1;
 
 	if (key == SAY_PREFIX) {
 		switch (*message++) {
@@ -3394,7 +3393,7 @@ int getword(char*,char*);
 
 void do_channel(dbref player, dbref cause, int key, char *arg1)
 {
-  char buf[LBUF_SIZE], buff2[LBUF_SIZE];
+  char buf[LBUF_SIZE], buf2[LBUF_SIZE], buff2[LBUF_SIZE];
   int aflags;
   dbref aowner;
   char *tmp, *tpr_buff, *tprp_buff, *tstrtokr;
@@ -3420,6 +3419,8 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
       tmp_word = strtok_r( tmp, " " , &tstrtokr);
       tprp_buff = tpr_buff = alloc_lbuf("do_channel");
       while( tmp_word ) {
+  buf2[0] = '\0';
+
          if ( iny == 0 ) {
             iny = 1;
             strcpy( buf, tmp_word );
@@ -3431,11 +3432,13 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
             inx = 0;
          }
          else if ( inx < 1 ) {
-            sprintf( buf, "%-20.20s     %-20.20s", buf, tmp_word );
+            sprintf( buf2, "%-20.20s     %-20.20s", buf, tmp_word );
+            sprintf(buf, "%s", buf2);
             inx++;
          }
          else {
-            sprintf( buf, "%-45.45s     %-20.20s", buf, tmp_word );
+            sprintf( buf2, "%-45.45s     %-20.20s", buf, tmp_word );
+            sprintf(buf, "%s", buf2);
             inx++;
          }
       tmp_word = strtok_r( NULL, " ", &tstrtokr );

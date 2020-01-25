@@ -1686,6 +1686,9 @@ shutdownsock(DESC * d, int reason)
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
         if ( (i_sitemax != -1) && (i_guestcnt < (i_sitemax + 1)) )
            d->host_info &= ~H_NOGUEST;
+        i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_HARDCONN);
+        if ( i_sitemax != -1 ) 
+           d->host_info &= ~H_HARDCONN;
 
         memset(tchbuff, 0, sizeof(tchbuff));
         strcpy(tchbuff, mudconf.forbid_host);
@@ -1706,6 +1709,9 @@ shutdownsock(DESC * d, int reason)
         strcpy(tchbuff, mudconf.passproxy_host);
         if ((char *)mudconf.passproxy_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_PASSPROXY;
+        strcpy(tchbuff, mudconf.hardconn_host);
+        if ((char *)mudconf.hardconn_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+           d->host_info = d->host_info | H_HARDCONN;
 	d->input_tot = d->input_size;
 	d->output_tot = 0;
          
@@ -2125,6 +2131,9 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     strcpy(tchbuff, mudconf.passproxy_host);
     if ((char *)mudconf.passproxy_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_PASSPROXY;
+    strcpy(tchbuff, mudconf.hardconn_host);
+    if ((char *)mudconf.hardconn_host && lookup(addr, tchbuff, i_guestcnt, &i_retvar))
+       d->host_info = d->host_info | H_HARDCONN;
     d->host_info = d->host_info | i_keyflag;
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';

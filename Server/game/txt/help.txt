@@ -32993,6 +32993,10 @@
   * connect_methods @admin param to disable hardcoded connects [ASH]
   * Tag system for avoiding hardcoded #dbrefs in softcode [AMB]
   * Added listtags() and tagmatch() function. [AMB]
+  * string_conn, string_conndark, string_connhide, string_create,
+    string_register added for custom connect commands [ASH]
+  * hardconn_site and hardconn_host to specify sites allowed
+    to use connect screen hardcommands if connect_methods enabled [ASH]
   
   Changes
   ------------
@@ -33012,3 +33016,5 @@
   * mysql_ping could potentially hang on certaion versions of Mysql [ASH]
   * Potential buffer overwrite in built in news system [ASH]
   * potential off by one for API text handler on input -- reverted [ASH]
+  * fix some potential buffer overflow risks [ASH]
+  * fix bug in mysql where null sub-entries would abort rest [ASH]

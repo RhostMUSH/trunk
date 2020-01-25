@@ -68,7 +68,7 @@ int mush_crypt_validate(dbref player,
 			int flag) {
 #ifdef CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
-  static char crypt_buff[100];
+  static char crypt_buff[200];
 #endif
 #ifdef CRYPT_GLIB2
   char crypt_salt[70], crypt_repeat[30], *s, *d, *t;
@@ -198,7 +198,7 @@ char * mush_crypt(const char *key, int val) {
 #endif
 #elif CRYPT_ENCRYPT_SHS
   SHS_INFO shsInfo;
-  static char crypt_buff[100];
+  static char crypt_buff[200];
   DPUSH; /* #97 */
   shsInfo.reverse_wanted = (BYTE) reverse_shs;
   shsInit(&shsInfo);

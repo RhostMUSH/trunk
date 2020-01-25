@@ -299,6 +299,7 @@ struct confdata {
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
 	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */
 	char	sconnect_host[LBUF_SIZE]; /* sites for allowable sconnect re-iper */
+	char	hardconn_host[LBUF_SIZE]; /* sites for allowable for hardconnects */
 	int	sconnect_reip;	/* Toggle for sconnect re-iper */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
         int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
@@ -444,8 +445,13 @@ struct confdata {
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
-	char	vercustomstr[SBUF_SIZE]; /* Customized string for @version */
-	int	connect_methods;	/* Disable optionally connect methods */
+	char	vercustomstr[SBUF_SIZE];	/* Customized string for @version */
+	int	connect_methods;		/* Disable optionally connect methods */
+	char	string_conn[SBUF_SIZE];		/* String for the connect command */
+	char	string_create[SBUF_SIZE];	/* String for the connect command */
+	char	string_conndark[SBUF_SIZE];	/* String for the dark connect */
+	char	string_connhide[SBUF_SIZE];	/* String for the hide connect */
+	char	string_register[SBUF_SIZE];	/* String for the register connect */
 #ifdef REALITY_LEVELS
         int reality_compare;	/* How descs are displayed in reality */
         int no_levels;          /* # of reality levels */
@@ -906,6 +912,7 @@ extern STATEDATA mudstate;
 #define H_FORBIDAPI	0x0100	/* Forbid API from connecting */
 #define H_PASSPROXY	0x0200  /* Linked to suspect_list for bypassing proxies */
 #define H_PASSAPI	0x0400	/* Pass any API site restrictions (minus forbid) */
+#define H_HARDCONN	0x0800	/* Allow hardconnect from site */
 
 /* Logging options */
 
