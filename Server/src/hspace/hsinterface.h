@@ -1,9 +1,9 @@
 #ifndef __HSINTERFACE_INCLUDED__
 #define __HSINTERFACE_INCLUDED__
 
-// #define PENNMUSH
+//#define PENNMUSH
 //#define TM3
-//#define RHOST
+//#define RHOSTMUSH
 
 extern "C" {
 #include "externs.h"
@@ -70,8 +70,8 @@ public:
 	void CHZone(dbref, dbref);
 	void AtrAdd(int, const char *, char *, int, int flags = NOTHING);
 	void AtrDel(int, const char *, int);
-	void SetFlag(int, int);
-	void UnsetFlag(int, int);
+	void SetFlag(int, char *);
+	void UnsetFlag(int, char *);
 	void SetLock(int, int, HS_LOCKTYPE); // Sets an object lock
 	void NotifyContents(int, char *);
 	void GetContents(int, int *, int);
@@ -87,7 +87,7 @@ public:
 	dbref GetHome(dbref);
 
 	BOOL PassesLock(int, int, HS_LOCKTYPE);
-	BOOL HasFlag(int, int, int);
+	BOOL HasFlag(int, int, char *);
 	BOOL ValidObject(dbref);
 	BOOL AtrGet(int, const char *);
 	BOOL LinkExits(dbref, dbref);

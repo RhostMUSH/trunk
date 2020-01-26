@@ -456,8 +456,9 @@ void CHSDB::DeleteUniverse(dbref player, char *strID)
     }
 
     if (uaUniverses.DeleteUniverse(uid)) {
-	m_nUniverses--;
-	notify(player, "BOOM!  You have destroyed the universe!");
+        hsInterface.UnsetFlag(uid, ROOM_HSPACE_UNIVERSE);
+        m_nUniverses--;
+        notify(player, "BOOM!  You have destroyed the universe!");
     } else
 	notify(player, "Unable to delete that universe at this time.");
 }

@@ -22,6 +22,7 @@ void CHSInterface::AtrAdd(int obj, const char *atrname, char *val,
         return;
         
     atr_add_raw(obj, atr, val);
+    atr_set_flags(obj, atr, flags);
 }
 
 void CHSInterface::AtrDel(int obj, const char *atrname, int owner)
@@ -127,14 +128,15 @@ dbref CHSInterface::NoisyMatchExit(dbref player, char *name)
     return exit_m;
 }
 
-void CHSInterface::SetFlag(int objnum, int flag)
+void CHSInterface::SetFlag(int objnum, char *flag)
 {
-    s_Flags4(objnum, Flags4(objnum) | flag);
+    AtrAdd(objnum, HS_TYPE_ATR, flag, GOD, AF_MDARK|AF_IMMORTAL);
 }
 
-void CHSInterface::UnsetFlag(int objnum, int flag)
+void CHSInterface::UnsetFlag(int objnum, char *flag)
 {
-    s_Flags4(objnum, Flags4(objnum) & ~flag);
+    if (AtrGet(objnum, HS_TYPE_ATR) && strcmp(flag, m_buffer))
+        AtrAdd(objnum, HS_TYPE_ATR, "NONE", GOD, AF_MDARK|AF_WIZARD);
 }
 
 // Checks to see if the specified object exists, isn't garbage,
@@ -149,18 +151,10 @@ BOOL CHSInterface::ValidObject(dbref objnum)
 
 // Returns TRUE or FALSE depending on whether the object has
 // the specified flag or not.
-BOOL CHSInterface::HasFlag(dbref objnum, int type, int flag)
+BOOL CHSInterface::HasFlag(dbref objnum, int type, char *flag)
 {
-    if (!(Typeof(objnum) == type))
-	return FALSE;
-    if (Flags(objnum) & flag)
-	return TRUE;
-    if (Flags2(objnum) & flag)
-	return TRUE;
-    if (Flags3(objnum) & flag)
-	return TRUE;
-    if (Flags4(objnum) & flag)
-	return TRUE;
+    if (Typeof(objnum) == type && AtrGet(objnum, HS_TYPE_ATR))
+        return strcmp(flag, m_buffer);
 
     return FALSE;
 }
@@ -220,7 +214,7 @@ dbref CHSInterface::ConsoleUser(int objnum)
 	// If the user is not in the same location as the object,
 	// set the lock to the object and return NOTHING.
 	if (Location(dbUser) != Location(objnum)
-	    || (!HasFlag(dbUser, TYPE_PLAYER, CONNECTED) && isPlayer(dbUser))) {
+	    || (!Connected(dbUser) && isPlayer(dbUser))) {
 	    SetLock(objnum, objnum, LOCK_USE);
 
 
