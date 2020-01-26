@@ -6,7 +6,8 @@
 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @create HSpace Helper Cmds=10
-@set HSpace Helper Cmds=royalty
-&C.HSHELP.INDEX HSpace Helper Cmds=$+hshelp:@dynhelp hshelp=%#
-&C.HSHELP.TOPIC HSpace Helper Cmds=$+hshelp *: @dynhelp hshelp/%0=%#
+@tag/add HSHelper=[lastcreate(me,t)]
+@set #HSHelper=!no_command !halted royalty safe indestructable
+&C.HSHELP.INDEX #HSHelper=$+hshelp:@dynhelp hspace=%#
+&C.HSHELP.TOPIC #HSHelper=$+hshelp *: @dynhelp hspace/%0=%#
 
