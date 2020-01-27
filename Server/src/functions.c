@@ -21421,6 +21421,35 @@ FUNCTION(fun_account_owner)
    ival(buff, bufcx, 0);
 }
 
+/* ---- fun account who
+ * will just list ports currently utilizing the account subsystem 
+ */
+FUNCTION(fun_account_who)
+{
+   char *sep;
+   int i_first;
+   DESC *d, *dnext;
+
+   if (!fn_range_check("ACCOUNT_WHO", nfargs, 0, 1, buff, bufcx)) {
+      return;
+   }
+   if ( (nfargs >= 1) && *fargs[0] ) {
+      sep = fargs[0];
+   } else {
+      sep = (char *)" ";
+   }
+   i_first = 0;
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( d->account_owner >= 0 ) {
+         if ( i_first ) {
+            safe_str(sep, buff, bufcx);
+         }
+         ival(buff, bufcx, d->descriptor);
+         i_first = 1;
+      }
+   }
+}
+
 /* --- fun account su
  * account_su(new-user, port, attribute)
  * will only work if you have a valid account session
@@ -36494,6 +36523,7 @@ FUN flist[] =
     {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_SU", fun_account_su, 3, 0, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_WHO", fun_account_who, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},

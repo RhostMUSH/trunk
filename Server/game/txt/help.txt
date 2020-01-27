@@ -32990,6 +32990,7 @@
   * account_login() customized login functionality [ASH]
   * account_owner() for 'ownership' of a central account [ASH]
   * account_su() to allow suing between accounts [ASH]
+  * account_who() to allow showing ports using accounts [ASH]
   * connect_methods @admin param to disable hardcoded connects [ASH]
   * Tag system for avoiding hardcoded #dbrefs in softcode [AMB]
   * Added listtags() and tagmatch() function. [AMB]
