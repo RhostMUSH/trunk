@@ -1,0 +1,112 @@
+Let's have a brief discussion on geometry and trigonometry.  I know
+you are _probably_ thinking, "Ick."  But this is necessary if you are
+to understand just how traveling through space is going to work
+while navigating a space ship.
+
+First of all, some terminology :             Z
+                                             | _  90
+   X : The X coordinate plane/axis           |   \
+   Y : The Y coordinate plane/axis           |____|___ X
+   Z : The Z coordinate plane/axis          /
+                                         Y/
+
+At any time you might imagine your ship at the origin, or center, of
+these three axes.  Heading, or in which direction you would like
+to travel, is specified in two parts:  head <XY> mark <Z>
+
+The first part is the XY angle, or the two dimensional angle within the
+XY plane where you would like to head.  This can be pictured as
+a traditional flat map, such as a map of the U.S.
+
+When thinking of a 2D map, a small conflict sometimes arises.
+Trigonometry courses teach that 0 and 180 degrees are on the X axis,
+while 90 and 270 are on the Y.  However, Earth directions are
+specified in bearings.  More currently, they are specified in Azimuths.
+When using Azimuth, which the space navigation system does, the angles
+get changed slightly as follows:
+                                        North
+      090                                000
+       |                                  |
+180 ---|--- 000               West 270 ---|--- 090 East
+       |                                  |
+      270                                180
+                                        South
+
+ (Standard Trigonometric Axes)     (The Azimuth System)
+
+The second part of the navigational heading command is the Z heading,
+or Z vector specification.  This is a number between -90 and 90
+degrees with -90 pointing directly "down" and 90 pointing directly
+"up."  The command "head 180 mark 90" would turn the ship to the
+south, but pointing directly up the Z axis.  Once thrust is applied,
+only the Z coordinate of the ship would change.
+
+Now for an example of travel.  Say, for instance, my ship is located
+at 0, 0, 0.  That is 0 X, 0 Y, and 0 Z - I am at the origin of all
+axes.  I am aware of another ship that is located very nearby at
+1, 1, 1.  If I am to intercept that ship, where do I head?  Rather
+than telling the computer that I want to end up at 1, 1, 1; let's
+imagine that I have a pilot's flight stick in front of me.  This will
+maneuver my ship to its destination.  Using my calculator (not really),
+I see that, on the XY plane, the ship is at a bearing of 45 degrees
+from me:  atan(1/1) = 45.
+                           |   . <- enemy
+                           |  / <---------- 45 Degrees (XY plane)
+                    X ---- Me ---
+                           |
+                           |
+                           Y
+
+That fills the first part of the two-part information I need to set
+my heading.  Next, I need to know the Z angle to specify.  This is,
+in fact, simple.  It is also 45 degrees.  Why?  I want to travel
+equal amounts on each axis.  On the XY plane, 45 degrees is halfway
+between the Y axis and X axis.  Likewise, 45 degrees on the Z plane
+is halfway between up and level.
+
+                 Z (90 degrees)
+                 |   . <- Enemy
+                 |
+                Me ------- XY plane (Z angle of 0)
+
+There, we have our heading: head 45 mark 45
+
+We can see that if our destination were 0, 0, 1; we would need to
+ONLY travel on the Z axis.  Therefore, an XY heading is irrelevant,
+and the Z angle is the only importance.  To travel straight "up," we
+would need a Z angle of 90 degrees: head <anything> mark 90.
+
+Movement on all three axes is calculated by simply using the sine
+and cosine functions as follows:
+
+       dz = sine(z heading)
+       dx = sine(xy heading) * cosine(z heading)
+       dy = cosine(xy heading) * cosine(zheading)
+
+We see that, as the z heading increases, the cosine of the z heading
+decreases.  Thus, this results in decreased travel on the XY axes.
+
+Calculating a heading from one location to another is rather simple
+and involves the use of two provided functions: xyang() and zang().
+As you might guess, xyang() provides the XY part of the heading; and
+zang() provides the Z part of the heading.  They can be used as
+follows:
+
+  XY = xyang(current x, current y, desired x, desired y)
+  Z  = zang(current x, current y, current z, desired x, desired y,
+            desired z);
+
+head XY mark Z
+
+For some, the navigational system seems overwhelming at first.  For
+others, it comes very quickly.  It all depends on how the individual
+pilot visualizes his/her surrounding space.  Often, it helps to pull
+out a few pieces of graph paper and draw a picture to determine where
+it is that you are and where it is that you want to go.
+
+In time, though, navigation becomes a simple fact-of-the-matter.
+Headings are quickly plotted and missiles outmaneuvered.  In time,
+you too can become an ace pilot.
+
+
+
