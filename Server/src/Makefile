@@ -320,7 +320,7 @@ DEFS = $(CUSTDEFS) -Wall
 
 # MORELIBS is handled by the asksource.sh script for auto-generation.
 # any customization add to this but do not remove CUSTMORELIBS
-MORELIBS = $(CUSTMORELIBS) -lstdc++
+MORELIBS = $(CUSTMORELIBS)
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
