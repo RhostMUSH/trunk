@@ -20372,7 +20372,7 @@
   The following <local> key exists:
     0 - Don't check for local functions (@function/@lfunction) (default)
     1 - Check against @functions (in addition to built-in functions)
-    2 - Check against @lfunctions (in addition to build-in functions)
+    2 - Check against @lfunctions (in addition to built-in functions)
     3 - Check against all possible function combinations
   
   The following <type> exists:
