@@ -705,16 +705,28 @@ dbref lookup_player (dbref doer, char *name, int check_who)
 
    if (*name == NUMBER_TOKEN) {
       name++;
+      /* Only players have objid's */
       if ( *name && strchr(name, ':') != NULL ) {
-         return parse_dbref(name);
+         p = parse_dbref(name);
+         return p;
+      }   
+      p = objecttag_get(name);
+      if ( Good_obj(p) && ((Typeof(p) == TYPE_PLAYER))  ) {
+         return p;
       }
-      if (!is_number(name))
+
+      if (!is_number(name)) {
          return NOTHING;
+      }
+
       p = atoi(name);
-      if (!Good_obj(p) || Recover(p))
+      if (!Good_obj(p) || Recover(p)) {
          return NOTHING;
-      if (!((Typeof(p) == TYPE_PLAYER) || God(doer)))
+      }
+
+      if (!((Typeof(p) == TYPE_PLAYER) || God(doer))) {
          p = NOTHING;
+      }
       return p;
    }
    tp = temp = alloc_lbuf("lookup_player");

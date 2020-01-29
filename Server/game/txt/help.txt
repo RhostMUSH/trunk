@@ -11333,32 +11333,32 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()         COS()          CRC32()         CREATE() 
-  CREATETIME()    CREPLACE()    CTU()          DEC()           DECODE64()
-  DECRYPT()       DEFAULT()     DELETE()       DELEXTRACT()    DESTROY()     
-  DICE()          DIG()         DIGEST()       DIST2D()        DIST3D()      
-  DIV()           E()           EDEFAULT()     EDIT()          EDITANSI() 
-  EE()            ELIST()       ELEMENTPOS()   ELEMENTS()      ELEMENTSMUX()
-  ELOCK()         EMIT()        ENCODE64()     ENCRYPT()       ENTRANCES() 
-  EQ()            ERROR()       ESCAPE()       ESCAPEX()       ESCLIST()   
-  EVAL()          EXIT()        EXP()          EXTRACT()       EXTRACTWORD()
-  FBETWEEN()      FBOUND()      FDIV()         FILTER()        FINDABLE()  
-  FIRST()         FLAGS()       FLOOR()        FLOORDIV()      FOLD()      
-  FOLDERCURRENT() FOLDERLIST()  FOREACH()      FULLNAME()      GARBLE()    
-  GET()           GET_EVAL()    GLOBALROOM()   GRAB()          GRABALL()   
-  GREP()          GT()          GTE()          GUILD()         HASATTR()   
-  HASATTRP()      HASFLAG()     HASTOGGLE()    HASTYPE()       HASQUOTA()  
-  HASRXLEVEL()    HASTXLEVEL()  HOME()         IBREAK()        IDLE()      
-  IFELSE()        IINDEX()      ILEV()         INC()           INDEX()     
-  INF()           INPROGRAM()   INSERT()       INUM()          INZONE()      
-  ISALNUM()       ISALPHA()     ISCLUSTER()    ISDBREF()       ISDIGIT()     
-  ISHIDDEN()      ISNUM()       ISOBJID()      ISPUNCT()       ISSPACE()     
-  ISWORD()        ISXDIGIT()    ITER()         ITEXT()         KEEPFLAGS()   
-  KEEPTYPE()      LADD()        LAND()         LAST()          LASTCREATE()  
-  LATTR()         LAVG()        LCMDS()        LCON()          LCSTR()       
-  LDELETE()       LDIV()        LEMIT()        LEFT()          LEXITS()      
-  LFLAGS()        LINK()        LIST()         LISTCOMMANDS()  LISTDIFF()    
-  LISTFUNCTIONS()
+  CONVTIME()      COR()           COS()          CRC32()       CREATE() 
+  CREATETIME()    CREPLACE()      CTU()          DEC()         DECODE64()
+  DECRYPT()       DEFAULT()       DELETE()       DELEXTRACT()  DESTROY()     
+  DICE()          DIG()           DIGEST()       DIST2D()      DIST3D()      
+  DIV()           E()             EDEFAULT()     EDIT()        EDITANSI() 
+  EE()            ELIST()         ELEMENTPOS()   ELEMENTS()    ELEMENTSMUX()
+  ELOCK()         EMIT()          ENCODE64()     ENCRYPT()     ENTRANCES() 
+  EQ()            ERROR()         ESCAPE()       ESCAPEX()     ESCLIST()   
+  EVAL()          EXIT()          EXP()          EXTRACT()     EXTRACTWORD()
+  FBETWEEN()      FBOUND()        FDIV()         FILTER()      FINDABLE()  
+  FIRST()         FLAGS()         FLOOR()        FLOORDIV()    FOLD()      
+  FOLDERCURRENT() FOLDERLIST()    FOREACH()      FULLNAME()    GARBLE()    
+  GET()           GET_EVAL()      GLOBALROOM()   GRAB()        GRABALL()   
+  GREP()          GT()            GTE()          GUILD()       HASATTR()   
+  HASATTRP()      HASFLAG()       HASTOGGLE()    HASTYPE()     HASQUOTA()  
+  HASRXLEVEL()    HASTXLEVEL()    HOME()         IBREAK()      IDLE()      
+  IFELSE()        IINDEX()        ILEV()         INC()         INDEX()     
+  INF()           INPROGRAM()     INSERT()       INUM()        INZONE()      
+  ISALNUM()       ISALPHA()       ISCLUSTER()    ISDBREF()     ISDIGIT()     
+  ISHIDDEN()      ISNUM()         ISOBJID()      ISPUNCT()     ISSPACE()     
+  ISTAG()         ISWORD()        ISXDIGIT()     ITER()        ITEXT()       
+  KEEPFLAGS()     KEEPTYPE()      LADD()         LAND()        LAST()        
+  LASTCREATE()    LATTR()         LAVG()         LCMDS()       LCON()        
+  LCSTR()         LDELETE()       LDIV()         LEMIT()       LEFT()        
+  LEXITS()        LFLAGS()        LINK()         LIST()        LISTCOMMANDS()
+  LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -11580,12 +11580,12 @@
                        EDITANSI() ELEMENTPOS() ENCODE64() ENCRYPT() ESCAPE() 
                        ESCAPEX() ESCLIST() EVAL() GARBLE() IFELSE() ISALNUM() 
                        ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISOBJID() 
-                       ISPUNCT() ISSPACE() ISWORD() ISXDIGIT() LCSTR() LEFT() 
-                       LIT() LJC() LJUST() MERGE() MID() NOSTR() NOTCHR() 
-                       NUMPOS() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
-                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
-                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
-                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
+                       ISPUNCT() ISSPACE() ISTAG() ISWORD() ISXDIGIT() LCSTR() 
+                       LEFT() LIT() LJC() LJUST() MERGE() MID() NOSTR() 
+                       NOTCHR() NUMPOS() ORCHR() PARSESTR() PEDIT() POS() 
+                       PRINTF() RANDPOS() REPEAT() REPLACE() RIGHT() RJC() 
+                       RJUST() ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX()
+                       SHL() SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
                        STRLEN() STRMATCH() SUBEVAL() SUBNETMATCH() SWITCH() 
                        SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
@@ -14119,7 +14119,7 @@
     > say t(space(100))
     You say "0"
   
-  See Also: isobjid(), isdbref(), isspace(), s()
+  See Also: isobjid(), isdbref(), istag(), isspace(), s()
   
 & MIX()
   Function: mix([<object>/]<attribute>,<list 1>,<list 2>[,<list N>][,<delim>])
@@ -16800,7 +16800,7 @@
     > say valid(playername,me)
     You say "0"
   
-  See Also: isobjid(), isdbref(), name()
+  See Also: isobjid(), isdbref(), istag(), name()
   
 & VATTRCNT()
   Function: vattrcnt(<object> [,<type>])
@@ -24599,7 +24599,7 @@
     You say "0"
  
   See Also: isdbref(), isalnum(), ispunct(), isxdigit(), isdigit(), isspace(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
   
 & ISALNUM()
   Function: isalnum(<string>)
@@ -24615,7 +24615,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), ispunct(), isxdigit(), isdigit(), isspace(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
   
 & ISCLUSTER()
   Function: iscluster(<target>)
@@ -24645,7 +24645,7 @@
     You say "1"
    
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), isdigit(), isspace(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
   
 & ISHIDDEN()
   Function: ishidden(<player>)
@@ -24693,7 +24693,7 @@
     You say "0"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            isword(), isdigit(), isobjid()
+            istag(), isword(), isdigit(), isobjid()
 
 & ISDIGIT()
   Function: isdigit(<string>)
@@ -24709,7 +24709,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            isword(), isint(), isobjid()
+            istag(), isword(), isint(), isobjid()
   
 & ISXDIGIT()
   Function: isxdigit(<string>)
@@ -24725,7 +24725,7 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), ispunct(), isspace(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
   
 & ISSPACE()
   Function: isspace(<string>)
@@ -24743,8 +24743,26 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
   
+& ISTAG()
+  Function: istag(<string>)
+  
+  This function will return 1 if the string passed to it is a valid tag.
+  To be a valid tag it must be defined in the @tag subsystem and must begin
+  with a '#'.  If the object fails these conditions, then a 0 is returned.
+  
+  Example:
+     > say istag(#-1)
+     You say "0"
+     > say isdtag(#sirlancelot)
+     You say "1"
+     > say isdbref(#sirnotappearinginthismovie)
+     You say "0"
+  
+  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
+            isdbref(), isword(), isobjid()
+
 & ISDBREF()
   Function: isdbref(<string>)
  
@@ -24763,7 +24781,7 @@
      You say "0"
   
   See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isword(), isobjid()
+            istag(), isword(), isobjid()
 
 & ISOBJID()
   Function: isobjid(<string>)
@@ -24788,7 +24806,7 @@
      You say "0"
   
   See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isword(), isdbref()
+            istag(), isword(), isdbref()
   
 & ISWORD()
   Function: isword(<string>)
@@ -30089,6 +30107,7 @@
   isobjid()     - Returns true if input is an objid.
   ispunct()     - Returns true if first character of input is a punctuation.
   isspace()     - Returns true if first character of input is a whitespace.
+  istag()       - Returns true if passed a valid tag.
   isword()      - Returns true if the argument contains only alpha characters. 
   isxdigit()    - Returns true if first character of input is a hexadecimal.
   lcstr()       - Lowercases a string.
@@ -32998,6 +33017,7 @@
     string_register added for custom connect commands [ASH]
   * hardconn_site and hardconn_host to specify sites allowed
     to use connect screen hardcommands if connect_methods enabled [ASH]
+  * istag() to verify if the tag is valid or not [ASH]
   
   Changes
   ------------
@@ -33019,3 +33039,5 @@
   * potential off by one for API text handler on input -- reverted [ASH]
   * fix some potential buffer overflow risks [ASH]
   * fix bug in mysql where null sub-entries would abort rest [ASH]
+  * execscript(), comp(), variable exits, and lookup_player (internal) 
+    are tag aware [ASH]
