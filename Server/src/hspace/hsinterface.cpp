@@ -3,10 +3,13 @@
 
 #include "hstypes.h"
 #include "hsinterface.h"
+#include "hsutils.h"
 
 extern "C" {
 #include "flags.h"
+#include "externs.h"
     extern void do_zone(dbref, dbref, int, char *, char *);
+    extern int valid_obj(int);
 } CHSInterface hsInterface;	// One instance of this.
 
 // Adds an attribute with a value to an object.
@@ -20,9 +23,11 @@ void CHSInterface::AtrAdd(int obj, const char *atrname, char *val,
     atr = mkattr((char *) name);
     if(!atr)
         return;
-        
+
     atr_add_raw(obj, atr, val);
-    atr_set_flags(obj, atr, flags);
+
+    if (flags != NOTHING)
+        atr_set_flags(obj, atr, flags);
 }
 
 void CHSInterface::AtrDel(int obj, const char *atrname, int owner)
@@ -60,13 +65,15 @@ BOOL CHSInterface::AtrGet(int obj, const char *atrname)
     int atr;
     char *value;
     char name[SBUF_SIZE];
+    dbref aowner;
+    int aflags;
 
     strcpy(name, atrname);
     atr = mkattr(name);
     if(!atr)
         return FALSE;
         
-    value = atr_get_raw((dbref) obj, atr);
+    value = atr_get((dbref) obj, atr, &aowner, &aflags);
 
     if (!value || !*value)
 	return FALSE;
@@ -143,7 +150,7 @@ void CHSInterface::UnsetFlag(int objnum, char *flag)
 // etc.
 BOOL CHSInterface::ValidObject(dbref objnum)
 {
-    if (Good_chk(objnum))
+    if (valid_obj(objnum))
 	return TRUE;
     else
 	return FALSE;
@@ -153,8 +160,9 @@ BOOL CHSInterface::ValidObject(dbref objnum)
 // the specified flag or not.
 BOOL CHSInterface::HasFlag(dbref objnum, int type, char *flag)
 {
-    if (Typeof(objnum) == type && AtrGet(objnum, HS_TYPE_ATR))
-        return strcmp(flag, m_buffer);
+    if (Typeof(objnum) == type && AtrGet(objnum, HS_TYPE_ATR)) {
+        return !strcmp(flag, m_buffer);
+    }
 
     return FALSE;
 }
@@ -213,14 +221,14 @@ dbref CHSInterface::ConsoleUser(int objnum)
     if (isPlayer(dbUser)) {
 	// If the user is not in the same location as the object,
 	// set the lock to the object and return NOTHING.
-	if (Location(dbUser) != Location(objnum)
+	if (Location_hspace(dbUser) != Location_hspace(objnum)
 	    || (!Connected(dbUser) && isPlayer(dbUser))) {
 	    SetLock(objnum, objnum, LOCK_USE);
 
 
 	    // Delete attribute from player.
 	    hsInterface.AtrDel(dbUser, "MCONSOLE", GOD);
-	    notify_except(Location(objnum), dbUser, dbUser,
+	    notify_except(Location_hspace(objnum), dbUser, dbUser,
 			  unsafe_tprintf("%s unmans the %s.", Name(dbUser),
 					 Name(objnum)), 0);
 	    return NOTHING;

@@ -1956,6 +1956,11 @@ setlibs() {
       echo "Compiling with system pcre library..."
       MORELIBS="${MORELIBS} -lpcre"
    fi
+   if [ "${X[27]}" = "X" ]
+   then
+      echo "Compiling with stcc++..."
+      MORELIBS="${MORELIBS} -lstdc++"
+   fi
    MORELIBS="CUSTMORELIBS = ${MORELIBS}"
 }
 

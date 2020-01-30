@@ -12,6 +12,7 @@
 #include "hsconf.h"
 
 extern "C" {
+#include "db.h"
     FILE *spacelog_fp;
 } int hs_num_keys = -1;
 
@@ -126,9 +127,9 @@ void hs_log(char *msg)
 {
     char command[LBUF_SIZE];
     
-    STARTLOG(LOG_ALWAYS, "WIZ", "SPACE");
+    start_log("SYS", "HSPACE");
     log_text(msg);
-    ENDLOG
+    end_log();
 
     // FIXME
     
@@ -350,4 +351,9 @@ void hs_format_log(dbref player, char *format, ...)
         process_command((dbref)HSCONF.space_wiz, (dbref)HSCONF.space_wiz, 0,
                     (char *)command, (char **)NULL, 0, 0);
                     
+}
+
+dbref Location_hspace(dbref objnum) {
+    hs_log(unsafe_tprintf("Object: #%d, Location: #%d", objnum, db[objnum].location));
+    return db[objnum].location;
 }

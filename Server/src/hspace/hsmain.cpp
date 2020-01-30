@@ -3,6 +3,7 @@
 #include "hscopyright.h"
 #include "hspace.h"
 #include "hsinterface.h"
+#include "hsutils.h"
 
 extern "C" {
     void hsInit(int);
@@ -14,7 +15,7 @@ extern "C" {
 
 void hsInit(int reboot)
 {
-    notify(3, "init");
+    hs_log("HSpace initialized...");
     HSpace.InitSpace(reboot);
 }
 

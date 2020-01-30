@@ -17,6 +17,7 @@ double Dist3D(double, double, double, double, double, double);
 int XYAngle(double, double, double, double);
 int ZAngle(double, double, double, double, double, double);
 void hsStdError(int, char *);
+dbref Location_hspace(dbref);
 
 // Various keys found in our databases
 enum HS_DBKEY

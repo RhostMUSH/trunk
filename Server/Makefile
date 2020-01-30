@@ -97,6 +97,7 @@ links:
 	@./bin/make_links.sh
 clean:
 	@(cd $(srcdir) ; $(MAKE) clean)
+	@(cd ${srcdir}/hspace ; ${MAKE} clean)
 realclean: clean gdbmclean
 	@(rm src/*~ hdrs/*~)
 superclean: clean gdbmrclean

@@ -12,6 +12,8 @@
 #include "hscomm.h"
 #include "hsdb.h"
 
+#include "externs.h"
+
 CHSShip::CHSShip(void)
 {
 	int idx;
@@ -654,7 +656,7 @@ char *CHSShip::GetAttributeValue(char *strName)
 	else if (!strcasecmp(strName, "DROPLOC"))
 	{
 			sprintf(rval, "#%d", m_dropped ? 
-				Location(m_objnum) : -1);
+				Location_hspace(m_objnum) : -1);
 	}
 	else if (!strcasecmp(strName, "MAXHULL"))
 	{
@@ -671,7 +673,7 @@ char *CHSShip::GetAttributeValue(char *strName)
 	else if (!strcasecmp(strName, "DOCKLOC"))
 	{
 		sprintf(rval, "#%d", m_docked ? 
-				Location(m_objnum) : -1);
+				Location_hspace(m_objnum) : -1);
 	}
 	else if (!strcasecmp(strName, "DXYHEADING"))
 		sprintf(rval, "%d", m_desired_xyheading);
@@ -2552,7 +2554,7 @@ BOOL CHSShip::IsDestroyed(void)
 // be if the ship is docked, dropped, or boardlinked.
 void CHSShip::DisembarkPlayer(dbref player, int id)
 {
-	dbref dbLoc;
+	dbref dbLoc NOTHING;
 	dbref dbDestObj;
 
 	// If the ship is docked or dropped, find the location
@@ -2565,11 +2567,11 @@ void CHSShip::DisembarkPlayer(dbref player, int id)
 				"This ship has no ship object, so I don't know where to put you.");
 			return;
 		}
-		dbLoc = Location(m_objnum);
+		dbLoc = Location_hspace(m_objnum);
 
 		dbDestObj = m_objlocation;
 	}
-	if (!dbLoc) {
+	if (dbLoc == NOTHING) {
 		notify(player,
 			"You cannot disembark from the vessel at this time.");
 		return;
@@ -2592,7 +2594,7 @@ void CHSShip::DisembarkPlayer(dbref player, int id)
 		unsafe_tprintf("%s disembarks from the %s.",
 		Name(player), GetName()));
 
-	dbref dbPrevLoc = Location(player);
+	dbref dbPrevLoc = Location_hspace(player);
 
 	// Move the player
 	moveto(player, dbLoc);
@@ -3405,7 +3407,7 @@ dbref CHSShip::Clone(void)
 	// Repair the ship
 	newShip->TotalRepair();
 
-	moveto(dbShipObj, Location(m_objnum));
+	moveto(dbShipObj, Location_hspace(m_objnum));
 
 	// Set droploc or dock loc
 	if (m_dropped)
@@ -3541,7 +3543,7 @@ dbref CHSShip::CloneRoom(dbref room, int rooms_visited[],
 			// to it.
 			rRoom = NOTHING;
 
-			loc = Location(exit_m);
+			loc = Location_hspace(exit_m);
 			if (!hsInterface.HasFlag(exit_m, TYPE_EXIT, EXIT_HSPACE_HATCH))
 			{
 				rRoom = CloneRoom(loc, rooms_visited, newShip);
@@ -3604,7 +3606,7 @@ dbref CHSShip::CloneRoom(dbref room, int rooms_visited[],
 					exit_opposite && exit_opposite != NOTHING;
 					exit_opposite = Next(exit_opposite))
 				{
-					if (Location(exit_opposite) == room)
+					if (Location_hspace(exit_opposite) == room)
 					{
 					dbNewExit = hsInterface.CloneThing(exit_opposite);
 					s_Exits(room,

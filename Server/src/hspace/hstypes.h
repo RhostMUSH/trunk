@@ -5,8 +5,7 @@ extern "C" {
 #include "autoconf.h"
 #include "db.h"
 #include "flags.h"
-
-};
+}
 
 typedef int BOOL;
 typedef unsigned int UINT;

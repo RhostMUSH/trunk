@@ -1,0 +1,112 @@
+@create Parent Fighter Console
+@set Parent Fighter Console = NO_COMMAND
+@DESCRIBE Parent Fighter Console=You see before you a console full of controls for the vessel.
+@set Parent Fighter Console/DESCRIBE=no_command visual
+&CMD-ASSIGN_TO Parent Fighter Console=$assign * to *:@eng/assigncrew %0=%1
+&CMD-CLOAK Parent Fighter Console=$cloak:@nav/cloak
+&CMD-CREWREP Parent Fighter Console=$crewrep:@eng/crewrep
+&CMD-GATE Parent Fighter Console=$GATE *:@nav/gate %0
+&CMD-INTER Parent Fighter Console=$inter *:@switch [setr(0,u(fn_contact,%0))]=,{@pemit %#=[ansi(hg,-)] No such contact on sensors.},{@nav/setheading [xyang(hs_get_attr(me,x),hs_get_attr(me,y),hs_get_attr(setr(1,extract(%q0,2,1,:)),x),hs_get_attr(%q1,y))]=[zang(hs_get_attr(me,x),hs_get_attr(me,y),hs_get_attr(me,z),hs_get_attr(setr(1,extract(%q0,2,1,:)),x),hs_get_attr(%q1,y),hs_get_attr(%q1,z))]}
+&CMD-PLOT Parent Fighter Console=$PLOT * * *:th [if(and(isint(%0),isint(%1),isint(%2)),if(hs_get_attr(me,ispowered),pemit(%#,ansi(hb,.[repeat(-,68)].%r|)%b[ljust(Course Calculations,30)][rjust(hs_get_attr(me,name)%([hs_get_attr(me,ident)]%),36)]%b[ansi(hb,|%r%b>[repeat(-,66)]<%r|)]%b[ljust(ansi(hg,Source XYZ)%b%b[ansi(hw,rfield(setr(0,hs_get_attr(me,x)),18)[rfield(setr(1,hs_get_attr(me,y)),18)][rfield(setr(2,hs_get_attr(me,z)),18)])],67)][ansi(hb,|%r|)]%b[ljust(ansi(hg,Target XYZ)%b%b[ansi(hw,rfield(%0,18)[rfield(%1,18)][rfield(%2,18)])],67)][ansi(hb,|%r%b>[repeat(-,33)].[repeat(-,32)]<%r|)]%b[ljust(ansi(hg,Heading%b:)%b[ansi(hw,xyang(%q0,%q1,%0,%1))][ansi(hg,m)][ansi(hw,zang(%q0,%q1,%q2,%0,%1,%2))],33)][ansi(hb,|)][ljust(%b[ansi(hg,Fuel Range:)]%b[ansi(hw,mul(mul(hs_sys_attr(me/engines,efficiency,1),1000),hs_sys_attr(me/fuel,burnable fuel,1)))]%bhm,33)][ansi(hb,|%r|)]%b[ljust(ansi(hg,Distance:)%b[ansi(hw,round(setr(3,dist3d(round(%q0,0),round(%q1,0),round(%q2,0),%0,%1,%2)),2) hm)],33)][ansi(hb,|)][ljust(%b[ansi(hg,ETA%b%b%b%b%b%b%b:)]%b[ansi(hw,switch(hs_sys_attr(me/engines,current speed,1),>0,timestring(round(fdiv(%q3,fdiv(hs_sys_attr(me/engines,current speed,1),3600)),0)),No movement))],33)][ansi(hb,|%r'[repeat(-,34)]^[repeat(-,33)]')]),pemit(%#,ansi(hg,-) [name(me)] is currently powered down.)),pemit(%#,ansi(hg,-) Invalid destination.))]
+&CMD-SVIEW Parent Fighter Console=$SVIEW *:@nav/sview %0
+&CMD_AFTERBURN Parent Fighter Console=$afterburn:@nav/afterburn 1
+&CMD_AUTOLOAD Parent Fighter Console=$autoload on:@console/autoload 1
+&CMD_AUTOROTATE Parent Fighter Console=$autorotate on:@console/autorotate 1
+&CMD_BLINK Parent Fighter Console=$link *=*/*:@swi [u(fn_contact,%0)]={},@pemit %#=[ansi(hg,-)] No such contact on sensors.,{@swi [get([extract([u(fn_contact,%0)],2,1,:)]/deadman)]=YES,@pemit %#=[ansi(hg,-)] That ship is deadmanned and may not be boarded.,@nav/boardlink %0/%1=%2}
+&CMD_BOARD_CODE Parent Fighter Console=$boarding code *:@pemit %#=[switch(%#,[get([v(hsdb_owner)]/ship_owner)],[setq(0,[hs_set_attr(me/boarding code,%0)])][wipe(me/old_boardcode)]Boarding code changed to "%0",[ansi(hg,-)] Permission denied.)]
+&CMD_BOARD_CODE_OFF Parent Fighter Console=$boarding code:@pemit %#=[switch(%#,[get([v(hsdb_owner)]/ship_owner)],[setq(0,[hs_set_attr(me/boarding code,)])]Boarding code deleted.,[ansi(hg,-)] Permission denied.)]
+&CMD_CHEAD Parent Fighter Console=$chead * mark *:@console/head %0=%1
+&CMD_CHOWN Parent Fighter Console=$chown *:th [switch([setq(0,[v(hsdb_owner)])][setq(1,[num(*%0)])][switch(%q1,#-1,pemit(%#,ansi(hg,-) Invalid target.),[switch(%#,[get(%q0/ship_owner)],[set(%q0,ship_owner:%q1)][pemit(%#,ansi(hg,-) Transfer of ownership complete.)])],pemit(%#,ansi(hg,-) Permission denied.))])]down. %([ansi(hr,squish(timestring(##)))]%)))]
+&CMD_COMM_STATUS Parent Fighter Console=$cstat:@pemit %#=
+&CMD_CONFIGURE Parent Fighter Console=$configure *=*:@console/configure %0=%1
+&CMD_CPOWER_OFF Parent Fighter Console=$cpower off:@console/power 0
+&CMD_CPOWER_ON Parent Fighter Console=$cpower on:@console/power 1
+&CMD_CSTAT Parent Fighter Console=$cstat:@pemit %#=[switch([u(fn_has_comm)],0,[ansi(hg,-)] This vessel has no communications array.,[u(fn_cstat)])]
+&CMD_DOCK Parent Fighter Console=$dock */*=*:@nav/land %0/%1=%2
+&CMD_ENDJUMP Parent Fighter Console=$abort:@nav/jump 0
+&CMD_ETA Parent Fighter Console=$ETA:th [pemit(%#,[switch([round([hs_sys_attr(me/engines,current speed,1)],0)],0,[ansi(rh,-)] You do not have any speed.,[switch([hs_srep(me,3)],,[ansi(rh,-)] There are no planets on sensors.,[setq(0,[last([first([sort([iter([hs_srep(me,3)],[add([abs([sub([extract(##,5,1,:)],[hs_get_attr(me,dxyheading)])])],[abs([sub([extract(##,6,1,:)],[hs_get_attr(me,dzheading)])])])]|#@,|)],n)])],|)])][ansi(hg,-)] [ansi(wh,ETA)] to [ansi(wh,[extract([extract([hs_srep(nav,3)],%q0,1,|)],4,1,:)])] at current speed is: [ansi(wh,\[)][ansi(hg,[setq(1,[mul(fdiv(last(index(hs_srep(me,0),|,element(hs_srep(me,0),[extract([extract([hs_srep(me,3)],%q0,1,|)],1,1,:)]:*,|),1),:),hs_sys_attr(me/engines,current speed,1)),60)])][setq(2,[sub(%q1,[abs([sub(%q1,[floor(%q1)])])])])][setq(3,[round([mul([abs([sub(%q1,[floor(%q1)])])],60)],0)])]%q2 minute[switch(%q2,1,,s)] and %q3 second[switch(%q3,1,,s)])][ansi(wh,\])])])])]
+&CMD_FIRE Parent Fighter Console=$fire *:@switch %0=all,{@dolist [hs_get_attr(me,weapons)]={@console/fire ##}},{@console/fire %0}
+&CMD_GREP Parent Fighter Console=$grep:@console/grep
+&CMD_HEAD Parent Fighter Console=$head * mark *:@nav/setheading %0=%1
+&CMD_HEAD2 Parent Fighter Console=$sh *m*:@nav/setheading %0=%1
+&CMD_HEAD_XY Parent Fighter Console=$xy *:@nav/setheading %0=[hs_get_attr(me,dzheading)]
+&CMD_HEAD_Z Parent Fighter Console=$z *:@nav/setheading [hs_get_attr(me,dxyheading)]=%0
+&CMD_HSTAT Parent Fighter Console=$hstat:@nav/hstat
+&CMD_ICOM Parent Fighter Console=$icom *:th [u(fn_notify_consoles,[v(hsdb_owner)],[ansi(c,\[ICOM - [name(me)]\])] %0)]
+&CMD_JUMP Parent Fighter Console=$jump:@nav/jump 1
+&CMD_JUMP_POINT Parent Fighter Console=$jump *:th [setq(0,[u(fn_contact,%0)])];@switch %q0=,{@pemit %#=[ansi(hg,-)] No such contact on sensors.},{th [setq(1,[extract(%q0,2,1,:)])];@switch [get(%q1/jump_buoy)]=,{@pemit %#=[ansi(hg,-)] That contact is not a jump buoy.},{th [setq(2,[extract(%q0,7,1,:)])];@switch [gt(%q2,10)]=1,{@pemit %#=[ansi(hg,-)] You must be within 10 units to use a jump buoy.},{th [hs_spacemsg(2,The [hs_get_attr(me,name)] gates into the [name(%q1)].)][hs_spacemsg(1,In the distance a vessel gates into the [name(%q1)].)][setq(0,[hs_set_attr([v(HSDB_OWNER)]/uid,[get(%q1/dest_uid)])])][setq(0,[hs_set_attr([v(HSDB_OWNER)]/x,[get(%q1/dest_x)])])][setq(0,[hs_set_attr([v(HSDB_OWNER)]/y,[get(%q1/dest_y)])])][setq(0,[hs_set_attr([v(HSDB_OWNER)]/z,[get(%q1/dest_z)])])][u(%q1/dest_msg)];@wait 2={th [hs_spacemsg(2,The [hs_get_attr(me,name)] gates out of the [name(%q1)].)][hs_spacemsg(1,In the distance a vessel gates out of the [name(%q1)].)]}}}}}
+&CMD_LAND Parent Fighter Console=$land */*:[setq(0,[extract(%1,2,1,=)])]@swi %q0={},@nav/land %0/%1,@nav/land %0/%1=%q0
+&CMD_LOAD Parent Fighter Console=$load *:@console/load %0
+&CMD_LOCK Parent Fighter Console=$lock *:@swi [setq(0,[u(fn_contact,%0)])]%q0={},@pemit %#=[ansi(hg,-)] No such contact on sensors.,{@swi [u(fn_newbieship,[extract(%q0,2,1,:)])]=1,@pemit %#=[ansi(hg,-)] That ship is classified as a newbie ship and may not be attacked.,{@swi [u(fn_is_deadman,[extract(%q0,2,1,:)])]=1,@pemit %#=[ansi(hg,-)] That vessel is in deadman mode and cannot be attacked.,@console/lock %0}}
+&CMD_MAPRANGE Parent Fighter Console=$maprange *:@nav/maprange %0
+&CMD_NAV_STAT Parent Fighter Console=$stat:@nav/status
+&CMD_NOLOAD Parent Fighter Console=$autoload off:@console/autoload 0
+&CMD_NOROTATE Parent Fighter Console=$autorotate off:@console/autorotate 0
+&CMD_PRIORITY1 Parent Fighter Console=$syspriority *-:@eng/systempriority %0=-1
+&CMD_PRIORITY2 Parent Fighter Console=$syspriority *+:@eng/systempriority %0=1
+&CMD_QREP Parent Fighter Console=$qrep:@console/qrep
+&CMD_QUICK_AFT Parent Fighter Console=$aft:@eng/setsyspower aft=100\%
+&CMD_QUICK_COMM Parent Fighter Console=$comm:@eng/setsyspower com=100\%
+&CMD_QUICK_COMPUTER Parent Fighter Console=$computer:@eng/setsyspower int=100\%
+&CMD_QUICK_ENGINES Parent Fighter Console=$engines:@eng/setsyspower eng=100\%
+&CMD_QUICK_FORE Parent Fighter Console=$fore:@eng/setsyspower fore=100\%
+&CMD_QUICK_LIFE Parent Fighter Console=$life:@eng/setsyspower life=100\%
+&CMD_QUICK_PORT Parent Fighter Console=$port:@eng/setsyspower port=100\%
+&CMD_QUICK_REACTOR Parent Fighter Console=$power:@eng/setsyspower reacto=100\%
+&CMD_QUICK_SENSOR Parent Fighter Console=$sensor:@eng/setsyspower sensor=100\%
+&CMD_QUICK_STAR Parent Fighter Console=$star:@eng/setsyspower star=100\%
+&CMD_QUICK_THRUSTER Parent Fighter Console=$thrust:@eng/setsyspower man=100\%
+&CMD_RDESC Parent Fighter Console=$rdesc *=*:@pemit %#=[switch([or([lt(%0,1)],[gt(%0,5)])],1,[ansi(hg,-)] Valid receiving slots are 1 - 5.,[set(me,comm_rdesc%0:%1)][ansi(hg,-)] Receiving channel description set.)]
+&CMD_RFRQ Parent Fighter Console=$rfrq *=*:@pemit %#=[switch([or([lt(%0,1)],[gt(%0,5)])],1,[ansi(hg,-)] Valid receiving slots are 1 - 5.,[switch([or([lt(%1,100)],[gt(%1,999.99)])],1,[ansi(hg,-)] Receiving frequencies must be between 100 and 999.99 MHz.,[set(me,comm_frqs:[replace([v(comm_frqs)],%0,[round(%1,2)])])][ansi(hg,-)] Receiving slot %0 set to %1 MHz.)])]
+&CMD_SCAN Parent Fighter Console=$scan *:@nav/scan %0
+&CMD_SECURITY_OFF Parent Fighter Console=$security off:@pemit %#=[switch([u(fn_is_trusted,%#)],0,[ansi(hg,-)] Permission denied.,[switch([hs_get_attr(me,boarding code)],,[ansi(hg,-)] Security is not currently activated.,[set(me,old_boardcode:[hs_get_attr(me,boarding code)])][setq(1,[hs_set_attr(me/boarding code,)])][ansi(hg,-)] Security deactivated.  Boarding code not required.)])]
+&CMD_SECURITY_ON Parent Fighter Console=$security on:@pemit %#=[switch([u(fn_is_trusted,%#)],0,[ansi(hg,-)] Permission denied.,[switch([v(old_boardcode)],,[switch([hs_get_attr(me,boarding code)],,[ansi(hg,-)] No boarding code previously defined.  Use boarding code command.,[ansi(hg,-)] Security is already enabled.)],[setq(0,[hs_set_attr(me/boarding code,[v(old_boardcode)])])][setq(0,[wipe(me/old_boardcode)])][ansi(hg,-)] Security activated.  Boarding code required.)])]
+&CMD_SET_PERC Parent Fighter Console=$sysperc *=*:@eng/setsyspower %0=%1\%
+&CMD_SET_POWER Parent Fighter Console=$syspower *=*:@eng/setsyspower %0=%1
+&CMD_SET_SPEED Parent Fighter Console=$ss *:@swi [get([v(hsdb_owner)]/clinked_by)]={},{@swi [get([v(hsdb_owner)]/clinked_to)]={},@nav/setvelocity %0,{&clinked_by [get([v(hsdb_owner)]/clinked_to)];&clinked_to [v(hsdb_owner)];@nav/setvelocity %0}},@pemit %#=[ansi(hg,-)] Unable to set speed while another ship has a cargo link.
+&CMD_SHIPNAME Parent Fighter Console=$shipname *:th [switch(xget(v(hsdb_owner),ship_owner),%#,[setq(0,[hs_set_attr(me/name,%0)])][pemit(%#,ansi(hg,-) Ship name set.)],pemit(%#,ansi(hg,-) Reprogramming failed.))]
+&CMD_SPECS Parent Fighter Console=$specs:@pemit %#=[ansi(m,[repeat(-,47)]<)] [ansi(h,Ship Specifications)] [ansi(m,>-----)]%rShip Name%b%b: [ljust([hs_get_attr(me,name)],20)]Ship Class: [hs_get_attr(me,classname)]%rVessel Size: [ljust([hs_get_attr(me,size)],2)][space(18)]Cargo Cap.: [hs_get_attr(me,cargo size)]%rHull Str%b%b%b: [ljust([hs_get_attr(me,maxhull)] pts,8)][space(12)]Dropship%b%b: [switch([hs_get_attr(me,can drop)],1,Yes,No)]%r%r[ansi(hg,-)] Systems Present [ansi(hg,-)]%r[table([iter([hs_eng_sys(me)],##,\,,|)],20,80,|)]%r%rYou may obtain specs on systems with 'specs <system>'.%r[setq(0,[sub(71,[strlen([hs_get_attr(me,name)])])])][ansi(m,[repeat(-,[floor([fdiv(%q0,2)])])]<)] [ansi(h,[hs_get_attr(me,name)])] [ansi(m,>[repeat(-,[ceil([fdiv(%q0,2)])])])]
+&CMD_SPECS_SYS Parent Fighter Console=$specs *:@pemit %#=[setq(0,0)][switch([words([iter([hs_eng_sys(me)],[switch([strmatch(##,%0*)],1,1[setq(0,[match([hs_eng_sys(me)],##,\,)])])],\,)])],0,[ansi(hg,-)] That system is not present on this vessel.,[setq(0,[extract([hs_eng_sys(me)],%q0,1,\,)])][ansi(m,[repeat(-,45)]<)] [ansi(h,System Specifications)] [ansi(m,>-----)]%r[u(fn_specs_[edit(%q0,%b,_)],%q0)]%r[setq(0,[sub(71,[strlen([hs_get_attr(me,name)])])])][ansi(m,[repeat(-,[floor([fdiv(%q0,2)])])]<)] [ansi(h,[hs_get_attr(me,name)])] [ansi(m,>[repeat(-,[ceil([fdiv(%q0,2)])])])])]
+&CMD_SPOSE Parent Fighter Console=$spose *:@pemit %#=[ansi(hg,>)] [hs_get_attr(me,name)] %0[setq(0,[hs_spacemsg(2,[hs_get_attr(me,name)] %0)])]
+&CMD_SREP Parent Fighter Console=$srep:&deadman [v(hsdb_owner)];@nav/sensorreport 0
+&CMD_STOPBURN Parent Fighter Console=$noburn:@nav/afterburn 0
+&CMD_SYSREP Parent Fighter Console=$sysrep:@eng/systemreport
+&CMD_TARGET Parent Fighter Console=$target *:@console/target %0
+&CMD_TAXI Parent Fighter Console=$taxi *:@nav/taxi %0
+&CMD_DEADMAN Parent Fighter Console=$deadman:@pemit %#=[ansi(hg,-)] Ship will enter deadman mode in 1 minute.;@wait 60={&deadman me=1;@pemit %#=[ansi(hg,-)] Ship now in deadman mode, any usage of the ship will deactivate this mode.}
+&CMD_TRANSMIT Parent Fighter Console=$tr *:@pemit %#=[setq(1,[after(%0,=)])][switch(%q1,,[switch([v(comm_lastslot)],,[setq(0,-1)][ansi(hg,-)] What channel do you want to say that on?,[setq(0,[v(comm_lastslot)])][setq(1,%0)])],[setq(0,[before(%0,=)])])][switch(%q0,-1,,[switch([u(fn_has_comm)],0,[ansi(hg,-)] This vessel has no communications array.,[switch([hs_sys_attr([v(hsdb_owner)]/com,current power,1)],0,[ansi(hg,-)] Communications are not currently online.,[switch([or([gt(%q0,5)],[lt(%q0,1)])],1,[ansi(hg,-)] Valid transmission slots are 1 - 5.,[switch([hs_comm_msg([hs_get_attr(me,uid)],[hs_get_attr(me,uid)],[hs_get_attr(me,x)],[hs_get_attr(me,y)],[hs_get_attr(me,z)],[hs_sys_attr([v(hsdb_owner)]/com,max range,1)],[extract([v(comm_frqs)],%q0,1)],%q1)],Sent.,[set(me,comm_lastslot:%q0)][ansi(c,\[)][extract([v(comm_frqs)],%q0,1)] MHz[ansi(c,\])] transmitted\, "%q1",[ansi(hg,-)] Failed to send message?)])])])])]
+&CMD_UNDOCK Parent Fighter Console=$undock:@switch [u(fn_canuse)]=>0,@pemit %#=[ansi(hg,-)] This ship is currently in lockdown %([ansi(hy,squish(timestring(u(fn_canuse))))]%).,@nav/undock
+&CMD_UNLINK Parent Fighter Console=$unlink *:@nav/boardunlink %0
+&CMD_UNLOAD Parent Fighter Console=$unload *:@console/unload %0
+&CMD_UNLOCK Parent Fighter Console=$unlock:@console/unlock
+&CMD_VIEW_OUTSIDE Parent Fighter Console=$view:@nav/view
+&CMD_VSTATS Parent Fighter Console=$vstats:@eng/shipstats
+&COMM_FRQS Parent Fighter Console=100 101 102 103 104
+@set Parent Fighter Console/COMM_FRQS=no_command
+&CONVERT Parent Fighter Console=$convert *=*:th [switch([match([get([v(HSDB_OWNER)]/trusted)],%#)],0,[pemit(%#,You cannot do that.)],[switch([hasattr([v(HSDB_OWNER)],converter)],0,[pemit(%#,[ansi(hg,-)] You do not have a fuel converter.)],1,[switch([gt(%0,[get([v(HSDB_OWNER)]/scagium)])],1,[pemit(%#,[ansi(hg,-)] You do not have enough Cagium.)],0,[switch([match([v(fuel_types)],%1)],0,[pemit(%#,[ansi(hg,-)] That is not a valid fuel type.)],[switch([gt(%0,[u(fn_%1_left,[v(HSDB_OWNER)])])],1,[pemit(%#,[ansi(hg,-)] You can't hold that much fuel.)],0,[set([v(HSDB_OWNER)],scagium:[sub([get([v(HSDB_OWNER)]/scagium)],%0)])][hs_sysset([v(HSDB_OWNER)]/fuel,%1 fuel:[add([mul(%0,[get([v(HSDB_OWNER)]/converter)])],[hs_sys_attr([v(HSDB_OWNER)]/fuel,%1 fuel,1)])])][pemit(%#,You convert %0 Cagium into [mul(%0,[get([v(HSDB_OWNER)]/converter)])] units of usable fuel.)])])])])])]
+@DESCRIBE Parent Fighter Console=You see before you a console full of controls for the engineering section of the vessel.
+@set Parent Fighter Console/DESCRIBE=no_command visual
+@FAILURE Parent Fighter Console=Don't even try it.
+@set Parent Fighter Console/FAILURE=no_command
+&FN_BURNABLE_LEFT Parent Fighter Console=[sub([hs_sys_attr(%0/fuel,max burnable fuel,1)],[trunc([hs_sys_attr(%0/fuel,burnable fuel,1)])])]
+&FN_CANUSE Parent Fighter Console=[sub(xget(v(HSDB_OWNER),can_use),secs())]
+&FN_CONTACT Parent Fighter Console=[squish([iter([hs_srep(me,0)],[switch([extract(##,1,1,:)],%0,##)],|)])]
+&FN_CSTAT Parent Fighter Console=[ansi(hg,.[repeat(-,50)].)]%r[ansi(hg,|)][ansi(h,[center(Communications Array Status,50)][ansi(hg,|%r%b>[repeat(-,48)]<)]%r[ansi(hg,|)] [ansi(h,\[#\] Frq[space(4)]Channel Description[space(19)][ansi(hg,|)]%r[setq(0,0)][iter([v(comm_frqs)],[ansi(hg,|)] [ljust(\[[setr(0,[inc(%q0)])]\] [round(##,2)] [mid([v(comm_rdesc%q0)],0,37)],49)][ansi(hg,|)]%r, ,)][ansi(hg,|[space(50)]|)]%r[ansi(hg,|)] [ansi(h,*)] Type 'rfrq <slot>=<#>' to change frqs.[space(9)][ansi(hg,|)]%r[ansi(hg,|)] [ansi(h,*)] Type 'rdesc <slot>=<desc>' to set slot desc.%b%b%b[ansi(hg,|)]%r[ansi(hg,|)] [ansi(h,*)] Type 'tr <slot>=<msg>' to send a message.[space(6)][ansi(hg,|)]%r[ansi(hg,`[repeat(-,50)]')]
+&FN_HAS_COMM Parent Fighter Console=[gt([match([hs_eng_sys([v(hsdb_owner)])],comm. array,\,)],0)]
+&FN_IS_DEADMAN Parent Fighter Console=[switch([get(%0/deadman)],YES,1,0)]
+&FN_LOCKDOWN Parent Fig([loc([lock(##/use)])],[loc(##)],[lock(##/use)])])],%1)]
+&FN_REACTABLE_LEFT Parent Fighter Console=[sub([trunc([hs_sys_attr(%0/fuel,max reactable fuel,1)])],[trunc([hs_sys_attr(%0/fuel,reactable fuel,1)])])]
+&FN_SPECS_AFT_SHIELD Parent Fighter Console=[u(fn_specs_shield,%0)]
+&FN_SPECS_ENGINES Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: %0%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/eng,tolerance,0)],20)]Max Velocity: [hs_sys_attr(%q6/eng,max velocity,0)]%rOptimal Power%b%b%b: [ljust([hs_sys_attr(%q6/eng,optimal power,0)] MW,20)]Accel Rate%b%b: [hs_sys_attr(%q6/eng,acceleration,0)] hph/s%r[space(38)]Afterburners: [switch([hs_sys_attr(%q6/eng,can afterburn,0)],1,Yes,No)]%r[space(38)]Efficiency%b%b: [mul(hs_sys_attr(%q6/eng,efficiency,0),1000)] hph/unit fuel
+&FN_SPECS_FORE_SHIELD Parent Fighter Console=[u(fn_specs_shield,%0)]
+&FN_SPECS_FUEL_SYSTEM Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: Fuel Supply System%r%rStress Tolerance: [ljust(N/A,20)]Max Reactor Fuel: [hs_sys_attr(%q6/fuel,max reactable fuel,0)] units%rOptimal Power%b%b%b: [ljust(N/A,20)]Max Engine Fuel%b: [hs_sys_attr(%q6/fuel,max burnable fuel,0)] units
+&FN_SPECS_INTERNAL_COMPUTER Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: Internal Computer%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/int,tolerance,0)],20)]# Consoles To Power: [words([hs_get_attr(me,consoles)])]%rOptimal Power%b%b%b: [hs_sys_attr(%q6/int,optimal power,0)] MW (To Power All Consoles)
+&FN_SPECS_LIFE_SUPPORT Parent Fighter Console=No specifications available for this system.
+&FN_SPECS_MANEUV._THRUSTERS Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: Maneuvering Thrusters%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/man,tolerance,0)],20)]Turnrate: [hs_sys_attr(%q6/man,turning rate,0)] deg/s%rOptimal Power%b%b%b: [hs_sys_attr(%q6/man,optimal power,0)]
+&FN_SPECS_PORT_SHIELD Parent Fighter Console=[u(fn_specs_shield,%0)]
+&FN_SPECS_REACTOR Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: Internal Reactor%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/reac,tolerance,0)],20)]Max Output: [hs_sys_attr(%q6/reac,max output,0)] MW
+&FN_SPECS_SENSOR_ARRAY Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: Sensor Array%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/sens,tolerance,0)],20)]Sensor Rating: [hs_sys_attr(%q6/sens,sensor rating,0)]%rOptimal Power%b%b%b: [hs_sys_attr(%q6/sens,optimal power,0)]
+&FN_SPECS_SHIELD Parent Fighter Console=[setq(6,[v(hsdb_owner)])]System: %0%r%rStress Tolerance: [ljust([hs_sys_attr(%q6/%0,tolerance,0)],20)]Shield Type : [switch([hs_sys_attr(%q6/%0,shield type,0)],0,Deflector,1,Absorption,Unknown)]%rOptimal Power%b%b%b: [ljust([hs_sys_attr(%q6/%0,optimal power,0)],20)]Max Strength: [trunc([hs_sys_attr(%q6/%0,max strength,0)])] pts%r[space(38)]Regen Rate%b%b: [hs_sys_attr(%q6/%0,regen rate,0)] pts/s
+&FN_SPECS_STARBOARD_SHIELD Parent Fighter Console=[u(fn_specs_shield,%0)]
+&FUEL_TYPES Parent Fighter Console=burnable reactable
+&SPECS_LIFE_SUPPORT Parent Fighter Console=No specifications available.

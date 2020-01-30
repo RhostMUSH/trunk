@@ -11,7 +11,9 @@
 
 extern "C" {
 #include "externs.h"
-} extern double d2sin_table[];
+}
+
+extern double d2sin_table[];
 extern double d2cos_table[];
 
 CHSObject::CHSObject(void)

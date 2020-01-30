@@ -10,4 +10,6 @@
 @set #HSHelper=!no_command !halted royalty safe indestructable
 &C.HSHELP.INDEX #HSHelper=$+hshelp:@dynhelp hspace=%#
 &C.HSHELP.TOPIC #HSHelper=$+hshelp *: @dynhelp hspace/%0=%#
-
+&FN.TABLE #HSHelper=[columns(%0,switch([gt(words(%1),0)][gt(words(%2),0)],11,min(%1,%2),01,max(10,%2),*,10),switch([gt(words(%1),0)][gt(words(%2),0)],11,max(1,div(%2,%1)),10,
+    max(1,div(78,%1)),01,max(1,div(%2,10)),*,7),L,0,1,,ifelse(strlen(%4),%4,%b),,1,%3)]
+@Startup #HSHelper=@dolist [setq(0,listfunctions(0))][lattr(me/FN.*)]={@swi [match(%q0,[setr(1,edit(##,FN.,))])]=0,{@function %q1=%!/##}}

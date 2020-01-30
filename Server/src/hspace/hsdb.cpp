@@ -644,7 +644,7 @@ CHSObject *CHSDB::FindRoomOwner(dbref room, int *iRoomsChecked)
     for (exit_m = Exits(room); exit_m && exit_m != NOTHING;
 	 exit_m = Next(exit_m)) {
 	// Get the destination of the exit.
-	dbDest = Location(exit_m);
+	dbDest = Location_hspace(exit_m);
 	if (dbDest == NOTHING)
 	    continue;
 

@@ -11,6 +11,7 @@
 #include "ansi.h"
 #include "hsuniverse.h"
 #include "hsterritory.h"
+#include "hsutils.h"
 
 #include <string.h>
 
@@ -1546,7 +1547,7 @@ void CHSShip::UndockVessel(dbref player)
 	return;
     }
 
-    dbRoom = Location(m_objnum);
+    dbRoom = Location_hspace(m_objnum);
     cLocation = dbHSDB.FindLandingLoc(dbRoom);
     if (!cLocation) {
 	hsStdError(player, "You may not undock from this location.");
@@ -1898,9 +1899,9 @@ dbref CHSShip::GetDockedLocation(void)
 	return NOTHING;
 
     if (m_dropped) {
-	return Location(m_objnum);
+	return Location_hspace(m_objnum);
     } else if (m_docked) {
-	return Location(m_objnum);
+	return Location_hspace(m_objnum);
     } else
 	return NOTHING;
 }

@@ -7,6 +7,7 @@
 #include "hsconf.h"
 #include <stdlib.h>
 #include "hsswitches.h"
+#include "hsutils.h"
 
 HSPACE_COMMAND_PROTO(hscSetVelocity)
     HSPACE_COMMAND_PROTO(hscSetHeading)
@@ -670,7 +671,7 @@ HSPACE_COMMAND_HDR(hscTaxiVessel)
 	return;
     }
     // Try to move the ship object
-    if (Location(dbExit) == NOTHING) {
+    if (Location_hspace(dbExit) == NOTHING) {
 	notify(dbUser,
 	       "That location leads to nowhere.  You don't want to go there.");
 	return;
@@ -680,19 +681,19 @@ HSPACE_COMMAND_HDR(hscTaxiVessel)
 	hsStdError(dbUser, "That location is blocked to our departure.");
 	return;
     }
-    moveto(dbObj, Location(dbExit));
+    moveto(dbObj, Location_hspace(dbExit));
 
-    hsInterface.NotifyContents(Location(dbObj),
+    hsInterface.NotifyContents(Location_hspace(dbObj),
 			       unsafe_tprintf
 			       ("The %s fires is vector rockets and taxis to %s.",
-				cShip->GetName(), Name(Location(dbExit))));
-    moveto(dbObj, Location(dbExit));
-    hsInterface.NotifyContents(Location(dbExit),
+				cShip->GetName(), Name(Location_hspace(dbExit))));
+    moveto(dbObj, Location_hspace(dbExit));
+    hsInterface.NotifyContents(Location_hspace(dbExit),
 			       unsafe_tprintf
 			       ("The %s taxis in, firing its vector rockets.",
 				cShip->GetName()));
     hsStdError(dbUser, "You fire the vector rockets and taxi onward.");
-    look_room(dbUser, Location(dbExit), 0);
+    look_room(dbUser, Location_hspace(dbExit), 0);
 }
 
 HSPACE_COMMAND_HDR(hscDoView)
@@ -731,7 +732,7 @@ HSPACE_COMMAND_HDR(hscDoView)
 	return;
     }
     // Find the location of the shipobj
-    dbLoc = Location(dbObj);
+    dbLoc = Location_hspace(dbObj);
 
     notify(dbUser, "Outside the vessel you see ...");
     look_room(dbUser, dbLoc, 0);

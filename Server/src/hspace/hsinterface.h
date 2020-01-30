@@ -5,13 +5,13 @@
 //#define TM3
 //#define RHOSTMUSH
 
-extern "C" {
+extern "C"  {
+#include "autoconf.h"
 #include "externs.h"
 #include "local.h"
 #include "flags.h"
 #include "match.h"
-#include "autoconf.h"
-};
+}
 
 #ifdef RHOSTMUSH
 #define getrandom(x)		 (random() % x)

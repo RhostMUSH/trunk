@@ -80,12 +80,9 @@ ifeq "$(HSPACE)" "1"
              hspace/hsplanet.o hspace/hsship.o hspace/hsshipeng.o \
              hspace/hsshipnav.o hspace/hstrig.o hspace/hsutils.o \
              hspace/hsweapon.o hspace/hscomm.o hspace/hsterritory.o hspace.o
-
-    HSPACE_MORELIBS=-lstdc++
 else
     HSPACE_C=
     HSPACE_O=
-    HSPACE_MORELIBS=
 endif
 
 CHK = $(shell uname -s|grep -c "Darwin")
@@ -330,7 +327,7 @@ DEFS = $(CUSTDEFS) -Wall
 
 # MORELIBS is handled by the asksource.sh script for auto-generation.
 # any customization add to this but do not remove CUSTMORELIBS
-MORELIBS = $(CUSTMORELIBS) ${HSPACE_MORELIBS}
+MORELIBS = $(CUSTMORELIBS)
 
 # Set this to the directory where the MUSH game lives.
 # This is not really used much
@@ -508,12 +505,12 @@ verify:
 	runtest --tool mush --src ./testsuite
 
 realclean:
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT) netrhost~ 
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT) netrhost~ 
 	echo '' > .depend
 
 clean:
 	-cp -f $(bindir)/netrhost $(bindir)/netrhost~
-	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum hspace/*.o $(OUT)
+	-rm -f .depend *.o a.out core gmon.out mush.*log mush.*sum $(OUT)
 	echo '' > .depend
 
 include .depend

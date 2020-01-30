@@ -11,12 +11,16 @@
 #include "hsutils.h"
 #include "hsconf.h"
 #include "hsterritory.h"
-#include "externs.h"
 #include "hsswitches.h"
+
+extern "C" {
+#include "externs.h"
+#include "mudconf.h"
+}
 
 // To add a new HSpace command, add it's prototype here, then
 // add it to the hsSpaceCommandArray below.
-HSPACE_COMMAND_PROTO(hscNewWeapon)
+    HSPACE_COMMAND_PROTO(hscNewWeapon)
     HSPACE_COMMAND_PROTO(hscCloneObject)
     HSPACE_COMMAND_PROTO(hscCheckSpace)
     HSPACE_COMMAND_PROTO(hscStartSpace)
@@ -632,7 +636,7 @@ HSPACE_COMMAND_HDR(hscManConsole)
 
 	notify(player,
 	       unsafe_tprintf("You unman the %s.", Name(dbOldConsole)));
-	notify_except(Location(dbOldConsole), player, player,
+	notify_except(Location_hspace(dbOldConsole), player, player,
 		      unsafe_tprintf("%s unmans the %s.", Name(player),
 				     Name(dbOldConsole)), 0);
     }
@@ -647,7 +651,7 @@ HSPACE_COMMAND_HDR(hscManConsole)
     // Give some messages
     notify(player, unsafe_tprintf("You man the %s.", Name(dbConsole)));
 
-    notify_except(Location(dbConsole), player, player,
+    notify_except(Location_hspace(dbConsole), player, player,
 		  unsafe_tprintf("%s mans the %s.", Name(player),
 				 Name(dbConsole)), 0);
 }
@@ -678,7 +682,7 @@ HSPACE_COMMAND_HDR(hscUnmanConsole)
 	hsInterface.AtrDel(player, "MCONSOLE", GOD);
 
     notify(player, unsafe_tprintf("You unman the %s.", Name(dbConsole)));
-    notify_except(Location(dbConsole), player, player,
+    notify_except(Location_hspace(dbConsole), player, player,
 		  unsafe_tprintf("%s unmans the %s.", Name(player),
 				 Name(dbConsole)), 0);
 }
@@ -1027,7 +1031,7 @@ HSPACE_COMMAND_HDR(hscDisembark)
     int id;
 
     // Grab the location of the player.
-    dbRoom = Location(player);
+    dbRoom = Location_hspace(player);
 
     // See if the room has a SHIP attribute on it.
     if (!hsInterface.AtrGet(dbRoom, "SHIP")) {
@@ -1110,7 +1114,7 @@ HSPACE_COMMAND_HDR(hscBoardShip)
 			       ("%s boards the ship from the outside.",
 				Name(player)));
 
-    dbref dbPrevLoc = Location(player);
+    dbref dbPrevLoc = Location_hspace(player);
 
     // Move the player
     moveto(player, dbBay);
