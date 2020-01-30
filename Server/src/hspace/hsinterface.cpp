@@ -47,8 +47,8 @@ void CHSInterface::AtrDel(int obj, const char *atrname, int owner)
 dbref CHSInterface::CloneThing(dbref model)
 {
     dbref clone;
-
     char name[SBUF_SIZE];
+
     sprintf(name, "#%d", model);
     do_clone(Owner(model), Owner(model), 0, name, 0);
     clone = hsClonedObject;
@@ -67,19 +67,21 @@ BOOL CHSInterface::AtrGet(int obj, const char *atrname)
     char name[SBUF_SIZE];
     dbref aowner;
     int aflags;
+    int rval = FALSE;
 
     strcpy(name, atrname);
     atr = mkattr(name);
-    if(!atr)
-        return FALSE;
-        
-    value = atr_get((dbref) obj, atr, &aowner, &aflags);
+    if(atr) {
+        value = atr_get((dbref) obj, atr, &aowner, &aflags);
+        if (value && !!*value) {
+	    strncpy(m_buffer, value, LBUF_SIZE-1);
+            rval = TRUE;
+        }
+        if (value)
+            free_lbuf(value);
+    }
 
-    if (!value || !*value)
-	return FALSE;
-
-    strncpy(m_buffer, value, LBUF_SIZE-1);
-    return TRUE;
+    return rval;
 }
 
 int CHSInterface::MaxObjects(void)
