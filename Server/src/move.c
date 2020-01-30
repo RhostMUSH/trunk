@@ -661,6 +661,9 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
           } else {
              if ( (strlen(retbuff) > 1) && (*retbuff == NUMBER_TOKEN) ) {
                 loc = parse_dbref(retbuff+1);
+                if ( !Good_obj(loc) ) {
+                   loc = objecttag_get(retbuff+1);
+                }
                 if ( !Good_obj(loc) || Recover(loc) || Going(loc) || !Linkable(Owner(exit), loc) ) {
                    if ( Good_obj(loc) && !HasPriv(exit,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) ) {
                       loc = NOTHING;

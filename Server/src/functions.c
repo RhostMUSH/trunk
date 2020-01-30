@@ -17725,6 +17725,9 @@ FUNCTION(fun_execscript)
                s_atrchr = s_atrname = strchr(s_varstok, '/');
                *(s_atrname++) = '\0';
                d_atrname = parse_dbref(s_varstok+1);
+               if ( !Good_obj(d_atrname) ) {
+                  d_atrname = objecttag_get(s_varstok+1);
+               }
                if ( !Good_chk(d_atrname) || !controls(player, d_atrname) ) {
                   d_atrname = NOTHING;
                }
@@ -21421,6 +21424,35 @@ FUNCTION(fun_account_owner)
    ival(buff, bufcx, 0);
 }
 
+/* ---- fun account who
+ * will just list ports currently utilizing the account subsystem 
+ */
+FUNCTION(fun_account_who)
+{
+   char *sep;
+   int i_first;
+   DESC *d, *dnext;
+
+   if (!fn_range_check("ACCOUNT_WHO", nfargs, 0, 1, buff, bufcx)) {
+      return;
+   }
+   if ( (nfargs >= 1) && *fargs[0] ) {
+      sep = fargs[0];
+   } else {
+      sep = (char *)" ";
+   }
+   i_first = 0;
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( d->account_owner >= 0 ) {
+         if ( i_first ) {
+            safe_str(sep, buff, bufcx);
+         }
+         ival(buff, bufcx, d->descriptor);
+         i_first = 1;
+      }
+   }
+}
+
 /* --- fun account su
  * account_su(new-user, port, attribute)
  * will only work if you have a valid account session
@@ -21668,19 +21700,27 @@ FUNCTION(fun_comp)
           p = fargs[0];
           if ( *p == '#' ) {
              x = parse_dbref(p+1);
+             if ( !Good_obj(x) ) {
+                x = objecttag_get(p+1);
+             }
           } else {
              x = -1;
           }
           p = fargs[1];
           if ( *p == '#' ) {
              y = parse_dbref(p+1);
+             if ( !Good_obj(y) ) {
+                y = objecttag_get(p+1);
+             }
           } else {
              y = -1;
           }
           if ( Good_chk(x) ) {
              if ( Good_chk(y) ) {
-                x = atoi(fargs[0]+1);
-                y = atoi(fargs[1]+1);
+/**** why we doing this?  x and y should be defined
+ *              x = atoi(fargs[0]+1);
+ *              y = atoi(fargs[1]+1);
+ */
                 ival(buff, bufcx, (x == y ? 0 : (x < y ? -1 : 1)) );
              } else {
                 safe_str("-1", buff, bufcx);
@@ -33355,6 +33395,28 @@ FUNCTION(fun_isobjid)
 }
 
 /* ---------------------------------------------------------------------------
+ * istag: is the argument a valid tag?
+ */
+
+FUNCTION(fun_istag)
+{
+    char *p;
+    dbref dbitem;
+
+    p = fargs[0];
+    if (*p++ == NUMBER_TOKEN) {
+      if ( strlen(fargs[0]) > 1 ) {
+         dbitem = objecttag_get(p);
+         if (Good_obj(dbitem)) {
+             safe_str("1", buff, bufcx);
+             return;
+         }
+      }
+    }
+    safe_str("0", buff, bufcx);
+}
+
+/* ---------------------------------------------------------------------------
  * isdbref: is the argument a valid dbref?
  */
 
@@ -36494,6 +36556,7 @@ FUN flist[] =
     {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_SU", fun_account_su, 3, 0, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_WHO", fun_account_who, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ADD", fun_add, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AFLAGS", fun_aflags, 1, 0, CA_IMMORTAL, 0},
     {"AFTER", fun_after, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -36723,21 +36786,22 @@ FUN flist[] =
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INZONE", fun_inzone, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISDBREF", fun_isdbref, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISOBJID", fun_isobjid, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISINT", fun_isint, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISNUM", fun_isnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALNUM", fun_isalnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALPHA", fun_isalpha, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISDBREF", fun_isdbref, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISDIGIT", fun_isdigit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISHIDDEN", fun_ishidden, 1, 0, CA_BUILDER, 0},
+    {"ISINT", fun_isint, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISLOWER", fun_islower, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISOBJID", fun_isobjid, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISNUM", fun_isnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISPUNCT", fun_ispunct, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISSPACE", fun_isspace, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISXDIGIT", fun_isxdigit, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISDIGIT", fun_isdigit, 1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ISLOWER", fun_islower, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISTAG", fun_istag, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISUPPER", fun_isupper, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISWORD", fun_isword, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISXDIGIT", fun_isxdigit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ITER", fun_iter, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ITEXT", fun_itext, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"KEEPFLAGS", fun_keepflags, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

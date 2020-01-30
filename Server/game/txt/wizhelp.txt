@@ -11961,14 +11961,14 @@
 & functions
   Help is available for the following RhostMUSH wizard only functions:
   
-  ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  AFLAGS()      BEEP()
-  BYPASS()         CANSEE()         CHECKPASS()   CHKGARBAGE()  CLOAK()     
-  DOING()          DYNHELP()        EXECSCRIPT()  HASDEPOWER()  HASPOWER()  
-  HASTOGGLE()      ISHIDDEN()       LATTRP()      LDEPOWERS()   LOGTOFILE() 
-  LOGSTATUS()      LOOKUP_SITE()    LPOWERS()     LTOGGLES()    MAILALIAS() 
-  MAILQUICK()      MAILQUOTA()      MAILSIZE()    MAILSTATUS()  MSIZETOT()  
-  NSLOOKUP()       QUOTA()          SIZE()        TEXTFILE()    MAILREAD()  
-  MAILSEND()   
+  ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  ACCOUNT_WHO() AFLAGS()    
+  BEEP()           BYPASS()         CANSEE()      CHECKPASS()   CHKGARBAGE()
+  CLOAK()          DOING()          DYNHELP()     EXECSCRIPT()  HASDEPOWER()
+  HASPOWER()       HASTOGGLE()      ISHIDDEN()    LATTRP()      LDEPOWERS() 
+  LOGTOFILE()      LOGSTATUS()      LOOKUP_SITE() LPOWERS()     LTOGGLES()  
+  MAILALIAS()      MAILQUICK()      MAILQUOTA()   MAILSIZE()    MAILSTATUS()
+  MSIZETOT()       NSLOOKUP()       QUOTA()       SIZE()        TEXTFILE()  
+  MAILREAD()       MAILSEND()   
 
 & EXECSCRIPT()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
@@ -12613,7 +12613,8 @@
   
   That would connect you as normal.
   
-  See Also: file_object, account_owner(), account_su(), ACCOUNT MEMBERSHIP
+  See Also: file_object, account_owner(), account_su(), account_who(), 
+            ACCOUNT MEMBERSHIP
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
@@ -12646,7 +12647,8 @@
     > say account_owner(18)  
       You say "111"
   
-  See Also: account_login(), account_su(), file_object, ACCOUNT MEMBERSHIP
+  See Also: account_login(), account_su(), file_object, account_who(),
+            ACCOUNT MEMBERSHIP
 
 & ACCOUNT_SU()
   Function: account_su(<player>, <port>, <attribute>)
@@ -12667,8 +12669,23 @@
       Betty                 00:00   0s  #0          18 [localhost]
       1 Player logged in. (Bummer.)
    
-  See Also: account_owner(), account_login(), file_object, ACCOUNT MEMBERSHIP
+  See Also: account_owner(), account_login(), file_object, account_who(),
+            ACCOUNT MEMBERSHIP
   
+& ACCOUNT_WHO()
+  Function: account_who(<separator>)
+  
+  This function will display all the ports that are currently utilizing
+  the account subsystem.  You may then pass these ports into the other
+  account functions to softcode wrappers.
+  
+  Examples:
+    > say account_who()
+    You say "12 20 25"
+  
+  See Also: account_owner(), account_login(), file_object, account_su(),
+            ACCOUNT MEMBERSHIP
+
 & AFLAGS()
   Function: aflags(<attribute>)
   
@@ -13998,6 +14015,7 @@
      account_su()    -- switch users to accounts
      account_owner() -- login or display the master account handler
      account_login() -- login to the mush with the account user
+     account_who()   -- display ports using account handler
   
   Admin parameters you will find useful:
      file_object     -- main handler for wrapping features
