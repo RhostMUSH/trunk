@@ -27,7 +27,6 @@ FUNCTION(hs_zang);
 dbref hsClonedObject;
 
 FILE *spacelog_fp;
-void local_hs_init(void);
 void hsCommand(char *, int, char *, char *, int);
 extern int valid_obj(dbref);
 extern void hscManConsole(int, char *);
@@ -35,6 +34,11 @@ extern void hscUnmanConsole(int, char *);
 extern void hscDisembark(int, char *);
 extern void hscBoardShip(int, char *, char *);
 extern void hsInit(int);
+extern void local_hs_init(void);
+extern void hsDumpDatabases(void);
+extern void hsCycle(void);
+extern char *hsFunction(char *, dbref, char **);
+
 
 NAMETAB space_sw[] = {
     {"ACTIVATE", 		2, CA_PUBLIC, 	0, HSC_ACTIVATE},
@@ -132,11 +136,6 @@ NAMETAB nav_sw[] = {
     {"VIEW",                2, CA_PUBLIC,   0, HSNAV_VIEW},
     {0, 0, 0, 0}
 };
-
-extern void local_hs_init(void);
-extern void hsDumpDatabases(void);
-extern void hsCycle(void);
-extern char *hsFunction(char *, dbref, char **);
 
 void do_hs_space(dbref player, dbref cause, int key, char *arg_left, char *arg_right)
 {
