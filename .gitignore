@@ -51,6 +51,7 @@
 /Server/src/gdbm/libtool
 /Server/src/gdbm/Makefile
 /Server/src/intsize
+/server/src/local.c
 /Server/src/Makefile.*
 /Server/src/netrhost~
 /Server/src/qdbm/LTmakefile
