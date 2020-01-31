@@ -1,4 +1,20 @@
 #!/bin/sh
+cd src
+for a in *.default
+do 
+  NEWFILE=$(basename -s .default $a)
+  if [ ! -f $NEWFILE ]
+    then
+      cp "$a" "$NEWFILE"
+      if [ "$?" -ne "0" ]
+        then
+          echo ">> Failure to copy src/$a!"
+        else
+          echo ">> Copied src/$a -> src/$NEWFILE"
+      fi
+  fi
+done
+cd ..
 cd game
 for a in *.default
 do 
