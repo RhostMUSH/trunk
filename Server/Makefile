@@ -37,6 +37,10 @@ instructions:
 	@echo "   --- MAKE SURE YOU HAVE SETTINGS IN ./src/Makefile RIGHT --"
 	@echo "make create_oldsrc"
 	@echo "   Creates a directory 'csrc' which contains both hdrs and src"
+	@echo "make defaultfiles"
+	@echo "   Copies *.default files in game/ and txt/ into user-modifiable"
+	@echo "   versions - i.e. netrhost.conf.default becomes netrhost.conf."
+	@echo "   This is only done if the file(s) does not exist yet."
 	@echo "make links"
 	@echo "   Causes the symlinks to be created within the game dirs"
 	@echo "make gdbm"
@@ -78,7 +82,7 @@ default:
 	@echo 
 confsource: config source
 	@echo
-source:
+source: defaultfiles
 	@(cd $(srcdir) ; ./do_compile.sh)
 	(cd $(srcdir) ; $(MAKE))
 	@echo
@@ -93,6 +97,8 @@ gdbm:
 create_oldsrc:
 	@(./bin/make_csrc.sh)
 	@echo ... Done
+defaultfiles:
+	@./bin/copy_defaultfiles.sh
 links:
 	@./bin/make_links.sh
 clean:

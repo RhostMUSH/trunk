@@ -19,6 +19,7 @@
 /Server/bin/murboot
 /Server/bin/netrhost*
 /Server/bin/timeout
+/Server/game/*.conf
 /Server/game/*.fx
 /Server/game/*.gamelog
 /Server/game/*.reboot
@@ -27,12 +28,16 @@
 /Server/game/data/*
 /Server/game/image/*.img
 /Server/game/kill_*
+/Server/game/mush.config
 /Server/game/old*/*.gz
 /Server/game/oldlogs/*
 /Server/game/prev*/*.flat
 /Server/game/prev*/*dump*
 /Server/game/shutdown.status
 /Server/game/txt/*.indx
+/Server/game/txt/*.txt
+!/Server/game/txt/help.txt
+!/Server/game/txt/wizhelp.txt
 /Server/src/buildnum.data
 /Server/src/custom.defs
 /Server/src/date.txt
