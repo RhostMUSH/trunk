@@ -104,14 +104,17 @@ do
    X[${i}]=" "
 done
 # Check if libpcre is installed
-if [ $(${MYGCC} -lpcre 2>&1|grep -c "cannot find") -eq 0 ]
+if [ $(${MYGCC} -lpcre 2>&1|grep -e -c "(to find|cannot find)") -eq 0 ]
 then
    X[25]="X"
 fi
 # disable debugmon if on win10 bash
-if [ "$(grep -c Microsoft /proc/version 2>/dev/null)" -gt 0 -o "$(grep -ic cygwin /proc/version 2>/dev/null)" -gt 0 ]
+if [ -f /proc/version ]
 then
-   X[19]="X"
+   if [ "$(grep -c Microsoft /proc/version 2>/dev/null)" -gt 0 -o "$(grep -ic cygwin /proc/version 2>/dev/null)" -gt 0 ]
+   then
+      X[19]="X"
+   fi
 fi
 ldd --version > /dev/null 2>&1
 if [ $? -ne 0 ]

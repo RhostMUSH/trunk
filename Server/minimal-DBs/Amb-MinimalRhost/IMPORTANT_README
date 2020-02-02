@@ -1,7 +1,7 @@
 ----------------------------------
 Ambrosia's Minimal Rhost DB
 ----------------------------------
-Version: 1.0.4  April 27th, 2016
+Version: 1.0.5          2020-01-31 
 ----------------------------------
 Version history:
   1.0.0
@@ -29,6 +29,14 @@ Version history:
       objid() which does perform a different functionality.
     - Added more staff recommendations to this file.
     - Added Reality TXLevel 'Admin' to all objects in the db except #1
+  1.0.5
+    - Replaced softcoded tag() system with Rhost's new hardcoded @tag/tag()
+      system. All previous tags are set on the database. The Tag Object
+      was removed.
+    - @function startup on BC-Admin-Royalty fixed - @wait 1 workaround for
+      Tags in place.
+    - Places System @startup integrated into BC-Admin-Royalty's @startup
+    - Made @dump and @dump/flat available to Councilors in netrhost.conf
 --------------------------------------------------------------------------------
 <READ THIS DOCUMENT CAREFULLY!>
 
@@ -98,18 +106,6 @@ It offers the following features:
 * help .txt files and .indx files for the above.
 * @dynhelp access lowered to architect to call above helpfiles.
 
-* tag() - Softcoded function that returns #dbrefs based on an identifier.
-  This is an aid to write softcode that uses no hardcoded #dbrefs at all, making
-  it more cross-mush compatible and ready for backups.
-  tag(identifier) - Returns the #dbref.
-  tag() - shows a list of identifiers, their dbrefs and explaination.
-  The TAG object is in the auxiliary room.
-  It simply holds attributes like &tag_<identifier> = #dbref|Text.
-  Use tag(identifier) instead of a literal #dbref in any softcoded system.
-  All current important objects have tag() entries already, and tag() is
-  used in BC-Admin-Royalty's @startup to refer to the Global Function objects.
-  The only hardcoded #dbref (comsys internals excluded) is in the same startup,
-  the #dbref of the Mortal Function object, to load the tag() function off it.
 * isstaff() - Softcoded function that returns '1' if its argument matches
   a #dbref in the 'isstaff' attribute on the Misc Data object.
 * bccheck() - Softcoded function that returns '1' if its argument matches
@@ -211,9 +207,9 @@ level Royalty and higher have simply been provided as a if-necessary convenience
 
 Current objects are only @chowned to certain bitlevels if it is really required
 for them to function. Whenever possible, they have been @chowned to the mortal
-BC-Admin-Mortal. All custom global functions listed above except for tag() are
-on the semi-mortal Global Functions object. The Master Room and Auxiliary Room
-have been @chowned to BC-Admin-Architect.
+BC-Admin-Mortal. All custom global functions listed above are on the semi-
+-mortal Global Functions object. The Master Room and Auxiliary Room have been
+@chowned to BC-Admin-Architect.
 
 The Comsystem and +bboard are owned by BC-Admin-Architect, which means that
 higher bitlevels might not be able to use those systems if they hide and set
