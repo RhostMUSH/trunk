@@ -1,12 +1,13 @@
 #!/bin/sh
-for a in src game game/txt
+cd defaults
+for a in $(find * -type d)
 do
-  for b in defaults/$a/*.default
+  for b in $a/*.default
   do 
     NEWFILE=$(basename -s .default $b)
-    if [ ! -f $NEWFILE ]
+    if [ ! -f "../$a/$NEWFILE" ]
       then
-        cp "$b" "$a/$NEWFILE"
+        cp "$b" "../$a/$NEWFILE"
         if [ "$?" -ne "0" ]
           then
             echo ">> Failure to copy $b!"
