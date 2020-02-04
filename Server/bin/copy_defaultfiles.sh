@@ -5,7 +5,7 @@ do
   for b in $a/*.default
   do 
     NEWFILE=$(basename -s .default $b)
-    if [ ! -f $NEWFILE ]
+    if [ ! -f "../$a/$NEWFILE" ]
       then
         cp "$b" "../$a/$NEWFILE"
         if [ "$?" -ne "0" ]
