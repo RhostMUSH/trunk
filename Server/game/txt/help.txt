@@ -3615,6 +3615,7 @@
       /tf      - allows prefix formatting for clients.
       /noextra - when used in junction with /tf removes the additional
                  flags and other information from attribute displaying.
+      /tags    - Show just @tag/adds
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
