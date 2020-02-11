@@ -307,6 +307,7 @@ extern void	FDECL(empty_obj, (dbref));
 extern int FDECL(objecttag_add, (char*, dbref));
 extern dbref FDECL(objecttag_get, (char*));
 extern int FDECL(objecttag_remove, (char*));
+extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
