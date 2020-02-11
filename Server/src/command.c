@@ -8027,6 +8027,7 @@ list_hashstats(dbref player)
     list_nhashstat(player, "Net Descriptors", &mudstate.desc_htab);
     list_nhashstat(player, "Forwardlists", &mudstate.fwdlist_htab);
     list_nhashstat(player, "Overlaid $-cmds", &mudstate.parent_htab);
+    list_hashstat(player, "Object Tags", &mudstate.objecttag_htab);
     list_hashstat(player, "News topics", &mudstate.news_htab);
     list_hashstat(player, "Help topics", &mudstate.help_htab);
     list_hashstat(player, "Wizhelp topics", &mudstate.wizhelp_htab);
