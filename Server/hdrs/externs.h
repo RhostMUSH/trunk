@@ -307,6 +307,7 @@ extern void	FDECL(empty_obj, (dbref));
 extern int FDECL(objecttag_add, (char*, dbref));
 extern dbref FDECL(objecttag_get, (char*));
 extern int FDECL(objecttag_remove, (char*));
+extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
@@ -647,6 +648,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DECOMP_REGEXP	0x00000008	/* Decompile by Regexp */
 #define DECOMP_TF	0x00000010	/* Stupid /tf compatibility to @decompile for PennMUSH */
 #define DECOMP_NOEXTRA	0x00000020	/* no extra fluff in @decompile/tf */
+#define DECOMP_TAGS	0x00000040	/* Decompile tags */
 
 #define	DBCK_DEFAULT	0x00000001	/* Get default tests too */
 #define	DBCK_REPORT	0x00000002	/* Report info to invoker */

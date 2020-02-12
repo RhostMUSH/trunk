@@ -306,6 +306,7 @@ NAMETAB decomp_sw[] =
     {(char *) "regexp", 1, CA_PUBLIC, 0, DECOMP_REGEXP},
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
     {(char *) "noextra", 2, CA_PUBLIC, 0, DECOMP_NOEXTRA | SW_MULTIPLE},
+    {(char *) "tags", 2, CA_PUBLIC, 0, DECOMP_TAGS | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbclean_sw[] =
@@ -8026,6 +8027,7 @@ list_hashstats(dbref player)
     list_nhashstat(player, "Net Descriptors", &mudstate.desc_htab);
     list_nhashstat(player, "Forwardlists", &mudstate.fwdlist_htab);
     list_nhashstat(player, "Overlaid $-cmds", &mudstate.parent_htab);
+    list_hashstat(player, "Object Tags", &mudstate.objecttag_htab);
     list_hashstat(player, "News topics", &mudstate.news_htab);
     list_hashstat(player, "Help topics", &mudstate.help_htab);
     list_hashstat(player, "Wizhelp topics", &mudstate.wizhelp_htab);

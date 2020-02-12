@@ -2563,6 +2563,29 @@ void objecttag_match(char *buff, char *match)
   }
 }
 
+void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
+{
+    char *buff, *tbuff;
+    TAGENT *storedtag;
+
+    buff = alloc_lbuf("decompile_tags");
+    tbuff = alloc_sbuf("decompile_tags");
+    
+    for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+      storedtag;
+      storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+        if(storedtag) {
+        if(storedtag->tagref == thing) {
+          sprintf(tbuff, "%s@tag/add %s=%s\n", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
+        }
+      }
+    }
+    strcat(buff, tbuff);
+    noansi_notify(player, buff); 
+    free_sbuf(tbuff);
+    free_lbuf(buff);
+}
+
 void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
 {
   char *buff, *s_hashstr;

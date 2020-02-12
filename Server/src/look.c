@@ -4339,6 +4339,10 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 	noansi_notify(player, unsafe_tprintf("%s@parent %s=%s", 
                               (i_tf ? qualout : (char *)""), thingname, Name(Parent(thing))));
 
+    if ( !key_buff || (key_buff & DECOMP_TAGS) ) {
+      decompile_tags(player, thing, thingname, qualout, i_tf);
+    }
+
     if ( mudstate.outputflushed ) {
         notify_quiet(player, "WARNING: Output limited exceeded on @decompile.  Attributes cut off.");
     }
