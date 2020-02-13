@@ -774,16 +774,16 @@ destroy_obj(dbref player, dbref obj, int purge)
 	s_Flags2(obj, 0);
 #ifndef STANDALONE
   TAGENT *tagentry;
-  char *tagrem, *s_strtok, *s_strtokr;
-  tagrem = alloc_lbuf("tag_destpurge");
+  char *tagrem, *tagremp, *s_strtok, *s_strtokr;
+  tagremp = tagrem = alloc_lbuf("tag_destpurge");
   *tagrem = '\0';
   for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
        tagentry;
        tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
       if( tagentry->tagref == obj) {
         if(*tagrem) 
-          strcat(tagrem," ");
-        strcat(tagrem,tagentry->tagname);
+          safe_chr(' ', tagrem, &tagremp);
+        safe_str(tagentry->tagname, tagrem, &tagremp);
       }
     }
   s_strtok = strtok_r(tagrem, " ", &s_strtokr);
@@ -1142,16 +1142,16 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	s_Exits(obj, NOTHING);
 #ifndef STANDALONE
   TAGENT *tagentry;
-  char *tagrem, *s_strtok, *s_strtokr;
-  tagrem = alloc_lbuf("tag_purge");
+  char *tagrem, *tagremp, *s_strtok, *s_strtokr;
+  tagremp = tagrem = alloc_lbuf("tag_purge");
   *tagrem = '\0';
   for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
        tagentry;
        tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
       if( tagentry->tagref == obj) {
         if(*tagrem)
-          strcat(tagrem," ");
-        strcat(tagrem,tagentry->tagname);
+          safe_chr(' ', tagrem, &tagremp);
+        safe_str(tagentry->tagname, tagrem, &tagremp);
       }
     }
   s_strtok = strtok_r(tagrem, " ", &s_strtokr);
@@ -1365,16 +1365,16 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    obj = owner;
 #ifndef STANDALONE
       TAGENT *tagentry;
-      char *tagrem, *s_strtok, *s_strtokr;
-      tagrem = alloc_lbuf("tag_destpurge");
+      char *tagrem, *tagremp, *s_strtok, *s_strtokr;
+      tagremp = tagrem = alloc_lbuf("tag_destpurge");
       *tagrem = '\0';
       for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
         tagentry;
         tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
           if( tagentry->tagref == obj) {
             if(*tagrem)
-              strcat(tagrem," ");
-            strcat(tagrem,tagentry->tagname);
+              safe_chr(' ', tagrem, &tagremp);
+            safe_str(tagentry->tagname, tagrem, &tagremp);
           }
         }
       s_strtok = strtok_r(tagrem, " ", &s_strtokr);
@@ -2340,7 +2340,7 @@ do_dbck(dbref player, dbref cause, int key)
 
 int objecttag_add(char *tag, dbref thing)
 {
-  char *lcname, *lcnp, *astr, *s_strtok, *s_strtokr, *nattr;
+  char *lcname, *lcnp, *astr, *s_strtok, *s_strtokr, *nattr, *nattrp;
   dbref aowner;
   int stat, aflags, tcount;
   int *hashp;
@@ -2402,22 +2402,22 @@ int objecttag_add(char *tag, dbref thing)
   if(stat == 0)
     free(newtag);
 
-  nattr = alloc_lbuf("add_tagattr"); 
+  nattrp = nattr = alloc_lbuf("add_tagattr"); 
   *nattr = '\0';
   (void) atr_get_str(astr, thing, A_OBJECTTAG, &aowner, &aflags);
   if(*astr) {
     s_strtok = strtok_r(astr, " ", &s_strtokr);
     while( s_strtok ) {
       if( strcmp(lcname, s_strtok) ) {  
-      strcat(nattr,s_strtok);
-      strcat(nattr, " ");
+      safe_str(s_strtok, nattr, &nattrp);
+      safe_chr(' ', nattr, &nattrp);
       }
       s_strtok = strtok_r(NULL, " ", &s_strtokr);
     }
-    strcat(nattr, lcname);
+    safe_str(lcname, nattr, &nattrp);
   } else {
     *astr = '\0';
-    strcat(nattr, lcname);
+    safe_str(lcname, nattr, &nattrp);
   }
   free_lbuf(astr);
 
@@ -2470,7 +2470,7 @@ dbref objecttag_get(char *tag)
 int objecttag_remove(char *tag)
 {
 
-  char *lcname, *lcnp, *astr, *astr2, *s_strtok, *s_strtokr;
+  char *lcname, *lcnp, *astr, *astr2, *astr2p, *s_strtok, *s_strtokr;
   dbref aowner;
   int *hashp;
   int aflags;
@@ -2501,7 +2501,7 @@ int objecttag_remove(char *tag)
   storedtag = (TAGENT *)hashp;
 
   astr = alloc_lbuf("remove_tagattr");
-  astr2 = alloc_lbuf("remove_tagattr");
+  astr2p = astr2 = alloc_lbuf("remove_tagattr");
 
   *astr2 = '\0';
   (void) atr_get_str(astr, storedtag->tagref, A_OBJECTTAG, &aowner, &aflags);
@@ -2510,9 +2510,9 @@ int objecttag_remove(char *tag)
     while( s_strtok ) {
       if( strcmp(lcname, s_strtok) ) { 
         if(astr2) {
-          strcat(astr2, " ");
+          safe_chr(' ', astr2, &astr2p);
         }
-        strcat(astr2, s_strtok);
+        safe_str(s_strtok, astr2, &astr2p);
       }
       s_strtok = strtok_r(NULL, " ", &s_strtokr);
     } 
@@ -2530,18 +2530,18 @@ int objecttag_remove(char *tag)
 
 int objecttag_list(char* buff)
 {
-  char *s_hashstr;
+  char *s_hashstr, *s_hashstrp;
   TAGENT *storedtag;
 
   if(!buff)
     return 0;
-  s_hashstr = alloc_lbuf("objecttag_list");
+  s_hashstrp = s_hashstr = alloc_lbuf("objecttag_list");
   for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
    storedtag;
    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
     if(storedtag) {
       sprintf(s_hashstr, "%s|#%d ", storedtag->tagname, storedtag->tagref);
-      strcat(buff,s_hashstr);
+      safe_str(buff, s_hashstr, &s_hashstrp);
     }
   }
   free_lbuf(s_hashstr);
@@ -2551,13 +2551,14 @@ int objecttag_list(char* buff)
 void objecttag_match(char *buff, char *match)
 {
   TAGENT *storedtag;
+  char* buffp = buff;
   for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
    storedtag;
    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
     if(storedtag) {
       if(quick_wild(match, storedtag->tagname)) {
-        strcat(buff,storedtag->tagname);
-        strcat(buff," ");
+        safe_str(storedtag->tagname, buff, &buffp);
+        safe_chr(' ', buff, &buffp);
       }
     }
   }
@@ -2565,10 +2566,10 @@ void objecttag_match(char *buff, char *match)
 
 void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
-    char *buff, *tbuff;
+    char *buff, *buffp, *tbuff;
     TAGENT *storedtag;
 
-    buff = alloc_lbuf("decompile_tags");
+    buffp = buff = alloc_lbuf("decompile_tags");
     tbuff = alloc_sbuf("decompile_tags");
     
     for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
@@ -2580,7 +2581,7 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
         }
       }
     }
-    strcat(buff, tbuff);
+    safe_str(tbuff, buff, &buffp);
     noansi_notify(player, buff); 
     free_sbuf(tbuff);
     free_lbuf(buff);
@@ -2588,7 +2589,7 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
 
 void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
 {
-  char *buff, *s_hashstr;
+  char *buff, *buffp, *s_hashstr;
   TAGENT *storedtag;
   int result;
   dbref p;
@@ -2645,11 +2646,11 @@ void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
     if(*target) {
       notify(player,"#-1 Too many arguments for @tag/list. Max of 1 Expected.");
     } else {
-      buff = alloc_lbuf("tag_cmd");
+      buffp = buff = alloc_lbuf("tag_cmd");
       s_hashstr = alloc_lbuf("tag_cmd");
-      strcat(buff,"Defined Tags:\n");
-      strcat(buff,"            Tag Name              |  #dbref  \n");
-      strcat(buff,"==================================|==========\n");
+      safe_str("Defined Tags:\n", buff, &buffp);
+      safe_str("            Tag Name              |  #dbref  \n", buff, &buffp);
+      safe_str("==================================|==========\n", buff, &buffp);
       for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
        storedtag;
        storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
@@ -2657,15 +2658,15 @@ void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
           if(*tagname) {
             if(quick_wild(tagname, storedtag->tagname)) {
               sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
-              strcat(buff,s_hashstr);
+              safe_str(s_hashstr, buff, &buffp);
             }
           } else  {
               sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
-              strcat(buff,s_hashstr);
+              safe_str(s_hashstr, buff, &buffp);
           }
         }
       }
-      strcat(buff,"=============================================\n");
+      safe_str("=============================================\n", buff, &buffp);
       notify(player,buff);
       free_lbuf(s_hashstr);
       free_lbuf(buff);
