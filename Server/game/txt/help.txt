@@ -33019,6 +33019,8 @@
   * hardconn_site and hardconn_host to specify sites allowed
     to use connect screen hardcommands if connect_methods enabled [ASH]
   * istag() to verify if the tag is valid or not [ASH]
+  * Made Rhost hold *.default files of usuall player-changed files.
+    Usually player-edited files will not be affected by repo changes. [AMB]
   
   Changes
   ------------
@@ -33032,6 +33034,9 @@
   * updated minimal db with latest comsys and account subsys [ASH]
   * Added an optional wildcard string argument to @tag/list [AMB]
   * Added matching against #<tagname> as a #dbref replacement. [AMB]
+  * Added tags to @decompile, as well as a /tags switch. [AMB]
+  * Added 'Object Tags' to @list hash. [AMB]
+  * increased Hash width for ANSI and @tag hashtables. [AMB]
   
   Bug Fixes
   ------------
@@ -33042,3 +33047,5 @@
   * fix bug in mysql where null sub-entries would abort rest [ASH]
   * execscript(), comp(), variable exits, and lookup_player (internal) 
     are tag aware [ASH]
+  * Made the Tag system buffers more safe. strcat replaced with safe_* [AMB]
+  * Fixed code that was causing warnings in newer GCC and Clang [AMB]
