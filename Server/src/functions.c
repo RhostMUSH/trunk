@@ -37268,7 +37268,7 @@ NDECL(init_ansitab)
 {
    PENNANSI *cm;
 
-   hashinit(&mudstate.ansi_htab, 131);
+   hashinit(&mudstate.ansi_htab, 2048);
    for (cm = penn_namecolors; cm->name; cm++) {
       hashadd2(cm->name, (int *) cm, &mudstate.ansi_htab, 1);
    }

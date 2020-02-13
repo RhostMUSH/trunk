@@ -2257,7 +2257,7 @@ main(int argc, char *argv[])
     initDoorSystem();
 #endif
     hashinit(&mudstate.player_htab, 521);
-    hashinit(&mudstate.objecttag_htab, 131);
+    hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
     nhashinit(&mudstate.desc_htab, 131);
