@@ -2571,7 +2571,7 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
     TAGENT *storedtag;
 
     buffp = buff = alloc_lbuf("decompile_tags");
-    tbuff = alloc_sbuf("decompile_tags");
+    tbuff = alloc_mbuf("decompile_tags");
     
     for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
       storedtag;
@@ -2579,12 +2579,12 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
         if(storedtag) {
         if(storedtag->tagref == thing) {
           sprintf(tbuff, "%s@tag/add %s=%s\n", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
+          safe_str(tbuff, buff, &buffp);
         }
       }
     }
-    safe_str(tbuff, buff, &buffp);
     noansi_notify(player, buff); 
-    free_sbuf(tbuff);
+    free_mbuf(tbuff);
     free_lbuf(buff);
 }
 
