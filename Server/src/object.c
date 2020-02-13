@@ -2530,7 +2530,7 @@ int objecttag_remove(char *tag)
 
 int objecttag_list(char* buff)
 {
-  char *s_hashstr, *s_hashstrp;
+  char *s_hashstr, *buffp;
   TAGENT *storedtag;
 
   if(!buff)
@@ -2541,7 +2541,7 @@ int objecttag_list(char* buff)
    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
     if(storedtag) {
       sprintf(s_hashstr, "%s|#%d ", storedtag->tagname, storedtag->tagref);
-      safe_str(buff, s_hashstr, &s_hashstrp);
+      safe_str(s_hashstr, buff, &buffp);
     }
   }
   free_lbuf(s_hashstr);
