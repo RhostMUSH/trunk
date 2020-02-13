@@ -2530,12 +2530,13 @@ int objecttag_remove(char *tag)
 
 int objecttag_list(char* buff)
 {
-  char *s_hashstr, *buffp;
+  char *s_hashstr;
+  char *buffp = buff;
   TAGENT *storedtag;
 
   if(!buff)
     return 0;
-  s_hashstrp = s_hashstr = alloc_lbuf("objecttag_list");
+  s_hashstr = alloc_lbuf("objecttag_list");
   for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
    storedtag;
    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
