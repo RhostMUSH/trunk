@@ -5,7 +5,7 @@
 &CMD_FOLLOW FollowCode=$+follow*:@pemit %#=[setq(0,0)][u([parent(me)]/FOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];&FOLLOWERS %q1=[setunion(get(%q1/followers),%#)];&FOLLOWING %#=[setunion(get(%#/following),%q1)]
 &CMD_UNFOLLOW FollowCode=$+unfollow*:@pemit %#=[u([parent(me)]/UNFOLLOWMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DOUNFOLLOW%q0,%#,%q1)];&FOLLOWING %#=[u([parent(me)]/DOUNFOLLOWING%q0,%q1,%#)]
 &CMD_DESERT FollowCode=$+desert*:@pemit %#=[u([parent(me)]/DESERTMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODESERT%q0,%#,%q1)]
-&CMD_DISMISS FollowCode=+$dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
+&CMD_DISMISS FollowCode=$+dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
 &CMD_FOLLOWLOCK FollowCode=$+flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
 &VERSION FollowCode=FollowCode 1.0.2 [Ashen-Shugar]
 @adisconnect FollowCode=@include/command/override me/cmd_desert=,,,
