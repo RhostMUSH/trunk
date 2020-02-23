@@ -3947,7 +3947,7 @@ decompile_totems(dbref player, dbref thing, char *thingname, char *qualout, int 
 
     /* Report generic flags */
     s_ptr = s_buff = alloc_lbuf("decompile_flags");
-    for (tp = (TOTEMENT *) hash_firstentry(&mudstate.totem_htab);
+    for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
          tp;
          tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
 
