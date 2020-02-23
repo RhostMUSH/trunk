@@ -1161,16 +1161,8 @@ display_totemtab2(dbref player, char *buff, char **bufcx, int key)
          tp;
 	 tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
 
-	if ((tp->listperm & CA_BUILDER) && !Builder(player))
-	    continue;
-	if ((tp->listperm & CA_ADMIN) && !Admin(player))
-	    continue;
-	if ((tp->listperm & CA_WIZARD) && !Wizard(player))
-	    continue;
-	if ((tp->listperm & CA_IMMORTAL) && !Immortal(player))
-	    continue;
-	if ((tp->listperm & CA_GOD) && !God(player))
-	    continue;
+        if ( !totem_cansee_bit(player, player, tp->listperm) )
+           continue;
 	
 	ptrs[nptrs] = tp;
 	nptrs++;
@@ -2419,6 +2411,94 @@ decode_flags_func(dbref player, dbref target, FLAG flagword, FLAG flag2word,
 /* ---------------------------------------------------------------------------
  * has_flag: does object have flag visible to player?
  */
+
+int
+totem_cansee(dbref player, dbref it, char *flagname)
+{
+   TOTEMENT *fp;
+  
+   fp = (TOTEMENT *)hashfind(flagname, &mudstate.totem_htab);
+   if (fp == NULL)
+      return 0;
+ 
+   if (fp->listperm & CA_IGNORE)
+      return 0;
+   if ((fp->listperm & CA_IGNORE_MORTAL) && !Guildmaster(player))
+      return 0;
+   if ((fp->listperm & CA_IGNORE_GM) && !Builder(player))
+      return 0;
+   if ((fp->listperm & CA_IGNORE_ARCH) && !Admin(player))
+      return 0;
+   if ((fp->listperm & CA_IGNORE_COUNC) && !Wizard(player))
+      return 0;
+   if ((fp->listperm & CA_IGNORE_ROYAL) && !Immortal(player))
+      return 0;
+   if ((fp->listperm & CA_IGNORE_IM) && !God(player))
+      return 0;
+   if ((fp->listperm & CA_NO_WANDER) && Wanderer(player))
+      return 0;
+   if ((fp->listperm & CA_NO_GUEST) && Guest(player))
+      return 0;
+   if ((fp->listperm & CA_NO_SUSPECT) && Suspect(player))
+      return 0;
+   /* Check against 'mortal' special handler */
+   if ((fp->listperm & 0x40000000) && (Guest(player) || Wanderer(player)))
+      return 0;
+   if ((fp->listperm & CA_GUILDMASTER) && !Guildmaster(player))
+      return 0;
+   if ((fp->listperm & CA_BUILDER) && !Builder(player))
+      return 0;
+   if ((fp->listperm & CA_ADMIN) && !Admin(player))
+      return 0;
+   if ((fp->listperm & CA_WIZARD) && !Wizard(player))
+      return 0;
+   if ((fp->listperm & CA_IMMORTAL) && !Immortal(player))
+      return 0;
+   if ((fp->listperm & CA_GOD) && !God(player))
+      return 0;
+   return 1; 
+}
+
+int
+totem_cansee_bit(dbref player, dbref it, int perms)
+{
+   if (perms & CA_IGNORE)
+      return 0;
+   if ((perms & CA_IGNORE_MORTAL) && !Guildmaster(player))
+      return 0;
+   if ((perms & CA_IGNORE_GM) && !Builder(player))
+      return 0;
+   if ((perms & CA_IGNORE_ARCH) && !Admin(player))
+      return 0;
+   if ((perms & CA_IGNORE_COUNC) && !Wizard(player))
+      return 0;
+   if ((perms & CA_IGNORE_ROYAL) && !Immortal(player))
+      return 0;
+   if ((perms & CA_IGNORE_IM) && !God(player))
+      return 0;
+   if ((perms & CA_NO_WANDER) && Wanderer(player))
+      return 0;
+   if ((perms & CA_NO_GUEST) && Guest(player))
+      return 0;
+   if ((perms & CA_NO_SUSPECT) && Suspect(player))
+      return 0;
+   /* Check against 'mortal' special handler */
+   if ((perms & 0x40000000) && (Guest(player) || Wanderer(player)))
+      return 0;
+   if ((perms & CA_GUILDMASTER) && !Guildmaster(player))
+      return 0;
+   if ((perms & CA_BUILDER) && !Builder(player))
+      return 0;
+   if ((perms & CA_ADMIN) && !Admin(player))
+      return 0;
+   if ((perms & CA_WIZARD) && !Wizard(player))
+      return 0;
+   if ((perms & CA_IMMORTAL) && !Immortal(player))
+      return 0;
+   if ((perms & CA_GOD) && !God(player))
+      return 0;
+   return 1; 
+}
 
 int 
 has_flag(dbref player, dbref it, char *flagname)
@@ -4904,9 +4984,9 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, "+--------------------+---+-+----+----------+" \
                            "----------+----------+-------+---+");
    } else { 
-      for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+      for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1); 
 	   fp;
-	   fp = (TOTEMENT *) hash_nextentry(&mudstate.flags_htab)) {
+	   fp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
@@ -5452,6 +5532,8 @@ int totem_player_list(char *buff, int i_type, dbref target, dbref player)
         storedtag;
         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
      if (storedtag) {
+        if ( !totem_cansee_bit(player, target, storedtag->listperm) )
+           continue;
         if ( i_first ) {
            safe_chr(' ', buff, &s_buffp);
         }
@@ -5518,6 +5600,8 @@ int totem_list(char *buff, int i_type, dbref target, dbref player)
         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
      if(storedtag) {
         if ( i_type >= 1 ) {
+           if ( !totem_cansee_bit(player, target, storedtag->listperm) )
+              continue;
            if ( (totems[storedtag->flagpos] & storedtag->flagvalue) == storedtag->flagvalue ) {
               if ( i_first ) {
                  safe_chr(' ', buff, &s_buffp);

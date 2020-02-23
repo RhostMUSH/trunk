@@ -11438,18 +11438,18 @@
   FOLDERCURRENT() FOLDERLIST()    FOREACH()      FULLNAME()    GARBLE()    
   GET()           GET_EVAL()      GLOBALROOM()   GRAB()        GRABALL()   
   GREP()          GT()            GTE()          GUILD()       HASATTR()   
-  HASATTRP()      HASFLAG()       HASTOGGLE()    HASTYPE()     HASQUOTA()  
-  HASRXLEVEL()    HASTXLEVEL()    HOME()         IBREAK()      IDLE()      
-  IFELSE()        IINDEX()        ILEV()         INC()         INDEX()     
-  INF()           INPROGRAM()     INSERT()       INUM()        INZONE()      
-  ISALNUM()       ISALPHA()       ISCLUSTER()    ISDBREF()     ISDIGIT()     
-  ISHIDDEN()      ISNUM()         ISOBJID()      ISPUNCT()     ISSPACE()     
-  ISTAG()         ISWORD()        ISXDIGIT()     ITER()        ITEXT()       
-  KEEPFLAGS()     KEEPTYPE()      LADD()         LAND()        LAST()        
-  LASTCREATE()    LATTR()         LAVG()         LCMDS()       LCON()        
-  LCSTR()         LDELETE()       LDIV()         LEMIT()       LEFT()        
-  LEXITS()        LFLAGS()        LINK()         LIST()        LISTCOMMANDS()
-  LISTDIFF()      LISTFUNCTIONS()
+  HASATTRP()      HASFLAG()       HASTOGGLE()    HASTOTEM()    HASTYPE()   
+  HASQUOTA()      HASRXLEVEL()    HASTXLEVEL()   HOME()        IBREAK()    
+  IDLE()          IFELSE()        IINDEX()       ILEV()        INC()       
+  INDEX()         INF()           INPROGRAM()    INSERT()      INUM()      
+  INZONE()        ISALNUM()       ISALPHA()      ISCLUSTER()   ISDBREF()   
+  ISDIGIT()       ISHIDDEN()      ISNUM()        ISOBJID()     ISPUNCT()   
+  ISSPACE()       ISTAG()         ISWORD()       ISXDIGIT()    ITER()      
+  ITEXT()         KEEPFLAGS()     KEEPTYPE()     LADD()        LAND()      
+  LAST()          LASTCREATE()    LATTR()        LAVG()        LCMDS()     
+  LCON()          LCSTR()         LDELETE()      LDIV()        LEMIT()     
+  LEFT()          LEXITS()        LFLAGS()       LINK()        LIST()      
+  LISTCOMMANDS()  LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -11462,24 +11462,24 @@
   LOC()          LOCALFUNC()   LOCALIZE()     LOCATE()         LOCK() 
   LOCKCHECK()    LOCKDECODE()  LOCKENCODE()   LOG()            LOR() 
   LRAND()        LREPLACE()    LROOMS()       LSET()           LSUB()
-  LT()           LTE()         LTOGGLES()     LWHO()           LXNOR() 
-  LXOR()         LZONE()       MAILQUICK()    MAP()            MATCH()
-  MASK()         MAX()         MEMBER()       MERGE()          MID() 
-  MIN()          MIX()         MOD()          MODULO()         MODIFYTIME() 
-  MONEY()        MONEYNAME()   MOON()         MSECS()          MUDNAME() 
-  MUL()          MUNGE()       MWORDS()       NAME()           NAMEQ()
-  NAND()         NCOMP()       NEARBY()       NEQ()            NEXT()
-  NOR()          NOSTR()       NOT()          NOTCHR()         NPEMIT()
-  NSITER()       NUM()         NUMMATCH()     NULL()           NUMMEMBER()
-  NUMPOS()       NUMWILDMATCH()OBJ()          OBJEVAL()        OBJID()
-  OEMIT()        OPEN()        OR()           ORCHR()          ORFLAG()
-  ORFLAGS()      OWNER()       PACK()         PACKMATH()       PARENMATCH()
-  PARENT()       PARSE()       PARSESTR()     PEDIT()          PEMIT()
-  PFIND()        PGREP()       PI()           PID()            PMATCH()
-  PORT()         POS()         POSS()         POWER()          POWER10()
-  PRINTF()       PRIVATIZE()   PROGRAMMER()   PTIMEFMT()       PUSHREGS()
-  QUOTA()        R()           RACE()         RAND()           RANDPOS()
-  RANDMATCH()    RANDEXTRACT() 
+  LT()           LTE()         LTOGGLES()     LTOTEMS()        LWHO()         
+  LXNOR()        LXOR()        LZONE()        MAILQUICK()      MAP()          
+  MATCH()        MASK()        MAX()          MEMBER()         MERGE()        
+  MID()          MIN()         MIX()          MOD()            MODULO()       
+  MODIFYTIME()   MONEY()       MONEYNAME()    MOON()           MSECS()        
+  MUDNAME()      MUL()         MUNGE()        MWORDS()         NAME()         
+  NAMEQ()        NAND()        NCOMP()        NEARBY()         NEQ()          
+  NEXT()         NOR()         NOSTR()        NOT()            NOTCHR()       
+  NPEMIT()       NSITER()      NUM()          NUMMATCH()       NULL()         
+  NUMMEMBER()    NUMPOS()      NUMWILDMATCH() OBJ()            OBJEVAL()      
+  OBJID()        OEMIT()       OPEN()         OR()             ORCHR()        
+  ORFLAG()       ORFLAGS()     OWNER()        PACK()           PACKMATH()     
+  PARENMATCH()   PARENT()      PARSE()        PARSESTR()       PEDIT()        
+  PEMIT()        PFIND()       PGREP()        PI()             PID()          
+  PMATCH()       PORT()        POS()          POSS()           POWER()        
+  POWER10()      PRINTF()      PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
+  PUSHREGS()     QUOTA()       R()            RACE()           RAND()         
+  RANDPOS()      RANDMATCH()   RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11625,12 +11625,12 @@
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
                       EDEFAULT() ELOCK() FULLNAME() GET() GET_EVAL() 
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
-                      HASFLAG() HASTOGGLE() HASTYPE() HOME() LASTCREATE() 
-                      LATTR() LCMDS() LCON() LEXITS() LFLAGS() LOCK() 
-                      LTOGGLES() LZONE() NAME() OBJ() OBJEVAL() ORFLAG() 
-                      ORFLAGS() PARENT() PGREP() POSS() RACE() SHIFT() SUBJ() 
-                      TYPE() U() U2() UDEFAULT() UDEFAULT2() UEVAL() 
-                      ULDEFAULT() U2LDEFAULT() ULOCAL() ULOCAL2() V() 
+                      HASFLAG() HASTOGGLE() HASTOTEM() HASTYPE() HOME() 
+                      LASTCREATE() LATTR() LCMDS() LCON() LEXITS() LFLAGS()
+                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() OBJEVAL() 
+                      ORFLAG() ORFLAGS() PARENT() PGREP() POSS() RACE() 
+                      SHIFT() SUBJ() TYPE() U() U2() UDEFAULT() UDEFAULT2() 
+                      UEVAL() ULDEFAULT() U2LDEFAULT() ULOCAL() ULOCAL2() V()
                       VATTRCNT() VISIBLE() VISIBLEMUX() WRITABLE() XGET()
             See Also: help object information functions
   
@@ -12965,6 +12965,7 @@
   
 & hasflag()
   Function: hasflag(<object>[/<attribute>],<flag>)
+  
   Returns true if object <object> has the flag named <flag> set on it.
   You may not be able to retrieve information for objects that you do not
   own.  You may also check if the given flag exists on the ATTRIBUTE.
@@ -12981,7 +12982,7 @@
   NOPROG is how the MUSH internally recognizes the NO_COMMAND flag.
   Confusing, I know.  See 'help ATTRIBUTE FLAGS' on all of these flags.
   
-  See Also: LIST FLAGS, ATTRIBUTE FLAGS, hastype()
+  See Also: LIST FLAGS, ATTRIBUTE FLAGS, hastype(), hastoggle(), hastotem()
   
 & DELETE()
   Function: delete(<string>, <first>, <len> [,<key>])
@@ -17020,7 +17021,7 @@
     > say flags(me/desc)
     You say "p"
   
-  See Also: flags(), hasflag()
+  See Also: @set, @toggle, @totem, flags(), hasflag(), ltoggles(), ltotems()
   
 & findable()
   Function: findable(<object>,<victim>)
@@ -23610,6 +23611,20 @@
   
   See Also: power(), power10()
   
+& LTOTEMS()
+  Function: ltotems(<player>)
+  
+  Returns all the totems that the target player has.  This will only list
+  totems that you have access to be able to see.
+  
+  Examples:
+    > say ltotems(me)
+    You say "TOTEM1 TOTEM2 TOTEM3"
+    > say ltotems(#-1)
+    You say "#-1"
+  
+  See Also: @set, @toggle, lflags(), ltoggles()
+
 & LTOGGLES()
   Function: ltoggles(<player>)
   
@@ -23622,7 +23637,7 @@
     > say ltoggles(#1)
     You say "#-1"
   
-  See Also: @toggle
+  See Also: @toggle, @set, @totem, lflags(), ltotems()
   
 & POWER10()
   Function: power10(<factor>)
@@ -24757,14 +24772,31 @@
 
   See Also: islower()
 
+& HASTOTEM()
+  Function: hastotem(<player>, <totem>)
+  
+  This function will return '1' if <player> has the specified totem, '0' if
+  not.  If you do not have permission to pull the information, a '#-1' may
+  be returned.
+  
+  Example:
+    > say hastotem(player, totem1)
+    You say "1"
+   
+  See Also: hasflag(), hastoggle()
+  
 & HASTOGGLE()
   Function: hastoggle(<player>,<toggle>)
+  
+  This function will return '1' if <player> has the specified toggle, '0' if
+  not. If you do not have permission to pull the information, a '#-1' may
+  be returned.
   
   Example:
     > say hastoggle(player, brandy_mail)
     You say "1"
    
-  See Also: hasflag()
+  See Also: hasflag(), hastotem()
   
 & ISINT()
   function: isint(<string>)
@@ -30062,6 +30094,7 @@
   hasattrp()    - Like hasattr(), but also checks parents.
   hasflag()     - Returns true if an object has the specified flag set.
   hastoggle()   - Returns true if an object has the specified toggle set.
+  hastotem()    - Returns true if an object has the specified totem set.
   hastype()     - Returns true if an object is of the specified type.
   home()        - Returns the objects home.
   lastcreate()  - Returns the dbref of the object last created.
@@ -30072,6 +30105,7 @@
   lflags()      - Like flags, but returns the full string names of flags.
   lock()        - Returns the named lock on the object, or sets a lock.
   ltoggles()    - Lists all toggles a player has.
+  ltotems()     - Lists all totems a player has.
   lzone()       - Returns the zone list of an object.
   
   { Continued in object information functions2 }  
@@ -33155,6 +33189,8 @@
   totem_access_unset -- config to set 'unset' permissions [ASH]
   totem_access_see   -- config to set 'see' permissions [ASH]
   totem_access_type  -- config to deny sets based on type(s) [ASH]
+  ltotems() -- list all totems on target
+  hastotem() -- check if target has totem
   
   Changes
   ------------
@@ -33162,3 +33198,5 @@
   Bug Fixes
   ------------
   @tag wouldn't load tags if threshold reached [ASH]
+  Crash bug in @totemdef with a missed conversion value
+  Permissions for seeing totems were not working properly

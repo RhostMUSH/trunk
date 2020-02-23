@@ -537,6 +537,8 @@ extern void	NDECL(init_powertab);
 extern void     FDECL(display_flagtab, (dbref));
 extern void     FDECL(display_toggletab, (dbref));
 extern void     FDECL(display_totemtab, (dbref));
+extern int	FDECL(totem_cansee, (dbref, dbref, char *));
+extern int	FDECL(totem_cansee_bit, (dbref, dbref, int));
 extern void     FDECL(display_flagtab2, (dbref, char *, char **));
 extern void     FDECL(display_toggletab2, (dbref, char *, char **));
 extern void     FDECL(display_totemtab2, (dbref, char *, char **, int));

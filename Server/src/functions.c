@@ -24273,6 +24273,41 @@ FUNCTION(fun_delete)
    }
 }
 
+FUNCTION(fun_hastotem)
+{
+    dbref target;
+    TOTEMENT *hashp;
+
+    init_match(player, fargs[0], NOTYPE);
+    match_everything(MAT_EXIT_PARENTS);
+    target = noisy_match_result();
+  
+    if ( !Good_chk(target) ) {
+       safe_str("#-1 NOT FOUND", buff, bufcx);
+       return;
+    }
+    if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+        (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+       safe_str("#-1", buff, bufcx);
+    } else {
+       if ( !*fargs[1] ) {
+          ival(buff, bufcx, 0);
+       } else {
+          hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
+          if ( hashp ) {
+             if ( (dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
+                ival(buff, bufcx, totem_cansee_bit(player, target, hashp->listperm));
+             } else {
+                ival(buff, bufcx, 0);
+             }
+          } else {
+             ival(buff, bufcx, 0);
+          }
+       }
+    }
+}
+
 FUNCTION(fun_ltotems)
 {
     int retvalue;
@@ -24283,7 +24318,11 @@ FUNCTION(fun_ltotems)
     match_everything(MAT_EXIT_PARENTS);
     target = noisy_match_result();
   
-    if ( !Good_chk(target) || !Controls(player, target) ) {
+    if (!Good_chk(target) ) {
+       safe_str((char *)"#-1", buff, bufcx);
+    } else if ( !((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+        (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
        safe_str((char *)"#-1", buff, bufcx);
     } else {
        s_buff = alloc_lbuf("fun_ltotems");
@@ -36790,6 +36829,7 @@ FUN flist[] =
     {"HASRXLEVEL", fun_hasrxlevel, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
     {"HASTOGGLE", fun_hastoggle, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"HASTOTEM", fun_hastotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef REALITY_LEVELS
     {"HASTXLEVEL", fun_hastxlevel, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
