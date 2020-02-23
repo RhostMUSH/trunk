@@ -4823,15 +4823,15 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          }
          notify_quiet(player, tmp_ptr);
       }
-      notify_quiet(player, "-------------------- --- ---- ----------    -------------------- --- ----------");
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
       free_lbuf(tmp_ptr);
       return;
    }
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
-      notify_quiet(player, "|Flagname           |Flg|T|Slot|Set       |Unset" \
-                           "     |See       |Type    |NoM|");
-      notify_quiet(player, "+-------------------+---+-+----+----------+" \
-                           "----------+----------+--------+---+");
+      notify_quiet(player, "|Flagname            |Flg|T|Slot|Set       |Unset" \
+                           "     |See       |Type   |NoM|");
+      notify_quiet(player, "+----------------+---+---+-+----+----------+" \
+                           "----------+----------+-------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
       for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1); 
@@ -4893,7 +4893,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             c_perm = 'P';
          }
          tprp_buff = tpr_buff;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%c|%04d|%-10s|%-10s|%-10s|%-8s| %c |", 
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-20s|%c%c%c|%c|%04d|%-10s|%-10s|%-10s|%-7s| %c |", 
                                            fp->flagname, c_bef, fp->flaglett, c_aft, c_perm, fp->flagpos, setovpermary, 
                                            usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
       }
@@ -4901,8 +4901,8 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       if ( !fnd )
          notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
 
-      notify_quiet(player, "+-------------------+---+-+----+----------+" \
-                           "----------+----------+--------+---+");
+      notify_quiet(player, "+--------------------+---+-+----+----------+" \
+                           "----------+----------+-------+---+");
    } else { 
       for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
 	   fp;
