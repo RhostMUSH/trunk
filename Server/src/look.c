@@ -28,6 +28,7 @@ extern int count_chars(const char *, const char c);
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern POWENT * FDECL(find_power, (dbref, char *));
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern void examine_totemtab(dbref, dbref);
 
 void
 look_inv_parse(dbref player, dbref cause, int i_attr) {
@@ -2928,6 +2929,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
                            strlen(ANSIEX(ANSI_NORMAL)))	/* Toggles:  */
 	    notify(player, buf2);
 	free_lbuf(buf2);
+        examine_totemtab(player, thing);
 	buf2 = power_description(player, thing, 0, 1);
 	if (strlen(buf2) > 8 + strlen(ANSIEX(ANSI_HILITE)) + 
                            strlen(ANSIEX(ANSI_NORMAL)))
@@ -4331,6 +4333,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
     if ( !key_buff || (key_buff & DECOMP_FLAGS) ) {
        decompile_flags(player, thing, thingname, qualout, i_tf);
        decompile_toggles(player, thing, thingname, qualout, i_tf);
+       decompile_totems(player, thing, thingname, qualout, i_tf);
     }
 
     /* If the object has a parent, report it */

@@ -520,8 +520,9 @@
   @progreset      @protect        @ps            @purge          @quota        
   @readcache      @reboot         @recover       @reclist        @remote       
   @rwho           @site           @shutdown      @snapshot       @snoop
-  @tag            @thaw           @timewarp      @toad          @tor
-  @turtle         @wall           +players
+  @tag            @thaw           @timewarp      @toad           @toggledef
+  @tor            @totem          @totemdef      @turtle         @wall       
+  +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
@@ -5382,10 +5383,52 @@
  
   See also: wizhelp tags, help tag()
    
+& @totem
+  Command: @totem[/<switches>] [<totemname> [=<args>]
+  
+  The @totem command is the administative tool for in-game adding and
+  manipulation of @totems.  You may also add them in the source or through
+  the netrhost.conf file.  They can be issued through the @admin admin_object
+  as well.
+  
+  The following switches exist for @totem:
+    /add      - Add the totem.  CONFIG: totem_add
+                Syntax:  @totem/add totemname=slot# bitvalue
+    /remove   - Remove the totem.  (Can only remove temporary totems)
+                Syntax:  @totem/remove totemname
+    /list     - List the totems you have access to.  Does permission checks.
+                Syntax:  @totem/list
+    /set      - Controls who may set the totem.  CONFIG: totem_access_set
+                Syntax:  @totem/set totemname=permission(s)
+    /unset    - Controls who may unset the totem.  CONFIG: totem_access_unset
+                Syntax:  @totem/unset totemname=permission(s)
+    /see      - Controls who may see the totem.  CONFIG: totem_access_see
+                Syntax:  @totem/see totemname=permission(s)
+    /type     - Controls what types are denied.  CONFIG: totem_access_type
+                Syntax:  @totem/type totemname=permission(s)
+    /rename   - Rename the totem (Can only rename temporary totems)
+                Syntax:  @totem/rename totemname=newname
+    /validate - Does a validation check on totems for dangling slot/values
+                Syntax:  @totem/validate
+    /info     - Does information lookup on the specified totem.
+                Syntax:  @totem/info totemname
+    /fulllist - Does full expansion of totem list (NAME|SLOT|VALUE)
+              - Syntax:  @totem/full totemname
+    /alias    - Assigns one or more aliases to a totem.  CONFIG: totem_alias
+              - Syntax:  @totem/alias totemname=alias(s)
+  
+    Currently not implemented:
+    /clean    - Will clean the dangling slot/values off all players
+              - Syntax:  @totem/clean
+  
+  See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
+             totem_access_see, totem_access_type
+& @totemdef
 & @toggledef
 & @flagdef
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]
            @toggledef[/<switches>] [<togglename>=<permission(s)>]
+           @totemdef[/<switches>] [<totemname>=<permission(s)>]
   
   This command defines ONLINE all the permissions for who can set, unset,
   and see a given flag.  The only flags that you can NOT define by this
@@ -5395,6 +5438,7 @@
   
   The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
   The @flagdef handlds all FLAGS.      (help @flagdef4 for options)
+  The @totemdef handlds all TOTEMS.      (help @totemdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -5406,11 +5450,13 @@
               associated letter.
     /list   - This lists the flags, settings, and permissions. (default)
               Columns are:
-                 'Set'   - defines who can set the flag.
-                 'Unset' - defines who can remove the flag.
-                 'See'   - defines who can see the flag.
-                 'Type'  - defines type restrictions for flag.
-                 'NoM'   - defines if the flag is un-modifiable.
+                 'Set'  - defines who can set the flag.
+                 'Unset'- defines who can remove the flag.
+                 'See'  - defines who can see the flag.
+                 'Type' - defines type restrictions for flag.
+                 'NoM'  - defines if the flag is un-modifiable.
+                 'T'    - Unique to Totems ([P]ermanent, [S]tatic, [T]emporary)
+                 'Slot' - Unique to Totems (slot position for @totem)
   
   Keep in mind that if the columns are EMPTY, it defaults to whatever the mush
   standard permissions are for setting and unsetting those flags.
@@ -5422,6 +5468,7 @@
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
+& @totemdef2
 & @toggledef2
 & @flagdef2
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -5458,6 +5505,7 @@
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
+& @totemdef3
 & @toggledef3
 & @flagdef3 
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -5492,6 +5540,7 @@
   
   See Also: @flag, @flagdef, @toggledef
 
+& @totemdef4
 & @toggledef4
 & @flagdef4
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -6547,6 +6596,8 @@
   thing_flags               thing_parent              thing_quota             
   thing_toggles             timeslice                 toggle_access_see       
   toggle_access_set         toggle_access_type        toggle_access_unset     
+  totem_add                 totem_alias               totem_access_see
+  totem_access_set          totem_access_type         totem_access_unset
   tor_localhost             tor_paranoid              trace_output_limit      
   trace_topdown             tree_character            trust_site              
   uncompress_program        unowned_safe              user_attr_flags         
@@ -11247,6 +11298,45 @@
   only executed if the quota is greater than zero.
   See Also: command_quota_incr, command_quota_max.
 
+& totem_add
+  Config parameter: totem_add <totemname> <slot> <bitvalue>
+  
+  This will add the totem as a static (sticky) value to the mush.  This is
+  assigned a given slot number (by default 0-9) and a default bitvalue.
+  The bitvalue must be a bitwise value.  Examples are: 0x00000001, 0x00000002,
+  1, 2, or so forth.  You may use the HEX value providing it starts with 0x,
+  or the decimal value for the bitwise mask.  The mask must be a unique mask
+  and can not contain a mask of more than one byte.
+  
+  This works like @totem/add, though @totem/add only works for temporary
+  totems.
+   
+  Attempting to add a totem with a name, slot, or bitvalue already taken will
+  return an error.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_access_type, totem_alias, @totemdef, @totem
+
+& totem_alias
+  Config parameter: totem_alias <totemname> <alias1> [<alias2> ... <aliasN>]
+  
+  This adds one (or more) aliases to the totem.  You can have a maximum 
+  of 10 aliases added per totem name.  You may add aliases to any totem.
+  
+  This is similar to  @totem/alias.
+  
+  See Also: totem_access_unset, totem_access_see, totem_access_type, 
+            totem_access_set, totem_add, @totemdef, @totem
+  
+& totem_access_set
+  Config parameter: totem_access_set <totemname> <permission(s)>
+  
+  Sets an override for set permissions for the specified totem.  This is
+  similiar to issuing @totemdef/set on the specified totem.
+  
+  See Also: totem_access_unset, totem_access_see, totem_access_type, 
+            totem_add, totem_alias, @totemdef, @totem
+  
 & toggle_access_set
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
@@ -11255,6 +11345,15 @@
   
   See Also: toggle_access_unset, toggle_access_see, toggle_access_type, 
             @toggledef
+
+& totem_access_uset
+  Config parameter: totem_access_uset <totemname> <permission(s)>
+  
+  Sets an override for unset permissions for the specified totem.  This is
+  similiar to issuing @totemdef/unset on the specified totem.
+  
+  See Also: totem_access_set, totem_access_see, totem_access_type, 
+            totem_add, totem_alias, @totemdef, @totem
 
 & toggle_access_unset
   Config parameter: toggle_access_unset <togglename> <permission(s)>
@@ -11265,6 +11364,15 @@
   See Also: toggle_access_set, toggle_access_see, toggle_access_type,
             @toggledef
 
+& totem_access_see
+  Config parameter: totem_access_see <totemname> <permission(s)>
+  
+  Sets an override for see permissions for the specified totem.  This is
+  similiar to issuing @totemdef/see on the specified totem.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_type, 
+            totem_add, totem_alias, @totemdef, @totem
+
 & toggle_access_see
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
@@ -11273,6 +11381,15 @@
   
   See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
             @toggledef
+
+& totem_access_type
+  Config parameter: totem_access_type <totemname> <permission(s)>
+  
+  Sets a type restriction for set/unset permissions for the specified totem.
+  This is similiar to issuing @totemdef/type on the specified totem.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_add, totem_alias, @totemdef, @totem
 
 & toggle_access_type
   Config parameter: toggle_access_type <togglename> <permission(s)>

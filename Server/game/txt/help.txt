@@ -105,18 +105,18 @@
   train     use         version      wield        whisper       who        
   worn
   
-  @@           @break          @chown    @clone    @create       @decompile
-  @destroy     @dig            @doing    @dolist   @drain        @edit 
-  @emit        @entrances      @eval     @extansi  @femit        @find      
-  @force       @fpose          @fsay     @goto     @halt         @hide
-  @include     @jump           @label    @last     @link         @list
-  @listmotd    @lfunction      @lock     @lset     @mailsig      @mvattr
-  @name        @notify         @oemit    @open     @parent       @password
-  @pemit       @pipe           @program  @protect  @ps           @quitprogram
-  @quota       @register       @robot    @search   @set          @skip
-  @sql         @sqlconnect     @sqldisconnect      @stats        @sudo
-  @sweep       @switch         @teleport @trigger  @unlink       @unlock
-  @verb        @wait           @wall     @wipe        
+  @@           @break      @chown      @clone         @create       @decompile
+  @destroy     @dig        @doing      @dolist        @drain        @edit 
+  @emit        @entrances  @eval       @extansi       @femit        @find      
+  @force       @fpose      @fsay       @goto          @halt         @hide
+  @include     @jump       @label      @last          @link         @list
+  @listmotd    @lfunction  @lock       @lset          @ltag         @mailsig 
+  @mvattr      @name       @notify     @oemit         @open         @parent  
+  @password    @pemit      @pipe       @program       @protect      @ps      
+  @quitprogram @quota      @register   @robot         @search       @set     
+  @skip        @sql        @sqlconnect @sqldisconnect @stats        @sudo
+  @sweep       @switch     @teleport   @totem         @trigger      @unlink     
+  @unlock      @verb       @wait       @wall          @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -5709,6 +5709,53 @@
   See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
             SEARCH CLASSES
   
+& @ltag
+  Command: @ltag[</switch>] <args>
+  
+  This command gets used to manage and list the named tags of Rhost's tag
+  system (see wizhelp tags).  This is your local tag list.  You may only
+  have 5 tags maximum per dbref#.  If the global tags on the target dbref#
+  exceeds 5 (which it can), then you may no longer set local tags on it.
+  
+  The following switches exist to @ltag:
+    /list   - List your localized tags. (allows search strings)
+    /add    - add a localized tag to the dbref# (permanent until removed)
+    /remove - remove the local named tag.
+  
+  If a tag does not exist, #-1 gets returned.  When an item is destroyed, 
+  the tags will be destroyed with the item.
+  
+  With the /list switch, you may specify wildcards for the search pattern. 
+  
+  The following sanity checks are performend for tags:
+  
+  * Tagnames cannot be more than 30 characters in length
+  * Tagnames cannot cointain whitespace.
+  * Tags need to be supplied with a valid, existing object's #dbref on
+    creation.  This object you must own or control in some manner.
+  * Up to 5 tags can reference the same #dbref.  If global tags exceed
+    this number, local tags can no longer be assigned.
+  * Unicode is valid in tagnames!
+  * On destruction of an object, all referencing tags get also removed.
+  * Global tags have precidence over local tags.
+  
+  Examples:
+    > think %#
+      You say "#123"
+    > @tag/add samson=#123
+      Tag added.
+    > @tag/add test=#123
+      Tag added.
+    > @ltag/list
+                  Tag Name              | Personal | #dbref  
+    ====================================|==========|==========
+       samson                           | - Yes -  | #123
+    W  test                             | - Yes -  | #123
+    ==========================================================
+    W -- Warning that a global tag overrides your local tag
+
+  See Also: istag()
+
 & @lset
   Command: @lset[/<switches>] <object>[/<lock>] [=<permission>]
   
@@ -5961,8 +6008,51 @@
   
   See Also: JUMP_OK, @lock (tport and telout), @tfail, @otfail, @atfail
   
+& @totem
+  Command: @totem[/switch] <target> [=<totem1> <totem2> <!totem3> ... <totemN>]
+  
+  This command will control the totem subsystem.  Totems are essentially
+  flags.  However, unlike normal flags these can be dynamically added or
+  removed on the fly by the administrative staff allowing a more flexible
+  grid system.
+  
+  The following switches exist for @totem:
+    /list -- list all @totems that you have access to.
+  
+  When setting @totems, you would just specify the totem in question.  When
+  you wish to remove the @totem, you would preceed the @totem flagname with
+  a '!'.  Such as '@totem me=!totem'.
+  
+  When you list totems, you will see three letter flags that are used to
+  identify them.  They will  mean:
+    P - permanent totem.  This is a totem that was compiled in source.
+    S - static (sticky) totem.  This is a totem defined in the config file.
+    T - temporary totem.  This is a totem defined with @totem in-line.
+        Temporary totems do not remain on reboot and must be reset. 
+  
+  @totem/list is equivelant to doing '@list totems' 
+  
+  Totems will be displayed with examine and @decompile.
+    
+  Examples:
+    > think name(me)
+      Bob
+    > @totem/list
+    Totems : INLINE1(S) INLINE2(S) TOTEM1(S) TOTEM2(S) TOTEMINIT(P)
+    > @totem me=inline1 totem1
+    Set - Bob (set totem INLINE1).
+    Set - Bob (set totem TOTEM1).
+    > @totem me=inline1 totem1
+    Set - Bob (set totem [again] INLINE1).
+    Set - Bob (set totem [again] TOTEM1).
+    > @totem me=!totem1
+    Set - Bob (cleared totem TOTEM1).
+  
+  See Also: @set, @toggle
+ 
 & @trigger
   Command: @trigger <object>/<attr> [=<param> [, <param>]... ]
+  
   Invokes an action list stored in an attribute on an object.  The triggering
   object becomes the enactor and the positional parameters %0 through %9
   are set to the supplied parameters.  If a @charges attribute exists on 
@@ -24761,8 +24851,8 @@
      > say isdbref(#sirnotappearinginthismovie)
      You say "0"
   
-  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            isdbref(), isword(), isobjid()
+  See Also: @ltag, isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), 
+            ispunct(), isdbref(), isword(), isobjid()
 
 & ISDBREF()
   Function: isdbref(<string>)
@@ -30353,7 +30443,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.1.0p0
+  *** Current Revision: 4.1.0p1
   ***************************************************************************
   
   Available Revisions:
@@ -30372,7 +30462,7 @@
     3.9.4: 3.9.4p0, 3.9.4p1, 3.9.4p2, 3.9.4p3, 3.9.4p4, 3.9.4p5
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
-    4.1.0: 4.1.0p0
+    4.1.0: 4.1.0p0, 4.1.0p1
   
   See Also: historical, credits
 
@@ -33049,3 +33139,26 @@
     are tag aware [ASH]
   * Made the Tag system buffers more safe. strcat replaced with safe_* [AMB]
   * Fixed code that was causing warnings in newer GCC and Clang [AMB]
+
+& 4.1.0p1
+  Release Date: 02/23/20
+  Status: Alpha
+  
+  New Features
+  ------------
+  @ltag - Works like @tag but is localized per user (and belongings) [ASH]
+  @totem - Dynamic flag subsystem for hardcode, @admin params, inline [ASH]
+  @totemdef - like @flagdef but for @totems
+  totem_add          -- config to add new @totems [ASH]
+  totem_alias        -- config to set aliases to @totems [ASH]
+  totem_access_set   -- config to set 'set' permissions [ASH]
+  totem_access_unset -- config to set 'unset' permissions [ASH]
+  totem_access_see   -- config to set 'see' permissions [ASH]
+  totem_access_type  -- config to deny sets based on type(s) [ASH]
+  
+  Changes
+  ------------
+  
+  Bug Fixes
+  ------------
+  @tag wouldn't load tags if threshold reached [ASH]

@@ -5,6 +5,10 @@
 #ifndef _M_FLAGS_H
 #define _M_FLAGS_H
 
+#define IS_TYPE_FLAG    1
+#define IS_TYPE_TOGGLE  2
+#define IS_TYPE_TOTEM   4
+
 #include "htab.h"
 #include "attrs.h"
 #include "utils.h"
@@ -440,6 +444,25 @@
 #define ANSI_EXIT	8
 
 /* ---------------------------------------------------------------------------
+ * TOTEMENT: Information about object totem flags.
+ */
+
+typedef struct totem_entry {
+	char	*flagname;	/* Name of totem */
+	int	flagvalue;	/* Which bit is the totem flag */
+	char    flaglett;       /* Flag letter for listing */
+	int	flagpos;	/* 0-9 totem flag position for structure */
+	int	totemflag;	/* Ctrl Flags for this flag (recursive? :-) */
+	int	listperm;	/* Who can see Totem */
+	int	setovperm;	/* Who can set Totem */
+	int	usetovperm;	/* Who can unset Totem */
+	int	typeperm;	/* Type permission */
+	int	permanent;	/* Perm handle: 0 - dyn, 1 - perm, 2 - builtin */
+	int	aliased;	/* Is this entry aliased?  0 - no, 1 - yes */
+	int     (*handler)();   /* Handler for setting/clearing this flag */
+} TOTEMENT;
+
+/* ---------------------------------------------------------------------------
  * FLAGENT: Information about object flags.
  */
 
@@ -513,8 +536,10 @@ extern void     NDECL(init_toggletab);
 extern void	NDECL(init_powertab);
 extern void     FDECL(display_flagtab, (dbref));
 extern void     FDECL(display_toggletab, (dbref));
+extern void     FDECL(display_totemtab, (dbref));
 extern void     FDECL(display_flagtab2, (dbref, char *, char **));
 extern void     FDECL(display_toggletab2, (dbref, char *, char **));
+extern void     FDECL(display_totemtab2, (dbref, char *, char **, int));
 extern void     FDECL(flag_set, (dbref, dbref, char *, int));
 extern void     FDECL(toggle_set, (dbref, dbref, char *, int));
 extern void     FDECL(power_set, (dbref, dbref, char *, int));
@@ -537,6 +562,7 @@ extern char *   FDECL(ansi_exitname, (dbref));
 extern int      FDECL(convert_flags, (dbref, char *, FLAGSET *, FLAG *, int));
 extern void     FDECL(decompile_flags, (dbref, dbref, char *, char *, int));
 extern void     FDECL(decompile_toggles, (dbref, dbref, char *, char *, int));
+extern void     FDECL(decompile_totems, (dbref, dbref, char *, char *, int));
 extern int	FDECL(HasPriv, (dbref, dbref, int, int, int));
 
 extern int	FDECL(parse_aflags, (dbref, dbref, int, char *, char **, int));

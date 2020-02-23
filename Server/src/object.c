@@ -33,6 +33,7 @@ typedef struct tagentry TAGENT;
 struct tagentry {
   char         *tagname;
   dbref        tagref;
+  int          i_personal;
 };
 #endif
 
@@ -776,7 +777,6 @@ destroy_obj(dbref player, dbref obj, int purge)
   TAGENT *tagentry;
   char *tagrem, *tagremp, *s_strtok, *s_strtokr;
   tagremp = tagrem = alloc_lbuf("tag_destpurge");
-  *tagrem = '\0';
   for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
        tagentry;
        tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
@@ -1144,7 +1144,6 @@ do_purge(dbref player, dbref cause, int key, char *buff)
   TAGENT *tagentry;
   char *tagrem, *tagremp, *s_strtok, *s_strtokr;
   tagremp = tagrem = alloc_lbuf("tag_purge");
-  *tagrem = '\0';
   for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
        tagentry;
        tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
@@ -1367,7 +1366,6 @@ do_purge(dbref player, dbref cause, int key, char *buff)
       TAGENT *tagentry;
       char *tagrem, *tagremp, *s_strtok, *s_strtokr;
       tagremp = tagrem = alloc_lbuf("tag_destpurge");
-      *tagrem = '\0';
       for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
         tagentry;
         tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
@@ -2338,7 +2336,7 @@ do_dbck(dbref player, dbref cause, int key)
  * loading in game.c
  */
 
-int objecttag_add(char *tag, dbref thing)
+int objecttag_add(char *tag, dbref thing, int i_personal, int i_loader)
 {
   char *lcname, *lcnp, *astr, *s_strtok, *s_strtokr, *nattr, *nattrp;
   dbref aowner;
@@ -2351,15 +2349,14 @@ int objecttag_add(char *tag, dbref thing)
     return -1;
   }
 
-  /* Deny If the tag is longer than 32 characters */
-  if ( strlen(strip_all_ansi(tag)) > 32 ) {
+  /* Deny If the tag is longer than 31 characters -- allow for null */
+  if ( strlen(strip_all_ansi(tag)) > 31 ) {
     return -2;
   }
 
   /* Convert to all lowercase, strip ansi */
   lcnp = lcname = alloc_lbuf("add_tag");
   safe_str(strip_all_ansi(tag), lcname, &lcnp);
-  *lcnp = '\0';
   for (lcnp=lcname; *lcnp; lcnp++) {
     *lcnp = ToLower((int)*lcnp);
     /* Deny if the tag somehow has whitespace in it */
@@ -2377,6 +2374,8 @@ int objecttag_add(char *tag, dbref thing)
   }
 
   /* Don't exceed 16 references - check via internal attribute */
+  /* If we're set 'loader' we *want* to load what's there so we can fix it if we have to */
+  /* Personal references don't go past 5 on an object, period */
   tcount = 0;
   astr = alloc_lbuf("add_tagattr");
   (void) atr_get_str(astr, thing, A_OBJECTTAG, &aowner, &aflags);
@@ -2384,7 +2383,8 @@ int objecttag_add(char *tag, dbref thing)
     s_strtok = strtok_r(astr, " ", &s_strtokr);
     while( s_strtok ) {
       tcount++;
-      if(tcount > 15) {
+      /* When loading from the db, we always want tags loaded */
+      if( !i_loader && (tcount > (i_personal ? 5 : 15)) ) {
         free_lbuf(lcname);
         free_lbuf(astr);
         return -5;
@@ -2396,6 +2396,7 @@ int objecttag_add(char *tag, dbref thing)
   newtag = (TAGENT *) malloc(sizeof(TAGENT));
   newtag->tagname = (char *) strsave(lcname);
   newtag->tagref = thing;
+  newtag->i_personal = i_personal;
 
   stat = hashadd2(lcname, (int *)newtag, &mudstate.objecttag_htab, 0);
   stat = (stat < 0) ? 0 : 1;
@@ -2403,7 +2404,6 @@ int objecttag_add(char *tag, dbref thing)
     free(newtag);
 
   nattrp = nattr = alloc_lbuf("add_tagattr"); 
-  *nattr = '\0';
   (void) atr_get_str(astr, thing, A_OBJECTTAG, &aowner, &aflags);
   if(*astr) {
     s_strtok = strtok_r(astr, " ", &s_strtokr);
@@ -2428,11 +2428,12 @@ int objecttag_add(char *tag, dbref thing)
   return stat;
 }
 
-dbref objecttag_get(char *tag)
+dbref objecttag_get(char *tag, dbref player, int i_override)
 {
 
-   char *lcname, *lcnp;
+   char *lcname, *lcnp, *t_lcname;
    int* hashp;
+   dbref target;
    TAGENT *storedtag;
 
   /* Deny If the tag is longer than 32 characters */
@@ -2452,8 +2453,22 @@ dbref objecttag_get(char *tag)
     }
   }
 
-  hashp = hashfind(lcname, &mudstate.objecttag_htab);
+  hashp = NULL;
+  if ( i_override || (!i_override && (*lcname != '_')) ) {
+     hashp = hashfind(lcname, &mudstate.objecttag_htab);
+  }
+  if ( !i_override && (hashp == NULL) ) {
+     t_lcname = alloc_lbuf("get_tag2"); 
+     target = NOTHING;
+     if ( Good_chk(player) ) {
+        target = Owner(player);
+     }
+     sprintf(t_lcname, "__%d_%.100s", target, lcname);
+     hashp = hashfind(t_lcname, &mudstate.objecttag_htab);
+     free_lbuf(t_lcname);
+  }
   free_lbuf(lcname);
+
   if(hashp != NULL)
   {
     storedtag = (TAGENT *)hashp;
@@ -2503,7 +2518,6 @@ int objecttag_remove(char *tag)
   astr = alloc_lbuf("remove_tagattr");
   astr2p = astr2 = alloc_lbuf("remove_tagattr");
 
-  *astr2 = '\0';
   (void) atr_get_str(astr, storedtag->tagref, A_OBJECTTAG, &aowner, &aflags);
   if(*astr) {
     s_strtok = strtok_r(astr, " ", &s_strtokr);
@@ -2530,19 +2544,26 @@ int objecttag_remove(char *tag)
 
 int objecttag_list(char* buff)
 {
-  char *s_hashstr;
-  char *buffp = buff;
+  char *s_hashstr, *s_buffp;
+  int i_first;
   TAGENT *storedtag;
 
-  if(!buff)
+  if( !buff )
     return 0;
+
   s_hashstr = alloc_lbuf("objecttag_list");
+  s_buffp = buff;
+  i_first = 0;
   for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
    storedtag;
    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
     if(storedtag) {
-      sprintf(s_hashstr, "%s|#%d ", storedtag->tagname, storedtag->tagref);
-      safe_str(s_hashstr, buff, &buffp);
+      if ( i_first ) {
+        safe_chr(' ', buff, &s_buffp);
+      }
+      sprintf(s_hashstr, "%s|#%d", storedtag->tagname, storedtag->tagref);
+      safe_str(s_hashstr, buff, &s_buffp);
+      i_first = 1;
     }
   }
   free_lbuf(s_hashstr);
@@ -2567,18 +2588,29 @@ void objecttag_match(char *buff, char *match)
 
 void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
-    char *buff, *buffp, *tbuff;
+    char *buff, *buffp, *tbuff, *s_tbuff;
+    int i_first;
     TAGENT *storedtag;
 
     buffp = buff = alloc_lbuf("decompile_tags");
     tbuff = alloc_mbuf("decompile_tags");
+    i_first = 0;
     
     for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
       storedtag;
       storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
         if(storedtag) {
         if(storedtag->tagref == thing) {
-          sprintf(tbuff, "%s@tag/add %s=%s\n", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
+          if ( i_first ) {
+             safe_str("\n", buff, &buffp);
+          }
+          i_first = 1;
+          if ( storedtag->i_personal ) {
+             s_tbuff = strchr(storedtag->tagname+3, '_')+1;
+             sprintf(tbuff, "%s@ltag/add %s=%s", (i_tf ? qualout : (char *)""), s_tbuff, thingname);
+          } else {
+             sprintf(tbuff, "%s@tag/add %s=%s", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
+          }
           safe_str(tbuff, buff, &buffp);
         }
       }
@@ -2588,102 +2620,221 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
     free_lbuf(buff);
 }
 
-void do_tag(dbref player, dbref cause, int key, char *tagname, char *target)
+void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 {
-  char *buff, *buffp, *s_hashstr;
+  char *buff, *buffp, *s_hashstr, *tagname, *t_distag, t_warn = ' ';
   TAGENT *storedtag;
-  int result;
+  int result, i_personal, *hashp, i_total, i_start, i_count, i_page, i_pagetot;
   dbref p;
-  if(key == TAG_ADD) {
-    if(!*tagname) {
-      notify(player,"#-1 No tagname specified.");
-    } else if(!*target) {
-      notify(player,"#-1 No dbref specified.");
-    } else {
-      init_match(player, target, NOTYPE);
-      match_everything(0);
-      p = match_result();
-      if(Good_obj(p)) {
-        result = objecttag_add(tagname, p);
-        if(result == 1)
-          notify(player,"Tag added."); 
-        else if(!result)
-          notify(player,"#-1 Couldn't add hash!");
-        else if(result == -1)
-          notify(player,"#-1 Not a valid object or dbref.");
-        else if(result == -2)
-          notify(player,"#-1 Tag name can't be over 32 characters.");
-        else if(result == -3)
-          notify(player,"#-1 Tag name cannot have whitespaces.");
-        else if(result == -4)
-          notify(player,"#-1 Tag with same name already exists."); 
-        else if(result == -5)
-          notify(player,"#-1 16 tags already reference this object!");
-        else
-          notify(player,"#-1 UNKNOWN ERROR");
-      } else {
-        notify(player,"#-1 Not a valid existing object or dbref.");
-      }
-    }
-  } else if(key == TAG_REMOVE) {
-    if(!*tagname) {
-      notify(player,"No tagname specified.");
-    } else if(*target) {
-      notify(player,"Too many arguments for @tag/remove. 1 Expected.");
-    } else {
-      result = objecttag_remove(tagname);
-      if(result == 1)
-        notify(player,"Tag removed.");
-      else if(!result)
-        notify(player,"#-1 Tag does not exist!");
-      else if(result == -1)
-        notify(player,"#-1 Tag name can't be over 32 characters.");
-      else if(result == -2)
-        notify(player,"#-1 Tag name cannot have whitespaces.");
-      else
-        notify(player,"#-1 UNKNOWN ERROR");
-    }
-  } else if(key == TAG_LIST) {
-    if(*target) {
-      notify(player,"#-1 Too many arguments for @tag/list. Max of 1 Expected.");
-    } else {
-      buffp = buff = alloc_lbuf("tag_cmd");
-      s_hashstr = alloc_lbuf("tag_cmd");
-      safe_str("Defined Tags:\n", buff, &buffp);
-      safe_str("            Tag Name              |  #dbref  \n", buff, &buffp);
-      safe_str("==================================|==========\n", buff, &buffp);
-      for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-       storedtag;
-       storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
-        if(storedtag) {
-          if(*tagname) {
-            if(quick_wild(tagname, storedtag->tagname)) {
-              sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
-              safe_str(s_hashstr, buff, &buffp);
-            }
-          } else  {
-              sprintf(s_hashstr, " %-32s | #%d\n", storedtag->tagname, storedtag->tagref);
-              safe_str(s_hashstr, buff, &buffp);
-          }
-        }
-      }
-      safe_str("=============================================\n", buff, &buffp);
-      notify(player,buff);
-      free_lbuf(s_hashstr);
-      free_lbuf(buff);
-    }
-  } else {
-    if(!*tagname) {
-      notify(player,"#-1 No tagname specified.");
-    } else if(*target) {
-      notify(player,"#-1 Too many arguments for @tag. 1 Expected.");
-    } else {
-      p = objecttag_get(tagname);
-      buff = alloc_lbuf("tag_cmd");
-      sprintf(buff, "#%d", p);
-      notify(player, buff);
-      free_lbuf(buff);
-    }
+
+  i_page = i_pagetot = i_count = i_personal = i_total = i_start = 0;
+  if ( key & TAG_PERSONAL ) {
+     i_personal = 1;
+     key &= ~TAG_PERSONAL;
   }
+
+  /* If no argument we'll make it do @tag/list */
+  if ( !key && !*s_tagname ) {
+     key = TAG_LIST;
+  }
+
+  tagname = alloc_lbuf("do_tag");
+  if ( i_personal ) {
+     if ( key & TAG_LIST ) {
+        sprintf(tagname, "__%d_%.100s%c", Owner(player), s_tagname, '*');
+     } else {
+        sprintf(tagname, "__%d_%.100s", Owner(player), s_tagname);
+     }
+  } else {
+     strcpy(tagname, s_tagname);
+  }
+
+  switch (key) {
+     case TAG_ADD: /* tag add */
+        if( !*tagname || ((*tagname == '_') && !i_personal) ) {
+           notify(player,"#-1 No tagname or invalid tagname specified.");
+        } else if (!*target) {
+           notify(player,"#-1 No dbref specified.");
+        } else {
+           init_match(player, target, NOTYPE);
+           match_everything(0);
+           p = match_result();
+           if( Good_obj(p) && (!i_personal || (i_personal && Controls(player, p))) ) {
+              result = objecttag_add(tagname, p, i_personal, 0);
+              if(result == 1)
+                notify(player,"Tag added."); 
+              else if(!result)
+                notify(player,"#-1 Couldn't add hash!");
+              else if(result == -1)
+                notify(player,"#-1 Not a valid object or dbref.");
+              else if(result == -2)
+                notify(player,"#-1 Tag name can't be over 32 characters.");
+              else if(result == -3)
+                notify(player,"#-1 Tag name cannot have whitespaces.");
+              else if(result == -4)
+                notify(player,"#-1 Tag with same name already exists."); 
+              else if(result == -5)
+                notify(player,"#-1 16 tags already reference this object!");
+              else
+                notify(player,"#-1 UNKNOWN ERROR");
+           } else {
+              notify(player,"#-1 Not a valid existing object or dbref.");
+           }
+        }
+        break;
+     case TAG_REMOVE: /* remove tag */
+        if( !*tagname || ((*tagname == '_') && !(Admin(player) || i_personal)) ) {
+           notify(player,"No tagname specified.");
+        } else if(*target) {
+           notify(player,"Too many arguments for @tag/remove. 1 Expected.");
+        } else {
+           result = objecttag_remove(tagname);
+           if(result == 1)
+             notify(player,"Tag removed.");
+           else if(!result)
+             notify(player,"#-1 Tag does not exist!");
+           else if(result == -1)
+             notify(player,"#-1 Tag name can't be over 32 characters.");
+           else if(result == -2)
+             notify(player,"#-1 Tag name cannot have whitespaces.");
+           else
+             notify(player,"#-1 UNKNOWN ERROR");
+        }
+        break;
+     case TAG_LIST: /* list tag */
+        if(*target) {
+           notify(player,"#-1 Too many arguments for @tag/list. Max of 1 Expected.");
+        } else {
+           buffp = buff = alloc_lbuf("tag_cmd");
+           s_hashstr = alloc_lbuf("tag_cmd");
+           safe_str("Defined Tags:\r\n", buff, &buffp);
+           if ( i_personal ) {
+              safe_str("              Tag Name              | Personal | #dbref  \r\n", buff, &buffp);
+              safe_str("====================================|==========|==========", buff, &buffp);
+           } else {
+              safe_str("            Tag Name              | Personal | #dbref  \r\n", buff, &buffp);
+              safe_str("==================================|==========|==========", buff, &buffp);
+           }
+           /* Count the entries */
+           if ( *tagname && is_number(tagname) ) {
+              i_start = atoi(tagname);
+              for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+                   storedtag;
+                   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+                 i_total++;
+              }
+              if ( i_start < 1 ) {
+                 i_start = 0;
+              }
+              if ( i_start > (i_total / 20) ) {
+                 i_start = (i_total / 20);
+              }
+              i_pagetot = (i_total / 20) + 1;
+              i_page = i_start + 1;
+              i_start *= 20;
+              /* Paged value -- we want null tagname now */
+              *tagname = '\0';
+           } else if ( !*tagname ) {
+              for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+                   storedtag;
+                   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+                 i_total++;
+              }
+              i_start = 0;
+              i_pagetot = (i_total / 20) + 1;
+              i_page = i_start + 1;
+              i_start *= 20;
+           }
+          
+           /* Notify header */
+           notify(player, buff);
+           *buff = '\0';
+           for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+                storedtag;
+                storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+              if(storedtag) {
+                 if ( !*tagname ) {
+                    i_count++;
+                    if ( i_count < i_start ) {
+                       continue;
+                    }
+                    if ( i_count > (i_start + 20) ) {
+                       break;
+                    }
+                 }
+                 if(*tagname) {
+                    if(quick_wild(tagname, storedtag->tagname)) {
+                       if ( i_personal ) {
+                          t_warn = ' ';
+                          t_distag = strchr(storedtag->tagname+3, '_') + 1;
+                          hashp = hashfind(t_distag, &mudstate.objecttag_htab);
+                          if ( hashp ) {
+                             t_warn = 'W';
+                          }
+                          sprintf(s_hashstr, "%c  %-32s | %-8s | #%d", t_warn, t_distag,
+                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
+                       } else {
+                          sprintf(s_hashstr, " %-32s | %-8s | #%d", storedtag->tagname, 
+                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
+                       }
+                       // safe_str(s_hashstr, buff, &buffp);
+                       notify(player, s_hashstr);
+                    }
+                 } else {
+                    if ( i_personal ) {
+                          t_warn = ' ';
+                          t_distag = strchr(storedtag->tagname+3, '_') + 1;
+                          hashp = hashfind(t_distag, &mudstate.objecttag_htab);
+                          if ( hashp ) {
+                             t_warn = 'W';
+                          }
+                          sprintf(s_hashstr, "%c  %-32s | %-8s | #%d", t_warn, t_distag,
+                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
+                    } else {
+                       sprintf(s_hashstr, " %-32s | %-8s | #%d", storedtag->tagname,
+                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
+                    }
+                    // safe_str(s_hashstr, buff, &buffp);
+                    notify(player, s_hashstr);
+                 }
+              }
+           }
+           if ( i_personal )  {
+              if ( !*tagname ) {
+                 sprintf(buff, "== Page %4d/%4d ======================================\r\n", i_page, i_pagetot);
+              } else {
+                 strcpy(buff, (char *)"==========================================================\r\n");
+              }
+//            safe_str("==========================================================\r\n", buff, &buffp);
+              /* Strcat safe here -- buffer more than large enough */
+              strcat(buff, (char *)"W -- Warning that a global tag overrides your local tag");
+           } else {
+              if ( !*tagname ) {
+                 sprintf(buff, "== Page %4d/%4d ======================================", i_page, i_pagetot);
+              } else {
+                  strcpy(buff, (char *)"==========================================================");
+              }
+//            safe_str("========================================================\r\n", buff, &buffp);
+           }
+           notify(player,buff);
+           free_lbuf(s_hashstr);
+           free_lbuf(buff);
+        }
+        break;
+     default: /* Default handler */
+        if( !*tagname ) {
+           notify(player,"#-1 No tagname specified.");
+        } else if(*target) {
+           notify(player,"#-1 Too many arguments for @tag. 1 Expected.");
+        } else {
+           p = objecttag_get(tagname, player, 1);
+           buff = alloc_lbuf("tag_cmd");
+           sprintf(buff, "#%d", p);
+           notify(player, buff);
+           free_lbuf(buff);
+        }
+        break;
+  } /* Switch Case */
+  free_lbuf(tagname);
 }
 #endif

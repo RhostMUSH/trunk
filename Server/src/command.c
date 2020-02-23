@@ -42,6 +42,7 @@ extern void mod_perms(dbref, char *, char *, char **, int);
 extern void FDECL(list_cf_access, (dbref, char *, int));
 extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
+extern int totem_player_list(char *, int, dbref, dbref);
 extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern int lookup(char *, char *, int, int *);
@@ -1137,6 +1138,13 @@ NAMETAB tag_sw[] =
     {(char *) "list", 1, CA_ADMIN, 0, TAG_LIST},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB ltag_sw[] =
+{
+    {(char *) "add", 1, CA_PUBLIC, 0, TAG_ADD},
+    {(char *) "remove", 1, CA_PUBLIC, 0, TAG_REMOVE},
+    {(char *) "list", 1, CA_PUBLIC, 0, TAG_LIST},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB tel_sw[] =
 {
     {(char *) "list", 1, CA_PUBLIC, 0, TEL_LIST},
@@ -1147,6 +1155,23 @@ NAMETAB turtle_sw[] =
 {
     {(char *) "no_chown", 1, CA_WIZARD | CA_ADMIN, 0, TOAD_NO_CHOWN},
     {(char *) "unique3", 1, CA_WIZARD | CA_ADMIN, 0, TOAD_UNIQUE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB totem_sw[] =
+{
+    {(char *) "add", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_ADD},
+    {(char *) "remove", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_REMOVE},
+    {(char *) "list", 2, CA_PUBLIC, 0, TOTEM_LIST},
+    {(char *) "set", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSSET},
+    {(char *) "unset", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSUSET},
+    {(char *) "see", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSSEE},
+    {(char *) "type", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSTYPE},
+    {(char *) "rename", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_RENAME},
+    {(char *) "validate", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_VALIDATE},
+    {(char *) "info", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_INFO},
+    {(char *) "fulllist", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_FULL},
+    {(char *) "alias", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_ALIAS},
+    {(char *) "clean", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_CLEAN},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB toad_sw[] =
@@ -1405,6 +1430,8 @@ CMDENT command_table[] =
     {(char *) "@lock", lock_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_lock},
     {(char *) "@lset", lset_sw, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_lset},
+    {(char *) "@ltag", ltag_sw, CA_NO_SLAVE | CA_NO_GUEST , CA_NO_CODE,
+     TAG_PERSONAL, CS_TWO_ARG | CS_INTERP, 0, do_tag},
     {(char *) "@mark", mark_sw, CA_WIZARD, 0,
      SRCH_MARK, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
     {(char *) "@mark_all", markall_sw, CA_WIZARD, 0,
@@ -1513,6 +1540,8 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
     {(char *) "@toggledef", flagdef_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_toggledef},
+    {(char *) "@totemdef", flagdef_sw, CA_IMMORTAL, 0,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_totemdef},
     {(char *) "@tor", tor_sw, CA_IMMORTAL, 0,
      0, CS_NO_ARGS, 0, do_tor},
     {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
@@ -1521,8 +1550,7 @@ CMDENT command_table[] =
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
      0, do_switch},
-    {(char *) "@tag", tag_sw,
-     CA_NO_SLAVE | CA_NO_GUEST , CA_NO_CODE,
+    {(char *) "@tag", tag_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_ADMIN, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP, 0, do_tag},
     {(char *) "@teleport", tel_sw, CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_INTERP, 0, do_teleport},
@@ -1530,6 +1558,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG, 0, do_thaw},
     {(char *) "@timewarp", warp_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_timewarp},
+    {(char *) "@totem", totem_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_INTERP, 0, do_totem},
     {(char *) "@toad", toad_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_toad},
     {(char *) "@toggle", toggle_sw,
@@ -8021,6 +8050,7 @@ list_hashstats(dbref player)
     list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
     list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
     list_hashstat(player, "Flags", &mudstate.flags_htab);
+    list_hashstat(player, "Totems", &mudstate.totem_htab);
     list_hashstat(player, "Attr names", &mudstate.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
     list_hashstat(player, "Player Names", &mudstate.player_htab);
@@ -8470,6 +8500,7 @@ list_rlevels(dbref player, int i_key)
 #define	LIST_DF_TOGGLES	31
 #define LIST_BUFTRACEADV 32
 #define LIST_VATTRCMDS 33
+#define LIST_TOTEMS 34
 
 NAMETAB list_names[] =
 {
@@ -8508,6 +8539,7 @@ NAMETAB list_names[] =
     {(char *) "stacks", 3, CA_IMMORTAL, 0, LIST_STACKS},
     {(char *) "funperms", 4, CA_IMMORTAL, 0, LIST_FUNPERMS},
     {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
+    {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -8621,6 +8653,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     case LIST_FLAGS:
 	display_flagtab(player);
 	break;
+    case LIST_TOTEMS:
+        display_totemtab(player);
+        break;
     case LIST_TOGGLES:
 	display_toggletab(player);
 	break;
@@ -8650,19 +8685,19 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	list_cmdaccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_CONF_PERMS:
-		list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_POWERS:
         list_allpower(player, 0);
 	break;
     case LIST_DEPOWERS:
-        list_allpower(player, 1);
+	list_allpower(player, 1);
         break;
     case LIST_ATTRPERMS:
 	list_attraccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_VATTRCMDS:
-        list_vattrcmds(player);
+	list_vattrcmds(player);
         break;
     case LIST_VATTRS:
 	list_vattrs(player, save_buff, ((s_ptr2 && *s_ptr2) ? 1 : 0));

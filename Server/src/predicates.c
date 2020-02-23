@@ -1170,6 +1170,23 @@ const char *cp, *good_chars;
 	return 1;
 }
 
+int ok_totem_name(const char *s_totem)
+{
+   const char *t_totem;
+
+   /* Totem names can't be over 20 characters */
+   if ( strlen(s_totem) > 20 ) {
+      return 0;
+   }
+
+   /* Totem names can only be alphanumeric, or contain '_ - +' */
+   for ( t_totem = s_totem; *t_totem; t_totem++ ) {
+      if ( isalnum((int)*t_totem)) continue;
+      if ( !(index("_-+", *t_totem)) ) return 0;
+   }
+   return 1;
+}
+
 int ok_attr_name(const char *attrname)
 {
 const char *scan;

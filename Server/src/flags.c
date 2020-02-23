@@ -15,8 +15,8 @@ char *index(const char *, int);
 #include "flags.h"
 #include "alloc.h"
 #include "rhost_ansi.h"
-
 #include "rwho_clilib.h"
+#include "match.h"
 
 #ifndef STANDALONE
 
@@ -77,6 +77,23 @@ fh_any(dbref target, dbref player, FLAG flag, int fflags, int reset)
 	    s_Flags(target, Flags(target) | flag);
     }
     return 1;
+}
+
+int
+totem_any(dbref target, dbref player, FLAG totem, int tflags, int reset) {
+   if ( (tflags < 0) || (tflags > TOTEM_SLOTS) ) {
+      return 0;
+   }
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      return 0;
+   }
+   
+   if ( reset ) {
+      dbtotem[target].flags[tflags] &= ~totem;
+   } else {
+      dbtotem[target].flags[tflags] |= totem;
+   }
+   return 1;
 }
 
 	/* set a toggle - Thorin 3/95 */
@@ -1129,6 +1146,65 @@ static int togent_comp(const void *s1, const void *s2)
 }
 
 void 
+display_totemtab2(dbref player, char *buff, char **bufcx, int key)
+{
+    char *buf, *bp;
+    const TOTEMENT *ptrs[LBUF_SIZE/2];
+    int f_int, nptrs, i;
+    TOTEMENT *tp;
+
+    bp = buf = alloc_lbuf("display_totemtab");
+    f_int = 0;
+    nptrs = 0;
+
+    for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         tp;
+	 tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+	if ((tp->listperm & CA_BUILDER) && !Builder(player))
+	    continue;
+	if ((tp->listperm & CA_ADMIN) && !Admin(player))
+	    continue;
+	if ((tp->listperm & CA_WIZARD) && !Wizard(player))
+	    continue;
+	if ((tp->listperm & CA_IMMORTAL) && !Immortal(player))
+	    continue;
+	if ((tp->listperm & CA_GOD) && !God(player))
+	    continue;
+	
+	ptrs[nptrs] = tp;
+	nptrs++;
+        if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+           notify(player, "WARNING: Totem table too large to display.");
+           break;
+        }
+    }    
+    qsort(ptrs, nptrs, sizeof(TOTEMENT *), togent_comp); 
+     
+    for(i = 0; i < nptrs ; i++) {
+        if ( f_int )
+	   safe_chr(' ', buf, &bp);
+        f_int = 1;
+	safe_str((char *) ptrs[i]->flagname, buf, &bp);
+        if ( !key ) {
+	   safe_chr('(', buf, &bp);
+           if ( ptrs[i]->permanent == 0 ) {
+	      safe_chr('T', buf, &bp);
+           } else if ( ptrs[i]->permanent == 1 ) {
+	      safe_chr('S', buf, &bp);
+           } else {
+	      safe_chr('P', buf, &bp);
+           }
+	   /* safe_chr(ptrs[i]->totemlett, buf, &bp); */
+	   safe_chr(')', buf, &bp);
+        }
+    }
+    
+    *bp = '\0';
+    safe_str(buf, buff, bufcx);
+    free_lbuf(buf);
+}
+void 
 display_toggletab2(dbref player, char *buff, char **bufcx)
 {
     char *buf, *bp;
@@ -1190,6 +1266,47 @@ display_toggletab(dbref player)
     display_toggletab2(player, buf, &bp);
     notify(player, buf);
     free_lbuf(buf);
+}
+
+void 
+display_totemtab(dbref player)
+{
+    char *buf, *bp;
+
+    bp = buf = alloc_lbuf("display_totemtab");
+    
+    safe_str((char *) "Totems : ", buf, &bp);
+    display_totemtab2(player, buf, &bp, 0);
+    notify(player, buf);
+    free_lbuf(buf);
+}
+
+TOTEMENT *
+find_totem_perm(dbref thing, char *totemname, dbref player)
+{
+    char *cp;
+    TOTEMENT *fp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = totemname; *cp; cp++)
+	*cp = ToLower((int)*cp);
+
+    fp = (TOTEMENT *)hashfind(totemname, &mudstate.totem_htab);
+    if ( fp ) {
+       if ((fp->listperm & CA_BUILDER) && !Builder(player))
+          fp = (TOTEMENT*)NULL;
+       else if ((fp->listperm & CA_ADMIN) && !Admin(player))
+          fp = (TOTEMENT*)NULL;
+       else if ((fp->listperm & CA_WIZARD) && !Wizard(player))
+          fp = (TOTEMENT*)NULL;
+       else if ((fp->listperm & CA_IMMORTAL) && !Immortal(player))
+          fp = (TOTEMENT*)NULL;
+       else if ((fp->listperm & CA_GOD) && !God(player))
+          fp = (TOTEMENT*)NULL;
+    }
+
+    return fp;
 }
 
 FLAGENT *
@@ -1261,6 +1378,18 @@ find_toggle_perm(dbref thing, char *togglename, dbref player)
     }
 
     return tp;
+}
+
+TOTEMENT *
+find_totem(dbref thing, char *totemname)
+{
+    char *cp;
+
+    /* Make sure the flag name is valid */
+
+    for (cp = totemname; *cp; cp++)
+	*cp = ToLower((int)*cp);
+    return (TOTEMENT *) hashfind(totemname, &mudstate.totem_htab);
 }
 
 TOGENT *
@@ -1595,6 +1724,146 @@ flag_set(dbref target, dbref player, char *flag, int key)
     free_lbuf(tpr_buff);
     free_lbuf(tpr_buff2);
     free_lbuf(tbuff);
+}
+
+void 
+totem_set(dbref target, dbref player, char *totem, int key)
+{
+    TOTEMENT *fp, *tp;
+    FLAG i_flag;
+    int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
+    char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
+
+    /* Trim spaces, and handle the negation character */
+
+    fp = (TOTEMENT*)NULL;
+    pt1 = totem;
+    st = 1;
+    while (st) {
+	negate = 0;
+	while (*pt1 && isspace((int)*pt1))
+	    pt1++;
+	if (*pt1 == '!') {
+	    negate = 1;
+	    pt1++;
+	}
+	while (*pt1 && isspace((int)*pt1))
+	    pt1++;
+	pt2 = pt1;
+	while (*pt2 && !isspace((int)*pt2))
+	    pt2++;
+	if (*pt2 == '\0')
+	    st = 0;
+	else
+	    (*pt2 = 0);
+
+	/* Make sure a totem name was specified */
+
+        perm = 1;
+	if (*pt1 == '\0') {
+	    if (negate) {
+              if ( !(key & SIDEEFFECT) )
+		notify(player, "You must specify a totem or totem to clear.");
+	    } else {
+              if ( !(key & SIDEEFFECT) )
+		notify(player, "You must specify a totem or totem to set.");
+            }
+	} else {
+	    tp = find_totem(target, pt1);
+	    if (tp == NULL) {
+              if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
+                fp = find_totem_perm(target, pt1, player);
+                if ( fp == NULL ) {
+		   notify(player, "I don't understand that totem.");
+                } else {
+                   tprp_buff = tpr_buff = alloc_lbuf("totem_message");
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that totem [Did you mean @set me=%s?]", pt1));
+                   free_lbuf(tpr_buff);
+                }
+              }
+	    } else {
+		if ((NoMod(target) && !WizMod(player)) || 
+                    (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
+                    !Immortal(player))) {
+		     notify(player, "Permission denied.");
+                    perm = 0;
+                } 
+                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
+                             ((Typeof(target) == TYPE_PLAYER) && (tp->typeperm & DEF_PLAYER)) ||
+                             ((Typeof(target) == TYPE_THING) && (tp->typeperm & DEF_THING)) ||
+                             ((Typeof(target) == TYPE_EXIT) && (tp->typeperm & DEF_EXIT)) ) ) {
+                    if ( !(tp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                                            DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                        perm = 0;
+                     } else if ( (tp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                        perm = 0;
+                     }
+                     if ( !perm )
+                        notify(player, "Permission denied.");
+                }
+		if ( perm ) {
+		/* Invoke the totem handler, and print feedback */
+
+                  i_flag = dbtotem[target].flags[tp->flagpos];
+                  i_flagchk = !(tp->flagvalue & i_flag);
+                  i_ovperm = (tp->setovperm &~ CA_LOGFLAG);
+                  i_uovperm = (tp->usetovperm &~ CA_LOGFLAG);
+                  if (((i_ovperm > 0) && !negate) || 
+                      ((i_uovperm > 0) && negate)) {
+                     if ((i_ovperm > 0) && !negate) 
+                        result = check_access(player, i_ovperm, 0, 0);
+                     else if ((i_uovperm > 0) && negate)
+                        result = check_access(player, i_uovperm, 0, 0);
+                       /* Some things you just can *not* override */
+                     if ( result && ((tp->handler == th_player) ||
+                                     (tp->handler == th_noset) ||
+                                     (tp->handler == th_extansi)) ) {
+		          result = tp->handler(target, player, tp->flagvalue,
+				               tp->flagpos, negate);
+                     }
+                  } else {
+		     result = tp->handler(target, player, tp->flagvalue,
+		   		     tp->flagpos, negate);
+                  }
+                  if ( result ) {
+                     dbtotem[target].modified = 1;
+                  }
+		  if (!result) {
+		    notify(player, "Permission denied.");
+		  } else if (!(key & (SET_QUIET|SIDEEFFECT)) && !Quiet(player)) {
+                    if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                       tprp_buff = tpr_buff = alloc_lbuf("do_set");
+                       if ( negate ) {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (cleared totem%s%s).",
+                                       Name(target), (!i_flagchk ? " " : " [again] "),
+                                       tp->flagname) );
+                       } else {
+                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (set totem%s%s).",
+                                       Name(target), (i_flagchk ? " " : " [again] "),
+                                       tp->flagname) );
+                       }
+                       free_lbuf(tpr_buff);
+                    } else {
+		       notify(player, (negate ? "Cleared." : "Set."));
+                    }
+                  }
+		}
+	    }
+	}
+	if (st)
+	    pt1 = pt2 + 1;
+    }
 }
 
 void 
@@ -3665,6 +3934,54 @@ decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i
 }
 
 void 
+decompile_totems(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
+{
+    char *tpr_buff, *tprp_buff, *s_buff, *s_ptr;
+    int first = 0;
+    TOTEMENT *tp;
+
+    /* Return if thing not valid */
+    if ( !Good_obj(thing) ) {
+       return;
+    }
+
+    /* Report generic flags */
+    s_ptr = s_buff = alloc_lbuf("decompile_flags");
+    for (tp = (TOTEMENT *) hash_firstentry(&mudstate.totem_htab);
+         tp;
+         tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+        /* Skip if not on player */
+        if ( (dbtotem[thing].flags[tp->flagpos] & tp->flagvalue) != tp->flagvalue ) {
+           continue;
+        }
+
+	/* Skip if we shouldn't decompile this flag */
+	if (tp->listperm & CA_NO_DECOMP) {
+	    continue;
+        }
+
+	/* Skip if we can't see this flag */
+	if (!check_access(player, tp->listperm, 0, 0)) {
+	    continue;
+        }
+
+	/* We made it this far, report this flag */
+        if ( first )
+           safe_chr(' ', s_buff, &s_ptr);
+        safe_str((char *)tp->flagname, s_buff, &s_ptr);
+        first = 1;
+    }
+    if ( *s_buff ) {
+       tprp_buff = tpr_buff = alloc_lbuf("decompile_totems");
+       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@totem %s=%s", 
+                                         (i_tf ? qualout : (char *)""), thingname, s_buff));
+       free_lbuf(tpr_buff);
+    }
+    free_lbuf(s_buff);
+}
+
+void 
 decompile_toggles(dbref player, dbref thing, char *thingname, char *qualout, int i_tf)
 {
     char *tpr_buff, *tprp_buff, *s_buff, *s_ptr;
@@ -4217,32 +4534,46 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
 #define CF_HAND(proc)   int proc (int *vp, char *str, long extra, long extra2, \
                                   dbref player, char *cmd)
 */
-#define IS_TYPE_FLAG	1
-#define IS_TYPE_TOGGLE	2
 
-int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int i_type ) {
+int do_flag_and_toggle_def_conf(dbref player, char *totem_perms, char *cmd, char *totem, int i_type ) {
 #ifdef STANDALONE
    return 0;
 #else
-   int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3, i_mask4;
-   char *strtok, *strtok2, *strtokptr, *buff, *s;
+   int mask_add, mask_del, negate, srch_return, stripmask, i_mask1, i_mask2, i_mask3, i_mask4, i_combine;
+   char *strtok, *strtok2, *strtokptr, *buff, *s, *s_combine, *s_combineptr;
+   TOTEMENT *tmp;
    FLAGENT *fp;
    TOGENT *tp;
    
-   s = str;
+   if ( totem ) {
+      s_combineptr = s_combine = alloc_lbuf("do_flag_and_toggle_combine");
+      safe_str(totem, s_combine, &s_combineptr);
+      safe_chr(' ', s_combine, &s_combineptr);
+      safe_str(totem_perms, s_combine, &s_combineptr);
+      s = s_combine;
+      i_combine = 1;
+      
+   } else {
+      i_combine = 0;
+      s = totem_perms;
+   }
    while ( s && *s ) {
       *s = ToLower(*s);
       s++;
    }
 
    stripmask=0xBFCB0090;
-   strtok = strtok_r(str, " \t", &strtokptr);
+   if ( i_combine ) {
+      strtok = strtok_r(s_combine, " \t", &strtokptr);
+   } else {
+      strtok = strtok_r(totem_perms, " \t", &strtokptr);
+   }
    strtok2 = NULL;
    if ( strtok && *strtok ) {
       strtok2 = strtok_r(NULL, " \t", &strtokptr);
    }
    if ( !strtok || !*strtok || !strtok2 || !*strtok2 ) {
-      if ( !mudstate.initializing ) {
+      if ( !mudstate.initializing && Good_chk(player)) {
          if ( !strtok || !*strtok )
             notify(player, "Nothing specified.  Please enter a valid flag.");
          else
@@ -4258,29 +4589,41 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
             free_lbuf(buff);
          ENDLOG
       }
+      if ( i_combine ) {
+         free_lbuf(s_combine);
+      }
       return -1;
    }
    i_mask1 = i_mask2 = i_mask3 = i_mask4 = srch_return = mask_add = mask_del = negate = 0;
-   fp = (FLAGENT *)NULL;
-   tp = (TOGENT *)NULL;
+   fp  = (FLAGENT *)NULL;
+   tp  = (TOGENT *)NULL;
+   tmp = (TOTEMENT *)NULL;
    if ( i_type == IS_TYPE_FLAG ) {
       fp = (FLAGENT *)hashfind(strtok, &mudstate.flags_htab);
    }
    if ( i_type == IS_TYPE_TOGGLE ) {
       tp = (TOGENT *)hashfind(strtok, &mudstate.toggles_htab);
    }
-   if ( ((i_type == IS_TYPE_FLAG) && !fp) || ((i_type == IS_TYPE_TOGGLE) && !tp) ) {
+   if ( i_type == IS_TYPE_TOTEM ) {
+      tmp = (TOTEMENT *)hashfind(strtok, &mudstate.totem_htab);
+   }
+   if ( ((i_type == IS_TYPE_FLAG) && !fp) || ((i_type == IS_TYPE_TOGGLE) && !tp) || ((i_type == IS_TYPE_TOTEM) && !tmp) ) {
       buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-      if ( !mudstate.initializing ) {
-         sprintf(buff, "Invalid %s '%s' specified.  Please enter a valid argument.", ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+      if ( !mudstate.initializing && Good_chk(player) ) {
+         sprintf(buff, "Invalid %s '%s' specified.  Please enter a valid argument.", 
+                ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
          notify_quiet(player, buff);
       } else {
          STARTLOG(LOG_STARTUP, "CNF", "NFND")
-            sprintf(buff, "%.3900s: Invalid %s '%s' specified.", cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+            sprintf(buff, "%.3900s: Invalid %s '%s' specified.", cmd, 
+                   ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
             log_text(buff);
          ENDLOG
       }
       free_lbuf(buff);
+      if ( i_combine ) {
+         free_lbuf(s_combine);
+      }
       return -1;
    }
    
@@ -4291,7 +4634,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
       } else
          negate = 0;
          
-      if ( !stricmp(cmd, "flag_access_type") || !stricmp(cmd, "toggle_access_type") ) {
+      if ( !stricmp(cmd, "flag_access_type") || !stricmp(cmd, "toggle_access_type") || !stricmp(cmd, "totem_access_type") ) {
          srch_return = search_nametab(GOD, flagdef_type, strtok2);
       } else {
          srch_return = search_nametab(GOD, access_nametab, strtok2);
@@ -4313,16 +4656,21 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
    }
    if ( !mask_del && !mask_add ) {
       buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-      if ( !mudstate.initializing ) {
-         sprintf(buff, "No valid permissions for %s '%s' specified.  Please enter a valid permissions.", ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+      if ( !mudstate.initializing && Good_chk(player) ) {
+         sprintf(buff, "No valid permissions for %s '%s' specified.  Please enter a valid permissions.", 
+                 ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
          notify_quiet(player, buff);
       } else {
          STARTLOG(LOG_STARTUP, "CNF", "NFND")
-            sprintf(buff, "%.3900s: No valid permissions for %s '%s' specified.", cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok);
+            sprintf(buff, "%.3900s: No valid permissions for %s '%s' specified.", cmd, 
+                    ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
             log_text(buff);
          ENDLOG
       }
       free_lbuf(buff);
+      if ( i_combine ) {
+         free_lbuf(s_combine);
+      }
       return -1;
    }
    switch (i_type) {
@@ -4364,29 +4712,317 @@ int do_flag_and_toggle_def_conf(dbref player, char *str, char *cmd, int *vp, int
            i_mask3 = tp->listperm;
            i_mask4 = tp->typeperm;
            break;
+      case IS_TYPE_TOTEM: /* Set variables to type totem */
+           if ( !stricmp(cmd, "totem_access_set") ) {
+              tmp->setovperm &= ~mask_del;
+              tmp->setovperm |= mask_add;
+           } else if ( !stricmp(cmd, "totem_access_unset") ) {
+              tmp->usetovperm &= ~mask_del;
+              tmp->usetovperm |= mask_add;
+           } else if ( !stricmp(cmd, "totem_access_see") ) {
+              tmp->listperm &= ~mask_del;
+              tmp->listperm |= mask_add;
+           } else if ( !stricmp(cmd, "totem_access_type") ) {
+              tmp->typeperm &= ~mask_del;
+              tmp->typeperm |= mask_add;
+           }
+           i_mask1 = tmp->setovperm;
+           i_mask2 = tmp->usetovperm;
+           i_mask3 = tmp->listperm;
+           i_mask4 = tmp->typeperm;
+           break;
    } 
    buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-   if ( !mudstate.initializing ) {
+   if ( !mudstate.initializing && Good_chk(player) ) {
       sprintf(buff, "%s: permission set for %s '%s' [added: %08x, removed: %08x].", 
-              cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok, mask_add, mask_del);
+              cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok, mask_add, mask_del);
       notify_quiet(player, buff);
       sprintf(buff, "   ->   Set: %s", (char *)((i_mask1 & 0x40000000) ? "mortal" : ""));
-      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->setovperm : tp->setovperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      listset_nametab(player, access_nametab, 0, 
+         ((i_type == IS_TYPE_FLAG) ? fp->setovperm : ((i_type == IS_TYPE_TOGGLE) ? tp->setovperm : tmp->setovperm)) & ~(stripmask|0x40000000), 0, buff, 1);
       sprintf(buff, "   -> UnSet: %s", (char *)((i_mask2 & 0x40000000) ? "mortal" : ""));
-      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->usetovperm : tp->usetovperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      listset_nametab(player, access_nametab, 0, 
+         ((i_type == IS_TYPE_FLAG) ? fp->usetovperm : ((i_type == IS_TYPE_TOGGLE) ? tp->usetovperm : tmp->usetovperm)) & ~(stripmask|0x40000000), 0, buff, 1);
       sprintf(buff, "   ->   See: %s", (char *)((i_mask3 & 0x40000000) ? "mortal" : ""));
-      listset_nametab(player, access_nametab, 0, ((i_type == IS_TYPE_FLAG) ? fp->listperm : tp->listperm) & ~(stripmask|0x40000000), 0, buff, 1);
+      listset_nametab(player, access_nametab, 0, 
+         ((i_type == IS_TYPE_FLAG) ? fp->listperm : ((i_type == IS_TYPE_TOGGLE) ? tp->listperm : tmp->listperm)) & ~(stripmask|0x40000000), 0, buff, 1);
       sprintf(buff, "   ->  Type: %s", (char *)"");
-      listset_nametab(player, flagdef_type, 0, ((i_type == IS_TYPE_FLAG) ? fp->typeperm : tp->typeperm), 0, buff, 1);
+      listset_nametab(player, flagdef_type, 0, 
+         ((i_type == IS_TYPE_FLAG) ? fp->typeperm : ((i_type == IS_TYPE_TOGGLE) ? tp->typeperm : tmp->typeperm)), 0, buff, 1);
    } else {
       STARTLOG(LOG_STARTUP, "CNF", "NFND")
          sprintf(buff, "%.3900s: permissions set for %s '%s' [added: %08x, removed: %08x].", 
-                 cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : "toggle"), strtok, mask_add, mask_del);
+                 cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok, mask_add, mask_del);
          log_text(buff);
       ENDLOG
    }
    free_lbuf(buff);
+   if ( i_combine ) {
+      free_lbuf(s_combine);
+   }
    return 1;
+#endif
+}
+
+void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
+{
+#ifndef STANDALONE
+   TOTEMENT *fp;
+   char listpermary[33], setovpermary[33], usetovpermary[33], typepermary[11], *lp_ptr, *sop_ptr, *usop_ptr, *t_ptr;
+   char static_list[33], static_list2[33], type_list[11], *tmp_ptr, c_bef, c_aft, c_perm, *tpr_buff, *tprp_buff, *tstrtokr;
+   char *static_names[]={ "GOD", "IMMORTAL", "ROYALTY/WIZARD", "COUNCILOR", "ARCHITECT", "GUILDMASTER",
+                          "MORTAL", "NO_SUSPECT", "NO_GUEST", "NO_WANDERER", "IGNORE", "IGNORE_IM", 
+                          "IGNORE_ROYAL", "IGNORE_COUNC", "IGNORE_ARCH", "IGNORE_GM", "IGNORE_MORTAL", 
+                          "LOGFLAG", NULL };
+   char   *type_names[]={ "THING", "PLAYER", "EXIT", "ROOM", "REGISTERED", "GUILDMASTER", "ARCHITECT", 
+                          "COUNCILOR", "WIZARD", "IMMORTAL", NULL };
+   int     type_masks[]={ 0x00000001, 0x00000002, 0x00000004, 0x00000008, 0x00000010, 0x00000020, 0x00000040,
+                          0x00000080, 0x00000100, 0x00000200, 0x00000000 };
+   int   static_masks[]={ 0x00000001, 0x00000008, 0x00000002, 0x00000020, 0x00000004, 0x00000040,
+                          0x40000000, 0x00080000, 0x00100000, 0x00200000, 0x00000100, 0x00004000,
+                          0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
+                          0x00008000, 0x00000000 };
+   int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
+
+   /* Copy 32 characters */
+   /* Note: 'M' (0x40000000) is not a valid flag - tagged for MORTAL use */
+   /* G - Ghod, W - Wizard, A - Architect, I - Immortal, C - Councilor, S - Guildmaster 
+    * g -!Ghod, m -!mortal, s -!guildmaster, a - !architect, c - !councilor, w - !wizard
+    * i -!immortal, + -!suspect, ! -!guest, ^ -!wanderer, M - mortal, L - LOGFLAG */
+   strcpy(static_list, "GWAI CS gmsacwiL   +!^        M ");
+   strcpy(static_list2, "GIWCASM+!^giwcasmL ");
+   strcpy(type_list, "TPERrgacwi");
+   type_list[10]='\0';
+   static_list[32]='\0';
+   static_list2[32]='\0';
+   stripmask=0xBFCB0090;
+   c_bef = ' ';
+   c_aft = ' ';
+   c_perm = ' ';
+
+   if ( strlen(flag1) > 0 )
+      wild_mtch = 1;
+   else
+      wild_mtch = 0;
+
+   if ( (key & FLAGDEF_INDEX) ) {
+      tmp_ptr = alloc_lbuf("do_flagdef");
+      sprintf(tmp_ptr, "%-20s %-3s %-10s    %-20s %-3s %-10s", 
+                       (char *)"Flag Permission", "Flg", (char *)"Hex Value",
+                       (char *)"Type Permission", "Flg", (char *)"Hex Value");
+      notify_quiet(player, tmp_ptr);
+      notify_quiet(player, "-------------------- --- ----------    -------------------- --- ----------");
+      for ( cntr = 0; cntr < 18; cntr++ ) {
+         if ( cntr < 10 ) {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x    %-20s [%c] 0x%08x", 
+                    static_names[cntr], static_list2[cntr], static_masks[cntr],
+                    type_names[cntr], type_list[cntr], type_masks[cntr]);
+         } else {
+            sprintf(tmp_ptr, "%-20s [%c] 0x%08x",
+                    static_names[cntr], static_list2[cntr], static_masks[cntr]);
+         }
+         notify_quiet(player, tmp_ptr);
+      }
+      notify_quiet(player, "-------------------- --- ---- ----------    -------------------- --- ----------");
+      free_lbuf(tmp_ptr);
+      return;
+   }
+   if ( (key & FLAGDEF_LIST) || key == 0 ) {
+      notify_quiet(player, "|Flagname           |Flg|T|Slot|Set       |Unset" \
+                           "     |See       |Type    |NoM|");
+      notify_quiet(player, "+-------------------+---+-+----+----------+" \
+                           "----------+----------+--------+---+");
+      fnd = 0;
+      tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+      for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1); 
+	   fp;
+	   fp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)){
+         if ( wild_mtch ) {
+            if (!quick_wild(flag1, (char *)fp->flagname))
+               continue;
+         }
+         fnd = 1;
+         memset(listpermary, 0, sizeof(listpermary));
+         memset(setovpermary, 0, sizeof(listpermary));
+         memset(usetovpermary, 0, sizeof(listpermary));
+         memset(typepermary, 0, sizeof(typepermary));
+         lp_ptr = listpermary;
+         sop_ptr = setovpermary;
+         usop_ptr = usetovpermary;
+         t_ptr = typepermary;
+         cntr = 0;
+         nodecomp = (fp->listperm & CA_NO_DECOMP);
+         nodecomp = (nodecomp | ((fp->flagvalue & IMMORTAL) &&
+                                 (fp->totemflag == 0)));
+         while ( cntr < 32 ) {
+            if ( (cntr < 11) && (fp->typeperm & (1 << cntr)) ) {
+               *t_ptr = type_list[cntr];
+               t_ptr++;
+            }
+            if ( (fp->listperm &~ stripmask) & (1 << cntr) ) {
+               *lp_ptr = static_list[cntr];
+                lp_ptr++;
+            }
+            if ( (fp->setovperm &~ stripmask) & (1 << cntr) ) {
+               *sop_ptr = static_list[cntr];
+                sop_ptr++;
+            }
+            if ( (fp->usetovperm &~ stripmask) & (1 << cntr) ) {
+               *usop_ptr = static_list[cntr];
+                usop_ptr++;
+            }
+            cntr++;
+         }
+         /* We'll reserve totem slot 10 & 11 for 'normal flags' and 12 & 13 for 'extended flags'
+          * This is for you Ambrosia *grin*.  For when you want to convert flags to totems.
+          * Then use totem 14 & 15 for 'toggles'
+          * Best of luck, especially if I happen to be dead before you see this.  --Ash
+          */
+         if ( (fp->flagpos == 12) || (fp->flagpos == 13) ) {
+            c_bef = '[';
+            c_aft = ']';
+         } else {
+            c_bef = ' ';
+            c_aft = ' ';
+         }
+         if ( fp->permanent == 0 ) {
+            c_perm = 'T';
+         } else if ( fp->permanent == 1 ) {
+            c_perm = 'S';
+         } else {
+            c_perm = 'P';
+         }
+         tprp_buff = tpr_buff;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "|%-19s|%c%c%c|%c|%04d|%-10s|%-10s|%-10s|%-8s| %c |", 
+                                           fp->flagname, c_bef, fp->flaglett, c_aft, c_perm, fp->flagpos, setovpermary, 
+                                           usetovpermary, listpermary, typepermary, (nodecomp ? 'Y' : ' ')));
+      }
+      free_lbuf(tpr_buff);
+      if ( !fnd )
+         notify_quiet(player, "                        *** NO MATCHING FLAGS FOUND ***");
+
+      notify_quiet(player, "+-------------------+---+-+----+----------+" \
+                           "----------+----------+--------+---+");
+   } else { 
+      for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+	   fp;
+	   fp = (TOTEMENT *) hash_nextentry(&mudstate.flags_htab)) {
+         if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
+            break;
+      }
+      if ( !fp || !((char *)(fp->flagname))) {
+         notify_quiet(player, "Bad flag given to @flagdef");
+         return;
+      }
+      if ( (fp->listperm & CA_NO_DECOMP) | 
+                  ((fp->flagvalue & IMMORTAL) &&
+                   (fp->totemflag == 0)) ) {
+         notify_quiet(player, "Sorry, you can not modify that flag.");
+         return;
+      }
+      if ( key & FLAGDEF_CHAR ) {
+         if ( (strlen(flag2) != 1) || !*flag2 || isspace(*flag2) || !isprint(*flag2)) {
+            notify_quiet(player, "Flag letter must be a single character.");
+         } else {
+            tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'flagletter' for flag %s.  Old letter '%c', new letter '%c'",
+                                           fp->flagname, fp->flaglett, *flag2));
+            fp->flaglett = *flag2;
+            free_lbuf(tpr_buff);
+         }
+         return;
+      }
+      if ( key & FLAGDEF_TYPE ) {
+         mask_add = mask_del = 0;
+         nodecomp = 0;
+         tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
+         while (tmp_ptr != NULL) {
+            if ( *tmp_ptr == '!' ) {
+               nodecomp = 1;
+               tmp_ptr++;
+            } else
+               nodecomp = 0;
+
+            srch_return = search_nametab(GOD, flagdef_type, tmp_ptr);
+            if ( srch_return != -1 ) {
+               if (nodecomp)
+                  mask_del |= srch_return;
+               else
+                  mask_add |= srch_return;
+            }
+            tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
+         }
+         if ( !mask_add && !mask_del ) {
+            notify_quiet(player, "Nothing for @flagdef to do.");
+            return;
+         }
+         fp->typeperm &= ~mask_del;
+         fp->typeperm |= mask_add;
+         tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for flag %s",
+                                           fp->flagname));
+         sprintf(tpr_buff, "   ->   %s", (char *)"Set:");
+         listset_nametab(player, flagdef_type, 0, fp->typeperm, 0, tpr_buff, 1);
+         free_lbuf(tpr_buff);
+         return;
+      }
+      tmp_ptr = strtok_r(flag2, " \t", &tstrtokr);
+      nodecomp = 0;
+      mask_add = mask_del = 0;
+      while (tmp_ptr != NULL) {
+         if ( *tmp_ptr == '!' ) {
+            nodecomp = 1;
+            tmp_ptr++;
+         } else
+            nodecomp = 0;
+         
+         srch_return = search_nametab(GOD, access_nametab, tmp_ptr);
+         if ( srch_return != -1 ) {
+            if (nodecomp)
+               mask_del |= srch_return;
+            else
+               mask_add |= srch_return;
+         } else {
+            if (minmatch(tmp_ptr, "mortal", strlen(tmp_ptr))) {
+               if ( nodecomp )
+                  mask_del |= 0x40000000;
+               else
+                  mask_add |= 0x40000000;
+            } 
+         }
+         tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
+      }
+      if ( !(mask_add & ~stripmask) && !(mask_del & ~stripmask) ) {
+         notify_quiet(player, "Nothing for @flagdef to do.");
+         return;
+      }
+      tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+      if ( key & FLAGDEF_SET ) {
+         fp->setovperm &= ~mask_del;
+         fp->setovperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'set' permissions for flag %s",
+                                           fp->flagname));
+         sprintf(tpr_buff, "   ->   Set: %s", (char *)((fp->setovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->setovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else if ( key & FLAGDEF_UNSET ) {
+         fp->usetovperm &= ~mask_del;
+         fp->usetovperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'unset' permissions for flag %s",
+                                           fp->flagname));
+         sprintf(tpr_buff, "   -> UnSet: %s", (char *)((fp->usetovperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->usetovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else if ( key & FLAGDEF_SEE ) {
+         fp->listperm &= ~mask_del;
+         fp->listperm |= mask_add;
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'see' permissions for flag %s",
+                                           fp->flagname));
+         sprintf(tpr_buff, "   ->   See: %s", (char *)((fp->listperm & 0x40000000) ? "mortal" : ""));
+         listset_nametab(player, access_nametab, 0, fp->listperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
+      } else {
+         notify_quiet(player, "Invalid switch/argument to @flagdef");
+      }
+      free_lbuf(tpr_buff);
+   }
 #endif
 }
 
@@ -4669,3 +5305,897 @@ void do_flagstuff(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify(player,"Flag name changed.");
 #endif
 }
+
+/* totem ent definition
+typedef struct totem_entry {
+        char    *flagname;      
+        int     flagvalue;      
+        int     flagpos;        
+        int     listperm;       
+        int     setovperm;      
+        int     usetovperm;    
+        int     typeperm;       
+        int     permanent;      
+	int	aliased;
+} TOTEMENT;
+*/
+
+#ifndef STANDALONE
+static void
+ival(char *buff, char **bufcx, int result)
+{
+  static char tempbuff[LBUF_SIZE/2];
+
+  sprintf(tempbuff, "%d", result);
+  safe_str(tempbuff, buff, bufcx);
+}
+
+
+void totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff) 
+{
+   char *s_buff, *s_buffptr;
+
+   s_buff = alloc_lbuf("totem_handle_error");
+   s_buffptr = s_inbuff;
+   if ( i_error != -777 ) { /* Snuff errors */
+      if ( mudstate.initializing ) {
+         sprintf(s_buff, "%s ", s_type);
+      } else {
+         if ( *s_type ) {
+            sprintf(s_buff, "@totem/%s: ", s_type);
+         } else {
+            strcpy(s_buff, (char *)"@totem: ");
+         }
+      }
+      safe_str(s_buff, s_inbuff, &s_buffptr);
+   }
+   switch (i_error) {
+      case  1: /* Successful */
+         safe_str((char *)"Successful", s_inbuff, &s_buffptr);
+         break;
+      case  0: /* Hash could not be added */
+         safe_str((char *)"Error adding hash/entry", s_inbuff, &s_buffptr);
+         break;
+      case -1: /* Invalid totem name */
+         safe_str((char *)"Invalid totem name", s_inbuff, &s_buffptr);
+         break;
+      case -2: /* Invalid totem slot */
+         safe_str((char *)"Invalid totem slot", s_inbuff, &s_buffptr);
+         break;
+      case -3: /* Invalid totem bit mask */
+         safe_str((char *)"Invalid totem bitmask", s_inbuff, &s_buffptr);
+         break;
+      case -4: /* Empty totem name */
+         safe_str((char *)"Empty/Blank totem name", s_inbuff, &s_buffptr);
+         break;
+      case -5: /* Totem already exists */
+         safe_str((char *)"Totem name specified already exists", s_inbuff, &s_buffptr);
+         break;
+      case -6: /* Totem bitwise value in use */
+         safe_str((char *)"Totem bitwise mask specified already exists", s_inbuff, &s_buffptr);
+         break;
+      case -7: /* Totem is unmodifyable */
+         safe_str((char *)"Totem can not be modified", s_inbuff, &s_buffptr);
+         break;
+      case -8: /* Totem was not found */
+         safe_str((char *)"Totem was not found", s_inbuff, &s_buffptr);
+         break;
+      case -9: /* Too many aliases */
+         safe_str((char *)"Limit reached for alises on Totem specified (10 Max)", s_inbuff, &s_buffptr);
+         break;
+      case -777: /* snuff messages */
+         break;
+      default: /* Invalid error -- log it */ 
+         sprintf(s_buff, "Unrecognized error code %d", i_error);
+         safe_str(s_buff, s_inbuff, &s_buffptr);
+         break;
+   }
+   free_lbuf(s_buff);
+}
+
+void totem_write_to_disk(void) {
+   dbref thing;
+   char *s_tmp, *s_tmpptr;
+   int i_first, i_loop;
+
+   s_tmp = alloc_lbuf("totem_write_to_disk2");
+   DO_WHOLE_DB(thing) {
+      if ( !dbtotem[thing].modified ) {
+         continue;
+      }
+      i_first = 0;
+      memset(s_tmp, '\0', LBUF_SIZE);
+      s_tmpptr = s_tmp;
+      for ( i_loop = 0; i_loop < TOTEM_SLOTS; i_loop++ ) {
+         if ( i_first ) {
+            safe_chr(' ', s_tmp, &s_tmpptr);
+         }
+         ival(s_tmp, &s_tmpptr, dbtotem[thing].flags[i_loop]);
+         i_first = 1;
+      }
+      atr_add_raw(thing, A_PRIVS, s_tmp); /* A_PRIVS is *Totem attribute */
+      dbtotem[thing].modified = 0;
+
+   } 
+   free_lbuf(s_tmp);
+}
+
+int totem_player_list(char *buff, int i_type, dbref target, dbref player)
+{
+  char *s_hashstr, *s_buffp, *t_ptr, c_ch;
+  int i_first, totems[TOTEM_SLOTS];
+  TOTEMENT *storedtag;
+  
+  /* No buffer no value */
+  if( !buff ) {
+     return 0;
+  }
+
+  if ( !Good_chk(target) ) {
+     for ( i_first = 0; i_first < TOTEM_SLOTS; i_first++ ) {
+        totems[i_first] = 0;
+     }
+  } else {
+     for ( i_first = 0; i_first < TOTEM_SLOTS; i_first++ ) {
+        totems[i_first] = dbtotem[target].flags[i_first];
+     }
+  }
+
+  s_hashstr = alloc_lbuf("totem_list");
+  s_buffp = buff;
+  c_ch = 'T';
+  if ( i_type != 2 ) {
+     safe_str((char *)"Totems: ", buff, &s_buffp);
+  }
+  i_first = 0;
+  for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        storedtag;
+        storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+     if (storedtag) {
+        if ( i_first ) {
+           safe_chr(' ', buff, &s_buffp);
+        }
+        switch (storedtag->permanent) {
+           case 2: /* Permanent */
+              c_ch = 'P';
+              break;
+           case 1: /* Static/Sticky */
+              c_ch = 'S';
+              break;
+           case 0: /* Temporary */
+              c_ch = 'T';
+              break;
+           default: /* Unknown - Show it */
+              c_ch = '?';
+              break;
+        }
+        sprintf(s_hashstr, "%s(%c)", storedtag->flagname, c_ch);
+        t_ptr = s_hashstr;
+        while ( *t_ptr ) {
+           *t_ptr = ToUpper(*t_ptr);
+           t_ptr++;
+        }
+        safe_str(s_hashstr, buff, &s_buffp);
+        totems[storedtag->flagpos] &= ~(storedtag->flagvalue);
+        i_first = 1;
+     }
+  }
+
+  free_lbuf(s_hashstr);
+  return 1;
+}
+
+
+int totem_list(char *buff, int i_type, dbref target, dbref player) 
+{
+  char *s_hashstr, *s_buffp, *t_ptr;
+  int i_first, totems[TOTEM_SLOTS];
+  TOTEMENT *storedtag;
+
+  /* No buffer no value */
+  if( !buff ) {
+     return -4;
+  }
+
+  if ( !Good_chk(target) ) {
+     for ( i_first = 0; i_first < TOTEM_SLOTS; i_first++ ) {
+        totems[i_first] = 0;
+     }
+  } else {
+     for ( i_first = 0; i_first < TOTEM_SLOTS; i_first++ ) {
+        totems[i_first] = dbtotem[target].flags[i_first];
+     }
+  }
+
+  s_hashstr = alloc_lbuf("totem_list");
+  s_buffp = buff;
+  if ( i_type != 2 ) {
+     safe_str((char *)"Totems: ", buff, &s_buffp);
+  }
+  i_first = 0;
+  for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        storedtag;
+        storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+     if(storedtag) {
+        if ( i_type >= 1 ) {
+           if ( (totems[storedtag->flagpos] & storedtag->flagvalue) == storedtag->flagvalue ) {
+              if ( i_first ) {
+                 safe_chr(' ', buff, &s_buffp);
+              }
+              sprintf(s_hashstr, "%s", storedtag->flagname);
+              t_ptr = s_hashstr;
+              while ( *t_ptr ) {
+                 *t_ptr = ToUpper(*t_ptr);
+                 t_ptr++;
+              }
+              safe_str(s_hashstr, buff, &s_buffp);
+              totems[storedtag->flagpos] &= ~(storedtag->flagvalue);
+              i_first = 1;
+          }
+        } else {
+           if ( i_first ) {
+              safe_chr(' ', buff, &s_buffp);
+           }
+           sprintf(s_hashstr, "%s|%d|0x%08x", storedtag->flagname, storedtag->flagpos, storedtag->flagvalue);
+           safe_str(s_hashstr, buff, &s_buffp);
+           i_first = 1;
+        }
+     }
+  }
+  free_lbuf(s_hashstr);
+  if ( Wizard(player) && (i_type >= 1) ) {
+     t_ptr = s_hashstr = alloc_lbuf("totem_missing");
+     s_buffp = alloc_lbuf("totem_missing2");
+     for (i_first = 0; i_first < TOTEM_SLOTS; i_first++) {
+        if ( totems[i_first] != 0 ) {
+           sprintf(s_buffp, "[Slot %d, Value 0x%08x]", i_first, totems[i_first]); 
+           if ( *s_hashstr ) {
+              safe_chr(' ', s_hashstr, &t_ptr);
+           }
+           safe_str(s_buffp, s_hashstr, &t_ptr);
+        }
+     }
+     if ( *s_hashstr ) {
+        notify(player, unsafe_tprintf("Unreferenced totem values: %s", s_hashstr));
+     }
+     free_lbuf(s_hashstr);
+     free_lbuf(s_buffp);
+  }
+  return 1;
+}
+
+int totem_alias(char *totem, char *s_aliases, dbref player)
+{
+  TOTEMENT *hashp, *aliasp, *storedtag;
+  int i_aliases, stat, *i_totem = NULL, i_first;
+  char *lcname, *lcnameptr, *s_strtok, *s_strtokr,
+       *s_buff, *s_buff2, *s_buff3, *s_buffptr;
+  
+  if ( !*totem || !*s_aliases ) {
+     return -4;
+  }
+  
+  lcname = alloc_lbuf("totem_alias");
+  strcpy(lcname, totem);
+  lcnameptr = lcname;
+  while ( *lcnameptr ) {
+     *lcnameptr = ToLower(*lcnameptr);
+     lcnameptr++;
+  }
+
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 1);
+  i_totem = hashfind(lcname, &mudstate.totem_htab);
+  if ( !hashp ) {
+     free_lbuf(lcname);
+     return -1;
+  }
+  free_lbuf(lcname);
+
+  i_aliases = 0;
+  for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 2);
+        storedtag;
+        storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+     if(storedtag) {
+        if ( strcmp(storedtag->flagname, hashp->flagname) == 0 ) {
+           i_aliases++;
+        }
+     }
+  }
+  if ( i_aliases == 0 ) {
+     hashp->aliased = 0; /* Reset Totem alias tracking to none */
+  }
+
+  if ( i_aliases > 10 ) {
+     return -9; 
+  }
+
+  s_buff = alloc_lbuf("totem_alias2");
+  s_buff2 = alloc_lbuf("totem_alias3");
+  s_buff3 = alloc_lbuf("totem_alias4");
+  strcpy(s_buff, s_aliases);
+  s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+  i_first = 0;
+  while ( s_strtok ) {
+     if ( i_aliases > 10 ) {
+        break;
+     }
+     strcpy(s_buff2, s_strtok);
+     s_buffptr = s_buff2;
+     while ( *s_buffptr ) {
+        *s_buffptr = ToLower(*s_buffptr);
+        s_buffptr++;
+     }
+     aliasp = (TOTEMENT *)hashfind(s_buff2, &mudstate.totem_htab);
+     if ( aliasp ) {
+        if ( Good_chk(player) ) {
+           sprintf(s_buff3, "@totem/alias: %s is already an alias pointing to %s.", s_buff2, hashp->flagname);
+           notify(player, s_buff3);
+        }
+     } else {
+        i_aliases++;
+        stat = hashadd2(s_buff2, i_totem, &mudstate.totem_htab, 0);
+        /* Error check adding hash */
+        stat = (stat < 0) ? 0 : 1;
+        if ( stat == 0 ) {
+           if ( Good_chk(player) ) {
+              sprintf(s_buff3, "@totem/alias: %s was unable to be aliased to %s.", s_buff2, hashp->flagname);
+              notify(player, s_buff3);
+           }
+        } else {
+           i_first++;
+           hashp->aliased = 1; /* Totems keep track if they were aliased */
+           if ( Good_chk(player) ) {
+              sprintf(s_buff3, "@totem/alias: %s aliased to %s.", s_buff2, hashp->flagname);
+              notify(player, s_buff3);
+           }
+        }
+     }
+     s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+  }
+  if ( !i_first ) {
+     if ( Good_chk(player) ) {
+        notify(player, "@totem/alias: No new aliases were created.");
+     }
+     i_first = -777; /* Snuff message */
+  } else {
+     if ( Good_chk(player) ) {
+        sprintf(s_buff3, "@totem/alias: %d new aliases were created.", i_first);
+        notify(player, s_buff3);
+     }
+     i_first = 1;
+  }
+  if ( i_aliases > 10 ) {
+     i_first = -9;
+  }
+  free_lbuf(s_buff3);
+  free_lbuf(s_buff2);
+  free_lbuf(s_buff);
+  return i_first;
+}
+
+int totem_info(char *totem, char *s_buff)
+{
+  TOTEMENT *hashp, *storedtag;
+  int i_found;
+  char *s_buffptr, *lcname, *lcnameptr, *t_buff, *t_buffptr;
+  dbref thing;
+  
+  s_buffptr = s_buff;
+  if ( !*totem ) {
+     safe_str((char *)"Expected totem for info detail.", s_buff, &s_buffptr);
+     return -4;
+  }
+
+  lcname = alloc_lbuf("totem_info");
+  strcpy(lcname, totem);
+  lcnameptr = lcname;
+  while ( *lcnameptr ) {
+     *lcnameptr = ToLower(*lcnameptr);
+     lcnameptr++;
+  }
+
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 0);
+  if ( !hashp ) {
+     safe_str((char *)"Invalid totem specified.", s_buff, &s_buffptr);
+     free_lbuf(lcname);
+     return -1;
+  }
+ 
+  i_found = 0;
+  t_buffptr = t_buff = alloc_lbuf("totem_info2"); 
+  DO_WHOLE_DB(thing) {
+     if ( (dbtotem[thing].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
+        if ( i_found ) {
+           safe_chr(' ', t_buff, &t_buffptr);
+        }
+        sprintf(lcname, "#%d", thing);
+        safe_str(lcname, t_buff, &t_buffptr);
+        i_found = 1;
+     }
+  }
+  i_found = 0;
+  for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 2);
+        storedtag;
+        storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+     if(storedtag) {
+        if ( strcmp(storedtag->flagname, hashp->flagname) == 0 ) {
+           i_found++;
+        }
+     }
+  }
+  sprintf(lcname, "Name: %s\r\nSlot Location: %d\r\nByte Value: 0x%08x\r\nAliases: %d\r\n", 
+          hashp->flagname, hashp->flagpos, hashp->flagvalue, i_found);
+  safe_str(lcname, s_buff, &s_buffptr);
+  if ( hashp->permanent == 2 ) {
+     safe_str((char *)"Totem Type: Hard Code (Permanent/locked) [2]\r\nApplied To: ", s_buff, &s_buffptr);  
+  } else if ( hashp->permanent == 1 ) {
+     safe_str((char *)"Totem Type: Config Parmeter (Static) [1]\r\nApplied To: ", s_buff, &s_buffptr);  
+  } else {
+     safe_str((char *)"Totem Type: @totem in-line (temporary) [0]\r\nApplied To: ", s_buff, &s_buffptr);  
+  }
+          
+  safe_str(t_buff, s_buff, &s_buffptr); 
+  free_lbuf(t_buff);
+  free_lbuf(lcname);
+  return 1;
+}
+
+int totem_rename(char *totem, char *totemren)
+{
+  TOTEMENT *hashp, *newhashp, *newtotem;
+  char *lcnp, *lcname, *newp, *newname;
+  int stat;
+
+  if ( !*totem ) {
+    return -4;
+  }
+
+  if ( !*totemren ) {
+    return -4;
+  }
+
+  /* Deny If the totem is longer than 20 characters */
+  if ( (strlen(strip_all_ansi(totem)) > 20) ||
+       (strlen(strip_all_ansi(totemren)) > 20) ) {
+    return -1;
+  }
+
+  /* Convert to all lowercase, strip ansi */
+  lcnp = lcname = alloc_lbuf("add_totem");
+  safe_str(strip_all_ansi(totem), lcname, &lcnp);
+  for (lcnp=lcname; *lcnp; lcnp++) {
+    *lcnp = ToLower((int)*lcnp);
+    /* Deny if the totem somehow has whitespace in it */
+    if(isspace(*lcnp)) {
+      free_lbuf(lcname);
+      return -1;
+    }
+  }
+
+  /* Convert to all lowercase, strip ansi */
+  newp = newname = alloc_lbuf("add_totem");
+  safe_str(strip_all_ansi(totemren), newname, &newp);
+  for (newp=newname; *newp; newp++) {
+    *newp = ToLower((int)*newp);
+    /* Deny if the totem somehow has whitespace in it */
+    if(isspace(*newp)) {
+      free_lbuf(newname);
+      free_lbuf(lcname);
+      return -1;
+    }
+  }
+
+  /* Check if totem exists in totem list. If yes, delete and rename. */
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 1);
+  if ( !hashp ) {
+      free_lbuf(newname);
+      free_lbuf(lcname);
+      return -8;
+  }
+
+  if ( hashp->permanent != 0 ) {
+      free_lbuf(newname);
+      free_lbuf(lcname);
+      return -7;
+  }
+
+  /* Check if new name already exists, if yes, don't add it */
+  newhashp = (TOTEMENT *)hashfind2(newname, &mudstate.totem_htab, 0);
+  if ( newhashp ) {
+      free_lbuf(newname);
+      free_lbuf(lcname);
+      return -5;
+  }
+
+  newtotem = (TOTEMENT *) malloc(sizeof(TOTEMENT));
+  newtotem->flagname = (char *) strsave(newname);
+  newtotem->flagvalue = hashp->flagvalue;
+  newtotem->flagpos = hashp->flagpos;
+  newtotem->permanent = hashp->permanent;
+  newtotem->listperm = hashp->listperm;
+  newtotem->setovperm = hashp->setovperm;
+  newtotem->usetovperm = hashp->usetovperm;
+  newtotem->aliased = hashp->aliased;
+
+  hashdelete(lcname, &mudstate.totem_htab);
+  stat = hashadd2(newname, (int *)newtotem, &mudstate.totem_htab, 1);
+
+  /* Error check adding hash */
+  stat = (stat < 0) ? 0 : 1;
+  if ( stat == 0 ) {
+     free(newtotem);
+  }
+  free_lbuf(newname);
+  free_lbuf(lcname);
+  return stat;
+}
+
+int totem_remove(char *totem)
+{
+  TOTEMENT *hashp;
+  char *lcnp, *lcname;
+
+  if ( !*totem ) {
+    return -4;
+  }
+
+  /* Deny If the totem is longer than 20 characters */
+  if ( strlen(strip_all_ansi(totem)) > 20 ) {
+    return -1;
+  }
+
+  /* Convert to all lowercase, strip ansi */
+  lcnp = lcname = alloc_lbuf("add_totem");
+  safe_str(strip_all_ansi(totem), lcname, &lcnp);
+  for (lcnp=lcname; *lcnp; lcnp++) {
+    *lcnp = ToLower((int)*lcnp);
+    /* Deny if the totem somehow has whitespace in it */
+    if(isspace(*lcnp)) {
+      free_lbuf(lcname);
+      return -1;
+    }
+  }
+
+  /* Check if totem exists in totem list. If yes, delete. */
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 1);
+  if(hashp == NULL) {
+    free_lbuf(lcname);
+    return -8;
+  }
+
+  /* Only perm flags immune from deletion */
+  if ( hashp->permanent == 2 ) {
+    free_lbuf(lcname);
+    return -7;
+  }
+
+  /* if aliases on the target, don't allow removal */
+  if ( hashp->aliased == 1 ) {
+    free_lbuf(lcname);
+    return -7;
+  }
+
+  mudstate.totem_slots[hashp->flagpos] &= ~(hashp->flagvalue);
+  hashdelete(lcname, &mudstate.totem_htab);
+  free_lbuf(lcname);
+  return 1;
+}
+
+
+int totem_perms(char *totem, int totem_type, char *totem_perms, dbref player)
+{
+int i_rettype;
+
+   switch ( totem_type ) {
+      case TOTEM_PERMSSET: /* Set perms */
+         i_rettype = do_flag_and_toggle_def_conf(player, totem_perms, (char *)"totem_access_set", totem, IS_TYPE_TOTEM);
+         break;
+      case TOTEM_PERMSUSET: /* UnSet perms */
+         i_rettype = do_flag_and_toggle_def_conf(player, totem_perms, (char *)"totem_access_unset", totem, IS_TYPE_TOTEM);
+         break;
+      case TOTEM_PERMSSEE: /* See perms */
+         i_rettype = do_flag_and_toggle_def_conf(player, totem_perms, (char *)"totem_access_see", totem, IS_TYPE_TOTEM);
+         break;
+      case TOTEM_PERMSTYPE: /* Type perms */
+         i_rettype = do_flag_and_toggle_def_conf(player, totem_perms, (char *)"totem_access_type", totem, IS_TYPE_TOTEM);
+         break;
+      default: /* Not found */
+         notify(player, "Unknown access type.");
+         i_rettype = -1;
+         break;
+   }
+   return i_rettype;
+}
+
+int totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
+{
+  char *lcname, *lcnp, *lcuc, *lcucp;
+  int stat, i_found, i_bits;
+  TOTEMENT *newtotem, *hashp;
+
+  /* Deny If the totem is longer than 20 characters */
+  if ( strlen(strip_all_ansi(totem)) > 20 ) {
+    return -1;
+  }
+
+  /* Totems can't be less than 2 characters either */
+  if ( strlen(strip_all_ansi(totem)) < 2 ) {
+    return -1;
+  }
+
+  /* Deny if totem_slot not between 0-(TOTEM_SLOTS-1) */
+  if ( (totem_slot < 0) || (totem_slot > (TOTEM_SLOTS - 1)) ) {
+    return -2;
+  }
+
+  /* Deny if totem_value is not a valid singular bitwise mask */
+  if ( totem_value == 0 ) {
+    return -3;
+  }
+  i_found = 0;
+  i_bits = totem_value;
+  while ( i_bits > 0) { 
+     if ( (i_bits & 1) != 0) 
+        i_found++;
+     // right shift 'i_bits' by 1 
+     i_bits = i_bits >> 1; 
+  } 
+  /* if i_found not exactly 1, more than 1 bit was attempted in mask */
+  if ( i_found != 1 ) {
+     return -3;
+  }
+
+  /* Convert to all lowercase, strip ansi */
+  lcnp = lcname = alloc_lbuf("add_totem");
+  safe_str(strip_all_ansi(totem), lcname, &lcnp);
+  for (lcnp=lcname; *lcnp; lcnp++) {
+    *lcnp = ToLower((int)*lcnp);
+    /* Deny if the totem somehow has whitespace in it */
+    if(isspace(*lcnp)) {
+      free_lbuf(lcname);
+      return -1;
+    }
+  }
+
+  if ( !ok_totem_name(lcname) ) {
+      free_lbuf(lcname);
+      return -1;
+  }
+
+  /* Check if totem already exists in totem list. If yes, abort. */
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 0);
+  if(hashp != NULL) {
+    free_lbuf(lcname);
+    return -5;
+  }
+
+  /* If the flag slot is already inuse, abort */
+  if ( (mudstate.totem_slots[totem_slot] & totem_value) == totem_value ) {
+    free_lbuf(lcname);
+    return -6;
+  }
+  lcuc = alloc_lbuf("add_totem_uc");
+  strcpy(lcuc, lcname);
+  lcucp = lcuc;
+  for (lcucp=lcuc; *lcucp; lcucp++) {
+    *lcucp = ToUpper((int)*lcucp);
+  }
+  
+
+  newtotem = (TOTEMENT *) malloc(sizeof(TOTEMENT));
+  newtotem->flagname = (char *) strsave(lcuc);
+  newtotem->flagvalue = totem_value;
+  newtotem->flagpos = totem_slot;
+  newtotem->permanent = totem_perm;
+  newtotem->listperm = 0;
+  newtotem->setovperm = 0;
+  newtotem->usetovperm = 0;
+  newtotem->typeperm = 0;
+  newtotem->aliased = 0;
+  newtotem->flaglett = ' ';
+  newtotem->handler = totem_any;
+
+  free_lbuf(lcuc);
+
+  stat = hashadd2(lcname, (int *)newtotem, &mudstate.totem_htab, 1);
+
+  /* Error check adding hash */
+  stat = (stat < 0) ? 0 : 1;
+  if ( stat == 0 ) {
+     free(newtotem);
+  } else {
+      mudstate.totem_slots[totem_slot] |= totem_value;
+  }
+
+  free_lbuf(lcname);
+  return stat;
+}
+
+int totem_verify(char *s_buff, char *s_buff2) {
+   char *s_buffptr, *s_buffptr2, *t_buff; 
+   int i_slot, i_broke[TOTEM_SLOTS], i_retval, i_found;
+   dbref thing;
+
+   s_buffptr = s_buff;
+   s_buffptr2 = s_buff2;
+   i_found = i_retval = 0;
+
+   for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+      i_broke[i_slot] = 0;
+   }
+
+   t_buff = alloc_lbuf("totem_validate");
+   DO_WHOLE_DB(thing) {
+      i_found = 0;
+      for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+         if ( (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
+            i_found = 1;
+            i_broke[i_slot] |= (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot]));
+         }
+      }
+      if ( i_found ) {
+         if ( *s_buff2 ) {
+            safe_chr(' ', s_buff2, &s_buffptr2);
+         } else {
+            safe_str((char *)"Affected Targets: ", s_buff2, &s_buffptr2);
+         }
+         sprintf(t_buff, "#%d", thing);
+         safe_str(t_buff, s_buff2, &s_buffptr2);
+      }
+   }
+   for (i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+      if ( i_broke[i_slot] != 0 ) {
+         if ( i_retval ) {
+            safe_chr(' ', s_buff, &s_buffptr);
+         } else {
+            safe_str((char *)"Unreferenced Totem Flags: ", s_buff, &s_buffptr);
+         }
+         sprintf(t_buff, "[Slot %d, Value 0x%08x]", i_slot, i_broke[i_slot]);
+         safe_str(t_buff, s_buff, &s_buffptr);
+         i_retval = 1;
+      }
+   }
+   free_lbuf(t_buff);
+   return i_retval;
+}
+
+void 
+examine_totemtab(dbref player, dbref target)
+{
+    char *buf, *bp, *s_buff;
+
+    bp = buf = alloc_lbuf("display_totemtab");
+    s_buff = alloc_lbuf("examine_totemtab");
+    
+    (void)totem_list(s_buff, 2, target, player);
+    if ( *s_buff ) {
+       safe_str((char *) ANSIEX(ANSI_HILITE), buf, &bp);
+       safe_str((char *) "Totems: ", buf, &bp);
+       safe_str((char *) ANSIEX(ANSI_NORMAL), buf, &bp);
+       safe_str(s_buff, buf, &bp);
+       notify(player, buf);
+    }
+    free_lbuf(s_buff);
+    free_lbuf(buf);
+}
+
+void do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
+{
+   int retvalue, i_totemval, i_totemslot;
+   dbref target;
+   char *s_buff, *s_buff2;
+
+   switch (key) {
+      case TOTEM_ADD: /* Add totem */
+         if ( !flag1 || !flag2 || !*flag1 || !*flag2 ) {
+            if ( Good_chk(player) ) {
+               notify(player, "@totem: Expected flag, flag position, and flag value.");
+            }
+            return;
+         }
+         if ( strstr(flag2, " 0x") != NULL ) {
+            retvalue = sscanf(flag2, "%d 0x%x", &i_totemslot, &i_totemval);
+         } else {
+            retvalue = sscanf(flag2, "%d %d", &i_totemslot, &i_totemval);
+         }
+         if ( retvalue != 2 ) {
+            if ( Good_chk(player) ) {
+               notify(player, "@totem: Expected flag, flag position, and flag value.");
+            }
+            return;
+         }
+         s_buff = alloc_lbuf("do_totem_add");
+         retvalue = totem_add(flag1, i_totemval, i_totemslot, 0); /* Flags added this way always dynamic */
+         totem_handle_error(retvalue, player, (char *)"add", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_REMOVE: /* Remove totem */
+         s_buff = alloc_lbuf("do_totem_remove");
+         retvalue = totem_remove(flag1);      
+         totem_handle_error(retvalue, player, (char *)"remove", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_LIST: /* List totems with permanence */
+         display_totemtab(player);
+         break;
+      case TOTEM_FULL: /* List full totems details */
+         s_buff = alloc_lbuf("totem_list");
+         retvalue = totem_list(s_buff, 0, player, player);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_PERMSSET: /* Totem permission sets */
+         retvalue = totem_perms(flag1, TOTEM_PERMSSET, flag2, player);
+         break;
+      case TOTEM_PERMSUSET: /* Totem permission un-sets */
+         retvalue = totem_perms(flag1, TOTEM_PERMSUSET, flag2, player);
+         break;
+      case TOTEM_PERMSSEE: /* Totem permission sees */
+         retvalue = totem_perms(flag1, TOTEM_PERMSSEE, flag2, player);
+         break;
+      case TOTEM_PERMSTYPE: /* Totem permission types */
+         retvalue = totem_perms(flag1, TOTEM_PERMSTYPE, flag2, player);
+         break;
+      case TOTEM_RENAME: /* Rename non-hardcoded totem - remove then add new one */
+         s_buff = alloc_lbuf("do_totem_rename");
+         retvalue = totem_rename(flag1, flag2);
+         totem_handle_error(retvalue, player, (char *)"rename", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_VALIDATE: /* Totem Verify */
+         s_buff = alloc_lbuf("totem_verify");
+         s_buff2 = alloc_lbuf("totem_verify2");
+         retvalue = totem_verify(s_buff, s_buff2);
+         if ( retvalue == 0 ) { /* Validated -- all good */
+            notify(player, "@totem has validated all Totem flags as valid.");
+         } else {
+            notify(player, s_buff);
+            notify(player, s_buff2);
+         }
+         free_lbuf(s_buff);
+         free_lbuf(s_buff2);
+         break;
+      case TOTEM_INFO: /* Totem Information */
+         s_buff = alloc_lbuf("totem_info");
+         retvalue = totem_info(flag1, s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_ALIAS: /* Totem alias - advanced alias system */
+         s_buff = alloc_lbuf("totem_alias");
+         retvalue = totem_alias(flag1, flag2, player);
+         totem_handle_error(retvalue, player, (char *)"alias", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_CLEAN: /* Totem clean -- clear old bits from target */
+         notify(player, "Sorry, this option is not yet implimented.");
+         break;
+      default: /* Default condition - normal @totem */
+         if ( !flag1 || !*flag1 ) {
+            notify(player, "Invalid target for @totem.");
+            break;
+         }
+
+         init_match(player, flag1, NOTYPE);
+         match_everything(0);
+         target = match_result();
+         if ( !Good_chk(target) || !Controls(player, target) ) {
+            notify(player, "Invalid target for @totem.");
+            break;
+         }
+         if ( !flag2 || !*flag2 ) {
+            s_buff = alloc_lbuf("totem_alias");
+            retvalue = totem_list(s_buff, 1, target, player);
+            notify(player, s_buff);
+            free_lbuf(s_buff);
+         } else {
+            totem_set(target, player, flag2, 0);
+         }
+         break; 
+   } /* Switch */
+}
+#endif

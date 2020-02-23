@@ -713,9 +713,11 @@ struct statedata {
 	HASHTAB	wizhelp_htab;	/* Wizard help topics hashtable */
 	HASHTAB error_htab;
         HASHTAB ansi_htab;	/* 256 colortab */
+	HASHTAB	totem_htab;	/* Totem flag tab */
 #ifdef PLUSHELP
 	HASHTAB	plushelp_htab;	/* PlusHelp topics hashtable */
 #endif
+        int	totem_slots[TOTEM_SLOTS];/* totem slots */
 	int	errornum;
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
 	BQUE	*qfirst;	/* Head of player queue */

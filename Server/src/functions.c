@@ -1329,6 +1329,7 @@ extern int lookup(char *, char *, int, int *);
 extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
 extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
+extern int totem_list(char *, int, dbref, dbref);
 
 int do_convtime(char *, struct tm *);
 
@@ -17726,7 +17727,7 @@ FUNCTION(fun_execscript)
                *(s_atrname++) = '\0';
                d_atrname = parse_dbref(s_varstok+1);
                if ( !Good_obj(d_atrname) ) {
-                  d_atrname = objecttag_get(s_varstok+1);
+                  d_atrname = objecttag_get(s_varstok+1, player, 0);
                }
                if ( !Good_chk(d_atrname) || !controls(player, d_atrname) ) {
                   d_atrname = NOTHING;
@@ -21701,7 +21702,7 @@ FUNCTION(fun_comp)
           if ( *p == '#' ) {
              x = parse_dbref(p+1);
              if ( !Good_obj(x) ) {
-                x = objecttag_get(p+1);
+                x = objecttag_get(p+1, player, 0);
              }
           } else {
              x = -1;
@@ -21710,7 +21711,7 @@ FUNCTION(fun_comp)
           if ( *p == '#' ) {
              y = parse_dbref(p+1);
              if ( !Good_obj(y) ) {
-                y = objecttag_get(p+1);
+                y = objecttag_get(p+1, player, 0);
              }
           } else {
              y = -1;
@@ -24270,6 +24271,30 @@ FUNCTION(fun_delete)
       free_lbuf(outbuff);
       free_lbuf(outbuff2);
    }
+}
+
+FUNCTION(fun_ltotems)
+{
+    int retvalue;
+    dbref target;
+    char *s_buff;
+
+    init_match(player, fargs[0], NOTYPE);
+    match_everything(MAT_EXIT_PARENTS);
+    target = noisy_match_result();
+  
+    if ( !Good_chk(target) || !Controls(player, target) ) {
+       safe_str((char *)"#-1", buff, bufcx);
+    } else {
+       s_buff = alloc_lbuf("fun_ltotems");
+       retvalue = totem_list(s_buff, 2, target, player);
+       if ( retvalue == 1 ) {
+          safe_str(s_buff, buff, bufcx);
+       } else {
+          safe_str((char *)"#-1 ERROR ON GETTING LIST", buff, bufcx);
+       }
+       free_lbuf(s_buff);
+    }
 }
 
 FUNCTION(fun_lflags)
@@ -33406,7 +33431,7 @@ FUNCTION(fun_istag)
     p = fargs[0];
     if (*p++ == NUMBER_TOKEN) {
       if ( strlen(fargs[0]) > 1 ) {
-         dbitem = objecttag_get(p);
+         dbitem = objecttag_get(p, player, 0);
          if (Good_obj(dbitem)) {
              safe_str("1", buff, bufcx);
              return;
@@ -36476,7 +36501,7 @@ FUNCTION(fun_tag)
   	dbref thing;
     char* s_thing;
 
-    thing = objecttag_get(fargs[0]);
+    thing = objecttag_get(fargs[0], player, 0);
     if (!Good_obj(thing)) {
       safe_str("#-1", buff, bufcx);
     }
@@ -36882,6 +36907,7 @@ FUN flist[] =
     {"LT", fun_lt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTE", fun_lte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTOGGLES", fun_ltoggles, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LTOTEMS", fun_ltotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LWHO", fun_lwho, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXNOR", fun_lxnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXOR", fun_lxor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
