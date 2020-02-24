@@ -4297,27 +4297,37 @@
   
   Lists information from internal databases.  Information is available
   about the following options:
-    attributes      - Valid object attributes.
-    commands        - Commands that you may use (excluding the 
-                      attribute-setting commands as well as any exits, and
-                      $-commands available).
-    costs           - Lists the costs associated with many commands and
-                      actions.
-    default_flags   - Lists the flags that new objects receive by default
-                      when created.
-    flags           - Lists the name and letter of all the flags.
-    functions       - Lists all the available functions.
-    options         - Lists several global options and limits.
-        |             You may specify subtopics: boolean, values, config, 
-        |             mail, and system
-        +-> boolean - Subtopic option for listing boolean values
-        +-> values  - Subtopic option for listing int values
-        +-> config  - Subtopic option for listing config options
-        +-> mail    - Subtopic option for listing mail options
-        +-> system  - Subtopic option for listing system settings
+    attributes       - Valid object attributes.
+    commands         - Commands that you may use (excluding the 
+                       attribute-setting commands as well as any exits, and
+                       $-commands available).
+    costs            - Lists the costs associated with many commands and
+                       actions.
+    default_flags    - Lists the flags that new objects receive by default
+                       when created.
+    default_toggles  - Lists the toggles that new objects receive by default
+                       when created.
+    flags            - Lists the name and letter of all the flags.
+    functions        - Lists all the available functions.
+    options          - Lists several global options and limits.
+        |              You may specify subtopics: boolean, values, config, 
+        |              mail, and system
+        +-> boolean  - Subtopic option for listing boolean values
+        +-> config   - Subtopic option for listing config options
+        +-> convtime - Shows all formats convtime() handles
+        +-> display  - Gives detailed display for a config option
+        +-> mail     - Subtopic option for listing mail options
+        +-> mysql    - Shows if MySQL is enabled or disabled
+        +-> system   - Subtopic option for listing system settings
+        +-> values   - Subtopic option for listing int values
+        
     switches        - Lists what commands support switches and the switches
                       that they do support.
     toggles         - Lists toggles supported by the mush.
+    mail_globals    - Lists the default mail global parameters
+    guest_names     - List the guest names (if defined)
+    rlevels         - List all the reality levels enabled
+    totems          - Lists the name of all the totems.
   
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
