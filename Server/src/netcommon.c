@@ -39,6 +39,9 @@ char *index(const char *, int);
 #ifdef ENABLE_WEBSOCKETS
 #include "websock.h"
 #endif
+///// NEW WEBSOCK
+#include "websock2.h"
+///// END NEW WEBSOCK
 
 #include "debug.h"
 #define FILENUM NETCOMMON_C
@@ -1866,8 +1869,39 @@ queue_write(DESC * d, const char *b, int n)
 	    free_lbuf(tp);
 	}
     }
-    /* Allocate an output buffer if needed */
 
+
+    ///// NEW WEBSOCK
+    if (d->flags & DS_WEBSOCKETS) {
+        /* Allocate a new buffer for each output
+           Treat each buffer as an individual websocket frame */
+/*
+        tp = (TBLOCK *)alloc_lbuf("queue_write.websocket");
+        tp->hdr.nxt = NULL;
+        tp->hdr.start = tp->data;
+        tp->hdr.end = tp->data;
+
+        if (d->output_head == NULL) {
+            d->output_head = tp;
+        } else {
+            d->output_tail->hdr.nxt = tp;
+        }
+        d->output_tail = tp;
+
+        *tp->hdr.end++ = 0x81;
+        *tp->hdr.end++ = 0x05;
+        memcpy(tp->hdr.end, "Hello", 5);
+        tp->hdr.end += 5;
+        tp->hdr.nchars = tp->hdr.end - tp->hdr.start;
+
+        fprintf(stderr, "[WS] Sending Data %d bytes: %s\n", tp->hdr.nchars, tp->hdr.start);
+        VOIDRETURN;
+*/
+    }
+    ///// END NEW WEBSOCK
+
+
+    /* Allocate an output buffer if needed */
     if (d->output_head == NULL) {
 	tp = (TBLOCK *) alloc_lbuf("queue_write.new");
 	tp->hdr.nxt = NULL;
@@ -1881,7 +1915,6 @@ queue_write(DESC * d, const char *b, int n)
     }
 
     /* Now tp points to the last buffer in the chain */
-
     d->output_size += n;
     d->output_tot += n;
     mudstate.total_bytesout += n;
@@ -5640,7 +5673,35 @@ do_command(DESC * d, char *command)
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
             i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
+            ///// NEW WEBSOCK
+            int i_socksnarf = 0, i_sockver = 0;
+            char *s_sockhost = alloc_lbuf("cmd_sockhost");
+            char *s_sockkey = alloc_lbuf("cmd_sockkey");
+            ///// END NEW WEBSOCK
+
             while ( s_strtok ) {
+
+               ////////   NEW WEBSOCK
+               if ( !stricmp(s_strtok, (char *)"Upgrade: websocket") ) {
+                   i_socksnarf++;
+               }
+               if ( !stricmp(s_strtok, (char *)"Connection: Upgrade") ) {
+                   i_socksnarf++;
+               }
+               if ( (sscanf(s_strtok, "Host: %s", s_sockhost) == 1) ) {
+                   i_socksnarf++;
+               }
+               if ( (sscanf(s_strtok, "Sec-WebSocket-Version: %d", &i_sockver) == 1) ) {
+                   if (i_sockver == 13)
+                       i_socksnarf++;
+               }
+               if ( (sscanf(s_strtok, "Sec-WebSocket-Key: %s", s_sockkey) == 1) ) {
+                   if (validate_websocket_key(s_sockkey)) {
+                       i_socksnarf++;
+                   }
+               }
+               ////////   END NEW WEBSOCK
+
                if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
                   i_snarfing = 1;
                }
@@ -5676,8 +5737,18 @@ do_command(DESC * d, char *command)
                   decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
                   i_usepass = 1;
                }
+
                s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
+
+            ///// NEW WEBSOCK
+            if (i_socksnarf >= 5) {
+                fprintf(stderr, "[WS] Received Websocket opening handshake.\nHost: %s\nWebsocket version: %d\nWebsocket key: %s\n", 
+                    s_sockhost, i_sockver, s_sockkey);
+                complete_handshake(d, s_sockkey);
+            } else
+            ///// END NEW WEBSOCK
+
             if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
                free_lbuf(s_user);
                s_user = s_usepass+1;
@@ -5845,14 +5916,20 @@ do_command(DESC * d, char *command)
                queue_string(d, "Return: <NULL>\r\n");
                free_lbuf(s_user);
             }
+
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing2);
             free_lbuf(s_snarfing3);
             free_lbuf(s_snarfing4);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
+            ///// NEW WEBSOCK
+            free_lbuf(s_sockhost);
+            free_lbuf(s_sockkey);
+            ///// END NEW WEBSOCK
             process_output(d);
-            shutdownsock(d, R_API);
+            if (d->flags & DS_API)
+                shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;
