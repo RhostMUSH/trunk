@@ -222,6 +222,14 @@ examine_flags   1
 look_moreflags  0
 public_flags    1
 
+# totem
+#totem_add
+#totem_alias
+#totem_access_set
+#totem_access_unset
+#totem_access_see
+#totem_access_type
+
 # reality levels
 
 reality_locks    0
