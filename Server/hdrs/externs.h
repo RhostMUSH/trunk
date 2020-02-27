@@ -1232,6 +1232,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TOTEM_PERMSUSET	1024	/* Remove unused bitmasks from target */
 #define TOTEM_PERMSSEE 	2048	/* Remove unused bitmasks from target */
 #define TOTEM_PERMSTYPE	4096	/* Remove unused bitmasks from target */
+#define TOTEM_DISPLAY	8192	/* Totem Dispay for slots */
+#define TOTEM_LETTER	16384	/* Totem Letter Handler */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */
