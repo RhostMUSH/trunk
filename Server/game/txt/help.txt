@@ -33205,6 +33205,7 @@
   Changes
   ------------
   * Added internal boilerplate for future flag conversion to totems [ASH]
+  * /display switch added to @totem [ASH]
   
   Bug Fixes
   ------------

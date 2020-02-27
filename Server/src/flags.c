@@ -6226,6 +6226,167 @@ int totem_verify(char *s_buff, char *s_buff2) {
    return i_retval;
 }
 
+int
+totem_display(char *s_slot, dbref player) 
+{
+   TOTEMENT *storedtag;
+   char *s_slots[32], *s_letter;
+   int i, i_mk1, i_mk2, i_slot;
+
+   i_slot = atoi(s_slot);
+   /* Is slot a valid slot? */
+   if ( (i_slot < 0) || (i_slot > TOTEM_SLOTS) ) {
+      return -2;
+   }
+
+   for (i = 0; i < 32; i++) {
+      s_slots[i] = alloc_sbuf("totem_display");
+   }
+   s_letter = alloc_mbuf("totem_letter");
+  
+   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         storedtag;
+         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      if(storedtag) {
+         if ( storedtag->flagpos == i_slot ) {
+            switch (storedtag->flagtier) {
+               case 2: /* tier 2 */
+                  sprintf(s_letter, "({%c})", storedtag->flaglett);
+                  break;
+               case 1: /* tier 1 */
+                  sprintf(s_letter, "([%c])", storedtag->flaglett);
+                  break;
+               case 0: /* tier 0 */
+                  sprintf(s_letter, "(%c)", storedtag->flaglett);
+                  break;
+               default: /* tier 0 */
+                  sprintf(s_letter, "(%c)", storedtag->flaglett);
+                  break;
+            }
+            switch(storedtag->flagvalue) {
+               case 0x00000001: /* 1st flag word */
+                  sprintf(s_slots[0],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000002: /* 2nd flag word */
+                  sprintf(s_slots[1],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000004: /* 3rd flag word */
+                  sprintf(s_slots[2],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000008: /* 4th flag word */
+                  sprintf(s_slots[3],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000010: /* 5th flag word */
+                  sprintf(s_slots[4],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000020: /* 6th flag word */
+                  sprintf(s_slots[5],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000040: /* 7th flag word */
+                  sprintf(s_slots[6],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000080: /* 8th flag word */
+                  sprintf(s_slots[7],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000100: /* 9th flag word */
+                  sprintf(s_slots[8],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000200: /* 10th flag word */
+                  sprintf(s_slots[9],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000400: /* 11th flag word */
+                  sprintf(s_slots[10],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00000800: /* 12th flag word */
+                  sprintf(s_slots[11],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00001000: /* 13th flag word */
+                  sprintf(s_slots[12],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00002000: /* 14th flag word */
+                  sprintf(s_slots[13],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00004000: /* 15th flag word */
+                  sprintf(s_slots[14],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00008000: /* 16th flag word */
+                  sprintf(s_slots[15],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00010000: /* 17th flag word */
+                  sprintf(s_slots[16],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00020000: /* 18th flag word */
+                  sprintf(s_slots[17],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00040000: /* 19th flag word */
+                  sprintf(s_slots[18],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00080000: /* 20th flag word */
+                  sprintf(s_slots[19],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00100000: /* 21st flag word */
+                  sprintf(s_slots[20],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00200000: /* 22nd flag word */
+                  sprintf(s_slots[21],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00400000: /* 23rd flag word */
+                  sprintf(s_slots[22],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x00800000: /* 24th flag word */
+                  sprintf(s_slots[23],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x01000000: /* 25th flag word */
+                  sprintf(s_slots[24],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x02000000: /* 26th flag word */
+                  sprintf(s_slots[25],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x04000000: /* 27th flag word */
+                  sprintf(s_slots[26],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x08000000: /* 28th flag word */
+                  sprintf(s_slots[27],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x10000000: /* 29th flag word */
+                  sprintf(s_slots[28],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x20000000: /* 30th flag word */
+                  sprintf(s_slots[29],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x40000000: /* 31st flag word */
+                  sprintf(s_slots[30],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               case 0x80000000: /* 32nd flag word */
+                  sprintf(s_slots[31],"%.20s%s", storedtag->flagname, s_letter);
+                  break;
+               default: /* Wtf */
+                  notify(player, "Unrecognized flag value");
+                  break;
+            }
+         }
+      }
+   }   
+   sprintf(s_letter, "Showing slot# %d occupied values:", i_slot);
+   notify(player, s_letter);
+   notify(player, "--------------------------- ---------- | --------------------------- ----------");
+   i_mk1 = 0x00000001;
+   i_mk2 = 0x00010000;
+   for (i = 0; i < 16; i++) {
+      sprintf(s_letter, "%-27s 0x%08x | %-27s 0x%08x", s_slots[i], i_mk1, s_slots[i+16], i_mk2);
+      notify(player, s_letter);
+      i_mk1 = i_mk1 << 1;
+      i_mk2 = i_mk2 << 1;
+   }
+   notify(player, "--------------------------- ---------- | --------------------------- ----------");
+ 
+   for (i = 0; i < 32; i++) {
+      free_sbuf(s_slots[i]);
+   }
+   free_mbuf(s_letter);
+   return 1;
+}
+
 void 
 examine_totemtab(dbref player, dbref target)
 {
@@ -6339,6 +6500,16 @@ void do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_CLEAN: /* Totem clean -- clear old bits from target */
+         notify(player, "Sorry, this option is not yet implimented.");
+         break;
+      case TOTEM_DISPLAY: /* Totem display -- display all 32 flags for specified slot.  Format: @totem/display slotnumber */
+         s_buff = alloc_lbuf("totem_display");
+         retvalue = totem_display(flag1, player);
+         totem_handle_error(retvalue, player, (char *)"display", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_LETTER: /* Totem letter -- assign a letter.  Format: @totem/letter totem=tier letter (@totem/letter inherit=0 i) */
          notify(player, "Sorry, this option is not yet implimented.");
          break;
       default: /* Default condition - normal @totem */
