@@ -33190,23 +33190,24 @@
   
   New Features
   ------------
-  @ltag - Works like @tag but is localized per user (and belongings) [ASH]
-  @totem - Dynamic flag subsystem for hardcode, @admin params, inline [ASH]
-  @totemdef - like @flagdef but for @totems
-  totem_add          -- config to add new @totems [ASH]
-  totem_alias        -- config to set aliases to @totems [ASH]
-  totem_access_set   -- config to set 'set' permissions [ASH]
-  totem_access_unset -- config to set 'unset' permissions [ASH]
-  totem_access_see   -- config to set 'see' permissions [ASH]
-  totem_access_type  -- config to deny sets based on type(s) [ASH]
-  ltotems() -- list all totems on target
-  hastotem() -- check if target has totem
+  * @ltag - Works like @tag but is localized per user (and belongings) [ASH]
+  * @totem - Dynamic flag subsystem for hardcode, @admin params, inline [ASH]
+  * @totemdef - like @flagdef but for @totems
+  * totem_add          -- config to add new @totems [ASH]
+  * totem_alias        -- config to set aliases to @totems [ASH]
+  * totem_access_set   -- config to set 'set' permissions [ASH]
+  * totem_access_unset -- config to set 'unset' permissions [ASH]
+  * totem_access_see   -- config to set 'see' permissions [ASH]
+  * totem_access_type  -- config to deny sets based on type(s) [ASH]
+  * ltotems() -- list all totems on target
+  * hastotem() -- check if target has totem
   
   Changes
   ------------
+  * Added internal boilerplate for future flag conversion to totems [ASH]
   
   Bug Fixes
   ------------
-  @tag wouldn't load tags if threshold reached [ASH]
-  Crash bug in @totemdef with a missed conversion value
-  Permissions for seeing totems were not working properly
+  * @tag wouldn't load tags if threshold reached [ASH]
+  * Crash bug in @totemdef with a missed conversion value
+  * Permissions for seeing totems were not working properly

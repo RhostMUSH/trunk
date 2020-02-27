@@ -451,6 +451,7 @@ typedef struct totem_entry {
 	char	*flagname;	/* Name of totem */
 	int	flagvalue;	/* Which bit is the totem flag */
 	char    flaglett;       /* Flag letter for listing */
+	int	flagtier;	/* The flag tier 0, 1, 2 */
 	int	flagpos;	/* 0-9 totem flag position for structure */
 	int	totemflag;	/* Ctrl Flags for this flag (recursive? :-) */
 	int	listperm;	/* Who can see Totem */

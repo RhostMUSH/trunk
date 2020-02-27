@@ -1180,6 +1180,7 @@ display_totemtab2(dbref player, char *buff, char **bufcx, int key)
 	safe_str((char *) ptrs[i]->flagname, buf, &bp);
         if ( !key ) {
 	   safe_chr('(', buf, &bp);
+/* Permanent check -- do we want this?
            if ( ptrs[i]->permanent == 0 ) {
 	      safe_chr('T', buf, &bp);
            } else if ( ptrs[i]->permanent == 1 ) {
@@ -1187,7 +1188,26 @@ display_totemtab2(dbref player, char *buff, char **bufcx, int key)
            } else {
 	      safe_chr('P', buf, &bp);
            }
+*/
 	   /* safe_chr(ptrs[i]->totemlett, buf, &bp); */
+           switch(ptrs[i]->flagtier) {
+              case 0: /* Normal */
+                 safe_chr(ptrs[i]->flaglett, buf, &bp);
+                 break;
+              case 1: /* Tier 1 */
+	         safe_chr('[', buf, &bp);
+                 safe_chr(ptrs[i]->flaglett, buf, &bp);
+	         safe_chr(']', buf, &bp);
+                 break;
+              case 2: /* Tier 2 */
+	         safe_chr('{', buf, &bp);
+                 safe_chr(ptrs[i]->flaglett, buf, &bp);
+	         safe_chr('}', buf, &bp);
+                 break;
+              default: /* Normal */
+                 safe_chr(ptrs[i]->flaglett, buf, &bp);
+                 break;
+           }
 	   safe_chr(')', buf, &bp);
         }
     }
@@ -5537,21 +5557,35 @@ int totem_player_list(char *buff, int i_type, dbref target, dbref player)
         if ( i_first ) {
            safe_chr(' ', buff, &s_buffp);
         }
-        switch (storedtag->permanent) {
-           case 2: /* Permanent */
-              c_ch = 'P';
+        switch (storedtag->flagtier) {
+           case 0: /* Normal flag position for letters */
+              sprintf(s_hashstr, "%s(%c)", storedtag->flagname, storedtag->flaglett);
               break;
-           case 1: /* Static/Sticky */
-              c_ch = 'S';
+           case 1: /* Second flag position for letters */
+              sprintf(s_hashstr, "%s([%c])", storedtag->flagname, storedtag->flaglett);
               break;
-           case 0: /* Temporary */
-              c_ch = 'T';
+           case 2: /* Third flag position for letters */
+              sprintf(s_hashstr, "%s({%c})", storedtag->flagname, storedtag->flaglett);
               break;
-           default: /* Unknown - Show it */
-              c_ch = '?';
+           default: /* If it does't exist, drop in first tier */
+              sprintf(s_hashstr, "%s(%c)", storedtag->flagname, storedtag->flaglett);
               break;
         }
-        sprintf(s_hashstr, "%s(%c)", storedtag->flagname, c_ch);
+/* This shows the permanance of the totems */
+//      switch (storedtag->permanent) {
+//         case 2: /* Permanent */
+//            c_ch = 'P';
+//            break;
+//         case 1: /* Static/Sticky */
+//            c_ch = 'S';
+//            break;
+//         case 0: /* Temporary */
+//            c_ch = 'T';
+//            break;
+//         default: /* Unknown - Show it */
+//            c_ch = '?';
+//            break;
+//      }
         t_ptr = s_hashstr;
         while ( *t_ptr ) {
            *t_ptr = ToUpper(*t_ptr);
@@ -5991,6 +6025,54 @@ int i_rettype;
    return i_rettype;
 }
 
+int totem_letter(char *totem, char totem_lett, int totem_tier) 
+{
+  char *lcname, *lcnp;
+  TOTEMENT *hashp;
+
+  /* Deny If the totem is longer than 20 characters */
+  if ( strlen(strip_all_ansi(totem)) > 20 ) {
+    return -1;
+  }
+
+  /* Totems can't be less than 2 characters either */
+  if ( strlen(strip_all_ansi(totem)) < 2 ) {
+    return -1;
+  }
+
+  if ( totem_lett == '\0' ) {
+    return -1;
+  }
+
+  if ( (totem_tier < 0) || (totem_tier > 2) ) {
+    return -2;
+  }
+
+  /* Convert to all lowercase, strip ansi */
+  lcnp = lcname = alloc_lbuf("add_totem");
+  safe_str(strip_all_ansi(totem), lcname, &lcnp);
+  for (lcnp=lcname; *lcnp; lcnp++) {
+    *lcnp = ToLower((int)*lcnp);
+    /* Deny if the totem somehow has whitespace in it */
+    if(isspace(*lcnp)) {
+      free_lbuf(lcname);
+      return -1;
+    }
+  }
+
+  /* Check if totem already exists in totem list. If yes, abort. */
+  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 0);
+  if(hashp == NULL) {
+    free_lbuf(lcname);
+    return -8;
+  }
+
+  free_lbuf(lcname);
+  hashp->flaglett = totem_lett;
+  hashp->flagtier = totem_tier;
+  return 1;
+}
+
 int totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
 {
   char *lcname, *lcnp, *lcuc, *lcucp;
@@ -6076,7 +6158,8 @@ int totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   newtotem->usetovperm = 0;
   newtotem->typeperm = 0;
   newtotem->aliased = 0;
-  newtotem->flaglett = ' ';
+  newtotem->flaglett = '?'; /* Default flag letter for totem */
+  newtotem->flagtier = 0; /* Default flag letter tier is 0 */
   newtotem->handler = totem_any;
 
   free_lbuf(lcuc);

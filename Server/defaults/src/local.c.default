@@ -30,8 +30,14 @@
 #ifdef SQLITE
    extern void local_sqlite_init(void);
 #endif /* SQLITE */
+extern int totem_add(char *, int, int, int);
+extern int do_flag_and_toggle_def_conf(dbref, char *, char *, char *, int);
+extern int totem_letter(char *, char, int);
+
 
 void local_startup(void) {
+   int i_rettype;
+
 #ifdef SQLITE
    local_sqlite_init();
 #endif /* SQLITE */
@@ -39,6 +45,43 @@ void local_startup(void) {
    local_mysql_init();
 #endif
    load_regexp_functions();
+   /* Error conditions:
+    * 1 - success, 0 - hash not added, -1 invalid name, -2 invalid slot, -3 invalid bittype, -5 totem exists, -6 slot exits
+    */
+   i_rettype = totem_add((char *)"TOTEMINIT", 1, 9, 2);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+   
+   i_rettype = do_flag_and_toggle_def_conf(NOTHING, (char *)"guildmaster", (char *)"totem_access_set", (char *)"toteminit", IS_TYPE_TOTEM);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+   i_rettype = do_flag_and_toggle_def_conf(NOTHING, (char *)"guildmaster", (char *)"totem_access_unset", (char *)"toteminit", IS_TYPE_TOTEM);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+
+   /* Set the letter for the totem.  0 - normal, 1 - tier 1 [], 2 - tier 2 {} */
+   i_rettype = totem_letter((char *)"TOTEMINIT", (char)'I', 1);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+   
+/* Set totem set perms -- who can set the totem
+ * Return codes:  1 success, 0 nothing set, -1 failure.
+ *
+ * i_rettype = do_flag_and_toggle_def_conf(player, (char *)"wizard", (char *)"totem_access_set", (char *)"toteminit", IS_TYPE_TOTEM);
+ *
+ * Set totem unset perms -- who can unset the totem
+ * i_rettype = do_flag_and_toggle_def_conf(player, (char *)"wizard", (char *)"totem_access_unset", (char *)"toteminit", IS_TYPE_TOTEM);
+ *
+ * Set totem see perms -- Who can see the totem
+ * i_rettype = do_flag_and_toggle_def_conf(player, (char *)"wizard", (char *)"totem_access_see", (char *)"toteminit", IS_TYPE_TOTEM);
+ *
+ * Set totem type perms -- types *not* allowed to be set on
+ * i_rettype = do_flag_and_toggle_def_conf(player, (char *)"room", (char *)"totem_access_type", (char *)"toteminit", IS_TYPE_TOTEM);
+ */
 }
 
 /* Called immediatly after the main game loop exits. At this point
