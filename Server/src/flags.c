@@ -1025,6 +1025,7 @@ NDECL(init_totemtab)
       for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
          *np = ToLower((int)*bp);
       }
+      /* We need to XMALLOC this value for future potential rename/delete */
       fp->flagname = (char *) strsave(fp->flagname);
       hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
    }
