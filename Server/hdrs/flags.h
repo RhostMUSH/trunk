@@ -533,6 +533,7 @@ typedef struct flagset {
 } FLAGSET;
 
 extern void     NDECL(init_flagtab);
+extern void     NDECL(init_totemtab);
 extern void     NDECL(init_toggletab);
 extern void	NDECL(init_powertab);
 extern void     FDECL(display_flagtab, (dbref));

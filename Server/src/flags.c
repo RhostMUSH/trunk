@@ -21,6 +21,9 @@ char *index(const char *, int);
 #ifndef STANDALONE
 
 extern NAMETAB access_nametab[];
+extern int totem_add(char *, int, int, int);
+extern int do_flag_and_toggle_def_conf(dbref, char *, char *, char *, int);
+extern int totem_letter(char *, char, int);
 
 #define DEF_THING		0x00000001
 #define DEF_PLAYER		0x00000002
@@ -679,6 +682,22 @@ int fh_none(dbref target, dbref player, int flag, int fflags, int reset)
   return 0;
 }
 
+TOTEMENT totem_table[] =
+{
+/* NAME, BITVALUE, LETTER, LETTER-TIER, SLOT, BASE-PERMS, SEE-PERMS, SET-PERMS, UNSET-PERMS, TYPE-PERMS, PERM?, ALIASED?, FUNC-HANDLE */
+  {"MARKER0", 0x00000001, '0', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER1", 0x00000002, '1', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER2", 0x00000004, '2', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER3", 0x00000008, '3', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER4", 0x00000010, '4', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER5", 0x00000020, '5', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER6", 0x00000040, '6', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER7", 0x00000080, '7', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER8", 0x00000100, '8', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {"MARKER9", 0x00000200, '9', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
+  {NULL, 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
+};
+
 /* Toggle table, 4th item tells which toggle word, 0 for 1st word, TOGGLE2, TOGGLE3, or TOGGLE4 */
 /* Lensy:
  *   Note: Toggle[01] is Toggle .. Toggle[234] is power .. Toggle[567] is depower
@@ -990,6 +1009,48 @@ OBJENT object_types[8] =
 
 #ifndef STANDALONE
 
+void
+NDECL(init_totemtab)
+{
+   TOTEMENT *fp;
+   char *nbuf, *np, *bp;
+   int i_rettype;
+
+   hashinit(&mudstate.totem_htab, 521);
+
+   /* load table */
+   nbuf = alloc_sbuf("init_totemtab");
+   for (fp = totem_table; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
+         *np = ToLower((int)*bp);
+      }
+      *np = '\0';
+      hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
+   }
+   free_sbuf(nbuf);
+
+   /* Load manually */
+   i_rettype = totem_add((char *)"TOTEMINIT2", 1, 9, 2);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+
+   i_rettype = do_flag_and_toggle_def_conf(NOTHING, (char *)"guildmaster", (char *)"totem_access_set", (char *)"toteminit2", IS_TYPE_TOTEM);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+   i_rettype = do_flag_and_toggle_def_conf(NOTHING, (char *)"guildmaster", (char *)"totem_access_unset", (char *)"toteminit2", IS_TYPE_TOTEM);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+
+   /* Set the letter for the totem.  0 - normal, 1 - tier 1 [], 2 - tier 2 {} */
+   i_rettype = totem_letter((char *)"TOTEMINIT2", (char)'i', 2);
+   if ( i_rettype != 1 ) {
+      /* Do error here */
+   }
+}
+
 /* ---------------------------------------------------------------------------
  * init_flagtab: initialize flag hash tables.
  */
@@ -1010,6 +1071,7 @@ NDECL(init_flagtab)
       hashadd2(nbuf, (int *) fp, &mudstate.flags_htab, 1);
     }
     free_sbuf(nbuf);
+
 }
 
 void 
@@ -4930,7 +4992,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
    if ( (key & FLAGDEF_LIST) || key == 0 ) {
       notify_quiet(player, "|Flagname            |Flg|T|Slot|Set       |Unset" \
                            "     |See       |Type   |NoM|");
-      notify_quiet(player, "+----------------+---+---+-+----+----------+" \
+      notify_quiet(player, "+--------------------+---+-+----+----------+" \
                            "----------+----------+-------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
@@ -4977,13 +5039,22 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
           * This is for you Ambrosia *grin*.  For when you want to convert flags to totems.
           * Then use totem 14 & 15 for 'toggles'
           * Best of luck, especially if I happen to be dead before you see this.  --Ash
+          *
+          * modified it to flagtier is 0, 1, and 2 for the handler -- Ash
           */
-         if ( (fp->flagpos == 12) || (fp->flagpos == 13) ) {
-            c_bef = '[';
-            c_aft = ']';
-         } else {
-            c_bef = ' ';
-            c_aft = ' ';
+         switch(fp->flagtier) {
+            case 2: /* {} handler */
+               c_bef = '{';
+               c_aft = '}';
+               break;
+            case 1: /* [] handler */
+               c_bef = '[';
+               c_aft = ']';
+               break;
+            default: /* Normal flag letter */
+               c_bef = ' ';
+               c_aft = ' ';
+               break;
          }
          if ( fp->permanent == 0 ) {
             c_perm = 'T';

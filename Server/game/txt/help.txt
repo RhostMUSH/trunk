@@ -33208,6 +33208,8 @@
   * Added internal boilerplate for future flag conversion to totems [ASH]
   * /display switch added to @totem [ASH]
   * /letter switch addedto @totem [ASH]
+  * Added table-loader for Totems for ease of flag/toggle porting [ASH]
+  * Added default markers to Totems as examples [ASH]
   
   Bug Fixes
   ------------

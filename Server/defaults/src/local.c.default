@@ -48,7 +48,7 @@ void local_startup(void) {
    /* Error conditions:
     * 1 - success, 0 - hash not added, -1 invalid name, -2 invalid slot, -3 invalid bittype, -5 totem exists, -6 slot exits
     */
-   i_rettype = totem_add((char *)"TOTEMINIT", 1, 9, 2);
+   i_rettype = totem_add((char *)"TOTEMINIT", 1, 6, 2);
    if ( i_rettype != 1 ) {
       /* Do error here */
    }

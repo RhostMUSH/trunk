@@ -2264,6 +2264,7 @@ main(int argc, char *argv[])
     init_cmdtab();
     init_logout_cmdtab();
     init_flagtab();
+    init_totemtab();
     init_toggletab();
     init_powertab();
     init_depowertab();
@@ -2279,7 +2280,6 @@ main(int argc, char *argv[])
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
     nhashinit(&mudstate.desc_htab, 131);
-    nhashinit(&mudstate.totem_htab, 131);
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
