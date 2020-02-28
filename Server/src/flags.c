@@ -1030,7 +1030,7 @@ NDECL(init_totemtab)
    free_sbuf(nbuf);
 
    /* Load manually */
-   i_rettype = totem_add((char *)"TOTEMINIT2", 1, 9, 2);
+   i_rettype = totem_add((char *)"TOTEMINIT2", 2, 6, 2);
    if ( i_rettype != 1 ) {
       /* Do error here */
    }
