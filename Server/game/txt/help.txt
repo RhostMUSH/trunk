@@ -33216,3 +33216,4 @@
   * @tag wouldn't load tags if threshold reached [ASH]
   * Crash bug in @totemdef with a missed conversion value
   * Permissions for seeing totems were not working properly
+  * Permission bug in @totem set/unset

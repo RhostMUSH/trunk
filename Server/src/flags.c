@@ -84,7 +84,7 @@ fh_any(dbref target, dbref player, FLAG flag, int fflags, int reset)
 
 int
 totem_any(dbref target, dbref player, FLAG totem, int tflags, int reset) {
-   if ( (tflags < 0) || (tflags > TOTEM_SLOTS) ) {
+   if ( (tflags < 0) || (tflags >= TOTEM_SLOTS) ) {
       return 0;
    }
    if ( !Good_chk(target) || !Controls(player, target) ) {
@@ -1021,10 +1021,11 @@ NDECL(init_totemtab)
    /* load table */
    nbuf = alloc_sbuf("init_totemtab");
    for (fp = totem_table; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+      memset(nbuf, '\0', SBUF_SIZE);
       for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
          *np = ToLower((int)*bp);
       }
-      *np = '\0';
+      fp->flagname = (char *) strsave(fp->flagname);
       hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
    }
    free_sbuf(nbuf);
@@ -1900,9 +1901,7 @@ totem_set(dbref target, dbref player, char *totem, int key)
                      else if ((i_uovperm > 0) && negate)
                         result = check_access(player, i_uovperm, 0, 0);
                        /* Some things you just can *not* override */
-                     if ( result && ((tp->handler == th_player) ||
-                                     (tp->handler == th_noset) ||
-                                     (tp->handler == th_extansi)) ) {
+                     if ( result ) {
 		          result = tp->handler(target, player, tp->flagvalue,
 				               tp->flagpos, negate);
                      }
@@ -6314,7 +6313,7 @@ totem_display(char *s_slot, dbref player)
 
    i_slot = atoi(s_slot);
    /* Is slot a valid slot? */
-   if ( (i_slot < 0) || (i_slot > TOTEM_SLOTS) ) {
+   if ( (i_slot < 0) || (i_slot >= TOTEM_SLOTS) ) {
       return -2;
    }
 
