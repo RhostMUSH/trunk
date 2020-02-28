@@ -33199,13 +33199,15 @@
   * totem_access_unset -- config to set 'unset' permissions [ASH]
   * totem_access_see   -- config to set 'see' permissions [ASH]
   * totem_access_type  -- config to deny sets based on type(s) [ASH]
-  * ltotems() -- list all totems on target
-  * hastotem() -- check if target has totem
+  * ltotems()          -- list all totems on target
+  * hastotem()         -- check if target has totem
+  * totem_letter       -- config to set totem letters
   
   Changes
   ------------
   * Added internal boilerplate for future flag conversion to totems [ASH]
   * /display switch added to @totem [ASH]
+  * /letter switch addedto @totem [ASH]
   
   Bug Fixes
   ------------

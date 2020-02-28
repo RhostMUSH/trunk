@@ -55,6 +55,7 @@ extern NAMETAB sigactions_nametab[];
 extern CONF conftable[];
 extern int	FDECL(flagstuff_internal, (char *, char *));
 extern int totem_alias(char *, char *, dbref);
+extern int totem_letter(char *, char, int);
 extern int totem_add(char *, int, int, int);
 extern void totem_handle_error(int, dbref, char *, char *);
 /* Lensy: Not external, but a forward declaration is needed */
@@ -3047,6 +3048,48 @@ CF_HAND(cf_totemadd)
     return retval;
 }
 
+CF_HAND(cf_totemletter)
+{
+    char *totem = NULL, *s_letter = NULL, *s_tier = NULL,
+         *tstrtokr, *s_inbuff, *s_new;
+    int retval, i_tier;
+
+    if (!mudstate.initializing) {
+       if ( Good_chk(player) ) {
+          notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
+       }
+       return -1;
+    }
+
+    i_tier = 0;
+    totem = strtok_r(str, " \t=,", &tstrtokr);
+    if ( totem ) {
+       s_tier = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+    if ( s_tier ) {
+       s_letter = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+ 
+    if ( totem && s_tier && s_letter ) {
+       i_tier = atoi(s_tier);
+       retval = totem_letter(totem, *s_letter, i_tier);
+    } else {
+       retval = -1;
+    }
+    s_inbuff = alloc_lbuf("cf_totemletter");
+    s_new = alloc_lbuf("cf_totemletter");
+    totem_handle_error(retval, NOTHING, (char *)"totem_letter", s_inbuff);
+    sprintf(s_new, "%s ('%s %c %d')", s_inbuff, (totem != NULL ? totem : (char *)"(NULL)"),
+              (s_letter != NULL ? *s_letter : '?'), i_tier);
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
+}
+
 CF_HAND(cf_totemalias)
 {
     char *alias = NULL, *orig = NULL, *tstrtokr, *s_inbuff, *s_new;
@@ -4766,6 +4809,9 @@ CONF conftable[] =
     {(char *) "totem_add",
      cf_totemadd, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Define totem flags (static/sticky)."},
+    {(char *) "totem_letter",
+     cf_totemletter, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Define totem letters."},
     {(char *) "news_file",
      cf_string, CA_DISABLED, (int *) mudconf.news_file, 32, 0, CA_WIZARD,
      (char *) "File used for news."},

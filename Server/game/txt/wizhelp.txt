@@ -5418,15 +5418,15 @@
               - Syntax:  @totem/alias totemname=alias(s)
     /display  - Show flags assigned to flag values of given slot.
                 Syntax:  @totem/display slotnumber
+    /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
+                Syntax:  @totem/letter totemname=tierlevel letter
   
     Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
                 Syntax:  @totem/clean
-    /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
-                Syntax:  @totem/letter totemname=tierlevel letter
   
   See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
-             totem_access_see, totem_access_type
+             totem_access_see, totem_access_type, totem_letter
 & @totemdef
 & @toggledef
 & @flagdef
@@ -6602,18 +6602,18 @@
   toggle_access_set         toggle_access_type        toggle_access_unset     
   totem_add                 totem_alias               totem_access_see
   totem_access_set          totem_access_type         totem_access_unset
-  tor_localhost             tor_paranoid              trace_output_limit      
-  trace_topdown             tree_character            trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_command             vattr_limit_checkwiz    
-  vercustomstr              vlimit                    wait_cost               
-  wall_cost                 whereis_notify            wizmax_dest_limit       
-  wizmax_vattr_limit        who_default               who_unfindable          
-  who_showwiz               who_wizlevel              who_whowiztype          
-  whohost_size              wiz_override              wiz_uselock             
-  wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max     
-  zone_parents
+  totem_letter              tor_localhost             tor_paranoid            
+  trace_output_limit        trace_topdown             tree_character          
+  trust_site                uncompress_program        unowned_safe            
+  user_attr_flags           validate_host             vattr_command           
+  vattr_limit_checkwiz      vercustomstr              vlimit                  
+  wait_cost                 wall_cost                 whereis_notify          
+  wizmax_dest_limit         wizmax_vattr_limit        who_default             
+  who_unfindable            who_showwiz               who_wizlevel            
+  who_whowiztype            whohost_size              wiz_override            
+  wiz_uselock               wizard_help_file          wizard_help_index       
+  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
+  wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -11319,7 +11319,7 @@
   return an error.
   
   See Also: totem_access_set, totem_access_unset, totem_access_see, 
-            totem_access_type, totem_alias, @totemdef, @totem
+            totem_access_type, totem_alias, totem_letter, @totemdef, @totem
 
 & totem_alias
   Config parameter: totem_alias <totemname> <alias1> [<alias2> ... <aliasN>]
@@ -11339,7 +11339,7 @@
   similiar to issuing @totemdef/set on the specified totem.
   
   See Also: totem_access_unset, totem_access_see, totem_access_type, 
-            totem_add, totem_alias, @totemdef, @totem
+            totem_add, totem_alias, totem_letter, @totemdef, @totem
   
 & toggle_access_set
   Config parameter: toggle_access_set <togglename> <permission(s)>
@@ -11357,7 +11357,7 @@
   similiar to issuing @totemdef/unset on the specified totem.
   
   See Also: totem_access_set, totem_access_see, totem_access_type, 
-            totem_add, totem_alias, @totemdef, @totem
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
 
 & toggle_access_unset
   Config parameter: toggle_access_unset <togglename> <permission(s)>
@@ -11375,7 +11375,7 @@
   similiar to issuing @totemdef/see on the specified totem.
   
   See Also: totem_access_set, totem_access_unset, totem_access_type, 
-            totem_add, totem_alias, @totemdef, @totem
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
 
 & toggle_access_see
   Config parameter: toggle_access_set <togglename> <permission(s)>
@@ -11393,7 +11393,22 @@
   This is similiar to issuing @totemdef/type on the specified totem.
   
   See Also: totem_access_set, totem_access_unset, totem_access_see, 
-            totem_add, totem_alias, @totemdef, @totem
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
+
+& totem_letter
+  Config parameter: totem_letter <totemname> <chartier> <character>
+  
+  This assigns the unique character to the totem.  The letter can be
+  any character except (, ), [, ], { or }.  The tier can be 0, 1, or 2.
+  
+  Tier 1 is surrounded by [].
+  Tier 2 is surrounded by {}.
+  
+  You are allowed to have totems with duplicate characters.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_add, totem_letter, totem_access_type, @totemdef, 
+            @totem
 
 & toggle_access_type
   Config parameter: toggle_access_type <togglename> <permission(s)>

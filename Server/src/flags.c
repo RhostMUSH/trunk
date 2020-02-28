@@ -5483,6 +5483,12 @@ void totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
       case -9: /* Too many aliases */
          safe_str((char *)"Limit reached for alises on Totem specified (10 Max)", s_inbuff, &s_buffptr);
          break;
+      case -10: /* Invalid letter */
+         safe_str((char *)"Invalid totem letter specified.", s_inbuff, &s_buffptr);
+         break;
+      case -11: /* Invalid tier for letter */
+         safe_str((char *)"Invalid tier for totem letter specified.", s_inbuff, &s_buffptr);
+         break;
       case -777: /* snuff messages */
          break;
       default: /* Invalid error -- log it */ 
@@ -6040,12 +6046,14 @@ int totem_letter(char *totem, char totem_lett, int totem_tier)
     return -1;
   }
 
-  if ( totem_lett == '\0' ) {
-    return -1;
+  if ( (totem_lett == '\0') || (totem_lett == '[') || (totem_lett == ']') ||
+       (totem_lett == '{') || (totem_lett == '}') || (totem_lett == '(') ||
+       (totem_lett == ')') ) {
+    return -10;
   }
 
   if ( (totem_tier < 0) || (totem_tier > 2) ) {
-    return -2;
+    return -11;
   }
 
   /* Convert to all lowercase, strip ansi */
@@ -6411,7 +6419,7 @@ void do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
    int retvalue, i_totemval, i_totemslot;
    dbref target;
-   char *s_buff, *s_buff2;
+   char *s_buff, *s_buff2, *s_strtok, *s_strtokr;
 
    switch (key) {
       case TOTEM_ADD: /* Add totem */
@@ -6510,7 +6518,24 @@ void do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_LETTER: /* Totem letter -- assign a letter.  Format: @totem/letter totem=tier letter (@totem/letter inherit=0 i) */
-         notify(player, "Sorry, this option is not yet implimented.");
+         s_buff = alloc_lbuf("totem_letter");
+         strcpy(s_buff, flag2);
+         s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+         retvalue = -11;
+         if ( s_strtok ) {
+            i_totemval = atoi(s_strtok);
+            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            retvalue = -10;
+            if ( s_strtok ) {
+               if ( strlen(s_strtok) == 1 ) {
+                  retvalue = totem_letter(flag1, *s_strtok, i_totemval);
+               }
+            }
+         }
+         *s_buff = '\0';
+         totem_handle_error(retvalue, player, (char *)"display", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
          break;
       default: /* Default condition - normal @totem */
          if ( !flag1 || !*flag1 ) {
