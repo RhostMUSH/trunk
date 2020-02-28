@@ -16,6 +16,9 @@
 /* Magic string for accept key */
 #define WEBSOCKET_KEY_MAGIC "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
+/* Maximum Size of Wesbsocket Header */
+#define WS_HDR_SIZE 16;
+
 /* WebSocket opcodes. */
 enum WebSocketOp {
   WS_OP_CONTINUATION = 0x0,
@@ -28,7 +31,14 @@ enum WebSocketOp {
   /* 0xB - 0xF reserved for control frames */
 };
 
+/* Imported functions */
+// extern int FDECL(encode_base64, (const char *, int, char *, char **));
+extern int FDECL(process_output, (DESC * d));
+
+/* Exported functions */
 extern int validate_websocket_key(char *);
 extern void complete_handshake(DESC *, const char *);
+extern void websocket_write(DESC *, const char *, int);
+extern int process_websocket_frame(DESC *, char *, int);
 
 #endif /* undef MUSH_WEBSOCK_H */

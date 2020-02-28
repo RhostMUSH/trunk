@@ -3,9 +3,6 @@
 #include "externs.h"
 #include "websock2.h"
 
-// extern int FDECL(encode_base64, (const char *, int, char *, char **));
-extern int FDECL(process_output, (DESC * d));
-
 /* Base64 encoder. Temporary until encode_base64 can be sorted out */
 static void
 encode64(char *dst, const char *src, size_t srclen)
@@ -63,22 +60,43 @@ compute_websocket_accept(char *dst, const char *key) {
     /* Computer SHA-1 hash of combined value */
     SHA1((unsigned char *)combined, sizeof(combined), (unsigned char *)hash);
     encode64(dst, hash, sizeof(hash));
-    fprintf(stderr, "[WS] Accept key: %s\n", dst);
+}
+
+static void
+compute_payload_len(TBLOCK *tb, int len)
+{
+    if (len < 126) {
+        *tb->hdr.end++ = len;
+    } else if (len < 65536) {
+        *tb->hdr.end++ = 126;
+        *tb->hdr.end++ = (len >> 8) & 0xFF;
+        *tb->hdr.end++ = len & 0xFF;
+    } else { // payload > 65536
+        int pos;
+        *tb->hdr.end++ = 126;
+
+        for (pos = 56; pos >= 0; pos -= 8) {
+            *tb->hdr.end++ = (len >> pos) & 0xFF;
+        }
+    }
+}
+
+/* rewrite text as a websocket frame */
+static void
+write_message(TBLOCK *tb, const char *msg, int len, enum WebSocketOp op, int fin)
+{
+    char status = (fin) ? 0x80 : 0x00;
+    *tb->hdr.end++ = status | op;
+    compute_payload_len(tb, len);
+    memcpy(tb->hdr.end, msg, len);
+    tb->hdr.end += len;
+    tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
 }
 
 /* Validate client websocket key for handshake */
 int
 validate_websocket_key(char *key) {
-    int res = 0;
-
-    if (key && strlen(key) == WEBSOCKET_KEY_LEN) {
-        fprintf(stderr, "[WS] KEYGEN: %s [VALIDATED]\n", key);
-        res = 1;
-    } else {
-        fprintf(stderr, "[WS] KEYGEN: %s [NOT VALID]\n", key);
-    }
-
-    return res;
+    return (key && strlen(key) == WEBSOCKET_KEY_LEN);
 }
 
 /* Create handshake accept response */
@@ -102,7 +120,9 @@ complete_handshake(DESC *d, const char *key) {
     // Construct payload
     memset(buf, '\0', LBUF_SIZE);
     sprintf(buf, RESPONSE, accept);
-    fprintf(stderr, "[WS] Handshake Response: [SENT]\n%s", buf);
+    STARTLOG(LOG_ALWAYS, "NET", "WS");
+    log_text("Handshake Response: [ACCEPT]");
+    ENDLOG;
     queue_write(d, buf, strlen(buf));
     process_output(d);
     free_lbuf(accept);
@@ -114,4 +134,219 @@ complete_handshake(DESC *d, const char *key) {
 
     // Send login screen
     welcome_user(d);
+
+    /* Set initial state */
+    d->checksum[0] = 4;
+}
+
+/* Abort an invalid handshake request */
+void
+abort_handshake(DESC *d)
+{
+    char *RESPONSE =
+        "HTTP/1.1 426 Upgrade Required\r\n"
+        "Sec-WebSocket-Version: 13\r\n"
+        "\r\n";
+
+    STARTLOG(LOG_ALWAYS, "NET", "WS");
+    log_text("Handshake Response: [ABORT]");
+    ENDLOG;
+    queue_write(d, RESPONSE, strlen(RESPONSE));
+}
+
+void
+websocket_write(DESC *d, const char *output, int len)
+{
+    int left, n, fin = 1;
+    enum WebSocketOp op;
+
+    do {
+        /* Create new buffer for the websocket frame */
+        TBLOCK *tb = (TBLOCK *)alloc_lbuf("queue_write.websocket");
+        tb->hdr.nxt = NULL;
+        tb->hdr.start = tb->data;
+        tb->hdr.end = tb->data;
+
+        /* Determine if this is a text or continue operation */
+        op = (fin) ? WS_OP_TEXT : WS_OP_CONTINUATION;
+
+        /* break up message as needed */
+        left = LBUF_SIZE - sizeof(TBLKHDR) - WS_HDR_SIZE;
+        if (len <= left) {
+            n = len;
+            fin = 1;
+            len = 0;
+        } else {
+            n = left;
+            fin = 0;
+            len -= left;
+        }
+
+        /* Add output to the new buffer */
+        write_message(tb, output, n, op, fin);
+
+        /* If there is already buffered output add this to chain */
+        if (d->output_head == NULL) {
+            d->output_head = tb;
+        } else {
+            d->output_tail->hdr.nxt = tb;
+        }
+        d->output_tail = tb;
+    } while (len > 0);
+}
+
+int
+process_websocket_frame(DESC *d, char *tbuf1, int got)
+{
+  char mask[1 + 4 + 1 + 1];
+  unsigned char state, type, err;
+/*  uint64_t len; */
+  long len;
+  char *wp;
+  const char *cp, *end;
+  enum WebSocketOp op;
+
+  wp = tbuf1;
+
+  /* Restore state. */
+  memcpy(mask, d->checksum, sizeof(mask));
+  state = mask[0];
+  type = mask[5];
+  err = mask[6];
+  len = d->ws_frame_len;
+
+  /* Process buffer bytes. */
+  for (cp = tbuf1, end = tbuf1 + got; cp != end; ++cp) {
+    const unsigned char ch = *cp;
+
+    switch (state++) {
+    case 4:
+      /* Received frame type. */
+      op = ch & 0x0F;
+
+      switch (op) {
+      case WS_OP_CONTINUATION:
+        /* Continue the previous opcode. */
+        /* TODO: Error handling (only data frames can be continued). */
+        err = 0;
+        op = type & 0x0F;
+        break;
+
+      case WS_OP_TEXT:
+        /* First frame of a new message. */
+        err = 0;
+        break;
+
+      default:
+        /* Ignore unrecognized opcode. */
+        err = 1;
+        break;
+      }
+
+      type = (ch & 0xF0) | op;
+      break;
+
+    case 5:
+      /* Mask bit (required to be 1) and payload length (7 bits). */
+      /* TODO: Error handling (check for the mask bit). */
+      switch (ch & 0x7F) {
+      case 126:
+        /* 16-bit payload length. */
+        break;
+
+      case 127:
+        /* 64-bit payload length. */
+        state = 8;
+        break;
+
+      default:
+        /* 7-bit payload length. */
+        len = ch & 0x7F;
+        state = 16;
+        break;
+      }
+      break;
+
+    case 6:
+      /* 16-bit payload length. */
+      len = ch & 0xFF;
+      break;
+
+    case 7:
+      len = (len << 8) | (ch & 0xFF);
+      state = 16;
+      break;
+
+    case 8:
+      /* 64-bit payload length. */
+      /* TODO: Error handling (first bit must be 0). */
+      len = ch & 0x7F;
+      break;
+
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+      len = (len << 8) | (ch & 0xFF);
+      break;
+
+    case 16:
+    case 17:
+    case 18:
+      /* 32-bit mask key. */
+      mask[state - 16] = ch;
+      break;
+
+    case 19:
+      mask[4] = ch;
+
+      if (len) {
+        /* Begin payload. */
+        state = 0;
+     } else {
+        /* Empty payload. */
+        state = 4;
+
+        /* TODO: Handle end of frame. */
+      }
+      break;
+
+    default:
+      /* Payload data; handle according to opcode. */
+      if (!err) {
+        *wp++ = ch ^ mask[state];
+      } else {
+        STARTLOG(LOG_ALWAYS, "NET", "WS");
+        log_text("Unknown operation received.\n");
+        ENDLOG;
+        break;
+      }
+
+      if (--len) {
+        /* More payload bytes. */
+        state &= 0x3;
+      } else {
+        /* Last payload byte. */
+        state = 4;
+
+        /* TODO: Handle end of frame. */
+      }
+      break;
+    }
+  }
+
+  /* Add a \n to the end to terminate the command */
+  *wp++ = '\n';
+
+  /* Preserve state. */
+  mask[0] = state;
+  mask[5] = type;
+  mask[6] = err;
+  memcpy(d->checksum, mask, sizeof(mask));
+  d->ws_frame_len = len;
+
+  return wp - tbuf1;
 }

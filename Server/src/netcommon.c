@@ -1873,30 +1873,9 @@ queue_write(DESC * d, const char *b, int n)
 
     ///// NEW WEBSOCK
     if (d->flags & DS_WEBSOCKETS) {
-        /* Allocate a new buffer for each output
-           Treat each buffer as an individual websocket frame */
-/*
-        tp = (TBLOCK *)alloc_lbuf("queue_write.websocket");
-        tp->hdr.nxt = NULL;
-        tp->hdr.start = tp->data;
-        tp->hdr.end = tp->data;
-
-        if (d->output_head == NULL) {
-            d->output_head = tp;
-        } else {
-            d->output_tail->hdr.nxt = tp;
-        }
-        d->output_tail = tp;
-
-        *tp->hdr.end++ = 0x81;
-        *tp->hdr.end++ = 0x05;
-        memcpy(tp->hdr.end, "Hello", 5);
-        tp->hdr.end += 5;
-        tp->hdr.nchars = tp->hdr.end - tp->hdr.start;
-
-        fprintf(stderr, "[WS] Sending Data %d bytes: %s\n", tp->hdr.nchars, tp->hdr.start);
+        /* Format output for websockets */
+        websocket_write(d, b, n);
         VOIDRETURN;
-*/
     }
     ///// END NEW WEBSOCK
 
@@ -5682,6 +5661,7 @@ do_command(DESC * d, char *command)
             while ( s_strtok ) {
 
                ////////   NEW WEBSOCK
+               ///// TODO: Improve logic here
                if ( !stricmp(s_strtok, (char *)"Upgrade: websocket") ) {
                    i_socksnarf++;
                }
@@ -5743,8 +5723,10 @@ do_command(DESC * d, char *command)
 
             ///// NEW WEBSOCK
             if (i_socksnarf >= 5) {
-                fprintf(stderr, "[WS] Received Websocket opening handshake.\nHost: %s\nWebsocket version: %d\nWebsocket key: %s\n", 
-                    s_sockhost, i_sockver, s_sockkey);
+                free_lbuf(s_user); // Was allocated but will not be used
+                STARTLOG(LOG_ALWAYS, "NET", "WS");
+                log_text("Received Websocket opening handshake.");
+                ENDLOG;
                 complete_handshake(d, s_sockkey);
             } else
             ///// END NEW WEBSOCK
