@@ -11520,8 +11520,8 @@
   SWITCH()        SWITCHALL()     T()            TAG()          TAGMATCH()
   TAN()           TEL()           TEMPLATE()     TIME()         TIMEFMT()
   TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTMATCH()      TOTMEMBER()    TOTPOS()       TOTWILDMATCH()
-  TR()            TRACE()         TRANSLATE()    TRIM()
+  TOTCMDS()       TOTEMS()        TOTMATCH()     TOTMEMBER()    TOTPOS()     
+  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE()    TRIM()
 
 { 'help function list5' for more }
 
@@ -11609,8 +11609,8 @@
                       RANDEXTRACT() REMFLAGS() REMOVE() REMTYPE() REST() 
                       REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
                       SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
-                      STRFUNC() STRMATH() TOTMATCH() TOTMEMBER() TOTWILDMATCH()
-                      TRREVERSE() WHILE() WILDMATCH()
+                      STRFUNC() STRMATH() TOTEMS() TOTMATCH() TOTMEMBER() 
+                      TOTWILDMATCH() TRREVERSE() WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -17046,6 +17046,28 @@
    
   See Also: loc(), where(), visible(), sees()
   
+& TOTEMS()
+  Function totems(<object>)
+  
+  Totems returns a string consisting of the totem letters attached
+  to the object.  The string is, however, just one word.  All letters
+  in the 'second' tier of letters will be surrounded by []'s.  All 
+  letters in the 'third' tier of letters will be surrounded by {}'s.
+  
+  All default letters (?) defined to toggles will be skipped.  This
+  is intentional.
+  
+  Examples:
+    > @list totems
+      Totems : FOO(f) BAR([b]) BAZ(z)
+    > say ltotems(me)
+      You say "FOO BAR BAZ"
+    > say totems(me)
+      You say "fz[b]"
+  
+  See Also: ltotems(), flags(), toggles(), lflags(), ltoggles(),
+            @totem
+
 & FLAGS()
   Function: flags(<object>[/<attribute>])
  
@@ -17066,7 +17088,7 @@
     > say flags(me/asdfadsfasdfaf)
     You say ""
   
-  See Also: lflags(), hasflag()
+  See Also: lflags(), hasflag(), ltoggles(), ltotems(), totems()
   
 & RNUM()
   Function: rnum(<target>,<object>)
@@ -30021,6 +30043,7 @@
   step()        - Steps through a list X elements at a time. 
   strfunc()     - Transforms a string of arguments to proper arguments.
   strmath()     - Applies math to a string.
+  totems()      - List totem letters on target.
   totmatch()    - Returns all matches of a pattern against a string.
   totmember()   - Returns all matches of a pattern against a list.
   totwildmatch()- Like wildmatch(), but returns every match.
@@ -33202,6 +33225,7 @@
   * ltotems()          -- list all totems on target
   * hastotem()         -- check if target has totem
   * totem_letter       -- config to set totem letters
+  * totems()           -- list flag letters of totems (skips default '?') [ASH]
   
   Changes
   ------------
