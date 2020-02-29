@@ -541,6 +541,8 @@ extern void     FDECL(display_toggletab, (dbref));
 extern void     FDECL(display_totemtab, (dbref));
 extern int	FDECL(totem_cansee, (dbref, dbref, char *));
 extern int	FDECL(totem_cansee_bit, (dbref, dbref, int));
+extern int	FDECL(totem_flags, (char *, dbref, dbref, char *));
+
 extern void     FDECL(display_flagtab2, (dbref, char *, char **));
 extern void     FDECL(display_toggletab2, (dbref, char *, char **));
 extern void     FDECL(display_totemtab2, (dbref, char *, char **, int));

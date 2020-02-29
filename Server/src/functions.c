@@ -8288,6 +8288,25 @@ FUNCTION(fun_foreach)
 }
 
 
+FUNCTION(fun_totems)
+{
+   int i_return;
+   char *s_buff;
+
+   if ( !fargs[0] ) {
+      safe_str("#-1", buff, bufcx);
+      return;
+   }
+
+   s_buff = alloc_lbuf("fun_totems");
+   i_return = totem_flags(fargs[0], player, cause, s_buff);
+   if ( i_return == 1 ) {
+      safe_str(s_buff, buff, bufcx);
+   } else {
+      safe_str("#-1", buff, bufcx);
+   }
+   free_lbuf(s_buff);
+}
 
 /* ---------------------------------------------------------------------------
  * fun_flags: Returns the flags on an object.
@@ -37208,6 +37227,7 @@ FUN flist[] =
     {"TOHEX", fun_tohex, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOOCT", fun_tooct, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTCMDS", fun_totcmds, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTEMS", fun_totems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

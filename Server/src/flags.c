@@ -5502,7 +5502,8 @@ ival(char *buff, char **bufcx, int result)
 }
 
 
-void totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff) 
+void 
+totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff) 
 {
    char *s_buff, *s_buffptr;
 
@@ -5560,6 +5561,9 @@ void totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
       case -11: /* Invalid tier for letter */
          safe_str((char *)"Invalid tier for totem letter specified.", s_inbuff, &s_buffptr);
          break;
+      case -12: /* Invalid target */
+         safe_str((char *)"Invalid target specified.", s_inbuff, &s_buffptr);
+         break;
       case -777: /* snuff messages */
          break;
       default: /* Invalid error -- log it */ 
@@ -5570,7 +5574,9 @@ void totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
    free_lbuf(s_buff);
 }
 
-void totem_write_to_disk(void) {
+void 
+totem_write_to_disk(void) 
+{
    dbref thing;
    char *s_tmp, *s_tmpptr;
    int i_first, i_loop;
@@ -5597,7 +5603,8 @@ void totem_write_to_disk(void) {
    free_lbuf(s_tmp);
 }
 
-int totem_player_list(char *buff, int i_type, dbref target, dbref player)
+int 
+totem_player_list(char *buff, int i_type, dbref target, dbref player)
 {
   char *s_hashstr, *s_buffp, *t_ptr, c_ch;
   int i_first, totems[TOTEM_SLOTS];
@@ -5679,7 +5686,8 @@ int totem_player_list(char *buff, int i_type, dbref target, dbref player)
 }
 
 
-int totem_list(char *buff, int i_type, dbref target, dbref player) 
+int 
+totem_list(char *buff, int i_type, dbref target, dbref player) 
 {
   char *s_hashstr, *s_buffp, *t_ptr;
   int i_first, totems[TOTEM_SLOTS];
@@ -5759,7 +5767,8 @@ int totem_list(char *buff, int i_type, dbref target, dbref player)
   return 1;
 }
 
-int totem_alias(char *totem, char *s_aliases, dbref player)
+int 
+totem_alias(char *totem, char *s_aliases, dbref player)
 {
   TOTEMENT *hashp, *aliasp, *storedtag;
   int i_aliases, stat, *i_totem = NULL, i_first;
@@ -5868,7 +5877,8 @@ int totem_alias(char *totem, char *s_aliases, dbref player)
   return i_first;
 }
 
-int totem_info(char *totem, char *s_buff)
+int 
+totem_info(char *totem, char *s_buff)
 {
   TOTEMENT *hashp, *storedtag;
   int i_found;
@@ -5935,7 +5945,8 @@ int totem_info(char *totem, char *s_buff)
   return 1;
 }
 
-int totem_rename(char *totem, char *totemren)
+int 
+totem_rename(char *totem, char *totemren)
 {
   TOTEMENT *hashp, *newhashp, *newtotem;
   char *lcnp, *lcname, *newp, *newname;
@@ -6025,61 +6036,63 @@ int totem_rename(char *totem, char *totemren)
   return stat;
 }
 
-int totem_remove(char *totem)
+int 
+totem_remove(char *totem)
 {
-  TOTEMENT *hashp;
-  char *lcnp, *lcname;
+   TOTEMENT *hashp;
+   char *lcnp, *lcname;
 
-  if ( !*totem ) {
-    return -4;
-  }
+   if ( !*totem ) {
+      return -4;
+   }
 
-  /* Deny If the totem is longer than 20 characters */
-  if ( strlen(strip_all_ansi(totem)) > 20 ) {
-    return -1;
-  }
-
-  /* Convert to all lowercase, strip ansi */
-  lcnp = lcname = alloc_lbuf("add_totem");
-  safe_str(strip_all_ansi(totem), lcname, &lcnp);
-  for (lcnp=lcname; *lcnp; lcnp++) {
-    *lcnp = ToLower((int)*lcnp);
-    /* Deny if the totem somehow has whitespace in it */
-    if(isspace(*lcnp)) {
-      free_lbuf(lcname);
+   /* Deny If the totem is longer than 20 characters */
+   if ( strlen(strip_all_ansi(totem)) > 20 ) {
       return -1;
-    }
-  }
+   }
 
-  /* Check if totem exists in totem list. If yes, delete. */
-  hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 1);
-  if(hashp == NULL) {
-    free_lbuf(lcname);
-    return -8;
-  }
+   /* Convert to all lowercase, strip ansi */
+   lcnp = lcname = alloc_lbuf("add_totem");
+   safe_str(strip_all_ansi(totem), lcname, &lcnp);
+   for (lcnp=lcname; *lcnp; lcnp++) {
+      *lcnp = ToLower((int)*lcnp);
+      /* Deny if the totem somehow has whitespace in it */
+      if(isspace(*lcnp)) {
+         free_lbuf(lcname);
+         return -1;
+      }
+   }
 
-  /* Only perm flags immune from deletion */
-  if ( hashp->permanent == 2 ) {
-    free_lbuf(lcname);
-    return -7;
-  }
+   /* Check if totem exists in totem list. If yes, delete. */
+   hashp = (TOTEMENT *)hashfind2(lcname, &mudstate.totem_htab, 1);
+   if(hashp == NULL) {
+      free_lbuf(lcname);
+      return -8;
+   }
 
-  /* if aliases on the target, don't allow removal */
-  if ( hashp->aliased == 1 ) {
-    free_lbuf(lcname);
-    return -7;
-  }
+   /* Only perm flags immune from deletion */
+   if ( hashp->permanent == 2 ) {
+      free_lbuf(lcname);
+      return -7;
+   }
 
-  mudstate.totem_slots[hashp->flagpos] &= ~(hashp->flagvalue);
-  hashdelete(lcname, &mudstate.totem_htab);
-  free_lbuf(lcname);
-  return 1;
+   /* if aliases on the target, don't allow removal */
+   if ( hashp->aliased == 1 ) {
+      free_lbuf(lcname);
+      return -7;
+   }
+
+   mudstate.totem_slots[hashp->flagpos] &= ~(hashp->flagvalue);
+   hashdelete(lcname, &mudstate.totem_htab);
+   free_lbuf(lcname);
+   return 1;
 }
 
 
-int totem_perms(char *totem, int totem_type, char *totem_perms, dbref player)
+int 
+totem_perms(char *totem, int totem_type, char *totem_perms, dbref player)
 {
-int i_rettype;
+   int i_rettype;
 
    switch ( totem_type ) {
       case TOTEM_PERMSSET: /* Set perms */
@@ -6102,7 +6115,8 @@ int i_rettype;
    return i_rettype;
 }
 
-int totem_letter(char *totem, char totem_lett, int totem_tier) 
+int 
+totem_letter(char *totem, char totem_lett, int totem_tier) 
 {
   char *lcname, *lcnp;
   TOTEMENT *hashp;
@@ -6152,7 +6166,8 @@ int totem_letter(char *totem, char totem_lett, int totem_tier)
   return 1;
 }
 
-int totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
+int 
+totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
 {
   char *lcname, *lcnp, *lcuc, *lcucp;
   int stat, i_found, i_bits;
@@ -6257,7 +6272,8 @@ int totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   return stat;
 }
 
-int totem_verify(char *s_buff, char *s_buff2) {
+int 
+totem_verify(char *s_buff, char *s_buff2) {
    char *s_buffptr, *s_buffptr2, *t_buff; 
    int i_slot, i_broke[TOTEM_SLOTS], i_retval, i_found;
    dbref thing;
@@ -6303,6 +6319,77 @@ int totem_verify(char *s_buff, char *s_buff2) {
    }
    free_lbuf(t_buff);
    return i_retval;
+}
+
+int 
+totem_flags(char *s_target, dbref player, dbref cause, char *s_buff) 
+{
+   dbref target;
+   char *fl1, *fl1p, *fl2, *fl2p, *fl3, *fl3p, *s_buffp;
+   TOTEMENT *storedtag;
+   
+   init_match(player, s_target, NOTYPE);
+   match_everything(0);
+   target = match_result();
+  
+   if ( !Good_chk(target) ) {
+      return -12;
+   } 
+
+   if ( !((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+        (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+      return -12;
+   }
+   
+   fl1p = fl1 = alloc_lbuf("totem_flags_1");
+   fl2p = fl2 = alloc_lbuf("totem_flags_2");
+   fl3p = fl3 = alloc_lbuf("totem_flags_3");
+   s_buffp = s_buff;
+   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         storedtag;
+         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      /* If it's the default flag skip it and ignore -- this allows 'toggles' and 'non-flags' */
+      if ( (storedtag->flaglett ==  '?') && (storedtag->flagtier == 0) ) {
+         continue;
+      }
+
+      /* Skip if target can't see bit */
+      if ( !totem_cansee_bit(player, target, storedtag->listperm) ) {
+         continue;
+      }
+
+      if ( (dbtotem[target].flags[storedtag->flagpos] & storedtag->flagvalue) == storedtag->flagvalue ) {
+         switch(storedtag->flagtier) {
+            case 2: /* tier 2 flag letter */
+               safe_chr(storedtag->flaglett, fl3, &fl3p);
+               break;
+            case 1: /* tier 1 flag letter */
+               safe_chr(storedtag->flaglett, fl2, &fl2p);
+               break;
+            default: /* tier 0 flag letter */
+               safe_chr(storedtag->flaglett, fl1, &fl1p);
+               break;
+         }
+      }
+   }
+   if ( *fl1 ) {
+      safe_str(fl1, s_buff, &s_buffp);
+   }
+   if ( *fl2 ) {
+      safe_chr('[', s_buff, &s_buffp);
+      safe_str(fl2, s_buff, &s_buffp);
+      safe_chr(']', s_buff, &s_buffp);
+   }
+   if ( *fl3 ) {
+      safe_chr('{', s_buff, &s_buffp);
+      safe_str(fl3, s_buff, &s_buffp);
+      safe_chr('}', s_buff, &s_buffp);
+   }
+   free_lbuf(fl1);
+   free_lbuf(fl2);
+   free_lbuf(fl3);
+   return 1;
 }
 
 int
@@ -6486,7 +6573,8 @@ examine_totemtab(dbref player, dbref target)
     free_lbuf(buf);
 }
 
-void do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
+void 
+do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
 {
    int retvalue, i_totemval, i_totemslot;
    dbref target;
