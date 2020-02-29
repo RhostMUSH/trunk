@@ -13780,6 +13780,7 @@
   a reality lock.  If enabled, the target must be @toggled CHKREALITY so
   that the target knows that any UserLock that is on it will be used as
   a reality level lock enhancement.  Otherwise, without this toggle, the
+  USER lock behaves as expected.
   
   See Also: reality_level, @list rlevel, rxlevel(), txlevel(), reality_locktype
   Normal Help: chkreality()
