@@ -6,7 +6,7 @@ case ${COMP:=gdbm} in
          ;;
    qdbm) gdbmdir=./qdbm
          ;;
-  tokyo) gdbmdir=./tokyocabinet-1.4.21
+   mdbx) gdbmdir=./mdbx
          ;;
 esac
 #
@@ -18,9 +18,19 @@ then
       make mac
    elif [ $(gmake --version 2>&1|grep -ic GNU) -gt 0 ]
    then
-      gmake
+      if [ "${qdbmdir}" = "./mdbx" ]
+      then
+        gmake libmdbx.a
+      else
+        gmake
+      fi
    else
-      make
+      if [ "${qdbmdir}" = "./lmdb" ]
+      then
+        make libmdbx.a
+      else
+        make
+      fi
    fi
 else
    ./configure

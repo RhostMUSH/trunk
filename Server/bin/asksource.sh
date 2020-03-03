@@ -99,6 +99,8 @@ AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
 DBOPTIONS="1 2 3"
 C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
+BEOPTIONS="1 2 3"
+C_BEOPTIONS=$(echo $BEOPTIONS|wc -w)
 REPEAT=1
 for i in ${OPTIONS}
 do
@@ -154,8 +156,6 @@ do
 done
 # default SBUF to 64 chars
 XB[3]="X"
-# default to QDBM database
-XB[5]="X"
 
 for i in ${DOPTIONS}
 do
@@ -178,6 +178,12 @@ for i in ${DBOPTIONS}
 do
    MS[${i}]=" "
 done
+
+for i in ${BEOPTIONS}
+do
+   BE[${i}]=" "
+done
+BE[1]="X"
 
 # Load default options
 if [ -f ./asksource.default ]
@@ -236,6 +242,10 @@ DEFL[5]="-DLBUF64"
 DEFA[1]="-DTINY_SUB"
 DEFA[2]="-DC_SUB"
 DEFA[3]="-DM_SUB"
+
+DEFBE[1]="-DQDBM"
+DEFBE[2]="-DMDBX"
+DEFBE[3]="-DGDBM"
 
 ###################################################################
 # MENU - Main Menu for RhostMUSH Configuration Utility
@@ -383,6 +393,34 @@ echo "      Or, you may select a number to toggle"
 echo ""
 echo "Please Enter selection: "|tr -d '\012'
 }
+
+backendmenu() {
+clear
+echo "                  RhostMUSH Backend Configuration Utility"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "       This allows you to pick the database backend that your RhostMUSH"
+echo "     installation will use. Note that GDBM is old and archaic, coming with"
+echo "    several limitations - limited attribute name length, limited attribute"
+echo "    amounts, no support for larger LBUF sizes due to corruption issues, and"
+echo "       in general GDBM support is going to be removed sooner than later."
+echo ""
+echo "     QDBM will give you a mature and tested backend, without any specific"
+echo "          drawbacks, while MDBX is still quite new and experimental."
+echo ""
+echo "[${BE[1]}]   1. QDBM               [${BE[2]}]  2. MDBX               [${BE[3]}]  3. GDBM"
+echo ""
+echo ""
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
+
 lbufmenu() {
 clear
 echo "                      RhostMUSH LBUFFER Configuration Utility"
@@ -435,7 +473,7 @@ echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[2
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
-echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
+echo "[${XB[4]}] B4. SQLite Support     [#] B5. DB Backend Type    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -503,6 +541,11 @@ info() {
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
+         elif [ $BETAOPT -eq 5 ]
+         then
+            echo "This will select QDBM as the database backend for your game."
+            echo "QDBM is a mature and solid choice, offering better performance"
+            echo "and robustness compared to older NDBM and BerkelyDB types."
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This enables you to automatically include the MYSQL definitions"
@@ -523,6 +566,12 @@ info() {
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
+         elif [ $BETAOPT -eq 5 ]
+         then
+            echo "This will select MDBX as the database backend for your game. MDBX is a"
+            echo "descendant of MDB, which was originally developed for OpenLDAP, and is a"
+            echo "very fast, threadable key-value database with low memory use. It is"
+            echo "still experimental when it comes to RhostMUSH. Handle with care."
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This option drills down to various door options that you can enable."
@@ -543,6 +592,14 @@ info() {
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
+         elif [ $BETAOPT -eq 5 ]
+         then
+            echo "This will select GDBM as the database backend for your game."
+            echo "Do not do this. GDBM has several hard limits when it comes to the"
+            echo "length of attribute names, total unique attributes in your game,"
+            echo "Attribute name length and a harsh limit on attribute content length."
+            echo "These are mostly enforced to prevent database corruptuon, but in the"
+            echo "event of exotic crashes or weird database manipulations, expect FUBAR."
          elif [ $RUNBETA -eq 1 ]
          then
             echo "This allows you to have 64 character attribute length.  This in effect"
@@ -714,6 +771,9 @@ info() {
          elif [ $BETAOPT -eq 2 ]
          then
             echo "Please select between 1 and ${C_LOPTIONS} for information."
+         elif [ $BETAOPT -eq 5 ]
+         then
+            echo "Please select between 1 and ${C_BEOPTIONS} for information."
          else
             echo "Please select between 1 and ${C_OPTIONS} for information."
             echo "Please select between B1 and B${C_BOPTIONS} for beta."
@@ -776,6 +836,19 @@ parse() {
          then
             ARG="NULL"
          elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 2 ]
+         then
+            ARG="NULL"
+         fi
+      fi
+   fi
+   if [ $BETAOPT -eq 5 ]
+   then
+      if [ "$ARG" != "q" -a "$ARG" != "i" -a "$ARG" != "h" ]
+      then
+         if [ -z "$ARGNUM" ]
+         then
+            ARG="NULL"
+         elif [ $ARGNUM -lt 1 -o $ARGNUM -gt 3 ]
          then
             ARG="NULL"
          fi
@@ -851,21 +924,11 @@ parse() {
             elif [ $TST -eq 1 ]
             then
                BETAOPT=4
+            elif [ $TST -eq 5 ]
+            then
+               BETAOPT=5
             else
-               if [ "${XB[${TST}]}" = "X" ]
-               then
-                  if [ "${TST}" -eq 5 ]
-                  then
-                    if [ "${XL[1]}" = "X" ]
-                    then
-                      XB[${TST}]=" "
-                    fi
-                  else
-                    XB[${TST}]=" "
-                  fi
-               else
-                  XB[${TST}]="X"
-               fi
+               "${XB[${TST}]}" = "X"
             fi
          else
             echo "ERROR: Invalid option '$1'"
@@ -899,7 +962,11 @@ parse() {
             XL[$1]="X"
             if [ ${i} -ne 1 ]
             then
-              XB[5]="X"
+              if [ "${BE[3]}" = "X" ]
+              then
+                BE[1]="X"
+                BE[3]=" "
+              fi
             fi
          elif [ ${BETAOPT} -eq 3 -a "$TST" -gt 0 -a "$TST" -le ${C_AOPTIONS} ]
          then
@@ -924,6 +991,21 @@ parse() {
             if [ "$TST" -eq 2 ]
             then
                mysql_set_args
+            fi
+         elif [ ${BETAOPT} -eq 5 -a "$TST" -gt 0 -a "$TST" -le ${C_BEOPTIONS} ]
+         then
+            for i in ${BEOPTIONS}
+            do
+              BE[${i}]=" "
+            done
+            BE[$TST]="X"
+            if [ ${TST} -eq 3 ]
+            then
+              for i in ${LOPTIONS}
+              do
+                XL[${i}]=" "
+              done
+              XL[1]="X"
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -968,6 +1050,11 @@ clearopts() {
       XA[${i}]=" "
    done
       XA[2]="X"
+   for i in ${BEOPTIONS}
+   do
+      BE[${i}]=" "
+   done
+      BE[1]="X"
    echo "Options have been cleared."
 }
 
@@ -1397,6 +1484,10 @@ saveopts() {
       do
          echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
       done
+      for i in ${BEOPTIONS}
+      do
+         echo "BE[$i]=\"${BE[$i]}\"" >> ${DUMPFILE}
+      done
       if [ -f "${DUMPFILE}.mark" ]
       then
          MARKER=$(cat ${DUMPFILE}.mark)
@@ -1461,6 +1552,10 @@ savelaststate() {
    do
       echo "MS[$i]=\"${MS[$i]}\"" >> ${DUMPFILE}
    done
+   for i in ${BEOPTIONS}
+   do
+      echo "BE[$i]=\"${BE[$i]}\"" >> ${DUMPFILE}
+   done
    if [ -f "${DUMPFILE}.mark" ]
    then
       MARKER=$(cat ${DUMPFILE}.mark)
@@ -1514,6 +1609,13 @@ setopts() {
       if [ "${MS[$i]}" = "X" ]
       then
          DEFS="${DEFDB[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${BEOPTIONS}
+   do
+      if [ "${BE[$i]}" = "X" ]
+      then
+         DEFS="${DEFBE[$i]} ${DEFS}"
       fi
    done
 }
@@ -1997,11 +2099,16 @@ updatemakefile() {
    fi
    echo "Generating DB link library for the Makefile now.  Please wait..."
    echo "# DB used for Mush Engine" >> ../src/custom.defs
-   if [ "${XB[5]}" = "X" ]
+   if [ "${BE[1]}" = "X" ]
    then
       echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
       echo "COMP=qdbm" > ../src/do_compile.var
-   else
+   elif [ "${BE[2]}" = "X" ]
+   then
+      echo "CUSTLIBS = -L../src/mdbx/ -lmdbx" >> ../src/custom.defs
+      echo "COMP=mdbx" > ../src/do_compile.var
+   elif [ "${BE[3]}" = "X" ]
+   then
       echo "CUSTLIBS = -L../src/gdbm/.libs/ -lgdbm_compat -L../src/gdbm/ -lgdbm" >> ../src/custom.defs
       echo "COMP=gdbm" > ../src/do_compile.var
    fi
@@ -2161,6 +2268,17 @@ main() {
              else
                 BETACONTINUE=0
              fi
+          done
+          BETAOPT=0
+      fi
+      if [ ${BETAOPT} -eq 5 ]
+      then
+          BETACONTINUE=5
+          while [ $BETACONTINUE -eq 5 ]
+          do
+             backendmenu
+             read ANS
+             parse $ANS
           done
           BETAOPT=0
       fi

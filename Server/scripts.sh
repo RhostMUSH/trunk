@@ -220,8 +220,11 @@ function update_convert
       if [ $(echo "${lc_libs}"|grep -c gdbm) -gt 0 ]
       then
          echo "COMP=gdbm" > ./src/do_compile.var
+      elif [ $(echo "${lc_libs}"|grep -c qdbm) -gt 0 ]
       else
          echo "COMP=qdbm" > ./src/do_compile.var
+      else
+         echo "COMP=mdbx" > ./src/do_compile.var
       fi
       if [ -z "${lc_update}" ]
       then

@@ -244,8 +244,8 @@ If you are importing a MUX2 flatfile, make ABSOLUTELY SURE that you select
 mux passwords as a compatibility option, or you will NOT BE ABLE to log in
 to players as the password will not be recognizeable.
 
-Make sure to keep QDBM selected as it's a much more stable database engine
-that does not have attribute limit restrictions like GDBM does.
+Make sure to keep either MDBX or QDBM selected as they are much more stable
+database engines that does not have attribute limit restrictions like GDBM does.
 
 If you are converting from a Penn, TinyMUSH, or MUX database, make sure you
 drill down into the LBUF section and select, at minimum, 8K lbufs.  You likely
@@ -1283,7 +1283,7 @@ XII.  Advanced features of RhostMUSH
     - ~/readme/README.BITS
 
   O.  What are the limits for size/growth for RhostMUSH?
-  * While using QDBM, there's really no set limits for most things.
+  * While using QDBM or MDBX, there's really no set limits for most things.
     The limits that we have are as followed:
     LBUF - 64K.  It is recommended to only use 32K as there is some
            issues with networking with 64K lbufs.

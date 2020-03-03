@@ -7,6 +7,7 @@ SHELL  = /bin/sh
 srcdir = ./src
 gdbmdir= ./src/gdbm/
 qdbmdir= ./src/qdbm/
+mdbxdir= ./src/mdbx/
 bindir = ./bin
 
 CHK = $(shell gmake --version 2>/dev/null|grep -ic "GNU")
@@ -48,6 +49,8 @@ instructions:
 	@echo "   This compiles just the gdbm libraries."
 	@echo "make qdbm"
 	@echo "   This compiles just the qdbm libraries."
+	@echo "make mdbx"
+	@echo "   This compiles just the mdbx libraries."
 	@echo " "
 	@echo "make clean"
 	@echo "   Removes any old object files and binaries"
@@ -59,6 +62,10 @@ instructions:
 	@echo "   This also puts gdbm into a 'clean' state."
 	@echo "make gdbmclean"
 	@echo "   This removes the gdbm libs requiring a fresh compile."
+	@echo "make qdbmclean"
+	@echo "   This removes the qdbm libs requiring a fresh compile."
+	@echo "make mdbxclean"
+	@echo "   This removes the mdbx libs requiring a fresh compile."
 	@echo "make gdbmrclean"
 	@echo "   This puts gdbm into a 'clean' state as if just downloaded."
 #	@echo "make distrib"
@@ -93,6 +100,8 @@ source: defaultfiles
 	@echo 
 qdbm:
 	@(cd $(qdbmdir) ; $() clean ; ./configure; $(MAKE); rm libqdbm*.so*)
+mdbx:
+	@(cd $(mdbxdir) ; $() clean ; $(MAKE) libmdbx.a)
 gdbm:
 	@(cd $(gdbmdir) ; $() clean ; ./configure --enable-static --disable-shared; $(MAKE); rm libqdbm*.so*)
 create_oldsrc:
@@ -104,12 +113,16 @@ links:
 	@./bin/make_links.sh
 clean:
 	@(cd $(srcdir) ; $(MAKE) clean)
-realclean: clean gdbmclean
+realclean: clean gdbmclean qdbmclean mdbxclean
 	@(rm src/*~ hdrs/*~)
 superclean: clean gdbmrclean
 	@(rm src/*~ hdrs/*~ bin/*~)
 gdbmclean:
 	@(cd $(gdbmdir) ; $(MAKE) clean)
+qdbmclean:
+	@(cd $(qdbmdir) ; $(MAKE) clean)
+mdbxclean:
+	@(cd $(mdbxdir) ; $(MAKE) clean)
 gdbmrclean:
 	@(cd $(gdbmdir) ; $(MAKE) realclean)
 customize:
