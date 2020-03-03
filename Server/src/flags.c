@@ -1210,16 +1210,29 @@ static int togent_comp(const void *s1, const void *s2)
 }
 
 void 
-display_totemtab2(dbref player, char *buff, char **bufcx, int key)
+display_totemtab2(dbref player, char *buff, char **bufcx, int key, char *totem)
 {
     char *buf, *bp;
     const TOTEMENT *ptrs[LBUF_SIZE/2];
-    int f_int, nptrs, i;
+    int f_int, nptrs, i, i_slot, i_wild;
     TOTEMENT *tp;
 
     bp = buf = alloc_lbuf("display_totemtab");
     f_int = 0;
     nptrs = 0;
+    i_slot = -1;
+    i_wild = 0;
+
+    if ( totem && *totem ) {
+       if ( is_number(totem) ) {
+          i_slot = atoi(totem);
+          if ( (i_slot < 0) || (i_slot >= TOTEM_SLOTS) ) {
+             i_slot = -1;
+          }
+      } else {
+         i_wild = 1;
+      }
+    }
 
     for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
          tp;
@@ -1228,6 +1241,14 @@ display_totemtab2(dbref player, char *buff, char **bufcx, int key)
         if ( !totem_cansee_bit(player, player, tp->listperm) )
            continue;
 	
+        if ( (i_slot >= 0) && (tp->flagpos != i_slot) ) {
+           continue;
+        }
+
+        if ( i_wild  && !quick_wild(totem, tp->flagname) ) {
+           continue;
+        }
+
 	ptrs[nptrs] = tp;
 	nptrs++;
         if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
@@ -1345,14 +1366,14 @@ display_toggletab(dbref player)
 }
 
 void 
-display_totemtab(dbref player)
+display_totemtab(dbref player, char *totem)
 {
     char *buf, *bp;
 
     bp = buf = alloc_lbuf("display_totemtab");
     
     safe_str((char *) "Totems : ", buf, &bp);
-    display_totemtab2(player, buf, &bp, 0);
+    display_totemtab2(player, buf, &bp, 0, totem);
     notify(player, buf);
     free_lbuf(buf);
 }
@@ -6613,7 +6634,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_LIST: /* List totems with permanence */
-         display_totemtab(player);
+         display_totemtab(player, flag1);
          break;
       case TOTEM_FULL: /* List full totems details */
          s_buff = alloc_lbuf("totem_list");

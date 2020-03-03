@@ -4327,7 +4327,7 @@
     mail_globals    - Lists the default mail global parameters
     guest_names     - List the guest names (if defined)
     rlevels         - List all the reality levels enabled
-    totems          - Lists the name of all the totems.
+    totems          - Lists the name of all the totems. (wildcard supported)
   
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
@@ -6033,14 +6033,18 @@
   you wish to remove the @totem, you would preceed the @totem flagname with
   a '!'.  Such as '@totem me=!totem'.
   
-  When you list totems, you will see three letter flags that are used to
-  identify them.  They will  mean:
-    P - permanent totem.  This is a totem that was compiled in source.
-    S - static (sticky) totem.  This is a totem defined in the config file.
-    T - temporary totem.  This is a totem defined with @totem in-line.
-        Temporary totems do not remain on reboot and must be reset. 
+  When you list totems, you will see the flag letter that is assigned it.
+  They will  mean:
+    ?  - default flag.  This generally means none was assigned.
+   [ ] - a second tier flag character.  The character is between the []'s.
+   { } - a third tier flag character.  The character is between the {}'s.
   
   @totem/list is equivelant to doing '@list totems' 
+  
+  When using @totem/list (or @list totem) you may specify a slot number
+  or a wildcard.  The slot number is the slot position for the word
+  of flags.  By default Rhost comes with 10 slots (0-9).  An example
+  of a wildcard is like mark* or *0.
   
   Totems will be displayed with examine and @decompile.
     
@@ -6048,7 +6052,9 @@
     > think name(me)
       Bob
     > @totem/list
-    Totems : INLINE1(S) INLINE2(S) TOTEM1(S) TOTEM2(S) TOTEMINIT(P)
+    Totems : INLINE1([1]) INLINE2([2]) TOTEM1({1}) TOTEM2({2}) TOTEMINIT(i)
+    > @totem/list in*
+    Totems : INLINE1([1]) INLINE2([2])
     > @totem me=inline1 totem1
     Set - Bob (set totem INLINE1).
     Set - Bob (set totem TOTEM1).
@@ -33234,6 +33240,7 @@
   * /letter switch addedto @totem [ASH]
   * Added table-loader for Totems for ease of flag/toggle porting [ASH]
   * Added default markers to Totems as examples [ASH]
+  * wildcard and slot handler for @list totem & @totem/list [ASH]
   
   Bug Fixes
   ------------

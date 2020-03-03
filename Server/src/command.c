@@ -8656,7 +8656,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	display_flagtab(player);
 	break;
     case LIST_TOTEMS:
-        display_totemtab(player);
+        display_totemtab(player, s_ptr2);
         break;
     case LIST_TOGGLES:
 	display_toggletab(player);

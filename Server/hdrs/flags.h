@@ -538,14 +538,14 @@ extern void     NDECL(init_toggletab);
 extern void	NDECL(init_powertab);
 extern void     FDECL(display_flagtab, (dbref));
 extern void     FDECL(display_toggletab, (dbref));
-extern void     FDECL(display_totemtab, (dbref));
+extern void     FDECL(display_totemtab, (dbref, char *));
 extern int	FDECL(totem_cansee, (dbref, dbref, char *));
 extern int	FDECL(totem_cansee_bit, (dbref, dbref, int));
 extern int	FDECL(totem_flags, (char *, dbref, dbref, char *));
 
 extern void     FDECL(display_flagtab2, (dbref, char *, char **));
 extern void     FDECL(display_toggletab2, (dbref, char *, char **));
-extern void     FDECL(display_totemtab2, (dbref, char *, char **, int));
+extern void     FDECL(display_totemtab2, (dbref, char *, char **, int, char *));
 extern void     FDECL(flag_set, (dbref, dbref, char *, int));
 extern void     FDECL(toggle_set, (dbref, dbref, char *, int));
 extern void     FDECL(power_set, (dbref, dbref, char *, int));
