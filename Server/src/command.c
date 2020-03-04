@@ -6448,6 +6448,8 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
+    notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
+    notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
     if ( Wizard(player) ) {
        memset(buf2, '\0', sizeof(buf2));
        sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
