@@ -33241,6 +33241,7 @@
   * Added table-loader for Totems for ease of flag/toggle porting [ASH]
   * Added default markers to Totems as examples [ASH]
   * wildcard and slot handler for @list totem & @totem/list [ASH]
+  * port() modified so immortal can get port info of #1 [ASH]
   
   Bug Fixes
   ------------

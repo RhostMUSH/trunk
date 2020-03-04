@@ -7682,7 +7682,7 @@ FUNCTION(fun_port)
     int gotone = 0;
 
     it = lookup_player(player, fargs[0], 0);
-    if (Good_obj(it) && Controls(player, it)) {
+    if (Good_obj(it) && (Immortal(player) || Controls(player, it))) {
        DESC_ITER_CONN(d) {
           if (d->player == it) {
              if (gotone) {
