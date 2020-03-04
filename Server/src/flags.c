@@ -6191,7 +6191,8 @@ int
 totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
 {
   char *lcname, *lcnp, *lcuc, *lcucp;
-  int stat, i_found, i_bits;
+  int stat, i_found; 
+  unsigned int i_bits;
   TOTEMENT *newtotem, *hashp;
 
   /* Deny If the totem is longer than 20 characters */
@@ -6214,7 +6215,7 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
     return -3;
   }
   i_found = 0;
-  i_bits = totem_value;
+  i_bits = (unsigned int)totem_value;
   while ( i_bits > 0) { 
      if ( (i_bits & 1) != 0) 
         i_found++;
@@ -6554,7 +6555,7 @@ totem_display(char *s_slot, dbref player)
          }
       }
    }   
-   sprintf(s_letter, "Showing slot# %d occupied values:", i_slot);
+   sprintf(s_letter, "Showing slot# %d (of 0-%d possible) occupied values:", i_slot, (TOTEM_SLOTS - 1));
    notify(player, s_letter);
    notify(player, "--------------------------- ---------- | --------------------------- ----------");
    i_mk1 = 0x00000001;
