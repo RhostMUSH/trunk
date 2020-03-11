@@ -12843,6 +12843,11 @@ FUNCTION(fun_listnewsgroups)
 
 }
 
+FUNCTION(fun_listtotems)
+{
+   display_totemtab2(player, buff, bufcx, 0, fargs[0]);
+}
+
 FUNCTION(fun_listflags)
 {
    display_flagtab2(player, buff, bufcx);
@@ -37288,6 +37293,7 @@ FUN flist[] =
 #endif /* REALITY_LEVELS */
     {"LISTTAGS", fun_listtags, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LISTTOTEMS", fun_listtotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
     {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},

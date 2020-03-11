@@ -11473,30 +11473,31 @@
 & FUNCTION LIST3
     
   LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTUNION()      LIT()
-  LJC()          LJUST()       LLOC()         LMAX()           LMIN()
-  LMUL()         LN()          LNOR()         LNUM()           LNUM2()
-  LOC()          LOCALFUNC()   LOCALIZE()     LOCATE()         LOCK() 
-  LOCKCHECK()    LOCKDECODE()  LOCKENCODE()   LOG()            LOR() 
-  LRAND()        LREPLACE()    LROOMS()       LSET()           LSUB()
-  LT()           LTE()         LTOGGLES()     LTOTEMS()        LWHO()         
-  LXNOR()        LXOR()        LZONE()        MAILQUICK()      MAP()          
-  MATCH()        MASK()        MAX()          MEMBER()         MERGE()        
-  MID()          MIN()         MIX()          MOD()            MODULO()       
-  MODIFYTIME()   MONEY()       MONEYNAME()    MOON()           MSECS()        
-  MUDNAME()      MUL()         MUNGE()        MWORDS()         NAME()         
-  NAMEQ()        NAND()        NCOMP()        NEARBY()         NEQ()          
-  NEXT()         NOR()         NOSTR()        NOT()            NOTCHR()       
-  NPEMIT()       NSITER()      NUM()          NUMMATCH()       NULL()         
-  NUMMEMBER()    NUMPOS()      NUMWILDMATCH() OBJ()            OBJEVAL()      
-  OBJID()        OEMIT()       OPEN()         OR()             ORCHR()        
-  ORFLAG()       ORFLAGS()     ORTOTEM()      ORTOTEMS()       OWNER()      
-  PACK()         PACKMATH()    PARENMATCH()   PARENT()         PARSE()      
-  PARSESTR()     PEDIT()       PEMIT()        PFIND()          PGREP()      
-  PI()           PID()         PMATCH()       PORT()           POS()        
-  POSS()         POWER()       POWER10()      PRINTF()         PRIVATIZE()  
-  PROGRAMMER()   PTIMEFMT()    PUSHREGS()     QUOTA()          R()          
-  RACE()         RAND()        RANDPOS()      RANDMATCH()      RANDEXTRACT() 
+  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
+  LIT()          LJC()         LJUST()        LLOC()           LMAX()         
+  LMIN()         LMUL()        LN()           LNOR()           LNUM()         
+  LNUM2()        LOC()         LOCALFUNC()    LOCALIZE()       LOCATE()       
+  LOCK()         LOCKCHECK()   LOCKDECODE()   LOCKENCODE()     LOG()          
+  LOR()          LRAND()       LREPLACE()     LROOMS()         LSET()         
+  LSUB()         LT()          LTE()          LTOGGLES()       LTOTEMS()      
+  LWHO()         LXNOR()       LXOR()         LZONE()          MAILQUICK()    
+  MAP()          MATCH()       MASK()         MAX()            MEMBER()       
+  MERGE()        MID()         MIN()          MIX()            MOD()          
+  MODULO()       MODIFYTIME()  MONEY()        MONEYNAME()      MOON()         
+  MSECS()        MUDNAME()     MUL()          MUNGE()          MWORDS()       
+  NAME()         NAMEQ()       NAND()         NCOMP()          NEARBY()       
+  NEQ()          NEXT()        NOR()          NOSTR()          NOT()          
+  NOTCHR()       NPEMIT()      NSITER()       NUM()            NUMMATCH()     
+  NULL()         NUMMEMBER()   NUMPOS()       NUMWILDMATCH()   OBJ()          
+  OBJEVAL()      OBJID()       OEMIT()        OPEN()           OR()           
+  ORCHR()        ORFLAG()      ORFLAGS()      ORTOTEM()        ORTOTEMS()     
+  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
+  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
+  PGREP()        PI()          PID()          PMATCH()         PORT()         
+  POS()          POSS()        POWER()        POWER10()        PRINTF()       
+  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
+  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11586,7 +11587,8 @@
                         OWNER() RLOC() ROOM() SEARCH() SEARCHOBJID() SEARCHNG()
                         SEARCHNGOBJID()  SEES() STATS() WHERE() LISTCOMMANDS()
                         LISTFLAGS() LISTFUNCTIONS() LISTNEWSGROUPS() 
-                        LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
+                        LISTTOGGLES() LISTTOTEMS() PMATCH() RNUM() VALID() 
+                        XCON()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() MASK() PACK() 
@@ -15338,7 +15340,7 @@
     > say listflags()
     You say "ABODE(A) ARCHITECT(B) ... " 
   
-  See Also: listcommands(), listfunctions(), listtoggles()
+  See Also: listcommands(), listfunctions(), listtoggles(), listtotems()
   
 & LISTCOMMANDS()
   Function: listcommands([<key>])
@@ -15354,7 +15356,7 @@
     > say listcommands()
     You say "@@ @alias ... "
   
-  See Also: listfunctions(), listtoggles(), listflags()
+  See Also: listfunctions(), listtoggles(), listflags(), listtotems()
   
 & LISTFUNCTIONS()
   Function: listfunctions([keyval])
@@ -15373,7 +15375,7 @@
     > say listfunctions()
     You say "@@ ABS ... "
    
-  See Also: listcommands(), listtoggles(), listflags()
+  See Also: listcommands(), listtoggles(), listflags(), listtotems()
   
 & LISTNEWSGROUPS()
   Function: listnewsgroups([<player>])
@@ -15392,6 +15394,30 @@
   
   See Also: news, news cmdlist
   
+& LISTTOTEMS()
+  Function: listtotems([<slot>])
+  
+  This function will return all the totems that you have access to.  You may
+  specify an optional slot position for all totems assigned to that slot.
+  This is useful as there could potentially be tens of thousands of totems
+  defined.   By default there are 10 slots, but there could potentially be
+  hundreds.  Totem slots start at '0'.
+  
+  In the following example, we'll assume one and two are slot 0, and three is
+  assigned to slot 2.  In the example, no totems are assigned to slot 1.
+   
+  Examples:
+    > say listtotems()
+    You say "ONE(1) TWO([2]) THREE(3)"
+    > say listtotems(0) 
+    You say "ONE(1) TWO([2])"
+    > say listtotems(2)
+    You say "THREE(3)"
+    > say listtotems(1)
+    You say ""
+  
+  See Also: listcommands(), listfunctions(), listtoggles(), listflags()
+  
 & LISTTOGGLES()
   Function: listtoggles()
   
@@ -15401,7 +15427,7 @@
     > say listtoggles()
     You say "VANILLA_ERRORS(V) ... "
     
-  See Also: listcommands(), listfunctions()
+  See Also: listcommands(), listfunctions(), listtotems(), listflags()
   
 & LISTPROTECTION()
   Function: listprotection(<player> [,<key>,<delim>])
@@ -33352,6 +33378,7 @@
   * totems()           -- list flag letters of totems (skips default '?') [ASH]
   * andtotem()/ortotem()  letter handling for totems [ASH]
   * andtotems()/ortotems() totem flag handler for totem names [ASH]
+  * listtotems()       -- like @totem/list (or @list totems) [ASH]
   
   Changes
   ------------
