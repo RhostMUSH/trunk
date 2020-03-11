@@ -5627,7 +5627,10 @@ totem_write_to_disk(void)
 int 
 totem_player_list(char *buff, int i_type, dbref target, dbref player)
 {
-  char *s_hashstr, *s_buffp, *t_ptr, c_ch;
+  char *s_hashstr, *s_buffp, *t_ptr;
+/* Enable for permanet of totems
+ * char c_ch;
+ */
   int i_first, totems[TOTEM_SLOTS];
   TOTEMENT *storedtag;
   
@@ -5648,7 +5651,9 @@ totem_player_list(char *buff, int i_type, dbref target, dbref player)
 
   s_hashstr = alloc_lbuf("totem_list");
   s_buffp = buff;
-  c_ch = 'T';
+/* Enable for permanent of totems
+ *c_ch = 'T';
+ */
   if ( i_type != 2 ) {
      safe_str((char *)"Totems: ", buff, &s_buffp);
   }
