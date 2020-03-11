@@ -30051,6 +30051,7 @@
   listcommands()   - Lists all commands that you have access to.
   listflags()      - Lists all flags that you have access to.
   listtoggles()    - List all togglees you have access to.
+  listtotems()     - List all totems you have access to.
   pmatch()         - Returns the dbref of a matching player.
   rnum()           - Returns the dbref of an object, from a target perspective.
   valid()          - Tests validity of certain values for various options.
