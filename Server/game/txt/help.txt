@@ -11414,27 +11414,28 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANSI()             ANSIPOS()
- APOSS()              ARRAY()            ART()              ASC()            
- ASIN()               ATAN()             ATAN2()            ATTRCNT()       
- ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
- BITTYPE()            BOUND()            BRACKETS()         CAND()             
- CAPSTR()             CASE()             CASEALL()          CAT()              
- CEIL()               CENTER()           CHARIN()           CHAROUT()          
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()     
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()           
- COLUMNS()            COMP()             CON()              CONFIG()           
- CONN()               CONTROLS()         CONVSECS()    
+ @@()               ABS()               ACCENT()             ACOS()        
+ ADD()              AFTER()             AINDEX()             AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
+ ANDFLAG()          ANDFLAGS()          ANDTOTEM()           ANDTOTEMS()
+ ANSI()             ANSIPOS()           APOSS()              ARRAY()          
+ ART()              ASC()               ASIN()               ATAN()           
+ ATAN2()            ATTRCNT()           ATTRPASS()           AVG()             
+ BEFORE()           BETWEEN()           BITTYPE()            BOUND()           
+ BRACKETS()         CAND()              CAPSTR()             CASE()            
+ CASEALL()          CAT()               CEIL()               CENTER()          
+ CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()        
+ CHOMP()            CHR()               CITER()              CLONE()           
+ CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
+ CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()    
+ CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()  
+ CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()       
+ CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL() 
+ CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()  
+ CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()            
+ CNAME()            COLORS()            COLUMNS()            COMP()            
+ CON()              CONFIG()            CONN()               CONTROLS()        
+ CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -11489,13 +11490,13 @@
   NPEMIT()       NSITER()      NUM()          NUMMATCH()       NULL()         
   NUMMEMBER()    NUMPOS()      NUMWILDMATCH() OBJ()            OBJEVAL()      
   OBJID()        OEMIT()       OPEN()         OR()             ORCHR()        
-  ORFLAG()       ORFLAGS()     OWNER()        PACK()           PACKMATH()     
-  PARENMATCH()   PARENT()      PARSE()        PARSESTR()       PEDIT()        
-  PEMIT()        PFIND()       PGREP()        PI()             PID()          
-  PMATCH()       PORT()        POS()          POSS()           POWER()        
-  POWER10()      PRINTF()      PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
-  PUSHREGS()     QUOTA()       R()            RACE()           RAND()         
-  RANDPOS()      RANDMATCH()   RANDEXTRACT() 
+  ORFLAG()       ORFLAGS()     ORTOTEM()      ORTOTEMS()       OWNER()      
+  PACK()         PACKMATH()    PARENMATCH()   PARENT()         PARSE()      
+  PARSESTR()     PEDIT()       PEMIT()        PFIND()          PGREP()      
+  PI()           PID()         PMATCH()       PORT()           POS()        
+  POSS()         POWER()       POWER10()      PRINTF()         PRIVATIZE()  
+  PROGRAMMER()   PTIMEFMT()    PUSHREGS()     QUOTA()          R()          
+  RACE()         RAND()        RANDPOS()      RANDMATCH()      RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11602,21 +11603,22 @@
                       STARTSECS() STARTTIME() VERSION()
             See Also: help game information functions
   
-  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ARRAY() CITER() 
-                      DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
-                      EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
-                      IBREAK() IINDEX() ILEV() INDEX() INF() INSERT() INUM() 
-                      ITER() ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() 
-                      LAST() LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
-                      LISTMATCH() LISTUNION() LMAX() LMIN() LMUL() LNOR()
-                      LNUM() LNUM2() LOR() LRAND() LREPLACE() LSUB() LXNOR() 
-                      LXOR() MAP() MATCH() MEMBER() MIX() MUNGE() NSITER() 
-                      NUMMATCH() NUMMEMBER() NUMWILDMATCH() PARSE() RANDMATCH()
-                      RANDEXTRACT() REMFLAGS() REMOVE() REMTYPE() REST() 
-                      REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
-                      SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
-                      STRFUNC() STRMATH() TOTEMS() TOTMATCH() TOTMEMBER() 
-                      TOTWILDMATCH() TRREVERSE() WHILE() WILDMATCH()
+  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ANDTOTEM()
+                      ANDTOTEMS() ARRAY() CITER() DELEXTRACT() ELEMENTS() 
+                      ELEMENTSMUX() ELIST() EXTRACT() EXTRACTWORD() FILTER() 
+                      FIRST() FLAGS() FOLD() FOREACH() IBREAK() IINDEX() ILEV()
+                      INDEX() INF() INSERT() INUM() ITER() ITEXT() KEEPFLAGS()
+                      KEEPTYPE() LADD() LAND() LAST() LAVG() LDELETE() LDIV() 
+                      LISTDIFF() LISTINTER() LISTMATCH() LISTUNION() LMAX() 
+                      LMIN() LMUL() LNOR() LNUM() LNUM2() LOR() LRAND() 
+                      LREPLACE() LSUB() LXNOR() LXOR() MAP() MATCH() MEMBER() 
+                      MIX() MUNGE() NSITER() NUMMATCH() NUMMEMBER() 
+                      NUMWILDMATCH() PARSE() RANDMATCH() RANDEXTRACT() 
+                      REMFLAGS() REMOVE() REMTYPE() REST() REVERSE() REVWORDS()
+                      RINDEX() SAFEBUFF() SETDIFF() SETINTER() SETUNION() 
+                      SORT() SORTBY() SORTLIST() STEP() STRFUNC() STRMATH() 
+                      TOTEMS() TOTMATCH() TOTMEMBER() TOTWILDMATCH() 
+                      TRREVERSE() WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -11643,11 +11645,12 @@
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
                       HASFLAG() HASTOGGLE() HASTOTEM() HASTYPE() HOME() 
                       LASTCREATE() LATTR() LCMDS() LCON() LEXITS() LFLAGS()
-                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() OBJEVAL() 
-                      ORFLAG() ORFLAGS() PARENT() PGREP() POSS() RACE() 
-                      SHIFT() SUBJ() TYPE() U() U2() UDEFAULT() UDEFAULT2() 
-                      UEVAL() ULDEFAULT() U2LDEFAULT() ULOCAL() ULOCAL2() V()
-                      VATTRCNT() VISIBLE() VISIBLEMUX() WRITABLE() XGET()
+                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() 
+                      OBJEVAL() ORFLAG() ORFLAGS() ORTOTEM() ORTOTEMS() 
+                      PARENT() PGREP() POSS() RACE() SHIFT() SUBJ() TYPE() U()
+                      U2() UDEFAULT() UDEFAULT2() UEVAL() ULDEFAULT() 
+                      U2LDEFAULT() ULOCAL() ULOCAL2() V() VATTRCNT() VISIBLE()
+                      VISIBLEMUX() WRITABLE() XGET()
             See Also: help object information functions
   
   { 'help function classes4' for more }
@@ -19805,6 +19808,50 @@
   
   See Also: andflag(), orflag(), orflags(), hasflag(), flags(), lflags()
   
+& ANDTOTEM()
+  Function: andtotem(<target>, <flag1> [<flag2> ... <flagN>])
+  
+  This function checks if the target has all of the specified totems.
+  
+  You may specify if the target does not have a given totem with the not (!)
+  operator.
+  
+  Examples:
+    > say ltotems(me)
+    You say "ONE TWO THREE FOUR"
+    > say andtotem(me,one three)
+    You say "1"
+    > say andtotem(me,one zero seventeen)
+    You say "0"
+    > say andtotem(me,one !zero !notatotem)
+    You say "1"
+    > say andtotem(me,!zero !notatotem)
+    You say "1"
+  
+  See Also: andtotems(), ortotems(), ortotem(), ltotems(), totems(),
+            hastotem(), @totem
+  
+& ORTOTEM()
+  Function: ortotem(<target>, <flag1> [<flag2> ... <flagN>])
+  
+  This function checks if the target has one or more of the specified toggles.
+  
+  You may specify if the target does not have a given totem with the not (!)
+  operator.
+  
+  Examples:
+    > say ltotems(me)
+    You say "ONE TWO THREE FOUR"
+    > say ortotem(me,one zero seventeen)
+    You say "1"
+    > say ortotem(me,zero notatotem)
+    You say "0"
+    > say ortotem(me,!zero !notatotem)
+    You say "1"
+  
+  See Also: andtotems(), ortotems(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+  
 & ORFLAG()
   Function: orflag(<target>,<flag1>[,<flag2>,...,<flagN>])
   
@@ -19820,6 +19867,72 @@
    
   See Also: andflag(), hasflag(), lflags(), flags()
   
+& ANDTOTEMS()
+  Function: andtotems(<target>, <flag-list1> [,<flag-list2>, [,<flag-list3>]])
+  
+  This function checks if the target has all of the specified totems.  You may
+  also specify the !<letter> to check if it does not have the specified totem.
+  
+  If there is a totem that contains a '\' or a '!' you must escape it out
+  with the '\' escape character.
+  
+  Any inclusion of a '!' character will do reverse checking of the letter
+  following it.
+  
+  Normal totems will be in the flag-list1.
+  Any totem letters surrounded by []'s will be in the flag-list2.
+  Any totem letters surrounded by {}'s will be in the flag-list3.
+  
+  Examples:
+    > say totems(me)
+    You say "123[456]{789}"
+    > say andtotems(me,1,4,7)
+    You say "1"
+    > say andtotems(me,,,9)
+    You say "1"
+    > say andtotems(me,X,Y,8)
+    You say "0"
+    > say andtotems(me,X,Y,Z)
+    You say "0"
+    > say andtotems(me,1,!Y,!Z)
+    You say "1"
+  
+  See Also: ortotems(), ortotem(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+
+& ORTOTEMS()
+  Function: ortotems(<target>, <flag-list1> [,<flag-list2>, [,<flag-list3>]])
+  
+  This function checks if the target has any of the specified totems.  You may
+  also specify the !<letter> to check if it does not have the specified totem.
+  
+  If there is a totem that contains a '\' or a '!' you must escape it out
+  with the '\' escape character.
+  
+  Any inclusion of a '!' character will do reverse checking of the letter
+  following it.
+  
+  Normal totems will be in the flag-list1.
+  Any totem letters surrounded by []'s will be in the flag-list2.
+  Any totem letters surrounded by {}'s will be in the flag-list3.
+  
+  Examples:
+    > say totems(me)
+    You say "123[456]{789}"
+    > say ortotems(me,1,4,7)
+    You say "1"
+    > say ortotems(me,,,9)
+    You say "1"
+    > say ortotems(me,X,Y,8)
+    You say "1"
+    > say ortotems(me,X,Y,Z)
+    You say "0"
+    > say ortotems(me,X,Y,!Z)
+    You say "1"
+  
+  See Also: andtotems(), ortotem(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+
 & ORFLAGS()
   Function: orflags(<target>,<flag-list>)
   
@@ -29957,7 +30070,10 @@
   
   aindex()      - Appends a string at a position in another string.
   aiindex()     - Similar to aindex(), but allows adding to an empty string.
+  andflag()     - Checks if a target has all the indicated flag letters.
   andflags()    - Checks if a target has all the indicated flags.
+  andtotem()    - Checks if a target has all the indicated totem letters.
+  andtotems()   - Checks if a target has all the indicated totems.
   array()       - Break up a string into an array list of registers
   caplist()     - Performs a capstr() on a list of words.
   citer()       - Similar to iter(), but by character instead of word.
@@ -30155,8 +30271,10 @@
   name()        - Returns the name of an object.
   obj()         - Returns the proper objective pronoun of an object.
   objeval()     - Evaluates code from a specified objects' perspective.
-  orflag()      - Checks if the target has one of the specified flags.
+  orflag()      - Checks if the target has one of the specified flag letters.
   orflags()     - Checks if the target has any of the specified flags.
+  ortotem()     - Checks if the target has one of the specified totem letters.
+  ortotems()    - Checks if the target has any of the specified totems.
   parent()      - Returns the parent object of an object.
   pgrep()       - Returns a list of matching attributes over parents.
   poss()        - Returns the possessive pronoun of an object.
@@ -33232,6 +33350,8 @@
   * hastotem()         -- check if target has totem [ASH]
   * totem_letter       -- config to set totem letters [ASH]
   * totems()           -- list flag letters of totems (skips default '?') [ASH]
+  * andtotem()/ortotem()  letter handling for totems [ASH]
+  * andtotems()/ortotems() totem flag handler for totem names [ASH]
   
   Changes
   ------------
