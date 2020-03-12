@@ -2603,6 +2603,142 @@ totem_cansee_bit(dbref player, dbref it, int perms)
    return 1; 
 }
 
+char *
+totem_bitstostring(dbref player, dbref it, int perms)
+{
+   static char s_showbits[LBUF_SIZE];
+   char *s_ptr;
+   int i_first;
+
+   memset(s_showbits, '\0', LBUF_SIZE);
+   s_ptr = s_showbits;
+
+   i_first = 0;
+
+   if (perms & CA_IGNORE) {
+      safe_str("IGNORE", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IGNORE_MORTAL) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_MORTAL", s_showbits, &s_ptr);
+      i_first = 1;
+   
+   }
+   if (perms & CA_IGNORE_GM) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_GUILDMASTER", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IGNORE_ARCH) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_ARCHITECH", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IGNORE_COUNC) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_COUNCILOR", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IGNORE_ROYAL) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_WIZARD", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IGNORE_IM) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IGNORE_IMMORTAL", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_NO_WANDER) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("NO_WANDERER", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_NO_GUEST) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("NO_GUEST", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_NO_SUSPECT) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("NO_SUSPECT", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   /* Check against 'mortal' special handler */
+   if (perms & 0x40000000) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("MORTAL", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_GUILDMASTER) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("GUILDMASTER", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_BUILDER) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("ARCHITECT", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_ADMIN) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("COUNCILOR", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_WIZARD) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("WIZARD", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_IMMORTAL) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("IMMORTAL", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if (perms & CA_GOD) {
+      if ( i_first ) {
+         safe_chr(' ', s_showbits, &s_ptr);
+      }
+      safe_str("GOD", s_showbits, &s_ptr);
+      i_first = 1;
+   }
+   if ( !i_first ) {
+      safe_str("(NONE)", s_showbits, &s_ptr);
+   }
+   return s_showbits;
+}
+
 int 
 has_flag(dbref player, dbref it, char *flagname)
 {
@@ -5954,8 +6090,16 @@ totem_info(char *totem, char *s_buff)
         }
      }
   }
-  sprintf(lcname, "Name: %s\r\nSlot Location: %d\r\nByte Value: 0x%08x\r\nAliases: %d\r\n", 
+  sprintf(lcname, "Name: %s\r\nSlot Location: %d\r\nByte Value: 0x%08x\r\nAliases: %d\r\n",
           hashp->flagname, hashp->flagpos, hashp->flagvalue, i_found);
+  safe_str(lcname, s_buff, &s_buffptr);
+  sprintf(lcname, "See Perm: %s\r\n", totem_bitstostring(GOD, GOD, hashp->listperm));
+  safe_str(lcname, s_buff, &s_buffptr);
+  sprintf(lcname, "Set Perm: %s\r\n", totem_bitstostring(GOD, GOD, hashp->setovperm));
+  safe_str(lcname, s_buff, &s_buffptr);
+  sprintf(lcname, "UnSet Perm: %s\r\n", totem_bitstostring(GOD, GOD, hashp->usetovperm));
+  safe_str(lcname, s_buff, &s_buffptr);
+  sprintf(lcname, "Type Perm: %s\r\n", totem_bitstostring(GOD, GOD, hashp->typeperm));
   safe_str(lcname, s_buff, &s_buffptr);
   if ( hashp->permanent == 2 ) {
      safe_str((char *)"Totem Type: Hard Code (Permanent/locked) [2]\r\nApplied To: ", s_buff, &s_buffptr);  
@@ -6580,6 +6724,49 @@ totem_display(char *s_slot, dbref player)
    return 1;
 }
 
+void
+totem_slots(dbref player, char *s_buff)
+{
+   TOTEMENT *storedtag;
+   int i_slots[TOTEM_SLOTS], i, i_first;
+   char *s_ptr, *s_tmp;
+
+   if ( !s_buff ) {
+      return;
+   }
+
+   for (i = 0; i < TOTEM_SLOTS; i++ ) {
+      i_slots[i] = 0;
+   }
+ 
+   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         storedtag;
+         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      if (storedtag) {
+         if ( totem_cansee_bit(player, player, storedtag->listperm) ) {
+            i_slots[storedtag->flagpos]++;
+         }
+      }
+   }
+
+   s_ptr = s_buff;
+   i_first = 0;
+   s_tmp = alloc_sbuf("totem_slots");
+   sprintf(s_tmp, "Total slots %d: ", TOTEM_SLOTS);
+   safe_str(s_tmp, s_buff, &s_ptr);
+   for (i = 0; i < TOTEM_SLOTS; i++ ) {
+      if ( i_first ) {
+         safe_str((char *)", ", s_buff, &s_ptr);
+      }
+      sprintf(s_tmp, "[Slot %d:%d]", i, i_slots[i]);
+      safe_str(s_tmp, s_buff, &s_ptr);
+      i_first = 1;
+   }
+   free_sbuf(s_tmp);
+
+   return;
+}
+
 void 
 examine_totemtab(dbref player, dbref target)
 {
@@ -6720,6 +6907,12 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          }
          *s_buff = '\0';
          totem_handle_error(retvalue, player, (char *)"display", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_DISSLOT: /* Show number of flags per slots you can see */
+         s_buff = alloc_lbuf("totem_letter");
+         totem_slots(player, s_buff);
          notify(player, s_buff);
          free_lbuf(s_buff);
          break;

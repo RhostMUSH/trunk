@@ -6028,6 +6028,7 @@
   
   The following switches exist for @totem:
     /list -- list all @totems that you have access to.
+    /slot -- list the number of totems that are assigned to each slot
   
   When setting @totems, you would just specify the totem in question.  When
   you wish to remove the @totem, you would preceed the @totem flagname with
@@ -33380,6 +33381,8 @@
   * andtotem()/ortotem()  letter handling for totems [ASH]
   * andtotems()/ortotems() totem flag handler for totem names [ASH]
   * listtotems()       -- like @totem/list (or @list totems) [ASH]
+  * @totem/slot        -- shows the total slots and number of totems defined
+                          to each slot (that you can see). [ASH]
   
   Changes
   ------------
