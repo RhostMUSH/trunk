@@ -5693,6 +5693,8 @@
 & @search
   Command: @search[/<switch> [<player>] [<class>=<restrict>[,<low>[,<high>]]]
  
+  Note: See 'help search classes' to see what searches are available.
+  
   Displays information about objects that meet the search criteria.
   Because this command is computationally expensive, it costs 200 coins.
   <player> restricts the search to the named player, while <class>
@@ -11938,6 +11940,9 @@
               <restriction> set..
   FLAGS2    - Restricts to objects which have the flags listed in
               <restriction> set.. (uses next set of flags)
+  TOTEMS    - Restricts to objects which have the tier 0 totem letters.
+  TOTEMS2   - Restricts to objects which have the tier 1 totem letters.
+  TOTEMS3   - Restricts to objects which have the tier 2 totem letters.
   EVAL      - Evaluates the restriction for each object, replacing ##
               with the object's database number.  Evaluations that return
               TRUE (IE, not 0 or #-1) are selected.
@@ -19301,6 +19306,8 @@
   Function: search([<player>] [<class>=<restriction>[,<low>[,<high>]]])
             searchobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
   
+  Note: See 'help search classes' on what you can search for.
+  
   The search() function returns a list of objects that match the search
   criteria, which are the same as with the @search command.  This function
   costs as much as the @search command, so repeated use is expensive.
@@ -19329,6 +19336,8 @@
 & SEARCHNGOBJID()
   Function: searchng([<player>] [<class>=<restriction>[,<low>[,<high>]]])
             searchngobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+  
+  Note: See 'help search classes' on what you can search for.
   
   This function works exactly as search(), except it will not return any
   garbage (going/recover) objects in the results.
@@ -33393,6 +33402,7 @@
   * Added default markers to Totems as examples [ASH]
   * wildcard and slot handler for @list totem & @totem/list [ASH]
   * port() modified so immortal can get port info of #1 [ASH]
+  * added totem, totem2, totem3 to search classes
   
   Bug Fixes
   ------------
