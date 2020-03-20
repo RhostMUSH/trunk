@@ -6870,6 +6870,10 @@
    
   The mush has to be configured to enable this to work.  '@list options'
   
+  Note: For contents, inventory, and names of things at location, you can
+        specify the NONAME flag (wizard settable only) to allow @nameformat
+        to work in those conditions.
+  
   See Also: @exitformat, @conformat, invformat
   
 & @conformat

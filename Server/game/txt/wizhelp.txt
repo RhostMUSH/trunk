@@ -1195,6 +1195,9 @@
   When set, this essentially snuffs the name of the item.  This only works for
   inventories, contents, locations, and 'inside' looks.
   
+  This is intended to work with @nameformat as an override for
+  content/inventory name displays.
+  
   This is aliased to 'NONAME' for compatibility.
 
 & NOWHO
