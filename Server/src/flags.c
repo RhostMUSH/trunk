@@ -5842,8 +5842,7 @@ totem_player_list(char *buff, int i_type, dbref target, dbref player)
         i_first = 1;
      }
   }
-
-  free_lbuf(s_hashstr);
+free_lbuf(s_hashstr);
   return 1;
 }
 
@@ -5855,12 +5854,17 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
   int i_first, totems[TOTEM_SLOTS];
   TOTEMENT *storedtag;
 
+  /* target should be verified before calling this, so should never happen */
+  if ( !Good_chk(target) ) {
+     return -12;
+  }
+
   /* No buffer no value */
   if( !buff ) {
      return -4;
   }
 
-  if ( !Good_chk(target) ) {
+  if ( !Good_chk(target) ) { /* Paranoia is the game */
      for ( i_first = 0; i_first < TOTEM_SLOTS; i_first++ ) {
         totems[i_first] = 0;
      }
@@ -5874,6 +5878,21 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
   s_buffp = buff;
   if ( i_type != 2 ) {
      safe_str((char *)"Totems: ", buff, &s_buffp);
+  }
+ 
+  if ( mudconf.totem_types ) {
+      /* Only three types we care about.  (P)layer, (E)xit, and (R)oom */
+      switch ( Typeof(target) ) {
+         case TYPE_PLAYER: /* Type player */
+            safe_str((char *)"PLAYER ", buff, &s_buffp);
+            break;
+         case TYPE_EXIT: /* Type exit */
+            safe_str((char *)"EXIT ", buff, &s_buffp);
+            break;
+         case TYPE_ROOM: /* Type room */
+            safe_str((char *)"ROOM ", buff, &s_buffp);
+            break;
+      }
   }
   i_first = 0;
   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
@@ -6500,7 +6519,7 @@ totem_flags(char *s_target, dbref player, dbref cause, char *s_buff)
    TOTEMENT *storedtag;
    
    init_match(player, s_target, NOTYPE);
-   match_everything(0);
+   match_everything(MAT_EXIT_PARENTS);
    target = match_result();
   
    if ( !Good_chk(target) ) {
@@ -6542,6 +6561,20 @@ totem_flags(char *s_target, dbref player, dbref cause, char *s_buff)
                safe_chr(storedtag->flaglett, fl1, &fl1p);
                break;
          }
+      }
+   }
+   if ( mudconf.totem_types ) {
+      /* Only three types we care about.  (P)layer, (E)xit, and (R)oom */
+      switch ( Typeof(target) ) {
+         case TYPE_PLAYER: /* Type player */
+            safe_chr('P', s_buff, &s_buffp);
+            break;
+         case TYPE_EXIT: /* Type exit */
+            safe_chr('E', s_buff, &s_buffp);
+            break;
+         case TYPE_ROOM: /* Type room */
+            safe_chr('R', s_buff, &s_buffp);
+            break;
       }
    }
    if ( *fl1 ) {
@@ -6923,7 +6956,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          }
 
          init_match(player, flag1, NOTYPE);
-         match_everything(0);
+         match_everything(MAT_EXIT_PARENTS);
          target = match_result();
          if ( !Good_chk(target) || !Controls(player, target) ) {
             notify(player, "Invalid target for @totem.");

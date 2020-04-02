@@ -446,6 +446,7 @@ struct confdata {
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 	char	vercustomstr[SBUF_SIZE];	/* Customized string for @version */
+        int	totem_types;	/* Enable flag compatible types for totems */
 	int	connect_methods;		/* Disable optionally connect methods */
 	char	string_conn[SBUF_SIZE];		/* String for the connect command */
 	char	string_create[SBUF_SIZE];	/* String for the connect command */
@@ -525,6 +526,7 @@ struct confdata {
 	int	old_elist;		/* Old elist processing */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 	char	vercustomstr[SBUF_SIZE];
+        int	totem_types;	/* Enable flag compatible types for totems */
 #endif	/* STANDALONE */
 };
 

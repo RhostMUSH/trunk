@@ -33396,6 +33396,7 @@
   * listtotems()       -- like @totem/list (or @list totems) [ASH]
   * @totem/slot        -- shows the total slots and number of totems defined
                           to each slot (that you can see). [ASH]
+  * totem_types        -- @admin param to enable flag-like type detection [ASH]
   
   Changes
   ------------

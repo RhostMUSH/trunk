@@ -6606,17 +6606,17 @@
   totem_add                 totem_alias               totem_access_see
   totem_access_set          totem_access_type         totem_access_unset
   totem_letter              tor_localhost             tor_paranoid            
-  trace_output_limit        trace_topdown             tree_character          
-  trust_site                uncompress_program        unowned_safe            
-  user_attr_flags           validate_host             vattr_command           
-  vattr_limit_checkwiz      vercustomstr              vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  wizcommand_quota_max      zone_parents
+  totem_types               trace_output_limit        trace_topdown           
+  tree_character            trust_site                uncompress_program      
+  unowned_safe              user_attr_flags           validate_host           
+  vattr_command             vattr_limit_checkwiz      vercustomstr            
+  vlimit                    wait_cost                 wall_cost               
+  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
+  who_default               who_unfindable            who_showwiz             
+  who_wizlevel              who_whowiztype            whohost_size            
+  wiz_override              wiz_uselock               wizard_help_file        
+  wizard_help_index         wizard_motd_file          wizard_motd_message     
+  wizard_queue_limit        wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -11413,6 +11413,15 @@
             totem_add, totem_letter, totem_access_type, @totemdef, 
             @totem
 
+& totem_types
+  Config parameter: totem_types <boolean>    Default: off (0)
+  
+  This enables type detection to totem lists just as flags handle them.
+  This is intended to be enabled if ever totems take over the requirement
+  of flags in the future and to allow easier migration.
+  
+  See Also: @totem
+  
 & toggle_access_type
   Config parameter: toggle_access_type <togglename> <permission(s)>
   

@@ -345,6 +345,7 @@ NDECL(cf_init)
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
+    mudconf.totem_types = 0;		/* enable totem object type recognition */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -4812,6 +4813,9 @@ CONF conftable[] =
     {(char *) "totem_letter",
      cf_totemletter, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Define totem letters."},
+    {(char *) "totem_types",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.totem_types, 0, 0, CA_WIZARD,
+     (char *) "Enable flag-like TYPE recognition for totems?"},
     {(char *) "news_file",
      cf_string, CA_DISABLED, (int *) mudconf.news_file, 32, 0, CA_WIZARD,
      (char *) "File used for news."},
