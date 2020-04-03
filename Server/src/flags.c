@@ -1014,7 +1014,7 @@ NDECL(init_totemtab)
 {
    TOTEMENT *fp;
    char *nbuf, *np, *bp;
-   int i_rettype;
+   int i_rettype, i_cnt;
 
    hashinit(&mudstate.totem_htab, 521);
 
@@ -1022,11 +1022,15 @@ NDECL(init_totemtab)
    nbuf = alloc_sbuf("init_totemtab");
    for (fp = totem_table; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
       memset(nbuf, '\0', SBUF_SIZE);
-      for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
+      for (np = nbuf, i_cnt = 0, bp = (char *) fp->flagname; *bp; np++, bp++) {
          *np = ToLower((int)*bp);
+         i_cnt++;
+         /* Totem names forcefully cut off at 20 characters */
+         if ( i_cnt >= 20 )
+           break;
       }
       /* We need to XMALLOC this value for future potential rename/delete */
-      fp->flagname = (char *) strsave(fp->flagname);
+      fp->flagname = (char *) strsavetotem(fp->flagname);
       hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
    }
    free_sbuf(nbuf);
@@ -6137,8 +6141,8 @@ totem_info(char *totem, char *s_buff)
 int 
 totem_rename(char *totem, char *totemren)
 {
-  TOTEMENT *hashp, *newhashp, *newtotem;
-  char *lcnp, *lcname, *newp, *newname;
+  TOTEMENT *hashp, *newhashp;
+  char *lcnp, *ucname, *ucnp, *lcname, *newp, *newname;
   int stat;
 
   if ( !*totem ) {
@@ -6169,13 +6173,16 @@ totem_rename(char *totem, char *totemren)
 
   /* Convert to all lowercase, strip ansi */
   newp = newname = alloc_lbuf("add_totem");
+  ucnp = ucname = alloc_lbuf("add_totem");
   safe_str(strip_all_ansi(totemren), newname, &newp);
   for (newp=newname; *newp; newp++) {
     *newp = ToLower((int)*newp);
+    *(ucnp++) = ToUpper((int)*newp);
     /* Deny if the totem somehow has whitespace in it */
     if(isspace(*newp)) {
       free_lbuf(newname);
       free_lbuf(lcname);
+      free_lbuf(ucname);
       return -1;
     }
   }
@@ -6185,12 +6192,14 @@ totem_rename(char *totem, char *totemren)
   if ( !hashp ) {
       free_lbuf(newname);
       free_lbuf(lcname);
+      free_lbuf(ucname);
       return -8;
   }
 
   if ( hashp->permanent != 0 ) {
       free_lbuf(newname);
       free_lbuf(lcname);
+      free_lbuf(ucname);
       return -7;
   }
 
@@ -6199,29 +6208,22 @@ totem_rename(char *totem, char *totemren)
   if ( newhashp ) {
       free_lbuf(newname);
       free_lbuf(lcname);
+      free_lbuf(ucname);
       return -5;
   }
 
-  newtotem = (TOTEMENT *) malloc(sizeof(TOTEMENT));
-  newtotem->flagname = (char *) strsave(newname);
-  newtotem->flagvalue = hashp->flagvalue;
-  newtotem->flagpos = hashp->flagpos;
-  newtotem->permanent = hashp->permanent;
-  newtotem->listperm = hashp->listperm;
-  newtotem->setovperm = hashp->setovperm;
-  newtotem->usetovperm = hashp->usetovperm;
-  newtotem->aliased = hashp->aliased;
-
-  hashdelete(lcname, &mudstate.totem_htab);
-  stat = hashadd2(newname, (int *)newtotem, &mudstate.totem_htab, 1);
+  /* Rename the flag -- old name is new alias */
+  strcpy(hashp->flagname, ucname);
+  hashrepl2(lcname, (int *) hashp, &mudstate.flags_htab, 0);
+  stat = hashadd2(newname, (int *)hashp, &mudstate.totem_htab, 1);
+  hashdelete(lcname, &mudstate.totem_htab); /* Delete the hash replaced value which is now an alias */
 
   /* Error check adding hash */
   stat = (stat < 0) ? 0 : 1;
-  if ( stat == 0 ) {
-     free(newtotem);
-  }
+
   free_lbuf(newname);
   free_lbuf(lcname);
+  free_lbuf(ucname);
   return stat;
 }
 
@@ -6433,7 +6435,7 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   
 
   newtotem = (TOTEMENT *) malloc(sizeof(TOTEMENT));
-  newtotem->flagname = (char *) strsave(lcuc);
+  newtotem->flagname = (char *) strsavetotem(lcuc);
   newtotem->flagvalue = totem_value;
   newtotem->flagpos = totem_slot;
   newtotem->permanent = totem_perm;

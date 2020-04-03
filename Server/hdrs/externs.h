@@ -418,6 +418,7 @@ extern char *	FDECL(seek_char, (const char *, char));
 extern int	FDECL(prefix_match, (const char *, const char *));
 extern int	FDECL(minmatch, (char *, char *, int));
 extern char *	FDECL(strsave, (const char *));
+extern char *	FDECL(strsavetotem, (const char *));
 extern int	FDECL(safe_copy_str, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_strmax, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_chr, (char, char *, char **, int));

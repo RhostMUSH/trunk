@@ -1310,6 +1310,18 @@ char *strsave(const char *s)
   return p;
 }
 
+char *strsavetotem(const char *s)
+{
+  char *p;
+  p = (char *)XMALLOC(sizeof(char) * 21, "strsave");
+
+  if(p)
+    strcpy(p,s);
+  return p;
+}
+
+
+
 /* ---------------------------------------------------------------------------
  * safe_copy_str, safe_copy_chr - Copy buffers, watching for overflows.
  */

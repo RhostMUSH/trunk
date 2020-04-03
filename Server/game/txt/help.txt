@@ -33426,3 +33426,4 @@
   * Permissions for seeing totems were not working properly [ASH]
   * Permission bug in @totem set/unset [ASH]
   * @totem/add wouldn't allow high bit adding (0x80000000) [ASH]
+  * @totem/rename could crash if totem had an alias [ASH]
