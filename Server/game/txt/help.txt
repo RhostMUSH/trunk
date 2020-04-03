@@ -29722,6 +29722,8 @@
 
 {continued in 'help regexps2'}
 
+& REGEXP CASESENSITIVE
+& REGEXP CASESENSITIVITY
 & REGEXPS2
   Topic: REGEXPS2 (continued)
   
@@ -29737,6 +29739,14 @@
   > +setnum cookie=30
   > ex Command Object/va
   Data: cookies = 30
+  > &DO_ZZ Command Object=$^zz:@pemit %#=I am case insensitive.
+  > zz
+  I am case insensitive.
+  > &DO_ZZ Command Object=$^(?-i)zz:@pemit %#=I am case sensitive.
+  > zz
+  I am case sensitive.
+  > ZZ
+  Huh?  (Type 'help' for help)
   
   How it works:
   '+setnum cookies=30' would set VA to "Data: cookies = 30".
