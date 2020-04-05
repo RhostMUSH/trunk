@@ -5409,7 +5409,7 @@
                 Syntax:  @totem/see totemname=permission(s)
     /type     - Controls what types are denied.  CONFIG: totem_access_type
                 Syntax:  @totem/type totemname=permission(s)
-    /rename   - Rename the totem (Can only rename temporary totems)
+    /rename   - Rename the totem.  CONFIG: totem_rename
                 Syntax:  @totem/rename totemname=newname
     /validate - Does a validation check on totems for dangling slot/values
                 Syntax:  @totem/validate
@@ -5419,6 +5419,8 @@
               - Syntax:  @totem/full totemname
     /alias    - Assigns one or more aliases to a totem.  CONFIG: totem_alias
               - Syntax:  @totem/alias totemname=alias(s)
+    /unalias  - Removes the alias of the targeted totem.
+              - Syntax:  @totem/unalias totemname=alias(s)
     /display  - Show flags assigned to flag values of given slot.
                 Syntax:  @totem/display slotnumber
     /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
@@ -5429,7 +5431,7 @@
                 Syntax:  @totem/clean
   
   See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
-             totem_access_see, totem_access_type, totem_letter
+             totem_access_see, totem_access_type, totem_letter, totem_rename
 & @totemdef
 & @toggledef
 & @flagdef
@@ -6606,17 +6608,18 @@
   totem_add                 totem_alias               totem_access_see
   totem_access_set          totem_access_type         totem_access_unset
   totem_letter              tor_localhost             tor_paranoid            
-  totem_types               trace_output_limit        trace_topdown           
-  tree_character            trust_site                uncompress_program      
-  unowned_safe              user_attr_flags           validate_host           
-  vattr_command             vattr_limit_checkwiz      vercustomstr            
-  vlimit                    wait_cost                 wall_cost               
-  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
-  who_default               who_unfindable            who_showwiz             
-  who_wizlevel              who_whowiztype            whohost_size            
-  wiz_override              wiz_uselock               wizard_help_file        
-  wizard_help_index         wizard_motd_file          wizard_motd_message     
-  wizard_queue_limit        wizcommand_quota_max      zone_parents
+  totem_rename              totem_types               trace_output_limit      
+  trace_topdown             tree_character            trust_site              
+  uncompress_program        unowned_safe              user_attr_flags         
+  validate_host             vattr_command             vattr_limit_checkwiz    
+  vercustomstr              vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max    
+  zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -11412,6 +11415,23 @@
   See Also: totem_access_set, totem_access_unset, totem_access_see, 
             totem_add, totem_letter, totem_access_type, @totemdef, 
             @totem
+
+& totem_rename
+  Config parameter: totem_rename <value>    Default: 0
+  
+  This config parameter sets a bitmask on what totem type is allowed to
+  be renamed.  The default of '0' are temporary totems only.  Temporary
+  being totems that are defined in-game and not via config params or 
+  through source.
+  
+      0 -- temporary (defined in-game)
+      1 -- static/sticky (defined in the .conf files)
+      2 -- permanent (defined in the source itself)
+      3 -- both static and permanent.
+  
+  To rename anything but temporary you must specify the level you wish.
+  
+  See Also: @totem
 
 & totem_types
   Config parameter: totem_types <boolean>    Default: off (0)

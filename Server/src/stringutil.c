@@ -1313,10 +1313,12 @@ char *strsave(const char *s)
 char *strsavetotem(const char *s)
 {
   char *p;
-  p = (char *)XMALLOC(sizeof(char) * 21, "strsave");
+  p = (char *)XMALLOC(sizeof(char) * 21, "strsavetotem");
 
-  if(p)
-    strcpy(p,s);
+  if(p) {
+    memset(p, '\0', 21);
+    strncpy(p,s,20);
+  }
   return p;
 }
 

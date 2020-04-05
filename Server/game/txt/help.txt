@@ -33407,6 +33407,8 @@
   * @totem/slot        -- shows the total slots and number of totems defined
                           to each slot (that you can see). [ASH]
   * totem_types        -- @admin param to enable flag-like type detection [ASH]
+  * totem_rename       -- optionally rename non-temporary totems [ASH]
+  * @totem/unalias     -- remove aliases of totems [ASH]
   
   Changes
   ------------
@@ -33427,3 +33429,5 @@
   * Permission bug in @totem set/unset [ASH]
   * @totem/add wouldn't allow high bit adding (0x80000000) [ASH]
   * @totem/rename could crash if totem had an alias [ASH]
+  * Small memory leak in @tag/remove [ASH]
+  * Small memory leak in @totem/remove [ASH]

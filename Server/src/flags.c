@@ -5725,6 +5725,9 @@ totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
       case -12: /* Invalid target */
          safe_str((char *)"Invalid target specified.", s_inbuff, &s_buffptr);
          break;
+      case -13: /* Invalid target */
+         safe_str((char *)"Totem with aliases can not be altered.", s_inbuff, &s_buffptr);
+         break;
       case -777: /* snuff messages */
          break;
       default: /* Invalid error -- log it */ 
@@ -5953,9 +5956,9 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
 }
 
 int 
-totem_alias(char *totem, char *s_aliases, dbref player)
+totem_alias(char *totem, char *s_aliases, dbref player, int i_remove)
 {
-  TOTEMENT *hashp, *aliasp, *storedtag;
+  TOTEMENT *hashp, *aliasp, *storedtag, *origp;
   int i_aliases, stat, *i_totem = NULL, i_first;
   char *lcname, *lcnameptr, *s_strtok, *s_strtokr,
        *s_buff, *s_buff2, *s_buff3, *s_buffptr;
@@ -5992,8 +5995,98 @@ totem_alias(char *totem, char *s_aliases, dbref player)
   }
   if ( i_aliases == 0 ) {
      hashp->aliased = 0; /* Reset Totem alias tracking to none */
+     if ( i_remove == 1 ) {
+        if ( Good_chk(player) ) {
+           notify(player, "@totem/unalias: totem has no aliases to remove.");
+        }
+        return 0;
+     }
   }
 
+  /* Do the removal portion here */
+  if ( i_remove ) {
+     s_buff = alloc_lbuf("totem_alias2");
+     s_buff2 = alloc_lbuf("totem_alias3");
+     s_buff3 = alloc_lbuf("totem_alias4");
+     strcpy(s_buff, s_aliases);
+     s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+     i_first = 0;
+     while ( s_strtok ) {
+        strcpy(s_buff2, s_strtok);
+        s_buffptr = s_buff2;
+        while ( *s_buffptr ) {
+           *s_buffptr = ToLower(*s_buffptr);
+           s_buffptr++;
+        }
+        aliasp = (TOTEMENT *)hashfind(s_buff2, &mudstate.totem_htab);
+        origp = (TOTEMENT *)hashfind2(s_buff2, &mudstate.totem_htab, 1);
+
+        /* Not an alias, the original name -- skip it */
+        if ( origp ) {
+           if ( Good_chk(player) ) {
+              sprintf(s_buff3, "@totem/alias: %s is a totem name and not an alias.", s_buff2);
+              notify(player, s_buff3);
+           }
+           s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+           continue;
+        }
+
+        /* Alias found -- wack it */
+        if ( aliasp ) {
+           /* If alias not pointing to real name, ignore it */
+           if ( stricmp(aliasp->flagname, totem) != 0 ) {
+              if ( Good_chk(player) ) {
+                 sprintf(s_buff3, "@totem/alias: %s is not an alias for totem %s.", s_buff2, hashp->flagname);
+                 notify(player, s_buff3);
+              }
+              s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+              continue;
+           }
+           /* DO NOT REMOVE THE ORIGINAL NAME -- It's the totem name, not the alias name!! */
+
+           i_first++;
+           /* Now hash delete the sucker */
+           if ( Good_chk(player) ) {
+              sprintf(s_buff3, "@totem/alias: %s was removed as an alias to %s.", s_buff2, hashp->flagname);
+              notify(player, s_buff3);
+           }
+           hashdelete(s_buff2, &mudstate.totem_htab);
+        } else {
+           if ( Good_chk(player) ) {
+              sprintf(s_buff3, "@totem/alias: %s is not an alias for totem %s.", s_buff2, hashp->flagname);
+              notify(player, s_buff3);
+           }
+        }
+        s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+     }
+     if ( Good_chk(player) ) {
+        sprintf(s_buff3, "@totem/alias: %d total aliases for totems have been removed.", i_first);
+        notify(player, s_buff3);
+     }
+     free_lbuf(s_buff3);
+     free_lbuf(s_buff2);
+     free_lbuf(s_buff);
+
+     /* Walk the storage to see if any aliases exist, if none unmark alias tag on it */
+     i_aliases = 0;
+     for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 2);
+           storedtag;
+           storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+        if(storedtag) {
+           if ( strcmp(storedtag->flagname, hashp->flagname) == 0 ) {
+              i_aliases++;
+           }
+        }
+     }
+     if ( i_aliases == 0 ) {
+        hashp->aliased = 0; /* Reset Totem alias tracking to none */
+     }
+     /* Snuff message */
+     return -777;
+  }
+
+
+  /* Section for adding aliases */
   if ( i_aliases > 10 ) {
      return -9; 
   }
@@ -6017,7 +6110,12 @@ totem_alias(char *totem, char *s_aliases, dbref player)
      aliasp = (TOTEMENT *)hashfind(s_buff2, &mudstate.totem_htab);
      if ( aliasp ) {
         if ( Good_chk(player) ) {
-           sprintf(s_buff3, "@totem/alias: %s is already an alias pointing to %s.", s_buff2, hashp->flagname);
+           origp = (TOTEMENT *)hashfind2(s_buff2, &mudstate.totem_htab, 1);
+           if ( origp ) {
+              sprintf(s_buff3, "@totem/alias: %s is the existing real name and can not be used as an alias.", s_buff2);
+           } else {
+              sprintf(s_buff3, "@totem/alias: %s is already an alias pointing to %s.", s_buff2, hashp->flagname);
+           }
            notify(player, s_buff3);
         }
      } else {
@@ -6160,7 +6258,7 @@ totem_rename(char *totem, char *totemren)
   }
 
   /* Convert to all lowercase, strip ansi */
-  lcnp = lcname = alloc_lbuf("add_totem");
+  lcnp = lcname = alloc_lbuf("add_totem_lc");
   safe_str(strip_all_ansi(totem), lcname, &lcnp);
   for (lcnp=lcname; *lcnp; lcnp++) {
     *lcnp = ToLower((int)*lcnp);
@@ -6172,9 +6270,11 @@ totem_rename(char *totem, char *totemren)
   }
 
   /* Convert to all lowercase, strip ansi */
-  newp = newname = alloc_lbuf("add_totem");
-  ucnp = ucname = alloc_lbuf("add_totem");
+  newp = newname = alloc_lbuf("add_totem_new");
   safe_str(strip_all_ansi(totemren), newname, &newp);
+  ucname = alloc_lbuf("add_totem_uc");
+  memset(ucname, '\0', LBUF_SIZE);
+  ucnp = ucname;
   for (newp=newname; *newp; newp++) {
     *newp = ToLower((int)*newp);
     *(ucnp++) = ToUpper((int)*newp);
@@ -6196,7 +6296,9 @@ totem_rename(char *totem, char *totemren)
       return -8;
   }
 
-  if ( hashp->permanent != 0 ) {
+  /* Don't allow permanent/static unless configs for it */
+  if ( ((hashp->permanent == 1) && ((mudconf.totem_rename & 1) != 1)) ||
+       ((hashp->permanent == 2) && ((mudconf.totem_rename & 2) != 2)) ) {
       free_lbuf(newname);
       free_lbuf(lcname);
       free_lbuf(ucname);
@@ -6212,11 +6314,15 @@ totem_rename(char *totem, char *totemren)
       return -5;
   }
 
-  /* Rename the flag -- old name is new alias */
+  /* Rename the flag -- old name is new alias -- this stops existing aliases from eating their face */
   strcpy(hashp->flagname, ucname);
   hashrepl2(lcname, (int *) hashp, &mudstate.flags_htab, 0);
+
+  /* Add the new name over the old hash */
   stat = hashadd2(newname, (int *)hashp, &mudstate.totem_htab, 1);
-  hashdelete(lcname, &mudstate.totem_htab); /* Delete the hash replaced value which is now an alias */
+
+  /* Delete the hash replaced value which is now an alias -- we don't want or need it */
+  hashdelete(lcname, &mudstate.totem_htab); 
 
   /* Error check adding hash */
   stat = (stat < 0) ? 0 : 1;
@@ -6270,10 +6376,15 @@ totem_remove(char *totem)
    /* if aliases on the target, don't allow removal */
    if ( hashp->aliased == 1 ) {
       free_lbuf(lcname);
-      return -7;
+      return -13;
    }
 
    mudstate.totem_slots[hashp->flagpos] &= ~(hashp->flagvalue);
+
+   /* We must free the XMALLOC'd name of the pointer */
+   XFREE(hashp->flagname, "strsavetotem");
+
+   /* Now hash delete the sucker */
    hashdelete(lcname, &mudstate.totem_htab);
    free_lbuf(lcname);
    return 1;
@@ -6910,8 +7021,15 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          break;
       case TOTEM_ALIAS: /* Totem alias - advanced alias system */
          s_buff = alloc_lbuf("totem_alias");
-         retvalue = totem_alias(flag1, flag2, player);
+         retvalue = totem_alias(flag1, flag2, player, 0);
          totem_handle_error(retvalue, player, (char *)"alias", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case TOTEM_UNALIAS: /* Totem unalias - advanced unalias system */
+         s_buff = alloc_lbuf("totem_unalias");
+         retvalue = totem_alias(flag1, flag2, player, 1);
+         totem_handle_error(retvalue, player, (char *)"unalias", s_buff);
          notify(player, s_buff);
          free_lbuf(s_buff);
          break;

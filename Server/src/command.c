@@ -1175,6 +1175,7 @@ NAMETAB totem_sw[] =
     {(char *) "display", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_DISPLAY},
     {(char *) "letter", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_LETTER},
     {(char *) "slots", 3, CA_PUBLIC, 0, TOTEM_DISSLOT},
+    {(char *) "unalias", 3, CA_PUBLIC, 0, TOTEM_UNALIAS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB toad_sw[] =

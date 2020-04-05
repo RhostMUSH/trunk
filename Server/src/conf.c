@@ -54,7 +54,7 @@ extern NAMETAB list_names[];
 extern NAMETAB sigactions_nametab[];
 extern CONF conftable[];
 extern int	FDECL(flagstuff_internal, (char *, char *));
-extern int totem_alias(char *, char *, dbref);
+extern int totem_alias(char *, char *, dbref, int);
 extern int totem_letter(char *, char, int);
 extern int totem_add(char *, int, int, int);
 extern void totem_handle_error(int, dbref, char *, char *);
@@ -346,6 +346,7 @@ NDECL(cf_init)
     mudconf.mtimer = 10;
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
     mudconf.totem_types = 0;		/* enable totem object type recognition */
+    mudconf.totem_rename = 0;		/* enable totem object type recognition */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -3109,7 +3110,7 @@ CF_HAND(cf_totemalias)
     }
 
     if ( alias && orig ) {
-       retval = totem_alias(orig, alias, NOTHING);
+       retval = totem_alias(orig, alias, NOTHING, 0);
     } else {
        retval = -1;
     }
@@ -4813,6 +4814,10 @@ CONF conftable[] =
     {(char *) "totem_letter",
      cf_totemletter, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Define totem letters."},
+    {(char *) "totem_rename",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.totem_rename, 0, 0, CA_IMMORTAL,
+     (char *) "Mask for totem renames (1)static, (2)perm, (3)both.\r\n"\
+              "                               Default: 0   Value: %d"},
     {(char *) "totem_types",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.totem_types, 0, 0, CA_WIZARD,
      (char *) "Enable flag-like TYPE recognition for totems?"},

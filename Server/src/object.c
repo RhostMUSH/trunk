@@ -2536,6 +2536,9 @@ int objecttag_remove(char *tag)
   free_lbuf(astr);
   free_lbuf(astr2);
 
+  /* We have to free the XMALLOC hash name */
+  XFREE(storedtag->tagname, "strsave");
+
   hashdelete(lcname, &mudstate.objecttag_htab);
 
   free_lbuf(lcname);
