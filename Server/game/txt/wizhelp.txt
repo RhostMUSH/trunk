@@ -5425,6 +5425,7 @@
                 Syntax:  @totem/display slotnumber
     /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
                 Syntax:  @totem/letter totemname=tierlevel letter
+    /slot     - display all the slots and the number of totems assigned.
   
     Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
@@ -5768,6 +5769,25 @@
 & @totem clean
   Not currently implemented.
 
+& @totem/slots
+& totem slots
+& @totem slots
+  Command: @totem/slots 
+  
+  This command will list every current active totem slot and the total number
+  of totems assigned to each slot.  It's a quick way to see what slots are 
+  available and how many free spaces are available to each slot.
+  
+  The output will be in the form: [Slot: <slot>:<totems>]
+  
+  Where <slot> is the slot number and <totems> are the number of totems
+  assigned to that specific slot.
+   
+  Exmaple:
+    > @totem/slots
+  
+  See Also: @totem
+  
 & @totemdef
 & @toggledef
 & @flagdef
