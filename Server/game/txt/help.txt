@@ -33409,6 +33409,7 @@
   * totem_types        -- @admin param to enable flag-like type detection [ASH]
   * totem_rename       -- optionally rename non-temporary totems [ASH]
   * @totem/unalias     -- remove aliases of totems [ASH]
+  * totem_name         -- config param to allow renaming totems [ASH]
   
   Changes
   ------------
@@ -33419,7 +33420,8 @@
   * Added default markers to Totems as examples [ASH]
   * wildcard and slot handler for @list totem & @totem/list [ASH]
   * port() modified so immortal can get port info of #1 [ASH]
-  * added totem, totem2, totem3 to search classes
+  * added totem, totem2, totem3 to search classes [ASH]
+  * @totem/list optionally allows a slot value [ASH]
   
   Bug Fixes
   ------------
@@ -33431,3 +33433,5 @@
   * @totem/rename could crash if totem had an alias [ASH]
   * Small memory leak in @tag/remove [ASH]
   * Small memory leak in @totem/remove [ASH]
+  * totem_access_set/totem_access_unset/totem_access_see/totem_access_type did
+    not give the correct error responses [ASH]

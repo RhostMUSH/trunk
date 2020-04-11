@@ -1329,7 +1329,7 @@ extern int lookup(char *, char *, int, int *);
 extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
 extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
-extern int totem_list(char *, int, dbref, dbref);
+extern int totem_list(char *, int, dbref, dbref, char *);
 
 int do_convtime(char *, struct tm *);
 
@@ -24710,7 +24710,7 @@ FUNCTION(fun_ltotems)
        safe_str((char *)"#-1", buff, bufcx);
     } else {
        s_buff = alloc_lbuf("fun_ltotems");
-       retvalue = totem_list(s_buff, 2, target, player);
+       retvalue = totem_list(s_buff, 2, target, player, (char *)NULL);
        if ( retvalue == 1 ) {
           safe_str(s_buff, buff, bufcx);
        } else {

@@ -20,9 +20,10 @@ char *index(const char *, int);
 
 #ifndef STANDALONE
 
+int do_flag_and_toggle_def_conf(dbref, char *, char *, char *, int);
+
 extern NAMETAB access_nametab[];
 extern int totem_add(char *, int, int, int);
-extern int do_flag_and_toggle_def_conf(dbref, char *, char *, char *, int);
 extern int totem_letter(char *, char, int);
 
 #define DEF_THING		0x00000001
@@ -5855,10 +5856,10 @@ free_lbuf(s_hashstr);
 
 
 int 
-totem_list(char *buff, int i_type, dbref target, dbref player) 
+totem_list(char *buff, int i_type, dbref target, dbref player, char *flag1) 
 {
   char *s_hashstr, *s_buffp, *t_ptr;
-  int i_first, totems[TOTEM_SLOTS];
+  int i_first, totems[TOTEM_SLOTS], i_slot;
   TOTEMENT *storedtag;
 
   /* target should be verified before calling this, so should never happen */
@@ -5869,6 +5870,18 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
   /* No buffer no value */
   if( !buff ) {
      return -4;
+  }
+
+  if ( flag1 && *flag1 ) {
+     i_slot = atoi(flag1);
+     if ( i_slot < 0 ) {
+        i_slot = 0;
+     }
+     if ( i_slot >= TOTEM_SLOTS ) {
+        i_slot = TOTEM_SLOTS - 1;
+     }
+  } else {
+     i_slot = -1;
   }
 
   if ( !Good_chk(target) ) { /* Paranoia is the game */
@@ -5887,7 +5900,7 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
      safe_str((char *)"Totems: ", buff, &s_buffp);
   }
  
-  if ( mudconf.totem_types ) {
+  if ( i_type && mudconf.totem_types ) {
       /* Only three types we care about.  (P)layer, (E)xit, and (R)oom */
       switch ( Typeof(target) ) {
          case TYPE_PLAYER: /* Type player */
@@ -5906,6 +5919,9 @@ totem_list(char *buff, int i_type, dbref target, dbref player)
         storedtag;
         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
      if(storedtag) {
+        if ( (i_type == 0) && !((i_slot == -1) || (i_slot == storedtag->flagpos)) ) {
+           continue;
+        }
         if ( i_type >= 1 ) {
            if ( !totem_cansee_bit(player, target, storedtag->listperm) )
               continue;
@@ -6921,7 +6937,7 @@ examine_totemtab(dbref player, dbref target)
     bp = buf = alloc_lbuf("display_totemtab");
     s_buff = alloc_lbuf("examine_totemtab");
     
-    (void)totem_list(s_buff, 2, target, player);
+    (void)totem_list(s_buff, 2, target, player, (char *)NULL);
     if ( *s_buff ) {
        safe_str((char *) ANSIEX(ANSI_HILITE), buf, &bp);
        safe_str((char *) "Totems: ", buf, &bp);
@@ -6977,7 +6993,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          break;
       case TOTEM_FULL: /* List full totems details */
          s_buff = alloc_lbuf("totem_list");
-         retvalue = totem_list(s_buff, 0, player, player);
+         retvalue = totem_list(s_buff, 0, player, player, flag1);
          notify(player, s_buff);
          free_lbuf(s_buff);
          break;
@@ -7084,7 +7100,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          }
          if ( !flag2 || !*flag2 ) {
             s_buff = alloc_lbuf("totem_alias");
-            retvalue = totem_list(s_buff, 1, target, player);
+            retvalue = totem_list(s_buff, 1, target, player, (char *)NULL);
             notify(player, s_buff);
             free_lbuf(s_buff);
          } else {
