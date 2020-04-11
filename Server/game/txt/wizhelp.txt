@@ -5429,9 +5429,13 @@
     Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
                 Syntax:  @totem/clean
-  
+   
+  You may see individual help with 'help @totem/switchname' for any of the
+  above switches for more detail on each sub-topic.
+   
   See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
-             totem_access_see, totem_access_type, totem_letter, totem_rename
+             totem_access_see, totem_access_type, totem_letter, totem_rename,
+             totem_name
 
 & @totem/add
 & totem add
