@@ -6729,7 +6729,7 @@ int
 totem_display(char *s_slot, dbref player) 
 {
    TOTEMENT *storedtag;
-   char *s_slots[32], *s_letter;
+   char *s_slots[32], c_slots[32], c_val[4], *s_letter;
    int i, i_mk1, i_mk2, i_slot;
 
    i_slot = atoi(s_slot);
@@ -6740,8 +6740,10 @@ totem_display(char *s_slot, dbref player)
 
    for (i = 0; i < 32; i++) {
       s_slots[i] = alloc_sbuf("totem_display");
+      c_slots[i] = ' ';
    }
    s_letter = alloc_mbuf("totem_display2");
+   strcpy(c_val, (char *)"TSP");
   
    for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
          storedtag;
@@ -6765,99 +6767,131 @@ totem_display(char *s_slot, dbref player)
             switch(storedtag->flagvalue) {
                case 0x00000001: /* 1st flag word */
                   sprintf(s_slots[0],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[0] = c_val[storedtag->permanent];
                   break;
                case 0x00000002: /* 2nd flag word */
                   sprintf(s_slots[1],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[1] = c_val[storedtag->permanent];
                   break;
                case 0x00000004: /* 3rd flag word */
                   sprintf(s_slots[2],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[2] = c_val[storedtag->permanent];
                   break;
                case 0x00000008: /* 4th flag word */
                   sprintf(s_slots[3],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[3] = c_val[storedtag->permanent];
                   break;
                case 0x00000010: /* 5th flag word */
                   sprintf(s_slots[4],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[4] = c_val[storedtag->permanent];
                   break;
                case 0x00000020: /* 6th flag word */
                   sprintf(s_slots[5],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[5] = c_val[storedtag->permanent];
                   break;
                case 0x00000040: /* 7th flag word */
                   sprintf(s_slots[6],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[6] = c_val[storedtag->permanent];
                   break;
                case 0x00000080: /* 8th flag word */
                   sprintf(s_slots[7],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[7] = c_val[storedtag->permanent];
                   break;
                case 0x00000100: /* 9th flag word */
                   sprintf(s_slots[8],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[8] = c_val[storedtag->permanent];
                   break;
                case 0x00000200: /* 10th flag word */
                   sprintf(s_slots[9],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[9] = c_val[storedtag->permanent];
                   break;
                case 0x00000400: /* 11th flag word */
                   sprintf(s_slots[10],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[10] = c_val[storedtag->permanent];
                   break;
                case 0x00000800: /* 12th flag word */
                   sprintf(s_slots[11],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[11] = c_val[storedtag->permanent];
                   break;
                case 0x00001000: /* 13th flag word */
                   sprintf(s_slots[12],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[12] = c_val[storedtag->permanent];
                   break;
                case 0x00002000: /* 14th flag word */
                   sprintf(s_slots[13],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[13] = c_val[storedtag->permanent];
                   break;
                case 0x00004000: /* 15th flag word */
                   sprintf(s_slots[14],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[14] = c_val[storedtag->permanent];
                   break;
                case 0x00008000: /* 16th flag word */
                   sprintf(s_slots[15],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[15] = c_val[storedtag->permanent];
                   break;
                case 0x00010000: /* 17th flag word */
                   sprintf(s_slots[16],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[16] = c_val[storedtag->permanent];
                   break;
                case 0x00020000: /* 18th flag word */
                   sprintf(s_slots[17],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[17] = c_val[storedtag->permanent];
                   break;
                case 0x00040000: /* 19th flag word */
                   sprintf(s_slots[18],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[18] = c_val[storedtag->permanent];
                   break;
                case 0x00080000: /* 20th flag word */
                   sprintf(s_slots[19],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[19] = c_val[storedtag->permanent];
                   break;
                case 0x00100000: /* 21st flag word */
                   sprintf(s_slots[20],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[20] = c_val[storedtag->permanent];
                   break;
                case 0x00200000: /* 22nd flag word */
                   sprintf(s_slots[21],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[21] = c_val[storedtag->permanent];
                   break;
                case 0x00400000: /* 23rd flag word */
                   sprintf(s_slots[22],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[22] = c_val[storedtag->permanent];
                   break;
                case 0x00800000: /* 24th flag word */
                   sprintf(s_slots[23],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[23] = c_val[storedtag->permanent];
                   break;
                case 0x01000000: /* 25th flag word */
                   sprintf(s_slots[24],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[24] = c_val[storedtag->permanent];
                   break;
                case 0x02000000: /* 26th flag word */
                   sprintf(s_slots[25],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[25] = c_val[storedtag->permanent];
                   break;
                case 0x04000000: /* 27th flag word */
                   sprintf(s_slots[26],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[26] = c_val[storedtag->permanent];
                   break;
                case 0x08000000: /* 28th flag word */
                   sprintf(s_slots[27],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[27] = c_val[storedtag->permanent];
                   break;
                case 0x10000000: /* 29th flag word */
                   sprintf(s_slots[28],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[28] = c_val[storedtag->permanent];
                   break;
                case 0x20000000: /* 30th flag word */
                   sprintf(s_slots[29],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[29] = c_val[storedtag->permanent];
                   break;
                case 0x40000000: /* 31st flag word */
                   sprintf(s_slots[30],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[30] = c_val[storedtag->permanent];
                   break;
                case 0x80000000: /* 32nd flag word */
                   sprintf(s_slots[31],"%.20s%s", storedtag->flagname, s_letter);
+                  c_slots[31] = c_val[storedtag->permanent];
                   break;
                default: /* Wtf */
                   notify(player, "Unrecognized flag value");
@@ -6868,16 +6902,16 @@ totem_display(char *s_slot, dbref player)
    }   
    sprintf(s_letter, "Showing slot# %d (of 0-%d possible) occupied values:", i_slot, (TOTEM_SLOTS - 1));
    notify(player, s_letter);
-   notify(player, "--------------------------- ---------- | --------------------------- ----------");
+   notify(player, "------------------------- ---------- - | ------------------------- ---------- -");
    i_mk1 = 0x00000001;
    i_mk2 = 0x00010000;
    for (i = 0; i < 16; i++) {
-      sprintf(s_letter, "%-27s 0x%08x | %-27s 0x%08x", s_slots[i], i_mk1, s_slots[i+16], i_mk2);
+      sprintf(s_letter, "%-25s 0x%08x %c | %-25s 0x%08x %c", s_slots[i], i_mk1, c_slots[i], s_slots[i+16], i_mk2, c_slots[i+16]);
       notify(player, s_letter);
       i_mk1 = i_mk1 << 1;
       i_mk2 = i_mk2 << 1;
    }
-   notify(player, "--------------------------- ---------- | --------------------------- ----------");
+   notify(player, "------------------------- ---------- - | ------------------------- ---------- -");
  
    for (i = 0; i < 32; i++) {
       free_sbuf(s_slots[i]);
