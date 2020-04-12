@@ -6741,7 +6741,7 @@ totem_display(char *s_slot, dbref player)
    for (i = 0; i < 32; i++) {
       s_slots[i] = alloc_sbuf("totem_display");
    }
-   s_letter = alloc_mbuf("totem_letter");
+   s_letter = alloc_mbuf("totem_display2");
   
    for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
          storedtag;
@@ -7075,12 +7075,12 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
             }
          }
          *s_buff = '\0';
-         totem_handle_error(retvalue, player, (char *)"display", s_buff);
+         totem_handle_error(retvalue, player, (char *)"letter", s_buff);
          notify(player, s_buff);
          free_lbuf(s_buff);
          break;
       case TOTEM_DISSLOT: /* Show number of flags per slots you can see */
-         s_buff = alloc_lbuf("totem_letter");
+         s_buff = alloc_lbuf("totem_slot");
          totem_slots(player, s_buff);
          notify(player, s_buff);
          free_lbuf(s_buff);

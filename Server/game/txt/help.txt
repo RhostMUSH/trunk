@@ -33435,3 +33435,4 @@
   * Small memory leak in @totem/remove [ASH]
   * totem_access_set/totem_access_unset/totem_access_see/totem_access_type did
     not give the correct error responses [ASH]
+  * Error display for @totem/letter was incorrect [ASH]
