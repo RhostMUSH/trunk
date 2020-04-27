@@ -33436,3 +33436,4 @@
   * totem_access_set/totem_access_unset/totem_access_see/totem_access_type did
     not give the correct error responses [ASH]
   * Error display for @totem/letter was incorrect [ASH]
+  * NO_EVAL and NO_PARSE didn't work properly on @functions/@lfunctions [ASH]

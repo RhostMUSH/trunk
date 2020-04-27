@@ -12413,6 +12413,7 @@
     no_eval       - The function forces non-evaluation (useful for @function)
     bypass        - The function is ignored for sandbox()
     noparse       - The function does not parse functions (but does subs)
+                    This will only work on @functions/@lfunctions
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions

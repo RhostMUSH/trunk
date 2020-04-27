@@ -361,7 +361,7 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	peval = eval;
     }
 
-    if ( i_type ) {
+    if ( (i_type & 1) == 1) {
        peval = peval | EV_EVAL | ~EV_STRIP_ESC;
     }
     while ((arg < nfargs) && rstr) {
@@ -375,7 +375,7 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 			         cargs, ncargs, regargs, nregargs);
             mudstate.trace_indent--;
 	} else {
-            if (  i_type  ) {
+            if (  (i_type & 1) == 1 ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");
                s = tstr;
                while (*s) {
@@ -1328,6 +1328,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
+    int prefeval, preeval;
 #ifdef EXPANDED_QREGS
     int w;
 #endif
@@ -1356,6 +1357,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
+    prefeval = preeval = 0;
 #ifdef EXPANDED_QREGS
     w = 0;
 #endif
@@ -2852,6 +2854,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		nfargs = NFARGS;
 	    tstr = dstr;
             i_type = 0;
+            prefeval = feval;
+            preeval = eval;
             if ( ((fp && ((fp->flags & FN_NO_EVAL) || (fp->perms2 & CA_NO_EVAL)) && !(fp->perms2 & CA_EVAL)) ||
                   (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
                   (ulfp && (ulfp->perms2 & CA_NO_EVAL))) &&
@@ -2866,7 +2870,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             if ( (fp && (fp->perms2 & CA_NO_EVAL)) ||
                  (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
                  (ulfp && (ulfp->perms2 & CA_NO_EVAL)) ) {
-                i_type = 1;
+                i_type |= 1;
             }
             if ( (ufp && (ufp->perms & CA_EVAL)) ||
                  (ulfp && (ulfp->perms & CA_EVAL)) ) {
@@ -2881,7 +2885,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             if ( (fp && (fp->perms2 & CA_NO_PARSE)) ||
                  (ufp && (ufp->perms2 & CA_NO_PARSE)) ||
                  (ulfp && (ulfp->perms2 & CA_NO_PARSE)) ) {
-                feval |= EV_NOFCHECK;
+                i_type |= 2;
             }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
@@ -2889,8 +2893,14 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    /* If no closing delim, just insert the '(' and
 	     * continue normally */
 
-            if ( i_type ) { 
-               feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
+            /* NO_EVAL only impacts the argument list */
+            if ( (i_type & 1) == 1 ) { 
+               feval = prefeval;
+               eval = preeval;
+            }
+            /* NO_PARSE only impacts the @function itself, not the arglist */
+            if ( (i_type & 2) == 2 ) {
+               feval = (feval | EV_FIGNORE | EV_EVAL | EV_NOFCHECK) & ~(EV_FCHECK);
             }
 	    if (!dstr) {
 		dstr = tstr;
