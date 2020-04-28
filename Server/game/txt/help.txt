@@ -33410,6 +33410,7 @@
   * totem_rename       -- optionally rename non-temporary totems [ASH]
   * @totem/unalias     -- remove aliases of totems [ASH]
   * totem_name         -- config param to allow renaming totems [ASH]
+  * --version/-version/-v with netrhost returns version and exits [ASH]
   
   Changes
   ------------
