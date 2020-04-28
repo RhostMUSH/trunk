@@ -2854,8 +2854,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		nfargs = NFARGS;
 	    tstr = dstr;
             i_type = 0;
-            prefeval = feval;
-            preeval = eval;
+            prefeval = eval;
             if ( ((fp && ((fp->flags & FN_NO_EVAL) || (fp->perms2 & CA_NO_EVAL)) && !(fp->perms2 & CA_EVAL)) ||
                   (ufp && (ufp->perms2 & CA_NO_EVAL)) ||
                   (ulfp && (ulfp->perms2 & CA_NO_EVAL))) &&
@@ -2896,12 +2895,14 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             /* NO_EVAL only impacts the argument list */
             if ( (i_type & 1) == 1 ) { 
                feval = prefeval;
-               eval = preeval;
+               // eval = preeval;
             }
             /* NO_PARSE only impacts the @function itself, not the arglist */
+            preeval = feval;
             if ( (i_type & 2) == 2 ) {
-               feval = (feval | EV_FIGNORE | EV_EVAL | EV_NOFCHECK) & ~(EV_FCHECK);
+               preeval = (feval | EV_FIGNORE | EV_EVAL | EV_NOFCHECK) & ~(EV_FCHECK);
             }
+            i_type = 0;
 	    if (!dstr) {
 		dstr = tstr;
 		safe_chr(*dstr, buff, &bufc);
@@ -3021,7 +3022,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        mudstate.notrace = 1;
                     }
                     mudstate.trace_indent++;
-		    tbuf = exec(i, cause, player, feval, tstr, fargs, nfargs, regargs, nregargs);
+		    tbuf = exec(i, cause, player, preeval, tstr, fargs, nfargs, regargs, nregargs);
                     mudstate.trace_indent--;
                     if ( ufp->flags & FN_NOTRACE ) {
                        mudstate.notrace = is_trace_bkup;
