@@ -10932,14 +10932,17 @@
   Config parameter: safer_passwords <yes/no>.  Default: no
   
   This parameter will enforce harder passwords to be set.  When enabled, all
-  new passwords will have to be at least 5 characters long, have at least one
-  lowercase and uppercase letter, and require a special character which is
-  non-alphanumeric or ', or -.
+  new passwords will have to be at least 5 (for DES) or 14 (for SHA512)  
+  characters long, have at least one lowercase and uppercase letter, and 
+  require a special character which is non-alphanumeric or ', or -.
   
   DES passwords are 8 characters or less.
   
   SHA512 passwords (default) are 160 characters or less.
   
+  Both passwords will use a simplistic entropy check that enforces non
+  sequential passwords of uniqueness.
+ 
   Note:  Guest players still are allowed 'guest' as their password.
 
 & sconnect_cmd

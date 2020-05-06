@@ -164,15 +164,18 @@ char * mush_crypt(const char *key, int val) {
 #ifdef CRYPT_ENCRYPT_DES
   DPUSH; /* #96 */
 #ifdef CRYPT_GLIB2
-  char *s, s_buff[10], s_salt[40];
-  int i;
+  char *s, s_buff[20], s_salt[70];
+  int i, i_randadd;
+
+  i_randadd = random() % 10;
+  memset(s_buff, '\0', sizeof(s_buff));
   s = s_buff;
-  for ( i=0;i<9;i++) {
+  /* Salt is between 9 and 19 characters */
+  for ( i = 0; i < (9 + i_randadd); i++) {
      *s = (char)((rand()%88)+38);
      s++;
   }
-  s_buff[9]='\0';
-  memset(s_salt, '\0', 40);
+  memset(s_salt, '\0', sizeof(s_salt));
   s = crypt("abcde", "$6$12345$");
   if ( s && strlen(s) > 20 ) {
      if ( mudconf.sha2rounds != 5000 ) {
