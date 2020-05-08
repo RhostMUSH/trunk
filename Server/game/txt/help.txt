@@ -26588,6 +26588,10 @@
      - This displays all the mail in your mailbox
   9) mail/quick                  [help mail quick]
      - This gives you a quick status of your mailbox.
+ 10) mail +all
+     - This will read all your mail.
+ 11) mail/read/save 
+     - This option will output mail in an MBOX format
   
   See Also: mail quick, mail status, mail read, mail topics, mail main
   
@@ -26654,6 +26658,17 @@
   Example:
     > mail/read both
     > mail both
+  
+  See Also: mail uall, mail nall, mail new, mail unread, mail ball
+  
+& mail +all
+  This is a sub-option to 'mail/read' (short for just 'mail').  If you
+  specify '+all' at the end, it will read every message that you have
+  in your mailbox.  Warning:  This can be spammy.
+  
+  Example:
+    > mail/read +all
+    > mail +all
   
   See Also: mail uall, mail nall, mail new, mail unread, mail ball
   
@@ -27534,13 +27549,14 @@
   switch is optional.  
   
   The optional /save switch when used in junction with the /read switch will
-  output the mail in a standard EMail format which you can then save to file
-  and load in your favorite email program (mutt, pine, elm, outlook,
+  output the mail in a standard EMail format (MBOX) which you can then save to 
+  file and load in your favorite email program (mutt, pine, elm, outlook,
   thunderbird, and so forth).  You would just import the file as an MBOX
   formatted file.  Please refer to your mail program on how to read in this
   mail format.
   
   Optional arguments to 'mail/read[/save]' is as follows:
+      mail[/read] +all   - read ALL your messages (spammy)
       mail[/read] new    - read first new message
       mail[/read] nall   - read ALL new messages
       mail[/read] unread - read first unread message
@@ -33429,6 +33445,7 @@
   * @totem/list optionally allows a slot value [ASH]
   * improved safer_passwods for better entropy on SHA412 passwords [ASH]
   * salted SHA512 now randomized between 9 and 19 characters [ASH]
+  * +all option to mail/read[/save] to output ALL mail (spammy) [ASH]
   
   Bug Fixes
   ------------
