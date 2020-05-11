@@ -11022,7 +11022,10 @@
   If an exit is set DARK it will not show up in the list of obvious exits in
   a room.
   
-  See Also: @link, @open
+  You may use loc() to find the destination of an exit, and home() to find
+  the source (location) of the exit. 
+  
+  See Also: @link, @open, loc(), home()
   
 & FAILURE
   Topic: FAILURE  
@@ -17258,7 +17261,7 @@
     > say loc(here)
     You say "#367"
   
-  See Also: rloc(), room(), where(), home()
+  See Also: rloc(), room(), where(), home(), EXITS
   
 & RLOC()
   Function: rloc(<object>,<levels>)
@@ -18532,7 +18535,7 @@
     > say home(me)
     You say "#367"
   
-  See Also: loc(), room(), rloc(), @link
+  See Also: loc(), room(), rloc(), @link, EXITS
   
 & MONEY()
   Function: money(<object>)
