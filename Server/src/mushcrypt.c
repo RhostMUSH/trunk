@@ -167,10 +167,10 @@ char * mush_crypt(const char *key, int val) {
   char *s, s_buff[20], s_salt[70];
   int i, i_randadd;
 
-  i_randadd = random() % 10;
+  i_randadd = random() % 6;
   memset(s_buff, '\0', sizeof(s_buff));
   s = s_buff;
-  /* Salt is between 9 and 19 characters */
+  /* Salt is between 9 and 15 characters -- 16 char max salt allowed */
   for ( i = 0; i < (9 + i_randadd); i++) {
      *s = (char)((rand()%88)+38);
      s++;
