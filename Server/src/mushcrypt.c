@@ -165,6 +165,7 @@ char * mush_crypt(const char *key, int val) {
   DPUSH; /* #96 */
 #ifdef CRYPT_GLIB2
   char *s, s_buff[20], s_salt[70];
+  char *s_validsalt="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   int i, i_randadd;
 
   i_randadd = random() % 6;
@@ -172,7 +173,11 @@ char * mush_crypt(const char *key, int val) {
   s = s_buff;
   /* Salt is between 9 and 15 characters -- 16 char max salt allowed */
   for ( i = 0; i < (9 + i_randadd); i++) {
-     *s = (char)((rand()%88)+38);
+/* This does not work with libxcrypt which has a restrictive seed of alphanumeric 
+ *   *s = (char)((rand()%88)+38); 
+ */
+     /* So now we force alphanumeric only */
+     *s = *(s_validsalt + (rand() % (strlen(s_validsalt)-1)));
      s++;
   }
   memset(s_salt, '\0', sizeof(s_salt));
