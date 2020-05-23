@@ -1330,6 +1330,7 @@ extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
 extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
 extern int totem_list(char *, int, dbref, dbref, char *);
+extern void totem_set(dbref, dbref, char *, int);
 
 int do_convtime(char *, struct tm *);
 
@@ -21371,6 +21372,7 @@ FUNCTION(fun_asin)
 FUNCTION(fun_account_owner)
 {
    char *s_buff, *s_buffptr, *s_array[3], *s_tmp, *s_tmp2;
+   dbref target;
    int i_port;
    DESC *d, *dnext;
   
@@ -21433,10 +21435,21 @@ FUNCTION(fun_account_owner)
          s_array[0] = s_tmp2;
          s_array[1] = fargs[3];
          s_array[2] = s_tmp;
+         /* fun_attrpass does the return for us so we don't need to set values */
          fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
          safe_str(s_buff, buff, bufcx);
          if ( atoi(s_buff) ) {
-            d->account_owner = lookup_player(player, fargs[0], 0);
+            /* Move account owner to any data type, not just player */
+            /* d->account_owner = lookup_player(player, fargs[0], 0); */
+            target = lookup_player(player, fargs[0], 0);
+            if ( !Good_chk(target) ) {
+               target = match_thing(player, fargs[0]);
+               /* This should never happen since the above would have passed */
+               if ( !Good_obj(target) ) {
+                  target = NOTHING;
+               }
+            }
+            d->account_owner = target;
             memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
             strncpy(d->account_rawpass, fargs[3], sizeof(d->account_rawpass) - 1);
          }         
@@ -34894,6 +34907,48 @@ FUNCTION(fun_lset)
    free_lbuf(s_buf2);
 }
 
+FUNCTION(fun_totemset)
+{
+   dbref target;
+   CMDENT *cmdp;
+
+   if ( !(mudconf.sideeffects & SIDE_TOTEMSET) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+   mudstate.sidefx_currcalls++;
+   cmdp = (CMDENT *)hashfind((char *)"@totem", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@totem") ||
+         cmdtest(Owner(player), "@totem") || zonecmdtest(player, "@totem") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   if ( !*fargs[0] ) {
+      notify(player, "Invalid target for @totem.");
+      return;
+   }
+   if ( !*fargs[1] ) {
+      notify(player, "Set what totems?");
+      return;
+   }
+
+   init_match(player, fargs[0], NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = match_result();
+
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      notify(player, "Invalid target for @totem.");
+      return;
+   }
+
+   totem_set(target, player, fargs[1], 0);
+}
+
 FUNCTION(fun_set)
 {
    char *s_buf1, *s_buf2, *s_tmp;
@@ -37598,6 +37653,7 @@ FUN flist[] =
     {"TOOCT", fun_tooct, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTCMDS", fun_totcmds, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTEMS", fun_totems, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTEMSET", fun_totemset, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

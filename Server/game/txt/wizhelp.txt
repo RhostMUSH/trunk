@@ -11103,23 +11103,28 @@
   of keywords (i.e. OPEN SET CREATE) or through the use of a bitmask.
   
   The following is a list of keywords and their bitmask equivalents:
+#define SIDE_EXECSCRIPT  0x04000000 /* execscript() sideeffect */
+#define SIDE_ZONE        0x08000000 /* zone() sideeffect function */
+#define SIDE_LSET        0x10000000 /* lset() sideeffect function */
+#define SIDE_TOTEMSET    0x20000000 /* totemset() sideeffect function */
+
   
   none    - 0    OPEN    - 128    WIPE     - 32768    MOVE       - 8388608
   SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSER_ADD - 16777216
   CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072   MAILSEND   - 33554432
-  LINK    - 4    CLONE   - 1024   NAME     - 262144
-  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288
-  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576
-  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152
+  LINK    - 4    CLONE   - 1024   NAME     - 262144   EXECSCRIPT - 67108864
+  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288   ZONE       - 134217728
+  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576  LSET       - 268435456
+  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152  TOTEMSET   - 536870912
   DIG     - 64   REMIT   - 16384  RSET     - 4194304
      
   To enable both SET and OPEN using a bitmask you would set the value
   to '129' (128 + 1).
   
-  To enable all of MUX's side-effects:  131135    (or keyword MUX)
-  To enable all of PENN's side-effects: 458719    (or keyword PENN)
-  To enable all side-effects:           16777215  (or keyword ALL)
-  To disable all side-effects:          0         (or keyword NONE)
+  To enable all of MUX's side-effects:  131135     (or keyword MUX)
+  To enable all of PENN's side-effects: 458719     (or keyword PENN)
+  To enable all side-effects:           1073741823 (or keyword ALL)
+  To disable all side-effects:          0          (or keyword NONE)
   
   When specifying sideeffects using keywords, the '!' operand can be
   used to negate a given sideeffect (i.e. !OPEN)
@@ -13162,6 +13167,10 @@
   Function: account_owner(<player>, <attribute>, <port>, <password>)
             account_owner(<port>)
             account_owner(<port>, logoff)
+  
+  Note: The account owner can be *ANY VALID DATA TYPE*.  The account owner
+        does not have to be a valid player, as the account owner is not
+        actually logging into the mush.
   
   This function will set or display the account 'owner' for the current
   connection.  This is used to help identify a singular 'owner' for

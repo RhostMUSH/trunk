@@ -4385,6 +4385,10 @@
          help @lock type <lock> - give detailed help on the specific lock.
          help userlocks   - a special way to define user-defined locking.
   
+  Note: For evaluation locks, %0 is passed as a boolean (0/1) on if the lock
+        is a $command match or a ^listen match.  %1 will be passed as the
+        *unevaluated* conditional that the eval lock is matching against.
+  
   See Also: @unlock, @lset, @chown, lock(), elock(), testlock(), 
             lockencode(), lockdecode(), lockcheck()
   
@@ -4928,6 +4932,10 @@
     > @lock divisible_by_five_club = checkdiv/0
     > &checkdiv divisible_by_five_club = [mod(mid(%#,2,20),5)]
     Only objects whose db-number is divisible by 5 may pass.
+  
+  Special passing:
+    %1 will be passed as the key that eval locks will match against.  This
+       is an unevaluated string.
   
   See Also: @lock attributes
   
@@ -11542,9 +11550,10 @@
   SWITCH()        SWITCHALL()     T()            TAG()          TAGMATCH()
   TAN()           TEL()           TEMPLATE()     TIME()         TIMEFMT()
   TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTEMS()        TOTMATCH()     TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH()  TR()            TRACE()        TRANSLATE()    TRIM()
-
+  TOTCMDS()       TOTEMS()        TOTEMSET()     TOTMATCH()     TOTMEMBER()  
+  TOTPOS()        TOTWILDMATCH()  TR()           TRACE()        TRANSLATE()  
+  TRIM()
+  
 { 'help function list5' for more }
 
 & FUNCTION LIST5
@@ -11741,7 +11750,7 @@
                        LIST() LOCK() NAME() NAMEQ() NPEMIT() OEMIT() OPEN() 
                        PARENT() PEMIT() R() REMIT() RSET() RULER() RXLEVEL() 
                        SET() SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() 
-                       TOGGLE() TXLEVEL() WIPE() ZEMIT()
+                       TOGGLE() TOTEMSET() TXLEVEL() WIPE() ZEMIT()
              See Also: help side effect functions  
   
   Dbase Side-Effects:  SQLITE_QUERY()
@@ -17098,8 +17107,25 @@
    
   See Also: loc(), where(), visible(), sees()
   
+& TOTEMSET()
+  Function: totemset(<target>, <TOTEM1 TOTEM2 ... TOTEMN !TOTEM1 ... !TOTEMN>)
+  
+  This is a side-effect function that will set or unset totems on a target.
+  The totem must be a valid totem and the target must be valid and
+  controllable by the enactor.
+  
+  This requires the SIDEFX flag.  If you do not have access to the @totem
+  command you may not use this side-effect.  If this side-effect has been
+  disabled you will be unable to use this side-effect.
+  
+  Example:
+    > say totemset(me,toteminit)
+    Set.
+  
+  See Also: @totem, set(), toggle(), SIDEFX
+
 & TOTEMS()
-  Function totems(<object>)
+  Function: totems(<object>)
   
   Totems returns a string consisting of the totem letters attached
   to the object.  The string is, however, just one word.  All letters
@@ -21817,7 +21843,8 @@
   > say set(me,_content_,2)
   You say ""
   
-  See Also: lset(), rset(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: toggle(), totemset() lset(), rset(), writable(), &, @set, 
+            SIDEEFFECTS, ATTRIBUTE TREES
   
 & RSET()
   Function: rset(<object>,<[!]<flag> [[!]<flag> [!]<flag> ...]>)
@@ -21850,7 +21877,8 @@
   > say rset(me,safe)
   You say "safe"
   
-  See Also: lset(), set(), writable(), &, @set, SIDEEFFECTS, ATTRIBUTE TREES
+  See Also: toggle(), totemset(), lset(), set(), writable(), &, @set, 
+            SIDEEFFECTS, ATTRIBUTE TREES
   
 & RULER()
   Function: ruler(<object>/<attribute>, <ruler value>)
@@ -30612,6 +30640,7 @@
   setr_old()      - Like setr(), but with old-style MUSH functionality.
   tel()           - Teleports an object to a location.
   toggle()        - Toggles a toggle on an object.
+  totemset()      - Set/remove a @totem on a target.
   txlevel()       - Sets or unsets a reality transmit level for an object.
   wipe()          - Wipes attribute(s) from object.
   zemit()         - Emits a string to every room of a zone.
@@ -33434,6 +33463,7 @@
   * @totem/unalias     -- remove aliases of totems [ASH]
   * totem_name         -- config param to allow renaming totems [ASH]
   * --version/-version/-v with netrhost returns version and exits [ASH]
+  * totemset() side effect to set/clear @totems on targets [ASH]
   
   Changes
   ------------
@@ -33449,6 +33479,8 @@
   * improved safer_passwods for better entropy on SHA412 passwords [ASH]
   * salted SHA512 now randomized between 9 and 19 characters [ASH]
   * +all option to mail/read[/save] to output ALL mail (spammy) [ASH]
+  * evaluation @locks pass the compared to argument as %1 [ASH]
+  * account_owner() allows the owner to be any data type [ASH]
   
   Bug Fixes
   ------------

@@ -7133,7 +7133,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
             break;
          }
          if ( !flag2 || !*flag2 ) {
-            s_buff = alloc_lbuf("totem_alias");
+            s_buff = alloc_lbuf("totem_list");
             retvalue = totem_list(s_buff, 1, target, player, (char *)NULL);
             notify(player, s_buff);
             free_lbuf(s_buff);

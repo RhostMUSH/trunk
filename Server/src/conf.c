@@ -1311,7 +1311,7 @@ CF_HAND(cf_verifyint_mysql)
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
 #define MUXMASK         0x00010A3F /* SET CREATE LINK PEMIT TEL LIST OEMIT PARENT DESTROY */
 #define PENNMASK        0x1006FFDF /* SET CREATE LINK PEMIT TEL DIG OPEN EMIT OEMIT CLONE PARENT LOCK LEMIT REMIT WIPE ZEMIT NAME */
-#define ALLMASK		0x1FFFFFFF /* 2147483647 would be 'really all', i.e. 32 1s */
+#define ALLMASK		0x3FFFFFFF /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1320,7 +1320,7 @@ const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
   "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
-  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", NULL
+  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", "TOTEMSET", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list

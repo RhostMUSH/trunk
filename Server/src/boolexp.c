@@ -47,7 +47,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 {
     dbref aowner, obj, source;
     int aflags, c, checkit, boolchk, lockchk;
-    char *key, *buff, *buff2, *mybuff[2];
+    char *key, *buff, *buff2, *mybuff[3];
     ATTR *a;
 
     if (b == TRUE_BOOLEXP)
@@ -154,11 +154,17 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
                if ( mudstate.chkcpu_toggle )
                   lockchk = 1;
                mybuff[0] = alloc_sbuf("boolexp_eval");
-               mybuff[1] = NULL;
+               mybuff[1] = alloc_lbuf("boolexp_argpass");
+               mybuff[2] = NULL;
                sprintf(mybuff[0], "%d", i_evaltype);
+               /* alloc_lbuf is already null terminated -- this copies the value *unevaluated* as %1 */
+               if ( b && *((char *)b->sub1) ) {
+                  strcpy(mybuff[1], (char *)b->sub1);
+               }
 	       buff2 = cpuexec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
-			       buff, mybuff, 1, (char **)NULL, 0);
+			       buff, mybuff, 2, (char **)NULL, 0);
                free_sbuf(mybuff[0]);
+               free_lbuf(mybuff[1]);
                if ( mudstate.chkcpu_toggle && !lockchk )
                   mudstate.chkcpu_locktog = 1;
                mudstate.inside_locks = boolchk;
