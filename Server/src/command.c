@@ -1174,6 +1174,8 @@ NAMETAB totem_sw[] =
     {(char *) "clean", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_CLEAN},
     {(char *) "display", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_DISPLAY},
     {(char *) "letter", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_LETTER},
+    {(char *) "slots", 3, CA_PUBLIC, 0, TOTEM_DISSLOT},
+    {(char *) "unalias", 3, CA_PUBLIC, 0, TOTEM_UNALIAS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB toad_sw[] =
@@ -6448,6 +6450,8 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
+    notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
+    notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
     if ( Wizard(player) ) {
        memset(buf2, '\0', sizeof(buf2));
        sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);

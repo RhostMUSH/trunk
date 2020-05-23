@@ -2219,6 +2219,16 @@ main(int argc, char *argv[])
     int shmid;
 #endif
 
+    if ( (argc > 1) && 
+         (!stricmp(argv[1], "--version") ||
+          !stricmp(argv[1], "-version") ||
+          !stricmp(argv[1], "-v")) ) {
+        init_version();
+        printf("%s\n", mudstate.version);
+        printf("Build date: %.150s\n", MUSH_BUILD_DATE);
+        exit(0);
+    }
+ 
     db = NULL;
     dbtotem = NULL;
     dddb_var_init();

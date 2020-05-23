@@ -13,7 +13,7 @@ case "${lc_chk}" in
       exit 0
       ;;
    -i) # reindex
-      for files in `grep -l "^& " txt/*.txt`
+      for files in `grep -l '^& ' txt/*.txt`
       do
          basename /dev/null > /dev/null 2>&1
          if [ $? -eq 0 ]

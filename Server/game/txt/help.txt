@@ -5357,9 +5357,13 @@
   allowed in the password.
   
   If secured passwords are enabled, it will enforce a minimum length
-  of 5 characters for passwords and require at least one lowercase 
-  and uppercase letter, and require a special character which is
-  non-alphanumeric or ', or -.
+  of 5 characters (with DES encryption) or 14 characters (for SHA512
+  encryption) for passwords and require at least one lowercase letter,
+  one uppercase letter, and require a special character which is
+  non-alphanumeric or ', or -.  It will also use a lose-based entropy
+  check which does simplistic validation for tougher guessing password
+  entries.  It will also require passing an entropy check.  Entropy
+  requires unique non-repeating sequences.
   
   Please see @list options system to see what method of password
   algo is currently in place.
@@ -5693,6 +5697,8 @@
 & @search
   Command: @search[/<switch> [<player>] [<class>=<restrict>[,<low>[,<high>]]]
  
+  Note: See 'help search classes' to see what searches are available.
+  
   Displays information about objects that meet the search criteria.
   Because this command is computationally expensive, it costs 200 coins.
   <player> restricts the search to the named player, while <class>
@@ -6028,6 +6034,7 @@
   
   The following switches exist for @totem:
     /list -- list all @totems that you have access to.
+    /slot -- list the number of totems that are assigned to each slot
   
   When setting @totems, you would just specify the totem in question.  When
   you wish to remove the @totem, you would preceed the @totem flagname with
@@ -6866,6 +6873,10 @@
     The Goat
    
   The mush has to be configured to enable this to work.  '@list options'
+  
+  Note: For contents, inventory, and names of things at location, you can
+        specify the NONAME flag (wizard settable only) to allow @nameformat
+        to work in those conditions.
   
   See Also: @exitformat, @conformat, invformat
   
@@ -11011,7 +11022,10 @@
   If an exit is set DARK it will not show up in the list of obvious exits in
   a room.
   
-  See Also: @link, @open
+  You may use loc() to find the destination of an exit, and home() to find
+  the source (location) of the exit. 
+  
+  See Also: @link, @open, loc(), home()
   
 & FAILURE
   Topic: FAILURE  
@@ -11414,27 +11428,28 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANSI()             ANSIPOS()
- APOSS()              ARRAY()            ART()              ASC()            
- ASIN()               ATAN()             ATAN2()            ATTRCNT()       
- ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
- BITTYPE()            BOUND()            BRACKETS()         CAND()             
- CAPSTR()             CASE()             CASEALL()          CAT()              
- CEIL()               CENTER()           CHARIN()           CHAROUT()          
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()     
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()           
- COLUMNS()            COMP()             CON()              CONFIG()           
- CONN()               CONTROLS()         CONVSECS()    
+ @@()               ABS()               ACCENT()             ACOS()        
+ ADD()              AFTER()             AINDEX()             AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
+ ANDFLAG()          ANDFLAGS()          ANDTOTEM()           ANDTOTEMS()
+ ANSI()             ANSIPOS()           APOSS()              ARRAY()          
+ ART()              ASC()               ASIN()               ATAN()           
+ ATAN2()            ATTRCNT()           ATTRPASS()           AVG()             
+ BEFORE()           BETWEEN()           BITTYPE()            BOUND()           
+ BRACKETS()         CAND()              CAPSTR()             CASE()            
+ CASEALL()          CAT()               CEIL()               CENTER()          
+ CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()        
+ CHOMP()            CHR()               CITER()              CLONE()           
+ CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
+ CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()    
+ CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()  
+ CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()       
+ CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL() 
+ CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()  
+ CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()            
+ CNAME()            COLORS()            COLUMNS()            COMP()            
+ CON()              CONFIG()            CONN()               CONTROLS()        
+ CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -11472,30 +11487,31 @@
 & FUNCTION LIST3
     
   LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTUNION()      LIT()
-  LJC()          LJUST()       LLOC()         LMAX()           LMIN()
-  LMUL()         LN()          LNOR()         LNUM()           LNUM2()
-  LOC()          LOCALFUNC()   LOCALIZE()     LOCATE()         LOCK() 
-  LOCKCHECK()    LOCKDECODE()  LOCKENCODE()   LOG()            LOR() 
-  LRAND()        LREPLACE()    LROOMS()       LSET()           LSUB()
-  LT()           LTE()         LTOGGLES()     LTOTEMS()        LWHO()         
-  LXNOR()        LXOR()        LZONE()        MAILQUICK()      MAP()          
-  MATCH()        MASK()        MAX()          MEMBER()         MERGE()        
-  MID()          MIN()         MIX()          MOD()            MODULO()       
-  MODIFYTIME()   MONEY()       MONEYNAME()    MOON()           MSECS()        
-  MUDNAME()      MUL()         MUNGE()        MWORDS()         NAME()         
-  NAMEQ()        NAND()        NCOMP()        NEARBY()         NEQ()          
-  NEXT()         NOR()         NOSTR()        NOT()            NOTCHR()       
-  NPEMIT()       NSITER()      NUM()          NUMMATCH()       NULL()         
-  NUMMEMBER()    NUMPOS()      NUMWILDMATCH() OBJ()            OBJEVAL()      
-  OBJID()        OEMIT()       OPEN()         OR()             ORCHR()        
-  ORFLAG()       ORFLAGS()     OWNER()        PACK()           PACKMATH()     
-  PARENMATCH()   PARENT()      PARSE()        PARSESTR()       PEDIT()        
-  PEMIT()        PFIND()       PGREP()        PI()             PID()          
-  PMATCH()       PORT()        POS()          POSS()           POWER()        
-  POWER10()      PRINTF()      PRIVATIZE()    PROGRAMMER()     PTIMEFMT()     
-  PUSHREGS()     QUOTA()       R()            RACE()           RAND()         
-  RANDPOS()      RANDMATCH()   RANDEXTRACT() 
+  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
+  LIT()          LJC()         LJUST()        LLOC()           LMAX()         
+  LMIN()         LMUL()        LN()           LNOR()           LNUM()         
+  LNUM2()        LOC()         LOCALFUNC()    LOCALIZE()       LOCATE()       
+  LOCK()         LOCKCHECK()   LOCKDECODE()   LOCKENCODE()     LOG()          
+  LOR()          LRAND()       LREPLACE()     LROOMS()         LSET()         
+  LSUB()         LT()          LTE()          LTOGGLES()       LTOTEMS()      
+  LWHO()         LXNOR()       LXOR()         LZONE()          MAILQUICK()    
+  MAP()          MATCH()       MASK()         MAX()            MEMBER()       
+  MERGE()        MID()         MIN()          MIX()            MOD()          
+  MODULO()       MODIFYTIME()  MONEY()        MONEYNAME()      MOON()         
+  MSECS()        MUDNAME()     MUL()          MUNGE()          MWORDS()       
+  NAME()         NAMEQ()       NAND()         NCOMP()          NEARBY()       
+  NEQ()          NEXT()        NOR()          NOSTR()          NOT()          
+  NOTCHR()       NPEMIT()      NSITER()       NUM()            NUMMATCH()     
+  NULL()         NUMMEMBER()   NUMPOS()       NUMWILDMATCH()   OBJ()          
+  OBJEVAL()      OBJID()       OEMIT()        OPEN()           OR()           
+  ORCHR()        ORFLAG()      ORFLAGS()      ORTOTEM()        ORTOTEMS()     
+  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
+  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
+  PGREP()        PI()          PID()          PMATCH()         PORT()         
+  POS()          POSS()        POWER()        POWER10()        PRINTF()       
+  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
+  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11585,7 +11601,8 @@
                         OWNER() RLOC() ROOM() SEARCH() SEARCHOBJID() SEARCHNG()
                         SEARCHNGOBJID()  SEES() STATS() WHERE() LISTCOMMANDS()
                         LISTFLAGS() LISTFUNCTIONS() LISTNEWSGROUPS() 
-                        LISTTOGGLES() PMATCH() RNUM() VALID() XCON()
+                        LISTTOGGLES() LISTTOTEMS() PMATCH() RNUM() VALID() 
+                        XCON()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() MASK() PACK() 
@@ -11602,21 +11619,22 @@
                       STARTSECS() STARTTIME() VERSION()
             See Also: help game information functions
   
-  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ARRAY() CITER() 
-                      DELEXTRACT() ELEMENTS() ELEMENTSMUX() ELIST() EXTRACT()
-                      EXTRACTWORD() FILTER() FIRST() FLAGS() FOLD() FOREACH()
-                      IBREAK() IINDEX() ILEV() INDEX() INF() INSERT() INUM() 
-                      ITER() ITEXT() KEEPFLAGS() KEEPTYPE() LADD() LAND() 
-                      LAST() LAVG() LDELETE() LDIV() LISTDIFF() LISTINTER() 
-                      LISTMATCH() LISTUNION() LMAX() LMIN() LMUL() LNOR()
-                      LNUM() LNUM2() LOR() LRAND() LREPLACE() LSUB() LXNOR() 
-                      LXOR() MAP() MATCH() MEMBER() MIX() MUNGE() NSITER() 
-                      NUMMATCH() NUMMEMBER() NUMWILDMATCH() PARSE() RANDMATCH()
-                      RANDEXTRACT() REMFLAGS() REMOVE() REMTYPE() REST() 
-                      REVERSE() REVWORDS() RINDEX() SAFEBUFF() SETDIFF() 
-                      SETINTER() SETUNION() SORT() SORTBY() SORTLIST() STEP() 
-                      STRFUNC() STRMATH() TOTEMS() TOTMATCH() TOTMEMBER() 
-                      TOTWILDMATCH() TRREVERSE() WHILE() WILDMATCH()
+  Lists:              AINDEX() AIINDEX() ANDFLAG() ANDFLAGS() ANDTOTEM()
+                      ANDTOTEMS() ARRAY() CITER() DELEXTRACT() ELEMENTS() 
+                      ELEMENTSMUX() ELIST() EXTRACT() EXTRACTWORD() FILTER() 
+                      FIRST() FLAGS() FOLD() FOREACH() IBREAK() IINDEX() ILEV()
+                      INDEX() INF() INSERT() INUM() ITER() ITEXT() KEEPFLAGS()
+                      KEEPTYPE() LADD() LAND() LAST() LAVG() LDELETE() LDIV() 
+                      LISTDIFF() LISTINTER() LISTMATCH() LISTUNION() LMAX() 
+                      LMIN() LMUL() LNOR() LNUM() LNUM2() LOR() LRAND() 
+                      LREPLACE() LSUB() LXNOR() LXOR() MAP() MATCH() MEMBER() 
+                      MIX() MUNGE() NSITER() NUMMATCH() NUMMEMBER() 
+                      NUMWILDMATCH() PARSE() RANDMATCH() RANDEXTRACT() 
+                      REMFLAGS() REMOVE() REMTYPE() REST() REVERSE() REVWORDS()
+                      RINDEX() SAFEBUFF() SETDIFF() SETINTER() SETUNION() 
+                      SORT() SORTBY() SORTLIST() STEP() STRFUNC() STRMATH() 
+                      TOTEMS() TOTMATCH() TOTMEMBER() TOTWILDMATCH() 
+                      TRREVERSE() WHILE() WILDMATCH()
             See Also: help list functions
   
   Logarithms:         E() EXP() LN() LOG() PI() POWER() POWER10() SHL() SHR()
@@ -11643,11 +11661,12 @@
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
                       HASFLAG() HASTOGGLE() HASTOTEM() HASTYPE() HOME() 
                       LASTCREATE() LATTR() LCMDS() LCON() LEXITS() LFLAGS()
-                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() OBJEVAL() 
-                      ORFLAG() ORFLAGS() PARENT() PGREP() POSS() RACE() 
-                      SHIFT() SUBJ() TYPE() U() U2() UDEFAULT() UDEFAULT2() 
-                      UEVAL() ULDEFAULT() U2LDEFAULT() ULOCAL() ULOCAL2() V()
-                      VATTRCNT() VISIBLE() VISIBLEMUX() WRITABLE() XGET()
+                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() 
+                      OBJEVAL() ORFLAG() ORFLAGS() ORTOTEM() ORTOTEMS() 
+                      PARENT() PGREP() POSS() RACE() SHIFT() SUBJ() TYPE() U()
+                      U2() UDEFAULT() UDEFAULT2() UEVAL() ULDEFAULT() 
+                      U2LDEFAULT() ULOCAL() ULOCAL2() V() VATTRCNT() VISIBLE()
+                      VISIBLEMUX() WRITABLE() XGET()
             See Also: help object information functions
   
   { 'help function classes4' for more }
@@ -11932,6 +11951,9 @@
               <restriction> set..
   FLAGS2    - Restricts to objects which have the flags listed in
               <restriction> set.. (uses next set of flags)
+  TOTEMS    - Restricts to objects which have the tier 0 totem letters.
+  TOTEMS2   - Restricts to objects which have the tier 1 totem letters.
+  TOTEMS3   - Restricts to objects which have the tier 2 totem letters.
   EVAL      - Evaluates the restriction for each object, replacing ##
               with the object's database number.  Evaluations that return
               TRUE (IE, not 0 or #-1) are selected.
@@ -15335,7 +15357,7 @@
     > say listflags()
     You say "ABODE(A) ARCHITECT(B) ... " 
   
-  See Also: listcommands(), listfunctions(), listtoggles()
+  See Also: listcommands(), listfunctions(), listtoggles(), listtotems()
   
 & LISTCOMMANDS()
   Function: listcommands([<key>])
@@ -15351,7 +15373,7 @@
     > say listcommands()
     You say "@@ @alias ... "
   
-  See Also: listfunctions(), listtoggles(), listflags()
+  See Also: listfunctions(), listtoggles(), listflags(), listtotems()
   
 & LISTFUNCTIONS()
   Function: listfunctions([keyval])
@@ -15370,7 +15392,7 @@
     > say listfunctions()
     You say "@@ ABS ... "
    
-  See Also: listcommands(), listtoggles(), listflags()
+  See Also: listcommands(), listtoggles(), listflags(), listtotems()
   
 & LISTNEWSGROUPS()
   Function: listnewsgroups([<player>])
@@ -15389,6 +15411,30 @@
   
   See Also: news, news cmdlist
   
+& LISTTOTEMS()
+  Function: listtotems([<slot>])
+  
+  This function will return all the totems that you have access to.  You may
+  specify an optional slot position for all totems assigned to that slot.
+  This is useful as there could potentially be tens of thousands of totems
+  defined.   By default there are 10 slots, but there could potentially be
+  hundreds.  Totem slots start at '0'.
+  
+  In the following example, we'll assume one and two are slot 0, and three is
+  assigned to slot 2.  In the example, no totems are assigned to slot 1.
+   
+  Examples:
+    > say listtotems()
+    You say "ONE(1) TWO([2]) THREE(3)"
+    > say listtotems(0) 
+    You say "ONE(1) TWO([2])"
+    > say listtotems(2)
+    You say "THREE(3)"
+    > say listtotems(1)
+    You say ""
+  
+  See Also: listcommands(), listfunctions(), listtoggles(), listflags()
+  
 & LISTTOGGLES()
   Function: listtoggles()
   
@@ -15398,7 +15444,7 @@
     > say listtoggles()
     You say "VANILLA_ERRORS(V) ... "
     
-  See Also: listcommands(), listfunctions()
+  See Also: listcommands(), listfunctions(), listtotems(), listflags()
   
 & LISTPROTECTION()
   Function: listprotection(<player> [,<key>,<delim>])
@@ -17215,7 +17261,7 @@
     > say loc(here)
     You say "#367"
   
-  See Also: rloc(), room(), where(), home()
+  See Also: rloc(), room(), where(), home(), EXITS
   
 & RLOC()
   Function: rloc(<object>,<levels>)
@@ -18489,7 +18535,7 @@
     > say home(me)
     You say "#367"
   
-  See Also: loc(), room(), rloc(), @link
+  See Also: loc(), room(), rloc(), @link, EXITS
   
 & MONEY()
   Function: money(<object>)
@@ -19271,6 +19317,8 @@
   Function: search([<player>] [<class>=<restriction>[,<low>[,<high>]]])
             searchobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
   
+  Note: See 'help search classes' on what you can search for.
+  
   The search() function returns a list of objects that match the search
   criteria, which are the same as with the @search command.  This function
   costs as much as the @search command, so repeated use is expensive.
@@ -19299,6 +19347,8 @@
 & SEARCHNGOBJID()
   Function: searchng([<player>] [<class>=<restriction>[,<low>[,<high>]]])
             searchngobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+  
+  Note: See 'help search classes' on what you can search for.
   
   This function works exactly as search(), except it will not return any
   garbage (going/recover) objects in the results.
@@ -19805,6 +19855,50 @@
   
   See Also: andflag(), orflag(), orflags(), hasflag(), flags(), lflags()
   
+& ANDTOTEM()
+  Function: andtotem(<target>, <flag1> [<flag2> ... <flagN>])
+  
+  This function checks if the target has all of the specified totems.
+  
+  You may specify if the target does not have a given totem with the not (!)
+  operator.
+  
+  Examples:
+    > say ltotems(me)
+    You say "ONE TWO THREE FOUR"
+    > say andtotem(me,one three)
+    You say "1"
+    > say andtotem(me,one zero seventeen)
+    You say "0"
+    > say andtotem(me,one !zero !notatotem)
+    You say "1"
+    > say andtotem(me,!zero !notatotem)
+    You say "1"
+  
+  See Also: andtotems(), ortotems(), ortotem(), ltotems(), totems(),
+            hastotem(), @totem
+  
+& ORTOTEM()
+  Function: ortotem(<target>, <flag1> [<flag2> ... <flagN>])
+  
+  This function checks if the target has one or more of the specified toggles.
+  
+  You may specify if the target does not have a given totem with the not (!)
+  operator.
+  
+  Examples:
+    > say ltotems(me)
+    You say "ONE TWO THREE FOUR"
+    > say ortotem(me,one zero seventeen)
+    You say "1"
+    > say ortotem(me,zero notatotem)
+    You say "0"
+    > say ortotem(me,!zero !notatotem)
+    You say "1"
+  
+  See Also: andtotems(), ortotems(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+  
 & ORFLAG()
   Function: orflag(<target>,<flag1>[,<flag2>,...,<flagN>])
   
@@ -19820,6 +19914,72 @@
    
   See Also: andflag(), hasflag(), lflags(), flags()
   
+& ANDTOTEMS()
+  Function: andtotems(<target>, <flag-list1> [,<flag-list2>, [,<flag-list3>]])
+  
+  This function checks if the target has all of the specified totems.  You may
+  also specify the !<letter> to check if it does not have the specified totem.
+  
+  If there is a totem that contains a '\' or a '!' you must escape it out
+  with the '\' escape character.
+  
+  Any inclusion of a '!' character will do reverse checking of the letter
+  following it.
+  
+  Normal totems will be in the flag-list1.
+  Any totem letters surrounded by []'s will be in the flag-list2.
+  Any totem letters surrounded by {}'s will be in the flag-list3.
+  
+  Examples:
+    > say totems(me)
+    You say "123[456]{789}"
+    > say andtotems(me,1,4,7)
+    You say "1"
+    > say andtotems(me,,,9)
+    You say "1"
+    > say andtotems(me,X,Y,8)
+    You say "0"
+    > say andtotems(me,X,Y,Z)
+    You say "0"
+    > say andtotems(me,1,!Y,!Z)
+    You say "1"
+  
+  See Also: ortotems(), ortotem(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+
+& ORTOTEMS()
+  Function: ortotems(<target>, <flag-list1> [,<flag-list2>, [,<flag-list3>]])
+  
+  This function checks if the target has any of the specified totems.  You may
+  also specify the !<letter> to check if it does not have the specified totem.
+  
+  If there is a totem that contains a '\' or a '!' you must escape it out
+  with the '\' escape character.
+  
+  Any inclusion of a '!' character will do reverse checking of the letter
+  following it.
+  
+  Normal totems will be in the flag-list1.
+  Any totem letters surrounded by []'s will be in the flag-list2.
+  Any totem letters surrounded by {}'s will be in the flag-list3.
+  
+  Examples:
+    > say totems(me)
+    You say "123[456]{789}"
+    > say ortotems(me,1,4,7)
+    You say "1"
+    > say ortotems(me,,,9)
+    You say "1"
+    > say ortotems(me,X,Y,8)
+    You say "1"
+    > say ortotems(me,X,Y,Z)
+    You say "0"
+    > say ortotems(me,X,Y,!Z)
+    You say "1"
+  
+  See Also: andtotems(), ortotem(), andtotem(), ltotems(), totems(),
+            hastotem(), @totem
+
 & ORFLAGS()
   Function: orflags(<target>,<flag-list>)
   
@@ -26431,6 +26591,10 @@
      - This displays all the mail in your mailbox
   9) mail/quick                  [help mail quick]
      - This gives you a quick status of your mailbox.
+ 10) mail +all
+     - This will read all your mail.
+ 11) mail/read/save 
+     - This option will output mail in an MBOX format
   
   See Also: mail quick, mail status, mail read, mail topics, mail main
   
@@ -26497,6 +26661,17 @@
   Example:
     > mail/read both
     > mail both
+  
+  See Also: mail uall, mail nall, mail new, mail unread, mail ball
+  
+& mail +all
+  This is a sub-option to 'mail/read' (short for just 'mail').  If you
+  specify '+all' at the end, it will read every message that you have
+  in your mailbox.  Warning:  This can be spammy.
+  
+  Example:
+    > mail/read +all
+    > mail +all
   
   See Also: mail uall, mail nall, mail new, mail unread, mail ball
   
@@ -27377,13 +27552,14 @@
   switch is optional.  
   
   The optional /save switch when used in junction with the /read switch will
-  output the mail in a standard EMail format which you can then save to file
-  and load in your favorite email program (mutt, pine, elm, outlook,
+  output the mail in a standard EMail format (MBOX) which you can then save to 
+  file and load in your favorite email program (mutt, pine, elm, outlook,
   thunderbird, and so forth).  You would just import the file as an MBOX
   formatted file.  Please refer to your mail program on how to read in this
   mail format.
   
   Optional arguments to 'mail/read[/save]' is as follows:
+      mail[/read] +all   - read ALL your messages (spammy)
       mail[/read] new    - read first new message
       mail[/read] nall   - read ALL new messages
       mail[/read] unread - read first unread message
@@ -29569,6 +29745,8 @@
 
 {continued in 'help regexps2'}
 
+& REGEXP CASESENSITIVE
+& REGEXP CASESENSITIVITY
 & REGEXPS2
   Topic: REGEXPS2 (continued)
   
@@ -29584,6 +29762,14 @@
   > +setnum cookie=30
   > ex Command Object/va
   Data: cookies = 30
+  > &DO_ZZ Command Object=$^zz:@pemit %#=I am case insensitive.
+  > zz
+  I am case insensitive.
+  > &DO_ZZ Command Object=$^(?-i)zz:@pemit %#=I am case sensitive.
+  > zz
+  I am case sensitive.
+  > ZZ
+  Huh?  (Type 'help' for help)
   
   How it works:
   '+setnum cookies=30' would set VA to "Data: cookies = 30".
@@ -29912,6 +30098,7 @@
   listcommands()   - Lists all commands that you have access to.
   listflags()      - Lists all flags that you have access to.
   listtoggles()    - List all togglees you have access to.
+  listtotems()     - List all totems you have access to.
   pmatch()         - Returns the dbref of a matching player.
   rnum()           - Returns the dbref of an object, from a target perspective.
   valid()          - Tests validity of certain values for various options.
@@ -29957,7 +30144,10 @@
   
   aindex()      - Appends a string at a position in another string.
   aiindex()     - Similar to aindex(), but allows adding to an empty string.
+  andflag()     - Checks if a target has all the indicated flag letters.
   andflags()    - Checks if a target has all the indicated flags.
+  andtotem()    - Checks if a target has all the indicated totem letters.
+  andtotems()   - Checks if a target has all the indicated totems.
   array()       - Break up a string into an array list of registers
   caplist()     - Performs a capstr() on a list of words.
   citer()       - Similar to iter(), but by character instead of word.
@@ -30155,8 +30345,10 @@
   name()        - Returns the name of an object.
   obj()         - Returns the proper objective pronoun of an object.
   objeval()     - Evaluates code from a specified objects' perspective.
-  orflag()      - Checks if the target has one of the specified flags.
+  orflag()      - Checks if the target has one of the specified flag letters.
   orflags()     - Checks if the target has any of the specified flags.
+  ortotem()     - Checks if the target has one of the specified totem letters.
+  ortotems()    - Checks if the target has any of the specified totems.
   parent()      - Returns the parent object of an object.
   pgrep()       - Returns a list of matching attributes over parents.
   poss()        - Returns the possessive pronoun of an object.
@@ -33228,10 +33420,20 @@
   * totem_access_unset -- config to set 'unset' permissions [ASH]
   * totem_access_see   -- config to set 'see' permissions [ASH]
   * totem_access_type  -- config to deny sets based on type(s) [ASH]
-  * ltotems()          -- list all totems on target
-  * hastotem()         -- check if target has totem
-  * totem_letter       -- config to set totem letters
+  * ltotems()          -- list all totems on target [ASH]
+  * hastotem()         -- check if target has totem [ASH]
+  * totem_letter       -- config to set totem letters [ASH]
   * totems()           -- list flag letters of totems (skips default '?') [ASH]
+  * andtotem()/ortotem()  letter handling for totems [ASH]
+  * andtotems()/ortotems() totem flag handler for totem names [ASH]
+  * listtotems()       -- like @totem/list (or @list totems) [ASH]
+  * @totem/slot        -- shows the total slots and number of totems defined
+                          to each slot (that you can see). [ASH]
+  * totem_types        -- @admin param to enable flag-like type detection [ASH]
+  * totem_rename       -- optionally rename non-temporary totems [ASH]
+  * @totem/unalias     -- remove aliases of totems [ASH]
+  * totem_name         -- config param to allow renaming totems [ASH]
+  * --version/-version/-v with netrhost returns version and exits [ASH]
   
   Changes
   ------------
@@ -33241,10 +33443,27 @@
   * Added table-loader for Totems for ease of flag/toggle porting [ASH]
   * Added default markers to Totems as examples [ASH]
   * wildcard and slot handler for @list totem & @totem/list [ASH]
+  * port() modified so immortal can get port info of #1 [ASH]
+  * added totem, totem2, totem3 to search classes [ASH]
+  * @totem/list optionally allows a slot value [ASH]
+  * improved safer_passwods for better entropy on SHA412 passwords [ASH]
+  * salted SHA512 now randomized between 9 and 19 characters [ASH]
+  * +all option to mail/read[/save] to output ALL mail (spammy) [ASH]
   
   Bug Fixes
   ------------
   * @tag wouldn't load tags if threshold reached [ASH]
-  * Crash bug in @totemdef with a missed conversion value
-  * Permissions for seeing totems were not working properly
-  * Permission bug in @totem set/unset
+  * Crash bug in @totemdef with a missed conversion value [ASH]
+  * Permissions for seeing totems were not working properly [ASH]
+  * Permission bug in @totem set/unset [ASH]
+  * @totem/add wouldn't allow high bit adding (0x80000000) [ASH]
+  * @totem/rename could crash if totem had an alias [ASH]
+  * Small memory leak in @tag/remove [ASH]
+  * Small memory leak in @totem/remove [ASH]
+  * totem_access_set/totem_access_unset/totem_access_see/totem_access_type did
+    not give the correct error responses [ASH]
+  * Error display for @totem/letter was incorrect [ASH]
+  * NO_EVAL and NO_PARSE didn't work properly on @functions/@lfunctions [ASH]
+  * Off by 1 in totem handler for previos db creation [AMB]
+  * SHA512 salt could be larger than some crypt algos allowed [ASH]
+  * SHA512 salt allowable chars restrictive with libxcrypt [ASH]

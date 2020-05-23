@@ -1195,6 +1195,9 @@
   When set, this essentially snuffs the name of the item.  This only works for
   inventories, contents, locations, and 'inside' looks.
   
+  This is intended to work with @nameformat as an override for
+  content/inventory name displays.
+  
   This is aliased to 'NONAME' for compatibility.
 
 & NOWHO
@@ -5406,7 +5409,7 @@
                 Syntax:  @totem/see totemname=permission(s)
     /type     - Controls what types are denied.  CONFIG: totem_access_type
                 Syntax:  @totem/type totemname=permission(s)
-    /rename   - Rename the totem (Can only rename temporary totems)
+    /rename   - Rename the totem.  CONFIG: totem_rename
                 Syntax:  @totem/rename totemname=newname
     /validate - Does a validation check on totems for dangling slot/values
                 Syntax:  @totem/validate
@@ -5416,17 +5419,375 @@
               - Syntax:  @totem/full totemname
     /alias    - Assigns one or more aliases to a totem.  CONFIG: totem_alias
               - Syntax:  @totem/alias totemname=alias(s)
+    /unalias  - Removes the alias of the targeted totem.
+              - Syntax:  @totem/unalias totemname=alias(s)
     /display  - Show flags assigned to flag values of given slot.
                 Syntax:  @totem/display slotnumber
     /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
                 Syntax:  @totem/letter totemname=tierlevel letter
+    /slot     - display all the slots and the number of totems assigned.
   
     Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
                 Syntax:  @totem/clean
-  
+   
+  You may see individual help with 'help @totem/switchname' for any of the
+  above switches for more detail on each sub-topic.
+   
   See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
-             totem_access_see, totem_access_type, totem_letter
+             totem_access_see, totem_access_type, totem_letter, totem_rename,
+             totem_name
+
+& @totem/add
+& totem add
+& @totem add
+  Command: @totem/add <totem> = <slot> <mask>
+  
+  This option will add the <totem> by name into the given <slot> with the
+  bitwise <mask> specified.  The mask must be a unique bitmask and the
+  slot must not currently be used.   The mask can be either in hex starting
+  with 0x as shown, or the decimal equivelant.  The valid slots are defined
+  to whatever the max slots are for that RhostMUSH.  The default is 0-9.
+  
+  Totem names must be less than 20 characters long.
+  
+  The following are the valid bitmasks:
+  
+    HEX        DECIMAL      HEX        DECIMAL      HEX        DECIMAL
+    ---------- -----------  ---------- -----------  ---------- ----------
+    0x00000001           1  0x00000800        2048  0x0040000      4194304
+    0x00000002           2  0x00001000        4096  0x0080000      8388608     
+    0x00000004           4  0x00002000        8192  0x0100000     16777216    
+    0x00000008           8  0x00004000       16384  0x0200000     33554432    
+    0x00000010          16  0x00008000       32768  0x0400000     67108864    
+    0x00000020          32  0x00010000       65536  0x0800000    134217728   
+    0x00000040          64  0x00020000      131072  0x1000000    268435456   
+    0x00000080         128  0x00040000      262144  0x2000000    536870912   
+    0x00000100         256  0x00080000      524288  0x4000000   1073741824  
+    0x00000200         512  0x00100000     1048576  0x8000000   2147483648  
+    0x00000400        1024  0x00200000     2097152     
+  
+  Examples:
+    > @totem/add mytotem=1 0x00000001
+    > @totem/add anothertotem=2 2
+  
+  Config parameter equivelant:
+    > totem_add mytotem 1 0x00000001
+    > totem_add anothertotem 2 2 
+  
+  See Also: @totem
+
+& @totem/remove
+& totem remove
+& @totem remove
+  Command: @totem/remove <totem>
+  
+  This will remove the specified totem.  By default you can only remove
+  temporary or static totems.  A temporary totem is defined as one that
+  is added via the @totem/add command.  A static totem is one that is defined
+  using the .conf file totem_add option.  A permanent totem is one defined
+  through the use of the internal source totem_add() as documented in the
+  source itself.
+
+  Examples:
+    > @totem/remove mytotem
+    > @totem/remove myothertotem    
+  
+  See Also: @totem
+
+& @totem/set
+& totem set
+& @totem set
+  Command: @totem/set <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may set them.  
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may set the given totem.
+  
+  Examples:
+    > @totem/set mytotem=wizard
+    > @totem/set mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_set mytotem wizard
+    > totem_access_set mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/unset
+& totem unset
+& @totem unset
+  Command: @totem/unset <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may unset them.
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may unset (ergo clear) the given totem.
+  
+  Examples:
+    > @totem/unset mytotem=wizard
+    > @totem/unset mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_unset mytotem wizard
+    > totem_access_unset mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/see
+& totem see
+& @totem see
+  Command: @totem/see <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may see them.
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may see the given totem.
+  
+  Examples:
+    > @totem/see mytotem=wizard
+    > @totem/see mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_see mytotem wizard
+    > totem_access_see mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/type
+& totem type
+& @totem type
+  Command: @totem/type <totem>=<permission(s)>
+  
+  This sets the given restrictions on the given totem on who may iset/unset
+  them based on type restrictions.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls a special type-case of what targets are allowable
+  to set or be set.
+  
+  Valid types are: THING, PLAYER, EXIT, ROOM, REGISTERED, GUILDMASTER,
+                   ARCHITECT, COUNCILOR, WIZARD, IMMORTAL
+  
+  If the type is set to THING, then the target can not be a type of THING.
+  If in addition you add COUNCILOR, then only COUNCILOR and higher may set
+  type THING.
+  
+  Examples:
+    > @totem/type mytotem=room
+    > @totem/type mytotem=!room thing wizard
+  
+  Config parameter equivelant:
+    > totem_access_type mytotem room
+    > totem_access_type mytotem !room thing wizard
+  
+  See Also: @totem
+
+
+& @totem/rename
+& totem rename
+& @totem rename
+  Command: @totem/rename <totem>=<newname>
+  
+  This command will rename the totem for the duration of the boot cycle.
+  If you have specified the config parameter 'totem_rename' with the
+  specified override, you may rename static and/or permanent totems.
+  
+  If either the totem name is invalid or the destination totem name is
+  invalid or in use, the command will fail.  
+  
+  Totem names must be less than 20 characters long.
+   
+  Examples:
+    > @totem/rename mytotem=mynewtotem
+    > @totem/rename anothertotem=anothernew
+  
+  Config parameter equivelant:
+    > totem_name mytotem mynewtotem
+    > totem_name anothertotem anothernew
+  
+  See Also: totem_rename, @totem
+
+& @totem/validate
+& totem validate
+& @totem validate
+  Command: @totem/validate
+  
+  This command will go through all the totems and print out any invalid
+  totems.  Invalid totems are totems that are defined on players that 
+  were undefined or removed.
+  
+  The way totems work is it still saves the bitmask of what the totem
+  was on the player.  This is intentional since totems may dynamically
+  change, and it does no harm.
+  
+  This will display all invalid totem values, what slot they exist in,
+  and a list of every dbref# in the database that currently has defined
+  an unreferenced totem bitmask.
+   
+  Example:
+    > @totem/validate
+  
+  See Also: @totem 
+
+& @totem/info
+& totem info
+& @totem info
+  Command: @totem/info <totem>
+  
+  This command gives detailed information on the specified totem.
+  Such information will be the bitmask, the slot, it's permanency 
+  level, permissions, and what dbref#'s currently have the particular 
+  totem set.
+  
+  Examples:
+    > @totem/info marker0
+    > @totem/info mytotem 
+  
+  See Also: @totem, @totem/clean
+
+& @totem/fulllist
+& totem fulllist
+& @totem fulllist
+  Command: @totem/fulllist [<slot>]
+  
+  This will give a listing of all the totems.  You may optionally specify 
+  a totem slot you wish to see as this may be necessary as the complete
+  totem list can easily exceed the LBUF buffers.
+  
+  The administrative quick-list will show totems in the following format:
+               TOTEMNAME|SLOT-POSITION|SLOT-MASK-VALUE
+  
+  An example output would be:
+               MYTOTEM|1|0x00000001
+  
+  If you wish to see more details on a specific totem, please refer to
+  the @totem/info command.
+  
+  Examples:
+    > @totem/fulllist
+    > @totem/fulllist 0
+  
+  See Also: @totem, @totem/info
+
+& @totem/alias
+& totem alias
+& @totem alias
+  Command: @totem/alias <totem>=<alias(es)>
+  
+  This command will set the specified aliases for the target totem.  You 
+  may have a maximum of 10 aliases per totem.  This value is hardcoded and
+  can not be changed.  There should not be a reason for more than 10 aliases
+  for a totem.
+  
+  If a totem alias already exists, is invalid, or is the name of an existing
+  totem, the alias will fail for that totem alias name only.  The rest will
+  work, if valid.
+  
+  You may specify multiple aliases at one time.
+  
+  Examples:
+    > @totem/alias mytotem=my myt myto mytot mytote
+    > @totem/alias marker0=0
+
+  Config parameter equivelant:
+    > totem_alias mytotem my myt myto mytot mytote
+    > totem_alias marker0 0
+  
+  See Also: @totem
+
+& @totem/unalias
+& totem unalias
+& @totem unalias
+  Command: @totem/unalias <totem>=<alias(es)>
+  
+  This command will remove the specified aliases from the target totem. 
+  
+  If a totem alias does not exist, is invalid, or is the name of an existing
+  totem, the unalias will fail for that totem unalias only.  The rest will
+  work, if valid.  Aliases that are not part of the target totem will not
+  be removed.
+  
+  You may specify multiple aliases to remove at one time.
+  
+  Examples:
+    > @totem/unalias mytotem=my myt myto mytot mytote
+    > @totem/unalias marker0=0
+  
+  See Also: @totem
+
+& @totem/display
+& totem display
+& @totem display
+  Command: @totem/display <slot>
+  
+  This command will display all the totems, totem letters, and values for
+  the specified slot.  If slot is not specified, it defaults to slot 0.
+  
+  Examples:
+    > @totem/display
+    > @totem/display 9
+  
+  See Also: @totem
+
+& @totem/letter
+& totem letter
+& @totem letter
+  Command: @totem/letter <totem>=<tier-level> <letter>
+  
+  This will define (or redefine) the character associated with a totem.  You
+  may reuse letters on totems.  The default letter '?' for tier-level 0 is 
+  used as a mask to not display letters for the totems.  This is intentional 
+  as some totems you may want to hide the letter value.  
+  
+  There are three tier levels you may use to define a letter.
+    0  - this is the default letter type.
+    1  - characters in tier 1 will be surrounded by []'s
+    2  - characters in tier 2 will be surrounded by {}'s
+  
+  Examples:
+    > @totem/letter mytotem=0 m
+    > @totem/letter mytotem1=1 m
+    > @totem/letter mytotem2=2 m
+    > think totems(me)
+    m[m]{m}
+  
+  Config parameter equivelant:
+    > totem_letter mytotem 0 m
+    > totem_letter mytotem1 1 m
+    > totem_letter mytotem2 2 m
+   
+& @totem/clean
+& totem clean
+& @totem clean
+  Not currently implemented.
+
+& @totem/slots
+& totem slots
+& @totem slots
+  Command: @totem/slots 
+  
+  This command will list every current active totem slot and the total number
+  of totems assigned to each slot.  It's a quick way to see what slots are 
+  available and how many free spaces are available to each slot.
+  
+  The output will be in the form: [Slot: <slot>:<totems>]
+  
+  Where <slot> is the slot number and <totems> are the number of totems
+  assigned to that specific slot.
+   
+  Exmaple:
+    > @totem/slots
+  
+  See Also: @totem
+  
 & @totemdef
 & @toggledef
 & @flagdef
@@ -6602,7 +6963,8 @@
   toggle_access_set         toggle_access_type        toggle_access_unset     
   totem_add                 totem_alias               totem_access_see
   totem_access_set          totem_access_type         totem_access_unset
-  totem_letter              tor_localhost             tor_paranoid            
+  totem_letter              totem_name                totem_rename
+  totem_types               tor_localhost             tor_paranoid            
   trace_output_limit        trace_topdown             tree_character          
   trust_site                uncompress_program        unowned_safe            
   user_attr_flags           validate_host             vattr_command           
@@ -10570,14 +10932,17 @@
   Config parameter: safer_passwords <yes/no>.  Default: no
   
   This parameter will enforce harder passwords to be set.  When enabled, all
-  new passwords will have to be at least 5 characters long, have at least one
-  lowercase and uppercase letter, and require a special character which is
-  non-alphanumeric or ', or -.
+  new passwords will have to be at least 5 (for DES) or 14 (for SHA512)  
+  characters long, have at least one lowercase and uppercase letter, and 
+  require a special character which is non-alphanumeric or ', or -.
   
   DES passwords are 8 characters or less.
   
   SHA512 passwords (default) are 160 characters or less.
   
+  Both passwords will use a simplistic entropy check that enforces non
+  sequential passwords of uniqueness.
+ 
   Note:  Guest players still are allowed 'guest' as their password.
 
 & sconnect_cmd
@@ -11410,6 +11775,46 @@
             totem_add, totem_letter, totem_access_type, @totemdef, 
             @totem
 
+& totem_name
+  Config parameter: totem_name <oldname> <newname>
+  
+  This config parameter will allow you to rename a totem to a new name.
+  
+  Both oldname and newname must be under 20 characters in length and
+  be a valid totem name.
+  
+  If you wish to use this to rename totems that are static or 
+  permanent, you must specify the permission value with the config
+  parameter totem_rename.
+  
+  See Also: totem_rename, @totem
+
+& totem_rename
+  Config parameter: totem_rename <value>    Default: 0
+  
+  This config parameter sets a bitmask on what totem type is allowed to
+  be renamed.  The default of '0' are temporary totems only.  Temporary
+  being totems that are defined in-game and not via config params or 
+  through source.
+  
+      0 -- temporary (defined in-game)
+      1 -- static/sticky (defined in the .conf files)
+      2 -- permanent (defined in the source itself)
+      3 -- both static and permanent.
+  
+  To rename anything but temporary you must specify the level you wish.
+  
+  See Also: @totem
+
+& totem_types
+  Config parameter: totem_types <boolean>    Default: off (0)
+  
+  This enables type detection to totem lists just as flags handle them.
+  This is intended to be enabled if ever totems take over the requirement
+  of flags in the future and to allow easier migration.
+  
+  See Also: @totem
+  
 & toggle_access_type
   Config parameter: toggle_access_type <togglename> <permission(s)>
   
@@ -12011,6 +12416,7 @@
     no_eval       - The function forces non-evaluation (useful for @function)
     bypass        - The function is ignored for sandbox()
     noparse       - The function does not parse functions (but does subs)
+                    This will only work on @functions/@lfunctions
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions

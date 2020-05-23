@@ -54,10 +54,11 @@ extern NAMETAB list_names[];
 extern NAMETAB sigactions_nametab[];
 extern CONF conftable[];
 extern int	FDECL(flagstuff_internal, (char *, char *));
-extern int totem_alias(char *, char *, dbref);
+extern int totem_alias(char *, char *, dbref, int);
 extern int totem_letter(char *, char, int);
 extern int totem_add(char *, int, int, int);
 extern void totem_handle_error(int, dbref, char *, char *);
+extern int totem_rename(char *, char *);
 /* Lensy: Not external, but a forward declaration is needed */
 CF_HAND(cf_dynstring);
 #endif
@@ -345,6 +346,8 @@ NDECL(cf_init)
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
+    mudconf.totem_types = 0;		/* enable totem object type recognition */
+    mudconf.totem_rename = 0;		/* enable totem object type recognition */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -2980,7 +2983,7 @@ CF_HAND(cf_flag_access)
 {
    int retval;
 
-   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, 1);
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_FLAG);
    return retval;
 }
 
@@ -2988,7 +2991,7 @@ CF_HAND(cf_toggle_access)
 {
    int retval;
 
-   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, 2);
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_TOGGLE);
    return retval;
 }
 
@@ -2996,13 +2999,43 @@ CF_HAND(cf_totem_access)
 {
    int retval;
 
-   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, 2);
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_TOTEM);
    return retval;
 }
 
 /* ---------------------------------------------------------------------------
  * cf_totemalias: define a totem alias.
  */
+
+CF_HAND(cf_totemname)
+{
+    char *totem = NULL, *totemnew = NULL, *tstrtokr, *s_inbuff, *s_new;
+    int retval;
+
+    totem = strtok_r(str, " \t=,", &tstrtokr);
+    if ( totem ) {
+       totemnew = strtok_r(NULL, " \t=,", &tstrtokr);
+       if ( totemnew ) {
+          retval = totem_rename(totem, totemnew);
+       }
+    }
+    if ( !totem || !totemnew ) {
+       retval = -1;
+    }
+    s_inbuff = alloc_lbuf("cf_totemadd");
+    s_new = alloc_lbuf("cf_totemadd2");
+    totem_handle_error(retval, NOTHING, (char *)"totem_name", s_inbuff);
+    sprintf(s_new, "%s (%s %s)", s_inbuff, 
+            (totem != NULL ? totem : (char *)"(NULL)"), 
+            (totemnew != NULL ? totemnew : (char *)"(NULL)"));
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+ 
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
+}
 
 CF_HAND(cf_totemadd)
 {
@@ -3020,6 +3053,7 @@ CF_HAND(cf_totemadd)
     if ( totem ) {
        totem_slot = strtok_r(NULL, " \t=,", &tstrtokr);
        if ( totem_slot ) {
+          i_ts = atoi(totem_slot);
           totem_value = strtok_r(NULL, " \t=,", &tstrtokr);
        }
     }
@@ -3108,7 +3142,7 @@ CF_HAND(cf_totemalias)
     }
 
     if ( alias && orig ) {
-       retval = totem_alias(orig, alias, NOTHING);
+       retval = totem_alias(orig, alias, NOTHING, 0);
     } else {
        retval = -1;
     }
@@ -4812,6 +4846,16 @@ CONF conftable[] =
     {(char *) "totem_letter",
      cf_totemletter, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Define totem letters."},
+    {(char *) "totem_name",
+     cf_totemname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Rename totem flags (optional static/sticky/perm)."},
+    {(char *) "totem_rename",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.totem_rename, 0, 0, CA_IMMORTAL,
+     (char *) "Mask for totem renames (1)static, (2)perm, (3)both.\r\n"\
+              "                               Default: 0   Value: %d"},
+    {(char *) "totem_types",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.totem_types, 0, 0, CA_WIZARD,
+     (char *) "Enable flag-like TYPE recognition for totems?"},
     {(char *) "news_file",
      cf_string, CA_DISABLED, (int *) mudconf.news_file, 32, 0, CA_WIZARD,
      (char *) "File used for news."},

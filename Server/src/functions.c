@@ -1329,7 +1329,7 @@ extern int lookup(char *, char *, int, int *);
 extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
 extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
-extern int totem_list(char *, int, dbref, dbref);
+extern int totem_list(char *, int, dbref, dbref, char *);
 
 int do_convtime(char *, struct tm *);
 
@@ -7682,7 +7682,7 @@ FUNCTION(fun_port)
     int gotone = 0;
 
     it = lookup_player(player, fargs[0], 0);
-    if (Good_obj(it) && Controls(player, it)) {
+    if (Good_obj(it) && (Immortal(player) || Controls(player, it))) {
        DESC_ITER_CONN(d) {
           if (d->player == it) {
              if (gotone) {
@@ -12841,6 +12841,11 @@ FUNCTION(fun_listnewsgroups)
          free_lbuf(retptr);
    }
 
+}
+
+FUNCTION(fun_listtotems)
+{
+   display_totemtab2(player, buff, bufcx, 0, fargs[0]);
 }
 
 FUNCTION(fun_listflags)
@@ -24292,6 +24297,366 @@ FUNCTION(fun_delete)
    }
 }
 
+/* i_type 1 -- or type
+ *        0 -- and type
+ */
+int
+handle_totem_flags(dbref player, dbref cause, dbref caller, char *s_arg0, char *s_arg1, int i_type)
+{
+   int i_not, i_return;
+   char *s_tok, *s_tokptr, *s_buff;
+   dbref target;
+   TOTEMENT *hashp;
+
+   if ( !*s_arg1 || !*s_arg0 ) {
+      return 0;
+   }
+
+   init_match(player, s_arg0, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = noisy_match_result();
+  
+   if ( !Good_chk(target) ) {
+      return 0;
+   }
+   if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+       (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+       (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+      return 0;
+   }
+
+   s_buff = alloc_lbuf("handle_totem_flags");
+   strcpy(s_buff, s_arg1);
+
+   i_return = (i_type ? 0 : 1);
+   s_tok = strtok_r(s_buff, " \t", &s_tokptr);
+   while ( s_tok ) {
+      i_not = 0;
+      if ( *s_tok == '!' ) {
+         i_not = 1;
+         hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
+      } else {
+         hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
+      }
+      if ( hashp ) {
+         if ( (!i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue)) ||
+              ( i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) != hashp->flagvalue)) ) {
+            i_return = totem_cansee_bit(player, target, hashp->listperm);
+         } else {
+            i_return = 0;
+         }
+      } else {
+         if ( i_not ) {
+            i_return = 1;
+         } else {
+            i_return = 0;
+         }
+      }
+      if ( i_type && i_return ) {
+         break;
+      }
+      if ( !i_type && !i_return ) {
+         break;
+      }
+      s_tok = strtok_r(NULL, " \t", &s_tokptr);
+   }
+
+   free_lbuf(s_buff);
+   return i_return;
+}
+
+FUNCTION(fun_andtotem)
+{
+   ival(buff, bufcx, handle_totem_flags(player, cause, caller, fargs[0], fargs[1], 0));
+}
+
+FUNCTION(fun_ortotem)
+{
+   ival(buff, bufcx, handle_totem_flags(player, cause, caller, fargs[0], fargs[1], 1));
+}
+
+int
+handle_totem_letters(dbref player, dbref cause, dbref caller, char *s_arg0, char *s_tslot0, char *s_tslot1, char *s_tslot2, int i_type)
+{
+   char *s_t0, *s_t0p, *s_t1, *s_t1p, *s_t2, *s_t2p, *s_tmp;
+   dbref target;
+   TOTEMENT *tp;
+   int i_found, i_not, i_esc;
+
+   if ( !*s_tslot0 && (!s_tslot1 || !*s_tslot1) && (!s_tslot2 || !*s_tslot2) ) {
+      return 0;
+   }
+
+   init_match(player, s_arg0, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = noisy_match_result();
+  
+   if ( !Good_chk(target) ) {
+      return 0;
+   }
+   if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+       (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+       (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+      return 0;
+   }
+
+   s_t0p = s_t0 = alloc_lbuf("handle_totem_letters0");
+   s_t1p = s_t1 = alloc_lbuf("handle_totem_letters1");
+   s_t2p = s_t2 = alloc_lbuf("handle_totem_letters2");
+   for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        tp;
+        tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+        /* Skip if not on player */
+        if ( (dbtotem[target].flags[tp->flagpos] & tp->flagvalue) != tp->flagvalue ) {
+           continue;
+        }
+
+        /* Skip if we can't see this flag */
+        if (!check_access(player, tp->listperm, 0, 0)) {
+           continue;
+        }
+
+        /* Skip letter checks on default flag on slot 0 */
+        if ( (tp->flagpos == 0) && (tp->flaglett == '?') ) {
+           continue;
+        }
+
+        switch(tp->flagtier) {
+           case 2:  /* Slot 2 */
+              if ( s_tslot2 ) {
+                 if ( strchr(s_t2, tp->flaglett) == NULL ) {
+                    safe_chr(tp->flaglett, s_t2, &s_t2p);
+                 }
+              }
+              break;
+           case 1:  /* Slot 1 */
+              if( s_tslot1 ) {
+                 if ( strchr(s_t1, tp->flaglett) == NULL ) {
+                    safe_chr(tp->flaglett, s_t1, &s_t1p);
+                 }
+              }
+              break;
+           default: /* Slot 0 - default */
+              if ( strchr(s_t0, tp->flaglett) == NULL ) {
+                 safe_chr(tp->flaglett, s_t0, &s_t0p);
+              }
+              break;
+        }
+   }
+
+   if ( i_type ) { /* Or type */
+      i_found = 0;
+      if ( s_tslot2 ) {
+         s_tmp = s_tslot2;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t2, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+      if ( !i_found && s_tslot1 ) {
+         s_tmp = s_tslot1;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t1, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+      if ( !i_found ) {
+         s_tmp = s_tslot0;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t0, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+   } else {        /* And type */
+      i_found = 1;
+      if ( s_tslot2 ) {
+         s_tmp = s_tslot2;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t2, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+      if ( i_found && s_tslot1 ) {
+         s_tmp = s_tslot1;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t1, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+      if ( i_found ) {
+         s_tmp = s_tslot0;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t0, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+   }
+
+   free_lbuf(s_t0);
+   free_lbuf(s_t1);
+   free_lbuf(s_t2);
+
+   return i_found;
+}
+
+FUNCTION(fun_andtotems)
+{
+   if (!fn_range_check("ANDTOTEMS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   ival(buff, bufcx, handle_totem_letters(player, cause, caller, fargs[0], fargs[1],
+        ((nfargs > 2) ? fargs[2] : (char *)NULL), 
+        ((nfargs > 3) ? fargs[3] : (char *)NULL), 0));
+}
+
+FUNCTION(fun_ortotems)
+{
+   if (!fn_range_check("ORTOTEMS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   ival(buff, bufcx, handle_totem_letters(player, cause, caller, fargs[0], fargs[1],
+        ((nfargs > 2) ? fargs[2] : (char *)NULL), 
+        ((nfargs > 3) ? fargs[3] : (char *)NULL), 1));
+}
+
 FUNCTION(fun_hastotem)
 {
     dbref target;
@@ -24345,7 +24710,7 @@ FUNCTION(fun_ltotems)
        safe_str((char *)"#-1", buff, bufcx);
     } else {
        s_buff = alloc_lbuf("fun_ltotems");
-       retvalue = totem_list(s_buff, 2, target, player);
+       retvalue = totem_list(s_buff, 2, target, player, (char *)NULL);
        if ( retvalue == 1 ) {
           safe_str(s_buff, buff, bufcx);
        } else {
@@ -36651,6 +37016,8 @@ FUN flist[] =
     {"ANDCHR", fun_andchr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAG", fun_andflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAGS", fun_andflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ANDTOTEM", fun_andtotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ANDTOTEMS", fun_andtotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"ANSIPOS", fun_ansipos, 2, 0, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
@@ -36926,6 +37293,7 @@ FUN flist[] =
 #endif /* REALITY_LEVELS */
     {"LISTTAGS", fun_listtags, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LISTTOTEMS", fun_listtotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
     {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -37043,6 +37411,8 @@ FUN flist[] =
     {"ORCHR", fun_orchr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ORFLAG", fun_orflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ORFLAGS", fun_orflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ORTOTEM", fun_ortotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ORTOTEMS", fun_ortotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PACK", fun_pack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PACKMATH", fun_packmath, 3,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

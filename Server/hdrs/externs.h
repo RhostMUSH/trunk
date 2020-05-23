@@ -418,6 +418,7 @@ extern char *	FDECL(seek_char, (const char *, char));
 extern int	FDECL(prefix_match, (const char *, const char *));
 extern int	FDECL(minmatch, (char *, char *, int));
 extern char *	FDECL(strsave, (const char *));
+extern char *	FDECL(strsavetotem, (const char *));
 extern int	FDECL(safe_copy_str, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_strmax, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
@@ -1234,6 +1235,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TOTEM_PERMSTYPE	4096	/* Remove unused bitmasks from target */
 #define TOTEM_DISPLAY	8192	/* Totem Dispay for slots */
 #define TOTEM_LETTER	16384	/* Totem Letter Handler */
+#define TOTEM_DISSLOT	32768	/* List totem slots and flags (you see) in them */
+#define TOTEM_UNALIAS	65536	/* Remove alias(es) */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */

@@ -3808,6 +3808,7 @@ db_grow(dbref newtop)
 	/* An old struct database exists.  Copy it to the new buffer */
 
 	db -= SIZE_HACK;
+	dbtotem -= SIZE_HACK;
 /*	bcopy((char *) db, (char *) newdb,
 	      (mudstate.db_top + SIZE_HACK) * sizeof(OBJ)); */
         memcpy((char *) newdb, (char *) db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ));

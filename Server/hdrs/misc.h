@@ -22,6 +22,7 @@ struct search_type {
 	char	*s_rst_eval;
 	int	low_bound;
 	int	high_bound;
+        int	i_totems[TOTEM_SLOTS];
 };
 
 /* Stats structure, used by @stats and stats(). */

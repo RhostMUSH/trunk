@@ -40,6 +40,68 @@ char	*command;		/* allocated by replace_string  */
  * and /delimit allows specification of a delimiter.
  */
 
+int
+convert_totems(dbref player, char *flaglist, SEARCH **fset, int word)
+{
+   TOTEMENT *tp;
+   int i_err = 0;
+   char *s_tmp, *s_tmpptr;
+
+   if ( !flaglist || !*flaglist ) {
+      return 0;
+   }
+
+   s_tmpptr = s_tmp = alloc_lbuf("convert_totems");
+   for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        tp;
+        tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      /* Tier does not match, continue */
+      if ( tp->flagtier != word ) {
+         continue;
+      }
+
+      /* Flag letter char is default char, continue */
+      if ( (tp->flagtier == 0) && (tp->flaglett == '?') ) {
+         continue;
+      }
+
+      /* Playee can not see flag, continue */
+      if ( !totem_cansee_bit(player, player, tp->listperm) ) {
+         continue;
+      }
+
+      /* If target character does not match list passed, continue */
+      if ( strchr(flaglist, tp->flaglett) == NULL ) {
+         continue;
+      }
+
+      safe_chr(tp->flaglett, s_tmp, &s_tmpptr);
+      /* All worked out, add the slot to the value */
+      (*fset)->i_totems[tp->flagpos] |= tp->flagvalue;
+   }
+
+   s_tmpptr = flaglist;
+   while ( *s_tmpptr ) {
+      if ( strchr(s_tmp, *s_tmpptr) == NULL ) {
+         i_err = (int)*s_tmpptr;
+         break;
+      }
+      s_tmpptr++;
+   }
+   if ( i_err ) {
+      sprintf(s_tmp, "%c: Totem unknown or not valid for specified object type", (char)i_err);
+      notify(player, s_tmp);
+      i_err = 0;
+      free_lbuf(s_tmp);
+   } else {
+      i_err = 1;
+   }
+
+   free_lbuf(s_tmp);
+   return i_err;
+}
+
+
 void do_dolist (dbref player, dbref cause, int key, char *list, 
 		char *command, char *cargs[], int ncargs)
 {
@@ -529,7 +591,7 @@ void er_mark_disabled (dbref player)
 int search_setup (dbref player, char *searchfor, SEARCH *parm, int mc)
 {
 char	*pname, *searchtype, *t;
-int	err;
+int	err, i;
 
 	/* Crack arg into <pname> <type>=<targ>,<low>,<high> */
 
@@ -595,6 +657,9 @@ int	err;
 	/* set limits on what we search for */
 
 	err = 0;
+        for ( i = 0; i < TOTEM_SLOTS; i++ ) {
+           parm->i_totems[i] = 0;
+        }
 	parm->s_rst_name = NULL;
 	parm->s_rst_eval = NULL;
 	parm->s_rst_type = NOTYPE;
@@ -692,7 +757,16 @@ int	err;
 		}
 		break;
 	case 't':
-		if (string_prefix ("type", searchtype)) {
+		if (string_prefix ("totems", searchtype)) {
+			if ( !convert_totems(player, searchfor, &parm, 0) )
+                           return 0;
+		} else if (string_prefix ("totems2", searchtype)) {
+			if ( !convert_totems(player, searchfor, &parm, 1) )
+                           return 0;
+		} else if (string_prefix ("totems3", searchtype)) {
+			if ( !convert_totems(player, searchfor, &parm, 2) )
+                           return 0;
+		} else if (string_prefix ("type", searchtype)) {
 			if (searchfor[0] == '\0')
 				break;
 			if (string_prefix ("rooms", searchfor))
@@ -795,7 +869,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master)
 FLAG	thing1flags, thing2flags, thing3flags, thing4flags;
 dbref	thing;
 char	*buff, *buff2, *result;
-int	save_invk_ctr;
+int	save_invk_ctr, i, i_break;
 
 	buff = alloc_sbuf("search_perform.num");
 
@@ -852,6 +926,18 @@ int	save_invk_ctr;
 			continue;
 		if ((thing4flags & parm->s_fset.word4) != parm->s_fset.word4)
 			continue;
+                if ( Good_obj(thing) ) {
+                   i_break = 0;
+                   for ( i = 0; i < TOTEM_SLOTS; i++ ) {
+                      if ( (dbtotem[thing].flags[i] & parm->i_totems[i]) != parm->i_totems[i]) {
+                         i_break = 1;
+                         break;
+                      }
+                   }
+                   if ( i_break ) {
+                      continue;
+                   }
+                }
 
 		/* Check for matching name */
 

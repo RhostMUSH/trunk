@@ -1207,10 +1207,56 @@ const char *scan;
 	return 1;
 }
 
+int pass_entropy(char *password) 
+{
+   char *ptr, *lastptr;
+   int i_entropy = 0, i_map[256] = {0};
+  
+   ptr = password;
+   lastptr = NULL;
+
+   while ( *ptr ) {
+      /* Same character only allowed *once */
+      if ( i_map[(int)*ptr % 256] == 0 ) {
+         /* non-repeating upper */
+         if ( isupper((int)*ptr) ) {
+            if ( !lastptr || 
+                 (((int)*lastptr - 2) >= (int)*ptr) ||
+                 (((int)*lastptr + 2) <= (int)*ptr) ) {
+               i_entropy++;
+            }
+         /* non-repeating lower */
+         } else if ( islower((int)*ptr) ) {
+            if ( !lastptr || 
+                 (((int)*lastptr - 2) >= (int)*ptr) ||
+                 (((int)*lastptr + 2) <= (int)*ptr) ) {
+               i_entropy++;
+            }
+         /* digits */
+         } else if ( isdigit((int)*ptr) ) {
+            if ( !lastptr || 
+                 (((int)*lastptr - 2) >= (int)*ptr) ||
+                 (((int)*lastptr + 2) <= (int)*ptr) ) {
+               i_entropy++;
+            }
+         /* symbols are special */
+         } else {
+            if ( !lastptr || (*ptr != *lastptr) ) {
+               i_entropy++;
+            }
+         }
+      }
+      i_map[(int)*ptr % 256] = 1;
+      lastptr = ptr;
+      ptr++;
+   }
+   return i_entropy;
+}
+
 int ok_password(const char *password, dbref player, int key)
 {
   const char *scan;
-  int num_upper, num_lower, num_special;
+  int num_upper, num_lower, num_special, i_sha512;
 
   if (*password == '\0')
     return 0;
@@ -1223,6 +1269,12 @@ int ok_password(const char *password, dbref player, int key)
 #endif
     return 0;
   }
+
+#ifdef CRYPT_GLIB2
+  i_sha512 = 1;
+#else
+  i_sha512 = 0;
+#endif
 
   num_upper = num_lower = num_special = 0;
   for (scan = password; *scan; scan++) {
@@ -1248,9 +1300,12 @@ int ok_password(const char *password, dbref player, int key)
 #ifndef STANDALONE
   if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
      /* length must be 5 or more */
-     if ( strlen(password) < 5 ) {
-        if ( (key == 0) && Good_chk(player) )
-           notify_quiet(player, "The password must be at least 5 characters long.");
+     if ( (i_sha512 && (strlen(password) < 14 )) || (!i_sha512 && (strlen(password) < 5)) ) {
+           if ( i_sha512 ) {
+              notify_quiet(player, "The password must be at least 14 characters long.");
+           } else {
+              notify_quiet(player, "The password must be at least 5 characters long.");
+           }
         return 0;
      }
      if (num_upper < 1) {
@@ -1265,10 +1320,18 @@ int ok_password(const char *password, dbref player, int key)
      }
      if (num_special < 1) {
         if ( (key == 0) && Good_chk(player) )
-           notify_quiet(player,
-           "The password must contain at least one number or a symbol other than an apostrophe or dash.");
+           notify_quiet(player, "The password must contain at least one number or a symbol other than an apostrophe or dash.");
         return 0;
      }                        
+     if ( (i_sha512 && pass_entropy((char *)password) < 10) ||
+          (!i_sha512 && pass_entropy((char *)password) < 4) ) {
+        if ( i_sha512 ) {
+           notify_quiet(player, "Password entropy must exceed 10 for uniqueness.");
+        } else {
+           notify_quiet(player, "Password entropy must exceed 4 for uniqueness.");
+        }
+        return 0;
+     }
   }
 #endif
   return 1;
