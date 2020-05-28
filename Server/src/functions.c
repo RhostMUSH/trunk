@@ -22090,27 +22090,60 @@ FUNCTION(fun_zwho)
  */
 FUNCTION(fun_inzone)
 {
-  dbref it;
+  dbref it, target;
   int gotone;
   char *tbuf;
   ZLISTNODE *ptr;
 
-  it = match_thing(player, fargs[0]);
+  if (!fn_range_check("INZONE", nfargs, 1, 2, buff, bufcx)) 
+     return;
 
-  gotone = 0;
-  if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
-     tbuf = alloc_sbuf("fun_inzone");
-     for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
-        if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
-             isRoom(ptr->object) ) {
-           if ( gotone )
-              safe_chr(' ', buff, bufcx);
-           gotone = 1;
-           sprintf(tbuf, "#%d", ptr->object);
-           safe_str(tbuf, buff, bufcx);
+  target = NOTHING;
+  if ( nfargs > 1 ) {
+     if ( !*fargs[1] ) {
+        return;
+     } else {
+        target = match_thing(player, fargs[1]);
+        if ( !Good_chk(target) ) {
+           return;
         }
      }
-     free_sbuf(tbuf);
+  }
+
+  it = match_thing(player, fargs[0]);
+  if ( !Good_chk(it) ) {
+     return;
+  }
+
+  if ( nfargs == 1 ) {
+     gotone = 0;
+     if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
+        tbuf = alloc_sbuf("fun_inzone");
+        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+           if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
+                isRoom(ptr->object) ) {
+              if ( gotone )
+                 safe_chr(' ', buff, bufcx);
+              gotone = 1;
+              sprintf(tbuf, "#%d", ptr->object);
+              safe_str(tbuf, buff, bufcx);
+           }
+        }
+        free_sbuf(tbuf);
+     }
+  } else {
+     gotone = 0;
+     if ( Examinable(player, it) && Examinable(player, target) && ZoneMaster(it) ) {
+        tbuf = alloc_sbuf("fun_inzone");
+        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+           if ( Good_chk(ptr->object) && (ptr->object == target) ) {
+              gotone = 1;
+              break;
+           }
+        }
+        free_sbuf(tbuf);
+     }
+     ival(buff, bufcx, gotone);
   }
 }
 
@@ -37291,7 +37324,7 @@ FUN flist[] =
     {"INPROGRAM", fun_inprogram, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"INZONE", fun_inzone, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INZONE", fun_inzone, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ISALNUM", fun_isalnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALPHA", fun_isalpha, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},

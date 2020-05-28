@@ -13654,10 +13654,16 @@
   See Also: @program, @quitprogram, programmer()
   
 & INZONE()
-  Function: inzone(<zone>)
-  Returns the rooms in the specified zonemaster.  If the target is not a
-  zonemaster, or if the object is not a valid zone, it returns an empty
-  list.  This is _not_ database intensive.
+  Function: inzone(<zonemaster>)
+            inzone(<zonemaster>, <zonemember>)
+  
+  The first option returns the rooms in the specified <zonemaster>.  If the 
+  target is not a zonemaster, or if the object is not a valid zone, it 
+  returns an empty list.  This is _not_ database intensive.
+  
+  The second option returns '1' if the target <zonemember> belongs to the
+  specified <zonemaster>.  The <zonemember> may be any data type.  This is
+  _not_ database intensive.
   
   Example:
     > @set here=zonemaster
@@ -13668,6 +13674,10 @@
     You say "#0 #534 #987"
     > say inzone(here)
     You say "#0 #534"
+    > say inzone(here,#987)
+    You say "1"
+    > say inzone(here,#123)
+    You say "0"
   
   See Also: @zone, ZONES, lzone(), zwho(), zonecmd()
   
@@ -33481,6 +33491,7 @@
   * +all option to mail/read[/save] to output ALL mail (spammy) [ASH]
   * evaluation @locks pass the compared to argument as %1 [ASH]
   * account_owner() allows the owner to be any data type [ASH]
+  * inzone() optionally checks if a target belongs to a zonemaster [ASH]
   
   Bug Fixes
   ------------
