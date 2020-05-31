@@ -12653,7 +12653,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
    unsigned long maskval;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
-   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3;
+   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3, *bpmark;
   
    i_nodns = 0;
    if ( key & BLACKLIST_NODNS ) {
@@ -12672,6 +12672,8 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
       return;
    }
  
+   bpmark = NULL;
+
    switch (key) {
       case BLACKLIST_MASK:
          i_page = 0;
@@ -12977,6 +12979,9 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                break;
             }
             i_loop_chk++;
+            if ( (i_loop_chk % 20000) == 0 ) {
+               notify(player, unsafe_tprintf("@blacklist loading --- %d loaded -- continuing", i_loop_chk));
+            }
             s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
             if ( s_addrip ) {
                s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
@@ -13012,21 +13017,34 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             if ( i_nodns ) {
                if ( mudstate.nd_list == NULL) {
                   mudstate.nd_list = b_lst_ptr;
+                  bpmark = b_lst_ptr;
                } else {
-                  b_lst_ptr2 = mudstate.nd_list;
-                  while ( b_lst_ptr2->next != NULL )
-                     b_lst_ptr2=b_lst_ptr2->next;
-                  b_lst_ptr2->next = b_lst_ptr;
+                  if ( bpmark ) {
+                     bpmark->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  } else {
+                     b_lst_ptr2 = mudstate.nd_list;
+                     while ( b_lst_ptr2->next != NULL )
+                        b_lst_ptr2=b_lst_ptr2->next;
+                     b_lst_ptr2->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                 }
                }
                mudstate.blacklist_nodns_cnt++;
             } else {
                if ( mudstate.bl_list == NULL) {
                   mudstate.bl_list = b_lst_ptr;
                } else {
-                  b_lst_ptr2 = mudstate.bl_list;
-                  while ( b_lst_ptr2->next != NULL )
-                     b_lst_ptr2=b_lst_ptr2->next;
-                  b_lst_ptr2->next = b_lst_ptr;
+                  if ( bpmark ) {
+                     bpmark->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  } else {
+                     b_lst_ptr2 = mudstate.bl_list;
+                     while ( b_lst_ptr2->next != NULL )
+                        b_lst_ptr2=b_lst_ptr2->next;
+                     b_lst_ptr2->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  }
                }
                if ( i_nodns ) {
                   mudstate.blacklist_nodns_cnt++;
