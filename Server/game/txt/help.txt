@@ -33474,6 +33474,7 @@
   * totem_name         -- config param to allow renaming totems [ASH]
   * --version/-version/-v with netrhost returns version and exits [ASH]
   * totemset() side effect to set/clear @totems on targets [ASH]
+  * blacklist_max param allows a blacklist between 1000 and 5000000 [ASH]
   
   Changes
   ------------
@@ -33492,6 +33493,7 @@
   * evaluation @locks pass the compared to argument as %1 [ASH]
   * account_owner() allows the owner to be any data type [ASH]
   * inzone() optionally checks if a target belongs to a zonemaster [ASH]
+  * @blacklist now has a dynamic value to increase the IP's blocked [ASH]
   
   Bug Fixes
   ------------

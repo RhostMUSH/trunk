@@ -12666,6 +12666,8 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                      mudstate.blacklist_cnt));
       notify(player, safe_tprintf(s_buff, &s_buffptr, "            There are currently %d entries in the NoDNSlist.",
                      mudstate.blacklist_nodns_cnt));
+      notify(player, safe_tprintf(s_buff, &s_buffptr, "            Current ceiling on entries: %d",
+                     mudconf.blacklist_max));
       free_lbuf(s_buff);
       return;
    }
@@ -12966,11 +12968,11 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             fgets(s_buff, MBUF_SIZE-2, f_in);
             if ( feof(f_in) ) 
                break;
-            if ( i_loop_chk > 100000 ) {
+            if ( i_loop_chk > mudconf.blacklist_max ) {
                if ( i_nodns ) {
-                  notify(player, "@blacklist (NoDNS): WARNING - blacklist_nodns.txt exceeds 100,000 entries. Rest ignored.");
+                  notify(player, "@blacklist (NoDNS): WARNING - blacklist_nodns.txt exceeds MAX (blacklist_max) entries. Rest ignored.");
                } else {
-                  notify(player, "@blacklist: WARNING - blacklist.txt exceeds 100,000 entries. Rest ignored.");
+                  notify(player, "@blacklist: WARNING - blacklist.txt exceeds MAX (blacklist_max) entries. Rest ignored.");
                }
                break;
             }
@@ -13045,13 +13047,13 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          break;
       case BLACKLIST_ADD:
          if ( i_nodns ) {
-            if ( mudstate.blacklist_nodns_cnt > 100000 ) {
-               notify(player, "@blacklist/add: (NoDNS) Maximum 100,000 entries have been reached.  Not added.");
+            if ( mudstate.blacklist_nodns_cnt > mudconf.blacklist_max ) {
+               notify(player, "@blacklist/add: (NoDNS) Maximum (blacklist_max) entries have been reached.  Not added.");
                break;
             }
          } else {
-            if ( mudstate.blacklist_cnt > 100000 ) {
-               notify(player, "@blacklist/add: Maximum 100,000 entries have been reached.  Not added.");
+            if ( mudstate.blacklist_cnt > mudconf.blacklist_max ) {
+               notify(player, "@blacklist/add: Maximum (blacklist_max) entries have been reached.  Not added.");
                break;
             }
          }

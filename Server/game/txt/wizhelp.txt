@@ -2987,9 +2987,12 @@
   is a non-standard netmask associated with the IP.  A nonstandard netmask
   is considered one that is not /32 (255.255.255.255).
   
+  The default value of blacklists allowed are 100,000.  This value can
+  be configured with blacklist_max for between 1000 and 5,000,000.
+  
   { 'wizhelp blacklist file' for an example of the blacklist.txt file }
   
-  See Also: forbid_site, @site
+  See Also: forbid_site, @site, blacklist_max
 
 & blacklist_nodns file
 & blacklist file
@@ -6796,24 +6799,24 @@
   aregh_file               atrperms                 atrperms_checkall
   atrperms_max             attr_access              attr_alias             
   attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               blind_snuffs_cons      
-  brace_compatibility      break_compatability      cache_depth            
-  cache_steal_dirty        cache_trim               cache_width            
-  cap_articles             cap_conjunctions         cap_preposition        
-  check_interval           check_offset             clone_copies_cost      
-  cluster_cap              clusterfunc_cap          comcost                
-  command_dark             command_quota_increment  command_quota_max      
-  compress_program         compression              config_access          
-  conn_timeout             connect_file             connect_methods
-  connect_reg_file         cpu_secure_lvl           cpuintervalchk         
-  cputimechk               crash_database           create_max_cost        
-  create_min_cost          dark_sleepers            default_home           
-  delim_null               descs_are_local          dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       enhanced_convtime      
-  error_file 
+  badsite_file             bcc_hidden               blacklist_max
+  blind_snuffs_cons        brace_compatibility      break_compatability    
+  cache_depth              cache_steal_dirty        cache_trim             
+  cache_width              cap_articles             cap_conjunctions       
+  cap_preposition          check_interval           check_offset           
+  clone_copies_cost        cluster_cap              clusterfunc_cap        
+  comcost                  command_dark             command_quota_increment
+  command_quota_max        compress_program         compression            
+  config_access            conn_timeout             connect_file           
+  connect_methods          connect_reg_file         cpu_secure_lvl         
+  cpuintervalchk           cputimechk               crash_database         
+  create_max_cost          create_min_cost          dark_sleepers          
+  default_home             delim_null               descs_are_local        
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  empower_fulltel          enable_tstamps           enforce_unfindable     
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7442,6 +7445,16 @@
   in the +bcc list not be able to see the 'To:' list in mail being sent.
   If this is disabled, then the reverse is in effect, where the only ones
   who can see the 'To:' list are those who are in the +bcc list.
+
+& blacklist_max
+  Config parameter: blacklist_max <value>    Default: 100000
+  
+  Defines the maximum value of Blacklisted hosts and blacklisted NoDNS entries
+  that are allowed.  The value can be between 1000 and 5000000.  Keep in mind
+  that the larger the value the slightly more overhead on player connects as
+  this is a list that must be walked to compare against the connecting player.
+  
+  See Also: @blacklist
 
 & blind_snuffs_cons
   Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF

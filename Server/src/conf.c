@@ -348,6 +348,7 @@ NDECL(cf_init)
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
     mudconf.totem_types = 0;		/* enable totem object type recognition */
     mudconf.totem_rename = 0;		/* enable totem object type recognition */
+    mudconf.blacklist_max = 100000;	/* Default maximum blacklists allowed */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -3959,6 +3960,10 @@ CONF conftable[] =
     {(char *) "blind_snuffs_cons",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.blind_snuffs_cons, 0, 0, CA_PUBLIC,
      (char *) "BLIND flag snuff aconnect/adisconnect?"},
+    {(char *) "blacklist_max",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.blacklist_max, 5000000, 1000, CA_WIZARD,
+     (char *) "Max value allowed for blacklistt loading.\r\n"\
+              "(Range: 1000-5000000 - 120+ warn)   Default: 60   Value: %d"},
     {(char *) "brace_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.brace_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are braces MUX/TM3 compatible?"},
