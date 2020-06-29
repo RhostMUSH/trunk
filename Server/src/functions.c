@@ -2923,6 +2923,13 @@ int string_count(char* src, int numchars)
               }
            }
        }
+       if ( (src[idx] == '%') && (src[idx+1] == '<') && src[idx+2] && src[idx+3] && src[idx+4] &&
+            isdigit(src[idx+2]) && isdigit(src[idx+3]) && isdigit(src[idx+4]) &&
+            (src[idx+5] == '>') ) {
+          idx+=5;
+          ichr++;
+          continue;
+       }
        ichr++;
     }
     return ichr;
