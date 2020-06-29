@@ -33513,3 +33513,4 @@
   * SHA512 salt could be larger than some crypt algos allowed [ASH]
   * SHA512 salt allowable chars restrictive with libxcrypt [ASH]
   * wrap() and some supporting functions didn't handle XTERM256 [ASH]
+  * wrap() and supporting functions didn't honor markup accents [ASH]
