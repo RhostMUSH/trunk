@@ -2916,8 +2916,8 @@ int string_count(char* src, int numchars)
               idx+=2;
               continue;
            }
-           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+2] == 'X') || (src[idx+2] == 'x'))) ) {
-              if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+4]) ) {
+           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
+              if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+5]) ) {
                  idx+=5;
                  continue;
               }
