@@ -1328,7 +1328,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          s_execmorgrify = s_trash;
                       }
                       if ( !i_morgrify || (i_morgrify && s_execmorgrify && *s_execmorgrify) ) {
-                         notify_all_from_inside(loc, player, ss_execmorgrify);
+                         notify_all_from_inside(loc, player, s_execmorgrify);
                       }
                       if ( i_morgrify && s_execmorgrify ) {
                          free_lbuf(s_execmorgrify);
