@@ -33515,3 +33515,5 @@
   * wrap() and some supporting functions didn't handle XTERM256 [ASH]
   * wrap() and supporting functions didn't honor markup accents [ASH]
   * typo in speech.c on a variable call [ASH]
+  * copy_defaultfiles didn't work on older systems [ASH]
+  * main Makefile didn't copy files on default compiles [ASH]
