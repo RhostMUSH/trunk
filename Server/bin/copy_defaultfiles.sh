@@ -1,12 +1,14 @@
 #!/bin/sh
 cd defaults
-for a in $(find * -type d)
+for a in `find * -type d`
 do
   for b in $a/*.default
   do 
 ### - The -s switch does not exist on all unix flavors
 #   NEWFILE=$(basename -s .default $b)
-    NEWFILE=$(basename $b .default)
+#   The default /bin/sh can be a bourne shell and not bash, ash, dash, or ksh.  
+#   in which case $(...) is not supported.
+    NEWFILE=`basename $b .default`
 
     if [ ! -f "../$a/$NEWFILE" ]
       then
