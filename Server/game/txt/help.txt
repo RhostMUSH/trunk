@@ -33475,6 +33475,8 @@
   * --version/-version/-v with netrhost returns version and exits [ASH]
   * totemset() side effect to set/clear @totems on targets [ASH]
   * blacklist_max param allows a blacklist between 1000 and 5000000 [ASH]
+  * connect_perm config param specifies who can use 'connect' [ASH]
+  * MUSH_OBJID passed as an environment variable to execscript [ASH]
   
   Changes
   ------------
@@ -33494,6 +33496,7 @@
   * account_owner() allows the owner to be any data type [ASH]
   * inzone() optionally checks if a target belongs to a zonemaster [ASH]
   * @blacklist now has a dynamic value to increase the IP's blocked [ASH]
+  * switch and match logic recognizes =<, <=, =>, >=, = [ASH]
   
   Bug Fixes
   ------------

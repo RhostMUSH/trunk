@@ -17565,7 +17565,7 @@ FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
-        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
+        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS];
    dbref aowner, d_atrname;
@@ -17720,6 +17720,22 @@ FUNCTION(fun_execscript)
    setenv("MUSH_CALLER", s_combine, 1);
    sprintf(s_combine, "#%d %s", Owner(player), Name(Owner(player)));
    setenv("MUSH_OWNER", s_combine, 1);
+
+   sprintf(s_combine, "#%d", player);
+   s_t1 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", cause);
+   s_t2 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", caller);
+   s_t3 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", Owner(player));
+   s_t4 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "%s %s %s %s", s_t1, s_t2, s_t3, s_t4);
+   setenv("MUSH_OBJID", s_combine, 1);
+   free_lbuf(s_t1);
+   free_lbuf(s_t2);
+   free_lbuf(s_t3);
+   free_lbuf(s_t4);
+
    sptr2 = flag_description(GOD, player, 0, (int *)NULL, 0);
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
@@ -18143,6 +18159,7 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_CAUSE");
    unsetenv("MUSH_CALLER");
    unsetenv("MUSH_OWNER");
+   unsetenv("MUSH_OBJID");
    unsetenv("MUSH_FLAGS");
    unsetenv("MUSH_OWNERFLAGS");
    unsetenv("MUSH_TOGGLES");

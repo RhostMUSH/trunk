@@ -6808,15 +6808,15 @@
   comcost                  command_dark             command_quota_increment
   command_quota_max        compress_program         compression            
   config_access            conn_timeout             connect_file           
-  connect_methods          connect_reg_file         cpu_secure_lvl         
-  cpuintervalchk           cputimechk               crash_database         
-  create_max_cost          create_min_cost          dark_sleepers          
-  default_home             delim_null               descs_are_local        
-  dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  empower_fulltel          enable_tstamps           enforce_unfindable     
-  enhanced_convtime        error_file 
+  connect_methods          connect_perm             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            default_home             delim_null             
+  descs_are_local          dig_cost                 door_file              
+  door_index               down_file                down_motd_message      
+  dump_interval            dump_message             dump_offset            
+  earn_limit               empower_fulltel          enable_tstamps         
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7692,8 +7692,34 @@
   You may specify site ranges that are allowed to connect through this
   disabling with hardconn_site or hardconn_host.
   
-  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host
+  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host, connect_perm
 
+& connect_perm
+  Config parameter: config_perm <value>.   Default: 0
+  
+  Specifies the permission level of the player allowed to be connected
+  to with the connect screen 'connect' command.  This is intended for
+  use with the account handler subsystem.
+  
+  The following values are valid:
+    0   - (default) anyone can connect
+    1   - those set wanderer and guest can not connect
+    2   - Guildmaster and higher allowed
+    3   - Architect and higher allowed
+    4   - Councilor and higher allowed
+    5   - Wizard and higher allowed
+    6   - Immorrtal and higher allowed
+    7   - god(#1) allowed only
+    >8  - No one allowed
+  
+  The additive is used to allow guests, but still applies to the above.
+    100 - Allow guests (override) for above permissions.
+  
+  101 will only stop anyone with wanderer from connecting.
+  105 will allow guests and wizard and higher to connect. 
+  
+  See Also: logout_cmd_access, account_login(), account_owner()
+  
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
   
@@ -8158,7 +8184,7 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-  See Also: logout_cmd_access, account_login(), account_owner()
+  See Also: logout_cmd_access, account_login(), account_owner(), connect_perm
   
 { see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
@@ -12592,6 +12618,7 @@
     MUSH_FLAGS        - the flags of the player.
     MUSH_TOGGLES      - the togglesof the player.
     MUSH_OWNER        - dbref# of player's owner by name of owner.
+    MUSH_OBJID        - objid's of player, cause, caller, owner (in that order)
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
     MUSHL_VARS        - All the variables you want the script to see which
@@ -13174,7 +13201,7 @@
   That would connect you as normal.
   
   See Also: file_object, account_owner(), account_su(), account_who(), 
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
@@ -13212,7 +13239,7 @@
       You say "111"
   
   See Also: account_login(), account_su(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & ACCOUNT_SU()
   Function: account_su(<player>, <port>, <attribute>)
@@ -13234,7 +13261,7 @@
       1 Player logged in. (Bummer.)
    
   See Also: account_owner(), account_login(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
   
 & ACCOUNT_WHO()
   Function: account_who(<separator>)
@@ -13248,7 +13275,7 @@
     You say "12 20 25"
   
   See Also: account_owner(), account_login(), file_object, account_su(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & AFLAGS()
   Function: aflags(<attribute>)
@@ -14590,4 +14617,4 @@
                         subsystem.
   
   See Also: account_su(), account_owner(), account_login(), file_object,
-            connect_methods, @conncheck
+            connect_methods, @conncheck, account_perm
