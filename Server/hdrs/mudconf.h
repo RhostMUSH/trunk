@@ -450,6 +450,7 @@ struct confdata {
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
 	int	connect_methods;		/* Disable optionally connect methods */
 	int	blacklist_max;	/* Maximum blacklists allowed */
+	int	connect_perm;	/* Connect permissions */
 	char	string_conn[SBUF_SIZE];		/* String for the connect command */
 	char	string_create[SBUF_SIZE];	/* String for the connect command */
 	char	string_conndark[SBUF_SIZE];	/* String for the dark connect */

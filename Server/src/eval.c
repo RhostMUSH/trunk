@@ -1397,6 +1397,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     else
        intervalchk = mudconf.cpuintervalchk;
 
+    if ( timechk < 1 )
+       timechk = 1;
+
 //  bufc = buff = alloc_lbuf("exec.buff");
     bufc = buff = alloc_lbuf_new("exec.buff", i_line, s_file);
 

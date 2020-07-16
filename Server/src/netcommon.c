@@ -4148,12 +4148,39 @@ softcode_trigger(DESC *d, const char *msg) {
  * reg - registration connect
  */
 
+int chkbit(dbref player)
+{
+   int i_ret;
+
+   i_ret = -1;
+   if ( Good_chk(player) ) {
+      if ( God(player) ) {
+         i_ret = 7;
+      } else if (Immortal(player) ) {
+         i_ret = 6;
+      } else if (Wizard(player) ) {
+         i_ret = 5;
+      } else if (Admin(player) ) {
+         i_ret = 4;
+      } else if (Builder(player) ) {
+         i_ret = 3;
+      } else if (Guildmaster(player) ) {
+         i_ret = 2;
+      } else if (Wanderer(player) || Guest(player)) {
+         i_ret = 0;
+      } else {
+         i_ret = 1;
+      }
+   }
+   return i_ret;
+}
+
 static int 
 check_connect(DESC * d, const char *msg, int key, int i_attr)
 {
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, 
         buff2[10], cchk[SBUF_SIZE], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
-   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size,
+   int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size, i_chk,
        ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
@@ -4166,7 +4193,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
    DPUSH; /* #146 */
 
-   bittemp = bitcmp = 0;
+   bittemp = bitcmp = i_chk = 0;
    i_allow = i_return = 1;
    cmdsave = mudstate.debug_cmd;
    mudstate.debug_cmd = (char *) "< check_connect >";
@@ -4462,7 +4489,35 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          dc = 0;
       player = connect_player(user, password, (char *)d, key, i_attr);
       player2 = lookup_player(NOTHING, user, 0);
-      if (player == NOPERM) {
+      if ( mudconf.connect_perm > 100 ) {
+         i_chk = mudconf.connect_perm - 100;
+      } else {
+         i_chk = mudconf.connect_perm;
+      }
+
+      /* Trying to connect to player below specified bitlevel */
+      if ( Good_chk(player2) && (chkbit(player2) < i_chk) &&
+           !(Guest(player2) && (mudconf.connect_perm & 100)) ) {
+         queue_string(d, "Connections to that player are unable to use the standard connect command.\r\n");
+         queue_string(d, "Try account management?\r\n");
+         broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (CONNECT PERM RESTRICTED)", 
+                           d->userid, d->addr, 0, 0, 0, NULL);
+         STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "RESTRICT")
+            buff = alloc_mbuf("check_conn.LOG.restrict");
+            sprintf(buff, "[%d/%s] (RESTRICTED) Failed connect to '%s'",
+                    d->descriptor, d->addr, user);
+            log_text(buff);
+            free_mbuf(buff);
+         ENDLOG
+         if ( --(d->retries_left) <= 0 ) {
+            free_mbuf(command);
+            free_mbuf(user);
+            free_mbuf(password);
+            shutdownsock(d, R_BADLOGIN);
+            mudstate.debug_cmd = cmdsave;
+            RETURN(0); /* #146 */
+         }
+      } else if (player == NOPERM) {
          queue_string(d, "Connections to that player are not allowed from your site.\r\n");
          STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BADSITE")
             buff = alloc_mbuf("check_conn.LOG.bad");

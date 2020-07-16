@@ -349,6 +349,7 @@ NDECL(cf_init)
     mudconf.totem_types = 0;		/* enable totem object type recognition */
     mudconf.totem_rename = 0;		/* enable totem object type recognition */
     mudconf.blacklist_max = 100000;	/* Default maximum blacklists allowed */
+    mudconf.connect_perm = 0;		/* Permissions of connect */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -4061,6 +4062,10 @@ CONF conftable[] =
     {(char *) "connect_methods",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.connect_methods, 0, 0, CA_WIZARD,
      (char *) "Disable connect methods  on connect screen.\r\n"\
+              "                             Default: 0   Value: %d"},
+    {(char *) "connect_perm",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.connect_perm, 0, 0, CA_WIZARD,
+     (char *) "Bitwise mask to apply for using connect command.\r\n"\
               "                             Default: 0   Value: %d"},
     {(char *) "connect_reg_file",
      cf_string, CA_DISABLED, (int *) mudconf.creg_file, 32, 0, CA_WIZARD,

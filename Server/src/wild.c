@@ -428,27 +428,89 @@ int wild(char *tstr, char *dstr, char *args[], int nargs)
  */
 int wild_match(char *tstr, char *dstr, char *args[], int nargs, int ck_arith)
 {
-  int	i;
-	if (ck_arith) {
-		switch (*tstr) {
-		case '>':
-			for  (i=0; i<nargs; i++) args[i] = NULL;
-			tstr++;
-			if (isdigit((int)*tstr) || (*tstr == '-'))
-				return (atoi(tstr) < atoi(dstr));
-			else
-				return (strcmp(tstr, dstr) < 0);
-		case '<':
-			for  (i=0; i<nargs; i++) args[i] = NULL;
-			tstr++;
-			if (isdigit((int)*tstr) || (*tstr == '-'))
-				return (atoi(tstr) > atoi(dstr));
-			else
-				return (strcmp(tstr, dstr) > 0);
-		}
-	}
+   int i, i_loop, i_type;
 
-	return nargs ? wild(tstr, dstr, args, nargs) : quick_wild(tstr, dstr);
+   if ( ck_arith ) {
+      i_loop = 1;
+      i_type = 0;
+      while ( i_loop ) {
+         switch (*tstr) {
+            case '>': /* Greater-than */
+               if ( i_type & 3 ) {
+                  i_loop = 0;
+               } else {
+                  i_type |= 1;
+                  tstr++;
+               }
+               break;
+            case '<': /* Less-than */
+               if ( i_type & 3 ) {
+                  i_loop = 0;
+               } else {
+                  i_type |= 2;
+                  tstr++;
+               }
+               break;
+            case '=': /* Equal */
+               if ( i_type & 4 ) {
+                  i_loop = 0;
+               } else {
+                  i_type |= 4;
+                  tstr++;
+               }
+               break;
+            default: /* Break out */
+               i_loop = 0;
+         }
+      }
+      if ( i_type ) {
+         for  (i=0; i<nargs; i++) args[i] = NULL;
+
+         i_loop = 0;
+         if ( isdigit((int)*tstr) || (*tstr == '-') ) {
+            i_loop = 1;
+         }
+         switch (i_type ) {
+            case 1: /* gt */
+               if ( i_loop ) {
+                  return (atoi(tstr) < atoi(dstr));
+               } else {
+                  return (strcmp(tstr, dstr) < 0);
+               }
+               break;
+            case 2: /* lt */
+               if ( i_loop ) {
+                  return (atoi(tstr) > atoi(dstr));
+               } else {
+                  return (strcmp(tstr, dstr) > 0);
+               }
+               break;
+            case 4: /* eq */
+               if ( i_loop ) {
+                  return (atoi(tstr) == atoi(dstr));
+               } else {
+                  return (strcmp(tstr, dstr) == 0);
+               }
+               break;
+            case 5: /* gte */
+               if ( i_loop ) {
+                  return (atoi(tstr) <= atoi(dstr));
+               } else {
+                  return (strcmp(tstr, dstr) <= 0);
+               }
+               break;
+            case 6: /* lte */
+               if ( i_loop ) {
+                  return (atoi(tstr) >= atoi(dstr));
+               } else {
+                  return (strcmp(tstr, dstr) >= 0);
+               }
+               break;
+         }
+      }
+   }
+
+   return nargs ? wild(tstr, dstr, args, nargs) : quick_wild(tstr, dstr);
 }
 
 
