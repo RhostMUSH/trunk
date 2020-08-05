@@ -549,7 +549,7 @@
   POWER LIST               PROXY SETUP              REALITY LEVELS         
   SEARCH CRITERIA          SIGNALS                  SITE LISTS             
   SPECIAL ATTRIBS          SSL SETUP                TAGS                   
-  TOGGLES                  TOR                
+  TOGGLES                  TOR                      TOTEMS
 
 & API
   Topic: API
@@ -5389,8 +5389,94 @@
  
   See also: wizhelp tags, help tag()
    
+& TOTEMS
+  Topic: TOTEMS
+  
+  Totems are a generic overset of flags and toggles.  Eventually this will
+  be the functionality that will take over control of flags and toggles
+  internally to the mush.
+  
+  Totems are unique to flags and toggles in the fact that:
+    1.  They can be defined and removed dynamically without any type
+        of damage to the mush or the database.
+    2.  They can be renamed without any damage to the mush or the
+        database.
+    3.  They can be defined statically via config file entries.
+    4.  They can be defined permanently via source files and compiled in
+        just like a normal flag and toggle.
+    5.  With hardcode only, they can be assigned unique control, power,
+        or similar affect as when toggles and flags.
+    6.  The number of totems can be increased or shrunk dynamically
+        without damaging the database.  Howeber, if hardcoding to
+        a specific slot, it likely won't compile if you shrink to
+        the point that slot no longer exists.
+  
+  A totem 'slot' is a unique flag space that contains 32 unique flags
+  for that slot.  By default there are 10 slots allowing a total of
+  320 flags.  Each flag has a unique slot and flag bitmask for its
+  identifier.
+  
+  { wizhelp totem2 for memory statistics and guidelines }
+   
+& TOTEM2
+  Totems are all held in memory so the overhead will be based on the
+  total number of slots and the total number of objects in the database.
+  
+  Flag and totem spaces are stored in an attribute space, so the larger
+  your LBUF size, the larger the contents of the attribute and the larger
+  number of totems you can have. 
+  
+  If you shrink the LBUF size to no longer hold the slots, the slots will
+  be cut off and upon loading the game will see it as a slot shrink event
+  and reduce the total slots.
+  
+  Statistically the following is a general guideline with max values:
+    Max values:
+      *** 4K  lbufs -  300 max slots  (for   9600 flags) 
+      *** 8K  lbufs -  600 max slots  (for  19200 flags) 
+      *** 16K lbufs - 1200 max slots  (for  38400 flags) 
+      *** 32K lbufs - 2500 max slots  (for  80000 flags) 
+      *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+ 
+ Overhead: ((slots * 8) * total objects) + (flags * name len) + (slots * 8)
+ 
+ Flags have a hard name length of 20 characters.
+ Slots are defined as a long or 8 bytes of overhead for the declaration.
+  
+ Flags are based on how many are used only.
+ 
+ Memory overhead assuming all flags possible used with max length of name.
+   5000 obj db, 300 slots: ((300 * 8) * 5000) + (9600 * 20) + (300 * 8)
+     --> 12,194,400 (12 MB)
+   20000 obj db, 2500 slots: ((2500 * 8) * 20000) + (80000 * 20) + (2500 * 8)
+     --> 401,620,000 (400 MB)
+   20000 obj db, 40 slots: ((40 * 8) * 20000) + (1280 * 20) + (40 * 8)
+     --> 6,425,920 (6.4 MB)
+   20000 obj db, 10 slots: ((10 * 8) * 20000) + (320 * 20) + (10 * 8) 
+     --> 1,606,480 (1.6 MB)
+  
+ A realistic medium sized game will have about 8000 objects and stick with
+ the default of 10 slots.
+   8000 obj db, 10 slots: ((10 * 8) * 8000) + (320 * 20) + (10 * 8)
+     --> 646,480 (640 KB)
+  
+ And sure, let's assume an obscene sized game with obscene sized totems.
+ You know, just for giggles.
+   100k obj db, 5000 slots: ((5000 * 8) * 100000) + (160000 * 20) + (5000 * 8)
+    --> 4,003,240,000 (4 GB)
+ 
+ Or about the overhead of firefox :) 
+ 
+ But why you'd want or need 160,000 flags is anyone's guess.
+  
+ So as seen, default usage will cause minimal overhead, while maxing out
+ the totems to the obscene will gobble up a bit of memory for very large
+ games.
+  
 & @totem
   Command: @totem[/<switches>] [<totemname> [=<args>]
+  
+  See 'TOTEMS' for a general overview of totems.
   
   The @totem command is the administative tool for in-game adding and
   manipulation of @totems.  You may also add them in the source or through
