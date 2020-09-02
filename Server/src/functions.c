@@ -22433,13 +22433,13 @@ FUNCTION(fun_lcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2, *namebuff, *namebufcx;
-    int i, j, t, loop, i_objid;
+    int i, j, t, loop, i_objid, i_conchk, i_content;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     ATTR *ap;
 
-    if (!fn_range_check("LCON", nfargs, 1, 5, buff, bufcx))
+    if (!fn_range_check("LCON", nfargs, 1, 6, buff, bufcx))
       return;
     if ( (nfargs > 3) && *fargs[3] ) {
       if(stricmp(fargs[3],"0") && stricmp(fargs[3],"1") && stricmp(fargs[3],"")) {
@@ -22456,6 +22456,12 @@ FUNCTION(fun_lcon)
        }
        i_objid = (atoi(fargs[4]) ? 1 : 0);       
     }
+
+    i_conchk = i_content =  0;
+    if ( (nfargs > 5) && *fargs[5] ) {
+       i_conchk = (atoi(fargs[5]) ? 1 : 0);       
+    }
+
     t = 0;
     canhear = 0;
     cancom = 0;
@@ -22644,50 +22650,61 @@ FUNCTION(fun_lcon)
                             ( !nearby_exam_or_control(player, thing) ||
                               (Cloak(thing) && !Wizard(player)) ||
                               (SCloak(thing) && Cloak(thing) && !Immortal(player)) ) )  {
-                          safe_str("#-1", namebuff, &namebufcx);
-                       } else  {
-                          safe_str(Name(thing), namebuff, &namebufcx);
-                          if (gotone) {
-                              /* tbuf is an SBUF so we can't just add this to it */
-                              if ( (nfargs > 2) && *fargs[2] ) {
-                                 safe_str(fargs[2], buff, bufcx);
-                                 safe_str(namebuff, buff, bufcx);
-                              } else {
-                                 safe_chr(' ', buff, bufcx);
-                                 safe_str(namebuff, buff, bufcx);
-                              }
-                          } else {
-                              safe_str(namebuff, buff, bufcx);
+                          if ( !i_conchk ) {
+                             safe_str("#-1", namebuff, &namebufcx);
                           }
-                       }
+                          i_content++;
+                       } else  {
+                          if ( !i_conchk ) {
+                             safe_str(Name(thing), namebuff, &namebufcx);
+                             if (gotone) {
+                                 /* tbuf is an SBUF so we can't just add this to it */
+                                 if ( (nfargs > 2) && *fargs[2] ) {
+                                    safe_str(fargs[2], buff, bufcx);
+                                    safe_str(namebuff, buff, bufcx);
+                                 } else {
+                                    safe_chr(' ', buff, bufcx);
+                                    safe_str(namebuff, buff, bufcx);
+                                 }
+                             } else {
+                                 safe_str(namebuff, buff, bufcx);
+                             }
+                          }
+                       } 
+                       i_content++;
                        gotone = 1;
                        free_lbuf(namebuff);
                     } else {
                        if (gotone) {
-                          /* tbuf is an SBUF so we can't just add this to it */
-                          if ( (nfargs > 2) && *fargs[2] ) {
-                             safe_str(fargs[2], buff, bufcx);
+                          if ( !i_conchk ) {
+                             /* tbuf is an SBUF so we can't just add this to it */
+                             if ( (nfargs > 2) && *fargs[2] ) {
+                                safe_str(fargs[2], buff, bufcx);
+                                if ( i_objid ) {
+                                   sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                                } else {
+                                   sprintf(tbuf, "#%d", thing);
+                                }
+                             } else {
+                                if ( i_objid ) {
+                                   sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
+                                } else {
+                                   sprintf(tbuf, " #%d", thing);
+                                }
+                             }
+                          } else {
                              if ( i_objid ) {
                                 sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
                              } else {
                                 sprintf(tbuf, "#%d", thing);
                              }
-                          } else {
-                             if ( i_objid ) {
-                                sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
-                             } else {
-                                sprintf(tbuf, " #%d", thing);
-                             }
-                          }
-                       } else {
-                          if ( i_objid ) {
-                             sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
-                          } else {
-                             sprintf(tbuf, "#%d", thing);
                           }
                        }
+                       i_content++;
                        gotone = 1;
-                       safe_str(tbuf, buff, bufcx);
+                       if ( !i_conchk ) {
+                          safe_str(tbuf, buff, bufcx);
+                       }
                     }
 #ifdef REALITY_LEVELS
                 }
@@ -22698,14 +22715,23 @@ FUNCTION(fun_lcon)
         }
         free_sbuf(tbuf);
         if (i == j) {  
-            if ( !mudconf.mux_lcon_compat ) {
-               safe_str("#-1", buff, bufcx);
+            if ( i_conchk ) {
+               ival(buff, bufcx, i_content);
+            } else if ( !mudconf.mux_lcon_compat ) {
+                safe_str("#-1", buff, bufcx);
             }
+        } else if ( i_conchk ) {
+            ival(buff, bufcx, i_content);
         }
     } else if ( Good_obj(it) && !Has_contents(it) ) {
+        if ( i_conchk ) {
+           ival(buff, bufcx, i_content);
+        }
         return;
     } else {
-       if ( !mudconf.mux_lcon_compat ) {
+       if ( i_conchk ) {
+          ival(buff, bufcx, i_content);
+       } else if ( !mudconf.mux_lcon_compat ) {
           safe_str("#-1", buff, bufcx);
        }
     }
