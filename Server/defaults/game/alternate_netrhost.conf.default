@@ -86,7 +86,7 @@ icmd_obj             -1
 file_object          -1
 admin_object         -1
 
-# hosts/sites/names
+# hosts/sites/names/login
 
 #forbid_host
 #forbid_site
@@ -111,6 +111,8 @@ admin_object         -1
 #good_name
 tor_paranoid      0
 #tor_localhost
+blacklist_max     100000
+connect_perm      0
 
 # rwho
 
@@ -222,7 +224,7 @@ examine_flags   1
 look_moreflags  0
 public_flags    1
 
-# totem
+# totems
 #totem_add
 #totem_alias
 #totem_access_set
@@ -230,6 +232,9 @@ public_flags    1
 #totem_access_see
 #totem_access_type
 #totem_letter
+#totem_name
+totem_types         0
+totem_rename        0
 
 # reality levels
 
