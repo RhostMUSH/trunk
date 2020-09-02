@@ -18635,8 +18635,12 @@
   See Also: time(), secs(), timefmt()
   
 & LCON()
-  Function: lcon(<object>[/switch] [[,<switch>] [,<sep>] [,<name>] [,<objid>]])
+  Function: lcon(<obj>[/swi] [[,<swi> [,<sep> [,<name> [,<objid> [,<count>]])
  
+  If you specify <count> with any argument, it returns the total number of
+  items instead of the list of items.  This option will work with all other
+  options.
+  
   Returns a space-separated list of the contents of <object>.
   It takes specific switches as an option:
       /PLAYER    -- lists all TYPE players in the contents.
@@ -33497,6 +33501,7 @@
   * inzone() optionally checks if a target belongs to a zonemaster [ASH]
   * @blacklist now has a dynamic value to increase the IP's blocked [ASH]
   * switch and match logic recognizes =<, <=, =>, >=, = [ASH]
+  * lcon() has optional count value to return total counts [ASH]
   
   Bug Fixes
   ------------
@@ -33520,3 +33525,4 @@
   * typo in speech.c on a variable call [ASH]
   * copy_defaultfiles didn't work on older systems [ASH]
   * main Makefile didn't copy files on default compiles [ASH]
+  * @tel/list could potentially DoS the mush on ridiculous contents [ASH]

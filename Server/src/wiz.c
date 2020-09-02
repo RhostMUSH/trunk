@@ -89,310 +89,334 @@ wiz_time_format_2(time_t dt)
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)
 {
-  dbref	victim, destination, loc;
-  char	*to, *arg1, *arg2, separgs[3], *tstrtokr;
-  int	con, dcount, quiet, side_effect=0, tel_bool_chk;
+   dbref victim, destination, loc;
+   char *to, *arg1, *arg2, separgs[3], *tstrtokr, *cpulbuf;
+   int con, dcount, quiet, side_effect=0, tel_bool_chk, i_abort;
+   time_t i_time, i_timechk;
 
-	/* get victim */
-      if ( mudstate.remotep != NOTHING) {
-         notify(player, "You can't teleport.");
-         return;
-      }
+   /* get victim */
+   if ( mudstate.remotep != NOTHING) {
+      notify(player, "You can't teleport.");
+      return;
+   }
 
-      if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
-         notify(player, "No valid destination to teleport to.");
-         return;
-      }
-      tel_bool_chk = 0;
-      if (key & TEL_QUIET) {
-	key &= ~TEL_QUIET;
-	quiet = 1;
-      }
+   if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
+      notify(player, "No valid destination to teleport to.");
+      return;
+   }
+
+   tel_bool_chk = 0;
+   if (key & TEL_QUIET) {
+      key &= ~TEL_QUIET;
+      quiet = 1;
+   } else {
+      quiet =0;
+   }
+
+   if ( key & SIDEEFFECT ) {
+      key &= ~SIDEEFFECT;
+      side_effect=1;
+   }
+   if (nargs < 1) {
+      notify(player,"No destination given.");
+      return;
+   }
+   memset(separgs, '\0', sizeof(separgs));
+
+   if ((key != TEL_LIST) && (nargs > 1)) {
+      notify(player,"Extra destinations ignored."); 
+   }
+
+   dcount = 0;
+   con = 1;
+   if (key == TEL_LIST) {
+      if ( strchr(slist, ',') != NULL )
+         *separgs = ',';
       else
-	quiet =0;
-      if ( key & SIDEEFFECT ) {
-        key &= ~SIDEEFFECT;
-	side_effect=1;
+         *separgs = ' ';
+      arg1 = strtok_r(slist, separgs, &tstrtokr);
+      if (!arg1) {
+         notify(player,"No match.");
       }
-      if (nargs < 1) {
-	notify(player,"No destination given.");
-	return;
-      }
-      memset(separgs, '\0', sizeof(separgs));
+   } else {
+      arg1 = slist;
+   }
 
-      if ((key != TEL_LIST) && (nargs > 1))
-	notify(player,"Extra destinations ignored."); 
-      dcount = 0;
-      con = 1;
-      if (key == TEL_LIST) {
-        if ( strchr(slist, ',') != NULL )
-           *separgs = ',';
-        else
-           *separgs = ' ';
-	arg1 = strtok_r(slist, separgs, &tstrtokr);
-	if (!arg1) {
-	  notify(player,"No match.");
-	}
+   i_time = time(NULL);
+   i_abort = 0;
+   while (con && arg1 && ((dcount < nargs) || (nargs == 1))) {
+      i_timechk = time(NULL);
+      /* We allow twice the time check on this */
+      if ( (key & TEL_LIST) && (i_timechk > (i_time + (mudconf.cputimechk * 2))) ) {
+         notify(player, "@tel/list exceeded the timeout limit");
+         i_abort = 1;
       }
-      else {
-	arg1 = slist;
+      if ( (key & TEL_LIST) && (mudstate.chkcpu_toggle || i_abort) ) {
+         broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (@tel/list)",
+                           (char *)"(@tel list processing)", NULL, player, 0, 0, NULL);
+         STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+            log_name_and_loc(player);
+            cpulbuf = alloc_lbuf("log_@tel_cpuslam");
+            sprintf(cpulbuf, " CPU/@tel-list overload: #%d (Loc: %d) - UseLock Eval", player, Location(player));
+            log_text(cpulbuf);
+            free_lbuf(cpulbuf);
+         ENDLOG
+         break;
       }
-      while (con && arg1 && ((dcount < nargs) || (nargs == 1))) {
 
-      if (key != TEL_LIST) con = 0;
+      if (key != TEL_LIST) {
+         con = 0;
+      }
       arg2 = dlist[dcount];
-      if (nargs != 1)
-	dcount++;
+      if (nargs != 1) {
+         dcount++;
+      }
       if (key == TEL_JOIN) {
-	loc = lookup_player(player,arg1,0);
-	if (loc == NOTHING) {
-	  notify(player,"Player not found.");
-	  return;
-	}
-	if ((!HasPriv(player,loc,POWER_JOIN_PLAYER,POWER3,NOTHING)) && !Controls(player,loc)) {
-	  notify(player,"Permission denied.");
-	  return;
-	}
-	sprintf(arg1,"#%d",Location(loc));
-	victim = player;
-	to = arg1;
-      }
-      else if (key == TEL_GRAB) {
-	victim = lookup_player(player,arg1,0);
-	if (victim == NOTHING) {
-	  notify(player,"Player not found.");
-	  return;
-	}
-	sprintf(arg1,"#%d",Location(player));
-	to = arg1;
-      }
-      else {
-	if (*arg2 == '\0') {
-		victim = player;
-		to = arg1;
-	} else {
-		init_match(player, arg1, NOTYPE);
-		match_everything(0);
-		victim = noisy_match_result();
+         loc = lookup_player(player,arg1,0);
+         if (loc == NOTHING) {
+            notify(player,"Player not found.");
+            return;
+         }
+         if ((!HasPriv(player,loc,POWER_JOIN_PLAYER,POWER3,NOTHING)) && !Controls(player,loc)) {
+            notify(player,"Permission denied.");
+            return;
+         }
+         sprintf(arg1,"#%d",Location(loc));
+         victim = player;
+         to = arg1;
+      } else if (key == TEL_GRAB) {
+         victim = lookup_player(player,arg1,0);
+         if (victim == NOTHING) {
+            notify(player,"Player not found.");
+            return;
+         }
+         sprintf(arg1,"#%d",Location(player));
+         to = arg1;
+      } else {
+         if (*arg2 == '\0') {
+            victim = player;
+            to = arg1;
+         } else {
+            init_match(player, arg1, NOTYPE);
+            match_everything(0);
+            victim = noisy_match_result();
 
-		if (victim == NOTHING) {
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-		to = arg2;
-	}
+            if (victim == NOTHING) {
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+            to = arg2;
+         }
       }
 
-	/* Validate type of victim */
+      /* Validate type of victim */
+      if (!Has_location(victim) && !isExit(victim)) {
+         notify_quiet(player, "You can't teleport that.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
 
-	if (!Has_location(victim) && !isExit(victim)) {
-		notify_quiet(player, "You can't teleport that.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+      /* Fail if we don't control the victim or the victim's location */
+      if ((!Controls(player, victim) && !HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER) &&
+           !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
+           !Controls(player, Location(victim)) && !TelOK(victim)) || Fubar(player) ||
+          (Fubar(victim) && !Wizard(player)) || DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
 
-	/* Fail if we don't control the victim or the victim's location */
-	if ((!Controls(player, victim) && !HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER) &&
-		!((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
-		!Controls(player, Location(victim)) && !TelOK(victim)) || Fubar(player) ||
-		(Fubar(victim) && !Wizard(player)) || DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
+         notify_quiet(player, "Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if ((Immortal(victim) && SCloak(victim) && (!Immortal(player) || !Controls(player,victim))) ||
+          (Wizard(victim) && Cloak(victim) && !Wizard(player))) {
 
-		notify_quiet(player, "Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if ((Immortal(victim) && SCloak(victim) && (!Immortal(player) || !Controls(player,victim))) ||
-	   (Wizard(victim) && Cloak(victim) && !Wizard(player))) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if (Wizard(victim) && !Controls(player,victim) && !TelOK(victim)) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
-		if( victim == player )
-			notify_quiet(player,"You aren't allowed to @tel.");
-		else
-			notify_quiet(player,"That can't be @tel'd.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if (Wizard(victim) && !Controls(player,victim) && !TelOK(victim)) {
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
+         if ( victim == player ) {
+            notify_quiet(player,"You aren't allowed to @tel.");
+         } else {
+            notify_quiet(player,"That can't be @tel'd.");
+         }
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
 
-	/* Check for teleporting home */
+      /* Check for teleporting home */
+      if (!string_compare(to, "home") && !isExit(victim)) {
+         (void)move_via_teleport(victim, HOME, player, 0, quiet);
+         if ( !((side_effect) || Quiet(player)) ) {
+            notify_quiet(player,"Teleported.");
+         }
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+ 
+      if ((Privilaged(victim) && !Controls(player,victim) && !TelOK(victim) &&
+          !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
+          !(HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER))) ||
+          DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
+ 
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+ 
+      /* Find out where to send the victim */
+      init_match(player, to, NOTYPE);
+      match_everything(0);
+      destination = match_result();
+ 
+      switch (destination) {
+         case NOTHING:
+            notify_quiet(player, "No match.");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         case AMBIGUOUS:
+            notify_quiet(player, "I don't know which destination you mean!");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         default:
+            if (Recover(destination) && !Immortal(player)) {
+               notify_quiet(player, "No match.");
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+            if (victim == destination) {
+               notify_quiet(player, "Bad destination.");
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+      }
 
-	if (!string_compare(to, "home") && !isExit(victim)) {
-		(void)move_via_teleport(victim, HOME, player, 0, quiet);
-		if ( !((side_effect) || Quiet(player)) )
-		   notify_quiet(player,"Teleported.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+      /* If fascist teleport is on, you must control the victim's ultimate
+       * location (after LEAVEing any objects) or it must be JUMP_OK.
+       */
 
-	if ((Privilaged(victim) && !Controls(player,victim) && !TelOK(victim) &&
-	    !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
-	    !(HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER))) ||
-	     DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-
-	/* Find out where to send the victim */
-
-	init_match(player, to, NOTYPE);
-        match_everything(0);
-	destination = match_result();
-
-	switch (destination) {
-	case NOTHING:
-		notify_quiet(player, "No match.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	case AMBIGUOUS:
-		notify_quiet(player,
-			"I don't know which destination you mean!");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	default:
-		if (Recover(destination) && !Immortal(player)) {
-		  notify_quiet(player, "No match.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-		if (victim == destination) {
-			notify_quiet(player, "Bad destination.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-	}
-
-	/* If fascist teleport is on, you must control the victim's ultimate
-	 * location (after LEAVEing any objects) or it must be JUMP_OK.
-	 */
-
-	if (mudconf.fascist_tport) {
-		loc = where_room(victim);
-		if (!Good_obj(loc) || !isRoom(loc) ||
-		    (!Controls(player, loc) && !Jump_ok(loc))) {
-			notify_quiet(player, "Permission denied.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-	}
+      if (mudconf.fascist_tport) {
+         loc = where_room(victim);
+         if ( !Good_obj(loc) || !isRoom(loc) ||
+              (!Controls(player, loc) && !Jump_ok(loc))) {
+            notify_quiet(player, "Permission denied.");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         }
+      }
 			
-	if (Has_contents(destination)) {	
+      /* You must control the destination, or it must be a JUMP_OK
+       * room where you pass its TELEPORT lock.
+       */
+      if (Has_contents(destination)) {	
+         if ( mudconf.empower_fulltel ) {
+            tel_bool_chk = (!Good_obj(victim) || !Good_obj(destination) ||
+                            Cloak(victim) || Cloak(destination) || (victim == 1) || (destination == 1));
+         } else {
+            tel_bool_chk = (victim != player);
+         }
 
-		/* You must control the destination, or it must be a JUMP_OK
-		 * room where you pass its TELEPORT lock.
-		 */
+         if ( ((!Controls(player, destination) && 
+              !HasPriv(player,destination,POWER_TEL_ANYWHERE,POWER4,POWER_CHECK_OWNER) &&
+                (!HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) ||
+                 (HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) &&
+                  (God(destination) || Cloak(destination) || Going(destination) || 
+                   Recover(destination) || !isPlayer(victim) || tel_bool_chk)))) ||
+              DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
+              DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
+              (!Jump_ok(destination) || !could_doit(player, destination, A_LTPORT,1,0))) {
 
-                if ( mudconf.empower_fulltel )
-                   tel_bool_chk = (!Good_obj(victim) || !Good_obj(destination) ||
-                                    Cloak(victim) || Cloak(destination) || (victim == 1) || (destination == 1));
-                else
-                   tel_bool_chk = (victim != player);
+           /* Nope, report failure */
+           if (player != victim) {
+              notify_quiet(player, "Permission denied.");
+           }
+           if ( !isExit(victim) && !((Owner(victim) != Owner(cause)) && TelOK(victim)) ) {
+              did_it(victim, destination, A_TFAIL, "You can't teleport there!", A_OTFAIL, 0, A_ATFAIL, (char **)NULL, 0);
+           }
+           if (key != TEL_LIST) {
+              continue;
+           } else {
+              arg1 = strtok_r(NULL, separgs, &tstrtokr);
+              continue;
+           }
+        }
 
-		if (((!Controls(player, destination) && 
-		     !HasPriv(player,destination,POWER_TEL_ANYWHERE,POWER4,POWER_CHECK_OWNER) &&
-                     (!HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) ||
-                      (HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) &&
-                       (God(destination) || Cloak(destination) || Going(destination) || 
-                        Recover(destination) || !isPlayer(victim) || tel_bool_chk)))) ||
-			DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
-			DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
-		    (!Jump_ok(destination) ||
-		     !could_doit(player, destination, A_LTPORT,1,0))) {
+        /* We're OK, do the teleport */
+        if (move_via_teleport(victim, destination, player, 0, quiet)) {
+           if (player != victim) {
+              if (! (Quiet(player) || (side_effect)) ) {
+                 notify_quiet(player, "Teleported.");
+              }
+           }
+        }
+     } else if (isExit(destination) && !isExit(victim)) {
+        if (Exits(destination) == Location(victim)) {
+           move_exit(victim, destination, 0, "You can't go that way.", 0);
+        } else {
+           notify_quiet(player, "I can't find that exit.");
+        }
+     }
 
-			/* Nope, report failure */
-
-			if (player != victim)
-				notify_quiet(player, "Permission denied.");
-			if (!isExit(victim) && !((Owner(victim) != Owner(cause)) && TelOK(victim))  )
-			  did_it(victim, destination,
-				A_TFAIL, "You can't teleport there!",
-				A_OTFAIL, 0, A_ATFAIL, (char **)NULL, 0);
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-
-		/* We're OK, do the teleport */
-
-		if (move_via_teleport(victim, destination, player, 0, quiet)) {
-			if (player != victim) {
-				if (! (Quiet(player) || (side_effect)) )
-					notify_quiet(player, "Teleported.");
-			}
-		}
-	} else if (isExit(destination) && !isExit(victim)) {
-		if (Exits(destination) == Location(victim)) {
-			move_exit(victim, destination, 0,
-				"You can't go that way.", 0);
-		} else {
-			notify_quiet(player, "I can't find that exit.");
-		}
-	}
-	if (key == TEL_LIST)
-          arg1 = strtok_r(NULL, separgs, &tstrtokr);
-      }
+     if (key == TEL_LIST) {
+        arg1 = strtok_r(NULL, separgs, &tstrtokr);
+     }
+  } /* While */
 }
 
 /* ---------------------------------------------------------------------------
