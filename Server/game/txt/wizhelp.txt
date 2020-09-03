@@ -7793,7 +7793,7 @@
   See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host, connect_perm
 
 & connect_perm
-  Config parameter: config_perm <value>.   Default: 0
+  Config parameter: connect_perm <value>.   Default: 0
   
   Specifies the permission level of the player allowed to be connected
   to with the connect screen 'connect' command.  This is intended for
