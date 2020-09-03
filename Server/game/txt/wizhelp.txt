@@ -4361,7 +4361,7 @@
   See Also: @toad, @turtle
 
 & @pcreate
-  Command: @pcreate [#dbref] <player>=<password>
+  Command: @pcreate[/switch] [#dbref] <player>=<password>
            @pcreate/register [#dbref] <player>=<email>
   
   Creates a new player with the indicated password.  This command is
@@ -4380,6 +4380,7 @@
                   target email.  Only wizards and higher may use this.
       /ansi     - Combines @pcreate with @extansi to ansify the name
                   of the player.  This follows @extansi permissions.
+      /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
@@ -4555,11 +4556,15 @@
   See Also: @recover, @purge
 
 & @create
-  Command: @create [#dbref] <name> [=cost]
+  Command: @create[/switch] [#dbref] <name> [=cost]
+  
   This works just like the mortal's @create except you can specify the dbref#
   that you wish to use for the object.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'
@@ -4569,11 +4574,15 @@
   See Also: @dig, @open, @pcreate
 
 & @dig
-  Command: @dig [#dbref] <name> [=<exit to link here>, <exit to link there>]
+  Command: @dig[/switch] [#dbref] <name> [=<exit to here>, <exit to target>]
+  
   This works just like the mortal's @dig except you can specify the dbref#
   that you wish to use for the room.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'
@@ -4583,12 +4592,15 @@
   See Also: @create, @open, @pcreate
 
 & @open
-  Command: @open [#dbref] <name> [=<#room>]
+  Command: @open[/switch] [#dbref] <name> [=<#room>]
   
   This works just like the mortal's @open except you can specify the dbref#
   that you wish to use for the exit.  The #dbref *must* be in the free
   list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'

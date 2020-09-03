@@ -35185,7 +35185,7 @@ FUNCTION(fun_link)
 FUNCTION(fun_create)
 {
    char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
-   int nitems;
+   int nitems, i_key;
    dbref thing;
    CMDENT *cmdp;
 
@@ -35194,7 +35194,7 @@ FUNCTION(fun_create)
       return;
    }
 
-   if (!fn_range_check("CREATE", nfargs, 1, 4, buff, bufcx))
+   if (!fn_range_check("CREATE", nfargs, 1, 5, buff, bufcx))
       return;
 
    mudstate.store_lastcr = -1;
@@ -35222,6 +35222,13 @@ FUNCTION(fun_create)
    }
    mudstate.sidefx_currcalls++;
 
+   i_key = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      if ( atoi(fargs[4]) ) {
+         i_key = OBJECT_STRICT;
+      }
+   }
+
    switch (sep) {
       case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
@@ -35229,7 +35236,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
+                 do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
       case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
@@ -35238,7 +35245,7 @@ FUNCTION(fun_create)
                     break;
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
-                 do_dig(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
@@ -35247,7 +35254,7 @@ FUNCTION(fun_create)
                     break;
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
-                 do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
@@ -35261,13 +35268,13 @@ FUNCTION(fun_create)
                        if ( !Good_chk(thing) || !Controls(player, thing) ) {
                           notify(player, "Invalid target for @robot.");
                        } else {
-                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT), fargs[0], fargs[1]);
+                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT|i_key), fargs[0], fargs[1]);
                        }
                     } else {
                        notify(player, "Invalid target for @robot.");
                     }
                  } else {
-                    do_pcreate(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                    do_pcreate(player, cause, (SIDEEFFECT|i_key), fargs[0], fargs[1]);
                  }
                  break;
       default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
@@ -35276,7 +35283,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
+                 do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
    }
    free_lbuf(myfargs);
@@ -35288,7 +35295,7 @@ FUNCTION(fun_create)
 FUNCTION(fun_dig)
 {
    char *ptrs[LBUF_SIZE / 2], fillbuf[LBUF_SIZE+1];
-   int nitems, i_sanitizedbref;
+   int nitems, i_sanitizedbref, i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_DIG) ) {
@@ -35308,13 +35315,21 @@ FUNCTION(fun_dig)
       return;
    }
    memset(fillbuf, 0, sizeof(fillbuf));
-   if (!fn_range_check("DIG", nfargs, 1, 5, buff, bufcx))
+
+   if (!fn_range_check("DIG", nfargs, 1, 6, buff, bufcx))
       return;
    if ( nfargs > 2 ) {
       sprintf(fillbuf, "%.*s,%.*s", ((LBUF_SIZE / 2) - 1), fargs[1], ((LBUF_SIZE / 2) - 1), fargs[2]);
    }
    else if (nfargs > 1) {
       sprintf(fillbuf, "%.*s", (LBUF_SIZE - 10), fargs[1]);
+   }
+
+   i_key = 0;
+   if ( (nfargs > 5) && *fargs[5] ) {
+      if ( atoi(fargs[5]) ) {
+         i_key = OBJECT_STRICT;
+      }
    }
    nitems = list2arr(ptrs, LBUF_SIZE / 2, fillbuf, ',');
    i_sanitizedbref = -1;
@@ -35335,7 +35350,7 @@ FUNCTION(fun_dig)
       if ( i_sanitizedbref != 1 )
          i_sanitizedbref = 0;
    }
-   do_dig(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+   do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
    if ( mudconf.sidefx_returnval ) {
       if ( i_sanitizedbref ) {
@@ -35350,7 +35365,7 @@ FUNCTION(fun_dig)
 FUNCTION(fun_open)
 {
    char *ptrs[LBUF_SIZE / 2];
-   int nitems, i_sanitizedbref;
+   int nitems, i_sanitizedbref, i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_OPEN) ) {
@@ -35368,8 +35383,15 @@ FUNCTION(fun_open)
       notify(player, "Permission denied.");
       return;
    }
-   if (!fn_range_check("OPEN", nfargs, 1, 3, buff, bufcx))
+   if (!fn_range_check("OPEN", nfargs, 1, 4, buff, bufcx))
       return;
+
+   i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      if ( atoi(fargs[3]) ) {
+         i_key = OBJECT_STRICT;
+      }
+   }
    nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
    mudstate.store_lastcr = -1;
    mudstate.store_loc = -1;
@@ -35380,7 +35402,7 @@ FUNCTION(fun_open)
            controls(player, (dbref)i_sanitizedbref) )
          mudstate.store_loc = (dbref)i_sanitizedbref;
    }
-   do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+   do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);

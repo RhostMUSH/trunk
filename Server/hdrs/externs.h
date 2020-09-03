@@ -573,6 +573,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 /* Command handler keys */
 
+#define OBJECT_STRICT	0x10000000	/* Used in @create, @dig, @open, @pcreate for enforcing valid */
+
 #define AFLAGS_FULL	0x00000001
 #define AFLAGS_PERM	0x00000002
 #define AFLAGS_ADD	0x00000004
