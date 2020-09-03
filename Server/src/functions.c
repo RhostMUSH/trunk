@@ -22548,13 +22548,14 @@ FUNCTION(fun_lcon)
              case 4:
              case 6:
                  canhear = isplayer = ispuppet = 0;
-                 if ((Typeof(thing) == TYPE_EXIT) && Audible(thing))
+                 if ((Typeof(thing) == TYPE_EXIT) && Audible(thing)) {
                     canhear = 1;
-                 else {
-                   if (Monitor(thing))
+                 } else {
+                   if (Monitor(thing)) {
                       buff2 = alloc_lbuf("lcon");
-                   else
+                   } else {
                       buff2 = NULL;
+                   }
                    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
                       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
                          if (attr == A_LISTEN) {
@@ -22675,8 +22676,8 @@ FUNCTION(fun_lcon)
                        gotone = 1;
                        free_lbuf(namebuff);
                     } else {
-                       if (gotone) {
-                          if ( !i_conchk ) {
+                       if ( !i_conchk ) {
+                          if (gotone) {
                              /* tbuf is an SBUF so we can't just add this to it */
                              if ( (nfargs > 2) && *fargs[2] ) {
                                 safe_str(fargs[2], buff, bufcx);
