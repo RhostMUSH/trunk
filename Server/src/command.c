@@ -296,6 +296,7 @@ NAMETAB convert_sw[] =
 NAMETAB create_sw[] =
 {
     {(char *) "ansi", 1, CA_PUBLIC, 0, CREATE_ANSI},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB decomp_sw[] =
@@ -332,6 +333,7 @@ NAMETAB dig_sw[] =
 {
     {(char *) "teleport", 1, CA_PUBLIC, 0, DIG_TELEPORT},
     {(char *) "ansi", 1, CA_PUBLIC, 0, DIG_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB doing_sw[] =
@@ -845,6 +847,7 @@ NAMETAB open_sw[] =
     {(char *) "inventory", 1, CA_PUBLIC, 0, OPEN_INVENTORY},
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
     {(char *) "ansi", 1, CA_PUBLIC, 0, OPEN_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB newpassword_sw[] =
@@ -861,6 +864,7 @@ NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
     {(char *) "ansi", 1, CA_PUBLIC, 0, PCRE_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pipe_sw[] =

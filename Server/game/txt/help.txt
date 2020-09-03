@@ -22017,9 +22017,14 @@
   See Also: @link, SIDEEFFECTS
   
 & CREATE()
-  Function: create(<name>, [<arguments> [,<type> [,<target-owner>]])
+  Function: create(<name>, [<arguments> [,<type> [,<target-owner> [,key]]])
   
-  @create:  create(<name>,<value>,t) (default)
+  If 'key' is specified as '1', and the <name> starts with a dbref# and is
+  enacted by an immortal, it enforces strict mode and verifies the dbref#
+  as valid to be used for creation.
+  
+  @create:  create(<name>, <value>, t) (default)
+            create(<dbref#> <name>, <value>, t,, 1)  (enforce free dbref#)
     This will create an object with name <name> of value <value>.  The 't'
     <type> is optional for this as it is the default.  For more help on
     creating objects, please refer to 'help @create'.  If <value> is null
@@ -22028,21 +22033,27 @@
     If no arguments are given, the default money value is taken for this 
     option only.
   
-  @dig:     create(<name>,<[exit-in],[exit-out]>,r)
+  @dig:     create(<name>, <[exit-in], [exit-out]>, r)
+            create(<dbref#> <name>, <[exit-in], [exit-out]>, r,, 1)
+            dig(<name>, <[exit-in], [exit-out]>)
     This will dig a room with name <name> and OPTIONAL in-exit 'exit-in' and
     OPTIONAL out-exit 'exit-out'.  You may specify both, either, or no exits.
     For more help on digging rooms, please refer to 'help @dig'.
   
-  @open:    create(<name>,<link>,e)
+  @open:    create(<name>, <link>, e)
+            create(<dbref#> <name>, <link>, e,, 1)
+            open(<name>, <link>)
     This will open an exit with name <name> to OPTIONAL target <link>.  If
     <link> is unspecified, then the exit will be un-linked and will need to
     be @linked later (if so desired).
   
   @pcreate: create(<name>, <password>, p)
+            create(<dref#> <name>, <password>, p,, 1)
     This will create the target player.  You need to have access to @pcreate
     to be able to use this feature of create().
   
   @robot:   create(<name>, <password>, p, <target-owner>)
+            create(<dbref#> <name>, <password>, p, <target-owner>, 1)
     This will create the target robot player.  You need to have access to
     both the @robot feature as well as control the target-owner to create
     a robot.  To create a robot that you own, make target-owner yourself.
@@ -22053,6 +22064,7 @@
   Example:
   > say create(An Object,10)  (this will create 'An Object' with value of '10')
   > say create(An Object)     (this will create 'An Object' with default cost)
+  > say create(#123 An Object,10,,,1) (create 'An Object' with dbref #123)
   
   See Also: @create, @dig, @open, @pcreate, dig(), open(), SIDEEFFECTS
   
@@ -33481,6 +33493,9 @@
   * blacklist_max param allows a blacklist between 1000 and 5000000 [ASH]
   * connect_perm config param specifies who can use 'connect' [ASH]
   * MUSH_OBJID passed as an environment variable to execscript [ASH]
+  * /strict switch for @open, @pcreate, @dig, @create to enforce dbref#
+    you pass is a valid free dbref#. [ASH]
+  * /strict option to matching functions of commands [ASH]
   
   Changes
   ------------

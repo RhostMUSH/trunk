@@ -15,6 +15,22 @@
 /* MMMail Addition for hardcoded mailer. */
 #include "mail.h"
 
+int 
+validate_freematch(dbref target) 
+{
+   dbref obj = mudstate.freelist;
+   int i_return = 0;
+
+   while ( Good_obj(obj) ) {
+      if ( obj == target ) {
+         i_return = 1;
+         break;
+      }
+      obj = Link(obj);
+   }
+   return i_return;
+}
+
 /* ---------------------------------------------------------------------------
  * parse_linkable_room: Get a location to link to.
  */
@@ -173,6 +189,10 @@ do_open(dbref player, dbref cause, int key, char *direction,
 
     if (Immortal(player) && (*direction == '#')) {
 	dir2 = get_free_num(player, direction);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	dir2 = direction;
     }
@@ -926,6 +946,10 @@ do_dig(dbref player, dbref cause, int key, char *name,
     }
     if (Immortal(player) && (*name == '#')) {
 	name2 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name2 = name;
     }
@@ -991,6 +1015,10 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
     }
     if (Immortal(player) && (*name == '#')) {
 	name2 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name2 = name;
     }
@@ -1298,6 +1326,10 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     }
     if (Immortal(player) && (*name == '#')) {
 	name3 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name3 = name;
     }
