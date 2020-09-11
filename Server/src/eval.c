@@ -1328,7 +1328,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
-    int prefeval, preeval;
+    int prefeval, preeval, inumext;
 #ifdef EXPANDED_QREGS
     int w;
 #endif
@@ -1357,7 +1357,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
-    prefeval = preeval = 0;
+    inumext = prefeval = preeval = 0;
 #ifdef EXPANDED_QREGS
     w = 0;
 #endif
@@ -2154,6 +2154,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
              case 'I':       /* itext */
              case 'i':
                  dstr++;
+                 inumext = 0;
+                 if ( dstr && (*dstr == '_' ) ) {
+                    dstr++;
+                    inumext = 1;
+                 }
                  if ( dstr && *dstr ) {
                     setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
                     inum_val = atoi(dstr);
@@ -2166,23 +2171,47 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                         if ( (*dstr == 'l') || (*dstr == 'L') ) {
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
-                              strcpy(tbang_tmp, mudstate.iter_arr[0]);
+                              if ( inumext ) {
+                                 sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[0]);
+                              } else {
+                                 strcpy(tbang_tmp, mudstate.iter_arr[0]);
+                              }
                               issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                            } else {
-                              safe_str( mudstate.iter_arr[0], buff, &bufc );
+                              if ( inumext ) {
+                                 tbang_tmp = alloc_sbuf("bang_num");
+                                 sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[0]);
+                                 safe_str(tbang_tmp, buff, &bufc);
+                                 free_sbuf(tbang_tmp);
+                              } else {
+                                 safe_str( mudstate.iter_arr[0], buff, &bufc );
+                              }
                            }
                         } else {
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
-                              strcpy(tbang_tmp, mudstate.iter_arr[mudstate.iter_inum - inum_val]);
+                              if ( inumext ) {
+                                 sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+                              } else {
+                                 strcpy(tbang_tmp, mudstate.iter_arr[mudstate.iter_inum - inum_val]);
+                              }
                               issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                            } else {
-                              safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                              if ( inumext ) {
+                                 tbang_tmp = alloc_sbuf("bang_num");
+                                 sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
+                                 safe_str(tbang_tmp, buff, &bufc);
+                                 free_sbuf(tbang_tmp);
+                              } else {
+                                 safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
+                              }
                            }
+                           inum_val = inum_val / 10;
+                           dstr += inum_val;
                         }
                     }
                  } else {

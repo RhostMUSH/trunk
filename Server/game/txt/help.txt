@@ -12098,30 +12098,31 @@
   displayed, not the object that stored the message or which is running the
   action list.  The substitutions available are:
  
-    %s, %S  = Name, he, she, it, they.        (subjective)
-    %o, %O  = Name, him, her, it, them.       (objective)
-    %p, %P  = Name's, his, her, its, their.   (possessive)
-    %a, %A  = Name's, his, hers, its, theirs. (absolute possessive)
-    %n, %N  = the player's name.
-    %k, %K  = the player's colorized/accented name.
-    %w, %W  = the target dbref# of the twinklock (if applicable)
-    %r      = carriage return.
-    %t      = tab character.
-    %b      = space character.
-    %%      = literal '%' character.
-    %0-%9   = Value of positional parameter/stack location 0 through 9.
-    %-<num> = Stack 10+ that are comma delimited or if <num> specified
-              the positional stack location 0 through 999.  BANGS supported.
-    %-m     = The last command executed that issued @hook.  
-    %i0-%i9 = Equivalent to itext(0) through itext(9). [%il for outer]
-              BANGS supported.
-    %d0-%d9 = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
-              Only useable with /inline only.  BANGS supported.
-    %q0-%q9 = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
-              Note: You may use %q<label> or %q<0> as well.  BANGS supported.
-    %qa-%qz = Extended value of registers.
-    %va-%vz = Contents of attribute va through vz.
-  
+    %s, %S     = Name, he, she, it, they.        (subjective)
+    %o, %O     = Name, him, her, it, them.       (objective)
+    %p, %P     = Name's, his, her, its, their.   (possessive)
+    %a, %A     = Name's, his, hers, its, theirs. (absolute possessive)
+    %n, %N     = the player's name.
+    %k, %K     = the player's colorized/accented name.
+    %w, %W     = the target dbref# of the twinklock (if applicable)
+    %r         = carriage return.
+    %t         = tab character.
+    %b         = space character.
+    %%         = literal '%' character.
+    %0-%9      = Value of positional parameter/stack location 0 through 9.
+    %-<num>    = Stack 10+ that are comma delimited or if <num> specified
+                 the positional stack location 0 through 999.  BANGS supported.
+    %-m        = The last command executed that issued @hook.  
+    %i0-%i99   = Equivalent to itext(0) through itext(99). [%il for outer]
+    %i_0-%i_99 = Equivalent to inum(0) through inum(99) [%i_l for outer]
+                 BANGS supported.  Note: '99' depends on recursion limit.
+    %d0-%d9    = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
+                 Only useable with /inline only.  BANGS supported.
+    %q0-%q9    = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
+                 Note: You may use %q<label>/%q<0> as well.  BANGS supported.
+    %qa-%qz    = Extended value of registers.
+    %va-%vz    = Contents of attribute va through vz.
+   
     NOTE: Anything that says BANGS supported may use BANGS for the process.
           example: %-!!$22 (see if arg 22 contains a string)
                    %q<!!$0> (see if register 0 is a string)
@@ -19436,6 +19437,8 @@
             ibreak(<n>)
             ilev()
    
+  You may use %iN instead of itext(N) with iter/list.
+  
   These functions, when called within an iter(), return the equivalent
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
@@ -19454,11 +19457,14 @@
    
   > say [iter(red blue green,iter(fish shoe, [inum(0)]:[itext(0)]))]
   You say, "1:fish 2:shoe 1:fish 2:shoe 1:fish 2:shoe"
+  
+  > say [iter(red blue green,iter(fish shoe, %i_0:%i0))]
+  You say, "1:fish 2:shoe 1:fish 2:shoe 1:fish 2:shoe"
    
   > say [iter(red blue green,iter(fish shoe, [itext(1)]:[itext(0)]))]
   You say, "red:fish red:shoe blue:fish blue:shoe green:fish green:shoe"
   
-  See Also: iter(), inum(), ilev(), ibreak(), list()
+  See Also: iter(), inum(), ilev(), ibreak(), list(), %i, %d
   
 & ILEV()
   Function: ilev()
@@ -19489,6 +19495,8 @@
             ibreak(<n>)
             ilev()
    
+  You may specify %i_N instead of inum(N) for iter or list.
+  
   These functions, when called within an iter(), return the equivalent
   of ## (itext) or #@ (inum), with reference to the nth more outermost
   iter(), where n=0 refers to the current iter(), n=1 to an iter()
@@ -19508,10 +19516,13 @@
   > say [iter(red blue green,iter(fish shoe, [inum(0)]:[itext(0)]))]
   You say, "1:fish 2:shoe 1:fish 2:shoe 1:fish 2:shoe"
    
+  > say [iter(red blue green,iter(fish shoe, %i_0:%i0))]
+  You say, "1:fish 2:shoe 1:fish 2:shoe 1:fish 2:shoe"
+   
   > say [iter(red blue green,iter(fish shoe, [itext(1)]:[itext(0)]))]
   You say, "red:fish red:shoe blue:fish blue:shoe green:fish green:shoe"
   
-  See Also: iter(), itext(), ilev(), ibreak(), list(), inf()
+  See Also: iter(), itext(), ilev(), ibreak(), list(), inf(), %i, %d
 
 & IBREAK()
   Function: ibreak(<n>)
@@ -19543,7 +19554,7 @@
   > say [iter(red blue green,iter(fish shoe, [inum(1)]:[itext(1)][ibreak(0)]))]
   You say, "1:red 2:blue 3:green"
   
-  See Also: iter(), itext(), ilev(), inum(), list(), inf()
+  See Also: iter(), itext(), ilev(), inum(), list(), inf(), %i, %d
 
   
 & INF()
@@ -19588,7 +19599,7 @@
     You say "1000 1001 ..."    (it'll print values from 1000 to the LBUF size)
   
   See Also: nsiter(), citer(), @dolist, parse(), list(), list(), itext(), 
-            inum(), ilev(), ibreak()
+            inum(), ilev(), ibreak(), %i, %d
  
 & NSITER()
   Function: nsiter(<list>, <eval>[, <delim>])
@@ -33496,6 +33507,7 @@
   * /strict switch for @open, @pcreate, @dig, @create to enforce dbref#
     you pass is a valid free dbref#. [ASH]
   * /strict option to matching functions of commands [ASH]
+  * %i_## for inum()/#@ substitutions for iter/list [ASH]
   
   Changes
   ------------
@@ -33517,6 +33529,7 @@
   * @blacklist now has a dynamic value to increase the IP's blocked [ASH]
   * switch and match logic recognizes =<, <=, =>, >=, = [ASH]
   * lcon() has optional count value to return total counts [ASH]
+  * %_ is reserved and can no longer be overridden [ASH]
   
   Bug Fixes
   ------------

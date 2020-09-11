@@ -417,7 +417,7 @@ think Continuing with loading of script...
 &DO_ALIAS_NOTIFY_EXTENDED ComSysSIDEFX=[setq(n,snuffit)][setq(3,default([v(F-DB)]/ch_template1_%2,get([v(F-DB)]/ch_template1)))][setq(4,default([v(F-DB)]/ch_template2_%2,get([v(F-DB)]/ch_template2)))][setq(1,%2)][setq(g,u([v(F-DB)]/f_do_cemit,%2,%1,%0))][setq(f,u([v(FX-DB)]/do_gagging,%2))][setq(f,setdiff(%qf,iter(lwho(),ifelse(hasattr(%i0/_ch_compress),%i0))))][ulocal([v(FX-DB)]/do_hist1,secs())][pemit(%qf,%qg)]
 &DO_NOTIFYBYNAME ComSysSIDEFX=[ifelse(match(%0,+),set([v(F-DB)],NOTIFY_LIST:[setunion(lcstr(get([v(F-DB)]/notify_list)),%1)]),set([v(F-DB)],NOTIFY_LIST:[setdiff(lcstr(get([v(F-DB)]/notify_list)),%1)]))]
 &DO_RENAMECHAN ComSysSIDEFX=[set([v(F-DB)],DO_CHANCOLOR_OVER_%0:%1)]
-&DO_COMNOTIFY_COMPRESS ComSysSIDEFX=[ifelse(hasattr(%#/_ch_compress),wipe(%0/_ch_compress),set(%0,_ch_compress:1))]
+&DO_COMNOTIFY_COMPRESS ComSysSIDEFX=[ifelse(hasattr(%#/_ch_compress),set(%0,_ch_compress:),set(%0,_ch_compress:1))]
 &DO_COMSET_SET ComSysSIDEFX=[ifelse(match(%1,+all),set(%0,_ch_comset:%1:%2),[setq(z,match(get(%0/_ch_comset),%1:*))][ifelse(!!r(z),set(%0,_ch_comset:[replace(get(%0/_ch_comset),%qz,%1:%2)]),set(%0,_ch_comset:[get(%0/_ch_comset)] %1:%2))])]
 &DO_COMSET_UNSET ComSysSIDEFX=[setq(z,match(get(%0/_ch_comset),%1:*))][ifelse(!!r(z),set(%0,_ch_comset:[ldelete(get(%0/_ch_comset),%qz)]))]
 &DO_SETTIMESTAMP ComSysSIDEFX=[ifelse(match(%0,+all),set([v(F-DB)],do_timeformatgen:[pedit(%1,@H,%%0,@M,%%1,@S,%%2,@m,%%3,@d,%%4,@y,%%5)]),set([v(F-DB)],do_timeformat_%0:[pedit(%1,@H,%%0,@M,%%1,@S,%%2,@m,%%3,@d,%%4,@y,%%5)]))]
