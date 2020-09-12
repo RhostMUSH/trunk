@@ -6579,6 +6579,9 @@
   Command: @alias[/<switch>] <player> = <name>
   Attribute: Alias
  
+  Note: You can only have one alias with @alias.  If you wish to use multiple
+        aliases, in addition to this use the @protect system.
+  
   Provides an alternate name by which the player is known.  The alternate
   name is only used for players when referenced as '*<name>' or by commands
   that only take player names (such as page or @stats).  You may not set
