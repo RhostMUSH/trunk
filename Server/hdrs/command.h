@@ -206,6 +206,7 @@ CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
 CMD_TWO_ARG(do_snoop);			/* port redirection for immortals */
 /*CMD_NO_ARG(do_dbclean); */		/* Clean db of unused attributes */
 #ifdef REALITY_LEVELS
+CMD_ONE_ARG(do_leveldefault);           /* Wipe levels */
 CMD_TWO_ARG(do_rxlevel);                /* Set RX level */
 CMD_TWO_ARG(do_txlevel);                /* Set TX level */
 #endif /* REALITY_LEVELS */

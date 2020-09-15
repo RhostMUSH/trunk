@@ -470,6 +470,22 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     free_lbuf(buff);
 }
 
+void do_leveldefault(dbref player, dbref cause, int key, char *object)
+{
+    dbref thing;
+    char *buff;
+
+    /* find thing */
+    if ((thing = match_controlled(player, object)) == NOTHING)
+        return;
+
+    buff = alloc_lbuf("do_leveldefault");
+    sprintf(buff, "Set - %s reality levels returned to defaults.", Name(thing));
+    notify_quiet(player, buff);
+    atr_clr(thing, A_RLEVEL);
+    free_lbuf(buff);
+}
+
 int *desclist_match(dbref player, dbref thing)
 {
     RLEVEL match;

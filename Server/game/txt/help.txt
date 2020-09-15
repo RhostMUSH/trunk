@@ -33511,6 +33511,7 @@
     you pass is a valid free dbref#. [ASH]
   * /strict option to matching functions of commands [ASH]
   * %i_## for inum()/#@ substitutions for iter/list [ASH]
+  * @leveldefault - Wipe Reality Levels off an object to use conf defaults.
   
   Changes
   ------------

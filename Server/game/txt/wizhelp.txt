@@ -525,9 +525,10 @@
   +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
-  @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
-  @mailscur       @mailtime       @modifiedstamp @paylim         @queuemax 
-  @receivelim     @rsrvdesc2      @rxlevel       @timeout        @txlevel
+  @createdstamp   @darkexitformat @goodsite      @invtype        @leveldefault
+  @mailsmax       @mailscur       @mailtime      @modifiedstamp  @paylim
+  @queuemax       @receivelim     @rsrvdesc2     @rxlevel        @timeout
+  @txlevel
   
   @create         @dig            @lock          @open           @pemit   
   page            whisper        
@@ -14287,8 +14288,17 @@
     /reset -- will reset the reality.  Using this switch you do not have
               to specify <list>.  <list> will be applied after
               clearing.
-  
-  Example: @txlevel *Joe=Real !Umbra
+
+& @leveldefault
+  Command: @leveldefault <target>
+
+  This wipes all Reality Level information from the specified object.
+  The purpose of this is to make the target use the Reality Level defaults
+  as specified in the appropriate "def_*_rx" and "def_*tx_" config options of
+  the MUSH again. This is not doable with @rxlevel and @txlevel as those always
+  set an override of the defaults.
+
+  See also: @rxlevel, @txlevel, REALITY LEVELS
 
 & CANSEE()
   Function: cansee(<victim>,<target>)
@@ -14472,7 +14482,7 @@
   
   You may use '@list rlevel' to see the current realities.
   
-  See Also: @txlevel, @rxlevel, @list rlevel, reality_levels
+  See Also: @txlevel, @rxlevel, @leveldefault, @list rlevel, reality_levels
   Normal Help: txlevel(), rxlevel(), hastxlevel(), hasrxlevel(), listrlevels()
             
 

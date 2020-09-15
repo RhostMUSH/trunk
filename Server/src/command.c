@@ -1421,6 +1421,10 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_label},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
+#ifdef REALITY_LEVELS
+    {(char *) "@leveldefault", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    0, CS_ONE_ARG | CS_INTERP, 0, do_leveldefault},
+#endif /* REALITY_LEVELS */
     {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
      FN_LOCAL, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@limit", limit_sw, CA_WIZARD,  0,
