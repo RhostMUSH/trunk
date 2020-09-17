@@ -34604,7 +34604,7 @@ FUNCTION(fun_quota)
   dbref who;
 
   who = lookup_player(player, fargs[0], 0);
-  if ((who == NOTHING) || !Controls(player,who))
+  if ((who == NOTHING) || !Examinable(player,who))
     safe_str("#-1",buff,bufcx);
   else
     quota_dis(player, who, NULL, 0, buff, bufcx);
@@ -34623,7 +34623,7 @@ FUNCTION(fun_hasquota)
   else
     amount = 1;
   who = lookup_player(player, fargs[0], 0);
-  if ((who == NOTHING) || !Controls(player,who) || (amount < 1))
+  if ((who == NOTHING) || !Examinable(player,who) || (amount < 1))
     safe_str("#-1",buff,bufcx);
   else {
     if ( (nfargs > 2) && *fargs[2] ) {
