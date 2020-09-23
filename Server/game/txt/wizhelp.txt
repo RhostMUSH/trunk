@@ -14290,13 +14290,16 @@
               clearing.
 
 & @leveldefault
-  Command: @leveldefault <target>
+  Command: @leveldefault[/switch] <target(s)>
 
   This wipes all Reality Level information from the specified object.
   The purpose of this is to make the target use the Reality Level defaults
   as specified in the appropriate "def_*_rx" and "def_*tx_" config options of
   the MUSH again. This is not doable with @rxlevel and @txlevel as those always
   set an override of the defaults.
+  
+  Switches:
+    /list - allows passing more than one target
 
   See also: @rxlevel, @txlevel, REALITY LEVELS
 

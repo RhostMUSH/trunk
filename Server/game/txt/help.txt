@@ -33535,6 +33535,7 @@
   * lcon() has optional count value to return total counts [ASH]
   * %_ is reserved and can no longer be overridden [ASH]
   * Made quota() work by the same viewing-rules as @quota [AMB]
+  * @levellist now handles /list for multi-targets [ASH]
   
   Bug Fixes
   ------------
