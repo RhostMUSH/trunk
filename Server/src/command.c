@@ -586,6 +586,11 @@ NAMETAB leave_sw[] =
     {(char *) "quiet", 1, CA_PUBLIC, 0, MOVE_QUIET},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB leveldefault_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, LEVEL_LIST},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB limit_sw[] =
 {
     {(char *) "list", 2, CA_WIZARD, 0, LIMIT_LIST},
@@ -1422,7 +1427,7 @@ CMDENT command_table[] =
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
 #ifdef REALITY_LEVELS
-    {(char *) "@leveldefault", NULL, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@leveldefault", leveldefault_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
     0, CS_ONE_ARG | CS_INTERP, 0, do_leveldefault},
 #endif /* REALITY_LEVELS */
     {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,

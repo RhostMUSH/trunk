@@ -771,6 +771,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	HELP_WIZHELP	3	/* get data from wizard help file */
 #define HELP_PLUSHELP   4       /* get data from plus help file */
 
+#define LEVEL_LIST	1	/* Do a list for @leveldefault */
+
 #define LIMIT_MAX	5	/* Max arguments in @limit variable */
 #define LIMIT_LIST	1	/* Set global @limits */
 #define LIMIT_VADD	2	/* VAttr limit */
