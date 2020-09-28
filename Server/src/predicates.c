@@ -248,7 +248,7 @@ int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
                                             ExFullWizAttr(p))) )
      return 0;
 
-  if ( !(key & 1) && NoEx(x) && !Wizard(p))
+  if ( !(key & 1) && NoEx(x) && (a->number != A_LAMBDA)  && !Wizard(p))
      return 0;
 
   if (Backstage(p) && NoBackstage(x))
