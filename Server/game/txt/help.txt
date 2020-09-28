@@ -33560,3 +33560,4 @@
   * copy_defaultfiles didn't work on older systems [ASH]
   * main Makefile didn't copy files on default compiles [ASH]
   * @tel/list could potentially DoS the mush on ridiculous contents [ASH]
+  * Made #Lambda work on objects that are @set NO_EXAMINE [AMB]
