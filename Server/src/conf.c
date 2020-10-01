@@ -665,6 +665,7 @@ NDECL(cf_init)
     mudconf.showother_altinv = 0;
     mudconf.restrict_home = 0;
     mudconf.restrict_home2 = 0;
+    mudconf.pagelock_notify = 1;
     mudconf.vattr_limit_checkwiz = 0; /* Wizard Vattr Limit Check Enabled? */
     mudconf.wizmax_vattr_limit = 1000000; /* Maximum new attributes wizard can make */
     mudconf.max_vattr_limit = 10000; /* Maximum new attributes player can make */
@@ -4972,6 +4973,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.pagecost, 0, 0, CA_PUBLIC,
      (char *) "Cost of a page.\r\n"\
               "                             Default: 10   Value: %d"},
+    {(char *) "pagelock_notify",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.pagelock_notify, 0, 0, CA_PUBLIC,
+     (char *) "Show a message on login if PAGELOCK is set."},
     {(char *) "paranoid_allocate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.paranoid_alloc, 0, 0, CA_WIZARD,
      (char *) "Double check allocated buffers."},

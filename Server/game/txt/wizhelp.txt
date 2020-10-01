@@ -4660,8 +4660,19 @@
     The 'port' function follows all standards of normal pages but will not
     kick off any reject, idle, or other page limited messages nor will it
     check against page locks.  Use with discretion.
-  
-  See Also: whisper, @pemit
+
+  See also: pagelock_notify, whisper, @pemit
+
+& pagelock_notify
+  Config parameter: pagelock_notify <yes/no>.  Default: yes
+
+  This option can be used to enable or disable the automatic notification
+  to players on login about them having a PAGE LOCK set.
+
+  By default the message is enabled by default, but it can be useful to
+  disable this in case there is a softcode +command wrapper to manage
+  certain locks.
+
 & whisper
   Command: whisper[/port] <player> [=<message>] (royalty and higher only)
   
@@ -7005,16 +7016,16 @@
   objid_localtime          objid_offset              offline_reg             
   old_elist                online_reg                open_cost               
   output_database          output_limit              page_cost               
-  paranoid_allocate        paranoid_exit_linking     parent_follow           
-  parentable_control_lock  partial_conn              partial_deconn          
-  passapi_host             passapi_site              passproxy_host          
-  passproxy_site           paycheck                  pcreate_paranoia        
-  pemit_any_object         pemit_far_players         penn_playercmds         
-  penn_setq                penn_switches             permit_site             
-  player_attr_default      player_dark               player_flags            
-  player_listen            player_match_commands     player_match_own_command
-  player_name_spaces       player_parent             player_queue_limit      
-  player_quota           
+  pagelock_notify          paranoid_allocate         paranoid_exit_linking
+  parent_follow            parentable_control_lock   partial_conn
+  partial_deconn           passapi_host              passapi_site
+  passproxy_host           passproxy_site            paycheck
+  pcreate_paranoia         pemit_any_object          pemit_far_players
+  penn_playercmds          penn_setq                 penn_switches
+  permit_site              player_attr_default       player_dark
+  player_flags             player_listen             player_match_commands
+  player_match_own_command player_name_spaces        player_parent
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -14258,6 +14269,8 @@
   This toggle, when set on the target, will force them to evaluate the pagelock
   as if it was not overridden.  If the wizard involved is set NO_OVERRIDE or
   if the 'wiz_override' admin param is enabled, this toggle is disregarded.
+
+  See also: pagelock_notify
   
 & @rxlevel
   Command: @rxlevel[/<switch>] <target>=[<list>]

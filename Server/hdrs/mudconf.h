@@ -433,6 +433,7 @@ struct confdata {
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	int	penn_setq;	/* Do penn setq formatting */
+  int pagelock_notify ; /* Show login message if PAGE LOCK is set */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */

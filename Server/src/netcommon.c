@@ -2309,7 +2309,8 @@ announce_connect(dbref player, DESC * d, int dc)
     }
     buf = atr_get(player, A_LPAGE, &aowner, &aflags);
     if (buf && *buf) {
-	raw_notify(player, "Your PAGE LOCK is set.  You may be unable to receive some pages.", 0, 1);
+        if(mudconf.pagelock_notify)
+    	      raw_notify(player, "Your PAGE LOCK is set.  You may be unable to receive some pages.", 0, 1);
     }
     tbuf = alloc_mbuf("connect_rwho");
 #ifdef RWHO_IN_USE
