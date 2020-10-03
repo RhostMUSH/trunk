@@ -33562,3 +33562,4 @@
   * main Makefile didn't copy files on default compiles [ASH]
   * @tel/list could potentially DoS the mush on ridiculous contents [ASH]
   * Made #Lambda work on objects that are @set NO_EXAMINE [AMB]
+  * Fixed a bug with reality_compare 2-3 + missing desc, but a set format [AMB]
