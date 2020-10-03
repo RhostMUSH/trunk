@@ -38,15 +38,20 @@
 @@ 1. in netrhost.conf set up the following:
 @@    file_object 123 # where '123' is the dbref# of your file_object
 @@    execscriptpath account
+@@    starting_quota 5 # this controls how many 'players' an account can have.  1 less than shown.  So '5' has '4' accounts.
 @@ 2. Optional settings (you may set any or none of the following)
-@@    connect_methods 7 # if you want to disable all normal connect screen commands
-@@    string_conn connect # change 'connect' to what you want connect command to be
-@@    string_conndark cdark # change 'connect dark' to what you want connect command to be
-@@    string_conndark chide # change 'connect hidden' to what you want connect command to be
+@@    connect_methods 7 # if you want to disable all normal connect screen commands (6 is recommended to still allow 'connect')
+@@    string_conn connect # change 'connect' to what you want connect command to be (used with connect enabled)
+@@    string_conndark cdark # change 'connect dark' to what you want connect command to be (with connect enabled)
+@@    string_conndark chide # change 'connect hidden' to what you want connect command to be (with connect enabled)
 @@    string_create create # change 'create' to what you want create command to be
 @@    string_register register # change 'register' to what you want create command to be
 @@    hardconn_site 0.0.0.0 0.0.0.0 # site restriction of who can use connect commands
 @@    hardconn_host *  # wildcard hostname(s) of who can use connect commands
+@@
+@@ NOTE:  Strongly recommended that if you leave 'connect' enabled, which you should, to change the command
+@@        to something not easy to guess to enforce new players to use the registration system.
+@@        but to allow wizards to 'connect' like normal.
 @@
 think Please set the @admin parameter file_object to [num(file object <fo>)].
 think Please set the @admin parameter execscriptpath to 'account'
