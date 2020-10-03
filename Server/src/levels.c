@@ -644,7 +644,7 @@ ATTR 	*tst_glb, *format_atr;
                 tst_attr = ((tst_glb && (tst_glb->flags & AF_DEFAULT)) || (aflags & AF_DEFAULT)) ? 1 : 0;
                 if ( tst_attr ) {
                    master_str = NULL;
-                   tmpformat_buff = alloc_sbuf("didit_format");
+                   /*tmpformat_buff = alloc_sbuf("didit_format");
                    format_atr = atr_num(i_currattr);
                    if ( mudconf.format_compatibility )
                       sprintf(tmpformat_buff, "%.25sformat", format_atr->name);
@@ -659,7 +659,8 @@ ATTR 	*tst_glb, *format_atr;
                    }
                    if ( (!format_atr || !master_str || !*master_str) && (master != NOTHING) ) {
                       if ( did_allocate_buff )
-                         free_lbuf(master_str);
+                         free_lbuf(master_str);*/
+                   if ( (master != NOTHING) ) {
                       master_str = atr_pget(master, i_currattr, &aowner3, &aflags3);
                    }
                    if ( !master_str )
