@@ -33521,6 +33521,8 @@
   * %i_## for inum()/#@ substitutions for iter/list [ASH]
   * @leveldefault - Wipe Reality Levels off an object to use conf defaults.
   * pagelock_notify option to snuff the login message about a PAGE LOCK [AMB]
+  * Optional TYPE argument to rloc() to stop if currently downward-traversed
+    location type matches. [AMB]
   
   Changes
   ------------
