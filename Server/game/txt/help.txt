@@ -17304,7 +17304,7 @@
   See Also: rloc(), room(), where(), home(), EXITS
   
 & RLOC()
-  Function: rloc(<object>,<levels>)
+  Function: rloc(<object>,<levels>,[<type>])
  
   This function may be used to get the location of an object's location
   (for which you would previously use 'loc(loc(<object>))', which fails if you
@@ -17324,6 +17324,14 @@
   a nested location so it returns itself.  If you want the exit's location 
   use the home() function. If you want the exit's destination use the loc()
   function.
+
+  Optionally, you can supply a <type> argument. This can be either "OBJECT",
+  "THING", or "PLAYER". OBJECT is an alias for THING in this case.
+  If supplied, once rloc encounters such an object type as the location on the
+  way 'down' it will immediately stop and return that #dbref instead - handy
+  for exotic cases like trying to find players sitting inside objects inside
+  other players - you could use rloc(<target>,5,PLAYER) and it would return
+  the player #DBREF if <target> was in some way nexted inside a player object.
    
   Example:
     > look

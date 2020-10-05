@@ -18550,12 +18550,31 @@ FUNCTION(fun_where)
 
 FUNCTION(fun_rloc)
 {
-    int i, levels;
+    int i, levels, t,typefound;
+    char* pt1;
     dbref it;
 
     levels = atoi(fargs[1]);
     if (levels > mudconf.ntfy_nest_lim)
        levels = mudconf.ntfy_nest_lim;
+
+    if (!fn_range_check("RLOC", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    pt1 = NULL;
+    t = 0;
+    typefound=0;
+    if( (nfargs > 2) && *fargs[2] ) {
+       pt1 = fargs[2];
+    }
+    if (pt1) {
+       if (!stricmp(pt1,"PLAYER"))
+         t = 1;
+       else if (!stricmp(pt1,"OBJECT"))
+         t = 2;
+       else if (!stricmp(pt1,"THING"))
+         t = 2;
+    }
 
     it = match_thing(player, fargs[0]);
     if (locatable(player, it, cause)) {
@@ -18569,6 +18588,22 @@ FUNCTION(fun_rloc)
                  break;
               }
            }
+           if (t) {
+              switch (t) {
+                      case 1:
+                        if (Typeof(it) == TYPE_PLAYER) {
+                           typefound = 1;
+                        }
+                           break;
+                      case 2:
+                        if (Typeof(it) == TYPE_THING) {
+                           typefound = 1;
+                        }
+                           break;
+              }
+           }
+           if(typefound)
+              break;
        }
        dbval(buff, bufcx, it);
        return;
@@ -37674,7 +37709,7 @@ FUN flist[] =
     {"RINDEX", fun_rindex, 4, 0, CA_PUBLIC, CA_NO_CODE},
     {"RJUST", fun_rjust, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"RJC", fun_rjc, 2, FN_VARARGS, CA_PUBLIC, 0},
-    {"RLOC", fun_rloc, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"RLOC", fun_rloc, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RNUM", fun_rnum, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROMAN", fun_roman, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROOM", fun_room, 1, 0, CA_PUBLIC, CA_NO_CODE},
