@@ -211,6 +211,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # PARIS - Enables an alternate WHO listing that's more Penn/MUSH compatable with display listing.
 # OLD_SETQ - This switches setq/setr with setq_old/setr_old for functions less abrasive on braces/brackets.
 # SECURE_SIDEEFFECT - This shores up some sideeffects to avoid a double-evaluation.
+# ENABLE_WEBSOCKETS - Enable the 4.1.0p2 Websockets functionality
 #
 ###########################################################################################################
 # The following Defs are used for tweaking the build on different Operating Systems
