@@ -1710,11 +1710,11 @@ do_destroy(dbref player, dbref cause, int key, char *what)
                    notify_quiet(player,"@destruction limit maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "DESTROY")
                      log_text("@destruction limit maximum reached -> Player: ");
-                     log_name(player);
+                     log_name(newplayer);
                      log_text(" Object: ");
                      log_name(thing);
                    ENDLOG
-                   broadcast_monitor(player,MF_VLIMIT,"DESTROY MAXIMUM",
+                   broadcast_monitor(newplayer,MF_VLIMIT,"DESTROY MAXIMUM",
                            NULL, NULL, thing, 0, 0, NULL);
                    free_lbuf(s_chkattr);
                    return;
@@ -1723,12 +1723,12 @@ do_destroy(dbref player, dbref cause, int key, char *what)
              s_mbuf = alloc_mbuf("vattr_check");
              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1], 
                                             i_array[2]+1, i_array[3], i_array[4]);
-             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           } else {
              s_mbuf = alloc_mbuf("vattr_check");
              sprintf(s_mbuf, "0 -2 1 -2 %d", -2);
-             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           }
           free_lbuf(s_chkattr);
