@@ -195,7 +195,7 @@ absolute_name(need_pound)
       /* Check for tags here */
       if(*mname) {
         if(!is_number(mname)) {
-          match = objecttag_get(mname);
+          match = objecttag_get(mname, match_who, 0);
           if(Good_obj(match))
             return match;
         }

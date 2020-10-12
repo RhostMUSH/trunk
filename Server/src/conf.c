@@ -54,12 +54,17 @@ extern NAMETAB list_names[];
 extern NAMETAB sigactions_nametab[];
 extern CONF conftable[];
 extern int	FDECL(flagstuff_internal, (char *, char *));
+extern int totem_alias(char *, char *, dbref, int);
+extern int totem_letter(char *, char, int);
+extern int totem_add(char *, int, int, int);
+extern void totem_handle_error(int, dbref, char *, char *);
+extern int totem_rename(char *, char *);
 /* Lensy: Not external, but a forward declaration is needed */
 CF_HAND(cf_dynstring);
 #endif
 
 extern double FDECL(time_ng, (double*));
-extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, int *, int));
+extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, char *, int));
 extern double FDECL(safe_atof, (char *));
 extern int FDECL(list2arr, (char **, int, char *, char));
 extern void FDECL(ns_do_asort, (char **, int, int));
@@ -341,6 +346,10 @@ NDECL(cf_init)
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
     mudconf.sha2rounds = 5000;		/* rounds for SHA2 encryption */
+    mudconf.totem_types = 0;		/* enable totem object type recognition */
+    mudconf.totem_rename = 0;		/* enable totem object type recognition */
+    mudconf.blacklist_max = 100000;	/* Default maximum blacklists allowed */
+    mudconf.connect_perm = 0;		/* Permissions of connect */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -372,6 +381,9 @@ NDECL(cf_init)
     strcpy(mudconf.mysql_socket, (char *)"/var/lib/mysql/mysql.sock");
     mudconf.mysql_port=3306;
 #endif
+    for ( i = 0; i < TOTEM_SLOTS; i++ ) {
+       mudstate.totem_slots[i] = 0;
+    }
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
@@ -653,6 +665,7 @@ NDECL(cf_init)
     mudconf.showother_altinv = 0;
     mudconf.restrict_home = 0;
     mudconf.restrict_home2 = 0;
+    mudconf.pagelock_notify = 1;
     mudconf.vattr_limit_checkwiz = 0; /* Wizard Vattr Limit Check Enabled? */
     mudconf.wizmax_vattr_limit = 1000000; /* Maximum new attributes wizard can make */
     mudconf.max_vattr_limit = 10000; /* Maximum new attributes player can make */
@@ -1301,7 +1314,7 @@ CF_HAND(cf_verifyint_mysql)
 /* The value of MUX/PENN/ALL are taken from 'wizhelp sideeffects' */
 #define MUXMASK         0x00010A3F /* SET CREATE LINK PEMIT TEL LIST OEMIT PARENT DESTROY */
 #define PENNMASK        0x1006FFDF /* SET CREATE LINK PEMIT TEL DIG OPEN EMIT OEMIT CLONE PARENT LOCK LEMIT REMIT WIPE ZEMIT NAME */
-#define ALLMASK		0x1FFFFFFF /* 2147483647 would be 'really all', i.e. 32 1s */
+#define ALLMASK		0x3FFFFFFF /* 2147483647 would be 'really all', i.e. 32 1s */
 #define NO_FLAG_FOUND   -1
 
 /* The conversion function relies on the position of words in this array to match
@@ -1310,7 +1323,7 @@ const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
   "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
-  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", NULL
+  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", "TOTEMSET", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list
@@ -2841,7 +2854,7 @@ CF_HAND(cf_string_sub)
 {
     int retval;
     long l_diff;
-    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<-:", *ptr;
+    char *buff, *s_sublist="abcdfiklnopqrstvwx#!@0123456789+?<:-", *ptr;
 
     /* Copy the string to the buffer if it is not too big */
 
@@ -2893,6 +2906,7 @@ int validate_aliases(dbref player,
 		     char *orig, char *alias,
 		     char *label, char *cmd) {
   int *cmdp = NULL, *aliasp = NULL, retval;
+  TOTEMENT *totp = NULL;
 
   retval = 0;
 
@@ -2929,6 +2943,12 @@ int validate_aliases(dbref player,
     aliasp = hashfind(alias, htab);
     if (aliasp == NULL) {
       retval = hashadd2(alias, cmdp, htab, 0);
+      if ( strcmp(label, (char *)"Totem") == 0 ) {
+         totp = (TOTEMENT *)hashfind(orig, htab);
+         if ( totp ) {
+            totp->aliased = 1; /* Totems keep track if they were aliased */
+         }
+      }
     } else if ( htab->last_entry->bIsOriginal == 1) {
       cf_log_syntax(player, cmd, "Error: '%s' is not an alias, cannot redefine.", alias);
       retval = -1;
@@ -2942,15 +2962,20 @@ int validate_aliases(dbref player,
 
 CF_HAND(cf_alias)
 {
-    char *alias, *orig, *tstrtokr;
+    char *alias = NULL, *orig = NULL, *tstrtokr;
     int retval;
 
     alias = strtok_r(str, " \t=,", &tstrtokr);
-    orig = strtok_r(NULL, " \t=,", &tstrtokr);
-
-    retval = validate_aliases(player,
-			      (HASHTAB *) vp, orig, alias,
-			      "Entry", cmd);
+    if ( alias ) {
+       orig = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+    if ( alias && orig ) {
+       retval = validate_aliases(player,
+			         (HASHTAB *) vp, orig, alias,
+			         "Entry", cmd);
+    } else {
+       retval = -1;
+    }
     return retval;
 }
 
@@ -2961,7 +2986,7 @@ CF_HAND(cf_flag_access)
 {
    int retval;
 
-   retval = do_flag_and_toggle_def_conf(player, str, cmd, vp, 1);
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_FLAG);
    return retval;
 }
 
@@ -2969,8 +2994,174 @@ CF_HAND(cf_toggle_access)
 {
    int retval;
 
-   retval = do_flag_and_toggle_def_conf(player, str, cmd, vp, 2);
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_TOGGLE);
    return retval;
+}
+
+CF_HAND(cf_totem_access)
+{
+   int retval;
+
+   retval = do_flag_and_toggle_def_conf(player, str, cmd, NULL, IS_TYPE_TOTEM);
+   return retval;
+}
+
+/* ---------------------------------------------------------------------------
+ * cf_totemalias: define a totem alias.
+ */
+
+CF_HAND(cf_totemname)
+{
+    char *totem = NULL, *totemnew = NULL, *tstrtokr, *s_inbuff, *s_new;
+    int retval;
+
+    totem = strtok_r(str, " \t=,", &tstrtokr);
+    if ( totem ) {
+       totemnew = strtok_r(NULL, " \t=,", &tstrtokr);
+       if ( totemnew ) {
+          retval = totem_rename(totem, totemnew);
+       }
+    }
+    if ( !totem || !totemnew ) {
+       retval = -1;
+    }
+    s_inbuff = alloc_lbuf("cf_totemadd");
+    s_new = alloc_lbuf("cf_totemadd2");
+    totem_handle_error(retval, NOTHING, (char *)"totem_name", s_inbuff);
+    sprintf(s_new, "%s (%s %s)", s_inbuff, 
+            (totem != NULL ? totem : (char *)"(NULL)"), 
+            (totemnew != NULL ? totemnew : (char *)"(NULL)"));
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+ 
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
+}
+
+CF_HAND(cf_totemadd)
+{
+    char *totem = NULL, *totem_value = NULL, *totem_slot = NULL, *tstrtokr, *s_inbuff, *s_new;
+    int retval, i_tv = -1, i_ts = -1;
+
+    if (!mudstate.initializing) {
+       if ( Good_chk(player) ) {
+          notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
+       }
+       return -1;
+    }
+
+    totem = strtok_r(str, " \t=,", &tstrtokr);
+    if ( totem ) {
+       totem_slot = strtok_r(NULL, " \t=,", &tstrtokr);
+       if ( totem_slot ) {
+          i_ts = atoi(totem_slot);
+          totem_value = strtok_r(NULL, " \t=,", &tstrtokr);
+       }
+    }
+    if ( totem && totem_slot && totem_value ) {
+       if ( (*totem_value == '0') && (*(totem_value+1) == 'x') ) {
+          sscanf(totem_value, "0x%x", &i_tv);
+       } else {
+          i_tv = atoi(totem_value);
+       }
+       i_ts = atoi(totem_slot);
+       retval = totem_add(totem, i_tv, i_ts, 1);
+    } else {
+       retval = -1;
+    }
+
+    s_inbuff = alloc_lbuf("cf_totemadd");
+    s_new = alloc_lbuf("cf_totemadd2");
+    totem_handle_error(retval, NOTHING, (char *)"totem_add", s_inbuff);
+    sprintf(s_new, "%s (%s %d %d)", s_inbuff, (totem != NULL ? totem : (char *)"(NULL)"), i_ts, i_tv);
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
+}
+
+CF_HAND(cf_totemletter)
+{
+    char *totem = NULL, *s_letter = NULL, *s_tier = NULL,
+         *tstrtokr, *s_inbuff, *s_new;
+    int retval, i_tier;
+
+    if (!mudstate.initializing) {
+       if ( Good_chk(player) ) {
+          notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
+       }
+       return -1;
+    }
+
+    i_tier = 0;
+    totem = strtok_r(str, " \t=,", &tstrtokr);
+    if ( totem ) {
+       s_tier = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+    if ( s_tier ) {
+       s_letter = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+ 
+    if ( totem && s_tier && s_letter ) {
+       i_tier = atoi(s_tier);
+       retval = totem_letter(totem, *s_letter, i_tier);
+    } else {
+       retval = -1;
+    }
+    s_inbuff = alloc_lbuf("cf_totemletter");
+    s_new = alloc_lbuf("cf_totemletter");
+    totem_handle_error(retval, NOTHING, (char *)"totem_letter", s_inbuff);
+    sprintf(s_new, "%s ('%s %c %d')", s_inbuff, (totem != NULL ? totem : (char *)"(NULL)"),
+              (s_letter != NULL ? *s_letter : '?'), i_tier);
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
+}
+
+CF_HAND(cf_totemalias)
+{
+    char *alias = NULL, *orig = NULL, *tstrtokr, *s_inbuff, *s_new;
+    int retval;
+
+    if (!mudstate.initializing) {
+       if ( Good_chk(player) ) {
+          notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
+       }
+       return -1;
+    }
+
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    if ( alias ) {
+       orig = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+
+    if ( alias && orig ) {
+       retval = totem_alias(orig, alias, NOTHING, 0);
+    } else {
+       retval = -1;
+    }
+    
+    s_inbuff = alloc_lbuf("cf_totemalias");
+    s_new = alloc_lbuf("cf_totemalias");
+    totem_handle_error(retval, NOTHING, (char *)"totem_alias", s_inbuff);
+    sprintf(s_new, "%s ('%s %s')", s_inbuff, (alias != NULL ? alias : (char *)"(NULL)"),
+              (orig != NULL ? orig : (char *)"(NULL)"));
+    cf_log_syntax(player, cmd, "%s", s_new);
+    free_lbuf(s_inbuff);
+    free_lbuf(s_new);
+
+    if ( retval < 0 )
+       retval = -1;
+    return retval;
 }
 /* ---------------------------------------------------------------------------
  * cf_flagalias: define a flag alias.
@@ -3771,6 +3962,10 @@ CONF conftable[] =
     {(char *) "blind_snuffs_cons",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.blind_snuffs_cons, 0, 0, CA_PUBLIC,
      (char *) "BLIND flag snuff aconnect/adisconnect?"},
+    {(char *) "blacklist_max",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.blacklist_max, 5000000, 1000, CA_WIZARD,
+     (char *) "Max value allowed for blacklistt loading.\r\n"\
+              "(Range: 1000-5000000 - 120+ warn)   Default: 60   Value: %d"},
     {(char *) "brace_compatibility",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.brace_compatibility, 0, 0, CA_WIZARD,
      (char *) "Are braces MUX/TM3 compatible?"},
@@ -3868,6 +4063,10 @@ CONF conftable[] =
     {(char *) "connect_methods",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.connect_methods, 0, 0, CA_WIZARD,
      (char *) "Disable connect methods  on connect screen.\r\n"\
+              "                             Default: 0   Value: %d"},
+    {(char *) "connect_perm",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.connect_perm, 0, 0, CA_WIZARD,
+     (char *) "Bitwise mask to apply for using connect command.\r\n"\
               "                             Default: 0   Value: %d"},
     {(char *) "connect_reg_file",
      cf_string, CA_DISABLED, (int *) mudconf.creg_file, 32, 0, CA_WIZARD,
@@ -4148,6 +4347,18 @@ CONF conftable[] =
     {(char *) "toggle_access_type",
      cf_toggle_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Override Toggle TYPE Restrictions ala @flagdef"},
+    {(char *) "totem_access_set",
+     cf_totem_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Totem SET Permissions ala @flagdef"},
+    {(char *) "totem_access_see",
+     cf_totem_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Totem SEE Permissions ala @flagdef"},
+    {(char *) "totem_access_unset",
+     cf_totem_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Totem UNSET Permissions ala @flagdef"},
+    {(char *) "totem_access_type",
+     cf_totem_access, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Override Totem TYPE Restrictions ala @flagdef"},
     {(char *) "tree_character",
      cf_string_chr, CA_GOD | CA_IMMORTAL, (int *) mudconf.tree_character, 2, 0, CA_WIZARD,
      (char *) "The character for the tree seperator."},
@@ -4637,6 +4848,25 @@ CONF conftable[] =
     {(char *) "tor_paranoid",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.tor_paranoid, 0, 0, CA_WIZARD,
      (char *) "Are TOR Sites aggressively verified on reverse DNS?"},
+    {(char *) "totem_alias",
+     cf_totemalias, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Define totem aliases."},
+    {(char *) "totem_add",
+     cf_totemadd, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Define totem flags (static/sticky)."},
+    {(char *) "totem_letter",
+     cf_totemletter, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Define totem letters."},
+    {(char *) "totem_name",
+     cf_totemname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
+     (char *) "Rename totem flags (optional static/sticky/perm)."},
+    {(char *) "totem_rename",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.totem_rename, 0, 0, CA_IMMORTAL,
+     (char *) "Mask for totem renames (1)static, (2)perm, (3)both.\r\n"\
+              "                               Default: 0   Value: %d"},
+    {(char *) "totem_types",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.totem_types, 0, 0, CA_WIZARD,
+     (char *) "Enable flag-like TYPE recognition for totems?"},
     {(char *) "news_file",
      cf_string, CA_DISABLED, (int *) mudconf.news_file, 32, 0, CA_WIZARD,
      (char *) "File used for news."},
@@ -4743,6 +4973,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.pagecost, 0, 0, CA_PUBLIC,
      (char *) "Cost of a page.\r\n"\
               "                             Default: 10   Value: %d"},
+    {(char *) "pagelock_notify",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.pagelock_notify, 0, 0, CA_PUBLIC,
+     (char *) "Show a message on login if PAGELOCK is set."},
     {(char *) "paranoid_allocate",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.paranoid_alloc, 0, 0, CA_WIZARD,
      (char *) "Double check allocated buffers."},

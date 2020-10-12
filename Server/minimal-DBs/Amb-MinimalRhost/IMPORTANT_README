@@ -37,6 +37,9 @@ Version history:
       Tags in place.
     - Places System @startup integrated into BC-Admin-Royalty's @startup
     - Made @dump and @dump/flat available to Councilors in netrhost.conf
+  1.0.6
+    - A small typo fix in netrhost.conf. float_preciiosn -> precision and
+      functions_max -> function_max. Thanks to Bobbi@COH
 --------------------------------------------------------------------------------
 <READ THIS DOCUMENT CAREFULLY!>
 

@@ -9,6 +9,46 @@
 /* Define the codebase as RhostMUSH */
 #define RHOSTMUSH 1
 
+/* Define the number of Totem Slots 
+ * This value must be between 1 and X where X is based on LBUF size
+ *
+ * Suggested values:
+ * 10 slots (for  320 flags)
+ * 20 slots (for  640 flags)
+ * 40 slots (for 1280 flags)
+ * Max values:
+ *** 4K  lbufs -  300 max slots  (for   9600 flags) 
+ *** 8K  lbufs -  600 max slots  (for  19200 flags) 
+ *** 16K lbufs - 1200 max slots  (for  38400 flags) 
+ *** 32K lbufs - 2500 max slots  (for  80000 flags) 
+ *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+ *
+ * Overhead: ((slots * 8) * total objects) + (flags * name len) + (slots * 8)
+ * Flags are based on how many are used only.
+ *
+ * Assuming all flags possible used with max length of name.
+ * 5000 obj db, 300 slots: (300 * 8) * 5000) + (9600 * 20) + (300 * 8)
+ *                         12,194,400 (12 MB)
+ * 20000 obj db, 2500 slots: (2500 * 8) * 20000) + (80000 * 20) + (2500 * 8)
+ *                         401,620,000 (400 MB)
+ * 20000 obj db, 40 slots: (40 * 8) * 20000) + (1280 * 20) + (40 * 8)
+ *                         6,425,920 (6.4 MB)
+ * 20000 obj db, 10 slots: (10 * 8) * 20000) + (320 * 20) + (10 * 8) (default)
+ *                         1,606,480 (1.6 MB)
+ * 
+ * Please be aware of the overhead.  This will also drasticaly increase stack
+ * space.  Drasticaly raising this value will require rasing stack of your 
+ * shell process.  ulimit -s 
+ * For high numbers, suggest 32,000 or 64,000 stack size
+ * Strongly suggest keeping this to a reasonable number.
+ *
+ * 10 slot default gives you 320 flags.  Nearly twice what rhost has in use.
+ * Unless you are really insane to want enough flags to choke a unicorn, it
+ * should be plenty.
+ */
+ 
+#define TOTEM_SLOTS 10
+
 /* ---------------------------------------------------------------------------
  * Configuration section:
  *
@@ -32,7 +72,7 @@
 /* Define if we have string.h instead of strings.h */
 /* #undef USG */
 /* Define if we have unistd.h */
-#define HAVE_UNISTD_H */
+#define HAVE_UNISTD_H 1
 /* Define if we have memory.h and need it to get memcmp et al */
 /* #undef NEED_MEMORY_H */
 /* Decl for pid_t */

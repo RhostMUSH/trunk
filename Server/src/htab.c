@@ -395,6 +395,10 @@ int * real_hash_firstentry(HASHTAB * htab, const char *fileName, int lineNo) {
   return real_hash_firstentry2(htab, 0, fileName, lineNo);
 }
 
+/* bOnlyOriginals: 0 -- all types
+ *                 1 -- originals only
+ *                 2 -- aliases only
+ */
 int * real_hash_firstentry2(HASHTAB * htab, int bOnlyOriginals, const char *fileName, int lineNo)
 {
     int hval;
@@ -405,7 +409,7 @@ int * real_hash_firstentry2(HASHTAB * htab, int bOnlyOriginals, const char *file
       return 0;
     }
 
-    if (bOnlyOriginals !=0 && bOnlyOriginals != 1) {
+    if (bOnlyOriginals !=0 && bOnlyOriginals != 1 && bOnlyOriginals != 2) {
       LOGTEXT("ERR", "hash_firstentry2 was passed an invalid bOriginal value.");
       return 0;
     }
@@ -419,12 +423,13 @@ int * real_hash_firstentry2(HASHTAB * htab, int bOnlyOriginals, const char *file
 	for (hEntPtr = htab->entry->element[hval];
 	     hEntPtr != NULL;
 	     hEntPtr = hEntPtr->next) {
-	  if (!bOnlyOriginals || hEntPtr->bIsOriginal == 1) {
+	  if ( !bOnlyOriginals || ((hEntPtr->bIsOriginal == 1) && (bOnlyOriginals != 2)) || 
+               ((hEntPtr->bIsOriginal == 0) && (bOnlyOriginals == 2)) ) {
 	    htab->last_hval = hval;
 	    htab->last_entry = hEntPtr;
 	    htab->bOnlyOriginals = bOnlyOriginals;
 	    return hEntPtr->data;
-	  }
+          }
 	}
       }
     return NULL;
@@ -443,7 +448,7 @@ int * real_hash_nextentry(HASHTAB * htab, const char *fileName, int lineNo) {
   while (1) {
     hptr = real_next_hashent(htab, fileName, lineNo);
     
-    if (!hptr || !bOnlyOriginals || hptr->bIsOriginal) {
+    if (!hptr || !bOnlyOriginals || (hptr->bIsOriginal && (bOnlyOriginals != 2)) || ((hptr->bIsOriginal == 0) && (bOnlyOriginals == 2)) ) {
       break;
     }
   }

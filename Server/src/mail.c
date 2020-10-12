@@ -2762,6 +2762,17 @@ void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type, int i
       } else {
          i_type = 0;
       }
+   } else if ( i_type == 8 ) {
+      s_tmp = alloc_sbuf("mail_readall");
+      for ( i_loop = 1; i_loop <= a; i_loop ++ ) {
+         i_chk++;
+         sprintf(s_tmp, "%d", i_loop);
+         mail_read(player, s_tmp, wiz, key);
+      }
+      if ( !i_chk ) {
+         notify_quiet(player,"Mail: You have no mail");
+      }
+      free_sbuf(s_tmp);
    } else {
       if ( (i_type == 1) || (i_type == 3) ) {
          for (i_loop = 0;i_loop < i_new; i_loop++)
@@ -2776,7 +2787,7 @@ void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type, int i
       if ( i_chk < 1 )
          notify_quiet(player,"Mail: You have no new/unread mail");
    }
-   if ( (i_type < 1) || (i_type > 4) ) {
+   if ( (i_type < 1) || (i_type > 8) ) {
       notify_quiet(player,"MAIL ERROR: Bad message number specified");
    }
 
@@ -3098,6 +3109,12 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
      mail_readall(player, buf, wiz, key, i_type, i_version);
      return;
   }
+  if ( !stricmp(buf, "+all") ) {
+     i_type = 8;
+     mail_readall(player, buf, wiz, key, i_type, i_version);
+     return;
+  }
+
   if (key)
     player2 = player;
   else

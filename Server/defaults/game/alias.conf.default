@@ -290,7 +290,6 @@ flag_alias chow		chown_ok
 flag_alias chown	chown_ok
 flag_alias chown_	chown_ok
 flag_alias chown_o	chown_ok
-flag_alias command      commands
 flag_alias con		connected
 flag_alias conn		connected
 flag_alias connect	connected
@@ -480,7 +479,6 @@ function_alias	lj		ljust
 function_alias	rj		rjust
 function_alias  matchall        totmatch
 function_alias  die             dice
-function_alias  subeval         eval
 function_alias  grepi           grep
 function_alias  zone            lzone
 function_alias  element         elements
@@ -508,7 +506,6 @@ function_alias	secs2time	convsecs
 function_alias	time2secs	convtime
 function_alias	who		lwho
 function_alias	rmplace		ldelete
-function_alias  squish	        s
 function_alias	ord		asc
 #
 attr_alias adeath	akill

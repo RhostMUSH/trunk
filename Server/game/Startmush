@@ -9,11 +9,60 @@ case "${lc_chk}" in
       echo "        -h   -- show this screen"
       echo "        -f   -- force Startmush to overwrite shared memory segment."
       echo "        -i   -- reindex all txt files then exit."
+      echo "        -v   -- show version of RhostMUSH you are running."
+      echo "        -k   -- attempt to gracefully shutdown your mush, then terminate if it can't."
       echo "        -cyg -- force a CYGWIN/Win10-Bash run for Startmush"
       exit 0
       ;;
+   -v) # version
+       ./netrhost -v
+       exit 0
+       ;;
+   -k) # kill process
+       ps -p `cat netrhost.pid` > /dev/null 2>&1
+       if [ $? -eq 0 ]
+       then
+          echo "Killing following process."
+          ps -l -p `cat netrhost.pid`
+          kill -USR2 `cat netrhost.pid`
+          sleep 2
+          ps -p `cat netrhost.pid` > /dev/null 2>&1
+          if [ $? -eq 0 ]
+          then
+             echo "Process is still not shutdown.  Attempting to gently terminate."
+             kill -TERM `cat netrhost.pid`
+             sleep 2
+             ps -p `cat netrhost.pid` > /dev/null 2>&1
+             if [ $? -eq 0 ]
+             then
+                echo "Process is still not shutdown.  Attempting force kill.  This will likely corrupt your database."
+                echo "First attempting a forced flatfile dump."
+                kill -HUP `cat netrhost.pid` 
+                echo "Waiting 10 seconds to ensure a safe flatfile."
+                sleep 10
+                echo "Killing the process with immediate death."
+                kill -9 `cat netrhost.pid`
+                sleep 2
+                ps -p `cat netrhost.pid` > /dev/null 2>&1
+                if [ $? -eq 0 ]
+                then
+                   echo "We were unable to kill the process.  The PID is `cat netrhost.pid`"
+                else
+                   echo "Process has been hard-terminated.  DB may be corrupt.  Load from flatfile if it is."
+                fi
+             else
+                echo "Process has successfully been terminated with TERM.  Emergency flatfile will end in .TERM"
+             fi
+          else
+             echo "Process has been gracefully shutdown."
+          fi
+       else
+          echo "No process is currently running."
+       fi
+       exit 0
+       ;;
    -i) # reindex
-      for files in `grep -l "^& " txt/*.txt`
+      for files in `grep -l '^& ' txt/*.txt`
       do
          basename /dev/null > /dev/null 2>&1
          if [ $? -eq 0 ]

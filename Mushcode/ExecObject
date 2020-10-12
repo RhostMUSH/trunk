@@ -9,7 +9,7 @@
 &CMD_DIFF ExecObject=$+diff */*:@pemit %#=[execscript(diff.sh,%0,|,%1)]
 &CMD_ISPELL ExecObject=$+ispell*:@pemit %#=[ifelse(!$v(0),+spell: Spell what?,[rjust(- +spell ----,78,-)]%r[execscript(spell.sh,trim(%0))]%r[repeat(-,78)])]
 &CMD_DICT ExecObject=$+dict*:@pemit %#=[ifelse(!$v(0),+dict: Define what?,[rjust(- +dict ----,78,-)]%r[execscript(dict.sh,trim(%0))]%r[repeat(-,78)])]
-&CMD_MATH ExecObject=$+math*:@pemit %#=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,after(%0,=))],[setq(0,%0)][setq(1,20000)])][ifelse(!$r(0),+math: do what?,[rjust(- +math ----,78,-)]%rMath: %q0 %[precision %q1%]%rResult: [execscript(math.sh,%q0,|,%q1)][repeat(-,78)])]
+&CMD_MATH ExecObject=$+math*:@pemit %#=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,min(255,after(%0,=)))],[setq(0,%0)][setq(1,255)])][ifelse(!$r(0),+math: do what?,[rjust(- +math ----,78,-)]%rMath: %q0 %[precision %q1%]%rResult: [execscript(math.sh,%q0,|,%q1)]%r[repeat(-,78)])]
 &CMD_PASTEBINREAD ExecObject=$+pastebinread*:@pemit %#=[ifelse(!$v(0),+pastebinread: Please give the pastebin hash %(example: ES8amsGh%),setq(0,execscript(pastebinread.sh,trim(%0))))][ifelse(!!$r(0),[rjust(- +pastebinread %[hash: [trim(%0)]%] ----,78,-)]%r%q0[repeat(-,78)],+pastebinread: There was no matching hash to read.)]
 &CMD_PASTEBINWRITE ExecObject=$+pastebinwrite*:@break [!gt(strlen(%0),40)]=@pemit %#=+pastebinwrite: You need to have at least 40 chars to post on pastebin;@break [lt(secs(),get(%#/_PASTEBIN))]=@pemit %#=+pastebinwrite: Sorry, you need to wait 10 minutes until your next pastebin post.;&_PASTEBIN %#=[add(secs(),600)];@set %#/_pastebin=royalty;@set %#/_pastebin=hidden;@pemit %#=[rjust(- +pastebinpush: %[[strlen(%0)] chars%]----,78,-)]%r[execscript(pastebinwrite.sh,trim(edit(%0,%r,@@@)))][repeat(-,78)]
 @set ExecObject/CMD_MATH = no_parse
@@ -20,7 +20,7 @@
 &CMD_LOGSEARCH ExecObject=$+logsearch*:@assert [u(CANLOGSEARCH,%#)]=@pemit %#=+logsearch: Permission denied;@pemit %#=[execscript(logsearch.sh,trim(%0))]
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
 &CANLOGSEARCH ExecObject=[gte(bittype(%0),5)]
-&FUN_MATH ExecObject=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,after(%0,=))],[setq(0,%0)][setq(1,20000)])][chomp(execscript(math.sh,objeval(%#,%q0),objeval(%#,%q1)))]
+&FUN_MATH ExecObject=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,min(255,after(%0,=)))],[setq(0,%0)][setq(1,255)])][chomp(execscript(math.sh,objeval(%#,%q0),|,objeval(%#,%q1)))]
 @startup ExecObject=@dolist lattr(me/fun_*)=@function/priv/pres [after(##,_)]=me/##
 @set ExecObject=INHERIT SIDEFX SAFE IND
 @tr/quiet ExecObject/startup

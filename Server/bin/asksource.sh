@@ -105,7 +105,7 @@ do
    X[${i}]=" "
 done
 # Check if libpcre is installed
-if [ $(${MYGCC} -lpcre 2>&1|grep -c -e "(to find|cannot find)") -eq 0 ]
+if [ $(${MYGCC} -lpcre 2>&1|grep -c -e "to find" -e "ot find" -e "cannot find") -eq 0 ]
 then
    X[25]="X"
 fi

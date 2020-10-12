@@ -28,6 +28,7 @@ void bzero(void *, int);
 #endif
 
 OBJ *db;
+OBJTOTEM *dbtotem;
 NAME *names = NULL;
 
 #ifdef TEST_MALLOC
@@ -609,7 +610,7 @@ ATTR attr[] =
     {"ZZ", A_ZA + 25, AF_ODARK, NULL},
     {"*Password", A_PASS, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
-    {"*Privileges", A_PRIVS, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
+    {"*Totems", A_PRIVS, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
     {"*Money", A_MONEY, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
@@ -3680,9 +3681,10 @@ int atrcint(dbref player, dbref thing, int key)
 void 
 db_grow(dbref newtop)
 {
-    int newsize, marksize, delta, i;
+    int newsize, marksize, delta, i, i_totem;
     MARKBUF *newmarkbuf;
     OBJ *newdb;
+    OBJTOTEM *newtotem;
     NAME *newnames;
     char *cp;
 
@@ -3732,6 +3734,10 @@ db_grow(dbref newtop)
 		i_Name(i);
             db[i].zonelist = NULL;
 	    db[i].nvattr = 0;
+            for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+               dbtotem[i].flags[i_totem] = 0;
+            }
+            dbtotem[i].modified = 0;
 	}
 	mudstate.db_top = newtop;
 	return;
@@ -3788,9 +3794,9 @@ db_grow(dbref newtop)
     }
     /* Grow the db array */
 
-    newdb = (OBJ *)
-	XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ), "db_grow.db");
-    if (!newdb) {
+    newdb = (OBJ *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ), "db_grow.db");
+    newtotem = (OBJTOTEM *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJTOTEM), "db_grow.db");
+    if (!newdb || !newtotem) {
 
 	LOG_SIMPLE(LOG_ALWAYS, "ALC", "DB",
 	    unsafe_tprintf("Could not allocate space for %d item struct database.",
@@ -3802,10 +3808,14 @@ db_grow(dbref newtop)
 	/* An old struct database exists.  Copy it to the new buffer */
 
 	db -= SIZE_HACK;
+	dbtotem -= SIZE_HACK;
 /*	bcopy((char *) db, (char *) newdb,
 	      (mudstate.db_top + SIZE_HACK) * sizeof(OBJ)); */
         memcpy((char *) newdb, (char *) db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ));
+        memcpy((char *) newtotem, (char *) dbtotem, (mudstate.db_top + SIZE_HACK) * sizeof(OBJTOTEM));
 	cp = (char *) db;
+	XFREE(cp, "db_grow.db");
+        cp = (char *) dbtotem;
 	XFREE(cp, "db_grow.db");
     } else {
 
@@ -3814,6 +3824,7 @@ db_grow(dbref newtop)
 	 */
 
 	db = newdb;
+        dbtotem = newtotem;
 	for (i = 0; i < SIZE_HACK; i++) {
 	    s_Owner(i, GOD);
 	    s_Flags(i, (TYPE_THING | GOING));
@@ -3839,10 +3850,16 @@ db_grow(dbref newtop)
 	    s_Pennies(i, 0);
             db[i].zonelist = NULL;
 	    db[i].nvattr = 0;
+            for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+               dbtotem[i].flags[i_totem] = 0;
+            }
+            dbtotem[i].modified = 0;
 	}
     }
     db = newdb + SIZE_HACK;
+    dbtotem = newtotem + SIZE_HACK;
     newdb = NULL;
+    newtotem = NULL;
 
     for (i = mudstate.db_top; i < newtop; i++) {
 	if (mudconf.cache_names)
@@ -3868,6 +3885,10 @@ db_grow(dbref newtop)
 	s_Parent(i, NOTHING);
         db[i].zonelist = NULL;
 	db[i].nvattr = 0;
+        for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+           dbtotem[i].flags[i_totem] = 0;
+        }
+        dbtotem[i].modified = 0;
     }
     mudstate.db_top = newtop;
     mudstate.db_size = newsize;

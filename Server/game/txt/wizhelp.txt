@@ -520,13 +520,15 @@
   @progreset      @protect        @ps            @purge          @quota        
   @readcache      @reboot         @recover       @reclist        @remote       
   @rwho           @site           @shutdown      @snapshot       @snoop
-  @tag            @thaw           @timewarp      @toad          @tor
-  @turtle         @wall           +players
+  @tag            @thaw           @timewarp      @toad           @toggledef
+  @tor            @totem          @totemdef      @turtle         @wall       
+  +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
-  @createdstamp   @darkexitformat @goodsite      @invtype        @mailsmax
-  @mailscur       @mailtime       @modifiedstamp @paylim         @queuemax 
-  @receivelim     @rsrvdesc2      @rxlevel       @timeout        @txlevel
+  @createdstamp   @darkexitformat @goodsite      @invtype        @leveldefault
+  @mailsmax       @mailscur       @mailtime      @modifiedstamp  @paylim
+  @queuemax       @receivelim     @rsrvdesc2     @rxlevel        @timeout
+  @txlevel
   
   @create         @dig            @lock          @open           @pemit   
   page            whisper        
@@ -548,7 +550,7 @@
   POWER LIST               PROXY SETUP              REALITY LEVELS         
   SEARCH CRITERIA          SIGNALS                  SITE LISTS             
   SPECIAL ATTRIBS          SSL SETUP                TAGS                   
-  TOGGLES                  TOR                
+  TOGGLES                  TOR                      TOTEMS
 
 & API
   Topic: API
@@ -1193,6 +1195,9 @@
   
   When set, this essentially snuffs the name of the item.  This only works for
   inventories, contents, locations, and 'inside' looks.
+  
+  This is intended to work with @nameformat as an override for
+  content/inventory name displays.
   
   This is aliased to 'NONAME' for compatibility.
 
@@ -2983,9 +2988,12 @@
   is a non-standard netmask associated with the IP.  A nonstandard netmask
   is considered one that is not /32 (255.255.255.255).
   
+  The default value of blacklists allowed are 100,000.  This value can
+  be configured with blacklist_max for between 1000 and 5,000,000.
+  
   { 'wizhelp blacklist file' for an example of the blacklist.txt file }
   
-  See Also: forbid_site, @site
+  See Also: forbid_site, @site, blacklist_max
 
 & blacklist_nodns file
 & blacklist file
@@ -4354,7 +4362,7 @@
   See Also: @toad, @turtle
 
 & @pcreate
-  Command: @pcreate [#dbref] <player>=<password>
+  Command: @pcreate[/switch] [#dbref] <player>=<password>
            @pcreate/register [#dbref] <player>=<email>
   
   Creates a new player with the indicated password.  This command is
@@ -4373,6 +4381,7 @@
                   target email.  Only wizards and higher may use this.
       /ansi     - Combines @pcreate with @extansi to ansify the name
                   of the player.  This follows @extansi permissions.
+      /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Example:  @pcreate #5 NewPlayer=test123
             @pcreate NewPlayer=test123
@@ -4548,11 +4557,15 @@
   See Also: @recover, @purge
 
 & @create
-  Command: @create [#dbref] <name> [=cost]
+  Command: @create[/switch] [#dbref] <name> [=cost]
+  
   This works just like the mortal's @create except you can specify the dbref#
   that you wish to use for the object.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'
@@ -4562,11 +4575,15 @@
   See Also: @dig, @open, @pcreate
 
 & @dig
-  Command: @dig [#dbref] <name> [=<exit to link here>, <exit to link there>]
+  Command: @dig[/switch] [#dbref] <name> [=<exit to here>, <exit to target>]
+  
   This works just like the mortal's @dig except you can specify the dbref#
   that you wish to use for the room.  The #dbref *must* be in the
   free list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'
@@ -4576,12 +4593,15 @@
   See Also: @create, @open, @pcreate
 
 & @open
-  Command: @open [#dbref] <name> [=<#room>]
+  Command: @open[/switch] [#dbref] <name> [=<#room>]
   
   This works just like the mortal's @open except you can specify the dbref#
   that you wish to use for the exit.  The #dbref *must* be in the free
   list else it will default to the first free object available instead.
   This command can only be used by super-royalty.
+  
+  Switches available:
+    /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
   Note: @reclist/free to display the free list.
         @stat to show the 'next free dbref#'
@@ -4640,8 +4660,19 @@
     The 'port' function follows all standards of normal pages but will not
     kick off any reject, idle, or other page limited messages nor will it
     check against page locks.  Use with discretion.
-  
-  See Also: whisper, @pemit
+
+  See also: pagelock_notify, whisper, @pemit
+
+& pagelock_notify
+  Config parameter: pagelock_notify <yes/no>.  Default: yes
+
+  This option can be used to enable or disable the automatic notification
+  to players on login about them having a PAGE LOCK set.
+
+  By default the message is enabled by default, but it can be useful to
+  disable this in case there is a softcode +command wrapper to manage
+  certain locks.
+
 & whisper
   Command: whisper[/port] <player> [=<message>] (royalty and higher only)
   
@@ -5382,10 +5413,500 @@
  
   See also: wizhelp tags, help tag()
    
+& TOTEMS
+  Topic: TOTEMS
+  
+  Totems are a generic overset of flags and toggles.  Eventually this will
+  be the functionality that will take over control of flags and toggles
+  internally to the mush.
+  
+  Totems are unique to flags and toggles in the fact that:
+    1.  They can be defined and removed dynamically without any type
+        of damage to the mush or the database.
+    2.  They can be renamed without any damage to the mush or the
+        database.
+    3.  They can be defined statically via config file entries.
+    4.  They can be defined permanently via source files and compiled in
+        just like a normal flag and toggle.
+    5.  With hardcode only, they can be assigned unique control, power,
+        or similar affect as when toggles and flags.
+    6.  The number of totems can be increased or shrunk dynamically
+        without damaging the database.  Howeber, if hardcoding to
+        a specific slot, it likely won't compile if you shrink to
+        the point that slot no longer exists.
+  
+  A totem 'slot' is a unique flag space that contains 32 unique flags
+  for that slot.  By default there are 10 slots allowing a total of
+  320 flags.  Each flag has a unique slot and flag bitmask for its
+  identifier.
+  
+  { wizhelp totem2 for memory statistics and guidelines }
+   
+& TOTEM2
+  Totems are all held in memory so the overhead will be based on the
+  total number of slots and the total number of objects in the database.
+  
+  Flag and totem spaces are stored in an attribute space, so the larger
+  your LBUF size, the larger the contents of the attribute and the larger
+  number of totems you can have. 
+  
+  If you shrink the LBUF size to no longer hold the slots, the slots will
+  be cut off and upon loading the game will see it as a slot shrink event
+  and reduce the total slots.
+  
+  Statistically the following is a general guideline with max values:
+    Max values:
+      *** 4K  lbufs -  300 max slots  (for   9600 flags) 
+      *** 8K  lbufs -  600 max slots  (for  19200 flags) 
+      *** 16K lbufs - 1200 max slots  (for  38400 flags) 
+      *** 32K lbufs - 2500 max slots  (for  80000 flags) 
+      *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+ 
+ Overhead: ((slots * 8) * total objects) + (flags * name len) + (slots * 8)
+ 
+ Flags have a hard name length of 20 characters.
+ Slots are defined as a long or 8 bytes of overhead for the declaration.
+  
+ Flags are based on how many are used only.
+ 
+ Memory overhead assuming all flags possible used with max length of name.
+   5000 obj db, 300 slots: ((300 * 8) * 5000) + (9600 * 20) + (300 * 8)
+     --> 12,194,400 (12 MB)
+   20000 obj db, 2500 slots: ((2500 * 8) * 20000) + (80000 * 20) + (2500 * 8)
+     --> 401,620,000 (400 MB)
+   20000 obj db, 40 slots: ((40 * 8) * 20000) + (1280 * 20) + (40 * 8)
+     --> 6,425,920 (6.4 MB)
+   20000 obj db, 10 slots: ((10 * 8) * 20000) + (320 * 20) + (10 * 8) 
+     --> 1,606,480 (1.6 MB)
+  
+ A realistic medium sized game will have about 8000 objects and stick with
+ the default of 10 slots.
+   8000 obj db, 10 slots: ((10 * 8) * 8000) + (320 * 20) + (10 * 8)
+     --> 646,480 (640 KB)
+  
+ And sure, let's assume an obscene sized game with obscene sized totems.
+ You know, just for giggles.
+   100k obj db, 5000 slots: ((5000 * 8) * 100000) + (160000 * 20) + (5000 * 8)
+    --> 4,003,240,000 (4 GB)
+ 
+ Or about the overhead of firefox :) 
+ 
+ But why you'd want or need 160,000 flags is anyone's guess.
+  
+ So as seen, default usage will cause minimal overhead, while maxing out
+ the totems to the obscene will gobble up a bit of memory for very large
+ games.
+  
+& @totem
+  Command: @totem[/<switches>] [<totemname> [=<args>]
+  
+  See 'TOTEMS' for a general overview of totems.
+  
+  The @totem command is the administative tool for in-game adding and
+  manipulation of @totems.  You may also add them in the source or through
+  the netrhost.conf file.  They can be issued through the @admin admin_object
+  as well.
+  
+  The following switches exist for @totem:
+    /add      - Add the totem.  CONFIG: totem_add
+                Syntax:  @totem/add totemname=slot# bitvalue
+    /remove   - Remove the totem.  (Can only remove temporary totems)
+                Syntax:  @totem/remove totemname
+    /list     - List the totems you have access to.  Does permission checks.
+                Syntax:  @totem/list
+    /set      - Controls who may set the totem.  CONFIG: totem_access_set
+                Syntax:  @totem/set totemname=permission(s)
+    /unset    - Controls who may unset the totem.  CONFIG: totem_access_unset
+                Syntax:  @totem/unset totemname=permission(s)
+    /see      - Controls who may see the totem.  CONFIG: totem_access_see
+                Syntax:  @totem/see totemname=permission(s)
+    /type     - Controls what types are denied.  CONFIG: totem_access_type
+                Syntax:  @totem/type totemname=permission(s)
+    /rename   - Rename the totem.  CONFIG: totem_rename
+                Syntax:  @totem/rename totemname=newname
+    /validate - Does a validation check on totems for dangling slot/values
+                Syntax:  @totem/validate
+    /info     - Does information lookup on the specified totem.
+                Syntax:  @totem/info totemname
+    /fulllist - Does full expansion of totem list (NAME|SLOT|VALUE)
+              - Syntax:  @totem/full totemname
+    /alias    - Assigns one or more aliases to a totem.  CONFIG: totem_alias
+              - Syntax:  @totem/alias totemname=alias(s)
+    /unalias  - Removes the alias of the targeted totem.
+              - Syntax:  @totem/unalias totemname=alias(s)
+    /display  - Show flags assigned to flag values of given slot.
+                Syntax:  @totem/display slotnumber
+    /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
+                Syntax:  @totem/letter totemname=tierlevel letter
+    /slot     - display all the slots and the number of totems assigned.
+  
+    Currently not implemented:
+    /clean    - Will clean the dangling slot/values off all players
+                Syntax:  @totem/clean
+   
+  You may see individual help with 'help @totem/switchname' for any of the
+  above switches for more detail on each sub-topic.
+   
+  See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
+             totem_access_see, totem_access_type, totem_letter, totem_rename,
+             totem_name
+
+& @totem/add
+& totem add
+& @totem add
+  Command: @totem/add <totem> = <slot> <mask>
+  
+  This option will add the <totem> by name into the given <slot> with the
+  bitwise <mask> specified.  The mask must be a unique bitmask and the
+  slot must not currently be used.   The mask can be either in hex starting
+  with 0x as shown, or the decimal equivelant.  The valid slots are defined
+  to whatever the max slots are for that RhostMUSH.  The default is 0-9.
+  
+  Totem names must be less than 20 characters long.
+  
+  The following are the valid bitmasks:
+  
+    HEX        DECIMAL      HEX        DECIMAL      HEX        DECIMAL
+    ---------- -----------  ---------- -----------  ---------- ----------
+    0x00000001           1  0x00000800        2048  0x0040000      4194304
+    0x00000002           2  0x00001000        4096  0x0080000      8388608     
+    0x00000004           4  0x00002000        8192  0x0100000     16777216    
+    0x00000008           8  0x00004000       16384  0x0200000     33554432    
+    0x00000010          16  0x00008000       32768  0x0400000     67108864    
+    0x00000020          32  0x00010000       65536  0x0800000    134217728   
+    0x00000040          64  0x00020000      131072  0x1000000    268435456   
+    0x00000080         128  0x00040000      262144  0x2000000    536870912   
+    0x00000100         256  0x00080000      524288  0x4000000   1073741824  
+    0x00000200         512  0x00100000     1048576  0x8000000   2147483648  
+    0x00000400        1024  0x00200000     2097152     
+  
+  Examples:
+    > @totem/add mytotem=1 0x00000001
+    > @totem/add anothertotem=2 2
+  
+  Config parameter equivelant:
+    > totem_add mytotem 1 0x00000001
+    > totem_add anothertotem 2 2 
+  
+  See Also: @totem
+
+& @totem/remove
+& totem remove
+& @totem remove
+  Command: @totem/remove <totem>
+  
+  This will remove the specified totem.  By default you can only remove
+  temporary or static totems.  A temporary totem is defined as one that
+  is added via the @totem/add command.  A static totem is one that is defined
+  using the .conf file totem_add option.  A permanent totem is one defined
+  through the use of the internal source totem_add() as documented in the
+  source itself.
+
+  Examples:
+    > @totem/remove mytotem
+    > @totem/remove myothertotem    
+  
+  See Also: @totem
+
+& @totem/set
+& totem set
+& @totem set
+  Command: @totem/set <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may set them.  
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may set the given totem.
+  
+  Examples:
+    > @totem/set mytotem=wizard
+    > @totem/set mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_set mytotem wizard
+    > totem_access_set mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/unset
+& totem unset
+& @totem unset
+  Command: @totem/unset <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may unset them.
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may unset (ergo clear) the given totem.
+  
+  Examples:
+    > @totem/unset mytotem=wizard
+    > @totem/unset mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_unset mytotem wizard
+    > totem_access_unset mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/see
+& totem see
+& @totem see
+  Command: @totem/see <totem>=<permission(s)>
+  
+  This sets the given permissions on the given totem on who may see them.
+  Valid permissions can be seen with 'wizhelp permissions'.  A special 
+  permission of 'mortal' is allowable.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls who may see the given totem.
+  
+  Examples:
+    > @totem/see mytotem=wizard
+    > @totem/see mytotem=!wizard architect
+  
+  Config parameter equivelant:
+    > totem_access_see mytotem wizard
+    > totem_access_see mytotem !wizard architect
+  
+  See Also: @totem
+
+& @totem/type
+& totem type
+& @totem type
+  Command: @totem/type <totem>=<permission(s)>
+  
+  This sets the given restrictions on the given totem on who may iset/unset
+  them based on type restrictions.  You may specify multiple permissions 
+  at once.  You may preceed a permission with '!' to remove the permission.
+  
+  This permission controls a special type-case of what targets are allowable
+  to set or be set.
+  
+  Valid types are: THING, PLAYER, EXIT, ROOM, REGISTERED, GUILDMASTER,
+                   ARCHITECT, COUNCILOR, WIZARD, IMMORTAL
+  
+  If the type is set to THING, then the target can not be a type of THING.
+  If in addition you add COUNCILOR, then only COUNCILOR and higher may set
+  type THING.
+  
+  Examples:
+    > @totem/type mytotem=room
+    > @totem/type mytotem=!room thing wizard
+  
+  Config parameter equivelant:
+    > totem_access_type mytotem room
+    > totem_access_type mytotem !room thing wizard
+  
+  See Also: @totem
+
+
+& @totem/rename
+& totem rename
+& @totem rename
+  Command: @totem/rename <totem>=<newname>
+  
+  This command will rename the totem for the duration of the boot cycle.
+  If you have specified the config parameter 'totem_rename' with the
+  specified override, you may rename static and/or permanent totems.
+  
+  If either the totem name is invalid or the destination totem name is
+  invalid or in use, the command will fail.  
+  
+  Totem names must be less than 20 characters long.
+   
+  Examples:
+    > @totem/rename mytotem=mynewtotem
+    > @totem/rename anothertotem=anothernew
+  
+  Config parameter equivelant:
+    > totem_name mytotem mynewtotem
+    > totem_name anothertotem anothernew
+  
+  See Also: totem_rename, @totem
+
+& @totem/validate
+& totem validate
+& @totem validate
+  Command: @totem/validate
+  
+  This command will go through all the totems and print out any invalid
+  totems.  Invalid totems are totems that are defined on players that 
+  were undefined or removed.
+  
+  The way totems work is it still saves the bitmask of what the totem
+  was on the player.  This is intentional since totems may dynamically
+  change, and it does no harm.
+  
+  This will display all invalid totem values, what slot they exist in,
+  and a list of every dbref# in the database that currently has defined
+  an unreferenced totem bitmask.
+   
+  Example:
+    > @totem/validate
+  
+  See Also: @totem 
+
+& @totem/info
+& totem info
+& @totem info
+  Command: @totem/info <totem>
+  
+  This command gives detailed information on the specified totem.
+  Such information will be the bitmask, the slot, it's permanency 
+  level, permissions, and what dbref#'s currently have the particular 
+  totem set.
+  
+  Examples:
+    > @totem/info marker0
+    > @totem/info mytotem 
+  
+  See Also: @totem, @totem/clean
+
+& @totem/fulllist
+& totem fulllist
+& @totem fulllist
+  Command: @totem/fulllist [<slot>]
+  
+  This will give a listing of all the totems.  You may optionally specify 
+  a totem slot you wish to see as this may be necessary as the complete
+  totem list can easily exceed the LBUF buffers.
+  
+  The administrative quick-list will show totems in the following format:
+               TOTEMNAME|SLOT-POSITION|SLOT-MASK-VALUE
+  
+  An example output would be:
+               MYTOTEM|1|0x00000001
+  
+  If you wish to see more details on a specific totem, please refer to
+  the @totem/info command.
+  
+  Examples:
+    > @totem/fulllist
+    > @totem/fulllist 0
+  
+  See Also: @totem, @totem/info
+
+& @totem/alias
+& totem alias
+& @totem alias
+  Command: @totem/alias <totem>=<alias(es)>
+  
+  This command will set the specified aliases for the target totem.  You 
+  may have a maximum of 10 aliases per totem.  This value is hardcoded and
+  can not be changed.  There should not be a reason for more than 10 aliases
+  for a totem.
+  
+  If a totem alias already exists, is invalid, or is the name of an existing
+  totem, the alias will fail for that totem alias name only.  The rest will
+  work, if valid.
+  
+  You may specify multiple aliases at one time.
+  
+  Examples:
+    > @totem/alias mytotem=my myt myto mytot mytote
+    > @totem/alias marker0=0
+
+  Config parameter equivelant:
+    > totem_alias mytotem my myt myto mytot mytote
+    > totem_alias marker0 0
+  
+  See Also: @totem
+
+& @totem/unalias
+& totem unalias
+& @totem unalias
+  Command: @totem/unalias <totem>=<alias(es)>
+  
+  This command will remove the specified aliases from the target totem. 
+  
+  If a totem alias does not exist, is invalid, or is the name of an existing
+  totem, the unalias will fail for that totem unalias only.  The rest will
+  work, if valid.  Aliases that are not part of the target totem will not
+  be removed.
+  
+  You may specify multiple aliases to remove at one time.
+  
+  Examples:
+    > @totem/unalias mytotem=my myt myto mytot mytote
+    > @totem/unalias marker0=0
+  
+  See Also: @totem
+
+& @totem/display
+& totem display
+& @totem display
+  Command: @totem/display <slot>
+  
+  This command will display all the totems, totem letters, and values for
+  the specified slot.  If slot is not specified, it defaults to slot 0.
+  
+  Examples:
+    > @totem/display
+    > @totem/display 9
+  
+  See Also: @totem
+
+& @totem/letter
+& totem letter
+& @totem letter
+  Command: @totem/letter <totem>=<tier-level> <letter>
+  
+  This will define (or redefine) the character associated with a totem.  You
+  may reuse letters on totems.  The default letter '?' for tier-level 0 is 
+  used as a mask to not display letters for the totems.  This is intentional 
+  as some totems you may want to hide the letter value.  
+  
+  There are three tier levels you may use to define a letter.
+    0  - this is the default letter type.
+    1  - characters in tier 1 will be surrounded by []'s
+    2  - characters in tier 2 will be surrounded by {}'s
+  
+  Examples:
+    > @totem/letter mytotem=0 m
+    > @totem/letter mytotem1=1 m
+    > @totem/letter mytotem2=2 m
+    > think totems(me)
+    m[m]{m}
+  
+  Config parameter equivelant:
+    > totem_letter mytotem 0 m
+    > totem_letter mytotem1 1 m
+    > totem_letter mytotem2 2 m
+   
+& @totem/clean
+& totem clean
+& @totem clean
+  Not currently implemented.
+
+& @totem/slots
+& totem slots
+& @totem slots
+  Command: @totem/slots 
+  
+  This command will list every current active totem slot and the total number
+  of totems assigned to each slot.  It's a quick way to see what slots are 
+  available and how many free spaces are available to each slot.
+  
+  The output will be in the form: [Slot: <slot>:<totems>]
+  
+  Where <slot> is the slot number and <totems> are the number of totems
+  assigned to that specific slot.
+   
+  Exmaple:
+    > @totem/slots
+  
+  See Also: @totem
+  
+& @totemdef
 & @toggledef
 & @flagdef
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]
            @toggledef[/<switches>] [<togglename>=<permission(s)>]
+           @totemdef[/<switches>] [<totemname>=<permission(s)>]
   
   This command defines ONLINE all the permissions for who can set, unset,
   and see a given flag.  The only flags that you can NOT define by this
@@ -5395,6 +5916,7 @@
   
   The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
   The @flagdef handlds all FLAGS.      (help @flagdef4 for options)
+  The @totemdef handlds all TOTEMS.      (help @totemdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -5406,11 +5928,13 @@
               associated letter.
     /list   - This lists the flags, settings, and permissions. (default)
               Columns are:
-                 'Set'   - defines who can set the flag.
-                 'Unset' - defines who can remove the flag.
-                 'See'   - defines who can see the flag.
-                 'Type'  - defines type restrictions for flag.
-                 'NoM'   - defines if the flag is un-modifiable.
+                 'Set'  - defines who can set the flag.
+                 'Unset'- defines who can remove the flag.
+                 'See'  - defines who can see the flag.
+                 'Type' - defines type restrictions for flag.
+                 'NoM'  - defines if the flag is un-modifiable.
+                 'T'    - Unique to Totems ([P]ermanent, [S]tatic, [T]emporary)
+                 'Slot' - Unique to Totems (slot position for @totem)
   
   Keep in mind that if the columns are EMPTY, it defaults to whatever the mush
   standard permissions are for setting and unsetting those flags.
@@ -5422,6 +5946,7 @@
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
+& @totemdef2
 & @toggledef2
 & @flagdef2
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -5458,6 +5983,7 @@
   { see 'wizhelp @flagdef3' for a list of available type restrictions }
   { see 'wizhelp @flagdef4' for a list of all @admin related parameters }
 
+& @totemdef3
 & @toggledef3
 & @flagdef3 
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -5492,6 +6018,7 @@
   
   See Also: @flag, @flagdef, @toggledef
 
+& @totemdef4
 & @toggledef4
 & @flagdef4
   Command: @flagdef[/<switches>] [<flagname>=<permission(s)>]  (continued)
@@ -6382,24 +6909,24 @@
   aregh_file               atrperms                 atrperms_checkall
   atrperms_max             attr_access              attr_alias             
   attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               blind_snuffs_cons      
-  brace_compatibility      break_compatability      cache_depth            
-  cache_steal_dirty        cache_trim               cache_width            
-  cap_articles             cap_conjunctions         cap_preposition        
-  check_interval           check_offset             clone_copies_cost      
-  cluster_cap              clusterfunc_cap          comcost                
-  command_dark             command_quota_increment  command_quota_max      
-  compress_program         compression              config_access          
-  conn_timeout             connect_file             connect_methods
-  connect_reg_file         cpu_secure_lvl           cpuintervalchk         
-  cputimechk               crash_database           create_max_cost        
-  create_min_cost          dark_sleepers            default_home           
-  delim_null               descs_are_local          dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               empower_fulltel        
-  enable_tstamps           enforce_unfindable       enhanced_convtime      
-  error_file 
+  badsite_file             bcc_hidden               blacklist_max
+  blind_snuffs_cons        brace_compatibility      break_compatability    
+  cache_depth              cache_steal_dirty        cache_trim             
+  cache_width              cap_articles             cap_conjunctions       
+  cap_preposition          check_interval           check_offset           
+  clone_copies_cost        cluster_cap              clusterfunc_cap        
+  comcost                  command_dark             command_quota_increment
+  command_quota_max        compress_program         compression            
+  config_access            conn_timeout             connect_file           
+  connect_methods          connect_perm             connect_reg_file       
+  cpu_secure_lvl           cpuintervalchk           cputimechk             
+  crash_database           create_max_cost          create_min_cost        
+  dark_sleepers            default_home             delim_null             
+  descs_are_local          dig_cost                 door_file              
+  door_index               down_file                down_motd_message      
+  dump_interval            dump_message             dump_offset            
+  earn_limit               empower_fulltel          enable_tstamps         
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -6489,16 +7016,16 @@
   objid_localtime          objid_offset              offline_reg             
   old_elist                online_reg                open_cost               
   output_database          output_limit              page_cost               
-  paranoid_allocate        paranoid_exit_linking     parent_follow           
-  parentable_control_lock  partial_conn              partial_deconn          
-  passapi_host             passapi_site              passproxy_host          
-  passproxy_site           paycheck                  pcreate_paranoia        
-  pemit_any_object         pemit_far_players         penn_playercmds         
-  penn_setq                penn_switches             permit_site             
-  player_attr_default      player_dark               player_flags            
-  player_listen            player_match_commands     player_match_own_command
-  player_name_spaces       player_parent             player_queue_limit      
-  player_quota           
+  pagelock_notify          paranoid_allocate         paranoid_exit_linking
+  parent_follow            parentable_control_lock   partial_conn
+  partial_deconn           passapi_host              passapi_site
+  passproxy_host           passproxy_site            paycheck
+  pcreate_paranoia         pemit_any_object          pemit_far_players
+  penn_playercmds          penn_setq                 penn_switches
+  permit_site              player_attr_default       player_dark
+  player_flags             player_listen             player_match_commands
+  player_match_own_command player_name_spaces        player_parent
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -6547,18 +7074,21 @@
   thing_flags               thing_parent              thing_quota             
   thing_toggles             timeslice                 toggle_access_see       
   toggle_access_set         toggle_access_type        toggle_access_unset     
-  tor_localhost             tor_paranoid              trace_output_limit      
-  trace_topdown             tree_character            trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_command             vattr_limit_checkwiz    
-  vercustomstr              vlimit                    wait_cost               
-  wall_cost                 whereis_notify            wizmax_dest_limit       
-  wizmax_vattr_limit        who_default               who_unfindable          
-  who_showwiz               who_wizlevel              who_whowiztype          
-  whohost_size              wiz_override              wiz_uselock             
-  wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max     
-  zone_parents
+  totem_add                 totem_alias               totem_access_see
+  totem_access_set          totem_access_type         totem_access_unset
+  totem_letter              totem_name                totem_rename
+  totem_types               tor_localhost             tor_paranoid            
+  trace_output_limit        trace_topdown             tree_character          
+  trust_site                uncompress_program        unowned_safe            
+  user_attr_flags           validate_host             vattr_command           
+  vattr_limit_checkwiz      vercustomstr              vlimit                  
+  wait_cost                 wall_cost                 whereis_notify          
+  wizmax_dest_limit         wizmax_vattr_limit        who_default             
+  who_unfindable            who_showwiz               who_wizlevel            
+  who_whowiztype            whohost_size              wiz_override            
+  wiz_uselock               wizard_help_file          wizard_help_index       
+  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
+  wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -7026,6 +7556,16 @@
   If this is disabled, then the reverse is in effect, where the only ones
   who can see the 'To:' list are those who are in the +bcc list.
 
+& blacklist_max
+  Config parameter: blacklist_max <value>    Default: 100000
+  
+  Defines the maximum value of Blacklisted hosts and blacklisted NoDNS entries
+  that are allowed.  The value can be between 1000 and 5000000.  Keep in mind
+  that the larger the value the slightly more overhead on player connects as
+  this is a list that must be walked to compare against the connecting player.
+  
+  See Also: @blacklist
+
 & blind_snuffs_cons
   Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF
   
@@ -7262,8 +7802,34 @@
   You may specify site ranges that are allowed to connect through this
   disabling with hardconn_site or hardconn_host.
   
-  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host
+  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host, connect_perm
 
+& connect_perm
+  Config parameter: connect_perm <value>.   Default: 0
+  
+  Specifies the permission level of the player allowed to be connected
+  to with the connect screen 'connect' command.  This is intended for
+  use with the account handler subsystem.
+  
+  The following values are valid:
+    0   - (default) anyone can connect
+    1   - those set wanderer and guest can not connect
+    2   - Guildmaster and higher allowed
+    3   - Architect and higher allowed
+    4   - Councilor and higher allowed
+    5   - Wizard and higher allowed
+    6   - Immorrtal and higher allowed
+    7   - god(#1) allowed only
+    >8  - No one allowed
+  
+  The additive is used to allow guests, but still applies to the above.
+    100 - Allow guests (override) for above permissions.
+  
+  101 will only stop anyone with wanderer from connecting.
+  105 will allow guests and wizard and higher to connect. 
+  
+  See Also: logout_cmd_access, account_login(), account_owner()
+  
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
   
@@ -7728,7 +8294,7 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-  See Also: logout_cmd_access, account_login(), account_owner()
+  See Also: logout_cmd_access, account_login(), account_owner(), connect_perm
   
 { see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
@@ -10515,14 +11081,17 @@
   Config parameter: safer_passwords <yes/no>.  Default: no
   
   This parameter will enforce harder passwords to be set.  When enabled, all
-  new passwords will have to be at least 5 characters long, have at least one
-  lowercase and uppercase letter, and require a special character which is
-  non-alphanumeric or ', or -.
+  new passwords will have to be at least 5 (for DES) or 14 (for SHA512)  
+  characters long, have at least one lowercase and uppercase letter, and 
+  require a special character which is non-alphanumeric or ', or -.
   
   DES passwords are 8 characters or less.
   
   SHA512 passwords (default) are 160 characters or less.
   
+  Both passwords will use a simplistic entropy check that enforces non
+  sequential passwords of uniqueness.
+ 
   Note:  Guest players still are allowed 'guest' as their password.
 
 & sconnect_cmd
@@ -10683,23 +11252,28 @@
   of keywords (i.e. OPEN SET CREATE) or through the use of a bitmask.
   
   The following is a list of keywords and their bitmask equivalents:
+#define SIDE_EXECSCRIPT  0x04000000 /* execscript() sideeffect */
+#define SIDE_ZONE        0x08000000 /* zone() sideeffect function */
+#define SIDE_LSET        0x10000000 /* lset() sideeffect function */
+#define SIDE_TOTEMSET    0x20000000 /* totemset() sideeffect function */
+
   
   none    - 0    OPEN    - 128    WIPE     - 32768    MOVE       - 8388608
   SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSER_ADD - 16777216
   CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072   MAILSEND   - 33554432
-  LINK    - 4    CLONE   - 1024   NAME     - 262144
-  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288
-  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576
-  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152
+  LINK    - 4    CLONE   - 1024   NAME     - 262144   EXECSCRIPT - 67108864
+  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288   ZONE       - 134217728
+  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576  LSET       - 268435456
+  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152  TOTEMSET   - 536870912
   DIG     - 64   REMIT   - 16384  RSET     - 4194304
      
   To enable both SET and OPEN using a bitmask you would set the value
   to '129' (128 + 1).
   
-  To enable all of MUX's side-effects:  131135    (or keyword MUX)
-  To enable all of PENN's side-effects: 458719    (or keyword PENN)
-  To enable all side-effects:           16777215  (or keyword ALL)
-  To disable all side-effects:          0         (or keyword NONE)
+  To enable all of MUX's side-effects:  131135     (or keyword MUX)
+  To enable all of PENN's side-effects: 458719     (or keyword PENN)
+  To enable all side-effects:           1073741823 (or keyword ALL)
+  To disable all side-effects:          0          (or keyword NONE)
   
   When specifying sideeffects using keywords, the '!' operand can be
   used to negate a given sideeffect (i.e. !OPEN)
@@ -11247,6 +11821,45 @@
   only executed if the quota is greater than zero.
   See Also: command_quota_incr, command_quota_max.
 
+& totem_add
+  Config parameter: totem_add <totemname> <slot> <bitvalue>
+  
+  This will add the totem as a static (sticky) value to the mush.  This is
+  assigned a given slot number (by default 0-9) and a default bitvalue.
+  The bitvalue must be a bitwise value.  Examples are: 0x00000001, 0x00000002,
+  1, 2, or so forth.  You may use the HEX value providing it starts with 0x,
+  or the decimal value for the bitwise mask.  The mask must be a unique mask
+  and can not contain a mask of more than one byte.
+  
+  This works like @totem/add, though @totem/add only works for temporary
+  totems.
+   
+  Attempting to add a totem with a name, slot, or bitvalue already taken will
+  return an error.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_access_type, totem_alias, totem_letter, @totemdef, @totem
+
+& totem_alias
+  Config parameter: totem_alias <totemname> <alias1> [<alias2> ... <aliasN>]
+  
+  This adds one (or more) aliases to the totem.  You can have a maximum 
+  of 10 aliases added per totem name.  You may add aliases to any totem.
+  
+  This is similar to  @totem/alias.
+  
+  See Also: totem_access_unset, totem_access_see, totem_access_type, 
+            totem_access_set, totem_add, @totemdef, @totem
+  
+& totem_access_set
+  Config parameter: totem_access_set <totemname> <permission(s)>
+  
+  Sets an override for set permissions for the specified totem.  This is
+  similiar to issuing @totemdef/set on the specified totem.
+  
+  See Also: totem_access_unset, totem_access_see, totem_access_type, 
+            totem_add, totem_alias, totem_letter, @totemdef, @totem
+  
 & toggle_access_set
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
@@ -11255,6 +11868,15 @@
   
   See Also: toggle_access_unset, toggle_access_see, toggle_access_type, 
             @toggledef
+
+& totem_access_uset
+  Config parameter: totem_access_uset <totemname> <permission(s)>
+  
+  Sets an override for unset permissions for the specified totem.  This is
+  similiar to issuing @totemdef/unset on the specified totem.
+  
+  See Also: totem_access_set, totem_access_see, totem_access_type, 
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
 
 & toggle_access_unset
   Config parameter: toggle_access_unset <togglename> <permission(s)>
@@ -11265,6 +11887,15 @@
   See Also: toggle_access_set, toggle_access_see, toggle_access_type,
             @toggledef
 
+& totem_access_see
+  Config parameter: totem_access_see <totemname> <permission(s)>
+  
+  Sets an override for see permissions for the specified totem.  This is
+  similiar to issuing @totemdef/see on the specified totem.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_type, 
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
+
 & toggle_access_see
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
@@ -11274,6 +11905,70 @@
   See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
             @toggledef
 
+& totem_access_type
+  Config parameter: totem_access_type <totemname> <permission(s)>
+  
+  Sets a type restriction for set/unset permissions for the specified totem.
+  This is similiar to issuing @totemdef/type on the specified totem.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_add, totem_letter, totem_alias, @totemdef, @totem
+
+& totem_letter
+  Config parameter: totem_letter <totemname> <chartier> <character>
+  
+  This assigns the unique character to the totem.  The letter can be
+  any character except (, ), [, ], { or }.  The tier can be 0, 1, or 2.
+  
+  Tier 1 is surrounded by [].
+  Tier 2 is surrounded by {}.
+  
+  You are allowed to have totems with duplicate characters.
+  
+  See Also: totem_access_set, totem_access_unset, totem_access_see, 
+            totem_add, totem_letter, totem_access_type, @totemdef, 
+            @totem
+
+& totem_name
+  Config parameter: totem_name <oldname> <newname>
+  
+  This config parameter will allow you to rename a totem to a new name.
+  
+  Both oldname and newname must be under 20 characters in length and
+  be a valid totem name.
+  
+  If you wish to use this to rename totems that are static or 
+  permanent, you must specify the permission value with the config
+  parameter totem_rename.
+  
+  See Also: totem_rename, @totem
+
+& totem_rename
+  Config parameter: totem_rename <value>    Default: 0
+  
+  This config parameter sets a bitmask on what totem type is allowed to
+  be renamed.  The default of '0' are temporary totems only.  Temporary
+  being totems that are defined in-game and not via config params or 
+  through source.
+  
+      0 -- temporary (defined in-game)
+      1 -- static/sticky (defined in the .conf files)
+      2 -- permanent (defined in the source itself)
+      3 -- both static and permanent.
+  
+  To rename anything but temporary you must specify the level you wish.
+  
+  See Also: @totem
+
+& totem_types
+  Config parameter: totem_types <boolean>    Default: off (0)
+  
+  This enables type detection to totem lists just as flags handle them.
+  This is intended to be enabled if ever totems take over the requirement
+  of flags in the future and to allow easier migration.
+  
+  See Also: @totem
+  
 & toggle_access_type
   Config parameter: toggle_access_type <togglename> <permission(s)>
   
@@ -11875,6 +12570,7 @@
     no_eval       - The function forces non-evaluation (useful for @function)
     bypass        - The function is ignored for sandbox()
     noparse       - The function does not parse functions (but does subs)
+                    This will only work on @functions/@lfunctions
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions
@@ -12032,6 +12728,7 @@
     MUSH_FLAGS        - the flags of the player.
     MUSH_TOGGLES      - the togglesof the player.
     MUSH_OWNER        - dbref# of player's owner by name of owner.
+    MUSH_OBJID        - objid's of player, cause, caller, owner (in that order)
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
     MUSHL_VARS        - All the variables you want the script to see which
@@ -12614,12 +13311,16 @@
   That would connect you as normal.
   
   See Also: file_object, account_owner(), account_su(), account_who(), 
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
             account_owner(<port>)
             account_owner(<port>, logoff)
+  
+  Note: The account owner can be *ANY VALID DATA TYPE*.  The account owner
+        does not have to be a valid player, as the account owner is not
+        actually logging into the mush.
   
   This function will set or display the account 'owner' for the current
   connection.  This is used to help identify a singular 'owner' for
@@ -12648,7 +13349,7 @@
       You say "111"
   
   See Also: account_login(), account_su(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & ACCOUNT_SU()
   Function: account_su(<player>, <port>, <attribute>)
@@ -12670,7 +13371,7 @@
       1 Player logged in. (Bummer.)
    
   See Also: account_owner(), account_login(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
   
 & ACCOUNT_WHO()
   Function: account_who(<separator>)
@@ -12684,7 +13385,7 @@
     You say "12 20 25"
   
   See Also: account_owner(), account_login(), file_object, account_su(),
-            ACCOUNT MEMBERSHIP
+            ACCOUNT MEMBERSHIP, account_perm
 
 & AFLAGS()
   Function: aflags(<attribute>)
@@ -13568,6 +14269,8 @@
   This toggle, when set on the target, will force them to evaluate the pagelock
   as if it was not overridden.  If the wizard involved is set NO_OVERRIDE or
   if the 'wiz_override' admin param is enabled, this toggle is disregarded.
+
+  See also: pagelock_notify
   
 & @rxlevel
   Command: @rxlevel[/<switch>] <target>=[<list>]
@@ -13598,8 +14301,20 @@
     /reset -- will reset the reality.  Using this switch you do not have
               to specify <list>.  <list> will be applied after
               clearing.
+
+& @leveldefault
+  Command: @leveldefault[/switch] <target(s)>
+
+  This wipes all Reality Level information from the specified object.
+  The purpose of this is to make the target use the Reality Level defaults
+  as specified in the appropriate "def_*_rx" and "def_*tx_" config options of
+  the MUSH again. This is not doable with @rxlevel and @txlevel as those always
+  set an override of the defaults.
   
-  Example: @txlevel *Joe=Real !Umbra
+  Switches:
+    /list - allows passing more than one target
+
+  See also: @rxlevel, @txlevel, REALITY LEVELS
 
 & CANSEE()
   Function: cansee(<victim>,<target>)
@@ -13644,6 +14359,7 @@
   a reality lock.  If enabled, the target must be @toggled CHKREALITY so
   that the target knows that any UserLock that is on it will be used as
   a reality level lock enhancement.  Otherwise, without this toggle, the
+  USER lock behaves as expected.
   
   See Also: reality_level, @list rlevel, rxlevel(), txlevel(), reality_locktype
   Normal Help: chkreality()
@@ -13782,7 +14498,7 @@
   
   You may use '@list rlevel' to see the current realities.
   
-  See Also: @txlevel, @rxlevel, @list rlevel, reality_levels
+  See Also: @txlevel, @rxlevel, @leveldefault, @list rlevel, reality_levels
   Normal Help: txlevel(), rxlevel(), hastxlevel(), hasrxlevel(), listrlevels()
             
 
@@ -14025,4 +14741,4 @@
                         subsystem.
   
   See Also: account_su(), account_owner(), account_login(), file_object,
-            connect_methods, @conncheck
+            connect_methods, @conncheck, account_perm

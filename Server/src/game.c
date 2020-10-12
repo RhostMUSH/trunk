@@ -68,6 +68,7 @@ extern dbref FDECL(match_thing, (dbref, char *));
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern void FDECL(init_logfile, ());
 extern void FDECL(close_logfile, ());
+extern void FDECL(totem_write_to_disk, ());
 
 void FDECL(fork_and_dump, (int, char *));
 void NDECL(dump_database);
@@ -1421,6 +1422,7 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
 	log_text(message);
 	ENDLOG
     }
+    totem_write_to_disk();
     STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
 	log_text((char *) "Shutdown status: ");
     log_text(message);
@@ -1509,7 +1511,7 @@ do_reboot(dbref player, dbref cause, int key)
      return;
   }
 #endif
-
+  totem_write_to_disk();
   alarm_msec(0);
   alarm_stop();
   mudstate.dumpstatechk=1;
@@ -1701,6 +1703,8 @@ fork_and_dump(int key, char *msg)
   if( key & DUMP_FLAT ) {
     key |= DUMP_STRUCT | DUMP_TEXT;
   }
+
+  totem_write_to_disk();
 
   if (*mudconf.dump_msg)
     raw_broadcast(0, NO_WALLS, "%s", mudconf.dump_msg);
@@ -2088,7 +2092,7 @@ static void
 NDECL(process_preload)
 {
     dbref thing, parent, aowner;
-    int aflags, lev, i_matchint;
+    int aflags, lev, i_matchint, i_totem;
     char *tstr, *tstr2, *s_strtok, *s_strtokr, *s_matchstr;
     FWDLIST *fp;
 
@@ -2099,85 +2103,98 @@ NDECL(process_preload)
     tstr2 = alloc_lbuf("process_preload.string");
     DO_WHOLE_DB(thing) {
 
-	/* Ignore GOING objects */
+       /* Ignore GOING objects */
+       if (Going(thing))
+          continue;
 
-	if (Going(thing))
-	    continue;
+       do_top(10);
 
-	do_top(10);
 
-	/* Look for a STARTUP attribute in parents */
+       /* Clear semaphores on objects */
+       /* atr_clr(thing, A_SEMAPHORE); */
 
-        /* Clear semaphores on objects */
-        /* atr_clr(thing, A_SEMAPHORE); */
-
-        if ( !mudconf.no_startup ) {
-	   ITER_PARENTS(thing, parent, lev) {
-	       if (Flags(thing) & HAS_STARTUP) {
-		   did_it(Owner(thing), thing, 0, NULL, 0, NULL,
-		          A_STARTUP, (char **) NULL, 0);
-		   /* Process queue entries as we add them */
-   
-		   do_second();
-		   do_top(10);
-		   cache_reset(0);
-		   break;
-	       }
-	   }
-        }
-
-	/* Look for a PROTECTNAME attribute */
-
-        if (H_Protect(thing)) {
-	    (void) atr_get_str(tstr, thing, A_PROTECTNAME,
-			       &aowner, &aflags);
-            if ( *tstr ) {
-               strcpy(tstr2, tstr);
-               s_strtok = strtok_r(tstr2, "\t", &s_strtokr);
-               while ( s_strtok ) {
-                  s_matchstr = strchr(s_strtok, ':');
-                  if ( s_matchstr ) {
-                     *s_matchstr = '\0';
-                     i_matchint = atoi(s_matchstr+1);
-                     if ( i_matchint == 1 ) {
-                        protectname_add(s_strtok, thing);
-                        protectname_alias(s_strtok, thing);
-                     }
-                  } else {
-                     protectname_add(s_strtok, thing);
-                  }
-                  s_strtok = strtok_r(NULL, "\t", &s_strtokr);
-               }
-            }
-        }
-
-	/* Look for a FORWARDLIST attribute */
-
-     	if (H_Fwdlist(thing)) {
-	      (void) atr_get_str(tstr, thing, A_FORWARDLIST,
-			       &aowner, &aflags);
-  	    if (*tstr) {
-  	    	fwdlist_load(fp, GOD, tstr);
-      		if (fp->count > 0)
-    		    fwdlist_set(thing, fp);
-  	    }
-  	    cache_reset(0);
-    	}
-
-	/* Look for an OBJECTTAG attribute */
-
-     	if (H_ObjectTag(thing)) {
-	      (void) atr_get_str(tstr, thing, A_OBJECTTAG,
-			       &aowner, &aflags);
-  	    if (*tstr) {
-          strcpy(tstr2, tstr);
-          s_strtok = strtok_r(tstr2, " ", &s_strtokr);
-          while( s_strtok ) {
-     		    objecttag_add(s_strtok, thing);
-            s_strtok = strtok_r(NULL, " ", &s_strtokr);
+       /* Look for a STARTUP attribute in parents */
+       if ( !mudconf.no_startup ) {
+          ITER_PARENTS(thing, parent, lev) {
+             if (Flags(thing) & HAS_STARTUP) {
+                did_it(Owner(thing), thing, 0, NULL, 0, NULL, A_STARTUP, (char **) NULL, 0);
+                /* Process queue entries as we add them */
+                do_second();
+                do_top(10);
+                cache_reset(0);
+                break;
+             }
           }
-  	    }
-    	}
+       }
+
+       /* Load the memory based structure data for Totems A_PRIVS is *Totems */
+       (void) atr_get_str(tstr, thing, A_PRIVS, &aowner, &aflags);
+       for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+          dbtotem[thing].flags[i_totem] = 0;
+       }
+       dbtotem[thing].modified = 0;
+       if ( *tstr ) {
+          strcpy(tstr2, tstr);
+          s_strtok = strtok_r(tstr2, " \t", &s_strtokr);
+          i_totem = 0;
+          while ( s_strtok && (i_totem < TOTEM_SLOTS) ) {
+             dbtotem[thing].flags[i_totem] = atoi(s_strtok);
+             s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+             i_totem++;
+          }
+       }
+
+       /* Look for a PROTECTNAME attribute */
+       if (H_Protect(thing)) {
+          (void) atr_get_str(tstr, thing, A_PROTECTNAME, &aowner, &aflags);
+          if ( *tstr ) {
+             strcpy(tstr2, tstr);
+             s_strtok = strtok_r(tstr2, "\t", &s_strtokr);
+             while ( s_strtok ) {
+                s_matchstr = strchr(s_strtok, ':');
+                if ( s_matchstr ) {
+                   *s_matchstr = '\0';
+                   i_matchint = atoi(s_matchstr+1);
+                   if ( i_matchint == 1 ) {
+                      protectname_add(s_strtok, thing);
+                      protectname_alias(s_strtok, thing);
+                   }
+                } else {
+                   protectname_add(s_strtok, thing);
+                }
+                s_strtok = strtok_r(NULL, "\t", &s_strtokr);
+             }
+          }
+       }
+
+       /* Look for a FORWARDLIST attribute */
+       if (H_Fwdlist(thing)) {
+          (void) atr_get_str(tstr, thing, A_FORWARDLIST, &aowner, &aflags);
+          if (*tstr) {
+             fwdlist_load(fp, GOD, tstr);
+             if (fp->count > 0)
+                fwdlist_set(thing, fp);
+          }
+          cache_reset(0);
+       }
+
+       /* Look for an OBJECTTAG attribute */
+       if (H_ObjectTag(thing)) {
+          (void) atr_get_str(tstr, thing, A_OBJECTTAG, &aowner, &aflags);
+          if (*tstr) {
+             strcpy(tstr2, tstr);
+             s_strtok = strtok_r(tstr2, " ", &s_strtokr);
+             /* Reference function: objecttag_add(tagname, target, personal?, force-load?) */
+             while( s_strtok ) {
+                if ( *s_strtok == '_' ) {
+                   objecttag_add(s_strtok, thing, 1, 1); /* Load personal */
+                } else {
+                   objecttag_add(s_strtok, thing, 0, 1); /* Load global */
+                }
+                s_strtok = strtok_r(NULL, " ", &s_strtokr);
+             }
+          }
+       }
     }
 
     free_lbuf(fp);
@@ -2202,7 +2219,18 @@ main(int argc, char *argv[])
     int shmid;
 #endif
 
+    if ( (argc > 1) && 
+         (!stricmp(argv[1], "--version") ||
+          !stricmp(argv[1], "-version") ||
+          !stricmp(argv[1], "-v")) ) {
+        init_version();
+        printf("%s\n", mudstate.version);
+        printf("Build date: %.150s\n", MUSH_BUILD_DATE);
+        exit(0);
+    }
+ 
     db = NULL;
+    dbtotem = NULL;
     dddb_var_init();
     cache_var_init(); 
 
@@ -2246,6 +2274,7 @@ main(int argc, char *argv[])
     init_cmdtab();
     init_logout_cmdtab();
     init_flagtab();
+    init_totemtab();
     init_toggletab();
     init_powertab();
     init_depowertab();
@@ -2413,6 +2442,7 @@ main(int argc, char *argv[])
     hashreset(&mudstate.ulfunc_htab);
     nhashreset(&mudstate.parent_htab);
     hashreset(&mudstate.ansi_htab);
+    hashreset(&mudstate.totem_htab);
 
     mudstate.nowmsec = time_ng(NULL);
     mudstate.now = (time_t) floor(mudstate.nowmsec);

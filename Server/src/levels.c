@@ -470,6 +470,54 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     free_lbuf(buff);
 }
 
+void do_leveldefault(dbref player, dbref cause, int key, char *object)
+{
+    dbref thing;
+    char *buff, *s_strtok, *s_strtokr;
+    int i_list;
+
+    if ( !*object ) {
+       if ( key & LEVEL_LIST ) {
+          notify_quiet(player, "@leveldefault/list requires one or more targets.");
+       } else {
+          notify_quiet(player, "@leveldefault requires a target.");
+       }
+       return;
+    }
+
+    if ( key & LEVEL_LIST ) {
+       s_strtok = strtok_r(object, " \t", &s_strtokr);
+       buff = alloc_lbuf("do_leveldefault");
+       i_list = 0;
+       while ( s_strtok && *s_strtok ) {
+          /* find thing */
+          if ((thing = match_controlled_quiet(player, s_strtok)) != NOTHING) {
+             sprintf(buff, "Set - %s reality levels returned to defaults.", Name(thing));
+             notify_quiet(player, buff);
+             atr_clr(thing, A_RLEVEL);
+          } else {
+             sprintf(buff, "Warning - %s is not accessible or not a valid target.", s_strtok);
+             notify_quiet(player, buff);
+          }
+          s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+       }
+       free_lbuf(buff);
+       if ( !i_list ) {
+          notify_quiet(player, "@leveldefault/list requires one or more targets.");
+       }
+    } else {
+       /* find thing */
+       if ((thing = match_controlled(player, object)) == NOTHING)
+           return;
+
+       buff = alloc_lbuf("do_leveldefault");
+       sprintf(buff, "Set - %s reality levels returned to defaults.", Name(thing));
+       notify_quiet(player, buff);
+       atr_clr(thing, A_RLEVEL);
+       free_lbuf(buff);
+    }
+}
+
 int *desclist_match(dbref player, dbref thing)
 {
     RLEVEL match;
@@ -617,7 +665,8 @@ ATTR 	*tst_glb, *format_atr;
                    if ( !master_str )
                       master_str = alloc_lbuf("master_filler");
                 }
-		if ( *d || (tst_attr && *master_str) ) {
+		/*if ( *d || (tst_attr && *master_str) ) {*/
+		if ( *d ) {
 			found_a_desc = 1;		/* We don't need the 'def' message */
 			if(nocandoforyou) {
 			   notify(player, "Message has been nullified.");

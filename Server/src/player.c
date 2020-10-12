@@ -710,7 +710,7 @@ dbref lookup_player (dbref doer, char *name, int check_who)
          p = parse_dbref(name);
          return p;
       }   
-      p = objecttag_get(name);
+      p = objecttag_get(name, doer, 0);
       if ( Good_obj(p) && ((Typeof(p) == TYPE_PLAYER))  ) {
          return p;
       }

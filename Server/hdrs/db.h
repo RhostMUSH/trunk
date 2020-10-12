@@ -144,6 +144,13 @@ struct zlistnode {
   ZLISTNODE* next;
 };
 
+typedef struct objtotem OBJTOTEM;
+struct objtotem {
+	int	flags[TOTEM_SLOTS];
+	int	modified;
+};
+
+
 typedef struct object OBJ;
 struct object {
 	dbref	location;	/* PLAYER, THING: where it is */
@@ -180,8 +187,12 @@ struct object {
 
 typedef char *NAME;
 
+extern OBJTOTEM *dbtotem;
 extern OBJ *db;
 extern NAME *names;
+
+#define Totem(t,x)		(((x >= 0) && (x < TOTEM_SLOTS)) ? dbtotem[t].flags[x] : 0)
+#define TotemChk(t)		dbtotem[t].modified;
 
 #define SYSTEM -1
 

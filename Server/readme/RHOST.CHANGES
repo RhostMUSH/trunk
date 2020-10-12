@@ -60,6 +60,10 @@ Added optional target sender for mailsend()
 				- Thanks Rockpath
 Mysql would abort on sub-results if one of the results were NULL
 				- Thanks Myrddin
+libxcrypt broke SHA512 passwords. (Ubuntu 20+)
+				- Thanks Darren
+Typo in speech.c with a variable.
+				- Thanks Oleo
 
 
                          RhostMUSH 3.9.5 Update File

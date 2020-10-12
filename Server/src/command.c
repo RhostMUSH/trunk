@@ -42,6 +42,7 @@ extern void mod_perms(dbref, char *, char *, char **, int);
 extern void FDECL(list_cf_access, (dbref, char *, int));
 extern void FDECL(list_siteinfo, (dbref));
 extern int news_system_active;
+extern int totem_player_list(char *, int, dbref, dbref);
 extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern int lookup(char *, char *, int, int *);
@@ -295,6 +296,7 @@ NAMETAB convert_sw[] =
 NAMETAB create_sw[] =
 {
     {(char *) "ansi", 1, CA_PUBLIC, 0, CREATE_ANSI},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB decomp_sw[] =
@@ -331,6 +333,7 @@ NAMETAB dig_sw[] =
 {
     {(char *) "teleport", 1, CA_PUBLIC, 0, DIG_TELEPORT},
     {(char *) "ansi", 1, CA_PUBLIC, 0, DIG_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB doing_sw[] =
@@ -581,6 +584,11 @@ NAMETAB kick_sw[] =
 NAMETAB leave_sw[] =
 {
     {(char *) "quiet", 1, CA_PUBLIC, 0, MOVE_QUIET},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB leveldefault_sw[] =
+{
+    {(char *) "list", 1, CA_PUBLIC, 0, LEVEL_LIST},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB limit_sw[] =
@@ -844,6 +852,7 @@ NAMETAB open_sw[] =
     {(char *) "inventory", 1, CA_PUBLIC, 0, OPEN_INVENTORY},
     {(char *) "location", 1, CA_PUBLIC, 0, OPEN_LOCATION},
     {(char *) "ansi", 1, CA_PUBLIC, 0, OPEN_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB newpassword_sw[] =
@@ -860,6 +869,7 @@ NAMETAB pcreate_sw[] =
 {
     {(char *) "register", 1, CA_WIZARD, 0, PCRE_REG},
     {(char *) "ansi", 1, CA_PUBLIC, 0, PCRE_ANSI | SW_MULTIPLE},
+    {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pipe_sw[] =
@@ -1137,6 +1147,13 @@ NAMETAB tag_sw[] =
     {(char *) "list", 1, CA_ADMIN, 0, TAG_LIST},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB ltag_sw[] =
+{
+    {(char *) "add", 1, CA_PUBLIC, 0, TAG_ADD},
+    {(char *) "remove", 1, CA_PUBLIC, 0, TAG_REMOVE},
+    {(char *) "list", 1, CA_PUBLIC, 0, TAG_LIST},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB tel_sw[] =
 {
     {(char *) "list", 1, CA_PUBLIC, 0, TEL_LIST},
@@ -1147,6 +1164,27 @@ NAMETAB turtle_sw[] =
 {
     {(char *) "no_chown", 1, CA_WIZARD | CA_ADMIN, 0, TOAD_NO_CHOWN},
     {(char *) "unique3", 1, CA_WIZARD | CA_ADMIN, 0, TOAD_UNIQUE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB totem_sw[] =
+{
+    {(char *) "add", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_ADD},
+    {(char *) "remove", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_REMOVE},
+    {(char *) "list", 2, CA_PUBLIC, 0, TOTEM_LIST},
+    {(char *) "set", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSSET},
+    {(char *) "unset", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSUSET},
+    {(char *) "see", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSSEE},
+    {(char *) "type", 3, CA_WIZARD | CA_ADMIN, 0, TOTEM_PERMSTYPE},
+    {(char *) "rename", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_RENAME},
+    {(char *) "validate", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_VALIDATE},
+    {(char *) "info", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_INFO},
+    {(char *) "fulllist", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_FULL},
+    {(char *) "alias", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_ALIAS},
+    {(char *) "clean", 1, CA_WIZARD | CA_ADMIN, 0, TOTEM_CLEAN},
+    {(char *) "display", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_DISPLAY},
+    {(char *) "letter", 2, CA_WIZARD | CA_ADMIN, 0, TOTEM_LETTER},
+    {(char *) "slots", 3, CA_PUBLIC, 0, TOTEM_DISSLOT},
+    {(char *) "unalias", 3, CA_PUBLIC, 0, TOTEM_UNALIAS},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB toad_sw[] =
@@ -1388,6 +1426,10 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_label},
     {(char *) "@last", NULL, CA_NO_GUEST, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_last},
+#ifdef REALITY_LEVELS
+    {(char *) "@leveldefault", leveldefault_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    0, CS_ONE_ARG | CS_INTERP, 0, do_leveldefault},
+#endif /* REALITY_LEVELS */
     {(char *) "@lfunction", lfunction_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_NO_WANDER, CA_NO_CODE,
      FN_LOCAL, CS_TWO_ARG | CS_INTERP, 0, do_function},
     {(char *) "@limit", limit_sw, CA_WIZARD,  0,
@@ -1405,6 +1447,8 @@ CMDENT command_table[] =
     {(char *) "@lock", lock_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_lock},
     {(char *) "@lset", lset_sw, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_lset},
+    {(char *) "@ltag", ltag_sw, CA_NO_SLAVE | CA_NO_GUEST , CA_NO_CODE,
+     TAG_PERSONAL, CS_TWO_ARG | CS_INTERP, 0, do_tag},
     {(char *) "@mark", mark_sw, CA_WIZARD, 0,
      SRCH_MARK, CS_ONE_ARG | CS_NOINTERP, 0, do_search},
     {(char *) "@mark_all", markall_sw, CA_WIZARD, 0,
@@ -1513,6 +1557,8 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_stats},
     {(char *) "@toggledef", flagdef_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_toggledef},
+    {(char *) "@totemdef", flagdef_sw, CA_IMMORTAL, 0,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_totemdef},
     {(char *) "@tor", tor_sw, CA_IMMORTAL, 0,
      0, CS_NO_ARGS, 0, do_tor},
     {(char *) "@sudo", sudo_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_NOINTERP | CS_TWO_ARG | CS_CMDARG | CS_STRIP_AROUND, 0, do_sudo},
@@ -1521,8 +1567,7 @@ CMDENT command_table[] =
     {(char *) "@switch", switch_sw, CA_GBL_INTERP, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND,
      0, do_switch},
-    {(char *) "@tag", tag_sw,
-     CA_NO_SLAVE | CA_NO_GUEST , CA_NO_CODE,
+    {(char *) "@tag", tag_sw, CA_NO_SLAVE | CA_NO_GUEST | CA_ADMIN, CA_NO_CODE,
      0, CS_TWO_ARG | CS_INTERP, 0, do_tag},
     {(char *) "@teleport", tel_sw, CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV | CS_INTERP, 0, do_teleport},
@@ -1530,6 +1575,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG, 0, do_thaw},
     {(char *) "@timewarp", warp_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_timewarp},
+    {(char *) "@totem", totem_sw, CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE, 0, CS_TWO_ARG | CS_INTERP, 0, do_totem},
     {(char *) "@toad", toad_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_toad},
     {(char *) "@toggle", toggle_sw,
@@ -6417,6 +6463,8 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
+    notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
+    notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
     if ( Wizard(player) ) {
        memset(buf2, '\0', sizeof(buf2));
        sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
@@ -8021,6 +8069,7 @@ list_hashstats(dbref player)
     list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
     list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
     list_hashstat(player, "Flags", &mudstate.flags_htab);
+    list_hashstat(player, "Totems", &mudstate.totem_htab);
     list_hashstat(player, "Attr names", &mudstate.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
     list_hashstat(player, "Player Names", &mudstate.player_htab);
@@ -8470,6 +8519,7 @@ list_rlevels(dbref player, int i_key)
 #define	LIST_DF_TOGGLES	31
 #define LIST_BUFTRACEADV 32
 #define LIST_VATTRCMDS 33
+#define LIST_TOTEMS 34
 
 NAMETAB list_names[] =
 {
@@ -8508,6 +8558,7 @@ NAMETAB list_names[] =
     {(char *) "stacks", 3, CA_IMMORTAL, 0, LIST_STACKS},
     {(char *) "funperms", 4, CA_IMMORTAL, 0, LIST_FUNPERMS},
     {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
+    {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -8621,6 +8672,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     case LIST_FLAGS:
 	display_flagtab(player);
 	break;
+    case LIST_TOTEMS:
+        display_totemtab(player, s_ptr2);
+        break;
     case LIST_TOGGLES:
 	display_toggletab(player);
 	break;
@@ -8650,19 +8704,19 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	list_cmdaccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_CONF_PERMS:
-		list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_POWERS:
         list_allpower(player, 0);
 	break;
     case LIST_DEPOWERS:
-        list_allpower(player, 1);
+	list_allpower(player, 1);
         break;
     case LIST_ATTRPERMS:
 	list_attraccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
 	break;
     case LIST_VATTRCMDS:
-        list_vattrcmds(player);
+	list_vattrcmds(player);
         break;
     case LIST_VATTRS:
 	list_vattrs(player, save_buff, ((s_ptr2 && *s_ptr2) ? 1 : 0));
@@ -12612,7 +12666,7 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
    unsigned long maskval;
    struct in_addr in_tempaddr, in_tempaddr2;
    FILE *f_in;
-   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3;
+   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3, *bpmark;
   
    i_nodns = 0;
    if ( key & BLACKLIST_NODNS ) {
@@ -12625,10 +12679,14 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                      mudstate.blacklist_cnt));
       notify(player, safe_tprintf(s_buff, &s_buffptr, "            There are currently %d entries in the NoDNSlist.",
                      mudstate.blacklist_nodns_cnt));
+      notify(player, safe_tprintf(s_buff, &s_buffptr, "            Current ceiling on entries: %d",
+                     mudconf.blacklist_max));
       free_lbuf(s_buff);
       return;
    }
  
+   bpmark = NULL;
+
    switch (key) {
       case BLACKLIST_MASK:
          i_page = 0;
@@ -12925,15 +12983,18 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             fgets(s_buff, MBUF_SIZE-2, f_in);
             if ( feof(f_in) ) 
                break;
-            if ( i_loop_chk > 100000 ) {
+            if ( i_loop_chk > mudconf.blacklist_max ) {
                if ( i_nodns ) {
-                  notify(player, "@blacklist (NoDNS): WARNING - blacklist_nodns.txt exceeds 100,000 entries. Rest ignored.");
+                  notify(player, "@blacklist (NoDNS): WARNING - blacklist_nodns.txt exceeds MAX (blacklist_max) entries. Rest ignored.");
                } else {
-                  notify(player, "@blacklist: WARNING - blacklist.txt exceeds 100,000 entries. Rest ignored.");
+                  notify(player, "@blacklist: WARNING - blacklist.txt exceeds MAX (blacklist_max) entries. Rest ignored.");
                }
                break;
             }
             i_loop_chk++;
+            if ( (i_loop_chk % 20000) == 0 ) {
+               notify(player, unsafe_tprintf("@blacklist loading --- %d loaded -- continuing", i_loop_chk));
+            }
             s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
             if ( s_addrip ) {
                s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
@@ -12969,21 +13030,34 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
             if ( i_nodns ) {
                if ( mudstate.nd_list == NULL) {
                   mudstate.nd_list = b_lst_ptr;
+                  bpmark = b_lst_ptr;
                } else {
-                  b_lst_ptr2 = mudstate.nd_list;
-                  while ( b_lst_ptr2->next != NULL )
-                     b_lst_ptr2=b_lst_ptr2->next;
-                  b_lst_ptr2->next = b_lst_ptr;
+                  if ( bpmark ) {
+                     bpmark->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  } else {
+                     b_lst_ptr2 = mudstate.nd_list;
+                     while ( b_lst_ptr2->next != NULL )
+                        b_lst_ptr2=b_lst_ptr2->next;
+                     b_lst_ptr2->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                 }
                }
                mudstate.blacklist_nodns_cnt++;
             } else {
                if ( mudstate.bl_list == NULL) {
                   mudstate.bl_list = b_lst_ptr;
                } else {
-                  b_lst_ptr2 = mudstate.bl_list;
-                  while ( b_lst_ptr2->next != NULL )
-                     b_lst_ptr2=b_lst_ptr2->next;
-                  b_lst_ptr2->next = b_lst_ptr;
+                  if ( bpmark ) {
+                     bpmark->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  } else {
+                     b_lst_ptr2 = mudstate.bl_list;
+                     while ( b_lst_ptr2->next != NULL )
+                        b_lst_ptr2=b_lst_ptr2->next;
+                     b_lst_ptr2->next = b_lst_ptr;
+                     bpmark = b_lst_ptr;
+                  }
                }
                if ( i_nodns ) {
                   mudstate.blacklist_nodns_cnt++;
@@ -13004,13 +13078,13 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          break;
       case BLACKLIST_ADD:
          if ( i_nodns ) {
-            if ( mudstate.blacklist_nodns_cnt > 100000 ) {
-               notify(player, "@blacklist/add: (NoDNS) Maximum 100,000 entries have been reached.  Not added.");
+            if ( mudstate.blacklist_nodns_cnt > mudconf.blacklist_max ) {
+               notify(player, "@blacklist/add: (NoDNS) Maximum (blacklist_max) entries have been reached.  Not added.");
                break;
             }
          } else {
-            if ( mudstate.blacklist_cnt > 100000 ) {
-               notify(player, "@blacklist/add: Maximum 100,000 entries have been reached.  Not added.");
+            if ( mudstate.blacklist_cnt > mudconf.blacklist_max ) {
+               notify(player, "@blacklist/add: Maximum (blacklist_max) entries have been reached.  Not added.");
                break;
             }
          }

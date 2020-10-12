@@ -1329,6 +1329,8 @@ extern int lookup(char *, char *, int, int *);
 extern int check_connect_ex(DESC * d, char *msg, int key, int i_attr);
 extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
+extern int totem_list(char *, int, dbref, dbref, char *);
+extern void totem_set(dbref, dbref, char *, int);
 
 int do_convtime(char *, struct tm *);
 
@@ -1483,7 +1485,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "-%4s-%2s-%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
 /* %Y-%m-%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
@@ -1491,7 +1497,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "%4s/%2s/%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
 /* %Y/%m/%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
@@ -1499,7 +1509,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "-%4s/%2s/%2s %2s:%2s:%2s %02s", str1, str2, str3, str4, str5, str6, str7) == 7) {
 /* %Y/%m/%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
@@ -1507,7 +1521,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:%2s -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str6, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "%4s-%2s-%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
 /* %Y-%m-%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
@@ -1515,7 +1533,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "-%4s-%2s-%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
 /* %Y-%m-%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
@@ -1523,7 +1545,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:00 -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "%4s/%2s/%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
 /* %Y/%m/%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
@@ -1531,7 +1557,11 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:00 %s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf(instr, "-%4s/%2s/%2s %2s:%2s %02s", str1, str2, str3, str4, str5, str6) == 6) {
 /* %Y/%m/%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
@@ -1539,17 +1569,21 @@ do_date_conv(char *instr, char *outstr)
       } else {
          i_hour = atoi(str4);
       }
-      sprintf(outstr, "xxx %.3s %d %02d:%2s:00 -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
+         sprintf(outstr, "xxx %.3s %d %02d:%2s:00 -%s", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, str5, str1);
+      } else {
+         strcpy(outstr, instr);
+      }
    } else if ( sscanf("%4s-%2s-%2s", str1, str2, str3) == 3) {
 /* %Y-%m-%d */
-      if ( (atoi(str2) <= 12) && (atoi(str3) >= 1) ) {
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, atoi(str1));
       } else {
          strcpy(outstr, instr);
       }
    } else if ( sscanf("-%4s-%2s-%2s", str1, str2, str3) == 3) {
 /* %Y-%m-%d */
-      if ( (atoi(str2) <= 12) && (atoi(str3) >= 1) ) {
+      if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, (0 - atoi(str1)));
       } else {
          strcpy(outstr, instr);
@@ -2914,12 +2948,19 @@ int string_count(char* src, int numchars)
               idx+=2;
               continue;
            }
-           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+2] == 'X') || (src[idx+2] == 'x'))) ) {
-              if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+4]) ) {
+           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
+              if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+5]) ) {
                  idx+=5;
                  continue;
               }
            }
+       }
+       if ( (src[idx] == '%') && (src[idx+1] == '<') && src[idx+2] && src[idx+3] && src[idx+4] &&
+            isdigit(src[idx+2]) && isdigit(src[idx+3]) && isdigit(src[idx+4]) &&
+            (src[idx+5] == '>') ) {
+          idx+=5;
+          ichr++;
+          continue;
        }
        ichr++;
     }
@@ -7681,7 +7722,7 @@ FUNCTION(fun_port)
     int gotone = 0;
 
     it = lookup_player(player, fargs[0], 0);
-    if (Good_obj(it) && Controls(player, it)) {
+    if (Good_obj(it) && (Immortal(player) || Controls(player, it))) {
        DESC_ITER_CONN(d) {
           if (d->player == it) {
              if (gotone) {
@@ -8287,6 +8328,25 @@ FUNCTION(fun_foreach)
 }
 
 
+FUNCTION(fun_totems)
+{
+   int i_return;
+   char *s_buff;
+
+   if ( !fargs[0] ) {
+      safe_str("#-1", buff, bufcx);
+      return;
+   }
+
+   s_buff = alloc_lbuf("fun_totems");
+   i_return = totem_flags(fargs[0], player, cause, s_buff);
+   if ( i_return == 1 ) {
+      safe_str(s_buff, buff, bufcx);
+   } else {
+      safe_str("#-1", buff, bufcx);
+   }
+   free_lbuf(s_buff);
+}
 
 /* ---------------------------------------------------------------------------
  * fun_flags: Returns the flags on an object.
@@ -12821,6 +12881,11 @@ FUNCTION(fun_listnewsgroups)
          free_lbuf(retptr);
    }
 
+}
+
+FUNCTION(fun_listtotems)
+{
+   display_totemtab2(player, buff, bufcx, 0, fargs[0]);
 }
 
 FUNCTION(fun_listflags)
@@ -17532,7 +17597,7 @@ FUNCTION(fun_execscript)
 {
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
-        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs,
+        *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS];
    dbref aowner, d_atrname;
@@ -17687,6 +17752,22 @@ FUNCTION(fun_execscript)
    setenv("MUSH_CALLER", s_combine, 1);
    sprintf(s_combine, "#%d %s", Owner(player), Name(Owner(player)));
    setenv("MUSH_OWNER", s_combine, 1);
+
+   sprintf(s_combine, "#%d", player);
+   s_t1 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", cause);
+   s_t2 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", caller);
+   s_t3 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "#%d", Owner(player));
+   s_t4 = return_objid(player, cause, s_combine);
+   sprintf(s_combine, "%s %s %s %s", s_t1, s_t2, s_t3, s_t4);
+   setenv("MUSH_OBJID", s_combine, 1);
+   free_lbuf(s_t1);
+   free_lbuf(s_t2);
+   free_lbuf(s_t3);
+   free_lbuf(s_t4);
+
    sptr2 = flag_description(GOD, player, 0, (int *)NULL, 0);
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
@@ -17726,7 +17807,7 @@ FUNCTION(fun_execscript)
                *(s_atrname++) = '\0';
                d_atrname = parse_dbref(s_varstok+1);
                if ( !Good_obj(d_atrname) ) {
-                  d_atrname = objecttag_get(s_varstok+1);
+                  d_atrname = objecttag_get(s_varstok+1, player, 0);
                }
                if ( !Good_chk(d_atrname) || !controls(player, d_atrname) ) {
                   d_atrname = NOTHING;
@@ -18110,6 +18191,7 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_CAUSE");
    unsetenv("MUSH_CALLER");
    unsetenv("MUSH_OWNER");
+   unsetenv("MUSH_OBJID");
    unsetenv("MUSH_FLAGS");
    unsetenv("MUSH_OWNERFLAGS");
    unsetenv("MUSH_TOGGLES");
@@ -18468,12 +18550,31 @@ FUNCTION(fun_where)
 
 FUNCTION(fun_rloc)
 {
-    int i, levels;
+    int i, levels, t,typefound;
+    char* pt1;
     dbref it;
 
     levels = atoi(fargs[1]);
     if (levels > mudconf.ntfy_nest_lim)
        levels = mudconf.ntfy_nest_lim;
+
+    if (!fn_range_check("RLOC", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    pt1 = NULL;
+    t = 0;
+    typefound=0;
+    if( (nfargs > 2) && *fargs[2] ) {
+       pt1 = fargs[2];
+    }
+    if (pt1) {
+       if (!stricmp(pt1,"PLAYER"))
+         t = 1;
+       else if (!stricmp(pt1,"OBJECT"))
+         t = 2;
+       else if (!stricmp(pt1,"THING"))
+         t = 2;
+    }
 
     it = match_thing(player, fargs[0]);
     if (locatable(player, it, cause)) {
@@ -18487,6 +18588,22 @@ FUNCTION(fun_rloc)
                  break;
               }
            }
+           if (t) {
+              switch (t) {
+                      case 1:
+                        if (Typeof(it) == TYPE_PLAYER) {
+                           typefound = 1;
+                        }
+                           break;
+                      case 2:
+                        if (Typeof(it) == TYPE_THING) {
+                           typefound = 1;
+                        }
+                           break;
+              }
+           }
+           if(typefound)
+              break;
        }
        dbval(buff, bufcx, it);
        return;
@@ -21346,6 +21463,7 @@ FUNCTION(fun_asin)
 FUNCTION(fun_account_owner)
 {
    char *s_buff, *s_buffptr, *s_array[3], *s_tmp, *s_tmp2;
+   dbref target;
    int i_port;
    DESC *d, *dnext;
   
@@ -21408,10 +21526,21 @@ FUNCTION(fun_account_owner)
          s_array[0] = s_tmp2;
          s_array[1] = fargs[3];
          s_array[2] = s_tmp;
+         /* fun_attrpass does the return for us so we don't need to set values */
          fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
          safe_str(s_buff, buff, bufcx);
          if ( atoi(s_buff) ) {
-            d->account_owner = lookup_player(player, fargs[0], 0);
+            /* Move account owner to any data type, not just player */
+            /* d->account_owner = lookup_player(player, fargs[0], 0); */
+            target = lookup_player(player, fargs[0], 0);
+            if ( !Good_chk(target) ) {
+               target = match_thing(player, fargs[0]);
+               /* This should never happen since the above would have passed */
+               if ( !Good_obj(target) ) {
+                  target = NOTHING;
+               }
+            }
+            d->account_owner = target;
             memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
             strncpy(d->account_rawpass, fargs[3], sizeof(d->account_rawpass) - 1);
          }         
@@ -21701,7 +21830,7 @@ FUNCTION(fun_comp)
           if ( *p == '#' ) {
              x = parse_dbref(p+1);
              if ( !Good_obj(x) ) {
-                x = objecttag_get(p+1);
+                x = objecttag_get(p+1, player, 0);
              }
           } else {
              x = -1;
@@ -21710,7 +21839,7 @@ FUNCTION(fun_comp)
           if ( *p == '#' ) {
              y = parse_dbref(p+1);
              if ( !Good_obj(y) ) {
-                y = objecttag_get(p+1);
+                y = objecttag_get(p+1, player, 0);
              }
           } else {
              y = -1;
@@ -22052,27 +22181,60 @@ FUNCTION(fun_zwho)
  */
 FUNCTION(fun_inzone)
 {
-  dbref it;
+  dbref it, target;
   int gotone;
   char *tbuf;
   ZLISTNODE *ptr;
 
-  it = match_thing(player, fargs[0]);
+  if (!fn_range_check("INZONE", nfargs, 1, 2, buff, bufcx)) 
+     return;
 
-  gotone = 0;
-  if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
-     tbuf = alloc_sbuf("fun_inzone");
-     for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
-        if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
-             isRoom(ptr->object) ) {
-           if ( gotone )
-              safe_chr(' ', buff, bufcx);
-           gotone = 1;
-           sprintf(tbuf, "#%d", ptr->object);
-           safe_str(tbuf, buff, bufcx);
+  target = NOTHING;
+  if ( nfargs > 1 ) {
+     if ( !*fargs[1] ) {
+        return;
+     } else {
+        target = match_thing(player, fargs[1]);
+        if ( !Good_chk(target) ) {
+           return;
         }
      }
-     free_sbuf(tbuf);
+  }
+
+  it = match_thing(player, fargs[0]);
+  if ( !Good_chk(it) ) {
+     return;
+  }
+
+  if ( nfargs == 1 ) {
+     gotone = 0;
+     if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
+        tbuf = alloc_sbuf("fun_inzone");
+        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+           if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
+                isRoom(ptr->object) ) {
+              if ( gotone )
+                 safe_chr(' ', buff, bufcx);
+              gotone = 1;
+              sprintf(tbuf, "#%d", ptr->object);
+              safe_str(tbuf, buff, bufcx);
+           }
+        }
+        free_sbuf(tbuf);
+     }
+  } else {
+     gotone = 0;
+     if ( Examinable(player, it) && Examinable(player, target) && ZoneMaster(it) ) {
+        tbuf = alloc_sbuf("fun_inzone");
+        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+           if ( Good_chk(ptr->object) && (ptr->object == target) ) {
+              gotone = 1;
+              break;
+           }
+        }
+        free_sbuf(tbuf);
+     }
+     ival(buff, bufcx, gotone);
   }
 }
 
@@ -22338,13 +22500,13 @@ FUNCTION(fun_lcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2, *namebuff, *namebufcx;
-    int i, j, t, loop, i_objid;
+    int i, j, t, loop, i_objid, i_conchk, i_content;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
     ATTR *ap;
 
-    if (!fn_range_check("LCON", nfargs, 1, 5, buff, bufcx))
+    if (!fn_range_check("LCON", nfargs, 1, 6, buff, bufcx))
       return;
     if ( (nfargs > 3) && *fargs[3] ) {
       if(stricmp(fargs[3],"0") && stricmp(fargs[3],"1") && stricmp(fargs[3],"")) {
@@ -22361,6 +22523,12 @@ FUNCTION(fun_lcon)
        }
        i_objid = (atoi(fargs[4]) ? 1 : 0);       
     }
+
+    i_conchk = i_content =  0;
+    if ( (nfargs > 5) && *fargs[5] ) {
+       i_conchk = (atoi(fargs[5]) ? 1 : 0);       
+    }
+
     t = 0;
     canhear = 0;
     cancom = 0;
@@ -22447,13 +22615,14 @@ FUNCTION(fun_lcon)
              case 4:
              case 6:
                  canhear = isplayer = ispuppet = 0;
-                 if ((Typeof(thing) == TYPE_EXIT) && Audible(thing))
+                 if ((Typeof(thing) == TYPE_EXIT) && Audible(thing)) {
                     canhear = 1;
-                 else {
-                   if (Monitor(thing))
+                 } else {
+                   if (Monitor(thing)) {
                       buff2 = alloc_lbuf("lcon");
-                   else
+                   } else {
                       buff2 = NULL;
+                   }
                    if ( (mudconf.listen_parents == 0) || !Monitor(thing) ) {
                       for (attr = atr_head(thing, &as); attr; attr = atr_next(&as)) {
                          if (attr == A_LISTEN) {
@@ -22549,50 +22718,61 @@ FUNCTION(fun_lcon)
                             ( !nearby_exam_or_control(player, thing) ||
                               (Cloak(thing) && !Wizard(player)) ||
                               (SCloak(thing) && Cloak(thing) && !Immortal(player)) ) )  {
-                          safe_str("#-1", namebuff, &namebufcx);
-                       } else  {
-                          safe_str(Name(thing), namebuff, &namebufcx);
-                          if (gotone) {
-                              /* tbuf is an SBUF so we can't just add this to it */
-                              if ( (nfargs > 2) && *fargs[2] ) {
-                                 safe_str(fargs[2], buff, bufcx);
-                                 safe_str(namebuff, buff, bufcx);
-                              } else {
-                                 safe_chr(' ', buff, bufcx);
-                                 safe_str(namebuff, buff, bufcx);
-                              }
-                          } else {
-                              safe_str(namebuff, buff, bufcx);
+                          if ( !i_conchk ) {
+                             safe_str("#-1", namebuff, &namebufcx);
                           }
-                       }
+                          i_content++;
+                       } else  {
+                          if ( !i_conchk ) {
+                             safe_str(Name(thing), namebuff, &namebufcx);
+                             if (gotone) {
+                                 /* tbuf is an SBUF so we can't just add this to it */
+                                 if ( (nfargs > 2) && *fargs[2] ) {
+                                    safe_str(fargs[2], buff, bufcx);
+                                    safe_str(namebuff, buff, bufcx);
+                                 } else {
+                                    safe_chr(' ', buff, bufcx);
+                                    safe_str(namebuff, buff, bufcx);
+                                 }
+                             } else {
+                                 safe_str(namebuff, buff, bufcx);
+                             }
+                          }
+                       } 
+                       i_content++;
                        gotone = 1;
                        free_lbuf(namebuff);
                     } else {
-                       if (gotone) {
-                          /* tbuf is an SBUF so we can't just add this to it */
-                          if ( (nfargs > 2) && *fargs[2] ) {
-                             safe_str(fargs[2], buff, bufcx);
+                       if ( !i_conchk ) {
+                          if (gotone) {
+                             /* tbuf is an SBUF so we can't just add this to it */
+                             if ( (nfargs > 2) && *fargs[2] ) {
+                                safe_str(fargs[2], buff, bufcx);
+                                if ( i_objid ) {
+                                   sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
+                                } else {
+                                   sprintf(tbuf, "#%d", thing);
+                                }
+                             } else {
+                                if ( i_objid ) {
+                                   sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
+                                } else {
+                                   sprintf(tbuf, " #%d", thing);
+                                }
+                             }
+                          } else {
                              if ( i_objid ) {
                                 sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
                              } else {
                                 sprintf(tbuf, "#%d", thing);
                              }
-                          } else {
-                             if ( i_objid ) {
-                                sprintf(tbuf, " %.*s", SBUF_SIZE - 2, make_objid(thing));
-                             } else {
-                                sprintf(tbuf, " #%d", thing);
-                             }
-                          }
-                       } else {
-                          if ( i_objid ) {
-                             sprintf(tbuf, "%.*s", SBUF_SIZE - 1, make_objid(thing));
-                          } else {
-                             sprintf(tbuf, "#%d", thing);
                           }
                        }
+                       i_content++;
                        gotone = 1;
-                       safe_str(tbuf, buff, bufcx);
+                       if ( !i_conchk ) {
+                          safe_str(tbuf, buff, bufcx);
+                       }
                     }
 #ifdef REALITY_LEVELS
                 }
@@ -22603,14 +22783,23 @@ FUNCTION(fun_lcon)
         }
         free_sbuf(tbuf);
         if (i == j) {  
-            if ( !mudconf.mux_lcon_compat ) {
-               safe_str("#-1", buff, bufcx);
+            if ( i_conchk ) {
+               ival(buff, bufcx, i_content);
+            } else if ( !mudconf.mux_lcon_compat ) {
+                safe_str("#-1", buff, bufcx);
             }
+        } else if ( i_conchk ) {
+            ival(buff, bufcx, i_content);
         }
     } else if ( Good_obj(it) && !Has_contents(it) ) {
+        if ( i_conchk ) {
+           ival(buff, bufcx, i_content);
+        }
         return;
     } else {
-       if ( !mudconf.mux_lcon_compat ) {
+       if ( i_conchk ) {
+          ival(buff, bufcx, i_content);
+       } else if ( !mudconf.mux_lcon_compat ) {
           safe_str("#-1", buff, bufcx);
        }
     }
@@ -24270,6 +24459,429 @@ FUNCTION(fun_delete)
       free_lbuf(outbuff);
       free_lbuf(outbuff2);
    }
+}
+
+/* i_type 1 -- or type
+ *        0 -- and type
+ */
+int
+handle_totem_flags(dbref player, dbref cause, dbref caller, char *s_arg0, char *s_arg1, int i_type)
+{
+   int i_not, i_return;
+   char *s_tok, *s_tokptr, *s_buff;
+   dbref target;
+   TOTEMENT *hashp;
+
+   if ( !*s_arg1 || !*s_arg0 ) {
+      return 0;
+   }
+
+   init_match(player, s_arg0, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = noisy_match_result();
+  
+   if ( !Good_chk(target) ) {
+      return 0;
+   }
+   if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+       (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+       (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+      return 0;
+   }
+
+   s_buff = alloc_lbuf("handle_totem_flags");
+   strcpy(s_buff, s_arg1);
+
+   i_return = (i_type ? 0 : 1);
+   s_tok = strtok_r(s_buff, " \t", &s_tokptr);
+   while ( s_tok ) {
+      i_not = 0;
+      if ( *s_tok == '!' ) {
+         i_not = 1;
+         hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
+      } else {
+         hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
+      }
+      if ( hashp ) {
+         if ( (!i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue)) ||
+              ( i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) != hashp->flagvalue)) ) {
+            i_return = totem_cansee_bit(player, target, hashp->listperm);
+         } else {
+            i_return = 0;
+         }
+      } else {
+         if ( i_not ) {
+            i_return = 1;
+         } else {
+            i_return = 0;
+         }
+      }
+      if ( i_type && i_return ) {
+         break;
+      }
+      if ( !i_type && !i_return ) {
+         break;
+      }
+      s_tok = strtok_r(NULL, " \t", &s_tokptr);
+   }
+
+   free_lbuf(s_buff);
+   return i_return;
+}
+
+FUNCTION(fun_andtotem)
+{
+   ival(buff, bufcx, handle_totem_flags(player, cause, caller, fargs[0], fargs[1], 0));
+}
+
+FUNCTION(fun_ortotem)
+{
+   ival(buff, bufcx, handle_totem_flags(player, cause, caller, fargs[0], fargs[1], 1));
+}
+
+int
+handle_totem_letters(dbref player, dbref cause, dbref caller, char *s_arg0, char *s_tslot0, char *s_tslot1, char *s_tslot2, int i_type)
+{
+   char *s_t0, *s_t0p, *s_t1, *s_t1p, *s_t2, *s_t2p, *s_tmp;
+   dbref target;
+   TOTEMENT *tp;
+   int i_found, i_not, i_esc;
+
+   if ( !*s_tslot0 && (!s_tslot1 || !*s_tslot1) && (!s_tslot2 || !*s_tslot2) ) {
+      return 0;
+   }
+
+   init_match(player, s_arg0, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = noisy_match_result();
+  
+   if ( !Good_chk(target) ) {
+      return 0;
+   }
+   if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+       (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+       (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+      return 0;
+   }
+
+   s_t0p = s_t0 = alloc_lbuf("handle_totem_letters0");
+   s_t1p = s_t1 = alloc_lbuf("handle_totem_letters1");
+   s_t2p = s_t2 = alloc_lbuf("handle_totem_letters2");
+   for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        tp;
+        tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+        /* Skip if not on player */
+        if ( (dbtotem[target].flags[tp->flagpos] & tp->flagvalue) != tp->flagvalue ) {
+           continue;
+        }
+
+        /* Skip if we can't see this flag */
+        if (!check_access(player, tp->listperm, 0, 0)) {
+           continue;
+        }
+
+        /* Skip letter checks on default flag on slot 0 */
+        if ( (tp->flagpos == 0) && (tp->flaglett == '?') ) {
+           continue;
+        }
+
+        switch(tp->flagtier) {
+           case 2:  /* Slot 2 */
+              if ( s_tslot2 ) {
+                 if ( strchr(s_t2, tp->flaglett) == NULL ) {
+                    safe_chr(tp->flaglett, s_t2, &s_t2p);
+                 }
+              }
+              break;
+           case 1:  /* Slot 1 */
+              if( s_tslot1 ) {
+                 if ( strchr(s_t1, tp->flaglett) == NULL ) {
+                    safe_chr(tp->flaglett, s_t1, &s_t1p);
+                 }
+              }
+              break;
+           default: /* Slot 0 - default */
+              if ( strchr(s_t0, tp->flaglett) == NULL ) {
+                 safe_chr(tp->flaglett, s_t0, &s_t0p);
+              }
+              break;
+        }
+   }
+
+   if ( i_type ) { /* Or type */
+      i_found = 0;
+      if ( s_tslot2 ) {
+         s_tmp = s_tslot2;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t2, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+      if ( !i_found && s_tslot1 ) {
+         s_tmp = s_tslot1;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t1, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+      if ( !i_found ) {
+         s_tmp = s_tslot0;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t0, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+                  break;
+               }
+            } else if ( i_not ) {
+               i_found = 1;
+               break;
+            }
+            s_tmp++;
+         }
+      }
+   } else {        /* And type */
+      i_found = 1;
+      if ( s_tslot2 ) {
+         s_tmp = s_tslot2;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t2, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+      if ( i_found && s_tslot1 ) {
+         s_tmp = s_tslot1;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t1, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+      if ( i_found ) {
+         s_tmp = s_tslot0;
+         i_esc = i_not = 0;
+         while ( *s_tmp ) {
+            if ( !i_esc && (*s_tmp == '\\') ) {
+               i_esc = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( !i_esc && !i_not && (*s_tmp == '!') ) {
+               i_not = 1;
+               s_tmp++;
+               continue;
+            }
+            if ( strchr(s_t0, *s_tmp) != NULL ) {
+               if ( !i_not ) {
+                  i_found = 1;
+               } else {
+                  i_found = 0;
+                  break;
+               }
+            } else {
+               if ( !i_not ) {
+                  i_found = 0;
+                  break;
+               } else {
+                  i_found = 1;
+               }
+            }
+            i_esc = i_not = 0;
+            s_tmp++;
+         }
+      }
+   }
+
+   free_lbuf(s_t0);
+   free_lbuf(s_t1);
+   free_lbuf(s_t2);
+
+   return i_found;
+}
+
+FUNCTION(fun_andtotems)
+{
+   if (!fn_range_check("ANDTOTEMS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   ival(buff, bufcx, handle_totem_letters(player, cause, caller, fargs[0], fargs[1],
+        ((nfargs > 2) ? fargs[2] : (char *)NULL), 
+        ((nfargs > 3) ? fargs[3] : (char *)NULL), 0));
+}
+
+FUNCTION(fun_ortotems)
+{
+   if (!fn_range_check("ORTOTEMS", nfargs, 2, 4, buff, bufcx)) {
+      return;
+   }
+
+   ival(buff, bufcx, handle_totem_letters(player, cause, caller, fargs[0], fargs[1],
+        ((nfargs > 2) ? fargs[2] : (char *)NULL), 
+        ((nfargs > 3) ? fargs[3] : (char *)NULL), 1));
+}
+
+FUNCTION(fun_hastotem)
+{
+    dbref target;
+    TOTEMENT *hashp;
+
+    init_match(player, fargs[0], NOTYPE);
+    match_everything(MAT_EXIT_PARENTS);
+    target = noisy_match_result();
+  
+    if ( !Good_chk(target) ) {
+       safe_str("#-1 NOT FOUND", buff, bufcx);
+       return;
+    }
+    if (!((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+        (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+       safe_str("#-1", buff, bufcx);
+    } else {
+       if ( !*fargs[1] ) {
+          ival(buff, bufcx, 0);
+       } else {
+          hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
+          if ( hashp ) {
+             if ( (dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
+                ival(buff, bufcx, totem_cansee_bit(player, target, hashp->listperm));
+             } else {
+                ival(buff, bufcx, 0);
+             }
+          } else {
+             ival(buff, bufcx, 0);
+          }
+       }
+    }
+}
+
+FUNCTION(fun_ltotems)
+{
+    int retvalue;
+    dbref target;
+    char *s_buff;
+
+    init_match(player, fargs[0], NOTYPE);
+    match_everything(MAT_EXIT_PARENTS);
+    target = noisy_match_result();
+  
+    if (!Good_chk(target) ) {
+       safe_str((char *)"#-1", buff, bufcx);
+    } else if ( !((!Cloak(target) || (Cloak(target) && (Examinable(player, target) || Wizard(player)))) &&
+        (!(SCloak(target) && Cloak(target)) || (SCloak(target) && Cloak(target) && Immortal(player))) &&
+        (mudconf.pub_flags || Examinable(player, target) || (target == cause))) )  {
+       safe_str((char *)"#-1", buff, bufcx);
+    } else {
+       s_buff = alloc_lbuf("fun_ltotems");
+       retvalue = totem_list(s_buff, 2, target, player, (char *)NULL);
+       if ( retvalue == 1 ) {
+          safe_str(s_buff, buff, bufcx);
+       } else {
+          safe_str((char *)"#-1 ERROR ON GETTING LIST", buff, bufcx);
+       }
+       free_lbuf(s_buff);
+    }
 }
 
 FUNCTION(fun_lflags)
@@ -33406,7 +34018,7 @@ FUNCTION(fun_istag)
     p = fargs[0];
     if (*p++ == NUMBER_TOKEN) {
       if ( strlen(fargs[0]) > 1 ) {
-         dbitem = objecttag_get(p);
+         dbitem = objecttag_get(p, player, 0);
          if (Good_obj(dbitem)) {
              safe_str("1", buff, bufcx);
              return;
@@ -34059,7 +34671,7 @@ FUNCTION(fun_quota)
   dbref who;
 
   who = lookup_player(player, fargs[0], 0);
-  if ((who == NOTHING) || !Controls(player,who))
+  if ((who == NOTHING) || !Examinable(player,who))
     safe_str("#-1",buff,bufcx);
   else
     quota_dis(player, who, NULL, 0, buff, bufcx);
@@ -34078,7 +34690,7 @@ FUNCTION(fun_hasquota)
   else
     amount = 1;
   who = lookup_player(player, fargs[0], 0);
-  if ((who == NOTHING) || !Controls(player,who) || (amount < 1))
+  if ((who == NOTHING) || !Examinable(player,who) || (amount < 1))
     safe_str("#-1",buff,bufcx);
   else {
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -34446,6 +35058,48 @@ FUNCTION(fun_lset)
    free_lbuf(s_buf2);
 }
 
+FUNCTION(fun_totemset)
+{
+   dbref target;
+   CMDENT *cmdp;
+
+   if ( !(mudconf.sideeffects & SIDE_TOTEMSET) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+   mudstate.sidefx_currcalls++;
+   cmdp = (CMDENT *)hashfind((char *)"@totem", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@totem") ||
+         cmdtest(Owner(player), "@totem") || zonecmdtest(player, "@totem") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   if ( !*fargs[0] ) {
+      notify(player, "Invalid target for @totem.");
+      return;
+   }
+   if ( !*fargs[1] ) {
+      notify(player, "Set what totems?");
+      return;
+   }
+
+   init_match(player, fargs[0], NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   target = match_result();
+
+   if ( !Good_chk(target) || !Controls(player, target) ) {
+      notify(player, "Invalid target for @totem.");
+      return;
+   }
+
+   totem_set(target, player, fargs[1], 0);
+}
+
 FUNCTION(fun_set)
 {
    char *s_buf1, *s_buf2, *s_tmp;
@@ -34599,7 +35253,7 @@ FUNCTION(fun_link)
 FUNCTION(fun_create)
 {
    char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
-   int nitems;
+   int nitems, i_key;
    dbref thing;
    CMDENT *cmdp;
 
@@ -34608,7 +35262,7 @@ FUNCTION(fun_create)
       return;
    }
 
-   if (!fn_range_check("CREATE", nfargs, 1, 4, buff, bufcx))
+   if (!fn_range_check("CREATE", nfargs, 1, 5, buff, bufcx))
       return;
 
    mudstate.store_lastcr = -1;
@@ -34636,6 +35290,13 @@ FUNCTION(fun_create)
    }
    mudstate.sidefx_currcalls++;
 
+   i_key = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      if ( atoi(fargs[4]) ) {
+         i_key = OBJECT_STRICT;
+      }
+   }
+
    switch (sep) {
       case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
@@ -34643,7 +35304,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
+                 do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
       case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
@@ -34652,7 +35313,7 @@ FUNCTION(fun_create)
                     break;
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
-                 do_dig(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
@@ -34661,7 +35322,7 @@ FUNCTION(fun_create)
                     break;
                  }
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
-                 do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+                 do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
@@ -34675,13 +35336,13 @@ FUNCTION(fun_create)
                        if ( !Good_chk(thing) || !Controls(player, thing) ) {
                           notify(player, "Invalid target for @robot.");
                        } else {
-                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT), fargs[0], fargs[1]);
+                          do_pcreate(thing, cause, (PCRE_ROBOT|SIDEEFFECT|i_key), fargs[0], fargs[1]);
                        }
                     } else {
                        notify(player, "Invalid target for @robot.");
                     }
                  } else {
-                    do_pcreate(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+                    do_pcreate(player, cause, (SIDEEFFECT|i_key), fargs[0], fargs[1]);
                  }
                  break;
       default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
@@ -34690,7 +35351,7 @@ FUNCTION(fun_create)
                     notify(player, "Permission denied.");
                     break;
                  }
-                 do_create(player, cause, (SIDEEFFECT), fargs[0], myfargs);
+                 do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
    }
    free_lbuf(myfargs);
@@ -34702,7 +35363,7 @@ FUNCTION(fun_create)
 FUNCTION(fun_dig)
 {
    char *ptrs[LBUF_SIZE / 2], fillbuf[LBUF_SIZE+1];
-   int nitems, i_sanitizedbref;
+   int nitems, i_sanitizedbref, i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_DIG) ) {
@@ -34722,13 +35383,21 @@ FUNCTION(fun_dig)
       return;
    }
    memset(fillbuf, 0, sizeof(fillbuf));
-   if (!fn_range_check("DIG", nfargs, 1, 5, buff, bufcx))
+
+   if (!fn_range_check("DIG", nfargs, 1, 6, buff, bufcx))
       return;
    if ( nfargs > 2 ) {
       sprintf(fillbuf, "%.*s,%.*s", ((LBUF_SIZE / 2) - 1), fargs[1], ((LBUF_SIZE / 2) - 1), fargs[2]);
    }
    else if (nfargs > 1) {
       sprintf(fillbuf, "%.*s", (LBUF_SIZE - 10), fargs[1]);
+   }
+
+   i_key = 0;
+   if ( (nfargs > 5) && *fargs[5] ) {
+      if ( atoi(fargs[5]) ) {
+         i_key = OBJECT_STRICT;
+      }
    }
    nitems = list2arr(ptrs, LBUF_SIZE / 2, fillbuf, ',');
    i_sanitizedbref = -1;
@@ -34749,7 +35418,7 @@ FUNCTION(fun_dig)
       if ( i_sanitizedbref != 1 )
          i_sanitizedbref = 0;
    }
-   do_dig(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+   do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
    if ( mudconf.sidefx_returnval ) {
       if ( i_sanitizedbref ) {
@@ -34764,7 +35433,7 @@ FUNCTION(fun_dig)
 FUNCTION(fun_open)
 {
    char *ptrs[LBUF_SIZE / 2];
-   int nitems, i_sanitizedbref;
+   int nitems, i_sanitizedbref, i_key;
    CMDENT *cmdp;
 
    if ( !(mudconf.sideeffects & SIDE_OPEN) ) {
@@ -34782,8 +35451,15 @@ FUNCTION(fun_open)
       notify(player, "Permission denied.");
       return;
    }
-   if (!fn_range_check("OPEN", nfargs, 1, 3, buff, bufcx))
+   if (!fn_range_check("OPEN", nfargs, 1, 4, buff, bufcx))
       return;
+
+   i_key = 0;
+   if ( (nfargs > 3) && *fargs[3] ) {
+      if ( atoi(fargs[3]) ) {
+         i_key = OBJECT_STRICT;
+      }
+   }
    nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
    mudstate.store_lastcr = -1;
    mudstate.store_loc = -1;
@@ -34794,7 +35470,7 @@ FUNCTION(fun_open)
            controls(player, (dbref)i_sanitizedbref) )
          mudstate.store_loc = (dbref)i_sanitizedbref;
    }
-   do_open(player, cause, (SIDEEFFECT), fargs[0], ptrs, nitems);
+   do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
@@ -36476,7 +37152,7 @@ FUNCTION(fun_tag)
   	dbref thing;
     char* s_thing;
 
-    thing = objecttag_get(fargs[0]);
+    thing = objecttag_get(fargs[0], player, 0);
     if (!Good_obj(thing)) {
       safe_str("#-1", buff, bufcx);
     }
@@ -36568,6 +37244,8 @@ FUN flist[] =
     {"ANDCHR", fun_andchr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAG", fun_andflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAGS", fun_andflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ANDTOTEM", fun_andtotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ANDTOTEMS", fun_andtotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"ANSIPOS", fun_ansipos, 2, 0, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
@@ -36765,6 +37443,7 @@ FUN flist[] =
     {"HASRXLEVEL", fun_hasrxlevel, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
     {"HASTOGGLE", fun_hastoggle, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"HASTOTEM", fun_hastotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #ifdef REALITY_LEVELS
     {"HASTXLEVEL", fun_hastxlevel, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
@@ -36785,7 +37464,7 @@ FUN flist[] =
     {"INPROGRAM", fun_inprogram, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"INZONE", fun_inzone, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"INZONE", fun_inzone, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ISALNUM", fun_isalnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALPHA", fun_isalpha, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -36842,6 +37521,7 @@ FUN flist[] =
 #endif /* REALITY_LEVELS */
     {"LISTTAGS", fun_listtags, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LISTTOTEMS", fun_listtotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
     {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -36882,6 +37562,7 @@ FUN flist[] =
     {"LT", fun_lt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTE", fun_lte, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LTOGGLES", fun_ltoggles, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LTOTEMS", fun_ltotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LWHO", fun_lwho, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXNOR", fun_lxnor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LXOR", fun_lxor, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -36958,6 +37639,8 @@ FUN flist[] =
     {"ORCHR", fun_orchr, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ORFLAG", fun_orflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ORFLAGS", fun_orflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ORTOTEM", fun_ortotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ORTOTEMS", fun_ortotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"PACK", fun_pack, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PACKMATH", fun_packmath, 3,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -37026,7 +37709,7 @@ FUN flist[] =
     {"RINDEX", fun_rindex, 4, 0, CA_PUBLIC, CA_NO_CODE},
     {"RJUST", fun_rjust, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"RJC", fun_rjc, 2, FN_VARARGS, CA_PUBLIC, 0},
-    {"RLOC", fun_rloc, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"RLOC", fun_rloc, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RNUM", fun_rnum, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROMAN", fun_roman, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROOM", fun_room, 1, 0, CA_PUBLIC, CA_NO_CODE},
@@ -37142,6 +37825,8 @@ FUN flist[] =
     {"TOHEX", fun_tohex, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOOCT", fun_tooct, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTCMDS", fun_totcmds, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTEMS", fun_totems, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TOTEMSET", fun_totemset, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

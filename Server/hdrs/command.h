@@ -75,6 +75,8 @@ CMD_ONE_ARG(do_find);			/* Search for name in database */
 CMD_TWO_ARG(do_fixdb);			/* Database repair functions */
 CMD_TWO_ARG(do_flagstuff);
 CMD_TWO_ARG(do_flagdef);                /* Set/unset/see/list paramaters for flags */
+CMD_TWO_ARG(do_totem);                /* Set/unset/see/list paramaters for flags */
+CMD_TWO_ARG_ARGV(do_teleport);                /* Teleport elsewhere */
 CMD_TWO_ARG_CMDARG(do_force);		/* Force someone to do something */
 CMD_ONE_ARG_CMDARG(do_force_prefixed);	/* #<num> <cmd> variant of FORCE */
 CMD_ONE_ARG(do_freeze);			/* FREEZE a frozen queue entry */
@@ -175,13 +177,14 @@ CMD_ONE_ARG(do_stats);			/* Display object type breakdown */
 CMD_TWO_ARG_CMDARG(do_sudo);		/* @sudo someone to do something */
 CMD_ONE_ARG(do_sweep);			/* Check for listeners */
 CMD_TWO_ARG_ARGV_CMDARG(do_switch);	/* Execute cmd based on match */
-CMD_TWO_ARG(do_tag);		/* Manage object tags */
-CMD_TWO_ARG_ARGV(do_teleport);		/* Teleport elsewhere */
+CMD_TWO_ARG(do_tag);			/* Manage object tags */
+CMD_TWO_ARG(do_ltag);			/* Manage object tags */
 CMD_ONE_ARG(do_thaw);			/* THAW out a frozen queue entry */
 CMD_ONE_ARG(do_think);			/* Think command (ie: @pemit me=message) */
 CMD_ONE_ARG(do_timewarp);		/* Warp various timers */
 CMD_TWO_ARG(do_toad);			/* Turn a tinyjerk into a tinytoad */
 CMD_TWO_ARG(do_toggledef);              /* Set/unset/see/list paramaters for toggles */
+CMD_TWO_ARG(do_totemdef);              /* Set/unset/see/list paramaters for toggles */
 CMD_TWO_ARG(do_turtle);			/* Turn a tinyjerk into a tinyturtle */
 CMD_ONE_ARG_CMDARG(do_train);		/* Train the player */
 CMD_ONE_ARG_CMDARG(do_noparsecmd);      /* noparse the command */
@@ -203,6 +206,7 @@ CMD_NO_ARG(do_worn);		        /* Print what I am wearing */
 CMD_TWO_ARG(do_snoop);			/* port redirection for immortals */
 /*CMD_NO_ARG(do_dbclean); */		/* Clean db of unused attributes */
 #ifdef REALITY_LEVELS
+CMD_ONE_ARG(do_leveldefault);           /* Wipe levels */
 CMD_TWO_ARG(do_rxlevel);                /* Set RX level */
 CMD_TWO_ARG(do_txlevel);                /* Set TX level */
 #endif /* REALITY_LEVELS */

@@ -433,6 +433,7 @@ struct confdata {
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	int	penn_setq;	/* Do penn setq formatting */
+  int pagelock_notify ; /* Show login message if PAGE LOCK is set */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
@@ -446,7 +447,11 @@ struct confdata {
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 	char	vercustomstr[SBUF_SIZE];	/* Customized string for @version */
+        int	totem_types;	/* Enable flag compatible types for totems */
+	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
 	int	connect_methods;		/* Disable optionally connect methods */
+	int	blacklist_max;	/* Maximum blacklists allowed */
+	int	connect_perm;	/* Connect permissions */
 	char	string_conn[SBUF_SIZE];		/* String for the connect command */
 	char	string_create[SBUF_SIZE];	/* String for the connect command */
 	char	string_conndark[SBUF_SIZE];	/* String for the dark connect */
@@ -525,6 +530,8 @@ struct confdata {
 	int	old_elist;		/* Old elist processing */
         int	sha2rounds;	/* Number of recursive rounds for SHA2 encryption - default 5000 */
 	char	vercustomstr[SBUF_SIZE];
+        int	totem_types;	/* Enable flag compatible types for totems */
+	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
 #endif	/* STANDALONE */
 };
 
@@ -713,9 +720,11 @@ struct statedata {
 	HASHTAB	wizhelp_htab;	/* Wizard help topics hashtable */
 	HASHTAB error_htab;
         HASHTAB ansi_htab;	/* 256 colortab */
+	HASHTAB	totem_htab;	/* Totem flag tab */
 #ifdef PLUSHELP
 	HASHTAB	plushelp_htab;	/* PlusHelp topics hashtable */
 #endif
+        int	totem_slots[TOTEM_SLOTS];/* totem slots */
 	int	errornum;
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
 	BQUE	*qfirst;	/* Head of player queue */

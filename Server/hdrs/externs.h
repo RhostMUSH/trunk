@@ -304,8 +304,8 @@ extern void	FDECL(divest_object, (dbref));
 extern dbref	FDECL(create_obj, (dbref, int, char *, char *, int, int));
 extern void	FDECL(destroy_obj, (dbref, dbref, int));
 extern void	FDECL(empty_obj, (dbref));
-extern int FDECL(objecttag_add, (char*, dbref));
-extern dbref FDECL(objecttag_get, (char*));
+extern int FDECL(objecttag_add, (char*, dbref, int, int));
+extern dbref FDECL(objecttag_get, (char*, dbref, int));
 extern int FDECL(objecttag_remove, (char*));
 extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
 
@@ -365,6 +365,7 @@ extern int	FDECL(q_check, (dbref, dbref, int, char, char, int, int));
 extern int	FDECL(ok_name, (const char *));
 extern int	FDECL(ok_player_name, (const char *));
 extern int	FDECL(ok_attr_name, (const char *));
+extern int	FDECL(ok_totem_name, (const char *));
 extern int	FDECL(ok_password, (const char *, dbref, int));
 extern void	FDECL(handle_ears, (dbref, int, int));
 extern dbref	FDECL(match_possessed, (dbref, dbref, char *, dbref, int));
@@ -417,6 +418,7 @@ extern char *	FDECL(seek_char, (const char *, char));
 extern int	FDECL(prefix_match, (const char *, const char *));
 extern int	FDECL(minmatch, (char *, char *, int));
 extern char *	FDECL(strsave, (const char *));
+extern char *	FDECL(strsavetotem, (const char *));
 extern int	FDECL(safe_copy_str, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_strmax, (char *, char *, char **, int));
 extern int	FDECL(safe_copy_chr, (char, char *, char **, int));
@@ -570,6 +572,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	POW_UNKILLABLE	31	/* Can't be killed */
 
 /* Command handler keys */
+
+#define OBJECT_STRICT	0x10000000	/* Used in @create, @dig, @open, @pcreate for enforcing valid */
 
 #define AFLAGS_FULL	0x00000001
 #define AFLAGS_PERM	0x00000002
@@ -766,6 +770,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	HELP_NEWS	2	/* get data from news file */
 #define	HELP_WIZHELP	3	/* get data from wizard help file */
 #define HELP_PLUSHELP   4       /* get data from plus help file */
+
+#define LEVEL_LIST	1	/* Do a list for @leveldefault */
 
 #define LIMIT_MAX	5	/* Max arguments in @limit variable */
 #define LIMIT_LIST	1	/* Set global @limits */
@@ -1066,6 +1072,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_EXECSCRIPT	 0x04000000 /* execscript() sideeffect */
 #define SIDE_ZONE	 0x08000000 /* zone() sideeffect function */
 #define SIDE_LSET	 0x10000000 /* lset() sideeffect function */
+#define SIDE_TOTEMSET	 0x20000000 /* totemset() sideeffect function */
 
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
@@ -1213,9 +1220,28 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
 #define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
 
-#define TAG_ADD	1	/* Set new object tag */
-#define TAG_REMOVE	2 /* Remove existing tag */
+#define TAG_ADD		1	/* Set new object tag */
+#define TAG_REMOVE	2 	/* Remove existing tag */
 #define TAG_LIST	4	/* List all object tags */
+#define TAG_PERSONAL	8	/* Personal @ltag instead of @tag */
+
+#define TOTEM_ADD	1	/* Add new totem */
+#define TOTEM_REMOVE	2	/* Remove totem */
+#define TOTEM_LIST	4	/* List totems */
+#define	TOTEM_CLEAN	8	/* Set permissions */
+#define TOTEM_RENAME	16	/* Rename non-hardcoded flag */
+#define TOTEM_VALIDATE	32	/* Verify all totems set against totems defined */
+#define TOTEM_INFO	64	/* Totem information */
+#define TOTEM_FULL	128	/* Full list info */
+#define TOTEM_ALIAS	256	/* Do advanced aliases for @totem */
+#define TOTEM_PERMSSET	512	/* Remove unused bitmasks from target */
+#define TOTEM_PERMSUSET	1024	/* Remove unused bitmasks from target */
+#define TOTEM_PERMSSEE 	2048	/* Remove unused bitmasks from target */
+#define TOTEM_PERMSTYPE	4096	/* Remove unused bitmasks from target */
+#define TOTEM_DISPLAY	8192	/* Totem Dispay for slots */
+#define TOTEM_LETTER	16384	/* Totem Letter Handler */
+#define TOTEM_DISSLOT	32768	/* List totem slots and flags (you see) in them */
+#define TOTEM_UNALIAS	65536	/* Remove alias(es) */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */

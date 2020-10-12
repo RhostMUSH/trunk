@@ -124,12 +124,12 @@ typedef struct afstruct {
 #define	A_UFAIL		75	/* Invoker use fail message */
 #define	A_OUFAIL	76	/* Others use fail message */
 #define	A_AUFAIL	77	/* Use fail action list */
-#define	A_PFAIL		78	/* Invoker page fail message */
+#define	A_PFAIL		78	/* Invoker page fail message */			/* NOT USED */
 #define	A_TPORT		79	/* Invoker teleport message */
 #define	A_OTPORT	80	/* Others teleport message in src */
 #define	A_OXTPORT	81	/* Others teleport message in dst */
 #define	A_ATPORT	82	/* Teleport action list */
-#define	A_PRIVS		83	/* Individual permissions */
+#define	A_PRIVS		83	/* Individual permissions  - Totems */
 #define	A_LOGINDATA	84	/* Recent login information */
 #define	A_LTPORT	85	/* Teleport lock (can others @tel to me?) */
 #define	A_LDROP		86	/* Drop lock (can I be dropped or @tel'ed) */
@@ -153,7 +153,7 @@ typedef struct afstruct {
 #define A_ZA		129	/* ZA attribute (ZB-ZZ follow) [Thorin]*/
 
 #define A_BCCMAIL       155     /* Blind Carbon Copy Mail */
-#define A_EMAIL         156     /* email address */
+#define A_EMAIL         156     /* email address */ 				/* NOT USED */
 #define A_LMAIL         157     /* Mail lock */
 #define A_LSHARE	158	/* Mail share lock */
 
