@@ -85,8 +85,22 @@ then
    cp -f src/local.c.backup src/local.c
 else
    mv -f src/local.c src/local.c.backup
-   mv -f src/Makefile src/Makefile.backup
-   cp -f rhost_tmp/Server/src/Makefile src
+   diff rhost_tmp/Server/patch.sh patch.sh
+   if [ $? -ne 0 ]
+   then
+      mv -f patch.sh patch.sh.backup
+      cp -f rhost_tmp/Server/patch.sh patsh.sh
+      rm -rf ./rhost_tmp
+      echo "Old patch.sh detected and upgraded.  Please re-run patch.sh"
+      exit 0
+   fi
+   diff rhost_tmp/Server/src/Makefile src/Makefile
+   if [ $? -ne 0 ]
+   then
+      echo "Updeating Makefile."
+      mv -f src/Makefile src/Makefile.backup
+      cp -f rhost_tmp/Server/src/Makefile src
+   fi
    cp -f rhost_tmp/Server/src/*.c src
    cp -f src/local.c.backup src/local.c
    cp -f rhost_tmp/Server/hdrs/*.h hdrs
