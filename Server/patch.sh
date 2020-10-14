@@ -67,7 +67,7 @@ else
 fi
 echo "Making a backup of all your files, please wait..."|tr -d '\012'
 lc_date=$(date +%m%d%y%H%M%S)
-tar -czf src_backup_${lc_date}.tgz src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
+tar -czf src_backup_${lc_date}.tgz src/Makefile src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
 echo "... completed.  Filename is src_backup_${lc_date}.tgz"
 echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate (or bin/netrhost.automate)"
 if [ -f src/netrhost ] 
@@ -85,6 +85,8 @@ then
    cp -f src/local.c.backup src/local.c
 else
    mv -f src/local.c src/local.c.backup
+   mv -f src/Makefile src/Makefile.backup
+   cp -f rhost_tmp/Server/src/Makefile src
    cp -f rhost_tmp/Server/src/*.c src
    cp -f src/local.c.backup src/local.c
    cp -f rhost_tmp/Server/hdrs/*.h hdrs
