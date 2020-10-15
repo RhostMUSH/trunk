@@ -147,7 +147,7 @@ function update_makefiles
          then
             lc_update="(main)${lc_file}"
          else
-            lc_update="${lc_update} ${lc_file}"
+            lc_update="${lc_update} (main)${lc_file}"
          fi
       fi
    done
@@ -164,7 +164,7 @@ function update_makefiles
          then
             lc_update="(src)${lc_file}"
          else
-            lc_update="${lc_update} ${lc_file}"
+            lc_update="${lc_update} (src)${lc_file}"
          fi
       fi
    done
