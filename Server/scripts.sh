@@ -130,6 +130,53 @@ function update_bins
    cleanup_git
 }
 
+function update_makefiles
+{
+   update_git
+   lc_update=""
+   for i in $(ls ${lc_main}/Makefile)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i "${lc_file}" > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_main}/${lc_file}" "${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="(main)${lc_file}"
+         else
+            lc_update="${lc_update} ${lc_file}"
+         fi
+      fi
+   done
+
+   for i in $(ls ${lc_src}/Makefile)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i ./src/${lc_file} > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_src}/${lc_file}" "./src/${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="(src)${lc_file}"
+         else
+            lc_update="${lc_update} ${lc_file}"
+         fi
+      fi
+   done
+
+   if [ -n "${lc_update}" ]
+   then
+      echo "Updated scripts: ${lc_update}"
+   else
+      echo "Nothing updated."
+   fi
+   cleanup_git
+}
+
 function update_patcher
 {
    update_git
@@ -336,6 +383,9 @@ case "$@" in
       ;;
    -p|-P|--patch|--patcher) # update patcher
       update_patcher
+      ;;
+   -m|-M|--makefile|--make) # update makefiles
+      update_makefiles
       ;;
    *) # help only
       help
