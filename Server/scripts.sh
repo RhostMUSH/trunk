@@ -66,6 +66,7 @@ function help
    echo "   -r -- update all readmes."
    echo "   -p -- update patcher and this script."
    echo "   -c -- convert old makefile with new makefile."
+   echo "   -m -- update main Makefile and src/Makefile to latest."
 }
 
 function update_execscripts
