@@ -158,7 +158,7 @@ function update_makefiles
       diff $i ./src/${lc_file} > /dev/null 2>&1
       if [ $? -ne 0 ]
       then
-         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         mv -f "./src/${lc_file}" "./src/${lc_file}.${lc_date}" 2>/dev/null
          cp -pf "${lc_src}/${lc_file}" "./src/${lc_file}"
          if [ -z "${lc_update}" ]
          then
