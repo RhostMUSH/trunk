@@ -33589,3 +33589,4 @@
   
   Bug Fixes
   ------------
+  * SIDEFX permissions were messed up for normal players [ASH]

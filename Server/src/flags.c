@@ -1695,15 +1695,15 @@ flag_set(dbref target, dbref player, char *flag, int key)
                      perm = 0;
                   }
 		  if ( perm && (fp->flagvalue & SIDEFX) && (fp->flagflag & FLAG3) &&
-                             !((God(player) && (mudconf.restrict_sidefx <= 7)) ||
-                               (Immortal(player) && (mudconf.restrict_sidefx <= 6 )) ||
-                               (Wizard(player) && (mudconf.restrict_sidefx <= 5 )) ||
-                               (Admin(player) && (mudconf.restrict_sidefx <= 4 )) ||
-                               (Builder(player) && (mudconf.restrict_sidefx <= 3 )) ||
-                               (Guildmaster(player) && (mudconf.restrict_sidefx <= 2 )) ||
-			       ((Wanderer(player) || Guest(player)) && (mudconf.restrict_sidefx <=  1)) ||
-                               (mudconf.restrict_sidefx == 0 )) ) {
-                     if ( !i_setmuffle )
+                        !((God(player) && (mudconf.restrict_sidefx <= 7)) ||
+                          (Immortal(player) && (mudconf.restrict_sidefx <= 6 )) ||
+                          (Wizard(player) && (mudconf.restrict_sidefx <= 5 )) ||
+                          (Admin(player) && (mudconf.restrict_sidefx <= 4 )) ||
+                          (Builder(player) && (mudconf.restrict_sidefx <= 3 )) ||
+                          (Guildmaster(player) && (mudconf.restrict_sidefx <= 2 )) ||
+                          (!(Wanderer(player) || Guest(player)) && (mudconf.restrict_sidefx <= 1)) ||
+                          (mudconf.restrict_sidefx == 0)) ) {
+                     if ( !i_setmuffle ) 
 		        notify(player, "Permission denied.");
                      perm = 0;
                   }

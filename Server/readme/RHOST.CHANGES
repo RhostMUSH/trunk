@@ -64,6 +64,8 @@ libxcrypt broke SHA512 passwords. (Ubuntu 20+)
 				- Thanks Darren
 Typo in speech.c with a variable.
 				- Thanks Oleo
+SIDEFX permissions were borked for normal players.
+				- Thanks jan6
 
 
                          RhostMUSH 3.9.5 Update File
