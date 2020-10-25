@@ -16,6 +16,7 @@ function update_git
    if [ $? -ne 0 ]
    then
       echo "Oopse!  You do not have git installed.  You need that to use $0.  Sorry!"
+      echo "#EXIT 1"
       exit 1
    fi
    gl_branch="trunk"
@@ -42,6 +43,7 @@ function update_git
          then
             echo "error."
             echo "Can't pull latest sources.  Try again later."
+            echo "#EXIT 1"
             exit 1
          fi
       fi
@@ -367,6 +369,7 @@ lc_path="${lc_path##*/}"
 if [ "${lc_path}" != "Server" -o ! -d "game" ]
 then
    echo "$0: error -- must execute from 'Server' subdirectory"
+   echo "#EXIT 1"
    exit 1
 fi
 case "$@" in
@@ -392,3 +395,4 @@ case "$@" in
       help
       ;;
 esac
+echo "#EXIT 0"
