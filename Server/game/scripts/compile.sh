@@ -17,27 +17,28 @@ case "${arg}" in
       lc_src="https://raw.githubusercontent.com/RhostMUSH/trunk/master/Server/scripts.sh"
       lc_pull=0
       # verify we even have the script updater.
-      if [ ! -f ./scripts.sh ]
+      if [ ! -f ../scripts.sh ]
       then
          echo "Script updater was not found.  We'll pull it down for you."
          wget --version > /dev/null 2>&1
          if [ $? -eq 0 ]
          then
-            wget -O scripts.sh "${lc_src}"
+            wget -O ../scripts.sh "${lc_src}"
             lc_pull=1
          else
             echo "Wget not found.  Falling back to curl..."
             curl --version > /dev/null 2>&1
             if [ $? -eq 0 ]
             then
-               curl -O "${lc_src}"
+               cd ..
+               curl -o ../scripts.sh "${lc_src}"
                lc_pull=1
             else
                echo "Curl not found.  falling back to lynx..."
                lynx --version > /dev/null 2>&1
                if [ $? -eq 0 ]
                then
-                  lynx --dump "${lc_src}" > ./scripts.sh 2>/dev/null
+                  lynx --dump "${lc_src}" > ../scripts.sh 2>/dev/null
                else
                   echo "Could not find wget, curl, or lynx to download."
                   echo "please manually download scripts.sh from the git hub site and place it in Server."
@@ -46,9 +47,9 @@ case "${arg}" in
             fi
          fi
       fi
-      chmod 755 ./scripts.sh
+      chmod 755 ../scripts.sh
       # verify the -m option exists
-      lc_chk="$(./scripts.sh -h|grep -c "update main Makefile")"
+      lc_chk="$(cd .. && ./scripts.sh -h|grep -c "update main Makefile")"
       if [ ${lc_chk} -eq 0 ]
       then
          echo "patcher is an old patcher.  Please update patch.sh first."
@@ -78,33 +79,36 @@ case "${arg}" in
          echo "Cleaning up old compile marker..."
          rm -f ../src/x
       fi
+      lc_pth=$(pwd)
+      cd ..
       ./scripts.sh -m > ./src/x2 2>&1 &
+      cd ${lc_pth}
       ;;
    update) # update patcher
       lc_src="https://raw.githubusercontent.com/RhostMUSH/trunk/master/Server/scripts.sh"
       lc_pull=0
       # verify we even have the script updater.
-      if [ ! -f ./scripts.sh ]
+      if [ ! -f ../scripts.sh ]
       then
          echo "Script updater was not found.  We'll pull it down for you."
          wget --version > /dev/null 2>&1
          if [ $? -eq 0 ]
          then
-            wget -O scripts.sh "${lc_src}"
+            wget -O ../scripts.sh "${lc_src}"
             lc_pull=1
          else
             echo "Wget not found.  Falling back to curl..."
             curl --version > /dev/null 2>&1
             if [ $? -eq 0 ]
             then
-               curl -O "${lc_src}"
+               curl -o ../scripts.sh "${lc_src}"
                lc_pull=1
             else
                echo "Curl not found.  falling back to lynx..."
                lynx --version > /dev/null 2>&1
                if [ $? -eq 0 ]
                then
-                  lynx --dump "${lc_src}" > ./scripts.sh 2>/dev/null
+                  lynx --dump "${lc_src}" > ../scripts.sh 2>/dev/null
                else
                   echo "Could not find wget, curl, or lynx to download."
                   echo "please manually download scripts.sh from the git hub site and place it in Server."
@@ -113,7 +117,7 @@ case "${arg}" in
             fi
          fi
       fi
-      chmod 755 ./scripts.sh
+      chmod 755 ../scripts.sh
       if [ -f ../src/x2 ]
       then
          lc_chk="$(grep -c "#EXIT" ../src/x2)"
@@ -138,7 +142,10 @@ case "${arg}" in
          echo "Cleaning up old compile marker..."
          rm -f ../src/x
       fi
+      lc_pth=$(pwd)
+      cd ..
       ./scripts.sh -p > ./src/x2 2>&1 &
+      cd ${lc_pth}
       ;;
    force) # force recompile
       if [ -d ../rhost_tmp ]
@@ -151,6 +158,7 @@ case "${arg}" in
          echo "Cleaning up old compile marker..."
          rm -f ../src/x
       fi
+      cd ..
       echo "Y"|./patch.sh > ./src/x 2>&1 &
       echo "Compiling..."
       ;;
@@ -186,8 +194,23 @@ case "${arg}" in
          echo ""
          echo "Still compiling.  Be patient..."
       else
-         echo "Completed."
-         rm -f ../src/x
+         if [ -f ../src/x2 ]
+         then
+            echo "..."
+            tail -2 ../src/x2
+            echo ""
+            lc_chk=$(grep -c "#EXIT" ../src/x2)
+            if [ ${lc_chk} -eq 0 ]
+            then
+               echo "Still updating..."
+            else
+               echo "Completed."
+               rm -f ../src/x2
+            fi
+         else
+            echo "Completed."
+            rm -f ../src/x
+         fi
       fi
       ;;
    rollback) # rollback the source
