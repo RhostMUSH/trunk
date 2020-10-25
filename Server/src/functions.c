@@ -2660,7 +2660,7 @@ FUNCTION(fun_soundlike)
 
 /* This function also borrowed from Penn */
 static void
-do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
+do_spellnum(char *num, unsigned int len, char *buff, char **bufcx, int key)
 {
    static const char *bigones[] = {
       "", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion", 
@@ -2670,6 +2670,10 @@ do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
       "", "one", "two", "three", "four",
       "five", "six", "seven", "eight", "nine", NULL
    };
+   static const char *singlesth[] = {
+      "", "first", "second", "third", "forth",
+      "fifth", "sixth", "seventh", "eighth", "nineth", NULL
+   };
    static const char *special[] = {
       "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
       "sixteen", "seventeen", "eighteen", "nineteen", NULL
@@ -2678,17 +2682,22 @@ do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
       "", " ", "twenty", "thirty", "forty",
       "fifty", "sixty", "seventy", "eighty", "ninety", NULL
    };
+   static const char *tensth[] = {
+      "", " ", "twentieth", "thirtieth", "fortieth",
+      "fiftieth", "sixtieth", "seventieth", "eightieth", "ninetieth", NULL
+   };
    unsigned int ui0, ui1, ui2;
    char *tpr_buff, *tprp_buff;
-   int pos, started;
+   int pos, started, i_key;
 
    /* Something bad happened.  Reject */
    if ( (len % 3) != 0 )
       return;
 
    pos = len / 3;
-   started = 0;
+   started = i_key = 0;
    tpr_buff = alloc_lbuf("do_spellnum");
+   
    while (pos > 0) {
       pos--;
       ui0 = (unsigned int) (num[0] - '0');
@@ -2712,11 +2721,21 @@ do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
          if ( started )
             safe_chr(' ', buff, bufcx);
          if ( ui1 ) {
-            safe_str((char *)tens[ui1], buff, bufcx);
+            if ( !pos && !ui2 && key ) {
+               safe_str((char *)tensth[ui1], buff, bufcx);
+               i_key = 1;
+            } else {
+               safe_str((char *)tens[ui1], buff, bufcx);
+            }
             if ( ui2 )
                safe_chr('-', buff, bufcx);
          }
-         safe_str((char *)singles[ui2], buff, bufcx);
+         if ( !pos && key && *singlesth[ui2] ) {
+            safe_str((char *)singlesth[ui2], buff, bufcx);
+            i_key = 1;
+         } else {
+            safe_str((char *)singles[ui2], buff, bufcx);
+         }
          started = 1;
       }
 
@@ -2727,6 +2746,9 @@ do_spellnum(char *num, unsigned int len, char *buff, char **bufcx)
          started = 1;
       }
       num += 3;
+  }
+  if ( key && !i_key ) {
+     safe_str((char *)"th", buff, bufcx);
   }
   free_lbuf(tpr_buff);
 }
@@ -2754,11 +2776,29 @@ FUNCTION(fun_spellnum)
    char *num, *pnumber, *pnum1, *pnum2,
         *s_numtoken, *tpr_buff, *tprp_buff;
    unsigned int len, m, minus, dot, len1, len2;
+   int i_key;
 
+
+   if (!fn_range_check("SPELLNUM", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_key = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_key = ( atoi(fargs[1]) ? 1 : 0);
+   }
 
    if ( !fargs[0] || !*fargs[0] ) {
-      safe_str("zero", buff, bufcx);
+      if ( i_key ) {
+         safe_str("zeroth", buff, bufcx);
+      } else {
+         safe_str("zero", buff, bufcx);
+      }
       return;
+   }
+
+   /* If decimal, we don't do the 'th' handler */
+   if ( strchr(fargs[0], '.') != NULL ) {
+      i_key = 0;
    }
 
    pnum1 = NULL;
@@ -2780,7 +2820,11 @@ FUNCTION(fun_spellnum)
          pnumber++;
    }
    if ( !*pnumber ) {
-      safe_str("zero", buff, bufcx);
+      if ( i_key ) {
+         safe_str("zeroth", buff, bufcx);
+      } else {
+         safe_str("zero", buff, bufcx);
+      }
       return;
    }
 
@@ -2849,7 +2893,7 @@ FUNCTION(fun_spellnum)
       safe_str("negative ", buff, bufcx);
    }
    if ( pnum1 && *pnum1 ) {
-      do_spellnum(pnum1, len1, buff, bufcx);
+      do_spellnum(pnum1, len1, buff, bufcx, i_key);
    } else {
       len1 = 0;
    }
@@ -2886,12 +2930,16 @@ FUNCTION(fun_spellnum)
       } else if ( (len == 3) && (atoi(pnumber) == 1) ) {
          safe_str(safe_tprintf(tpr_buff, &tprp_buff, "one %s", tail[len2]), buff, bufcx);
       } else {
-         do_spellnum(pnumber, len, buff, bufcx);
+         do_spellnum(pnumber, len, buff, bufcx, i_key);
          safe_str(safe_tprintf(tpr_buff, &tprp_buff, " %ss", tail[len2]), buff, bufcx);
       }
       free_lbuf(tpr_buff);
    } else if ( len1 == 0 ) {
-      safe_str("zero", buff, bufcx);
+      if ( i_key ) {
+         safe_str("zeroth", buff, bufcx);
+      } else {
+         safe_str("zero", buff, bufcx);
+      }
    }
    free_lbuf(num);
 }
@@ -37775,7 +37823,7 @@ FUN flist[] =
     {"SOUNDEX", fun_soundex, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SOUNDLIKE", fun_soundlike, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"SPACE", fun_space, 1, 0, CA_PUBLIC, 0},
-    {"SPELLNUM", fun_spellnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"SPELLNUM", fun_spellnum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SPLICE", fun_splice, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SQRT", fun_sqrt, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SQUISH", fun_squish, 0, FN_VARARGS, CA_PUBLIC, 0},

@@ -21493,14 +21493,25 @@
   See Also: repeat(), SUBSTITUTIONS
   
 & SPELLNUM()
-  Function: spellnum(<number>)
+  Function: spellnum(<number> [,<key>])
   
   This function, when fed a number (decimal or floating point) will return
   the long name of the number (or in other wordes, the number in words).
   
+  A 'key' of 1 specifies the ordinal number instead of the pure numeric.
+  Ergo, 'tenth' instead of 'ten' or 'first' instead of 'one'. 
+  
+  Ordinals do not work with decimal notation and will be ignored.
+   
   Examples:
     > say spellnum(10)
     You say "ten"
+    > say spellnum(10,1)
+    You say "tenth"
+    > say spellnum(1)
+    You say "one"
+    > say spellnum(1,1)
+    You say "first"
     > say spellnum(1010)
     You say "one thousand ten"
   
@@ -33583,6 +33594,7 @@
   ------------
   * Support for Websocket protcol connections to the MUSH [KAGE]
   * Added Websocket config option to the Asksource script. [AMB]
+  * spellnum() takes a second argument for ordinals [ASH]
 
   Changes
   ------------
