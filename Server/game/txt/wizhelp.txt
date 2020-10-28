@@ -9168,6 +9168,8 @@
     %1 - the 'raw' output of what the target typed in.
     %2 - the dbref# of the target triggering the command.
     %3 - (Only for pose) -- boolean set to '1' if a pose/nospace (;)
+    %4 - (Only for say) -- boolean set to '1' if say message is for
+         the player-only ("You Say...")
   
   The only way to disable morgrification of a command is to move, or
   remove, the M_ attribute.

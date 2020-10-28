@@ -193,10 +193,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[0] = s_trash;
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
-                               s_array[3] = NULL;
+                               s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                               s_array[4] = alloc_sbuf("say_morg_playeronly");
+                               strcpy(s_array[4], (char *)"1");
+                               strcpy(s_array[3], (char *)"0");
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                        s_array, 3, (char **)NULL, 0);
+                                                        s_array, 5, (char **)NULL, 0);
+                               free_sbuf(s_array[4]);
+                               free_sbuf(s_array[3]);
                                free_lbuf(s_array[2]);
                             } else {
                                i_morgrify = 0;
@@ -221,10 +226,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[0] = s_trash;
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
-                               s_array[3] = NULL;
+                               s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                               s_array[4] = alloc_sbuf("say_morg_playeronly");
+                               strcpy(s_array[4], (char *)"1");
+                               strcpy(s_array[3], (char *)"0");
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                        s_array, 3, (char **)NULL, 0);
+                                                        s_array, 5, (char **)NULL, 0);
+                               free_sbuf(s_array[4]);
+                               free_sbuf(s_array[3]);
                                free_lbuf(s_array[2]);
                             } else {
                                i_morgrify = 0;
@@ -250,10 +260,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[0] = s_trash;
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
-                               s_array[3] = NULL;
+                               s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                               s_array[4] = alloc_sbuf("say_morg_playeronly");
+                               strcpy(s_array[4], (char *)"1");
+                               strcpy(s_array[3], (char *)"0");
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                        s_array, 3, (char **)NULL, 0);
+                                                        s_array, 5, (char **)NULL, 0);
+                               free_sbuf(s_array[4]);
+                               free_sbuf(s_array[3]);
                                free_lbuf(s_array[2]);
                             } else {
                                i_morgrify = 0;
@@ -277,10 +292,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[0] = s_trash;
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
-                               s_array[3] = NULL;
+                               s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                               s_array[4] = alloc_sbuf("say_morg_playeronly");
+                               strcpy(s_array[4], (char *)"1");
+                               strcpy(s_array[3], (char *)"0");
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                        s_array, 3, (char **)NULL, 0);
+                                                        s_array, 5, (char **)NULL, 0);
+                               free_sbuf(s_array[4]);
+                               free_sbuf(s_array[3]);
                                free_lbuf(s_array[2]);
                             } else {
                                i_morgrify = 0;
@@ -307,10 +327,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[0] = s_trash;
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
-                            s_array[3] = NULL;
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = alloc_sbuf("say_morg_playeronly");
+                            strcpy(s_array[4], (char *)"1");
+                            strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                     s_array, 3, (char **)NULL, 0);
+                                                     s_array, 5, (char **)NULL, 0);
+                            free_sbuf(s_array[4]);
+                            free_sbuf(s_array[3]);
                             free_lbuf(s_array[2]);
                          } else {
                             i_morgrify = 0;
@@ -334,10 +359,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[0] = s_trash;
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
-                            s_array[3] = NULL;
+                            s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = alloc_sbuf("say_morg_playeronly");
+                            strcpy(s_array[4], (char *)"1");
+                            strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
-                                                     s_array, 3, (char **)NULL, 0);
+                                                     s_array, 5, (char **)NULL, 0);
+                            free_sbuf(s_array[4]);
+                            free_sbuf(s_array[3]);
                             free_lbuf(s_array[2]);
                          } else {
                             i_morgrify = 0;
@@ -368,6 +398,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -395,6 +426,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -424,6 +456,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -451,6 +484,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -482,6 +516,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -509,6 +544,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -538,6 +574,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -565,6 +602,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -598,6 +636,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -625,6 +664,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -654,6 +694,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -681,6 +722,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -712,6 +754,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -739,6 +782,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -768,6 +812,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -795,6 +840,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                                s_array[1] = message;
                                s_array[2] = alloc_lbuf("say_morg_dbref");
                                s_array[3] = NULL;
+                               s_array[4] = NULL;
                                sprintf(s_array[2], "#%d", player);
                                s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                         s_array, 3, (char **)NULL, 0);
@@ -843,6 +889,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -872,6 +919,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -903,6 +951,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -932,6 +981,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -965,6 +1015,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -994,6 +1045,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1025,6 +1077,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1054,6 +1107,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"0");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1102,6 +1156,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             sprintf(s_array[2], "#%d", player);
                             strcpy(s_array[3], (char *)"1");
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1131,6 +1186,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1162,6 +1218,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1191,6 +1248,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1224,6 +1282,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1253,6 +1312,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1284,6 +1344,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1313,6 +1374,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             s_array[1] = message;
                             s_array[2] = alloc_lbuf("say_morg_dbref");
                             s_array[3] = alloc_lbuf("say_morg_posetoggle");
+                            s_array[4] = NULL;
                             strcpy(s_array[3], (char *)"1");
                             sprintf(s_array[2], "#%d", player);
                             s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
@@ -1359,6 +1421,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          s_array[1] = message;
                          s_array[2] = alloc_lbuf("say_morg_dbref");
                          s_array[3] = NULL;
+                         s_array[4] = NULL;
                          sprintf(s_array[2], "#%d", player);
                          s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                   s_array, 3, (char **)NULL, 0);
@@ -1414,6 +1477,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          s_array[1] = message;
                          s_array[2] = alloc_lbuf("say_morg_dbref");
                          s_array[3] = NULL;
+                         s_array[4] = NULL;
                          sprintf(s_array[2], "#%d", player);
                          s_execmorgrify = cpuexec(mudconf.hook_obj, player, player, EV_FCHECK|EV_EVAL, s_morgrify,
                                                   s_array, 3, (char **)NULL, 0);
