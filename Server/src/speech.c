@@ -105,7 +105,7 @@ void do_think (dbref player, dbref cause, int key, char *message)
 void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
-  char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_morgrify, *s_execmorgrify, *s_array[4], *s_trash;
+  char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_morgrify, *s_execmorgrify, *s_array[5], *s_trash;
   int	say_flags, depth, aflags, say_flags2, no_ansi, i_morgrify;
   ATTR  *atr_p;
   
