@@ -33595,6 +33595,8 @@
   * Support for Websocket protcol connections to the MUSH [KAGE]
   * Added Websocket config option to the Asksource script. [AMB]
   * spellnum() takes a second argument for ordinals [ASH]
+  * Added %4 to the mogrifier, indicating if the message is player-only in the
+    case of 'say' [AMB]
 
   Changes
   ------------
