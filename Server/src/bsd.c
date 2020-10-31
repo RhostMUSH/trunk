@@ -52,11 +52,10 @@ void bzero(void *, int);
 #include "local.h"
 #include "door.h"
 #ifdef ENABLE_WEBSOCKETS
-#include "websock.h"
-#endif
 ///// NEW WEBSOCK
 #include "websock2.h"
 ///// END NEW WEBSOCK
+#endif
 
 
 #include "debug.h"
@@ -2348,9 +2347,11 @@ process_input(DESC * d)
     int got, in, lost, in_get;
     char *p, *pend, *q, *qend, qfind[SBUF_SIZE], *qf, *tmpptr = NULL, tmpbuf[SBUF_SIZE];
     char *cmdsave;
+#ifdef ENABLE_WEBSOCKETS
 ///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
     int got2;
 ///// END NEW WEBSOCK #endif
+#endif
 
     DPUSH; /* #16 */
     cmdsave = mudstate.debug_cmd;
@@ -2363,6 +2364,7 @@ process_input(DESC * d)
 	mudstate.debug_cmd = cmdsave;
 	RETURN(0); /* #16 */
     }
+#ifdef ENABLE_WEBSOCKETS
 ///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
     if (d->flags & DS_WEBSOCKETS) {
         /* Process using WebSockets framing. */
@@ -2370,6 +2372,7 @@ process_input(DESC * d)
         got = in = process_websocket_frame(d, buf, got2);
     }
 ///// END NEW WEBSOCK #endif
+#endif
     if (!d->raw_input) {
 	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
 	d->raw_input_at = d->raw_input->cmd;

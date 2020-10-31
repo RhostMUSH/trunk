@@ -37,11 +37,10 @@ char *index(const char *, int);
 #endif /* REALITY_LEVELS */
 #include "door.h"
 #ifdef ENABLE_WEBSOCKETS
-#include "websock.h"
-#endif
 ///// NEW WEBSOCK
 #include "websock2.h"
 ///// END NEW WEBSOCK
+#endif
 
 #include "debug.h"
 #define FILENUM NETCOMMON_C
@@ -1833,13 +1832,6 @@ queue_write(DESC * d, const char *b, int n)
 	VOIDRETURN; /* #117 */
     }
 
-#ifdef ENABLE_WEBSOCKETS
-    /* Convert to a WebSockets frame before queuing output */
-    if (d->flags & DS_WEBSOCKETS) {
-        to_websocket_frame(&b, &n, WEBSOCKET_CHANNEL_TEXT);
-    }
-#endif
-
     if (d->output_size + n > mudconf.output_limit)
 	process_output(d);
 
@@ -1871,6 +1863,7 @@ queue_write(DESC * d, const char *b, int n)
     }
 
 
+#ifdef ENABLE_WEBSOCKETS
     ///// NEW WEBSOCK
     if (d->flags & DS_WEBSOCKETS) {
         /* Format output for websockets */
@@ -1878,6 +1871,7 @@ queue_write(DESC * d, const char *b, int n)
         VOIDRETURN;
     }
     ///// END NEW WEBSOCK
+#endif
 
 
     /* Allocate an output buffer if needed */
@@ -5082,15 +5076,6 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
-#ifdef ENABLE_WEBSOCKETS
-    if (d->flags & DS_WEBSOCKETS_REQUEST) {
-        /* Parse WebSockets handshake, if sent line by line. */
-        /* Since we are using the API port this gets done all at once in the GET request. */
-        process_websocket_header(d, command);
-        RETURN(0);
-    }
-#endif
-
     time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
@@ -5144,17 +5129,6 @@ do_command(DESC * d, char *command)
 	}
     }
     /* Split off the command from the arguments */
-
-#ifdef ENABLE_WEBSOCKETS 
-    if (!(d->flags & DS_CONNECTED)) {
-        if (process_websocket_request(d, command)) {
-            /* Continue processing as a WebSockets upgrade request. */
-            /* If the entire header is passed in command, we might be done. */
-            RETURN(0);
-        }
-    }
-#endif
-
     arg = command;
     while (*arg && !isspace((int)*arg))
 	arg++;
@@ -5708,14 +5682,17 @@ do_command(DESC * d, char *command)
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
             i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
+#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             int i_socksnarf = 0, i_sockver = 0;
             char *s_sockhost = alloc_lbuf("cmd_sockhost");
             char *s_sockkey = alloc_lbuf("cmd_sockkey");
             ///// END NEW WEBSOCK
+#endif
 
             while ( s_strtok ) {
 
+#ifdef ENABLE_WEBSOCKETS
                ////////   NEW WEBSOCK
                ///// TODO: Improve logic here
                if ( !stricmp(s_strtok, (char *)"Upgrade: websocket") ) {
@@ -5737,6 +5714,7 @@ do_command(DESC * d, char *command)
                    }
                }
                ////////   END NEW WEBSOCK
+#endif
 
                if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
                   i_snarfing = 1;
@@ -5777,6 +5755,7 @@ do_command(DESC * d, char *command)
                s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
 
+#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             if (i_socksnarf >= 5) {
                 free_lbuf(s_user); // Was allocated but will not be used
@@ -5786,7 +5765,7 @@ do_command(DESC * d, char *command)
                 complete_handshake(d, s_sockkey);
             } else
             ///// END NEW WEBSOCK
-
+#endif
             if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
                free_lbuf(s_user);
                s_user = s_usepass+1;
@@ -5961,10 +5940,12 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfing4);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
+#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             free_lbuf(s_sockhost);
             free_lbuf(s_sockkey);
             ///// END NEW WEBSOCK
+#endif
             process_output(d);
             if (d->flags & DS_API)
                 shutdownsock(d, R_API);
