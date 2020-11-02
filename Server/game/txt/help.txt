@@ -33603,3 +33603,4 @@
   ------------
   * SIDEFX permissions were messed up for normal players [ASH]
   * Mogrify handler had an off by one for the array [ASH]
+  * websock2 needed further seperation with ENABLE_WEBSOCKS [ASH]

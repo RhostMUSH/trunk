@@ -1,3 +1,4 @@
+#ifdef ENABLE_WEBSOCKETS
 #include "autoconf.h"
 #include "interface.h"
 #include "externs.h"
@@ -350,3 +351,4 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
 
   return wp - tbuf1;
 }
+#endif
