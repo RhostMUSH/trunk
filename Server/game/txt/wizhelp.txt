@@ -7055,7 +7055,7 @@
   secure_jumpok             see_owned_dark            sha2rounds
   showother_altname         shs_reverse               sidefx_maxcalls         
   sidefx_returnval          sideeffects               signal_action           
-  signal_cron               signal_object             signal_object_type      
+  signal_crontab            signal_object             signal_object_type      
   space_compress            spam_limit                spam_msg                
   spam_objmsg               sqlite_db_path            sqlite_query_limit      
   stack_limit
@@ -11331,10 +11331,10 @@
                 originated.  Retrying the failed operation should produce
                 a coredump, although the stack may or may not be readable.
   
-  See Also: @admin, signal, signal_object, signal_object_type, signal_cron
+  See Also: @admin, signal, signal_object, signal_object_type, signal_crontab
 
-& signal_cron
-  Config parameter: signal_cron <bool>  Default: no (0)
+& signal_crontab
+  Config parameter: signal_crontab <bool>  Default: no (0)
   
   This parameter specifies if you load in a predefined 'cron' file at the
   signal.  This is useful for tying in outside mush processing into the
@@ -11382,7 +11382,8 @@
     # kill -SIGUSR1 1234
     I've been rebooted! (seen in room #0)
   
-  See Also: config parameters, signals, @admin, signal_object_type, signal_cron
+  See Also: config parameters, signals, @admin, signal_object_type,
+            signal_crontab
 
 & signal_object_type
   Config parameter: signal_object_type <boolean>              Default: 0
@@ -11395,7 +11396,7 @@
   question is immortal (or even #1 owned) and can not be modified by anyone
   outside your circle of trust.
   
-  See Also: config parameters, signals, @admin, signal_object, signal_cron
+  See Also: config parameters, signals, @admin, signal_object, signal_crontab
 
 & space_compress
   Config parameter: space_compress <yes/no>.  Default: yes
