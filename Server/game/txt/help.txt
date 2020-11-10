@@ -253,6 +253,11 @@
   complete document by any regard, it should help you understand the basics
   and get around programming on a mush.
   
+  Note: The INHERIT flag will be required on any item that is intended to
+        modify or fetch attributes from other items than itself.  There 
+        are exceptions to this (like the visual flag) as well as 
+        @powers that may grant the item additional powers.
+  
   There are sub-topics available with coding that you may reference at
   anytime.  These are:
   
@@ -1091,12 +1096,16 @@
 & @zone
   Command: @zone[/<switch>] <target> [=<zone string>]
   
+  Note: A zonemaster can not belong as a member to another zonemaster.  If
+        you wish to chain commands to zonemasters, use parents or zone local
+        master rooms (help zonemaster,  help zonecontents).
+  
   Usage:
     1) @zone[/list] <object or zonemaster>
-    3) @zone/add <object>=<zonemaster>
-    4) @zone/del <object or zonemaster>=<zonemaster or object>
-    5) @zone/purge <object or zonemaster>
-    6) @zone/replace <object>=<old zonemaster>/<new zonemaster>
+    2) @zone/add <object>=<zonemaster>
+    3) @zone/del <object or zonemaster>=<zonemaster or object>
+    4) @zone/purge <object or zonemaster>
+    5) @zone/replace <object>=<old zonemaster>/<new zonemaster>
   
   The @zone command adds and removes zone master entries from objects.
   An object may be a member of multiple zones.
