@@ -7,7 +7,7 @@
 @@  necessary objects for you and modify all referenced dbref's in the      @@
 @@  code.                                                                   @@
 @@                                                                          @@
-@@                      Rockpath's Job System V 2.1                         @@
+@@                      Rockpath's Job System V 2.1.2                       @@
 @@     Jobs System has been upgraded to allow for different staff tiers.    @@
 @@     +request/cancel has been created to allow for user-side deletion.    @@
 @@                  Use +jobs/help to see the help file                     @@
@@ -101,11 +101,11 @@
 
 &FN`DEL-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Del: [name(%0)], [cname(%#)] has deleted your request. A copy has been attached.%r%r[get(%0/describe)])][destroy(%0)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have deleted [name(%0)].)]
 
-&FN`APPROVE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], App: [name(%q0)],[cname(%#)] has approved your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have approved [name(%0)].)]
+&FN`APPROVE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], App: [name(%q0)],[cname(%#)] has approved your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have approved [name(%0)].)][destroy(%0)]
 
-&FN`DENY-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Den: [name(%0)],[cname(%#)] has denied your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have denied [name(%0)].)]
+&FN`DENY-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Den: [name(%0)],[cname(%#)] has denied your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have denied [name(%0)].)][destroy(%0)]
 
-&FN`COMPLETE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Com: [name(%0)],[cname(%#)] has completed your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have completed [name(%0)])]
+&FN`COMPLETE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Com: [name(%0)],[cname(%#)] has completed your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have completed [name(%0)])][destroy(%0)]
 
 &FN`STATUS Rockpath's Job Database=[set(%0, status:[switch(%1, new, NEW, underway, UNWY, done, DONE, complete, DONE, 50, 1/2 Done, 25, 1/4 Done, 75, 3/4 Done, 100, DONE, on hold, HOLD, hold, HOLD, ---)])][pemit(%#, [u([v(database)]/fn`prompt, Jobs)] You have set [name(%0)]'s status as '[get(%0/status)]'.)]
 
@@ -132,7 +132,7 @@
  
 &FN`PROMPT Rockpath's Job Database=[switch(%0, jobs, [ansi(hc, JOBS)], game, [ansi(hm, GAME)])]:
  
-&Last_Update Rockpath's Job Database=Oct 20, 2020
+&Last_Update Rockpath's Job Database=Nov 11, 2020
  
 @set Rockpath's Job Database=INHERIT SIDEFX
  
