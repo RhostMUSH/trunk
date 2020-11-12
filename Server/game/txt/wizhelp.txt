@@ -4532,27 +4532,42 @@
   See Also: @purge, @reclist
 
 & @reclist
-  Command: @reclist
+  Command: @reclist[/switch] <args>
   
   This command will display any object that had previously been destroyed
   that is in the recover list (that can currently be recovered with @recover)
   This command can only be used by super-royalty.
+  
   The following toggles exist for @reclist:
-      /count              - This switch may be used in junction with any
-                            other switch.  It returns the total count of
-                            items found.
-      /age <1-100>        - This switch returns the items that were destroyed
-                            after the given number of days.
-      /type <TYPE>        - This returns the types of objects destroyed that
-                            match the type specified.
-      /owner <player>     - This returns the objects destroyed owned by the
-                            specified player.
-      /dest <player>      - This returns the objects destroyed by the
-                            specified player.
-      /free               - This will list all the objects in the free list.
-                            The free list being all reusable objects.
+      /count                    - This switch may be used in junction with any
+                                  other switch.  It returns the total count of
+                                  items found.
+      /age <1-100> [=<wild>]    - This switch returns the items that were 
+                                  destroyed after the given number of days.
+      /type <TYPE> [=<wild>]    - This returns the types of objects destroyed 
+                                  that match the type specified.
+      /owner <player> [=<wild>] - This returns the objects destroyed owned by
+                                  the specified player.
+      /dest <player> [=<wild>]  - This returns the objects destroyed by the
+                                  specified player.
+      /free [<wild>]            - This will list all the objects in the free 
+                                  list.  The free list being all reusable 
+                                  objects.
  
-  Example:  @reclist/owner Dweeb
+  Note:  <=wild> will be in the form =*wildcard* where *wildcard* is the
+         patten you wish to match.  The <wild> is the same but without an
+         equals (=) sign.
+  
+  Note2: Wildcard patterns for =<wild> patterns may be the NAME of an item
+         or a partial dbref#.  For /free's <wild> only dbref# is available.
+
+  Examples:  
+    > @reclist/owner Dweeb
+    > @reclist/owner Dweeb=*Da Room*   (search room names containing 'Da Room')
+    > @reclist/owner Dweeb=*#123*      (search dbref#'s containing '#123')
+    > @reclist/count
+    > @reclist/free/count
+    > @reclist/free *#123*             (search dbref#'s containing '#123')
   
   See Also: @recover, @purge
 

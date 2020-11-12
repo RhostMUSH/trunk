@@ -920,8 +920,8 @@ void
 do_reclist(dbref player, dbref cause, int key, char *buff)
 {
     dbref i, comp;
-    int count, typecomp;
-    char buff2[10];
+    int count, wildcount, typecomp;
+    char buff2[10], buff3[14], *buffp1, *buffp2;
     double timecomp;
 #ifndef STANDALONE
     char cstat, *tpr_buff = NULL, *tprp_buff = NULL;
@@ -939,12 +939,20 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	cstat = 0;
 #endif
     }
-    count = 0;
+    wildcount = count = 0;
     typecomp = -1;
     comp = -1;
     timecomp = -1;
+
+    buffp1 = buff;
+    buffp2 = NULL;
+    if ( (buffp2 = strchr(buff, '=')) != NULL ) {
+       *buffp2 = '\0';
+       buffp2++;
+    }
+    
     if (key == REC_TYPE) {
-	switch (toupper(*buff)) {
+	switch (toupper(*buffp1)) {
 	case 'P':
 	    typecomp = TYPE_PLAYER;
 	    break;
@@ -961,23 +969,23 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	    typecomp = NOTYPE;
 	}
     } else if ((key == REC_OWNER) || (key == REC_DEST)) {
-	if ((*buff == '#') && (is_number(buff + 1))) {
-	    comp = atoi(buff + 1);
+	if ((*buffp1 == '#') && (is_number(buffp1 + 1))) {
+	    comp = atoi(buffp1 + 1);
 	    if (!Good_obj(comp))
 		comp = -1;
 	} else {
 #ifndef STANDALONE
-	    comp = lookup_player(player, buff, 0);
+	    comp = lookup_player(player, buffp1, 0);
 #endif
 	}
     } else if (key == REC_AGE) {
-	if (!is_number(buff)) {
+	if (!is_number(buffp1)) {
 #ifndef STANDALONE
 	    notify(player, "Bad number in reclist command.");
 #endif
 	    timecomp = -1.0;
 	} else {
-	    timecomp = atof(buff);
+	    timecomp = atof(buffp1);
 	    if ((timecomp < 1.0) || (timecomp > 100.0)) {
 #ifndef STANDALONE
 		notify(player, "Bad number in reclist command.");
@@ -987,8 +995,8 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 		timecomp *= 86400.0;
 	}
     }
-    else if ((*buff == '#') && (is_number(buff+1))) {
-	comp = atoi(buff+1);
+    else if ((*buffp1 == '#') && (is_number(buffp1+1))) {
+	comp = atoi(buffp1+1);
     }
     if (key == REC_FREE) 
       i = mudstate.freelist;
@@ -1036,24 +1044,30 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	    strcpy(buff2, "Exit");
 	    break;
 	default:
-	    strcpy(buff, "Unknown");
+	    strcpy(buff2, "Unknown");
 	}
 #ifndef STANDALONE
 	if (!cstat) {
-	  if (key != REC_FREE) {
-            tprp_buff = tpr_buff;
-	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                        "Dbref: #%-5d  Type: %-6.6s  Name: %-40.40s", 
-                                        i, buff2, Name(i)));
-            tprp_buff = tpr_buff;
-	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                        "\tFormer Owner: %-16.16s  Destroyed by: %-16.16s",
-                                        Name(Next(i)),Name(Contents(i))));
-	  }
-	  else {
-            tprp_buff = tpr_buff;
-	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Dbref: #%d", i));
-	  }
+           sprintf(buff3, "#%d", i);
+	   if (key != REC_FREE) {
+              if ( (!buffp2 || !*buffp2) || (*buffp2 && (quick_wild(buffp2, buff3) || quick_wild(buffp2, Name(i)))) ) {
+                 tprp_buff = tpr_buff;
+	         notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                             "Dbref: #%-5d  Type: %-6.6s  Name: %-40.40s", 
+                                             i, buff2, Name(i)));
+                 tprp_buff = tpr_buff;
+	         notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                             "\tFormer Owner: %-16.16s  Destroyed by: %-16.16s",
+                                             Name(Next(i)),Name(Contents(i))));
+                 wildcount++;
+	      }
+	   } else {
+              if ( (!buffp1 || !*buffp1) || (*buffp1 && (quick_wild(buffp1, buff3))) ) {
+                 tprp_buff = tpr_buff;
+	         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Dbref: #%d", i));
+                 wildcount++;
+              }
+	   }
 	}
 #endif
 	count++;
@@ -1061,7 +1075,11 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
     }
 #ifndef STANDALONE
     tprp_buff = tpr_buff;
-    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total number of items: %d", count));
+    if ( !cstat && ((buffp2 && *buffp2) || (*buffp1 && (key & REC_FREE))) ) {
+       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total number of items: %d (%d found with match)", count, wildcount));
+    } else {
+       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Total number of items: %d", count));
+    }
     free_lbuf(tpr_buff);
     notify(player, "Done.");
 #endif

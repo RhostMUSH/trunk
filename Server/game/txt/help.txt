@@ -33609,6 +33609,7 @@
 
   Changes
   ------------
+  * @reclist now handles wildcards to help search for items [ASH]
   
   Bug Fixes
   ------------
