@@ -620,8 +620,8 @@ info() {
          echo "if you wish a MUX compatable @program, enable this."
          ;;
       9) echo "RhostMUSH, optionally, allows you to use the COMMAND flag to"
-         echo "specify what objects are allowed to run $comands.  If you wish"
-         echo "to have this flag enabled, toggle this option."
+         echo "specify what objects are allowed to run \$comands/^listens."
+         echo "If you wish to have this flag enabled, toggle this option."
          ;;
      10) echo "RhostMUSH allows 'special' attributes that start with _ or ~."
          echo "By default, _ attributes are wiz settable and seeable only."

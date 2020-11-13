@@ -432,7 +432,7 @@ echo "[${X[13]}] 13. Enhanced ANSI      [${X[14]}] 14. Marker Flags       [${X[1
 echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[18]}] 18. Secured Sideeffects"
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
-echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords"  [${X[27]}] 27. Websocket support"
+echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords   [${X[27]}] 27. Websocket support"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
@@ -619,8 +619,8 @@ info() {
          echo "if you wish a MUX compatable @program, enable this."
          ;;
       9) echo "RhostMUSH, optionally, allows you to use the COMMAND flag to"
-         echo "specify what objects are allowed to run $comands.  If you wish"
-         echo "to have this flag enabled, toggle this option."
+         echo "specify what objects are allowed to run \$comands/^listens."
+         echo "If you wish to have this flag enabled, toggle this option."
          ;;
      10) echo "RhostMUSH allows 'special' attributes that start with _ or ~."
          echo "By default, _ attributes are wiz settable and seeable only."
