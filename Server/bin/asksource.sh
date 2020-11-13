@@ -109,6 +109,14 @@ if [ $(${MYGCC} -lpcre 2>&1|grep -c -e "to find" -e "ot find" -e "cannot find") 
 then
    X[25]="X"
 fi
+
+# check if openssl is installed -- if not disable option
+if [ $(${MYGCC} -lssl 2>&1|grep -c -e "to find" -e "ot find" -e "cannot find") -eq 1 ]
+then
+   X[24]="X"
+   NOSSL=1
+fi
+
 # disable debugmon if on win10 bash
 if [ -f /proc/version ]
 then
@@ -932,12 +940,59 @@ parse() {
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
-            if [ "${X[$1]}" = "X" ]
-            then
-               X[$1]=" "
-            else
-               X[$1]="X"
-            fi
+            case "$1" in
+               24) # ssl/websocket special handler
+                  if [ "$NOSSL" = "1" ]
+                  then
+                     echo "SSL is not detected on this system.  Please install OpenSSL libraries."
+                     echo "< HIT RETURN KEY TO CONTINUE >"
+                     X[$1]="X"
+                     read ANS
+                  else
+                     if [ "${X[$1]}" = "X" ]
+                     then
+                        X[$1]=" "
+                     else
+                        X[$1]="X"
+                        if [ "${X[27]}" = "X" ]
+                        then
+                           echo "Disabling WebSockets as it requires SSL."
+                           X[27]=" "
+                           read ANS
+                        fi
+                     fi
+                  fi
+                  ;;
+               27) # websocket special handler
+                  if [ "$NOSSL" = "1" ]
+                  then
+                     echo "WebSockets requires SSL libraries."
+                     echo "SSL is not detected on this system.  Please install OpenSSL libraries."
+                     echo "< HIT RETURN KEY TO CONTINUE >"
+                     X[$1]=" "
+                     read ANS
+                  elif [ "${X[24]}" = "X" ]
+                  then
+                     echo "WebSockets requires SSL libraries."
+                     echo "Please enable them first"
+                     read ANS
+                  else
+                     if [ "${X[$1]}" = "X" ]
+                     then
+                        X[$1]=" "
+                     else
+                        X[$1]="X"
+                     fi
+                  fi
+                  ;;
+                *) # handle all other conditions
+                  if [ "${X[$1]}" = "X" ]
+                  then
+                     X[$1]=" "
+                  else
+                     X[$1]="X"
+                  fi
+            esac
          else
             echo "ERROR: Invalid option '$1'"
             echo "< HIT RETURN KEY TO CONTINUE >"

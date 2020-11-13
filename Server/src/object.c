@@ -946,6 +946,8 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 
     buffp1 = buff;
     buffp2 = NULL;
+    memset(buff3, '\0', sizeof(buff3));
+    memset(buff2, '\0', sizeof(buff2));
     if ( (buffp2 = strchr(buff, '=')) != NULL ) {
        *buffp2 = '\0';
        buffp2++;
