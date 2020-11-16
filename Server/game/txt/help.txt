@@ -15295,7 +15295,7 @@
   
   Reality levels must be enabled for this function to be of use.
   
-  See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel()
+  See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel(), rxdesc()
   
 & ENCODE64()
 & DECODE64()
@@ -29717,7 +29717,8 @@
     > say hasrxlevel(me,real)
     You say '1'.
   
-  See Also: hastxlevel(), rxlevel(), txlevel(), listrlevels(), chkreality()
+  See Also: hastxlevel(), rxlevel(), txlevel(), listrlevels(), chkreality(),
+            rxdesc()
   
 & HASTXLEVEL()
   Function: hastxlevel(<target>,<level>)
@@ -29730,7 +29731,8 @@
     > say hastxlevel(me,real)
     You say '1'.
   
-  See Also: hasrxlevel(), rxlevel(), txlevel(), listrlevels(), chkreality()
+  See Also: hasrxlevel(), rxlevel(), txlevel(), listrlevels(), chkreality(),
+            rxdesc()
   
 & RXLEVEL()
   Function: rxlevel(<target> [,<value>])
@@ -29753,7 +29755,25 @@
     You say ""
   
   See Also: hasrxlevel(), hastxlevel(), txlevel(), listrlevels(), chkreality()
+            rxdesc()
   
+& RXDESC()
+  Function: rxdesc(<target>)
+  
+  Returns a space separated list of all realitylevel-based descriptions that
+  are visible to <target>. You must control <target>. If no levels are listed,
+  nothing is returned. If you do not control the target, or if the target does
+  not exist, '#-1' is returned.
+  
+  Example:
+    > say rxdesc(me)
+    You say 'Real specialDesc'.
+    > say rxlevel(me)
+    You say ""
+  
+  See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel(), listrlevels(),
+            chkreality()
+
 & CHKREALITY()
   Function: chkreality(<victom>, <target>)
   
@@ -29763,7 +29783,7 @@
   You must control both the <victom> and the <target> to be able to get
   the reality, otherwise, it will return #-1.
   
-  See Also: txlevel(), rxlevel()
+  See Also: txlevel(), rxlevel(), rxdesc()
   
 & TXLEVEL()
   Function: txlevel(<target> [,<value>])
@@ -29786,6 +29806,7 @@
     You say ""
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), listrlevels(), chkreality()
+            rxdesc()
   
 & LISTRLEVELS()
   Function: listrlevels()
@@ -29797,7 +29818,7 @@
     > say listrlevels()
     You say "Real Shadow Auf Umbra"
   
-  See Also: txlevel(), rxlevel(), chkreality()
+  See Also: txlevel(), rxlevel(), chkreality(), rxdesc()
 
 & FOLDERLIST()
   Function: folderlist(<player>)
@@ -30513,6 +30534,7 @@
   listrlevels() - Lists available reality levels in a space-separated list.
   rxlevel()     - Returns a space-separated list of target's rxlevels.
   txlevel()     - Returns a space-separated list of target's txlevels.
+  rxdesc()      - Returns a space-separated list of target's visible descs.
 
 & string functions
   Function Lists: String Functions
@@ -33606,6 +33628,8 @@
   * spellnum() takes a second argument for ordinals [ASH]
   * Added %4 to the mogrifier, indicating if the message is player-only in the
     case of 'say' [AMB]
+  * Added rxdesc() as a complementary to rxlevel(), showing a list of descs
+    visible to an object. [AMB]
 
   Changes
   ------------
