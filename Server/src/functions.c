@@ -36238,6 +36238,36 @@ FUNCTION(fun_rxlevel)
 #endif
 }
 
+FUNCTION(fun_rxdesc)
+{
+    dbref target;
+    int i, add_space, cmp_x, cmp_y, cmp_z;
+    init_match(player, fargs[0], NOTYPE);
+    match_everything(MAT_EXIT_PARENTS);
+    target = match_result();
+    if ((target == NOTHING) || (target == AMBIGUOUS) || (!Good_obj(target)) ||
+        Recover(target) || Going(target) || !Controls(player,target)) {
+        safe_str("#-1",buff,bufcx);
+    }
+    else {
+        cmp_x = sizeof(mudconf.reality_level);
+        cmp_y = sizeof(mudconf.reality_level[0]);
+        if ( cmp_y == 0 )
+           cmp_z = 0;
+        else
+           cmp_z = cmp_x / cmp_y;
+        for(add_space = i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+            if((RxLevel(target) & mudconf.reality_level[i].value) ==
+                mudconf.reality_level[i].value) {
+                if(add_space)
+                    safe_chr(' ', buff, bufcx);
+                safe_str(mudconf.reality_level[i].attr, buff, bufcx);
+                add_space = 1;
+            }
+        }
+    }
+}
+
 FUNCTION(fun_listrlevels)
 {
    int i, add_space, cmp_x, cmp_y, cmp_z;
@@ -37774,6 +37804,7 @@ FUN flist[] =
 #else
     {"RXLEVEL", fun_rxlevel, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* USE_SIDEEFFECT */
+    {"RXDESC", fun_rxdesc, 1, 0, CA_PUBLIC, CA_NO_CODE},
 #endif /* REALITY_LEVELS */
     {"S", fun_s, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SAFEBUFF", fun_safebuff, 1, FN_VARARGS , CA_PUBLIC, CA_NO_CODE},
