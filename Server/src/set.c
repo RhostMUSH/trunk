@@ -1849,7 +1849,7 @@ int	aflags;
 int parse_attrib(dbref player, char *str, dbref *thing, int *atr)
 {
 ATTR	*attr;
-char    *buff, *str_tmp, *stok, *tbuf;
+char    *buff, *str_tmp, *stok, *tbuf, *stbuf, *stbufp;
 dbref	aowner;
 int	aflags;
 
@@ -1861,7 +1861,13 @@ int	aflags;
 	buff=alloc_lbuf("parse_attrib");
         str_tmp = alloc_lbuf("parse_attrib_other");
         strcpy(str_tmp, str);
-        if ( strstr(str, "#lambda/") != NULL ) {
+        stbufp = stbuf = alloc_lbuf("lambda_buff");
+        tbuf = str;
+        while ( tbuf && *tbuf ) {
+           safe_chr(ToLower((int)*tbuf), stbuf, &stbufp);
+           tbuf++;
+        }
+        if ( strstr(stbuf, "#lambda/") != NULL ) {
            tbuf = alloc_lbuf("parse_attrib_lambda");
            strcpy(tbuf, str);
            stok = strchr(tbuf, '/')+1;
@@ -1872,6 +1878,7 @@ int	aflags;
         } else {
            strcpy(str_tmp, str);
         }
+        free_lbuf(stbuf);
         strcpy(str, str_tmp);
         strcpy(buff, str);
         free_lbuf(str_tmp);

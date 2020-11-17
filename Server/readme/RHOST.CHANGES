@@ -66,6 +66,8 @@ Typo in speech.c with a variable.
 				- Thanks Oleo
 SIDEFX permissions were borked for normal players.
 				- Thanks jan6
+#lambda wasn't case insensitive
+				- Thanks Alley
 
 
                          RhostMUSH 3.9.5 Update File
