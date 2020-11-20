@@ -4321,14 +4321,14 @@
     options          - Lists several global options and limits.
         |              You may specify subtopics: boolean, values, config, 
         |              mail, and system
-        +-> boolean  - Subtopic option for listing boolean values
-        +-> config   - Subtopic option for listing config options
+        +-> boolean  - Subtopic option for listing boolean values (*)
+        +-> config   - Subtopic option for listing config options 
         +-> convtime - Shows all formats convtime() handles
         +-> display  - Gives detailed display for a config option
-        +-> mail     - Subtopic option for listing mail options
+        +-> mail     - Subtopic option for listing mail options (*)
         +-> mysql    - Shows if MySQL is enabled or disabled
         +-> system   - Subtopic option for listing system settings
-        +-> values   - Subtopic option for listing int values
+        +-> values   - Subtopic option for listing int values (*)
         
     switches        - Lists what commands support switches and the switches
                       that they do support.
@@ -4341,6 +4341,9 @@
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
   @list with no argument lists the options you may use.
+  
+  Options with '(*)' beside it allow additional arguments for wildcard
+  filtering.
   
 {help @list2 for a listing of subtopics}
   
@@ -4359,8 +4362,9 @@
                mail      - show all current hardcoded mail configuration.
   
   Examples:
-    > @list options boolean     (For first page - default)
-    > @list options boolean 2   (For second page) 
+    > @list options boolean            (For first page - default)
+    > @list options boolean 2          (For second page) 
+    > @list options boolean *switch*   (For all values that contain 'switch')
   
   See Also: help, news
   
@@ -5953,7 +5957,11 @@
   have a short-hand way of getting at the matched value.  Case does not do
   wildcard matches.
   
-  Please check @list options if this has been enabled. 
+  Note: The following config parameters effect how this functions.
+        penn_switches  -- if enabled allows >, <, >=. <= for math.
+        float_switches -- if enabled allows floating values as well.
+  
+  Refer: '@list options boolean *switch*' to check switch options.
   
 { help @switch2 for examples }
 
@@ -5973,6 +5981,13 @@
     You say "no"
     > @switch/first FooFoo=*boo*,say yes,*oo*,say maybe,say no
     You say "maybe"
+   -------- If penn_switches enabled
+    > @switch/first 3=>=2,say yes,say no
+    You say "yes"
+   -------- If float_switches also enabled
+    > @switch/first 2.23=>=2.22,say yes,say no
+    You say "yes"
+   
   
   See Also: switch(), case(), ifelse(), @skip, @break, @assert, @jump,
             @rollback, @goto
@@ -21220,12 +21235,22 @@
     You say "A"
     > say switch(f,*a*,A,*b*,B,*c*,C,*d*,D)  
     You say ""
+    ----- if penn_switches enabled
+    > say switch(3,>=2,Y,N)
+    You say "Y"
+    ----- if float_switches enabled
+    > say switch(2.23,>=2.22,Y,N)
+    You say "Y"
   
   If configured, you may use #$ as a substition.   #$ is substituted with 
   the value of <string>. In this way, the commands in <res11>..<dflt> 
   have a short-hand way of getting at the matched value. 
   
-  Please check @list options if this has been enabled. 
+  Note: The following config parameters effect how this functions.
+        penn_switches  -- if enabled allows >, <, >=. <= for math.
+        float_switches -- if enabled allows floating values as well.
+  
+  Refer: '@list options boolean *switch*' to check switch options.
   
   See Also: @switch, match(), case(), ifelse(), switchall()
   
@@ -21246,12 +21271,22 @@
     You say "ABC"
     > say switchall(f,*a*,A,*b*,B,*c*,C,*d*,D)  
     You say ""
+    ----- if penn_switches enabled
+    > say switch(3,>=2,Y,N)
+    You say "Y"
+    ----- if float_switches enabled
+    > say switch(2.23,>=2.22,Y,N)
+    You say "Y"
   
   If configured, you may use #$ as a substition.   #$ is substituted with 
   the value of <string>. In this way, the commands in <res11>..<dflt> 
   have a short-hand way of getting at the matched value. 
   
-  Please check @list options if this has been enabled. 
+  Note: The following config parameters effect how this functions.
+        penn_switches  -- if enabled allows >, <, >=. <= for math.
+        float_switches -- if enabled allows floating values as well.
+  
+  Refer: '@list options boolean *switch*' to check switch options.
   
   See Also: @switch, match(), case(), ifelse(), switch()
   
@@ -33620,7 +33655,7 @@
 & 4.1.0p2
   Release Date: 12/10/20
   Status: Alpha
-  
+    
   New Features
   ------------
   * Support for Websocket protcol connections to the MUSH [KAG]
@@ -33630,7 +33665,8 @@
     case of 'say' [AMB]
   * Added rxdesc() as a complementary to rxlevel(), showing a list of descs
     visible to an object. [AMB]
-
+  * float_switches config param to allow @switch/switch() float compares [ASH]
+  
   Changes
   ------------
   * @reclist now handles wildcards to help search for items [ASH]

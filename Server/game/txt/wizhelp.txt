@@ -6950,34 +6950,34 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index                examine_flags        examine_public_attrs
-  examine_restrictive        exec_secure          execscriptpath
-  exit_attr_default          exit_flags           exit_parent              
-  exit_quota                 exit_separator       exit_toggles             
-  exits_connect_rooms        expand_goto          fascist_teleport         
-  file_object                find_money_chance    flag_alias               
-  flag_name                  flag_access_see      flag_access_set          
-  flag_access_type           flag_access_unset    float_precision          
-  forbid_host                forbid_site          forbidapi_host           
-  forbidapi_site             fork_dump            format_compatbility      
-  fork_vfork                 format_contents      format_exits             
-  format_name                formats_are_local    full_file                
-  full_motd_message          function_access      function_alias           
-  function_invocation_limit  function_max         function_recursion_limit 
-  gdbm_cache_size            gdbm_database        global_aconnect          
-  global_adisconnect         global_ansimask      global_attrdefault       
-  global_clone_exit          global_clone_obj     global_clone_player      
-  global_clone_room          global_clone_thing   global_error_cmd         
-  global_error_obj           global_parent_exit   global_parent_obj        
-  global_parent_player       global_parent_room   global_parent_thing      
-  good_name                  goodmail_host        gconf_file               
-  guest_char_num             guest_file           guest_namelist           
-  guest_randomize            guild_attrname       guild_default            
-  guild_hdr                  hackattr_nowiz       hackattr_see             
-  hardconn_host              hardconn_site        hasattrp_compat          
-  heavy_cpu_max              help_file            help_index               
-  help_separator             hide_nospoof         hook_cmd                 
-  hook_obj                   hook_offline
+  error_index               examine_flags              examine_public_attrs
+  examine_restrictive       exec_secure                execscriptpath
+  exit_attr_default         exit_flags                 exit_parent           
+  exit_quota                exit_separator             exit_toggles          
+  exits_connect_rooms       expand_goto                fascist_teleport      
+  file_object               find_money_chance          flag_alias            
+  flag_name                 flag_access_see            flag_access_set          
+  flag_access_type          flag_access_unset          float_precision       
+  float_switches            forbid_host                forbid_site        
+  forbidapi_host            forbidapi_site             fork_dump          
+  format_compatbility       fork_vfork                 format_contents    
+  format_exits              format_name                formats_are_local  
+  full_file                 full_motd_message          function_access    
+  function_alias            function_invocation_limit  function_max       
+  function_recursion_limit  gdbm_cache_size            gdbm_database        
+  global_aconnect           global_adisconnect         global_ansimask    
+  global_attrdefault        global_clone_exit          global_clone_obj   
+  global_clone_player       global_clone_room          global_clone_thing 
+  global_error_cmd          global_error_obj           global_parent_exit 
+  global_parent_obj         global_parent_player       global_parent_room 
+  global_parent_thing       good_name                  goodmail_host      
+  gconf_file                guest_char_num             guest_file         
+  guest_namelist            guest_randomize            guild_attrname     
+  guild_default             guild_hdr                  hackattr_nowiz     
+  hackattr_see              hardconn_host              hardconn_site      
+  hasattrp_compat           heavy_cpu_max              help_file          
+  help_index                help_separator             hide_nospoof       
+  hook_cmd                  hook_obj                   hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -8403,6 +8403,17 @@
   based floating point notation (like mul, fdiv, etc).  The range that
   is allowed is 1-48.  Anything over 48 is meaningless anyway due to
   limitations on floating point notation precision.
+  
+& float_switches
+  Config parameter: float_switches <boolean>.    Default: no
+  
+  If penn_switches is enabled, this optionally allows the math to handle
+  floating point numbers.  As floating math is slightly more computationally
+  expensive, this option is disabled unless needed or wanted.
+  
+  Note: penn_switches must be enabled for this to work.
+   
+  See Also: penn_switches
   
 & name_with_desc
   Config parameter: name_with_desc <boolean>.    Default: no
@@ -10436,7 +10447,12 @@
   use the PENN method, then, like @switch, it will evaluate < and > as 
   a lessthan and greaterthan match conditionals.  The default is to have
   PENN compatibility disabled.
-
+  
+  The default behavior of this is to use integer math only.  If you wish
+  to allow floating point math, float_switches must also be enabled.
+  
+  See Also: float_switches
+  
 & permit_site
   Config parameter: permit_site <addr> <mask>.
   

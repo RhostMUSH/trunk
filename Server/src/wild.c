@@ -23,6 +23,8 @@
 #define EQUAL(a,b) ((a == b) || (FIXCASE(a) == FIXCASE(b)))
 #define NOTEQUAL(a,b) ((a != b) && (FIXCASE(a) != FIXCASE(b)))
 
+extern double safe_atof(char *);
+
 static char **arglist;	/* argument return space */
 static int numargs;	/* argument return size */
 /* Code ifdef'd out: 
@@ -467,41 +469,67 @@ int wild_match(char *tstr, char *dstr, char *args[], int nargs, int ck_arith)
          for  (i=0; i<nargs; i++) args[i] = NULL;
 
          i_loop = 0;
-         if ( isdigit((int)*tstr) || (*tstr == '-') ) {
-            i_loop = 1;
+         if ( mudconf.float_switches ) {
+            if ( isdigit((int)*tstr) || (*tstr == '-') || (*tstr == '.') ) {
+               i_loop = 1;
+            }
+         } else {
+            if ( isdigit((int)*tstr) || (*tstr == '-') ) {
+               i_loop = 1;
+            }
          }
          switch (i_type ) {
             case 1: /* gt */
                if ( i_loop ) {
-                  return (atoi(tstr) < atoi(dstr));
+                  if ( mudconf.float_switches ) {
+                     return (safe_atof(tstr) < safe_atof(dstr));
+                  } else {
+                     return (atoi(tstr) < atoi(dstr));
+                  }
                } else {
                   return (strcmp(tstr, dstr) < 0);
                }
                break;
             case 2: /* lt */
                if ( i_loop ) {
-                  return (atoi(tstr) > atoi(dstr));
+                  if ( mudconf.float_switches ) {
+                     return (safe_atof(tstr) > safe_atof(dstr));
+                  } else {
+                     return (atoi(tstr) > atoi(dstr));
+                  }
                } else {
                   return (strcmp(tstr, dstr) > 0);
                }
                break;
             case 4: /* eq */
                if ( i_loop ) {
-                  return (atoi(tstr) == atoi(dstr));
+                  if ( mudconf.float_switches ) {
+                     return (safe_atof(tstr) == safe_atof(dstr));
+                  } else {
+                     return (atoi(tstr) == atoi(dstr));
+                  }
                } else {
                   return (strcmp(tstr, dstr) == 0);
                }
                break;
             case 5: /* gte */
                if ( i_loop ) {
-                  return (atoi(tstr) <= atoi(dstr));
+                  if ( mudconf.float_switches ) {
+                     return (safe_atof(tstr) <= safe_atof(dstr));
+                  } else {
+                     return (atoi(tstr) <= atoi(dstr));
+                  }
                } else {
                   return (strcmp(tstr, dstr) <= 0);
                }
                break;
             case 6: /* lte */
                if ( i_loop ) {
-                  return (atoi(tstr) >= atoi(dstr));
+                  if ( mudconf.float_switches ) {
+                     return (safe_atof(tstr) >= safe_atof(dstr));
+                  } else {
+                     return (atoi(tstr) >= atoi(dstr));
+                  }
                } else {
                   return (strcmp(tstr, dstr) >= 0);
                }
