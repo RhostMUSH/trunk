@@ -38232,7 +38232,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
 
              i_tcount++;
              if ( fname && *fname ) {
-                if ( !(fname && *fname && wild_match(fname, (char *)ufp2->name, (char **)NULL, 0, 1)) )
+                if ( !(fname && *fname && wild_match(fname, (char *)ufp2->name, (char **)NULL, 0, 0)) )
                    continue;
              }
              tprp_buff = tpr_buff;

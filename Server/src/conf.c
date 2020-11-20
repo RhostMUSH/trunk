@@ -506,6 +506,7 @@ NDECL(cf_init)
     mudconf.brace_compatibility = 0; /* MUX/TM3 brace {} compatibility with parser */
     mudconf.ifelse_compat = 0; /* ifelse() / @ifelse Mux string boolean compatibility */
     mudconf.penn_switches = 0;  /* switch() and switchall() behave like PENN if '1' */
+    mudconf.float_switches = 0;  /* switch() and switchall() handle float if '1' */
     mudconf.lattr_default_oldstyle = 0;	/* lattr() error's has errors snuffed */
     mudconf.look_moreflags = 0;	/* Show global flags on attributes */
     mudconf.hook_obj = -1;	/* Global HOOK object */
@@ -5097,6 +5098,9 @@ CONF conftable[] =
     {(char *) "float_precision",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.float_precision, 48, 1, CA_WIZARD,
      (char *) "The decimal placement of float precision for math functions.   Default: 0   Value: %d"},
+    {(char *) "float_switches",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.float_switches, 0, 0, CA_PUBLIC,
+     (char *) "Does switch() understand floats for comparison?"},
     {(char *) "protect_addenh",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.protect_addenh, 0, 0, CA_WIZARD,
      (char *) "Will you allow arguments to @protect/add?"},

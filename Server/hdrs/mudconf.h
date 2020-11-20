@@ -335,6 +335,7 @@ struct confdata {
         int	partial_deconn;	/* Trigger @adisconnects on partial disconnect */
 	int	secure_functions; /* Fix functions to be safer on evaluation - mask */
         int     penn_switches; /* PENN like switch()/switchall() */
+	int	float_switches;	/* Do switches handle floating point comparisons? */
 	int	heavy_cpu_max; /* Specify maximum for heavy cpu function-usage */
 	int	lastsite_paranoia;	/* Enable paranoia level on connections */
 	int	pcreate_paranoia;	/* Enable paranoia level on creations */
