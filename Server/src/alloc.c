@@ -477,7 +477,7 @@ showBlacklistStats(dbref player)
    i_ndsize = sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
    s_buff = alloc_mbuf("blacklist_stats");
    
-   notify(player, "\nBlacklist Stats   Size   Inuse    Total Mem (Bytes)");
+   notify(player, "\nBlacklist Stats    Size   Inuse     Total Mem (Bytes)");
 
    if ( i_blsize > 1000000000 ) {
       i_diver = (double) i_blsize / 1000000000.0;
