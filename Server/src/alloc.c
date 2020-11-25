@@ -466,6 +466,52 @@ showTrackedPacketStats(dbref player)
    notify(player, buff);
 }
 
+void
+showBlacklistStats(dbref player)
+{
+   int i_blsize, i_ndsize;
+   double i_diver;
+   char *s_buff, c_chr;
+   
+   i_blsize = sizeof(BLACKLIST) * mudstate.blacklist_cnt;
+   i_ndsize = sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
+   s_buff = alloc_mbuf("blacklist_stats");
+   
+   notify(player, "\nBlacklist Stats   Size   Inuse    Total Mem (Bytes)");
+
+   if ( i_blsize > 1000000000 ) {
+      i_diver = (double) i_blsize / 1000000000.0;
+      c_chr = 'G';
+   } else if ( i_blsize > 1000000 ) {
+      i_diver = (double) i_blsize / 1000000.0;
+      c_chr = 'M';
+   } else if ( i_blsize > 1000 ) {
+      i_diver = (double) i_blsize / 1000.0;
+      c_chr = 'K';
+   } else {
+      i_diver = (double) i_blsize;
+      c_chr = ' ';
+   }
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", (char *)"Black List", sizeof(BLACKLIST), mudstate.blacklist_cnt, i_blsize, i_diver, c_chr);
+   notify(player, s_buff);
+   if ( i_ndsize > 1000000000 ) {
+      i_diver = (double) i_ndsize / 1000000000.0;
+      c_chr = 'G';
+   } else if ( i_ndsize > 1000000 ) {
+      i_diver = (double) i_ndsize / 1000000.0;
+      c_chr = 'M';
+   } else if ( i_ndsize > 1000 ) {
+      i_diver = (double) i_ndsize / 1000.0;
+      c_chr = 'K';
+   } else {
+      i_diver = (double) i_ndsize;
+      c_chr = ' ';
+   }
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", (char *)"NoDNS list", sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr);
+   notify(player, s_buff);
+   free_mbuf(s_buff); 
+}
+
 void 
 list_bufstats(dbref player)
 {
@@ -476,6 +522,7 @@ list_bufstats(dbref player)
 	list_bufstat(player, i, poolnames[i]);
 
     showTrackedBufferStats(player);
+    showBlacklistStats(player);
     showTrackedPacketStats(player);
     showdbstats(player);
 
