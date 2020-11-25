@@ -11,7 +11,7 @@
 &ESTABLISHDESCM0 Descer=[ansi(g,Multi Descer)]: No such description to set.
 &ESTABLISHDESCM1 Descer=[ansi(g,Multi Descer)]: Description '[ansi(hr,capstr(lcstr(%0)))]' set.
 &F_ESTABLISHDESC Descer=[setr(0,and(words(%0),valid(attrname,desc`%0),hasattr(%1,desc`%0)))]
-&CMD_ESTABLISHDESC Descer=$+desc *:@pemit %#=[u(ESTABLISHDESCM[u(f_establishdesc,%0,%#)],%0,%#)];@break [!r(1))];@desc %#=[get(%#/desc`%0)]
+&CMD_ESTABLISHDESC Descer=$+desc *:@pemit %#=[u(ESTABLISHDESCM[u(f_establishdesc,%0,%#)],%0,%#)];@break [!r(0)];@desc %#=[get(%#/desc`%0)]
 &SETDESCM00 Descer=[ansi(g,Multi Descer)]: Invalid attribute name for description.
 &SETDESCM11 Descer=[ansi(g,Multi Descer)]: Description already exists. Delete first or choose a different name.
 &SETDESCM10 Descer=[ansi(g,Multi Descer)]: Description '[ansi(hr,capstr(lcstr(%0)))]' set to: [ansi(hc,mid(%1,0,30))][ifelse(gt(strlen(%1),30),...)]

@@ -33670,6 +33670,7 @@
   Changes
   ------------
   * @reclist now handles wildcards to help search for items [ASH]
+  * @list alloc now shows blacklist/nodns statistics [ASH]
   
   Bug Fixes
   ------------
