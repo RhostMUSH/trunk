@@ -12749,6 +12749,10 @@
   You can pass a maximum of 9 arguments to the script not including the
   script name.  It combines all arguments into a singular argument to script.
   
+  See 'writing scripts' for help on dos and don'ts in writing execscripts.
+  See 'working with execscript' to use registers and variables and callbacks.
+  See 'writing callbacks' for help on writing execscript callbacks.
+  
   { 'wizhelp execscript2' for environment variables passed to the script }
   
 & EXECSCRIPT2
@@ -12783,7 +12787,7 @@
   
   See 'writing scripts' for help on dos and don'ts in writing execscripts.
   See 'working with execscript' to use registers and variables and callbacks.
-
+  See 'writing callbacks' for help on writing execscript callbacks.
     
   See Also: POWER EXECSCRIPT, exec_secure
 
@@ -12815,6 +12819,9 @@
                     that has a space seperated list of attribute names you
                     wish to pass to the script.
     MUSHV_<arg>   - Each <arg> is a mush attribute variable from MUSHL_VARS.
+  
+  See 'writing callbacks' for help on writing execscript callbacks.
+  See 'writing scripts' for help on dos and don'ts in writing execscripts.
   
 { see 'working with execscript2' for details and examples }
 
@@ -12866,8 +12873,12 @@
   At the end of the execscript() the mush does house keeping and
   will remove all environment variables that were originally set.
   
+  See 'writing callbacks' for help on writing execscript callbacks.
+  See 'writing scripts' for help on dos and don'ts in writing execscripts.
+  
 { See 'working with execscript3' for passing information back into the mush}
   
+& WRITING CALLBACKS
 & WORKING WITH EXECSCRIPT3
   Topic: Working with Execscript Part 3
   
@@ -12900,8 +12911,14 @@
     <variable> <dbref#>      -- This clears the attribute on dbref#
     <variable> <dbref#> bob  -- This sets 'bob' to the attribute
   
+  To set flag, toggle, and totem flags use:
+    @set <dbref#> <flag ... !flag>    -- Set/unset flag on dbref#
+    @totem <dbref#> <flag ... !flag>  -- Set/unset totem on dbref#
+    @toggle <dbref#> <flag ... !flag> -- Set/unset toggle on dbref#
+  
 { see 'working with execscript4' for examples and descriptions }
 
+& WRITING CALLBACKS2
 & WORKING WITH EXECSCRIPT4
   Topic: Working with Execscript Part 4
   
@@ -12913,6 +12930,9 @@
      W Q
      0 Q Setting Register 0
      A Q Setting register A
+     @set #123 inherit
+     @totem #123 marker0
+     @toggle #123 variable
      snork QN Setting register with label snork 
      BOB #456 This is my BOB attribute
      SEX #123 Male
@@ -12926,6 +12946,9 @@
      W Q  -- this clears register W
      0 Q <string> -- This sets <string> into register 0 (%q0)
      A Q <string> -- This sets <String> into register A (%qa)
+     @set #123 <flag> -- Same as @set #123=<flag>
+     @totem #123 <totem> -- Same as @totem #123=<totem>
+     @toggle #123 <toggle> -- Same as @toggle #123=<toggle>
      snork QN <string> -- sets string to register with label 'snork'
      BOB #456 <string> -- Same as &BOB #456=<string>
      SEX #123 <string> -- Same as @sex #123=<string>

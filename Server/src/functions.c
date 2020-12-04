@@ -54,6 +54,7 @@ char *rindex(const char *, int);
 #include "alloc.h"
 #include "patchlevel.h"
 #include "mail.h"
+#include "jsmn.h"
 
 #define PAGE_VAL ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)
 #define INCLUDE_ASCII_TABLE
@@ -17647,7 +17648,8 @@ FUNCTION(fun_execscript)
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS];
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS],
+       i_flagtype;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -18057,6 +18059,7 @@ FUNCTION(fun_execscript)
          memset(s_inread, '\0', LBUF_SIZE);
          i_count = 0;
          while ( !feof(fp2) && (i_count <= 1000) ) {
+            i_flagtype = 1;
             i_count++;
             fgets(s_inread, LBUF_SIZE-1, fp2);
             if ( feof(fp2) ) {
@@ -18171,17 +18174,55 @@ FUNCTION(fun_execscript)
                notify_quiet(player, s_buff);
                continue;
             }
-            if ( !ok_attr_name(s_variable) ) {
-               sprintf(s_buff, "Warning: Invalid variable name '%s' on line %d", s_variable, i_count);
-               notify_quiet(player, s_buff);
-               continue;
-            }
-            if ( s_string && *s_string ) {
-               sprintf(s_buff, "%s:%.*s", s_variable, (LBUF_SIZE-100), s_string);
+            if ( !stricmp(s_variable, (char *)"@set") ) {
+               if ( !(s_string && *s_string) ) {
+                  sprintf(s_buff, "Warning: No flag specified for dbref #%d on line %d", i_varset, i_count);
+                  notify_quiet(player, s_buff);
+                  continue;
+               }
+               sprintf(s_buff, "%s", s_string);
+            } else if ( !stricmp(s_variable, (char *)"@totem") ) {
+               if ( !(s_string && *s_string) ) {
+                  sprintf(s_buff, "Warning: No totem specified for dbref #%d on line %d", i_varset, i_count);
+                  notify_quiet(player, s_buff);
+                  continue;
+               }
+               i_flagtype = 2;
+               sprintf(s_buff, "%s", s_string);
+            } else if ( !stricmp(s_variable, (char *)"@toggle") ) {
+               if ( !(s_string && *s_string) ) {
+                  sprintf(s_buff, "Warning: No toggle specified for dbref #%d on line %d", i_varset, i_count);
+                  notify_quiet(player, s_buff);
+                  continue;
+               }
+               i_flagtype = 3;
+               sprintf(s_buff, "%s", s_string);
             } else {
-               sprintf(s_buff, "%s:", s_variable);
+               if ( !ok_attr_name(s_variable) ) {
+                  sprintf(s_buff, "Warning: Invalid variable name '%s' on line %d", s_variable, i_count);
+                  notify_quiet(player, s_buff);
+                  continue;
+               }
+               if ( s_string && *s_string ) {
+                  sprintf(s_buff, "%s:%.*s", s_variable, (LBUF_SIZE-100), s_string);
+               } else {
+                  sprintf(s_buff, "%s:", s_variable);
+               }
             }
-            do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
+            switch(i_flagtype) {
+               case 3: /* Toggles */
+                  do_toggle(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
+                  break;
+               case 2: /* Totems */
+                  totem_set(i_varset, player, s_buff, 0);
+                  break;
+               case 1: /* Flags */
+                  do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
+                  break;
+               default: /* Default */
+                  do_set(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
+                  break;
+            }
          }
          free_lbuf(s_inread);
          if ( unlink(s_combine) != 0 ) {
