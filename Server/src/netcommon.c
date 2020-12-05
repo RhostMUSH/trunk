@@ -2293,7 +2293,7 @@ announce_connect(dbref player, DESC * d, int dc)
     buf = atr_pget(player, A_TIMEOUT, &aowner, &aflags);
     if (buf) {
 	d->timeout = atoi(buf);
-	if (d->timeout <= 0 && d->timeout != -1)
+	if ( (d->timeout <= 0) && (d->timeout != -1) )
 	    d->timeout = mudconf.idle_timeout;
     }
     free_lbuf(buf);
@@ -2918,7 +2918,7 @@ desc_reload(dbref player)
 	buf = atr_pget(player, A_TIMEOUT, &aowner, &aflags);
 	if (buf) {
 	    d->timeout = atoi(buf);
-	    if (d->timeout <= 0 && d->timeout != -1)
+	    if ( (d->timeout <= 0) && (d->timeout != -1) )
 		d->timeout = mudconf.idle_timeout;
 	}
 	free_lbuf(buf);
@@ -2984,12 +2984,12 @@ NDECL(check_idle)
 	       idletime = 0;
             else
 	       idletime = mudstate.now - d->last_time;
-	    if ((idletime > d->timeout && d->timeout != -1) && !Wizard(d->player)) {
+	    if (( (idletime > d->timeout) && (d->timeout != -1) ) && !Wizard(d->player)) {
 		queue_string(d, "*** Inactivity Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
             } else if (mudconf.idle_wiz_cloak &&
-		       (idletime > d->timeout && d->timeout != -1) &&
+		       ( (idletime > d->timeout) && (d->timeout != -1) ) &&
 		       Wizard(d->player) && (!Dark(d->player) || !Unfindable(d->player))) {
                 if ( !Dark(d->player) ) {
 		   s_Flags(d->player, Flags(d->player) | DARK);
@@ -3002,7 +3002,7 @@ NDECL(check_idle)
                 if (mudconf.idle_message)
                    notify(d->player, "You have exceeded the timeout and been CLOAKED.");
 	    } else if (mudconf.idle_wiz_dark &&
-		       (idletime > d->timeout && d->timeout != -1) &&
+		       ( (idletime > d->timeout) && (d->timeout != -1) ) &&
 		       Wizard(d->player) && !Dark(d->player)) {
 		s_Flags(d->player, Flags(d->player) | DARK);
 		d->flags |= DS_AUTODARK;

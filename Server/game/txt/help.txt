@@ -33680,3 +33680,4 @@
   * websock2 needed further seperation with ENABLE_WEBSOCKS [ASH]
   * SBUF free on an LBUF free for mogrify (memory leak) [ASH]
   * #lambda wasn't case insensitive, it now is [ASH]
+  * Due to compile optimizations, timeouts may not work right [ASH]
