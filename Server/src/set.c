@@ -234,7 +234,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 
       if ( i_ansi ) {
          s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
-         do_extansi(player, player, 0, s_tmp, buff2);
+         do_extansi(player, player, (key & SIDEEFFECT), s_tmp, buff2);
       }
 
       if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
@@ -267,7 +267,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
              buff2++;
            }
         }
-        do_extansi(player, player, 0, s_tmp, newname);
+        do_extansi(player, player, (key & SIDEEFFECT), s_tmp, newname);
      }
      if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
         notify_quiet(player, "Name set.");

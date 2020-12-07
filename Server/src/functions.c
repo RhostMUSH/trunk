@@ -18979,6 +18979,7 @@ FUNCTION(fun_race)
 FUNCTION(fun_name)
 {
     dbref it;
+    int i_flags;
     char *s;
     char *namebuff,
          *namebufcx;
@@ -18987,7 +18988,7 @@ FUNCTION(fun_name)
 #endif
 
 #ifdef USE_SIDEEFFECT
-    if (!fn_range_check("NAME", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("NAME", nfargs, 1, 3, buff, bufcx))
         return;
     if ( nfargs > 1 ) {
         mudstate.sidefx_currcalls++;
@@ -19005,7 +19006,11 @@ FUNCTION(fun_name)
            notify(player, "Permission denied.");
            return;
         }
-        do_name(player, cause, (SIDEEFFECT), fargs[0], fargs[1]);
+        i_flags = 0;
+        if ( (nfargs > 2) && (atoi(fargs[2]) >= 1) ) {
+           i_flags = NAME_ANSI;
+        }
+        do_name(player, cause, (SIDEEFFECT|i_flags), fargs[0], fargs[1]);
     } else {
        it = match_thing(player, fargs[0]);
        if (it == NOTHING) {

@@ -17442,7 +17442,7 @@
   See Also: fullname(), @alias, @name, name()
 
 & NAME()
-  name(<dbref>[,<newname>])
+  name(<dbref>[,<newname> [,<key>]])
    
   This function returns the name of the indicated object.  When called with
   an exit it returns the only the first alias.
@@ -17451,6 +17451,9 @@
   the target is set SIDEFX, you may use the second option of this to set
   the target dbref with the new name.  All permissions and limitations to
   @name hold true of this side-effect.
+  
+  If <key> is specified as '1', then name() will behave like @name/ansi and
+  combine @extansi and @name effectively colorzing the target name.
   
   Example:
     > say name(me)
@@ -33672,6 +33675,7 @@
   * @reclist now handles wildcards to help search for items [ASH]
   * @list alloc now shows blacklist/nodns statistics [ASH]
   * @toggle, @set (flag), and @totem added to execscript callback [ASH]
+  * name() has third optional argument for /ansi switch for @name [ASH]
   
   Bug Fixes
   ------------
