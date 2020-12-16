@@ -47,6 +47,15 @@
  * should be plenty.
  */
  
+ /* Warning:
+  * Do NOT exceed ((LBUF_SIZE / 9) - 10) total slots or you will CRASH.
+  * Maximums per LBUFS will be: (rounded down to closest 100)
+  *** 4K  lbufs -  300 max slots  (for   9600 flags) 
+  *** 8K  lbufs -  600 max slots  (for  19200 flags) 
+  *** 16K lbufs - 1200 max slots  (for  38400 flags) 
+  *** 32K lbufs - 2500 max slots  (for  80000 flags) 
+  *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+  */
 #define TOTEM_SLOTS 10
 
 /* ---------------------------------------------------------------------------

@@ -15,26 +15,33 @@
 #define POOL_ZLISTNODE  7
 #define	NUM_POOLS       8
 
+
 #ifdef QDBM
   #ifdef LBUF64
     #define LBUF_SIZE 65536
+    #define LBUF_TOTEM 5000
   #else
     #ifdef LBUF32
       #define LBUF_SIZE 32768
+      #define LBUF_TOTEM 2500
     #else
       #ifdef LBUF16
         #define LBUF_SIZE 16384
+      #define LBUF_TOTEM 1200
       #else
         #ifdef LBUF8
           #define LBUF_SIZE 8192
+          #define LBUF_TOTEM 600
         #else
           #define LBUF_SIZE 4000
+          #define LBUF_TOTEM 300
         #endif
       #endif
     #endif
   #endif
 #else
   #define LBUF_SIZE 4000
+  #define LBUF_TOTEM 300
 #endif
 #define MBUF_SIZE	200
 #ifdef SBUF64

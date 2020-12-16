@@ -2296,6 +2296,18 @@ main(int argc, char *argv[])
     /* Clean the conf to avoid naughtyness */
     unlink("rhost_vattr.conf");
 
+    if ( TOTEM_SLOTS > LBUF_TOTEM ) {
+        STARTLOG(LOG_ALWAYS, "INI", "TOTEM")
+          log_text((char*) "Fatal: Total defined totems above maximum allowed [");
+          log_number(TOTEM_SLOTS);
+          log_text((char*) " defined, ");
+          log_number(LBUF_TOTEM);
+          log_text((char*) " allowed].  Shutting down RhostMUSH.");
+        ENDLOG
+        fprintf(stderr, "FATAL: Totem slots defined too large.  %d defined, %d max allowed.\n", TOTEM_SLOTS, LBUF_TOTEM);
+        exit(1);
+    }
+
     for( argidx = 1; argidx < argc; argidx++ ) {
       if( !strcmp(argv[argidx], "-s") ) {
         STARTLOG(LOG_ALWAYS, "INI", "ARG")

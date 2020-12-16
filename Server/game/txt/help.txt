@@ -33676,6 +33676,8 @@
   * @list alloc now shows blacklist/nodns statistics [ASH]
   * @toggle, @set (flag), and @totem added to execscript callback [ASH]
   * name() has third optional argument for /ansi switch for @name [ASH]
+  * TOTEM_SLOTS will no longer allow starting the mush if > MAX per LBUF [ASH]
+  * @list alloc will show overhead of totems per object [ASH]
   
   Bug Fixes
   ------------

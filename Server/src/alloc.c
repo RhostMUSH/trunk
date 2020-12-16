@@ -512,6 +512,29 @@ showBlacklistStats(dbref player)
    free_mbuf(s_buff); 
 }
 
+void
+showTotemStats(dbref player)
+{
+  double i_tot;
+  double i_show;
+  char c_let;
+
+  i_tot = (double)sizeof(OBJTOTEM) * (double)mudstate.db_top;
+  if ( i_tot > 1000000000.0 ) {
+     i_show = i_tot / 1000000000.0;
+     c_let = 'G';
+  } else if ( i_tot > 1000000.0 ) {
+     i_show = i_tot / 1000000.0;
+     c_let = 'M';
+  } else  {
+     i_show = i_tot / 1000.0;
+     c_let = 'K';
+  }
+  notify(player, unsafe_tprintf("\nTotal overhead of @totems per dbref# -- %d", sizeof(OBJTOTEM)));
+  notify(player, "    Size   Slots    Objects   Total Memory");
+  notify(player, unsafe_tprintf("    %4d  %6d   %8d   %.0f (%.2f%c)", (sizeof(OBJTOTEM) / TOTEM_SLOTS), TOTEM_SLOTS, mudstate.db_top, i_tot, i_show, c_let));
+}
+
 void 
 list_bufstats(dbref player)
 {
@@ -523,9 +546,9 @@ list_bufstats(dbref player)
 
     showTrackedBufferStats(player);
     showBlacklistStats(player);
+    showTotemStats(player);
     showTrackedPacketStats(player);
     showdbstats(player);
-
 }
 
 void 
