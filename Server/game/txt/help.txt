@@ -33679,6 +33679,8 @@
   * TOTEM_SLOTS will no longer allow starting the mush if > MAX per LBUF [ASH]
   * @list alloc will show overhead of totems per object [ASH]
   * Optionally do forced ansi normal only if ansi detected in string [ASH]
+  * Forced carrage returns no longer on connect screen.  
+    Code all softcoded connect screens accordingly!!!! [ASH]
   
   Bug Fixes
   ------------

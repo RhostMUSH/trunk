@@ -472,7 +472,9 @@ fcache_dump(DESC * d, int num, char *s_site)
 #endif
                 i_length = strlen(lbuf1);
                 queue_write(d, lbuf1, i_length);
+/*
                 queue_write(d, "\r\n", 2);
+*/
                 free_lbuf(lbuf1);
                 free_lbuf(lbuf2);
                 free_lbuf(lbuf3);
@@ -491,7 +493,9 @@ fcache_dump(DESC * d, int num, char *s_site)
              sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
              i_length = strlen(lbuf1);
              queue_write(d, lbuf1, i_length);
+/*
              queue_write(d, "\r\n", 2);
+*/
              free_lbuf(lbuf1);
           } else {
              fp = fcache[num].fileblock;
@@ -507,7 +511,9 @@ fcache_dump(DESC * d, int num, char *s_site)
           sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
           i_length = strlen(lbuf1);
           queue_write(d, lbuf1, i_length);
+/*
           queue_write(d, "\r\n", 2);
+*/
           free_lbuf(lbuf1);
        } else {
           fp = fcache[num].fileblock;
