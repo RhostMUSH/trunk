@@ -33678,6 +33678,7 @@
   * name() has third optional argument for /ansi switch for @name [ASH]
   * TOTEM_SLOTS will no longer allow starting the mush if > MAX per LBUF [ASH]
   * @list alloc will show overhead of totems per object [ASH]
+  * Optionally do forced ansi normal only if ansi detected in string [ASH]
   
   Bug Fixes
   ------------

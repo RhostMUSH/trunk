@@ -802,7 +802,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
     char s_utfbuf[2], s_ucpbuf[7], *tmpptr = NULL, *tmp;
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt;
+    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi;
 
 
 /* Debugging only
@@ -822,6 +822,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     i_utfcnt = 0;
     s_intbuf[3] = '\0';
     ch = ch1 = ch2 = '\0';
+    i_inansi = 0;
 
     while( *string && 
            ((bufc - buff) < (LBUF_SIZE-24)) &&
@@ -878,6 +879,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                   safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
                 }
                 string++;
+                i_inansi = 1;
             } else if ((*string == '%') && (*(string+1) == 'f')) {
                 safe_str("%f", buff, &bufc);
                 safe_str("%f", buff2, &bufc2);
@@ -1018,6 +1020,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                              safe_str(s_final, buff_utf, &bufc_utf);
                              sprintf(s_final, "%dm", i_tohex);
                           }
+                          i_inansi = 1;
                           break;
                        case 'x': /* Foreground color */
                           if ( (*(string+2) && isxdigit(*(string+2))) && (*(string+3) && isxdigit(*(string+3))) ) {
@@ -1031,6 +1034,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                              safe_str(s_final, buff_utf, &bufc_utf);
                              sprintf(s_final, "%dm", i_tohex);
                           }
+                          i_inansi = 1;
                           break;
                        default:
                           if(*(string-1) == SAFE_CHR) {
@@ -1069,6 +1073,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                             safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
                             safe_chr(*string, buff_utf, &bufc_utf);
                           }
+                          i_inansi = 1;
                           break;
                     }  
                     break;
@@ -1076,6 +1081,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
                     safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
                     safe_str((char *) ANSI_NORMAL, buff_utf, &bufc_utf);
+                    i_inansi = 1;
                     break;
                 case 'f':
                     if ( mudconf.global_ansimask & MASK_BLINK ) {
@@ -1083,6 +1089,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BLINK, buff2, &bufc2);
                         safe_str((char *) ANSI_BLINK, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'u':
                     if ( mudconf.global_ansimask & MASK_UNDERSCORE ) {
@@ -1090,6 +1097,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_UNDERSCORE, buff2, &bufc2);
                         safe_str((char *) ANSI_UNDERSCORE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'i':
                     if ( mudconf.global_ansimask & MASK_INVERSE ) {
@@ -1097,6 +1105,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_INVERSE, buff2, &bufc2);
                         safe_str((char *) ANSI_INVERSE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'h':
                     if ( mudconf.global_ansimask & MASK_HILITE ) {
@@ -1104,6 +1113,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_HILITE, buff2, &bufc2);
                         safe_str((char *) ANSI_HILITE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'x':
                     if ( mudconf.global_ansimask & MASK_BLACK ) {
@@ -1111,6 +1121,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BLACK, buff2, &bufc2);
                         safe_str((char *) ANSI_BLACK, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'X':
                     if ( mudconf.global_ansimask & MASK_BBLACK ) {
@@ -1118,6 +1129,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BBLACK, buff2, &bufc2);
                         safe_str((char *) ANSI_BBLACK, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'r':
                     if ( mudconf.global_ansimask & MASK_RED ) {
@@ -1125,6 +1137,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_RED, buff2, &bufc2);
                         safe_str((char *) ANSI_RED, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'R':
                     if ( mudconf.global_ansimask & MASK_BRED ) {
@@ -1132,6 +1145,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BRED, buff2, &bufc2);
                         safe_str((char *) ANSI_BRED, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'g':
                     if ( mudconf.global_ansimask & MASK_GREEN ) {
@@ -1139,6 +1153,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_GREEN, buff2, &bufc2);
                         safe_str((char *) ANSI_GREEN, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'G':
                     if ( mudconf.global_ansimask & MASK_BGREEN ) {
@@ -1146,6 +1161,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BGREEN, buff2, &bufc2);
                         safe_str((char *) ANSI_BGREEN, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'y':
                     if ( mudconf.global_ansimask & MASK_YELLOW ) {
@@ -1153,6 +1169,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_YELLOW, buff2, &bufc2);
                         safe_str((char *) ANSI_YELLOW, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'Y':
                     if ( mudconf.global_ansimask & MASK_BYELLOW ) {
@@ -1160,6 +1177,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BYELLOW, buff2, &bufc2);
                         safe_str((char *) ANSI_BYELLOW, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'b':
                     if ( mudconf.global_ansimask & MASK_BLUE ) {
@@ -1167,6 +1185,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BLUE, buff2, &bufc2);
                         safe_str((char *) ANSI_BLUE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'B':
                     if ( mudconf.global_ansimask & MASK_BBLUE ) {
@@ -1174,6 +1193,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BBLUE, buff2, &bufc2);
                         safe_str((char *) ANSI_BBLUE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'm':
                     if ( mudconf.global_ansimask & MASK_MAGENTA ) {
@@ -1181,6 +1201,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_MAGENTA, buff2, &bufc2);
                         safe_str((char *) ANSI_MAGENTA, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'M':
                     if ( mudconf.global_ansimask & MASK_BMAGENTA ) {
@@ -1188,6 +1209,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BMAGENTA, buff2, &bufc2);
                         safe_str((char *) ANSI_BMAGENTA, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'c':
                     if ( mudconf.global_ansimask & MASK_CYAN ) {
@@ -1195,6 +1217,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_CYAN, buff2, &bufc2);
                         safe_str((char *) ANSI_CYAN, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'C':
                     if ( mudconf.global_ansimask & MASK_BCYAN ) {
@@ -1202,6 +1225,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BCYAN, buff2, &bufc2);
                         safe_str((char *) ANSI_BCYAN, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'w':
                     if ( mudconf.global_ansimask & MASK_WHITE ) {
@@ -1209,6 +1233,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_WHITE, buff2, &bufc2);
                         safe_str((char *) ANSI_WHITE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 case 'W':
                     if ( mudconf.global_ansimask & MASK_BWHITE ) {
@@ -1216,6 +1241,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         safe_str((char *) ANSI_BWHITE, buff2, &bufc2);
                         safe_str((char *) ANSI_BWHITE, buff_utf, &bufc_utf);
                     }
+                    i_inansi = 1;
                     break;
                 default:
                     if(*(string-1) == SAFE_CHR) {
@@ -1282,10 +1308,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
         if ( *string )
            string++;
     }
-    // toss in the normal
-    safe_str(ANSI_NORMAL, buff, &bufc); 
-    safe_str(ANSI_NORMAL, buff2, &bufc2); 
-    safe_str(ANSI_NORMAL, buff_utf, &bufc_utf); 
+    // toss in the normal -- but only if ansi was detected in string
+    if ( i_inansi ) {
+       safe_str(ANSI_NORMAL, buff, &bufc); 
+       safe_str(ANSI_NORMAL, buff2, &bufc2); 
+       safe_str(ANSI_NORMAL, buff_utf, &bufc_utf); 
+    }
     *bufptr = bufc;
     *buf2ptr = bufc2;
     *bufuptr = bufc_utf;
