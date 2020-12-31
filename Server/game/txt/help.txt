@@ -5194,6 +5194,7 @@
             It does this by stripping all special characters for the real
             name then applying the accented/ansified name entered for the
             extansified name.  This follows permissions for @extansi.
+            This will auto-set the EXTANSI flag.
     
   Examples:
     > @name me=Bob
@@ -5264,6 +5265,7 @@
      /inventory - Create the exit on yourself.
      /ansi      - Combine @open and @extansi to colorize with the names.
                   This follows the permissions of @extansi.
+                  This will auto-set the EXTANSI flag.
   
   You may use the lastcreate() function to see the last thing @open'd
   
@@ -5686,6 +5688,7 @@
                disabled on the RhostMUSH you connect to.
     /ansi    - Combines @register with @extansi to colorize the player
                name.  This follows @extansi permissions.
+               This will auto-set the EXTANSI flag.
   
   The switches will only affect the online @register command and will not
   impact the offline method at all.
@@ -6660,6 +6663,9 @@
   Command: @ansiname[/<switch>] <object> = <string>
   Attribute: AnsiName
   
+  The cname() function (or %k substitution) will show the colorized/accented 
+  name.
+  
   This sets the ansi codes for the particular object.  As long as that object
   is allowed to have ansi codes (individually or globally) then whatever
   color codes you put in @ansiname will be the color of the name of the
@@ -6698,6 +6704,9 @@
   Command: @extansi[/<switch>] <object> = <string>
   
   Note: @name/ansi combines this feature with @name
+  
+  The cname() function (or %k substitution) will show the colorized/accented 
+  name.
   
   The @extansi command allows you to set multi-color names for an item.  This
   only effects contents, inventories, and the normal 'look'.  It will not
@@ -13400,6 +13409,7 @@
                examples: :.:  -- fill with a single '.'
                          :!.: -- fill with a single '.' on non-blank lines.
                          :[ansi(hg,.,hb,.)]: -- fill with multi-color.
+             Note: For ':' in formatting, use %<058> instead of :
          / - The numerical value specified between /<number>/ will be used
              as a cut-off value when using the '|' wrap option.  
                examples: /10/ -- when using '|' cut off after 10 characters.
@@ -17435,11 +17445,13 @@
   colorization or accents that they may have.  When called with an exit 
   it returns the only the first alias.
   
+  This will colorize/accent the name using @ansiname or @extansi.
+  
   Example:
     > say cname(me)
     You say "TinyPlayer"  (this would be colorized and/or accented)
    
-  See Also: fullname(), @alias, @name, name()
+  See Also: fullname(), @alias, @name, name(), @ansiname, @extansi, %k
 
 & NAME()
   name(<dbref>[,<newname> [,<key>]])
