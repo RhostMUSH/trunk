@@ -1,23 +1,4 @@
 ---
-# This requires ansible to be installed to run
-# syntax: ansible-playbook rhostinstall.yml
-#
-# Values that will be prompted:
-#   install directory -- base directory (not including 'Rhost' directory) you want to install
-#   rhost directory -- the main directory the rhost source will be installed
-#   mush name -- the name you want your mush to be (you can change it later)
-#   port -- port of the mush
-#   api_port -- API port for the mush (optional, 0 to disable)
-#   ssl_port -- SSL port for the mush (optional, 0 to disable)
-#   ssl secret command -- this is used by the SSL layer   
-#   websockets -- 1 if you wish to support websocket layers (no harm to enable even if you don't use)
-#   lbuf size -- the size of the  main buffer you want to have.  16K is generally a good number
-#
-# Files changed:
-#   ~/Server/game/netrhost.conf -- port, api_port, sconnect_reip, sconnect_cmd, mud_name, debug_id
-#   ~/Server/bin/asksource.default -- compile time options
-#   ~/Server/stunnel/stunnel.conf -- Configure is overwritten every run
-#   ~/Server/stunnel/warpbubble.conf -- Configure is overwritten every run
 - name: Rhost Installation Playbook
   hosts: localhost
   vars_prompt:
@@ -45,10 +26,10 @@
     prompt: "Mush API-port (0 for no API):"
     private: no
     default: "4203"
-  - name: ssl_command
+  - name: api_command
     prompt: "
        10-30 chars, single word -- will not overwrite if existing\n
-       If ssl_port is '0' above this will be ignored\n
+       If api_port is '0' above this will be ignored\n
        API Secret Command:"
     private: no
     default: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
@@ -98,10 +79,15 @@
         regexp: '^X\[27\]'
         line: 'X[27]="X"'
       when: websockets == "1"
+    - name: See if Rhost has been already compiled
+      stat: 
+        path: "{{ rhostpath + '/' + rhostdir + '/src/custom.defs' }}"
+      register: custdef
     - name: Cleanup RhostMUSH source
       make:
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server' }}"
         target: clean
+      when: custdef.stat.exists
     - name: Build RhostMUSH
       make:
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server' }}"
@@ -109,7 +95,7 @@
     - name: Creating minimal database
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/game'}}"
-        cmd: ./minimal.sh --noprompt
+        cmd: /bin/sh ./minimal.sh --noprompt
     - name: Set port, mud_name
       lineinfile:
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
@@ -142,14 +128,14 @@
         regexp: '^sconnect_reip\s+'
         insertbefore: '^# this is the last\s+'
         line: "sconnect_reip 1"
-      when: ssl_port != "0"
+      when: api_port != "0"
     - name: Disable SSL layer to RhostMUSH if disabled
       lineinfile:
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
         regexp: '^sconnect_reip\s+'
         insertbefore: '^# this is the last\s+'
         line: "sconnect_reip 1"
-      when: ssl_port == "0"
+      when: api_port == "0"
     - name: Check for existing SSL secret command
       lineinfile:
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
@@ -163,23 +149,18 @@
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
         regexp: '^sconnect_cmd\s+'
         insertbefore: '^# this is the last\s+'
-        line: "sconnect_cmd {{ ssl_command }}"
-      when: (ssl_port != "0") and (not sslcmd.found)
+        line: "sconnect_cmd {{ api_command }}"
+      when: (api_port != "0") and (not sslcmd.found)
     - name: Run stunnel config/setup
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/stunnel'}}"
-        cmd: ./stunnel_setup.sh  --noprompt {{ ssl_port }}
-      when: ssl_port != "0"
-    - name: Start stunnel engine for SSL connector if enabled
+        cmd: /bin/sh ./stunnel_setup.sh  --noprompt {{ ssl_port }}
+      when: api_port != "0"
+    - name: Start stunnel engine for SSL connector
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/stunnel'}}"
-        cmd: ./stunnel_start.sh
-      when: ssl_port != "0"
-    - name: Stop stunnel engine for SSL connector if disabled
-      script: 
-        chdir: "{{ rhostpath + '/' + rhostdir + '/Server/stunnel'}}"
-        cmd: ./stunnel_stop.sh
-      when: ssl_port == "0"
+        cmd: /bin/sh ./stunnel_start.sh
+      when: api_port != "0"
     - name: Starting RhostMUSH
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/game'}}"
