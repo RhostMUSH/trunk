@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#ifndef _NSIG
+#define _NSIG NSIG
+#endif
+
 static const char *argv0;
 static char **prgargv;
 static pid_t pid;
@@ -58,7 +62,9 @@ static struct {
 	{"PIPE",    SIGPIPE},
 	{"ALRM",    SIGALRM},
 	{"TERM",    SIGTERM},
+#if 0
 	{"STKFLT",  SIGSTKFLT},
+#endif
 	{"CHLD",    SIGCHLD},
 	{"CONT",    SIGCONT},
 	{"STOP",    SIGSTOP},
@@ -72,7 +78,9 @@ static struct {
 	{"PROF",    SIGPROF},
 	{"WINCH",   SIGWINCH},
 	{"IO",	    SIGIO},
+#if 0
 	{"PWR",	    SIGPWR},
+#endif
 	{"SYS",     SIGSYS},
 };
 
