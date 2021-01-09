@@ -1081,7 +1081,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
                     safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
                     safe_str((char *) ANSI_NORMAL, buff_utf, &bufc_utf);
-                    i_inansi = 1;
+                    i_inansi = 0;
                     break;
                 case 'f':
                     if ( mudconf.global_ansimask & MASK_BLINK ) {
