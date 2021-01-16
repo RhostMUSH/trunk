@@ -18643,12 +18643,12 @@ FUNCTION(fun_rloc)
     char* pt1;
     dbref it;
 
+    if (!fn_range_check("RLOC", nfargs, 2, 3, buff, bufcx))
+      return;
+
     levels = atoi(fargs[1]);
     if (levels > mudconf.ntfy_nest_lim)
        levels = mudconf.ntfy_nest_lim;
-
-    if (!fn_range_check("RLOC", nfargs, 2, 3, buff, bufcx))
-      return;
 
     pt1 = NULL;
     t = 0;
