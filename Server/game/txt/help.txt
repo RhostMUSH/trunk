@@ -6,6 +6,7 @@
   Notes on help descriptions: 
         [text] - Text enclosed in []'s is optional.  The []'s are never typed
                  in as part of the command.
+  
         <parameter> - Information parameter for a command.  The <>'s are
                       never typed in as part of the command.
  
@@ -172,8 +173,8 @@
   SQL                 SQLESCAPE          STACK               SUBSTITUTIONS   
   SUCCESS             SWITCHES           TOGGLES             USEFUL          
   UNICODE SUPPORT     USER ATTRIBUTES    VARIABLE EXITS      VATOVZ         
-  VERBS               WANDERER           WILDCARDS           ZATOZZ          
-  ZONES               $-COMMANDS         #LAMBDA          
+  VERBS               WANDERER           WILDCARDS           WIZARD ATTRIBUTES
+  ZATOZZ              ZONES               $-COMMANDS         #LAMBDA          
   
 & API
   Topic: API
@@ -28561,6 +28562,24 @@
    
   See Also: mail write +del, mail write +join, mail write +justify 
   
+& WIZARD ATTRIBUTES
+& _
+  Topic: WIZARD ATTRIBUTES
+  
+  This is a backward compatible ability to set attributes that are
+  wizard settable and seeable.  This is obsoleted now with the addition
+  of the wizard command '@aflags'.
+  
+  Examples: 
+    > &_foo me=Only a wiz can see or set this.
+    Set.
+    > @aflags _foo
+    (Attribute 231028) Flags are: private [hidden wizard] 
+  
+  Wizard help: @aflags, _
+  
+  See Also: &, @set
+
 & -
 & mail write -
   Command: mail/write <text>

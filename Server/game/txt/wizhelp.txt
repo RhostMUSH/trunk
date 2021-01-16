@@ -4706,8 +4706,12 @@
   
   See Also: page, @pemit
 
+& _
 & @aflags
   Command: @aflags[</switch>] <attribute or value> [=<argument>]
+  
+  Note: Attributes that start with a prefix of _ will automatically
+        be wizard settable and seeable.
   
   This command will return all the toggled flags of that
   given attribute.  This will also show prefix based permissions from
