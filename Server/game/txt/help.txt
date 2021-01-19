@@ -33712,6 +33712,7 @@
   * Optionally do forced ansi normal only if ansi detected in string [ASH]
   * Forced carrage returns no longer on connect screen.  
     Code all softcoded connect screens accordingly!!!! [ASH]
+  * Add MUSH_VERSION environment variable to execscript [ASH]
   
   Bug Fixes
   ------------

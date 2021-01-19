@@ -17802,6 +17802,7 @@ FUNCTION(fun_execscript)
    setenv("MUSH_CALLER", s_combine, 1);
    sprintf(s_combine, "#%d %s", Owner(player), Name(Owner(player)));
    setenv("MUSH_OWNER", s_combine, 1);
+   setenv("MUSH_VERSION", (char *)"EXECSCRIPT 1.1", 1);
 
    sprintf(s_combine, "#%d", player);
    s_t1 = return_objid(player, cause, s_combine);
@@ -18285,6 +18286,7 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_OWNERFLAGS");
    unsetenv("MUSH_TOGGLES");
    unsetenv("MUSH_OWNERTOGGLES");
+   unsetenv("MUSH_VERSION");
 
    free_lbuf(s_nregs);
    free_mbuf(s_varset);

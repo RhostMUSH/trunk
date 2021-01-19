@@ -12764,6 +12764,7 @@
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
   
   The following global variables are available from inside the scripts called:
+    MUSH_VERSION      - Show version fo EXECSCRIPT (for cross-script execution)
     MUSH_PLAYER       - [%!] dbref# of player followed by name of player.  
     MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
     MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
