@@ -3264,6 +3264,9 @@ dump_users(DESC * e, char *match, int key)
 	rcount++;
 
 #ifdef ZENTY_ANSI
+        *doingAccentBuf='\0';
+        *doingAnsiBuf='\0';
+        *doingUtfBuf='\0';
 	doingAnsiBufp = doingAnsiBuf;
 	doingAccentBufp = doingAccentBuf;
 	doingUtfBufp = doingUtfBuf;

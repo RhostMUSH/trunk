@@ -33725,3 +33725,4 @@
   * Improve ansi handler to smart-close ansified strings [ASH]
   * rloc had SIGSEGV bug with argument checks [ASH]
   * parse_ansi (internal) didn't initialize values passed to it [ASH]
+  * DOING/WHO didn't initialize values passed to it [ASH]

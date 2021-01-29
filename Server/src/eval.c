@@ -809,9 +809,6 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     fprintf(stderr, "Value: %s\n", string);
  */
 
-    *buff='\0';
-    *buff2='\0';
-    *buff_utf='\0';
     memset(s_twochar, '\0', sizeof(s_twochar));
     memset(s_final, '\0', sizeof(s_final));
     memset(s_utfbuf, '\0', sizeof(s_utfbuf));
