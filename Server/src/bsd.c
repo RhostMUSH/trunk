@@ -256,7 +256,7 @@ int check_tor(struct in_addr a_remote, int i_port) {
 
 int make_socket(int port, char* address)
 {
-    int s, opt;
+    int s, opt, i_loop;
     FILE *f_fptr;
 
 #ifdef TLI
@@ -331,11 +331,28 @@ int make_socket(int port, char* address)
     else
         server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
+
+    i_loop = 0;
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
-	log_perror("NET", "FAIL", unsafe_tprintf("failed to bind to port <%d>",port), "bind");
-	close(s);
-        DPOP; /* #1 */
-	exit(4);
+        while ( i_loop <= 5 ) {
+           i_loop++;
+           if ( mudconf.api_port == port ) {
+	      log_perror("NET", "FAIL", unsafe_tprintf("[%d of 5] failed to bind to API port <%d>", i_loop, port), "bind");
+           } else {
+	      log_perror("NET", "FAIL", unsafe_tprintf("[%d of 5] failed to bind to port <%d>", i_loop, port), "bind");
+           }
+           if ( bind(s, (struct sockaddr *) &server, sizeof(server)) == 0 ) {
+              break;
+           } else {
+              /* Sleep for 10 seconds and try to rebind */
+              nanosleep((struct timespec[]){{10, 0}}, NULL);
+           }
+        }
+        if ( i_loop >= 5 ) {
+	   close(s);
+           DPOP; /* #1 */
+	   exit(4);
+        }
     }
     listen(s, 5);
 #endif
