@@ -33702,6 +33702,7 @@
   * float_switches config param to allow @switch/switch() float compares [ASH]
   * Port binder will now attempt 5 times for port connects to allow slow
     kernels and/or cached I/O and/or swapped games time to rebind [ASH]
+  * @exec callback for execscript() to push to the queue any command [ASH]
   
   Changes
   ------------

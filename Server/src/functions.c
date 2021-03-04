@@ -18198,6 +18198,14 @@ FUNCTION(fun_execscript)
                }
                i_flagtype = 3;
                sprintf(s_buff, "%s", s_string);
+            } else if ( !stricmp(s_variable, (char *)"@exec") ) {
+               if ( !(s_string && *s_string) ) {
+                  sprintf(s_buff, "Warning: No exec command list specified for dbref #%d on line %d", i_varset, i_count);
+                  notify_quiet(player, s_buff);
+                  continue;
+               }
+               i_flagtype = 4;
+               sprintf(s_buff, "%s", s_string);
             } else {
                if ( !ok_attr_name(s_variable) ) {
                   sprintf(s_buff, "Warning: Invalid variable name '%s' on line %d", s_variable, i_count);
@@ -18211,6 +18219,9 @@ FUNCTION(fun_execscript)
                }
             }
             switch(i_flagtype) {
+               case 4: /* Exec/@wait */
+                   wait_que(i_varset, i_varset, (double)0.0, NOTHING, s_buff, (char **)NULL, 0, NULL, NULL);
+                   break;
                case 3: /* Toggles */
                   do_toggle(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
                   break;

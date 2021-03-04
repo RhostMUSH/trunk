@@ -12916,6 +12916,9 @@
     <variable> <dbref#>      -- This clears the attribute on dbref#
     <variable> <dbref#> bob  -- This sets 'bob' to the attribute
   
+  To execute code use:
+    @exec <dbref#> <commands separated by semicolon>
+  
   To set flag, toggle, and totem flags use:
     @set <dbref#> <flag ... !flag>    -- Set/unset flag on dbref#
     @totem <dbref#> <flag ... !flag>  -- Set/unset totem on dbref#
@@ -12938,6 +12941,7 @@
      @set #123 inherit
      @totem #123 marker0
      @toggle #123 variable
+     @exec #123 @wait 10={think 1;think 2};&FOO me=test
      snork QN Setting register with label snork 
      BOB #456 This is my BOB attribute
      SEX #123 Male
@@ -12954,6 +12958,7 @@
      @set #123 <flag> -- Same as @set #123=<flag>
      @totem #123 <totem> -- Same as @totem #123=<totem>
      @toggle #123 <toggle> -- Same as @toggle #123=<toggle>
+     Execute as #123 @wait 10={think1 ;think2} and set FOO on #123 to 'test'
      snork QN <string> -- sets string to register with label 'snork'
      BOB #456 <string> -- Same as &BOB #456=<string>
      SEX #123 <string> -- Same as @sex #123=<string>

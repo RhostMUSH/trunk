@@ -349,6 +349,11 @@ int make_socket(int port, char* address)
            }
         }
         if ( i_loop >= 5 ) {
+           if ( mudconf.api_port == port ) {
+	      log_perror("NET", "FAIL", unsafe_tprintf("[max] Aborting -- failed to bind to API port <%d>", port), "bind");
+           } else {
+	      log_perror("NET", "FAIL", unsafe_tprintf("[max] Aborting -- failed to bind to port <%d>", port), "bind");
+           }
 	   close(s);
            DPOP; /* #1 */
 	   exit(4);
