@@ -1,8 +1,8 @@
 @@ Admin object support creation
 @create File Object <FO>
-@set file object <FO>=!halt safe ind sidefx inh
-@power/counc file object <FO>=execscript
-@admin file_object=[strip(num(file object <FO>),#)]
+@set File Object <FO>=!halt safe ind sidefx inh
+@power/counc File Object <FO>=execscript
+@admin file_object=[strip(num(File Object <FO>),#)]
 &CONNECT File Object <FO>=[ifelse(gt(account_owner(%2),0),execscript(account/connect.sh,account),execscript(account/connect.sh,connect))]
 &FAKECOMMANDS File Object <FO>=acct|mail|mail/list
 &RUN_ACCT File Object <FO>=[switch([words(%1)]|[first(%1)],3|create,u(fn_create,%0,rest(%1),%2,%3,%4),1|list,u(fn_list,%0,rest(%1),%2,%3,%4),3|login,u(fn_login,%0,rest(%1),%2,%3,%4),2|player,u(fn_player,%0,rest(%1),%2,%3,%4),1|logoff,u(fn_logoff,%0,rest(%1),%2,%3,%4),2|connect,u(fn_connect,%0,rest(%1),%2,%3,%4),1|master,u(fn_master,%0,rest(%1),%2,%3,%4),u(fn_error,%0,%1,%2,%3,%4))]
@@ -53,8 +53,8 @@
 @@        to something not easy to guess to enforce new players to use the registration system.
 @@        but to allow wizards to 'connect' like normal.
 @@
-think Please set the @admin parameter file_object to [num(file object <fo>)].
+think Please set the @admin parameter file_object to [num(File Object <FO>)].
 think Please set the @admin parameter execscriptpath to 'account'
 think Account SubSystem <AS> needs to be placed in the master room [globalroom()].
-think The file_object [num(file object <fo>)] should not be placed in the master room.
+think The file_object [num(ject <fo>)] should not be placed in the master room.
 think Completed.
