@@ -448,7 +448,7 @@ echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
-echo "      [x]tra default cores (MUX, TinyMUSH3, Penn, Rhost-Default)"
+echo "      [x]tra default cores (MUX, TinyMUSH3, Penn, Rhost-Default, AmbrosiaDB)"
 echo "      Or, you may select a numer to toggle on/off"
 echo "      '#' means you may drill down into that option for a sub-menu."
 echo ""
@@ -1235,7 +1235,7 @@ xtraopts() {
    while [ ${LOOPIE} -eq 1 ]
    do
       CNTR=0
-      for i in mux penn tm3 default
+      for i in mux penn tm3 default ambrosia
       do
          CNTR=$(expr $CNTR + 1)
          if [ -f asksource.${i}.mark ]
@@ -1275,6 +1275,8 @@ xtraopts() {
          3) DUMPFILE=asksource.tm3
             ;;
          4) DUMPFILE=asksource.default
+            ;;
+	 5) DUMPFILE=asksource.ambrosia
             ;;
          Q) DUMPFILE="/"
             ;;
