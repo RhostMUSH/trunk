@@ -12769,11 +12769,13 @@
     MUSH_CAUSE        - [%#] dbref# of cause followed by name of cause.  
     MUSH_CALLER       - [%@] dbref# of caller followed by name of caller.  
     MUSH_FLAGS        - the flags of the player.
-    MUSH_TOGGLES      - the togglesof the player.
+    MUSH_TOGGLES      - the toggles of the player.
+    MUSH_TOTEMS       - the totems of the player.
     MUSH_OWNER        - dbref# of player's owner by name of owner.
     MUSH_OBJID        - objid's of player, cause, caller, owner (in that order)
     MUSH_OWNERFLAGS   - the flags of the player's owner.
     MUSH_OWNERTOGGLES - the toggles of the player's owner.
+    MUSH_OWNERTOTEMS  - the totems of the player's owner.
     MUSHL_VARS        - All the variables you want the script to see which
                         is passed as the mush attribute EXECSCRIPT_VARS
                         on the container that is executing execscript()

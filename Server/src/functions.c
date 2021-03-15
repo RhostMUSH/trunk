@@ -17649,7 +17649,7 @@ FUNCTION(fun_execscript)
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS],
-       i_flagtype;
+       i_flagtype, i_return;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -17823,18 +17823,39 @@ FUNCTION(fun_execscript)
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
    setenv("MUSH_FLAGS", s_combine, 1);
+
    sptr2 = flag_description(GOD, Owner(player), 0, (int *)NULL, 0);
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
    setenv("MUSH_OWNERFLAGS", s_combine, 1);
+
    sptr2 = toggle_description(GOD, player, 0, 0, (int *)NULL);
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
    setenv("MUSH_TOGGLES", s_combine, 1);
+
    sptr2 = toggle_description(GOD, Owner(player), 0, 0, (int *)NULL);
    sprintf(s_combine, "%s", sptr2);
    free_lbuf(sptr2);
    setenv("MUSH_OWNERTOGGLES", s_combine, 1);
+
+   sptr2 = alloc_lbuf("totem_list");
+   i_return = totem_list(sptr2, 2, player, GOD, (char *)NULL);
+   if ( i_return == 1 ) {
+      sprintf(s_combine, "%s", sptr2);
+   } else {
+      *s_combine = '\0';
+   }
+   setenv("MUSH_TOTEMS", s_combine, 1);
+
+   i_return = totem_list(sptr2, 2, Owner(player), GOD, (char *)NULL);
+   if ( i_return == 1 ) {
+      sprintf(s_combine, "%s", sptr2);
+   } else {
+      *s_combine = '\0';
+   }
+   setenv("MUSH_OWNERTOTEMS", s_combine, 1);
+   free_lbuf(sptr2);
 
    /* Set user defined environment variables */
    attr = atr_str("EXECSCRIPT_VARS");
@@ -18220,7 +18241,13 @@ FUNCTION(fun_execscript)
             }
             switch(i_flagtype) {
                case 4: /* Exec/@wait */
-                   wait_que(i_varset, i_varset, (double)0.0, NOTHING, s_buff, (char **)NULL, 0, NULL, NULL);
+                   if (!controls(i_varset, cause)) {
+                      sprintf(s_buff, "Warning: No permission to control dbref #%d", i_varset);
+                      notify_quiet(player, s_buff);
+                      continue;
+                   } else {
+                      wait_que(i_varset, i_varset, (double)0.0, NOTHING, s_buff, (char **)NULL, 0, NULL, NULL);
+                   }
                    break;
                case 3: /* Toggles */
                   do_toggle(player, cause, (SET_QUIET|SIDEEFFECT), s_dbref, s_buff);
@@ -18297,6 +18324,8 @@ FUNCTION(fun_execscript)
    unsetenv("MUSH_OWNERFLAGS");
    unsetenv("MUSH_TOGGLES");
    unsetenv("MUSH_OWNERTOGGLES");
+   unsetenv("MUSH_TOTEMS");
+   unsetenv("MUSH_OWNERTOTEMS");
    unsetenv("MUSH_VERSION");
 
    free_lbuf(s_nregs);

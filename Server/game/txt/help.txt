@@ -33716,6 +33716,7 @@
   * Forced carrage returns no longer on connect screen.  
     Code all softcoded connect screens accordingly!!!! [ASH]
   * Add MUSH_VERSION environment variable to execscript [ASH]
+  * Totems of player and owner of player passed to execscript [ASH]
   
   Bug Fixes
   ------------
