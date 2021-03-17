@@ -33730,3 +33730,4 @@
   * rloc had SIGSEGV bug with argument checks [ASH]
   * parse_ansi (internal) didn't initialize values passed to it [ASH]
   * DOING/WHO didn't initialize values passed to it [ASH]
+  * API would not process queries if process-quueue set to 0 [ASH]

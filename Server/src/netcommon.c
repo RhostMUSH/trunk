@@ -6203,8 +6203,10 @@ NDECL(process_commands)
 	nprocessed = 0;
 	DESC_SAFEITER_ALL(d, dnext) {
 	    if ((d->flags & DS_AUTH_IN_PROGRESS) == 0) {
-		if (d->quota > 0 && (t = d->input_head)) {
-		    d->quota--;
+		if ( ((d->quota > 0) || (d->flags & DS_API)) && (t = d->input_head)) {
+                    if ( !(d->flags & DS_API) ) {
+		       d->quota--;
+                    }
 		    nprocessed++;
 		    d->input_head = (CBLK *) t->hdr.nxt;
 		    if (!d->input_head)
