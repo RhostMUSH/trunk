@@ -422,10 +422,12 @@ shovechars(int port,char* address)
     apiport = mudconf.api_port;
     mudstate.debug_cmd = (char *) "< shovechars >";
     sock = make_socket(port, address);
+    maxd = sock + 1;
     if ( apiport != -1 ) {
        sock2 = make_socket(apiport, address);
+       if ( sock2 > sock ) 
+          maxd = sock2 + 1;
     }
-    maxd = sock + 1;
     get_tod(&last_slice);
     flagkeep = i_oldlasttime = i_oldlastcnt = 0;
     f = fopen("reboot.silent","r");
@@ -2212,11 +2214,11 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     descriptor_list = d;
     if ( !keyval ) {
        welcome_user(d);
+       start_auth(d);
     } else {
        d->timeout = 1;
        d->flags |= DS_API;
     }
-    start_auth(d);
     RETURN(d); /* #11 */
 }
 

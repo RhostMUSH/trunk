@@ -1264,8 +1264,13 @@ raw_notify(dbref player, const char *msg, int port, int type)
     if (!msg || !*msg) {
 	VOIDRETURN; /* #112 */
     }
-    if (!Connected(player) && !port) {
-	VOIDRETURN; /* #112 */
+
+/* Potential fix for API */
+//  if (!Connected(player) && !port) {
+//	VOIDRETURN; /* #112 */
+//  }
+    if ( !Good_obj(player) && !port ) {
+       VOIDRETURN; /* #112 */
     }
 
     strcpy(antemp, ANSI_NORMAL);
