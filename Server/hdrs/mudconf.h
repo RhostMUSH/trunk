@@ -495,6 +495,7 @@ struct confdata {
 	int 	allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
 	int	posesay_funct;	/* Enable function evaluaton to pose/say fluffing */
 	int	mtimer;		/* The milisecond timer offset range (default 10) */
+	int hastype_always_zero; /* Make hastype() return zero on invalid objects */
 #else
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */

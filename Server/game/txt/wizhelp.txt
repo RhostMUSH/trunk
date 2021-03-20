@@ -6979,9 +6979,10 @@
   guest_namelist            guest_randomize            guild_attrname     
   guild_default             guild_hdr                  hackattr_nowiz     
   hackattr_see              hardconn_host              hardconn_site      
-  hasattrp_compat           heavy_cpu_max              help_file          
-  help_index                help_separator             hide_nospoof       
-  hook_cmd                  hook_obj                   hook_offline
+  hasattrp_compat           hastype_always_zero        heavy_cpu_max
+  help_file                 help_index                 help_separator
+  hide_nospoof              hook_cmd                   hook_obj
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -9113,6 +9114,20 @@
   See Also: brace_compatibility, break_compatibility, format_compatibility,
             hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
             nand_compat, queue_compatible
+
+& hastype_always_zero
+  Config parameter: hastype_always_zero <value>. Default: 0
+
+  By default, hastype() returns #-1 instead of 0 if an invalid object has
+  been specified as its first parameter. This is mostly due to compatibility
+  with past MU* servers.
+
+  If you prefer to have hastype() return 0 if the object is invalid instead of
+  returning #-1, set this parameter to 1.
+
+  Hastype will always return #-1 if the specified *type* is invalid.
+
+  See Also: help hastype
 
 & heavy_cpu_max
   Config parameter: heavy_cpu_max <value>.  Default: 50

@@ -13443,43 +13443,58 @@ FUNCTION(fun_hastype)
 {
   dbref obj;
 
-  init_match(player, fargs[0], NOTYPE);
-  match_everything(0);
-  obj = match_result();
-  if ((obj == NOTHING) || (obj == AMBIGUOUS) || !Good_obj(obj)) {
-    safe_str("#-1", buff, bufcx);
-  } else if ( (Cloak(obj) && !Wizard(player)) ||
+  switch (tolower(*fargs[1])) {
+    case 'p':
+    case 'r':
+    case 't':
+    case 'e':
+      init_match(player, fargs[0], NOTYPE);
+      match_everything(0);
+      obj = match_result();
+      if ((obj == NOTHING) || (obj == AMBIGUOUS) || !Good_obj(obj)) {
+        if(mudconf.hastype_always_zero)
+          safe_str("0", buff, bufcx);
+        else
+          safe_str("#-1", buff, bufcx);
+      } else if ( (Cloak(obj) && !Wizard(player)) ||
         (Cloak(obj) && SCloak(obj) && !Immortal(player)) ) {
-    safe_str("#-1", buff, bufcx);
-  } else {
-    switch (tolower(*fargs[1])) {
-      case 'p':
-  if (isPlayer(obj))
-    safe_str("1",buff,bufcx);
-  else
-    safe_str("0",buff,bufcx);
-  break;
-      case 'r':
-  if (isRoom(obj))
-    safe_str("1",buff,bufcx);
-  else
-    safe_str("0",buff,bufcx);
-  break;
-      case 't':
-  if (isThing(obj))
-    safe_str("1",buff,bufcx);
-  else
-    safe_str("0",buff,bufcx);
-  break;
-      case 'e':
-  if (isExit(obj))
-    safe_str("1",buff,bufcx);
-  else
-    safe_str("0",buff,bufcx);
-  break;
-      default:
-  safe_str("0",buff,bufcx);
-    }
+        if(mudconf.hastype_always_zero)
+          safe_str("0", buff, bufcx);
+        else
+          safe_str("#-1", buff, bufcx);
+      } else {
+        switch (tolower(*fargs[1])) {
+          case 'p':
+            if (isPlayer(obj))
+              safe_str("1",buff,bufcx);
+            else
+              safe_str("0",buff,bufcx);
+          break;
+          case 'r':
+            if (isRoom(obj))
+              safe_str("1",buff,bufcx);
+            else
+              safe_str("0",buff,bufcx);
+          break;
+          case 't':
+            if (isThing(obj))
+              safe_str("1",buff,bufcx);
+            else
+              safe_str("0",buff,bufcx);
+          break;
+          case 'e':
+            if (isExit(obj))
+              safe_str("1",buff,bufcx);
+            else
+              safe_str("0",buff,bufcx);
+          break;
+          default:
+            safe_str("#-1",buff,bufcx);
+        }
+      }
+    break;
+    default:
+    safe_str("#-1",buff,bufcx);
   }
 }
 

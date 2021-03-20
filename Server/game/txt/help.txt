@@ -21394,6 +21394,9 @@
   Returns 1 if the object is of the named type, otherwise 0.
   Valid types are: ROOM, EXIT, PLAYER, THING.
   If an invalid type is given, #-1 is returned.
+
+  NOTE: The function will return #-1 for invalid objects as well, unless
+  the configuration parameter 'hastype_always_zero' is set to 1.
   
   Examples:
     > say hastype(me,PLAYER)
@@ -21402,6 +21405,7 @@
     You say "0"
   
   See Also: type(), hasflag()
+  See Also: wizhelp hastype_always_zero
   
 & hasattr()
   Function: hasattr(<object>/<attribute name>)

@@ -493,6 +493,7 @@ NDECL(cf_init)
     mudconf.lnum_compat = 0;
     mudconf.nand_compat = 0;
     mudconf.hasattrp_compat = 0; /* Boolean: does hasattrp only check parents */
+		mudconf.hastype_always_zero = 0; /* Does hastype() return 0 on invalid objects */
     mudconf.expand_goto = 0;	/* Expand exit movement to use 'goto' */
     mudconf.global_ansimask = 2097151; /* Always allow all ansi */
     mudconf.imm_nomod = 0; /* Immortal only with NOMODIFY */
@@ -4534,6 +4535,9 @@ CONF conftable[] =
     {(char *) "hasattrp_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hasattrp_compat, 0, 0, CA_PUBLIC,
      "Should hasattrp() check only parents? (YES=FALSE, NO=TRUE)"},
+    {(char *) "hastype_always_zero",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.hastype_always_zero, 0, 0,
+			CA_PUBLIC, (char *) "Does hastype() always return 0 on invalid objects?"},
     {(char *) "heavy_cpu_max",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.heavy_cpu_max, 0, 0, CA_WIZARD,
      (char *) "Repitions allowed of heavy cpu functions.\r\n"\
