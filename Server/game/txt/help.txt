@@ -33707,6 +33707,8 @@
   * Port binder will now attempt 5 times for port connects to allow slow
     kernels and/or cached I/O and/or swapped games time to rebind [ASH]
   * @exec callback for execscript() to push to the queue any command [ASH]
+  * hastype_always_zero option to make hastype() return 0 on invalid objects.
+    An invalid type still returns #-1 [AMB]
   
   Changes
   ------------
