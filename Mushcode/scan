@@ -27,7 +27,7 @@
 &FN_PIPE Global: ScanObj <SO>=[setq(0,lcmds(%0,beep()))][iter(lattr(%0,,$),[ifelse(or(!$v(1),regmatch(extract(%q0,#@,1,beep()),%1)),%r[ljc(ifelse(hasflag(%0/%i0,noprog),ansi(hr,*LK*)),5)][ansi([ifelse(hasflag(%0/%i0,regexp),+orange,+purple)],%i0)] -> [edit(edit(ansi(hg,extract(%q0,#@,1,beep())),*,ansi(hr,*)),?,ansi(hr,?))])])]
 &CMD_SEARCHTREE Global: ScanObj <SO>=$+searchtree *:@pemit %#=[list(lcon(globalroom()),[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,edit(%0,+,%[+%]))])][ifelse(!match(X,%q1),ansi(hc,<--END))]
 &CMD_SEARCHBYOBJ Global: ScanObj <SO>=$+searchbyobj *=*:@pemit %#=[list([listdiff([setq(0,locate(%#,%0,*))] [lcon(loc(%q0))],#-1 #-2)],[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,%1)])][ifelse(!match(X,%q1),ansi(hc,<--END))]
-&CMD_SEARCHDB Global: ScanObj <So>=$+searchdb *:@break [lt(bittype(%#),6)]=@pemit %#=Permission denied;@pemit %#=[list(search(eval=%[grep%(##%,*%,*%0*%)%]),[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,edit(%0,+,%[+%]))])][ifelse(!match(X,%q1),ansi(hc,<--END))]
+&CMD_SEARCHDB Global: ScanObj <SO>=$+searchdb *:@break [lt(bittype(%#),6)]=@pemit %#=Permission denied;@pemit %#=[list(search(eval=%[grep%(##%,*%,*%0*%)%]),[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,edit(%0,+,%[+%]))])][ifelse(!match(X,%q1),ansi(hc,<--END))]
 @set Global: ScanObj <SO>=INDESTRUCTABLE SAFE INHERIT STOP
 @@
 @@ @scan -- Returns error message
