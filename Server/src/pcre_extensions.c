@@ -11,7 +11,7 @@
 #include <setjmp.h>
 #include "mudconf.h"
 #include "config.h"
-#ifdef PCRE_BUILTIN
+#ifdef PCRE_SYSLIB
 #include <pcre.h>
 #else
 #include "pcre.h"
