@@ -14384,7 +14384,7 @@
   BNT    Brunei Darussalam Time              Asia             UTC + 8 hours
   BOT    Bolivia Time                        South America    UTC - 4 hours
   BRST   Brasilia Summer Time                South America    UTC - 2 hours
-  BRT    Brasília time                       South America    UTC - 3 hours
+  BRT    Brasilia time                       South America    UTC - 3 hours
   BST    Bangladesh Standard Time            Asia             UTC + 6 hours
   BST1   British Summer Time                 Europe           UTC + 1 hour
   BTT    Bhutan Time                         Asia             UTC + 6 hours
@@ -14474,17 +14474,17 @@
   GST    Gulf Standard Time                  Asia             UTC + 4 hours
   GYT    Guyana Time                         South America    UTC - 4 hours
   H      Hotel Time Zone                     Military         UTC + 8 hours
-  HAA    Heure Avancée de l'Atlantique       North America    UTC - 3 hours
-  HAA1   Heure Avancée de l'Atlantique       Atlantic         UTC - 3 hours
-  HAC    Heure Avancée du Centre             North America    UTC - 5 hours
+  HAA    Heure Avancee de l'Atlantique       North America    UTC - 3 hours
+  HAA1   Heure Avancee de l'Atlantique       Atlantic         UTC - 3 hours
+  HAC    Heure Avancee du Centre             North America    UTC - 5 hours
   HADT   Hawaii-Aleutian Daylight Time       North America    UTC - 9 hours
-  HAE    Heure Avancée de l'Est              North America    UTC - 4 hours
-  HAE1   Heure Avancée de l'Est              Caribbean        UTC - 4 hours
-  HAP    Heure Avancée du Pacifique          North America    UTC - 7 hours
-  HAR    Heure Avancée des Rocheuses         North America    UTC - 6 hours
+  HAE    Heure Avancee de l'Est              North America    UTC - 4 hours
+  HAE1   Heure Avancee de l'Est              Caribbean        UTC - 4 hours
+  HAP    Heure Avancee du Pacifique          North America    UTC - 7 hours
+  HAR    Heure Avancee des Rocheuses         North America    UTC - 6 hours
   HAST   Hawaii-Aleutian Standard Time       North America    UTC - 10 hours
-  HAT    Heure Avancée de Terre-Neuve        North America    UTC - 2:30 hours
-  HAY    Heure Avancée du Yukon              North America    UTC - 8 hours
+  HAT    Heure Avancee de Terre-Neuve        North America    UTC - 2:30 hours
+  HAY    Heure Avancee du Yukon              North America    UTC - 8 hours
   
 { timezone list6 to continue }    5 of 12
 
@@ -14590,7 +14590,7 @@
   PONT   Pohnpei Standard Time               Pacific          UTC + 11 hours
   PST    Pacific Standard Time               North America    UTC - 8 hours
   PST1   Pitcairn Standard Time              Pacific          UTC - 8 hours
-  PT     Tiempo del Pacífico                 North America    UTC - 8 hours
+  PT     Tiempo del Pacifico                 North America    UTC - 8 hours
   PWT    Palau Time                          Pacific          UTC + 9 hours
   PYST   Paraguay Summer Time                South America    UTC - 3 hours
   PYT    Paraguay Time                       South America    UTC - 4 hours
