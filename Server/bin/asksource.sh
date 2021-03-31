@@ -705,8 +705,10 @@ info() {
          echo "a case, select this option to disable OpenSSL from compiling."
          ;;
      25) echo "The system dependant PCRE Library will be much  much faster"
-         echo "than the one included with the source.  However, if you find"
-         echo "issues with it compiling with this enabled, disable it."
+         echo "than the one included with the source.  Enabling this option"
+         echo "uses the system's PCRE Library. Disabling it uses a PCRE"
+	 echo "library supplied by RhostMUSH that should only be used if the"
+	 echo "system library caused compilation issues."
          ;;
      26) echo "This option encrypts your passwords using a random seed and"
          echo "the SHA512 encryption method.  It will fall back to standard"
