@@ -1,14 +1,14 @@
 For ease, the following steps can quickly get you running SSL if you want to skip 
 to the basics:
 1.  Modify your netrhost.conf file and add/change the following parameters:
-    A. stunnel_reip 1
-    B. stunnel_cmd SECRET-MAGIC-COOKIE
+    A. sconnect_reip 1
+    B. sconnect_cmd SECRET-MAGIC-COOKIE
        1.  SECRET-MAGIC-COOKIE is a case sensitive single word phrase.  Any 
            printable character other than the '#' character is allowable. 
            You may use up to 30 characters.
        2.  Make sure the secret is a hard to guess phrase.  This is used
            by stunnel to forward on the originating IP address.
-    C. stunnel_host localhost 127.0.0.1 othersite.goes.here
+    C. sconnect_host localhost 127.0.0.1 othersite.goes.here
        1.  This is optional.  
        2.  If you do not specify it it defaults to 'localhost 127.0.0.1'.  
            If your domain has a unique name like 'localhost.localdomain' 
