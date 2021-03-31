@@ -707,8 +707,8 @@ info() {
      25) echo "The system dependant PCRE Library will be much  much faster"
          echo "than the one included with the source.  Enabling this option"
          echo "uses the system's PCRE Library. Disabling it uses a PCRE"
-	 echo "library supplied by RhostMUSH that should only be used if the"
-	 echo "system library caused compilation issues."
+         echo "library supplied by RhostMUSH that should only be used if the"
+         echo "system library caused compilation issues."
          ;;
      26) echo "This option encrypts your passwords using a random seed and"
          echo "the SHA512 encryption method.  It will fall back to standard"
