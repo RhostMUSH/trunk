@@ -68,6 +68,8 @@ SIDEFX permissions were borked for normal players.
 				- Thanks jan6
 #lambda wasn't case insensitive
 				- Thanks Alley
+@name/name() if given empty/null arg for new name and ansi mode clears ansi.
+				- Thanks Thenomain
 
 
                          RhostMUSH 3.9.5 Update File
