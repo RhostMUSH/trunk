@@ -158,15 +158,20 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
       return;
    }
 
-   /* check for bad name */
-   if (*newname == '\0') {
-      notify_quiet(player, "Give it what new name?");
-      return;
-   }
-
    if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
         (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify(player, "Permission denied.");
+      return;
+   }
+
+   /* check for bad name */
+   if (*newname == '\0') {
+      if ( key & NAME_ANSI ) {
+         atr_clr(thing, A_ANSINAME);
+         notify_quiet(player, "ANSI in name (@extansi) has been cleared.");
+      } else {
+         notify_quiet(player, "Give it what new name?");
+      }
       return;
    }
 

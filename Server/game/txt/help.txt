@@ -5189,6 +5189,9 @@
   See '@list options' as to whether or not a player name may contain 
   spaces.  The default for RhostMUSH is to disallow spaces in player names.
   
+  When using the /ansi switch if <new name> is empty, it will clear the ansi
+  of the name but not set/change the name of the target.
+    
   The following switches exist for name:
     /ansi - combine @name and @extansi to both (re)name the item and
             set the specified ansiname for it at the same time.
@@ -17468,6 +17471,9 @@
   If <key> is specified as '1', then name() will behave like @name/ansi and
   combine @extansi and @name effectively colorzing the target name.
   
+  If <key> is specified as '1' and <newname> is left blank, it will clear
+  the ansi of the target but leave the name alone.
+    
   Example:
     > say name(me)
     You say "TinyPlayer"
@@ -33723,6 +33729,7 @@
     Code all softcoded connect screens accordingly!!!! [ASH]
   * Add MUSH_VERSION environment variable to execscript [ASH]
   * Totems of player and owner of player passed to execscript [ASH]
+  * @name/name() if using ANSI option and a null name now clears ansi [ASH]
   
   Bug Fixes
   ------------
