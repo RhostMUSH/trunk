@@ -4342,12 +4342,16 @@
   The following switches exist:
     /des    - Enforce a DES password instead of the system default.
    
+  Note: if safer_passwords is enabled, it will require much stricter 
+        password values.
+  
   Example:  
-    > @newpassword aplayer=test123
+    > @newpassword aplayer=FarkleWhoop&Wo0
     Password changed.
-    > @newpassword/des aplayer=test123
+    > @newpassword/des aplayer=FarkleWhoop&Wo0
     Password changed.
   
+  See Also: @password, safer_passwords
   See Also: (normal help) @password
 
 & @nuke
@@ -4383,14 +4387,18 @@
                   of the player.  This follows @extansi permissions.
       /strict -- will enforce [#dbref] to be a valid free dbref before create.
   
-  Example:  @pcreate #5 NewPlayer=test123
-            @pcreate NewPlayer=test123
+  Example:  @pcreate #5 NewPlayer=FarkleWhoop&Wo0
+            @pcreate NewPlayer=FarkleWhoop&Wo0
             @pcreate/reg NewPlayer=myfriend@myemail.net
-            @pcreate/ansi [ansi(hb,Blueboy)]=test123
+            @pcreate/ansi [ansi(hb,Blueboy)]=FarkleWhoop&Wo0
    
+  Note: if the config parameter safer_passwords is enabled, it requires 
+        much more strict passwords than one may expect.
+  
   You may use the lastcreate() function to see the last player @pcreate'd.
   
-  See Also: REGISTRATION 
+  See Also: REGISTRATION, safer_passwords
+  
   Normal Help: lastcreate()
 
 & @poor
@@ -11145,6 +11153,8 @@
   sequential passwords of uniqueness.
  
   Note:  Guest players still are allowed 'guest' as their password.
+  
+  See Also: @password, @newpassword
 
 & sconnect_cmd
   Config parameter: sconnect_cmd <string>.   Default: (NULL)
@@ -13383,7 +13393,9 @@
       Set.
     > @password/attribute *Tester/_ACCT=zappo
       Set - Tester/_ACCT: set with encrypted password.
-
+  
+  Note: if safer_passwords is enabled, this will require much more strict
+        password generations.
   
   Then on the connect screen you would type:
     > mylogin tester zappo
@@ -13395,7 +13407,7 @@
   That would connect you as normal.
   
   See Also: file_object, account_owner(), account_su(), account_who(), 
-            ACCOUNT MEMBERSHIP, account_perm
+            ACCOUNT MEMBERSHIP, account_perm, safer_passwords
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
