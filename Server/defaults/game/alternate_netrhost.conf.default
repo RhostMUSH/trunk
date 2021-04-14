@@ -558,6 +558,7 @@ switch_search          0
 #tree_character
 penn_setq              0
 parent_follow          1
+elements_compat        0
 
 # ObjIDs
 objid_localtime 0
