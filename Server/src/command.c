@@ -6344,6 +6344,11 @@ list_options_system(dbref player)
     notify(player, "inc()/dec() ---------------------------------------------------- REGISTERS");
     notify(player, "xinc()/xdec() -------------------------------------------------- NUMERIC");
 #endif
+    if ( mudconf.elements_compat ) {
+       notify(player, "elements() compatibility [behaves like elementsmux()] ---------- ENABLED");
+    } else {
+       notify(player, "elements() compatibility [behaves like elementsmux()] ---------- DISABLED");
+    }
 #ifdef USE_SIDEEFFECT
     notify(player, "Sideeffects [SIDEFX required] ---------------------------------- ENABLED");
 #else

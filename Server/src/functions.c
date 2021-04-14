@@ -16549,10 +16549,60 @@ FUNCTION(fun_u2ldefault)
     }
 }
 
+
+/******************************************************************
+ * Elements - taken from MUX
+ *
+ ******************************************************************/
+FUNCTION(fun_elementsmux)
+{
+   int nwords, cur, bFirst;
+   char *ptrs[LBUF_SIZE / 2];
+   char *wordlist, *s, *r, sep, osep;
+
+   svarargs_preamble("ELEMENTSMUX", 4);
+
+   bFirst = 1;
+
+   /* Turn the first list into an array. */
+   wordlist = alloc_lbuf("fun_elements.wordlist");
+
+   /* Same size - no worries */
+   strcpy(wordlist, fargs[0]);
+   nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
+   s = trim_space_sep(fargs[1], ' ');
+
+  /* Go through the second list, grabbing the numbers and finding the
+   * corresponding elements.
+   */
+
+   do {
+      r = split_token(&s, ' ');
+      cur = atoi(r) - 1;
+      if ( cur < 0 ) {
+         cur += nwords + 1;
+      }
+      if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
+         if (!bFirst) {
+            safe_chr(osep, buff, bufcx);
+         }
+         bFirst = 0;
+         safe_str(ptrs[cur], buff, bufcx);
+      }
+   } while (s);
+   free_lbuf(wordlist);
+}
+
+/* Elements -- does not respect null values */
 FUNCTION(fun_elements)
 {
    char delim, *pt1, *pt2, *pos1, *pos2, *mybuff, filler;
    int x, place, got, end, i_countwords;
+
+   if ( mudconf.elements_compat ) {
+      fun_elementsmux(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs);
+      return;
+   }
 
    if (!fn_range_check("ELEMENTS", nfargs, 2, 4, buff, bufcx)) {
       return;
@@ -16651,50 +16701,6 @@ FUNCTION(fun_elements)
    }
    free_lbuf(mybuff);
 }
-
-/******************************************************************
- * Elements - taken from MUX
- *
- ******************************************************************/
-FUNCTION(fun_elementsmux)
-{
-   int nwords, cur, bFirst;
-   char *ptrs[LBUF_SIZE / 2];
-   char *wordlist, *s, *r, sep, osep;
-
-   svarargs_preamble("ELEMENTSMUX", 4);
-
-   bFirst = 1;
-
-   /* Turn the first list into an array. */
-   wordlist = alloc_lbuf("fun_elements.wordlist");
-
-   /* Same size - no worries */
-   strcpy(wordlist, fargs[0]);
-   nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
-   s = trim_space_sep(fargs[1], ' ');
-
-  /* Go through the second list, grabbing the numbers and finding the
-   * corresponding elements.
-   */
-
-   do {
-      r = split_token(&s, ' ');
-      cur = atoi(r) - 1;
-      if ( cur < 0 ) {
-         cur += nwords + 1;
-      }
-      if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
-         if (!bFirst) {
-            safe_chr(osep, buff, bufcx);
-         }
-         bFirst = 0;
-         safe_str(ptrs[cur], buff, bufcx);
-      }
-   } while (s);
-   free_lbuf(wordlist);
-}
-
 /* ---------------------------------------------------------------------------
  * fun_parent: Get parent of object.
  */

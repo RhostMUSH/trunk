@@ -442,6 +442,7 @@ struct confdata {
 	int	rollbackmax;	/* Maximum rollback with @retry option */
 	int	exec_secure;	/* Execscript is overly secure -- this is default */
 	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
+	int	elements_compat;/* Enable elements() compatibility to other codebases */
 	int	null_is_idle;	/* Treat '@@@' like idle for, well, idle */
 	int	iter_loop_max;	/* Infinite iter loop counter */
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */

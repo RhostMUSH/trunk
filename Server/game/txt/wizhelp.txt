@@ -6952,8 +6952,9 @@
   descs_are_local          dig_cost                 door_file              
   door_index               down_file                down_motd_message      
   dump_interval            dump_message             dump_offset            
-  earn_limit               empower_fulltel          enable_tstamps         
-  enforce_unfindable       enhanced_convtime        error_file 
+  earn_limit               elements_compat          empower_fulltel        
+  enable_tstamps           enforce_unfindable       enhanced_convtime      
+  error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -8035,6 +8036,15 @@
   don't find money lying in the streets.
   See Also: find_money_chance, paycheck.
 
+& elements_compat
+  Config parameter: elements_compat <yes/no>.  Default: no
+  
+  This will make elements() work like the built in elementsmux().  This is
+  useful on new systems where you want elements() to behave like elementsmux()
+  but be aware this will remove the Rhost compatible elements() code.
+  
+  Consider this option with caution.
+  
 & empower_fulltel
   Config parameter: empower_fulltel <yes/no>.  Default: no
   

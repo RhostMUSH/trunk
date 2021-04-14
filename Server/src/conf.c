@@ -350,6 +350,7 @@ NDECL(cf_init)
     mudconf.totem_rename = 0;		/* enable totem object type recognition */
     mudconf.blacklist_max = 100000;	/* Default maximum blacklists allowed */
     mudconf.connect_perm = 0;		/* Permissions of connect */
+    mudconf.elements_compat = 0;	/* Enable elementsz compatibility */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -4260,6 +4261,9 @@ CONF conftable[] =
     {(char *) "enable_tstamps",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enable_tstamps, 0, 0, CA_PUBLIC,
      (char *) "Are timestamps/modifystamps enabled?"},
+    {(char *) "elements_compat",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.elements_compat, 0, 0, CA_PUBLIC,
+     (char *) "Enable elements() compatibility to elementsmux?"},
     {(char *) "enforce_unfindable",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_unfindable, 0, 0, CA_PUBLIC,
      (char *) "Is UNFINDABLE/DARK enforced for locations?"},

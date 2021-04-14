@@ -33715,6 +33715,7 @@
   * @exec callback for execscript() to push to the queue any command [ASH]
   * hastype_always_zero option to make hastype() return 0 on invalid objects.
     An invalid type still returns #-1 [AMB]
+  * elements_compat will make elements() work like elementsmux [ASH]
   
   Changes
   ------------
