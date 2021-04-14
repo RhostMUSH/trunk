@@ -12628,6 +12628,8 @@
 & elements()
   Function: elements(<list of words>,<list of numbers>[[,<delim>][,<sep>]])
    
+  Note: '@list options system' to see if this behaves like elementsmux()
+  
   This function returns the words in <list of words> that are in the
   positions specified by <list of numbers>. Optionally, a list delimiter
   other than a space can be separated.  This function does not assume a null
@@ -12635,7 +12637,7 @@
   
   If you specify <list of numbers> as negative, it takes from the end starting
   at -1.
-   
+  
   Examples:
     > say elements(Foo Ack Beep Moo Zot,2 4)
     You say "Ack Moo"
