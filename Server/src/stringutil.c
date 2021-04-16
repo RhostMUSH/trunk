@@ -898,6 +898,8 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       i_ansi = 0;
       if ( !s_ptr )
          break;
+
+      /* Ansi changed and we should look to normalize it */
       if ( i_normalize && ((s_ptr->c_bgansi != s_last.c_bgansi) ||
                            (s_ptr->c_fgansi != s_last.c_fgansi) ||
                            strcmp(s_ptr->s_fghex, s_last.s_fghex) ||
@@ -909,6 +911,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
          safe_chr('n', s_buffer, &s_buffptr);
          i_normalize = 0;
       }
+
       if ( i_normalize2 && (s_ptr->c_accent != s_last.c_accent) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          safe_str("fn", s_buffer, &s_buffptr);
@@ -941,13 +944,14 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
             i_normalize = 1;
          }
       }
+
       if ( (s_ptr->s_fghex[0] == '0') && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
            isxdigit(s_ptr->s_fghex[2]) && isxdigit(s_ptr->s_fghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_fghex, s_last.s_fghex)) ) {
          if ( i_ansi < 0 )
-            i_ansi |= 1;
-         else
             i_ansi = 1;
+         else
+            i_ansi |= 1;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
@@ -957,9 +961,9 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
            isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
          if ( i_ansi < 0 )
-            i_ansi |= 2;
-         else
             i_ansi = 2;
+         else
+            i_ansi |= 2;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
@@ -996,6 +1000,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
          safe_str("fn", s_buffer, &s_buffptr);
          i_normalize2 = 0;
       }
+
       strcpy(s_last.s_bghex, s_ptr->s_bghex);
       strcpy(s_last.s_fghex, s_ptr->s_fghex);
       s_last.c_fgansi = s_ptr->c_fgansi;
@@ -1104,9 +1109,13 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
                default:  if ( ToUpper(*(s_inptr+2)) == *(s_inptr+2) ) {
                             i_ansi2 = 1;
                             s_ptr->c_bgansi = *(s_inptr+2);
+                            memset(s_ptr->s_bghex, '\0', 5);
+                            i_hex2 = 0;
                          } else {
                             i_ansi1 = 1;
                             s_ptr->c_fgansi = *(s_inptr+2);
+                            memset(s_ptr->s_fghex, '\0', 5);
+                            i_hex1 = 0;
                          }
                          break;
             }
@@ -1117,10 +1126,14 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
               *(s_inptr+4) && *(s_inptr+5) && isxdigit(*(s_inptr+4)) && isxdigit(*(s_inptr+5)) ) {
             if ( *(s_inptr+3) == 'X' ) {
                i_hex2 = 1;
+               i_ansi2 = 0;
                sprintf(s_ptr->s_bghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+               s_ptr->c_bgansi ='\0';
             } else {
                i_hex1 = 1;
+               i_ansi1 = 0;
                sprintf(s_ptr->s_fghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+               s_ptr->c_fgansi ='\0';
             }
             s_inptr+=6;
             continue;

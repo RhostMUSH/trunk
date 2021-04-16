@@ -173,6 +173,8 @@ All locatization with CLEAR didn't wipe and reset register names.
 				- Thanks MuSoapBox (Auspice, Sparks, Seamus, faraday, Thenomain, and others)
 ] for @hook/ignore and @hook/permit was broken.
 				- Thanks Ixokai
+Ansi splitter had a hierarchy issue with ansi.
+				- Thanks MadamButterfly
 
 
 
