@@ -393,11 +393,18 @@ echo ""
 echo "Please Enter selection: "|tr -d '\012'
 }
 lbufmenu() {
+lc_st1="$(ulimit -s)"
+lc_st2="${lc_st1}"
+if [ "${lc_st1}" = "unlimited" ]
+then
+   lc_st2="2000000000"
+fi
 clear
 echo "                      RhostMUSH LBUFFER Configuration Utility"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "  **REMEMBER TO SET YOUR OUTPUT_LIMIT CONFIG OPTION TO 4 TIMES THIS AMOUNT**  "
+echo "  Your current stack size is: ${lc_st1} [${lc_st2}]"
 echo ""
 echo "[${XL[1]}]   1. 4K (Rhost)         [${XL[2]}]  2. 8K (Penn/TM3/Mux)  [${XL[3]}]  3. 16K"
 echo "[${XL[4]}]   4. 32K                [${XL[5]}]  5. 64K"
@@ -2118,6 +2125,10 @@ main() {
       then
           BETACONTINUE=2
           lc_stack=$(ulimit -s)
+          if [ "${lc_stack}" = "unlimited" ]
+          then
+             lc_stack="2000000000"
+          fi
           if [ -z "${lc_stack}" ]
           then
              lc_stack=1024
@@ -2127,6 +2138,10 @@ main() {
              lbufmenu
              read ANS
              parse $ANS
+             if [ -z "${lc_stack}" ]
+             then
+                lc_stack=1024
+             fi
              if [ "${XL[5]}" = "X" ]
              then
                 if [ ${lc_stack} -lt 16384 ]
