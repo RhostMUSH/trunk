@@ -15,3 +15,9 @@
 @@ &M_@EMIT #HOOKOBJ=[parsestr([localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(ifelse(!hasattr(%i0,NOCOLOR),get(me/namecolor)),$1)])),,)]%qz)],editansi(%0,N,h),",")]
 @@ global color of namesis cyan
 &NAMECOLOR #HOOKOBJ=c
+@@
+@@ This simplified variant highlights every occurrence of the name of a currently connected player in any pose/say/@emit.
+@@ For say and pose the initial name of the player enacting the say/pose will use their cname if it exists, and otherwise leaves it unadorned.
+@@ &M_SAY DATA: @hook=[ifelse(hastoggle(%2,variable),%k,%n)] [default(%2/saystring,says%,)] [localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(h,$1)])),,)]"%qz")]
+@@ &M_POSE DATA: @hook=[localize([setq(z,%0)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(h,$1)])),,)]%qz)]
+@@ &M_@EMIT DATA: @hook=[localize([setq(z,%1)][iter(lwho(),setq(z,regeditalli(%qz,%(%\b[name(%i0)]%\b%),[ansi(h,$1)])),,)]%qz)]
