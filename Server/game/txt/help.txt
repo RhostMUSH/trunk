@@ -174,7 +174,7 @@
   SUCCESS             SWITCHES           TOGGLES             USEFUL          
   UNICODE SUPPORT     USER ATTRIBUTES    VARIABLE EXITS      VATOVZ         
   VERBS               WANDERER           WILDCARDS           WIZARD ATTRIBUTES
-  ZATOZZ              ZONES               $-COMMANDS         #LAMBDA          
+  ZATOZZ              ZONES              $-COMMANDS          #LAMBDA          
   
 & API
   Topic: API
