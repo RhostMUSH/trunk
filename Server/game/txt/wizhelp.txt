@@ -5065,8 +5065,9 @@
     0  -- Pass the evaluation and allow the command to work normally.
     1  -- Return 'Permission Denied' to the enactor.
     2  -- Ignore the command and allow $command evaluation overrides.
-    %# -- Enactor executing the command
-    %! -- The dbref# of the icmd object.
+    %# -- Enactor executing the command (target player/loc/zone with @icmd)
+    %! -- The dbref# of the icmd object
+    #@ -- The dbref# of the cause of triggering the @icmd
     %x -- The command typed (or %c if configured for that)
   
   To set up an eval @icmd check do the following:
@@ -5075,6 +5076,10 @@
     3.  &_THINK #123=1
     4.  &#12345_THINK #123=2
 
+  The /eroom switch will have &<dbref>_<command> be the target that is
+  triggering the @icmd check, most usually the player.  For player based 
+  @icmd this will always be the player.
+  
   The above would make the 'think' command return 'Permission Denied' for
   everyone EXCEPT player #12345 which would override (ignore) the object
   in return for $command evaluation instead.
@@ -13417,7 +13422,7 @@
   That would connect you as normal.
   
   See Also: file_object, account_owner(), account_su(), account_who(), 
-            ACCOUNT MEMBERSHIP, account_perm, safer_passwords
+            ACCOUNT MEMBERSHIP, connect_perm, safer_passwords
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
@@ -13455,7 +13460,7 @@
       You say "111"
   
   See Also: account_login(), account_su(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP, account_perm
+            ACCOUNT MEMBERSHIP, connect_perm
 
 & ACCOUNT_SU()
   Function: account_su(<player>, <port>, <attribute>)
@@ -13477,7 +13482,7 @@
       1 Player logged in. (Bummer.)
    
   See Also: account_owner(), account_login(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP, account_perm
+            ACCOUNT MEMBERSHIP, connect_perm
   
 & ACCOUNT_WHO()
   Function: account_who(<separator>)
@@ -13491,7 +13496,7 @@
     You say "12 20 25"
   
   See Also: account_owner(), account_login(), file_object, account_su(),
-            ACCOUNT MEMBERSHIP, account_perm
+            ACCOUNT MEMBERSHIP, connect_perm
 
 & AFLAGS()
   Function: aflags(<attribute>)
@@ -14847,4 +14852,4 @@
                         subsystem.
   
   See Also: account_su(), account_owner(), account_login(), file_object,
-            connect_methods, @conncheck, account_perm
+            connect_methods, @conncheck, connect_perm

@@ -489,7 +489,9 @@ extern char *	FDECL(uncompress_str, (char *, const char *, int));
 /* From command.c */
 extern int	FDECL(check_access, (dbref, int, int, int));
 extern int	FDECL(flagcheck, (char *, char*));
-extern int      FDECL(cmdtest, (dbref, char *));
+extern int      FDECL(real_cmdtest, (dbref, char *, dbref, int));
+#define		cmdtest(x,y)  real_cmdtest(x, y, x, 0)
+#define		roomcmdtest(x, y, z)  real_cmdtest(x, y, z, 1)
 extern int      FDECL(zonecmdtest, (dbref, char *));
 
 

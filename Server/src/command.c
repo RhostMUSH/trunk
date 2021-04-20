@@ -565,11 +565,12 @@ NAMETAB icmd_sw[] =
     {(char *) "check", 2, CA_IMMORTAL, 0, ICMD_CHECK},
     {(char *) "disable", 2, CA_IMMORTAL, 0, ICMD_DISABLE},
     {(char *) "ignore", 2, CA_IMMORTAL, 0, ICMD_IGNORE},
-    {(char *) "eval", 2, CA_IMMORTAL, 0, ICMD_IGNORE},
+    {(char *) "eval", 2, CA_IMMORTAL, 0, ICMD_EVAL},
     {(char *) "on", 2, CA_IMMORTAL, 0, ICMD_ON},
     {(char *) "off", 2, CA_IMMORTAL, 0, ICMD_OFF},
     {(char *) "clear", 2, CA_IMMORTAL, 0, ICMD_CLEAR},
     {(char *) "droom", 2, CA_IMMORTAL, 0, ICMD_DROOM},
+    {(char *) "eroom", 2, CA_IMMORTAL, 0, ICMD_EROOM},
     {(char *) "iroom", 2, CA_IMMORTAL, 0, ICMD_IROOM},
     {(char *) "croom", 2, CA_IMMORTAL, 0, ICMD_CROOM},
     {(char *) "lroom", 2, CA_IMMORTAL, 0, ICMD_LROOM},
@@ -2830,14 +2831,14 @@ int zonecmdtest(dbref player, char *cmd)
    i_ret = 0;
    if ( Good_obj(loc) ) {
       if ( IgnoreZone(loc) ) {
-         i_ret = cmdtest(loc, cmd); 
+         i_ret = roomcmdtest(loc, cmd, player); 
       }
       if ( i_ret == 0 ) {
          for ( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
             if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
                  (isRoom(ptr->object) || isThing(ptr->object)) &&
                  IgnoreZone(ptr->object) ) {
-               i_ret = cmdtest(ptr->object, cmd);
+               i_ret = roomcmdtest(ptr->object, cmd, player);
                if ( i_ret > 0 ) {
                   break;
                }
@@ -2848,7 +2849,7 @@ int zonecmdtest(dbref player, char *cmd)
    return i_ret;
 }
 
-int cmdtest(dbref player, char *cmd)
+int real_cmdtest(dbref player, char *cmd, dbref cause, int type)
 {
   char *buff1, *buff2, *mbuf, *pt1, *pt2;
   dbref aowner, aowner2;
@@ -2869,7 +2870,11 @@ int cmdtest(dbref player, char *cmd)
       } else if ( *(pt2-1) == '3') {
          if ( !mudstate.insideicmds && Good_chk(mudconf.icmd_obj) ) {
             mbuf = alloc_mbuf("cmdtest_eval");
-            sprintf(mbuf, "#%d_%.*s", player, MBUF_SIZE-20, cmd);
+            if ( type ) {
+               sprintf(mbuf, "#%d_%.*s", cause, MBUF_SIZE-20, cmd);
+            } else {
+               sprintf(mbuf, "#%d_%.*s", player, MBUF_SIZE-20, cmd);
+            }
             atr = atr_str(mbuf);
             sprintf(mbuf, "_%.*s", MBUF_SIZE-20, cmd);
             atr2 = atr_str2(mbuf);
@@ -2877,18 +2882,18 @@ int cmdtest(dbref player, char *cmd)
             if ( !atr && !atr2 ) {
                rval = 0;
             } else {
-               if ( atr2 ) {
-                  buff2 = atr_get(mudconf.icmd_obj, atr2->number, &aowner2, &aflags2);
-                  if ( !*buff2 && atr ) {
-                     free_lbuf(buff2);
-                     buff2 = atr_get(mudconf.icmd_obj, atr->number, &aowner2, &aflags2);
-                  }
-               } else if ( atr ) {
+               if ( atr ) {
                   buff2 = atr_get(mudconf.icmd_obj, atr->number, &aowner2, &aflags2);
+                  if ( !*buff2 && atr2 ) {
+                     free_lbuf(buff2);
+                     buff2 = atr_get(mudconf.icmd_obj, atr2->number, &aowner2, &aflags2);
+                  }
+               } else if ( atr2 ) {
+                  buff2 = atr_get(mudconf.icmd_obj, atr2->number, &aowner2, &aflags2);
                }
-               if ( *buff2 ) {
+               if ( buff2 && *buff2 ) {
                   mudstate.insideicmds = 1;
-                  mbuf = cpuexec(mudconf.icmd_obj, player, player, EV_EVAL | EV_FCHECK, buff2, 
+                  mbuf = cpuexec(mudconf.icmd_obj, player, cause, EV_EVAL | EV_FCHECK, buff2, 
                                  (char **)NULL, 0, (char **)NULL, 0);
                   mudstate.insideicmds = 0;
                   if ( *mbuf ) {

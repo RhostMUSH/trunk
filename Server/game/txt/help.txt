@@ -33749,3 +33749,4 @@
   * API would not process queries if process-quueue set to 0 [ASH]
   * MAX sockets should choose port or api port whatever is greater [ASH]
   * ANSI splitter (internal) had a hierarchy issue with ANSI [ASH]
+  * the /eval and /eroom of @icmd was significantly broken [ASH]
