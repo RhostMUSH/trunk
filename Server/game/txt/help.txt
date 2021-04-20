@@ -30928,6 +30928,7 @@
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
     4.1.0: 4.1.0p0, 4.1.0p1, 4.1.0p2
+      4.2: 4.2.0
   
   See Also: historical, credits
 
@@ -33751,3 +33752,13 @@
   * MAX sockets should choose port or api port whatever is greater [ASH]
   * ANSI splitter (internal) had a hierarchy issue with ANSI [ASH]
   * the /eval and /eroom of @icmd was significantly broken [ASH]
+
+& 4.2.0
+  Release Date: 04/20/21
+  Status: Alpha
+
+  Changes
+  -------
+  * Version change due to upcoming general change in versioning. Preparation
+    for GIT-Integrated replacement of p<patchlevel> with commit number since
+    last MAJOR.MINOR.PATCH Tag.
