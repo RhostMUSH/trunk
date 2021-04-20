@@ -32,6 +32,18 @@
 &CRON_TIME_BBTIMEOUT mushcron=|||04|15|
 &CRON_JOB_BBTIMEOUT mushcron=@@ Change This to the Right Dbref# -- @trigger #25/tr_timeout
 
+@@ 
+@@ This section requires execscript and works with the gitstatus.sh script that comes with
+@@ RhostMUSH, and will once a day check the status of your RhostMUSH repo against upstream.
+@@ 
+@@ The cron job at present, even if uncommented does pretty much nothing. It's a template
+@@ to be filled in with whatever actions you see appropriate. Currently it just runs the
+@@ gitstatus.sh script and then based on the output does nothing (or rather a @@ comment.)
+@@
+@@ @power/councilor mushcron=execscript
+@@ &CRON_JOB_GITSTATUS mushcron=@switch [chomp(execscript(gitstatus.sh))]=1,{@@ What to do if your git local RhostMUSH repo is up-to-date},2,{@@ What to do if your local RhostMUSH git repo is behind},3,{@@ What to do if your local RhostMUSH repo is ahead},0,{@@ What do if your local RhostMUSH repo is diverged},{@@ What to do if the gitstatus script fails. The script itself is rather simple, so this likely indicates it's not setup or there is an outside issue effecting it.}
+@@ &CRON_TIME_GITSTATUS mushrcron=|||07|00
+
 @name mushcron=CRON - Myrddin's mushcron
 
 @set me=!quiet
