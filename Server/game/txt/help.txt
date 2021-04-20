@@ -33733,6 +33733,7 @@
   * Add MUSH_VERSION environment variable to execscript [ASH]
   * Totems of player and owner of player passed to execscript [ASH]
   * @name/name() if using ANSI option and a null name now clears ansi [ASH]
+  * removed warnings from alloc.c on compiling with latest compilers [ASH]
   
   Bug Fixes
   ------------
