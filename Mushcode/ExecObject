@@ -21,6 +21,8 @@
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
 &CANLOGSEARCH ExecObject=[gte(bittype(%0),5)]
 &FUN_MATH ExecObject=[ifelse(match(%0,*=*),[setq(0,before(%0,=))][setq(1,min(255,after(%0,=)))],[setq(0,%0)][setq(1,255)])][chomp(execscript(math.sh,objeval(%#,%q0),|,objeval(%#,%q1)))]
+&CMD_GITSTATUS ExecObject=$+gitstatus:@assert [u(CANGITSTATUS,%#)]=@pemit %#=+gitstatus: Permission denied;@pemit %#=[chomp(execscript(gitstatus.sh))]
+&CANGITSTATUS ExecObject=[gte(bittype(%0),5)]
 @startup ExecObject=@dolist lattr(me/fun_*)=@function/priv/pres [after(##,_)]=me/##
 @set ExecObject=INHERIT SIDEFX SAFE IND
 @tr/quiet ExecObject/startup
