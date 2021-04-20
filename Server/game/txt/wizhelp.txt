@@ -12237,7 +12237,7 @@
   Config parameter: whereis_notify <value>.  Default: 1
   
   Sets the condition if the targetted player gets notified if someone did
-  a @whois on them.  Note, that cloaked wizards do not give a message to
+  a @whereis on them.  Note, that cloaked wizards do not give a message to
   players who can not normally see them.
 
 & who_comment
