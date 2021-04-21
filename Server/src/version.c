@@ -79,7 +79,7 @@ void NDECL(init_version)
 	sprintf(mudstate.version, "RhostMUSH version %.30s%.10s #%.10s [%.30s]%.20s",
 		MUSH_VERSION, EXT_MUSH_VER, MUSH_BUILD_NUM, MUSH_RELEASE_DATE, mudconf.vercustomstr);
 	sprintf(mudstate.short_ver, "RhostMUSH %.30s%.10s%.20s",
-		MUSH_VERSION, EXT_MUSH_VER mudconf.vercustomstr);
+		MUSH_VERSION, EXT_MUSH_VER, mudconf.vercustomstr);
 #endif	/* PATCHLEVEL */
 #endif	/* BETA */
 	STARTLOG(LOG_ALWAYS,"INI","START")
