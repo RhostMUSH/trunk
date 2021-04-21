@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# place this file into your .git/hooks/ directory. This will automatically
+  generate a new patchlevel.h file before committing.
+
+version_regex='v([0-9]+)\.([0-9]+)\.?([0-9]*)-([0-9]+)-g([0-9|a-z]+)'
+git_string=$(git describe --tags --long)
+
+if [[ $git_string =~ $version_regex ]]; then
+    major_version="${BASH_REMATCH[1]}"
+    minor_version="${BASH_REMATCH[2]}"
+    patch_version="${BASH_REMATCH[3]}"
+    commits_ahead="${BASH_REMATCH[4]}"
+else
+    echo "Error: git describe did not output a valid version string. Unable to update patchlevel.template" >&2
+    exit 1
+fi
+
+sed -e "s#ZZMAJOR#$major_version#g" -e "s#ZZMINOR#$minor_version#g" -e "s#ZZPATCH#$patch_version#g" -e "s#ZZCOMMITS#$commits_ahead#g" -e "s#ZZDATE#`date +%m/%d/%Y`#g" "patchlevel.template" > ${pwd}/Server/hdrs/patchlevel.h
+git add ${pwd}/Server/hdrs/patchlevel.h
