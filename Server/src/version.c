@@ -59,24 +59,24 @@ void NDECL(init_version)
 
 #ifdef INDEVEL_TAG
 #if PATCHLEVEL > 0
-	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s%.10s patchlevel %d%.10s #%.10s%.20s",
+	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s %.10s patchlevel %d%.10s #%.10s%.20s",
 		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, MUSH_BUILD_NUM, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s%.10s.p%d%.10s%.20s",
+	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s %.10s.p%d%.10s%.20s",
 		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, mudconf.vercustomstr);
 #else
-	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s%.10s #%.10s%.20s",
+	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s %.10s #%.10s%.20s",
 		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, MUSH_BUILD_NUM, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s%.10s%.20s", INDEVEL_TAG,
+	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s %.10s%.20s", INDEVEL_TAG,
 		MUSH_VERSION, EXT_MUSH_VER, mudconf.vercustomstr);
 #endif	/* PATCHLEVEL */
 #else	/* not BETA or ALPHA */
 #if PATCHLEVEL > 0
-	sprintf(mudstate.version, "RhostMUSH version %.30s%.10s patchlevel %d%.10s #%.10s [%.30s]%.20s",
+	sprintf(mudstate.version, "RhostMUSH version %.30s %.10s patchlevel %d%.10s #%.10s [%.30s]%.20s",
 		MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, MUSH_BUILD_NUM, MUSH_RELEASE_DATE, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.30s%.10s.p%d%.10s%.20s",
-		MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT mudconf.vercustomstr);
+	sprintf(mudstate.short_ver, "RhostMUSH %.30s %.10s.p%d%.10s%.20s",
+		MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, mudconf.vercustomstr);
 #else
-	sprintf(mudstate.version, "RhostMUSH version %.30s%.10s #%.10s [%.30s]%.20s",
+	sprintf(mudstate.version, "RhostMUSH version %.30s %.10s #%.10s [%.30s]%.20s",
 		MUSH_VERSION, EXT_MUSH_VER, MUSH_BUILD_NUM, MUSH_RELEASE_DATE, mudconf.vercustomstr);
 	sprintf(mudstate.short_ver, "RhostMUSH %.30s%.10s%.20s",
 		MUSH_VERSION, EXT_MUSH_VER, mudconf.vercustomstr);
