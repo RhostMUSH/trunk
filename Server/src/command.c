@@ -833,6 +833,7 @@ NAMETAB include_sw[] =
     {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
     {(char *) "target", 2, CA_PUBLIC, 0, INCLUDE_TARGET | SW_MULTIPLE},
     {(char *) "override", 2, CA_PUBLIC, 0, INCLUDE_OVERRIDE | SW_MULTIPLE},
+    {(char *) "break", 2, CA_PUBLIC, 0, INCLUDE_BREAK | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =

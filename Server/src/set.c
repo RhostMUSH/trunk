@@ -2833,6 +2833,10 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
+   if ( (key & INCLUDE_NOBREAK) && (key & INCLUDE_BREAK) ) {
+      notify_quiet(player, "You can not mix /break and /nobreak together");
+      return;
+   }
    if ( mudstate.includenest >= mudconf.includenest ) {
       notify_quiet(player, "Exceeded @include nest limit.");
       return;
@@ -2934,6 +2938,9 @@ void do_include(dbref player, dbref cause, int key, char *string,
          mudstate.breakst=1;
          break;
       }
+   }
+   if ( key & INCLUDE_BREAK ) {
+      mudstate.breakst = i_savebreak;
    }
    mudstate.chkcpu_toggle = chk_tog;
    mudstate.chkcpu_inline = i_chkinline;

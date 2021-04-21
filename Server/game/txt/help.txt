@@ -7765,10 +7765,13 @@
                  Note: this automatically sets the localize option.
     /localize  - localizes the registers for the include duration.
     /nobreak   - disregard @break/@assert inside the includes from outside.
+                 Not useable with /break.
     /target    - Use the target as executor instead of executor of @include
                  Note: You must control target to use this.
     /override  - If any arguments are passed to @include to override the
                  default, this will disable all default arguments.
+    /break     - Treat @break/@assert inside an @include as local to
+                 that @include only.  Not useable with /nobreak.
     
   {see @include2 for examples}
 
@@ -33757,8 +33760,16 @@
   Release Date: 04/20/21
   Status: Alpha
 
+  New Features
+  ------------
+  * @include/break to have @break/@assert local to the @include only.
+  
   Changes
   -------
   * Version change due to upcoming general change in versioning. Preparation
     for GIT-Integrated replacement of p<patchlevel> with commit number since
     last MAJOR.MINOR.PATCH Tag.
+  
+  Bug Fixes
+  ------------
+  
