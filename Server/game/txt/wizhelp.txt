@@ -1189,6 +1189,8 @@
   inheritable, meaning, if set on a player, all their belongings are 
   automatically checked.
 
+  See Also: spam_limit, spam_msg, spam_objmsg
+
 & NONAME
 & NO_NAME
   Flag: NO_NAME([m]) (wizard and higher only)
