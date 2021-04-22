@@ -13363,8 +13363,8 @@
     |+=|+=| test1      |+=|+=|
     |+=|+=| test2      |+=|+=|
     |+=|+=| test3      |+=|+=|
-    > think [repeat(-,26)]%r[printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1 test2
-            test3, %r)]%r[repeat(-,26)]  
+    > think [repeat(-,26)]%r[printf($.7:|+=:&s $-10|"s $7.:|+=:&s, %r, test1
+            test2 test3, %r)]%r[repeat(-,26)]  
     --------------------------
     |+=|+=| test1      |+=|+=|
     |+=|+=| test2      |+=|+=|
@@ -20431,7 +20431,7 @@
  
   The available permission levels are CIT[IZEN], GUILD[MASTER], ARCH[ITECT],
   COUN[CILOR], ROY[ALTY], IMM[ORTAL], SUB[EVAL].  You must have the permissions 
-  of the given level in order to use it else it defaults to your permission level.
+  of the given level in order to use it or it defaults to your permission level.
   The permission must be included for the function to work.
   
   The special permission SUB[EVAL] will work like subeval() in that it will
