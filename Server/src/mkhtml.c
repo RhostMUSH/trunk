@@ -158,15 +158,24 @@ int main(int argc, char *argv[])
 
     printf("Converting topics...\n");
 
-/* FILE OUTPUT: BEGIN */
+/* BEGIN: HTML */
+
+/* Defined HTML Classes:
+ * div  help-toc:         Table of Contents of all help topics
+ * div  help-topics:      Full help topic entry
+ * div  help-navigation:  Navigation elements at bottom of help topic antry
+ */
 
 /* HTML HEAD */
 
     fprintf(hfp, "<!DOCTYPE html>\n"
                  "<html lang=\"en\">\n"
                  "<head>\n"
-                 "<meta charset=\"utf-8\" />\n"
-                 "<style type=\"text/css\">\n"
+                 "<meta charset=\"utf-8\" />\n");
+
+/* BEGIN: CSS */
+
+    fprintf(hfp, "<style type=\"text/css\">\n"
                  "body {\n"
                  "\tbackground: %s;\n"
                  "\tcolor: %s;\n"
@@ -189,10 +198,14 @@ int main(int argc, char *argv[])
                  "\tpadding: 0;\n"
                  "\tcolumns: 3;\n"
                  "}\n"
-                 "</style>\n"
-                 "<title>%s</title>\n"
+                 "</style>\n",
+	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH);
+
+/* END: CSS */
+
+    fprintf(hfp, "<title>%s</title>\n"
                  "</head>\n\n",
-	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH, HTMLTITLE);
+	    HTMLTITLE);
 
 /* HTML BODY */
 
@@ -263,7 +276,7 @@ int main(int argc, char *argv[])
       fprintf(hfp, "\t</code>\n"
                    "</div>\n\n");
 
-/* HTML BODY: Help Navigation */
+/* HELP TOPIC: Navigation */
 
       fprintf(hfp, "<div class=\"help-navigation\">\n");
       if( topicidx ) {
@@ -287,7 +300,7 @@ int main(int argc, char *argv[])
     fclose(ifp);
     fclose(hfp);
 
-/* FILE OUTPUT: END */
+/* END: HTML */
 
     printf("%d topics converted\n", ntopics);
     return 0;
