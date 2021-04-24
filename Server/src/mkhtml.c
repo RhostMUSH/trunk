@@ -4,28 +4,31 @@
 
 #include  "help.h"
 
+/* This code is very wastefull of memory, but hey its just a quicky program */
+
+#define MAXTOPICS  5000
+#define MAXTEXTLEN 64000
+
 /* Values used for CSS and HTML output.
  *
  * Typically left as is and changed through additional CSS or JS.
  * Only need to change if not using these and don't like the default.
  *
  * Default: vt100 style output
+ *
+ * 'NO_BUILTIN_CSS' can be defined to indicate that mkhtml should not
+ * output CSS in the header, but you will still need to supply your own.
+ * This is likely undesirable for uses other than certain edge cases.
  */
 
 #define CSSFONT    "monospace"  /* Only use fixed-width fonts */
 #define CSSBG      "#000000"    /* Black Background */
 #define CSSFG      "#ffffff"    /* White Foreground */
 #define CSSLINK    "#ffff00"    /* Yellow Links     */
-#define CSSWIDTH   "80em"
+#define CSSTOCW    "60em"       /* Previous TOC width smaller, but broken */
 #define HTMLTITLE  "RhostMUSH Help File [HTML Version]"
 #define HTMLH1     HTMLTITLE    /* Does not need to match title */
 #define HTMLH2     "Topic Index"
-#define TOCCOL     "3"          /* Number of columns in TOC */
-
-/* This code is very wastefull of memory, but hey its just a quicky program */
-
-#define MAXTOPICS  5000
-#define MAXTEXTLEN 64000
 
 char bigtextbuff[MAXTEXTLEN];
 
@@ -159,16 +162,27 @@ int main(int argc, char *argv[])
 
     printf("Converting topics...\n");
 
-/* FILE OUTPUT: BEGIN */
+/* BEGIN: HTML */
+
+/* Defined HTML Classes:
+ * div  help-toc:         Table of Contents of all help topics
+ * div  help-topics:      Full help topic entry
+ * div  help-navigation:  Navigation elements at bottom of help topic antry
+ */
 
 /* HTML HEAD */
 
     fprintf(hfp, "<!DOCTYPE html>\n"
                  "<html lang=\"en\">\n"
                  "<head>\n"
-                 "<meta charset=\"utf-8\" />\n"
-                 "<style type=\"text/css\">\n"
-                 "\tbody {\n"
+                 "<meta charset=\"utf-8\" />\n");
+
+/* BEGIN: CSS */
+
+#ifndef NO_BUILTIN_CSS
+
+    fprintf(hfp, "<style type=\"text/css\">\n"
+                 "body {\n"
                  "\tbackground: %s;\n"
                  "\tcolor: %s;\n"
                  "\tfont-family: %s;\n"
@@ -185,12 +199,21 @@ int main(int argc, char *argv[])
                  "\twidth: %s;\n"
                  "}\n\n"
                  "#help-toc ul {\n"
-                 "\tcolumns: %s;\n"
+                 "\tlist-style-type: none;\n"
+                 "\tmargin: 0;\n"
+                 "\tpadding: 0;\n"
+                 "\tcolumns: 3;\n"
                  "}\n"
-                 "</style>\n"
-                 "<title>%s</title>\n"
+                 "</style>\n",
+	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSTOCW);
+
+#endif
+
+/* END: CSS */
+
+    fprintf(hfp, "<title>%s</title>\n"
                  "</head>\n\n",
-	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH, HTMLTITLE, TOCCOL);
+	    HTMLTITLE);
 
 /* HTML BODY */
 
@@ -204,8 +227,9 @@ int main(int argc, char *argv[])
 /* HTML BODY: Table of Contents */
 
     fprintf(hfp, "<div id=\"help-toc\">\n"
-                 "\t<h2>HTML H2</h2>\n"
-                 "\t<ul>\n");
+                 "\t<h2>%s</h2>\n"
+                 "\t<ul>\n",
+	    HTMLH2);
 
     for( topicidx = 0; topicidx < ntopics; topicidx++ ) {
       fprintf(hfp, "\t\t<li><a href=\"#");
@@ -237,6 +261,10 @@ int main(int argc, char *argv[])
         exit(-1);
       }
 
+/* HELP TOPIC: Topic Content */
+
+      fprintf(hfp, "\t<code>\n");
+
 /*
       fread(bigtextbuff, alltopics[topicidx].len, 1, tfp);
 
@@ -244,10 +272,6 @@ int main(int argc, char *argv[])
 
       outputstring(hfp, bigtextbuff);
 */
-
-/* HELP TOPIC: Topic Content */
-
-      fprintf(hfp, "\t<code>\n");
 
       for (;;) {
          if ( fgets(bigtextbuff, (MAXTEXTLEN - 1), tfp) == NULL )
@@ -260,7 +284,7 @@ int main(int argc, char *argv[])
       fprintf(hfp, "\t</code>\n"
                    "</div>\n\n");
 
-/* HTML BODY: Help Navigation */
+/* HELP TOPIC: Navigation */
 
       fprintf(hfp, "<div class=\"help-navigation\">\n");
       if( topicidx ) {
@@ -284,7 +308,7 @@ int main(int argc, char *argv[])
     fclose(ifp);
     fclose(hfp);
 
-/* FILE OUTPUT: END */
+/* END: HTML */
 
     printf("%d topics converted\n", ntopics);
     return 0;
