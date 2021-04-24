@@ -4,6 +4,11 @@
 
 #include  "help.h"
 
+/* This code is very wastefull of memory, but hey its just a quicky program */
+
+#define MAXTOPICS  5000
+#define MAXTEXTLEN 64000
+
 /* Values used for CSS and HTML output.
  *
  * Typically left as is and changed through additional CSS or JS.
@@ -16,15 +21,10 @@
 #define CSSBG      "#000000"    /* Black Background */
 #define CSSFG      "#ffffff"    /* White Foreground */
 #define CSSLINK    "#ffff00"    /* Yellow Links     */
-#define CSSWIDTH   "80em"
+#define CSSWIDTH   "60em"
 #define HTMLTITLE  "RhostMUSH Help File [HTML Version]"
 #define HTMLH1     HTMLTITLE    /* Does not need to match title */
 #define HTMLH2     "Topic Index"
-
-/* This code is very wastefull of memory, but hey its just a quicky program */
-
-#define MAXTOPICS  5000
-#define MAXTEXTLEN 64000
 
 char bigtextbuff[MAXTEXTLEN];
 
@@ -175,6 +175,11 @@ int main(int argc, char *argv[])
                  "a, a:hover, a:visited {\n"
                  "\tcolor: %s;\n"
                  "}\n\n"
+                 "ul {\n"
+                 "\tlist-style-type: none;\n"
+                 "\tmargin: 0;\n"
+                 "\tpadding: 0;\n"
+                 "\t}\n\n"
                  "code {\n"
                  "\twhite-space: pre;\n"
                  "}\n\n"
