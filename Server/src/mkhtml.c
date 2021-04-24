@@ -237,6 +237,10 @@ int main(int argc, char *argv[])
         exit(-1);
       }
 
+/* HELP TOPIC: Topic Content */
+
+      fprintf(hfp, "\t<code>\n");
+
 /*
       fread(bigtextbuff, alltopics[topicidx].len, 1, tfp);
 
@@ -244,10 +248,6 @@ int main(int argc, char *argv[])
 
       outputstring(hfp, bigtextbuff);
 */
-
-/* HELP TOPIC: Topic Content */
-
-      fprintf(hfp, "\t<code>\n");
 
       for (;;) {
          if ( fgets(bigtextbuff, (MAXTEXTLEN - 1), tfp) == NULL )
