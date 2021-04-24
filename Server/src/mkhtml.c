@@ -20,7 +20,6 @@
 #define HTMLTITLE  "RhostMUSH Help File [HTML Version]"
 #define HTMLH1     HTMLTITLE    /* Does not need to match title */
 #define HTMLH2     "Topic Index"
-#define TOCCOL     "3"          /* Number of columns in TOC */
 
 /* This code is very wastefull of memory, but hey its just a quicky program */
 
@@ -185,12 +184,12 @@ int main(int argc, char *argv[])
                  "\twidth: %s;\n"
                  "}\n\n"
                  "#help-toc ul {\n"
-                 "\tcolumns: %s;\n"
+                 "\tcolumns: 3;\n"
                  "}\n"
                  "</style>\n"
                  "<title>%s</title>\n"
                  "</head>\n\n",
-	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH, HTMLTITLE, TOCCOL);
+	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH, HTMLTITLE);
 
 /* HTML BODY */
 
@@ -204,8 +203,9 @@ int main(int argc, char *argv[])
 /* HTML BODY: Table of Contents */
 
     fprintf(hfp, "<div id=\"help-toc\">\n"
-                 "\t<h2>HTML H2</h2>\n"
-                 "\t<ul>\n");
+                 "\t<h2>%s</h2>\n"
+                 "\t<ul>\n",
+	    HTMLH2);
 
     for( topicidx = 0; topicidx < ntopics; topicidx++ ) {
       fprintf(hfp, "\t\t<li><a href=\"#");
