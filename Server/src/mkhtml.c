@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
                  "<head>\n"
                  "<meta charset=\"utf-8\" />\n"
                  "<style type=\"text/css\">\n"
-                 "\tbody {\n"
+                 "body {\n"
                  "\tbackground: %s;\n"
                  "\tcolor: %s;\n"
                  "\tfont-family: %s;\n"
