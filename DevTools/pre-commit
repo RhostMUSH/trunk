@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# place this file into your .git/hooks/ directory. This will automatically
+# NOTE: Do NOT use this file if you are not working on the original RhostMUSH
+#       repository. Else the version(s) in your private repo will start to
+#       deviate, and you will get troubles with later merges.
+
+# Rhost-Devs:
+# Place this file into your .git/hooks/ directory. This will automatically
 # generate a new patchlevel.h file before committing. --Ambrosia
 
 version_regex='v([0-9]+)\.([0-9]+)\.?([0-9]*)-([0-9]+)-g([0-9|a-z]+)'
@@ -18,4 +23,4 @@ fi
 
 sed -e "s#ZZMAJOR#$major_version#g" -e "s#ZZMINOR#$minor_version#g" -e "s#ZZPATCH#$patch_version#g" -e "s#ZZCOMMITS#$commits_ahead#g" -e "s#ZZDATE#$(date +%m/%d/%Y)#g" "$(pwd)/Server/hdrs/patchlevel.template" > $(pwd)/Server/hdrs/patchlevel.h
 git add $(pwd)/Server/hdrs/patchlevel.h
-sleep 1
+sleep 2
