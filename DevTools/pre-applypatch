@@ -18,3 +18,4 @@ fi
 
 sed -e "s#ZZMAJOR#$major_version#g" -e "s#ZZMINOR#$minor_version#g" -e "s#ZZPATCH#$patch_version#g" -e "s#ZZCOMMITS#$commits_ahead#g" -e "s#ZZDATE#$(date +%m/%d/%Y)#g" "$(pwd)/Server/hdrs/patchlevel.template" > $(pwd)/Server/hdrs/patchlevel.h
 git add $(pwd)/Server/hdrs/patchlevel.h
+exit 1
