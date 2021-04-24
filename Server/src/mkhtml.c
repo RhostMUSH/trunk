@@ -9,6 +9,27 @@
 #define MAXTOPICS  5000
 #define MAXTEXTLEN 64000
 
+/* Values used for CSS and HTML output.
+ *
+ * Typically left as is and changed through additional CSS or JS.
+ * Only need to change if not using these and don't like the default.
+ *
+ * Default: vt100 style output
+ *
+ * 'NO_BUILTIN_CSS' can be defined to indicate that mkhtml should not
+ * output CSS in the header, but you will still need to supply your own.
+ * This is likely undesirable for uses other than certain edge cases.
+ */
+
+#define CSSFONT    "monospace"  /* Only use fixed-width fonts */
+#define CSSBG      "#000000"    /* Black Background */
+#define CSSFG      "#ffffff"    /* White Foreground */
+#define CSSLINK    "#ffff00"    /* Yellow Links     */
+#define CSSTOCW    "60em"       /* Previous TOC width smaller, but broken */
+#define HTMLTITLE  "RhostMUSH Help File [HTML Version]"
+#define HTMLH1     HTMLTITLE    /* Does not need to match title */
+#define HTMLH2     "Topic Index"
+
 char bigtextbuff[MAXTEXTLEN];
 
 help_indx alltopics[MAXTOPICS];
@@ -100,9 +121,8 @@ void outputstring( FILE* hfp, char *str )
 
 int main(int argc, char *argv[])
 {
-    int idx, ckval;
+    int idx;
     int topicidx;
-    int columns = 0;
     help_indx entry;
     FILE *tfp, *ifp, *hfp;
     time_t run_time;
@@ -142,42 +162,97 @@ int main(int argc, char *argv[])
 
     printf("Converting topics...\n");
 
-    fprintf(hfp, "<HTML><HEAD><TITLE>RhostMUSH Help File [HTML Version]"
-                 "</TITLE></HEAD><BODY>\n"
-                 "<H1>RhostMUSH Help File [HTML Version]</H1>\n");
+/* BEGIN: HTML */
+
+/* Defined HTML Classes:
+ * div  help-toc:         Table of Contents of all help topics
+ * div  help-topics:      Full help topic entry
+ * div  help-navigation:  Navigation elements at bottom of help topic antry
+ */
+
+/* HTML HEAD */
+
+    fprintf(hfp, "<!DOCTYPE html>\n"
+                 "<html lang=\"en\">\n"
+                 "<head>\n"
+                 "<meta charset=\"utf-8\" />\n");
+
+/* BEGIN: CSS */
+
+#ifndef NO_BUILTIN_CSS
+
+    fprintf(hfp, "<style type=\"text/css\">\n"
+                 "body {\n"
+                 "\tbackground: %s;\n"
+                 "\tcolor: %s;\n"
+                 "\tfont-family: %s;\n"
+                 "}\n\n"
+                 "a, a:hover, a:visited {\n"
+                 "\tcolor: %s;\n"
+                 "}\n\n"
+                 "code {\n"
+                 "\twhite-space: pre;\n"
+                 "}\n\n"
+                 "#help-toc,\n"
+                 "\t.help-topic,\n"
+                 "\t.help-navigation {\n"
+                 "\twidth: %s;\n"
+                 "}\n\n"
+                 "#help-toc ul {\n"
+                 "\tlist-style-type: none;\n"
+                 "\tmargin: 0;\n"
+                 "\tpadding: 0;\n"
+                 "\tcolumns: 3;\n"
+                 "}\n"
+                 "</style>\n",
+	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSTOCW);
+
+#endif
+
+/* END: CSS */
+
+    fprintf(hfp, "<title>%s</title>\n"
+                 "</head>\n\n",
+	    HTMLTITLE);
+
+/* HTML BODY */
+
+    fprintf(hfp, "<body>\n"
+		 "<h1>%s</h1>\n\n",
+            HTMLH1);
 
     run_time = time(NULL);
-    fprintf(hfp, "Generated: %s", ctime(&run_time) );
+    fprintf(hfp, "Generated: %s\n", ctime(&run_time) );
 
-    fprintf(hfp, "<HR><A NAME=\"topic index\"><H2>Topic Index</H2></A><PRE>\n");
+/* HTML BODY: Table of Contents */
+
+    fprintf(hfp, "<div id=\"help-toc\">\n"
+                 "\t<h2>%s</h2>\n"
+                 "\t<ul>\n",
+	    HTMLH2);
 
     for( topicidx = 0; topicidx < ntopics; topicidx++ ) {
-      fprintf(hfp, "<A HREF=\"#");
+      fprintf(hfp, "\t\t<li><a href=\"#");
       outputurltext(hfp, alltopicslc[topicidx].topic);
       fprintf(hfp, "\">");
       outputstring(hfp, alltopics[topicidx].topic);
-      fprintf(hfp, "</A>");
-
-      if( ++columns == 3 ) {
-        columns = 0;
-        fprintf(hfp, "\n");
-      }
-      else {
-        ckval = strlen(alltopics[topicidx].topic);
-        if ( ckval > 26 )
-           ckval = 26;
-        for( idx = 0; idx < 26 - ckval; idx++ ) { 
-          fprintf(hfp, " ");
-        }
-      }
+      fprintf(hfp, "</a></li>\n");
     }
+    
+    fprintf(hfp, "\t</ul>\n"
+                 "</div>\n\n");
+
+/* HTML BODY: Help Topics */
+
+/* HELP TOPIC: Topic Title */
 
     for( topicidx = 0; topicidx < ntopics; topicidx++ ) {
-      fprintf(hfp, "<HR><A NAME=\"");
+      fprintf(hfp, "<div class=\"help-topic\" id=\"");
       outputurltext(hfp, alltopicslc[topicidx].topic);
-      fprintf(hfp, "\"><H3>");
+      fprintf(hfp, "\">\n"
+                   "\t<h3>");
       outputstring(hfp, alltopics[topicidx].topic);
-      fprintf(hfp, "</H3></A><PRE>\n");
+      fprintf(hfp, "</h3>\n");
 
       fseek(tfp, alltopics[topicidx].pos, SEEK_SET);
 
@@ -185,7 +260,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Topic too long: %s\n", alltopics[topicidx].topic);
         exit(-1);
       }
-     
+
+/* HELP TOPIC: Topic Content */
+
+      fprintf(hfp, "\t<code>\n");
+
 /*
       fread(bigtextbuff, alltopics[topicidx].len, 1, tfp);
 
@@ -193,6 +272,7 @@ int main(int argc, char *argv[])
 
       outputstring(hfp, bigtextbuff);
 */
+
       for (;;) {
          if ( fgets(bigtextbuff, (MAXTEXTLEN - 1), tfp) == NULL )
             break;
@@ -200,27 +280,35 @@ int main(int argc, char *argv[])
             break;
          outputstring(hfp, bigtextbuff);
       }
+     
+      fprintf(hfp, "\t</code>\n"
+                   "</div>\n\n");
 
-      fprintf(hfp, "</PRE>\n"/*, entry.topic ??? */);
+/* HELP TOPIC: Navigation */
+
+      fprintf(hfp, "<div class=\"help-navigation\">\n");
       if( topicidx ) {
-        fprintf(hfp, "<A HREF=\"#");
+        fprintf(hfp, "\t<a href=\"#");
         outputurltext(hfp, alltopicslc[topicidx-1].topic);
-        fprintf(hfp, "\">[PREV]</A>\n");
+        fprintf(hfp, "\">[PREV]</a>\n");
       }
 
-      fprintf(hfp, "<A HREF=\"#topic index\">[TOP]</A>\n");
+      fprintf(hfp, "\t<a href=\"#help-toc\">[TOP]</a>\n");
 
       if( topicidx < ntopics - 1) {
-        fprintf(hfp, "<A HREF=\"#");
+        fprintf(hfp, "\t<a href=\"#");
         outputurltext(hfp, alltopicslc[topicidx+1].topic);
-        fprintf(hfp, "\">[NEXT]</A>\n");
+        fprintf(hfp, "\">[NEXT]</a>\n");
       }
-      fprintf(hfp, "<BR>\n");
+      fprintf(hfp, "</div>\n\n");
     }
-    fprintf(hfp, "</BODY></HTML>\n");
+    fprintf(hfp, "</body>\n"
+                 "</html>\n");
     fclose(tfp);
     fclose(ifp);
     fclose(hfp);
+
+/* END: HTML */
 
     printf("%d topics converted\n", ntopics);
     return 0;
