@@ -15,6 +15,10 @@
  * Only need to change if not using these and don't like the default.
  *
  * Default: vt100 style output
+ *
+ * 'NO_BUILTIN_CSS' can be defined to indicate that mkhtml should not
+ * output CSS in the header, but you will still need to supply your own.
+ * This is likely undesirable for uses other than certain edge cases.
  */
 
 #define CSSFONT    "monospace"  /* Only use fixed-width fonts */
@@ -175,6 +179,8 @@ int main(int argc, char *argv[])
 
 /* BEGIN: CSS */
 
+#ifndef NO_BUILTIN_CSS
+
     fprintf(hfp, "<style type=\"text/css\">\n"
                  "body {\n"
                  "\tbackground: %s;\n"
@@ -200,6 +206,8 @@ int main(int argc, char *argv[])
                  "}\n"
                  "</style>\n",
 	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSTOCW);
+
+#endif
 
 /* END: CSS */
 
