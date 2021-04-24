@@ -21,7 +21,7 @@
 #define CSSBG      "#000000"    /* Black Background */
 #define CSSFG      "#ffffff"    /* White Foreground */
 #define CSSLINK    "#ffff00"    /* Yellow Links     */
-#define CSSWIDTH   "60em"
+#define CSSTOCW    "60em"       /* Previous TOC width smaller, but broken */
 #define HTMLTITLE  "RhostMUSH Help File [HTML Version]"
 #define HTMLH1     HTMLTITLE    /* Does not need to match title */
 #define HTMLH2     "Topic Index"
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                  "\tcolumns: 3;\n"
                  "}\n"
                  "</style>\n",
-	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSWIDTH);
+	    CSSBG, CSSFG, CSSFONT, CSSLINK, CSSTOCW);
 
 /* END: CSS */
 
