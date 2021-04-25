@@ -423,16 +423,27 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
  * do_force_prefixed: Interlude to do_force for the # command
  */
 
-void do_force_prefixed (dbref player, dbref cause, int key, 
-		char *command, char *args[], int nargs)
-{
-char	*cp;
+void do_force_prefixed(dbref player, dbref cause, int key, 
+                       char *command, char *args[], int nargs) {
+   char *cp;
 
-	cp=parse_to(&command, ' ', 0);
-	if (!command) return;
-	while (*command && isspace((int)*command)) command++;
-	if (*command)
-		do_force(player, cause, key, cp, command, args, nargs);
+   cp = parse_to(&command, ' ', 0);
+
+   if (!command) {
+       return;
+   }
+
+   while (*command && isspace((int)*command)) {
+      command++;
+   }
+
+   if (*command) {
+      if ( (*cp == '#') && *(cp+1) == '#' ) {
+         do_force(player, cause, key | FORCE_INLINE, cp+1, command, args, nargs);
+      } else {
+         do_force(player, cause, key, cp, command, args, nargs);
+      }
+   }
 }
 
 /* ---------------------------------------------------------------------------
@@ -458,9 +469,15 @@ dbref	victim;
            mudstate.force_halt = 1;
         } else
            mudstate.force_halt = 0;
-	/* force victim to do command */
-	wait_que(victim, player, 0, NOTHING, command, args, nargs,
-		mudstate.global_regs, mudstate.global_regsname);
+        /* If /inline call sudo */
+        if ( key & FORCE_INLINE ) {
+           /* If you want additional keys to @force/inline, use @sudo */
+           do_sudo(player, cause, 0, what, command, args, nargs);
+        } else {
+	   /* force victim to do command */
+	   wait_que(victim, player, 0, NOTHING, command, args, nargs,
+		   mudstate.global_regs, mudstate.global_regsname);
+        }
 }
 
 /* ---------------------------------------------------------------------------

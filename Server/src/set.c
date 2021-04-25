@@ -2833,7 +2833,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
-   if ( (key & INCLUDE_NOBREAK) && (key & INCLUDE_BREAK) ) {
+   if ( (key & INCLUDE_IBREAK) && (key & INCLUDE_NOBREAK) ) {
       notify_quiet(player, "You can not mix /break and /nobreak together");
       return;
    }
@@ -2930,7 +2930,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook);
-         if ( key & INCLUDE_NOBREAK )
+         if ( key & INCLUDE_IBREAK )
             mudstate.breakst = i_savebreak;
       }
       if ( time(NULL) > (i_now + 5) ) {
@@ -2939,7 +2939,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
          break;
       }
    }
-   if ( key & INCLUDE_BREAK ) {
+   if ( key & INCLUDE_NOBREAK ) {
       mudstate.breakst = i_savebreak;
    }
    mudstate.chkcpu_toggle = chk_tog;
@@ -2975,6 +2975,12 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
   char *buff1, *buff1ptr, *buff2, *charges, *buf, *myplayer, *tpr_buff, *tprp_buff;
 
   didtrig = it = 0;
+  if ( key & TRIG_INLINE ) {
+     /* no keys passed to /inline for trigger -- want switches, use @include */
+     do_include(player, cause, 0, object, argv, nargs, (char **)NULL, 0);
+     return;
+  }
+
   if ( key & TRIG_PROGRAM ) {
      buf = object;
      myplayer = parse_to(&buf, ':', 1);

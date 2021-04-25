@@ -362,6 +362,7 @@ NAMETAB dolist_sw[] =
     {(char *) "notify", 3, CA_PUBLIC, 0, DOLIST_NOTIFY | SW_MULTIPLE},
     {(char *) "pid", 1, CA_PUBLIC, 0, DOLIST_PID},
     {(char *) "nobreak", 3, CA_PUBLIC, 0, DOLIST_NOBREAK | SW_MULTIPLE},
+    {(char *) "break", 3, CA_PUBLIC, 0, DOLIST_NOBREAK | SW_MULTIPLE},
     {(char *) "clearreg", 1, CA_PUBLIC, 0, DOLIST_CLEARREG | SW_MULTIPLE},
     {(char *) "inline", 1, CA_PUBLIC, 0, DOLIST_INLINE | SW_MULTIPLE},
     {(char *) "localize", 1, CA_PUBLIC, 0, DOLIST_LOCALIZE | SW_MULTIPLE},
@@ -463,6 +464,11 @@ NAMETAB flagdef_sw[] =
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
     {(char *) "index", 2, CA_IMMORTAL, 0, FLAGDEF_INDEX},
     {(char *) "type", 2, CA_IMMORTAL, 0, FLAGDEF_TYPE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB force_sw[] =
+{
+    {(char *) "inline", 1, CA_PUBLIC, 0, FORCE_INLINE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB oemit_sw[] =
@@ -823,6 +829,7 @@ NAMETAB sudo_sw[] =
 {
     {(char *) "globalize", 2, CA_PUBLIC, 0, SUDO_GLOBAL},
     {(char *) "clearregs", 2, CA_PUBLIC, 0, SUDO_CLEAR},
+    {(char *) "nobreak", 2, CA_PUBLIC, 0, SUDO_NOBREAK | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB include_sw[] =
@@ -830,10 +837,10 @@ NAMETAB include_sw[] =
     {(char *) "command", 2, CA_PUBLIC, 0, INCLUDE_COMMAND},
     {(char *) "localize", 2, CA_PUBLIC, 0, INCLUDE_LOCAL | SW_MULTIPLE},
     {(char *) "clearregs", 2, CA_PUBLIC, 0, INCLUDE_CLEAR | SW_MULTIPLE},
-    {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
+    {(char *) "ignore", 2, CA_PUBLIC, 0, INCLUDE_IBREAK | SW_MULTIPLE},
     {(char *) "target", 2, CA_PUBLIC, 0, INCLUDE_TARGET | SW_MULTIPLE},
     {(char *) "override", 2, CA_PUBLIC, 0, INCLUDE_OVERRIDE | SW_MULTIPLE},
-    {(char *) "break", 2, CA_PUBLIC, 0, INCLUDE_BREAK | SW_MULTIPLE},
+    {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =
@@ -1059,6 +1066,7 @@ NAMETAB set_sw[] =
 NAMETAB skip_sw[] =
 { 
     {(char *) "ifelse", 1, CA_PUBLIC, 0, SKIP_IFELSE},
+    {(char *) "nobreak", 1, CA_PUBLIC, 0, SKIP_NOBREAK | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB site_sw[] =
@@ -1210,6 +1218,7 @@ NAMETAB trig_sw[] =
 {
     {(char *) "command", 1, CA_PUBLIC, 0, TRIG_COMMAND},
     {(char *) "quiet", 1, CA_PUBLIC, 0, TRIG_QUIET | SW_MULTIPLE},
+    {(char *) "inline", 1, CA_PUBLIC, 0, TRIG_INLINE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB thaw_sw[] =
@@ -1394,7 +1403,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_flagstuff},
     {(char *) "@flagdef", flagdef_sw, CA_IMMORTAL, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_flagdef},
-    {(char *) "@force", NULL,
+    {(char *) "@force", force_sw,
      CA_NO_SLAVE | CA_GBL_INTERP | CA_NO_GUEST, CA_NO_CODE,
      FRC_COMMAND, CS_TWO_ARG | CS_INTERP | CS_CMDARG, 0, do_force},
     {(char *) "@fpose", fpose_sw, CA_LOCATION | CA_NO_SLAVE, CA_NO_CODE,
@@ -1540,11 +1549,15 @@ CMDENT command_table[] =
     {(char *) "@selfboot", selfboot_sw, CA_NO_SLAVE | CA_PLAYER | CA_NO_GUEST, 0,
      0, CS_ONE_ARG, 0, do_selfboot},
 /* Removed CA_GBL_BUILD from @set : ASH 08/23/98 */
-#ifndef NO_ENH
-    {(char *) "@set", set_sw,
-     CA_NO_SLAVE | CA_NO_GUEST, 0,
-     0, CS_TWO_ARG, 0, do_set},
+#ifndef NO_ENH 
+/* You want this one for current standard */
+    {(char *) "@set", set_sw, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_set},
 #else
+/***************************************************************
+ * This was a compatibility setting for old NycMUSE/SeawolfMUSE.
+ * This will likely never be used again, so ignore it but keeping 
+ * it in for old compatibility
+ **************************************************************/
     {(char *) "@set", NULL, CA_NO_SLAVE | CA_NO_GUEST, 0, 0, CS_TWO_ARG, 0, do_set},
 #endif
     {(char *) "@shutdown", NULL, CA_PUBLIC, 0, 0, CS_ONE_ARG, 0, do_shutdown},
@@ -1584,9 +1597,15 @@ CMDENT command_table[] =
      CA_NO_SLAVE | CA_NO_GUEST, 0,
      0, CS_TWO_ARG, 0, do_toggle},
 #ifndef NO_ENH
+/* You want this for current compatibility */
     {(char *) "@trigger", trig_sw, CA_GBL_INTERP | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV, 0, do_trigger},
 #else
+/***************************************************************
+ * This was a compatibility setting for old NycMUSE/SeawolfMUSE.
+ * This will likely never be used again, so ignore it but keeping 
+ * it in for old compatibility
+ **************************************************************/
     {(char *) "@trigger", NULL, CA_GBL_INTERP | CA_NO_SLAVE, CA_NO_CODE,
      0, CS_TWO_ARG | CS_ARGV, 0, do_trigger},
 #endif
@@ -10388,6 +10407,12 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    else {
       free_lbuf(retbuff);
    }
+
+   /* If /break specified */
+   if ( key & SKIP_NOBREAK ) {
+      mudstate.breakst = i_breakst;
+   }
+   /* if player entered at command line */
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
@@ -10478,9 +10503,16 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    }
    mudstate.chkcpu_toggle = i_orig;
    mudstate.chkcpu_inline = i_chkinline;
+   /* Breaks are local */
+   if ( key & SUDO_NOBREAK ) {
+      mudstate.breakst = i_breakst;
+   }
+
+   /* Command issued at command line */
    if ( desc_in_use != NULL ) {
       mudstate.breakst = i_breakst;
    }
+
    mudstate.jumpst = i_jump;
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);

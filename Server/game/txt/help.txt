@@ -2809,16 +2809,21 @@
   
   See Also: page, pose, say, :, ", @saystring
   
+& ##
 & #
-  Command: #<number> <command>
+  Command: #<number> <command>   (@force)
+           ##<number> <command>  (@sudo)
   
   Forces the object whose database number is <number> to perform <command>.
   
   Example: 
     > #1033 move north 
+    > ##1033 move north 
 
-  This forces object #1033 to go north (assuming that you control it).  
-  The same restrictions that apply to @force also apply to this command.
+  Command prefix # forces object #1033 to go north (assuming you control it).
+  Command prefix ## sudos object #1033 to go north (assuming you control it).
+  
+  The same restrictions that apply to @sudo/@force also apply to this command.
   
   See Also: @force, @sudo
   
@@ -3743,15 +3748,22 @@
   Command: @dolist[/<switch>] [<delimiter>|<pid>] <list>=<action>
   
   <list> is a list of strings, which can be object numbers, attributes, or
-  arbitrary words.  <action> is a command to perform once for each item in
-  <list>, replacing the special symbol ## with the corresponding item from
-  <list>. By default, @dolist considers each item in <list> to be separated
-  with spaces. If you specify the /delimit switch, then each item is
-  considered to be separated by <delimiter>. <delimiter> must be a single
-  character.  The special symbol '#@' can be used to return the positional
-  match of the argument currently being processed.  The /notify switch is
-  used to automatically notify the object after the last item in the @dolist
-  is processed.  Great for timed events.
+     arbitrary words.  
+  
+  <delimiter> must be a single character.  
+  
+  <pid> when used with the /pid switch will issue a @notify on the <pid>
+      specified.
+  
+  <action> is a command to perform once for each item in <list>, 
+     replacing the special symbol ## with the corresponding item from
+     <list>. By default, @dolist considers each item in <list> to be separated
+     with spaces. If you specify the /delimit switch, then each item is
+     considered to be separated by <delimiter>. The special symbol '#@' can 
+     be used to return the positional match of the argument currently being 
+     processed.  The /notify switch is used to automatically notify the 
+     object after the last item in the @dolist is processed.  
+     Great for timed events.
   
   The /inline switch may use %d0 to %d9 for ## substitution.  %dL for outer.   
   
@@ -3760,6 +3772,11 @@
   hold true to anything that queues with @dolist/inline.  So @switch, @wait,
   or similar will not be able to process the %d0-%d9.  Sorry for the 
   limitation.
+
+{ help @dolist2 for examples and availale switches }
+  
+& @dolist2 
+  Command: @dolist[/<switch>] [<delimiter>] <list>=<action>  
   
   If present, <switch> can be any of:
     /space     - (Default) List elements are separated by spaces.
@@ -3773,21 +3790,27 @@
     /nobreak   - All @break/@assert in @dolist ignored in outside processing.
                  (/inline required)
   
-{ help @dolist2 for examples}
+  This command is particularly handy with lcon() and lexits(). 
+  Examples:
+    > think lcon(here)
+    #1 #2 #3
+    > @dolist [lcon(here)] = "[name(##)](##) [get(##/last)]
+    You say "Wizard(#1) Sun Mar  1 02:46:23 2001"
+    You say "Goober(#2) Wed Jan 21 02:46:23 1990""
+    You say "MrBubbles(#3) Fri May 11 02:46:23 2018""
   
-& @dolist2 
-  Command: @dolist[/<switch>] [<delimiter>] <list>=<action>  
+    > @dolist [lcon(here)] = @switch [get(##/last)]=*1990*,"[name(##)](##)
+    You say "Goober(#2)"
   
-  This command is particularly handy with lcon() and lexits(). A few examples:
- 
-    @dolist [lcon(here)] = "[name(##)](##)
-    @dolist [lcon(here)] = @switch [get(##/last)]=*1990*,"[name(##)]
-    @va me = va vb vc
-    @dolist [get(me/va)] = @emit [get(me/##)]
-    @dolist [get(me/va)] = @emit Argument ## is position #@
-    @dolist Frodo Bilbo Gandalf = page ## = HELP!!!!  I've fallen into a pit.
-    @dolist/delimit , {Frodo, Bilbo Baggins, Gandalf} = page ## = HELP!!!!
-    @wait me=@emit Zapping Finished;@dolist/notify bob joe=@emit Zapped ##
+    > @va me = va vb vc
+    > @dolist [get(me/va)] = @emit [get(me/##)]
+    (shows contents of your VA, VB, and VC attributes)
+  
+  Other Examples to try:
+    > @dolist [get(me/va)] = @emit Argument ## is position #@
+    > @dolist Frodo Bilbo Gandalf = page ## = HELP!!!!  I've fallen into a pit.
+    > @dolist/delimit , {Frodo, Bilbo Baggins, Gandalf} = page ## = HELP!!!!
+    > @wait me=@emit Zapping Finished;@dolist/notify bob joe=@emit Zapped ##
   
   See Also: iter(), parse(), list(), inf()
   
@@ -3946,15 +3969,32 @@
   See Also: @search
   
 & @force
-  Command: @force <player/object>=<command>
+  Command: @force[/<switch>] <player/object>=<command>
+  
   Forces the game to act as though <player/object> had entered <command>.
+  
   You may only force objects that you control.  Objects may not force players
   unless either the object or the player has their INHERIT flag set, and
   objects that do not have their INHERIT flag set may not force objects that
-  do.  If the victim is specified by number, you may use an alternate form
+  do.  
+  
+  If the victim is specified by number, you may use an alternate form
   of the command, '#<number> <command>'.
   
-  See Also: puppets, #, @trigger, @include
+  You may use '##<number> <command>' to call the @sudo command instead of @fo.
+  
+  Switches Available:
+    /inline -- call @sudo instead of @force.
+  
+  Example:
+    > think num(*bob)
+    #12345
+    > @fo *bob=say whee
+    Bob says "whee"
+    > #12345 say whee
+    Bob says "whee"
+  
+  See Also: puppets, #, ##, @trigger, @include
   
 & @fpose
   Command: @fpose[/<switches>] <object>=<message>
@@ -6113,7 +6153,7 @@
   See Also: @set, @toggle
  
 & @trigger
-  Command: @trigger <object>/<attr> [=<param> [, <param>]... ]
+  Command: @trigger[/<switch>] <object>/<attr> [=<param> [, <param>]... ]
   
   Invokes an action list stored in an attribute on an object.  The triggering
   object becomes the enactor and the positional parameters %0 through %9
@@ -6123,9 +6163,13 @@
   switch to trigger attributes that start with $command sequences.  This
   switch is ignored on attributes without $command sequences.
   
+  No other switches are available with /inline.  For additional switches
+  that are available in @include, please use @include.
+  
   The following switches exist for @trigger:
       /quiet   - Don't report the 'trigger' message when triggering.  
       /command - Trigger attributes that are $command/^listen attributes.
+      /inline  - Call @include instead of @trigger.
   
   Examples:
     > @va me=$foo:@emit whee
@@ -7688,17 +7732,24 @@
   @include.  By default, all registers altered during the @sudo are considered
   local.
   
+  You may use '##<dbref> <command>' as short hand for this command.
+  
   Available switches:
     /globalize -- treat registers to target as non-localized.  Dangerous.
     /clearregs -- clear the registers of the default localized registers.
+    /nobreak   -- treat all breaks as local to the @sudo.
   
   Examples:
+    > think num(*player)
+    #12345
     > @sudo *player=say boo
     Player says "boo"
     > @va *player=say boo;say baa
     > @sudo *player=@include me/va  (notice it triggers @va based on target)
     Player says "boo"
     Player says "baa"
+    > ##12345 say boo     (notice the use of two #'s)
+    Player says "boo"
   
   See Also: @include, @force, @trigger, @skip, @jump, @rollback, @goto
   
@@ -7707,6 +7758,7 @@
 & @skip
   Command: @skip <boolean expression>=<command>
            @skip/ifelse <boolean expression>=<true command>[,<false command>]
+           @ifelse <boolean expression>=<true command>[,<false command>]
   
   The @skip command 'skips' the command from being executed if the boolean 
   logic presented to @skip is true.  The command will be processed in the
@@ -7717,6 +7769,10 @@
   Notice if you specify the /ifelse switch the condition is reversed to match
   how a normal if-else statement would work.  @skip/ifelse is aliased to
   @if and @ifelse.
+  
+  Available switches:
+    /ifelse  -- Treats @skip as an ifelse.  This is aliased as @ifelse
+    /nobreak -- Treat all @break/@assert as local to the @skip/@ifelse
   
   Examples:
     > @wait 0={think 1;think 2;@skip 0=think 3;think 4}
@@ -7764,15 +7820,17 @@
     /clearregs - clear the registers prior to calling included attribute.
                  Note: this automatically sets the localize option.
     /localize  - localizes the registers for the include duration.
-    /nobreak   - disregard @break/@assert inside the includes from outside.
+    /ibreak    - disregard @break/@assert inside the includes from outside.
                  Not useable with /break.
     /target    - Use the target as executor instead of executor of @include
                  Note: You must control target to use this.
     /override  - If any arguments are passed to @include to override the
                  default, this will disable all default arguments.
-    /break     - Treat @break/@assert inside an @include as local to
+    /nobreak   - Treat @break/@assert inside an @include as local to
                  that @include only.  Not useable with /nobreak.
     
+  Note: the /ibreak executes the @assert/@breaks but ignores breaking out.
+  
   {see @include2 for examples}
 
 & @include2 
@@ -33762,14 +33820,21 @@
 
   New Features
   ------------
-  * @include/break to have @break/@assert local to the @include only.
+  * @include/nobreak to have @break/@assert local to the @include only. [ASH]
+  * @skip/nobreak (@ifelse/nobreak) added to localized break [ASH]
+  * @force/inline calls @sudo -- for additional switches use @sudo [ASH]
+  * @trigger/inline calls @include -- additional swi's use @include [ASH] 
+  * ##<dbref> for @sudo works like #<dbref> for @force [ASH]
   
   Changes
   -------
   * Version change due to upcoming general change in versioning. Preparation
     for GIT-Integrated replacement of p<patchlevel> with commit number since
-    last MAJOR.MINOR.PATCH Tag.
+    last MAJOR.MINOR.PATCH Tag. [AMB]
+  * @include/nobreak changed to @include/ibreak to properly identify it [ASH]
+  * @include/break (introduced this version) renamed to @include/nobreak [ASH]
   
   Bug Fixes
   ------------
-  
+ * NO_ENH #ifdef has not been used for 27+ years but left for compatibility.
+   This option is now documented in help so people ae not clueless [ASH] 

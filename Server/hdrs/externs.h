@@ -732,6 +732,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	FIXDB_NAME	2048	/* Set NAME attribute */
 #define FIXDB_TYPE	4096	/* Fix type of object - DANGEROUS */
 
+#define FORCE_INLINE	1
+
 #define FLAGSW_REMOVE	1
 
 #define FLAGDEF_SET     1       /* Set flag 'set' permissions */
@@ -1108,6 +1110,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_PER 	16384	
 
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
+#define SKIP_NOBREAK	2	/* @ifelse break local only */
 
 #define SNOOP_ON	1	/* Start snooping */
 #define SNOOP_OFF	2	/* Stop snooping */
@@ -1170,17 +1173,19 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	TRIG_QUIET	1	/* Don't display 'Triggered.' message. */
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */
+#define TRIG_INLINE	8	/* Trigger is actually @include */
 
 #define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
 #define INCLUDE_LOCAL	2	/* Localize all the @included foo */
 #define INCLUDE_CLEAR	4	/* Clear the attributes locally */
-#define INCLUDE_NOBREAK 8	/* Do not @break other than inside @include */
+#define INCLUDE_IBREAK	8	/* Ignore @breaks inside the called @include */
 #define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
 #define INCLUDE_OVERRIDE 32	/* Trigger include like well trigger */
-#define INCLUDE_BREAK	64	/* Trigger @break/@assert intenral to included file but not outside */
+#define INCLUDE_NOBREAK	64	/* Trigger @break/@assert intenral to included file but not outside */
 
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */
+#define SUDO_NOBREAK	4	/* Breaks inside @sudo is local only */
 
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
 #define	TWARP_DUMP	2	/* Warp the dump interval */
