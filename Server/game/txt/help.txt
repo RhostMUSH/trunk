@@ -22038,11 +22038,16 @@
   same permissions and restrictions of the command.  The SIDEFX flag is 
   required to use rset().
   
-  You may specify the optional <tree> of '1' to specifically set a TREE with
-  all branches filled (that do not exist) on the target.  A TREE set will
+  You may specify the optional <tree> of '1' or '3' to specifically set a TREE
+  with all branches filled (that do not exist) on the target.  A TREE set will
   also verify permission on every branch of that tree prior to setting.  
   Failure to set any of the branches, for any reason, will disallow 
   setting the attribute as well.
+  
+  You may specify an optional <tree> of '2' or '3' to specify that all
+  attributes set will ignore the special case of '_' (third example above) 
+  when setting attributes.  Otherwise, doing '_foo/bar' will try to fetch
+  attribute 'bar' from object '_foo' and set it to that attribute. 
   
   The <tree> toggle is ignored on any method of rset() that does not 
   set or clear attributes.
@@ -33833,6 +33838,7 @@
     last MAJOR.MINOR.PATCH Tag. [AMB]
   * @include/nobreak changed to @include/ibreak to properly identify it [ASH]
   * @include/break (introduced this version) renamed to @include/nobreak [ASH]
+  * rset() now mirrors set() with arguments [ASH]
   
   Bug Fixes
   ------------
