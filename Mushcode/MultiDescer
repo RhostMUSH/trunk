@@ -1,4 +1,3 @@
-<Public> Where's Wilco says, "Pleasant aromas!"
 @create Descer=10
 &F_DELDESC Descer=[setr(0,[and(words(%0),valid(attrname,desc`%0))][!!$lattr(%1/desc`*)][hasattr(%1,desc`%0)])]
 &DELDESCM000 Descer=[ansi(g,Multi Descer)]: Invalid attribute specified.
