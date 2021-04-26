@@ -12,9 +12,9 @@
 *.rej
 *.swp
 *.tmp
+dbconvert
 mkhtml
 mkindx
-dbconvert
 netrhost
 netrhost.debugmon
 /Server/bin/a.out
