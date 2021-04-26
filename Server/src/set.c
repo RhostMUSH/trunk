@@ -1373,7 +1373,11 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
          free_lbuf(s_buff);
          free_lbuf(s_buffptr);
       } else {
-         flagvalue = search_nametab(player, indiv_attraccess_nametab, flag);
+         if ( flag && *flag ) {
+            flagvalue = search_nametab(player, indiv_attraccess_nametab, flag);
+         } else {
+            flagvalue = -1;
+         }
          if ( (flagvalue == -1) || !(LSET_FLAGS & flagvalue) ) {
             notify_quiet(player, "You can't set that!");
          } else {
@@ -1404,207 +1408,209 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
 void 
 do_set(dbref player, dbref cause, int key, char *name, char *flag) 
 {
-dbref	thing, thing2, aowner;
-char	*p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
-int	atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
-ATTR	*attr, *attr2;
-int     ibf = -1;
+   dbref thing, thing2, aowner;
+   char *p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
+   int atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
+   ATTR *attr, *attr2;
+   int ibf = -1;
 
-	/* See if we have the <obj>/<attr> form, which is how you set attribute
-	 * flags.
-	 */
-        i_flagchk = val = 0;
-	if (parse_attrib (player, name, &thing, &atr)) {
-		if (atr != NOTHING) {
+   /* See if we have the <obj>/<attr> form, which is how you set attribute flags.  */
+   i_flagchk = val = 0;
+   if (parse_attrib (player, name, &thing, &atr)) {
+      if (atr != NOTHING) {
+         /* You must specify a flag name */
+         if (!flag || !*flag) {
+            notify_quiet(player, "I don't know what you want to set!");
+            return;
+         }
 
-			/* You must specify a flag name */
+         /* Check for clearing */
+         clear = 0;
+         if (*flag == NOT_TOKEN) {
+            flag++;
+            clear = 1;
+         }
 
-			if (!flag || !*flag) {
-				notify_quiet(player,
-					"I don't know what you want to set!");
-				return;
-			}
+         /* Make sure player specified a valid attribute flag */
+         if ( flag && *flag ) {
+            flagvalue = search_nametab (player, indiv_attraccess_nametab, flag);
+         } else {
+            flagvalue = -1;
+         }
+         if (flagvalue == -1) {
+            notify_quiet(player, "You can't set that!");
+            return;
+         }
+         if ( mudconf.secure_atruselock && (flagvalue == AF_USELOCK) && !AtrUse(player) ) {
+            notify_quiet(player, "You can't set that!");
+            return;
+         }
 
-			/* Check for clearing */
+         /* Make sure the object has the attribute present */
+         if (!atr_get_info(thing, atr, &aowner, &aflags)) {
+            notify_quiet(player, "Attribute not present on object.");
+            return;
+         }
+         curraflags = aflags;
 
-			clear = 0;
-			if (*flag == NOT_TOKEN) {
-				flag++;
-				clear = 1;
-			}
+         /* Make sure we can write to the attribute */
+         attr = atr_num(atr);
+         if (!attr || !Set_attr(player, thing, attr, (aflags|0x80000000))) {
+            notify_quiet(player, "Permission denied.");
+            return;
+         }
 
-			/* Make sure player specified a valid attribute flag */
+         /* Go do it */
+         i_flagchk = ((aflags & flagvalue) ? 1 : 0);
+         if (clear) {
+            aflags &= ~flagvalue;
+         } else {
+            aflags |= flagvalue;
+         }
 
-			flagvalue = search_nametab (player,
-				indiv_attraccess_nametab, flag);
-			if (flagvalue == -1) {
-				notify_quiet(player, "You can't set that!");
-				return;
-			}
-                        if ( mudconf.secure_atruselock && (flagvalue == AF_USELOCK) && !AtrUse(player) ) {
-				notify_quiet(player, "You can't set that!");
-				return;
-                        }
+         could_hear = Hearer(thing);
+         atr_set_flags(thing, atr, aflags);
+         if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+            strcpy(mudstate.lbuf_buffer, flag);
+         }
 
-			/* Make sure the object has the attribute present */
-
-			if (!atr_get_info(thing, atr, &aowner, &aflags)) {
-				notify_quiet(player,
-					"Attribute not present on object.");
-				return;
-			}
-			curraflags = aflags;
-			/* Make sure we can write to the attribute */
-
-			attr = atr_num(atr);
-			if (!attr || !Set_attr(player, thing, attr, (aflags|0x80000000))) {
-				notify_quiet(player, "Permission denied.");
-				return;
-			}
-
-			/* Go do it */
-
-                        i_flagchk = ((aflags & flagvalue) ? 1 : 0);
-			if (clear)
-				aflags &= ~flagvalue;
-			else
-				aflags |= flagvalue;
-			could_hear = Hearer(thing);
-			atr_set_flags(thing, atr, aflags);
-                        if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-                           strcpy(mudstate.lbuf_buffer, flag);
-
-			/* Tell the player about it. */
-
-			handle_ears(thing, could_hear, Hearer(thing));
-			if (!(key & SET_QUIET) &&
-			    !Quiet(player) && !Quiet(thing)) {
-                                tprp_buff = tpr_buff = alloc_lbuf("do_set");
-				if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
-					STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
-					log_name_and_loc(player);
-					buff2ret = alloc_lbuf("log_attribute_set");
-					sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
-						cause, attr->name, thing, (clear ? "cleared" : "set"), give_name_aflags(player, cause, flagvalue));
-					log_text(buff2ret);
+        /* Tell the player about it. */
+        handle_ears(thing, could_hear, Hearer(thing));
+        if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+           tprp_buff = tpr_buff = alloc_lbuf("do_set");
+           if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
+              STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+                 log_name_and_loc(player);
+                 buff2ret = alloc_lbuf("log_attribute_set");
+                 sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
+                         cause, attr->name, thing, (clear ? "cleared" : "set"), 
+                         give_name_aflags(player, cause, flagvalue));
+                log_text(buff2ret);
 #ifndef NODEBUGMONITOR
-					sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
-					log_text(buff2ret);
+                sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                log_text(buff2ret);
 #endif
-					free_lbuf(buff2ret);
-					ENDLOG
-				}
-				if (clear) {
-				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                                        if ( give_name_aflags(player, cause, flagvalue) )
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared flag%s%s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? " " : " [again] "),
-                                                                give_name_aflags(player, cause, flagvalue)));
-                                        else
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared %s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? "flag" : "[again] flag")));
-				  } else
-					notify_quiet(player, "Cleared.");
-				}
-				else {
-				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                                        if ( give_name_aflags(player, cause, flagvalue) )
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set flag%s%s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? " [again] " : " "),
-                                                                give_name_aflags(player, cause, flagvalue)));
-                                        else
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set %s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? "[again] flag" : "flag")));
-				  } else
-					notify_quiet(player, "Set.");
-				}
-                                free_lbuf(tpr_buff);
-			}
-			return;
-		}
-	}
+                free_lbuf(buff2ret);
+              ENDLOG
+           }
 
-	/* check for attribute set first */
-	for (p = flag; *p && (*p != ':'); p++) ;
+            if (clear) {
+               if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                  if ( give_name_aflags(player, cause, flagvalue) ) {
+                     notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared flag%s%s).", 
+                                          Name(thing), attr->name,
+                                          (i_flagchk ? " " : " [again] "),
+                                          give_name_aflags(player, cause, flagvalue)));
+                  } else {
+                     notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared %s).", 
+                                          Name(thing), attr->name,
+                                          (i_flagchk ? "flag" : "[again] flag")));
+                  }
+               } else {
+                  notify_quiet(player, "Cleared.");
+               }
+            } else {
+               if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                  if ( give_name_aflags(player, cause, flagvalue) ) {
+                     notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set flag%s%s).", 
+                                          Name(thing), attr->name,
+                                          (i_flagchk ? " [again] " : " "),
+                                          give_name_aflags(player, cause, flagvalue)));
+                  } else {
+                     notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set %s).", 
+                                          Name(thing), attr->name,
+                                          (i_flagchk ? "[again] flag" : "flag")));
+                  }
+               } else {
+                  notify_quiet(player, "Set.");
+               }
+            }
+            free_lbuf(tpr_buff);
+         }
+         return;
+      }
+   }
 
-	if (*p) {
-		*p++ = 0;
-		if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
-			return;
-                /* always make SBUF_SIZE a null */
-                if ( strlen(flag) >= SBUF_SIZE )
-                   *(flag+SBUF_SIZE-1) = '\0';
+   /* check for attribute set first */
+   for (p = flag; *p && (*p != ':'); p++);
 
-		atr = mkattr(flag);
+   if (*p) {
+      *p++ = 0;
+      if ((thing = match_controlled_or_twinked(player, name)) == NOTHING) {
+         return;
+      }
+      /* always make SBUF_SIZE by enforcing a null */
+      if ( strlen(flag) >= SBUF_SIZE ) {
+         *(flag+SBUF_SIZE-1) = '\0';
+      }
 
-		if (atr <= 0) {
-			notify_quiet(player, "Couldn't create attribute.");
-			return;
-		}
-		attr = atr_num(atr);
-		if (!attr) {
-			notify_quiet(player, "Permission denied.");
-			return;
-		}
-		atr_get_info(thing, atr, &aowner, &aflags);
-		if (!Set_attr(player, thing, attr, aflags) ) {
-			notify_quiet(player, "Permission denied.");
-			return;
-		}
-		if ((aflags & AF_NOCMD) && !Immortal(player)) {
-			notify_quiet(player, "No match.");
-			return;
-		}
+      atr = mkattr(flag);
+      if (atr <= 0) {
+         notify_quiet(player, "Couldn't create attribute.");
+         return;
+      }
 
-		buff=alloc_lbuf("do_set");
+      attr = atr_num(atr);
+      if (!attr) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
 
-		/* check for _ */
-		if (*p == '_' && !(key & SET_STRICT)) {
-			strcpy(buff, p + 1);
-			if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
-			    (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
-                            (!Wizard(player) && Cloak(thing2))) {
-				notify_quiet(player, "No match.");
-				free_lbuf(buff);
-				return;
-			}
+      atr_get_info(thing, atr, &aowner, &aflags);
+      if (!Set_attr(player, thing, attr, aflags) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
 
-			attr2 = atr_num(atr2);
-			p = buff;
-		        atr_pget_str(buff, thing2, atr2, &aowner, &aflags, &ibf);
+      if ((aflags & AF_NOCMD) && !Immortal(player)) {
+         notify_quiet(player, "No match.");
+         return;
+      }
 
-			if (!attr2 ||
-			    !See_attr(player, thing2, attr2, aowner, aflags, 0)) {
-				notify_quiet(player, "Permission denied.");
-				free_lbuf(buff);
-				return;
-			}
-		}
+      buff=alloc_lbuf("do_set");
+      /* check for _ */
+      if (*p == '_' && !(key & SET_STRICT)) {
+         strcpy(buff, p + 1);
+         if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
+              (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
+              (!Wizard(player) && Cloak(thing2))) {
 
-		/* Go set it */
+            notify_quiet(player, "No match.");
+            free_lbuf(buff);
+            return;
+         }
 
-		set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
-                if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-                   strcpy(mudstate.lbuf_buffer, p);
-		free_lbuf(buff);
-		return;
-	}
+         attr2 = atr_num(atr2);
+         p = buff;
+         atr_pget_str(buff, thing2, atr2, &aowner, &aflags, &ibf);
+         if (!attr2 || !See_attr(player, thing2, attr2, aowner, aflags, 0)) {
+            notify_quiet(player, "Permission denied.");
+            free_lbuf(buff);
+            return;
+         }
+      }
 
-	init_match(player, name, NOTYPE);
-	match_everything(MAT_EXIT_PARENTS);
-	thing = noisy_match_result();
-	if (!Good_obj(thing)) 
-	  return;
+      /* Go set it */
+      set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
+      if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+         strcpy(mudstate.lbuf_buffer, p);
+      }
+      free_lbuf(buff);
+      return;
+   }
 
-	/* Set or clear a flag...control checked in flag set */  
+   init_match(player, name, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   thing = noisy_match_result();
+   if (!Good_obj(thing)) {
+      return;
+   }
 
-        if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-           strcpy(mudstate.lbuf_buffer, flag);
-	flag_set(thing, player, flag, key);
+   /* Set or clear a flag...control checked in flag set */  
+   if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+      strcpy(mudstate.lbuf_buffer, flag);
+   }
+   flag_set(thing, player, flag, key);
 }
 
 void do_setattr(dbref player, dbref cause, int attrnum, int key,

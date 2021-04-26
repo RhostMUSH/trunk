@@ -1566,7 +1566,13 @@ NAMETAB bool_names[] =
 
 CF_HAND(cf_bool)
 {
-    *vp = search_nametab(GOD, bool_names, str);
+    if ( str && *str ) {
+       *vp = search_nametab(GOD, bool_names, str);
+    } else {
+       if ( Good_obj(player) )
+          notify_quiet(player, "Expected a boolean argument.");
+       *vp = -1;
+    }
     if (*vp == -1)
 	*vp = 0;
     return 0;
@@ -1596,7 +1602,13 @@ CF_HAND(cf_option)
 {
     int i;
 
-    i = search_nametab(GOD, (NAMETAB *) extra, str);
+    if ( str && *str ) {
+       i = search_nametab(GOD, (NAMETAB *) extra, str);
+    } else {
+       if ( Good_obj(player) )
+          notify_quiet(player, "Expected a valid value.");
+       i = -1;
+    }
     if (i == -1) {
 	cf_log_notfound(player, cmd, "Value", str);
 	return -1;

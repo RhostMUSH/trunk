@@ -8618,195 +8618,200 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     s_ptr = strtok_r(arg, " ", &tstrtokr);
     if ( s_ptr )
        s_ptr2 = strtok_r(NULL, " ", &tstrtokr);
-    flagvalue = search_nametab(player, list_names, s_ptr);
+
+    flagvalue = -1;
+    /* search_nametab warns on empty/null flag name (s_ptr) passed */
+    if ( s_ptr && *s_ptr ) {
+       flagvalue = search_nametab(player, list_names, s_ptr);
+    }
     switch (flagvalue) {
-    case LIST_ALLOCATOR:
-	list_bufstats(player);
-        notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS * 2)));
-        notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", MAX_GLOBAL_REGS));
+       case LIST_ALLOCATOR:
+	   list_bufstats(player);
+           notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS * 2)));
+           notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", MAX_GLOBAL_REGS));
 #ifndef NODEBUGMONITOR
-        notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
-        notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
+           notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
+           notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
 #else
-	notify(player, "Debug Monitor is disabled.");
+	   notify(player, "Debug Monitor is disabled.");
 #endif
-	break;
-    case LIST_BUFTRACE:
-	list_buftrace(player, 0);
-	break;
-    case LIST_BUFTRACEADV:
-	list_buftrace(player, 1);
-	break;
-    case LIST_ATTRIBUTES:
-	list_attrtable(player);
-	break;
-    case LIST_COMMANDS:
-	list_cmdtable(player);
-	break;
-    case LIST_SWITCHES:
-	list_cmdswitches(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-	break;
-    case LIST_COSTS:
-	list_costs(player);
-	break;
-    case LIST_OPTIONS:
-        if ( s_ptr2 && *s_ptr2 ) {
-           if ( stricmp(s_ptr2, "mail") == 0 )
-              list_options_mail(player);
-           else if ( (stricmp(s_ptr2, "config") == 0) )
-              list_options_config(player);
-           else if ( (stricmp(s_ptr2, "system") == 0) )
-              list_options_system(player);
-           else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
-              if ( !(mudconf.enhanced_convtime) )
-                 notify(player, "Extended convtime() is not available.");
-              else
-                 list_options_convtime(player);
-           } else if ( stricmp(s_ptr2, "mysql") == 0 ) {
-              if ( Wizard(player) )
-                 list_options_mysql(player);
-              else
+	   break;
+       case LIST_BUFTRACE:
+	   list_buftrace(player, 0);
+	   break;
+       case LIST_BUFTRACEADV:
+	   list_buftrace(player, 1);
+	   break;
+       case LIST_ATTRIBUTES:
+	   list_attrtable(player);
+	   break;
+       case LIST_COMMANDS:
+	   list_cmdtable(player);
+	   break;
+       case LIST_SWITCHES:
+	   list_cmdswitches(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	   break;
+       case LIST_COSTS:
+	   list_costs(player);
+	   break;
+       case LIST_OPTIONS:
+           if ( s_ptr2 && *s_ptr2 ) {
+              if ( stricmp(s_ptr2, "mail") == 0 )
+                 list_options_mail(player);
+              else if ( (stricmp(s_ptr2, "config") == 0) )
+                 list_options_config(player);
+              else if ( (stricmp(s_ptr2, "system") == 0) )
+                 list_options_system(player);
+              else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
+                 if ( !(mudconf.enhanced_convtime) )
+                    notify(player, "Extended convtime() is not available.");
+                 else
+                    list_options_convtime(player);
+              } else if ( stricmp(s_ptr2, "mysql") == 0 ) {
+                 if ( Wizard(player) )
+                    list_options_mysql(player);
+                 else
                  notify(player, "MySQL has been enabled.");
-           } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
-              s_ptr = strtok_r(NULL, " ", &tstrtokr);
-              if ( s_ptr && is_integer(s_ptr) ) {
-                 p_val = atoi(s_ptr);
-                 s_ptr = (char *)NULL;
+              } else if ( stricmp(s_ptr2, "boolean") == 0 ) {
+                 s_ptr = strtok_r(NULL, " ", &tstrtokr);
+                 if ( s_ptr && is_integer(s_ptr) ) {
+                    p_val = atoi(s_ptr);
+                    s_ptr = (char *)NULL;
+                 } else
+                    p_val = 0;
+                 list_options_boolean_parse(player, p_val, s_ptr);
+              } else if ( stricmp(s_ptr2, "values") == 0 ) {
+                 s_ptr = strtok_r(NULL, " ", &tstrtokr);
+                 if ( s_ptr && is_integer(s_ptr) ) {
+                    p_val = atoi(s_ptr);
+                    s_ptr = (char *)NULL;
+                 } else
+                    p_val = 0;
+                 list_options_values_parse(player, p_val, s_ptr);
+              } else if ( stricmp(s_ptr2, "display") == 0 ) {
+                 s_ptr = strtok_r(NULL, " ", &tstrtokr);
+                 list_options_display_parse(player, s_ptr);
               } else
-                 p_val = 0;
-              list_options_boolean_parse(player, p_val, s_ptr);
-           } else if ( stricmp(s_ptr2, "values") == 0 ) {
-              s_ptr = strtok_r(NULL, " ", &tstrtokr);
-              if ( s_ptr && is_integer(s_ptr) ) {
-                 p_val = atoi(s_ptr);
-                 s_ptr = (char *)NULL;
-              } else
-                 p_val = 0;
-              list_options_values_parse(player, p_val, s_ptr);
-           } else if ( stricmp(s_ptr2, "display") == 0 ) {
-              s_ptr = strtok_r(NULL, " ", &tstrtokr);
-              list_options_display_parse(player, s_ptr);
-           } else
-              notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
-                                   " mail, values, boolean, config, system, mysql, convtime, display");
-        } else {
-	   list_options(player);
-        }
-	break;
-    case LIST_HASHSTATS:
-	list_hashstats(player);
-	break;
-    case LIST_SITEINFO:
-	list_siteinfo(player);
-	break;
-    case LIST_FLAGS:
-	display_flagtab(player);
-	break;
-    case LIST_TOTEMS:
-        display_totemtab(player, s_ptr2);
-        break;
-    case LIST_TOGGLES:
-	display_toggletab(player);
-	break;
-    case LIST_FUNCTIONS:
-        if ( s_ptr2 && *s_ptr2 && 
-             !( (stricmp(s_ptr2, "built-in") == 0) ||
-                (stricmp(s_ptr2, "user") == 0) ||
-                (stricmp(s_ptr2, "local") == 0) ) ) {
-           notify_quiet(player, "Unknown sub-option for FUNCTIONS.  Use one of: "\
-                                "built-in, user, local");
-        } else {
-	   list_functable(player, s_ptr2);
-        }
-	break;
-    case LIST_GLOBALS:
-	interp_nametab(player, enable_names, mudconf.control_flags,
-		       (char *) "Global parameters:", (char *) "enabled",
-		       (char *) "disabled");
-	break;
-    case LIST_DF_TOGGLES:
-	list_df_toggles(player);
-	break;
-    case LIST_DF_FLAGS:
-	list_df_flags(player);
-	break;
-    case LIST_PERMS:
-	list_cmdaccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-	break;
-    case LIST_CONF_PERMS:
-	list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-	break;
-    case LIST_POWERS:
-        list_allpower(player, 0);
-	break;
-    case LIST_DEPOWERS:
-	list_allpower(player, 1);
-        break;
-    case LIST_ATTRPERMS:
-	list_attraccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-	break;
-    case LIST_VATTRCMDS:
-	list_vattrcmds(player);
-        break;
-    case LIST_VATTRS:
-	list_vattrs(player, save_buff, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-	break;
-    case LIST_LOGGING:
-	interp_nametab(player, logoptions_nametab, mudconf.log_options,
-		       (char *) "Events Logged:", (char *) "enabled",
-		       (char *) "disabled");
-	interp_nametab(player, logdata_nametab, mudconf.log_info,
-		       (char *) "Information Logged:", (char *) "yes",
-		       (char *) "no");
-	break;
-    case LIST_DB_STATS:
-	list_db_stats(player);
-	break;
-    case LIST_PROCESS:
-	list_process(player);
-	break;
-    case LIST_BADNAMES:
-	badname_list(player, "Disallowed names:");
-	break;
-    case LIST_MAILGBL:
-	mail_gblout(player);
-	break;
-    case LIST_GUESTS:
-        list_guestparse(player);
-        break;
+                 notify_quiet(player, "Unknown sub-option for OPTIONS.  Use one of:"\
+                                      " mail, values, boolean, config, system, mysql, convtime, display");
+           } else {
+	      list_options(player);
+           }
+	   break;
+       case LIST_HASHSTATS:
+	   list_hashstats(player);
+	   break;
+       case LIST_SITEINFO:
+	   list_siteinfo(player);
+	   break;
+       case LIST_FLAGS:
+	   display_flagtab(player);
+	   break;
+       case LIST_TOTEMS:
+           display_totemtab(player, s_ptr2);
+           break;
+       case LIST_TOGGLES:
+	   display_toggletab(player);
+	   break;
+       case LIST_FUNCTIONS:
+           if ( s_ptr2 && *s_ptr2 && 
+                !( (stricmp(s_ptr2, "built-in") == 0) ||
+                   (stricmp(s_ptr2, "user") == 0) ||
+                   (stricmp(s_ptr2, "local") == 0) ) ) {
+              notify_quiet(player, "Unknown sub-option for FUNCTIONS.  Use one of: "\
+                                   "built-in, user, local");
+           } else {
+	      list_functable(player, s_ptr2);
+           }
+	   break;
+       case LIST_GLOBALS:
+	   interp_nametab(player, enable_names, mudconf.control_flags,
+		          (char *) "Global parameters:", (char *) "enabled",
+		          (char *) "disabled");
+	   break;
+       case LIST_DF_TOGGLES:
+	   list_df_toggles(player);
+	   break;
+       case LIST_DF_FLAGS:
+	   list_df_flags(player);
+	   break;
+       case LIST_PERMS:
+	   list_cmdaccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	   break;
+       case LIST_CONF_PERMS:
+	   list_cf_access(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	   break;
+       case LIST_POWERS:
+           list_allpower(player, 0);
+	   break;
+       case LIST_DEPOWERS:
+	   list_allpower(player, 1);
+           break;
+       case LIST_ATTRPERMS:
+	   list_attraccess(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	   break;
+       case LIST_VATTRCMDS:
+	   list_vattrcmds(player);
+           break;
+       case LIST_VATTRS:
+	   list_vattrs(player, save_buff, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+	   break;
+       case LIST_LOGGING:
+	   interp_nametab(player, logoptions_nametab, mudconf.log_options,
+		          (char *) "Events Logged:", (char *) "enabled",
+		          (char *) "disabled");
+	   interp_nametab(player, logdata_nametab, mudconf.log_info,
+		          (char *) "Information Logged:", (char *) "yes",
+		          (char *) "no");
+	   break;
+       case LIST_DB_STATS:
+	   list_db_stats(player);
+	   break;
+       case LIST_PROCESS:
+	   list_process(player);
+	   break;
+       case LIST_BADNAMES:
+	   badname_list(player, "Disallowed names:");
+	   break;
+       case LIST_MAILGBL:
+	   mail_gblout(player);
+	   break;
+       case LIST_GUESTS:
+           list_guestparse(player);
+           break;
 #ifdef REALITY_LEVELS
-    case LIST_RLEVELS:
-        if ( s_ptr2 && *s_ptr2 && (strncmp(s_ptr2, "dec", 3) == 0) )
-           list_rlevels(player, 1);
+       case LIST_RLEVELS:
+           if ( s_ptr2 && *s_ptr2 && (strncmp(s_ptr2, "dec", 3) == 0) )
+              list_rlevels(player, 1);
         else
-           list_rlevels(player, 0);
-        break;
+              list_rlevels(player, 0);
+           break;
 #endif /* REALITY_LEVELS */
-    case LIST_STACKS:
+       case LIST_STACKS:
 #ifndef NODEBUGMONITOR
-        notify(player, unsafe_tprintf("Debug stack depth = %d [highest %d/%d]", debugmem->stacktop, debugmem->stackval, STACKMAX));
-        tprp_buff = tpr_buff = alloc_lbuf("do_list");
-        for( i = 0; i < debugmem->stacktop; i++ ) {
-           tprp_buff = tpr_buff;
-           notify(player, safe_tprintf(tpr_buff, &tprp_buff, "stackframe %d = file %s, line %d", i, 
-                  aDebugFilenameArray[debugmem->callstack[i].filenum],
-                  debugmem->callstack[i].linenum));
-        }
-        free_lbuf(tpr_buff);
-        notify(player, unsafe_tprintf("Last db fetch was for #%d", debugmem->lastdbfetch));
+           notify(player, unsafe_tprintf("Debug stack depth = %d [highest %d/%d]", debugmem->stacktop, debugmem->stackval, STACKMAX));
+           tprp_buff = tpr_buff = alloc_lbuf("do_list");
+           for( i = 0; i < debugmem->stacktop; i++ ) {
+              tprp_buff = tpr_buff;
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "stackframe %d = file %s, line %d", i, 
+                     aDebugFilenameArray[debugmem->callstack[i].filenum],
+                     debugmem->callstack[i].linenum));
+           }
+           free_lbuf(tpr_buff);
+           notify(player, unsafe_tprintf("Last db fetch was for #%d", debugmem->lastdbfetch));
 #else
-        notify(player, "Debug stack is currently disabled.");
+           notify(player, "Debug stack is currently disabled.");
 #endif
-        break;
-    case LIST_LOGCOMMANDS:
-        list_logcommands(player);
-        break;
-    case LIST_FUNPERMS:
-        list_functionperms(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-        break;
-    default: 
-	display_nametab(player, list_names,
-			(char *) "Unknown option.  Use one of:", 1);
+           break;
+       case LIST_LOGCOMMANDS:
+           list_logcommands(player);
+           break;
+       case LIST_FUNPERMS:
+           list_functionperms(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
+           break;
+       default: 
+	   display_nametab(player, list_names,
+			   (char *) "Unknown option.  Use one of:", 1);
     }
     free_lbuf(save_buff);
     DPOP; /* #57 */

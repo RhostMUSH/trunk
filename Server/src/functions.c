@@ -6482,6 +6482,7 @@ FUNCTION(fun_valid)
      }
      ival(buff, bufcx, i_tag);
   } else if (!stricmp(fargs[0], "locktype")) {
+     /* fargs[1] checked against null/empty above */
      i_tag = search_nametab(player, lock_sw, fargs[1]);
      ival(buff, bufcx, ((i_tag > 0) ? 1 : 0));
   } else if (!stricmp(fargs[0], "lockkey")) {
@@ -14248,7 +14249,11 @@ FUNCTION(fun_zfuneval)
 
     i_extra = 0;
     if (mudstate.evalnum < MAXEVLEVEL) {
-       tlev = search_nametab(player, evaltab_sw, lbuf);
+       if ( lbuf && *lbuf ) {
+          tlev = search_nametab(player, evaltab_sw, lbuf);
+       } else {
+          tlev = -1;
+       }
        free_lbuf(lbuf);
        if ( tlev == 6 ) {
           tlev = -1;
@@ -14314,7 +14319,11 @@ FUNCTION(fun_streval)
 
     result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
     if (mudstate.evalnum < MAXEVLEVEL) {
-       tlev = search_nametab(player, evaltab_sw, result);
+       if ( result && *result ) {
+          tlev = search_nametab(player, evaltab_sw, result);
+       } else {
+          tlev = -1;
+       }
        if (God(player)) {
            if (tlev > 5)
               tlev = -1;
@@ -14447,7 +14456,11 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
     i_extra = 0;
     if (mudstate.evalnum < MAXEVLEVEL) {
-       tlev = search_nametab(player, evaltab_sw, lbuf);
+       if ( lbuf && *lbuf ) {
+          tlev = search_nametab(player, evaltab_sw, lbuf);
+       } else {
+          tlev = -1;
+       }
        free_lbuf(lbuf);
        if ( tlev == 6 ) {
           tlev = -1;
@@ -25241,7 +25254,11 @@ FUNCTION(fun_lock)
            return;
         }
         if (parse_thing_slash(player, fargs[0], &str, &it)) {
-           anum = search_nametab(player, lock_sw, str);
+           if ( str && *str ) {
+              anum = search_nametab(player, lock_sw, str);
+           } else {
+              anum = -1;
+           }
         } else if ( str == NULL && !Good_obj(it) ) {
            anum = A_LOCK;
            it = lookup_player(player, fargs[0], 0);

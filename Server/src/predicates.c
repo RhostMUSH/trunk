@@ -1940,7 +1940,11 @@ int	anum;
 
 		/* <obj>/<lock> syntax, use the named lock */
 
-		anum = search_nametab(player, lock_sw, str);
+                if ( str && *str ) {
+		   anum = search_nametab(player, lock_sw, str);
+                } else {
+                   anum = -1;
+                }
 		if (anum == -1) {
 			free_lbuf(tbuf);
 			safe_str("#-1 LOCK NOT FOUND", errmsg, errmsgcx);

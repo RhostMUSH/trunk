@@ -71,7 +71,11 @@ do_list_file(dbref player, dbref cause, int extra, char *arg)
 {
     int flagvalue;
 
-    flagvalue = search_nametab(player, list_files, arg);
+    if ( arg && *arg ) {
+       flagvalue = search_nametab(player, list_files, arg);
+    } else {
+       flagvalue = -1;
+    }
     if (flagvalue < 0) {
 	display_nametab(player, list_files,
 			(char *) "Unknown file.  Use one of:", 1);

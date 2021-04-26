@@ -2196,22 +2196,31 @@ NAMETAB enable_names[] = {
 
 void do_global (dbref player, dbref cause, int key, char *flag)
 {
-int	flagvalue;
+   int flagvalue;
 
-	/* Set or clear the indicated flag */
+   /* Set or clear the indicated flag */
 
-	flagvalue = search_nametab(player, enable_names, flag);
-	if (flagvalue == -1) {
-		notify_quiet(player, "I don't know about that flag.");
-	} else if (key == GLOB_ENABLE) {
-		mudconf.control_flags |= flagvalue;
-		if (!Quiet(player)) notify_quiet(player, "Enabled.");
-	} else if (key == GLOB_DISABLE) {
-		mudconf.control_flags &= ~flagvalue;
-		if (!Quiet(player)) notify_quiet(player, "Disabled.");
-	} else {
-		notify_quiet(player, "Illegal combination of switches.");
-	}
+   if ( flag && *flag ) {
+      flagvalue = search_nametab(player, enable_names, flag);
+   } else {
+      flagvalue = -1;
+   }
+
+   if (flagvalue == -1) {
+      notify_quiet(player, "I don't know about that flag.");
+   } else if (key == GLOB_ENABLE) {
+      mudconf.control_flags |= flagvalue;
+      if (!Quiet(player)) { 
+         notify_quiet(player, "Enabled.");
+      }
+   } else if (key == GLOB_DISABLE) {
+      mudconf.control_flags &= ~flagvalue;
+      if (!Quiet(player)) {
+         notify_quiet(player, "Disabled.");
+      }
+   } else {
+      notify_quiet(player, "Illegal combination of switches.");
+   }
 }
 
 void convtonorm(dbref who, int addval)

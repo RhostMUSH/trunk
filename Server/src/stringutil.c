@@ -79,7 +79,11 @@ void attr_generic(char *str, char *flags)
          i_not = 0;
          if ( *s_strtok == '!' ) {
             i_not = 1;
-            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+            if ( *(s_strtok+1) ) {
+               i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+            } else {
+               i_flag = -1;
+            }
          } else {
             i_flag = search_nametab(GOD, attraccess_nametab, s_strtok);
          }

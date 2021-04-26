@@ -33838,3 +33838,5 @@
   ------------
  * NO_ENH #ifdef has not been used for 27+ years but left for compatibility.
    This option is now documented in help so people ae not clueless [ASH] 
+ * cleanup of non-critical bug in search_nametab with lazilly written code 
+   that did not properly handle empty values [ASH]
