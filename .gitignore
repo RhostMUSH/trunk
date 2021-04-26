@@ -19,6 +19,9 @@ netrhost
 netrhost.debugmon
 /Server/bin/a.out
 /Server/bin/asksource.save*
+/Server/bin/dbconvert
+/Server/bin/mkhtml
+/Server/bin/mkindx
 /Server/bin/murboot
 /Server/bin/netrhost*
 /Server/bin/timeout
