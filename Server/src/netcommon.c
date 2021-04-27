@@ -99,6 +99,7 @@ void FDECL(dump_rusers, (DESC * call_by));
 
 #endif
 
+/* These functions only strip RAW ansi.  Leave this as it is or shit breaks */
 extern char *
 strip_ansi2(const char *raw)
 {
@@ -122,6 +123,7 @@ strip_ansi2(const char *raw)
     RETURN(buf); /* #98 */
 }
 
+/* These functions only strip RAW ansi.  Leave this as it is or shit breaks */
 extern char *
 strip_ansi(const char *raw)
 {
@@ -145,6 +147,7 @@ strip_ansi(const char *raw)
     RETURN(buf); /* #98 */
 }
 
+/* These functions only strip RAW ansi.  Leave this as it is or shit breaks */
 #ifdef ZENTY_ANSI
 extern char *
 strip_safe_accents(const char *raw)

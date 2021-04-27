@@ -3561,110 +3561,139 @@ void
 do_entrances(dbref player, dbref cause, int key, char *name)
 {
     dbref thing, i, j;
-    char *exit, *message, *tpr_buff, *tprp_buff;
-    int control_thing, count, low_bound, high_bound;
+    char *exit, *tbuff, *s_target, *message, *tpr_buff, *tprp_buff;
+    int control_thing, count, low_bound, high_bound,
+        i_exit, i_room, i_thing, i_player, i_parent, i_forward, i_chk, i_numzones;
     FWDLIST *fp;
+    ZLISTNODE *zp;
 
     parse_range(&name, &low_bound, &high_bound);
     if (!name || !*name) {
-	if (Has_location(player))
-	    thing = Location(player);
-	else
-	    thing = player;
-	if (!Good_obj(thing))
-	    return;
+       if (Has_location(player))
+          thing = Location(player);
+       else
+          thing = player;
+       if (!Good_obj(thing))
+          return;
     } else {
-	init_match(player, name, NOTYPE);
-	match_everything(MAT_EXIT_PARENTS);
-	thing = noisy_match_result();
-	if (!Good_obj(thing))
-	    return;
+       init_match(player, name, NOTYPE);
+       match_everything(MAT_EXIT_PARENTS);
+       thing = noisy_match_result();
+       if (!Good_obj(thing))
+          return;
     }
 
     if (!payfor(player, mudconf.searchcost)) {
-	notify(player,
-	       unsafe_tprintf("You don't have enough %s.",
-		       mudconf.many_coins));
-	return;
+       notify(player, unsafe_tprintf("You don't have enough %s.", mudconf.many_coins));
+       return;
     }
     message = alloc_lbuf("do_entrances");
     control_thing = Examinable(player, thing);
     count = 0;
     tprp_buff = tpr_buff = alloc_lbuf("do_entrances");
+    
+    s_target = unparse_object(player, thing, 0); 
+    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@entrances: %s", s_target));
+    free_lbuf(s_target);
+
+    i_numzones = i_exit = i_room = i_thing = i_player = i_parent = i_forward = i_chk = 0;
+
     for (i = low_bound; i <= high_bound; i++) {
-	if (control_thing || Examinable(player, i)) {
-	    switch (Typeof(i)) {
-	    case TYPE_EXIT:
-		if (Location(i) == thing) {
-		    exit = unparse_object(player,
-					  Exits(i), 0);
-                    tprp_buff = tpr_buff;
-		    notify(player,
-			   safe_tprintf(tpr_buff, &tprp_buff, "%s (%s)", exit, Name(i)));
-		    free_lbuf(exit);
-		    count++;
+       if (control_thing || Examinable(player, i)) {
+          switch (Typeof(i)) {
+             case TYPE_EXIT:
+                if (Location(i) == thing) {
+                   exit = unparse_object(player, Exits(i), 0);
+                   tbuff = unparse_object(player, i, 0);
+                   tprp_buff = tpr_buff;
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   %s -> %s", exit, tbuff));
+                   free_lbuf(exit);
+                   free_lbuf(tbuff);
+                   count++;
+                   i_exit++;
+                }
+                break;
+             case TYPE_ROOM:
+                if (Dropto(i) == thing) {
+                   exit = unparse_object(player, i, 0);
+                   tprp_buff = tpr_buff;
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   %s -> [dropto]", exit));
+                   free_lbuf(exit);
+                   count++;
+                   i_room++;
+                }
+                break;
+             case TYPE_THING:
+                 i_chk = 1;
+             case TYPE_PLAYER:
+                if (Home(i) == thing) {
+                   exit = unparse_object(player, i, 0);
+                   tprp_buff = tpr_buff;
+                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   %s -> [home]", exit));
+                   free_lbuf(exit);
+                   count++;
+                   if ( i_chk ) 
+                      i_thing++;
+                   else
+                      i_player++;
 		}
-		break;
-	    case TYPE_ROOM:
-		if (Dropto(i) == thing) {
-		    exit = unparse_object(player, i, 0);
-                    tprp_buff = tpr_buff;
-		    notify(player,
-			   safe_tprintf(tpr_buff, &tprp_buff, "%s [dropto]", exit));
-		    free_lbuf(exit);
-		    count++;
-		}
-		break;
-	    case TYPE_THING:
-	    case TYPE_PLAYER:
-		if (Home(i) == thing) {
-		    exit = unparse_object(player, i, 0);
-                    tprp_buff = tpr_buff;
-		    notify(player,
-			   safe_tprintf(tpr_buff, &tprp_buff, "%s [home]", exit));
-		    free_lbuf(exit);
-		    count++;
-		}
-		break;
-	    }
+                i_chk = 0;
+                break;
+          }
 
-	    /* Check for parents */
+          /* Check for parents */
+          if (Parent(i) == thing) {
+             exit = unparse_object(player, i, 0);
+             tprp_buff = tpr_buff;
+             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   %s -> [parent]", exit));
+             free_lbuf(exit);
+             count++;
+             i_parent++;
+          }
 
-	    if (Parent(i) == thing) {
-		exit = unparse_object(player, i, 0);
+          /* Check for forwarding */
+          if (H_Fwdlist(i)) {
+             fp = fwdlist_get(i);
+             if (!fp)
+                continue;
+             for (j = 0; j < fp->count; j++) {
+                if (fp->data[j] != thing)
+                   continue;
+                exit = unparse_object(player, i, 0);
                 tprp_buff = tpr_buff;
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "%s [parent]", exit));
-		free_lbuf(exit);
-		count++;
-	    }
-	    /* Check for forwarding */
+                notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   %s -> [forward]", exit));
+                free_lbuf(exit);
+                count++;
+                i_forward++;
+             }
+          }
 
-	    if (H_Fwdlist(i)) {
-		fp = fwdlist_get(i);
-		if (!fp)
-		    continue;
-		for (j = 0; j < fp->count; j++) {
-		    if (fp->data[j] != thing)
-			continue;
-		    exit = unparse_object(player, i, 0);
-                    tprp_buff = tpr_buff;
-		    notify(player,
-			   safe_tprintf(tpr_buff, &tprp_buff, "%s [forward]", exit));
-		    free_lbuf(exit);
-		    count++;
-		}
-	    }
-	}
+       }
+    }
+    /* Just count zones, as zones can be spammy as hell */
+    if (control_thing) {
+       if( !db[thing].zonelist ) {
+          i_numzones=0; 
+       } else {
+          for( zp = db[thing].zonelist; zp; zp = zp->next )
+             i_numzones++;
+       }
     }
     free_lbuf(tpr_buff);
     free_lbuf(message);
-    notify(player, unsafe_tprintf("%d entrance%s found.", count,
-			   (count == 1) ? "" : "s"));
+    if ( i_numzones > 0 ) {
+       if ( ZoneMaster(thing) ) {
+          notify(player, unsafe_tprintf("   Zones: Total zones linked to zonemaster: %d", i_numzones));
+       } else {
+          notify(player, unsafe_tprintf("   Zones: Total zone masters linked to target: %d", i_numzones));
+       }
+    }
+    notify(player, unsafe_tprintf("Completed: %d entrance%s found [T:%d, P:%d, R:%d, E:%d, p:%d, F:%d].", 
+                   count, ((count == 1) ? "" : "s"), i_thing, i_player, i_room, i_exit, i_parent, i_forward));
+    notify(player, "key: T(hing), P(layer), R(oom), E(xit), p(arent), F(orward)");
 }
 
 /* check the current location for bugs */
-
 static void 
 sweep_check(dbref player, dbref what, int key, int is_loc)
 {

@@ -3912,21 +3912,32 @@
   
 & @entrances
   Command: @entrances [[<object>][,<low>[,<high>]]]
- 
+   
   Lists links from elsewhere to the specified object (default: your current
   room).  For rooms, exits and drop-to's, leading to the room and players
   and objects whose home is in the room are listed.  For players and objects,
   lists exits leading to them.  Because this command is computationally
   expensive, it costs 200 coins.  <low> and <high> can be used to indicate
   where to start and stop the search, respectively.
- 
+  
+  You'll see the following breakdowns:
+    Exits   -- List location linked and exit linking it to target
+    Things  -- List targets that have home linked to location
+    Players -- List targets that have home linked to location
+    Rooms   -- List dropto destinations from current target   
+    Parents -- List children of the target
+    Forward -- List all objects @forwarding to the target
+  
+  This will also count the total zonemasters a target has or if the target
+  is a zonemaster the total zones that the zonemaster has.
+   
   Examples:
     > @entrances             <- all links to here
     > @entrances object      <- all links to object
     > @entrances ,100,200    <- all links to here from #100 to #200
     > @entrances me,1000     <- all links to me from #1000 and above.
   
-  See Also: @link, @unlink
+  See Also: @link, @unlink, entrances()
   
 & @femit
   Command: @femit[/<switches>] <object>=<message>
@@ -33839,6 +33850,7 @@
   * @include/nobreak changed to @include/ibreak to properly identify it [ASH]
   * @include/break (introduced this version) renamed to @include/nobreak [ASH]
   * rset() now mirrors set() with arguments [ASH]
+  * @entrances improved to show more details in better organization [ASH]
   
   Bug Fixes
   ------------
