@@ -58,11 +58,11 @@
   
   These commands are only useful on the connect screen.  They are used to
   create/connect to your account <name> with the provided <password>.  
-  These commands are not useable once you are connected to the mush.
+  These commands are not usable once you are connected to the mush.
   
   These commands are as follows:
      co  -- This option is the default and normal method to connect.
-            This option has no special conditions or privilages.
+            This option has no special conditions or privileges.
             Syntax: co player password
                     co "Player With Spaces" password
   
@@ -206,7 +206,7 @@
   
   To have a target dbref# enabled for API processing, please alert a staff
   on your game as it requires staff approval and authentication to enable
-  the dbref# to be useable for the API sub engine.
+  the dbref# to be usable for the API sub engine.
   
 { see 'help api return' for expected return codes }
 
@@ -215,7 +215,7 @@
 
   When the mush responds to your API requests, it will do so with headers
   only.  There is no data submitted.  If there is header data it does not
-  recognize or is malformed, it will return an appropiate error message.
+  recognize or is malformed, it will return an appropriate error message.
 
   The following return encoding can be expected
   POST:
@@ -387,7 +387,7 @@
   the attribute (which we will be calling ATTRIBUTE), the target that
   you will set the attribute on (which we will be calling TARGET), and
   the contents you wish to set to this (which we will be calling CONTENT).
-  The attribute can be most characters (primarilly alpha-numeric) that is
+  The attribute can be most characters (primarily alpha-numeric) that is
   under an SBUF in size.  This is by default 32 bytes, but can be extended 
   to 64 bytes.  
   
@@ -486,7 +486,7 @@
   The command 'foo' has two arguments.  argument 0 (%0) will be before the
   '=' and argument 1 (%1) will be after the '='.  You may pass this multiple
   words.  You can use '*' or '?' for wildcards.  You may also use regular
-  expressions if you feel adventerous, but that is for advanced coding.
+  expressions if you feel adventurous, but that is for advanced coding.
   
   See 'help wildcard' to see more on normal wildcarding.
   See 'help regexp' to see more on regular expressions.
@@ -514,7 +514,7 @@
   queue.  The command '@switch' pushes the contents on the queue.  However,
   the contents of @switch is, itself, a command and the @switch command
   then queues and executes its own arguments.  This requires a SECOND call
-  to the queue.  Remember, the queue is processed linearilly and in order.
+  to the queue.  Remember, the queue is processed linearly and in order.
   
   So to wrap up, the first order of queue would be:
   -> think, think, @switch, think
@@ -527,7 +527,7 @@
   
   To see commands please type:  @list commands.  'help' available on each.
   
-  A 'command' is defined as a call to a process that essentailly forks its
+  A 'command' is defined as a call to a process that essentially forks its
   own sandbox for running its pre-defined execution.  Examples of commands
   are 'think', '@emit', '@pemit', 'page', 'say', 'pose', and so forth.  
   Commands should not be confused with functions, since a segment MUST
@@ -628,7 +628,7 @@
   
   Wildcards are the standard globbing mechanism for the mush engine.  With the
   wildcards, the '*' character is considered 0 or more characters and the '?'
-  character is considered a single character.  These are used primarilly in
+  character is considered a single character.  These are used primarily in
   commands and functions that allow mulit-matching based on wild card support.
   
   Example:
@@ -660,7 +660,7 @@
     > test3 abc
     Your Third Test:abc  [notice no space between ':' and 'a']
     
-  { See 'help wildcards2' for clarification and extended explainations }
+  { See 'help wildcards2' for clarification and extended explanations }
  
 & WILDCARDS2
   Clarification:
@@ -769,7 +769,7 @@
   SQLITE:  
   This is a 'lite' form of SQL.  It has a good solid base, but doesn't offer
   some of the more advanced features that MySQL/MariaDB has.  The hosting
-  server must have a workign SQLITE library to successfully link to and use
+  server must have a working SQLITE library to successfully link to and use
   this database offering.
   
   MySQL/MariaDB:
@@ -833,7 +833,7 @@
 & BANGS NOTATION
 & BANG NOTATION
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
-  'not-not' functionality.  This works similiarilly to the C equivelant of
+  'not-not' functionality.  This works similarly to the C equivalent of
   using 'bangs'.  A value of '1' means the condition was matched, '0' not.
   The following formats are available with BANG support ([] is return value):
     !   - 'not' BOOLEAN/MATH value.         Example:   !match(me,you)   [1]
@@ -885,7 +885,7 @@
   See Also: @exitto, variable toggle
   
 & REALITY LEVELS
-  RhostMUSH supports reality levels.  To see if the rhostmush you are on has
+  RhostMUSH supports reality levels.  To see if the RhostMUSH you are on has
   them currently enabled, please check @list options.  Reality levels are
   useful for multiple views for permissions.   This is exceptionally handy
   when dealing with role play environments where various races, guilds, or
@@ -896,7 +896,7 @@
   RhostMUSH supports side-effect functions.  This has to be enabled by
   the site owner before they can be used.  In addition, due to the many
   security issues that arise from using side-effects, before the 
-  function is accessable, it must be set SIDEFX.
+  function is accessible, it must be set SIDEFX.
   
   Please check @list options to see if side effects are enabled and
   what side effects are enabled of the list.  list(), being relatively
@@ -938,8 +938,8 @@
   toggled WIELDED (by a wizard) and items that are worn will have to
   be toggled WORN (by a wizard).  Sorry, there are no 'wield' or 'wear'
   commands to wield weapons or wear equipment.  It was felt this would
-  be too limiting for various enviornments so look to see if there
-  exists a specialized +wear or +wield on the mush you are on or talk
+  be too limiting for various environments so look to see if there
+  exists a specialised +wear or +wield on the mush you are on or talk
   to a local staff about this feature.
   
 & ALTNAMES
@@ -958,7 +958,7 @@
   
 & SENSES
   Senses are the five senses that a human has (keeping 6th sense or other
-  perceptuary abilities out of the loop).  These senses are re-enacted with
+  perceptual abilities out of the loop).  These senses are re-enacted with
   the five following commands.
         LOOK   - allows you to view things (mush standard)
                  @desc     - what enactor sees.
@@ -1138,7 +1138,7 @@
   For a list of actual changes, see 'help revis'.
   
   RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
-  Though the current code runs a MUSH compatible kernal, we still use
+  Though the current code runs a MUSH compatible kernel, we still use
   the exact same database from that period.  You will find RhostMUSH
   is nothing like a MUD, MUSH or a MUSE.  It is a hybrid of many systems.
   The coders for RhostMUSH have put a lot of effort into adding changes 
@@ -1235,8 +1235,8 @@
     n - The attribute will not evaluate %0-%9 ($commands only)
     s - The attribute can not be removed/wiped.
     u - The attribute is set up to handle attribute-based uselocks.
-    M - The attribute is dark/inaccessable to anyone below wizard.
-    p - The attribute is INVISIBLE but accessable to anyone below wizard.
+    M - The attribute is dark/inaccessible to anyone below wizard.
+    p - The attribute is INVISIBLE but accessible to anyone below wizard.
     G - The attribute is modifiable by #1 only.
     i - The attribute is modifiable by Immortal or higher only.
     W - The attribute is modifiable by Wizard (Royalty) or higher only.
@@ -1266,8 +1266,8 @@
     n - The attribute will not evaluate %0-%9 ($commands only)
     s - The attribute can not be removed/wiped.
     u - The attribute is set up to handle attribute-based uselocks.
-    M - The attribute is dark/inaccessable to anyone below wizard.
-    p - The attribute is INVISIBLE but accessable to anyone below wizard.
+    M - The attribute is dark/inaccessible to anyone below wizard.
+    p - The attribute is INVISIBLE but accessible to anyone below wizard.
     G - The attribute is modifiable by #1 only.
     i - The attribute is modifiable by Immortal or higher only.
     W - The attribute is modifiable by Wizard (Royalty) or higher only.
@@ -1437,7 +1437,7 @@
 { 'help @program3' for more }
   
 & @program3
-  There are extra things you may do with @program that is not avalable
+  There are extra things you may do with @program that is not available
   anywhere else.  
   
   First, @program can be done across @reboots, @shutdowns, QUIT, LOGOUT,
@@ -2346,7 +2346,7 @@
   
   For revision history, type: help news changes
   
-  See Also: news changes, news descripition
+  See Also: news changes, news description
   
 & news changes
   Topics: CHANGES
@@ -2364,7 +2364,7 @@
   
   This will allow you to mail the news posting from a given
   group to one or more players.  The group and sequence # must both be valid,
-  and accessable by you. You may specify an optional subject line and a
+  and accessible by you. You may specify an optional subject line and a
   text message comment regarding the posting.
   
   The address list follows the same format as that described in 
@@ -2450,7 +2450,7 @@
           is a non-null string.  This stops evaluation on first non-null
           <eval>.
     6  -- Issues a strallof().  Essentially returns every <eval> that is
-          a non-null string.  This evaluates everyu argument.
+          a non-null string.  This evaluates every argument.
     7  -- This is the reverse of '5'.  It essentially will either return
           a null or the default value.
     8  -- This is the reverse of '6'.  It essentially will return
@@ -2583,7 +2583,7 @@
   
   %0 - will be set to the page message (not including :, ; or ").
   %1 - will be set to ':' ';' or '"' for pose, semipose and normal page, 
-       reespectively.
+       respectively.
   %2 - will be set to the alias of the pager, if any.
   %3 - will be a space-separated list of recipient dbrefs.
   %4 - will be set to the default message (based on pageformat/outpageformat).
@@ -3270,11 +3270,11 @@
   The @cluster command is used to 'cluster' or link together a set of 2 or
   more dbref#'s into a single entity to be used and accessed by a set of
   clustering commands and functions as the aforementioned single entity.
-  This is used to allow more flexability of data storage, better organization
+  This is used to allow more flexibility of data storage, better organization
   and a way to allow better data handling of the database as a whole.
   
   For more help on what @cluster can do, please refer to the following
-  switches available.  Individidual help is available with 
+  switches available.  Individual help is available with 
   'help @cluster <switch>'
   
   Switch      Description                Switch        Description
@@ -3317,7 +3317,7 @@
   
   The wipe switch, with an optional regexp switch addon, will wipe all matching
   attributes from every item in the cluster.  This works exactly like @wipe
-  except is performed on the entirity of the cluster.
+  except is performed on the entirety of the cluster.
   
   Following switches are optionally used with @cluster/wipe:
     /regexp   -- Convert wildcard matching to a regexp pattern.
@@ -3332,7 +3332,7 @@
     > @cluster/wipe/owner Corum/#1234/va*
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
   
-  See Also: clusters, cluster functinos, cluster commands, >
+  See Also: clusters, cluster functions, cluster commands, >
 
 & @cluster new
   Command: @cluster/new <object>
@@ -3340,7 +3340,7 @@
   The new switch, takes the specified object and assigns it as a cluster 
   object.  Once defined as a cluster, new objects may be /added to the cluster
   or /deleted to the cluster.  A cluster should never become corrupted, but if
-  there is some inconsistancy, you may /repair it without worry of data loss.
+  there is some inconsistency, you may /repair it without worry of data loss.
   
   Example:
     > @cluster/new existing-cluster
@@ -3773,7 +3773,7 @@
   or similar will not be able to process the %d0-%d9.  Sorry for the 
   limitation.
 
-{ help @dolist2 for examples and availale switches }
+{ help @dolist2 for examples and available switches }
   
 & @dolist2 
   Command: @dolist[/<switch>] [<delimiter>] <list>=<action>  
@@ -4075,7 +4075,7 @@
     /grep    - Sets (or wipes) grep patterning
     /ruler   - works like ruler()
   
-  For further explaination of label tracing:  help %_ 
+  For further explanation of label tracing:  help %_ 
   For the complete list of variables used:    help %_var
   
   { see 'help @label2' to show syntax and detailing labels of switches }
@@ -4182,12 +4182,12 @@
   
   --: help %_      -- This will give you the total overview of how the label
                       debugging engine works and what it is doing under
-                      the hood.  You do not need ot use @label at all to
+                      the hood.  You do not need to use @label at all to
                       make use of this, but @label is intended as an easy
-                      front end to make it less... challanging.
+                      front end to make it less... challenging.
   
   --: help %_var   -- These are the variables that are set when you interface
-                      with the @label comamnd.  You may set these manually
+                      with the @label command.  You may set these manually
                       if you so desire.
   
   --: help @label  -- The main front-end engine for the entire label debug
@@ -4215,7 +4215,7 @@
   
   Syntax:  @label/del <label>=<object>/<attr>
              - Remove the specified label (both start and stop points) 
-               from the attribute.  This removes all occurances.
+               from the attribute.  This removes all occurrences.
   
   Syntax:  @label/purge <object>/<attr>
              - Remove all labels (both start and stop points) from the
@@ -4479,7 +4479,7 @@
   Syntax   : @lock/receive <target>=<key>
   
   Players, Objects:
-     This determins who may give things to the target.  If you do not pass
+     This determines who may give things to the target.  If you do not pass
      the lock, you will be unable to give anything to the target.  If the
      lock does not exist, you may give things to it freely.  Players need
      to be ENTER_OK to be given things.
@@ -4493,7 +4493,7 @@
   Syntax   : @lock/parent <target>=<key>
   
   Players, Rooms, Exits, Objects:
-     This lock determins who may parent (@parent) an item to the target.  If
+     This lock determines who may parent (@parent) an item to the target.  If
      you do not pass the lock, you will be unable to parent something to it.
   
 & @lock/pagelock
@@ -4502,7 +4502,7 @@
   Syntax   : @lock/page <target>=<key>
   
   Players:
-     This lock determins who is allowed to page you.  If they do not pass the
+     This lock determines who is allowed to page you.  If they do not pass the
      lock, they will be unable to page you and receive your REJECT message
      (see help on @reject).  If there is no lock, then people can page you
      freely.
@@ -4516,7 +4516,7 @@
   Syntax   : @lock/link <target>=<key>
   
   Objects, Players, Rooms:
-     This lock specifies who may link soemthing TO the location if that
+     This lock specifies who may link something TO the location if that
      location is set LINK_OK.  If that location is set ABODE, then that
      target may also be set as a HOME.  If there is no lock, it will be
      able to be linked to freely.
@@ -4587,7 +4587,7 @@
   Exits:
      Controls who may pass through the exit to it's destination.  If you
      do not pass the lock, you will not be able to go through that exit.
-     An exit with no lock is freely accessable.
+     An exit with no lock is freely accessible.
   
 & @lock locks2
      DropLock:     All:            controls who may drop the object.
@@ -4684,7 +4684,7 @@
   
   Rooms, Objects, Exits, Players:
      This is a dummy lock that has no special purpose inside the MUSH.  This
-     is meant entirilly for a user-preference.  This is to be used if you 
+     is meant entirely for a user-preference.  This is to be used if you 
      have need to set up a lock-mechanism without having to 'block' locks
      on that particular target.
   
@@ -5201,7 +5201,7 @@
   Syntax: @cpattr <attribute>=<object>/<attrib>,...
   
       - This copies the attribute on the ENACTOR to the target.  You can
-        specify multiple targets.  You may usethe /verify switch to enforce
+        specify multiple targets.  You may use the /verify switch to enforce
         attribute validation.
   
   Syntax: @cpattr/clear <args>
@@ -5302,7 +5302,7 @@
   the rooms in question.
   
   Note:  To make variable exits, you @toggle the exit VARIABLE then set
-         an appropiate @exitto on it.
+         an appropriate @exitto on it.
    
   The following switches are available:
      /location  - Create the exit in your location (default).
@@ -5420,7 +5420,7 @@
   If the system uses the newer SHA512 style of passwords, you may have
   a password up to 160 characters in length.
   
-  No white space characters (spaces, tabs, carrage returns, etc) are 
+  No white space characters (spaces, tabs, carriage returns, etc) are 
   allowed in the password.
   
   If secured passwords are enabled, it will enforce a minimum length
@@ -5554,7 +5554,7 @@
   will be automatically disabled and output will return to your screen
   as normal.  If you specify /tee output will occur normally to your screen
   but you will still be notified if the attrib is filled or an error
-  occured while writing output to it.
+  occurred while writing output to it.
   
   If you @toggle yourself NOISY, then every output segment that would show
   up on your screen will notify you that it was piped to the file.  This
@@ -5811,17 +5811,17 @@
   
   With the /list switch, you may specify wildcards for the search pattern. 
   
-  The following sanity checks are performend for tags:
+  The following sanity checks are performed for tags:
   
   * Tagnames cannot be more than 30 characters in length
-  * Tagnames cannot cointain whitespace.
+  * Tagnames cannot contain whitespace.
   * Tags need to be supplied with a valid, existing object's #dbref on
     creation.  This object you must own or control in some manner.
   * Up to 5 tags can reference the same #dbref.  If global tags exceed
     this number, local tags can no longer be assigned.
   * Unicode is valid in tagnames!
   * On destruction of an object, all referencing tags get also removed.
-  * Global tags have precidence over local tags.
+  * Global tags have precedence over local tags.
   
   Examples:
     > think %#
@@ -5849,7 +5849,7 @@
   This function will display or set/unset a <permission> on a lock.  The
   following permissions are available (depending on your permission to set):
     god         -- Only #1 is allowed to set/unset this lock
-    immortal    -- Only immortal or higher is allowed ot set/unset this lock
+    immortal    -- Only immortal or higher is allowed to set/unset this lock
     wizard      -- Only wizard or higher is allowed to set/unset this lock
     councilor   -- Only councilor or higher is allowed to set/unset this lock
     architect   -- Only architect or higher is allowed to set/unset this lock
@@ -5995,11 +5995,11 @@
      /regfirst - Same as /first but use regular expression matching.
      /notify   - This issues a @notify on the object after @switch executes.
      /inline   - process command 'inline' and don't queue it.
-     /clearreg - if inline, clear registers for each arguement
+     /clearreg - if inline, clear registers for each argument
      /localize - if inline, localize registers for each argument
      /nobreak  - if inline, keep breaks localized per argument
   
-  If configured, you may use #$ as a substition.   #$ is substituted with 
+  If configured, you may use #$ as a substitution.   #$ is substituted with 
   the value of <string>. In this way, the commands in <c1>..<cN>..<cD> 
   have a short-hand way of getting at the matched value.  Case does not do
   wildcard matches.
@@ -6116,7 +6116,7 @@
     /slot -- list the number of totems that are assigned to each slot
   
   When setting @totems, you would just specify the totem in question.  When
-  you wish to remove the @totem, you would preceed the @totem flagname with
+  you wish to remove the @totem, you would precede the @totem flagname with
   a '!'.  Such as '@totem me=!totem'.
   
   When you list totems, you will see the flag letter that is assigned it.
@@ -6125,7 +6125,7 @@
    [ ] - a second tier flag character.  The character is between the []'s.
    { } - a third tier flag character.  The character is between the {}'s.
   
-  @totem/list is equivelant to doing '@list totems' 
+  @totem/list is equivalent to doing '@list totems' 
   
   When using @totem/list (or @list totem) you may specify a slot number
   or a wildcard.  The slot number is the slot position for the word
@@ -6283,7 +6283,7 @@
   command charges a deposit of 10 coins, which is refunded when <command>
   is executed.
   
-  You may specify miliseconds instead of whole numbers.
+  You may specify milliseconds instead of whole numbers.
   
 { see 'help @wait2' to continue }
   
@@ -6772,7 +6772,7 @@
   If you wish pose, say, and @wall to ansifi your name, set the VARIABLE
   @toggle on yourself.
   
-  Examlple:  @name object=99 Red Balloons
+  Example:  @name object=99 Red Balloons
              > Name set.
              @extansi object=99 [ansi(hr,Red)] Baboons
              > String entered must match name of target, 99 Red Balloons.
@@ -7063,7 +7063,7 @@
   This attribute sets up a caption that is used when a player is looked at.
   This 'caption' is appended to their name.  You may set a large caption,
   but only the first 40 characters will be used.  If you do not use the
-  ZENTY_ANSI compile time option then ANSI is also stripped.  Carrage 
+  ZENTY_ANSI compile time option then ANSI is also stripped.  Carriage 
   returns will be stripped.
   
   This is only used for players and is ignored for every other data type.
@@ -7194,7 +7194,7 @@
   Command: @door 
   Switches: STATUS, OPEN, CLOSED, LIST, PUSH, KICK
   
-  @door provides control over arbitraty TCP connections that are opened from
+  @door provides control over arbitrary TCP connections that are opened from
   inside the mush to some external program or service.
   
   In order for a door to be available a C-code module must first be loaded by
@@ -7453,7 +7453,7 @@
       code and sent out across the ether, likewise if a message comes back 
       through the door it is parsed and passed on to the correct player(s).
   
-  Expect to see alot more happening in this area soon! :)
+  Expect to see a lot more happening in this area soon! :)
   
   See Also: @door
   
@@ -7821,13 +7821,13 @@
                  Note: this automatically sets the localize option.
     /localize  - localizes the registers for the include duration.
     /ibreak    - disregard @break/@assert inside the includes from outside.
-                 Not useable with /break.
+                 Not usable with /break.
     /target    - Use the target as executor instead of executor of @include
                  Note: You must control target to use this.
     /override  - If any arguments are passed to @include to override the
                  default, this will disable all default arguments.
     /nobreak   - Treat @break/@assert inside an @include as local to
-                 that @include only.  Not useable with /nobreak.
+                 that @include only.  Not usable with /nobreak.
     
   Note: the /ibreak executes the @assert/@breaks but ignores breaking out.
   
@@ -7928,7 +7928,7 @@
   of times.  There's three distinct flavors of the @rollback command that can
   be used.  On most RhostMUSH's, the @rollback/retry will be aliased to @retry
   which for the most part mimic's penn's @retry command.  You may optionally
-  pass 10 arguments to @rollback.  The arguments as well as the <boolean> wil
+  pass 10 arguments to @rollback.  The arguments as well as the <boolean> will
   be re-evaluated on every pass.
   
   NOTE:  All %0-%9 arguments are RESET TO THEIR ORIGINAL VALUES after the end
@@ -7988,7 +7988,7 @@
   this method you specify a <count> of how many arguments you wish to roll
   back to.  If <count> exceeds the total number of commands in the argument
   list, it grabs the all the arguments.  If the value is zero, it ignores
-  the @rollback in the entirity and continues on to the next command.
+  the @rollback in the entirety and continues on to the next command.
    
   You may specify a <repeats> value if you wish to have more than one repeat
   of the subset of previous commands.  The default value for this is one(1).
@@ -8103,7 +8103,7 @@
   
   The third condition is commonly referred to as the @retry option.  This will
   effectively retry the entire code segment prior to the @rollback in the
-  entirity until <boolean> is false(0) or until the maximum rollback threshold
+  entirety until <boolean> is false(0) or until the maximum rollback threshold
   is met, which by default is 1000 retries.  The <boolean> value is evaluated
   for every rollback pass to see if the new condition will be true or false.
   
@@ -8209,7 +8209,7 @@
   You can not nest @jumps.  A value for <amount> that is zero or less than
   zero will assume nothing to be @jump'd and the @jump will be ignored.
   
-  You may specify an optionale valuation to be evaluated for the @jump
+  You may specify an optional valuation to be evaluated for the @jump
   processing.  This is intended to execute commands whenever @jump is
   called.  If a zero or less than zero value is passed, the <evaluation>
   is not triggered.
@@ -8317,7 +8317,7 @@
    
   This command creates a localized function named <function>.  A localized
   function is only seen by the owner of the target and all things owned by
-  that target.  Function existance is checked by the object doing the 
+  that target.  Function existence is checked by the object doing the 
   execution of the code, thereby allowing owners the ability to use their
   own functions in their own code without worry of cross-funtion evaluation.
 
@@ -8598,7 +8598,7 @@
   Attribute: Okill
  
   Sets the message (prefixed by the player's name) that is shown to others in
-  the room when someone kills <object>.  If the message evalautes to null,
+  the room when someone kills <object>.  If the message evaluates to null,
   nothing is displayed.
  
   This attribute is meaningful for players, things, and rooms, and will never
@@ -9480,11 +9480,11 @@
   Flag: SHOWFAILCMD([f])  
   
   This flag, when set on an item, will return the 
-  appropiate @ufail messages (ufail, aufail, oufail), if there is a
+  appropriate @ufail messages (ufail, aufail, oufail), if there is a
   matching $command and the object is uselocked against you.
   
   If the object is set SHOWFAILCMD in addition to STOP, then the
-  error is showed appropiately and all command processing is 
+  error is showed appropriately and all command processing is 
   stopped at that point as well.
   
   See Also: @ufail, @fail
@@ -10135,7 +10135,7 @@
   See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
 & XTERMCOLOR LIST
-             256 Color suport list.  [ansi(fg-value/bg-value,string)]
+             256 Color support list.  [ansi(fg-value/bg-value,string)]
   With %c subs, use the 2 digit HEX value.  The ansi() function can use either.
         %c0x## -- foreground color (i.e. %c0x03%cn) -- ansi(0x03/,string)
         %c0X## -- background color (i.e. %c0X03%cn) -- ansi(/3,string)
@@ -10298,7 +10298,7 @@
   for displaying nested evaluations (such as when evaluating the arguments to
   a function) is a site-selected configuration parameter.
   
-  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
+  You may specify a TRACE_GREP attribute on yourself (&TRACE_GREP me=<string>)
   if you wish to have a specific piece of code in trace output which matches
   the trace output return in red the match.
    
@@ -10330,7 +10330,7 @@
 & NO_SPOOF
   Flag: NO_SPOOF(N)
  
-  This flag gives you mucho output when people @emit.  It can be annoying,
+  This flag gives you much output when people @emit.  It can be annoying,
   but you'll know who's spoofing.
   
   This is aliased to 'NOSPOOF' for compatibility.
@@ -10709,12 +10709,12 @@
   There are caveats of using 'attribute trees' in RhostMUSH.  The largest of
   which, is the fact, that natively RhostMUSH does not support attribute 
   trees.  This is the case because of the binary database and the absolute
-  overhead we would have implimenting a fully featured attribute tree system
+  overhead we would have implementing a fully featured attribute tree system
   that would match (or exceed) what Penn offers.  The second, and larger
   issue is for the large amount of overhead this would cause, there really
   is very little gain out of it other than attribute organization. 
   
-  Every time an attribute tree would be looked up, every conceiveable branch
+  Every time an attribute tree would be looked up, every conceivable branch
   would have to be checked to see if permissions were granted.  While in
   Penn this would be less costly (but likely still costly for all the
   branch checks) in Rhost it would be doubly so.  We have to consider reality
@@ -10948,7 +10948,7 @@
 { 'help credits3' for more }
   
 & credits3
-  Topic: CREDITS (continued - Where RhostMush split off from the rest)
+  Topic: CREDITS (continued - Where RhostMUSH split off from the rest)
   
   - Nyctasia(Rhostshyl, Micro) for bringing the ideas and creating the story
     behind Rhostshyl with your imagination and your MUSH.  Thanks also for the
@@ -10979,7 +10979,7 @@
     of the ideas.
   
   - Thanks also to the numerous people who have offered suggestions and ideas
-    that have helped make RhostMush one of the best servers in existence.
+    that have helped make RhostMUSH one of the best servers in existence.
   
   - Thanks to Seawolf, Thorin, and Ashen-Shugar for rewriting all components
     of the code and redesigning the queue, parser, eval, matching, stack,
@@ -11002,7 +11002,7 @@
   
   - Thanks to Zenty of TDragonD/Omni for permission fixes.
   
-  - Thanks to Stormwolf of Children for numerious ideas
+  - Thanks to Stormwolf of Children for numerous ideas
   
   - Thanks to Medwyn of The Underground for finding some buggies.
   
@@ -11264,18 +11264,18 @@
     VISUAL              - The attribute is visual to anyone.
     NO_INHERIT          - The attribute is not inherited to it's children
     LOCK                - The attribute was @locked.
-  * GUILDMASTER         - The attribute is modifyable by GuildMaster or higher
-  * ARCHITECT           - The attribute is modifyable by Architect or higher
-  * COUNCILOR           - The attribute is modifyable by Councilor or higher
-  * ROYALTY             - The attribute is modifyable by Wizard or higher
-  * IMMORTAL            - The attribute is modifyable by Immortal or higher
-  * GOD                 - The attribute is modifyable only by #1
+  * GUILDMASTER         - The attribute is modifiable by GuildMaster or higher
+  * ARCHITECT           - The attribute is modifiable by Architect or higher
+  * COUNCILOR           - The attribute is modifiable by Councilor or higher
+  * ROYALTY             - The attribute is modifiable by Wizard or higher
+  * IMMORTAL            - The attribute is modifiable by Immortal or higher
+  * GOD                 - The attribute is modifiable only by #1
   * MDARK (HIDDEN)      - The attribute is wizard-hidden.
     PRIVATE             - The attribute is private to the item.
     NO_CLONE            - The attribute is not copied on a @clone
     NO_PARSE            - The attribute does not parse %0-%9 with $commands
     SAFE                - The attribute is safe from modification.
-  * PINVISIBLE          - The attribute is seeable by wizards/modifyable to any
+  * PINVISIBLE          - The attribute is seeable by wizards/modifiable to any
   * DARK                - The attribute is #1 seeable only
   * USELOCK             - The attribute can have an ~attribute uselock
                           (See help on 'attribute uselock' for more info)
@@ -11321,7 +11321,7 @@
   The attribute has been locked.  Locked attributes by default can not be 
   modified.
   
-  Exeptions:  
+  Exceptions:  
   wizards/immortals by default override this limitation on anything they 
   control.
 
@@ -11513,7 +11513,7 @@
 & FUNCTION TYPES
   Topic: FUNCTION TYPES
   
-  The following sub-classes of functions list each catagory of functions
+  The following sub-classes of functions list each category of functions
   with a short description of each function in each given class.
   
   ansi functions                            arithmetic functions
@@ -12308,7 +12308,7 @@
   
   The @label command can be used to integrate labels into attributes.
   
-  The %_ substitution is a special substitution as it allows you to enbed
+  The %_ substitution is a special substitution as it allows you to embed
   breakpoints into code to toggle on and off debugging on the fly dynamically.
   This is handled by the enactors 'TRACE' attribute that houses the marker
   that you specify for the substitutions.  The marker can be any string.
@@ -12351,7 +12351,7 @@
   &TRACE_COLOR_123.  This will fall back on 'TRACE_COLOR' if the by 
   label isn't found.
   
-  You may specify a TRACE_GREP attibute on the enactor 
+  You may specify a TRACE_GREP attribute on the enactor 
   (&TRACE_GREP object=<string>) if you wish to have a specific piece 
   of code in trace output which matches the trace output return in red 
   the match.  If the TRACE_GREP attribute is attribute-set REGEXP, 
@@ -13235,7 +13235,7 @@
     2 - ^listen lock
   
   This is the same value (though encoded) that would be set when you issue
-  a @Lock on something.  This is useful if you wish to enbed lock values
+  a @Lock on something.  This is useful if you wish to embed lock values
   in any string or value that you wish to then decrypt at any given time.
   
   lockcheck() follows the same rules that elock() would return.
@@ -13384,7 +13384,7 @@
   that column for as long as any other column has valid lines.   You can
   have the field width greater than 1 char for multi-char borders.
   
-  You will want to put a '.' for these fields to supress a final line
+  You will want to put a '.' for these fields to suppress a final line
   of carriage returns if the last line is empty.
   
   The following codes are utilized (see 'help printf codelist')
@@ -13472,7 +13472,7 @@
              remains the same for the original columns.
          : - will specify filler characters for what is between the ::'s.
              If the string starts with '!', any blank lines will have a
-             space filler.  You must specify two ':'s for begining/end tags.
+             space filler.  You must specify two ':'s for beginning/end tags.
                examples: :.:  -- fill with a single '.'
                          :!.: -- fill with a single '.' on non-blank lines.
                          :[ansi(hg,.,hb,.)]: -- fill with multi-color.
@@ -13531,7 +13531,7 @@
       printf($|10-"s boo $10s, arg1, arg2)  # padd 10, left just, SP LN wrap
       printf($10:+:s, arg1, arg2)           # padd 10, right just, padd with +
   
-  CR -- Carrage Return, LN - Line, SP - Space
+  CR -- Carriage Return, LN - Line, SP - Space
    
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(),
             template()
@@ -13979,7 +13979,7 @@
   normal sequential order.  A <type> of '2' and a <delim> NULL (empty value)
   will split the string in segments equally based on the number of registers.
   
-  If you specify width <width> of '0' and specify a delimeter <delim>, then it 
+  If you specify width <width> of '0' and specify a delimiter <delim>, then it 
   will ignore width of the values and split the array based on the 
   delimiter <delim> only.
   
@@ -14011,7 +14011,7 @@
  *    <sep>       -- Specify separator you wish for array elements (%r default)
   
   Examples:
-    @@ split linear based on register count with default carrage return sep
+    @@ split linear based on register count with default carriage return sep
     @@ show contents of first register 
     > think array(abcdefghij,2,2)%q0       
     ab
@@ -14023,7 +14023,7 @@
     > think array(abcdefghij,2,2,,,%b)%q0
     ab ef ij
   
-    @@ split linear based on register count with default carrage return sep
+    @@ split linear based on register count with default carriage return sep
     @@ show contents of second register
     > think array(abcdefgh,2,2)%q1
     cd
@@ -14178,7 +14178,7 @@
 & SQLON()
   Function: sqlon()
   
-  This function is essentially just the function equivelant of @sqlconnect.
+  This function is essentially just the function equivalent of @sqlconnect.
   Only wizards+ can use this feature.
   
   Example:
@@ -14191,7 +14191,7 @@
 & SQLOFF()
   Function: sqloff()
   
-  This function is essentially just the function equivelant of @sqlconnect.
+  This function is essentially just the function equivalent of @sqlconnect.
   Only wizards+ can use this feature.
   
   Example:
@@ -15211,7 +15211,7 @@
   The remit() side-effect function is used to emit the given <string> to every
   location specified in the <list of locations>.
   
-  This works similarilly to @pemit/list/contents.  By default ## is substitute
+  This works similarly to @pemit/list/contents.  By default ## is substitute
   for every <location> in the list.  This evaluates by default for every 
   location in the list.
   
@@ -15266,7 +15266,7 @@
 & STRCAT()
   Function: strcat(<string>[,<string2>,...,<stringx>])
   
-  Returns the strings concatinated with no spaces between them.
+  Returns the strings concatenated with no spaces between them.
   
   Example:
     > say strcat(this,is,a,test)
@@ -15375,7 +15375,7 @@
     > charin(me)
     You say "4328"
  
-  This is generally only accessable by wizards.
+  This is generally only accessible by wizards.
   
 & CHKREALITY()
   Function: chkreality(<victim>,<target>)
@@ -15619,7 +15619,7 @@
     > say charout(me,1)
     You say "10:12000 11:959"  
    
-  This is generally only accessable to wizards.
+  This is generally only accessible to wizards.
   
 & CMDS()
   Function: cmds(<player>[,<type> [,<port>]])
@@ -15637,7 +15637,7 @@
   If the type is '1' and the player is not connected, it returns the default
   behavior.
   
-  Note: Only wizards may retreive command info on other players.
+  Note: Only wizards may retrieve command info on other players.
   
   Examples:
     > say cmds(me)
@@ -15745,7 +15745,7 @@
     > say safebuff(aaa aa aaaa,,8)
     You say "aaa aa"
   
-  In the above examples, the '...' would be the huge ammount of output.
+  In the above examples, the '...' would be the huge amount of output.
   
   See Also: lit(), s(), t(), printf(), ljc(), rjc()
   
@@ -15970,7 +15970,7 @@
 & elist()
   Function: elist(<str>[,<phrase>[,<delim>[,<sep>[,<punctuation>[,<munge>]]]]])
   
-  The elist function is used to return a list of words into an english
+  The elist function is used to return a list of words into an English
   recognizable format.  You may specify an output delimiter to use if
   you wish but it makes the format rather unique.  You may specify a separate
   punctuation instead of the default comma (,).  The punctuation may be
@@ -16012,7 +16012,7 @@
   upon.  Default is length of string2.
   
   The second option only allows three arguments, and will replace the 
-  character positions specfied in the space delimited <position list>
+  character positions specified in the space delimited <position list>
   with the character(s) specified with <character>.  If you specify more
   than one character, it will continue to wrap around the list until
   the end of the string is met.
@@ -16398,7 +16398,7 @@
       2 - show the attributes in a dbref#/attribute pattern.
   
   By default, grep assumes the pattern is always wildcarded.  You may specify
-  the key of '1' to disable assumped wildcarding and enforce literal wildcard
+  the key of '1' to disable assumed wildcarding and enforce literal wildcard
   placement.
     
   Examples:
@@ -16743,7 +16743,7 @@
   This function can be used to selectively turn on trace output for a piece
   of MUSH code. This can help to avoid the often spammy output of trace.
   
-  You may specify a TRACE_GREP attibute on yourself (&TRACE_GREP me=<string>)
+  You may specify a TRACE_GREP attribute on yourself (&TRACE_GREP me=<string>)
   if you wish to have a specific piece of code in trace output which matches
   the trace output return in red the match.
    
@@ -16817,7 +16817,7 @@
   Function: subnetmatch(<ip>,<netstart>,<netmask>)
             subnetmatch(<ip>,<netstart>/<CIDR>)
   
-  This function allows you to check wether an IP falls into a certain subnet
+  This function allows you to check whether an IP falls into a certain subnet
   or not. The function allows you to use either a format specifying the
   subnet address and netmask, or the common CIDR format.
   
@@ -16851,7 +16851,7 @@
   Function: extractword(<strng>[,<first>,<len>[,<dlim>],<sep>],<del>],<mod>]]])
   
   Extractword returns a string of <len> length words, starting with the first
-  word.  This works effectively like extract(), however, the deliminiter 
+  word.  This works effectively like extract(), however, the delimiter 
   <dlim> and separator <sep> can be multi-character.  In addition, the
   separator may also contain ansi or special characters.
   
@@ -16867,7 +16867,7 @@
   last element, -2 to the previous to last element, and so forth.
   
   If you specify the <del> toggle to '1' it assumes delextract() compatibility
-  where the words choosen are all the words EXCEPT the range specified.
+  where the words chosen are all the words EXCEPT the range specified.
   
   If you specify the <mod> toggle to '1' it will apply a modulo to the <first>
   argument against the total words in <strng> and wrap-around the value
@@ -17089,7 +17089,7 @@
   
   If the <type> is specified to 1, it will reset the vattr count on
   the attribute.  This should never become out of sync with the true
-  count on the object.  If there is a discrepency, it usually points
+  count on the object.  If there is a discrepancy, it usually points
   to larger problems that should be brought to the attention of the
   developers.  This could be caused from improper database writes
   to disk, quota/disk limitations, or possible db corruption.
@@ -17618,7 +17618,7 @@
    
   Takes two or more booleans, and returns 1 if at least one is equivalent
   to true(1).  This works like or() however execution is stopped after the
-  FIRST true occurance.
+  FIRST true occurrence.
   
   Example: 
     > say [cor(0[setq(0,test)],1,1[setq(1,test2)] - [r(0)] / [r(1)]
@@ -18041,10 +18041,10 @@
   to the next line, overriding the logic of the word wrapping. 
   
   <jst> may be any of the following.  You can just use the first character.
-     left      - all text is wrapped to the left margen
-     right     - all text is wrapped to the right margen
+     left      - all text is wrapped to the left margin
+     right     - all text is wrapped to the right margin
      center    - all text is wrapped to the center
-     justified - all text is 'stretched' from the left to right margen.
+     justified - all text is 'stretched' from the left to right margin.
                  This has a newspaper like effect.
      ignore    - all text is wrapped but padding is ignored.  This is useful
                  to pass into other functions such as printf().
@@ -18431,8 +18431,8 @@
   number of seconds returned by the conn() function.
   
   SPEC   DESC                           RANGE     NOTE
-  'm'    Elapsed Millenium              0..????
-  'U'    Elapsed Century in Millenium   0..9
+  'm'    Elapsed Millennium             0..????
+  'U'    Elapsed Century in Millennium  0..9
   'u'    Elapsed years in Century       0..99
   'Z'    Elapsed years                  0..????   Uses 365 day years
   'E'    Elapsed months in year         0..12     Uses 31 day months/365 days
@@ -18452,7 +18452,7 @@
   
 & TIMEFMT SYNTAX
      The timefmt format string can contain two types of data. First it can
-  contain literal text which is mearly copied to the function's output.
+  contain literal text which is merely copied to the function's output.
   Second it can contain format sequences. Every format sequence in the
   format string describes a field to be filled in by the timefmt function.
   Fields are by default variable width and right justified.
@@ -18573,14 +18573,14 @@
   d    Days in weeks     0 - 6         I    Seconds offset from GMT time
   w    Weeks in month    0 - 4         z    Returns '1' if daylight savings
   u    Years in century  0 - 99        i    Returns the timezone abbreviation
-  U    Century in Mill   0 - 9         N    Returns the longname of timezone
-  m    Elapsed Millenium 0 - ????      n    Return the shortname of timezone
+  U    Century in Mill.  0 - 9         N    Returns the longname of timezone
+  m    Elapsed Mill.     0 - ????      n    Return the shortname of timezone
  *c    Elapsed days      0 - ????      t    Seconds offset of existing timezone
  *X    Hours in day      0 - 24       *!    Don't print field if value is 0
   x    Elapsed hours     0 - ????      ~    Pad with space but not if value 0
  *F    Mins. in hours    0 - 60        @    Prnt if value or prev. value not 0
   f    Elapsed mins.     0 - ????      #    Pad with spc if val/prev val not 0
-  G    Secs. in minute   0 - 60       *0-9  Format column with # allignment   
+  G    Secs. in minute   0 - 60       *0-9  Format column with # alignment   
   g    Elapsed secs.     0 - ????      $    Use special code (this list)     
   
   Note: Codes with a '*' were used in the example that follows.
@@ -18620,7 +18620,7 @@
   Returns the number of elapsed seconds since midnight, January 1, 1970.
   This is an easy way to time things.
   
-  The msecs() function works like secs() but gives the fractional milisecond
+  The msecs() function works like secs() but gives the fractional millisecond
   of the current time.
    
   Example:
@@ -18948,7 +18948,7 @@
     \ - Escape character to escape the next character in a string.
     % - substitution character.  Also used for the ansi-markup.
     , - function separation character to separate arguments to functions.
-    ; - command seperation character to separate commands in a list.
+    ; - command separation character to separate commands in a list.
    () - used in functions to denote start and end of a function call.
    [] - also used in functions to help with function separation calls.
    {} - a method to string together commands, strings, lists, or similar
@@ -18998,7 +18998,7 @@
   This functions exactly like secure(), except you may specify what characters
   you do not wish to be secured out.  The following special characters are
   available for omitting:
-     a - ignore all forms of ansi subsitutions from the string.
+     a - ignore all forms of ansi substitutions from the string.
   
   Examples:
     > @va me=Sneak a peek at Wiz's desc... [get(#1/desc)]
@@ -19027,12 +19027,12 @@
   then break the list on the next '|'.
     
   Examples:
-    > @va me=Test: 'A string' and "anoter string", I say.
+    > @va me=Test: 'A string' and "another string", I say.
     Set.
     > say esclist('",|[v(va)])
-    You say "Test: \'A string\' and \"anoter string\"\, I say."
+    You say "Test: \'A string\' and \"another string\"\, I say."
     > say esclist('|[v(va)])
-    You say "Test: \'A string\' and "anoter string", I say."
+    You say "Test: \'A string\' and "another string", I say."
   
   See Also: escape(), escapex(), unesclist(), esclist(), unesclist()
   
@@ -19068,7 +19068,7 @@
   you wish to omit from being escaped through <omition>.  The optional special
   characters can be used when looking to escape out fields:
      f - omit the first escape (backslash) from the string.
-     a - omit all forms of ansi subsitutions from the string.
+     a - omit all forms of ansi substitutions from the string.
   
   Example:
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
@@ -19896,7 +19896,7 @@
 & STRIP()
   Function: strip(<string1>,<string2> [,<type>])
   
-  This function strips out every occurance of every character of <string2>
+  This function strips out every occurrence of every character of <string2>
   from <string1> and returns <string1>.  The strip function is case
   sensitive.
   
@@ -20432,7 +20432,7 @@
   
   Permission override, if specified to '1' by a wizard enactor, will
   override the NO_CODE flag on the target and still execute any code
-  of that person.  This is ignored for any inactor not a wizard.
+  of that person.  This is ignored for any enactor not a wizard.
    
   Examples:
     > (Let's assume #4523 is an object owned by a normal player)
@@ -21327,7 +21327,7 @@
     > say switch(2.23,>=2.22,Y,N)
     You say "Y"
   
-  If configured, you may use #$ as a substition.   #$ is substituted with 
+  If configured, you may use #$ as a substitution.   #$ is substituted with 
   the value of <string>. In this way, the commands in <res11>..<dflt> 
   have a short-hand way of getting at the matched value. 
   
@@ -21363,7 +21363,7 @@
     > say switch(2.23,>=2.22,Y,N)
     You say "Y"
   
-  If configured, you may use #$ as a substition.   #$ is substituted with 
+  If configured, you may use #$ as a substitution.   #$ is substituted with 
   the value of <string>. In this way, the commands in <res11>..<dflt> 
   have a short-hand way of getting at the matched value. 
   
@@ -21629,7 +21629,7 @@
   Function: spellnum(<number> [,<key>])
   
   This function, when fed a number (decimal or floating point) will return
-  the long name of the number (or in other wordes, the number in words).
+  the long name of the number (or in other words, the number in words).
   
   A 'key' of 1 specifies the ordinal number instead of the pure numeric.
   Ergo, 'tenth' instead of 'ten' or 'first' instead of 'one'. 
@@ -21685,9 +21685,9 @@
 & ROMAN()
   Function: roman(<number>)
   
-  This function converts the given number to the Roman Numeral equivelant.
+  This function converts the given number to the Roman Numeral equivalent.
   It will convert any number between 1 and 3999999.  As the normal
-  overslash on the higher roman numerials are not easilly supported in a text
+  overslash on the higher roman numerals are not easily supported in a text
   environment, the higher roman numerals will be displayed as lower case.
   The following roman numeral mapping exists:
       I - 1          L - 50           v - 5000        c - 100000
@@ -21715,7 +21715,7 @@
   this conversion is not the radix-64 conversion used in unix-to-unix
   copy (uuencode).  The range of the radix is between 2 and 64.
   
-  You may specify the PennMUSH compatable toggle (1) which will mimic Penn's
+  You may specify the PennMUSH compatible toggle (1) which will mimic Penn's
   64 bit packing algo.
    
   Examples:
@@ -21825,7 +21825,7 @@
   Function: parenstr(<string>)
             parenstr(!<string>)
   
-  This funbction returns an ansified match of parenthesis, brackets, and
+  This function returns an ansified match of parenthesis, brackets, and
   braces while hilighting red any mis-matched of the three.  If you start
   the string you are comparing with a '!' then only the first mis-match
   will be displayed.  The comparison will always be left to right.  If the
@@ -21836,7 +21836,7 @@
   return the hilighted string.
   
   Bugs:  
-  Do to how pre-processing works for functions, eventhough the arguments to
+  Do to how pre-processing works for functions, even though the arguments to
   this function are not evaluated, if you do not END in the right number
   of )'s and ]'s it's highly possible that it will evaluate portions of
   the string passed to it ANYWAY thinking that it's outside the bounds
@@ -22069,7 +22069,7 @@
   Function: ruler(<object>/<attribute>, <ruler value>)
   
   This function will provide a ruler to quickly eyeball the character position
-  of the output of the given attribute.  The <ruler value> must be a mulitple
+  of the output of the given attribute.  The <ruler value> must be a multiple
   of 10, and must be between 0 and 100.  
   
   The ruler is color coded to help make it easier to quickly eyeball and 
@@ -22152,7 +22152,7 @@
         regardless of compile time options specified.
   
   This function is essentially left for compatibility reasons and not
-  really needed anymore, except when compiling specificaly without
+  really needed anymore, except when compiling specifically without
   the default behavior.  The example below will always be pretty much
   the same regardless of what option you have.  Without the option
   secure_sideeffect, it essentially causes a double-eval which while
@@ -22393,7 +22393,7 @@
   The SIDEFX flag is required to use open().
   
   Note:  To make variable exits, you @toggle the exit VARIABLE then set
-         an appropiate @exitto on it.
+         an appropriate @exitto on it.
    
   Type @list options to see if this side-effect function is enabled.
   
@@ -22408,9 +22408,9 @@
 & DESTROY()
   Function: destroy(<object>)
   
-  The destroy() function will destroy the targetted object.  You can not
+  The destroy() function will destroy the targeted object.  You can not
   destroy anything set SAFE or INDESTRUCTABLE with the destroy() function.
-  You have to use @destroy for these.  This is for security percautions.
+  You have to use @destroy for these.  This is for security precautions.
   This will immediately halt anything that the object may be evaluating.
   
   Check @list options to see if this side-effect is enabled.
@@ -22432,7 +22432,7 @@
   permissions and restrictions of the matching command.
   
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
-  regular expresion instead of the default expresion.
+  regular expression instead of the default expression.
   
   If <ownerkey> is specified as '1', then, as the second syntax example above,
   it takes the additional <owner> argument as the owner to compare against.
@@ -22464,7 +22464,7 @@
   This function by default evaluates '##' for each zone in the list and
   evaluates separately for every zone member.
   
-  This works similiarilly to @pemit/zone/list
+  This works similarly to @pemit/zone/list
   
   Check @list options to see if this side-effect is enabled.  
   Anything using this side-effect must have the SIDEFX flag set.
@@ -23366,7 +23366,7 @@
   (a,b,c) X (d,e,f) = det | d e f | = i(bf-ce) + j(cd-af) + k(ae-bd)
                           | i j k |
   
-  where i, j, and k are taken as unit vectors in cartisian space.
+  where i, j, and k are taken as unit vectors in Cartesian space.
    
   Examples:
   > @pemit me=vcross(1 2 3,2 3 4)
@@ -23384,7 +23384,7 @@
  
   Returns the value of the trigonometric constant pi to nine decimal places.
   
-  If you specify an <arg> it takes that as the percision to the number of
+  If you specify an <arg> it takes that as the precision to the number of
   decimal places you want.  The value must be greater than zero, and less
   than the current maximum value specified as floating point precision.
   
@@ -23461,7 +23461,7 @@
   Function: e([<arg>])
   Returns the value of the numeric constant e to nine decimal places.
   
-  If you specify an <arg> it takes that as the percision to the number of
+  If you specify an <arg> it takes that as the precision to the number of
   decimal places you want.  The value must be greater than zero, and less
   than the current maximum value specified as floating point precision.
   
@@ -23789,7 +23789,7 @@
   ATAN Returns the arctangent of <number>, expressed in radians.
   
   ATAN2 Returns the arctangent of <number1> divided by <number2> in radians.
-  This is equivelant to atan(fdiv(<number1>,<number2>)[,<units>]) but allows
+  This is equivalent to atan(fdiv(<number1>,<number2>)[,<units>]) but allows
   a '0' divider without a divide by zero error.
    
   You may specify <units> which are either (r)adians,
@@ -23889,7 +23889,7 @@
   something like 'ex tag(weather_globals)' to examine the object of which
   the #dbref is stored in the 'weather_globals' tag.
  
-  If a non-existant tagname is supplied in the tag() function, it always
+  If a non-existent tagname is supplied in the tag() function, it always
   returns #-1.
 
   NOTE: An alternative to using tag() is to look up a tag with #<tagname>
@@ -23950,7 +23950,7 @@
     1 or more 8's -- will be a one to one replacement of chars in arg8
     1 or more 9's -- will be a one to one replacement of chars in arg9
   
-  You may have any order of substitions in the template.  You may
+  You may have any order of substitutions in the template.  You may
   use numbers that have no arguments.  In such a case the template will
   be replaced with a space character.  If the argument is shorter than
   the number of substitutions in the template, spaces are used as filler.
@@ -23996,7 +23996,7 @@
   Rounds <number> to <places> decimal places.  <number> may be
   a floating point number, and an integer result is returned.
   
-  You may specify a negative number to places to specfy a whole number
+  You may specify a negative number to places to specify a whole number
   rounding.
    
   Examples:
@@ -24301,7 +24301,7 @@
     > think parsestr(v(va),garble(%0,1,,-,,2),")
     You say "-----! -----?" *sigh* "-----?!?"
   
-  Avanced Examples:
+  Advanced Examples:
     > think parsestr("to die" is a mighty adventure "+snarf", --%0 %[%2/%3%]--,
         ",",,%#,+,, X: %0 <%2/%3>, [ansi(+purple,bob)])
     YourName bob "--to die [0/1]--" is a mighty adventure "X: +snarf <1/3>"
@@ -24320,7 +24320,7 @@
                        [,[&]<target>] [,<transchar> [,<endchar> [,<transeval>]
                        [,<prefix>]]]]])
   
-  Avanced Examples for OOC:
+  Advanced Examples for OOC:
     > &OOC me=$ooc *:think [parsestr(%0,%0,",",,&[ansi(hy,<,hc,OOC,hy,>)] %k)]
     > ooc :tests.
     <OOC> YourName tests.
@@ -24330,15 +24330,15 @@
     <OOC> YourName says, "Testing"
     > ooc testing
     <OOC> YourName says, "Testing"
-    > ooc "I am testing" *thinks vigeriously*
-    <OOC> YourName says, "I am testing" *thinks vigeriously*
+    > ooc "I am testing" *thinks vigorously*
+    <OOC> YourName says, "I am testing" *thinks vigorously*
     > ooc "I am testing" .. thinks.. "At least I believe so"
     <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
     > ooc "I am testing" .. thinks.. "At least I believe so
     <OOC> YourName says, "I am testing" .. thinks.. "At least I believe so"
    
   Note: It will auto-close double quotes if it detects a non-escaped odd count.
-        Also note the colorizations will be displayed appropiately.
+        Also note the colorization will be displayed appropriately.
   
   See Also: garble(), parse(), iter(), strmath(), spellnum(), inf()
   
@@ -24487,7 +24487,7 @@
   is null, it returns a -1.  You may specify the <type> of '1' to expressly
   require case insensitivity in the matching.  The default behavior is case
   sensitivity.  The optional forth argument enables damareu style matching
-  which considers the transposing of characters a single difference istead of
+  which considers the transposing of characters a single difference instead of
   two.
   
   Examples:
@@ -24620,7 +24620,7 @@
   Any number passed into it is automatically incremented by one.
   
   If <key> is 1, it does advanced increments.  It then will take the number
-  at the end of the string and increment, or if the string is a hexidicimal
+  at the end of the string and increment, or if the string is a hexidecimal
   code starting with '0x' or '0X' it will increment the hex number. 
   
   Example:
@@ -24673,7 +24673,7 @@
   Any number passed into it is automatically decremented by one.
   
   If <key> is 1, it does advanced increments.  It then will take the number
-  at the end of the string and increment, or if the string is a hexidicimal
+  at the end of the string and increment, or if the string is a hexidecimal
   code starting with '0x' or '0X' it will increment the hex number. 
   
   Example:
@@ -24802,7 +24802,7 @@
             setq_old(!,<string>,<label>)
   
   This functions exactly like setq(), except it is using the old MUSH 
-  method of evaluation.  This tends to be less abraisive on braces and
+  method of evaluation.  This tends to be less abrasive on braces and
   brackets.
   
   Please check @list options to see if SETQ_OLD and SETQ are switched
@@ -24919,7 +24919,7 @@
             setr_old(!,<string>,<label>)
   
   This functions exactly like setr(), except it is using the old MUSH 
-  method of evaluation.  This tends to be less abraisive on braces and
+  method of evaluation.  This tends to be less abrasive on braces and
   brackets.
   
   Please check @list options to see if SETR_OLD and SETR are switched
@@ -25180,7 +25180,7 @@
   Function: ishidden(<player>)
   
   This function currently is not available to non-bitted players.
-  This returns TRUE if the playere is set hidden.
+  This returns TRUE if the player is set hidden.
   
   Example:
     > say ishidden(#1)
@@ -25529,7 +25529,7 @@
   Ansi, since all special characters (including those accented!) are passed 
   around the parser as % codes (%c/%x/%f), and the parser USES %'s and \'s 
   as escape codes, this means that when you try to ansi backslashes (\) or 
-  percents (%) the parser and ansi-translater could misinterprete your 
+  percents (%) the parser and ansi-translater could misinterpret your 
   intention as escaping out that ansi and not actually mean colorize my 
   escape character. 
   
@@ -25857,7 +25857,7 @@
   Returns a list of the attributes set on cluster <obj>ect.  If <wild>pattern
   is given, only attributes matching it are returned.  If you have the regexp
   toggle <rexp> as true (1), the matching <wild> is evaluated as a regular
-  expression instead of the default matching algorithem.  You may specify the 
+  expression instead of the default matching algorithm.  You may specify the 
   optional target <tgt> if you wish to return attributes that only the target
   could see.  If you do not have control over target, it defaults to yours.
   This searches all objects that are contained in the cluster.
@@ -26374,7 +26374,7 @@
   restrictions of the matching command.
   
   If <regexp> is specified as '1', then <wildattr> is evaluated as a
-  regular expresion instead of the default expresion.
+  regular expression instead of the default expression.
   
   If <ownkey> is specified as '1', then, as the second syntax example above,
   it takes the additional <owner> argument as the owner to compare against.
@@ -26608,7 +26608,7 @@
   you will want to use the BRANDY_MAIL toggle.  
   
   If you are used to the PENN standard of @mail, you will want to use
-  the PENN_MAIL toggle.  The BRANDY_MAIL toggle will take presidence.
+  the PENN_MAIL toggle.  The BRANDY_MAIL toggle will take precedence.
   
   For using the line editor, you may use the MAIL_STRIPRETURN toggle.  This
   will convert the carriage return between lines to a space when combining.
@@ -26694,9 +26694,9 @@
       Mail: You have new mail from -> Yourself [Subj: A Test]
       Mail: Auto-Moved to folder -> Testing
       Mail: Message sent to -> Yourself
-    > (recieving mail from Bob, dbref #999)
+    > (receiving mail from Bob, dbref #999)
       Mail: You have new mail from -> Bob [Subj: Hey!]
-    > (recieving mail from Tony, dbref #234)
+    > (receiving mail from Tony, dbref #234)
       Mail: You have new mail from -> Tony [Subj: You smell]
       Mail: Auto-Moved to folder -> Junk
   
@@ -26719,7 +26719,7 @@
   
                                mail/alias
   
-  This command will show all the global mail alises, if it's a static mail
+  This command will show all the global mail aliases, if it's a static mail
   alias or a dynamic mail alias, or if there's any locks that make it so
   you can not use them.  To use a static mail alias, you would prepend a '+'
   before the alias.  Such as:
@@ -26745,7 +26745,7 @@
                                @set me=myfriends:Bob Sarah #456 Julie
   
   Either sets an alias for Bob, Sarah, player #456, and Julie.  Any non-players
-  will automatically be stripped in the sending of the mail (with appropiate
+  will automatically be stripped in the sending of the mail (with appropriate
   warning messages).  To use a personal alias, you would use the key field
   '&' to identify to the mail system that it is a personal mail alias.
   
@@ -26950,7 +26950,7 @@
   See Also: mail main, mail topics, mail cmdlist
   
 & mail main
-  RhostMush has its own in-game mail system.  The mail command
+  RhostMUSH has its own in-game mail system.  The mail command
   takes various switches to perform the various mail sub-commands, as in:
   
       mail/read 1
@@ -27012,9 +27012,9 @@
   The mail system was designed years ago and has gone through modifications
   which help compress it's mail storage architecture.  Some of the technical
   information to the mail system is:
-  - Multiple sent mail shares a single message for compactability
+  - Multiple sent mail shares a single message for compatibility
   - Mail system uses a separate database separate from the MUSH db.
-  - Mail system is totally hard-code.  No dependancy on mush version or objs.
+  - Mail system is totally hard-code.  No dependency on mush version or objs.
   - Folder system is stored along with the mail db separate from the mush db.
   - Mail database can be dumped on-line for cross-platform backups/recovers.
   - Mail database can be loaded on-line (it *will* delete current mail db)
@@ -27415,12 +27415,12 @@
   
   Autoforwarding is used to autoforward mail that you would normally get
   to another player.  This is handy in the event that you have
-  multiple players and wish to have mail all catagorized to a central
+  multiple players and wish to have mail all categorised to a central
   player.  All forwarded mail is sent as from the original sender, 
   not from the player it was forwarded from.
   
   Autoforwarding can only be forwarded on a one-time basis.  It is not
-  recursive.  So in otherwords, you can not forward mail forwarded to you.
+  recursive.  So in other words, you can not forward mail forwarded to you.
   
   To remove an autoforwarding use the command:
       mail/autofor +off
@@ -27581,7 +27581,7 @@
   
   2.  PennMUSH style mail.  This is used for the PennMUSH style mailing.
       Needed   : The BRANDY_MAIL toggle must be UNSET and PENN_MAIL toggle
-                 must be set.  BRANDY_MAIL has precidence.
+                 must be set.  BRANDY_MAIL has precedence.
       Syntax   : mail user(s)=subject/body
       Note:  Penn mail wrappers may be in place on your RhostMUSH.  If it is,
              you may be able to use @mail like you're used to.
@@ -28098,7 +28098,7 @@
   
   Note:  For help on creating new mail, please see 'help mail send'
   
-  mail/write gives you the flexability of a line-editor within mail.  There
+  mail/write gives you the flexibility of a line-editor within mail.  There
   are various options with mail/write that you may use.  Help is available
   on each of these topics.
   
@@ -28466,7 +28466,7 @@
   Command: mail/write +fedit <line>=<old>,<new>
   
   The '+fedit' subcommand to mail/write is used to edit a line of text.
-  Unlike the '+edit' subcommand, this edits ALL occurances of the text
+  Unlike the '+edit' subcommand, this edits ALL occurrences of the text
   in the line.
   
   Examples:
@@ -28558,7 +28558,7 @@
   Command: mail/write +feditall=<old>,<new>
   
   The '+feditall' subcommand to mail/write is used to edit ALL lines of text.
-  This edits ALL occurances of text in ALL the lines.
+  This edits ALL occurrences of text in ALL the lines.
   
   Examples:
     > mail/write A line of txt txt
@@ -28587,7 +28587,7 @@
   Command: mail/write +editall=<old>,<new>
   
   The '+editall' subcommand to mail/write is used to edit ALL lines of text.
-  This only edits the FIRST occurance of text in the lines.
+  This only edits the FIRST occurrence of text in the lines.
   
   Examples:
     > mail/write A line of txt txt
@@ -28616,7 +28616,7 @@
   Command: mail/write +edit <line>=<old>,<new>
   
   The '+edit' subcommand to mail/write is used to edit a line of text.
-  This only edits the FIRST occurance of text in the line.
+  This only edits the FIRST occurrence of text in the line.
   
   Examples:
     > mail/write A line of text
@@ -29008,7 +29008,7 @@
     mail <list-of-players>=<subject>                (sending mail)
     mail/send <list-of-players>=<subject>//<body>   (quick sending mail)
     mail/reply <msg#>=<subject>                     (replying to mail)
-    mail/forward <msg#> <list-of-players>=<subject> (forwrding mail)
+    mail/forward <msg#> <list-of-players>=<subject> (forwarding mail)
   
   You have a HUGE availability of options in the line editor.  For
   the list, please type:
@@ -29301,7 +29301,7 @@
   
   When set on a player, and as long as ZENTY_ANSI has been compiled
   into the RhostMUSH in question, this allows the player to see
-  accented strings (umlauts, ticks, tildas, etc).
+  accented strings (umlauts, ticks, tildes, etc).
   
   Accents are displayed by using the accent() function or the %f
   substitution.
@@ -29451,7 +29451,7 @@
 & MAIL_NOPARSE TOGGLE
   Toggle: MAIL_NOPARSE
  
-  When this toggle is set, it will surpress the evaluation of
+  When this toggle is set, it will suppress the evaluation of
   special characters like %b, %r, or %t when you list out your mail.
   If you want these to be parsed when you list out (proof) your
   mail, then make sure this toggle is not set.
@@ -29464,7 +29464,7 @@
   When this toggle is set on the player, whenever that player finishes
   writing mail using the BRANDY_MAIL toggle, all lines are combined
   with spaces instead of carriage returns.  This will mimic more how
-  Brandy's +mail or Mux's @mail works.
+  Brandy's +mail or MUX's @mail works.
   
   See Also: penn_mail toggle, brandy_mail toggle
   
@@ -29489,7 +29489,7 @@
   by default.  This is to help with PENN compatibility.
   
   When sending mail with mail/reply, mail, or mail/forward, the
-  BRANDY_MAIL toggle will take precidence.
+  BRANDY_MAIL toggle will take precedence.
   
   See Also: brandy_mail toggle, mail_stripreturn toggle
   
@@ -29501,7 +29501,7 @@
   FIRST zone that the target belongs to.  If the target has no zones
   or if this toggle is not set, the zone addition is ignored.  If the
   target is also toggled ZONE_AUTOADDALL, that toggle will take
-  presidence.
+  precedence.
   
   See Also: ZONE_AUTOADDALL
   
@@ -29512,7 +29512,7 @@
   anything new (via @dig, @open, etc), that target will inherit ALL
   of the zones that the target belongs to.  If the target has no zones
   or if this toggle is not set, the zone addition is ignored.  This
-  toggle has presidence over ZONE_AUTOADD.
+  toggle has precedence over ZONE_AUTOADD.
   
   See Also: ZONE_AUTOADD
   
@@ -29575,7 +29575,7 @@
   Specifies that the target exit is a 'variable' exit and that it will
   parse the @exitto attribute for it's destination location and not where
   it is currently linked to.  If the exit is @powered FULLTEL then that
-  exit will be assumed to have full 'link' privialages to any valid
+  exit will be assumed to have full 'link' privileges to any valid
   location returned from @exitto.
   
   If a player sets the VARIABLE toggle on himself, then all ansi via
@@ -29685,7 +29685,7 @@
   
   Attributes may not start with any other character, but after the initial
   character they are able to contain most characters up to the SBUF
-  lenght.
+  length.
   
   You can set these attributes with the & (or clustered >) command, or by
   using @set or set().  Individual help for each of those is available.
@@ -29817,10 +29817,10 @@
   2) Flags
      Rhost's flags have different letters for the staff.  Anything ported
      with softcode will probably need to be twinked.  However, all the
-     functions/commands should work similiarilly to what you're used to.
+     functions/commands should work similarly to what you're used to.
   
   3) Com system.
-     Rhost's current hardcoded comsystem is very archiac.  I'd suggest
+     Rhost's current hardcoded comsystem is very archaic.  I'd suggest
      a softcoded alternative until a better one is coded.  And yes, it
      is both in the works and should be backward compatible to both
      PENN *and* MUX.
@@ -29848,7 +29848,7 @@
   See Also: mail cmdlist, mail write cmdlist
   
 & save
-  RhostMUSH, unlike lp's, merc's, diku's or similiar mud derivitives, does not
+  RhostMUSH, unlike lp's, merc's, diku's or similiar mud derivatives, does not
   have a 'save' option.  Your player, upon creation, is automatically saved.
   Everything you do, whenever you do it, is also automatically saved.  So just
   have fun, relax, and enjoy your time on.   Leave the saving to us :)
@@ -30326,7 +30326,7 @@
   remainder() - Returns the remainder of a division.
   sign()      - Returns the sign of an integer value.
   strmath()   - Applies math to a string.
-  sub()       - Subtracts two values from eachother.
+  sub()       - Subtracts two values from each other.
   xdec()      - Decreases the value passed by 1.
   xinc()      - Increases the value passed by 1.
 
@@ -30345,7 +30345,7 @@
   lrooms()         - Lists an iterative sequence of connected rooms.
   mailquick()      - Returns information about a mailbox.
   modifytime()     - Returns the timestamp the object was last modified.
-  nearby()         - Tests if two different objects are near eachother.
+  nearby()         - Tests if two different objects are near each other.
   next()           - Returns the next object in a con()/exit() list.
   num()            - Returns the DbRef of an object.
   objid()          - Returns the DbRef Object ID of an object.
@@ -30361,7 +30361,7 @@
   where()          - Returns the true location of an object.
   listcommands()   - Lists all commands that you have access to.
   listflags()      - Lists all flags that you have access to.
-  listtoggles()    - List all togglees you have access to.
+  listtoggles()    - List all toggles you have access to.
   listtotems()     - List all totems you have access to.
   pmatch()         - Returns the dbref of a matching player.
   rnum()           - Returns the dbref of an object, from a target perspective.
@@ -30424,7 +30424,7 @@
   filter()      - Filters a list through an attribute evaluation
   first()       - Returns the first element of a list.
   flags()       - Returns a flag list for a specified object.
-  fold()        - Iteriatively processes a list through a function.
+  fold()        - Iteratively processes a list through a function.
   foreach()     - Processes a list of characters through a function.
   ibreak()      - Break out of the specified iteration of iter()/list().
   iindex()      - Similar to index, but inserts <string> at <position>.
@@ -30432,7 +30432,7 @@
   index()       - Like extract(), but supports items being more than one word.
   inf()         - Like iter() but allows special list args for Infinite vals.
   insert()      - Inserts a word into a list.
-  inum()        - The equivalant of #@ inside an iter()
+  inum()        - The equivalent of #@ inside an iter()
   iter()        - Iterates over a list, and processes code for each member.
   itext()       - The equivalent of ## inside an iter()
   keeptype()    - Strips dbrefs from a list that are not of a certain type.
@@ -30660,8 +30660,8 @@
 & relational functions
   Function Lists: Relational Functions
       
-  alphamax()    - Returns the lexiographically highest word of submitted list.
-  alphamin()    - Returns the lexiographically lowest word of submitted list.
+  alphamax()    - Returns the lexicographically highest word of submitted list.
+  alphamin()    - Returns the lexicographically lowest word of submitted list.
   max()         - Returns the largest integer from amongst its argument.
   min()         - Returns the lowest integer from amongst its argument.
   eq()          - Returns true if two numerical values are the same.
@@ -30694,7 +30694,7 @@
   capstr()      - Capitalizes a string.
   case()        - Case is like switch(), but does not do wildcard matching.
   caseall()     - Like case(), but will match all cases not just the first.
-  cat()         - Concaternates two strings together.
+  cat()         - Concatenates two strings together.
   center()      - Centers text on a specified width.
   chomp()       - Strips carriage returns from start, end or both of a string.
   columns()     - Powerful column formatting tool.
@@ -31213,7 +31213,7 @@
   * grab() crashed server if given only one argument [SEA]
   * go couldn't use 'go' through parent exits before [SEA]
   * ueval() fixed missing LBUF free [ASH]
-  * mail/write +list gave erraneous results [SEA]
+  * mail/write +list gave erroneous results [SEA]
   * lexits() won't show exits set PRIVATE at the 'home' of those exits [SEA]
   * min() value shoved a double in an int [ASH]
   * max() value shoved a double in an int [ASH]
@@ -31276,10 +31276,10 @@
   ---------
   * attribute formatting broke for what/owhat [ASH]
   * filter() did not correctly parse arguments in some instances [ASH]
-  * @set thing/attr=_thing/attr would on rare occurances not work [ASH]
-  * lock() would not parse the second argument in some occurances [ASH]
+  * @set thing/attr=_thing/attr would on rare occurrences not work [ASH]
+  * lock() would not parse the second argument in some occurrences [ASH]
   * mail/reply didn't function right when BRANDY_MAIL toggled [ASH]
-  * setunion() would not parse 3rd/4th args correctly on rare occurances [ASH]
+  * setunion() would not parse 3rd/4th args correctly on rare occurrences [ASH]
   * news/articlelife wouldn't reset articlelife with '-1' [THO]
 
 
@@ -31369,7 +31369,7 @@
   * NO_CLONE attribute flag to stop attributes from copying when @cloned [ASH]
   * MARKER0 through MARKER9 marker flags [ASH]
   * BOUNCE allows players to pass what they hear to their contents [ASH]
-  * MONITOR_BAD monitor failed connects/creations to non-existant players [ASH]
+  * MONITOR_BAD monitor failed connects/creations to non-existent players [ASH]
   * PROG_ON_CONNECT reverses the current logic of program and connecting [ASH]
   * imm_nomod specifies only immortal can set/unset the NOMODIFY flag [ASH]
   * paranoid_exit_linking when enabled, you MUST control exit to link [ASH]
@@ -31436,7 +31436,7 @@
   * SIGSEGV bug with recursive @functions [ASH]
   * When @toggled MONITOR_BAD, MONITOR_FAIL doubled up failed connections [ASH]
   * Malaligned pointer in command.c.  Non-crash issue  [ASH]
-  * setq() registers wern't cleared for extreamly fast command input [ASH]
+  * setq() registers weren't cleared for extremely fast command input [ASH]
   * ex thing/*sta* returns 'no attribs found' if tstamps enabled [ASH]
   * enhanced security for .txt file reading/verification (possible DoS) [ASH]
   * attrib flag DARK couldn't be unset by non-#1.  Only #1 can set it now [ASH]
@@ -31490,7 +31490,7 @@
   * examine/parent shows dbref#'s of parent objects [ASH]
   * elist() has 5th argument for penn compatibility [ASH]
   * /until switch to @wait for exact time [ASH]
-  * strmath() has new args for better flexability [ASH]
+  * strmath() has new args for better flexibility [ASH]
   * mail uses ~ to evaluate attributes on player targets [ASH]
   * better context for mail autoregistration [ASH]
   * wizards now override page locks [ASH]
@@ -31554,7 +31554,7 @@
   * autoreg validation and cleanup [ASH]
   * filter() would accept '1<blah>' as well as '1' [ASH]
   * possible pointer-misalignment with internal messaging with MONITOR [ASH]
-  * Rare occurance of getting inside a garbage object (non-crash-bug) [ASH]
+  * Rare occurrence of getting inside a garbage object (non-crash-bug) [ASH]
   * @mvattr had small bug with copying over itself & keeping copy [ASH]
   * Semaphores didn't do wait time correctly [ASH]
   * Time/Create stamps visible by anyone [ASH]
@@ -31591,10 +31591,10 @@
   * mortal_examine if set, target always examines like a mortal [ASH]
   * mail_lockdown @toggle target is restricted in mail 'monitoring' [ASH]
   * muxpage @toggle allows 'p <blah>' to work like in MUX/TM3/PENN [ASH]
-  * heavy_cpu_max param  ceilings heavilly used cpu-intensive functions [ASH]
+  * heavy_cpu_max param  ceilings heavily used cpu-intensive functions [ASH]
   * lastsite_paranoia param enable auto-reg/auto-forbid of spamming site [ASH]
   * max_lastsite_cnt param specify # of connects in period of time [ASH]
-  * min_con_attempt specify the wait between 'first' connect and subquent [ASH]
+  * min_con_attempt specify the wait between 'first' connect and next [ASH]
   * lattr_default_oldstyle (default 0) snuffs the '#-1 NO MATCH' [ASH]
   * formats_are_local localize @nameformat, @conformat, @exitformat [ASH]
   * mail_def_object default object for global aliases [ASH]
@@ -31647,15 +31647,15 @@
   * hastoggle() was wizard-only for no reason  [ASH]
   * atof() could have buffer issues if string greater than 100 characters [ASH]
   * Counts for input, output, and lost fields were not accurate [ASH]
-  * @conncheck could have unpredicatable results with name of the door [ASH]
+  * @conncheck could have unpredictable results with name of the door [ASH]
   * MONITOR information had some uninitialized values that could crash [ASH]
   * DARK flags with wizards so it won't show wiz as being connected [ASH]
   * mid() didn't work like it did in MUX2/PENN.  It's now an alias [ASH]
   * type() could bypass cloaked targets [ASH]
   * quick_wild() could cause some SIGSEGV's if not accurately verified [ASH]
-  * inventory doesn't handle Reality Levles corrected [ASH]
+  * inventory doesn't handle Reality Levels corrected [ASH]
   * lcon(), next(), con(), lexits(), lcon(), xcon(), and sees() with
-  reguards to handling Reality Levles were broke [ASH]
+  regards to handling Reality Levels were broke [ASH]
 
 & 3.2.4p14
   Release Date: 1 Jan 1999
@@ -31750,7 +31750,7 @@
   * SINGLETHREAD attribute flag to handle single-threading $commands [ASH]
   * ATRLOCK attribute flag to handle global attribute locking [ASH]
   * MUXPAGE toggle to allow mux-like paging for compatibility [ASH]
-  * NOGLOBPARENT toggle to disable inheritance of global inheret parents [ASH]
+  * NOGLOBPARENT toggle to disable inheritance of global inherent parents [ASH]
   * NODEFAULT toggle to disable global default handling [ASH]
   * mail_verbosity will add Subj: to sent mail [ASH]
   * mail_anonymous set name for anonymous mail (Default: *Anonymous*) [ASH]
@@ -31864,7 +31864,7 @@
   * caseall() double free [ASH]
   * crashbug with broadcast_host [ASH]
   * +proof for mail could cause a crash [ASH]
-  * strmath() broke on ammount argument [ASH]
+  * strmath() broke on amount argument [ASH]
   * BOUNCE was not cleared on RECOVER objects [ASH]
   * debug stack (trace) had a memory leak [ASH]
   * wizard objects not inherit incorrectly triggered @limit [ASH]
@@ -31913,7 +31913,7 @@
   * queue_compatible to allow negative semaphores [ASH]
   * Allowed large WHO listing for compatibility [ASH]
   * OLD_SETQ config parameter for pre-TM2 compatibility [ASH]
-  * percent subsitution ceiling per command [ASH]
+  * percent substitution ceiling per command [ASH]
   * lcon_checks_dark for dark lock checking enforcement [ASH]
   * mail/anon and 'both' options added to mail [ASH]
   * KEEPALIVE @toggle for network keepalives [ASH]
@@ -31925,7 +31925,7 @@
   
   Changes
   -------
-  * @aflags/full to count atttributes in use with that name [ASH]
+  * @aflags/full to count attributes in use with that name [ASH]
   * mail/recall shows more statistics [ASH]
   * FUBAR flag stops functions from executing [ASH]
   * @hook/fail for fail checks [AMB]
@@ -32066,7 +32066,7 @@
   * flag_name had possible issues with duplicated entries [ASH]
   * sub_include had uninitialized arguments [KRK]
   * lcon()/lexits() had a crash bug [ASH]
-  * random times output was snuffed based on CPU alerm issues [ASH]
+  * random times output was snuffed based on CPU alarm issues [ASH]
   * setq/setr didn't evaluate first argument [ASH]
   * internal tprintf off-by-one bug [ASH]
   * crash bug in ATRLOCK [ASH]
@@ -32104,7 +32104,7 @@
     
   Changes
   -------
-  * open() and dig() take optional argument for destionation [ASH]
+  * open() and dig() take optional argument for destination [ASH]
   * asksource.sh improved with new args [ASH]
   * case() and caseall() support $# like switch() [KRK]
   * error() handles optional target argument [ASH]
@@ -32122,7 +32122,7 @@
   Bug Fixes
   ---------
   * fixed @door code to be useable [ASH] 
-  * Unitialized variables in view_attr (internal) [KRK] 
+  * Uninitialized variables in view_attr (internal) [KRK] 
   * Mail wouldn't compile under AIX [ASH] 
   * @assert not behaving like @break [KRK]
   * sha1 compiling issues with  new compiler [ASH] 
@@ -32284,7 +32284,7 @@
   * double-eval on delextract() fixed [ASH]
   * parenthesis parsing was broken in advanced regexp on $commands [ASH]
   * double-eval on interpreter for commands specified in @break/assert [ASH]
-  * unitialized variables related to @open/@dig on new databases fixed [ASH]
+  * Uninitialized variables related to @open/@dig on new databases fixed [ASH]
   * cluster_set() didn't parse the second argument properly [ASH]
   * cluster_grep[i]() didn't check the target cluster object properly [ASH]
   * elist() didn't evaluate first argument properly [ASH]
@@ -32337,13 +32337,13 @@
   -------
   * singletime() now handles (w)eeks, (M)onths, and (y)ears like MUX [ASH]
   * timefmt() handles 'Z' (timezone), 'z' daylight savings, 'u' days in
-    century, 'U' century in millenium, and 'm' total milliniums. [ASH]
+    century, 'U' century in millennium, and 'm' total millennium's. [ASH]
   * map() can take a config option for default delimiter (default space) [ASH]
   * caplist() handles English Syntax Title formats [ASH]
   * @function takes /min and /max values for @function definitions [ASH]
   * @function/list displays MIN and MAX values (if existing) [ASH]
   * timefmt() handles timezone conversion... all timezones... [ASH]
-  * timefmt() handles weeks, centuries, and milleniums [ASH]
+  * timefmt() handles weeks, centuries, and millenniums [ASH]
   * ldelete() handles multiple arguments [ASH]
   * insert() handles multiple arguments [ASH]
   * replace() handles multiple arguments [ASH]
@@ -32358,7 +32358,7 @@
   * @protect could walk over @alias -- minor glitch [ASH]
   * @include didn't properly evaluate arguments [ASH]
   * elapsed time in time fields in timefmt() broke with negative numbers [ASH]
-  * CPUTIME didn't report CPU seconds correctly in 64 bit platforfms [ASH]
+  * CPUTIME didn't report CPU seconds correctly in 64 bit platforms [ASH]
   
 & 3.9.3p0
   Release Date: 05/30/12
@@ -32410,7 +32410,7 @@
   * page, rpage, lpage, mrpage understand the /noansi switch [ASH]
   * The basic @ansiname allows 256 colors now via 0x## or 0X## [ASH]
   * made @list default_flags no longer worthless [ASH]
-  * / is superflurous with regards to FG colors in ansi() [ASH]
+  * / is superfluous with regards to FG colors in ansi() [ASH]
   * ansi() allows #FFFFFF, <#FFFFFF>, and <R G B> modes [ASH]
   * colors() has the 'x' option to display #FFFFFF format [ASH]
   * colors() has the 'r' option to display R G B format [ASH]
@@ -32447,7 +32447,7 @@
   * printf() had a color clobbering affect in certain circumstances [ASH]
   * printf() had an off by one alignment issue with justification [ASH]
   * fixed up some library lookup code in the asksource.sh script [ASH]
-  * fixed the random dissapearing backslash issue [ASH]
+  * fixed the random disappearing backslash issue [ASH]
   * secured @sudo for registers. [ASH]
   * % or \ at the end of an ansified string could escape out ansi [ASH]
     fix for this is allowing % and \ as special chr() input.
@@ -32494,7 +32494,7 @@
   * @lfunction to allow players to define localized functions [ASH]
   * global parameter to specify global @lfunction limit per player [ASH]
   * global parameter to enable/disable BLIND snuffing connect/disconnect [ASH]
-  * Wizard accessable mailquota() function to mimic mail/quota results [ASH]
+  * Wizard accessible mailquota() function to mimic mail/quota results [ASH]
   * %W to return target item if inside a twinklock [ASH]
   * strlenvis() to correctly count 'special' chars via chr() [ASH]
     
@@ -32561,7 +32561,7 @@
   * compiling issue when not using the enhanced ansi option [ASH]
   * crashbug in @blacklist/list in some conditions [ASH]
   * paging was broken in @blacklist/list, non-crash bug. [ASH]
-  * possible erraneous cpu alert on new player creation on first connect [ASH]
+  * possible erroneous cpu alert on new player creation on first connect [ASH]
   * @dynhelp didn't evaluate optional player target properly [ASH]
   * @lfunction was too restrictive on ownership [ASH]
 
@@ -32601,13 +32601,13 @@
   ---------
   * fixed CPU issue with bogus checks on connecting players in rare 
     conditions [ASH]
-  * @function/list erraneously had a limit displayed from local functions [ASH]
+  * @function/list erroneously had a limit displayed from local functions [ASH]
   * when compiling without BANG support, there was an undeclared variable [ASH]
   * strmath() started at 0 when it should start a 1 [ASH]
   * some clients don't handle normalizing prompts properly, so we now
     fix this behavior forcefully [ASH]
   * printf() couldn't combine '/' and ':' options previously [ASH]
-  * some extended ascii characters wouldn't display proplery [ASH]
+  * some extended ascii characters wouldn't display properly [ASH]
   * documentation was missing for @cluster/wipe [ASH]
   * functions.c did not compile under CLANG [ASH]
   * @include didn't properly null arguments forcefully set [ASH]
@@ -32649,7 +32649,7 @@
   * memcpy() crash bug with GCC 4.x with aggressive compiler optimization [ASH]
   * WHO/DOING would not properly show 'year' if on over a year [ASH]
   * strfunc() wouldn't handle null arguments properly [ASH]
-  * QDBM on a panic SIGTERM dump could occasinally corrupt the db 
+  * QDBM on a panic SIGTERM dump could occasionally corrupt the db 
     (but flatfile fine) [ASH]
   * @door definition change in later versions of GCC caused a conflict [ASH]
 
@@ -32676,8 +32676,8 @@
   * bug introduced with the ansi handler to columns() in off by one bug [ASH]
   * @skip/ifelse wouldn't evaluate arguments properly [ASH]
   * @assert/inline and @break/inline wouldn't eval args properly [ASH]
-  * #lambda erraneously stripped extra /'s at times [ASH]
-  * art() handles non-printables [ASH]
+  * #lambda erroneously stripped extra /'s at times [ASH]
+  * art() handles non-printable [ASH]
   * possible crashbug in encode64/decode64 due to glibc memory map change [ASH]
 
 & 3.9.4p5
@@ -32693,7 +32693,7 @@
   * massive cleanup and helper tools for ansi for ease of modification [ASH]
   * better error control with failed player creation with safer_passwords [ASH]
   * Rooms set QUIET that are @toggled LOGROOM no longer notify of logging [ASH]
-  * printf() is more vigerous in reusing ansi for filler [ASH]
+  * printf() is more vigorous in reusing ansi for filler [ASH]
   
   Bug Fixes
   ---------
@@ -32810,7 +32810,7 @@
   * Enabled signal catch debugging information [ASH]
   * @include has /override switch that will mimic how arguments are assigned 
     like Penn [ASH]
-  * ' option to printf() is now more useful with how it padds [ASH]
+  * ' option to printf() is now more useful with how it pads [ASH]
   * before(), after(), and mid() have a switch to disable ansi-awareness for 
     speed [ASH]
   * Stricter checking of setq/setq_old/setr/setr_old label argument and more
@@ -32854,16 +32854,16 @@
     @remote [ASH]
   * timers would not reset properly without a forced alarm call on signal 
     breaks [ASH]
-  * regedit()'s suite of functions were erraneously locked at 4 args [ASH]
+  * regedit()'s suite of functions were erroneously locked at 4 args [ASH]
   * compile time warnings with some new additions when ZENTY_ANSI not 
     specified [ASH]
-  * mail.c had in the write editor erraneous warnings hardcoded to 4K 
+  * mail.c had in the write editor erroneous warnings hardcoded to 4K 
     buffers [ASH]
   * double eval fix in parsestr() [ASH]
   * third party mysql.c had a segsetv fix [ASH]
   * timers had a bug in mysql.c and mis-defined in timer.c [ASH]
   * memory corruption with argument passing in @include could crash [ASH]
-  * wrong definition for next_timer with the milisecond timer [ASH]
+  * wrong definition for next_timer with the millisecond timer [ASH]
   * double-alloc in destroy code (non-crash) [ASH]
   * @depowers wouldn't work properly on inheritance when power_objects was 
     enabled [ASH]
@@ -32974,7 +32974,7 @@
   * textfile() takes optional arguments to sanitize output for use
     in various coding including an output separator [ASH]
   * hilite topic headers for help (as requested by many) [ASH]
-  * mysql more vigerously tries to keep stale connections active [ASH]
+  * mysql more vigorously tries to keep stale connections active [ASH]
   * the build script more cleanly does dynamic building of Makefile [ASH]
   * @halt has a /quiet switch now.
   * if getdate is found on the server, allow enhanced convtime [ASH]
@@ -32991,7 +32991,7 @@
     chars specified [ASH]
   * new parameter in examine_restrictive and it now restricts
     @decompile as well [ASH]
-  * hardened sqlescape() to more vigerously do connect attempts [ASH]
+  * hardened sqlescape() to more vigorously do connect attempts [ASH]
   * @list rlevel dec for decimal display [ASH]
   * @list options value/boolean allows optional wildcard searches [ASH]
   * improved strmath() to handle a greater range of floating points [ASH]
@@ -33003,10 +33003,10 @@
   * parentable_control_lock controls if @locks are inheritable [ASH]
   * valid() types locktype and lockkey added for Penn compat [ASH]
   * total rework of the internal exec parser stack to properly handle
-    some erraneous REGEXP pre-parsing syntax issues [ASH]
+    some erroneous REGEXP pre-parsing syntax issues [ASH]
   * because people kept raising the VLIMIT past the recommended values
     while in GDBM mode, we have hard-locked it for 32/64 bit GDBM [ASH]
-  * @reboot enforces binary's existance prior to actual rebooting [ASH]
+  * @reboot enforces binary's existence prior to actual rebooting [ASH]
   * remove() now allows multiple removals
   * enhanced content searches for help [ASH]
   * @grep now handles /parent switch [ASH]
@@ -33016,7 +33016,7 @@
   * first() and last() are now optionally ANSI-aware with 3rd arg [ASH]
   * @chownall now optionally allows a mix of specifying room, exit,
     thing or player.  It defaults to all types [ASH]
-  * @door now allows interactive connections (ergo, it allows queueing) [ASH]
+  * @door now allows interactive connections (ergo, it allows queuing) [ASH]
   * Broke out %m, %c, and %x from sub_override params [ASH]
   * cleanup of the sub_override parser [ASH]
     
@@ -33025,27 +33025,27 @@
   * mysql didn't update the include file for mysql correctly [ASH]
   * help entries didn't always add a CR to the LF [ASH]
   * small memory leak in door code [ASH]
-  * Erraneous warnings removed when compiling with -O2 optimization [ASH]
+  * Erroneous warnings removed when compiling with -O2 optimization [ASH]
   * ~/src/Makefile was broke on latest Debian builds because of an
     incompatibility with their /bin/sh (/bin/dash) binary [ASH]
   * argument handler issue when passing zero args to @include/override [ASH]
   * @hook did not show percent subs enabled/disabled properly on rare
-    occurances [ASH]
+    occurrences [ASH]
   * @include didn't reset the state correctly in some instances [ASH]
   * @dolist/inline didn't properly parse nested args [ASH]
   * regedit*() functions could double-eval the $0-$99 subs.  This will
-    break some backward compatability on anything that depended on the
+    break some backward compatibility on anything that depended on the
     double evaluation but is a necessary evil for security plus now
     behaves like it should have to begin with (via the help) [ASH]
   * cd (connect dark) didn't follow permission restrictions right [ASH]
   * @admin function_access didn't work quite right on @lfunctions [ASH]
-  * @limit with globals of unlimited for destory/vlimit was broke [ASH]
+  * @limit with globals of unlimited for destroy/vlimit was broke [ASH]
   * Further restrictions to @remote required for safe guarding [ASH]
   * small cleanup in formatting with @list funperm [ASH]
   * if a user-defined attribute was deleted the @function attached
     to it would no longer show up, now it does but gives warnings [ASH]
   * put a ceiling on function_recurse_limit to no longer bypass the
-    debug STACK LIMIT (of 1000) as a worse case scenerio [ASH]
+    debug STACK LIMIT (of 1000) as a worse case scenario [ASH]
   * toggles did not showup when you @decompiled. [ASH]
   * @robot was broke with internal flag checks [ASH]
   * xinc/xdec for registers didn't understand labels [ASH]
@@ -33067,7 +33067,7 @@
   * ifelse_compat option that makes if()/ifelse()/@skip/@if etc. behave
     as TRUE in case the first argument is a normal string. [AMB]
   * execscript() with matching sideeffect value and @power execscript to
-    allow executing external script as a function with appropiate 
+    allow executing external script as a function with appropriate 
     safeguards for script name and arguments [ASH]
   * penn_setq -- Penn compatibility option for labels with setq/setr. [ASH]
   * customized connect screens so you may add custom commands that a player
@@ -33151,8 +33151,8 @@
   * repeat() has optional third argument for better ansi handling [ASH]
   * printf() would print a blank line if the last argument for each field
     was a carriage return.  New option '.' for each field will now
-    supress the last line if all arguments are empty for that line [ASH]
-  * writable() is more useful with how it works for non-existant attribs [ASH]
+    suppress the last line if all arguments are empty for that line [ASH]
+  * writable() is more useful with how it works for non-existent attribs [ASH]
   * logtofile() optionally can write to the mush system log [ASH]
   * LOGGED attribute flag now logs the last command issued to change it [ASH]
   * modified chkgarbage() to handle a (b)oth option [ASH]
@@ -33173,7 +33173,7 @@
   * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
   * improved featureset to sortlist() for merging [ASH]
   * modified @edit so that /check or sets are higlighted if a change 
-    actually occured with the first word 'Set' or 'Check' [ASH]
+    actually occurred with the first word 'Set' or 'Check' [ASH]
   * change over from strtok to strtok_r throughout source code [ASH]
   * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
   * foreach() is now optionally ansi-aware [ASH]
@@ -33192,7 +33192,7 @@
   * columns() did not default justification to 'L'eft if left blank with 
     4 or more arguments [ASH]
   * foreach() had a possibility of overwriting a static buffer in-use
-    which could return erraneous results (non-crash-bug) [ASH]
+    which could return erroneous results (non-crash-bug) [ASH]
   * Ancient systems (CentOS 4/5) didn't successfully handle MTU values [ASH]
   * enhanced_convtime didn't handle all conditions properly [ASH]
   * bug with streval which didn't process right on non-player evaluation [ASH]
@@ -33209,7 +33209,7 @@
   * possible memory leak in extractword() in certain conditions [ASH]
   * @tel/list didn't handle a comma separator properly for source [ASH]
   * permission issue with guildmaster and setting attributes [ASH]
-  * memory leak on rare occurances of lookup_site [ASH]
+  * memory leak on rare occurrences of lookup_site [ASH]
   * internal function for player lookup was not objid aware [ASH]
   * parents() was too restrictive for thing getting own parent tree [ASH]
   * Long standing issue with left()/right() with arg of '0' cut string [ASH]
@@ -33228,7 +33228,7 @@
   * objid took localtime instead of GMtime [ASH]
     - NOTE:  For compatibility to existing behavior, set: objid_localtime 1
   * safer_ufun didn't take some conditions into consideration [ASH]
-  * erraneous ansi-normal on cname() if the name was not ansified [ASH]
+  * erroneous ansi-normal on cname() if the name was not ansified [ASH]
   * small bug in time conversion in timefmt() with daylight savings [ASH]
   * mail did not handle commas for player separation properly [ASH]
 
@@ -33249,7 +33249,7 @@
   * BYPASS @admin function permission to tag a function (built in or user)
     to not be affected by the sandbox() function [ASH]
   * packmath() to allow math on varying radix compressions [ASH]
-  * subeval() evaluates string without executiong functions [ASH]
+  * subeval() evaluates string without executing functions [ASH]
   * %_<-> pops last stack for debug labels [ASH]
   * alternative messages for those who hit 'MAX' on optional max values
     for site restrictions for noguest, register, and forbid. [ASH]
@@ -33275,7 +33275,7 @@
   * UEVAL() and ZFUNEVAL() now accept /SUBEVAL as a switch [ASH]
   * %-<number> now optionally handles %-subs 0-999 [ASH]
   * %-m handles last command for @hooks only [ASH]
-  * improved %_<subs> to be more vigerous with removal and pops
+  * improved %_<subs> to be more vigorous with removal and pops
     last match first.
   * colors have a (n)ame option to display name of the ansi arg [ASH]
   * alternate date formats for convtime() [ASH]
@@ -33350,11 +33350,11 @@
   * increased spellnum() to decillion [ASH]
   * Added additional time formats to convtime() [ASH]
   * moved up initializers for cpu alerts to be more aggressive [ASH]
-  * @decompile/tf will now, if passed /noextra in addition, surpress the
+  * @decompile/tf will now, if passed /noextra in addition, suppress the
     additional information on decompile (like attribute flags) [ASH]
   * added negative time values for some sequences for convtime() [ASH]
   * Split up and improved the CPU alarm subsystem [ASH]
-  * decode64 handles carrage returns where before it did not [ASH]
+  * decode64 handles carriage returns where before it did not [ASH]
   
   Bug Fixes
   ------------
@@ -33456,7 +33456,7 @@
   * Nospoof didn't work if you were @toggled UTF8
   * bug in objid where the validation check wouldn't always work [ASH]
   * insert(), ldelete(), and replace() didn't fully work with output
-    seperators [ASH]
+    separators [ASH]
   * mail attributes allowed evaluation of mail functions and it likely
     shouldn't for security reasons [ASH]
   * timeslice config param could crash the game if used [ASH]
@@ -33490,7 +33490,7 @@
   ------------
   * help allows suggestions when it can not find help entry [ASH]
   * listprotection() has additional arguments to handle @alias [ASH]
-  * Added comments and continous lines to content for execscript [ASH]
+  * Added comments and continuous lines to content for execscript [ASH]
   * Added MUTT compatibility to autoreg mail handling [ASH]
   * Reality levels with @txlevel/@rxlevel allow setting by bitmask [ASH]
   * @rxlevel/@txlevel follow NOISY @toggle parameters [ASH]
@@ -33555,7 +33555,7 @@
   * the config file handler will now skip lines with nothing but whitespace
     or entirely blank lines w/o errors [ASH]
   * caplist() handles more cases of how to capitalize after special chars [ASH]
-  * @saystring is now inherited thorugh parent chains
+  * @saystring is now inherited through parent chains
   * safebuff() allows an optional cut-off value [ASH]
   * @list options display and config() now sort the lists properly [ASH]
   * execscript() allows you to pass vars from other objects you control [ASH]
@@ -33572,7 +33572,7 @@
   * setunion/setinter/setdiff didn't properly sort final lists [ASH]
   * logic for setunion() didn't always work on conditional type setting [ASH]
   * logic for setdiff/setinter didn't always work on conditional types [ASH]
-  * duplciate entries could be seen with suggestions for help entries [ASH]
+  * duplicate entries could be seen with suggestions for help entries [ASH]
   * Long standing issue with @extansi that put a raw ansi normal [ASH]
   * marginal cleanup of parenmatch()/parenstr() to handle raw ansi [ASH]
   * warning in bsd.c with an unsigned int to int typecast under clang [ASH]
@@ -33599,10 +33599,10 @@
   
   Changes
   ------------
-  * config files now allow dbref# syntax for numberical values. [ASH]
+  * config files now allow dbref# syntax for numerical values. [ASH]
     i.e.  'master_room #2' as well as the previous allowable 'master_room 2'
   * major cleanup of internal parsing of help files [ASH]
-  * Snuff erraneous warnings on empty lines in conf files [ASH]
+  * Snuff erroneous warnings on empty lines in conf files [ASH]
   * Added update to help showing the requirement of the config power_objects
     to be enabled for the API subsystem.
   * API subsystem is now CORS aware
@@ -33616,7 +33616,7 @@
   * temporary static buffer for SSl could be overwritten in display [ASH]
   * Fix long-existing typecast bugs for compiler [ASH]
   * BSD select() does not like milisecond timers over 10ms [ASH]
-  * snuff erranous warning when no vattr_cmds are defined [ASH]
+  * snuff erroneous warning when no vattr_cmds are defined [ASH]
   * vattr_command had the alias and attribute switched on .conf [ASH]
 
 & 4.1.0p0
@@ -33641,7 +33641,7 @@
   * hardconn_site and hardconn_host to specify sites allowed
     to use connect screen hardcommands if connect_methods enabled [ASH]
   * istag() to verify if the tag is valid or not [ASH]
-  * Made Rhost hold *.default files of usuall player-changed files.
+  * Made Rhost hold *.default files of usual player-changed files.
     Usually player-edited files will not be affected by repo changes. [AMB]
   
   Changes
@@ -33662,7 +33662,7 @@
   
   Bug Fixes
   ------------
-  * mysql_ping could potentially hang on certaion versions of Mysql [ASH]
+  * mysql_ping could potentially hang on certain versions of Mysql [ASH]
   * Potential buffer overwrite in built in news system [ASH]
   * potential off by one for API text handler on input -- reverted [ASH]
   * fix some potential buffer overflow risks [ASH]
@@ -33752,7 +33752,7 @@
     not give the correct error responses [ASH]
   * Error display for @totem/letter was incorrect [ASH]
   * NO_EVAL and NO_PARSE didn't work properly on @functions/@lfunctions [ASH]
-  * Off by 1 in totem handler for previos db creation [AMB]
+  * Off by 1 in totem handler for previous db creation [AMB]
   * SHA512 salt could be larger than some crypt algos allowed [ASH]
   * SHA512 salt allowable chars restrictive with libxcrypt [ASH]
   * wrap() and some supporting functions didn't handle XTERM256 [ASH]
@@ -33795,7 +33795,7 @@
   * TOTEM_SLOTS will no longer allow starting the mush if > MAX per LBUF [ASH]
   * @list alloc will show overhead of totems per object [ASH]
   * Optionally do forced ansi normal only if ansi detected in string [ASH]
-  * Forced carrage returns no longer on connect screen.  
+  * Forced carriage returns no longer on connect screen.  
     Code all softcoded connect screens accordingly!!!! [ASH]
   * Add MUSH_VERSION environment variable to execscript [ASH]
   * Totems of player and owner of player passed to execscript [ASH]
@@ -33806,7 +33806,7 @@
   ------------
   * SIDEFX permissions were messed up for normal players [ASH]
   * Mogrify handler had an off by one for the array [ASH]
-  * websock2 needed further seperation with ENABLE_WEBSOCKS [ASH]
+  * websock2 needed further separation with ENABLE_WEBSOCKS [ASH]
   * SBUF free on an LBUF free for mogrify (memory leak) [ASH]
   * #lambda wasn't case insensitive, it now is [ASH]
   * Due to compile optimizations, timeouts may not work right [ASH]
@@ -33814,7 +33814,7 @@
   * rloc had SIGSEGV bug with argument checks [ASH]
   * parse_ansi (internal) didn't initialize values passed to it [ASH]
   * DOING/WHO didn't initialize values passed to it [ASH]
-  * API would not process queries if process-quueue set to 0 [ASH]
+  * API would not process queries if process-queue set to 0 [ASH]
   * MAX sockets should choose port or api port whatever is greater [ASH]
   * ANSI splitter (internal) had a hierarchy issue with ANSI [ASH]
   * the /eval and /eroom of @icmd was significantly broken [ASH]
