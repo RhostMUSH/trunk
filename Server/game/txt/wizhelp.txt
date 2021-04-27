@@ -2,7 +2,7 @@
   This is the RhostMUSH online help facility for wizard commands and topics.
   The information provided by this command is generally not useful for
   anyone other than wizards and game maintainers, as the features described
-  here are only accessable to characters whose ROYALTY bit is set, or to those
+  here are only accessible to characters whose ROYALTY bit is set, or to those
   who have access to the directory where the RhostMUSH data files reside.
   
   Syntax of help command:  wizhelp [<command/topic>]
@@ -35,9 +35,9 @@
   The following commands exist for the news system.  They can be seen
   by typing: help news <command>
   
-       extend      expire      groupadd       groupdel       groupinfo      
-       adminlock   grouplimit  on             off            postlock    
-       postlist    readlock    subscribe      userlimit      userinfo  
+       extend      expire      groupadd       groupdel       groupinfo
+       adminlock   grouplimit  on             off            postlock
+       postlist    readlock    subscribe      userlimit      userinfo
        usermem     unsubscribe yank           articlelife
   
   For help on any of these topics: wizhelp news <topic>
@@ -45,8 +45,8 @@
   News DB related commands are under: wizhelp newsdb
 
 & newsdb
-  there exists various help files in juncture to db referencing for 
-  the news.  The syntax works using switches like: 
+  there exists various help files in juncture to db referencing for
+  the news.  The syntax works using switches like:
           newsdb/dbck
   
   The following wizard topics exist for newsdb:
@@ -64,12 +64,12 @@
 & newsdb cmdlist
   The following are a list of wizard related news DB commands:
   
-  newsdb/dbck       - Perform consistancy check on the news database
+  newsdb/dbck       - Perform consistency check on the news database
   newsdb/dbinfo     - Obtain statistics on the news database
   newsdb/load       - Load the gdbm database from the flatfile
   newsdb/unload     - Unload the gdbm database into the flatfile
   
-  Help is available on each of these switches by typing: 
+  Help is available on each of these switches by typing:
             wizhelp newsdb <switch>
 
 & news cmdlist
@@ -113,7 +113,7 @@
   The @snoop command is a monitoring and administrative tool that connects a
   port listener to the player's descriptor.  Once connected, anything that
   the target player sees, does, or interacts with is passed along to the
-  watchers who are tagged to montior this user.
+  watchers who are tagged to monitor this user.
   
   A player disconnecting automatically turns off the snoop process.  You may
   optionally set up a log monitoring that can be automated.
@@ -467,7 +467,7 @@
   care of a news group. The administrator may do many things to the group
   that can not be done by the standard user. There are two system defined
   groups: 'info' and 'general'. These groups can not be deleted since the
-  system relies on their existance to add improved features for the users.
+  system relies on their existence to add improved features for the users.
   
   See Also: help news description, help news general, help news info,
             wizhelp news groupadd, wizhelp news groupdel,
@@ -477,13 +477,13 @@
   Topics: DATABASE
   The database files for the news system are named <mudname>.news.pag and
   <mudname>.news.dir. If the mush starts up and these files are not present
-  in the execution directory, the news sytem will assume that a new     
+  in the execution directory, the news system will assume that a new
   database is desired. It will create the standard seed database containing
   only the global news information and the two system groups 'info' and
   'general'. Therefore if you desire to wipe out the existing news database,
   either delete the two files mentioned here and start the mush, or use
   the newsdb/load command which first deletes these files and then uses
-  the contents of the <mudname>.news.flat file to propigate a new db.
+  the contents of the <mudname>.news.flat file to propagate a new db.
   
   See Also: wizhelp newsdb load, wizhelp news flat files
 
@@ -618,14 +618,14 @@
   1.  @api/enable <target>
       -- This will tag the target to be API enabled.  It essentially sets
          the target with the API @power.  While any valid dbref# will work
-         if you plan to use players you want to take extra percautions.
+         if you plan to use players you want to take extra precautions.
   
   2.  @api/password <target>=<password>
       -- This sets a password hash of <password> that you then use to connect
          to the target dbref# using the API subsystem.  If it doesn't match
          the password it can't connect.
   
-  3.  @api/ip <taget>=<site(s)>  
+  3.  @api/ip <target>=<site(s)>  
       -- This is a list of wild-carded IP addresses that you wish to allow
          connectivity through the API to that specific dbref#.  This is an
          optional step and if not specified defaults to localhost only.
@@ -651,7 +651,7 @@
   POST:
      header - Exec:
        -- The Exec: header is used to tell the mush what code to execute.
-          You would ensapsulate the code you want to run in double quotes.
+          You would encapsulate the code you want to run in double quotes.
           You may specify more than one command by using semi-colons.
           An empty Exec: call returns an error.
           Example:  Exec: "@emit test1;@emit test2"
@@ -692,7 +692,7 @@
   
   When the mush responds to your API requests, it will do so with headers
   only.  There is no data submitted.  If there is header data it does not
-  recognize or is malformed, it will return an appropiate error message.
+  recognize or is malformed, it will return an appropriate error message.
   
   The following return encoding can be expected
   POST:
@@ -872,7 +872,7 @@
 & CONTROL2
   There are exceptions to every rule, and RhostMUSH is no exception (sic).
   While Immortal and #1 are basically immune from exceptions, being
-  too high in the chain to warrent effecting them, the rest of the bits
+  too high in the chain to warrant effecting them, the rest of the bits
   can be modified (yes, including full wizard (royalty)).  
   
   They can be controlled as follows.
@@ -885,7 +885,7 @@
                  can (and likely does) grant abilities up to wizard
                  or even immortal level (like examine and teleport).
    @depower   -- This is a method to tier-level DOWN a bitlevel to a
-                 lower method of control.  This always has precidence
+                 lower method of control.  This always has precedence
                  over any other method of control and essentially 
                  ham-strings authority.  You can use this to remove
                  abilities from a full wizard (like cloaking, editing,
@@ -898,10 +898,10 @@
                  why it's called a TWINK lock.  Setting a TwinkLock item
                  NO_MODIFY will remove the editing ability and leave the
                  examine ability.
-   NO_MODIFY  -- This is a flag that can optionaly be tagged to be 
+   NO_MODIFY  -- This is a flag that can optionally be tagged to be 
                  tiered-up to immortal.  It in essence makes any target
                  (including twinklocked items) non-modifiable.
-   NO_EXAMINE -- This is a flag that can optionaly be tagged to be
+   NO_EXAMINE -- This is a flag that can optionally be tagged to be
                  tiered-up to immortal.  It in essence makes any target
                  (including twinklocked items) non-examinable.
    PINVISIBLE -- An attribute modifier that when in junction with the
@@ -965,7 +965,7 @@
   See Also: sconnect_reip, sconnect_host, sconnect_cmd
 
 & TOR 
-  RhostMUSH has some fairly advanced features for proxy and masquarding
+  RhostMUSH has some fairly advanced features for proxy and masquerading
   to get by bans or hiding identities.  First, we have @blacklist which
   allows you to load in a static list of current TOR exit points, hidemyass
   proxy points, and all current public proxies from several sites.
@@ -984,7 +984,7 @@
         that you use to connect to your mush.  Either is fine.  You
         can use @admin tor_localsite=<site> online or from the conf file
         tor_localsite <site>.  You may specify more than one IP or site
-        if there are several IPs that are used to connect to your mush.
+        if there are several IP's that are used to connect to your mush.
     3.  @tor/cache must be issued each and every time you change your
         tor_localsite.  This caches the site information to avoid a 
         lookup and breakdown for every connection that occurs.
@@ -1071,7 +1071,7 @@
   
   Global parents are issued through 4 global attributes.  These actually
   set a @parent on the target matching the global attribute.  All checks,
-  consistancy, and sanity filtering is done prior to the @parent set.
+  consistency, and sanity filtering is done prior to the @parent set.
   The following 4 parameters exist.
   
         player_parent     (for player types)
@@ -1092,9 +1092,9 @@
 & ancestors
 & global inheritance
 & global attributes
-  Topic: global inherintance (ancestors)
+  Topic: global inheritance (ancestors)
   
-  Global attributes works similiarilly to global parenting, except no actual
+  Global attributes works similarly to global parenting, except no actual
   @parent is set on any target nor required.  There are actually 6 different
   parameters for global inheritance.  These are:
   
@@ -1242,7 +1242,7 @@
   (syntax: @register <character>=<email>).  There is a configurable 
   default to a total of one (1) registration per connected session and
   three (3) total email registers per email site.  Both can be changed
-  with the appropiate @admin or @areg parameters.
+  with the appropriate @admin or @areg parameters.
   
       AUTOREG PARAMS  -- Lists autoregistration @admin parameters.
       AUTOREG DB      -- Lists information about the autoregistration db.
@@ -1320,7 +1320,7 @@
     @trigger [tag(weather_globals)]/UPDATE_WEATHER 
   
   An alternative to tag() is actually to use #<tagname> - this will match
-  against existing tag names, in a similiar format to #dbrefs, making it an
+  against existing tag names, in a similar format to #dbrefs, making it an
   easy to use replacement.
   
   This also makes writing of portable mushcode much easier - old workarounds
@@ -1409,7 +1409,7 @@
 
   This toggle, when set, allows a wizard to override the wiz_always_real
   setting if it is enabled. This is to save wizards from getting spammed
-  by alot of descs without being able to sanely evade it, or just to test
+  by a lot of descs without being able to sanely evade it, or just to test
   some reality settings. With this @toggle set, a wizard can edit their
   rx/txlevels normally.
   
@@ -1712,12 +1712,12 @@
   
   The @api command is used to enable/disable a target from using the API 
   interface as well as enable authentication through both password and
-  IP.   This is the central tool for configurating an object to be allowed
+  IP.   This is the central tool for configuring an object to be allowed
   for the API interface.
   
   The following switches exist:
     /status    -- (default) show the current API status of the target object
-    /enable    -- entables the target to use the API interface.  This will
+    /enable    -- enables the target to use the API interface.  This will
                   effectively @power the object API
     /disable   -- disables the target from using the API interface.  This will
                   remove the API @power
@@ -1823,9 +1823,9 @@
 & DEPOWER MORTAL_EXAMINE
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] mortal_examine
   
-  This depower will drop all examine (and similiar functionality) of the
+  This depower will drop all examine (and similar functionality) of the
   target down to as if they were only a mortal.  This effects examine,
-  @decompile, lattr(), and similiar features.
+  @decompile, lattr(), and similar features.
   
   See Also: depower examine
 
@@ -1839,15 +1839,15 @@
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] password
   
   This depower will toggle on/off the players ability to set newpasswords
-  (if available to them) as well as stop them from changing thair password
-  or being newpassworded except by an immortal.
+  (if available to them) as well as stop them from changing their password
+  or being newpassword'd except by an immortal.
   
 & DEPOWER NOGOLD
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] nogold
   
   This power lowers (or disables) the player's ability to give gold.
   If disabled, they can not give anyone gold.  if lowered, they can
-  only give gold to a specified ammount dependant on what level they
+  only give gold to a specified amount dependent on what level they
   are set at.
   
         OFF         - 0
@@ -1860,7 +1860,7 @@
   
   This power lowers (or disables) the player's ability to steal gold.
   If disabled, they can not steal any gold.  if lowered, they can
-  only steal gold to a specified ammount dependant on what level they
+  only steal gold to a specified amount dependent on what level they
   are set at.
   
         OFF         -  0
@@ -1884,7 +1884,7 @@
   receive anything (objects to money).  The level it is set to
   restricts to what level they can receive something from.  For 
   example: If set to architect, then only architects and higher
-  can give the targetted player anything.
+  can give the targeted player anything.
 
 & DEPOWER SEARCH_ANY
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] search_any
@@ -2020,7 +2020,7 @@
   This depower will lower or disable the ability to examine things.
   If 'off' (disabled), they will be unable to examine even visual
   things.  They can still examine their own objects.  This effects
-  all similiar functionality to examine.
+  all similar functionality to examine.
   
   See Also: depower mortal_examine  
 
@@ -2083,7 +2083,7 @@
   Command: @power[[/switch] <user>=[!|@o|@g|@a|@c] arg [!|@o|@g|@a|@c] arg2]
   
   The @power command is used to give players given abilities not normally
-  had.  Any power that SUPER-ROYALTY/ROYALTY wish to grant them are inhereted
+  had.  Any power that SUPER-ROYALTY/ROYALTY wish to grant them are inherited
   to any/all of their belongings as long as the INHERIT flag is set on it.
   Each 'arg' specified in the list will be a separate power to set/unset.  
   And the toggle for individual powers is optional.  Note that if no switch 
@@ -2104,10 +2104,10 @@
   
   You can also specify a toggle for each individual power  The following
   individual power toggles exist:
-      @o             : This turns off a power. Similiar to /OFF switch.
-      @g             : This sets power to GUILDMASTER.  Similiar to switch.
-      @a             : This sets power to ARCHITECT.  Similiar to switch.
-      @c             : This sets power to COUNCILOR.  Similiar to switch.
+      @o             : This turns off a power. Similar to /OFF switch.
+      @g             : This sets power to GUILDMASTER.  Similar to switch.
+      @a             : This sets power to ARCHITECT.  Similar to switch.
+      @c             : This sets power to COUNCILOR.  Similar to switch.
   
   Do note that the use of the individual toggle overrides the /switch used
   for that individual power.  @power without any arguments returns a list
@@ -2275,13 +2275,13 @@
   This power allows it so anyone set with this power doesn't display 
   their bit (or level of bit) to anyone that level and lower.  For example,
   if powered at HIDEBIT at architect level, then architects or lower are
-  unable to see if they have any bitlevel by any means.  The targetted 
+  unable to see if they have any bitlevel by any means.  The targeted 
   player and their belongings can see their own 'hidden' flag(s).
 
 & POWER PURGE
   Power argument: @power[/switch] <user>=[@g|@a|@c] purge
   
-  This toggable power allows a player to bypass the recover list of the 
+  This toggleable power allows a player to bypass the recover list of the 
   mush and destroy the object totally.  They do this by using the /purge
   switch with @destroy.  Do this with care as once purged the object
   can *NOT* be gotten back.  This works like the normal TinyMUSH 
@@ -2290,7 +2290,7 @@
 & POWER SHUTDOWN
   Power argument: @power[/switch] <user>=[@g|@a|@c] shutdown
   
-  This toggable power allows a player to shutdown the mush.  With the
+  This toggleable power allows a player to shutdown the mush.  With the
   obvious security this brings up, the person who has this power
   (other than Royalty and higher) can not be forced to @shutdown
   or put into the wait queue a @shutdown.  They can only do it on
@@ -2413,13 +2413,13 @@
   not have the permissions for.  The level at which they can examine
   is determined by the switch or the @ option.  You can specify from
   guildmaster to councilor and the user would then be able to examine
-  as if they were that bitted level.
+  as if they were that bit level.
 
 & POWER GRAB_PLAYER
   Power argument: @power[/switch] <user>=[@g|@a|@c] grab_player
   
   This power allows the user to grab (summon a player to their location)
-  a given player up to the bitted level specified by the @ option
+  a given player up to the bit level specified by the @ option
   or the switch.  Valid values are from guildmaster to councilor.
 
 & POWER BOOT
@@ -2436,8 +2436,8 @@
   This power, like the TEL_ANYWHERE power, is definable by the level
   of power you define it as.  Valid values are from guildmaster to
   councilor.  Like the power says, it will give the user the ability
-  to teleport anything owned by that bitted level and less anywhere
-  owned by that bitted level and less.
+  to teleport anything owned by that bit level and less anywhere
+  owned by that bit level and less.
 
 & POWER FREE_PAGE
   Power argument: @power[/switch] <user>=[@g|@a|@c] free_page
@@ -2666,7 +2666,7 @@
      Room         - The room that the player is in.
      Ports        - The current concentrator port that the player is 
                     connected to the mush by.
-     Host flags   - located bwtween the Commands and Host fields:
+     Host flags   - located between the Commands and Host fields:
                     F - forbidden       R - registration   + - suspect
                     U - hidden (@hide)  H - unfindable     D - dark
                     * - staff (opt)     W - Wizard (opt)   a - councilor (opt)
@@ -2746,7 +2746,7 @@
   option 'admin_object' must be a valid object, must be owned by an immortal,
   and the _LINE## (like _LINE0, _LINE1, _LINE2, etc) must be in order and
   must start with _LINE0.  Any skipping of numbers will not be read.  Any
-  invalid @admin config paremeter will be skipped.  Any comment you wish to
+  invalid @admin config parameter will be skipped.  Any comment you wish to
   add to the file must start with a '#'.  Like &_LINE1 #obj=# my comment.
   
   Any blank lines that were added to the rhost_ingame.conf manually will be
@@ -2870,7 +2870,7 @@
   permit_site, register_site, forbid_site, and noguest.  However, instead
   of setting the various site, it will remove all matching instances of
   the site.  You may use RFC notation.  The following switches exist:
-    /NOGUEST       - removes site information for dissallowing guests.
+    /NOGUEST       - removes site information for disallowing guests.
     /NOAUTOREG     - removes site information for autoregistered sites.
     /REGISTER      - removes site information for register only sites.
     /SUSPECT       - removes site information for suspect sites.
@@ -2888,7 +2888,7 @@
                      removal.  Handy if you use the optional connection args.
   
   It will remove all matching instances for each switch field.  This command
-  is only accessable by immortals.
+  is only accessible by immortals.
   
   Example:  @site/permit 123.123.123.0=255.255.255.0
             @site/permit 123.123.123.0=/24
@@ -2923,7 +2923,7 @@
   NOTE:  If you @blacklist 127.0.0.1 you may inadvertently disable SSL tunnels
   
   This command lists, loads, or clears the current blacklists.  Blacklists are
-  similiar to forbid sites, except it keeps them in a separate list to avoid
+  similar to forbid sites, except it keeps them in a separate list to avoid
   spamming the site list.  You can have a maximum of 100,000 entries in the
   blacklist.  This reads a list of sites in a file blacklist.txt that it 
   populates into the blacklist.  All invalid sites will be ignored.  All
@@ -3040,7 +3040,7 @@
   Command: @chown[<switch>] <object>=<player>
  
   Wizards may @chown objects, rooms, and exits to other players.
-  @Chowned objects are set HALT.
+  @chown'd objects are set HALT.
   
   The following additional switches are available to wizards:
     /preserve - preserve flags on target item.
@@ -3077,7 +3077,7 @@
   could be a security risk otherwise.
      
   Be careful when using /preserve with @chownall as some things may not be
-  desireable to have flags passed over!  This may be a security risk!
+  desire able to have flags passed over!  This may be a security risk!
    
   See Also: @chown.
 
@@ -3087,7 +3087,7 @@
   Cuts off the object or exit list for the current location at the indicated
   object or exit by setting [next(thing)] to NOTHING.  Objects or exits that
   follow in the chain are not moved or otherwise changed, and are only
-  accessable by object number.  This command is intended for performing
+  accessible by object number.  This command is intended for performing
   database repair, and should be used only with extreme caution.
   
   Example:  @cut #12345
@@ -3099,7 +3099,7 @@
   unused attributes in the hash tables.  Unused is defined as an attribute
   that is not currently defined (set) on ANY database object in the database.
   
-  The optional switchs are available:
+  The optional switches are available:
       /check  -- Do not actually purge but just show would would have been.
   
   Cleaning unused attributes is handy as that will reduce, in some instances,
@@ -3108,14 +3108,14 @@
   the more memory your mush will be using.
    
   Please be aware this only deletes the attributes, it does not renumber 
-  them.  It was decided to forgoe renumbering the attributes on-line for
+  them.  It was decided to forgo renumbering the attributes on-line for
   a few reasons which are as follows:
     1.  Renumbering the attributes requires a massive overhead of allocated
         memory to keep track of the attributes on both side of the tree.
     2.  For large databases with large numbers of attributes, this can
         become next to impossible, especially if you resources are tight.
     3.  There's several more checks in RhostMUSH with attributes than there
-        is in MUX, thereby requiring more overhead to renumberate.
+        is in MUX, thereby requiring more overhead to renumber.
     4.  The number of the attribute, regardless of gap, causes no additional
         overhead in the mush itself.
     5.  If someone needs to write (or manages to write) over 2 billion 
@@ -3257,7 +3257,7 @@
 & @flag
   Command: @flag[/<switch>] <oldflag>[=<newflag>]
   
-  This command either removes alises of existing flags, or creates a NEW
+  This command either removes aliases of existing flags, or creates a NEW
   name for the flag.  For example, if you rename CONNECTED to BOBTHEWIZ
   Then whenever you reference the previous 'CONNECTED' flag, it will be
   seen as 'BOBTHEWIZ' instead.  This does not effect the character of 'c'
@@ -3306,7 +3306,7 @@
   database is used to store the number of hits a given email has had in
   receiving autoregister email and what sites were hit.
 
-  The following siwtches are available:
+  The following switches are available:
     /load      - loads the autoregistration flat file into the db.
                  Syntax: @areg/load
     /unload    - makes a flat file dump of the autoregistration db.
@@ -3324,17 +3324,17 @@
 & @areg2
   Command: @areg[/<switches>] [<options>]
   
-  The following siwtches are available: (CONTINUED)
+  The following switches are available: (CONTINUED)
     /del       - deletes the player (by dbref# only) from the given email
                  Syntax: @areg/del <dbref#>=<email>
     /edel      - purges all players from the specified email
                  Syntax: @areg/edel <email>
-    /aedel     - purges all players fromt he specified email and the email
+    /aedel     - purges all players from the specified email and the email
                  Syntax: @areg/aedel <email>
     /limit     - specifies the maximum number of register emails an email 
                  address can receive (defaults to 3)
                  Syntax: @areg/limit <email>=<count>
-    /wipe      - completely purges the entire autoregisteration database.
+    /wipe      - completely purges the entire autoregistration database.
                  Syntax: @areg/wipe
     /clean     - this effectively tries to repair the database.  It does
                  an /unload then a following /load. 
@@ -3365,7 +3365,7 @@
     /delete     - delete the specified user-defined function.
     /display    - displays the details of the specified function.
     /protect    - all setq registers called in a localized function are nulled.
-    /notrace    - the specified function when defined can't be TRACEed.
+    /notrace    - the specified function when defined can't be TRACE'd.
     /max        - Set the maximum number of arguments for the function.
                   The default is '-1' or unlimited.
     /min        - Set the minimum number of arguments for the function.
@@ -3506,7 +3506,7 @@
     Total      - The total number of buffers currently in the pool.
     Allocs     - The total number of buffers ever allocated from the pool.
     Lost       - The number of buffers lost due to buffer header corruption.
-    Total Mem  - The total memory required for each catagory (in-use memory)
+    Total Mem  - The total memory required for each category (in-use memory)
   
   Information is reported for the following pools:
     Sbufs      - Small buffers, for when you need only a little space.
@@ -3535,7 +3535,7 @@
     Daily-Out  - Total outbound for current 24 hour period for current reboot
     Avg-Out    - Total outbound daily average for current reboot
    
-  Information is given for total ammounts with disk/memory use:
+  Information is given for total amounts with disk/memory use:
     DB Size         - Gives the total size of the database in Kbytes
     DB Top          - Gives the size of the database since last startup
     DB Object Size  - Gives size of a single object
@@ -3572,7 +3572,7 @@
     max save              - gives the maximum saved messages one can have.
     max folders           - gives the maximum folders a player can have.
     max send              - max players that can be added to a single message.
-    abs max rcv/snd index - max sent and recieved messages a player can have.
+    abs max rcv/snd index - max sent and received messages a player can have.
     abs max rcp           - max number that can receive a single message.
     abs max access        - max number of people than can be locked from mail.
   
@@ -3772,7 +3772,7 @@
   Command: @list options
   
   Lists the value of many of the configuration parameters.  You may specify
-  sub-options with this.  The suboptions are:
+  sub-options with this.  The sub-options are:
     boolean        - list boolean values and the matching admin param.
     values         - list numerical value params
     config         - list config information
@@ -3848,7 +3848,7 @@
 & @list options mail
   Command Subtopic: @list options mail
   
-  This will list all mail related config parametes and their existing
+  This will list all mail related config parameters and their existing
   settings.  The mail parameters are used for the auto-registration
   system.
   
@@ -4030,7 +4030,7 @@
   Lists the contents of the site access and suspect lists.
  
     Address   - The address to which this entry applies.
-    Mask      - The mask that is ANDed to both the input address and the address
+    Mask      - The mask that is AND'd to both the input address and the address
                 in the entry when checking to see if this entry is to be used.
     Max-Conns - Maximum connections allowed before site restriction is
                 enabled.  'Restricted' means use default method.  N/A in this
@@ -4090,7 +4090,7 @@
   The following arguments are supported on user attributes:
                *name*                 - wildcard match attribute names.
                &FLAG1 FLAG2 ... FLAGn - return attributes with all flags.
-               |FLAG1 FLAG2 ... FLAGn - return attirbutes with any flag.
+               |FLAG1 FLAG2 ... FLAGn - return attributes with any flag.
 
   Examples:
     > @list user_attrib fn.*    (find all user attributes starting with fn.)
@@ -4195,7 +4195,7 @@
   Note that if <attr-num> is not a valid attribute number, the lock will
   never succeed.
   
-  Available Locktypes:
+  Available Lock types:
   
        LockType:  AltName   - defines who is allowed to see the real name
                               or not with the altname in {}'s after.
@@ -4239,8 +4239,8 @@
   file.  The following switches exist.  Ansi and carriage returns are stripped.
   
       /manual - append text to the file specified by manlog_file @admin param
-                please note that percautions are taken to avoid this being
-                abused too heavilly.
+                please note that precautions are taken to avoid this being
+                abused too heavily.
       /file   - append text to a specified filename.  The filename is limited
                 to alphanumeric and '_' and is forced to end with '_manual.log'
                 to the filename.  You may specify subdirectories (up to 127
@@ -4512,8 +4512,8 @@
   
   Items to be restored will be added to the recovery list after the
   next internal dbck (or a manual @dbck can force it) after the item
-  has been @destroyed (or @nuked).  Players who are @toaded or
-  @turtled can not be @recovered in this way as they were not essentially
+  has been @destroyed (or @nuked).  Players who are @toad'd or
+  @turtle'd can not be @recovered in this way as they were not essentially
   destroyed, but were converted from a player type to a thing type.
   
   Items @purged are gone for good.
@@ -4565,7 +4565,7 @@
                                   objects.
  
   Note:  <=wild> will be in the form =*wildcard* where *wildcard* is the
-         patten you wish to match.  The <wild> is the same but without an
+         pattern you wish to match.  The <wild> is the same but without an
          equals (=) sign.
   
   Note2: Wildcard patterns for =<wild> patterns may be the NAME of an item
@@ -4833,7 +4833,7 @@
                    by bitlevel permissions. (help bittype())
   
     <see>      --  The SEE/VIEW/READ permissions you wish to apply to the
-                   specified attribute prefix.  YOu can set from '0' to '8'
+                   specified attribute prefix.  You can set from '0' to '8'
                    as defined by bitlevel permissions. (help bittype())
   
 & @aflags mod
@@ -4898,8 +4898,8 @@
   This adds a new attribute <prefix> with the permissions of who
   can <set> the attribute as well as who can <see> the attribute.
   You may optionally specify the target <owner> and/or <target> and/or
-  <enactor> for the item in question.  Target has precidence over Owner.
-  Enactor has precidence over target.
+  <enactor> for the item in question.  Target has precedence over Owner.
+  Enactor has precedence over target.
   
   Any duplicate entries will not allow to be added.  Duplicate entries
   are defined by any entry that matches the prefix, the owner, and 
@@ -4970,7 +4970,7 @@
                 by player parses normally.
     /DISABLE  - Disables the given command so it returns a
                 Permission Denied. (Default)
-    /IGNORE   - This command actually removes from existance the
+    /IGNORE   - This command actually removes from existence the
                 specified commands from the user's standpoint so
                 that it is skipped upon command execution checks.
                 Use this option for $command overrides.
@@ -5259,7 +5259,7 @@
   For help on the alternate system:  wizhelp @quota alternate
   For help on the standard system:   wizhelp @quota standard
   
-  To change back and forth between systems, use the '@convert' comand.
+  To change back and forth between systems, use the '@convert' command.
   
   See Also: @convert
      
@@ -5283,7 +5283,7 @@
   
   Lists or sets the player's (or everyone's) remaining or total quota
   according to the switches used.  You may specify 'all' to set/unset/etc
-  quotas on ALL players.  Be forwarned however, that this is spammy.
+  quotas on ALL players.  Be forewarned however, that this is spammy.
   
   The following switches are available:
      /ALL       - Display or set all quotas for given player.  Can be used in
@@ -5295,7 +5295,7 @@
      /MAX       - Set the maximum quota allocation for that user.
      /XFER      - Like /xfer for mortals, but allows transfer of other's quota
      /TAKE      - allows you to set automatic quota redistribution on players.
-     /REDO      - repairs quota of everyone in existance.
+     /REDO      - repairs quota of everyone in existence.
   
 { wizhelp quota alternate2 for more }
 & quota alternate2
@@ -5435,10 +5435,10 @@
   @tag/remove removes an existing tag. If the tag named <tagname> does not
   exist, an error is returned.
  
-  The following sanity checks are performend for tags:
+  The following sanity checks are performed for tags:
  
   * Tagnames cannot be more than 32 characters in length
-  * Tagnames cannot cointain whitespace.
+  * Tagnames cannot contain whitespace.
   * Tags need to be supplied with a valid, existing object's #dbref on
      creation.
   * Up to 16 tags can reference the same #dbref
@@ -5465,7 +5465,7 @@
     5.  With hardcode only, they can be assigned unique control, power,
         or similar affect as when toggles and flags.
     6.  The number of totems can be increased or shrunk dynamically
-        without damaging the database.  Howeber, if hardcoding to
+        without damaging the database.  However, if hardcoding to
         a specific slot, it likely won't compile if you shrink to
         the point that slot no longer exists.
   
@@ -5536,7 +5536,7 @@
   
   See 'TOTEMS' for a general overview of totems.
   
-  The @totem command is the administative tool for in-game adding and
+  The @totem command is the administrative tool for in-game adding and
   manipulation of @totems.  You may also add them in the source or through
   the netrhost.conf file.  They can be issued through the @admin admin_object
   as well.
@@ -5593,7 +5593,7 @@
   This option will add the <totem> by name into the given <slot> with the
   bitwise <mask> specified.  The mask must be a unique bitmask and the
   slot must not currently be used.   The mask can be either in hex starting
-  with 0x as shown, or the decimal equivelant.  The valid slots are defined
+  with 0x as shown, or the decimal equivalent.  The valid slots are defined
   to whatever the max slots are for that RhostMUSH.  The default is 0-9.
   
   Totem names must be less than 20 characters long.
@@ -5618,7 +5618,7 @@
     > @totem/add mytotem=1 0x00000001
     > @totem/add anothertotem=2 2
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_add mytotem 1 0x00000001
     > totem_add anothertotem 2 2 
   
@@ -5650,7 +5650,7 @@
   This sets the given permissions on the given totem on who may set them.  
   Valid permissions can be seen with 'wizhelp permissions'.  A special 
   permission of 'mortal' is allowable.  You may specify multiple permissions 
-  at once.  You may preceed a permission with '!' to remove the permission.
+  at once.  You may precede a permission with '!' to remove the permission.
   
   This permission controls who may set the given totem.
   
@@ -5658,7 +5658,7 @@
     > @totem/set mytotem=wizard
     > @totem/set mytotem=!wizard architect
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_access_set mytotem wizard
     > totem_access_set mytotem !wizard architect
   
@@ -5672,7 +5672,7 @@
   This sets the given permissions on the given totem on who may unset them.
   Valid permissions can be seen with 'wizhelp permissions'.  A special 
   permission of 'mortal' is allowable.  You may specify multiple permissions 
-  at once.  You may preceed a permission with '!' to remove the permission.
+  at once.  You may precede a permission with '!' to remove the permission.
   
   This permission controls who may unset (ergo clear) the given totem.
   
@@ -5680,7 +5680,7 @@
     > @totem/unset mytotem=wizard
     > @totem/unset mytotem=!wizard architect
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_access_unset mytotem wizard
     > totem_access_unset mytotem !wizard architect
   
@@ -5694,7 +5694,7 @@
   This sets the given permissions on the given totem on who may see them.
   Valid permissions can be seen with 'wizhelp permissions'.  A special 
   permission of 'mortal' is allowable.  You may specify multiple permissions 
-  at once.  You may preceed a permission with '!' to remove the permission.
+  at once.  You may precede a permission with '!' to remove the permission.
   
   This permission controls who may see the given totem.
   
@@ -5702,7 +5702,7 @@
     > @totem/see mytotem=wizard
     > @totem/see mytotem=!wizard architect
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_access_see mytotem wizard
     > totem_access_see mytotem !wizard architect
   
@@ -5713,9 +5713,9 @@
 & @totem type
   Command: @totem/type <totem>=<permission(s)>
   
-  This sets the given restrictions on the given totem on who may iset/unset
+  This sets the given restrictions on the given totem on who may set/unset
   them based on type restrictions.  You may specify multiple permissions 
-  at once.  You may preceed a permission with '!' to remove the permission.
+  at once.  You may precede a permission with '!' to remove the permission.
   
   This permission controls a special type-case of what targets are allowable
   to set or be set.
@@ -5731,7 +5731,7 @@
     > @totem/type mytotem=room
     > @totem/type mytotem=!room thing wizard
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_access_type mytotem room
     > totem_access_type mytotem !room thing wizard
   
@@ -5756,7 +5756,7 @@
     > @totem/rename mytotem=mynewtotem
     > @totem/rename anothertotem=anothernew
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_name mytotem mynewtotem
     > totem_name anothertotem anothernew
   
@@ -5844,7 +5844,7 @@
     > @totem/alias mytotem=my myt myto mytot mytote
     > @totem/alias marker0=0
 
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_alias mytotem my myt myto mytot mytote
     > totem_alias marker0 0
   
@@ -5906,7 +5906,7 @@
     > think totems(me)
     m[m]{m}
   
-  Config parameter equivelant:
+  Config parameter equivalent:
     > totem_letter mytotem 0 m
     > totem_letter mytotem1 1 m
     > totem_letter mytotem2 2 m
@@ -5930,7 +5930,7 @@
   Where <slot> is the slot number and <totems> are the number of totems
   assigned to that specific slot.
    
-  Exmaple:
+  Example:
     > @totem/slots
   
   See Also: @totem
@@ -5949,8 +5949,8 @@
   the current boot of the machine (i.e.  Cleared on @shutdowns and @reboots).
   
   The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
-  The @flagdef handlds all FLAGS.      (help @flagdef4 for options)
-  The @totemdef handlds all TOTEMS.      (help @totemdef4 for options)
+  The @flagdef handles all FLAGS.      (help @flagdef4 for options)
+  The @totemdef handles all TOTEMS.      (help @totemdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -6033,7 +6033,7 @@
   a   architect - enforce type setting to architect and higher
   c   councilor - enforce type setting to councilor and higher
   w   wizard - enforce type setting to wizard (royalty) and higher
-  i   immortal - enforce type setting to immmortal/#1 only
+  i   immortal - enforce type setting to immortal/#1 only
   
   Note type restrictions if no bit restriction (rgacwi) specified, it assumes
   no one will be allowed to set that given type.  Ergo, it locks it down
@@ -6061,7 +6061,7 @@
   You may use @admin parameters and/or the netrhost.conf file to set the
   override permissions for flags and toggles.  The following exist.
   
-  @admin parameters for FLAG based perissions:
+  @admin parameters for FLAG based permissions:
   flag_access_set     - [@flagdef/set] Sets override permission on 'set'.
   flag_access_unset   - [@flagdef/unset] Sets override permission on 'unset'.
   flag_access_see     - [@flagdef/see] Sets override permission on 'see'.
@@ -6118,7 +6118,7 @@
 & @hook2
   Command: @hook[/<switch(s)>] [<command/attribute>]  (continued)
   
-  Exmaples of @hook are as follows:
+  Examples of @hook are as follows:
     > @hook/before look 
     @hook: new mask for 'look' -> before
     > @hook/after look
@@ -6139,9 +6139,9 @@
     ---------------------------------+---------------------------------------
     Percent-Substitutions            | Override Status
     ---------------------------------+---------------------------------------
-                         -- No percent substitions defined --
+                         -- No percent substitutions defined --
     ---------------------------------+---------------------------------------
-    Say/Pose/@emit Morgrifies        | Morgrify Status
+    Say/Pose/@emit Mogrifies         | Mogrify Status
     ---------------------------------+---------------------------------------
     say, "                           | DISABLED
     pose, :, ;                       | DISABLED
@@ -6150,7 +6150,7 @@
     The hook object is currently: #123 (VALID)
   
   See Also: hook_obj, hook_cmd, HOOK SETUP, sub_override, sub_include,
-            morgrify
+            mogrify
 
 & @limit
   Command: @limit[/<switch>] <player> [=<newvalue>]
@@ -6172,7 +6172,7 @@
   accordingly.  The special values of '-1' mean unlimited, and '-2' mean
   to use the global setting.  Unlimited (-1) is not allowed for /lfun.
   
-  Seperate wizard attributews are available that are defined by the params
+  Separate wizard attributes are available that are defined by the params
   wizmax_dest_limit and wizmax_vattr_limit.  By default wizards are not
   checked, and must be enabled with the param 'vattr_limit_checkwiz'
   
@@ -6271,9 +6271,9 @@
   Command: @toad[/<switches>] <victim>[=<recipient>]
   
   Turns the victim into an object (a slimy toad) and disconnects them from
-  the game.  The named recipient (or the @toading wizard) get ownership of
+  the game.  The named recipient (or the @toad'ing wizard) get ownership of
   all the victim's things, rooms, and exits, as well as of the toad object
-  itself.  The name of the toadie will be 'A slimey toad named <name>'.
+  itself.  The name of the @toad'ee will be 'A slimy toad named <name>'.
  
   The following switches are available:
     /no_chown - Don't change the ownership of the victim or his objects.
@@ -6304,7 +6304,7 @@
   'Broadcast:' (if for wizards).  The following switches can be used to get 
   the described effects:
      /emit      - Format the message as an emit (ie send just <message>).
-     /pose      - Format the message as a pose (ie <youname> <message>).
+     /pose      - Format the message as a pose (ie <yourname> <message>).
      /wizard    - Only send the message to connected wizards.
      /no_prefix - Don't prepend 'Announcement:' / 'Broadcast:' to the message.
   
@@ -6556,8 +6556,8 @@
   Flag: WANDERER(^) (councilor and higher only)
   Any player set wanderer can not build/create/dig no matter what their
   quota is set to.  This flag is just like the GUEST flag except it is seeable
-  and changable by COUNCILORS whereas the GUEST flag is seeable and
-  changable only by ROYALTY.  The only other difference is those set
+  and changeable by COUNCILORS whereas the GUEST flag is seeable and
+  changeable only by ROYALTY.  The only other difference is those set
   WANDERER are able to set/unset attributes.  Anyone bitted COUNCILOR and 
   lower are effected by this flag.  ROYALTY and higher are immune.
   
@@ -6594,7 +6594,7 @@
 & NO_CODE
   Flag: NO_CODE([j])
   
-  This flag is similiar to the WANDERER flag, but instead of preventing
+  This flag is similar to the WANDERER flag, but instead of preventing
   building related commands and functions, it prevents mortals from using
   coding-related features of the MU*, aside of the building commands,
   attribute-setting and string formatting tools.
@@ -6639,7 +6639,7 @@
   immune to this flag.  If the @admin parameter 'imm_nomod' is
   enabled, then only immortals are immune to this flag.
   
-  This flag may be defined to be accessable to IMMORTAL only.  Check
+  This flag may be defined to be accessible to IMMORTAL only.  Check
   @list permissions to verify what method is being used.
   
   This is aliased to 'NOMODIFY' for compatibility.
@@ -6814,7 +6814,7 @@
 
 & @mailscur
   Attribute: mailscur
-  Command: @mailscur <objct>[=<value>]
+  Command: @mailscur <object>[=<value>]
   
   This establishes the currently used SAVE flags a player currently has used
   within the mail system.  You shouldn't have to set this.  This is currently
@@ -6825,7 +6825,7 @@
 
 & @mailtime
   Attribute: mailtime
-  Command: @mailtime <objct>[=<value>]
+  Command: @mailtime <object>[=<value>]
   
   This establishes the time between when the mail arrived and when it will
   be marked for expiration on the target.  Expiring means when the player
@@ -6837,7 +6837,7 @@
 
 & @queuemax
   Attribute: queuemax
-  Command: @queuemax <objct>[=<value>]
+  Command: @queuemax <object>[=<value>]
   
   This sets how many queue entries a player can have in the QUEUE.  Setting
   0 will make it so nothing by the player can be queued.  This is settable
@@ -6869,7 +6869,7 @@
   Command: @goodsite <player>=<list of sites>
   
   This command will set up what sites a given player _CAN_ log in from.
-  Any nonmatching sites will not allow the user to connect.  All sites
+  Any non-matching sites will not allow the user to connect.  All sites
   must be put into their numerical form.  This accept wildcard matching.
   
   Example:  @goodsite #1=250.250.250.1 123.246.*
@@ -6980,7 +6980,7 @@
   flag_access_type          flag_access_unset          float_precision       
   float_switches            forbid_host                forbid_site        
   forbidapi_host            forbidapi_site             fork_dump          
-  format_compatbility       fork_vfork                 format_contents    
+  format_compatibility      fork_vfork                 format_contents    
   format_exits              format_name                formats_are_local  
   full_file                 full_motd_message          function_access    
   function_alias            function_invocation_limit  function_max       
@@ -7206,7 +7206,7 @@
   
   Specifies if accents should allow the extensions of ASCII 251-255
   to be preformed and understood with accents as well as chr() encoding.
-  This could have unforseen issues with some clients, and may have
+  This could have unforeseen issues with some clients, and may have
   unexpected behavior for telnet negotiated clients.  Use at your own
   risk.
 
@@ -7230,7 +7230,7 @@
   
   Note: For use of how to interactive with admin_object, see: 'wizhelp @admin'
   
-  Specifies the object that all @admin config parmeters are loaded or unloaded
+  Specifies the object that all @admin config parameters are loaded or unloaded
   to and from the shell.  It will read and write from/to the rhost_ingame.conf
   file.  This should be toward the bottom of your netrhost.conf file in the
   form 'include rhost_ingame.conf'.  If it is not, please add this toward the
@@ -7303,8 +7303,8 @@
 & allow_ansinames
   Config parameter: allow_ansinames <value>.  Default: 15
   
-  Specifies weither objects may have ansi codes in their names.  It uses
-  a binary mask on weither each data type may be enabled/disabled.  The
+  Specifies whether objects may have ansi codes in their names.  It uses
+  a binary mask on whether each data type may be enabled/disabled.  The
   following masks exist.
   
       PLAYER    - 1
@@ -7318,7 +7318,7 @@
 & allow_whodark
   Config parameter: allow_whodark <yes/no>.  Default: yes
   
-  Specifies weither players who are DARK will be hidden from the WHO/DOING,
+  Specifies whether players who are DARK will be hidden from the WHO/DOING,
   @whereis, and @whereall commands.  This is only in effect is the admin
   parameters PLAYER_DARK and WHO_UNFINDABLE are *both* disabled.
   See Also: player_dark, who_unfindable
@@ -7372,7 +7372,7 @@
   translate %c/%m/%x (however defined) ansi codes for ansi. 
   
   Please note that you must issue a @readcache after toggling this parameter
-  in order to change the formatting appropiately.
+  in order to change the formatting appropriately.
   
   See Also: @list_file, @readcache
 
@@ -7438,7 +7438,7 @@
   
   See Also: atrperms_max, @aflags, @aflags bits
   
-{see atrperms2 for examples and explainations}
+{see atrperms2 for examples and explanations}
 & atrperms2
   (CONTINUED)
   
@@ -7451,7 +7451,7 @@
      set the prefix 'prefix' with Architect settable, Councilor seeable.
      set the bad 'prefix' with God settable, God seeable.
      set the good 'prefix' with Citizen settable, architect seeable.
-     set the snoopy 'prefix' with Guild sttable, seeable and owner #1234
+     set the snoopy 'prefix' with Guild settable, seeable and owner #1234
   
   Example #2
      set the oog 'prefix' with Architect settable, Wizard seeable.
@@ -7465,7 +7465,7 @@
   Immortal is mostly God anyway for permissions.
   
   Note #1: Attribute with the God bit are only settable by God.
-  Note #2: _ permissions have precidence over these. 
+  Note #2: _ permissions have precedence over these. 
   Note #3: When you delete an attribute, you do not need to specify bitmasks.
   Note #4: Specify owner and/or target if you want a specific duplicate prefix.
   
@@ -7529,7 +7529,7 @@
    
   If you use a command similar to:
      @admin attr_access=<attr>
-  with no args you will be shown the current privilages for that attribute.
+  with no args you will be shown the current privileges for that attribute.
   
   Permissions with a '*' require @attribute/access
   
@@ -7605,7 +7605,7 @@
 & blind_snuffs_cons
   Config parameter: blind_snuffs_cons <ON(1)/OFF(0)>  Default: OFF
   
-  Specifies if the BLIND flag will snuff (surpress) the connected/disconnected
+  Specifies if the BLIND flag will snuff (suppress) the connected/disconnected
   messages when players connect/disconnect.  This applies if the room is
   set BLIND as well.  As always, (Blind) messages will show for wizards
   regardless.
@@ -7625,7 +7625,7 @@
 & break_compatibility
   Config parameter: break_compatibility <yes/no>.  Default: NO
   
-  This config parameter enables backward compatability to the erraneous
+  This config parameter enables backward compatability to the erroneous
   double-evaluation standard that @break and @assert had for the
   first argument.  This backward compatibility would only be relevant
   for all versions of Rhost 3.9 from its conception to the SVN 165 release.
@@ -7744,7 +7744,7 @@
   Config parameter: command_dark <value>.  Default: OFF(0)
   
   Specifies if objects with $-commands can be dark or not.  This only takes
-  presedence if the @admin parameter PLAYER_DARK is set to OFF.  Otherwise,
+  precedence if the @admin parameter PLAYER_DARK is set to OFF.  Otherwise,
   this config parameter is meaningless.  Setting this value to TRUE enables
   objects with $commands to be dark but if they can listen, DARK will not
   effect them.  Again, this is only meaningful if the PLAYER_DARK parameter
@@ -7781,7 +7781,7 @@
   Specifies the program to be run to compress the database file when it is
   written.  If database file compression is enabled, database dumps are piped
   through this program on their way out to disk.
-  See Also: compresion, uncompress_program.
+  See Also: compression, uncompress_program.
 
 & compression
   Config parameter: compress <yes/no>.  Default: no
@@ -7854,7 +7854,7 @@
     3   - Architect and higher allowed
     4   - Councilor and higher allowed
     5   - Wizard and higher allowed
-    6   - Immorrtal and higher allowed
+    6   - Immortal and higher allowed
     7   - god(#1) allowed only
     >8  - No one allowed
   
@@ -7975,9 +7975,9 @@
   This specifies if descriptions and anything passed through the did_it()
   processor are localized through the duration of the did_it() processing
   with regards to setq registers. By default, this is disabled as it
-  could allow some flexability, but as it's a security risk, the option
+  could allow some flexibility, but as it's a security risk, the option
   exists to disable this.   You may use pushregs() to muddle with the
-  registers at your leasure.
+  registers at your leisure.
 
 & dig_cost
   Config parameter: dig_cost <amount>.  Default: 10
@@ -8079,7 +8079,7 @@
   
   Indicates whether or not to enforce hidden/dark so that unfindable
   will be properly hidden in locations with regards to objeval() or
-  other similiar function calls.
+  other similar function calls.
 
 & error_file
   Config parameter: error_file <file>.  Default: error.txt
@@ -8282,8 +8282,8 @@
   An empty evaluated attribute or a missing attribute will call the default
   txt file instead of the evaluation.  The following arguments are passed
   into the evaluation:
-    %0 -- The numerical site host of the incomming connection.
-    %1 -- The dns host entry (if availabe, else ip) of incoming connection.
+    %0 -- The numerical site host of the incoming connection.
+    %1 -- The dns host entry (if available, else ip) of incoming connection.
     %2 -- The port that they're connected to on the mush
     %3 -- The player dbref#, if connected, otherwise shows '#-1'.
   
@@ -8398,7 +8398,7 @@
   Config parameter: flag_access_set <flagname> <permission(s)>
   
   Sets an override for set permissions for the specified flag.  This is
-  similiar to issuing @flagdef/set on the specified flag.
+  similar to issuing @flagdef/set on the specified flag.
   
   See Also: flag_access_unset, flag_access_type, flag_access_see, @flagdef
 
@@ -8406,7 +8406,7 @@
   Config parameter: flag_access_unset <flagname> <permission(s)>
   
   Sets an override for unset permissions for the specified flag.  This is
-  similiar to issuing @flagdef/unset on the specified flag.
+  similar to issuing @flagdef/unset on the specified flag.
   
   See Also: flag_access_set, flag_access_type, flag_access_see, @flagdef
 
@@ -8414,17 +8414,17 @@
   Config parameter: flag_access_set <flagname> <permission(s)>
   
   Sets an override for see permissions for the specified flag.  This is
-  similiar to issuing @flagdef/see on the specified flag.
+  similar to issuing @flagdef/see on the specified flag.
   
-  See Also: flag_access_unset, flag_accees_type, flag_access_set, @flagdef
+  See Also: flag_access_unset, flag_access_type, flag_access_set, @flagdef
 
 & flag_access_type
   Config parameter: flag_access_type <flagname> <permission(s)>
   
   Sets a type restriction for set/unset permissions for the specified flag.  
-  This is similiar to issuing @flagdef/type on the specified flag.
+  This is similar to issuing @flagdef/type on the specified flag.
   
-  See Also: flag_access_unset, flag_accees_see, flag_access_set, @flagdef
+  See Also: flag_access_unset, flag_access_see, flag_access_set, @flagdef
 
 & float_precision
   Config parameter: float_precision <value>   Default: 6
@@ -8479,7 +8479,7 @@
   Indicates that connections matching the wildcard match of the specified
   sites in their DNS HOST will not be monitored on site connections and
   disconnections.  This is handy for automated site connections where
-  you don't necessarilly want to be spammed with all the site connection
+  you don't necessarily want to be spammed with all the site connection
   information.  
 
 & nodns_site
@@ -8576,7 +8576,7 @@
   api port connections.  It will not affect other connections to the mush.
   
   Indicates that connections are to be rejected from sites whose address
-  matches the specified address when ANDed with the mask.  The contents of
+  matches the specified address when AND'd with the mask.  The contents of
   the file specified by badsite_file is sent immediately before closing
   the connection.  This directive may be used to restrict access to just the
   local network, or to prevent access from troublemaking sites.
@@ -8617,7 +8617,7 @@
   Config parameter: format_contents <yes/no>.  Default: no
   
   Indicates whether or not to allow user-definable content listings.  When
-  in effect, if the ConFormat attribute exits, it will take presidence over
+  in effect, if the ConFormat attribute exits, it will take precedence over
   the default Contents: information.
   
   See Also: format_exits, format_name
@@ -8627,7 +8627,7 @@
   
   Indicates whether or not to allow user-definable exit listings.  This 
   includes both ExitFormat and DarkExitFormat.  If either of these 
-  attributes exist, it will take presidence over the default 'Exits'.
+  attributes exist, it will take precedence over the default 'Exits'.
   
   See Also: format_contents, format_name, exit_separator
 
@@ -8645,7 +8645,7 @@
   Specifies if @conformat, @exitformat, @nameformat, and @darkexitformat are
   'local' with regards to setq() registers.  Without this being turned on,
   the possibility of these clobbering setq() registers are possible.  This
-  could be a desireable effect, thus, it's a config parameter.
+  could be a desirable effect, thus, it's a config parameter.
  
 & full_file
   Config parameter: full_file <pathname>.  Default: full.txt
@@ -8790,7 +8790,7 @@
   set 'ATRLOCK' and a matching attribute must exist on the global_attrdefault.
   The original string attempted to be set is passed into the 'lock' attribute
   as '%0'.  The attribute on the lock must match the name of the attribute
-  attempting to be set (or cleared).  If the lock (evaled) returns a 0 (zero),
+  attempting to be set (or cleared).  If the lock (eval'd) returns a 0 (zero),
   the lock fails and the attribute won't be allowed to be set (or cleared).
   If it returns any numerical value but a 0 (zero), then it will be allowed.
   
@@ -8822,14 +8822,14 @@
   to be set SIDEFX and nothing else.  The string they typed will
   be passed as '%0'.  It will be unevaluated and 'as-is'.
   
-  This feature can not be TRACEd.  If you wish to debug this code,
+  This feature can not be TRACE'd.  If you wish to debug this code,
   execute it via think, @eval, or other syntax and not through
   the global error code itself.
    
   Why the VA attribute?  Why not?  I felt it was being all alone
   and left out of the fun ;)
   
-  Example:
+Example:
     > @admin global_error_obj=10
     Set.
     > @va #10=[pemit(%#,You typed '%0')]
@@ -8837,21 +8837,21 @@
     > @pemit me=Test
     Test
     > @pmit me=Test
-    You typed '@pmit me=Test'
-  
+    You typed '@pemit me=Test'
+
   See Also: global_error_cmd
 
 & global_clone_obj
   Config parameter: global_clone_obj <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone object'.  When a new item is created, dug
   pcreated, or in any form added to the db, all attributes on this
   object are copied to the target, newly created, item.
-  
+
   Individual clone types (player, thing, room, exit) override the 
   generic global.
-  
+
   See Also: global_clone_thing, global_clone_room, global_clone_exit,
             global_clone_player
 
@@ -8859,34 +8859,34 @@
 & ancestor_obj
 & global_parent_obj
   Config parameter: global_parent_obj <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
-  
+
   The global_parent_TYPE params override the global setting.
   TYPES are one of: room, exit, thing, player
-  
+
   The flow of attribute inheritance is:
-  
+
       Self -> @parent -> Zone -> Global Parent Type -> Global Parent Object
-  
+
   You may specify '@list options values global_parent*' to see values.
-  
+
   See Also: room_parent, thing_parent, exit_parent, player_parent,
             global_parent_room, global_parent_thing, global_parent_exit,
             global_parent_player
 
 & global_clone_exit
   Config parameter: global_clone_exit <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone exits'.  When a new exit is opened,
   or in any form added to the db, all attributes on this object are 
   copied to the target, newly created, exit.
-  
+
   See Also: global_clone_thing, global_clone_room, global_clone_obj,
             global_clone_player
 
@@ -8894,28 +8894,28 @@
 & ancestor_exit
 & global_parent_exit
   Config parameter: global_parent_exit <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
-  
+
   This only effects exits.
-  
+
   You may specify '@list options values global_parent*' to see values.
-  
+
   See Also: global_parent_room, global_parent_thing, global_parent_player
             global_parent_obj
 
 & global_clone_room
   Config parameter: global_clone_room <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone rooms'.  When a new room is dug,
   or in any form added to the db, all attributes on this object are 
   copied to the target, newly created, room.
-  
+
   See Also: global_clone_thing, global_clone_exit, global_clone_obj,
             global_clone_player
 
@@ -8923,28 +8923,28 @@
 & ancestor_room
 & global_parent_room
   Config parameter: global_parent_room <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
-  
+
   This only effects rooms.
-  
+
   You may specify '@list options values global_parent*' to see values.
-  
+
   See Also: global_parent_exit, global_parent_thing, global_parent_player
             global_parent_obj
 
 & global_clone_thing
   Config parameter: global_clone_thing <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global clone things'.  When a new thing is created,
   or in any form added to the db, all attributes on this object are 
   copied to the target, newly created, thing.
-  
+
   See Also: global_clone_room, global_clone_exit, global_clone_obj,
             global_clone_player
 
@@ -8952,19 +8952,20 @@
 & ancestor_thing
 & global_parent_thing
   Config parameter: global_parent_thing <dbref>.    Default: -1
-  
+
   Specifies the dbref# (without leading '#') of the object that is to
   be used for a 'global parent object'.  This works separate from
   @parent and 'global @parents'.  This object, if set, will have all
   it's attributes inherited to all object types in the database, minus
   garbage and/or recovery data types.
-  
+
   This only effects things.
-  
+
   You may specify '@list options values global_parent*' to see values.
-  
+
   See Also: global_parent_exit, global_parent_room, global_parent_player
             global_parent_obj
+            lobal_parent_obj
 
 & global_clone_player
   Config parameter: global_clone_player <dbref>.    Default: -1
@@ -9007,7 +9008,7 @@
   
   Specifies VALID email addresses for the autoregistration system.
   If an email specified matches this wildcarded list, it will ALWAYS ALLOW
-  the autoregistation.  This will add or remove to existing or from existing 
+  the autoregistration.  This will add or remove to existing or from existing 
   site information already specified with validate_host.  You may use '!ALL' 
   to clear the suspect host table.  
   
@@ -9016,7 +9017,7 @@
   Example:  @admin validate_host=*aol.com !*compuserve.com
             (invalidates sites matching *aol.com and removes *compuserve.com)
             @admin goodmail_host=biff@aol.com
-            (Validates biff@aol.com eventhough aol.com is disallowed)
+            (Validates biff@aol.com even though aol.com is disallowed)
             @admin goodmail_host=!ALL
             (this clears the goodmail_host list)
  
@@ -9213,27 +9214,27 @@
   
   See Also: HOOK SETUP, @hook, hook_obj, hook_offline
                       
-& morgrification
+& mogrification
 & mogrify
 & hook_mogrifiers
 & hook_mogrify
-  Config parameter: hook_obj (Topic: morgrify)
+  Config parameter: hook_obj (Topic: mogrify)
    
   This requires a valid hook_obj to be set.  See wizhelp on hook_obj.
   
   Mogrifiers are special conditionals for the hook object.  They will
   only mogrify say, pose, and @emit.  If they exist, they are always
-  on.  The following morgrifiers are allowable:
+  on.  The following mogrifiers are allowable:
          M_SAY    -- this handles 'say' and the '"' shorthand.
          M_POSE   -- this handles 'pose' and the ':'/';' shorthand.
          M_@EMIT  -- this handles '@emit' and the '\\' shorthand.
   
   When these attributes exist on the hook object, the command is
-  then on morgrified.  If the morgrification returns an empty string,
-  the command is not executed and is ignored.  Morgrification is done
+  then on mogrifier.  If the mogrification returns an empty string,
+  the command is not executed and is ignored.  Mogrification is done
   through function evaluation.  
   
-  The following special arguments are allowable to the morgrifier.
+  The following special arguments are allowable to the mogrifier.
     %0 - the 'finished' output of what say, pose, or @emit would show.
     %1 - the 'raw' output of what the target typed in.
     %2 - the dbref# of the target triggering the command.
@@ -9241,7 +9242,7 @@
     %4 - (Only for say) -- boolean set to '1' if say message is for
          the player-only ("You Say...")
   
-  The only way to disable morgrification of a command is to move, or
+  The only way to disable mogrification of a command is to move, or
   remove, the M_ attribute.
   
   See Also: @hook, hook_obj
@@ -9258,7 +9259,7 @@
           B_<command> - before configuration
          AF_<command> - fail configuration
          AO_<command> - after offline (connect screen) configuration 
-          M_<command> - Morgrification.  See 'help hook_morgrify'
+          M_<command> - Mogrification.  See 'help hook_mogrify'
   Percent substitutions are handled differently than normal '@hooks' and
   can be seen with reviewing wizhelp on 'sub_override'.
   
@@ -9270,7 +9271,7 @@
                                 HOOK SETUP
   
   See Also: HOOK SETUP, @hook, hook_cmd, sub_override, sub_include,
-            hook_offline, hook_morgrify
+            hook_offline, hook_mogrify
   
 & hook_offline
   Config parameter: hook_offline <on/off>.  Default: off
@@ -9381,7 +9382,7 @@
 
   This config parameter, if enabled, makes the if() and ifelse() functions
   as well as the @skip, @if, and @ifelse commands behave as TRUE if their
-  first argument is a normal string. This increases compatbility with other
+  first argument is a normal string. This increases compatibility with other
   codebases, especially MUX, and removes the need to use t() in many of those
   situations.
 
@@ -9402,7 +9403,7 @@
 & imm_nomod
   Config parameter: imm_nomod <yes/no>.  Default: no
   
-  Indicates whether or not the NOMODIFY flag is accessable to immortals only
+  Indicates whether or not the NOMODIFY flag is accessible to immortals only
   or to both immortals and royalty (wizards).  If configured to be immortal
   only, this flag will resemble the 'CONSTANT' flag in TM 3.0.
   
@@ -9469,7 +9470,7 @@
   of :<value>:<method>:.  Such as ':100:>:' or ':0:<:'.  This should be
   careful on any modification because while function invocations are taken
   into account it is possible to use iter() without any evaluation per
-  say.  So this is a necesssary evil and 100,000 is considered a good
+  say.  So this is a necessary evil and 100,000 is considered a good
   value to hit.
   
   Of note, anything over a million tends to trigger a 1 second CPU alarm
@@ -9713,7 +9714,7 @@
   
   Specifies the number of times logtofile() can be called per command.
   This should be limited to a low number as the I/O for rapidly opening
-  and closing files for logging purposes can become determental for the
+  and closing files for logging purposes can become detrimental for the
   system.
 
 & log_network_errors
@@ -9805,8 +9806,8 @@
 & map_delim_space
   Config parameter: map_delim_space <value>.  Default: YES
   
-  Verifies that the output delimeter is a space by default.  If this is
-  set to 0 (or NO/FALSE), the output delimeter is defaulted to a NULL.
+  Verifies that the output delimiter is a space by default.  If this is
+  set to 0 (or NO/FALSE), the output delimiter is defaulted to a NULL.
 
 & match_own_commands
   Config parameter: match_own_commands <yes/no>.  Default: NO
@@ -9950,7 +9951,7 @@
 & maximum_size
   Config parameter: maximum_size <value>.    Default: -1
   
-  This config parameter is only alloweable in the .conf file and determines
+  This config parameter is only allowable in the .conf file and determines
   what limit (if any) should be placed on the cap of the total number of
   objects the database should have.  The default of '-1' specifies no limit.
 
@@ -9970,25 +9971,25 @@
 & money_lim_off
   Config parameter: money_lim_off <num>.   Default: 0
   
-  Sets the ammount of gold respectable to the @depowers NOGIVE and NOSTEAL
+  Sets the amount of gold respectable to the @depowers NOGIVE and NOSTEAL
   for the 'OFF' state.
 
 & money_lim_gm
   Config parameter: money_lim_gm <num>.   Default: 500
   
-  Sets the ammount of gold respectable to the @depowers NOGIVE and NOSTEAL
+  Sets the amount of gold respectable to the @depowers NOGIVE and NOSTEAL
   for the 'GUILDMASTER' state.
 
 & money_lim_arch
   Config parameter: money_lim_arch <num>.   Default: 2000
   
-  Sets the ammount of gold respectable to the @depowers NOGIVE and NOSTEAL
+  Sets the amount of gold respectable to the @depowers NOGIVE and NOSTEAL
   for the 'ARCHITECT' state.
 
 & money_lim_counc
   Config parameter: money_lim_counc <num>.   Default: 5000
   
-  Sets the ammount of gold respectable to the @depowers NOGIVE and NOSTEAL
+  Sets the amount of gold respectable to the @depowers NOGIVE and NOSTEAL
   for the 'COUNCILOR' state.
 
 & money_name_plural
@@ -10023,17 +10024,17 @@
   See Also: @listmotd, @motd, motd_file.
 
 & mtimer
-  Config parameter: mtimer <value>.  Default: 10 (miliseconds)
+  Config parameter: mtimer <value>.  Default: 10 (milliseconds)
   
   This specifies the queue interval that you wish to have for the timer
-  for each queue slice.  The default is 10 miliseconds.  You may specify
-  a multiple of 10 starting at '1' for 1 second up to 1000 for 1 milisecond.
+  for each queue slice.  The default is 10 milliseconds.  You may specify
+  a multiple of 10 starting at '1' for 1 second up to 1000 for 1 millisecond.
   
   So valid values are: 1, 10, 100, 1000.
   
   Due note, due to the single threaded engine of a mush and the overhead 
   involved with all the processing and checks, setting the value to 1000
-  will occasionally lag a few miliseconds and not be a true 1/1000 value.
+  will occasionally lag a few milliseconds and not be a true 1/1000 value.
   
   The lag will include, but not be limited to network latency.  When you
   consider that most network latency is 20 ms, 1/1000th ms will most
@@ -10044,8 +10045,8 @@
    
   Specifying an invalid value will revert to the previous value.
   
-  Rhost's default is 10 miliseconds.
-  MUX2's default is 10 miliseconds.
+  Rhost's default is 10 milliseconds.
+  MUX2's default is 10 milliseconds.
   PennMUSH and TinyMUSH3's default is 1 second.
   
   See Also: @ps, pid()
@@ -10055,13 +10056,13 @@
   
   Specifies the mud name that is transmitted to a remote RWHO server when
   reporting information.
-  See Also: rwho_dump_interval, rwho_host, rwho_info_port, rwho_pasword,
+  See Also: rwho_dump_interval, rwho_host, rwho_info_port, rwho_password,
             rwho_transmit, muddb_name
 
 & muddb_name
   Config parameter: mudb_name <string>.  Default:  RhostMUSH
   
-  Specified the db name associeted as the base-string for the mail and
+  Specified the db name associated as the base-string for the mail and
   bbs/news systems.  This includes the main db files, and the flatfile
   dump files.  This does not effect the db name the game, itself, uses.
   
@@ -10217,7 +10218,7 @@
   Config parameter: nonindxtxt_maxlines <value>.    Default: 200
   
   This defines the total number of lines that a non mkindx'd .txt file can have
-  before it is summarilly ignored from being loaded into the mush's memory
+  before it is summarily ignored from being loaded into the mush's memory
   stack.
   
   This is a security option and should not be modified unless you know what you
@@ -10291,7 +10292,7 @@
   
   This forces elist() to work like the older version which would allow
   a double-eval for the first list.  This is considered a security risk
-  but is allowed as a paramter for backward compatibility for games.
+  but is allowed as a parameter for backward compatibility for games.
   
 & online_reg
   Config parameter: online_reg <yes/no>.  Default: NO
@@ -10313,7 +10314,7 @@
 & output_database
   Config parameter: output_database <pathname>.  Default: none
   
-  Specifies the file to which te database is to be written when writing
+  Specifies the file to which the database is to be written when writing
   checkpoint dumps or writing the final dump after receiving a @shutdown
   command.
   See Also: @dump, @shutdown, checkpoint_database, input_database.
@@ -10346,7 +10347,7 @@
   '@@' to 'idle', so this will do it for them.  
   
 & num_guests
-  Config parameter: num_guests <ammount>.  Default: 0
+  Config parameter: num_guests <amount>.  Default: 0
   
   Specifies the total number of guest characters allowed to connect at one 
   time.  Do note that each and every guest will be unique and that if more 
@@ -10355,16 +10356,16 @@
   See Also: guest_namelist, guest_randomize
 
 & comcost
-  Config parameter: comcost <ammount>.  Default: 5
+  Config parameter: comcost <amount>.  Default: 5
   
   Specifies the cost of using the channel system.  Do note that the channels
   'public' and 'sting' are free of charge.
 
 & wall_cost
-  Config parameter: wall_cost <ammount>.  Default: 250
+  Config parameter: wall_cost <amount>.  Default: 250
   
   Specifies the cost of using a @wall if you're not privileged.
-  Privalaged is defined of having at least a GUILDMASTER bit.
+  Privileged is defined of having at least a GUILDMASTER bit.
 
 & paranoid_allocate
   Config parameter: paranoid_allocate <yes/no>.  Default: no
@@ -10418,7 +10419,7 @@
   Specifies the triggering of the @adisconnects when a player disconnects
   when they are still connected to the game on a different port/descriptor.
   If this is enabled, then @adisconnects will always be triggered when
-  someone disconnects, weither they still have a player on or not.
+  someone disconnects, whether they still have a player on or not.
   
   See Also: partial_conn
 
@@ -10489,7 +10490,7 @@
   Indicates if you wish to use the PENN method of switch() and switchall() or
   the MUSH/MUX/RHOST method of switch() and switchall().  If you decide to
   use the PENN method, then, like @switch, it will evaluate < and > as 
-  a lessthan and greaterthan match conditionals.  The default is to have
+  a less than and greater than match conditionals.  The default is to have
   PENN compatibility disabled.
   
   The default behavior of this is to use integer math only.  If you wish
@@ -10501,7 +10502,7 @@
   Config parameter: permit_site <addr> <mask>.
   
   Indicates that connections are to be accepted and registration is not to be
-  enforced from sites whose address matches the specified address when ANDed
+  enforced from sites whose address matches the specified address when AND'd
   with the mask.  This directive is typically used to enable connections from
   a few selected hosts or subnets that would otherwise be disallowed by a
   forbid_site directive.  The default is all sites permitted, none forbidden.
@@ -10647,20 +10648,20 @@
   Config parameter: proxy_checker <bitwise>.    Default: 0
   
   The proxy_checker is a bitwise mask to allow optional proxy detection and
-  possible blockiing of sites that match a proxy.  The proxy detection is
+  possible blocking of sites that match a proxy.  The proxy detection is
   semi-accurate, will not detect all proxies, and can give false positives
   for other non-proxy sites.  Phone-based connections will be seen as
   proxies (since they essentially are).
   
   The following values exist:
-    0  - Disable the checker alltogether (default)
+    0  - Disable the checker all together (default)
     1  - Just detect and alert possible proxies.
     2  - Disallow guest connections from the possible proxies.
     4  - Disallow registration (player creation) from the possible proxy.
     6  - (2 & 4) essentially disallow guest and registration.
   
   Due to the fact this is hit and miss, there is no method for forbidding
-  for the proxy checker.  Plese be aware, as this WILL give you false
+  for the proxy checker.  Please be aware, as this WILL give you false
   positives, issuing option 2 or 4 (or an option of 6 which combines them)
   can effectively block innocent players.  The option however, is there
   anyway.
@@ -10756,7 +10757,7 @@
   
   Specifies if the Semaphore count is allowed to go negative.  If enabled,
   then Semaphore is allowed to be decremented by one every time @notify
-  is called, weither you have anything to queue or not.  Otherwise, it
+  is called, whether you have anything to queue or not.  Otherwise, it
   will not decrement this attribute.
 
   See Also: brace_compatibility, break_compatibility, format_compatibility,
@@ -10872,7 +10873,7 @@
   Config parameter: register_site <addr> <mask>.
   
   Indicates that registration is to be enforced for sites whose address
-  matches the specified address when ANDed with the mask.
+  matches the specified address when AND'd with the mask.
   See Also: forbid_site, forbidapi_site, noguest_site, permit_site, 
             REGISTRATION, SITE LISTS.
 
@@ -10887,7 +10888,7 @@
   Config parameter: restrict_home <value>.  Default: 0 (unrestricted)
   
   Specifies the restrictions that the commands 'home' and 'go home' will 
-  entitle.  As 'home' is a special command it is not accessable with the
+  entitle.  As 'home' is a special command it is not accessible with the
   normal '@admin access' parameter.  Thus, this parameter has been added
   to alleviate that missing functionality.  To set the permission, you must
   add the values together (& mask) so that the total value will include
@@ -10912,7 +10913,7 @@
 & restrict_home2
   Config parameter: restrict_home2 <value>. Default: 0 (unrestricted)
   
-  Allows distabling the home command for players set NO_CODE. If this
+  Allows disabling the home command for players set NO_CODE. If this
   parameter is set to 1, those players will not be able to go home.
 
 & restrict_sidefx
@@ -10930,19 +10931,19 @@
     2 - Guildmaster and higher     6 - Immortal and higher
     3 - Architect and higher       7 - God only
   
-  Setting the value above 7 basically makes it inaccessable by anyone.
+  Setting the value above 7 basically makes it inaccessible by anyone.
   
   See Also: sideeffects
 
 & retry_limit
-  Config paramater: retry_limit <count>.  Default: 3
+  Config parameter: retry_limit <count>.  Default: 3
   
   Specifies the number of times that a user is allowed to try to connect to
   an existing player before being disconnected.
   See Also: conn_timeout.
  
 & robot_cost
-  Config paramater: robot_cost <amount>.  Default: 1000
+  Config parameter: robot_cost <amount>.  Default: 1000
   
   Specifies the cost of using the @robot command to create a robot.
   See Also: @robot, ROBOT.
@@ -11055,7 +11056,7 @@
   
   When this config parameter is set to yes/1, rooms are able to use the
   @open command and open() function (if sideeffects are enabled).
-  This helps with MUX compatiblilty. The resulting new exit will be owned
+  This helps with MUX compatibility. The resulting new exit will be owned
   by the owner of the room, and will appear in the room opening it.
 
 & roomlog_path
@@ -11067,7 +11068,7 @@
 & rwho_data_port
   Config parameter: rwho_data_port <number>.  Default: 0
   
-  Sets the port number that is used to retrive RWHO information from the
+  Sets the port number that is used to retrieve RWHO information from the
   remote RWHO server in response to a user entering the RWHO command.
   If zero, the RWHO command is disabled.  Use of this parameter is *STRONGLY*
   discouraged unless you are on the same local network as the RWHO server,
@@ -11138,7 +11139,7 @@
 & safe_wipe
   Config parameter: safe_wipe <yes/no>.  Default: no
   
-  This parameter specifies if the SAFE and INDESTRUCTABLE flags will stop
+  This parameter specifies if the SAFE and INDESTRUCTIBLE flags will stop
   @wipe from working on that specific target that has either of those flags.
 
 & safer_ufun
@@ -11177,7 +11178,7 @@
   Config parameter: sconnect_cmd <string>.   Default: (NULL)
   
   This will specify the special command that will allow changing the 
-  percevied hostname of the currently connected socket.  This is intended
+  perceived hostname of the currently connected socket.  This is intended
   to be used with SCONNECT or similar SSL proxy software to change the
   IP address of the incoming connection.  The command is CASE SENSITIVE
   and can be up to 31 characters long.  It is strongly recommended to
@@ -11203,7 +11204,7 @@
   This will enable the ability to use SCONNECT re-iping of the
   currently connected descriptor.  If this is enabled, then the
   command matching 'sconnect_cmd' will be used to specify the new
-  IP/DNS address you wish displayed for that currenct connection.
+  IP/DNS address you wish displayed for that current connection.
   
   This is intended for SCONNECT or similar proxy connections to
   the mush.
@@ -11241,7 +11242,7 @@
 & secure_dark
   Config parameter: secure_dark <yes/no>.  Default: no
   
-  Specifies weither non-wizards (below level 5) can set the dark flag
+  Specifies whether non-wizards (below level 5) can set the dark flag
   on themselves.  Keep in mind that the admin parameter 'player_dark'
   if disabled will make this flag moot.
 
@@ -11294,10 +11295,10 @@
   
   This specifies the rounds of recursion that the SHA2 encryption for
   passwords will use when encrypting passwords.  Please be aware that
-  this is arthremetically expensive and the larger the value the longer
+  this is arithmetically expensive and the larger the value the longer
   it takes to both encrypt and decrypt passwords.  5000 is generally
   considered safe and is actually the default standard for UNIX system
-  passwords for the Linux archtype.
+  passwords for the Linux arch type.
   
   If you're paranoid you may set a higher range, up to 999999.
   
@@ -11317,7 +11318,7 @@
   
   This config parameter specifies if the SHA encryption via digest() is
   in SHS_REVERSE mode.  Some systems reverse the encryption methodology
-  and this is to allow it to be compatable to systems that do.
+  and this is to allow it to be compatible to systems that do.
   
   This is only effective when OpenSSL is not enabled by default.
   This is only meaningful to digest() and the SHA code.
@@ -11337,13 +11338,13 @@
 #define SIDE_TOTEMSET    0x20000000 /* totemset() sideeffect function */
 
   
-  none    - 0    OPEN    - 128    WIPE     - 32768    MOVE       - 8388608
-  SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSER_ADD - 16777216
-  CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072   MAILSEND   - 33554432
-  LINK    - 4    CLONE   - 1024   NAME     - 262144   EXECSCRIPT - 67108864
-  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288   ZONE       - 134217728
-  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576  LSET       - 268435456
-  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152  TOTEMSET   - 536870912
+  none    - 0    OPEN    - 128    WIPE     - 32768    MOVE        - 8388608
+  SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSTER_ADD - 16777216
+  CREATE  - 2    OEMIT   - 512    ZEMIT    - 131072   MAILSEND    - 33554432
+  LINK    - 4    CLONE   - 1024   NAME     - 262144   EXECSCRIPT  - 67108864
+  PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288   ZONE        - 134217728
+  TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576  LSET        - 268435456
+  LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152  TOTEMSET    - 536870912
   DIG     - 64   REMIT   - 16384  RSET     - 4194304
      
   To enable both SET and OPEN using a bitmask you would set the value
@@ -11523,7 +11524,7 @@
   Config parameter: sqlite_query_limit <value>. Default: 5
 
   This specifies the maximum number of seconds for which a query may run
-  before it's cancelled.
+  before it's canceled.
 
   See Also: sqlite_db_path
 
@@ -11629,7 +11630,7 @@
                             CHR_<character>
   
   Where <character> will be the character you are substituting.  like 'm'
-  for example.  If the delimeter is a numerical value, it will use that
+  for example.  If the delimiter is a numerical value, it will use that
   value to specify how many spaces to take after the %-substitution.
   
   NOTE:  If <character> is an invalid character for an attribute name,
@@ -11756,7 +11757,7 @@
 & passproxy_site
   Config parameter: passproxy_site <addr> <mask>
   
-  Indicates that sites whose address matches the specified address when ANDed
+  Indicates that sites whose address matches the specified address when AND'd
   with the mask are to be allowed through automated proxy detection.  This
   proxy detection is enabled with the proxy_checker @admin config parameter.
   
@@ -11783,7 +11784,7 @@
 & suspect_site
   Config parameter: suspect_site <addr> <mask>
   
-  Indicates that sites whose address matches the specified address when ANDed
+  Indicates that sites whose address matches the specified address when AND'd
   with the mask are to be considered suspect, and any player creates, connects
   and disconnects are to be reported to all logged-in wizards.
   
@@ -11935,7 +11936,7 @@
   Config parameter: totem_access_set <totemname> <permission(s)>
   
   Sets an override for set permissions for the specified totem.  This is
-  similiar to issuing @totemdef/set on the specified totem.
+  similar to issuing @totemdef/set on the specified totem.
   
   See Also: totem_access_unset, totem_access_see, totem_access_type, 
             totem_add, totem_alias, totem_letter, @totemdef, @totem
@@ -11944,16 +11945,16 @@
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
   Sets an override for set permissions for the specified toggle.  This is
-  similiar to issuing @toggledef/set on the specified toggle.
+  similar to issuing @toggledef/set on the specified toggle.
   
   See Also: toggle_access_unset, toggle_access_see, toggle_access_type, 
             @toggledef
 
-& totem_access_uset
-  Config parameter: totem_access_uset <totemname> <permission(s)>
+& totem_access_unset
+  Config parameter: totem_access_unset <totemname> <permission(s)>
   
   Sets an override for unset permissions for the specified totem.  This is
-  similiar to issuing @totemdef/unset on the specified totem.
+  similar to issuing @totemdef/unset on the specified totem.
   
   See Also: totem_access_set, totem_access_see, totem_access_type, 
             totem_add, totem_letter, totem_alias, @totemdef, @totem
@@ -11962,7 +11963,7 @@
   Config parameter: toggle_access_unset <togglename> <permission(s)>
   
   Sets an override for unset permissions for the specified toggle.  This is
-  similiar to issuing @toggledef/unset on the specified toggle.
+  similar to issuing @toggledef/unset on the specified toggle.
   
   See Also: toggle_access_set, toggle_access_see, toggle_access_type,
             @toggledef
@@ -11971,7 +11972,7 @@
   Config parameter: totem_access_see <totemname> <permission(s)>
   
   Sets an override for see permissions for the specified totem.  This is
-  similiar to issuing @totemdef/see on the specified totem.
+  similar to issuing @totemdef/see on the specified totem.
   
   See Also: totem_access_set, totem_access_unset, totem_access_type, 
             totem_add, totem_letter, totem_alias, @totemdef, @totem
@@ -11980,7 +11981,7 @@
   Config parameter: toggle_access_set <togglename> <permission(s)>
   
   Sets an override for see permissions for the specified toggle.  This is
-  similiar to issuing @toggledef/see on the specified toggle.
+  similar to issuing @toggledef/see on the specified toggle.
   
   See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
             @toggledef
@@ -11989,7 +11990,7 @@
   Config parameter: totem_access_type <totemname> <permission(s)>
   
   Sets a type restriction for set/unset permissions for the specified totem.
-  This is similiar to issuing @totemdef/type on the specified totem.
+  This is similar to issuing @totemdef/type on the specified totem.
   
   See Also: totem_access_set, totem_access_unset, totem_access_see, 
             totem_add, totem_letter, totem_alias, @totemdef, @totem
@@ -12053,7 +12054,7 @@
   Config parameter: toggle_access_type <togglename> <permission(s)>
   
   Sets a type restriction for set/unset permissions for the specified toggle.
-  This is similiar to issuing @toggledef/type on the specified toggle.
+  This is similar to issuing @toggledef/type on the specified toggle.
     
   See Also: toggle_access_unset, toggle_access_set, toggle_access_type,
             @toggledef
@@ -12062,7 +12063,7 @@
   Config parameter: tor_localhost <host1> [<host2>... <hostX>]  Default: null
   
   This specifies the hostname of the server HOSTING THE MUSH.  This is
-  required to handle NAT and firewall masquarding and redirection.  This 
+  required to handle NAT and firewall masquerading and redirection.  This 
   should be the hostname (or IP) that you are using to get to your mush 
   FROM THE OUTSIDE.  This is required to allow dynamic TOR protection.
   
@@ -12116,7 +12117,7 @@
 & trust_site
   Config parameter: trust_site <addr> <mask>.
   
-  Indicates that sites whose address matches the specified address when ANDed
+  Indicates that sites whose address matches the specified address when AND'd
   with the mask are not to be considered suspect.
   See Also: suspect_site, SITE LISTS.
 
@@ -12125,7 +12126,7 @@
   
   Specifies the program to be run to uncompress compressed database files when
   reading them in at startup.
-  See Also: compress_program, compresion.
+  See Also: compress_program, compression.
 
 & unowned_safe
   Config parameter: unowned_safe <yes/no>.  Default: no
@@ -12146,7 +12147,7 @@
   
   Specifies invalid email addresses for the autoregistration system.
   If an email specified matches this wildcarded list, it will not allow
-  the autoregistation.  This will add or remove to existing or from existing 
+  the autoregistration.  This will add or remove to existing or from existing 
   site information already specified with validate_host.  You may use '!ALL' 
   to clear the suspect host table.
  
@@ -12206,7 +12207,7 @@
   
   Specifies if @limit is enforced to wizards/immortals as well as normal
   players.  Without this set, wizards and immortals ignore @limit 
-  restritions.
+  restrictions.
   
   See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
             max_vattr_limit, lfunction_max
@@ -12224,7 +12225,7 @@
   evaluated so escape out special characters.
 
 & vlimit
-  Config parameter: vlimit <ammount>.  Default 750
+  Config parameter: vlimit <amount>.  Default 750
   
   Sets the total user-defined attributes that a dbref# can have.  Any
   attempt to set above this returns an error message.
@@ -12243,7 +12244,7 @@
 & whereis_notify
   Config parameter: whereis_notify <value>.  Default: 1
   
-  Sets the condition if the targetted player gets notified if someone did
+  Sets the condition if the targeted player gets notified if someone did
   a @whereis on them.  Note, that cloaked wizards do not give a message to
   players who can not normally see them.
 
@@ -12265,7 +12266,7 @@
   Config parameter: who_showwiz <value>.  Default: 0
   
   Shows a '*' beside any staff GUILDMASTER and higher whenever a player
-  types WHO or DOING.  This admin config takes presidence over the
+  types WHO or DOING.  This admin config takes precedence over the
   config parameter who_showwiztype.
   See Also: who_showwiztype, who_wizlevel
 
@@ -12281,8 +12282,8 @@
 & who_unfindable
   Config parameter: who_unfindable <value>.  Default: 1
   
-  Allows players to dissapear from the standard WHO/DOING list.  This
-  unaffects any of the other operators of the unfindable flag.  A value
+  Allows players to disappear from the standard WHO/DOING list.  This
+  un-affects any of the other operators of the unfindable flag.  A value
   of 0 will make it so they still show up on the WHO.
 
 & who_wizlevel
@@ -12459,7 +12460,7 @@
   help.indx:      Index for the help.txt file, produced by the mkindx program.
   help.txt:       File containing information displayed by the help command.
   guest.txt:      Displayed to whoever connects to the guest character
-                  specifiedby the guest_character config parameter.
+                  specified by the guest_character config parameter.
   motd.txt:       Displayed after someone connects to an existing character.
   netmush.conf:   Configuration directives read at startup.
   news.indx:      Index for the news.txt file, produced by the mkindx program.
@@ -12470,7 +12471,7 @@
 & files2
   newuser.txt:    Displayed after someone creates a new character or connects
                   to their character for the first time.
-  quit.txt:       Displayed after someone QUITs but before the net connection
+  quit.txt:       Displayed after someone QUIT's but before the net connection
                   is closed.
   register.txt:   Displayed when someone connects from a site for which
                   registration is enabled.
@@ -12514,7 +12515,7 @@
   Startmush:         The script you would use to execute and startup RhostMUSH
   prevflat:          Directory that houses all your immediately previous
                      backup flatfiles
-  oldflat:           Directory that houses the tarball of all yoru backups
+  oldflat:           Directory that houses the tarball of all your backups
   oldlogs:           Directory that houses all your old log files.
   
 { 'wizhelp files4' for the data files in the 'data' subdirectory }
@@ -12545,7 +12546,7 @@
                         this will likely always but always be the file that 
                         is clobbered.  Sadly you can't just backup binary files
                         as the binary file is always in a questionable state.
-                        So eventhough RhostMUSH has great ability for safty,
+                        So even though RhostMUSH has great ability for safety,
                         always but always @dump/flat to make backups!
   netrhost.db.flat:     The flatfile dump of the RhostMUSH database
   netrhost.db.termflat: The flatfile dump when you kill -TERM your mush.
@@ -12565,7 +12566,7 @@
                         file for the RhostMUSH mail system.
   RhostMUSH.dump.mail:  The dump file for the RhostMUSH mail system.
   
-  Note:  Most poeple prefer softcoded news like Myrddin's BBS.
+  Note:  Most people prefer softcoded news like Myrddin's BBS.
   ------------mail DB's  [handled with the news and newsdb commands]
   RhostMUSH.news.dir:   The main news directory index file for the news
                         bbs system
@@ -12614,7 +12615,7 @@
    +royalty       - Only wizards (players with their ROYALTY bit set) may use
                     this feature.
    +architect     - Only builders (BUILDER bit) may use this feature.
-   +counciler     - Only councilors (COUNCILOR bit) may use this feature.
+   +councilor     - Only councilors (COUNCILOR bit) may use this feature.
    +guildmaster   - Only guildmasters (GUILDMASTER bit) may use this feature.
    +robot         - Only robots (ROBOT bit) may use this feature
     no_haven      - Only players who are not set HAVEN may use this feature.
@@ -12640,7 +12641,7 @@
     ignore_mortal - The command is ignored by all non-bitted players.
     ignore_gm     - The command is ignored by guildmasters and lower.
     ignore_arch   - The command is ignored by architects and lower.
-    ignore_counc  - The command is ignored by councelor and lower.
+    ignore_counc  - The command is ignored by councilor and lower.
     ignore_royal  - The command is ignored by royalty and lower.
     ignore_im     - The command is ignored by immortals and lower. 
  *  ignore_zone   - The command is ignored on loc/zones toggled IGNOREZONE
@@ -12699,7 +12700,7 @@
              of the host or network to which this parameter applies.
   Mask     - Four-part decimal Internet address, specified as a.b.c.d
              The mask is used to determine which parts of the address are
-             to be used for comparison, it is ANDed with both the address
+             to be used for comparison, it is AND'd with both the address
              of the host and the address in the directive.  The mask may
              also be /## notation.
  
@@ -12720,7 +12721,7 @@
   register_site  195.3.17.1   255.255.255.255  <- Permit this site w/reg.
   noguest_site   150.25.10.0  255.255.255.0    <- Disallow C class for guest
   noguest_site   150.25.10.0  /24              <- Disallow C class for guest
-  forbid_site    0.0.0.0      0.0.0.0          <- DIsallow everyone else
+  forbid_site    0.0.0.0      0.0.0.0          <- Disallow everyone else
  
   These directives only allow access from 135.346.*.* and 195.3.17.1, except
   that all hosts in the 135.246.4 subnet except for 135.246.4.40 are also
@@ -12758,7 +12759,7 @@
   Requirements:  /usr/bin/timeout (on MacOSX link to /usr/local/bin/gtimeout)
                  script/binary existing in ~/game/scripts and chmod u+rx
                  @powered EXECSCRIPT GM or higher
-                 Set SIDEFX (with the sideffect EXECSCRIPT enabled)
+                 Set SIDEFX (with the sideeffect EXECSCRIPT enabled)
   
   This function executes a script called <script name> in the game
   directory's sub-directory 'scripts'.  It is case sensitive and strips
@@ -12773,7 +12774,7 @@
        --- This is required as execscript() is effectively a sideeffect
      - EXECSCRIPT_VARS 
        --- This is optional  
-       --- This is passed as the enviornment variable MUSHL_VARS to the
+       --- This is passed as the environment variable MUSHL_VARS to the
            script or program called by execscript()
        --- This is set on the thing with execscript() on it to define what
            variables it has that will be passed as MUSHV_<args> to the script
@@ -12856,7 +12857,7 @@
   script plus '.set' after it.  So if execscript called myscript.sh then
   the loader script it calls after execution is myscript.sh.set.  This file
   will be not be triggered if it detects the file existing prior to 
-  the executing of the script.  This is a safty margin.
+  the executing of the script.  This is a safety margin.
   
   The following registers are passed to the script as environment variables:
     MUSHQ_<reg>   - Where <reg> is 0-9 or a-z for the SETQ registers.
@@ -12865,7 +12866,7 @@
   
   The following variables are passed to the script as environment variables:
     MUSHL_VARS    - This is the contents of the EXECSCRIPT_VARS mush attribute
-                    that has a space seperated list of attribute names you
+                    that has a space separated list of attribute names you
                     wish to pass to the script.
     MUSHV_<arg>   - Each <arg> is a mush attribute variable from MUSHL_VARS.
   
@@ -13025,7 +13026,7 @@
   a 5 second period, but it is unable to handle sub-shells or sub-calls
   from within the called script itself.  It will have to wait until those
   finish, so some importance should be shown on calling scripts or 
-  programs that could potentially take longer than 5 seconeds.
+  programs that could potentially take longer than 5 seconds.
   
   Things to do:
     1.  If you call a script that may take input, use expect or some
@@ -13045,9 +13046,9 @@
   
     3.  If you have something that will take more than 5 seconds, my
         suggestion is to redirect the output to a file, then as part
-        of the script, have it check the existances of that file
+        of the script, have it check the existence of that file
         and look for a 'done processing' section, and have as part
-        of your script have it check the existance of that file for
+        of your script have it check the existence of that file for
         existing processing, have it check the 'done processing' to
         then display the contents of that file and then REMOVE it
         after that, otherwise, it runs the script that generates the
@@ -13059,7 +13060,7 @@
         those scripts.  ALWAYS keep in mind the three important things:
         A.  All output that can take over 5 seconds is redirected.
         B.  Anything over 5 seconds will be killed unless you code around it.
-        C.  Background processes can hang the mush indefinately until
+        C.  Background processes can hang the mush indefinitely until
             returned.
   
   Those are the important things to remember when scripting, an example
@@ -13074,7 +13075,7 @@
   DNS name.  If you specify the DNS name, it will return all matching
   IP's for that DNS.  This function, as it calls outside libraries,
   is heavily protected, and will not be able to be executed more
-  than a handfull of times per command.
+  than a handful of times per command.
 
 & CHKGARBAGE()
   Function: chkgarbage(<object>, <type>)
@@ -13149,10 +13150,10 @@
   <obj>ect.  If <wld>pattern is given, only attributes matching it 
   are returned.  You may specify the <regexp> option to true (1) to turn the
   wild matching algo into regular expression matching instead of the default
-  matching algorithem.  You may specify the optional target <targ> if you wish 
+  matching algorithm.  You may specify the optional target <targ> if you wish 
   to return attributes that only the target could see.  If you do not have
   control over target, it defaults to yours.  You may specify a type to 
-  check against.  You may specify <tree> to simulate viewing attribute tres.
+  check against.  You may specify <tree> to simulate viewing attribute trees.
   
   The following types exist:
     + - List existing lock attributes on player.
@@ -13263,7 +13264,7 @@
   
   This function was coded to provide Penn and MUX2 compatibility.
   
-  This function works similarilly to dynhelp(), except that the resulting
+  This function works similarly to dynhelp(), except that the resulting
   string is returned to the controlling command and not as a side-effect.
   This is a possible limitation as the string that it returns has to be
   limited to an LBUF in size, or it will be cut off.
@@ -13354,7 +13355,7 @@
   Function: ltoggles(<user>)
   
   This returns a string of toggles the given player has.  This is
-  permission dependant.  Ie: You must have control over the target
+  permission dependent.  Ie: You must have control over the target
   player to see their toggles.
 
 & ACCOUNT_LOGIN()
@@ -13417,7 +13418,7 @@
   Then on the connect screen you would type:
     > mylogin tester zappo
   
-  Or using the Single Signon you can do passwordless with:
+  Or using the Single Sign-on you can do passwordless with:
     > myowner testmaster zappo    (the master account -- caches the passwd)
     > myloginpwd tester           (a member of the master account)
   
@@ -13721,8 +13722,8 @@
 & wmail size
   Command: wmail/size <user>=<[10 - 2000]>
   
-  This resets a player's maximum messages they can recieve to a given
-  ammount from 10 to 2000.  This will override the global default of
+  This resets a player's maximum messages they can receive to a given
+  amount from 10 to 2000.  This will override the global default of
   99 messages (or whatever is defined).
   
   Example:  wmail/size BloatedPlayer=10
@@ -13764,7 +13765,7 @@
   Command: wmail/load
   
   Will reload the mail db from the mail text dump file.
-  This will also fix a corrupt db by attempting to load in a previoius
+  This will also fix a corrupt db by attempting to load in a previous
   flatfile.
   
   If you do not have a valid flatfile, it will give you an error stating
@@ -13785,7 +13786,7 @@
   Command: wmail/clean
   
   Right now, basically does a unload followed by a load. In the future, 
-  detailed mail db consitency checking is planned for this function.
+  detailed mail db consistency checking is planned for this function.
 
 & wmail on  
   Command: wmail/on
@@ -13794,7 +13795,7 @@
   corrupted you will need to wmail/load a flatfile in.
   
   If you do not have a mail flatfile to load, issuing wmail/load will give
-  an appropiate error.
+  an appropriate error.
 
   HOWEVER.  If your mail is currently disabled, and wmail/on isn't bringing
   the mail system online, wmail/load will fix the mail system.  It does this
@@ -13866,7 +13867,7 @@
   This establishes global mail aliases for the given group of users.  A user 
   can then access this by using a '+alias-name' in their address list when 
   mailing.  You may also lock aliases to given things.  This works just like 
-  standard MUSH locks and is accessable by adding a /lock switch to the /alias 
+  standard MUSH locks and is accessible by adding a /lock switch to the /alias 
   switch.
   
   Typing the alias without the user list removes the alias.  Using the alias 
@@ -13903,7 +13904,7 @@
   
   This locks the given alias to the desired lock.  You would set the lock just
   as you would a normal @lock.  Specifying no lock clears the lock and allows
-  it accessable by anyone.
+  it accessible by anyone.
    
   Example:  wmail/alias/lock MyGlobalAlias=!*twink
   
@@ -13927,10 +13928,10 @@
   This function will return the various sizes of the target user's mailbox.
   You can give it the following arguments:
        1   :  Gives the value in BYTES of the total mail of a given player
-              except for recieved message size (that was sent to other 
+              except for received message size (that was sent to other 
               players) and sent message info (indexes, headers, and messages)
        2   :  Gives the total value in BYTES of everything in #1 plus all the
-              overhead info and recieved message size.
+              overhead info and received message size.
        3   :  Gives the total value in BYTES of all mail sent by that user in 
               circulation. (Everything not given in #2)
        4   :  Gives a combined output of options #1 and #3.
@@ -13938,7 +13939,7 @@
   
   Option #4 given on all players will be the same as msizetot() except for
   general overhead information that msizetot() will show.  This option 
-  is accessable by ROYALTY and higher.
+  is accessible by ROYALTY and higher.
   
   See Also: size(), msizetot()
 
@@ -14048,7 +14049,7 @@
   The DARK and UNFINDABLE flags otherwise have expected results if used
   separate from each other, though DARK, for obvious reasons, will not
   make you 'DARK' like on normal mushes. (unless configured to do so with
-  the appropiate @admin parameters)
+  the appropriate @admin parameters)
 
 & ALT INVENTORIES
   Topic: ALT INVENTORIES
@@ -14104,7 +14105,7 @@
     On Body: Platemail(#123)
   [ See?  That wasn't hard.  If you remove the @toggle, it won't be worn. ]
   [ Play with it some.  It's pretty easy to set up and establish things. ]
-  [ Weapons are done exactly the same way exept you @toggle WIELDED instead ]
+  [ Weapons are done exactly the same way except you @toggle WIELDED instead ]
 
 & MAILQUICK()
   Please refer to the normal help on this function for it's features.
@@ -14140,7 +14141,7 @@
   1.  Specify in the CONF parameter NUM_GUESTS how many guests you desire.
       The default for this is ten (10).
   
-  2.  After specifying the ammount, you need to pre-create the guest 
+  2.  After specifying the amount, you need to pre-create the guest 
       characters and set them up properly.  This is done by the following.
       A.  @pcreate Guest#=guest (where # is from 1 to NUM_GUESTS)
       B.  @set Guest#=!wanderer guest (where # is from 1 to NUM_GUESTS)
@@ -14152,7 +14153,7 @@
           have to @reboot the server.  This resets the guest counter.
           You *only* have to do this if someone tried to connect to
           a Guest character when you had none created.
-  3.  If you ever need to increase or decrease this ammount, just modify
+  3.  If you ever need to increase or decrease this amount, just modify
       the NUM_GUESTS field and make/remove any guests you need.
   4.  You may use 'guest_namelist' to optionally define a list of dbref#'s
       that you wish to use for guest characters.  Once defined, you may
@@ -14226,7 +14227,7 @@
   
   This creates the index file for the text file.  For help, you would use
   'help.txt help.indx' as it's arguments.  For the +help, you would use
-  'plushelp.txt plushelp.indx' as it's arguments.  It's pretty striaght
+  'plushelp.txt plushelp.indx' as it's arguments.  It's pretty straight
   forward.
   
   Once the files are indexed, you would then read it into the mush.  To
@@ -14370,7 +14371,7 @@
   Topic: HUH SETUP
   
   The error.txt file is used to define what a player can see when they
-  type a non-existant command. (and get the Huh? (Type 'help' for help).
+  type a non-existent command. (and get the Huh? (Type 'help' for help).
   This allows you to randomize the messages a player can get.
   
   The error.txt file is set up like the news.txt file.  To see how this
@@ -14481,7 +14482,7 @@
   Config parameter: reality_locktype <value>.   Default: 0
   
   This allows you to set what 'type' of lock you wish to have.  The lock-type
-  determins in what manner the @Lock/user will evaluate for the reality_level
+  determines in what manner the @Lock/user will evaluate for the reality_level
   checks.  The following types exist:
   
            0 - (Default)  This specifies that it should pass the reality if
@@ -14642,7 +14643,7 @@
   Toggle: MAIL_LOCKDOWN (Immortal only)
   
   Specifies that the target may only issue mail/number and mail/check as a 
-  mortal would.  In otherwords, they _MUST_ pass the mail share lock or they 
+  mortal would.  In other words, they _MUST_ pass the mail share lock or they 
   will be unable to check and/or read the target's mail.  This is incase
   a wizard is being abusive.
 
@@ -14658,7 +14659,7 @@
   access the softcoded add() function.
   
   @function/privilege will take the level of the object the @function
-  is on for permission checks (which can allow a lot of flexability)
+  is on for permission checks (which can allow a lot of flexibility)
   
   Example:
     > &FN.ADD me=%0 + %1 = [bypass(1)][add(%0,%1)][bypass(0)]
@@ -14749,7 +14750,7 @@
   Example:
     > mail me=This is a test message//A test
     > say mailread(me,1,s)
-    You say "This is a test messsage"
+    You say "This is a test message"
     > say mailread(me,1,b)
     You say "A test"
     > say mailread(me,1,g)
@@ -14780,7 +14781,7 @@
 & MAILSTATUS()
   Function: mailstatus(<player> [,<status-mask>])
    
-  This function returns a list of message #'s that corrrespond
+  This function returns a list of message #'s that correspond
   to the optional mask you provide.  This returns the same numbering
   that mail/status would show.
    
@@ -14805,7 +14806,7 @@
 & ACCOUNT MEMBERSHIP
   Topic: ACCOUNT MEMBERSHIP
   
-  RhostMUSH offers the capability to engineer a single signon account
+  RhostMUSH offers the capability to engineer a single sign-on account
   membership subsystem for logging in.  It does this through softcode
   wrapping built in feature sets.  RhostMUSH utilizes the file_object
   @admin parameter by setting up wrapped code to utilize the central
