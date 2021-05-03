@@ -3869,7 +3869,7 @@
     > @edit me/va=are,is
       Set - VA: This is a test
   
-  See Also: edit(), editansi(), @mvattr, @cpattr
+  See Also: medit(), edit(), editansi(), @mvattr, @cpattr
   
 & @emit
   Command: @emit[/<switches>] <message>
@@ -11615,23 +11615,23 @@
   LOR()          LRAND()       LREPLACE()     LROOMS()         LSET()         
   LSUB()         LT()          LTE()          LTOGGLES()       LTOTEMS()      
   LWHO()         LXNOR()       LXOR()         LZONE()          MAILQUICK()    
-  MAP()          MATCH()       MASK()         MAX()            MEMBER()       
-  MERGE()        MID()         MIN()          MIX()            MOD()          
-  MODULO()       MODIFYTIME()  MONEY()        MONEYNAME()      MOON()         
-  MSECS()        MUDNAME()     MUL()          MUNGE()          MWORDS()       
-  NAME()         NAMEQ()       NAND()         NCOMP()          NEARBY()       
-  NEQ()          NEXT()        NOR()          NOSTR()          NOT()          
-  NOTCHR()       NPEMIT()      NSITER()       NUM()            NUMMATCH()     
-  NULL()         NUMMEMBER()   NUMPOS()       NUMWILDMATCH()   OBJ()          
-  OBJEVAL()      OBJID()       OEMIT()        OPEN()           OR()           
-  ORCHR()        ORFLAG()      ORFLAGS()      ORTOTEM()        ORTOTEMS()     
-  OWNER()        PACK()        PACKMATH()     PARENMATCH()     PARENT()       
-  PARSE()        PARSESTR()    PEDIT()        PEMIT()          PFIND()        
-  PGREP()        PI()          PID()          PMATCH()         PORT()         
-  POS()          POSS()        POWER()        POWER10()        PRINTF()       
-  PRIVATIZE()    PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
-  R()            RACE()        RAND()         RANDPOS()        RANDMATCH()    
-  RANDEXTRACT() 
+  MAP()          MATCH()       MASK()         MAX()            MEDIT()
+  MEMBER()       MERGE()       MID()          MIN()            MIX()          
+  MOD()          MODULO()      MODIFYTIME()   MONEY()          MONEYNAME()     
+  MOON()         MSECS()       MUDNAME()      MUL()            MUNGE()        
+  MWORDS()       NAME()        NAMEQ()        NAND()           NCOMP()        
+  NEARBY()       NEQ()         NEXT()         NOR()            NOSTR()        
+  NOT()          NOTCHR()      NPEMIT()       NSITER()         NUM()          
+  NUMMATCH()     NULL()        NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
+  OBJ()          OBJEVAL()     OBJID()        OEMIT()          OPEN()         
+  OR()           ORCHR()       ORFLAG()       ORFLAGS()        ORTOTEM()      
+  ORTOTEMS()     OWNER()       PACK()         PACKMATH()       PARENMATCH()   
+  PARENT()       PARSE()       PARSESTR()     PEDIT()          PEMIT()        
+  PFIND()        PGREP()       PI()           PID()            PMATCH()       
+  PORT()         POS()         POSS()         POWER()          POWER10()      
+  PRINTF()       PRIVATIZE()   PROGRAMMER()   PTIMEFMT()       PUSHREGS()     
+  QUOTA()        R()           RACE()         RAND()           RANDPOS()      
+  RANDMATCH()    RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -11828,7 +11828,7 @@
                        ESCAPEX() ESCLIST() EVAL() GARBLE() IFELSE() ISALNUM() 
                        ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISOBJID() 
                        ISPUNCT() ISSPACE() ISTAG() ISWORD() ISXDIGIT() LCSTR() 
-                       LEFT() LIT() LJC() LJUST() MERGE() MID() NOSTR() 
+                       LEFT() LIT() LJC() LJUST() MEDIT() MERGE() MID() NOSTR()
                        NOTCHR() NUMPOS() ORCHR() PARSESTR() PEDIT() POS() 
                        PRINTF() RANDPOS() REPEAT() REPLACE() RIGHT() RJC() 
                        RJUST() ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX()
@@ -15678,7 +15678,8 @@
     > say translate(v(va),s)
     You say "this  is atest"
   
-  See Also: strip(), edit(), editansi(), s(), eval(), regedit(), subeval()
+  See Also: strip(), medit(), edit(), editansi(), s(), eval(), regedit(), 
+            subeval()
   
 & TOTCMDS()
   Function: totcmds(<player>)
@@ -15702,7 +15703,7 @@
    >say squish([space(10)]hi![space(10)]Bye![space(10)])
     You say "hi! Bye!"
   
-  See Also: s(), trim(), edit(), tr()
+  See Also: s(), trim(), edit(), medit(), tr()
   
 & S()
   Function: s(string)
@@ -15900,7 +15901,7 @@
   You say "
   this is a test"
   
-  See Also: strip(), edit(), editansi(), pedit(), regedit()
+  See Also: strip(), edit(), medit(), editansi(), pedit(), regedit()
   
 & CHR()
   Function: chr(<number>)
@@ -16504,7 +16505,7 @@
   > say regedit(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the best string"
   
-  See also: edit(), editansi(), regmatch(), regediti(), regeditall(), 
+  See also: medit(), edit(), editansi(), regmatch(), regediti(), regeditall(), 
             regeditalli()
 
 & REGEDITALLLIT()
@@ -16529,7 +16530,8 @@
   > say regeditall(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the Brash string"
   
-  See also: edit(), editansi() regmatch(), regedit(), regediti(), regeditalli()
+  See also: medit(), edit(), editansi() regmatch(), regedit(), regediti(), 
+            regeditalli()
 
 & REGEDITILIT()
 & REGEDITI()
@@ -16554,7 +16556,7 @@
   > say regediti(this teSt is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the best string"
   
-  See also: edit(), editansi(), regmatch(), regedit(), regeditall(), 
+  See also: medit(), edit(), editansi(), regmatch(), regedit(), regeditall(),
             regeditalli()
 
 & REGEDITALLILIT()
@@ -16580,7 +16582,7 @@
   > say regeditalli(this test is the best string, (.)est, [capstr($1)]rash)
   You say "this Trash is the Brash string"
   
-  See also: edit(), editansi(), regmatch(), regedit(), regediti(), 
+  See also: medit(), edit(), editansi(), regmatch(), regedit(), regediti(), 
             regeditall() 
 
 & REGNUMMATCHI()
@@ -19155,7 +19157,7 @@
     > say caplist(000.abc 111.cde 135.moon,,,L,512,.)
     You say "000.Abc 111.Cde 135.Moon"
   
-  See Also: capstr(), ucstr(), lcstr(), regedit()
+  See Also: capstr(), ucstr(), lcstr(), regedit(), medit()
 
 & LCSTR()
   Function: lcstr(<string>)
@@ -19922,7 +19924,7 @@
     > say strip(This is a test,is,1)
     You say "isiss"
   
-  See Also: @edit, edit(), editansi(), garble(), chomp(), regedit(),
+  See Also: @edit, medit(), edit(), editansi(), garble(), chomp(), regedit(),
             elementpos()
   
 & GARBLE()
@@ -19956,7 +19958,7 @@
     > say garble(this is a test!?,50,,-,1,1) (50 percent, no garble punct.)
     You say "---- is a ----!?"
   
-  See Also: strip(), edit(), editansi(), regedit()
+  See Also: strip(), medit(), edit(), editansi(), regedit()
   
 & BAND()
 & BXOR()
@@ -19990,8 +19992,8 @@
     > say mask(3,4,^)
     You say "7"
   
-  See Also: edit(), regedit(), pack(), unpack(), packmath(), shl(), shr(),
-            crc32()
+  See Also: medit(), edit(), regedit(), pack(), unpack(), packmath(), shl(), 
+            shr(), crc32()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -20252,6 +20254,34 @@
   
   See Also: andchr(), orchr(), xorchr()
   
+& MEDIT()
+  Function: medit(<string>,<from1>,<to1>[,<from2>,<to2>,...,<fromN>,<toN>)
+  
+  This function, like edit() is ansi-aware and will edit an arbitrary number
+  of arguments.  Unlike pedit() this will cleanly edit in ansi.
+  
+  You may specify ^ to prepend to the string, and $ to append to the string 
+  as with normal edit().
+  
+  This will edit arguments *in order* allowing you to edit previous edits
+  which may not be the desired result, so please keep this in mind.
+  
+  This was made as a separate function as it could be computationally
+  expensive.
+  
+  Examples:
+    > say medit(This is a test,is,x)   
+    You say "Thx x a test"
+    > say medit(Atlantic,^,Trans)
+    You say "TransAtlantic"
+    > say medit(This is a test,is,x,test,moo)   
+    You say "Thx x a moo"
+    > say medit(This is a test,is,x,test,moo,moo,bread)   
+    You say "Thx x a bread"
+  
+  See Also: @edit, edit(), editansi(), strip(), garble(), pedit(), chomp(), 
+            regedit()
+  
 & EDIT()
   Function: edit(<string>, <from>, <to> [[,<type>] [,<strict>]])
  
@@ -20274,7 +20304,8 @@
     > say edit(Atlantic,^,Trans)
     You say "TransAtlantic"
   
-  See Also: @edit, editansi(), strip(), garble(), pedit(), chomp(), regedit()
+  See Also: @edit, medit(), editansi(), strip(), garble(), pedit(), chomp(), 
+            regedit()
   
 & EDITANSI()
   Function: editansi(<string>, <search>, <replace> [,<search>, <replace>,...])
@@ -20323,7 +20354,7 @@
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
     You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
   
-  See Also: ansipos(), accents(), edit(), regedit(), pemit(), @edit
+  See Also: ansipos(), accents(), medit(), edit(), regedit(), pemit(), @edit
 
 & PEDIT()
   Function: pedit(<string>,<from>,<to>[,<from>,<to>,...])
@@ -20334,6 +20365,8 @@
   multiple 'froms' and 'to's in the string.  This is to mimic Penn's
   edit() functionality.
  
+  For an ansi-aware multi-edit, please see medit()
+  
   Examples:
     > say pedit(This is a test,is,x)   
     You say "Thx x a test"
@@ -20342,7 +20375,8 @@
     > say pedit(This is a test,is,was,was,were)
     You say "This were a test"
   
-  See Also: @edit, strip(), garble(), edit(), editansi(), chomp(), regedit()
+  See Also: @edit, strip(), garble(), medit(), edit(), editansi(), chomp(), 
+            regedit()
   
 & STREQ()
   Function: streq(<string1>,<string2>)
@@ -23939,7 +23973,8 @@
     > say tr(This is a TEST,a-mn-zA-MN-Z,n-za-mN-ZA-M)  (rot13)
       You ssay, "Guvf vf n GRFG"
   
-  See also: merge(), foreach(), garble(), creplace(), edit(), editansi()
+  See also: merge(), foreach(), garble(), creplace(), medit(), edit(), 
+            editansi()
 
 & TEMPLATE()
   Function: template(<string>, <arg0> [,<arg1>, ..., <arg9>])
@@ -23979,7 +24014,7 @@
     >>> abcde  <<<
     >>> tuvwy  <<<
   
-  See Also: printf(), edit(), regedit(), template()
+  See Also: printf(), medit(), edit(), regedit(), template()
 
 & TRUNC()
   Function: trunc(<number>)
@@ -25098,7 +25133,7 @@
     You say "Yet@Another@Funky@List"
   
   See Also: extract(), extractword(), insert(), ldelete(), delete(), rindex(),
-            edit()
+            medit(), edit()
   
 & LDELETE()
   Function: ldelete(<list>, <pos> [<pos2>..<posN>] [[,<sep>] [,<osep>]])
@@ -30747,6 +30782,7 @@
   lit()         - Returns a string as-is, without formatting or evaluation.
   ljc()         - Left justifies and cuts a string to a specified width.
   ljust()       - Pads a string with trailing fill characters.
+  medit()       - Like edit(), but allows multiple arguments. (ansi aware)
   merge()       - Merges two strings together.
   mid()         - Extracts X characters from a string, from anywhere inside it.
   mwords()      - Returns the number of words in a string (with multi-delim).
@@ -30756,7 +30792,7 @@
   ofparse()     - Returns various manipulations of evaluated strings.
   orchr()       - Returns true if any of the specified chars are in a string.
   parsestr()    - Parses a string according to formatting rules.
-  pedit()       - Like edit(), but with PennMUSH functionality.
+  pedit()       - Like edit(), but with PennMUSH functionality. (non-ansi)
   pos()         - Returns the position of where a substring begins in a string.
   printf()      - Formats text left, center, right, or stretched justification.
   randpos()     - Like totpos(), but totally randomizes output.
@@ -33841,6 +33877,7 @@
   * @force/inline calls @sudo -- for additional switches use @sudo [ASH]
   * @trigger/inline calls @include -- additional swi's use @include [ASH] 
   * ##<dbref> for @sudo works like #<dbref> for @force [ASH]
+  * medit() -- multi-argument ansi edit() [ASH]
   
   Changes
   -------

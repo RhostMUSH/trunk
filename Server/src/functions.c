@@ -29904,6 +29904,31 @@ FUNCTION(fun_map)
  * fun_edit: Edit text.
  */
 
+FUNCTION(fun_medit)
+{
+    char *tstr, *tbuff;
+    int i_args;
+
+    if ( (nfargs < 3) || ((nfargs % 2) == 0) ) {
+       safe_str((char*)"#-1 FUNCTION (MEDIT) EXPECTS AN ODD NUMBER OF ARGUMENTS OF 3 OR MORE [RECEIVED ", buff, bufcx);
+       ival(buff, bufcx, nfargs);
+       safe_chr(']', buff, bufcx);
+       return;
+    }
+    
+    tbuff = alloc_lbuf("fun_medit_buffer");
+    strcpy(tbuff, fargs[0]);
+    i_args = 1;
+    while ( i_args < nfargs ) {
+       edit_string(tbuff, &tstr, (char **)NULL, fargs[i_args], fargs[i_args+1], 1, 0, 0, 0);
+       strcpy(tbuff, tstr);
+       free_lbuf(tstr);
+       i_args+=2;
+   }
+   safe_str(tbuff, buff, bufcx);
+   free_lbuf(tbuff);
+}
+
 FUNCTION(fun_edit)
 {
     char *tstr;
@@ -37800,6 +37825,7 @@ FUN flist[] =
     {"MASK", fun_mask, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MATCH", fun_match, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MAX", fun_max, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"MEDIT", fun_medit, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"MEMBER", fun_member, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MERGE", fun_merge, 3, 0, CA_PUBLIC, CA_NO_CODE},
     {"MID", fun_mid, 3, FN_VARARGS, CA_PUBLIC, 0},
