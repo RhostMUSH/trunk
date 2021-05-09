@@ -6272,6 +6272,27 @@
     You just tested test1.
     test1 says "I was xtested. Yikes. Arg1=a, Arg2=b c, Arg3=de."
   
+{ 'help @verb4' on how to format the custom verbs }
+
+& @verb4
+  Formatting can be doing using eithe the &FORMAT<verb> or the &<verb>FORMAT
+  depending on how the RhostMUSH is currently configured.
+  
+  Type '@list options' to see what method of formatting is currently enabled.
+  
+  To have the customized verb (what, owhat defined in 'help @verb2') enabled
+  for formatting, it must be set with the DEFAULT attribute flag.  Once set
+  all 'what' and 'owhat' custom verbs will be formatted appropriately.  As
+  with standard formatting, the value of the verb is passed as '%0'.
+  
+  Examples:
+    > &xtest test1=You just tested test1.
+    > &formatxtest test1=<< %0 >>
+    > @verb test1=me,xtest
+    << You just tested test1. >>
+  
+  See Also: ATTRIBUTE FLAGS, ATTRIBUTE FORMATTING, @list, @set, &
+
 & @wait
   Command: @wait <seconds>=<command>
            @wait <object>[/<seconds>]=<command>
