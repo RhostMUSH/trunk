@@ -740,7 +740,6 @@ static struct PENN_COLORMAP penn_namecolors[]= {
    {"grey100",  231},
    {"honeydew", 255 },
    {"honeydew1", 255 },
-   {"honeydew2",  194},
    {"honeydew2", 254 },
    {"honeydew3", 251 },
    {"honeydew4", 102 },
