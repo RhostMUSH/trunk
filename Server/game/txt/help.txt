@@ -31042,7 +31042,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.1.0p2
+  *** Current Revision: 4.2.0
   ***************************************************************************
   
   Available Revisions:
@@ -33916,3 +33916,5 @@
    This option is now documented in help so people ae not clueless [ASH] 
  * cleanup of non-critical bug in search_nametab with lazilly written code 
    that did not properly handle empty values [ASH]
+ * Added missing documentation for 'max connections' parameter to *_host and
+   *_site config params, as well as 'wizhelp site list' [AMB]
