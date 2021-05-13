@@ -8499,17 +8499,27 @@
   This parameter specifies the hostnames that are allowed to use
   connect screen connect/create/register commands if they have been
   disabled with the use of the connect_methods admin parameter.
+
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.  
+  If the optional <maxconns> parameter is specified, this setting will
+  only engage until the amount of simultaneous connections from the
+  specified host exceeds this threshold.
   
   Example:  @admin hardconn_host=localhost
   
   See Also: hardconn_site, connect_methods
 
 & hardconn_site
-  Config parameter: forbid_site <addr> <mask>
+  Config parameter: forbid_site <addr> <mask> [<maxconns>]
   
   This is used to specify the numerical address and mask of what is
   allowed to use connect screen connect/create/register commands if
   the connect_methods admin parameter is specified.
+
+  If the optional <maxconns> parameter is specified, this setting will
+  only engage until the amount of simultaneous connections from the
+  specified site exceeds this threshold.
   
   See Also: connect_methods, hardconn_host, SITE LISTS, @site
 
@@ -8518,6 +8528,12 @@
   
   This parameter takes the hostname and allows passing the max_lastsite_api
   count value.  This does not allow bypassing forbidapi settings.
+
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.  
+  If the optional <maxconns> parameter is specified, this setting will
+  only engage until the amount of simultaneous connections from the
+  specified host exceeds this threshold.
   
   Example:  @admin passapi_host=localhost
   
@@ -8538,11 +8554,11 @@
   existing site information already specified with forbid_host.  You may use
   '!ALL' to clear the forbid host table.
   
-  You may specify an optional ceiling of allowed connects before the
-  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
-  3 connections from aol.com at any one time, then enforce the restriction.
-  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
-  FORBID restrictions.
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified host exceeds this threshold.
   
   Example:  @admin forbid_host=*.aol.com !*.compuserve.com *ego.com|3
             (forbids any site matching *.aol.com and removes *.compuserve.com)
@@ -8558,19 +8574,23 @@
             validate_host, @site
 
 & passapi_site
-  Config parameter: passapi_site <addr> <mask>
+  Config parameter: passapi_site <addr> <mask> [<maxconns>]
   
   This parameter will bypass the site counter restriction for any site(s)
   matching.  This will not bypass the forbidapi_site parameter, but only
   bypasses the max_lastsite_api count value restriction.  This only effects
   API connections.
-  
+
+  If the optional <maxconns> parameter is specified, this setting will
+  only engage until the amount of simultaneous connections from the
+  specified site exceeds this threshold.
+
   See Also: API, forbidapi_site, SITE LISTS, @site
    
 & forbidapi_site
 & forbid_site
-  Config parameter: forbid_site <addr> <mask>
-                    forbidapi_site <addr> <mask>
+  Config parameter: forbid_site <addr> <mask> [<maxconns>]
+                    forbidapi_site <addr> <mask> [<maxconns>]
   
   The forbidapi_site works like forbid_site, except it handles ONLY the
   api port connections.  It will not affect other connections to the mush.
@@ -8581,6 +8601,11 @@
   the connection.  This directive may be used to restrict access to just the
   local network, or to prevent access from troublemaking sites.
   The default is for all sites to be allowed to connect, none forbidden.
+
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified site exceeds this threshold.
+
   See Also: badsite_file, noguest_site, permit_site, register_site, 
             SITE LISTS.
 
@@ -10187,11 +10212,11 @@ Example:
   information already specified with noguest_host.  You may use '!ALL' 
   to clear the noguest host table.
   
-  You may specify an optional ceiling of allowed connects before the
-  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
-  3 connections from aol.com at any one time, then enforce the restriction.
-  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
-  FORBID restrictions.
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified host exceeds this threshold.
   
   Example: @admin noguest_host=*.aol.com !*.compuserve.com *ego.com|3
            (no-guests any site matching *.aol.com and removes *.compuserve.com)
@@ -10207,10 +10232,14 @@ Example:
              validate_host, forbidapi_host, @site
 
 & noguest_site
-  Config parameter: noguest_site <site> <mask>
+  Config parameter: noguest_site <site> <mask> [<maxconns>]
   
   Establishes sites that are not permitted to use the guest characters.
   This is effectively the same as forbid_site but only effects guests.
+
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified site exceeds this threshold.
   
   See Also: forbid_site, forbidapi_site
 
@@ -10850,11 +10879,11 @@ Example:
   existing site information already specified with register_host.  You may 
   use '!ALL' to clear the register host table.
   
-  You may specify an optional ceiling of allowed connects before the
-  restriction takes effect by ending in '|#'.  Like '*.aol.com|3' will allow
-  3 connections from aol.com at any one time, then enforce the restriction.
-  Optional ceiling restrictions are only valid for NOGUEST, REGISTER, and 
-  FORBID restrictions.
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified host exceeds this threshold.
   
   Example: @admin register_host=*.aol.com !*.compuserve.com *ego.com|3
            (registers any site matching *.aol.com and removes *.compuserve.com)
@@ -10870,10 +10899,15 @@ Example:
              validate_host, forbidapi_host, @site
 
 & register_site
-  Config parameter: register_site <addr> <mask>.
+  Config parameter: register_site <addr> <mask> [<maxconns>]
   
   Indicates that registration is to be enforced for sites whose address
   matches the specified address when AND'd with the mask.
+
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified site exceeds this threshold.
+
   See Also: forbid_site, forbidapi_site, noguest_site, permit_site, 
             REGISTRATION, SITE LISTS.
 
@@ -12694,7 +12728,7 @@ Example:
   one for suspect warning.  The first list is controlled by the forbid_site,
   permit_site, and register_site parameters, the second by the suspect_site
   and trust_site parameters. The syntax of these parameters is:
-  <param-name> <address> <mask>, where:
+  <param-name> <address> <mask> <max_conn>, where:
  
   Address  - Four-part decimal Internet address, specified as a.b.c.d,
              of the host or network to which this parameter applies.
@@ -12703,6 +12737,13 @@ Example:
              to be used for comparison, it is AND'd with both the address
              of the host and the address in the directive.  The mask may
              also be /## notation.
+  Max_Conn - An OPTIONAL parameter. If this parameter is set, instead of 
+             triggering on the first connection, the restrictions of
+             FORBID_SITE/HOST, REGISTER_SITE/HOST, NOGUEST_SITE/HOST,
+             FORBIDAPI_SITE/HOST, PASSAPI_SITE/HOST, HARDCONN_SITE/HOST and
+             NOGUEST_SITE/HOST will only kick in as long as the specified
+             amount of simultaneous connections from the same site has been
+             exceeded (or not reached yet in the case of passapi and hardconn)
  
   The parameters are applied in the order specified in the configuration file,
   and the first one that matches is used.  Therefore, you should put
