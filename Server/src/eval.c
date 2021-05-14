@@ -152,17 +152,19 @@ parse_to_cleanup(int eval, int first, char *cstr,
 		 char *rstr, char *zstr)
 {
     DPUSH; /* #59 */
-    if ((mudconf.space_compress || (eval & EV_STRIP_TS)) &&
+    if (( (mudconf.space_compress && !mudstate.no_space_compress) || (eval & EV_STRIP_TS)) &&
 	!first && (cstr[-1] == ' '))
 	zstr--;
     if ((eval & EV_STRIP_AROUND) && (*rstr == '{') && (zstr[-1] == '}')) {
 	rstr++;
-	if (mudconf.space_compress || (eval & EV_STRIP_LS))
+	if ( !mudstate.no_space_compress && 
+             ((mudconf.space_compress && !mudstate.no_space_compress) || (eval & EV_STRIP_LS)) ) 
 	    while (*rstr && isspace((int)*rstr))
 		rstr++;
 	rstr[-1] = '\0';
 	zstr--;
-	if (mudconf.space_compress || (eval & EV_STRIP_TS))
+	if ( !mudstate.no_space_compress &&
+             ((mudconf.space_compress && !mudstate.no_space_compress) || (eval & EV_STRIP_TS)) )
 	    while (zstr[-1] && isspace((int)(zstr[-1])))
 		zstr--;
 	*zstr = '\0';
@@ -201,7 +203,8 @@ parse_to(char **dstr, char delim, int eval)
     sp = 0;
     first = 1;
     rstr = *dstr;
-    if (mudconf.space_compress | (eval & EV_STRIP_LS)) {
+    if ( !mudstate.no_space_compress && 
+         ((mudconf.space_compress && !mudstate.no_space_compress) || (eval & EV_STRIP_LS)) ) {
 	while (*rstr && isspace((int)*rstr))
 	    rstr++;
 	*dstr = rstr;
@@ -290,7 +293,7 @@ parse_to(char **dstr, char delim, int eval)
 	    }
 	    switch (*cstr) {
 	    case ' ':		/* space */
-		if (mudconf.space_compress) {
+		if ( mudconf.space_compress && !mudstate.no_space_compress ) {
 		    if (first)
 			rstr++;
 		    else if (cstr[-1] == ' ')
@@ -1503,7 +1506,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    /* A space.  Add a space if not compressing or if
 	     * previous char was not a space */
 
-	    if (!(mudconf.space_compress && at_space)) {
+	    if (!((mudconf.space_compress && !mudstate.no_space_compress) && at_space)) {
 		safe_chr(' ', buff, &bufc);
 		at_space = 1;
 	    }
@@ -2748,7 +2751,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    tbufc = tbuf = alloc_sbuf("exec.tbuf");
 	    safe_sb_str(buff, tbuf, &tbufc);
   	    *tbufc = '\0';
-	    if (mudconf.space_compress) {
+	    if (mudconf.space_compress && !mudstate.no_space_compress) {
 		while ((--tbufc >= tbuf) && isspace((int)*tbufc));
 		tbufc++;
 	    }
@@ -3263,7 +3266,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
      * in the buffer, too.
      */
 
-    if (mudconf.space_compress && at_space && (bufc != buff))
+    if ( (mudconf.space_compress && !mudstate.no_space_compress) && at_space && (bufc != buff))
 	bufc--;
 
     *bufc = '\0';

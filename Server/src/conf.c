@@ -279,6 +279,7 @@ NDECL(cf_init)
     mudconf.switch_substitutions = 0;
     mudconf.ifelse_substitutions = 0;
     mudconf.sideeffects = 32;  /* Enable only list() by default */
+    mudconf.raw_formatting = 1;       /* Allow raw formatting via } command */
     mudconf.sidefx_returnval = 0; /* sideeffects that create return dbref# if enabled */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.sidefx_maxcalls = 1000; /* Maximum sideeffects allowed in a command */
@@ -385,6 +386,7 @@ NDECL(cf_init)
     for ( i = 0; i < TOTEM_SLOTS; i++ ) {
        mudstate.totem_slots[i] = 0;
     }
+    mudstate.no_space_compress = 0;	/* Override space compression */
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
@@ -5154,6 +5156,9 @@ CONF conftable[] =
     {(char *) "quotas",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.quotas, 0, 0, CA_PUBLIC,
      (char *) "Are @quotas being used?"},
+    {(char *) "raw_formatting",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.raw_formatting, 0, 0, CA_PUBLIC,
+      (char *) "Allow } to do raw input formatting?"},
     {(char *) "rollbackmax",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.rollbackmax, 10000, 10, CA_WIZARD,
      (char *) "Max rollback (retry) count allowed.\r\n"\
@@ -5330,7 +5335,7 @@ CONF conftable[] =
      (char *) "Does signal USR1 optionally read cron file?"},
     {(char *) "space_compress",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.space_compress, 0, 0, CA_PUBLIC,
-     (char *) "Spaces compressed?"},
+     (char *) "Spaces compressed (overridden with no_space_compress state)?"},
     {(char *) "spam_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.spam_limit, 0, 0, CA_PUBLIC,
      (char *) "Ceiling of commands per minute..\r\n"\

@@ -1496,7 +1496,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
                   }
                }
                mudstate.chkcpu_inline = i_chkinline;
@@ -1555,7 +1555,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
                   }
                }
                mudstate.chkcpu_inline = i_chkinline;
@@ -1626,7 +1626,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
                }
             }
             mudstate.chkcpu_inline = i_chkinline;
@@ -1686,7 +1686,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook);
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
                }
             }
             mudstate.chkcpu_inline = i_chkinline;

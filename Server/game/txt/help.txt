@@ -1654,7 +1654,7 @@
     YourName types -=> @emit To do addition, type: say add(1,1) = 2
     To do addition, type: say add(1,1) = 2                         
   
-  See Also: @emit, pose, @pemit, think, ]
+  See Also: @emit, pose, @pemit, think, ], }
   
 & worn
   Command: worn
@@ -3059,10 +3059,31 @@
   For wizards wanting to remove this on new player creation, please see the
   wizard help for the 'start_build' config parameter.
 
+& ]}
+& }]
+& }
 & ]
   Command: ]<command>
+           }<command>
+           ]}<command>
+           }]<command>
   
-  This tells the parser that the command following it is to not be parsed.
+  This allows multiple features for parsing values you enter.
+  The following combinations are possible:
+    ]   -- This tells the parser that the command following it is not 
+           to be parsed.
+    }   -- This tells the parser that the command following it is not 
+           to have white spaces stripped.  This follows all queud cmds.
+   ]}   -- This combines the features of ] and }.
+   }]   -- This combines the features of ] and }.
+  
+  Examples:  
+    > ]think [add(1,1)]
+    [add(1,1)]
+    > }think        [add(1,1)]
+           2
+    > ]}think       [add(1,1)]
+           [add(1,1)]
   
   See Also: train
 
@@ -33899,6 +33920,8 @@
   * @trigger/inline calls @include -- additional swi's use @include [ASH] 
   * ##<dbref> for @sudo works like #<dbref> for @force [ASH]
   * medit() -- multi-argument ansi edit() [ASH]
+  * } to allow raw data entry.  Can be combined with ] for noparse [ASH]
+  * raw_formatting config param to enable/disable } option [ASH]
   
   Changes
   -------

@@ -517,7 +517,7 @@ int i_jump, i_rollback;
   i_rollback = mudstate.rollbackcnt;
   mudstate.jumpst = mudstate.rollbackcnt = 0;
   strcpy(mudstate.rollback, command);
-  process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook);
+  process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
   mudstate.jumpst = i_jump;
   mudstate.rollbackcnt = i_rollback;
   strcpy(mudstate.rollback, s_rollback);

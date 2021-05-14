@@ -70,7 +70,7 @@ void init_pid_table()
 void execute_entry(BQUE *queue)
 {
   dbref player;
-  int i;
+  int i, i_nospace;
   char *command, *cp;
 
 	player = queue->player;
@@ -119,17 +119,23 @@ void execute_entry(BQUE *queue)
 		      memset(mudstate.rollback, '\0', LBUF_SIZE);
        		   }
     		}
+		i_nospace = mudstate.no_space_compress;
+		if ( (queue->bitwise_flags & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
+			mudstate.no_space_compress = 1;
+		} 
 		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
 			desc_in_use = NULL;
+			queue->bitwise_flags = 0;
 			process_command(player,
 					queue->cause,
 					0, cp,
 					queue->env,
-					queue->nargs, queue->shellprg, queue->hooked_command);
+					queue->nargs, queue->shellprg, queue->hooked_command, mudstate.no_space_compress);
 		    }
 		}
+		mudstate.no_space_compress = i_nospace;
                 mudstate.shell_program = 0;
 	    }
 	}
@@ -442,6 +448,7 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->scrname[a] = NULL;
             }
+            freezepid->bitwise_flags = point->bitwise_flags;
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
@@ -519,6 +526,7 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->scrname[a] = NULL;
             }
+            freezepid->bitwise_flags = point->bitwise_flags;
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
@@ -647,6 +655,7 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->scrname[a] = NULL;
                }
+               freezepid->bitwise_flags = point->bitwise_flags;
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
@@ -727,6 +736,7 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->scrname[a] = NULL;
                }
+               freezepid->bitwise_flags = point->bitwise_flags;
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
@@ -959,6 +969,7 @@ wait_que_pid(dbref player, int pid, int newwait)
                 else
                    rewait->scrname[a] = NULL;
             }
+            rewait->bitwise_flags = point->bitwise_flags;
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
@@ -1031,6 +1042,7 @@ wait_que_pid(dbref player, int pid, int newwait)
                 else
                    rewait->scrname[a] = NULL;
             }
+            rewait->bitwise_flags = point->bitwise_flags;
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
@@ -1114,6 +1126,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
+            point->bitwise_flags = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1134,6 +1147,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
+            point->bitwise_flags = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1271,6 +1285,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
+        point->bitwise_flags = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qlast = NULL;
@@ -1287,6 +1302,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
+        point->bitwise_flags = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qllast = NULL;
@@ -1734,6 +1750,9 @@ setup_que(dbref player, dbref cause, char *command,
     }
     /* Load the rest of the queue block */
 
+    tmp->bitwise_flags = 0;
+    if ( mudstate.no_space_compress )
+       tmp->bitwise_flags |= PREPARSE_RAW;
     tmp->player = player;
     tmp->waittime = 0;
     tmp->next = NULL;
@@ -2505,7 +2524,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 		*bp = '\0';
 		bp = unparse_object2(player, tmp->cause, 0);
                 tprp_buff = tpr_buff;
-		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   Enactor: %s%s", bp, bufp));
+		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", tmp->bitwise_flags, bp, bufp));
 		free_lbuf(bp);
 	    }
 	    free_lbuf(bufp);

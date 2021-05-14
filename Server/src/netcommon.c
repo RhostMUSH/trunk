@@ -5071,7 +5071,7 @@ do_command(DESC * d, char *command)
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4;
+    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4, no_space;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5543,8 +5543,13 @@ do_command(DESC * d, char *command)
                i_jump = mudstate.jumpst;
                mudstate.jumpst = mudstate.rollbackcnt = 0;
                strcpy(mudstate.rollback, command);
+               no_space = mudstate.no_space_compress;
+               if ( *command == '}' ) {
+                  mudstate.no_space_compress = 1;
+               }
 	       process_command(d->player, d->player, 1,
-			       command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook);
+			       command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook, mudstate.no_space_compress);
+               mudstate.no_space_compress = no_space;
                mudstate.rollbackcnt = i_rollback;
                mudstate.jumpst = i_jump;
                strcpy(mudstate.rollback, s_rollback);

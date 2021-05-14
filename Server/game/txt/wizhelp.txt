@@ -7074,27 +7074,27 @@
   power_access              protect_addenh            public_flags            
   queue_active_chunk        queue_compatible          queue_idle_chunk        
   quiet_look                quiet_whisper             quit_file               
-  quotas                    read_remote_desc          read_remote_name        
-  recycling                 register_create_file      register_host           
-  register_site             regtry_limit              restrict_home           
-  restrict_sidefx           retry_limit               robot_cost              
-  robot_flags               robot_speech              robot_toggles           
-  room_aconnect             room_adisconnect          room_attr_default       
-  room_flags                room_parent               room_quota              
-  room_toggles              roomlog_path              round_kludge            
-  rwho_data_port            rwho_dump_interval        rwho_host               
-  rwho_info_port            rwho_password             rwho_transmit           
-  sacrifice_adjust          sacrifice_factor          safe_wipe               
-  safer_passwords           safer_ufun                sconnect_cmd
-  sconnect_host             sconnect_reip             search_cost             
-  secure_atruselock         secure_dark               secure_functions        
-  secure_jumpok             see_owned_dark            sha2rounds
-  showother_altname         shs_reverse               sidefx_maxcalls         
-  sidefx_returnval          sideeffects               signal_action           
-  signal_crontab            signal_object             signal_object_type      
-  space_compress            spam_limit                spam_msg                
-  spam_objmsg               sqlite_db_path            sqlite_query_limit      
-  stack_limit
+  quotas                    raw_formatting            read_remote_desc        
+  read_remote_name          recycling                 register_create_file    
+  register_host             register_site             regtry_limit            
+  restrict_home             restrict_sidefx           retry_limit             
+  robot_cost                robot_flags               robot_speech            
+  robot_toggles             room_aconnect             room_adisconnect        
+  room_attr_default         room_flags                room_parent             
+  room_quota                room_toggles              roomlog_path            
+  round_kludge              rwho_data_port            rwho_dump_interval      
+  rwho_host                 rwho_info_port            rwho_password           
+  rwho_transmit             sacrifice_adjust          sacrifice_factor        
+  safe_wipe                 safer_passwords           safer_ufun              
+  sconnect_cmd              sconnect_host             sconnect_reip           
+  search_cost               secure_atruselock         secure_dark             
+  secure_functions          secure_jumpok             see_owned_dark          
+  sha2rounds                showother_altname         shs_reverse             
+  sidefx_maxcalls           sidefx_returnval          sideeffects             
+  signal_action             signal_crontab            signal_object           
+  signal_object_type        space_compress            spam_limit              
+  spam_msg                  spam_objmsg               sqlite_db_path          
+  sqlite_query_limit        stack_limit
   
 { 'wizhelp config parameters6' for more}
 
@@ -11360,17 +11360,14 @@ Example:
 & sideeffects
   Config parameter: sideeffects <value>.  Default: 32 (just LIST)
   
+  Note: sideeffects_txt will show the human readable text of this value.
+  
   This config parameter specifies what side-effects you want enabled.
 
   Sideeffects may either be specified through a space delimited list
   of keywords (i.e. OPEN SET CREATE) or through the use of a bitmask.
   
   The following is a list of keywords and their bitmask equivalents:
-#define SIDE_EXECSCRIPT  0x04000000 /* execscript() sideeffect */
-#define SIDE_ZONE        0x08000000 /* zone() sideeffect function */
-#define SIDE_LSET        0x10000000 /* lset() sideeffect function */
-#define SIDE_TOTEMSET    0x20000000 /* totemset() sideeffect function */
-
   
   none    - 0    OPEN    - 128    WIPE     - 32768    MOVE        - 8388608
   SET     - 1    EMIT    - 256    DESTROY  - 65536    CLUSTER_ADD - 16777216
@@ -11423,6 +11420,9 @@ Example:
   This is used to display (via the config() function) the sideeffects
   that are currently being used.  This is only for display, and is
   intended to give a user-friendly string list of the parameters.
+  
+  This is a READ-ONLY config parameter.  It is directly tied to
+  the 'sideeffects' config parameter.  Use 'sideeffects' to set it. 
   
   See Also: sideeffects
 
@@ -11516,6 +11516,11 @@ Example:
   Specifies whether or not extra spaces are to be removed from user input
   as it is processed.  If enabled, multiple spaces are compressed to a single
   space, and spaces at the ends of strings are removed.
+  
+  You may specify the } command to bypass space compression regardless of
+  this setting.
+  
+  See Also: raw_formatting, }, ]
 
 & spam_limit
   Config parameter: spam_limit <value>.  Default: 60
@@ -11755,6 +11760,23 @@ Example:
   
   See Also: sub_include, @hook, hook_obj, HOOK SETUP
 
+& raw_formatting
+  Config parameter: raw_formatting <boolean>                       Default: 1
+  
+  This parameter will enable or disable the raw formatting command '}'.  By
+  default with this enabled, any command after this, including commands
+  queued, will automatically ignore any compression/stripping of spaces.
+  
+  See Also: }, ], space_compress
+
+& ]}
+& ]
+  See normal help for ']'
+
+& }]
+& }
+  See normal help for '}'
+  
 & round_kludge
   Config parameter: round_kludge <boolean>                         Default: 0
 

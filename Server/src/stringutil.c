@@ -207,7 +207,7 @@ char	*savec, *cp;
 int string_compare(const char *s1, const char *s2)
 {
 #ifndef STANDALONE
-  if(!mudconf.space_compress) {
+  if( !mudconf.space_compress || mudstate.no_space_compress ) {
     while (*s1 && *s2 && ToLower((int)*s1) == ToLower((int)*s2))
       s1++, s2++;
 

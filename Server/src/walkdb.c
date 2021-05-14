@@ -221,7 +221,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
-                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook);
+                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
                }
                if ( mudstate.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
