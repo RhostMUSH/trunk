@@ -271,7 +271,7 @@ struct confdata {
         int     restrict_home2; /* Define level of restriction (2nd word) */
 	char    invname[80];    /* Define name of inventory type - default 'backpack' */
 	int     sideeffects;	/* Define sideeffects (set-1,create-2,link-4,pemit-8,tel-16) */
-	int	raw_formatting;	/* Allow raw input formatting */
+	int	raw_formatting; /* Allow raw input formatting */
 	int     restrict_sidefx; /* Restrict setting side-effects to bitlevel (0 default/any) */
         int     cpuintervalchk; /* CPU level to check for overflowing CPU processes */
         int     cputimechk;     /* Time notification of time elapses from start of command */
@@ -731,6 +731,7 @@ struct statedata {
         int	totem_slots[TOTEM_SLOTS];/* totem slots */
 	int	errornum;
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	int	no_space_compress;	/* State data to not allow space compress */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */
 	BQUE	*qlfirst;	/* Head of object queue */

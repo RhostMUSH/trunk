@@ -330,6 +330,6 @@ typedef struct aliasentry {
 #define QUITPRG_QUIET	0x00000001	/* silently quitprogram target */
 
 extern int	FDECL(check_access, (dbref, int, int, int));
-extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int));
+extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int, int));
 
 #endif

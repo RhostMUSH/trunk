@@ -94,6 +94,7 @@ struct bque {
 	int	plr_type;	/* Type of player - used only in freeze/thaw */
         int     text_len;       /* Size of text length */
 	int	hooked_command;	/* Is command hooked ? */
+	int	bitwise_flags;	/* The list of bitwise flags to pass like space compress */
 };
 
 

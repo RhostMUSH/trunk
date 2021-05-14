@@ -1199,6 +1199,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define MLOG_FILE	8	/* Specify file name for manual log (128 chars max) */
 #define MLOG_ROOM	16	/* Log Room's output */
 
+/* This will be a bitwise mask for any mask handling for raw parsing */
+#define PREPARSE_RAW	0x00000001	/* PreParse handler for raw */
+
 #define LOGROTATE_STATUS 1	/* Status of current log */
 
 #define BLACKLIST_LIST	1	/* List blacklist */
