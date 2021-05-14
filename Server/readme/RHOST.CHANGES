@@ -70,6 +70,8 @@ SIDEFX permissions were borked for normal players.
 				- Thanks Alley
 @name/name() if given empty/null arg for new name and ansi mode clears ansi.
 				- Thanks Thenomain
+SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
+				- Thanks Pres
 
 
                          RhostMUSH 3.9.5 Update File

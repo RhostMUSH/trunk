@@ -835,7 +835,14 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
-                    raw_notify(target, vap[0], port, 1);
+                    
+                    if ( UTF8(target) ) {
+                       raw_notify(target, vap[2], port, 1);
+                    } else if ( Accents(target) ) {
+                       raw_notify(target, vap[1], port, 1);
+                    } else {
+                       raw_notify(target, vap[0], port, 1);
+                    }
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
@@ -912,7 +919,14 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
-                    raw_notify(target, vap[0], port, 1);
+
+                    if ( UTF8(target) ) {
+                       raw_notify(target, vap[2], port, 1);
+                    } else if ( Accents(target) ) {
+                       raw_notify(target, vap[1], port, 1);
+                    } else {
+                       raw_notify(target, vap[0], port, 1);
+                    }
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
