@@ -33942,3 +33942,4 @@
  * Added missing documentation for 'max connections' parameter to *_host and
    *_site config params, as well as 'wizhelp site list' [AMB]
  * SPEECH_PREFIX/SPEECH_SUFFIX would not properly do unicode [ASH]
+ * off-by-one buffer in underlying UTF8 handler for tmp buffer size [ASH]
