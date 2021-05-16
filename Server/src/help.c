@@ -558,13 +558,20 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
         *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
    int first, found, matched, one_through, space_compress, i_noindex, i_header;
-   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk;
+   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk, i_bufffilled;
    FILE *fp_indx, *fp_help;
 
    if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
-      notify_quiet(player, "Illegal combination of switches.");
+      if ( t_val ) {
+         safe_str("Illegal combination of switches.", t_buff, &t_bufptr);
+      } else {
+         notify_quiet(player, "Illegal combination of switches.");
+      }
       return(1);
    }
+
+   i_bufffilled = 0;
+
    i_noindex = i_suggest = 0;
    if ( key & DYN_NOLABEL ) {
       key &= ~DYN_NOLABEL;
@@ -652,11 +659,17 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             tf_fclose(fp_indx);
             return 1;
          }
+         if ( i_bufffilled ) {
+            break;
+         }
          if ( i_cntr > 2000 ) {
-            continue;
+            break;
          }
          i_header = 0;
          for (;;) {
+            if ( i_bufffilled ) {
+               break;
+            }
             if ( fgets(line, (LBUF_SIZE - 1), fp_help) == NULL ) 
                break;
             if (line[0] == '&')
@@ -674,7 +687,17 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
 #else
                      sprintf(s_buff, "%s%s%s:", ANSI_HILITE, entry.topic, ANSI_NORMAL);
 #endif
-                     notify(player, s_buff);
+                     if ( t_val ) {
+                        safe_str(s_buff, t_buff, &t_bufptr);
+                        safe_str((char *)"\r\n", t_buff, &t_bufptr);
+                        if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                           safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                           i_bufffilled = 1;
+                           break;
+                        }
+                     } else {
+                        notify(player, s_buff);
+                     }
                      i_header = 1;
                   }
 #ifdef ZENTY_ANSI
@@ -704,13 +727,27 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                   p_tmp = tmp;
                   do_regedit(tmp, &p_tmp, GOD, GOD, GOD, help_array, 3, (char **)NULL, 0, 8);
                   sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), tmp);
-                  notify(player, s_buff);
+                  if ( t_val ) {
+                     safe_str(s_buff, t_buff, &t_bufptr);
+                     safe_str((char *)"\r\n", t_buff, &t_bufptr);
+                     if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                        safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                        i_bufffilled = 1;
+                        break;
+                     }
+                  } else {
+                     notify(player, s_buff);
+                  }
                   first = 1;
                   i_cntr++;
                } else {
                   if ( first ) {
                      if ( i_type ) {
                         safe_str(sep, tmp, &p_tmp);
+                        if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                           safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                           i_bufffilled = 1;
+                        }
                      } else {
                         safe_str(s_hbuff2, tmp, &p_tmp);
                      }
@@ -724,7 +761,11 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       free_lbuf(s_hbuff2);
       if ( i_cntr > 2000 ) {
-         notify(player, "Warning: /query matches discarded after 2000 matches.");
+         if ( t_val ) {
+            safe_str((char *)"Warning: /query matches discarded after 2000 matches.", t_buff, &t_bufptr);
+         } else {
+            notify(player, "Warning: /query matches discarded after 2000 matches.");
+         }
       }
       free_lbuf(s_buff);
       free_lbuf(s_buff2);
@@ -749,7 +790,11 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             }
          }
       } else if ( !first ) {
-         notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+         if ( t_val ) {
+            safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+         } else {
+            notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+         }
       }
       free_lbuf(msg);
       free_lbuf(tmp);

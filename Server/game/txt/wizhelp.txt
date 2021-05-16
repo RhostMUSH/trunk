@@ -13299,10 +13299,15 @@ Example:
   enactor (or target player), the result.  You may use any help file that 
   has a matching .indx file.  
   
-  If you specify a <parsekey> of '1' (or true), it will parse the help 
-  file.  A '2' will issue content searches.  Keep in mind that as a 
-  function, this will strip ansi codes.  If you want to display ansi 
-  codes in .txt files and parse it, use @dynhelp.  
+  
+  You may specify various <parsekey> values.  The following are allowed:
+    1 -- let textfile() know that it needs to parse the input and 
+         evaluate it. 
+    2 -- enable content searches
+    4 -- enable content queries
+  
+  Keep in mind that as a function, this will strip ansi codes.  
+  If you want to display ansi codes in .txt files and parse it, use @dynhelp.  
   
   The <suggest> option enables suggestions if the help topic is not found.
    
@@ -13332,8 +13337,11 @@ Example:
   This is a possible limitation as the string that it returns has to be
   limited to an LBUF in size, or it will be cut off.
   
-  You may specify a <parsekey> of '1' to let textfile() know that it needs 
-  to parse the input and evaluate it.  A '2' will enable content searches.
+  You may specify various <parsekey> values.  The following are allowed:
+    1 -- let textfile() know that it needs to parse the input and 
+         evaluate it. 
+    2 -- enable content searches
+    4 -- enable content queries
   
   You may specify a <type> of '1' if you wish the function to return the
   wildcarded list of matches without the standard help entry header of

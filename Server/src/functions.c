@@ -4839,9 +4839,13 @@ FUNCTION(fun_textfile)
 
    it = player;
    t_val = i_suggest = 0;
-   if ( nfargs > 2 && *fargs[2] ) {
+   if ( (nfargs > 2) && *fargs[2] ) {
       t_val = atoi(fargs[2]);
-      t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
+      t_val = (((t_val < 0) || (t_val > 7)) ? 0 : t_val);
+      if ( t_val & 4 ) {
+         t_val &= ~4;
+         t_val |= DYN_QUERY;
+      }
    }
    t_bufptr = t_buff = alloc_lbuf("fun_textfile");
    tmp_buff = alloc_lbuf("fun_textfile2");
@@ -4907,7 +4911,11 @@ FUNCTION(fun_dynhelp)
    t_val = i_suggest = 0;
    if ( (nfargs > 3) && *fargs[3] ) {
       t_val = atoi(fargs[3]);
-      t_val = (((t_val < 0) || (t_val > 2)) ? 0 : t_val);
+      t_val = (((t_val < 0) || (t_val > 7)) ? 0 : t_val);
+      if ( t_val & 4 ) {
+         t_val &= ~4;
+         t_val |= DYN_QUERY;
+      }
    }
    if ( (nfargs > 4) && *fargs[4] ) {
       i_suggest = atoi(fargs[4]);

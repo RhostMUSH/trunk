@@ -33922,6 +33922,7 @@
   * medit() -- multi-argument ansi edit() [ASH]
   * } to allow raw data entry.  Can be combined with ] for noparse [ASH]
   * raw_formatting config param to enable/disable } option [ASH]
+  * textfile() and dynhelp() now handle QUERY [ASH]
   
   Changes
   -------
