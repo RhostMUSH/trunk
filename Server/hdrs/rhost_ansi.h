@@ -287,10 +287,10 @@
 #define SAFE_ANSI_UNDERSCORE "%mu"
 
 
-//#define SAFE_ANSI_INV_BLINK         "%c"
-//#define SAFE_ANSI_INV_HILITE        "%c"
-//#define SAFE_ANSI_BLINK_HILITE      "%c"
-//#define SAFE_ANSI_INV_BLINK_HILITE  "%c"
+//#define SAFE_ANSI_INV_BLINK         "%m"
+//#define SAFE_ANSI_INV_HILITE        "%m"
+//#define SAFE_ANSI_BLINK_HILITE      "%m"
+//#define SAFE_ANSI_INV_BLINK_HILITE  "%m"
 
 /* Foreground colors */
 
