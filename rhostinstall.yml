@@ -128,14 +128,14 @@
         regexp: '^sconnect_reip\s+'
         insertbefore: '^# this is the last\s+'
         line: "sconnect_reip 1"
-      when: api_port != "0"
+      when: ssl_port != "0"
     - name: Disable SSL layer to RhostMUSH if disabled
       lineinfile:
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
         regexp: '^sconnect_reip\s+'
         insertbefore: '^# this is the last\s+'
-        line: "sconnect_reip 1"
-      when: api_port == "0"
+        line: "sconnect_reip 0"
+      when: ssl_port == "0"
     - name: Check for existing SSL secret command
       lineinfile:
         dest: "{{ rhostpath + '/' + rhostdir + '/Server/game/netrhost.conf' }}"
@@ -150,17 +150,17 @@
         regexp: '^sconnect_cmd\s+'
         insertbefore: '^# this is the last\s+'
         line: "sconnect_cmd {{ api_command }}"
-      when: (api_port != "0") and (not sslcmd.found)
+      when: (ssl_port != "0") and (not sslcmd.found)
     - name: Run stunnel config/setup
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/stunnel'}}"
         cmd: /bin/sh ./stunnel_setup.sh  --noprompt {{ ssl_port }}
-      when: api_port != "0"
+      when: ssl_port != "0"
     - name: Start stunnel engine for SSL connector
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/stunnel'}}"
         cmd: /bin/sh ./stunnel_start.sh
-      when: api_port != "0"
+      when: ssl_port != "0"
     - name: Starting RhostMUSH
       script: 
         chdir: "{{ rhostpath + '/' + rhostdir + '/Server/game'}}"
