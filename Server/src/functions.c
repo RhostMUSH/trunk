@@ -11019,15 +11019,14 @@ FUNCTION(fun_printf)
 #define MUSH_TDAY	30.416667
 FUNCTION(fun_timefmt)
 {
-  char* pp;
+  char *pp, *fmtbuff, *s_aptz, *s_aptztmp;
   time_t secs, i_frell;
   double secs2;
-  char* fmtbuff;
-  int formatpass = 0;
-  int fmterror = 0;
-  int fmtdone = 0;
+  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags;
+  dbref aowner;
   long l_offset = 0;
   TZONE_MUSH *tzmush;
+  ATTR *aptz;
   struct tm *tms, *tms2, *tms3;
 
   static char* shortdayname[] = { "Sun", "Mon", "Tue", "Wed",
@@ -11054,6 +11053,7 @@ FUNCTION(fun_timefmt)
   secs2 = safe_atof(fargs[1]);
   /* tms2 = localtime(&secs); */
   tms2 = localtime(&mudstate.now);
+
 
   tzmush = NULL;
   i_frell = 0;
@@ -11085,10 +11085,37 @@ FUNCTION(fun_timefmt)
   }
  
   if ( !tzmush ) {
+     s_aptz = alloc_lbuf("timefmt_tzmatch");
+     aptz = atr_str("TZ");
+     if ( aptz ) {
+        s_aptztmp = atr_pget(player, aptz->number, &aowner, &aflags);
+        sprintf(s_aptz, " %s ", s_aptztmp);
+        free_lbuf(s_aptztmp);
+        s_aptztmp = s_aptz;
+        while ( *s_aptztmp ) {
+           *s_aptztmp = ToUpper(*s_aptztmp);
+           s_aptztmp++;
+        }
+     }
+     
+     /* Test against player's specific timezones */
+     s_aptztmp = alloc_sbuf("timeffmt_tzmatch");
+     i_aptz = 0;
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
-/*      if ( tzmush->mush_offset == -(timezone) ) { */
-        if ( (int)(tzmush->mush_offset) == -((int)timezone) ) {
+        sprintf(s_aptztmp, " %.20s ", tzmush->mush_tzone);
+        if ( (strstr(s_aptz, s_aptztmp) != NULL) && ((int)(tzmush->mush_offset) == -((int)timezone)) ) {
+           i_aptz = 1;
            break;
+        }
+     }
+     free_sbuf(s_aptztmp);
+     free_lbuf(s_aptz);
+
+     if ( !i_aptz ) {
+        for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
+           if ( (int)(tzmush->mush_offset) == -((int)timezone) ) {
+              break;
+           }
         }
      }
   }

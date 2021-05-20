@@ -18391,6 +18391,10 @@
   ESCAPE SEQUENCES:     help timefmt escapes
   TIMEZONE FORMATS:     help timefmt timezone
   
+  Note: You may specify a 'TZ' attribute (&TZ me=<list>) for the list
+        of preferred timezones (example, &TZ me=GMT CST EST) that
+        you wish to use for matching.  This honors parents.
+  
   See Also: time(), singletime(), ptimefmt(), timezone list
   
 & TIMEFMT ESCAPES
@@ -18607,6 +18611,12 @@
   'i'    Abbreviation of Timezone       XYZ       
   'N'    Timezone Longname              <str>     Returns the Timezone Name
   'n'    Timezone Shortname             <str>     Returns geographical area
+  
+  To set a preferred timezone list, set the TZ attribute on yourself and/or
+  the parent.
+  
+  Example:
+    > &TZ me=CST EST
   
   See Also: timefmt codelist
 
@@ -33923,6 +33933,7 @@
   * } to allow raw data entry.  Can be combined with ] for noparse [ASH]
   * raw_formatting config param to enable/disable } option [ASH]
   * textfile() and dynhelp() now handle QUERY [ASH]
+  * TZ is pulled from the target (and parents) for preferred timezones [ASH]
   
   Changes
   -------
