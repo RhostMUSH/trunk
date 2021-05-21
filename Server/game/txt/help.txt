@@ -33934,6 +33934,9 @@
   * raw_formatting config param to enable/disable } option [ASH]
   * textfile() and dynhelp() now handle QUERY [ASH]
   * TZ is pulled from the target (and parents) for preferred timezones [ASH]
+  * idle_cmdcount option what works in conjunctin with enabled idle_stamp,
+    and makes it so that often-repeated commands do not touch a player's
+    idle time [AMB]
   
   Changes
   -------

@@ -884,6 +884,10 @@ shovechars(int port,char* address)
                                      if ( strchr(progatr_str, ':') != NULL ) {
                                         i_progatr = atoi(strchr(progatr_str, ':')+1); 
                                         i_progatr++;
+                                        if(mudconf.idle_cmdcount > -1) {
+                                           if(i_progatr > mudconf.idle_cmdcount)
+                                              d->last_time = i_oldlasttime;
+                                        }
                                      } else {
                                         i_progatr = 1;
                                      }

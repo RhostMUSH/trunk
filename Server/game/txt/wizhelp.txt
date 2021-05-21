@@ -9337,6 +9337,17 @@ Example:
   idle_timeout and if they have gone dark or cloaked.
   See Also: idle_timeout, idle_wiz_cloak, idle_wiz_dark
 
+& idle_cmdcount
+  Config parameter: idle_cmdcount <amount>.  Default: -1
+  
+  When this parameter is set above -1, and the idle_stamp option is enabled,
+  the game will not re-set the idle time of players if the typed command
+  matches an existing hash in their _IDLESTAMP attribute, and has been typed
+  over <amount> times already. This is a good and automatic way to make a
+  lot of common anti-idlers not touch a player's idle time.
+
+  See Also: idle_stamp, idle_stamp_max
+
 & idle_stamp
   Config parameter: idle_stamp <yes/no>.  Default: no
   
@@ -9356,8 +9367,11 @@ Example:
   
   By default it keeps the last 10 unique commands a player types. 
   This value can be modified with 'idle_stamp_max' @admin param.
-   
-  See Also: idle_stamp_max
+
+  By also settin the idle_cmdcount config option, you can effectively cause
+  many anti-idlers to stop updating a player's idle time.   
+
+  See Also: idle_stamp_max, idle_cmdcount
   
 & idle_stamp_max
   Config parameter: idle_stamp_max <count>  Default: 10  
@@ -9371,7 +9385,7 @@ Example:
   
   For more details see idle_stamp.
    
-  See Also: idle_stamp
+  See Also: idle_stamp, idle_cmdcount
 
 & idle_timeout
   Config parameter: idle_timeout <secs>.  Default: 3600 (one hour)

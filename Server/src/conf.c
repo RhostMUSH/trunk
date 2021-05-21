@@ -329,6 +329,7 @@ NDECL(cf_init)
     mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
     mudconf.name_with_desc = 0;		/* Enable state to allow looking at names of things you can't examine */
     mudconf.proxy_checker = 0;		/* Proxy Checker -- Not very reliable */
+    mudconf.idle_cmdcount = -1;  /* Make repeated commands not touch idle time */
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
@@ -4593,6 +4594,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.icmd_obj, 0, 0, CA_PUBLIC,
      (char *) "The dbref# of the @icmd object.\r\n"\
               "                             Default: -1    Value: %d"},
+    {(char *) "idle_cmdcount",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.idle_cmdcount, 0, 0, CA_PUBLIC,
+     (char *) "Do repetitive commands not count towards idle time?"},
     {(char *) "idle_message",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.idle_message, 0, 0, CA_WIZARD,
      (char *) "Do wizards receive message when idled out?"},

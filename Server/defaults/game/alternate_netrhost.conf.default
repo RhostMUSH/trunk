@@ -433,6 +433,7 @@ idle_wiz_dark  0
 idle_stamp     0
 idle_stamp_max 10
 null_is_idle   0
+idle_cmdcount  -1
 
 # guests
 
