@@ -25181,13 +25181,12 @@ FUNCTION(fun_limits)
     dbref target, aowner;
 
     target = lookup_player(player, fargs[0], 0);
-    if ((target == NOTHING) || !controls(player, target) || Going(target) || Recover(target)) {
+    if ( !Good_chk(target) || !controls(player, target)) {
        safe_str("#-1", buff, bufcx);
        return;
     }
 
     s_chkattr = NULL;
-    s_chkattr = alloc_lbuf("attribute_limits");
     s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
 
     if( *s_chkattr)
