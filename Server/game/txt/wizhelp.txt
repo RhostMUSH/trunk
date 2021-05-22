@@ -6176,7 +6176,7 @@
   wizmax_dest_limit and wizmax_vattr_limit.  By default wizards are not
   checked, and must be enabled with the param 'vattr_limit_checkwiz'
   
-  See Also: max_vattr_limit, max_dest_limit, wizmax_vattr_limit, 
+  See Also: limit(), max_vattr_limit, max_dest_limit, wizmax_vattr_limit, 
             wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
 
 & @dynhelp
@@ -9587,8 +9587,9 @@ Example:
   local function pool.  This may be individually tweaked through the
   @limit command.
   
-  See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz, max_dest_limit, function_max
+  See Also: @limit, limits(), max_vattr_limit, wizmax_vattr_limit,
+            wizmax_dest_limit, vattr_limit_checkwiz, max_dest_limit,
+            function_max
 
 & list_access
   Config parameter: list_access <param> [!]<privilege> [[!]<privilege>]...
@@ -9885,8 +9886,8 @@ Example:
   globally or individually per player (by using @limit).  If this value is
   set to '-1' it will default to infinite.
   
-  See Also: @limit, max_vattr_limit, wizmax_vattr_limit, wizmax_dest_limit,
-            vattr_limit_checkwiz, lfunction_max
+  See Also: @limit, limits(), max_vattr_limit, wizmax_vattr_limit,
+            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
 
 & max_folders
   Config parameter: max_folders <value>.   Default: 20
@@ -9984,8 +9985,8 @@ Example:
   any attribute that is pre-defined (like @va) will not be effected by this.
   Specifying the value to '-1' makes it infinite.
   
-  See Also: @limit, max_dest_limit, wizmax_dest_limit, wizmax_vattr_limit,
-            vattr_limit_checkwiz, lfunction_max
+  See Also: @limit, limits(), max_dest_limit, wizmax_dest_limit,
+            wizmax_vattr_limit, vattr_limit_checkwiz, lfunction_max
 
 & maximum_size
   Config parameter: maximum_size <value>.    Default: -1
@@ -12279,8 +12280,8 @@ Example:
   players.  Without this set, wizards and immortals ignore @limit 
   restrictions.
   
-  See Also: @limit, wizmax_dest_limit, max_vattr_limit, wizmax_vattr_limit,
-            max_vattr_limit, lfunction_max
+  See Also: @limit, limits(), wizmax_dest_limit, max_vattr_limit,
+            wizmax_vattr_limit, max_vattr_limit, lfunction_max
  
 & vercustomstr
   Config parameter: vercustomstr <string>.  Default: (null)
@@ -12459,8 +12460,8 @@ Example:
   any attribute that is pre-defined (like @va) will not be effected by this.
   Specifying the value to '-1' makes it infinite.
   
-  See Also: @limit, wizmax_dest_limit, max_vattr_limit, vattr_limit_checkwiz,
-            max_vattr_limit, lfunction_max
+  See Also: @limit, limits(), wizmax_dest_limit, max_vattr_limit,
+            vattr_limit_checkwiz, max_vattr_limit, lfunction_max
 
 & wizmax_dest_limit
   Config parameter: wizmax_dest_limit <num>.  Default: 100000
@@ -12471,8 +12472,8 @@ Example:
   globally or individually per player (by using @limit).  If this value is
   set to '-1' it will default to infinite.
   
-  See Also: @limit, wizmax_vattr_limit, max_dest_limit, vattr_limit_checkwiz,
-            max_vattr_limit, lfunction_max
+  See Also: @limit, limits(), wizmax_vattr_limit, max_dest_limit,
+            vattr_limit_checkwiz, max_vattr_limit, lfunction_max
 
 & zone_parents
   Config parameter: zone_parents (yes/no).  Default: YES
@@ -13591,6 +13592,26 @@ Example:
   
   This returns the flags that are set on the specified attribute.
   
+& LIMITS()
+  Function: limits(<player>)
+  
+  This returns a list of attribut creation/@destroy limits set on the player.
+  The list is made up of the following fields:
+ 
+     #1: Amount of custom attributes created
+     #2: Current limit of custom attributes
+     #3: Amount of objects @destroyed
+     #4: Limit of allowed @destroys
+     #5: Limit of allowed @lfunctions
+
+  A value of '-2' means "global default", a value of -1 means "Unlimited".
+
+  Actual values represented by '-2' can be gained by obtaining the values
+  of the various vattr/dest *_limit config options.
+
+  See Also: @limit, max_vattr_limit, max_dest_limit, wizmax_vattr_limit,
+            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
+
 & QUOTA()
   Function: quota(<player>)
   

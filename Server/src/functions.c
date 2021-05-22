@@ -25174,6 +25174,29 @@ FUNCTION(fun_ldepowers)
     }
 }
 
+FUNCTION(fun_limits)
+{
+    char *s_chkattr;
+    int aflags;
+    dbref target, aowner;
+
+    target = lookup_player(player, fargs[0], 0);
+    if ((target == NOTHING) || !controls(player, target) || Going(target) || Recover(target)) {
+       safe_str("#-1", buff, bufcx);
+       return;
+    }
+
+    s_chkattr = NULL;
+    s_chkattr = alloc_lbuf("attribute_limits");
+    s_chkattr = atr_get(target, A_DESTVATTRMAX, &aowner, &aflags);
+
+    if( *s_chkattr)
+       safe_str(s_chkattr, buff, bufcx);
+    else
+       safe_str("0 -2 0 -2 -2", buff, bufcx);
+    free_lbuf(s_chkattr);
+}
+
 FUNCTION(fun_error)
 {
     dbref target;
@@ -37783,6 +37806,7 @@ FUN flist[] =
 #endif
     {"LEXITS", fun_lexits, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LFLAGS", fun_lflags, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"LIMITS", fun_limits, 1, 0, CA_WIZARD, 0},
 #ifdef USE_SIDEEFFECT
     {"LINK", fun_link, 2, 0, CA_PUBLIC, 0},
 #endif

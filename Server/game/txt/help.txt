@@ -30747,6 +30747,7 @@
   idle()        - Returns the idle time of a player.
   inprogram()   - Returns true if the player is in a @program.
   ishidden()    - Returns true if a player is hidden.
+  limits()      - Display the current @dest/vattr limits of a player.
   lwho()        - Returns a list of dbrefs of connected players.
   money()       - Returns how much money a player has.
   moneyname()   - Returns the name used for money on the game.
@@ -33937,6 +33938,8 @@
   * idle_cmdcount option what works in conjunctin with enabled idle_stamp,
     and makes it so that often-repeated commands do not touch a player's
     idle time [AMB]
+  * Added a wiz-only limits() function that gets the values otherwise
+    displayed using @limit. Handy for monitoring and adjustments. [AMB]
   
   Changes
   -------
