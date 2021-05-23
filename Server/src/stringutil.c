@@ -1015,7 +1015,17 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
       if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
         safe_chr('%', s_buffer, &s_buffptr);
-        sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        if ( s_ptr->i_utf8 > 0xfffffff ) {
+           sprintf(s_format, "<u%08x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xffffff ) {
+           sprintf(s_format, "<u%07x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xfffff ) {
+           sprintf(s_format, "<u%06x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xffff ) {
+           sprintf(s_format, "<u%05x>", s_ptr->i_utf8);
+        } else {
+           sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        }
         safe_str(s_format, s_buffer, &s_buffptr);
       } else if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
@@ -1052,7 +1062,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    ANSISPLIT *s_ptr;
    char *s_inptr, *s_outptr;
    int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
-   char buf_utf8[10];
+   char buf_utf8[17];
 
    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
@@ -1064,7 +1074,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_outptr = s_output;
    s_ptr = s_split;
 
-   memset(buf_utf8, '\0', 10);
+   memset(buf_utf8, '\0', sizeof(buf_utf8));
    memset(s_ptr->s_fghex, '\0', 5);
    memset(s_ptr->s_bghex, '\0', 5);
    s_ptr->c_fgansi = '\0';
@@ -1160,13 +1170,16 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
       }
       if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') &&
             *(s_inptr+3) && *(s_inptr+4) && 
-            ((*(s_inptr+5) == '>') || (*(s_inptr+5) && *(s_inptr+6) && (*(s_inptr+7) == '>'))) ) {
+           ((*(s_inptr+5) == '>') || 
+            (*(s_inptr+5) && *(s_inptr+6) && (*(s_inptr+7) == '>')) ||
+            (*(s_inptr+5) && *(s_inptr+6) && *(s_inptr+7) && (*(s_inptr+8) == '>'))
+         ) ) {
         *s_outptr = '?';
         s_inptr+=3;
-        memset(buf_utf8, '\0', 10);
-        utfcnt = 0;
+        memset(buf_utf8, '\0', sizeof(buf_utf8));
 
-        while (utfcnt < 6 && *s_inptr != '>') {
+        utfcnt = 0;
+        while (utfcnt < 16 && *s_inptr != '>') {
             buf_utf8[utfcnt] = *s_inptr;
             utfcnt++;
             s_inptr++;

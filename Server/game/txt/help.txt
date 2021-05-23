@@ -33962,3 +33962,4 @@
  * SPEECH_PREFIX/SPEECH_SUFFIX would not properly do unicode [ASH]
  * off-by-one buffer in underlying UTF8 handler for tmp buffer size [ASH]
  * A second off-by-one buffer in the UTF8 handler [ASH]
+ * fix internal ansi splitter to handle 5+ utf8 positions [ASH]
