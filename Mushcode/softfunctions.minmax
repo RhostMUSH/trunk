@@ -22,7 +22,7 @@
 &FUN_MAIL SoftFunctions=[ifelse(or(gt(%0,0),gt(strlen(%1),0)),[#-1 FEATURE NOT AVAILABLE],mailquick(ifelse(or(eq(strlen(%0),0),match(%0,me)),me,*%0),,ifelse(eq(strlen(%0),0),2,1)))]
 &MINMAX_MAIL SoftFunctions=1 2
 &FUN_POLL SoftFunctions=[doing()]
-&MINMAX_POLL SoftFunctions=1 1 
+&MINMAX_POLL SoftFunctions=1 1
 &FUN_BAND SoftFunctions=[mask(%0,%1,&)]
 &MINMAX_BAND SoftFunctions=2 2
 &FUN_BOR  SoftFunctions=[mask(%0,%1,|)]
@@ -94,8 +94,8 @@
 &FUNPR_SETSYMDIFF SoftFunctions=[setq(0,setinter(%0,%1,%2,%2,%4))][listunion(setdiff(%0,%q0,%2,%2,%4),setdiff(%1,%q0,%2,%2,%4),%2,%3)]
 &FUNPR_SETSYMDIFF SoftFunctions=[setq(0,listinter(%0,%1,%2,%2,%4))][listunion(listdiff(%0,%q0,%2,%2,%4),listdiff(%1,%q0,%2,%2,%4),%2,%3)]
 &MINMAX_NCOND SoftFunctions=2 -1
-&MINMAX_NCONDALL SoftFunctions=2 -1 
-&MINMAX_COND SoftFunctions=2 -1 
+&MINMAX_NCONDALL SoftFunctions=2 -1
+&MINMAX_COND SoftFunctions=2 -1
 &MINMAX_CONDALL SoftFunctions=2 -1
 @@ Old systems -- Use prior to 3.9.5p2
 @@ &FUNPR_FIRSTOF SoftFunctions=[trim(iter(lnum(0,sub(%+,2)),ifelse(!!^setr(0,s(v(%i0))),%q0[ibreak(0)])))][ifelse(!^r(0),s(v(sub(%+,1))))]
