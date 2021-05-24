@@ -15,7 +15,7 @@
 @@  Instructions should appear at the bottom when you finish installation.  @@
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-@pemit me=[repeat(=,78)]%r[center(Constructing Rockpath's Job System v 2.0,78)]%r[repeat(-,78)]%rPlease wait...%r
+@pemit me=[repeat(=,78)]%r[center(Constructing Rockpath's Job System v 2.1.2,78)]%r[repeat(-,78)]%rPlease wait...%r
 
 @pemit me=Setting the SIDEFX flag on yourself to build this.  Unset it when done (@set me=!sidefx)
 @set me=sidefx
