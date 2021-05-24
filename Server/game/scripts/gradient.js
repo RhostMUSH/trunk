@@ -3,7 +3,7 @@
 // Pass it arguments:   startcolor, endcolor, length, and everything after that
 // is taken as the string to be colored
 
-const Rhost = await import("https://github.com/stevensmedia/deno-rhost/raw/master/rhost.js")
+const Rhost = await import("https://github.com/stevensmedia/deno-rhost/raw/v1/rhost.js")
 
 function getHSV(colorarg) {
 	var idx
