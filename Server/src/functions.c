@@ -33727,6 +33727,84 @@ FUNCTION(fun_setq_old)
 #endif
 }
 
+FUNCTION(fun_args)
+{
+   int i, i_first, i_low, i_high, i_arglist;
+   static int i_args[1000];
+   char *s_strtok, *s_strtokr, *s_tmp, *s_after, *s_osep;
+
+   if (!fn_range_check("ARGS", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   memset(i_args, 0, sizeof(i_args));
+
+   s_tmp = alloc_lbuf("fun_args");
+   strcpy(s_tmp, fargs[0]);
+   s_strtok = strtok_r(s_tmp, " \t", &s_strtokr);
+   i_arglist = 0;
+   
+   s_osep = (char *)" ";
+   if ( (nfargs > 1) && *fargs[1] ) {
+      s_osep = fargs[1];
+   }
+   while ( s_strtok && *s_strtok ) {
+      if ( (s_after = strchr(s_strtok, '-')) != NULL ) {
+         *s_after = '\0';
+         s_after++;
+         if ( !is_number(s_strtok) || !is_number(s_after) ) {
+            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            continue;
+         }
+         i_low = i_high = -1;
+      /* Do ranges */
+         i_low = atoi(s_strtok);
+         i_high = atoi(s_after);
+         if ( i_low < 0 )
+            i_low = 0;
+         if ( i_high < 0 )
+            i_high = 0;
+         if ( i_low > 999 )
+            i_low = 999;
+         if ( i_high > 999 )
+            i_high = 999;
+         if ( i_low > i_high ) {
+            for ( i = i_low; i >= i_high; i-- ) {
+               i_args[i] = 1;
+            }
+         } else {
+            for ( i = i_low; i <= i_high; i++ ) {
+               i_args[i] = 1;
+            }
+         }
+      } else {
+         if ( is_number(s_strtok) ) {
+            i_high = atoi(s_strtok);
+            if ( i_high < 0 )
+               i_high = 0;
+            if ( i_high > 999 )
+               i_high = 999;
+            i_args[i_high] = 1;
+         }
+      }
+      i_arglist = 1;
+      s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+   }
+   free_lbuf(s_tmp);
+
+   i_first = 0;
+   for ( i=0; i < ncargs; i++ ) {
+      if ( cargs[i] ) {
+         if ( !i_arglist || (i_arglist && i_args[i]) ) {
+            if ( i_first ) {
+               safe_str(s_osep, buff, bufcx);
+            }
+            i_first = 1;
+            safe_str(cargs[i], buff, bufcx);
+         }
+      }
+   }
+}
+
 FUNCTION(fun_setq)
 {
     int regnum, i, i_namefnd, i_nfargs;
@@ -37551,6 +37629,7 @@ FUN flist[] =
     {"ANSIPOS", fun_ansipos, 2, 0, CA_PUBLIC, 0},
     {"APOSS", fun_aposs, 1, 0, CA_PUBLIC, 0},
     {"ARRAY", fun_array, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ARGS", fun_args, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ART", fun_art, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"ASC", fun_asc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ASIN", fun_asin, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

@@ -11590,28 +11590,28 @@
  
   Help is available for the following functions:
  
- @@()               ABS()               ACCENT()             ACOS()        
- ADD()              AFTER()             AINDEX()             AIINDEX()         
- ALPHAMAX()         ALPHAMIN()          AND()                ANDCHR()        
- ANDFLAG()          ANDFLAGS()          ANDTOTEM()           ANDTOTEMS()
- ANSI()             ANSIPOS()           APOSS()              ARRAY()          
- ART()              ASC()               ASIN()               ATAN()           
- ATAN2()            ATTRCNT()           ATTRPASS()           AVG()             
- BEFORE()           BETWEEN()           BITTYPE()            BOUND()           
- BRACKETS()         CAND()              CAPSTR()             CASE()            
- CASEALL()          CAT()               CEIL()               CENTER()          
- CHARIN()           CHAROUT()           CHKREALITY()         CHKTRACE()        
- CHOMP()            CHR()               CITER()              CLONE()           
- CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT()
- CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()    
- CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()  
- CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()       
- CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL() 
- CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()  
- CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()            
- CNAME()            COLORS()            COLUMNS()            COMP()            
- CON()              CONFIG()            CONN()               CONTROLS()        
- CONVSECS()    
+ @@()               ABS()              ACCENT()            ACOS()        
+ ADD()              AFTER()            AINDEX()            AIINDEX()         
+ ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
+ ANDFLAG()          ANDFLAGS()         ANDTOTEM()          ANDTOTEMS()
+ ANSI()             ANSIPOS()          APOSS()             ARGS()
+ ARRAY()            ART()              ASC()               ASIN()           
+ ATAN()             ATAN2()            ATTRCNT()           ATTRPASS()        
+ AVG()              BEFORE()           BETWEEN()           BITTYPE()        
+ BOUND()            BRACKETS()         CAND()              CAPSTR()   
+ CASE()             CASEALL()          CAT()               CEIL()  
+ CENTER()           CHARIN()           CHAROUT()           CHKREALITY()
+ CHKTRACE()         CHOMP()            CHR()               CITER() 
+ CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
+ CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
+ CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR() 
+ CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
+ CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
+ CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
+ CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()  
+ CMDS()             CNAME()            COLORS()            COLUMNS() 
+ COMP()             CON()              CONFIG()            CONN()             
+ CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -12311,6 +12311,7 @@
               This number starts as the same as %#, but can be affected by
               u()-type functions, zones, and @function.
     %+      = Show the total arguments a function received.
+    %+!     = Show all arguments received. %+!-! does the same with '-' delim.
     %?      = Show current function invocation as well as current nest levels.
     %c      = ANSI substitution or Last Command Executed.
     %x      = ANSI substitution or Last Command Executed.
@@ -14012,6 +14013,28 @@
     
   See Also: SUBSTITUTIONS, obj(), subj(), aposs()
   
+& ARGS()
+  Function: args([[<filter(s)>, [<delim>]])
+  
+  This function will return all the arguments currently on the command or
+  function stack.  If given no arguments, it will display all arguments
+  in a space separated list.  You  may specify a filter to display just
+  the specific argument(s) or a range of argument(s).  
+  
+  You may specify a <delim> for an output delimiter.  This may be multi-char.
+  
+  Examples:
+    > @va me=[args()]
+    > @vb me=[args(0 2-4,+|+)]
+    > @vc me=$test1 * *:think Cmd: [args()], Func: [u(va,0,1,2,3,4,5,6,7,8,9)]
+    > @vd me=$test2 * *:think Cmd: [args()], Func: [u(vb,0,1,2,3,4,5,6,7,8,9)]
+    > test1 moo cow
+      Cmd: moo cow, Func: 0 1 2 3 4 5 6 7 8 9
+    > test2 moo cow
+      Cmd: moo cow, Func: 0+|+2+|+3+|+4
+  
+  See Also: u(), %+, v(), $-commands
+
 & ARRAY()
   Function: array(<string>, <reg count>, <width> [[,<delim> [,<type> [,<sep>]])
   
@@ -33940,6 +33963,7 @@
     idle time [AMB]
   * Added a wiz-only limits() function that gets the values otherwise
     displayed using @limit. Handy for monitoring and adjustments. [AMB]
+  * args() function to show arguments available in stack [ASH]
   
   Changes
   -------
@@ -33950,6 +33974,7 @@
   * @include/break (introduced this version) renamed to @include/nobreak [ASH]
   * rset() now mirrors set() with arguments [ASH]
   * @entrances improved to show more details in better organization [ASH]
+  * %+ has an extension %+! and %+!x! (where x is any char) [ASH]
   
   Bug Fixes
   ------------

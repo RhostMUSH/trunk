@@ -1357,7 +1357,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
-         *nptsavereg, *saveregname[MAX_GLOBAL_REGS];
+         *nptsavereg, *saveregname[MAX_GLOBAL_REGS], c_allargs;
     char *trace_array[3], *trace_buff, *trace_buffptr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
@@ -2175,11 +2175,32 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 free_sbuf(tbuf);
                 break;
              case '+':         /* Number of args passed */
-                 tbuf = alloc_sbuf("exec.numargcalls");
-                 sprintf(tbuf, "%d", ncargs);
-                 safe_str(tbuf, buff, &bufc);
-                 free_sbuf(tbuf);
-                 break;
+                if ( *(dstr+1) == '!' ) {
+                   dstr++;
+                   c_allargs = ' ';
+                   /* Print every command with space delimit by default */
+                   if ( *(dstr+1) && (*(dstr+2) == '!') ) { /* specified delimiter */
+                      dstr++;
+                      c_allargs = *dstr;
+                      dstr++;
+                   }
+                   for ( i = 0; i < ncargs; i++ ) {
+                      if ( i != 0 ) {
+                         if ( cargs[i] != NULL ) {
+                            safe_chr(c_allargs, buff, &bufc);
+                         }
+                      }
+                      if ( cargs[i] != NULL ) {
+                         safe_str(cargs[i], buff, &bufc); 
+                      }
+                   }
+                } else {
+                   tbuf = alloc_sbuf("exec.numargcalls");
+                   sprintf(tbuf, "%d", ncargs);
+                   safe_str(tbuf, buff, &bufc);
+                   free_sbuf(tbuf);
+                }
+                break;
              case '?':         /* Function invocation and depth counts */
                  tbuf = alloc_sbuf("exec.functiondepths");
                  sprintf(tbuf, "%d %d", mudstate.func_invk_ctr, (mudstate.ufunc_nest_lev + mudstate.func_nest_lev));
