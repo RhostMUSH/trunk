@@ -14526,7 +14526,7 @@
   BNT    Brunei Darussalam Time              Asia             UTC + 8 hours
   BOT    Bolivia Time                        South America    UTC - 4 hours
   BRST   Brasilia Summer Time                South America    UTC - 2 hours
-  BRT    Brasilia time                       South America    UTC - 3 hours
+  BRT    Brasilia Time                       South America    UTC - 3 hours
   BST    Bangladesh Standard Time            Asia             UTC + 6 hours
   BST1   British Summer Time                 Europe           UTC + 1 hour
   BTT    Bhutan Time                         Asia             UTC + 6 hours
@@ -14590,7 +14590,7 @@
   EST1   Eastern Standard Time               Central America  UTC - 5 hours
   EST2   Eastern Standard Time               Australia        UTC + 10 hours
   EST3   Eastern Standard Time               Caribbean        UTC - 5 hours
-  ET     Tiempo Del Este                     North America    UTC - 5 hours
+  ET     Tiempo del Este                     North America    UTC - 5 hours
   ET1    Tiempo del Este                     Central America  UTC - 5 hours
   ET2    Tiempo del Este                     Caribbean        UTC - 5 hours
   F      Foxtrot Time Zone                   Military         UTC + 6 hours
