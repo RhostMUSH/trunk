@@ -4928,6 +4928,11 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                log_text(buff);
                free_mbuf(buff);
             ENDLOG
+            if (!mudconf.pcreate_paranoia_fail) {
+               if (mudconf.max_pcreate_lim != -1) 
+                  if(mudstate.last_pcreate_cnt > 0)
+                     mudstate.last_pcreate_cnt--;
+            }
          } else {
             STARTLOG(LOG_LOGIN | LOG_PCREATES, "CON", "CREA")
                buff = alloc_mbuf("check_conn.LOG.create");

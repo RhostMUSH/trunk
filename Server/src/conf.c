@@ -719,6 +719,7 @@ NDECL(cf_init)
     mudstate.api_lastsite_cnt = 0;
     mudconf.lastsite_paranoia = 0; /* 0-off, 1-register, 2-forbid */
     mudconf.pcreate_paranoia = 0; /* 0-off, 1-register, 2-forbid */
+    mudconf.pcreate_paranoia_fail = 1; /* Be paranoid even about failed creates */
     mudconf.max_lastsite_cnt = 20;	/* Shouldn't connect more than 20 times in X period */
     mudconf.max_lastsite_api = 60;	/* API Shouldn't connect more than 60 times in X period */
     mudconf.min_con_attempt = 60;	/* 60 seconds default */
@@ -5047,6 +5048,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.pcreate_paranoia, 0, 0, CA_WIZARD,
      (char *) "Define DoS create paranoia level (0, 1, 2).\r\n"\
               "                             Default: 0   Value: %d"},
+    {(char *) "pcreate_paranoia_fail",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.pcreate_paranoia_fail, 0, 0, CA_WIZARD,
+     (char *) "Be paranoid even about failed creates?"},
     {(char *) "pemit_far_players",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.pemit_players, 0, 0, CA_PUBLIC,
      (char *) "Can you @pemit remotely to players?"},

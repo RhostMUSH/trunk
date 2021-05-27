@@ -340,6 +340,7 @@ struct confdata {
 	int	heavy_cpu_max; /* Specify maximum for heavy cpu function-usage */
 	int	lastsite_paranoia;	/* Enable paranoia level on connections */
 	int	pcreate_paranoia;	/* Enable paranoia level on creations */
+	int	pcreate_paranoia_fail;	/* Be paranod even about failed creations */
 	int	max_lastsite_cnt;	/* Count of maximum lastsite information */
 	int	max_lastsite_api;	/* API Count of maximum lastsite information */
 	int	min_con_attempt;	/* Minimum ammount of time between connections */

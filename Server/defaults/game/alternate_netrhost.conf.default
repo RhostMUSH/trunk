@@ -284,6 +284,7 @@ max_sitecons              50
 max_pcreate_lim           -1
 max_pcreate_time          60
 pcreate_paranoia          0
+pcreate_paranoia_fail     1
 spam_limit                60
 spam_msg                  Spam: Spam security initiated. Command aborted.
 spam_objmsg               Spam: Spam security initiated. Your object's command aborted.

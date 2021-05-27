@@ -7056,12 +7056,12 @@
   parent_follow            parentable_control_lock   partial_conn
   partial_deconn           passapi_host              passapi_site
   passproxy_host           passproxy_site            paycheck
-  pcreate_paranoia         pemit_any_object          pemit_far_players
-  penn_playercmds          penn_setq                 penn_switches
-  permit_site              player_attr_default       player_dark
-  player_flags             player_listen             player_match_commands
-  player_match_own_command player_name_spaces        player_parent
-  player_queue_limit       player_quota           
+  pcreate_paranoia         pcreate_paranoia_fail     pemit_any_object
+  pemit_far_players        penn_playercmds           penn_setq
+  penn_switches            permit_site               player_attr_default
+  player_dark              player_flags              player_listen
+  player_match_commands    player_match_own_command  player_name_spaces
+  player_parent            player_queue_limit        player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -10488,8 +10488,22 @@ Example:
   
   The admin param 'max_pcreate_lim' handles the max connections.  The
   admin param 'max_pcreate_time' handles the min time reached.
+
+  By default, failures to create a Player (Bad name etc.) trigger this.
+  In order to have creation failures not count against this limit, see
+  the config option pcreate_paranoia_fail
     
-  See Also: max_pcreate_lim, max_pcreate_time, pcreate_paranoia,
+  See Also: pcreate_paranoia_fail, max_pcreate_lim, max_pcreate_time,
+            lastsite_paranoia
+
+& pcreate_paranoia_fail
+  Config parameter: pcreate_paranoia_fail <value>.  Default: 1 (enabled)
+
+  Specifies wether failures in player creation also count against the
+  limits specified with pcreate_paranoia, max_pcreate_lin and
+  max_pcreate_time
+  
+  See Also: pcreate_paranoia, max_pcreate_lim, max_pcreate_time,
             lastsite_paranoia
 
 & pemit_any_object
