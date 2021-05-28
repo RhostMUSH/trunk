@@ -1,3 +1,8 @@
+                         RhostMUSH 4.2 Update File
+SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
+				- Thanks Pres
+
+
                          RhostMUSH 4.0 Update File
 MUX passwords didn't work properly because of a memcmp() bug.
 				- Thanks Locke
@@ -70,8 +75,6 @@ SIDEFX permissions were borked for normal players.
 				- Thanks Alley
 @name/name() if given empty/null arg for new name and ansi mode clears ansi.
 				- Thanks Thenomain
-SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
-				- Thanks Pres
 
 
                          RhostMUSH 3.9.5 Update File
