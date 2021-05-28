@@ -2209,6 +2209,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  break;
              case 'I':       /* itext */
              case 'i':
+#ifdef BANGS
                  dstr++;
                  inumext = 0;
                  if ( dstr && (*dstr == '_' ) ) {
@@ -2275,9 +2276,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                         safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                     dstr--;
                  }
+#endif
                  break;
             case 'd':		/* dtext */
             case 'D':
+#ifdef BANGS
                  dstr++;
                  if ( dstr && *dstr ) {
                     setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
@@ -2315,6 +2318,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
                     dstr--;
                  }
+#endif
                  break;
             case 'w':
             case 'W':		/* TwinkLock enactor */
