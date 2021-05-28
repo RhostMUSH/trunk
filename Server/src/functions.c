@@ -19089,11 +19089,11 @@ FUNCTION(fun_race)
 FUNCTION(fun_name)
 {
     dbref it;
-    int i_flags;
     char *s;
     char *namebuff,
          *namebufcx;
 #ifdef USE_SIDEEFFECT
+    int i_flags;
     CMDENT *cmdp;
 #endif
 
@@ -38209,7 +38209,9 @@ FUN flist[] =
     {"TOOCT", fun_tooct, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTCMDS", fun_totcmds, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TOTEMS", fun_totems, 1, 0, CA_PUBLIC, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
     {"TOTEMSET", fun_totemset, 2, 0, CA_PUBLIC, CA_NO_CODE},
+#endif
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
