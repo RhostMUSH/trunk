@@ -9322,7 +9322,7 @@ Example:
   Config parameter: icmd_obj <dbref>. Default: -1
   
   Sets the dbref of the ICMD Object, usable with @icmd/eval.
-  See 'help @icmd'
+  See 'wizhelp @icmd'
 
 & idle_interval
   Config parameter: idle_interval <secs>.  Default: 60
