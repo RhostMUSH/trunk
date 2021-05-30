@@ -1377,8 +1377,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef BANGS
     int bang_not, bang_string, bang_truebool, bang_yes;
     int regbang_not, regbang_string, regbang_truebool, regbang_yes;
-    char *tbangc, *bufc2, *tbang_tmp;
+    char *tbangc, *bufc2;
 #endif
+    char *tbang_tmp; // Not exclusively Bang related.
     static const char *subj[5] =
     {"", "it", "she", "he", "they"};
     static const char *poss[5] =
@@ -2216,7 +2217,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     inumext = 1;
                  }
                  if ( dstr && *dstr ) {
+#ifdef BANGS
                     setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
+#endif
                     inum_val = atoi(dstr);
                     if( inum_val < 0 || ( inum_val > mudstate.iter_inum ) ) {   
                         safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
@@ -2225,6 +2228,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                         }
                     } else {   
                         if ( (*dstr == 'l') || (*dstr == 'L') ) {
+#ifdef BANGS
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
                               if ( inumext ) {
@@ -2236,6 +2240,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                            } else {
+#endif
                               if ( inumext ) {
                                  tbang_tmp = alloc_sbuf("bang_num");
                                  sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[0]);
@@ -2244,8 +2249,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               } else {
                                  safe_str( mudstate.iter_arr[0], buff, &bufc );
                               }
+#ifdef BANGS
                            }
+#endif
                         } else {
+#ifdef BANGS
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
                               if ( inumext ) {
@@ -2257,6 +2265,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                            } else {
+#endif
                               if ( inumext ) {
                                  tbang_tmp = alloc_sbuf("bang_num");
                                  sprintf(tbang_tmp, "%d", mudstate.iter_inumarr[mudstate.iter_inum - inum_val]);
@@ -2265,7 +2274,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               } else {
                                  safe_str( mudstate.iter_arr[mudstate.iter_inum - inum_val], buff, &bufc );
                               }
+#ifdef BANGS
                            }
+#endif
                            inum_val = inum_val / 10;
                            dstr += inum_val;
                         }
@@ -2280,7 +2291,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case 'D':
                  dstr++;
                  if ( dstr && *dstr ) {
+#ifdef BANGS
                     setup_bangs(&regbang_not, &regbang_yes, &regbang_string, &regbang_truebool, &dstr);
+#endif
                     inum_val = atoi(dstr);
                     if( inum_val < 0 || ( inum_val > (mudstate.dolistnest-1) ) ) {   
                        safe_str( "#-1 ARGUMENT OUT OF RANGE", buff, &bufc );
@@ -2289,6 +2302,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                        }
                     } else {   
                        if ( (*dstr == 'l') || (*dstr == 'L') ) {
+#ifdef BANGS
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
                               strcpy(tbang_tmp, mudstate.dol_arr[0]);
@@ -2296,9 +2310,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                           } else {
+#endif
                              safe_str( mudstate.dol_arr[0], buff, &bufc );
+#ifdef BANGS
                           }
+#endif
                        } else {
+#ifdef BANGS
                            if ( regbang_not || regbang_yes ) {
                               tbang_tmp = alloc_lbuf("bang_qregs");
                               strcpy(tbang_tmp, mudstate.dol_arr[mudstate.dolistnest - 1]);
@@ -2306,8 +2324,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                               safe_str(tbang_tmp, buff, &bufc);
                               free_lbuf(tbang_tmp);
                           } else {
+#endif
                              safe_str( mudstate.dol_arr[(mudstate.dolistnest - 1) - inum_val], buff, &bufc );
+#ifdef BANGS
                           }
+#endif
                        }
                     }
                  } else {
