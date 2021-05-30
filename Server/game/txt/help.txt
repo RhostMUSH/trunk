@@ -34034,3 +34034,4 @@
  * A second off-by-one buffer in the UTF8 handler [ASH]
  * fix internal ansi splitter to handle 5+ utf8 positions [ASH]
  * output to ex/debug was off with some features [ASH]
+ * @totem table loader didn't properly mark totem slot in use [ASH]

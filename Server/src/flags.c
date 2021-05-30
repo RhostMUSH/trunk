@@ -1015,13 +1015,28 @@ NDECL(init_totemtab)
 {
    TOTEMENT *fp;
    char *nbuf, *np, *bp;
-   int i_rettype, i_cnt;
+   int i_rettype, i_cnt, i_tab;
 
    hashinit(&mudstate.totem_htab, 521);
 
    /* load table */
    nbuf = alloc_sbuf("init_totemtab");
+   i_tab=0;
    for (fp = totem_table; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+
+      /* If the flag slot is already inuse, skip it */
+      i_tab++;
+      if ( (mudstate.totem_slots[fp->flagpos] & fp->flagvalue) == fp->flagvalue ) {
+        STARTLOG(LOG_ALWAYS, "TTM", "ERROR")
+           sprintf(nbuf, "Duplicate table entry %d: ", i_tab);
+           log_text(nbuf);
+           log_text(fp->flagname);
+           sprintf(nbuf, " [%d] 0x%08x", fp->flagpos, fp->flagvalue);
+           log_text(nbuf);
+        ENDLOG
+        continue;
+      }
+
       memset(nbuf, '\0', SBUF_SIZE);
       for (np = nbuf, i_cnt = 0, bp = (char *) fp->flagname; *bp; np++, bp++) {
          *np = ToLower((int)*bp);
@@ -1033,6 +1048,10 @@ NDECL(init_totemtab)
       /* We need to XMALLOC this value for future potential rename/delete */
       fp->flagname = (char *) strsavetotem(fp->flagname);
       hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
+
+      /* Update mudstate with slot information for in use */
+      mudstate.totem_slots[fp->flagpos] |= fp->flagvalue;
+      
    }
    free_sbuf(nbuf);
 
