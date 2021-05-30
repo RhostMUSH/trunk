@@ -58,6 +58,7 @@ extern ATTR *	FDECL(atr_num_exec, (int anum));
 extern ATTR *	FDECL(atr_num_objid, (int anum));
 extern ATTR *	FDECL(atr_num_lattr, (int anum));
 extern ATTR *	FDECL(atr_num_chkpass, (int anum));
+extern ATTR *	FDECL(atr_num_mtch, (int anum));
 extern ATTR *	FDECL(atr_str, (char *s));
 extern ATTR *	FDECL(atr_str2, (char *s));
 extern ATTR *	FDECL(atr_str3, (char *s));
@@ -70,6 +71,7 @@ extern ATTR *	FDECL(atr_str_objid, (char *s));
 extern ATTR *	FDECL(atr_num_bool, (int anum));
 extern ATTR *	FDECL(atr_str_bool, (char *s));
 extern ATTR *	FDECL(atr_str_cluster, (char *s));
+extern ATTR *	FDECL(atr_str_mtch, (char *s));
 
 extern ATTR attr[];
 

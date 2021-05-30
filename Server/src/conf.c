@@ -293,6 +293,7 @@ NDECL(cf_init)
     mudconf.lcon_checks_dark = 0; /* lcon/xcon check dark/unfindable */
     mudconf.mail_hidden = 0;	/* mail/anon hidden who is sent to */
     mudconf.enforce_unfindable = 0; /* Enforce unfindable for locate crap */
+    mudconf.enforce_checksums = 0; /* Enforce checksums on command matching */
     mudconf.zones_like_parents = 0; /* Make zones search like @parents */
     mudconf.sub_override = 0;		/* %-sub override */
     mudconf.round_kludge = 0; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
@@ -4280,6 +4281,9 @@ CONF conftable[] =
     {(char *) "elements_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.elements_compat, 0, 0, CA_PUBLIC,
      (char *) "Enable elements() compatibility to elementsmux?"},
+    {(char *) "enforce_checksums",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_checksums, 0, 0, CA_PUBLIC,
+     (char *) "Are CRC checksums required for $commands?"},
     {(char *) "enforce_unfindable",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_unfindable, 0, 0, CA_PUBLIC,
      (char *) "Is UNFINDABLE/DARK enforced for locations?"},

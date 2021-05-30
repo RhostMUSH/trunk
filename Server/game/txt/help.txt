@@ -106,18 +106,18 @@
   train     use         version      wield        whisper       who        
   worn
   
-  @@           @break      @chown      @clone         @create       @decompile
-  @destroy     @dig        @doing      @dolist        @drain        @edit 
-  @emit        @entrances  @eval       @extansi       @femit        @find      
-  @force       @fpose      @fsay       @goto          @halt         @hide
-  @include     @jump       @label      @last          @link         @list
-  @listmotd    @lfunction  @lock       @lset          @ltag         @mailsig 
-  @mvattr      @name       @notify     @oemit         @open         @parent  
-  @password    @pemit      @pipe       @program       @protect      @ps      
-  @quitprogram @quota      @register   @robot         @search       @set     
-  @skip        @sql        @sqlconnect @sqldisconnect @stats        @sudo
-  @sweep       @switch     @teleport   @totem         @trigger      @unlink     
-  @unlock      @verb       @wait       @wall          @wipe        
+  @@           @break       @chown      @clone      @crc32obj      @create   
+  @decompile   @destroy     @dig        @doing      @dolist        @drain 
+  @edit        @emit        @entrances  @eval       @extansi       @femit
+  @find        @force       @fpose      @fsay       @goto          @halt
+  @hide        @include     @jump       @label      @last          @link
+  @list        @listmotd    @lfunction  @lock       @lset          @ltag
+  @mailsig     @mvattr      @name       @notify     @oemit         @open 
+  @parent      @password    @pemit      @pipe       @program       @protect
+  @ps          @quitprogram @quota      @register   @robot         @search 
+  @set         @skip        @sql        @sqlconnect @sqldisconnect @stats  
+  @sudo        @sweep       @switch     @teleport   @totem         @trigger
+  @unlink      @unlock      @verb       @wait       @wall          @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -3607,6 +3607,47 @@
    
   See Also:  clusters, cluster functions, cluster commands, >
 
+& @crc32obj
+  Command: @crc32obj[/<switch>] <target> [=<password>]
+  
+  This command will set, update, check, or run a CRC32 checksum on the object.
+  It does this by assessing the entire object, minus the MODIFY, CREATE,
+  and the checksum attribute itself.  It stores the checksum with the
+  specified password so that it can authenticate and validate any new sets
+  of the CRC on the object.
+  
+  If the option enforce_checksums is enabled, then any $commands and
+  ^listens on an object will automatically fail until the checksum is
+  valid.
+  
+  The following switches exist:
+    /SET     -- Save the checksum of the object with the password specified.
+                You must specify the same password you used before.
+    /FSET    -- Like set, it will set the crc.  This is immortal only.
+                This will override the original password with the new one.
+    /UPDATE  -- This is immortal only.  This will update the CRC only.
+    /SHOW    -- This will show what the stored CRC on the object is.
+    /CALC    -- This will show what a new calc of the CRC would be.
+    /CHECK   -- This checks the CRC on the object to validate it.
+  
+  If there is no CRC stored on the object, the only switches that will work
+  are /FSET, /SET, and /CALC.
+  
+  Examples:
+    > @va me=xyz
+    > @crc32obj/set me=abc123
+    58285728
+    > @crc32obj/check me
+    58285728 CRC OK
+    > @va me=abc
+    > @crc32obj/check me
+    3345058013 CRC MISSMATCH [58285728]
+    > @va me=xyz
+    > @crc32obj/check me
+    58285728 CRC OK
+  
+  See Also: crc32(), crc32obj(), $-command
+  
 & @create
   Command: @create[/<switch>] <name> [=<cost>]
   
@@ -11617,32 +11658,32 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()           COS()          CRC32()       CREATE() 
-  CREATETIME()    CREPLACE()      CTU()          DEC()         DECODE64()
-  DECRYPT()       DEFAULT()       DELETE()       DELEXTRACT()  DESTROY()     
-  DICE()          DIG()           DIGEST()       DIST2D()      DIST3D()      
-  DIV()           E()             EDEFAULT()     EDIT()        EDITANSI() 
-  EE()            ELIST()         ELEMENTPOS()   ELEMENTS()    ELEMENTSMUX()
-  ELOCK()         EMIT()          ENCODE64()     ENCRYPT()     ENTRANCES() 
-  EQ()            ERROR()         ESCAPE()       ESCAPEX()     ESCLIST()   
-  EVAL()          EXIT()          EXP()          EXTRACT()     EXTRACTWORD()
-  FBETWEEN()      FBOUND()        FDIV()         FILTER()      FINDABLE()  
-  FIRST()         FLAGS()         FLOOR()        FLOORDIV()    FOLD()      
-  FOLDERCURRENT() FOLDERLIST()    FOREACH()      FULLNAME()    GARBLE()    
-  GET()           GET_EVAL()      GLOBALROOM()   GRAB()        GRABALL()   
-  GREP()          GT()            GTE()          GUILD()       HASATTR()   
-  HASATTRP()      HASFLAG()       HASTOGGLE()    HASTOTEM()    HASTYPE()   
-  HASQUOTA()      HASRXLEVEL()    HASTXLEVEL()   HOME()        IBREAK()    
-  IDLE()          IFELSE()        IINDEX()       ILEV()        INC()       
-  INDEX()         INF()           INPROGRAM()    INSERT()      INUM()      
-  INZONE()        ISALNUM()       ISALPHA()      ISCLUSTER()   ISDBREF()   
-  ISDIGIT()       ISHIDDEN()      ISNUM()        ISOBJID()     ISPUNCT()   
-  ISSPACE()       ISTAG()         ISWORD()       ISXDIGIT()    ITER()      
-  ITEXT()         KEEPFLAGS()     KEEPTYPE()     LADD()        LAND()      
-  LAST()          LASTCREATE()    LATTR()        LAVG()        LCMDS()     
-  LCON()          LCSTR()         LDELETE()      LDIV()        LEMIT()     
-  LEFT()          LEXITS()        LFLAGS()       LINK()        LIST()      
-  LISTCOMMANDS()  LISTDIFF()      LISTFUNCTIONS()
+  CONVTIME()      COR()           COS()          CRC32()       CRC32OBJ()
+  CREATE()        CREATETIME()    CREPLACE()     CTU()         DEC()       
+  DECODE64()      DECRYPT()       DEFAULT()      DELETE()      DELEXTRACT()
+  DESTROY()       DICE()          DIG()          DIGEST()      DIST2D()    
+  DIST3D()        DIV()           E()            EDEFAULT()    EDIT()      
+  EDITANSI()      EE()            ELIST()        ELEMENTPOS()  ELEMENTS()  
+  ELEMENTSMUX()   ELOCK()         EMIT()         ENCODE64()    ENCRYPT()   
+  ENTRANCES()     EQ()            ERROR()        ESCAPE()      ESCAPEX()   
+  ESCLIST()       EVAL()          EXIT()         EXP()         EXTRACT()   
+  EXTRACTWORD()   FBETWEEN()      FBOUND()       FDIV()        FILTER()    
+  FINDABLE()      FIRST()         FLAGS()        FLOOR()       FLOORDIV()  
+  FOLD()          FOLDERCURRENT() FOLDERLIST()   FOREACH()     FULLNAME()  
+  GARBLE()        GET()           GET_EVAL()     GLOBALROOM()  GRAB()      
+  GRABALL()       GREP()          GT()           GTE()         GUILD()     
+  HASATTR()       HASATTRP()      HASFLAG()      HASTOGGLE()   HASTOTEM()  
+  HASTYPE()       HASQUOTA()      HASRXLEVEL()   HASTXLEVEL()  HOME()      
+  IBREAK()        IDLE()          IFELSE()       IINDEX()      ILEV()      
+  INC()           INDEX()         INF()          INPROGRAM()   INSERT()    
+  INUM()          INZONE()        ISALNUM()      ISALPHA()     ISCLUSTER() 
+  ISDBREF()       ISDIGIT()       ISHIDDEN()     ISNUM()       ISOBJID()   
+  ISPUNCT()       ISSPACE()       ISTAG()        ISWORD()      ISXDIGIT()  
+  ITER()          ITEXT()         KEEPFLAGS()    KEEPTYPE()    LADD()      
+  LAND()          LAST()          LASTCREATE()   LATTR()       LAVG()      
+  LCMDS()         LCON()          LCSTR()        LDELETE()     LDIV()      
+  LEMIT()         LEFT()          LEXITS()       LFLAGS()      LINK()      
+  LIST()          LISTCOMMANDS()  LISTDIFF()     LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -11758,19 +11799,19 @@
                         SIGN() STRMATH() SUB() XDEC() XINC() 
               See Also: help arithmetic functions
   
-  Database Information: CON() CREATETIME() ENTRANCES() EXIT() FOLDERCURRENT()
-                        FOLDERLIST() GLOBALROOM() LOC() LOCATE() LROOMS() 
-                        MAILQUICK() MODIFYTIME() NEARBY() NEXT() NUM() OBJID()
-                        OWNER() RLOC() ROOM() SEARCH() SEARCHOBJID() SEARCHNG()
-                        SEARCHNGOBJID()  SEES() STATS() WHERE() LISTCOMMANDS()
-                        LISTFLAGS() LISTFUNCTIONS() LISTNEWSGROUPS() 
-                        LISTTOGGLES() LISTTOTEMS() PMATCH() RNUM() VALID() 
-                        XCON()
+  Database Information: CON() CRC32OBJ() CREATETIME() ENTRANCES() EXIT() 
+                        FOLDERCURRENT() FOLDERLIST() GLOBALROOM() LOC() 
+                        LOCATE() LROOMS() MAILQUICK() MODIFYTIME() NEARBY() 
+                        NEXT() NUM() OBJID() OWNER() RLOC() ROOM() SEARCH() 
+                        SEARCHOBJID() SEARCHNG() SEARCHNGOBJID()  SEES() 
+                        STATS() WHERE() LISTCOMMANDS() LISTFLAGS() 
+                        LISTFUNCTIONS() LISTNEWSGROUPS() LISTTOGGLES() 
+                        LISTTOTEMS() PMATCH() RNUM() VALID() XCON()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() DIGEST() FLOOR() MASK() PACK() 
-                        PACKMATH() ROMAN() ROUND() SPELLNUM() TOBIN() TODEC() 
-                        TOHEX() TOOCT() TRUNC() UNPACK()
+  Numerical Conversion: CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() MASK() 
+                        PACK() PACKMATH() ROMAN() ROUND() SPELLNUM() TOBIN() 
+                        TODEC() TOHEX() TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -20068,7 +20109,7 @@
     You say "7"
   
   See Also: medit(), edit(), regedit(), pack(), unpack(), packmath(), shl(), 
-            shr(), crc32()
+            shr(), crc32(), crc32obj()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -21849,7 +21890,7 @@
     -bVxTM
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
-            roman(), packmath()
+            roman(), packmath(), crc32obj()
   
 & PACKMATH()
   Function: packmath(<number>, <radix>, <offset> [[,<math> ][,<offset-radix>])
@@ -21921,7 +21962,7 @@
     15
    
   See Also: pack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(),
-            packmath()
+            packmath(), crc32obj()
   
 & CRC32()
   Function: crc32(<string1>[, ..., <stringN>])
@@ -21939,7 +21980,7 @@
     629126998
   
   See Also: pack(), unpack(), mask(), tobin(), tohex(), tooct(), todec(),
-            digest(), packmath()
+            digest(), packmath(), crc32obj()
   
 & PARENSTR()
   Function: parenstr(<string>)
@@ -22461,7 +22502,7 @@
     You say "3a589de6214fd40ae461313fd81dfd1edb7eae70"
    
   See also: crc32(), pack(), roman(), encrypt(), decrypt(), encode64(),
-            decode64()
+            decode64(), crc32obj()
 
 & DIG()
   Function: dig(<room>[[,<in exit>][,<out exit>][,<location>][,<type>]])
@@ -30455,6 +30496,7 @@
   Function Lists: Database Information Functions
     
   con()            - Returns the connection time of the specified player.
+  crc32obj()       - Generates a CRC for an object.
   createtime()     - Returns the timestamp the object was created.
   entrances()      - List exits linked to the specified object.
   exit()           - Lists the first exit in an object.
@@ -30497,6 +30539,7 @@
   bound()       - Bounds a number between a min and max value.
   ceil()        - Returns the smallest integer greater or equal to <number>.
   crc32()       - Generates a CRC from a set of strings.
+  crc32obj()    - Generates a CRC for an object.
   digest()      - Returns digest information for encryption algorithms.
   fbound()      - Bounds a floating point between a min and max value.
   floor()       - Returns the largest integer less than <number>
@@ -33964,6 +34007,8 @@
   * Added a wiz-only limits() function that gets the values otherwise
     displayed using @limit. Handy for monitoring and adjustments. [AMB]
   * args() function to show arguments available in stack [ASH]
+  * @crc32obj/crc32obj() for CRC checksums on objects [ASH]
+  * enforce_checksums config parameter to enforce command eval with CRC [ASH]
   
   Changes
   -------
@@ -33988,3 +34033,4 @@
  * off-by-one buffer in underlying UTF8 handler for tmp buffer size [ASH]
  * A second off-by-one buffer in the UTF8 handler [ASH]
  * fix internal ansi splitter to handle 5+ utf8 positions [ASH]
+ * output to ex/debug was off with some features [ASH]

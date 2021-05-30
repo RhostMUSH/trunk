@@ -7666,6 +7666,171 @@ unsigned int CRC32_ProcessBuffer( unsigned int ulCrc, const void *arg_pBuffer, u
     return ~ulCrc;
 }
 
+
+FUNCTION(fun_crc32obj)
+{
+   unsigned int ulCRC32, ulCRC32cmp;
+   char *as, *s_buff, *s_tmp, *s_passwd, *s_passtok, *s_passtokr, *s_store, *s_storeptr;
+   dbref aowner, thing;
+   int anum, anumsave, aflags, i_len, i_store;
+   ATTR *ap, *ap2;
+
+   if (!fn_range_check("CRC32OBJ", nfargs, 2, 4, buff, bufcx)) 
+      return;
+
+   thing = match_thing(player, fargs[0]);
+   if ( !Good_chk(thing) || !Controls(player, thing) ) {
+      safe_str((char *)"#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+
+   if ( stricmp(fargs[1], "SET") && 
+        stricmp(fargs[1], "CHK") && 
+        stricmp(fargs[1], "CALC") && 
+        stricmp(fargs[1], "UPDATE") && 
+        stricmp(fargs[1], "SHOW") ) {
+      safe_str((char *)"#-1 SECOND ARG MUST BE SET, CHK, CALC, UPDATE, OR SHOW", buff, bufcx);
+      return;
+   }
+
+   if ( !stricmp(fargs[1], "SET") && (nfargs < 3) ) {
+      safe_str((char *)"#-1 SET REQUIRES THIRD ARGUMENT FOR PASSWD", buff, bufcx);
+      return;
+   }
+
+   if ( !stricmp(fargs[1], "UPDATE") && !Immortal(player) ) {
+      safe_str((char *)"#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+
+   anumsave = -1;
+   i_store = 0;
+   ap2 = atr_str("__CRC32");
+   if ( ap2 ) {
+      anumsave = ap2->number;
+   }
+
+   if ( (anumsave == -1) && (nfargs < 3) && stricmp(fargs[1], "CALC") ) {
+      safe_str((char *)"#-1 NO CRC", buff, bufcx);
+      return;
+   }
+  
+   s_tmp = atr_get(thing, anumsave, &aowner, &aflags);
+   if ( !*s_tmp  && (nfargs < 3) && stricmp(fargs[1], "CALC") ) {
+      free_lbuf(s_tmp);
+      safe_str((char *)"#-1 NO CRC", buff, bufcx);
+      return;
+   }
+
+   if ( !*s_tmp && stricmp(fargs[1], "SET") && stricmp(fargs[1], "CALC")) {
+      free_lbuf(s_tmp);
+      safe_str((char *)"#-1 NO CRC", buff, bufcx);
+      return;
+   }
+
+   s_passtok = NULL;
+   if ( !*s_tmp && (nfargs >= 3) ) {
+      i_store = 1;
+      ulCRC32 = 0;
+      i_len = strlen(fargs[2]);
+      ulCRC32 = CRC32_ProcessBuffer(ulCRC32, fargs[2], i_len);
+      s_storeptr = s_store = alloc_lbuf("crc32obj_store");
+      uival(s_store, &s_storeptr, ulCRC32);
+   } else if ( stricmp(fargs[1], "CALC") ) {
+      s_passwd = strtok_r(s_tmp, " ", &s_passtokr);
+      if ( s_passwd ) {
+         s_passtok = strtok_r(NULL, " ", &s_passtokr);
+      }
+   
+      if ( !s_passtok ) {
+         free_lbuf(s_tmp);
+         safe_str((char *)"#-1 CORRUPTED CRC", buff, bufcx);
+         return;
+      }
+      if ( nfargs >= 3 ) {
+         ulCRC32 = 0;
+         i_len = strlen(fargs[2]);
+         ulCRC32 = CRC32_ProcessBuffer(ulCRC32, fargs[2], i_len);
+         ulCRC32cmp = (unsigned int)safe_atof(s_passwd);
+         if ( (ulCRC32 != ulCRC32cmp) && 
+              !((nfargs > 3) && Immortal(player) && (atoi(fargs[3]) > 0)) ) {
+            free_lbuf(s_tmp);
+            safe_str((char *)"#-1 INVALID CRC PASSWD", buff, bufcx);
+            return;
+         }
+         i_store = 1;
+         s_storeptr = s_store = alloc_lbuf("crc32obj_store");
+         uival(s_store, &s_storeptr, ulCRC32);
+      }
+   }
+
+   ulCRC32 = 0;
+   s_buff = alloc_lbuf("crc32obj");
+   for (anum = atr_head(thing, &as); anum; anum = atr_next(&as)) {
+      ap = atr_num(anum);   
+      if ( !ap ) {
+         continue;
+      }
+      if ( (ap->number == anumsave) ||
+           (ap->number == A_CREATED_TIME) ||
+           (ap->number == A_MODIFY_TIME) ) {
+         continue;
+      }
+      (void) atr_get_str(s_buff, thing, ap->number, &aowner, &aflags);
+      i_len = strlen(s_buff);
+      ulCRC32 = CRC32_ProcessBuffer(ulCRC32, s_buff, i_len);
+   }
+   free_lbuf(s_buff);
+
+   if ( !i_store && !stricmp(fargs[1], "UPDATE") ) {
+      i_store = 1;
+      s_storeptr = s_store = alloc_lbuf("crc32obj_store");
+      safe_str(s_passwd, s_store, &s_storeptr);
+   }
+
+   if ( i_store ) {
+      safe_chr(' ', s_store, &s_storeptr);
+      uival(s_store, &s_storeptr, ulCRC32);
+      if ( anumsave == -1 ) {
+         anumsave = mkattr("__CRC32");
+      }
+      if ( anumsave < 0 ) {
+         notify_quiet(player, "#-1 UNABLE TO SET CRC");
+      } else {
+         atr_add_raw(thing, anumsave, s_store);
+         atr_set_flags(thing, anumsave, AF_INTERNAL|AF_GOD);
+         uival(buff, bufcx, ulCRC32);
+      }
+      free_lbuf(s_store);
+   } else {
+      if ( !stricmp(fargs[1], "CALC") ) { 
+         uival(buff, bufcx, ulCRC32);
+      } else if ( !stricmp(fargs[1], "SHOW") ) {
+         if ( s_passtok ) {
+            safe_str(s_passtok, buff, bufcx);
+         } else {
+            uival(buff, bufcx, ulCRC32);
+         }
+      } else {
+         if ( s_passtok ) {
+            if ( (unsigned int)safe_atof(s_passtok) == ulCRC32 ) {
+               uival(buff, bufcx, ulCRC32);
+               safe_str(" CRC OK", buff, bufcx);
+            } else {
+               uival(buff, bufcx, ulCRC32);
+               safe_str(" CRC MISSMATCH [", buff, bufcx);
+               uival(buff, bufcx, (unsigned int)safe_atof(s_passtok));
+               safe_chr(']', buff, bufcx);
+            }
+         } else {
+            uival(buff, bufcx, ulCRC32);
+            safe_str(" CRC OK", buff, bufcx);
+         }
+      }
+   }
+   free_lbuf(s_tmp);
+}
+
 FUNCTION(fun_crc32)
 {
    unsigned int ulCRC32;
@@ -37727,6 +37892,7 @@ FUN flist[] =
     {"COSH", fun_cosh, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"COUNTSPECIAL", fun_countspecial, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CRC32", fun_crc32, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"CRC32OBJ", fun_crc32obj, 2,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"CREATE", fun_create, 1, FN_VARARGS, CA_PUBLIC, 0},

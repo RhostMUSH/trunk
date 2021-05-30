@@ -69,6 +69,8 @@ extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern void FDECL(init_logfile, ());
 extern void FDECL(close_logfile, ());
 extern void FDECL(totem_write_to_disk, ());
+extern unsigned int FDECL(CRC32_ProcessBuffer, (unsigned int, const void *, unsigned int));
+extern double FDECL(safe_atof, (char *));
 
 void FDECL(fork_and_dump, (int, char *));
 void NDECL(dump_database);
@@ -473,6 +475,68 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     RETURN(0); /* #70 */
 }
 
+int
+verify_checksum(dbref thing) 
+{
+   ATTR *ap, *ap2;
+   unsigned int ulCRC32;
+   char *s_str, *s_buff, *as, *s_chksum, *s_tok;
+   int anum, anumsave, aflags, i_len;
+   dbref aowner;
+
+   ap2 = atr_str_mtch("__CRC32");
+   if ( !ap2 ) {
+      return 1;
+   }
+   anumsave = ap2->number;
+
+   s_str = atr_get(thing, ap2->number, &aowner, &aflags);
+   if ( !s_str ) {
+      return 1;
+   }
+
+   if ( !*s_str ) {
+      free_lbuf(s_str);
+      return 1;
+   }
+
+   s_chksum = strtok_r(s_str, " ", &s_tok);
+   if ( s_chksum ) {
+      s_chksum = strtok_r(NULL, " ", &s_tok);
+   }
+   if ( !s_chksum || !*s_chksum ) {
+      free_lbuf(s_str);
+      return 1;
+   }
+
+   ulCRC32 = 0;
+   s_buff = alloc_lbuf("verify_checksum");
+
+   for (anum = atr_head(thing, &as); anum; anum = atr_next(&as)) {
+      ap = atr_num_mtch(anum);
+      if ( !ap ) {
+         continue;
+      }
+      if ( (ap->number == anumsave) ||
+           (ap->number == A_CREATED_TIME) ||
+           (ap->number == A_MODIFY_TIME) ) {
+         continue;
+      }
+      (void) atr_get_str(s_buff, thing, ap->number, &aowner, &aflags);
+      i_len = strlen(s_buff);
+      ulCRC32 = CRC32_ProcessBuffer(ulCRC32, s_buff, i_len);
+   }
+   if ( (unsigned int)safe_atof(s_chksum) == ulCRC32 ) {
+      free_lbuf(s_str);
+      free_lbuf(s_buff);
+      return 1;
+   }
+
+   free_lbuf(s_str);
+   free_lbuf(s_buff);
+   return 0;
+}
+
 int 
 atr_match(dbref thing, dbref player, char type, char *str, int check_parents, int dpcheck)
 {
@@ -481,6 +545,11 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
     dbref parent;
 
     DPUSH; /* #71 */
+
+    /* Abort if enforced CRC */
+    if ( mudconf.enforce_checksums && !verify_checksum(thing) ) {
+       RETURN(0); /* #71 */
+    }
 
     /* If COMMANDS is defined, check if exists, if not, don't even bother */
 #ifdef ENABLE_COMMAND_FLAG

@@ -2468,26 +2468,29 @@ debug_examine(dbref player, dbref thing)
     notify(player, unsafe_tprintf("Owner   = %d", Owner(thing)));
     notify(player, unsafe_tprintf("Pennies = %d", Pennies(thing)));
     viewzonelist(player, thing);
-    buf = flag_description(player, thing, 1, (int *)NULL, 0);
+    buf = flag_description(player, thing, 0, (int *)NULL, 0);
     notify(player, unsafe_tprintf("Flags   = %s", buf));
     free_lbuf(buf);
-    buf = toggle_description(player, thing, 1, 0, (int *)NULL);
+    buf = toggle_description(player, thing, 0, 0, (int *)NULL);
     notify(player, unsafe_tprintf("Toggles = %s", buf));
     free_lbuf(buf);
-    buf = power_description(player, thing, 0, 1);
+    buf = power_description(player, thing, 0, 0);
     notify(player, unsafe_tprintf("Powers = %s", buf));
     free_lbuf(buf);
-    buf = depower_description(player, thing, 0, 1);
+    buf = depower_description(player, thing, 0, 0);
     notify(player, unsafe_tprintf("Depowers = %s", buf));
     free_lbuf(buf);
 #ifdef REALITY_LEVELS
-    buf = rxlevel_description(player, thing, 0, 1);
+    buf = rxlevel_description(player, thing, 0, 0);
     notify(player, unsafe_tprintf("RxLevel = %s", buf));
     free_lbuf(buf);
-    buf = txlevel_description(player, thing, 0, 1);
+    buf = txlevel_description(player, thing, 0, 0);
     notify(player, unsafe_tprintf("TxLevel = %s", buf));
     free_lbuf(buf);
 #endif /* REALITY_LEVELS */
+    if ( mudconf.enforce_checksums ) {
+       notify(player, "Checksums = Enforced");
+    }
     buf = atr_get(thing, A_LOCK, &aowner, &aflags);
     bool = parse_boolexp(player, buf, 1);
     free_lbuf(buf);
@@ -2950,6 +2953,9 @@ do_examine(dbref player, dbref cause, int key, char *name)
         notify(player, buf2);
         free_lbuf(buf2);
 #endif /* REALITY_LEVELS */
+       if ( mudconf.enforce_checksums) {
+          notify(player, unsafe_tprintf("%sChecksums:%s Enforced", ANSIEX(ANSI_HILITE), ANSIEX(ANSI_NORMAL)) );
+       }
 
 	mudconf.many_coins[0] = savec;
 

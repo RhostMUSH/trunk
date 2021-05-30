@@ -1219,6 +1219,13 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define THAW_DEL	1	/* Drop the frozen FTIME pid process */
 
+#define CRC32_SHOW	1	/* Show crc32 */
+#define CRC32_CALC	2	/* Calc crc32 */
+#define CRC32_CHECK	4	/* Check crc32 */
+#define CRC32_SET	8	/* Set crc32 */
+#define CRC32_UPDATE	16	/* Update crc32 */
+#define CRC32_FSET  	32	/* Force set crc32 */
+
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */

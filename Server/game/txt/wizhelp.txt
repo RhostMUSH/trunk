@@ -6960,8 +6960,8 @@
   door_index               down_file                down_motd_message      
   dump_interval            dump_message             dump_offset            
   earn_limit               elements_compat          empower_fulltel        
-  enable_tstamps           enforce_unfindable       enhanced_convtime      
-  error_file 
+  enable_tstamps           enforce_checksums        enforce_unfindable     
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -8080,6 +8080,19 @@
   Indicates whether or not to enforce hidden/dark so that unfindable
   will be properly hidden in locations with regards to objeval() or
   other similar function calls.
+
+& enforce_checksums
+  Config parameter: enforce_checksums <yes/no>.   Default: no
+  
+  Will enable enforcement of checksums on objects.  When a checksum
+  is set on an object with the @crc32obj command or crc32obj() function,
+  if the checksum changes on the object to what is stored, any $command
+  or ^listen on the object will fail to work until the checksum is
+  either updated to the new value, or the object is reverted to the state
+  which validates the checksum stored on the object.
+  
+  For help on how to set them --
+  See Normal Help: @crc32obj, crc32obj()
 
 & error_file
   Config parameter: error_file <file>.  Default: error.txt
@@ -14976,3 +14989,7 @@ Example:
   
   See Also: account_su(), account_owner(), account_login(), file_object,
             connect_methods, @conncheck, connect_perm
+
+& @crc32obj
+& crc32obj()
+  Please see the normal help for more information on this feature.

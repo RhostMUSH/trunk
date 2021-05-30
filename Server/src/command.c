@@ -52,6 +52,7 @@ extern void cf_log_syntax(dbref, char *, const char *, char *);
 extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern ATRP *atrp_head;
 extern void fun_ruler(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern void fun_crc32obj(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
 extern double FDECL(time_ng, (double*));
 extern void FDECL(populate_tor_seed, (void));
@@ -297,6 +298,16 @@ NAMETAB create_sw[] =
 {
     {(char *) "ansi", 1, CA_PUBLIC, 0, CREATE_ANSI},
     {(char *) "strict", 1, CA_IMMORTAL, 0, OBJECT_STRICT | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
+NAMETAB crc32obj_sw[] =
+{
+    {(char *) "show", 2, CA_PUBLIC, 0, CRC32_SHOW},
+    {(char *) "set", 2, CA_PUBLIC, 0, CRC32_SET},
+    {(char *) "fset", 2, CA_PUBLIC, 0, CRC32_FSET},
+    {(char *) "update", 2, CA_PUBLIC, 0, CRC32_UPDATE},
+    {(char *) "check", 2, CA_PUBLIC, 0, CRC32_CHECK},
+    {(char *) "calc", 2, CA_PUBLIC, 0, CRC32_CALC},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB decomp_sw[] =
@@ -1342,6 +1353,9 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_create},
     {(char *) "@cut", NULL, CA_WIZARD | CA_LOCATION, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_cut},
+    {(char *) "@crc32obj", crc32obj_sw,
+     CA_NO_SLAVE | CA_GBL_BUILD | CA_CONTENTS | CA_NO_GUEST | CA_NO_WANDER, 0,
+     0, CS_TWO_ARG | CS_INTERP, 0, do_crc32obj},
     {(char *) "@dbck", dbck_sw, CA_WIZARD | CA_ADMIN, 0,
      0, CS_NO_ARGS, 0, do_dbck},
     {(char *) "@dbclean", dbclean_sw, CA_GOD | CA_IMMORTAL, 0, 0,
@@ -6535,6 +6549,11 @@ list_options_system(dbref player)
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
     notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
     notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
+    if ( mudconf.enforce_checksums ) {
+       notify(player, "Checksum enforcement for $commands/^listens to work ------------ ENABLED");
+    } else {
+       notify(player, "Checksum enforcement for $commands/^listens to work ------------ DISABLED");
+    }
     if ( Wizard(player) ) {
        memset(buf2, '\0', sizeof(buf2));
        sprintf(buf2, "%35.35s [%2.2s]", mudconf.string_conn, mudconf.string_conn);
@@ -14540,4 +14559,64 @@ do_logrotate(dbref player, dbref cause, int key) {
            notify(player, "@logrotate: Completed.");
            break;
    }
+}
+
+void
+do_crc32obj(dbref player, dbref cause, int key, char *s_name, char *s_passwd)
+{
+   char *s_array[5], *s_buff, *s_buffptr;
+   int nfargs;
+
+   s_array[0] = alloc_lbuf("do_crc32obj0");
+   s_array[1] = alloc_lbuf("do_crc32obj1");
+   s_array[2] = alloc_lbuf("do_crc32obj2");
+   s_array[3] = alloc_lbuf("do_crc32obj3");
+   s_array[4] = NULL;
+
+   if ( s_name && *s_name ) {
+      strcpy(s_array[0], s_name);
+   }
+
+   nfargs = 2;
+
+   switch(key) {
+      case CRC32_FSET: /* Force Set crc32 */
+      case CRC32_SET: /* Set crc32 */
+         nfargs = 3;
+         strcpy(s_array[1], (char *)"SET");
+         if ( s_passwd && *s_passwd ) {
+            strcpy(s_array[2], s_passwd);
+         }
+         if ( (key & CRC32_FSET) && Immortal(player) ) {
+            nfargs = 4;
+            strcpy(s_array[3], (char *)"1");
+         }
+         break;
+      case CRC32_UPDATE: /* Update only if immortal */
+         strcpy(s_array[1], (char *)"UPDATE");
+         break; 
+      case CRC32_CHECK: /* Check */
+         strcpy(s_array[1], (char *)"CHK");
+         break; 
+      case CRC32_SHOW: /* Show */
+         strcpy(s_array[1], (char *)"SHOW");
+         break; 
+      case CRC32_CALC: /* Calc */
+         strcpy(s_array[1], (char *)"CALC");
+         break; 
+      default:
+         strcpy(s_array[1], (char *)"CHK");
+         break; 
+   }   
+
+   s_buffptr = s_buff = alloc_lbuf("do_crc32obj_buff");
+
+   fun_crc32obj(s_buff, &s_buffptr, player, cause, cause, s_array, nfargs, (char **)NULL, 0);
+   notify(player, s_buff);
+
+   free_lbuf(s_buff);
+   free_lbuf(s_array[0]);
+   free_lbuf(s_array[1]);
+   free_lbuf(s_array[2]);
+   free_lbuf(s_array[3]);
 }
