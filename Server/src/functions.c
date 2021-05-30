@@ -30840,9 +30840,10 @@ FUNCTION(fun_beep)
     safe_str(tbuf1, buff, bufcx);
 }
 
+#ifdef ZENTY_ANSI
 static const unsigned char AccentCombo2[256] =
 {   
-/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F   */
+//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 1
@@ -30861,19 +30862,17 @@ static const unsigned char AccentCombo2[256] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // D
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // E
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // F
-};  
-
+}; 
+#endif
 
 FUNCTION(fun_accent)
 {
-#ifdef ZENTY_ANSI
-   char *p_ptr, p_oldptr, p_oldptr2, *p_ptr2;
-   int i_inaccent;
-#endif
-
 #ifndef ZENTY_ANSI
    safe_str(fargs[0], buff, bufcx);
 #else
+   char *p_ptr, p_oldptr, p_oldptr2, *p_ptr2;
+   int i_inaccent;
+
    p_ptr2 = fargs[0];
    p_ptr = fargs[1];
    p_oldptr2 = p_oldptr = '\0';
