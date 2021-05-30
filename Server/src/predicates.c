@@ -1256,7 +1256,10 @@ int pass_entropy(char *password)
 int ok_password(const char *password, dbref player, int key)
 {
   const char *scan;
-  int num_upper, num_lower, num_special, i_sha512;
+  int num_upper, num_lower, num_special;
+#ifndef STANDALONE
+  int i_sha512;
+#endif
 
   if (*password == '\0')
     return 0;
@@ -1270,10 +1273,12 @@ int ok_password(const char *password, dbref player, int key)
     return 0;
   }
 
+#ifndef STANDALONE
 #ifdef CRYPT_GLIB2
   i_sha512 = 1;
 #else
   i_sha512 = 0;
+#endif
 #endif
 
   num_upper = num_lower = num_special = 0;

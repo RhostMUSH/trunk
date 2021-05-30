@@ -920,14 +920,14 @@ void
 do_reclist(dbref player, dbref cause, int key, char *buff)
 {
     dbref i, comp;
-    int count, wildcount, typecomp;
+    int count, typecomp;
     char buff2[10], buff3[14], *buffp1, *buffp2;
     double timecomp;
 #ifndef STANDALONE
     char cstat, *tpr_buff = NULL, *tprp_buff = NULL;
     time_t timevar;
     dbref dummy1;
-    int dummy2;
+    int dummy2, wildcount;
     char *pt1;
 #endif
 
@@ -939,7 +939,10 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	cstat = 0;
 #endif
     }
-    wildcount = count = 0;
+    count = 0;
+#ifndef STANDALONE
+    wildcount = 0;
+#endif
     typecomp = -1;
     comp = -1;
     timecomp = -1;
