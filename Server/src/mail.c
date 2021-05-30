@@ -6127,7 +6127,7 @@ void myfgets(char *buf, FILE *fpt)
 
   pt1 = buf;
   in = fgetc(fpt);
-  while ((in != EOF) && (in) && (in != '\1')) {
+  while (!feof(fpt) && (in) && (in != '\1')) {
     *pt1++ = in;
     in = fgetc(fpt);
   }
@@ -6168,7 +6168,10 @@ void mnuke_read()
   nuke1 = fopen(nukename, "r");
   if (nuke1) {
     mudstate.nuke_status = 1;
-    while ((in1 = fgetc(nuke1)) != EOF) {
+    while (1) {
+      in1 = fgetc(nuke1);
+      if(feof(nuke1))
+         break;
       *buf1 = in1;
       myfgets(buf1+1,nuke1);
       mail_wipe(GOD,buf1);
@@ -6227,7 +6230,10 @@ void mail_load(dbref player)
     mail_error(player,MERR_DB);
     return;
   }
-  while ((input = fgetc(dump1)) != EOF) {
+  while (1) {
+    input = fgetc(dump1);
+    if(feof(dump1))
+       break;
     input = input - 'A' + 1;
     *(int *)sbuf1 = (int)input;
     keydata.dptr = sbuf1;
@@ -6401,7 +6407,10 @@ void mail_load(dbref player)
     dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
   }
   fclose(dump1);
-  while ((input = fgetc(dump2)) != EOF) {
+  while (1) {
+    input = fgetc(dump2);
+    if(feof(dump2))
+       break;
     input = input - 'A' + 1;
     *(int *)sbuf1 = (int)input;
     keydata.dptr = sbuf1;
