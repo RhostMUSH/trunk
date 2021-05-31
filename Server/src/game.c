@@ -482,7 +482,7 @@ verify_checksum(dbref thing)
    ATTR *ap, *ap2;
    unsigned int ulCRC32;
    char *s_str, *s_buff, *as, *s_chksum, *s_tok;
-   int anum, anumsave, aflags, i_len;
+   int anum, anumsave, anumignore1, anumignore2, aflags, i_len;
    dbref aowner;
 
    ap2 = atr_str_mtch("__CRC32");
@@ -491,7 +491,7 @@ verify_checksum(dbref thing)
    }
    anumsave = ap2->number;
 
-   s_str = atr_get(thing, ap2->number, &aowner, &aflags);
+   s_str = atr_get(thing, anumsave, &aowner, &aflags);
    if ( !s_str ) {
       return 1;
    }
@@ -513,14 +513,69 @@ verify_checksum(dbref thing)
    ulCRC32 = 0;
    s_buff = alloc_lbuf("verify_checksum");
 
+   anumignore1 = anumignore2 = -1;
+   ap2 = atr_str_mtch("__ATTRPIPE");
+   if ( ap2 ) {
+      anumignore1 = ap2->number;
+   }
+
+   ap2 = atr_str_mtch("_IDLESTAMP");
+   if ( ap2 ) {
+      anumignore2 = ap2->number;
+   }
+
    for (anum = atr_head(thing, &as); anum; anum = atr_next(&as)) {
       ap = atr_num_mtch(anum);
       if ( !ap ) {
          continue;
       }
-      if ( (ap->number == anumsave) ||
+
+      if ( (ap->flags & AF_INTERNAL) ||
+           (ap->number == anumsave) || 
+           (ap->number == anumignore1) ||
+           (ap->number == anumignore2) ||
+           (ap->number == A_CHARGES) ||
+           (ap->number == A_MONEY) ||
+           (ap->number == A_LAST) ||
+           (ap->number == A_QUEUEMAX) ||
+           (ap->number == A_RQUOTA) ||
+           (ap->number == A_NAME) ||
+           (ap->number == A_SEMAPHORE) ||
+           (ap->number == A_QUOTA) ||
+           (ap->number == A_PRIVS) ||
+           (ap->number == A_LOGINDATA) ||
+           (ap->number == A_LASTSITE) ||
+           (ap->number == A_LAMBDA) ||
+           (ap->number == A_BCCMAIL) ||
+           (ap->number == A_MPSET) ||
+           (ap->number == A_MPASS) || 
+           (ap->number == A_LASTPAGE) ||
+           (ap->number == A_RETPAGE) ||
+           (ap->number == A_MCURR) ||
+           (ap->number == A_MQUOTA) ||
+           (ap->number == A_LQUOTA) ||
+           (ap->number == A_TQUOTA) ||
+           (ap->number == A_MTIME) || 
+           (ap->number == A_MSAVEMAX) ||
+           (ap->number == A_MSAVECUR) ||
+           (ap->number == A_IDENT) ||
+           (ap->number == A_TOTCMDS) ||
+           (ap->number == A_LSTCMDS) ||
+           (ap->number == A_MODIFY_TIME) ||
+           (ap->number == A_TOTCHARIN) ||
+           (ap->number == A_TOTCHAROUT) ||
+           (ap->number == A_LASTCREATE) ||
+           (ap->number == A_SAVESENDMAIL) ||
+           (ap->number == A_PROGBUFFER) ||
+           (ap->number == A_PROGPROMPT) || 
+           (ap->number == A_PROGPROMPTBUF) ||
+           (ap->number == A_TEMPBUFFER) ||
+           (ap->number == A_DESTVATTRMAX) ||
+           (ap->number == A_LASTIP) || 
+           (ap->number == A_OBJECTTAG) || 
            (ap->number == A_CREATED_TIME) ||
-           (ap->number == A_MODIFY_TIME) ) {
+           (ap->number == A_MODIFY_TIME) ||
+           ((ap->number >= 252) && (ap->number <= 255)) ) {
          continue;
       }
       (void) atr_get_str(s_buff, thing, ap->number, &aowner, &aflags);

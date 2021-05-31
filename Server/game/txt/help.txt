@@ -34075,6 +34075,7 @@
   * rset() now mirrors set() with arguments [ASH]
   * @entrances improved to show more details in better organization [ASH]
   * %+ has an extension %+! and %+!x! (where x is any char) [ASH]
+  * crc32obj()/@crc32obj strips internal attribs from checks [ASH]
   
   Bug Fixes
   ------------

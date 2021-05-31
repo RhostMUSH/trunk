@@ -7672,7 +7672,7 @@ FUNCTION(fun_crc32obj)
    unsigned int ulCRC32, ulCRC32cmp;
    char *as, *s_buff, *s_tmp, *s_passwd, *s_passtok, *s_passtokr, *s_store, *s_storeptr;
    dbref aowner, thing;
-   int anum, anumsave, aflags, i_len, i_store;
+   int anum, anumsave, anumignore1, anumignore2, aflags, i_len, i_store;
    ATTR *ap, *ap2;
 
    if (!fn_range_check("CRC32OBJ", nfargs, 2, 4, buff, bufcx)) 
@@ -7764,6 +7764,17 @@ FUNCTION(fun_crc32obj)
       }
    }
 
+   anumignore1 = anumignore2 = -1;
+   ap2 = atr_str("__ATTRPIPE");
+   if ( ap2 ) {
+      anumignore1 = ap2->number;
+   }
+
+   ap2 = atr_str("_IDLESTAMP");
+   if ( ap2 ) {
+      anumignore2 = ap2->number;
+   }
+
    ulCRC32 = 0;
    s_buff = alloc_lbuf("crc32obj");
    for (anum = atr_head(thing, &as); anum; anum = atr_next(&as)) {
@@ -7771,9 +7782,53 @@ FUNCTION(fun_crc32obj)
       if ( !ap ) {
          continue;
       }
-      if ( (ap->number == anumsave) ||
+       
+      if ( (ap->flags & AF_INTERNAL) ||
+           (ap->number == anumsave) ||
+           (ap->number == anumignore1) ||
+           (ap->number == anumignore2) ||
+           (ap->number == A_CHARGES) ||
+           (ap->number == A_MONEY) ||
+           (ap->number == A_LAST) ||
+           (ap->number == A_QUEUEMAX) ||
+           (ap->number == A_RQUOTA) ||
+           (ap->number == A_NAME) ||
+           (ap->number == A_SEMAPHORE) ||
+           (ap->number == A_QUOTA) ||
+           (ap->number == A_PRIVS) ||
+           (ap->number == A_LOGINDATA) ||
+           (ap->number == A_LASTSITE) ||
+           (ap->number == A_LAMBDA) ||
+           (ap->number == A_BCCMAIL) ||
+           (ap->number == A_MPSET) ||
+           (ap->number == A_MPASS) ||
+           (ap->number == A_LASTPAGE) ||
+           (ap->number == A_RETPAGE) ||
+           (ap->number == A_MCURR) ||
+           (ap->number == A_MQUOTA) ||
+           (ap->number == A_LQUOTA) ||
+           (ap->number == A_TQUOTA) ||
+           (ap->number == A_MTIME) ||
+           (ap->number == A_MSAVEMAX) ||
+           (ap->number == A_MSAVECUR) ||
+           (ap->number == A_IDENT) ||
+           (ap->number == A_TOTCMDS) ||
+           (ap->number == A_LSTCMDS) ||
+           (ap->number == A_MODIFY_TIME) ||
+           (ap->number == A_TOTCHARIN) ||
+           (ap->number == A_TOTCHAROUT) ||
+           (ap->number == A_LASTCREATE) ||
+           (ap->number == A_SAVESENDMAIL) ||
+           (ap->number == A_PROGBUFFER) ||
+           (ap->number == A_PROGPROMPT) ||
+           (ap->number == A_PROGPROMPTBUF) ||
+           (ap->number == A_TEMPBUFFER) ||
+           (ap->number == A_DESTVATTRMAX) ||
+           (ap->number == A_LASTIP) ||
+           (ap->number == A_OBJECTTAG) ||
            (ap->number == A_CREATED_TIME) ||
-           (ap->number == A_MODIFY_TIME) ) {
+           (ap->number == A_MODIFY_TIME) ||
+           ((ap->number >= 252) && (ap->number <= 255)) ) {
          continue;
       }
       (void) atr_get_str(s_buff, thing, ap->number, &aowner, &aflags);
