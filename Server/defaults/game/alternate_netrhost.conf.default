@@ -352,6 +352,7 @@ wizcommand_quota_max      100
 protect_addenh            0
 posesay_funct             0
 global_error_cmd          0
+enforce_checksums         0
 
 # money and costs
 
