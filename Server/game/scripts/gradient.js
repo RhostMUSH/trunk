@@ -3,6 +3,11 @@
 // Pass it arguments:   startcolor, endcolor, length, and everything after that
 // is taken as the string to be colored
 
+// For example: execscript(gradient.sh,red|blue|20|asdf%tasdf)]
+
+// We rewrite Deno ( https://deno.land/ ) in the path
+// and use deno-rhost ( https://github.com/stevensmedia/deno-rhost ) from the net
+
 const Rhost = await import("https://github.com/stevensmedia/deno-rhost/raw/v2/rhost.js")
 
 function getHSV(colorarg) {
