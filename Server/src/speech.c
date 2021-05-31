@@ -36,14 +36,14 @@ int sp_ok(dbref player)
 }
 
 char *
-ColorName(dbref player)
+ColorName(dbref player, int key)
 {
     static char mybuf[MBUF_SIZE];
     char *ansibuf, *mybufptr, *tmpptr;
     int aflags, i_extansi;
     dbref aname;
 
-    if ( !VariableExit(player) )
+    if ( !VariableExit(player) && !key )
        return Name(player);
 
     ansibuf = atr_pget(player, A_ANSINAME, &aname, &aflags);
@@ -82,9 +82,9 @@ static void say_shout (int target, const char *prefix, int flags,
 		dbref player, char *message)
 {
 	if (flags & SAY_NOTAG)
-        	raw_broadcast(player,target, "%s%.3900s", ColorName(player), message);
+        	raw_broadcast(player,target, "%s%.3900s", ColorName(player, 0), message);
 	else
-		raw_broadcast(player,target, "%s%s%.3900s", prefix, ColorName(player), message);
+		raw_broadcast(player,target, "%s%s%.3900s", prefix, ColorName(player, 0), message);
 }
 
 static const char *announce_msg = "Announcement: ";
@@ -219,7 +219,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          }
                          
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player, 0), pbuf, message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -285,7 +285,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             free_lbuf(s_execmorgrify);
                          }
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player, 0), message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -656,7 +656,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             free_lbuf(s_execmorgrify);
                          }
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player, 0), pbuf, message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -714,7 +714,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             free_lbuf(s_execmorgrify);
                          }
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player), pbuf, message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", ColorName(player, 0), pbuf, message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -774,7 +774,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             free_lbuf(s_execmorgrify);
                          }
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player, 0), message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -832,7 +832,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                             free_lbuf(s_execmorgrify);
                          }
                       } else {
-                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player), message);
+                         s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s says \"%s\"", ColorName(player, 0), message);
                          if ( i_morgrify ) {
                             s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                             if ( s_morgrify && *s_morgrify ) {
@@ -1037,7 +1037,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          free_lbuf(s_execmorgrify);
                       }
                    } else {
-                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player, 0), message);
                       if ( i_morgrify ) {
                          s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                          if ( s_morgrify && *s_morgrify ) {
@@ -1099,7 +1099,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          free_lbuf(s_execmorgrify);
                       }
                    } else {
-                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player), message);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s %s", ColorName(player, 0), message);
                       if ( i_morgrify ) {
                          s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                          if ( s_morgrify && *s_morgrify ) {
@@ -1304,7 +1304,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          free_lbuf(s_execmorgrify);
                       }
                    } else {
-                       s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message);
+                       s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player, 0), message);
                       if ( i_morgrify ) {
                          s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                          if ( s_morgrify && *s_morgrify ) {
@@ -1366,7 +1366,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                          free_lbuf(s_execmorgrify);
                       }
                    } else {
-                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player), message);
+                      s_trash = safe_tprintf(tpr_buff, &tprp_buff, "%s%s", ColorName(player, 0), message);
                       if ( i_morgrify ) {
                          s_morgrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
                          if ( s_morgrify && *s_morgrify ) {
@@ -1618,9 +1618,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WALLPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, 0, "%s %.3900s", ColorName(player), message);
+			raw_broadcast(player, 0, "%s %.3900s", ColorName(player, 0), message);
 		else
-			raw_broadcast(player, 0, "Announcement: %s %.3900s", ColorName(player),
+			raw_broadcast(player, 0, "Announcement: %s %.3900s", ColorName(player, 0),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","SHOUT")
 			log_name(player);
@@ -1632,9 +1632,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		break;
 	case SAY_WIZPOSE:
 		if (say_flags & SAY_NOTAG)
-			raw_broadcast(player, BUILDER, "%s %.3900s", ColorName(player), message);
+			raw_broadcast(player, BUILDER, "%s %.3900s", ColorName(player, 0), message);
 		else
-			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", ColorName(player),
+			raw_broadcast(player, BUILDER, "Broadcast: %s %.3900s", ColorName(player, 0),
 				message);
 		STARTLOG(LOG_SHOUTS,"WIZ","BCAST")
 			log_name(player);

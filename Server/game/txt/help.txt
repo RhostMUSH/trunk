@@ -2860,7 +2860,22 @@
   be triggered upon these commands being issued.  These will only evaluate
   substitutions and will not evaluate functions.
   
+  If the config parameter posesay_funct is enabled, then the above becomes
+  an exception and SPEECH_PREFIX and SPEECH_SUFFIX will be evaluated.
+  
+  You may use special substitutions @K and @N for the colorized name and
+  the name of the enactor of the say, pose, or emit, respectively.
+  
+  If the player is spoofing or you have no permission to see the enactor,
+  both @K and @N will return #-1.
+   
   If these attributes are set NO_COMMAND they will not return any message.
+  
+  @emit, say and pose will pass the following arguments to these attributes:
+     %0 - The original @emit that triggered the attribute.
+     %1 - The date in the form MM/DD/YYYY
+     %2 - The time in the form HH:MM:SS
+     %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
   See Also: say, pose, ", :, ;
    
@@ -34009,6 +34024,7 @@
   * args() function to show arguments available in stack [ASH]
   * @crc32obj/crc32obj() for CRC checksums on objects [ASH]
   * enforce_checksums config parameter to enforce command eval with CRC [ASH]
+  * @K/@k and @N/@n substitutions for SPEECH_PREFIX/SPEECH_SUFFIX
   
   Changes
   -------

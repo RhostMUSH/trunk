@@ -71,6 +71,7 @@ extern void FDECL(close_logfile, ());
 extern void FDECL(totem_write_to_disk, ());
 extern unsigned int FDECL(CRC32_ProcessBuffer, (unsigned int, const void *, unsigned int));
 extern double FDECL(safe_atof, (char *));
+extern char FDECL(*ColorName, (dbref, int));
 
 void FDECL(fork_and_dump, (int, char *));
 void NDECL(dump_database);
@@ -684,7 +685,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *mp2, *msg_utf, *mp_utf, *pvap[4];
 #endif
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4];
-    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
+    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr, *s_tb1, *s_tb2;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0, i_chkcpu;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
@@ -868,8 +869,28 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
                         Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                   
+                    /* Replace @N/@n and @K/@k with name and colorname */
+                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  } else {
                     sprintf(vap[3], "#%d", -1);
+
+                    /* Replace @N/@n and @K/@k with invalid name (since it's undefined here) */
+                    s_tb1 = replace_string("@N", (char *)"#-1", s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", (char *)"#-1", s_tb2, 0);
+                    s_pipeattr = replace_string("@k", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
@@ -952,8 +973,28 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
                         Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+
+                    /* Replace @N/@n and @K/@k with name and colorname */
+                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  } else {
                     sprintf(vap[3], "#%d", -1);
+
+                    /* Replace @N/@n and @K/@k with invalid name (since it's undefined here) */
+                    s_tb1 = replace_string("@N", (char *)"#-1", s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", (char *)"#-1", s_tb2, 0);
+                    s_pipeattr = replace_string("@k", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
