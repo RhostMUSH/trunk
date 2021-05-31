@@ -21997,6 +21997,45 @@
   See Also: pack(), unpack(), mask(), tobin(), tohex(), tooct(), todec(),
             digest(), packmath(), crc32obj()
   
+& CRC32OBJ()
+  Function: crc32obj(<target>, <option> [,<password> [,<override>]])
+  
+  This function will set a CRC on a target <target>, modify the 
+  crc, or view or hot-calculate the CRC based on <option>.  To set
+  a new crc (or re-set it) one must enter a passwod <password>. 
+  Immortals may specify an <override> of '1' to force a new password
+  over the original one.
+  
+  If the @admin param 'enforce_checksums' is enabled, on a CRC missmatch
+  all $commands and ^listens will no longer work.
+    
+  The following options exist for <option>:
+    SHOW   -- show the CRC of the target object (gives error if no crc)
+    CALC   -- hot-calc a CRC of the target without storing it.
+    UPDATE -- update the CRC of the object (immortal only)
+    SET    -- set a CRC on the object and locking to the password
+    CHK    -- check the CRC of the object to the current CRC
+  
+  Examples:
+    > think crc32obj(me, set, locktight)
+    5892856925
+    > think crc32obj(me, set, notthepassword)
+    #-1 INVALID CRC PASSWD
+    > think crc32obj(me, set, notthepassword,1)
+    5892856925
+    > think crc32obj(me, chk)
+    5892856925 CRC OK
+    > &NEWATTRIBUTE me=break crc
+    Set.
+    > think crc32obj(me, chk)
+    4097521554 CRC MISSMATCH [5892856925]
+    > &NEWATTRIBUTE me
+    Cleared.
+    > think crc32obj(me, chk)
+    5892856925 CRC OK
+  
+  See Also: crc32(), @crc32obj
+  
 & PARENSTR()
   Function: parenstr(<string>)
             parenstr(!<string>)
