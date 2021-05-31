@@ -21,24 +21,26 @@ function getHSV(colorarg) {
 }
 
 async function main() {
+	const rhost = Rhost.environment()
+
 	const startcolor = function() {
-		if(!Deno.args[0]) {
+		if(!rhost.args[0]) {
 			Rhost.print('#-1 startcolor required')
 			Deno.exit(-1)
 		}
-		return Deno.args[0]
+		return rhost.args[0]
 	}()
 
 	const endcolor = function() {
-		if(!Deno.args[1]) {
+		if(!rhost.args[1]) {
 			Rhost.print('#-1 endcolor required')
 			Deno.exit(-1)
 		}
-		return Deno.args[1]
+		return rhost.args[1]
 	}()
 
 	const length = function() {
-		const l = parseInt(Deno.args[2])
+		const l = parseInt(rhost.args[2])
 		if(typeof l != 'number' || isNaN(l)) {
 			Rhost.print('#-1 length required to be a number')
 			Deno.exit(-1)
@@ -47,11 +49,11 @@ async function main() {
 	}()
 
 	const string = function() {
-		if(!Deno.args[3]) {
+		if(!rhost.args[3]) {
 			Rhost.print('#-1 string required')
 			Deno.exit(-1)
 		}
-		return Deno.args.slice(3).join(' ')
+		return rhost.args.slice(3).join(' ')
 	}()
 
 	const starthsv = function() {
