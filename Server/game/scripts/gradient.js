@@ -95,8 +95,12 @@ async function main() {
 	var ret = ""
 	var i = 0
 	for(var ch of Rhost.mapString(string)) {
-		ret += `[ansi(${gradientrange[i % length]},${ch})]`
-		++i
+		if(ch.match(/\s/)) {
+			ret += ch
+		} else {
+			ret += `[ansi(${gradientrange[i % length]},${ch})]`
+			++i
+		}
 	}
 
 	Rhost.print(ret)
