@@ -7684,6 +7684,16 @@ FUNCTION(fun_crc32obj)
       return;
    }
 
+   if ( stricmp(fargs[1], "SHOW") ) {
+     if (mudstate.last_cmd_timestamp == mudstate.now) {
+         mudstate.heavy_cpu_recurse += 1;
+      }
+   }
+   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+      return;
+   }
+
    if ( stricmp(fargs[1], "SET") && 
         stricmp(fargs[1], "CHK") && 
         stricmp(fargs[1], "CALC") && 
@@ -7762,6 +7772,16 @@ FUNCTION(fun_crc32obj)
          s_storeptr = s_store = alloc_lbuf("crc32obj_store");
          uival(s_store, &s_storeptr, ulCRC32);
       }
+   }
+
+   if ( !stricmp(fargs[1], "SHOW") ) {
+     if ( s_passtok ) {
+       safe_str(s_passtok, buff, bufcx);
+       return;
+     } else {
+       uival(buff, bufcx, ulCRC32);
+       return;
+     }
    }
 
    anumignore1 = anumignore2 = -1;
@@ -7860,12 +7880,6 @@ FUNCTION(fun_crc32obj)
    } else {
       if ( !stricmp(fargs[1], "CALC") ) { 
          uival(buff, bufcx, ulCRC32);
-      } else if ( !stricmp(fargs[1], "SHOW") ) {
-         if ( s_passtok ) {
-            safe_str(s_passtok, buff, bufcx);
-         } else {
-            uival(buff, bufcx, ulCRC32);
-         }
       } else {
          if ( s_passtok ) {
             if ( (unsigned int)safe_atof(s_passtok) == ulCRC32 ) {
