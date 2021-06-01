@@ -7777,9 +7777,11 @@ FUNCTION(fun_crc32obj)
    if ( !stricmp(fargs[1], "SHOW") ) {
      if ( s_passtok ) {
        safe_str(s_passtok, buff, bufcx);
+       free_lbuf(s_tmp);
        return;
      } else {
        uival(buff, bufcx, ulCRC32);
+       free_lbuf(s_tmp);
        return;
      }
    }
