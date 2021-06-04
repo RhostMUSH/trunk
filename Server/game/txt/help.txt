@@ -34076,6 +34076,7 @@
   * @entrances improved to show more details in better organization [ASH]
   * %+ has an extension %+! and %+!x! (where x is any char) [ASH]
   * crc32obj()/@crc32obj strips internal attribs from checks [ASH]
+  * added DoS protection to CRC handler [ASH]
   
   Bug Fixes
   ------------

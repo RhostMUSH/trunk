@@ -483,19 +483,30 @@ verify_checksum(dbref thing)
    unsigned int ulCRC32;
    char *s_str, *s_buff, *as, *s_chksum, *s_tok;
    int anum, anumsave, anumignore1, anumignore2, aflags, i_len;
+   time_t t_tme;
    dbref aowner;
 
+
+   /* If CPU time hit or time exceeded just bypass checksum checks */
+   t_tme = time(NULL);
+   if ( mudstate.chkcpu_toggle || ((mudstate.now + 5) <= t_tme )) {
+      return 1;
+   }
+
+   /* CRC attribute doesn't exist in hash, ignore entirely */
    ap2 = atr_str_mtch("__CRC32");
    if ( !ap2 ) {
       return 1;
    }
    anumsave = ap2->number;
 
+   /* Object has no CRC attribute, ignore entirely */
    s_str = atr_get(thing, anumsave, &aowner, &aflags);
    if ( !s_str ) {
       return 1;
    }
 
+   /* Object's CRC attribute is empty, ignore entirely */
    if ( !*s_str ) {
       free_lbuf(s_str);
       return 1;
@@ -505,6 +516,8 @@ verify_checksum(dbref thing)
    if ( s_chksum ) {
       s_chksum = strtok_r(NULL, " ", &s_tok);
    }
+
+   /* Object's CRC is corrupt, ignore entirely */
    if ( !s_chksum || !*s_chksum ) {
       free_lbuf(s_str);
       return 1;
@@ -582,12 +595,15 @@ verify_checksum(dbref thing)
       i_len = strlen(s_buff);
       ulCRC32 = CRC32_ProcessBuffer(ulCRC32, s_buff, i_len);
    }
+
+   /* Stored checksum matches calculated checksum */
    if ( (unsigned int)safe_atof(s_chksum) == ulCRC32 ) {
       free_lbuf(s_str);
       free_lbuf(s_buff);
       return 1;
    }
 
+   /* Fell through with a bad checksum */
    free_lbuf(s_str);
    free_lbuf(s_buff);
    return 0;
