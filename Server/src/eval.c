@@ -803,7 +803,7 @@ static const int mux_isprint[256] =
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr, char *buff_utf, char **bufuptr)
 {
     char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
-    char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp;
+    char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp, ucssubstitute;
     unsigned char ch1, ch2, ch;
     int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi;
 
@@ -947,9 +947,10 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         i_utfcnt++;
                         tmp++;
                     }
-		    free_sbuf(tmpptr);
-                    safe_chr(' ', buff2, &bufc2);
-                    safe_chr(' ', buff, &bufc);
+                    free_sbuf(tmpptr);
+                    ucssubstitute = ucs32toascii(strtol(s_ucpbuf, NULL, 16));
+                    safe_chr(ucssubstitute, buff2, &bufc2);
+                    safe_chr(ucssubstitute, buff, &bufc);
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
@@ -967,7 +968,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                       }
                       safe_chr((char) i_extendnum, buff2, &bufc2);
                       safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
-                      safe_chr(' ', buff, &bufc);                         
+                      safe_chr('?', buff, &bufc);                         
                    } else {
                       switch(i_extendnum) {
                          case 251:

@@ -1,6 +1,8 @@
                          RhostMUSH 4.2 Update File
 SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
 				- Thanks Pres
+UTF8 -> ASCII fallback for selecct characters.
+        - Thanks WStarter for the idea, and Pres for the POC
 
 
                          RhostMUSH 4.0 Update File

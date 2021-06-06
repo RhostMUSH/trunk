@@ -34064,6 +34064,9 @@
   * @crc32obj/crc32obj() for CRC checksums on objects [ASH]
   * enforce_checksums config parameter to enforce command eval with CRC [ASH]
   * @K/@k and @N/@n substitutions for SPEECH_PREFIX/SPEECH_SUFFIX
+  * Automatic UTF-8 -> Ascii fallback for a select series of characters.
+    Inspired by WStarter, initial POC by Polk, adjustment by [AMB]
+  * Made the default ascii UTF represenation a '?' instead of a space [AMB]
   
   Changes
   -------
