@@ -2699,7 +2699,7 @@
     > pose jumps for joy
     Bob jumps for joy
   
-  See Also: page, say, whisper, :, ;, ", }, ]
+  See Also: page, say, whisper, @emit, :, ;, ", }, ]
   
 & quit    
   Command: QUIT 
@@ -2849,7 +2849,7 @@
     > \\A chill falls over the room.
     A chill falls over the room.
   
-  See Also: @emit, @oemit, NOSPOOF
+  See Also: @emit, @oemit, say, pose, ", :, ;, NOSPOOF
   
 & SPEECH_PREFIX
 & SPEECH_SUFFIX
@@ -2902,7 +2902,7 @@
     %2 - The time in the form HH:MM:SS
     %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
-  See Also: page, pose, whisper, :, ;, ", @saystring, }, ]
+  See Also: page, pose, whisper, @emit :, ;, ", }, ], @saystring
   
 & score
   Command: score
