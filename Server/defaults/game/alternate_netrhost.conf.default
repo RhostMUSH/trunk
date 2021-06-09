@@ -350,6 +350,7 @@ iter_loop_max             100000
 mtimer                    10
 wizcommand_quota_max      100
 protect_addenh            0
+pagelock_notify           1
 posesay_funct             0
 global_error_cmd          0
 enforce_checksums         0
