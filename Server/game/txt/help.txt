@@ -2699,7 +2699,7 @@
     > pose jumps for joy
     Bob jumps for joy
   
-  See Also: page, say, whisper, :, ;, "
+  See Also: page, say, whisper, :, ;, ", }, ]
   
 & quit    
   Command: QUIT 
@@ -2902,7 +2902,7 @@
     %2 - The time in the form HH:MM:SS
     %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
-  See Also: page, pose, whisper, :, ;, ", @saystring
+  See Also: page, pose, whisper, :, ;, ", @saystring, }, ]
   
 & score
   Command: score
@@ -3985,7 +3985,7 @@
  
   Some MUSHes may restrict the use of this command.
   
-  See Also: @femit, @oemit, @pemit, SPOOFING
+  See Also: @femit, @oemit, @pemit, SPOOFING, say, pose, }, ]
   
 & @entrances
   Command: @entrances [[<object>][,<low>[,<high>]]]
