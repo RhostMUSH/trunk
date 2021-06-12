@@ -8643,9 +8643,9 @@
   Config parameter: format_compatibility <yes/no>.  Default: no
   
   In the past, TinyMUSH/PennMUSH changed the names of their format-related
-  attributes from @format<term> to @<term>format. With this parameter enabled,
-  the new &***format gets used in case compatibility with those new versions is
-  needed.
+  attributes from @format<type> to @<type>format. With this parameter enabled,
+  the new @<type>format gets used in case compatibility with those new versions
+  is needed.
 
   See Also: brace_compatibility, break_compatibility, format_compatibility,
             hasattrp_compat, lnum_compat, mux_child_compat, mux_lcon_compat,
