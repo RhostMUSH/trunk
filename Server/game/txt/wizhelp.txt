@@ -8644,7 +8644,7 @@
   
   In the past, TinyMUSH/PennMUSH changed the names of their format-related
   attributes from @format<term> to @<term>format. With this parameter enabled,
-  the old format gets used in case compatibility with those old versions is
+  the new &***format gets used in case compatibility with those new versions is
   needed.
 
   See Also: brace_compatibility, break_compatibility, format_compatibility,
