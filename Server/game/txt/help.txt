@@ -34080,6 +34080,9 @@
   * %+ has an extension %+! and %+!x! (where x is any char) [ASH]
   * crc32obj()/@crc32obj strips internal attribs from checks [ASH]
   * added DoS protection to CRC handler [ASH]
+  * Implementation of general multi-character delimiter support
+    under the hood [ASH]
+  * Elementsmux() now supports multi-character delimiters [ASH]
   
   Bug Fixes
   ------------
