@@ -1905,6 +1905,32 @@ mystrcat(char *dest, const char *src)
 
 /* Trim off leading and trailing spaces if the separator char is a space */
 
+char *
+trim_space_sep_multi(char *str, char *sep)
+{
+    char *p;
+
+    if (strcmp(sep, (char *)" ") != 0)
+       return str;
+
+    /* Trim start spaces */
+    while (*str && (*str == ' '))
+       str++;
+
+    /* Walk string to the end of the buffer */
+    for (p = str; *p; p++);
+
+    /* Walk backwards, stripping spaces */
+    for (p--; *p == ' ' && p > str; p--);
+
+    /* Advane to the space and set null */
+    p++;
+    *p = '\0';
+
+    return str;
+}
+
+/* Safe atof() function */
 char * trim_space_sep(char *str, char sep)
 {
     char *p;
@@ -2042,6 +2068,35 @@ char *next_token(char *str, char sep)
 /* split_token: Get next token from string as null-term string.  String is
  * destructively modified.
  */
+
+char *
+split_token_multi(char **sp, char *sep)
+{
+    char *str, *save, *tbuf;
+
+    save = str = *sp;
+    if (!str) {
+       *sp = NULL;
+       return NULL;
+    }
+
+    tbuf = strstr(str, sep);
+       
+    if (tbuf && *tbuf) {
+       str = tbuf;
+       *str = '\0';
+       str+=strlen(sep);
+
+       if ( strcmp(sep, (char *)" ") == 0 ) {
+          while (*str == ' ')
+             str++;
+       }
+    } else {
+       str = NULL;
+    }
+    *sp = str;
+    return save;
+}
 
 char * split_token(char **sp, char sep)
 {
@@ -2204,6 +2259,22 @@ get_list_type(char *fargs[], int nfargs, int type_pos,
     return autodetect_list(ptrs, nitems);
 }
 
+int
+list2arr_multi(char *arr[], int maxlen, char *list, char *sep)
+{
+    char *p;
+    int i;
+
+    list = trim_space_sep_multi(list, sep);
+
+    p = split_token_multi(&list, sep);
+
+    for (i = 0; p && i < maxlen; i++, p = split_token_multi(&list, sep)) {
+       arr[i] = p;
+    }
+    return i;
+}
+
 int list2arr(char *arr[], int maxlen, char *list, char sep)
 {
     char *p;
@@ -2215,6 +2286,20 @@ int list2arr(char *arr[], int maxlen, char *list, char sep)
        arr[i] = p;
     }
     return i;
+}
+
+static void
+arr2list_multi(char *arr[], int alen, char *list, char **listcx, char *sep)
+{
+    int i;
+    int gotone = 0;
+
+    for (i = 0; i < alen; i++) {
+        if( gotone )
+          safe_str(sep, list, listcx);
+        safe_str(arr[i], list, listcx);
+        gotone = 1;
+    }
 }
 
 static void
@@ -2340,7 +2425,7 @@ fval(char *buff, char **bufcx, double result)
  */
 
 int fn_range_check_real(const char *fname, int nfargs, int minargs,
-       int maxargs, char *result, char **resultcx, int evenodd)
+       int maxargs, char *result, char **resultcx, int evenodd, char *sep, char *osep)
 {
     int i_return = 0;
 
@@ -2371,6 +2456,10 @@ int fn_range_check_real(const char *fname, int nfargs, int minargs,
           safe_str((char*)" ARGUMENTS [RECEIVED ", result, resultcx);
           ival(result, resultcx, nfargs);
           safe_chr(']', result, resultcx);
+          if ( sep )
+            free_lbuf(sep);
+          if ( osep )
+            free_lbuf(osep);
        } 
        return i_return;
     }
@@ -2385,6 +2474,10 @@ int fn_range_check_real(const char *fname, int nfargs, int minargs,
         safe_str((char*)" ARGUMENTS [RECEIVED ", result, resultcx);
         ival(result, resultcx, nfargs);
         safe_chr(']', result, resultcx);
+        if ( sep )
+           free_lbuf(sep);
+        if ( osep )
+           free_lbuf(osep);
     } else {
         safe_str((char*)"#-1 FUNCTION (", result, resultcx);
         safe_str((char*)fname, result, resultcx);
@@ -2395,6 +2488,10 @@ int fn_range_check_real(const char *fname, int nfargs, int minargs,
         safe_str((char*)" ARGUMENTS [RECEIVED ", result, resultcx);
         ival(result, resultcx, nfargs);
         safe_chr(']', result, resultcx);
+        if ( sep )
+           free_lbuf(sep);
+        if ( osep )
+           free_lbuf(osep);
     }
     return i_return;
 }
@@ -2402,6 +2499,49 @@ int fn_range_check_real(const char *fname, int nfargs, int minargs,
 /* ---------------------------------------------------------------------------
  * delim_check: obtain delimiter
  */
+
+int
+delim_check_multi(char *fargs[], int nfargs, int sep_arg, char *sep,
+    char *buff, char **bufcx, int eval, dbref player, dbref cause,
+                dbref caller, char *cargs[], int ncargs, int key)
+{
+   char *tstr;
+   int tlen;
+
+   if (nfargs >= sep_arg) {
+      tlen = strlen(fargs[sep_arg - 1]);
+      if (tlen <= 1) {
+         eval = 0;
+      }
+      if (eval) {
+         tstr = exec(player, cause, caller, EV_EVAL | EV_FCHECK,
+                     fargs[sep_arg - 1], cargs, ncargs, (char **)NULL, 0);
+         tlen = strlen(tstr);
+         if ( key && mudconf.delim_null && (tlen == 2) && (strcmp(tstr, (char *)"@@") == 0) ) {
+            tlen = 1;
+            strcpy(sep, (char *)"\032");
+         } else {
+            strcpy(sep, tstr);
+         }
+         free_lbuf(tstr);
+      }
+      if (tlen == 0) {
+         strcpy(sep, (char *)" ");
+      } else if (tlen != 1) {
+         if ( key && !eval && mudconf.delim_null && (tlen == 2) && (strcmp(fargs[sep_arg - 1], (char *)"@@") == 0) ) {
+            tlen = 1;
+            strcpy(sep, (char *)"\032");
+         } else  if ( !eval ) {
+            strcpy(sep, fargs[sep_arg - 1]);
+         }
+      } else if (!eval) {
+          strcpy(sep, fargs[sep_arg - 1]);
+      }
+   } else {
+      strcpy(sep, (char *)" ");   
+   }
+   return 1;
+}
 
 int delim_check(char *fargs[], int nfargs, int sep_arg, char *sep,
     char *buff, char **bufcx, int eval, dbref player, dbref cause,
@@ -16839,41 +16979,113 @@ FUNCTION(fun_u2ldefault)
  ******************************************************************/
 FUNCTION(fun_elementsmux)
 {
-   int nwords, cur, bFirst;
-   char *ptrs[LBUF_SIZE / 2];
-   char *wordlist, *s, *r, sep, osep;
+   int nwords, cur, bFirst, i_loop, i_len, i_ansiaware;
+   char *ptrs[LBUF_SIZE / 2], *s_output, *s_tbuf, *s_tbufptr;
+   char *s, *r, *sep, *osep, *outbuff, *osepbuff;
+   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], insplit[LBUF_SIZE], *p_in;
 
-   svarargs_preamble("ELEMENTSMUX", 4);
+   
+   /* Fifth argument toggles ansi-aware or not */
+   if (!fn_range_check("ELEMENTSMUX", nfargs, 2, 5, buff, bufcx)) {
+      return;
+   }
+
+   sep = alloc_lbuf("fun_elementsmux_sep");
+   osep = alloc_lbuf("fun_elementsmux_osep");
+   if ( (nfargs > 2) && *fargs[2] )
+      strcpy(sep, fargs[2]);
+   else
+      strcpy(sep, (char *)" ");
+   if ( (nfargs > 3) && *fargs[3] ) 
+      strcpy(osep, fargs[3]);
+   else
+      strcpy(osep, sep);
+
+   if ( mudconf.delim_null && (strcmp(osep, (char *)"@@") == 0) ) {
+      strcpy(osep, "\032");
+   }
+
+   i_ansiaware = 0;
+   if ( (nfargs > 4) && *fargs[4] ) {
+      i_ansiaware = (atoi(fargs[4]) ? 1 : 0);
+   }
 
    bFirst = 1;
 
-   /* Turn the first list into an array. */
-   wordlist = alloc_lbuf("fun_elements.wordlist");
+   outbuff = alloc_lbuf("fun_elementsmuxout");
+   if ( i_ansiaware ) {
+      initialize_ansisplitter(outsplit, LBUF_SIZE);
+      initialize_ansisplitter(outsplit2, LBUF_SIZE);
+      initialize_ansisplitter(insplit, LBUF_SIZE);
+      s_tbufptr = s_tbuf = alloc_lbuf("fun_elementsmuxansi");
+      osepbuff = alloc_lbuf("fun_elementsmuxosep");
+      memset(outbuff, '\0', LBUF_SIZE);
+      memset(osepbuff, '\0', LBUF_SIZE);
+      split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+      nwords = list2arr_multi(ptrs, LBUF_SIZE / 2, outbuff, sep);
+   } else {
+      strcpy(outbuff, fargs[0]);
+      nwords = list2arr_multi(ptrs, LBUF_SIZE / 2, outbuff, sep);
+   }
 
-   /* Same size - no worries */
-   strcpy(wordlist, fargs[0]);
-   nwords = list2arr(ptrs, LBUF_SIZE / 2, wordlist, sep);
-   s = trim_space_sep(fargs[1], ' ');
+   s = trim_space_sep_multi(fargs[1], (char *)" ");
 
   /* Go through the second list, grabbing the numbers and finding the
    * corresponding elements.
    */
 
+   if ( i_ansiaware ) {
+      split_ansi(strip_ansi(osep), osepbuff, outsplit2);
+      p_in = insplit;
+      i_len = strlen(osepbuff);
+   }
    do {
-      r = split_token(&s, ' ');
+      r = split_token_multi(&s, (char *)" ");
       cur = atoi(r) - 1;
       if ( cur < 0 ) {
          cur += nwords + 1;
       }
       if (  (cur >= 0) && (cur < nwords) && ptrs[cur]) {
          if (!bFirst) {
-            safe_chr(osep, buff, bufcx);
+            if ( i_ansiaware ) {
+               for ( i_loop = 0; i_loop < i_len; i_loop++ ) {
+                  if ( safe_chr(*(osepbuff+i_loop), s_tbuf, &s_tbufptr) == 0 ) {
+                     if ( *(osepbuff+i_loop) != '\032' ) {
+                        clone_ansisplitter(p_in, outsplit2+i_loop);
+                        p_in++;
+                     }
+                  }
+               }
+           } else {
+              safe_str(osep, buff, bufcx);
+           }
          }
          bFirst = 0;
-         safe_str(ptrs[cur], buff, bufcx);
+         if ( i_ansiaware ) {
+            for ( i_loop = 0; i_loop < strlen(ptrs[cur]); i_loop++) {
+               if ( safe_chr(*(ptrs[cur]+i_loop), s_tbuf, &s_tbufptr) == 0 ) {
+                  clone_ansisplitter(p_in, outsplit+(ptrs[cur]-outbuff+i_loop));
+                  p_in++;
+               }
+            }
+         } else {
+            safe_str(ptrs[cur], buff, bufcx);
+         }
       }
    } while (s);
-   free_lbuf(wordlist);
+
+   if ( i_ansiaware ) {
+      s_output = rebuild_ansi(s_tbuf, insplit, 0);
+      safe_str(s_output, buff, bufcx);
+
+      free_lbuf(s_tbuf);
+      free_lbuf(s_output);
+      free_lbuf(osepbuff);
+   }
+
+   free_lbuf(outbuff);
+   free_lbuf(sep);
+   free_lbuf(osep);
 }
 
 /* Elements -- does not respect null values */
@@ -32002,7 +32214,7 @@ FUNCTION(fun_editansi)
    safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
    return;
 #else
-   if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1)) 
+   if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1, (char *)NULL, (char *)NULL)) 
        return;
 
    if ( !*fargs[0] )

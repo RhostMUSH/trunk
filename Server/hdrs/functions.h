@@ -108,15 +108,70 @@ extern void	FDECL(list_functable2, (dbref, char*, char**, int));
     		 player, cause, caller, cargs, ncargs, 1))                         \
 		return;
 
+/* The multi-argument handler for function prototyping */
+#define varargs_preamble_multi(xname,xnargs)                                  \
+	if (!fn_range_check_multi(xname, nfargs, xnargs-1, xnargs, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs, sep, buff, bufcx, 0,   \
+		player, cause, caller, cargs, ncargs, 0))                          \
+		return;
+
+#define evarargs_preamble_multi(xname,xnargs)                                 \
+	if (!fn_range_check_multi(xname, nfargs, xnargs-1, xnargs, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs, sep, buff, bufcx, 1,   \
+	    player, cause, caller, cargs, ncargs, 0))                              \
+		return;
+
+#define mvarargs_preamble_multi(xname,xminargs,xnargs)                        \
+	if (!fn_range_check_multi(xname, nfargs, xminargs, xnargs, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs, sep, buff, bufcx, 0,   \
+	    player, cause, caller, cargs, ncargs, 0))                              \
+		return;
+
+#define evarargs_preamble2_nulti(xname,xnargs,xnargs2)                        \
+	if (!fn_range_check_multi(xname, nfargs, xnargs, xnargs2, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs, sep, buff, bufcx, 1,   \
+	    player, cause, caller, cargs, ncargs, 0))                              \
+		return;
+
+#define svarargs_preamble_multi(xname,xnargs)                                 \
+	if (!fn_range_check_multi(xname, nfargs, xnargs-2, xnargs, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs-1, sep, buff, bufcx, 0,        \
+    			 player, cause, caller, cargs, ncargs, 0))                 \
+		return;                                                 \
+	if (nfargs < xnargs)                                            \
+                strcpy(osep, sep);              \
+	else if (!delim_check_multi(fargs, nfargs, xnargs, osep, buff, bufcx, 0,    \
+    		 player, cause, caller, cargs, ncargs, 1))                         \
+		return;
+
+#define sevarargs_preamble_multi(xname,xnargs)                                 \
+	if (!fn_range_check_multi(xname, nfargs, xnargs-2, xnargs, buff, bufcx, sep, osep))     \
+		return;                                                 \
+	if (!delim_check_multi(fargs, nfargs, xnargs-1, sep, buff, bufcx, 1,        \
+    			 player, cause, caller, cargs, ncargs, 0))                 \
+		return;                                                 \
+	if (nfargs < xnargs)                                            \
+                strcpy(osep, sep);             \
+	else if (!delim_check_multi(fargs, nfargs, xnargs, osep, buff, bufcx, 1,    \
+    		 player, cause, caller, cargs, ncargs, 1))                         \
+		return;
+
 /* Utility function prototypes */
 char * trim_space_sep(char *, char);
 double safe_atof(char *);
 char *upcasestr(char *);
 char *next_token(char *, char);
 char * split_token(char **, char);
-int fn_range_check_real(const char *, int, int, int, char *, char **, int);
+int fn_range_check_real(const char *, int, int, int, char *, char **, int, char *, char *);
 int delim_check(char *[], int, int, char *, char *, char **, int, dbref, dbref, dbref, char *[], int, int);
+int delim_check_multi(char *[], int, int, char *, char *, char **, int, dbref, dbref, dbref, char *[], int, int);
 int list2arr(char *arr[], int maxlen, char *list, char sep);
-#define fn_range_check(a, b, c, d, e, f)	fn_range_check_real(a, b, c, d, e, f, 0)
+#define fn_range_check(a, b, c, d, e, f)	fn_range_check_real(a, b, c, d, e, f, 0, (char *)NULL, (char *)NULL)
+#define fn_range_check_multi(a, b, c, d, e, f, g, h)	fn_range_check_real(a, b, c, d, e, f, 0, g, h)
 
 #endif
