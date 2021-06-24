@@ -4,7 +4,7 @@
 @@ This object _MUST_ be owned and installed by an immortal.
 @@
 @create ExecObject=10
-@desc ExecObject=The following commands exist:%r[space(3)]+diff <text1>/<text2> -- Diff the two texts color highlighting the changes%r[space(3)]+ispell <text> -- perform spelling on the words of <text>%r[space(3)]+dict <word> -- show the dictionary definition of the given word%r[space(3)]+thes <word> -- show the thesaurus matches for the given word%r[space(3)]+math <math> -- evaluate the natural math value and return results%r[space(3)]+pastebinread <hash> -- read the pastebin.com hash specified.%r[space(3)]+pastebinwrite <text> -- write the pastebin text (if allowed)%r[space(3)]+compile <value> -- compile PATCH, RECOMPILE, STATUS, or ROLLBACK.  patch updates code.  Make sure to @readcache after%r[space(3)]+weather <location> -- show current weather at location%r[space(3)]+forcast <location> -- show full weather forcast at location%r%r%rNote: There are more scripts available and you can customize your own.  Please look in your ~/game/scripts directory.
+@desc ExecObject=The following commands exist:%r[space(3)]+diff <text1>/<text2> -- Diff the two texts color highlighting the changes%r[space(3)]+ispell <text> -- perform spelling on the words of <text>%r[space(3)]+dict <word> -- show the dictionary definition of the given word%r[space(3)]+thes <word> -- show the thesaurus matches for the given word%r[space(3)]+math <math> -- evaluate the natural math value and return results%r[space(3)]+pastebinread <hash> -- read the pastebin.com hash specified.%r[space(3)]+pastebinwrite <text> -- write the pastebin text (if allowed)%r[space(3)]+compile <value> -- compile PATCH, RECOMPILE, STATUS, or ROLLBACK.  patch updates code.  Make sure to @readcache after%r[space(3)]+weather <location> -- show current weather at location%r[space(3)]+forecast <location> -- show full weather forecast at location%r%r%rNote: There are more scripts available and you can customize your own.  Please look in your ~/game/scripts directory.
 @power/counc ExecObject=execscript
 &CMD_DIFF ExecObject=$+diff */*:@pemit %#=[execscript(diff.sh,%0,|,%1)]
 &CMD_ISPELL ExecObject=$+ispell*:@pemit %#=[ifelse(!$v(0),+spell: Spell what?,[rjust(- +spell ----,78,-)]%r[execscript(spell.sh,trim(%0))]%r[repeat(-,78)])]
@@ -16,7 +16,7 @@
 &CMD_THES ExecObject=$+thes*:@pemit %#=[ifelse(!$v(0),+thes: Thesaurus on what?,[rjust(- +thes ----,78,-)]%r[setq(0,execscript(thes.sh,trim(%0)))][ifelse(!!^r(0),%q0,Nothing found for word.)]%r[repeat(-,78)])]
 &CMD_COMPILE ExecObject=$+compile*:@assert [u(CANCOMPILE,%#)]=@pemit %#=+compile: Permission denied;@pemit %#=[execscript(compile.sh,%0)]
 &CMD_WEATHER ExecObject=$+weather*:@pemit %#=[ifelse(!$v(0),+weather: Please specify a location,edit(execscript(weather.sh,trim(%0)),?,%<176>))]
-&CMD_FORECAST ExecObject=$+forecast*:@pemit %#=[ifelse(!$v(0),+forcast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))]
+&CMD_FORECAST ExecObject=$+forecast*:@pemit %#=[ifelse(!$v(0),+forecast: Please specify a location,edit(execscript(fullweather.sh,trim(%0)),?,%<176>))]
 &CMD_LOGSEARCH ExecObject=$+logsearch*:@assert [u(CANLOGSEARCH,%#)]=@pemit %#=+logsearch: Permission denied;@pemit %#=[execscript(logsearch.sh,trim(%0))]
 &CANCOMPILE ExecObject=[gte(bittype(%0),6)]
 &CANLOGSEARCH ExecObject=[gte(bittype(%0),5)]
