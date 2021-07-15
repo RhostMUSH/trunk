@@ -8805,10 +8805,10 @@
 & global_ansimask
   Config parameter: global_ansimask <mask>.  Default: 2097151
   
-  Specifies a mask of ansi codes you do *NOT* want to be able to use globally.
-  This will strip them from all %c and ansi() substitutions.  All the colors
-  starting with a '*' are background colors.   Any color you do *not* want
-  to use you need to subtract from the '2097151' total.
+  Specifies a mask of ansi codes you *DO* want to be able to use globally.
+  If not part of the mask, this will strip them from all %c and ansi()
+  substitutions.  All the colors starting with a '*' are background colors.
+  Any color you *DO* want to use you need to add up to a total.
   The masks are:
       BLACK      1             RED        2             GREEN      4         
       YELLOW     8             BLUE       16            MAGENTA    32        
