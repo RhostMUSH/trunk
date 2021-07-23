@@ -34,7 +34,7 @@
 
 #define NBBY		CHAR_BIT
 
-/* gloss over slight differences between BSD direct and POSIX dirent */
+/* gloss over slight differences between BSD dirent and POSIX dirent */
   
 #define d_namlen	d_reclen
 
