@@ -56,7 +56,7 @@ CMD_TWO_ARG(do_crc32obj);		/* Make/Show/Update CRC32 on object */
 CMD_ONE_ARG(do_cut);			/* Truncate contents or exits list */
 CMD_NO_ARG(do_dbck);			/* Consistency check */
 CMD_NO_ARG(do_dbclean);			/* Clean unused attributes -- piggy as shit */
-CMD_TWO_ARG(do_decomp);			/* Reproduce commands to recrete obj */
+CMD_TWO_ARG(do_decomp);			/* Reproduce commands to recreate obj */
 CMD_ONE_ARG(do_destroy);		/* Destroy an object */
 CMD_TWO_ARG_ARGV(do_dig);		/* Dig a new room */
 CMD_ONE_ARG(do_doing);			/* Set doing string in WHO report */
@@ -75,13 +75,13 @@ CMD_TWO_ARG(do_extansi);		/* Allow extended ansi in @ansiname */
 CMD_ONE_ARG(do_find);			/* Search for name in database */
 CMD_TWO_ARG(do_fixdb);			/* Database repair functions */
 CMD_TWO_ARG(do_flagstuff);
-CMD_TWO_ARG(do_flagdef);                /* Set/unset/see/list paramaters for flags */
-CMD_TWO_ARG(do_totem);                /* Set/unset/see/list paramaters for flags */
+CMD_TWO_ARG(do_flagdef);                /* Set/unset/see/list parameters for flags */
+CMD_TWO_ARG(do_totem);                /* Set/unset/see/list parameters for flags */
 CMD_TWO_ARG_ARGV(do_teleport);                /* Teleport elsewhere */
 CMD_TWO_ARG_CMDARG(do_force);		/* Force someone to do something */
 CMD_ONE_ARG_CMDARG(do_force_prefixed);	/* #<num> <cmd> variant of FORCE */
 CMD_ONE_ARG(do_freeze);			/* FREEZE a frozen queue entry */
-CMD_TWO_ARG(do_function);		/* Make iser-def global function */
+CMD_TWO_ARG(do_function);		/* Make user-def global function */
 CMD_ONE_ARG(do_get);			/* Get an object */
 CMD_TWO_ARG(do_give);			/* Give something away */
 CMD_ONE_ARG(do_goto);
@@ -132,7 +132,7 @@ CMD_ONE_ARG(do_motd);			/* Set/list MOTD messages */
 CMD_ONE_ARG(do_money);                  /* Allows someone with UNLIMITED money to specify what money() shows */
 CMD_ONE_ARG(do_move);			/* Move about using exits */
 CMD_TWO_ARG_ARGV(do_mvattr);		/* Move attributes on object */
-CMD_TWO_ARG(do_mudwho);			/* WHO for inter-mud page/who suppt */
+CMD_TWO_ARG(do_mudwho);			/* WHO for inter-mud page/who support */
 CMD_TWO_ARG(do_name);			/* Change the name of something */
 CMD_TWO_ARG(do_newpassword);		/* Change passwords */
 CMD_TWO_ARG(do_notify);			/* Notify or drain semaphore */
@@ -181,11 +181,11 @@ CMD_TWO_ARG_ARGV_CMDARG(do_switch);	/* Execute cmd based on match */
 CMD_TWO_ARG(do_tag);			/* Manage object tags */
 CMD_TWO_ARG(do_ltag);			/* Manage object tags */
 CMD_ONE_ARG(do_thaw);			/* THAW out a frozen queue entry */
-CMD_ONE_ARG(do_think);			/* Think command (ie: @pemit me=message) */
+CMD_ONE_ARG(do_think);			/* Think command (i.e.: @pemit me=message) */
 CMD_ONE_ARG(do_timewarp);		/* Warp various timers */
 CMD_TWO_ARG(do_toad);			/* Turn a tinyjerk into a tinytoad */
-CMD_TWO_ARG(do_toggledef);              /* Set/unset/see/list paramaters for toggles */
-CMD_TWO_ARG(do_totemdef);              /* Set/unset/see/list paramaters for toggles */
+CMD_TWO_ARG(do_toggledef);              /* Set/unset/see/list parameters for toggles */
+CMD_TWO_ARG(do_totemdef);              /* Set/unset/see/list parameters for toggles */
 CMD_TWO_ARG(do_turtle);			/* Turn a tinyjerk into a tinyturtle */
 CMD_ONE_ARG_CMDARG(do_train);		/* Train the player */
 CMD_ONE_ARG_CMDARG(do_noparsecmd);      /* noparse the command */
@@ -247,10 +247,10 @@ typedef struct aliasentry {
 #define CS_NARG_MASK	 0x0003	/* Argument count mask */
 #define CS_ARGV		 0x0004	/* ARG2 is in ARGV form */
 #define CS_INTERP	 0x0010	/* Interpret ARG2 if 2 args, ARG1 if 1 */
-#define CS_NOINTERP	 0x0020	/* Never interp ARG2 if 2 or ARG1 if 1 */
+#define CS_NOINTERP	 0x0020	/* Never interpret ARG2 if 2 or ARG1 if 1 */
 #define CS_CAUSE	 0x0040	/* Pass cause to old command handler */
 #define CS_UNPARSE	 0x0080	/* Pass unparsed cmd to old-style handler */
-#define CS_CMDARG	 0x0100	/* Pass in given command args */	
+#define CS_CMDARG	 0x0100	/* Pass in given command args */
 #define CS_STRIP	 0x0200	/* Strip braces even when not interpreting */
 #define	CS_STRIP_AROUND	 0x0400	/* Strip braces around entire string only */
 #define CS_SEP		 0x0800
@@ -315,7 +315,7 @@ typedef struct aliasentry {
 #define ADMIN_LOAD	0x00000001	/* @admin/load the parameters */
 #define ADMIN_SAVE	0x00000002	/* @admin/save the parameters */
 #define ADMIN_EXECUTE	0x00000004	/* @admin/execute (run) the parameters */
-#define ADMIN_LIST	0x00000008	/* @admikn/list the config params */
+#define ADMIN_LIST	0x00000008	/* @admin/list the config params */
 
 #define HOOK_BEFORE	0x00000001	/* BEFORE hook */
 #define HOOK_AFTER	0x00000002	/* AFTER hook */

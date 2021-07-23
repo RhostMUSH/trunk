@@ -5,7 +5,7 @@
 #ifndef _M_FUNCTIONS_H
 #define _M_FUNCTIONS_H
 
-/* This is the prototype for functions, be sure to update the 
+/* This is the prototype for functions, be sure to update the
    prototype in struct fun if this is changed */
 
 #define FUNCTION(x)     \

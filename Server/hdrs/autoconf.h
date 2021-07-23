@@ -6,10 +6,10 @@
 
 #include "copyright.h"
 
-/* Define the codebase as RhostMUSH */
+/* Define the code base as RhostMUSH */
 #define RHOSTMUSH 1
 
-/* Define the number of Totem Slots 
+/* Define the number of Totem Slots
  * This value must be between 1 and X where X is based on LBUF size
  *
  * Suggested values:
@@ -17,11 +17,11 @@
  * 20 slots (for  640 flags)
  * 40 slots (for 1280 flags)
  * Max values:
- *** 4K  lbufs -  300 max slots  (for   9600 flags) 
- *** 8K  lbufs -  600 max slots  (for  19200 flags) 
- *** 16K lbufs - 1200 max slots  (for  38400 flags) 
- *** 32K lbufs - 2500 max slots  (for  80000 flags) 
- *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+ *** 4K  lbufs -  300 max slots  (for   9600 flags)
+ *** 8K  lbufs -  600 max slots  (for  19200 flags)
+ *** 16K lbufs - 1200 max slots  (for  38400 flags)
+ *** 32K lbufs - 2500 max slots  (for  80000 flags)
+ *** 64K lbufs - 5000 max slots  (for 160000 flags)
  *
  * Overhead: ((slots * 8) * total objects) + (flags * name len) + (slots * 8)
  * Flags are based on how many are used only.
@@ -35,26 +35,26 @@
  *                         6,425,920 (6.4 MB)
  * 20000 obj db, 10 slots: (10 * 8) * 20000) + (320 * 20) + (10 * 8) (default)
  *                         1,606,480 (1.6 MB)
- * 
- * Please be aware of the overhead.  This will also drasticaly increase stack
- * space.  Drasticaly raising this value will require rasing stack of your 
- * shell process.  ulimit -s 
+ *
+ * Please be aware of the overhead.  This will also drastically increase stack
+ * space.  Drastically raising this value will require raising stack of your
+ * shell process.  ulimit -s
  * For high numbers, suggest 32,000 or 64,000 stack size
  * Strongly suggest keeping this to a reasonable number.
  *
- * 10 slot default gives you 320 flags.  Nearly twice what rhost has in use.
+ * 10 slot default gives you 320 flags.  Nearly twice what Rhost has in use.
  * Unless you are really insane to want enough flags to choke a unicorn, it
  * should be plenty.
  */
- 
+
  /* Warning:
   * Do NOT exceed ((LBUF_SIZE / 9) - 10) total slots or you will CRASH.
   * Maximums per LBUFS will be: (rounded down to closest 100)
-  *** 4K  lbufs -  300 max slots  (for   9600 flags) 
-  *** 8K  lbufs -  600 max slots  (for  19200 flags) 
-  *** 16K lbufs - 1200 max slots  (for  38400 flags) 
-  *** 32K lbufs - 2500 max slots  (for  80000 flags) 
-  *** 64K lbufs - 5000 max slots  (for 160000 flags) 
+  *** 4K  lbufs -  300 max slots  (for   9600 flags)
+  *** 8K  lbufs -  600 max slots  (for  19200 flags)
+  *** 16K lbufs - 1200 max slots  (for  38400 flags)
+  *** 32K lbufs - 2500 max slots  (for  80000 flags)
+  *** 64K lbufs - 5000 max slots  (for 160000 flags)
   */
 #define TOTEM_SLOTS 10
 
@@ -76,13 +76,13 @@
 #endif
 /* Define if values required (like MAXINT) */
 #define NEED_VALUES 1
-/* Define if we have stdlib.h et al */
+/* Define if we have stdlib.h et al. */
 #define STDC_HEADERS 1
 /* Define if we have string.h instead of strings.h */
 /* #undef USG */
 /* Define if we have unistd.h */
 #define HAVE_UNISTD_H 1
-/* Define if we have memory.h and need it to get memcmp et al */
+/* Define if we have memory.h and need it to get memcmp et al. */
 /* #undef NEED_MEMORY_H */
 /* Decl for pid_t */
 /* #undef pid_t */
@@ -138,9 +138,9 @@
 /* #undef __CHAR_UNSIGNED__ */
 /* Define if inline keyword is broken or nonstandard */
 /* #undef inline */
-/* Define if we need to redef index/bcopy et al to their SYSV counterparts */
+/* Define if we need to redef index/bcopy et al. to their SYSV counterparts */
 /* #undef NEED_INDEX_DCL */
-/* Define if we need to declare malloc et al */
+/* Define if we need to declare malloc et al. */
 /* #undef NEED_MALLOC_DCL */
 /* Define if we need to declare vsprintf yourself */
 /* #undef NEED_VSPRINTF_DCL */
@@ -305,7 +305,7 @@ extern void	FDECL(perror, (const char *));
 #endif
 #endif
 
-#ifdef MALLOC_IN_STDLIB_H 
+#ifdef MALLOC_IN_STDLIB_H
 #include <stdlib.h>
 #else
 #ifdef HAVE_MALLOC_H

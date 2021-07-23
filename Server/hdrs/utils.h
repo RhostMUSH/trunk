@@ -15,7 +15,7 @@ int bittype(dbref player);
         log_text("Assertion failed, raise a bug report: '#x'");  \
         ENDLOG; \
         mudstate.panicking = 1; \
-    } 
+    }
 
 #define RHOSTpanic(x) \
     STARTLOG(LOG_BUGS, "PANIC", "ERR"); \

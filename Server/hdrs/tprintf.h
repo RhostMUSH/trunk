@@ -24,7 +24,7 @@ char *real_tprintf(char *filename, int lineNo,
 		   char *buff, char **bp, va_alist);
 #endif
 
-/* This should only be called in one place 
+/* This should only be called in one place
  *  - at the end of the main Rhost work loop
  */
 void freeTrackedBuffers(void);

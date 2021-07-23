@@ -29,7 +29,7 @@
  *    shall duly acknowledge such use, in accordance with the usual standards
  *    of acknowledging credit in academic research.
  *
- * 4. The authors have made no warrantee or representation that the operation
+ * 4. The authors have made no warranty or representation that the operation
  *    of this software will be error-free, and the authors are under no
  *    obligation to provide any services, by way of maintenance, update, or
  *    otherwise.
@@ -47,15 +47,15 @@
  *    Jin (and MicroMUSH):
  *      Made many, many changes to the code that improved it immensely.
  *    Robert Hood (virus):
- *      Modified the interface.c code to support alots of users.
+ *      Modified the interface.c code to support lots of users.
  *    Lachesis:
  *      Introduced the idea of property lists to TinyMUCK
  *    Many others:
- *      Many features borrowed from other muds.
+ *      Many features borrowed from other MUDs.
  */
 
 /* Changes and modification to Rhostcode Copyright (c) 1992, 1993, 1994,
- * 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 by Mike McDermott, 
+ * 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 by Mike McDermott,
  * Steve Shivers, Jace Hoppel, Elton Cranfill, Matt Devaney, Lewis Mackenzie
  * all rights reserved.
  *
@@ -64,11 +64,11 @@
  *
  * TinyMUSH 2.0 copyright included as some base code taken from TinyMUSH 2.0
  * TinyMUD copyright included as some base code taken from TinyMUD
- * 
+ *
  * Ideas borrowed (with permission) were incorporated from MUX2 and PENN.
  * Special thanks to Brazil and Javelin for their agreement to use the code.
  *
- * This copyright holds power over all preceeding and postceeding copyright
+ * This copyright holds power over all preceding and postceding copyright
  * rules held by any issuant over any form of medium and can not be bound
  * to conflicting copyrights.
  *

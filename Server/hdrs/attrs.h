@@ -8,7 +8,7 @@
 /* Attribute flags */
 #define	AF_ODARK	0x00000001	/* players other than owner can't see it */
 #define	AF_DARK		0x00000002	/* No one can see it */
-#define	AF_WIZARD	0x00000004	/* wizard and above modifyable */
+#define	AF_WIZARD	0x00000004	/* wizard and above modifiable */
 #define	AF_MDARK	0x00000008	/* Only wizards can see it. Dark to mortals */
 #define	AF_INTERNAL	0x00000010	/* Don't show even to #1 */
 #define	AF_NOCMD	0x00000020	/* Don't create a @ command for it */
@@ -16,14 +16,14 @@
 #define	AF_DELETED	0x00000080	/* Attribute should be ignored */
 #define	AF_NOPROG	0x00000100	/* Don't process $-commands from this attr */
 #define	AF_GOD		0x00000200	/* Only #1 can change it */
-#define	AF_ADMIN	0x00000400	/* counc and above modifyable */
-#define	AF_BUILDER	0x00000800	/* arch and above modifyable */
+#define	AF_ADMIN	0x00000400	/* counc and above modifiable */
+#define	AF_BUILDER	0x00000800	/* arch and above modifiable */
 #define AF_IS_LOCK  	0x00001000
 #define AF_GUILDMASTER	0x00002000	/* guildmaster can modify it */
-#define AF_IMMORTAL 	0x00004000	/* immortal modifyable */
+#define AF_IMMORTAL 	0x00004000	/* immortal modifiable */
 #define	AF_PRIVATE	0x00008000	/* Not inherited by children */
 #define AF_NONBLOCKING	0x00010000	/* command doesn't keep parent and
-					   globals from being checked if matched 
+					   globals from being checked if matched
                                            NOT USED -- Used now for @dbclean marking */
 #define AF_VISUAL	0x00020000
 #define AF_NOANSI	0x00040000
@@ -86,11 +86,11 @@ typedef struct afstruct {
 #define	A_ODESC		37	/* Others describe message */
 #define	A_RQUOTA	38	/* Relative object quota */
 #define	A_ACONNECT	39	/* Actions run when player connects */
-#define	A_ADISCONNECT	40	/* Actions run when player disconnectes */
+#define	A_ADISCONNECT	40	/* Actions run when player disconnects */
 #define	A_ALLOWANCE	41	/* Daily allowance, if diff from default */
 #define	A_LOCK		42	/* Object lock */
 #define	A_NAME		43	/* Object name */
-#define	A_COMMENT	44	/* Wizard-accessable comments */
+#define	A_COMMENT	44	/* Wizard-accessible comments */
 #define	A_USE		45	/* Invoker use message */
 #define	A_OUSE		46	/* Others use message */
 #define	A_SEMAPHORE	47	/* Semaphore control info */
@@ -134,7 +134,7 @@ typedef struct afstruct {
 #define	A_LTPORT	85	/* Teleport lock (can others @tel to me?) */
 #define	A_LDROP		86	/* Drop lock (can I be dropped or @tel'ed) */
 #define	A_LRECEIVE	87	/* Receive lock (who may give me things?) */
-#define	A_LASTSITE	88	/* Last site logged in from, in cleartext */
+#define	A_LASTSITE	88	/* Last site logged in from, in clear text */
 #define	A_INPREFIX	89	/* Prefix on incoming messages into objects */
 #define	A_PREFIX	90	/* Prefix used by exits/objects when audible */
 #define	A_INFILTER	91	/* Filter to zap incoming text into objects */
@@ -221,7 +221,7 @@ typedef struct afstruct {
 #define A_ANSINAME      220     /* Ansi colors to names of anything */
 #define A_TOTCMDS       221     /* Total commands player has done */
 #define A_LSTCMDS       222     /* Commands since last on */
-#define A_RECEIVELIM    223     /* Receive limit on money a player recieves (max upper/lower) */
+#define A_RECEIVELIM    223     /* Receive limit on money a player receives (max upper/lower) */
 #define A_LCON_FMT	224     /* @conformat specifications */
 #define A_LEXIT_FMT	225	/* @exitformat specifications */
 #define A_LDEXIT_FMT	226	/* @darkexitformat specifications */
