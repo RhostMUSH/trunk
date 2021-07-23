@@ -154,10 +154,10 @@ struct confdata {
 	int	pub_flags;	/* TRUE = flags() works on anything */
 	int	quiet_look;	/* TRUE = don't see attribs when looking */
 	int	exam_public;	/* Does EXAM show public attrs by default? */
-	int	read_rem_desc;	/* Can the DESC's of nonlocal objs be read? */
-	int	read_rem_name;	/* Can the NAME's of nonlocal objs be read? */
+	int	read_rem_desc;	/* Can the DESCs of nonlocal objs be read? */
+	int	read_rem_name;	/* Can the NAMEs of nonlocal objs be read? */
 	int	sweep_dark;	/* Can you sweep dark places? */
-	int	player_listen;	/* Are AHEAR triggered on players? */
+	int	player_listen;	/* Are AxHEAR triggered on players? */
 	int	quiet_whisper;	/* Can others tell when you whisper? */
 	int	dark_sleepers;	/* Are sleeping players 'dark'? */
 	int	see_own_dark;	/* Do you see your own dark stuff? */
@@ -318,7 +318,7 @@ struct confdata {
         int     hackattr_nowiz;	/* _attributes are not wiz only by default */
 	int     hackattr_see;   /* _attributes can be viewable by nonwizzes */
         int	penn_playercmds; /* Do $commands on players like PENN */
-	int	format_compatibility;	/* Mush/MUX compatibility */
+	int	format_compatibility;	/* MUSH/MUX compatibility */
 	int	brace_compatibility;	/* MUX compatibility */
 	int	objid_localtime;	/* Does objid use localtime */
 	int	objid_offset;		/* offset in seconds objid should use */
@@ -940,7 +940,7 @@ extern STATEDATA mudstate;
 #define LOG_DBSAVES	0x00000010	/* Log database dumps */
 #define LOG_CONFIGMODS	0x00000020	/* Log changes to configuration */
 #define LOG_PCREATES	0x00000040	/* Log character creations */
-#define LOG_KILLS	0x00000080	/* Log KILL's */
+#define LOG_KILLS	0x00000080	/* Log KILLs */
 #define LOG_LOGIN	0x00000100	/* Log logins and logouts */
 #define LOG_NET		0x00000200	/* Log net connects and disconnects */
 #define LOG_SECURITY	0x00000400	/* Log security-related events */

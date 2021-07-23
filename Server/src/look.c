@@ -2258,7 +2258,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
     notify(player, s);
     free_lbuf(s);
     if (!Good_obj(loc))
-	return;			/* If we went to NOTHING et al, 
+	return;			/* If we went to NOTHING et al., 
 				   skip the rest */
 
     /* tell him the description */

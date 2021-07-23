@@ -5769,7 +5769,7 @@ CF_HAND(cf_cmd_alias)
     
 
     retval = 0;
-    if (!alias) {       /* we didn't' get any arguments to @alias.  Very Bad. */
+    if (!alias) {       /* we didn't get any arguments to @alias.  Very Bad. */
        if ( !mudstate.initializing )
           notify(player, "Error - you need to pass in at least the alias");
        DPOP; /* #40 */

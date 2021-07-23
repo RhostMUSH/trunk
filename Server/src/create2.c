@@ -900,7 +900,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 {
     dbref thing;
 
-    /* XXX This is different from PERN. */
+    /* XXX This is different from Pern. */
 
     if (!mudconf.recycle) {
 	notify(player, "Sorry, destroying objects is not enabled.");

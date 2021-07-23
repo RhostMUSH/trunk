@@ -6,7 +6,7 @@
 
 #include "copyright.h"
 
-/* Define the code base as RhostMUSH */
+/* Define the codebase as RhostMUSH */
 #define RHOSTMUSH 1
 
 /* Define the number of Totem Slots

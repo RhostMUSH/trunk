@@ -891,7 +891,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PAGE_RET	2
 #define PAGE_PORT	4
 #define PAGE_RETMULTI	8	/* Respond but to multi players */
-#define PAGE_LOC        16      /* (muxpage) page/loc notifies a player of your loc */
+#define PAGE_LOC        16      /* (muxpage) page/loc notifies a plyr of your loc */
 #define PAGE_NOEVAL     32      /* Don't evaluate text prior to sending */
 #define PAGE_NOANSI	64	/* Don't ANSIfy the page */
 

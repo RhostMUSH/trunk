@@ -29,7 +29,7 @@
  *    shall duly acknowledge such use, in accordance with the usual standards
  *    of acknowledging credit in academic research.
  *
- * 4. The authors have made no warranty or representation that the operation
+ * 4. The authors have made no warrantee or representation that the operation
  *    of this software will be error-free, and the authors are under no
  *    obligation to provide any services, by way of maintenance, update, or
  *    otherwise.

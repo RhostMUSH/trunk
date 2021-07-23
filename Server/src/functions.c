@@ -29999,7 +29999,7 @@ FUNCTION(fun_parsestr)
      return;
    }
 
-   /* Handle FARGS0 -- Mogrify input string */
+   /* Handle FARGS0 -- Morgrify input string */
    s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                    fargs[0], cargs, ncargs, (char **)NULL, 0);
    if ( !*s_tmpbuff ) {
