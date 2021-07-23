@@ -295,7 +295,7 @@ FUNCTION(local_fun_sqlite_query)
             break;
          }
 
-         // An error occured.
+         // An error occurred.
          sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) FAILED WHILE EXECUTING STATEMENT: %s", sqlite3_errmsg( sqlite_db ) );
          safe_str( tempbuff, buff, bufcx );
          break;

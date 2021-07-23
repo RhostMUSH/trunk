@@ -19,7 +19,7 @@
 
 /******************************************************************************
  * Mac OSX does not have clock_gettime, so this is their method of reproducing
- * it.  This will likely have to occur for any oth3er systems also missing this
+ * it.  This will likely have to occur for any other systems also missing this
  * functionality, so define below when required for each arch-type
  ******************************************************************************/
 #ifdef __MACH__
@@ -91,7 +91,7 @@ struct itimerval it_val;
 }
 
 /* Version of time() that returns the timestamp
- * as a double, with millseconds after the decimal,
+ * as a double, with milliseconds after the decimal,
  * floor'd down to a single decimal. Do not use for timers shorter than 0.1s!
  * --Ambrosia
  */

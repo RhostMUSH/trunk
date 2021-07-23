@@ -38,7 +38,7 @@ process_leave_loc(dbref thing, dbref dest, dbref cause,
      * following criteria:
      * - The current room has wizard privs.
      * - Neither the current room nor the moving object are dark.
-     * - The moving object can hear and does not hav wizard privs.
+     * - The moving object can hear and does not have wizard privs.
      * EXCEPT if we were called with the HUSH_LEAVE key.
      */
 
@@ -192,7 +192,7 @@ process_enter_loc(dbref thing, dbref src, dbref cause,
      * following criteria:
      * - The current room has wizard privs.
      * - Neither the current room nor the moving object are dark.
-     * - The moving object can hear and does not hav wizard privs.
+     * - The moving object can hear and does not have wizard privs.
      * EXCEPT if we were called with the HUSH_ENTER key.
      */
 

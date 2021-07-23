@@ -861,7 +861,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 	return;
     }
     if (Indestructable(thing)) {
-	notify_quiet(player, "Sorry, that's indestructable.");
+	notify_quiet(player, "Sorry, that's indestructible.");
 	return;
     }
     if (Going(thing) || Recover(thing)) {
@@ -900,7 +900,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 {
     dbref thing;
 
-    /* XXX This is different from Pern. */
+    /* XXX This is different from PERN. */
 
     if (!mudconf.recycle) {
 	notify(player, "Sorry, destroying objects is not enabled.");
@@ -913,7 +913,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
     if (thing != NOTHING) {
 	if (Typeof(thing) == TYPE_PLAYER) {
 	    if (Indestructable(thing)) {
-		notify_quiet(player, "Sorry, that player is indestructable.");
+		notify_quiet(player, "Sorry, that player is indestructible.");
 		return;
 	    }
 	    if (DePriv(player, thing, DP_NUKE, POWER6, NOTHING)) {

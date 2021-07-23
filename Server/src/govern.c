@@ -690,7 +690,7 @@ void do_level_list(dbref player, dbref cause, int key,
   LevNode* root;
 
   if( !lev_lists[0] ) {
-    printf("There is no heirarchy at present.\n");
+    printf("There is no hierarchy at present.\n");
     return;
   }
 
@@ -710,7 +710,7 @@ void do_level_list(dbref player, dbref cause, int key,
     }
   }
 
-  printf("Heirarchy of %s:\n", root->name);
+  printf("Hierarchy of %s:\n", root->name);
   levlistbuff[0] = '\0';
   level_list_recurse(0, 0, 0, root);
 }

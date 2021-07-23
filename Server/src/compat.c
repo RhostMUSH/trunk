@@ -124,8 +124,8 @@ timelocal(struct tm *tp)
 
 	    /* if CHECK_INVALID is defined then we attempt to
 	     * check for the invalid time case e.g. a time of
-	     * 0230h on the first sunday in April will return -1
-	     * - personally I don't think this is polite behaviour
+	     * 0230h on the first Sunday in April will return -1
+	     * - personally I don't think this is polite behavior
 	     */
 
 	    t1 = t + timezone;

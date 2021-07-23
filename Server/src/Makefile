@@ -195,9 +195,9 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # USE_SIDEEFFECT - enable side effect functions
 # TINY_U - Rhost to MUX/MUSH/PENN u()/ufun() functionality
 # MUX_INCDEC - Rhost to MUX inc()/dec() functionality
-# SOFTCOM - Disable rhost hardcom system (it's archiac... really)
+# SOFTCOM - Disable rhost hardcom system (it's archaic... really)
 # TINY_SUB - Substitute %c and %x substitutions
-# NOEXTSUBS - Disable %c and %x substitutions in its entirity
+# NOEXTSUBS - Disable %c and %x substitutions in its entirety
 # USECRYPT - Enable crypt() decrypt() functions
 # PLUSHELP - use a hardcoded +help (and plushelp.txt/plushelp.indx)
 # PROG_LIKEMUX - makes @program not split up args with comma (work like MUX)
@@ -208,7 +208,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # REALITY_LEVELS - enable if you wish to use REALMS/Reality Levels
 # EXPANDED_QREGS - Enable (allow) a-z setq() registers.  This causes memory overhead.
 # ZENTY_ANSI - This allows enhanced ansi support.  It comes at some cost as %c codes are seen as 'special'.
-# PARIS - Enables an alternate WHO listing that's more Penn/MUSH compatable with display listing.
+# PARIS - Enables an alternate WHO listing that's more Penn/MUSH compatible with display listing.
 # OLD_SETQ - This switches setq/setr with setq_old/setr_old for functions less abrasive on braces/brackets.
 # SECURE_SIDEEFFECT - This shores up some sideeffects to avoid a double-evaluation.
 # ENABLE_WEBSOCKETS - Enable the 4.1.0p2 Websockets functionality
@@ -235,7 +235,7 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 DEFS = $(CUSTDEFS) -Wall 
 #
 # Rhost supports two encryption schemes SHS (SHA-1), and the 
-# unix crypt() function (DES).
+# UNIX crypt() function (DES).
 #
 # By default it will try and match the password first to DES
 # and then to SHS, however you can override this behavior
@@ -304,7 +304,7 @@ DEFS = $(CUSTDEFS) -Wall
 #      Use if you're running on a SysV-ish system and BSD support isn't built 
 #      in to the standard libc.
 #
-# #5 - This is for cygwin using the cgyipc library.
+# #5 - This is for Cygwin using the cgyipc library.
 ################################################################  #1
 #MORELIBS  = -lm -lrt
 ################################################################  #2
@@ -392,7 +392,7 @@ INSTALL_PROG	= $(bindir)/netrhost $(bindir)/netrhost.debugmon \
 INSTALL_TARG	= $(INSTALL_PROG) *.txt *.conf
 REINSTALL_TARG	= $(INSTALL_PROG) help.txt wizhelp.txt alias.conf compat.conf
 
-#compiliation source files
+#compilation source files
 ALLSRC	= $(D_SRC) $(UDB_SRC) $(UDBA_SRC) $(UDBO_SRC) $(VER_SRC) \
 	  $(WHO_SRC) $(COM_SRC) $(SA_SRC) $(AUX_SRC) $(LIB_SRC)
 ALLINC	= $(D_INC) $(UDB_INC) $(VER_INC) $(NET_INC) $(LIB_INC)
@@ -470,7 +470,7 @@ depend: $(ALLSRC) unsplit
 
 index: help.indx news.indx wizhelp.indx error.indx
 
-# Note Uncomment these ONLY if you wish to impliment ALPHA code.
+# Note Uncomment these ONLY if you wish to implement ALPHA code.
 # The door functionality is considered ALPHA code and can and will
 # bring down the server until officially released.   It crashes
 # the server once every 100 or so attempts on an average but

@@ -666,7 +666,7 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	    }
 	}
 	if (found == 0)
-	    notify(player, "There are no players beeing snooped on.");
+	    notify(player, "There are no players being snooped on.");
 	VOIDRETURN; /* #106 */
     }
     if (*name == '\0') {
@@ -1735,7 +1735,7 @@ raw_broadcast(va_alist)
 
 /* ---------------------------------------------------------------------------
  * raw_broadcast2: Send message to players who have indicated flags
- * DONT USE THIS ANYMORE, USE THE ABOVE -2/95 thorin
+ * DONT USE THIS ANYMORE, USE THE ABOVE -2/95 Thorin
  */
 
 #ifdef NEED_VSPRINTF_DCL
@@ -2935,7 +2935,7 @@ desc_reload(dbref player)
 }
 
 /* ---------------------------------------------------------------------------
- * fetch_idle, fetch_connect: Return smallest idle time/largest connec time
+ * fetch_idle, fetch_connect: Return smallest idle time/largest connect time
  * for a player (or -1 if not logged in)
  */
 
@@ -5188,7 +5188,7 @@ do_command(DESC * d, char *command)
              log_text("[HACKING] ");
              log_text(s_rollback);
           ENDLOG
-          /* We're disabling the SSL handler at this point as it's been comprimised */
+          /* We're disabling the SSL handler at this point as it's been compromised */
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
              log_text("SSL handler [sconnect_reip] has been disabled as secret [sconnect_cmd] was guessed");
           ENDLOG
@@ -5716,7 +5716,7 @@ do_command(DESC * d, char *command)
 #ifdef ENABLE_WEBSOCKETS
                ////////   NEW WEBSOCK
                ///// TODO: Improve logic here
-               if ( !stricmp(s_strtok, (char *)"Upgrade: websocket") ) {
+               if ( !stricmp(s_strtok, (char *)"Upgrade: WebSocket") ) {
                    i_socksnarf++;
                }
                if ( !stricmp(s_strtok, (char *)"Connection: Upgrade") ) {
@@ -5781,7 +5781,7 @@ do_command(DESC * d, char *command)
             if (i_socksnarf >= 5) {
                 free_lbuf(s_user); // Was allocated but will not be used
                 STARTLOG(LOG_ALWAYS, "NET", "WS");
-                log_text("Received Websocket opening handshake.");
+                log_text("Received WebSocket opening handshake.");
                 ENDLOG;
                 complete_handshake(d, s_sockkey);
             } else

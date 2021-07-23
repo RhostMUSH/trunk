@@ -142,7 +142,7 @@ char *munge_space(char *string)
    p = string;
    q = buffer;
    while (p && *p && isspace((int)*p)) {
-      p++;		/* remove inital spaces */
+      p++;		/* remove initial spaces */
    }
    while (p && *p) {
       while (*p && !isspace((int)*p)) {
@@ -170,7 +170,7 @@ char	*buffer, *p, *q;
 	buffer = alloc_lbuf("trim_spaces");
 	p = string;
 	q = buffer;
-	while (p && *p && isspace((int)*p))		/* remove inital spaces */
+	while (p && *p && isspace((int)*p))		/* remove initial spaces */
 		p++;
 	while (p && *p) {
 		while (*p && !isspace((int)*p))	/* copy nonspace chars */
@@ -281,7 +281,7 @@ const char *string_match(const char *src, const char *sub)
 }
 
 /* ---------------------------------------------------------------------------
- * replace_string: Returns an lbuf containing string STRING with all occurances
+ * replace_string: Returns an lbuf containing string STRING with all occurrences
  * of OLD replaced by NEW. OLD and NEW may be different lengths.
  * (mitch 1 feb 91)
  */
@@ -509,7 +509,7 @@ replace_tokens(const char *s, const char *pBound, const char *pListPlace, const 
 }
 
 /*
- * Returns string STRING with all occurances * of OLD replaced by NEW. OLD
+ * Returns string STRING with all occurrences * of OLD replaced by NEW. OLD
  * and NEW may be different lengths. Modifies string, so: Note - STRING must
  * already be allocated large enough to handle the new size. (mitch 1 feb 91)
  */
@@ -524,7 +524,7 @@ char	*s;
 	return string;
 }
 
-/* Counts occurances of C in STR. - mnp 7 feb 91 */
+/* Counts occurrences of C in STR. - mnp 7 feb 91 */
 /**************************************************************************** 
  * This is for reference only                                               * 
  ****************************************************************************
@@ -549,7 +549,7 @@ char	*s;
  ****************************************************************************/
 
  /* What we want:
-  * EXACT match replacment
+  * EXACT match replacement
   * JUST ansi replacement
   * JUST accent replacement
   * JUST special replacement
@@ -1012,7 +1012,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       s_last.c_accent = s_ptr->c_accent;
       s_last.i_special = s_ptr->i_special;
       /* no need for s_last duplicating i_ascii8 */
-      /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
+      /* i_ascii8 handler.  Unicode/UTF8 will work similarly -- nudge nudge */
       if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
         safe_chr('%', s_buffer, &s_buffptr);
         if ( s_ptr->i_utf8 > 0xfffffff ) {
@@ -1913,7 +1913,7 @@ trigger_cluster_action(dbref thing, dbref player)
 /***
  * Convert the UTF-8 bytes represented as a string
  * of hex values to a string of hex values representing
- * the unicode code point.
+ * the Unicode code point.
  ***/
 char *
 encode_utf8(char *myutf) 
@@ -2013,7 +2013,7 @@ utf8toucp(char *myutf)
 }
 
 /***
- * Convert string representation of unicode code point hex values
+ * Convert string representation of Unicode code point hex values
  * to string representation of UTF8 byte hex values
  */
 char *

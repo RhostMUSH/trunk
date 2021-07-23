@@ -48,7 +48,7 @@ encode64(char *dst, const char *src, size_t srclen)
   }
 }
 
-/* Compute websocket key for server response */
+/* Compute WebSocket key for server response */
 static void
 compute_websocket_accept(char *dst, const char *key) {
     char combined[WEBSOCKET_KEY_LEN + WEBSOCKET_KEY_MAGIC_LEN];
@@ -82,7 +82,7 @@ compute_payload_len(TBLOCK *tb, int len)
     }
 }
 
-/* rewrite text as a websocket frame */
+/* rewrite text as a WebSocket frame */
 static void
 write_message(TBLOCK *tb, const char *msg, int len, enum WebSocketOp op, int fin)
 {
@@ -94,7 +94,7 @@ write_message(TBLOCK *tb, const char *msg, int len, enum WebSocketOp op, int fin
     tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
 }
 
-/* Validate client websocket key for handshake */
+/* Validate client WebSocket key for handshake */
 int
 validate_websocket_key(char *key) {
     return (key && strlen(key) == WEBSOCKET_KEY_LEN);
@@ -162,7 +162,7 @@ websocket_write(DESC *d, const char *output, int len)
     enum WebSocketOp op;
 
     do {
-        /* Create new buffer for the websocket frame */
+        /* Create new buffer for the WebSocket frame */
         TBLOCK *tb = (TBLOCK *)alloc_lbuf("queue_write.websocket");
         tb->hdr.nxt = NULL;
         tb->hdr.start = tb->data;

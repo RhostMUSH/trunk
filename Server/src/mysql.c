@@ -3,12 +3,12 @@
  * Rhost MYSQL connection.
  *
  * Written by Lensman, 09 Nov, 03.
- * Adapted from PennMUSH mySQL Contrib by Hans Engelen and Javelin.
+ * Adapted from PennMUSH MySQL Contrib by Hans Engelen and Javelin.
  */
  /* #define MYSQL_VER "Version 1.1 Beta" */
  /*
  * NOTE: This is _NOT_ supported or recommended by the RhostMUSH team. No
- *       gurantees are made with regards to performance or stability.
+ *       guarantees are made with regards to performance or stability.
  *       In short, use it at your own risk.
  *
  *       Queries are _NOT_ run in the background, as such any long-running
@@ -84,7 +84,7 @@ static int sql_query(dbref player,
  *************************************************************/
 void do_sql(dbref player, dbref cause, int key, char *arg_left) {
   if (!*arg_left) {
-    notify(player, unsafe_tprintf("@SQL for RhostMUSH (%s [MySQL %s]) based on the PennMUSH mySQL Contrib patch", MYSQL_VER, MYSQL_VERSION));
+    notify(player, unsafe_tprintf("@SQL for RhostMUSH (%s [MySQL %s]) based on the PennMUSH MySQL Contrib patch", MYSQL_VER, MYSQL_VERSION));
     notify(player, unsafe_tprintf("Status is %s. (Last connection made by %s)", 
 			   mysql_struct ? "CONNECTED" : "DISCONNECTED",
 			   lastConnectMadeBy < 0 ? "SYSTEM" : Name(lastConnectMadeBy)));
@@ -589,7 +589,7 @@ static int sql_query(dbref player,
     return -1;
   }
   
-  /* A number of affected rows greater than 0 means it wasnt a SELECT */
+  /* A number of affected rows greater than 0 means it wasn't a SELECT */
   
   tprp_buff = tpr_buff = alloc_lbuf("sql_query");
 

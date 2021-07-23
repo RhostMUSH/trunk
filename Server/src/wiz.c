@@ -1925,7 +1925,7 @@ void quota_xfer(dbref player, dbref who, char *amount, char *src, char *dest)
     else rval = q_check(player, who, num, *src, *dest, 0, 1);
   }
   if (rval)
-    notify(player,"Quota transfered.");
+    notify(player,"Quota transferred.");
   else
     notify(player,"Transfer failed.");
 }
@@ -2528,7 +2528,7 @@ static int file_select(const struct dirent *entry)
 }
 
 #ifdef NEED_SCANDIR
-/* Some unix systems do not handle scandir -- so we build one for them */
+/* Some UNIX systems do not handle scandir -- so we build one for them */
 int
 scandir(const char *directory_name,
             struct dirent ***array_pointer,
@@ -2952,7 +2952,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                return;
                break;
          }
-         /* Fix up the ol object - it's probably corrupted if missmatched attributes */
+         /* Fix up the ol object - it's probably corrupted if mismatched attributes */
          i_dirnums = -1;
          while ( i_dirnums == -1 ) {
             i_dirnums = atrcint(player, thing, 1);

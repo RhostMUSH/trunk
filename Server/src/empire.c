@@ -177,7 +177,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Posible bad country name. (stage 5).\r\n");
+    queue_string(desc_in_use, "Login to empire server failed. Possible bad country name. (stage 5).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PASS, password)) {
@@ -185,7 +185,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Posible bad password. (stage 7).\r\n");
+    queue_string(desc_in_use, "Login to empire server failed. Possible bad password. (stage 7).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PLAY, (char *)0)) {

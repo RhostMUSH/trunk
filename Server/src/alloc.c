@@ -8,7 +8,7 @@
 #include "mudconf.h"
 #include "externs.h"
 
-/* ensure quad byte divisable length to avoid bus error on some machines */
+/* ensure quad byte divisible length to avoid bus error on some machines */
 #define QUADALIGN(x) ((pmath1)(x) % ALLIGN1 ? \
                       (x) + ALLIGN1 - ((pmath1)(x) % ALLIGN1) : (x))
 

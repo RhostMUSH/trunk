@@ -2872,7 +2872,7 @@ static char *
 atr_encode(char *iattr, dbref thing, dbref owner, int flags,
 	   int atr)
 {
-    /* Compress the sttribute string */
+    /* Compress the attribute string */
 
     iattr = (char *) compress(iattr, atr);
 
@@ -4369,9 +4369,9 @@ void do_dbclean(dbref player, dbref cause, int key)
    DESC_ITER_CONN(d) {
       if ( d->player == player ) {
          if ( key & DBCLEAN_CHECK )
-            queue_string(d,"Checking dabase of empty attributes.  Please wait...");
+            queue_string(d,"Checking database of empty attributes.  Please wait...");
          else
-            queue_string(d,"Purging dabase of empty attributes.  Please wait...");
+            queue_string(d,"Purging database of empty attributes.  Please wait...");
          queue_write(d, "\r\n", 2);
          process_output(d);
       }

@@ -2,8 +2,8 @@
  * Code originally written by Lensman, 2005
  * Contact: lensman@the-wyvern.net
  *
- * This code is to be considered fully opensource. It can be used for any
- * purpose providing that this credit is mantained and any fixes made
+ * This code is to be considered fully open source. It can be used for any
+ * purpose providing that this credit is maintained and any fixes made
  * are returned to Lensman for inclusion in other projects 
  *
  *
@@ -117,7 +117,7 @@ va_dcl
   }
 
   
-  /* Unfortunatly not all vsnprintf implementations return the number of
+  /* Unfortunately not all vsnprintf implementations return the number of
    * characters written to the buffer.
    * Solaris, for example, states:
    *
@@ -210,7 +210,7 @@ void freeTrackedBuffers(void) {
 
     pList = pList->pNext;
 
-    /* First time through loop, this'll be null
+    /* First time through loop, this will be null
      * - so we never try free initial element.
      */
     if (pCurrentList != NULL) {

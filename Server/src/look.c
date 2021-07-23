@@ -4032,7 +4032,7 @@ do_whereis(dbref player, dbref cause, int key, char *name)
 }
 
 /* Output the sequence of commands needed to duplicate the specified
-   object.  If you're moving things to another system, your milage
+   object.  If you're moving things to another system, your mileage
    will almost certainly vary.  (i.e. different flags, etc.)
  */
 

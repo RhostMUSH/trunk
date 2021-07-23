@@ -312,7 +312,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
          str++;
          mybuffptr++;
       }
-      /* Do '$##' substitions before parsing the string */
+      /* Do '$##' substitutions before parsing the string */
       if ( *str == '$' ) {
          loop = 1;
          while (*str) {
