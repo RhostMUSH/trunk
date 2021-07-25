@@ -2662,7 +2662,7 @@ totem_bitstostring(dbref player, dbref it, int perms)
       if ( i_first ) {
          safe_chr(' ', s_showbits, &s_ptr);
       }
-      safe_str("IGNORE_ARCHITECH", s_showbits, &s_ptr);
+      safe_str("IGNORE_ARCHITECT", s_showbits, &s_ptr);
       i_first = 1;
    }
    if (perms & CA_IGNORE_COUNC) {
