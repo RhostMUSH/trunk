@@ -2258,7 +2258,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
     notify(player, s);
     free_lbuf(s);
     if (!Good_obj(loc))
-	return;			/* If we went to NOTHING et al, 
+	return;			/* If we went to NOTHING et al., 
 				   skip the rest */
 
     /* tell him the description */
@@ -4032,7 +4032,7 @@ do_whereis(dbref player, dbref cause, int key, char *name)
 }
 
 /* Output the sequence of commands needed to duplicate the specified
-   object.  If you're moving things to another system, your milage
+   object.  If you're moving things to another system, your mileage
    will almost certainly vary.  (i.e. different flags, etc.)
  */
 

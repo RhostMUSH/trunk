@@ -3,7 +3,7 @@
 	Slightly whacked by Andrew Molitor for use with MUSH.
 	My apologies to the author..
 
-	Also banged on by dcm@somewhere.or.other, Jellan on the muds,
+	Also banged on by dcm@somewhere.or.other, Jellan on the MUDs,
 	to be more complex and more efficient in the context of
 	MUSH.
 
@@ -202,7 +202,7 @@ cache_init(int width, int depth)
         }
 
 	/* If either dimension is specified as non-zero, change it to */
-	/* that, otherwise use default. Treat dimensions deparately.  */
+	/* that, otherwise use default. Treat dimensions separately.  */
 
 	if(width)
 		cwidth = width;
@@ -966,7 +966,7 @@ del_attrib(Aname *anam, Obj *obj)
 
         DPUSH; /* #174 */
 #ifdef CACHE_DEBUG
-	printf("del_attrib: deleteing attr %d on object %d (%d)\n",anam->attrnum,
+	printf("del_attrib: deleting attr %d on object %d (%d)\n",anam->attrnum,
 		obj->name,anam->object);
 #endif
 

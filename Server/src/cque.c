@@ -1415,7 +1415,7 @@ do_halt(dbref player, dbref cause, int key, char *target)
         return;
       }
       else if (!numhalted)
-	notify(player,"PID not found/Permisison denied.");
+	notify(player,"PID not found/Permission denied.");
       if ( numhalted && (i_keytype > 0) ) {
          if ( !(Quiet(player) || i_quiet) ) {
             if ( i_keytype == 1 )
@@ -1696,7 +1696,7 @@ setup_que(dbref player, dbref cause, char *command,
 		tlen += (strlen(sargsname[a]) + 1);
 	}
     }
-    /* Create the qeue entry and load the save string */
+    /* Create the queue entry and load the save string */
 
     tmp = alloc_qentry("setup_que.qblock");
     pid_table[tpid] = 1;
@@ -2566,7 +2566,7 @@ do_ps(dbref player, dbref cause, int key, char *target)
 	obj_targ = noisy_match_result();
 	if (!Good_obj(obj_targ) || (!Controls(player, obj_targ) &&
 	    !HasPriv(player, obj_targ, POWER_SEE_QUEUE, POWER3, NOTHING))) {
-	    notify(player, "Permisson denied.");
+	    notify(player, "Permission denied.");
 	    return;
 	}
 	if (key & PS_ALL) {

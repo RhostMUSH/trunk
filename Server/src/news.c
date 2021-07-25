@@ -335,7 +335,7 @@ void do_newsdb(dbref player, dbref cause, int key, char *buf1, char *buf2)
 {
 
   /* check for dbck which can happen w/o turning on system */
-  /* and in the presense of an active internal failure */
+  /* and in the presence of an active internal failure */
 
   if( key == NEWSDB_DBCK ) {
     newsdb_dbck(player, cause, key, buf1, buf2); 
@@ -343,7 +343,7 @@ void do_newsdb(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   /* check for load request which can happen even if the system is
-     not turned on and in the presense of an internal failure */
+     not turned on and in the presence of an internal failure */
 
   if( key == NEWSDB_LOAD ) {
     newsdb_load(player, cause, key, buf1, buf2); 
@@ -2891,7 +2891,7 @@ void news_groupinfo(dbref player, dbref cause, int key, char *buf1, char *buf2)
   char *groupkeyptr;
   dbref userkey;
 
-  int restrct = 1; /* restrct information shown to player */
+  int restrct = 1; /* restrict information shown to player */
 
   char *buff;
 

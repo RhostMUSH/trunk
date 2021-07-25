@@ -263,7 +263,7 @@ getboolexp(FILE * f)
 }
 
 /* ---------------------------------------------------------------------------
- * unscramble_attrnum: Fix up attribute numbers from foreign muds
+ * unscramble_attrnum: Fix up attribute numbers from foreign MUDs
  */
 
 static int 
@@ -1103,7 +1103,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 
 		if ((g_version & V_MASK) == 2) {
 
-		    /* Handle Pern veriants specially */
+		    /* Handle Pern variants specially */
 
 		    switch (g_version >> 8) {
 		    case 4:
@@ -1481,7 +1481,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 		fprintf(stderr, "\n");
 		fflush(stderr);
 #endif
-		/* Fix up bizarro foreign DBs */
+		/* Fix up bizarro foreign DB's */
 
 		unscraw_foreign(g_format, g_version, g_flags);
 		*db_version = g_version;

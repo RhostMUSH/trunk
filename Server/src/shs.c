@@ -8,7 +8,7 @@
  *                                                              *
  * Comments to pgutl@cs.aukuni.ac.nz                            *
  * Keyed in from: "Applied Cryptography by Bruce Schneier"      *
- * by Nick Gammon, taken from source tree for Pennmush 1.7.2    *
+ * by Nick Gammon, taken from source tree for PennMUSH 1.7.2    *
  *                                                              *
  *                                                              *
  *                                                              */
@@ -103,7 +103,7 @@
 LONG h0, h1, h2, h3, h4;
 LONG A, B, C, D, E;
 
-/* Initialise the SHS values */
+/* Initialize the SHS values */
 
 void
 shsInit(shsInfo)
@@ -118,7 +118,7 @@ shsInit(shsInfo)
   shsInfo->digest[3] = h3init;
   shsInfo->digest[4] = h4init;
 
-  /* Initialise bit count */
+  /* Initialize bit count */
 
   shsInfo->countLo = shsInfo->countHi = 0;
   VOIDRETURN; /* #156 */

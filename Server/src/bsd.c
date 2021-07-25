@@ -183,7 +183,7 @@ void populate_tor_seed(void)
  * 1. Need a mudstate.tor_ipaddr 1000 char buffer to house the tor-translated addresses
  * 2. Need to write a mudconf.tor_localhost to mudstate.tor_ipaddr cache routine
  * 3. Need to loop for each entry in tor_ipaddr for a tor lookup *bleh*
- * 4. Thi function needs re-arrangement to minimalize as much as we can on overhead
+ * 4. This function needs re-arrangement to minimalize as much as we can on overhead
  */
 int check_tor(struct in_addr a_remote, int i_port) {
    char *s_reverselocal, *s_reverseremote, *s_tordns, *tortok, *tortokptr,
@@ -659,7 +659,7 @@ shovechars(int port,char* address)
 			fprintf(stderr,"NO MEMORY\n");
 		}
 		log_perror("NET", "FAIL",
-			   "checking for activity, clearing decriptor queues", "select");
+			   "checking for activity, clearing descriptor queues", "select");
 		DESC_ITER_ALL(d) {
 		  freeqs(d,0);
 		}
@@ -962,7 +962,7 @@ shovechars(int port,char* address)
                      ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
                    d->last_time = i_oldlasttime;
                 }
-                /* Ignore Potatoe's broken NOP code */
+                /* Ignore Potato's broken NOP code */
                 if ( (d->input_tot == (i_oldlastcnt + 3)) && !d->input_head ) {
                    d->last_time = i_oldlasttime;
                 }
@@ -1887,7 +1887,7 @@ start_auth(DESC * d)
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = d->address.sin_addr.s_addr;
 
-    /* 1/2/97 - thorin - Solaris has a problem with blocking on
+    /* 1/2/97 - Thorin - Solaris has a problem with blocking on
        connect even when the socket is non-blocking, so instead we
        will only give it a maximum of three seconds to connect by
        doing fun stuff with preserving the mush timers and all. */

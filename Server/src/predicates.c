@@ -2890,7 +2890,7 @@ dbref	aowner, thing_bak;
 int	aflags, tog_val,
         doit = 0;
 
-  /* no if nonplayer trys to get key */
+  /* no if nonplayer tries to get key */
 
   if ( !Good_obj(thing) || !Good_obj(player) )
     return 0;

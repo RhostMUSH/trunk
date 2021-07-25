@@ -68,7 +68,7 @@ NDECL(init_compress)
 	}
 
 	for (i = 0; i < NUM_TOKENS; i++) {
-	  /* Lensy: This looks supremly dodgy to me, but I'll go with it for now */
+	  /* Lensy: This looks supremely dodgy to me, but I'll go with it for now */
 	    *token_table[(int) tokens[i][0]] [(int) tokens[i][1]] = i | TOKEN_BIT;
 	}
 
@@ -90,7 +90,7 @@ compress(const char *s, int atr)
 
 	/* tokenize the first characters */
 	for (to = compress_buf; s[0] && s[1]; to++) {
-	  /* Lensy: This looks supremly dodgy to me, but I'll go with it for now */
+	  /* Lensy: This looks supremely dodgy to me, but I'll go with it for now */
 	    if ((token = *token_table[(int)s[0]][(int)s[1]])) {
 		*to = token;
 		s += 2;

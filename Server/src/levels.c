@@ -698,8 +698,8 @@ ATTR 	*tst_glb, *format_atr;
                  * 1 - reverse display of descs
                  * 2 - behave normally but stop after first reality desc seen
                  * 3 - reverse display but stop after first reality desc seen
-                 * 4 - behave normally but stop after first reality regardless of desc existance
-                 * 5 - reverse display but stop after first reality regarldess of desc existance
+                 * 4 - behave normally but stop after first reality regardless of desc existence
+                 * 5 - reverse display but stop after first reality regardless of desc existence
                  */
                 if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
                       (mudconf.reality_compare > 3)  ) {

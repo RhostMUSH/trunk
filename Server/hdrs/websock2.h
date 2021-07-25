@@ -16,7 +16,7 @@
 /* Magic string for accept key */
 #define WEBSOCKET_KEY_MAGIC "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
-/* Maximum Size of Wesbsocket Header */
+/* Maximum Size of WebSocket Header */
 #define WS_HDR_SIZE 16;
 
 /* WebSocket opcodes. */

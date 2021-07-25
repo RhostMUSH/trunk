@@ -19,7 +19,7 @@ char *rindex(const char *, int);
 #include "alloc.h"
 #include "misc.h"
 
-/* Bind occurances of the universal var in ACTION to ARG, then run ACTION.
+/* Bind occurrences of the universal var in ACTION to ARG, then run ACTION.
    Cmds run in low-prio Q after a 1 sec delay for the first one. */
 
 static void bind_and_queue (dbref player, dbref cause, char *action, 
@@ -65,7 +65,7 @@ convert_totems(dbref player, char *flaglist, SEARCH **fset, int word)
          continue;
       }
 
-      /* Playee can not see flag, continue */
+      /* Player can not see flag, continue */
       if ( !totem_cansee_bit(player, player, tp->listperm) ) {
          continue;
       }

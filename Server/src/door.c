@@ -17,13 +17,13 @@
 //        ICQ, or mail, or whatever!
 // 10) Move bittype out                                           .. DONE
 // 11) Fix wiz.c                                                  .. DONE
-// 12) Tidy door calls, rename input/outout to readfrom/writeto   
+// 12) Tidy door calls, rename input/output to readfrom/writeto   
 // 13) Check doorparm (help.c)
 // 14) **BUG** Adds first door at 1                               .. DONE
 // 15) **BUG** Why need -1 on the strings in the lookup func      .. DONE
 // 16) **BUG** At current players can only belong to 1 door
 // 17) **BUG** When QUIT'ing from a mush, the quit msg is missing 
-// 18) **BUG** Can't @Reboot and mantain DOORS ... ifdef in netcommon
+// 18) **BUG** Can't @Reboot and maintain DOORS ... ifdef in netcommon
 // 19) **FEAT* Need the 'DOOR' connect command, plus DESC support
 // 20) **FEAT* Need to disallowed door'd players from opening doors
 

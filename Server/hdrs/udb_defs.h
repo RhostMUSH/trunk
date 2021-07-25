@@ -2,7 +2,7 @@
 #define _M_UDB_DEFS_H_
 
 /*
-	Header file for the UnterMud DB layer, as applied to MUSH 2.0
+	Header file for the UnterMUD DB layer, as applied to MUSH 2.0
 
 	Andrew Molitor, amolitor@eagle.wesleyan.edu
 	1991
@@ -32,7 +32,7 @@ typedef	char	*mall_t;
 
 #ifdef CACHE_OBJS
 #define	CACHE_DEPTH	10
-#define	CACHE_WIDTH	129 
+#define	CACHE_WIDTH	129
 #else
 #define	CACHE_DEPTH	15
 #define	CACHE_WIDTH	541

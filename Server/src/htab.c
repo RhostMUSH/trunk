@@ -888,7 +888,7 @@ CF_HAND(cf_ntab_access)
     return -1;
 }
 
-/* Nothing calls this function, but it's really usefull for debugging a faulty
+/* Nothing calls this function, but it's really useful for debugging a faulty
  * hashtable.
  *                                                                       Lensy
  */

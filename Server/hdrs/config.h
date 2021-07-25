@@ -9,7 +9,7 @@
  *		of blocks allocated.  Good for testing for Memory leaks.
  * MSTATS:	Defining the following allows you to get stats and usage info
  *		if you use the gnu-malloc package.  It can be used in
- *		conjuction with the above, but why?
+ *		conjunction with the above, but why?
  * ATR_NAME:	Define if you want name to be stored as an attribute on the
  *		object rather than in the object structure.
  * USE_GDBM:	Define if you plan on using the disk based database scheme.
@@ -30,7 +30,7 @@
 /* #define rcheck */			/* Gnu memory range checking */
 
 #define PLAYER_NAME_LIMIT	22	/* Max length for player names */
-#define NUM_ENV_VARS		10	/* Number of env vars (%0 et al) */
+#define NUM_ENV_VARS		10	/* Number of env vars (%0 et al.) */
 #define MAX_ARG			100	/* max # args from command processor */
 #ifdef EXPANDED_QREGS
 #define MAX_GLOBAL_REGS		36	/* r() registers */
@@ -50,7 +50,7 @@
 #define OUTPUT_VERSION	7			/* Version 6 */
 #define OUTPUT_FLAGS	(MANDFLAGS|OFLAGS1|OFLAGS2)
 						/* format for dumps */
-#define UNLOAD_VERSION	7			/* verison for export */
+#define UNLOAD_VERSION	7			/* version for export */
 #define UNLOAD_OUTFLAGS	(MANDFLAGS)		/* format for export */
 
 /* magic lock cookies */

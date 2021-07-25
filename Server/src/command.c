@@ -2034,7 +2034,7 @@ NDECL(init_cmdtab)
 
     /* Load the command prefix table.  Note - these commands can never
      * be typed in by a user because commands are lowercased before
-     * the hash table is checked. The names are abbreviated to minimise
+     * the hash table is checked. The names are abbreviated to minimize
      * name checking time. */
 
     for (anum = 0; anum < 256; anum++)
@@ -5514,7 +5514,7 @@ CF_HAND(cf_access)
 }
 
 /* ---------------------------------------------------------------------------
- * cf_acmd_access: Chante command permissions for all attr-setting cmds.
+ * cf_acmd_access: Change command permissions for all attr-setting cmds.
  */
 
 CF_HAND(cf_acmd_access)
@@ -5769,7 +5769,7 @@ CF_HAND(cf_cmd_alias)
     
 
     retval = 0;
-    if (!alias) {       /* we didnt' get any arguments to @alias.  Very Bad. */
+    if (!alias) {       /* we didn't get any arguments to @alias.  Very Bad. */
        if ( !mudstate.initializing )
           notify(player, "Error - you need to pass in at least the alias");
        DPOP; /* #40 */
@@ -8459,7 +8459,7 @@ list_process(dbref player)
     DPUSH; /* #55 */
 
     pid = getpid();
-#if 0  /* this was causing problems on solaris - Thorin */
+#if 0  /* this was causing problems on Solaris - Thorin */
     psize = getpagesize();
 #else
     psize = 0;
@@ -10044,7 +10044,7 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
          if ( strlen(arg2) > 3900)
             notify(t_player, unsafe_tprintf("%d characters were cut off from your @log entry.",
                    strlen(arg2)-3900) );
-/* Let's allow ansi, tabs, and carrage returns to these log files 
+/* Let's allow ansi, tabs, and carriage returns to these log files 
  *
  *       if ( index(arg2, ESC_CHAR ) )
  *          notify(t_player, "Ansi was detected in @log and was stripped.");
@@ -10368,7 +10368,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
    mudstate.jumpst = mudstate.rollbackcnt = 0;
    if ( *retbuff && (((i_evalResult == 0) && !(key & SKIP_IFELSE)) ||
                      ((i_evalResult != 0) &&  (key & SKIP_IFELSE))) ) {
-    /* I have no idea why this is here, but I left it in incase I need 
+    /* I have no idea why this is here, but I left it in in case I need 
       if ( desc_in_use == NULL ) {
          mudstate.trainmode = 1;
       }

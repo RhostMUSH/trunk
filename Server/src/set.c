@@ -702,7 +702,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
       /* You may chown an attr to yourself if you own the
        * object and the attr is not locked.
        * You may chown an attr to the owner of the object if
-       * you own the attribute. (not anymore/zones -thorin)
+       * you own the attribute. (not anymore/zones -Thorin)
        * To do anything else you must be a wizard.
        * Only #1 can chown attributes on #1.
        */
@@ -1644,7 +1644,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
     return;
   }
   
-  /* FInd and make sure we control the target object. */
+  /* Find and make sure we control the target object. */
   
   thing = match_controlled_or_twinked(player, what);
   if (thing == NOTHING)
@@ -2143,7 +2143,7 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 }
 		*cp = '\0';
 	} else {
-		/* replace all occurances of 'from' with 'to'.  Handle the
+		/* replace all occurrences of 'from' with 'to'.  Handle the
 		 * special cases of from = \$ and \^.
 		 */
 

@@ -1334,7 +1334,7 @@ extern void totem_set(dbref, dbref, char *, int);
 
 int do_convtime(char *, struct tm *);
 
-/* pom.c nefinitions */
+/* pom.c definitions */
 /* #define PI_MUSH        3.14159265358 */
 #define PI_MUSH        3.14159265358979323846264338327950288419716939937510
 #define EPOCH_MUSH     85
@@ -1923,7 +1923,7 @@ trim_space_sep_multi(char *str, char *sep)
     /* Walk backwards, stripping spaces */
     for (p--; *p == ' ' && p > str; p--);
 
-    /* Advane to the space and set null */
+    /* Advance to the space and set null */
     p++;
     *p = '\0';
 
@@ -2812,7 +2812,7 @@ do_spellnum(char *num, unsigned int len, char *buff, char **bufcx, int key)
    };
    static const char *singlesth[] = {
       "", "first", "second", "third", "forth",
-      "fifth", "sixth", "seventh", "eighth", "nineth", NULL
+      "fifth", "sixth", "seventh", "eighth", "ninth", NULL
    };
    static const char *special[] = {
       "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
@@ -5179,7 +5179,7 @@ FUNCTION(fun_dice)
        return;
     }
     tot = 0;
-/* This is safe as above arry can't be above 100 */
+/* This is safe as above array can't be above 100 */
     modval = (j - botval + 1);
     for (x = 0; x < i; x++) {
         arry[x] = (random() % modval) + botval;
@@ -5969,9 +5969,9 @@ FUNCTION(fun_entrances)
 }
 
 /* --------------------------------------------------------
- * elist returns list in english-language format
+ * elist returns list in English-language format
  * Idea was borrowed from Elendor with permission
- * elist(string,<string other than and>,<seperator>)
+ * elist(string,<string other than and>,<separator>)
  */
 FUNCTION(fun_elist)
 {
@@ -7399,7 +7399,7 @@ FUNCTION(fun_cmds)
    }
 }
 
-/* This function derivived from the pom.c code by Berkley */
+/* This function derived from the pom.c code by Berkley */
 FUNCTION(fun_moon)
 {
    struct tm *GMT, *ttm;
@@ -7466,7 +7466,7 @@ FUNCTION(fun_moon)
 
 /************************************************************************************
  * fun_pack   - pack into 64 base number - taken from MUX2 with permission and
- *              heavilly modified for Rhost
+ *              heavily modified for Rhost
  * fun_unpack - unpack from 64 base number - taken from MUX2 with permission
  * fun_crc32  - use crc32 bitmath - taken from MUX2 with permission
  ************************************************************************************/
@@ -9118,11 +9118,11 @@ FUNCTION(fun_time)
  * FOMATTING:
  * '$' - don't treat the previous $ as the start of a format
  * '-' - left justify field
- * Num - Width of next field, numbers begining in '0' denote zero padded fields
+ * Num - Width of next field, numbers beginning in '0' denote zero padded fields
  * '!' - Omit field print if 0 value. No further literal strings will be
  *       printed until a literal '!' is encountered.
  *
- * '~' - Omit field as with '!' but preserve field width, ie. blank pad the
+ * '~' - Omit field as with '!' but preserve field width, i.e. blank pad the
  *       field.
  *       No further literal strings will be printed until a literal '~' is
  *       encountered.
@@ -9160,8 +9160,8 @@ FUNCTION(fun_time)
  * 'I' - offset of timezone in seconds from GMT
  *
  * ELAPSED TIME:
- * 'm' - Elapsed milleniums (0..??)
- * 'U' - Elapsed century in millinium (0..9)
+ * 'm' - Elapsed millenniums (0..??)
+ * 'U' - Elapsed century in millennium (0..9)
  * 'u' - Elapsed year in century (0..99)
  * 'Z' - Elapsed years (0..??)
  * 'E' - Elapsed months within year (0..12)
@@ -11054,7 +11054,7 @@ FUNCTION(fun_printf)
                         fm.fieldsupress2 = 1;
                         formatpass = 1;
                         break;
-                     case '.': /* supress last line if all fields null */
+                     case '.': /* suppress last line if all fields null */
                         fm.nolaster = 1;
                         formatpass = 1;
                         break;
@@ -11918,13 +11918,13 @@ FUNCTION(fun_timefmt)
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
                 break;
-             case 'm': /* elapsed milleniums (365 day year) */
+             case 'm': /* elapsed millenniums (365 day year) */
                 fm.lastval = (int) (secs2 / 60 / 60 / 24 / 365 / 1000);
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
                 break;
-             case 'U': /* elapsed century in millenium (365 day year) */
+             case 'U': /* elapsed century in millennium (365 day year) */
                 fm.lastval = (int) (fmod( (secs2 / 60 / 60 / 24 / 365 / 100), 10));
                 if ( ((int) fmod( (secs2 / 60 / 60 / 24 / 365) , 100)) < 0 )
                    fm.lastval--;
@@ -12594,8 +12594,8 @@ crypt_code(char *code, char *text, int type)
     p = text;
     q = codebuff;
     r = textbuff;
-    /* Encryption: Simply go through each character of the text, get its ascii
-       value, subtract start, add the ascii value (less start) of the
+    /* Encryption: Simply go through each character of the text, get its ASCII
+       value, subtract start, add the ASCII value (less start) of the
        code, mod the result, add start. Continue  */
     while (*p) {
        if ((*p < start) || (*p > end)) {
@@ -15217,7 +15217,7 @@ FUNCTION(fun_parenmatch)
        free_lbuf(atext);
        return;
     }
-    /* String is too long to do anything with anwyay.  Just return it */
+    /* String is too long to do anything with anyway.  Just return it */
     if ( strlen(atext) > (LBUF_SIZE - 14) ) {
         safe_str(atext, buff, bufcx);
         free_lbuf(atext);
@@ -18565,7 +18565,7 @@ FUNCTION(fun_execscript)
          memset(s_inread, '\0', LBUF_SIZE);
          fgets(s_inread, LBUF_SIZE - 1, fp);
          sptr = s_inread;
-         /* convert to a '?' non-printable non-ascii-7 chars */
+         /* convert to a '?' non-printable non-ASCII-7 chars */
          while ( *sptr ) {
             if ( !((isprint(*sptr) || (*sptr == BEEP_CHAR) || isspace(*sptr)) && isascii(*sptr)) )
                *sptr = '?';
@@ -18609,7 +18609,7 @@ FUNCTION(fun_execscript)
                continue;
             }
             sptr = s_inread;
-            /* convert to a '?' non-printable non-ascii-7 chars */
+            /* convert to a '?' non-printable non-ASCII-7 chars */
             while ( *sptr ) {
                if ( !((isprint(*sptr) || (*sptr == BEEP_CHAR) || isspace(*sptr)) && isascii(*sptr)) )
                   *sptr = '?';
@@ -26297,7 +26297,7 @@ FUNCTION(fun_caplist)
 	    }
 	    break;
 
-        // True capitilization -- Title NIVA standards
+        // True capitalization -- Title NIVA standards
         case 'T': /* True capitalization */
            i_found = 0;
            if ( i_first && (i_last != i_lastchk) && *(mudconf.cap_conjunctions) ) {
@@ -28038,7 +28038,7 @@ FUNCTION(fun_merge)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_splice: similar to MERGE(), eplaces by word instead of by character.
+ * fun_splice: similar to MERGE(), replaces by word instead of by character.
  */
 
 FUNCTION(fun_splice)
@@ -28958,8 +28958,8 @@ FUNCTION(fun_citer)
  * fun_list:
  * This works just like iter() except it uses notify() to bypass
  * the buffer limitations.
- * Eventhough this is considered a side-effect it's harmless so
- * will be seperate from the normal list of 'side-effects'
+ * Even though this is considered a side-effect it's harmless so
+ * will be separate from the normal list of 'side-effects'
  */
 
 FUNCTION(fun_list)
@@ -29069,7 +29069,7 @@ FUNCTION(fun_list)
  *    is passed as %0 and the second is %1.  The attrib is then evaluated
  *    with these args, the result is then used as %0 and the next arg is
  *    %1 and so it goes as there are elements left in the list.  The
- *    optinal base case gives the user a nice starting point.
+ *    optional base case gives the user a nice starting point.
  *
  *    > &REP_NUM object=[%0][repeat(%1,%1)]
  *    > say fold(OBJECT/REP_NUM,1 2 3 4 5,->)
@@ -29441,7 +29441,7 @@ FUNCTION(fun_fold)
     ATTR *ap;
     char *atext, *result, *curr, *cp, *atextbuf, *clist[2], *rstore, sep;
 
-    /* We need two to four arguements only */
+    /* We need two to four arguments only */
 
     mvarargs_preamble("FOLD", 2, 4);
 
@@ -29999,7 +29999,7 @@ FUNCTION(fun_parsestr)
      return;
    }
 
-   /* Handle FARGS0 -- Morgify input string */
+   /* Handle FARGS0 -- Morgrify input string */
    s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                    fargs[0], cargs, ncargs, (char **)NULL, 0);
    if ( !*s_tmpbuff ) {
@@ -30010,7 +30010,7 @@ FUNCTION(fun_parsestr)
    safe_str(strip_ansi(s_tmpbuff), s_fargs0, &args_ptr);
    free_lbuf(s_tmpbuff);
 
-   /* Handle FARGS2 -- seperator */
+   /* Handle FARGS2 -- separator */
    if ( (nfargs > 2) && *fargs[2] ) {
       s_tmpbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                        fargs[2], cargs, ncargs, (char **)NULL, 0);
@@ -30126,7 +30126,7 @@ FUNCTION(fun_parsestr)
    savebuff[1] = alloc_lbuf("fun_parsestr_savebuff1");  /* Optional Target Player */
    savebuff[2] = alloc_lbuf("fun_parsestr_savebuff2");
    savebuff[3] = alloc_lbuf("fun_parsestr_savebuff3");
-   savebuff[4] = alloc_lbuf("fun_parsestr_savebuff4");  /* Transofmration character */
+   savebuff[4] = alloc_lbuf("fun_parsestr_savebuff4");  /* Transformation character */
    savebuff[5] = NULL;
 
    /* Set up target */
@@ -30881,7 +30881,7 @@ FUNCTION(fun_squish)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_subnetmatch: Return value based on wether specified ip address is part
+ * fun_subnetmatch: Return value based on whether specified ip address is part
  * of the specified ip/CIDR or ip and netmask combination.
  */
 
@@ -35053,7 +35053,7 @@ FUNCTION(fun_ljc)
 #endif
   len = atoi(fargs[1]);
 
-  /* seperator */
+  /* separator */
   filllen = 1;
   memset(filler, '\0', sizeof(filler));
   memset(t_buff, '\0', sizeof(t_buff));
@@ -35401,7 +35401,7 @@ FUNCTION(fun_vattrcnt)
        }
        if ( db[target].nvattr != count ) {
           s_mbuff = alloc_mbuf("fun_vattr");
-          sprintf(s_mbuff, "Value missmatch on user-count for dbref#%d.  was %d now %d.", target, db[target].nvattr, count);
+          sprintf(s_mbuff, "Value mismatch on user-count for dbref#%d.  was %d now %d.", target, db[target].nvattr, count);
           db[target].nvattr = count;
           notify_quiet(player, s_mbuff);
           free_mbuf(s_mbuff);
@@ -36808,7 +36808,7 @@ FUNCTION(fun_wipe)
       switch( mudstate.wipe_state ) {
          case -1: notify(player, "Wipe: no match");
                   break;
-         case -2: notify(player, "Wipe: Can not wipe safe/indestructable objects.");
+         case -2: notify(player, "Wipe: Can not wipe safe/indestructible objects.");
                   break;
          default: s_buff = alloc_lbuf("fun_wipe");
                   sprintf(s_buff, "Wipe: %d attributes wiped.", mudstate.wipe_state);
@@ -39215,7 +39215,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        return;
     }
 
-    /* Make sure attribute is readably by me */
+    /* Make sure attribute is readable by me */
     ap = atr_num(atr);
     if (!ap) {
        notify_quiet(player, "No such attribute.");
@@ -39238,7 +39238,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        return;
     }
 
-    /* Privalaged functions require printable characters -- no ansi */
+    /* Privileged functions require printable characters -- no ansi */
     if (i_local) {
        s_buffptr = np;
        while ( *s_buffptr ) {
@@ -39597,7 +39597,7 @@ CF_HAND(cf_func_access)
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
+ *    must display the following acknowledgment:
  *  This product includes software developed by the University of
  *  California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors

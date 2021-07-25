@@ -1,4 +1,4 @@
-/* eval.c - command evaulation and cracking */
+/* eval.c - command evaluation and cracking */
 
 #ifdef SOLARIS
 /* borked declarations in Solaris header files */
@@ -927,7 +927,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                         i_utfcnt++;
                         string++;
                     }
-                    /* We leave this in for double jeapordy */
+                    /* We leave this in for double jeopardy */
                     s_ucpbuf[i_utfcnt] = '\0'; // Null fix by eery
                     
                     i_utfnum = atoi(s_ucpbuf);
@@ -2123,7 +2123,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		   safe_str(tbuf, buff, &bufc);
                 }
 		break;
-	    case 'A':		/* Absolute posessive */
+	    case 'A':		/* Absolute possessive */
 	    case 'a':		/* idea from Empedocles */
 		tbuf = alloc_lbuf("exec.absolutepossessive");
 		if (gender < 0)

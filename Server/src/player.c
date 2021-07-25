@@ -787,7 +787,7 @@ int	ibf = -1;
 
 /* ---------------------------------------------------------------------------
  * badname_add, badname_check, badname_list: Add/look for/display bad names.
- * protectname has similiar matches
+ * protectname has similar matches
  */
 
 int protectname_add (char *protect_name, dbref player)

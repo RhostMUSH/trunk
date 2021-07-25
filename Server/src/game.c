@@ -317,7 +317,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 	if (!*s)
 	    continue;
 	*s++ = 0;
-        /* Allow attributes set NO_PARSE to pass in what player types verbatum */
+        /* Allow attributes set NO_PARSE to pass in what player types verbatim */
         if ( PCRE_EXEC && ((aflags & AF_REGEXP) || (ap->flags & AF_REGEXP)) ) {
            s3 = buff + 1;
            memset(buff2, '\0', sizeof(buff2));
@@ -2488,7 +2488,7 @@ main(int argc, char *argv[])
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
-    /* Clean the conf to avoid naughtyness */
+    /* Clean the conf to avoid naughtiness */
     unlink("rhost_vattr.conf");
 
     if ( TOTEM_SLOTS > LBUF_TOTEM ) {

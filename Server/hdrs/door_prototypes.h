@@ -4,13 +4,13 @@
 /**********************************************************************
  * DOOR_PROTOTYPES.H                                    Lensy, 12/04/03
  *
- * This file is where you should stick any function prototypes for 
+ * This file is where you should stick any function prototypes for
  * door implementations you want to use.
  *
  */
 
 #ifdef EXAMPLE_DOOR_CODE
-/* These prototypes are for the example door implementations 
+/* These prototypes are for the example door implementations
  * that ship with Rhost pl15.
  * See the README.DOOR file for in depth information.
  */
@@ -20,7 +20,7 @@ int mailDoorOutput(DESC *d, char *pText);
 int mailDoorOpen(DESC *d, int nArgs, char *args[], int id);
 int mailDoorInput(DESC *d, char *pText);
 int mailDoorClose(DESC *d);
-/* The mush connection door (door_mush.c) */ 
+/* The mush connection door (door_mush.c) */
 int mushDoorOpen(DESC *d, int nArgs, char *args[], int id);
 /* example code: END */
 #endif

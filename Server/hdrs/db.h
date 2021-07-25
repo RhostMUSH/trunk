@@ -9,7 +9,7 @@
 
 #include <sys/file.h>
 
-/* Eliminate link error on linux - Thorin 3/99 */
+/* Eliminate link error on Linux - Thorin 3/99 */
 #ifndef dbm_error
 #define dbm_error(x) (0)
 #endif
@@ -80,7 +80,7 @@ extern ATTR **anum_table;
 #define anum_set(x,v)	anum_table[(x)] = v
 extern void	FDECL(anum_extend,(int));
 
-#define	ATR_INFO_CHAR	'\1'	/* Leadin char for attr control data */
+#define	ATR_INFO_CHAR	'\1'	/* Leading char for attr control data */
 
 /* Attribute handler keys */
 #define	AH_READ		0	/* Read the attribute from the hash db */
@@ -125,7 +125,7 @@ struct boolexp {
 #define	V_MASK		0x000000ff	/* Database version */
 #define	V_ZONE		0x00000100	/* ZONE/DOMAIN field */
 #define	V_LINK		0x00000200	/* LINK field (exits from objs) */
-#define	V_GDBM		0x00000400	/* attrs are in a gdbm db, not here */
+#define	V_GDBM		0x00000400	/* attrs are in a GDBM db, not here */
 #define	V_ATRNAME	0x00000800	/* NAME is an attr, not in the hdr */
 #define	V_ATRKEY	0x00001000	/* KEY is an attr, not in the hdr */
 #define	V_PERNKEY	0x00001000	/* PERN: Extra locks in object hdr */
@@ -136,7 +136,7 @@ struct boolexp {
 
 /* special dbref's */
 #define	NOTHING		(-1)	/* null dbref */
-#define	AMBIGUOUS	(-2)	/* multiple possibilities, for matchers */
+#define	AMBIGUOUS	(-2)	/* multiple possibilities, for matches */
 #define	HOME		(-3)	/* virtual room, represents mover's home */
 #define	NOPERM		(-4)	/* Error status, no permission */
 

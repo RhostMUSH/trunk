@@ -4,7 +4,7 @@
 
 #include  "help.h"
 
-/* This code is very wastefull of memory, but hey its just a quicky program */
+/* This code is very wasteful of memory, but hey its just a quicky program */
 
 #define MAXTOPICS  5000
 #define MAXTEXTLEN 64000
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 /* Defined HTML Classes:
  * div  help-toc:         Table of Contents of all help topics
  * div  help-topics:      Full help topic entry
- * div  help-navigation:  Navigation elements at bottom of help topic antry
+ * div  help-navigation:  Navigation elements at bottom of help topic entry
  */
 
 /* HTML HEAD */

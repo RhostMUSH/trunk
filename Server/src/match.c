@@ -23,7 +23,7 @@ static int reality_valuechk = 0;        /* Reality level check */
 
 /*
  * This function removes repeated spaces from the template to which object
- * names are being matched.  It also removes inital and terminal spaces.
+ * names are being matched.  It also removes initial and terminal spaces.
  */
 
 static char *
@@ -36,7 +36,7 @@ munge_space_for_match(name)
     p = name;
     q = buffer;
     while (isspace((int)*p))
-	p++;			/* remove inital spaces */
+	p++;			/* remove initial spaces */
     while (*p) {
 	while (*p && !isspace((int)*p))
 	    *q++ = *p++;

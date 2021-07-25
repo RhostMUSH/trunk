@@ -1066,7 +1066,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
          STARTLOG(LOG_PROBLEMS, "DYN", "INDX")
          line = alloc_lbuf("help_write.LOG.seek");
-         sprintf(line, "Missmatched index for %.3900s[.indx/.txt].", fhelp);
+         sprintf(line, "Mismatched index for %.3900s[.indx/.txt].", fhelp);
          log_text(line);
          free_lbuf(line);
          ENDLOG
