@@ -563,7 +563,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
               newplayer = NOTHING;
         }
         if ( Good_chk(newplayer) ) {
-           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+           s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
@@ -573,15 +573,15 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {
-                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                    notify_quiet(player,"@destruction limit maximum reached.");
+                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                    notify_quiet(newplayer,"@destruction limit maximum reached.");
                     STARTLOG(LOG_SECURITY, "SEC", "TURTLE")
                       log_text("@destruction limit maximum reached -> Player: ");
-                      log_name(player);
+                      log_name(newplayer);
                       log_text(" Object: ");
                       log_name(victim);
                     ENDLOG
-                    broadcast_monitor(player,MF_VLIMIT,"[TURTLE] DESTROY MAXIMUM",
+                    broadcast_monitor(newplayer,MF_VLIMIT,"[TURTLE] DESTROY MAXIMUM",
                             NULL, NULL, victim, 0, 0, NULL);
                     free_lbuf(s_chkattr);
                     return;
@@ -590,10 +590,10 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
               s_mbuf = alloc_mbuf("vattr_check");
               sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
                                              i_array[2]+1, i_array[3], i_array[4]);
-              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+              atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
+              atr_add_raw(newplayer, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -749,7 +749,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
               newplayer = NOTHING;
         }
         if ( Good_chk(newplayer) ) {
-           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+           s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
@@ -759,15 +759,15 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {
-                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                    notify_quiet(player,"@destruction limit maximum reached.");
+                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                    notify_quiet(newplayer,"@destruction limit maximum reached.");
                     STARTLOG(LOG_SECURITY, "SEC", "TOAD")
                       log_text("@destruction limit maximum reached -> Player: ");
-                      log_name(player);
+                      log_name(newplayer);
                       log_text(" Object: ");
                       log_name(victim);
                     ENDLOG
-                    broadcast_monitor(player,MF_VLIMIT,"[TOAD] DESTROY MAXIMUM",
+                    broadcast_monitor(newplayer,MF_VLIMIT,"[TOAD] DESTROY MAXIMUM",
                             NULL, NULL, victim, 0, 0, NULL);
                     free_lbuf(s_chkattr);
                     return;
@@ -776,10 +776,10 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
               s_mbuf = alloc_mbuf("vattr_check");
               sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
                                              i_array[2]+1, i_array[3], i_array[4]);
-              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+              atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
+              atr_add_raw(newplayer, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
