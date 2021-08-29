@@ -1482,6 +1482,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y-%m-%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1494,6 +1496,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y-%m-%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1506,6 +1510,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y/%m/%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1518,6 +1524,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y/%m/%d %I:%M:%S AM/PM */
       if ( stricmp(str7, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1530,6 +1538,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y-%m-%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1542,6 +1552,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y-%m-%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1554,6 +1566,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y/%m/%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }
@@ -1566,6 +1580,8 @@ do_date_conv(char *instr, char *outstr)
 /* %Y/%m/%d %I:%M AM/PM */
       if ( stricmp(str6, (char *)"PM") == 0) {
          i_hour = atoi(str4) + 12;
+         if(i_hour > 23)
+             i_hour -= 12;
       } else {
          i_hour = atoi(str4);
       }

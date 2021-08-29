@@ -34099,3 +34099,5 @@
  * output to ex/debug was off with some features [ASH]
  * @totem table loader didn't properly mark totem slot in use [ASH]
  * Updated 'help global_ansimask' to be actually accurate. [AMB]
+ * Fixed PM times higher than 11:00. This now even allows for 'weird' PM
+   times like 13:00 PM [AMB]
