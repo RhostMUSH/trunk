@@ -217,6 +217,7 @@ struct descriptor_data {
   long ws_frame_len;
   dbref account_owner;		/* For softcoded account systems */
   char account_rawpass[100];		/* For raw account password */
+  char longaddr[256]; /* Because DNS hostnames go huge these days */
 };
 
 /* flags in the flag field */

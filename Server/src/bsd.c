@@ -201,7 +201,7 @@ int check_tor(struct in_addr a_remote, int i_port) {
    s_tmp           = alloc_lbuf("check_tor_local");
    s_reverselocal  = alloc_sbuf("check_tor_1");
    s_reverseremote = alloc_sbuf("check_tor_2");
-   s_tordns        = alloc_mbuf("check_tor_3");
+   s_tordns        = alloc_lbuf("check_tor_3");
 
    memset(s_tmp, '\0', LBUF_SIZE);
    strcpy(s_tmp, mudstate.tor_localcache);
@@ -249,7 +249,7 @@ int check_tor(struct in_addr a_remote, int i_port) {
    free_lbuf(s_tmp);
    free_sbuf(s_reverselocal);
    free_sbuf(s_reverseremote);
-   free_mbuf(s_tordns);
+   free_lbuf(s_tordns);
 
    return i_found;
 }
@@ -450,6 +450,13 @@ shovechars(int port,char* address)
       }
       if ((d->flags & DS_HAS_DOOR) && (d->door_desc >= maxd)) {
 	maxd = d->door_desc + 1;
+      }
+      /* If we rebooted after the d->longaddr addition, makes sure
+         all current d->addrs get copied over --Amb */
+      if( d->longaddr[0] == '\0')
+      {
+        strncpy(d->longaddr,d->addr,sizeof(d->longaddr));
+        d->longaddr[sizeof(d->addr)] = '\0'; // Just to be sure.
       }
       if( d->flags & DS_CONNECTED ) {
         if(!silent) {
@@ -692,7 +699,7 @@ shovechars(int port,char* address)
   		  sprintf(logbuff,
 	   	  	"[%d/%s] Auth request timed out",
 		    	d->descriptor,
-			d->addr);
+			d->longaddr);
 		  log_text(logbuff);
 	 	ENDLOG
 		free_mbuf(logbuff);
@@ -1190,7 +1197,7 @@ new_connection(int sock, int key)
        i_chktor = check_tor(addr.sin_addr, mudconf.port);
     }
 
-    tsite_buff = alloc_mbuf("check_max_sitecons");
+    tsite_buff = alloc_lbuf("check_max_sitecons");
     maxsitecon = 0;
     maxtsitecon = 0;
 
@@ -1212,11 +1219,11 @@ new_connection(int sock, int key)
           if ( !( (site_check(addr.sin_addr, mudstate.suspect_list, 1, 0, H_PASSPROXY) == H_PASSPROXY) || 
                   ((char *)mudconf.passproxy_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) ) {
              STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
-                buff = alloc_mbuf("new_connection.LOG.badsite");
+                buff = alloc_lbuf("new_connection.LOG.badsite");
                 sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
                         newsock, inet_ntoa(addr.sin_addr), i_mtu, i_mss, cur_port);
                 log_text(buff);
-                free_mbuf(buff);
+                free_lbuf(buff);
              ENDLOG
              if ( (mudconf.proxy_checker & 2) && (mudconf.proxy_checker & 4) ) {
                 i_proxychk = H_NOGUEST | H_REGISTRATION;
@@ -1244,7 +1251,7 @@ new_connection(int sock, int key)
     /* DO BLACKLIST CHECK HERE */
     if ( blacklist_check(addr.sin_addr, 0) || i_chktor  ) {
        STARTLOG(LOG_NET | LOG_SECURITY, "NET", (i_chktor ? "TOR" : "BLACK"));
-          buff = alloc_mbuf("new_connection.LOG.badsite");
+          buff = alloc_lbuf("new_connection.LOG.badsite");
           sprintf(buff, "[%d/%s] Connection refused - %s.  (Remote port %d)",
                   newsock, inet_ntoa(addr.sin_addr), (i_chktor ? "TOR" : "Blacklisted"), cur_port);
           log_text(buff);
@@ -1255,13 +1262,13 @@ new_connection(int sock, int key)
              broadcast_monitor(NOTHING, MF_CONN | i_addflags, "SITE IN BLACKLIST", NULL,
                                inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
           }
-          free_mbuf(buff);
+          free_lbuf(buff);
        ENDLOG
        fcache_rawdump(newsock, FC_CONN_SITE, addr.sin_addr, (char *)NULL);
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
-       free_mbuf(tsite_buff);
+       free_lbuf(tsite_buff);
        RETURN(0);
     }
 
@@ -1287,11 +1294,11 @@ new_connection(int sock, int key)
                                mudstate.api_lastsite_cnt, (mudstate.now - mudstate.last_apicon_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
              STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
-                buff = alloc_mbuf("new_connection.LOG.autoforbidapi");
+                buff = alloc_lbuf("new_connection.LOG.autoforbidapi");
                 sprintf(buff, "[%d/%s] marked for autoAPIforbid.  (Remote port %d)",
                  newsock, inet_ntoa(addr.sin_addr), cur_port);
                 log_text(buff);
-                free_mbuf(buff);
+                free_lbuf(buff);
              ENDLOG
           }
           mudstate.api_lastsite_cnt = 0;
@@ -1317,11 +1324,11 @@ new_connection(int sock, int key)
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
 	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
-	     buff = alloc_mbuf("new_connection.LOG.autoregister");
+	     buff = alloc_lbuf("new_connection.LOG.autoregister");
 	     sprintf(buff, "[%d/%s] marked for autoregistration.  (Remote port %d)",
 		     newsock, inet_ntoa(addr.sin_addr), cur_port);
 	     log_text(buff);
-	     free_mbuf(buff);
+	     free_lbuf(buff);
 	     ENDLOG
           } else {
              cf_site((int *)&mudstate.access_list, tchbuff,
@@ -1331,11 +1338,11 @@ new_connection(int sock, int key)
                                (mudstate.now - mudstate.last_con_attempt)),
                                NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
 	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
-	     buff = alloc_mbuf("new_connection.LOG.autoregister");
+	     buff = alloc_lbuf("new_connection.LOG.autoregister");
 	     sprintf(buff, "[%d/%s] marked for autoforbidding.  (Remote port %d)",
 		     newsock, inet_ntoa(addr.sin_addr), cur_port);
 	     log_text(buff);
-	     free_mbuf(buff);
+	     free_lbuf(buff);
 	     ENDLOG
            }
            mudstate.cmp_lastsite_cnt = 0;
@@ -1396,27 +1403,27 @@ new_connection(int sock, int key)
           }
        }
     }
-    free_mbuf(tsite_buff);
+    free_lbuf(tsite_buff);
         
     if ( i_forbid ) {
         if ( !mudconf.nospam_connect ) { /* Ok, this removes possible spamming of logs */
 	   STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
-	       buff = alloc_mbuf("new_connection.LOG.badsite");
+	       buff = alloc_lbuf("new_connection.LOG.badsite");
 	   sprintf(buff, "[%d/%s] Connection refused.  (Remote port %d)",
 		   newsock, inet_ntoa(addr.sin_addr), cur_port);
 	   log_text(buff);
-	   free_mbuf(buff);
+	   free_lbuf(buff);
 	   ENDLOG
         } else if ( mudconf.nospam_connect == 1 ) {
            buff1 = inet_ntoa(addr.sin_addr);
            if ( !(*mudstate.nospam_lastsite) || (strcmp(mudstate.nospam_lastsite, buff1) != 0) ) {
               if ( mudstate.nospam_counter > 0 ) {
                  STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
-                    buff = alloc_mbuf("new_connection.LOG.badsite");
+                    buff = alloc_lbuf("new_connection.LOG.badsite");
                     sprintf(buff, "[%s] Connection refused [total %d times].",
                             mudstate.nospam_lastsite, mudstate.nospam_counter);
                     log_text(buff);
-                    free_mbuf(buff);
+                    free_lbuf(buff);
                  ENDLOG
               }
               memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
@@ -1457,7 +1464,7 @@ new_connection(int sock, int key)
 	errno = 0;
 	d = NULL;
     } else {
-	buff = alloc_mbuf("new_connection.sitename");
+	buff = alloc_lbuf("new_connection.sitename");
         if ( mudconf.nospam_connect == 1 ) {
            if ( *mudstate.nospam_lastsite ) {
               if ( mudstate.nospam_counter > 0 ) {
@@ -1471,14 +1478,14 @@ new_connection(int sock, int key)
               mudstate.nospam_counter = 0;
            }
         }
-        memset(buff, 0, MBUF_SIZE);
-  	strncpy(buff, strip_nonprint(addroutbuf), MBUF_SIZE - 1);
+        memset(buff, 0, LBUF_SIZE);
+  	strncpy(buff, strip_nonprint(addroutbuf), LBUF_SIZE - 1);
 	STARTLOG(LOG_NET, "NET", "CONN")
-	    buff1 = alloc_mbuf("new_connection.LOG.open");
+	    buff1 = alloc_lbuf("new_connection.LOG.open");
 	sprintf(buff1, "[%d/%s] Connection opened (remote port %d)",
 		newsock, buff, cur_port);
 	log_text(buff1);
-	free_mbuf(buff1);
+	free_lbuf(buff1);
 	ENDLOG
         if ( strcmp(buff, addroutbuf) != 0) {
 	   STARTLOG(LOG_NET, "NET", "CONN")
@@ -1490,7 +1497,7 @@ new_connection(int sock, int key)
         }
 	d = initializesock(newsock, &addr, buff, i_proxychk, key);
         broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
-	free_mbuf(buff);
+	free_lbuf(buff);
 	mudstate.debug_cmd = cmdsave;
     }
     mudstate.debug_cmd = cmdsave;
@@ -1611,27 +1618,27 @@ shutdownsock(DESC * d, int reason)
 	if ( (reason != R_LOGOUT) && (reason != R_SU) ) {
 	    fcache_dump(d, FC_QUIT, (char *)NULL);
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
-		buff = alloc_mbuf("shutdownsock.LOG.disconn");
+		buff = alloc_lbuf("shutdownsock.LOG.disconn");
 	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->addr);
+		    d->descriptor, d->longaddr);
 	    log_text(buff);
 	    log_name(d->player);
 	    sprintf(buff, " <Reason: %s>",
 		    disc_reasons[reason]);
 	    log_text(buff);
-	    free_mbuf(buff);
+	    free_lbuf(buff);
 	    ENDLOG
 	} else {
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "LOGO")
-		buff = alloc_mbuf("shutdownsock.LOG.logout");
+		buff = alloc_lbuf("shutdownsock.LOG.logout");
 	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->addr);
+		    d->descriptor, d->longaddr);
 	    log_text(buff);
 	    log_name(d->player);
 	    sprintf(buff, " <Reason: %s>",
 		    disc_reasons[reason]);
 	    log_text(buff);
-	    free_mbuf(buff);
+	    free_lbuf(buff);
 	    ENDLOG
 	}
 
@@ -1648,7 +1655,7 @@ shutdownsock(DESC * d, int reason)
 	sprintf(buff, "%d %s %d %ld %d %d [%s] <%s> %s",
 		d->player, buff2, d->command_count, now,
 		Location(d->player), Pennies(d->player),
-		d->addr, disc_reasons[reason],
+		d->longaddr, disc_reasons[reason],
 		Name(d->player));
 	log_text(buff);
 	free_lbuf(buff);
@@ -1666,12 +1673,12 @@ shutdownsock(DESC * d, int reason)
 	    reason = R_WEBSOCKETS;
         }
 	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
-	    buff = alloc_mbuf("shutdownsock.LOG.neverconn");
+	    buff = alloc_lbuf("shutdownsock.LOG.neverconn");
 	sprintf(buff,
 		"[%d/%s] Connection closed, never connected. <Reason: %s>",
-		d->descriptor, d->addr, disc_reasons[reason]);
+		d->descriptor, d->longaddr, disc_reasons[reason]);
 	log_text(buff);
-	free_mbuf(buff);
+	free_lbuf(buff);
 	ENDLOG
     }
     process_output(d);
@@ -1681,7 +1688,7 @@ shutdownsock(DESC * d, int reason)
     if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
     if ( (reason == R_LOGOUT) || (reason == R_SU) ) {
         addroutbuf = (char *) addrout((d->address).sin_addr, (d->flags & DS_API));
-        t_addroutbuf = alloc_mbuf("check_max_sitecons");
+        t_addroutbuf = alloc_lbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
            DESC_SAFEITER_ALL(dchk, dchknext) {
@@ -1693,7 +1700,7 @@ shutdownsock(DESC * d, int reason)
               }
            }
         }
-        free_mbuf(t_addroutbuf);
+        free_lbuf(t_addroutbuf);
 	d->flags &= ~DS_CONNECTED;
 	d->connected_at = mudstate.now;
 	d->retries_left = mudconf.retry_limit;
@@ -1723,25 +1730,25 @@ shutdownsock(DESC * d, int reason)
 
         memset(tchbuff, 0, sizeof(tchbuff));
         strcpy(tchbuff, mudconf.forbid_host);
-        if ((char *)mudconf.forbid_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.forbid_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_FORBIDDEN;
         strcpy(tchbuff, mudconf.register_host);
-        if ((char *)mudconf.register_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.register_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_REGISTRATION;
         strcpy(tchbuff, mudconf.autoreg_host);
-        if ((char *)mudconf.autoreg_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.autoreg_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_NOAUTOREG;
         strcpy(tchbuff, mudconf.noguest_host);
-        if ((char *)mudconf.noguest_host && lookup(d->addr, tchbuff, i_guestcnt, &i_retvar))
+        if ((char *)mudconf.noguest_host && lookup(d->longaddr, tchbuff, i_guestcnt, &i_retvar))
            d->host_info = d->host_info | H_NOGUEST;
         strcpy(tchbuff, mudconf.suspect_host);
-        if ((char *)mudconf.suspect_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.suspect_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_SUSPECT;
         strcpy(tchbuff, mudconf.passproxy_host);
-        if ((char *)mudconf.passproxy_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.passproxy_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_PASSPROXY;
         strcpy(tchbuff, mudconf.hardconn_host);
-        if ((char *)mudconf.hardconn_host && lookup(d->addr, tchbuff, i_sitecnt, &i_retvar))
+        if ((char *)mudconf.hardconn_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_HARDCONN;
 	d->input_tot = d->input_size;
 	d->output_tot = 0;
@@ -1782,7 +1789,7 @@ shutdownsock(DESC * d, int reason)
 	   welcome_user(d);
         }
     } else {
-	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->userid, d->addr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
+	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->userid, d->longaddr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
 	shutdown(d->descriptor, 2);
 	close(d->descriptor);
 	freeqs(d,0); /* 0 is for all */
@@ -1864,7 +1871,7 @@ start_auth(DESC * d)
       STARTLOG(LOG_NET, "NET", "AUTH")
         logbuff = alloc_lbuf("start_auth.LOG.site_check");
         sprintf(logbuff,
-        "[%d/%s] Site configured as NOAUTH, not checking", d->descriptor, d->addr);
+        "[%d/%s] Site configured as NOAUTH, not checking", d->descriptor, d->longaddr);
         log_text(logbuff);
         free_lbuf(logbuff);
       ENDLOG
@@ -1895,7 +1902,7 @@ start_auth(DESC * d)
     STARTLOG(LOG_NET, "NET", "AUTH")
       logbuff = alloc_lbuf("start_auth.LOG.connecting");
       sprintf(logbuff,
-      "[%d/%s] Starting AUTH connection", d->descriptor, d->addr);
+      "[%d/%s] Starting AUTH connection", d->descriptor, d->longaddr);
       log_text(logbuff);
       free_lbuf(logbuff);
     ENDLOG
@@ -1911,7 +1918,7 @@ start_auth(DESC * d)
           } else {
             STARTLOG(LOG_NET, "NET", "AUTH")
               sprintf(logbuff,
-              "[%d/%s] AUTH connect alarm timed out", d->descriptor, d->addr);
+              "[%d/%s] AUTH connect alarm timed out", d->descriptor, d->longaddr);
               log_text(logbuff);
             ENDLOG
           }
@@ -1954,7 +1961,7 @@ check_auth_connect(DESC * d)
             STARTLOG(LOG_NET, "NET", "AUTH")
               logbuff = alloc_lbuf("check_auth_connect.LOG.timeout");
               sprintf(logbuff,
-              "[%d/%s] AUTH connect: %s", d->descriptor, d->addr, strerror(sockerr));
+              "[%d/%s] AUTH connect: %s", d->descriptor, d->longaddr, strerror(sockerr));
               log_text(logbuff);
               free_lbuf(logbuff);
             ENDLOG
@@ -1990,7 +1997,7 @@ write_auth(DESC * d)
             STARTLOG(LOG_NET, "NET", "AUTH")
       	      logbuff = alloc_lbuf("check_auth.LOG.writeerr");
     	      sprintf(logbuff,
-	              "[%d/%s] AUTH write: %s", d->descriptor, d->addr,
+	              "[%d/%s] AUTH write: %s", d->descriptor, d->longaddr,
 	              strerror(errno));
 	      log_text(logbuff);
 	      free_lbuf(logbuff);
@@ -2027,7 +2034,7 @@ check_auth(DESC * d)
         STARTLOG(LOG_NET, "NET", "AUTH")
   	  logbuff = alloc_lbuf("check_auth.LOG.readerr");
 	  sprintf(logbuff,
-	          "[%d/%s] AUTH read: %s", d->descriptor, d->addr,
+	          "[%d/%s] AUTH read: %s", d->descriptor, d->longaddr,
 	          strerror(errno));
 	  log_text(logbuff);
 	  free_lbuf(logbuff);
@@ -2069,7 +2076,7 @@ check_auth(DESC * d)
 	    STARTLOG(LOG_NET, "NET", "AUTH")
 		logbuff = alloc_lbuf("check_auth.LOG.got_it");
 	        sprintf(logbuff,
-		    "[%d/%s] User identified: %s", d->descriptor, d->addr,
+		    "[%d/%s] User identified: %s", d->descriptor, d->longaddr,
 		    d->userid);
 	        log_text(logbuff);
 	        free_lbuf(logbuff);
@@ -2081,7 +2088,7 @@ check_auth(DESC * d)
 	    STARTLOG(LOG_NET, "NET", "AUTH")
 		logbuff = alloc_lbuf("check_auth.LOG.prot_err");
 	        sprintf(logbuff,
-		  "[%d/%s] Auth protocol error: %s", d->descriptor, d->addr,
+		  "[%d/%s] Auth protocol error: %s", d->descriptor, d->longaddr,
 		    d->userid);
 	        log_text(logbuff);
 	        free_lbuf(logbuff);
@@ -2118,7 +2125,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->command_count = 0;
     d->timeout = mudconf.idle_timeout;
     addroutbuf = (char *) addrout((*a).sin_addr, keyval);
-    t_addroutbuf = alloc_mbuf("check_max_sitecons");
+    t_addroutbuf = alloc_lbuf("check_max_sitecons");
     strcpy(t_addroutbuf, addroutbuf);
     i_sitecnt = i_guestcnt = 0;
     if ( t_addroutbuf ) {
@@ -2131,7 +2138,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
           }
        }
     }
-    free_mbuf(t_addroutbuf);
+    free_lbuf(t_addroutbuf);
     d->host_info = site_check((*a).sin_addr, mudstate.access_list, 1, 0, 0) |
 		   site_check((*a).sin_addr, mudstate.suspect_list, 0, 0, 0);
     i_sitemax = site_check((*a).sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
@@ -2168,6 +2175,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->host_info = d->host_info | i_keyflag;
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';
+    d->longaddr[0] = '\0';
     d->doing[0] = '\0';
     make_nonblocking(s);
     d->output_prefix = NULL;
@@ -2209,6 +2217,8 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */
     strncpy(d->addr, addr, 50);
+    memset(d->longaddr, 0, sizeof(d->longaddr)); /* Null terminate this sucker too */
+    strncpy(d->longaddr, addr, 255);
     d->address = *a;		/* added 5/3/90 SCG */
     if (descriptor_list)
 	descriptor_list->prev = &d->next;

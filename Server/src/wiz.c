@@ -954,10 +954,10 @@ void do_conncheck(dbref player, dbref cause, int key)
     tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
     if (*(d->userid)) {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->addr));
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->longaddr));
     } else {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->addr));
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->longaddr));
     }
     free_lbuf(tpr_buff);
   }

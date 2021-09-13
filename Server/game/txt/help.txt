@@ -31214,7 +31214,7 @@
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
     4.1.0: 4.1.0p0, 4.1.0p1, 4.1.0p2
-      4.2: 4.2.0
+      4.2: 4.2.0, 4.2.1
   
   See Also: historical, credits
 
@@ -34101,3 +34101,21 @@
  * Updated 'help global_ansimask' to be actually accurate. [AMB]
  * Fixed PM times higher than 11:00. This now even allows for 'weird' PM
    times like 13:00 PM [AMB]
+
+& 4.2.1
+  Release Date: 09/13/21
+
+  New Features
+  ------------
+
+  Changes
+  -------
+ * Big internal change: Added a new field to connection Descriptors to hold
+   more than 50 characters of a player's hostname. Converted code throughout
+   to use this larger field. On first @reboot after the update, the 'old'
+   string will be copied to the new field to make sure that data is set.
+   This needs thorough testing. [AMB]
+
+  Bug Fixes
+  ------------
+

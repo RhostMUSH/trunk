@@ -614,7 +614,7 @@ void queue_door_write(DESC * d, const char *b, int n)
             buf = alloc_lbuf("queue_door_write.LOG");
 	    sprintf(buf,
 		    "[%d/%s] Output buffer overflow, %d chars discarded by ",
-		    d->door_desc, d->addr, tp->hdr.nchars);
+		    d->door_desc, d->longaddr, tp->hdr.nchars);
 	    log_text(buf);
 	    free_lbuf(buf);
 	    log_name(d->player);
