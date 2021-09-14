@@ -453,10 +453,10 @@ shovechars(int port,char* address)
       }
       /* If we rebooted after the d->longaddr addition, makes sure
          all current d->addrs get copied over --Amb */
-      if( d->longaddr[0] == '\0')
+      if( d->longaddr[255] != '\0')
       {
+        memset(d->longaddr, '\0', sizeof(d->longaddr));
         strncpy(d->longaddr,d->addr,sizeof(d->longaddr));
-        d->longaddr[sizeof(d->addr)] = '\0'; // Just to be sure.
       }
       if( d->flags & DS_CONNECTED ) {
         if(!silent) {
@@ -2217,7 +2217,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     *d->userid = '\0';
     memset(d->addr, 0, sizeof(d->addr)); /* Null terminate the sucker */
     strncpy(d->addr, addr, 50);
-    memset(d->longaddr, 0, sizeof(d->longaddr)); /* Null terminate this sucker too */
+    memset(d->longaddr, '\0', sizeof(d->longaddr)); /* Null terminate this sucker too */
     strncpy(d->longaddr, addr, 255);
     d->address = *a;		/* added 5/3/90 SCG */
     if (descriptor_list)
