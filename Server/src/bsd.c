@@ -453,10 +453,11 @@ shovechars(int port,char* address)
       }
       /* If we rebooted after the d->longaddr addition, makes sure
          all current d->addrs get copied over --Amb */
-      if( (d->longaddr[0] == '\0') || (d->longaddr[255] != '\0'))
+      if( d->longaddrcheck != 242242242)
       {
         memset(d->longaddr, '\0', sizeof(d->longaddr));
         strncpy(d->longaddr,d->addr,sizeof(d->longaddr));
+        d->longaddrcheck = 242242242;
       }
       if( d->flags & DS_CONNECTED ) {
         if(!silent) {
@@ -2176,6 +2177,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';
     d->longaddr[0] = '\0';
+    d->longaddrcheck = 242242242;
     d->doing[0] = '\0';
     make_nonblocking(s);
     d->output_prefix = NULL;
