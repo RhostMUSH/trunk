@@ -1504,7 +1504,7 @@ destroy_exit(dbref player, dbref exit, int purge)
 	return;
     }
     if ((loc != Location(player)) && (loc != player)
-	&& !Admin(player)) {
+	&& !Admin(player) && !HasPriv(player, NOTHING, POWER_LONG_FINGERS, POWER3, NOTHING)) {
 	notify_quiet(player, "You can not destroy exits in another room.");
 	return;
     }
