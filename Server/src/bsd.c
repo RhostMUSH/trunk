@@ -453,7 +453,7 @@ shovechars(int port,char* address)
       }
       /* If we rebooted after the d->longaddr addition, makes sure
          all current d->addrs get copied over --Amb */
-      if( (d->longaddr[0] != '\0') || (d->longaddr[255] != '\0'))
+      if( (d->longaddr[0] == '\0') || (d->longaddr[255] != '\0'))
       {
         memset(d->longaddr, '\0', sizeof(d->longaddr));
         strncpy(d->longaddr,d->addr,sizeof(d->longaddr));
