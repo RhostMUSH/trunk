@@ -35027,6 +35027,23 @@ FUNCTION(fun_chr)
     }
 }
 
+FUNCTION(fun_codepoint)
+{
+    int i;
+
+    if (!is_number(fargs[0])) {
+         safe_str("#-1 ARGUMENT NOT A NUMBER", buff, bufcx);
+    } else {
+         i = atoi(fargs[0]);
+         if ( (i > 255) || (i < 0)) {
+            safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
+         } else {
+            safe_chr((char)i, buff, bufcx);
+         }
+    }
+}
+
+
 /* fun_trace: set or unset the trace flag on an object */
 
 FUNCTION(fun_chktrace)
@@ -38177,6 +38194,7 @@ FUN flist[] =
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
+    {"CODEPOINT", fun_codepoint, 1, 0, CA_IMMORTAL, CA_NO_CODE},
     {"COLORS", fun_colors, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"COLUMNS", fun_columns, 3, FN_VARARGS, CA_PUBLIC, 0},
     {"COMP", fun_comp, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

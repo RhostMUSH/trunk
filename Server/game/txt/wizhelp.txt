@@ -14993,3 +14993,18 @@ Example:
 & @crc32obj
 & crc32obj()
   Please see the normal help for more information on this feature.
+
+& CODEPOINT()
+  Function: codepoint(<number>)
+
+  This is essentially an unrestricted, immortal-only version of chr().
+
+  This function returns the character representation of the ASCII value
+  entered. This will work with any codepoints between (and including)
+  0 and 255.
+
+  Examples:
+  > say codepoint(97)
+  You say "a"
+
+  See Also: CHR(), ASC()

@@ -34107,6 +34107,10 @@
 
   New Features
   ------------
+ * Added codepoint() as an unrestricted version of chr(). Usage is limited
+   by default to Immortals/#1 as its use could have unintended (and bad)
+   side-effects in attributes. Mainly useful for things like Grapevine's
+   manual MSSP-handshake.
 
   Changes
   -------
