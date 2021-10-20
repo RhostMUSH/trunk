@@ -788,6 +788,7 @@ NDECL(cf_init)
     mudstate.curr_player = NOTHING;
     mudstate.curr_enactor = NOTHING;
     mudstate.curr_cmd = (char *) "< none >";
+    mudstate.curr_plrcmd = (char *) "< none >";
     memset(mudstate.curr_cmd_hook, '\0', LBUF_SIZE);
     mudstate.shutdown_flag = 0;
     mudstate.reboot_flag = 0;

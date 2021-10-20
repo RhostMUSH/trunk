@@ -14422,6 +14422,10 @@ Example:
    
       You may use %-m for the command the person typed which will work for
       all options except AO_* where it's an offline command.
+      NOTE: %-m will become the code of a stored command *if* what the player
+      typed is causing a stored command on a player object  to be run.
+
+      You may use %-p to get the direct command a player typed.
    
   7A) substitution hooks are handled with the sub_override @admin parameter.
       wizhelp on this explains in detail how substitution hooks are set up.
@@ -14447,6 +14451,11 @@ Example:
   Note: You may use %-m (not %m, %-m) for the last command that @hook
         processed.  You may use %m as well for last command as normal, but
         %-m will always be the command issued that triggered that @hook.
+        Note that if what the player typed caused a command stored on a player
+        (not necessarily themselves) to be run, %-m will hold that code.
+
+        You can alternatively use %-p to make sure you get the command that
+        was directly typed or run by the player.
   
   Now you can do one of two things:
   > @hook/before look                (netrhost.conf:  hook_cmd look before)

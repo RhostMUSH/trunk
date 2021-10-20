@@ -1881,6 +1881,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       safe_str(mudstate.curr_cmd_hook, buff, &bufc);
                    }
                    dstr++;
+                } else if ( *(dstr+1) == 'p' ) {
+                   if ( *(mudstate.curr_plrcmd) && *(mudstate.curr_cmd_hook) ) {
+                      // We also check for curr_cmd_hook here to make sure this
+                      // only works inside hooks :)
+                      safe_str(mudstate.curr_plrcmd, buff, &bufc);
+                   }
+                   dstr++;
                 /* Do the bangs if there */
                 } else if ( isdigit((unsigned char)*(dstr+1)) ) {
                    if ( isdigit((unsigned char)*(dstr+2)) ) {

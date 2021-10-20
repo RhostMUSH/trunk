@@ -2374,8 +2374,9 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
       if ( atext )
          free_lbuf(atext);
    }
-   /* Reset the hook last command */
+   /* Reset the hook last command and the last player command */
    memset(mudstate.curr_cmd_hook, '\0', LBUF_SIZE);
+   memset(mudstate.curr_plrcmd, '\0', LBUF_SIZE);
    return retval;
 }
 
@@ -3464,6 +3465,8 @@ process_command(dbref player, dbref cause, int interactive,
 #endif
     mudstate.debug_cmd = command;
     mudstate.curr_cmd  = lst_cmd;
+    if((Typeof(player) == TYPE_PLAYER) && interactive)
+        mudstate.curr_plrcmd  = lst_cmd;
 
     /* The carriage is before the horse */
     if ( (*command == '}') || ((*command == ']') && (*(command+1) == '}')) ) {

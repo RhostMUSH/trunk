@@ -12323,6 +12323,7 @@
     %-<num>    = Stack 10+ that are comma delimited or if <num> specified
                  the positional stack location 0 through 999.  BANGS supported.
     %-m        = The last command executed that issued @hook.  
+    %-p        = The last direct-player command executed that issued @hook.  
     %i0-%i99   = Equivalent to itext(0) through itext(99). [%il for outer]
     %i_0-%i_99 = Equivalent to inum(0) through inum(99) [%i_l for outer]
                  BANGS supported.  Note: '99' depends on recursion limit.
@@ -34110,7 +34111,9 @@
  * Added codepoint() as an unrestricted version of chr(). Usage is limited
    by default to Immortals/#1 as its use could have unintended (and bad)
    side-effects in attributes. Mainly useful for things like Grapevine's
-   manual MSSP-handshake.
+   manual MSSP-handshake. [AMB]
+ * New %-p substitution for @hooks that stores the original player-typed or
+   directly player-object-ran command. [AMB]
 
   Changes
   -------
