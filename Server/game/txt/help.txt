@@ -34122,6 +34122,8 @@
    to use this larger field. On first @reboot after the update, the 'old'
    string will be copied to the new field to make sure that data is set.
    This needs thorough testing. [AMB]
+ * locked down codepoint() so substitutions passed are locked to 
+   immortals [ASH]
 
   Bug Fixes
   ------------

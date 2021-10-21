@@ -12845,12 +12845,12 @@ Example:
   
   ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  ACCOUNT_WHO() AFLAGS()    
   BEEP()           BYPASS()         CANSEE()      CHECKPASS()   CHKGARBAGE()
-  CLOAK()          DOING()          DYNHELP()     EXECSCRIPT()  HASDEPOWER()
-  HASPOWER()       HASTOGGLE()      ISHIDDEN()    LATTRP()      LDEPOWERS() 
-  LOGTOFILE()      LOGSTATUS()      LOOKUP_SITE() LPOWERS()     LTOGGLES()  
-  MAILALIAS()      MAILQUICK()      MAILQUOTA()   MAILSIZE()    MAILSTATUS()
-  MSIZETOT()       NSLOOKUP()       QUOTA()       SIZE()        TEXTFILE()  
-  MAILREAD()       MAILSEND()   
+  CLOAK()          CODEPOINT()      DOING()       DYNHELP()     EXECSCRIPT()
+  HASDEPOWER()     HASPOWER()       HASTOGGLE()   ISHIDDEN()    LATTRP()    
+  LDEPOWERS()      LOGTOFILE()      LOGSTATUS()   LOOKUP_SITE() LPOWERS()   
+  LTOGGLES()       MAILALIAS()      MAILQUICK()   MAILQUOTA()   MAILSIZE()  
+  MAILSTATUS()     MSIZETOT()       NSLOOKUP()    QUOTA()       SIZE()      
+  TEXTFILE()       MAILREAD()       MAILSEND()   
 
 & EXECSCRIPT()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
@@ -15011,6 +15011,10 @@ Example:
   This function returns the character representation of the ASCII value
   entered. This will work with any codepoints between (and including)
   0 and 255.
+  
+  This function will pass around markup in the form of %<BEEPxxx> where
+  xxx is the 3 digit ascii number.  BEEP is the beep character which
+  by default is only available to immortals.
 
   Examples:
   > say codepoint(97)

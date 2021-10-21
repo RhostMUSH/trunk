@@ -951,16 +951,26 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     ucssubstitute = ucs32toascii(strtol(s_ucpbuf, NULL, 16));
                     safe_chr(ucssubstitute, buff2, &bufc2);
                     safe_chr(ucssubstitute, buff, &bufc);
+                } else if ( (*string == BEEP_CHAR) && isdigit(*(string+1)) && isdigit(*(string+2)) && isdigit(*(string+3)) && (*(string+4) == '>') ) {
+                   s_intbuf[0] = *(string+1);
+                   s_intbuf[1] = *(string+2);
+                   s_intbuf[2] = *(string+3);
+                   i_extendnum = atoi(s_intbuf);
+                   safe_chr((char) i_extendnum, buff2, &bufc2);
+                   safe_chr((char) i_extendnum, buff, &bufc);
+                   safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
+                   i_extendcnt+=4;
+                   string+=4;
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
                    s_intbuf[2] = *(string+2);
                    i_extendnum = atoi(s_intbuf);
-                   /*if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {*/
+                   if ( (i_extendnum >= 32) && (i_extendnum <= 126) ) {
                       safe_chr((char) i_extendnum, buff2, &bufc2);
                       safe_chr((char) i_extendnum, buff, &bufc);
                       safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
-                   /*} else if ( (i_extendnum >= 160) && 
+                   } else if ( (i_extendnum >= 160) && 
                            ((!mudconf.accent_extend && (i_extendnum <= 250)) || (mudconf.accent_extend && (i_extendnum <=255))) ) {
                       if ( i_extendnum == 255 ) {
                          safe_chr((char) i_extendnum, buff2, &bufc2);
@@ -983,7 +993,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                                    safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                       }
-                   }*/
+                   }
                    i_extendcnt+=3;
                    string+=3;
                 } else {

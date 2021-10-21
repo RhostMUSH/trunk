@@ -35030,7 +35030,7 @@ FUNCTION(fun_chr)
 FUNCTION(fun_codepoint)
 {
     int i;
-    char s_buff[8];
+    static char s_buff[10];
 
     if (!is_number(fargs[0])) {
          safe_str("#-1 ARGUMENT NOT A NUMBER", buff, bufcx);
@@ -35039,7 +35039,7 @@ FUNCTION(fun_codepoint)
          if ( (i > 255) || (i < 0)) {
             safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
          } else {
-            sprintf(s_buff, "%%<%03d>", i);
+            sprintf(s_buff, "%c<%c%03d>", '%', BEEP_CHAR, i);
             safe_str(s_buff, buff, bufcx);
          }
     }
