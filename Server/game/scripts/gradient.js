@@ -8,7 +8,7 @@
 // We rewrite Deno ( https://deno.land/ ) in the path
 // and use deno-rhost ( https://github.com/stevensmedia/deno-rhost ) from the net
 
-const Rhost = await import("https://github.com/stevensmedia/deno-rhost/raw/v2/rhost.js")
+const Rhost = await import("https://github.com/RhostMUSH/deno-rhost/raw/v3/rhost.js")
 
 function getHSV(colorarg) {
 	var idx
@@ -99,11 +99,15 @@ async function main() {
 
 	var ret = ""
 	var i = 0
-	for(var ch of Rhost.mapString(string)) {
+	var unicode = Rhost.decodeString(string)
+	for(var cp of unicode[Symbol.iterator]()) {
+		var ch = String.fromCodePoint(cp.codePointAt(0))
 		if(ch.match(/\s/)) {
 			ret += ch
 		} else {
-			ret += `[ansi(${gradientrange[i % length]},${ch})]`
+			ret += `[ansi(${gradientrange[i % length]},`
+			ret += Rhost.encodeString(ch)
+			ret += `)]`
 			++i
 		}
 	}
