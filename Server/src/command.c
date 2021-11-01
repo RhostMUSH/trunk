@@ -11324,7 +11324,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
          notify(player, unsafe_tprintf("%.32s-+-%s",
                 "--------------------------------",
                 "--------------------------------------------"));
-         notify(player, unsafe_tprintf("%-32s | %s", "Say/Pose/@emit Morgrifies", "Morgrify Status"));
+         notify(player, unsafe_tprintf("%-32s | %s", "Say/Pose/@emit Mogrifies", "Mogrify Status"));
          notify(player, unsafe_tprintf("%.32s-+-%s",
                 "--------------------------------",
                 "--------------------------------------------"));
