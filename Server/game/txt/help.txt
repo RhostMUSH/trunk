@@ -2566,8 +2566,8 @@
          works similiar to how you expect in MUX/TM3.  'lp' will still work
          the same.
   
-  See Also: pose, say, whisper, :, ;, ", @pemit, @away, @idle, @reject,
-            rpage, lpage, mrpage, PAGEFORMAT, OUTPAGEFORMAT
+  See Also: pose, say, whisper, :, ;, ", }, ], \\, @pemit, @away, @idle,
+            @reject, rpage, lpage, mrpage, PAGEFORMAT, OUTPAGEFORMAT
   
 & @PAGEFORMAT
 & &PAGEFORMAT
@@ -2754,7 +2754,7 @@
   
   If you have a space after the ';' it will use the ':' format instead.
    
-  See Also: page, pose, say, whisper, :, "
+  See Also: page, pose, say, whisper, @emit, :, ", ], }, \\
   
 & :
   Command: :<message>
@@ -2781,7 +2781,7 @@
   
   If you have a space after the ':' it will use the ';' format instead.
   
-  See Also: page, pose, say, whisper, ;, "
+  See Also: page, pose, say, whisper, @emit, ;, ", ], }, \\
   
 & "
   Command: "<message>
@@ -2807,7 +2807,7 @@
   
   Note that the closing double quote is automatically added.
   
-  See Also: page, pose, say, :, ", @saystring
+  See Also: page, pose, say, whisper, @emit, :, ;, ], }, \\,  @saystring
   
 & ##
 & #
@@ -2849,7 +2849,7 @@
     > \\A chill falls over the room.
     A chill falls over the room.
   
-  See Also: @emit, @oemit, say, pose, ", :, ;, NOSPOOF
+  See Also: @emit, @oemit, page, pose, say, whisper, ", :, ;, ], },  NOSPOOF
   
 & SPEECH_PREFIX
 & SPEECH_SUFFIX
@@ -2902,7 +2902,7 @@
     %2 - The time in the form HH:MM:SS
     %3 - The dbref# of the player issuing the say/pose/emit (#-1 if spoofed)
   
-  See Also: page, pose, whisper, @emit :, ;, ", }, ], @saystring
+  See Also: page, pose, whisper, @emit :, ;, ", }, ], \\, @saystring
   
 & score
   Command: score
@@ -3017,7 +3017,7 @@
   <player> and <message>.  '"' formats the message in normal whisper format
   (this is the default).
   
-  See Also: page, pose, say, :, ;, "
+  See Also: page, pose, say, @emit, :, ;, ", ], }, \\
   
 & doing
   Command: DOING <prefix>
@@ -3952,7 +3952,10 @@
   Command: @emit[/<switches>] <message>
   
   Sends <message> to everyone in your current location without prefixing it by
-  your character name.  You can also send the message to everyone in the room
+  your character name.  You can also use '\\<message>'.  No switches are allowed
+  with the '\\' shorthand. 
+
+ You can also send the message to everyone in the room
   that contains the object you are inside with the /room switch.
  
   The following switches are available:
@@ -3985,7 +3988,8 @@
  
   Some MUSHes may restrict the use of this command.
   
-  See Also: @femit, @oemit, @pemit, SPOOFING, say, pose, }, ]
+  See Also: @femit, @oemit, @pemit, page, pose, say, whisper, ;, ", }, ], \\,
+            SPOOFING, NOSPOOF
   
 & @entrances
   Command: @entrances [[<object>][,<low>[,<high>]]]
