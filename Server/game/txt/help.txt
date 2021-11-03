@@ -3665,6 +3665,7 @@
   
 & @create
   Command: @create[/<switch>] <name> [=<cost>]
+           @create[/<switch>] <free dbref#> <name> [=<cost>]
   
   Creates a thing with the specified name.  Creation costs either <cost>
   or 10 coins, whichever is greater. The value of a thing is proportional
@@ -3672,6 +3673,9 @@
   than 100, values that would be greater than 100 are rounded down to 100.
   
   You may use the lastcreate() function to see the last thing @create'd
+  
+  The optional <free dbref#> can be used if you have permission to specify
+  the free dbref# to use.
   
   Available switches:
     /ansi - This combines @create with @extansi to essentially auto-ansify
@@ -3685,7 +3689,7 @@
     Ansi string entered for MyObj of 'MyObj'. ('MyObj' would be in yellow)
     MyObj created as object #17508
   
-  See Also: @destroy, TYPES OF OBJECTS, lastcreate()
+  See Also: @destroy, TYPES OF OBJECTS, lastcreate(), @dig, @open, @stats
   
 & @decompile
   Command: @decompile[/<switch>] <thing>[/<wild-attrib>] [=<newname>]
@@ -3749,7 +3753,8 @@
   See Also: DESTROY_OK, SAFE, BYEROOM
   
 & @dig
-  Command: @dig[/<switches>] <name> [= <exitlist> [, <exitlist>] ]
+  Command: @dig[/<switches>] <name> [=<exitlist> [, <exitlist>]]
+           @dig[/<switches>] <free dbref#> <name> [=<exitlist> [, <exitlist>]]
   
   Creates a new room with the specified name and displays its number. This 
   command costs 10 coins. If the [= <exitlist>] option is used, an exit will
@@ -3767,7 +3772,10 @@
   'k', 'north' or 'n' also.  This command also opens the exit 'south;s' from
   'Kitchen' back to where you are.  Only the first Exit name is displayed in
   the Obvious exits list.
- 
+  
+  The optional <free dbref#> can be used if you have permission to specify
+  the free dbref# to use.
+   
   The following switches are available:
     /teleport - You are @teleported to the room after it is created 
                 and any exits are opened.
@@ -3793,7 +3801,7 @@
     Linked.
   
   See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
-            lastcreate()
+            lastcreate(), @create, @open, @stats
   
 & @doing
   Command: @doing[/<switches>] [<message>]
@@ -5375,6 +5383,7 @@
   
 & @open
   Command: @open[/<switches>] <direction list> [=<number>[,<direction list>]]
+           @open[/<switches>] <free dbref#> <dir list> [=<number>[,<dir list>]]
   
   Creates an exit in the specified direction(s). If <number> is specified,
   it is linked to that room. Otherwise, it is created unlinked. You or anyone
@@ -5393,6 +5402,9 @@
   from #1234 to here, assuming you have rights to open exits and link to
   the rooms in question.
   
+  The optional <free dbref#> can be used if you have permission to specify
+  the free dbref# to use.
+   
   Note:  To make variable exits, you @toggle the exit VARIABLE then set
          an appropriate @exitto on it.
    
@@ -5420,7 +5432,7 @@
     Opened.
     Linked.
   
-  See Also: @dig, @link, LINKING, lastcreate()
+  See Also: @dig, @link, LINKING, lastcreate(), @create, @stats
   
 & @parent
   Command: @parent <object> [=<parent>]
@@ -6035,14 +6047,26 @@
   
 & @stats
   Command: @stats[/all] [<player>]
-  Display the number of objects in the game.  @stats/all gives a
-  breakdown by object types.  If <player> is specified, the breakdown
-  for the named player is given.  You may only list individual counts
-  for yourself.  If invoked with no arguments or switches this command is
-  free, but if you specify either /all or <player>, then this  command costs
-  200 coins to run, because it is computationally expensive.
   
-  See Also: stats(), @search
+  Display the number of objects in the game.  The following switches
+  are available:
+    /all    -- gives a breakdown by object types of entire database.
+    /me     -- Gives stats on things you yourself own/control.
+    /player -- give stats on the target player.  This is the same behavior
+               if you typed '@stat playername'
+    /free   -- list objects in the free list.  You must be a wizard or
+               empowered to see the free list otherwise it will only 
+               display the next free object.
+  
+  If no switch is specified and  <player> is specified, the breakdown for 
+  the named player is given.  By default this will display stats for the
+  enactor.  You can only get stats on players you control or have access to.
+  
+  If invoked with no arguments or switches this command is free, but if you 
+  specify either /all or <player>, then this  command costs 200 coins to 
+  run, because it is computationally expensive.
+  
+  See Also: stats(), @search, @create, @dig, @open
   
 & @sweep
   Command: @sweep[/<switches>]
@@ -34118,6 +34142,9 @@
    manual MSSP-handshake. [AMB]
  * New %-p substitution for @hooks that stores the original player-typed or
    directly player-object-ran command. [AMB]
+ * @stat/free will show free list (or next free) depending on perms [ASH]
+ * @power USE_FREELIST allows players to create/dig/open/etc by specifying
+   an optional free dbref# [ASH]
 
   Changes
   -------

@@ -2304,6 +2304,7 @@ int list2arr(char *arr[], int maxlen, char *list, char sep)
     return i;
 }
 
+/* -- uncomment when using
 static void
 arr2list_multi(char *arr[], int alen, char *list, char **listcx, char *sep)
 {
@@ -2317,6 +2318,7 @@ arr2list_multi(char *arr[], int alen, char *list, char **listcx, char *sep)
         gotone = 1;
     }
 }
+*/
 
 static void
 arr2list(char *arr[], int alen, char *list, char **listcx, char sep)

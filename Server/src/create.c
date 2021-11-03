@@ -187,7 +187,7 @@ do_open(dbref player, dbref cause, int key, char *direction,
        key &= ~OPEN_ANSI;
     }
 
-    if (Immortal(player) && (*direction == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*direction == '#')) {
 	dir2 = get_free_num(player, direction);
         if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
            notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
@@ -944,7 +944,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
 	notify_quiet(player, "Dig what?");
 	return;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name2 = get_free_num(player, name);
         if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
            notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
@@ -1013,7 +1013,7 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 	notify_quiet(player, "You can't create an object for less than nothing!");
 	return;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name2 = get_free_num(player, name);
         if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
            notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
@@ -1324,7 +1324,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
        }
        i_ansi = 1;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name3 = get_free_num(player, name);
         if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
            notify_quiet(player, "Dbref# specified is not a valid free dbref#.");

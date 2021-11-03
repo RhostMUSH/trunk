@@ -1127,6 +1127,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
 #define	STAT_ALL	1	/* Display global stats */
 #define	STAT_ME		2	/* Display stats for me */
+#define STAT_FREE	4	/* Display free dbref#'s */
 
 #define SELFBOOT_LIST   1	/* List all ports you have for selfboot */
 #define SELFBOOT_PORT	2	/* boot the specified port for your self */

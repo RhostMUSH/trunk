@@ -2131,8 +2131,8 @@
     NOWHO           PCREATE        *PURGE            *SEARCH_ANY   
    *SECURITY       *SEE_QUEUE       SEE_QUEUE_ALL     SHUTDOWN     
    *STAT_ANY       *STEAL          *TEL_ANYWHERE     *TEL_ANYTHING
-   *WHO_UNFIND      WIZ_IDLE       *WIZ_SPOOF        *WIZ_WHO        
-   *WRAITH        
+    USE_FREELIST   *WHO_UNFIND      WIZ_IDLE         *WIZ_SPOOF      
+   *WIZ_WHO        *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
@@ -2388,6 +2388,16 @@
   worry of it costing them anything.  The @ option may be used
   or the switch from guildmaster to councilor.
 
+& POWER USE_FREELIST
+  Power argument: @power[/switch] <user>=[@g|@a|@c] use_freelist
+  
+  This toggled power will allow the target to be able to specify
+  a dbref# from the free list when @creating, @digging, and
+  @opening.  This applies to the side effect functions as well.
+  
+  In addition, this will enable the target the ability to
+  use @stats/free to see a list of all free items in the db.
+  
 & POWER NOKILL
   Power argument: @power[/switch] <user>=[@g|@a|@c] nokill
   

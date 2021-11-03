@@ -1133,6 +1133,7 @@ NAMETAB stats_sw[] =
     {(char *) "all", 1, CA_PUBLIC, 0, STAT_ALL},
     {(char *) "me", 1, CA_PUBLIC, 0, STAT_ME},
     {(char *) "player", 1, CA_PUBLIC, 0, STAT_PLAYER},
+    {(char *) "free", 1, CA_PUBLIC, 0, STAT_FREE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB sweep_sw[] =

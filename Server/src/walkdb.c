@@ -378,88 +378,114 @@ dbref	i;
 
 void do_stats (dbref player, dbref cause, int key, char *name)
 /* reworked by R'nice */
-
 {
-dbref	owner;
-STATS	statinfo;
+   dbref owner;
+   char *t_buff;
+   STATS statinfo;
+   dbref i;
+   int i_count;
 
-	switch (key) {
-	case STAT_ALL:
-		owner = NOTHING;
-		break;
-	case STAT_ME:
-		owner = Owner(player);
-		break;
-	case STAT_PLAYER:
-		if (!(name && *name)) {
-			if(!get_stats(player,NOTHING,&statinfo))
-				return;
-			notify(player, "The universe contains:");
-			notify(player,
-				unsafe_tprintf("  %5d valid objects",
-				  statinfo.s_total - statinfo.s_garbage));
-			notify(player,
-				unsafe_tprintf("  %5d garbage objects",
-					statinfo.s_garbage));
-			notify(player,
-				unsafe_tprintf("  %5d total objects",
-					statinfo.s_total));
-                        if(mudconf.max_size > 0) {
-              			notify(player, "Current database cap is:");
-				notify(player,
-				  unsafe_tprintf("  %5d objects",
-             			    mudconf.max_size));
-			}
-                        if ( mudstate.freelist >= 0 )
-                           notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate.freelist));
-                        else
-                           notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
-			return;
-		}
-		owner = lookup_player (player, name, 1);
-		if (owner == NOTHING) {
-			notify(player, "Not found.");
-			return;
-		}
-		break;
-	default:
-		notify(player, "Illegal combination of switches.");
-		return;
-	}
+   switch (key) {
+      case STAT_ALL:
+         owner = NOTHING;
+         break;
+      case STAT_ME:
+         owner = Owner(player);
+         break;
+      case STAT_FREE:
+         if ( Wizard(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING) ) {
+            i = mudstate.freelist;
+            if ( i != NOTHING ) {
+               notify(player, "Free dbref list:");
+            } else {
+               notify(player, "The free list is currently empty.");
+            }
+            t_buff = alloc_sbuf("do_stats");
+            i_count = 0;
+            while ( i != NOTHING ) {
+               sprintf(t_buff, "#%d", i);
+               if ( !*name || (*name && quick_wild(name, t_buff)) ) {
+                  sprintf(t_buff, "Dbref: #%d", i);
+                  notify(player, t_buff);
+               }
+               i = Link(i);
+               i_count++;
+            }
+            if ( i_count > 0 ) {
+               /* Keep this under 32 chars for SBUF size */
+               sprintf(t_buff, "Total free objs: %d", i_count);
+               notify(player, t_buff);
+            }
+            free_sbuf(t_buff);
+         } 
+         if ( mudstate.freelist >= 0 ) {
+            notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate.freelist));
+         } else {
+            notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
+         }
+         return;
+      case STAT_PLAYER:
+         if (!(name && *name)) {
+            if(!get_stats(player,NOTHING,&statinfo)) {
+               return;
+            }
+            notify(player, "The universe contains:");
+            notify(player, unsafe_tprintf("  %5d valid objects", statinfo.s_total - statinfo.s_garbage));
+            notify(player, unsafe_tprintf("  %5d garbage objects", statinfo.s_garbage));
+            notify(player, unsafe_tprintf("  %5d total objects", statinfo.s_total));
+            if (mudconf.max_size > 0) {
+               notify(player, "Current database cap is:");
+               notify(player, unsafe_tprintf("  %5d objects", mudconf.max_size));
+            }
+            if ( mudstate.freelist >= 0 ) {
+               notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate.freelist));
+            } else {
+               notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
+            }
+            return;
+         }
+         owner = lookup_player(player, name, 1);
+         if (owner == NOTHING) {
+            notify(player, "Not found.");
+            return;
+         }
+         break;
+      default:
+         notify(player, "Illegal combination of switches.");
+         return;
+   }
 
-	if (!get_stats(player, owner, &statinfo))
-		return;
-	notify (player,
-		unsafe_tprintf ("%d objects = %d rooms, %d exits, %d things, %d players, %d zones. (%d garbage)",
-			statinfo.s_total, statinfo.s_rooms, statinfo.s_exits,
-			statinfo.s_things, statinfo.s_players, statinfo.s_zone,
-			statinfo.s_garbage));
+   if (!get_stats(player, owner, &statinfo)) {
+      return;
+   }
+   notify (player, unsafe_tprintf ("%d objects = %d rooms, %d exits, %d things, %d players, %d zones. (%d garbage)",
+                      statinfo.s_total, statinfo.s_rooms, statinfo.s_exits,
+                      statinfo.s_things, statinfo.s_players, statinfo.s_zone,
+                      statinfo.s_garbage));
 
 #ifdef TEST_MALLOC
-  if (Wizard (player))
-    notify (player, unsafe_tprintf ("Malloc count = %d.", malloc_count));
+   if (Wizard (player)) {
+      notify (player, unsafe_tprintf ("Malloc count = %d.", malloc_count));
+   }
 #endif /* TEST_MALLOC */
 #ifdef MSTATS
-  if(Wizard(player)) {
-	 struct mstats_value mval;
-	 int i;
-    extern unsigned int malloc_sbrk_used, malloc_sbrk_unused;
-    extern int nmal, nfre;
-    extern struct mstats_value malloc_stats();
-    extern int malloc_mem_used(), malloc_mem_free();
+   if (Wizard(player)) {
+      struct mstats_value mval;
+      int i;
+      extern unsigned int malloc_sbrk_used, malloc_sbrk_unused;
+      extern int nmal, nfre;
+      extern struct mstats_value malloc_stats();
+      extern int malloc_mem_used(), malloc_mem_free();
 
-    notify(player, unsafe_tprintf("Sbrk Unused: %d -- Sbrk Used: %d",
-			   malloc_sbrk_unused, malloc_sbrk_used));
-    notify(player, unsafe_tprintf("Raw malloc cnt: %d -- Raw free cnt: %d",
+      notify(player, unsafe_tprintf("Sbrk Unused: %d -- Sbrk Used: %d", malloc_sbrk_unused, malloc_sbrk_used));
+      notify(player, unsafe_tprintf("Raw malloc cnt: %d -- Raw free cnt: %d",
 			   nmal, nfre));
-    for(i = 0; i < 15; i++) {
-      mval = malloc_stats(i);
-      notify(player, unsafe_tprintf("Blocksz: %d -- Free: %d -- Used: %d",
-		 	     mval.blocksize, mval.nfree, mval.nused));
-    }
-    notify(player, unsafe_tprintf("Mem used: %d -- Mem free: %d",
-			   malloc_mem_used(), malloc_mem_free()));
-  }
+      for (i = 0; i < 15; i++) {
+         mval = malloc_stats(i);
+         notify(player, unsafe_tprintf("Blocksz: %d -- Free: %d -- Used: %d", mval.blocksize, mval.nfree, mval.nused));
+      }
+      notify(player, unsafe_tprintf("Mem used: %d -- Mem free: %d", malloc_mem_used(), malloc_mem_free()));
+   }
 #endif	/* MSTATS */
 }
 
