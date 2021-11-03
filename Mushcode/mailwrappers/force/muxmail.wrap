@@ -58,10 +58,4 @@
 &MAIL_FWDRPLY @mail RhostAliases <MRA>=[switch(%0%1,00,-,01,F,10,R)]
 &MAIL_STATUS_MUX @mail RhostAliases <MRA>=%[[ifelse(words(setr(0,grab(v(mail_field),*[mid(v(0),1,1)]*))),r(0),-------)][u(mail_fwdrply,strmatch(v(0),*Bytes%) Reply*),strmatch(v(0),*Bytes%) Fwd*))]%] [ljust(before(after(v(0),%(),%)),4)]%([rjust(before(after(v(0),> %(),%bB),4)]%) [mid(v(0),9,23)] Sub: [ifelse(words(after(v(0),Subj:)),after(v(0),Subj:),%bNONE)]
 @set @mail RhostAliases <MRA>/CMD_@MAIL_GENERIC_BACKUP = no_command
-@set @mail RhostAliases <MRA>=INDESTRUCTABLE
-@set @mail RhostAliases <MRA>=SHOWFAILCMD
-@set @mail RhostAliases <MRA>=SAFE
-@set @mail RhostAliases <MRA>=INHERIT
-@set @mail RhostAliases <MRA>=STOP
-
-
+@set @mail RhostAliases <MRA>=INDESTRUCTIBLE SAFE INHERIT SHOWFAILCMD STOP

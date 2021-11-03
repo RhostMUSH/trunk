@@ -28,7 +28,7 @@
 &CMD_SEARCHTREE Global: ScanObj <SO>=$+searchtree *:@pemit %#=[list(lcon(globalroom()),[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,edit(%0,+,%[+%]))])][ifelse(!match(X,%q1),ansi(hc,<--END))]
 &CMD_SEARCHBYOBJ Global: ScanObj <SO>=$+searchbyobj *=*:@pemit %#=[list([listdiff([setq(0,locate(%#,%0,*))] [lcon(loc(%q0))],#-1 #-2)],[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,%1)])][ifelse(!match(X,%q1),ansi(hc,<--END))]
 &CMD_SEARCHDB Global: ScanObj <So>=$+searchdb *:@break [lt(bittype(%#),6)]=@pemit %#=Permission denied;@pemit %#=[list(search(eval=%[grep%(##%,*%,*%0*%)%]),[ansi(hc,[name(%i0)]%(%i0[flags(%i0)]%))][u(fn_pipe,%i0,edit(%0,+,%[+%]))])][ifelse(!match(X,%q1),ansi(hc,<--END))]
-@set Global: ScanObj <SO>=INDESTRUCTABLE SAFE INHERIT STOP
+@set Global: ScanObj <SO>=INDESTRUCTIBLE SAFE INHERIT STOP
 @@
 @@ @scan -- Returns error message
 @@ @scan[/room /self /zone /global] <exact command> -- scan for command (optional location with switch)
