@@ -11215,7 +11215,7 @@ Example:
 & safe_wipe
   Config parameter: safe_wipe <yes/no>.  Default: no
   
-  This parameter specifies if the SAFE and INDESTRUCTIBLE flags will stop
+  This parameter specifies if the SAFE and INDESTRUCTABLE flags will stop
   @wipe from working on that specific target that has either of those flags.
 
 & safer_ufun

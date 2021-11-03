@@ -3744,7 +3744,7 @@
     /override  - Negate protection offered by the SAFE flag.
     /instant   - For compatibility only.  This switch does nothing else.
   
-  Do note, you can NOT destroy anything set INDESTRUCTIBLE.
+  Do note, you can NOT destroy anything set INDESTRUCTABLE.
   
   See Also: DESTROY_OK, SAFE, BYEROOM
   
@@ -9780,9 +9780,9 @@
   after reading it, instead of having to look for you to destroy it.
   The DESTROY_OK flag overrides the SAFE flag, so that you do not need to
   give the /override switch to @destroy to destroy a thing that is both
-  DESTROY_OK and SAFE.   The INDESTRUCTIBLE flag makes this meaningless.
+  DESTROY_OK and SAFE.   The INDESTRUCTABLE flag makes this meaningless.
   
-  See Also: @destroy, SAFE, INDESTRUCTIBLE
+  See Also: @destroy, SAFE, INDESTRUCTABLE
   
 & DOORED
   Flag: DOORED([R])  
@@ -10605,8 +10605,8 @@
   
   See Also: GUILDMASTER, ARCHITECT, COUNCILOR, ROYALTY, IMMORTAL 
   
-& INDESTRUCTIBLE
-  Flag: INDESTRUCTIBLE(~)
+& INDESTRUCTABLE
+  Flag: INDESTRUCTABLE(~)
   
   If set on an object, that object cannot be destroyed by any means, by 
   anyone. The flag must be removed before the object can be destroyed.
@@ -11292,7 +11292,7 @@
     I - INHERIT        T - TRACE/TRANSPARENT g - GUILDMASTER  v - VERBOSE
     J - JUMP_OK        U - UNFINDABLE        h - HALTED       w - NO_WALLS
     K - KEY            V - VISUAL            i - IMMORTAL     x - SLAVE   
-    ~ - INDESTRUCTIBLE W - ROYALTY           l - LIGHT        y - NO_YELL    
+    ~ - INDESTRUCTABLE W - ROYALTY           l - LIGHT        y - NO_YELL    
     = - BYEROOM        < - ANSI              > - ANSICOLOR    z - CONTROL_OK
     - - NO_FLASH
  
