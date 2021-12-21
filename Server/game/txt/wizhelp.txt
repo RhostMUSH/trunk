@@ -543,14 +543,15 @@
   CUSTOMIZED CONNECT       DEBUG FEATURES           DEPOWER LIST           
   ELSEFILE SETUP           FILES                    FLAGS                  
   FLAG ALIAS               FUNCTION OVERLOADING     GLOBAL INHERITANCE     
-  GUEST SETUP              HELP SETUP               HOOK SETUP             
-  HUH SETUP                INHERITANCE              LOGGING                
-  MAIL ALIASES             MASTER ROOM              MOGRIFY                
-  NEWS SETUP               PERMISSIONS              PLUSHELP SETUP         
-  POWER LIST               PROXY SETUP              REALITY LEVELS         
-  SEARCH CRITERIA          SIGNALS                  SITE LISTS             
-  SPECIAL ATTRIBS          SSL SETUP                TAGS                   
-  TOGGLES                  TOR                      TOTEMS
+  GUEST SETUP              HELPINC                  HELP SETUP 
+  HOOK SETUP               HUH SETUP                INHERITANCE            
+  LOGGING                  MAIL ALIASES             MASTER ROOM            
+  MOGRIFY                  NEWS SETUP               PERMISSIONS            
+  PLUSHELP SETUP           POWER LIST               PROXY SETUP            
+  REALITY LEVELS           SEARCH CRITERIA          SIGNALS                
+  SITE LISTS               SPECIAL ATTRIBS          SSL SETUP              
+  TAGS                     TOGGLES                  TOR                    
+  TOTEMS
 
 & API
   Topic: API
@@ -15031,3 +15032,59 @@ Example:
   You say "a"
 
   See Also: CHR(), ASC()
+
+& !!~
+& !!-
+& !!
+  Topic: Help entry include indexing
+  
+  This allows indexing help files (help, wizhelp, plushelp) with include
+  redirection.  The following MUST start the line and can't be indented
+  or have tabs/spaces or any other character before it for it to be
+  identified as an include indexer.
+  
+  Example:
+    & HELP
+    !!~wizhelp/border    ( evaluate wizhelp's border entry )
+    !!wizhelp/mainhelp   ( include raw wizhelp's mainhelp entry )
+    !!~wizhelp/border    ( evaluate wizhelp's border entry )
+  
+  For a working example, see 'wizhelp helpinc'
+  
+& HELPINC
+  All include handlers *must* be the very start of the line.  If it
+  is not, it will not properly parse for you.
+  
+  Call help entry help1inc:
+  Syntax: !!HELPFILE/INDEXENTRY
+  ---->
+!!wizhelp/help1inc
+  <----
+  
+  Call help entry help2inc and evaluate
+  Syntax: !!~HELPFILE/INDEXENTRY
+  ---->
+!!~wizhelp/help2inc
+  <----
+  
+  Call help entry help3inc and subeval (parse subs, don't eval)
+  Syntax: !!-HELPFILE/INDEXENTRY
+  ---->
+!!-wizhelp/help3inc
+  <----
+  
+  You may verify the contents of each included file with:
+    > wizhelp help1inc
+    > wizhelp help2inc
+    > wizhelp help3inc
+  
+  See Also: !!
+
+& HELP1INC
+  This is the help1inc entry -- [ansi(hr,red 1)] - %n
+
+& HELP2INC
+  This is the help2inc entry -- [ansi(hg,green 2)] - %n
+
+& HELP3INC
+  This is the help3inc entry -- [ansi(hc,cyan 3)] - %n

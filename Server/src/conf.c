@@ -388,6 +388,7 @@ NDECL(cf_init)
     for ( i = 0; i < TOTEM_SLOTS; i++ ) {
        mudstate.totem_slots[i] = 0;
     }
+    mudstate.help_shell = 0;	/* help redirection */
     mudstate.no_space_compress = 0;	/* Override space compression */
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */

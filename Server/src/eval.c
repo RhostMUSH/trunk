@@ -909,7 +909,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff_utf, &bufc_utf);
             } else if ( *string == '<' ) {
                 string++;
-                if ( (*string == 'u') && 
+                if ( (ToLower(*string) == 'u') && 
                      (((strlen(string)) > 5 && (*(string+5) == '>')) 
                        || ((strlen(string) > 6) && (*(string+6) == '>')) 
                        || ((strlen(string) > 7) && (*(string+7) == '>')))) {

@@ -178,9 +178,9 @@ void
 help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
-    char *p, *line;
+    char *p, *line, *sh_key1, *sh_key2, *sh_tmp;
     int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header,
-        i_cntr, i_tier0chk;
+        i_cntr, i_tier0chk, i_shkey, i_shcnt, i_shflag;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
@@ -530,18 +530,83 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     notify(player, mybuff);
     free_lbuf(mybuff);
     line = alloc_lbuf("help_write");
+    i_shkey = 0;
     for (;;) {
 	if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
 	    break;
 	if (line[0] == '&')
 	    break;
+        i_shkey++;
+        if ( (line[0] == '!') && (line[1] == '!') && (strchr(line, '/') != NULL) ) {
+           i_shflag = 0;
+           mudstate.help_shell++;
+           sh_key1 = alloc_lbuf("help_shell1");
+           sh_key2 = alloc_lbuf("help_shell1");
+           sh_tmp = strchr(line, '/');           
+           *sh_tmp = '\0';
+           switch (line[2]) {
+              case '~': /* Parse */
+                 i_shflag = DYN_PARSE;
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+3);
+                 break;
+              case '-': /* No-Eval */
+                 i_shflag = DYN_SUBEVAL;
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+3);
+                 break;
+              default: /* Handle as normal */
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+2);
+                 break;
+           }
+           *sh_tmp = '/';
+           sprintf(sh_key2, "%.*s", LBUF_SIZE - 10, sh_tmp+1);
+	   for (p = sh_key2; *p != '\0'; p++) {
+	      if ( (*p == '\n') || (*p == '\r') ) {
+		 *p = '\0';
+              }
+           }
+           /* Warning: parse_dynhelp will close existing file pointer -- it will handle empty args to sh_key1 and sh_key2 */
+           parse_dynhelp(player, player, (DYN_NOLABEL|i_shflag), sh_key1, sh_key2, (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);
+           free_lbuf(sh_key1);
+           free_lbuf(sh_key2);
+
+           /* We must reopen the file here and re-seek + offset since parse_dynhelp and help_write
+            * share a common file pointer which is closed than opened per call 
+            */
+
+           /* Re-open original file */
+           if ( (fp = tf_fopen(realFilename, O_RDONLY)) == NULL) {
+              /* This shouldn't happen but we need to cover a falied re-open for paranoia */
+              notify(player, "#-1 FAILURE TO RE-READ HELP FILE.");
+              i_shkey = -1;  /* Set bypass since file pointer is not open at this point */
+              mudstate.help_shell--;
+              break;
+           }
+
+           /* This is fine as we seeked this before */
+           if (fseek(fp, offset, 0) < 0L) {
+              /* This shouldn't happen but we need to cover a falied re-open for paranoia */
+              notify(player, "#-1 FAILURE TO RE-SEEK HELP FILE.");
+              mudstate.help_shell--;
+              break;
+           }
+           for ( i_shcnt = 0; i_shcnt < i_shkey; i_shcnt++ ) {
+              /* Insurance we don't reach the end of the list */
+              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
+                 break;
+           } 
+           mudstate.help_shell--;
+           continue;
+        } 
 	for (p = line; *p != '\0'; p++)
 	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	noansi_notify(player, line);
     }
     free_lbuf(line);
-    tf_fclose(fp);
+    /* Only close the file if it's opened */
+    if ( i_shkey != -1 ) {
+       tf_fclose(fp);
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -560,6 +625,12 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    int first, found, matched, one_through, space_compress, i_noindex, i_header;
    int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk, i_bufffilled;
    FILE *fp_indx, *fp_help;
+
+   /* Recursion isn't possible right now, but when it is we want this */
+   if ( mudstate.help_shell > 10 ) {
+      notify(player, "#-1 TOO MUCH RECURSION IN HELP ENTRY");
+      return(1);
+   }
 
    if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
       if ( t_val ) {

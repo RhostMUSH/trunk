@@ -34133,7 +34133,7 @@
 
 & 4.2.1
   Release Date: 09/13/21
-
+  
   New Features
   ------------
  * Added codepoint() as an unrestricted version of chr(). Usage is limited
@@ -34145,7 +34145,10 @@
  * @stat/free will show free list (or next free) depending on perms [ASH]
  * @power USE_FREELIST allows players to create/dig/open/etc by specifying
    an optional free dbref# [ASH]
-
+ * !!help/txt, !!~help/txt and !!-help/txt include options for help,
+   wizhelp, and plushelp files. [ASH]
+ * sample entry in wizhelp.txt for how includes work (wizhelp helpinc) [ASH]
+  
   Changes
   -------
  * Big internal change: Added a new field to connection Descriptors to hold
@@ -34155,9 +34158,10 @@
    This needs thorough testing. [AMB]
  * locked down codepoint() so substitutions passed are locked to 
    immortals [ASH]
-
+  
   Bug Fixes
   ------------
  * The system didn't allow people with the LONG_FINGERS @power to @destroy
    remote exits. [AMB]
+ * unicode markup now handles identifier of 'u' and 'U' for markup. [ASH]
 

@@ -840,6 +840,7 @@ struct statedata {
 	dbref	last_network_owner;	/* The last network owner who had network issues */
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
+	int	help_shell;	/* Shell to the next help index */
 	int	blacklist_cnt;
 	int	blacklist_nodns_cnt;
 	int	wipe_state;	/* do_wipe state counter */
@@ -889,6 +890,7 @@ struct statedata {
 	dbref	vlplay;
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
+	int	help_shell;	/* Shell to the next help index */
 	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
 #endif	/* STANDALONE */
 };
