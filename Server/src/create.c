@@ -70,7 +70,7 @@ static void
 open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char *ansiname, int isansi)
 {
     dbref exit;
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, *s_tbuff;
 
     if (!Good_obj(loc)) {
 	return;
@@ -96,13 +96,18 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
 
     /* and we're done */
 
-    if ( !(key & SIDEEFFECT ) )
-       notify_quiet(player, "Opened.");
+    s_tbuff = alloc_sbuf("exit_etails");
+    if ( !(key & SIDEEFFECT ) ) {
+       sprintf(s_tbuff, "Opened (#%d)", exit);
+       notify_quiet(player, s_tbuff);
+    }
 
     /* See if we should do a link */
 
-    if (!linkto || !*linkto)
+    if (!linkto || !*linkto) {
+        free_sbuf(s_tbuff);
 	return;
+    }
 
     loc = parse_linkable_room(player, linkto);
     if (loc != NOTHING) {
@@ -111,6 +116,7 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
 
 	if ((loc != HOME) && !could_doit(player, loc, A_LLINK, 1, 0)) {
 	    notify_quiet(player, "You can't link to there.");
+            free_sbuf(s_tbuff);
 	    return;
 	}
 	/* Link it if the player can pay for it */
@@ -123,10 +129,13 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
             free_lbuf(tpr_buff);
 	} else {
 	    s_Location(exit, loc);
-	    if ( !(key & SIDEEFFECT ) )
-	       notify_quiet(player, "Linked.");
+	    if ( !(key & SIDEEFFECT ) ) {
+               sprintf(s_tbuff, "Linked (#%d)", loc);
+	       notify_quiet(player, s_tbuff);
+            }
 	}
     }
+    free_sbuf(s_tbuff);
 }
 
 char *
@@ -914,8 +923,8 @@ do_dig(dbref player, dbref cause, int key, char *name,
        char *args[], int nargs)
 {
     dbref room, location;
-    char *buff, *name2, *buff2;
-    int old_lastobj, i_ansi;
+    char *buff, *name2, *buff2, *exit_tmp;
+    int old_lastobj, i_ansi, i_noexit;
     CMDENT *cmdp;
 
     if ( (key & SIDEEFFECT) && !SideFX(player) ) {
@@ -947,7 +956,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
     if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name2 = get_free_num(player, name);
         if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
-           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           notify_quiet(player, "Dbref# (of room) specified is not a valid free dbref#.");
            return;
         }
     } else {
@@ -967,16 +976,43 @@ do_dig(dbref player, dbref cause, int key, char *name,
 
     buff = alloc_sbuf("do_dig");
     if ((nargs >= 1) && args[0] && *args[0]) {
-        buff2 = strip_all_special(args[0]);
 	sprintf(buff, "%d", room);
-	open_exit(player, location, buff2, buff, key, args[0], i_ansi);
-        mudstate.store_lastx1 = mudstate.store_lastcr;
+        i_noexit = 0;
+        if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*args[0] == '#')) {
+           exit_tmp = get_free_num(player, args[0]);
+           if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+              if ( !(key & SIDEEFFECT) ) {
+                 notify_quiet(player, "Dbref# (of outbound exit) specified is not a valid free dbref#.");
+              }
+              i_noexit = 1;
+           }
+       } else {
+           exit_tmp = args[0];
+       }
+       buff2 = strip_all_special(exit_tmp);
+       if ( !i_noexit ) {
+          open_exit(player, location, buff2, buff, key, exit_tmp, i_ansi);
+          mudstate.store_lastx1 = mudstate.store_lastcr;
+       }
     }
     if ((nargs >= 2) && args[1] && *args[1]) {
-        buff2 = strip_all_special(args[1]);
 	sprintf(buff, "%d", location);
-	open_exit(player, room, buff2, buff, key, args[1], i_ansi);
-        mudstate.store_lastx2 = mudstate.store_lastcr;
+        i_noexit = 0;
+        if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*args[1] == '#')) {
+           exit_tmp = get_free_num(player, args[1]);
+           if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+              if ( !(key & SIDEEFFECT) ) {
+                 notify_quiet(player, "Dbref# (of inbound exit) specified is not a valid free dbref#.");
+              }
+           }
+       } else {
+           exit_tmp = args[1];
+       }
+       buff2 = strip_all_special(exit_tmp);
+       if ( !i_noexit ) {
+          open_exit(player, room, buff2, buff, key, exit_tmp, i_ansi);
+          mudstate.store_lastx2 = mudstate.store_lastcr;
+       }
     }
     free_sbuf(buff);
     if (key == DIG_TELEPORT ) {

@@ -3755,6 +3755,7 @@
 & @dig
   Command: @dig[/<switches>] <name> [=<exitlist> [, <exitlist>]]
            @dig[/<switches>] <free dbref#> <name> [=<exitlist> [, <exitlist>]]
+           @dig[/<swi>] <db#> <name> [=<db#> <exitlist> [, <db#> <exitlist>]]
   
   Creates a new room with the specified name and displays its number. This 
   command costs 10 coins. If the [= <exitlist>] option is used, an exit will
@@ -3774,7 +3775,8 @@
   the Obvious exits list.
   
   The optional <free dbref#> can be used if you have permission to specify
-  the free dbref# to use.
+  the free dbref# to use.  This is useable with the room, and/or both 
+  optional exits.
    
   The following switches are available:
     /teleport - You are @teleported to the room after it is created 
@@ -3786,19 +3788,26 @@
   You may use the lastcreate() function to see the last room that @dig'd.
   
   Examples:
+    > think loc(me)
+    #12345
     > @dig A Room=Exit In <EI>;exit in;ei,Exit Out <EO>;exit out;eo
     A Room created with room number 17506.
-    Opened.
-    Linked.
-    Opened.
-    Linked.
+    Opened (#17507)
+    Linked (#17506)
+    Opened.(#17508)
+    Linked.(#12345)
   
     > @dig/ansi [ansi(hb,Blue Room)]=[ansi(hb,Exit In)] [ansi(hr,<EI>)]
     Ansi string entered for Blue Room of 'Blue Room'.  (This would be blue)
     Blue Room created with room number 17503.
     Ansi string entered for Exit In <EI> of 'Exit In <EI>'. (this would be red)
-    Opened.
-    Linked.
+    Opened (#17504)
+    Linked (#17503)
+  
+  Note:  The room will still be dug even if the exits specified to it 
+         are invalid or unable to be created.  This is because of the ordering
+         of execution as the room must be created prior to the exits being
+         attempted.
   
   See Also: @destroy, @link, @open, LINKING, TYPES OF OBJECTS,
             lastcreate(), @create, @open, @stats
@@ -34158,10 +34167,12 @@
    This needs thorough testing. [AMB]
  * locked down codepoint() so substitutions passed are locked to 
    immortals [ASH]
+ * @dig is more descriptive on dbref#'s created and linked to/from [ASH]
   
   Bug Fixes
   ------------
  * The system didn't allow people with the LONG_FINGERS @power to @destroy
    remote exits. [AMB]
  * unicode markup now handles identifier of 'u' and 'U' for markup. [ASH]
+ * @dig would not accept specifying dbref#'s for in/out exits [ASH]
 
