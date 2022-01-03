@@ -609,7 +609,23 @@
 { see 'wizhelp api processing' to see how to actually use the API system }
 { see 'wizhelp api return' for values you can expect back from the API }
 { see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
+{ see 'wizhelp api commands' for mush based commands used for the API }
 
+& GET
+& POST
+& HEAD
+& PUT
+& API COMMANDS
+  Topic: API COMMANDS
+  
+  The following commands are used by the API engine.
+  PUT/HEAD    -- push info to the mush from the client
+  GET/POST    -- pull info from the mush to the client
+  
+  To restrict these commands you may use the 'logout_cmd_access' config.
+  
+  See Also: api, logout_cmd_access
+  
 & API SETUP
   Topic: API SETUP
   
@@ -2582,13 +2598,23 @@
   cpuintervalchk and cputimechk accordingly or your job will not run 
   properly.
 
+& co
+& cc
 & cd
   The cd command is only used on the connect screen.  This will
   connect the staff into the RhostMUSH with the DARK and UNFINDABLE
   flag. (The staff inherit any special abilities from both of
   these flags if they're able)
   
+  cd -- connect dark
+  cc -- connect cloaked
+  co -- normal connect
+   
   Example:  (on the connect screen)  cd myplayer mypassword
+  
+  To restrict these commands, please use the 'connect_perm' config.
+  
+  See Also: connect_perm, logout_cmd_access
 
 & channel
   The wizards have extra mobility with the channel system by the
@@ -2685,10 +2711,13 @@
                     h - idle unfindable $ - SSL connected
      Host         - The Internet host name or address from where the player 
                     has connected.  This can be cut off with 'whohost_size'
-
+  
   Example: WHO Nyc
   
-  See Also: SESSION, DOING, @conncheck.
+  To change access permissions of this command, please refer to the config
+  parameter 'logout_cmd_access'.
+  
+  See Also: SESSION, DOING, @conncheck, logout_cmd_access
 
 & DOING
   Command: DOING <prefix>
@@ -2707,8 +2736,11 @@
    
   Example:  DOING Nyc
   
+  To change access permissions of this command, please refer to the config
+  parameter 'logout_cmd_access'.
+  
   See Also: SESSION, WHO, DARK, UNFINDABLE, SUSPECT, idle_wiz_dark,
-            idle_wiz_cloak
+            idle_wiz_cloak, logout_cmd_access
 
 & wizhelp
   Command: wizhelp <topic>
@@ -7875,6 +7907,8 @@
   101 will only stop anyone with wanderer from connecting.
   105 will allow guests and wizard and higher to connect. 
   
+  For other connect screen commands, please refer to 'logout_cmd_access'.
+  
   See Also: logout_cmd_access, account_login(), account_owner()
   
 & connect_reg_file
@@ -9805,9 +9839,15 @@ Example:
   
   This parameter specifies the access for commands that can be executed at
   the connect screen.  Keep in mind, that this effects the command PERIOD
-  and not JUST at the connect screen.  Examples of commands this effects
-  would be WHO, DOING, INFO, etc.
+  and not JUST at the connect screen.  
+  Normal:
+     DOING        LOGOUT      OUTPUTPREFIX  OUTPUTSUFFIX  QUIT
+     RWHO         SESSION     WHO           INFO
+  API:
+     GET          POST        HEAD          PUT
   
+  For connect commands (co, cd, cc) please refer to 'connect_perm')
+   
   The following options have special meaning for permissions for commands
   for players at the connect screen:
     ignore  -- then players at the connect screen can still issue the 
@@ -9816,7 +9856,7 @@ Example:
                is 'ignored' for the connect screen.
     disable -- the command is disabled entirely equally.
   
-  See Also: logout_cmd_alias
+  See Also: logout_cmd_alias, connect_perm
 
 & logout_cmd_alias
   Config parameter: logout_cmd_alias <new alias> <command>
