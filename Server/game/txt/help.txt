@@ -34175,4 +34175,4 @@
    remote exits. [AMB]
  * unicode markup now handles identifier of 'u' and 'U' for markup. [ASH]
  * @dig would not accept specifying dbref#'s for in/out exits [ASH]
-
+ * SIGSEGV crash issue with storing last command via %-p [ASH]

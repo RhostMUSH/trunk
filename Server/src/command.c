@@ -2377,7 +2377,9 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
    }
    /* Reset the hook last command and the last player command */
    memset(mudstate.curr_cmd_hook, '\0', LBUF_SIZE);
-   memset(mudstate.curr_plrcmd, '\0', LBUF_SIZE);
+   /* this is not a buffer -- SIGSEGV --  memset(mudstate.curr_plrcmd, '\0', LBUF_SIZE); */
+   mudstate.curr_plrcmd = (char *) "< none >";
+
    return retval;
 }
 
