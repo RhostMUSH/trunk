@@ -30160,17 +30160,31 @@
   
 & RXDESC()
   Function: rxdesc(<target>)
+            rxdesc(desc, <reality>)
   
   Returns a space separated list of all realitylevel-based descriptions that
   are visible to <target>. You must control <target>. If no levels are listed,
   nothing is returned. If you do not control the target, or if the target does
   not exist, '#-1' is returned.
   
+  The second form will show the description attribute of the specified
+  reality.  The enactor must either belong to that reality or be a GUILDMASTER
+  or higher in staff permission to fetch the reality's desc attribute.
+  Partial matches to reality names are acepted and will return the first match.
+  For any reality that doesn't exist or you have no access to, '#-1' is
+  returned.
+  
   Example:
     > say rxdesc(me)
-    You say 'Real specialDesc'.
+    You say "DESC SPECIAL"
     > say rxlevel(me)
-    You say ""
+    You say 'Real specialDesc'.
+    > say (desc,real)
+    You say "DESC"
+    > say (desc,spec)
+    You say "SPECIAL"
+    > say (desc,moo)
+    You ssay "#-1"
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel(), listrlevels(),
             chkreality()
@@ -34168,6 +34182,8 @@
  * locked down codepoint() so substitutions passed are locked to 
    immortals [ASH]
  * @dig is more descriptive on dbref#'s created and linked to/from [ASH]
+ * rxdesc() takes optionally 2 arguments to show a specified reality's 
+   desc [ASH]
   
   Bug Fixes
   ------------

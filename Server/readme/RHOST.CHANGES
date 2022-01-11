@@ -77,6 +77,8 @@ SIDEFX permissions were borked for normal players.
 				- Thanks Alley
 @name/name() if given empty/null arg for new name and ansi mode clears ansi.
 				- Thanks Thenomain
+rxdesc() now will optionally return desc of target reality.
+				- Thanks Casei Magnus
 
 
                          RhostMUSH 3.9.5 Update File
