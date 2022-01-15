@@ -470,6 +470,7 @@ struct confdata {
             char name[17];	/* name of level */
             RLEVEL value;	/* bitmask for level */
             char attr[33];	/* RLevel desc attribute */
+            int has_adesc;	/* Does reality level have an associated adesc */
         } reality_level[32];	/* Reality levels */
         int wiz_always_real;	/* Wizards are always real */
 	int reality_locks;	/* Allow user-lock to be reality lock */

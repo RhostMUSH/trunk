@@ -8513,7 +8513,7 @@ static void
 list_rlevels(dbref player, int i_key)
 {
     int i, cmp_x, cmp_y, cmp_z;
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, t_fill[10];
      
     DPUSH; /* #56 */
     cmp_x = sizeof( mudconf.reality_level );
@@ -8522,9 +8522,15 @@ list_rlevels(dbref player, int i_key)
        cmp_z = 0;
     else
        cmp_z = cmp_x / cmp_y;
+    tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
+    sprintf(tpr_buff, "%-20s %-10s %-32s %s", (char *)"Level", (char *)"Value", (char *)"Desc", (char *)"Adesc Enabled");
     notify(player, unsafe_tprintf("Reality levels: (%d configured)", mudconf.no_levels));
     notify(player, "---------------------------------------"\
                    "---------------------------------------");
+    notify(player, tpr_buff);
+    notify(player, "---------------------------------------"\
+                   "---------------------------------------");
+    free_lbuf(tpr_buff);
 /*  if ( cmp_z != mudconf.no_levels ) { */
     if ( 0 ) {
        notify(player, unsafe_tprintf("Error in reality levels: %d found/%d total.",
@@ -8533,17 +8539,31 @@ list_rlevels(dbref player, int i_key)
        tprp_buff = tpr_buff = alloc_lbuf("list_rlevels");
        if ( i_key ) {
           for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              if ( stricmp(mudconf.reality_level[i].attr, (char *)"DESC") == 0 ) {
+                 sprintf(t_fill, "%s", "(AUTO)");
+              } else if ( mudconf.reality_level[i].has_adesc ) {
+                 sprintf(t_fill, "%s", "YES");
+              } else {
+                 t_fill[0] = '\0';
+              }
               tprp_buff = tpr_buff;
-              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: %10u   Desc: %s",
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-20s %10u %-32s %s",
                   mudconf.reality_level[i].name, mudconf.reality_level[i].value,
-                  mudconf.reality_level[i].attr));
+                  mudconf.reality_level[i].attr, t_fill));
           }
        } else {
           for(i = 0; (i < mudconf.no_levels) && (i < cmp_z); ++i) {
+              if ( stricmp(mudconf.reality_level[i].attr, (char *)"DESC") == 0 ) {
+                 sprintf(t_fill, "%s", "(AUTO)");
+              } else if ( mudconf.reality_level[i].has_adesc ) {
+                 sprintf(t_fill, "%s", "YES");
+              } else {
+                 t_fill[0] = '\0';
+              }
               tprp_buff = tpr_buff;
-              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "    Level: %-20s Value: 0x%08x   Desc: %s",
+              notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-20s 0x%08x %-32s %s",
                   mudconf.reality_level[i].name, mudconf.reality_level[i].value,
-                  mudconf.reality_level[i].attr));
+                  mudconf.reality_level[i].attr, t_fill));
           }
        }
        free_lbuf(tpr_buff);

@@ -1047,12 +1047,13 @@ CF_HAND(cf_rlevel)
     char dup1[17], dup2[17], *nptr, tbufit[20], *strbuff, *pst;
 
     cmp_z = countwordsnew(str);
-    if ( (cmp_z < 2) || (cmp_z > 3) ) {
-	STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
-        if ( cmp_z < 2 )
-           log_text("Too few arguments for reality_level. 2 to 3 expected, ");
-        else
-           log_text("Too many arguments for reality_level. 2 to 3 expected, ");
+    if ( (cmp_z < 2) || (cmp_z > 4) ) {
+        STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
+        if ( cmp_z < 2 ) {
+            log_text("Too few arguments for reality_level. 2 to 4 expected, ");
+        } else {
+            log_text("Too many arguments for reality_level. 2 to 4 expected, ");
+        }
         sprintf(tbufit, "%d", cmp_z);
         log_text(tbufit);
         log_text(" found.\r\n              -->String in question: ");
@@ -1061,12 +1062,13 @@ CF_HAND(cf_rlevel)
         return 1;
     }
     if(mc->no_levels >= 32) {
-	STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
+        STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
         log_text("Too many levels defined. 32 maximum allowed.");
         ENDLOG
         return 1;
     }
 
+    /* Set name */
     for(i=0; *str && ((*str != ' ') && (*str != '\t')) && (i < 16); ++str) {
         if(i < 16) {
             dup1[i] = tolower(*str);
@@ -1077,53 +1079,85 @@ CF_HAND(cf_rlevel)
 
     cmp_x = sizeof(mudconf.reality_level);
     cmp_y = sizeof(mudconf.reality_level[0]);
-    if ( cmp_y == 0 )
-       cmp_z = 0;
-    else
-       cmp_z = cmp_x / cmp_y;
+    if ( cmp_y == 0 ) {
+        cmp_z = 0;
+    } else {
+        cmp_z = cmp_x / cmp_y;
+    }
     for (k = 0; (k < mudconf.no_levels) && (k < cmp_z); ++k) {
-      nptr = mudconf.reality_level[k].name;
-      j=0;
-      while (*nptr) {
-        dup2[j++] = tolower(*nptr);
-        nptr++;
-      }
-      dup2[j] = '\0';
-      if ( strcmp(dup1, dup2) == 0 ) {
-	 STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
-         log_text("Duplicate RLEVEL name: ");
-         log_text(mudconf.reality_level[mc->no_levels].name);
-         ENDLOG
-         mudconf.reality_level[mc->no_levels].name[0] = '\0';
-         return 0;
-      }
+        nptr = mudconf.reality_level[k].name;
+        j = 0;
+        while (*nptr) {
+            dup2[j++] = tolower(*nptr);
+            nptr++;
+        }
+        dup2[j] = '\0';
+        if ( strcmp(dup1, dup2) == 0 ) {
+	    STARTLOG(LOG_STARTUP, "CNF", "LEVEL")
+            log_text("Duplicate RLEVEL name: ");
+            log_text(mudconf.reality_level[mc->no_levels].name);
+            ENDLOG
+            mudconf.reality_level[mc->no_levels].name[0] = '\0';
+            return 0;
+        }
     }
 
     /* If name is over 16 chars, trim off the rest */
-    if ( *str && ((*str != ' ') && (*str != '\t')) )
-       for(; *str && ((*str != ' ') && (*str != '\t')); ++str);
+    if ( *str && ((*str != ' ') && (*str != '\t')) ) {
+        for(; *str && ((*str != ' ') && (*str != '\t')); ++str);
+    }
 
     mc->reality_level[mc->no_levels].name[i] = '\0';
     mc->reality_level[mc->no_levels].value = 1;
+
+    /* Set default desc */
     strcpy(mc->reality_level[mc->no_levels].attr, "DESC");
+
+    /* Eat spaces to next value */
     for(; *str && (*str == ' ' || *str == '\t'); ++str);
+
     strbuff = alloc_lbuf("reality_loader");
     memset(strbuff, '\0', LBUF_SIZE);
     pst = strbuff;
+
+    /* Pull in bitwise mask for reality */
     while ( *str && (isxdigit((int)*str) || (ToLower(*str) == 'x')) ) {
-       *pst++ = *str++;
+        *pst++ = *str++;
     }
     q = (unsigned int)atof(strbuff);
-    
-    free_lbuf(strbuff);
-    if(q)
+
+    /* Set value if valid value */
+    if (q) {
         mc->reality_level[mc->no_levels].value = (RLEVEL) q;
-    for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
-    if(*str) {
-        strncpy(mc->reality_level[mc->no_levels].attr, str, 32);
+    }
+
+    /* Eat spaces to next value */
+    for (; *str && ((*str == ' ') || (*str == '\t')); ++str);
+
+    memset(strbuff, '\0', LBUF_SIZE);
+    pst = strbuff;
+fprintf(stderr, "Test1: %s\n", str);
+    /* Store description value */
+    while ( *str && !isspace(*str) ) {
+       *pst++ = *str++;
+    }
+    if (*strbuff) {
+        strncpy(mc->reality_level[mc->no_levels].attr, strbuff, 32);
         mc->reality_level[mc->no_levels].attr[32] = '\0';
     }
+    
+fprintf(stderr, "Test2: %s\n", str);
+    /* Check for @adesc action for reality */
+    for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
+
+    if ( *str ) {
+       mc->reality_level[mc->no_levels].has_adesc = (atoi(str) > 0 ? 1 : 0);
+    } else {
+       mc->reality_level[mc->no_levels].has_adesc = 0;
+    }
+
     mc->no_levels++;
+    free_lbuf(strbuff);
     return 0;
 }
 #endif /* REALITY_LEVELS */

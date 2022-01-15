@@ -30161,6 +30161,7 @@
 & RXDESC()
   Function: rxdesc(<target>)
             rxdesc(desc, <reality>)
+            rxdesc(adesc, <reality>)
   
   Returns a space separated list of all realitylevel-based descriptions that
   are visible to <target>. You must control <target>. If no levels are listed,
@@ -30173,6 +30174,9 @@
   Partial matches to reality names are acepted and will return the first match.
   For any reality that doesn't exist or you have no access to, '#-1' is
   returned.
+  
+  The third form will return the ADESC attribute that will be used for the
+  matching description.  By default, anything with 'desc' will have 'adesc'.
   
   Example:
     > say rxdesc(me)
@@ -34183,7 +34187,8 @@
    immortals [ASH]
  * @dig is more descriptive on dbref#'s created and linked to/from [ASH]
  * rxdesc() takes optionally 2 arguments to show a specified reality's 
-   desc [ASH]
+   desc or @adesc [ASH]
+ * reality levels have optional @adesc trigger for each unique description.
   
   Bug Fixes
   ------------

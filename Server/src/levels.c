@@ -518,11 +518,12 @@ void do_leveldefault(dbref player, dbref cause, int key, char *object)
     }
 }
 
-int *desclist_match(dbref player, dbref thing)
+int *desclist_match(dbref player, dbref thing, int i_type)
 {
     RLEVEL match;
     int i, j;
     char *tpr_buff, *tprp_buff;
+    static char tbuff[SBUF_SIZE];
     ATTR *at;
     static int descbuffer[33];
     int chk_x, chk_y, chk_z;
@@ -547,7 +548,26 @@ int *desclist_match(dbref player, dbref thing)
        for(i = 0; i < mudconf.no_levels; ++i) {
            if((match & mudconf.reality_level[i].value) == mudconf.reality_level[i].value)
            {
-               at = atr_str(mudconf.reality_level[i].attr);
+               switch (i_type) {
+                  case 1: /* @adesc */
+                     at = atr_str(mudconf.reality_level[i].attr);
+                     if ( at && (at->number == A_DESC) ) {
+                        /* Desc's @adesc is always triggered */
+                        sprintf(tbuff, "%s", (char *)"adesc");
+                        at = atr_str(tbuff);
+                     } else {
+                        if ( mudconf.reality_level[i].has_adesc ) {
+                           sprintf(tbuff, "%.*s_adesc", (SBUF_SIZE - 7), mudconf.reality_level[i].attr);
+                           at = atr_str(tbuff);
+                        } else {
+                           at = NULL;
+                        }
+                     }
+                     break;
+                  case 0: /* normal desc */
+                     at = atr_str(mudconf.reality_level[i].attr);
+                     break;
+               }
                if(at)
                {
                    for(j = 1; j < descbuffer[0]; ++j)
@@ -613,7 +633,7 @@ ATTR 	*tst_glb, *format_atr;
 
 	if (what > 0) {
 	  /* Get description list */
-	  desclist = desclist_match(player, thing);
+	  desclist = desclist_match(player, thing, 0);
 	  found_a_desc = 0;
           if ( mudconf.descs_are_local ) {
              i_didsave = 1;
@@ -918,7 +938,16 @@ ATTR 	*tst_glb, *format_atr;
 	/* do the action attribute */
     /* only if thing can see player in turn */
 	if (awhat > 0 && !nocandoforyou && IsReal(thing, player)) {
-		if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
+	   desclist = desclist_match(player, thing, 1);
+	   found_a_desc = 0;
+/* XXXXX */
+	   for(i = 1; i < desclist[0]; ++i) {
+                i_rlvl = i;
+                if ( (mudconf.reality_compare == 1) || (mudconf.reality_compare == 3) || (mudconf.reality_compare == 5) )
+                   i_rlvl = desclist[0] - i;
+
+		if (*(act = atr_pget(thing, desclist[i_rlvl], &aowner, &aflags))) {
+			found_a_desc = 1;
 			charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
 			if (*charges && !mudstate.chkcpu_toggle) {
 				num = atoi(charges);
@@ -953,6 +982,54 @@ ATTR 	*tst_glb, *format_atr;
                              mudstate.global_regs, mudstate.global_regsname);
 		  free_lbuf(act);
 		}
+                if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
+                      (mudconf.reality_compare > 3)  ) {
+                   found_a_desc = 1;
+                   break;
+                }
+                if ( mudstate.chkcpu_toggle ) {
+                   found_a_desc = 1;
+                   break;
+                }
+           }
+           if ( !found_a_desc && !mudstate.chkcpu_toggle ) {
+                if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
+                        charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
+                        if (*charges && !mudstate.chkcpu_toggle) {
+                                num = atoi(charges);
+                                if (num > 0) {
+                                        buff = alloc_sbuf("did_it.charges");
+                                        sprintf(buff, "%d", num - 1);
+                                        atr_add_raw(thing, A_CHARGES, buff);
+                                        free_sbuf(buff);
+                                } else if (*(buff = atr_pget(thing, A_RUNOUT, &aowner, &aflags))) {
+                                        free_lbuf(act);
+                                        act = buff;
+                                } else {
+                                        free_lbuf(act);
+                                        free_lbuf(buff);
+                                        free_lbuf(charges);
+                                        mudstate.chkcpu_toggle = chkoldstate;
+                                        mudstate.chkcpu_stopper = chk_stop;
+                                        return;
+                                }
+                        }
+                        free_lbuf(charges);
+                        if ( !mudstate.chkcpu_toggle ) {
+                           wait_que(thing, player, 0, NOTHING, act, args, nargs,
+                                   mudstate.global_regs, mudstate.global_regsname);
+                        }
+                }
+                free_lbuf(act);
+                if (awhat == A_ADESC) {
+                  act = atr_pget(thing, A_ADESC2, &aowner, &aflags);
+                  if (*act && !mudstate.chkcpu_toggle)
+                    wait_que(thing, player, 0, NOTHING, act, args, nargs,
+                             mudstate.global_regs, mudstate.global_regsname);
+                  free_lbuf(act);
+                }
+
+           }
 	}
       }
       cpustopper += mudstate.chkcpu_toggle;

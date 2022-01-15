@@ -37049,6 +37049,32 @@ FUNCTION(fun_rxdesc)
              safe_str("#-1",buff,bufcx);
           }
        }
+    } else if ( (nfargs > 1) && (stricmp((char *)"adesc", fargs[0]) == 0) ) {
+       if ( !*fargs[0] || !*fargs[1] ) {
+          safe_str("#-1",buff,bufcx);
+       } else {
+          add_space = 0;
+          for ( i = 0; i < mudconf.no_levels; i++ ) {
+             if ( Guildmaster(player) || (RxLevel(player) & mudconf.reality_level[i].value) == mudconf.reality_level[i].value ) {
+                if ( pstricmp(mudconf.reality_level[i].name, fargs[1], strlen(fargs[1])) == 0 ) {
+                   if ( stricmp((char *)"desc", mudconf.reality_level[i].attr) == 0 ) {
+                      safe_str("ADESC", buff, bufcx);
+                      add_space = 1;
+                   } else {
+                      if ( mudconf.reality_level[i].has_adesc ) {
+                         safe_str(mudconf.reality_level[i].attr, buff, bufcx);
+                         safe_str("_ADESC", buff, bufcx);
+                         add_space = 1;
+                      }
+                   }
+                   break;
+                }
+             }
+          }
+          if ( !add_space ) {
+             safe_str("#-1",buff,bufcx);
+          }
+       }
     } else {
        init_match(player, fargs[0], NOTYPE);
        match_everything(MAT_EXIT_PARENTS);

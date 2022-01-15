@@ -14647,7 +14647,7 @@ Example:
   See Also: reality_level
 
 & reality_level
-  Config parameter: reality_level <name> <value> [<desc attribute>]
+  Config parameter: reality_level <name> <value> [[<desc attribute>] [<key>]]
   Default: none
   
   Defines a reality level, named <name> and with bitvalue <value>. If you
@@ -14657,6 +14657,16 @@ Example:
   keeps a tally of those defined.  You can currently only have 32 total
   reality levels defined.
   
+  If '<key>' is specified as '1', then the matching reality desc will have
+  a matching @adesc in the form <desc attribute>_adesc.
+  
+  For example, a description of 'umbra' will have 'umbra_adesc'.
+  
+  Omitting this or setting '0' will disable this.  All attributes with
+  'desc' is assumed to always trigger the @adesc.  This is intentional.
+  
+  The adesc portion follows reality_compare.
+   
   See Also: reality_compare
 
 & reality_locks
@@ -14765,16 +14775,27 @@ Example:
   upon next reboot.  They are dynamically defined and can be changed on
   the fly.  The syntax of a reality is:
   
-     reality_level <8-CHAR-NAME> <UNIQUE-BIT> <OPTIONAL-DESCRIPTION>
+     reality_level <8-CHAR-NAME> <UNIQUE-BIT> <OPT-DESC> <OPT-BOOLEAN>
   
-  The <8-char-name> is a unique identifier/name you wish to have for the
-  reality.  Anything over 8 characters is cut off.  The <unique-bit> is
-  a unique numerical value that determines the bit-mask of the reality.
-  Example, 1, 2, 4, 8, 16, 32, etc.  The number is a power of 2.  The
-  <optional-description> is an attribute name that you wish to use for
-  the @desc of the specific reality.  Anyone who can see the reality will
-  see this desc in addition to any other descriptions that they can 
-  normally see.
+    <8-char-name> -- a unique identifier/name you wish to have for the 
+                     reality.  Anything over 8 characters is cut off.  
+                  Example: Umbra
+    <unique-bit>  -- a unique numerical value that determines the bit-mask of 
+                     the reality.  The number is a power of 2. The unique-bit
+                     may be specified in decimal or hex notation.
+                  Example: 1, 2, 4, 8, 16, 32, etc.  
+    <opt-desc>    -- an attribute name that you wish to use for the @desc of 
+                     the specific reality.  Anyone who can see the reality will
+                     see this desc in addition to any other descriptions that 
+                     they can normally see.  This is configurable by the 
+                     config parameter 'reality_compare'.
+                  Example: UMBRADESC
+    <opt-boolean> -- A value of '1' will enable @adesc matching for the custom
+                     reality description.  The format of the @adesc handler
+                     will be DESCRIPTION_ADESC.  For this to be enabled the
+                     <opt-desc> must be defined.  Any <opt-desc> of DESC will
+                     automatically have a matching @adesc called '@adesc'.
+                  Example: UMBRADESC_ADESC
   
   {reality levels2 for more}
 
@@ -14785,16 +14806,24 @@ Example:
   reality_level real 1 desc
   reality_level invis 2 desc
   reality_level umbra 4 umbra
-  reality_level all 7 
+  reality_level fae 8 faedesc 1
+  reality_level all 15
   
   The first line defines a reality of 'real' with bitmask of '1' which
-  uses the basic '@desc' for the description.  The second defines a
-  reality called 'invis' (probably short for invisible) that also uses
-  the normal description, but is bitmask '2'.  The third is called
-  'umbra'.  It is a bitmask of '4', and uses a special description called
-  'umbra' that will be parsed instead of the @desc.  The fourth 'all' 
-  contains the bitmasks of all the previous realities, thus, setting
-  a reality of 'all' will automatically set all the realities.
+  uses the basic '@desc' for the description.  
+  
+  The second defines a reality called 'invis' (probably short for invisible)
+  that also uses the normal description, but is bitmask '2'.  
+  
+  The third is called 'umbra'.  It is a bitmask of '4', and uses a special 
+  description called 'umbra' that will be parsed instead of the @desc.  
+  
+  The fourth is called 'fae'.  It is a bitmask of '8', and uses a special
+  description called 'faedesc'.  This also has adesc actions enabled and 
+  will use the action description 'faedesc_adesc' for this particular reality.
+  
+  The fifth 'all' contains the bitmasks of all the previous realities, thus, 
+  setting a reality of 'all' will automatically set all the realities.
   
   You use the @txlevel and @rxlevel commands to set/remove realities from
   a player.  TX is 'transmission' and RX is 'receiving' with regards to
