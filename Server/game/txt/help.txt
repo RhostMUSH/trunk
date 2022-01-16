@@ -4409,11 +4409,18 @@
   
   See Also: %_, SUBSTITUTIONS, TRACE, trace(), @label, ruler()
 
+& last
+& lastsite
 & @last
   Command: @last <player>
   This command displays a short 'connection history' for <player>, showing
   recent successful and failed connection attempts, as well as the total
   number of successful and failed connections.
+  
+  Information that can be pulled from attributes is located in:
+      LAST     -- the last time a player connected
+      LASTSITE -- site a player last connected from.
+     
   You can only display information about yourself or people you control.
   
 & @link
