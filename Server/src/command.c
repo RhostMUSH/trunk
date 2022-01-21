@@ -2741,7 +2741,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    parse_arglist(player, cause, cause, sparg, '\0',
 			  interp | EV_STRIP_LS | EV_STRIP_TS,
-			  args, MAX_ARG, cargs, ncargs, 0, (char **)NULL, 0);
+			  args, MAX_ARG, cargs, ncargs, 0, (char **)NULL, 0, cmdp->cmdname);
 	    for (nargs = 0; (nargs < MAX_ARG) && args[nargs]; nargs++);
 
 	    /* Call the correct command handler */
@@ -11993,7 +11993,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
             } else {
                parse_arglist(player, cause, cause, s_tmpptr, '\0',
                              EV_STRIP_LS | EV_STRIP_TS,
-                             xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+                             xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0, (char *)"@cluster");
                for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                   s_text = atr_get(thing, attr->number, &aowner, &aflags);
@@ -12059,7 +12059,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                } else {
                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
                                 EV_STRIP_LS | EV_STRIP_TS,
-                                xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+                                xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0, (char *)"@cluster");
                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++);
                   if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
                      s_instr = atr_get(thing, anum2, &aowner, &aflags);
@@ -12187,7 +12187,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         if ( *s_strtok ) {
 	                   parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                 EV_STRIP_LS | EV_STRIP_TS,
-			                 xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+			                 xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0, (char *)"@cluster");
 	                   for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                               ; /* We just want to increment the counter to count it */
                            s_strtok = alloc_lbuf("cluster_trigger_build");
@@ -12257,7 +12257,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                                 (strchr(s_strtokptr, '?') != NULL) ) {
 	                      parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                    EV_STRIP_LS | EV_STRIP_TS,
-			                    xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+			                    xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0, (char *)"@cluster");
 	                      for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                                  ; /* We just want to count the variable */
                               if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {
@@ -12290,7 +12290,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                               } else {
 	                         parse_arglist(player, cause, cause, s_tmpptr, '\0',
 			                       EV_STRIP_LS | EV_STRIP_TS,
-			                       xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0);
+			                       xargs, MAX_ARG, (char **)NULL, 0, 0, (char **)NULL, 0, (char *)"@cluster");
 	                         for (nxargs = 0; (nxargs < MAX_ARG) && xargs[nxargs]; nxargs++)
                                     ; /* We just want to count the variable */
                                  if ( (nxargs > 1) && xargs[0] && *xargs[0] ) {

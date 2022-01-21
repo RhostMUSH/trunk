@@ -34196,6 +34196,7 @@
  * rxdesc() takes optionally 2 arguments to show a specified reality's 
    desc or @adesc [ASH]
  * reality levels have optional @adesc trigger for each unique description.
+ * when you exceed max args for commands or functions, it now warns you [ASH]
   
   Bug Fixes
   ------------

@@ -333,7 +333,7 @@ char *
 parse_arglist(dbref player, dbref cause, dbref caller, char *dstr, 
               char delim, dbref eval,
 	      char *fargs[], dbref nfargs, char *cargs[],
-	      dbref ncargs, int i_type, char *regargs[], int nregargs)
+	      dbref ncargs, int i_type, char *regargs[], int nregargs, char *s_name)
 {
     char *rstr, *tstr, *mychar, *mycharptr, *s;
     int arg, peval;
@@ -368,10 +368,18 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
        peval = peval | EV_EVAL | ~EV_STRIP_ESC;
     }
     while ((arg < nfargs) && rstr) {
-	if (arg < (nfargs - 1))
+	if (arg < (nfargs - 1)) {
 	    tstr = parse_to(&rstr, ',', peval);
-	else
+	} else {
 	    tstr = parse_to(&rstr, '\0', peval);
+            if ( tstr && (strchr(tstr, ',') != NULL) ) {
+               if ( s_name ) {
+                  notify_quiet(player, unsafe_tprintf("Warning: Argument list for '%s' exceeds MAX ARGS (%d)", s_name, nfargs));
+               } else {
+                  notify_quiet(player, unsafe_tprintf("Warning: Argument list exceeds MAX ARGS (%d)", nfargs));
+               }
+            }
+        }
 	if (eval & EV_EVAL) {
             mudstate.trace_indent++;
 	    fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK, tstr,
@@ -1369,7 +1377,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS], c_allargs;
-    char *trace_array[3], *trace_buff, *trace_buffptr;
+    char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
@@ -3013,9 +3021,17 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                  (ulfp && (ulfp->perms2 & CA_NO_PARSE)) ) {
                 i_type |= 2;
             }
+            s_nameptr = NULL;
+            if ( fp ) {
+               s_nameptr = (char *)fp->name;
+            } else if ( ufp ) {
+               s_nameptr = (char *)ufp->name;
+            } else if ( ulfp ) {
+               s_nameptr = (char *)ulfp->name;
+            }
 	    dstr = parse_arglist(player, cause, caller, dstr + 1,
 				 ')', feval, fargs, nfargs,
-				 cargs, ncargs, i_type, regargs, nregargs);
+				 cargs, ncargs, i_type, regargs, nregargs, s_nameptr);
 	    /* If no closing delim, just insert the '(' and
 	     * continue normally */
 

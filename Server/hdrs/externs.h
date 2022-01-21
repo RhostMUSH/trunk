@@ -141,7 +141,7 @@ extern void	NDECL(recover_queue_deposits);
 extern void	NDECL(tcache_init);
 extern char *	FDECL(parse_to, (char **, char, int));
 extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
-			char *[], int, char*[], int, int, char *[], int));
+			char *[], int, char*[], int, int, char *[], int, char *));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
 extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **, char*, char **));
