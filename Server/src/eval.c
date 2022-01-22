@@ -372,7 +372,7 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
 	    tstr = parse_to(&rstr, ',', peval);
 	} else {
 	    tstr = parse_to(&rstr, '\0', peval);
-            if ( tstr && (strchr(tstr, ',') != NULL) ) {
+            if ( (nfargs >= MAX_ARGS) && tstr && (strchr(tstr, ',') != NULL) ) {
                if ( s_name ) {
                   notify_quiet(player, unsafe_tprintf("Warning: Argument list for '%s' exceeds MAX ARGS (%d)", s_name, nfargs));
                } else {
