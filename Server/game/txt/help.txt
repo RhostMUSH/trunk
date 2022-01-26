@@ -34197,6 +34197,7 @@
    desc or @adesc [ASH]
  * reality levels have optional @adesc trigger for each unique description.
  * when you exceed max args for commands or functions, it now warns you [ASH]
+ * global_attrdefault handles argument '%1' for target attrib set on [ASH]
   
   Bug Fixes
   ------------

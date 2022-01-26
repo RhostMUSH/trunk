@@ -1143,19 +1143,34 @@
   global object to handle 'content locks'.  This is done through the config
   parameter 'global_attrdefault'.  Once a valid dbref# is identified, then
   the content (evaluated) of the attribute is matched against what is
-  being set.  What is being set is passed as %0 to the attribute.  If it
-  returns '1' then the attribute is allowed to be set.  If it returns '0'
-  then the attribute can not be set.
+  being set.  If it returns '1' then the attribute is allowed to be set.  
+  If it returns '0' then the attribute can not be set.
+  
+  The attribute you intend to have processed with content locking is the
+  same attribute that you set on the global_attrdefault object.  For
+  example, if you wish to have the 'Sex' attribute be locked to just
+  Male and Female, you would set the lock mechanism on the attribute
+  'Sex' on the global_attrdefault object.
+   
+  The following arguments can be passed to the attribute processing
+  the lock:
+      %0    - the contents being set to the attribute
+      %1    - the target the attribute is  being set upon
+      %#/%@ - the global_attrdefault object
+      %!    - the enactor setting the attribute
   
   Any attribute you want to possess attribute content locks must be set 
   ATRLOCK.  You may set this globally on an attribute.
   
-  Note:  Any local flags on an attribute WILL BE CLEARED if you @cpattr or
-         @mvattr into that attribute.  (they will be overwritten with
-         the flags on the attribute being copied.  This is the
-         intended behavior).  If you wish for the attributes to hold
-         their flags, you must either globally set the flags, or reset
-         the flags locally after the @mvattr or @cpattr.
+  Example:
+    > @create Attrib Locker
+    > think num(attrib locker)
+      #123
+    > @admin global_attrdefault=123
+    > &player_age global_attrdefault=[between(18,100,%0,1)] 
+    > @attribute/access player_age=atrlock
+    > &ROOMONLY global_attrdefault=[hastype(%1,room)]
+    > @attribute/access roomonly=atrlock
     
   See Also: ATRLOCK, global_attrdefault
   

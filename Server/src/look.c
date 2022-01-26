@@ -1619,7 +1619,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
         aflags2, no_set, i_verify, i_bad;
     ATTR *attr;
     ATRST *pt1;
-    char tbuf[80], *tpr_buff, *tprp_buff, *tstrtokr;
+    char tbuf[80], *tpr_buff, *tprp_buff, *tstrtokr, *tcont[2];
 
     wyes = ca = ca2 = ca3 = mt = t2 = clr1 = clr2 = chkv1 = 0;
     if (!nargs || ((nargs == 1) && !*destlist[0])) {
@@ -1754,6 +1754,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 		ca3 = 0;
             }
             buff2 = alloc_lbuf("cpattr_atrlock");
+            tcont[1] = alloc_sbuf("cpattr_thingy");
 	    for (pt1 = atrpt; pt1; pt1 = pt1->next) {
                 no_set = 0;
 		if ((ca == -1) || (!ca3))
@@ -1779,8 +1780,10 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                               (thing2 != mudconf.global_attrdefault) ) {
                             atr_get_str(buff2, mudconf.global_attrdefault, t2, &aowner2, &aflags2);
                             if ( *buff2 ) {
+                               tcont[0] = pt1->info;
+                               sprintf(tcont[1], "#%d", thing2);
                                buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &(pt1->info), 1, (char **)NULL, 0);
+                                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, tcont, 2, (char **)NULL, 0);
                                if ( atoi(buff2ret) == 0 ) {
                                   free_lbuf(buff2ret);
                                   no_set = 1;
@@ -1816,6 +1819,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                    }
                 }
 	    }
+            free_sbuf(tcont[1]);
             free_lbuf(buff2);
 	    if (pt2)
 		pt2 = strtok_r(NULL, "/", &tstrtokr);
