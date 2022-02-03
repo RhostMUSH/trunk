@@ -7049,14 +7049,14 @@
   global_error_cmd          global_error_obj           global_parent_exit 
   global_parent_obj         global_parent_player       global_parent_room 
   global_parent_thing       good_name                  goodmail_host      
-  gconf_file                guest_char_num             guest_file         
-  guest_namelist            guest_randomize            guild_attrname     
-  guild_default             guild_hdr                  hackattr_nowiz     
-  hackattr_see              hardconn_host              hardconn_site      
-  hasattrp_compat           hastype_always_zero        heavy_cpu_max
-  help_file                 help_index                 help_separator
-  hide_nospoof              hook_cmd                   hook_obj
-  hook_offline
+  gconf_file                guest_char_num             guest_displaylastsite
+  guest_file                guest_namelist             guest_randomize       
+  guild_attrname            guild_default              guild_hdr             
+  hackattr_nowiz            hackattr_see               hardconn_host          
+  hardconn_site             hasattrp_compat            hastype_always_zero    
+  heavy_cpu_max             help_file                  help_index    
+  help_separator            hide_nospoof               hook_cmd 
+  hook_obj                  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -9130,7 +9130,19 @@ Example:
   guest character is subject to additional restrictions (such as not being
   allowed to create or destroy objects).  The actual restrictions can be
   changed with the access config parameter using the no_guest permission.
-  See Also: access.
+  
+  See Also: access, guest_displaylastsite
+
+& guest_displaylastsite
+  Config parameter: guest_displaylastsite <bool>    Default: yes (1)
+  
+  This toggles weither guests will be notified of the last site(s) they
+  connected from when they connect.  This handles both successful and
+  failed connected site information.
+  
+  This is added protection against possible privacy issues.
+  
+  See Also: guest_char_num, guest_namelist
 
 & guest_file
   Config parameter: guest_file <path>.  Default: guest.txt.
@@ -9138,7 +9150,7 @@ Example:
   Specifies the file that is to be shown to people connecting to the
   guest character in place of the motd file.
   
-  See Also: guest_char_num
+  See Also: guest_char_num, guest_displaylastsite
 
 & guest_namelist
   Config parameter: guest_namelist <val !val val>.  Default: (none)
@@ -9167,7 +9179,7 @@ Example:
   
   Any players over 31 total added to the list will be ignored.
   
-  See Also: guest_file, num_guests, guest_randomize
+  See Also: guest_file, num_guests, guest_randomize, guest_displaylastsite
 
 & guest_randomize
   Config parameter: guest_randomize <boolean>.   Default: off (0)
@@ -9176,7 +9188,7 @@ Example:
   a guest based on the free list of guests currently available.  This
   also takes into account the guest_namelist.
   
-  See Also: guest_namelist, num_guests
+  See Also: guest_namelist, num_guests, guest_displaylastsite
 
 & guild_attrname
   Config parameter: guild_attrname <string>.  Default: Guild
@@ -10476,7 +10488,7 @@ Example:
   time.  Do note that each and every guest will be unique and that if more 
   are required, more need to be @pcreated.
   
-  See Also: guest_namelist, guest_randomize
+  See Also: guest_namelist, guest_randomize, guest_displaylastsite
 
 & comcost
   Config parameter: comcost <amount>.  Default: 5

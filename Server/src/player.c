@@ -134,33 +134,36 @@ int	aflags, i;
 			raw_notify(player, (char *)"Notice: You are piping output to an attribute.", 0, 1);
 		}
 		if (login_info.new_bad > 0) {
-			notify(player, " ");
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "**** %d failed connect%s since your last successful connect. ****",
-					login_info.new_bad,
-					(login_info.new_bad == 1 ? "" : "s")));
-                        free_lbuf(tpr_buff);
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "Most recent attempt was from %s on %s.",
-					login_info.bad[0].host,
-					login_info.bad[0].dtm));
-                        free_lbuf(tpr_buff);
-			notify(player, " ");
+                        if ( !Guest(player) || (Guest(player) && mudconf.guest_displaylastsite) ) {
+			   notify(player, " ");
+                           tprp_buff = tpr_buff = alloc_lbuf("record_login");
+			   notify(player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "**** %d failed connect%s since your last successful connect. ****",
+					   login_info.new_bad,
+					   (login_info.new_bad == 1 ? "" : "s")));
+                           tprp_buff = tpr_buff;
+			   notify(player,
+			   	   safe_tprintf(tpr_buff, &tprp_buff, "Most recent attempt was from %s on %s.",
+					   login_info.bad[0].host,
+					   login_info.bad[0].dtm));
+                           free_lbuf(tpr_buff);
+			   notify(player, " ");
+                        }
 			*newfail = login_info.new_bad;
 			login_info.new_bad = 0;
-		}
-		else
+		} else {
 			*newfail = login_info.new_bad;
+                }
 		if (login_info.good[0].host && *login_info.good[0].host &&
 		    login_info.good[0].dtm && *login_info.good[0].dtm) {
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "Last connect was from %s on %s.",
-					login_info.good[0].host,
-					login_info.good[0].dtm));
-                        free_lbuf(tpr_buff);
+                        if ( !Guest(player) || (Guest(player) && mudconf.guest_displaylastsite) ) {
+                           tprp_buff = tpr_buff = alloc_lbuf("record_login");
+			   notify(player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "Last connect was from %s on %s.",
+					   login_info.good[0].host,
+					   login_info.good[0].dtm));
+                          free_lbuf(tpr_buff);
+                       }
 		}
 		for (i=NUM_GOOD-1; i>0; i--) {
 			login_info.good[i].dtm = login_info.good[i-1].dtm;

@@ -81,6 +81,8 @@ rxdesc() now will optionally return desc of target reality.
 				- Thanks Casei Magnus
 mail/reply and mail/forward with BRANDY_MAIL has better error handling.
 				- Thanks Thenomain
+guest_displaylastsite to control guest site info on connect.
+				- Thanks asymmetricia
 
 
                          RhostMUSH 3.9.5 Update File

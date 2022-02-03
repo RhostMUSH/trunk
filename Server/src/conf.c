@@ -371,6 +371,7 @@ NDECL(cf_init)
     memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
     mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
     mudconf.connect_methods = 0;	/* Disable optionally connect methods */
+    mudconf.guest_displaylastsite = 1;	/* Display guest site on connect -- default yes (default behavior) */
     strcpy(mudconf.string_conn, (char *)"connect");	/* String for the connect command */
     strcpy(mudconf.string_conndark, (char *)"cdark");	/* String for the dark connect */
     strcpy(mudconf.string_connhide, (char *)"chide");	/* String for the hide connect */
@@ -4561,6 +4562,9 @@ CONF conftable[] =
     {(char *) "goodmail_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.goodmail_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "Mail addresses to ALLOW ALWAYS from autoreg."},
+    {(char *) "guest_displaylastsite",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.guest_displaylastsite, 0, 0, CA_WIZARD,
+     (char *) "Do guests show last site connected from?"},
     {(char *) "guest_randomize",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.guest_randomize, 0, 0, CA_WIZARD,
      (char *) "Guests connect in random order?"},

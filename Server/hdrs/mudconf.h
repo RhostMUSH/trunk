@@ -455,6 +455,7 @@ struct confdata {
 	char	vercustomstr[SBUF_SIZE];	/* Customized string for @version */
         int	totem_types;	/* Enable flag compatible types for totems */
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
+	int	guest_displaylastsite;
 	int	connect_methods;		/* Disable optionally connect methods */
 	int	blacklist_max;	/* Maximum blacklists allowed */
 	int	connect_perm;	/* Connect permissions */
@@ -540,6 +541,7 @@ struct confdata {
 	char	vercustomstr[SBUF_SIZE];
         int	totem_types;	/* Enable flag compatible types for totems */
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
+	int	guest_displaylastsite;
 #endif	/* STANDALONE */
 };
 

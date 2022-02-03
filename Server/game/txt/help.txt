@@ -34182,6 +34182,7 @@
  * !!help/txt, !!~help/txt and !!-help/txt include options for help,
    wizhelp, and plushelp files. [ASH]
  * sample entry in wizhelp.txt for how includes work (wizhelp helpinc) [ASH]
+ * guest_displaylastsite to toggle displaying guest last connect info [ASH]
   
   Changes
   -------
