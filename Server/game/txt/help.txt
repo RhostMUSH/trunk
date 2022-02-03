@@ -34206,3 +34206,5 @@
  * unicode markup now handles identifier of 'u' and 'U' for markup. [ASH]
  * @dig would not accept specifying dbref#'s for in/out exits [ASH]
  * SIGSEGV crash issue with storing last command via %-p [ASH]
+ * mail/reply and mail/forward with BRANDY_MAIL enabled would validate
+   message number only at the send.  Now it does it before [ASH]
