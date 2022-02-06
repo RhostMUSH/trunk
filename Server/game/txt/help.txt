@@ -34209,3 +34209,6 @@
  * SIGSEGV crash issue with storing last command via %-p [ASH]
  * mail/reply and mail/forward with BRANDY_MAIL enabled would validate
    message number only at the send.  Now it does it before [ASH]
+ * @rxlevel/@txlevel didn't properly handle empty entries after a
+   successful entry [ASH]
+ * @rxlevel/@txlevel had a memory leak with empty/invalid lists [ASH]

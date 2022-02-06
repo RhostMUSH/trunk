@@ -83,6 +83,8 @@ mail/reply and mail/forward with BRANDY_MAIL has better error handling.
 				- Thanks Thenomain
 guest_displaylastsite to control guest site info on connect.
 				- Thanks asymmetricia
+@rxlevel/@txlevel borked empty lists in several ways.
+				- Thanks Thenomain
 
 
                          RhostMUSH 3.9.5 Update File

@@ -267,7 +267,7 @@ void decompile_rlevels(dbref player, dbref thing, char *thingname, char *qualout
 void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
-    int negate, i;
+    int negate, i, i_found;
     RLEVEL result, ormask, andmask, i_rlevel;
     char lname[17], *buff, *buff2, *buff3;
 
@@ -275,6 +275,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
+    i_found = 0;
     if (!arg || !*arg) {
         if ( key & REALITY_RESET ) {
            buff = alloc_lbuf("do_rxlevel");
@@ -316,6 +317,10 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
             negate = 1;
             ++arg;
         }
+        if ( i_found && !*arg ) 
+           break;
+
+        i_found = 1;
         for(i=0; *arg && !isspace((int)*arg); ++arg)
             if(i < 16)
                 lname[i++] = *arg;
@@ -326,6 +331,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
                 notify_quiet(player, "You must specify a reality level to clear.");
             else
                 notify_quiet(player, "You must specify a reality level to set.");
+            free_lbuf(buff2);
             return;
         }
         result = find_rlevel(lname);
@@ -370,7 +376,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
 void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
-    int negate, i;
+    int negate, i, i_found;
     RLEVEL result, ormask, andmask, i_tlevel;
     char lname[17], *buff, *buff2, *buff3;
 
@@ -378,9 +384,10 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
+    i_found = 0;
     if (!arg || !*arg) {
         if ( key & REALITY_RESET ) {
-           buff = alloc_lbuf("do_rxlevel");
+           buff = alloc_lbuf("do_txlevel");
            result = 0xffffffff;
            andmask = 0;
            ormask = 0;
@@ -397,7 +404,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
         return;
     }
     ormask = 0;
-    buff2 = alloc_lbuf("do_rxlevel_display_set");
+    buff2 = alloc_lbuf("do_txlevel_display_set");
     if ( key & REALITY_RESET ) {
        andmask = 0;
        result = 0xffffffff;
@@ -419,6 +426,12 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
             negate = 1;
             ++arg;
         }
+
+        if ( i_found && !*arg ) 
+           break;
+
+        i_found = 1;
+
         for(i=0; *arg && !isspace((int)*arg); ++arg)
             if(i < 16)
                 lname[i++] = *arg;
@@ -429,6 +442,7 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
                 notify_quiet(player, "You must specify a reality level to clear.");
             else
                 notify_quiet(player, "You must specify a reality level to set.");
+            free_lbuf(buff2);
             return;
         }
         result = find_rlevel(lname);
