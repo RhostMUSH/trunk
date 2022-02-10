@@ -37026,6 +37026,7 @@ FUNCTION(fun_rxlevel)
 FUNCTION(fun_rxdesc)
 {
     dbref target;
+    char *s_val;
     int i, add_space, cmp_x, cmp_y, cmp_z;
 
     if (!fn_range_check("RXDESC", nfargs, 1, 2, buff, bufcx))
@@ -37075,6 +37076,49 @@ FUNCTION(fun_rxdesc)
              safe_str("#-1",buff,bufcx);
           }
        }
+    } else if ( (nfargs > 1) && (stricmp((char *)"hex", fargs[0]) == 0) ) {
+       if ( !*fargs[0] || !*fargs[1] ) {
+          safe_str("0x00000000",buff,bufcx);
+       } else {
+          add_space = 0;
+          s_val = alloc_sbuf("rxdesc_hex");
+          for ( i = 0; i < mudconf.no_levels; i++ ) {
+             if ( Guildmaster(player) || (RxLevel(player) & mudconf.reality_level[i].value) == mudconf.reality_level[i].value ) {
+                if ( pstricmp(mudconf.reality_level[i].name, fargs[1], strlen(fargs[1])) == 0 ) {
+                   sprintf(s_val, "0x%08X", mudconf.reality_level[i].value);
+                   safe_str(s_val, buff, bufcx);
+                   add_space = 1;
+                   break;
+                }
+             }
+          }
+          free_sbuf(s_val);
+          if ( !add_space ) {
+             safe_str("0x00000000",buff,bufcx);
+          }
+       }
+    } else if ( (nfargs > 1) && (stricmp((char *)"value", fargs[0]) == 0) ) {
+       if ( !*fargs[0] || !*fargs[1] ) {
+          safe_str("0",buff,bufcx);
+       } else {
+          add_space = 0;
+          for ( i = 0; i < mudconf.no_levels; i++ ) {
+             if ( Guildmaster(player) || (RxLevel(player) & mudconf.reality_level[i].value) == mudconf.reality_level[i].value ) {
+                if ( pstricmp(mudconf.reality_level[i].name, fargs[1], strlen(fargs[1])) == 0 ) {
+                   ival(buff, bufcx, mudconf.reality_level[i].value);
+                   add_space = 1;
+                   break;
+                }
+             }
+          }
+          if ( !add_space ) {
+             safe_str("0",buff,bufcx);
+          }
+       }
+    } else if ( nfargs > 1 ) {
+       safe_str((char *)"#-1 UNRECOGNIZED SUBARG '", buff, bufcx);
+       safe_str(fargs[0], buff, bufcx);
+       safe_str((char *)"' FOR FUNCTION RXDESC", buff, bufcx);
     } else {
        init_match(player, fargs[0], NOTYPE);
        match_everything(MAT_EXIT_PARENTS);

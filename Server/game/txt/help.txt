@@ -30167,35 +30167,42 @@
   
 & RXDESC()
   Function: rxdesc(<target>)
-            rxdesc(desc, <reality>)
-            rxdesc(adesc, <reality>)
+            rxdesc(<subarg>, <reality>)
   
-  Returns a space separated list of all realitylevel-based descriptions that
-  are visible to <target>. You must control <target>. If no levels are listed,
-  nothing is returned. If you do not control the target, or if the target does
-  not exist, '#-1' is returned.
+  The first form returns a space separated list of all realitylevel-based 
+  descriptions that are visible to <target>. You must control <target>. If no 
+  levels are listed, nothing is returned. If you do not control the target, or 
+  if the target does not exist, '#-1' is returned.
   
-  The second form will show the description attribute of the specified
-  reality.  The enactor must either belong to that reality or be a GUILDMASTER
-  or higher in staff permission to fetch the reality's desc attribute.
-  Partial matches to reality names are acepted and will return the first match.
-  For any reality that doesn't exist or you have no access to, '#-1' is
-  returned.
+  The second form will show the specified subarg value for the specified 
+  reality.  You must either be a guildmaster or higher or belong to the
+  specified reality to get the information of that reality.
   
-  The third form will return the ADESC attribute that will be used for the
-  matching description.  By default, anything with 'desc' will have 'adesc'.
+  Currently the following <subarg> values are possible:
+    desc   -- show the description attribute name of the specified reality.
+    adesc  -- show the adesc (action description) of the specified reality.
+    value  -- show the bitmask value of the reality in decimal form.
+    hex    -- show the bitmask value of the reality in hexidecimal form.
+
+  The default value 'adesc' will always be returned automatically for any 
+  reality with the 'desc' attribute defined for that reality.
+  
+  The <subarg> 'value' and 'hex' will return '0' for any reality that 
+  you do not have access to or any reality that does not exist.   
   
   Example:
     > say rxdesc(me)
     You say "DESC SPECIAL"
     > say rxlevel(me)
     You say 'Real specialDesc'.
-    > say (desc,real)
+    > say rxdesc(desc,real)
     You say "DESC"
-    > say (desc,spec)
+    > say rxdesc(desc,spec)
     You say "SPECIAL"
-    > say (desc,moo)
+    > say rxdesc(desc,moo)
     You ssay "#-1"
+    > say rxdesc(hex,spec)
+    You say "0x00001000"
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel(), listrlevels(),
             chkreality()
@@ -34199,6 +34206,7 @@
  * reality levels have optional @adesc trigger for each unique description.
  * when you exceed max args for commands or functions, it now warns you [ASH]
  * global_attrdefault handles argument '%1' for target attrib set on [ASH]
+ * value and hex args added to rxdesc() [ASH]
   
   Bug Fixes
   ------------
