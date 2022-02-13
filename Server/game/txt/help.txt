@@ -34222,3 +34222,4 @@
  * @rxlevel/@txlevel didn't properly handle empty entries after a
    successful entry [ASH]
  * @rxlevel/@txlevel had a memory leak with empty/invalid lists [ASH]
+ * @hook/list didn't properly show hooking '}' properly [ASH]

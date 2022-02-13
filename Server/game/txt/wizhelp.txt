@@ -14614,6 +14614,7 @@
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
      N - This is the same as ']' and looks for <char>_N on HOOK_OBJ.
+     Z - This is the same as '}' and looks for <char>_Z on HOOK_OBJ.
   
   Example:
     > &A_POSE #1234=<function-executed-after-:/;/pose> 
