@@ -9364,6 +9364,11 @@
          - ignore      establish ignore inheritance of attribute/command.
          - igswitch    specifies if command bypasses failed /switch notices.
          - fail        specified what happens instead of 'permission denied'
+         - include     when used with before/after treat like an @include
+  
+  Quick Examples:
+    > hook_cmd @name before include
+    > hook_cmd @create ignore
   
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
