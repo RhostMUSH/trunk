@@ -34209,6 +34209,7 @@
  * when you exceed max args for commands or functions, it now warns you [ASH]
  * global_attrdefault handles argument '%1' for target attrib set on [ASH]
  * value and hex args added to rxdesc() [ASH]
+ * reordered @list power/@list depower to be alphanumerical [ASH]
   
   Bug Fixes
   ------------
