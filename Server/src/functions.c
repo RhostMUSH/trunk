@@ -39559,6 +39559,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
        nptrs = 0;
        for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                 fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
+          if ( (fp->perms & CF_DARK) && !Wizard(player) )
+             continue;
           if (check_access(player, fp->perms, fp->perms2, 0)) {
              ptrs[nptrs] = fp->name;
              nptrs++;
@@ -39579,6 +39581,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     if ( !key || (key & 2) ) {
        nptrs2 = 0;
        for (ufp = ufun_head; ufp; ufp = ufp->next) {
+         if ( (ufp->perms & CF_DARK) && !Wizard(player) )
+             continue;
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             ptrs2[nptrs2] = ufp->name;
             nptrs2++;
@@ -39599,6 +39603,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     if ( !key || (key & 4) ) {
        j = nptrs3 = 0;
        for (ufp = ulfun_head; ufp; ufp = ufp->next) {
+         if ( (ufp->perms & CF_DARK) && !Wizard(player) )
+             continue;
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             if ( ufp->owner == player ) {
                ptrs3[nptrs3] = ufp->name;

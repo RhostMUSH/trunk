@@ -34210,6 +34210,8 @@
  * global_attrdefault handles argument '%1' for target attrib set on [ASH]
  * value and hex args added to rxdesc() [ASH]
  * reordered @list power/@list depower to be alphanumerical [ASH]
+ * built in functions, @functions, or @lfunctions set DARK will only show
+   listings for wizards or higher now but still useable by anyone [ASH]
   
   Bug Fixes
   ------------
