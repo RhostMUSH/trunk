@@ -7157,15 +7157,16 @@
   old_elist                online_reg                open_cost               
   output_database          output_limit              page_cost               
   pagelock_notify          paranoid_allocate         paranoid_exit_linking
-  parent_follow            parentable_control_lock   partial_conn
-  partial_deconn           passapi_host              passapi_site
-  passproxy_host           passproxy_site            paycheck
-  pcreate_paranoia         pcreate_paranoia_fail     pemit_any_object
-  pemit_far_players        penn_playercmds           penn_setq
-  penn_switches            permit_site               player_attr_default
-  player_dark              player_flags              player_listen
-  player_match_commands    player_match_own_command  player_name_spaces
-  player_parent            player_queue_limit        player_quota           
+  parent_follow            parent_nest_limit         parentable_control_lock 
+  partial_conn             partial_deconn            passapi_host            
+  passapi_site             passproxy_host            passproxy_site          
+  paycheck                 pcreate_paranoia          pcreate_paranoia_fail   
+  pemit_any_object         pemit_far_players         penn_playercmds         
+  penn_setq                penn_switches             permit_site             
+  player_attr_default      player_dark               player_flags            
+  player_listen            player_match_commands     player_match_own_command
+  player_name_spaces       player_parent             player_queue_limit      
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -9603,9 +9604,10 @@
   Config parameter: includenest <value>.  Default: 3
   
   Specifies the total number of times @include can be nested within itself.
-  Please try to keep this value somewhat low to avoid attacks on your mush.
+  Please try to keep this value somewhat low to avoid attacks on your mush
+  as well as limit the overall stack space the mush takes in resource.
   
-  See Also: includecnt
+  See Also: includecnt, parent_nest_limit
 
 & initial_size
   Config parameter: initial_size <value>.  Default: 1000
@@ -10583,6 +10585,20 @@
         control of each parent in order to view it, which I found too 
         restrictive.
   
+  
+& parent_nest_limit
+  Config parameter: parent_nest_limit <value>.    Default: 10
+  
+  This controls how deep with nesting parent lookups can occur.  Please
+  be aware that the higher the parent level the higher the stack requirements.
+  
+  If you exceed the stack space of your current shell, the mush could 
+  potentially run out of memory for stack and will shut itself down.
+  
+  Do to this either give yourself plenty of growing room or keep this
+  value to reasonable limits.
+  
+  See Also: includenest
   
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
