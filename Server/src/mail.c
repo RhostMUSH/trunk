@@ -8501,6 +8501,9 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
         key2 = (key2 | M_SEND);
     case M_REPLY:
     case M_SEND:
+        while ( buf1 && isspace(*buf1) ) {
+           buf1++;
+        }
 	if ((*buf2 != '\0') && (*buf1 != '\0')) {
            if (Brandy(player) && !forcesend && isPlayer(player)) {
 	      atrxxx = atr_get(player, A_SAVESENDMAIL, &owner2, &flags2);
@@ -8549,6 +8552,9 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	}
 	break;
     case M_FORWARD:
+        while ( buf1 && isspace(*buf1) ) {
+           buf1++;
+        }
 	if (*buf1 != '\0') {
            if (Brandy(player) && isPlayer(player)) {
               atrxxx = atr_get(player, A_SAVESENDMAIL, &owner2, &flags2);
