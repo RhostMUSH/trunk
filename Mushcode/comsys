@@ -1,4 +1,4 @@
-@@ This is version 1.3.6 of the AshCom II Comsystem.
+@@ This is version 1.3.7 of the AshCom II Comsystem.
 @@
 @@ Create Main ComSystem
 @@ Fixes:
@@ -25,6 +25,7 @@
 @@ 1.3.4   11/20/20     Ashen-Shugar   comgag handles aliases
 @@ 1.3.5   11/22/20     Ashen-Shugar   Better handling on aliases with invalid channels
 @@ 1.3.6   11/27/20     Ashen-Shugar   Fixed timeformats -- were broken with recent updates
+@@ 1.3.7   03/12/22     Ashen-Shugar   Fixed `to` to mask names in channels with masks
 @@
 @@ You need -DHACK_ATTR, -DTINY_U, -DSIDEEFFECTS all defined for this to work at compiletime!
 @@
@@ -233,8 +234,12 @@ think Continuing with loading of script...
 &COMTITLEMSG11 ChanFunc=ComSys: Title set for channel '[capstr(lcstr(r(3)))]'.
 &GENERICDO ChanFunc=[setq(0,1)][u(format_chan,%2)] [setr(7,[r(7)][setr(k,[ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))])][setr(d,%b[u(fn_saystring,%2)] "[objeval(%2,ansi(default(%2/_CH_ANSI_%q1,get(%2/_CH_ANSI)),s(%1)))]")])]
 &GENERIC_STRIP ChanFunc=457
-&GENERICDO6 ChanFunc=[setq(0,1)][setr(b,[ulocal(format_chan,%2)])] [setr(6,[setr(a,%[To: [ifelse(gt(numpos(`,%1),1),strfunc(elist,iter(u(chk_players,before(after(secure(%1),`),`)),[u(fun_cname2,##)],,|)@and@|,@),u(fun_cname2,u(chk_players,first(after(secure(%1),`)))))]%]:)] [setq(b,[ulocal([v(F-DB)]/format_peruser,##,%qe,%q1)]%qb %qa)][setr(c,[localize([setq(6,get(%2/_ch_alias_[r(1)]))][objeval(%2,[s(r(6))]%b)])])][setr(k,[localize([ifelse(hasattr(%2/_ch_mask_%q1),u(fun_maskcname,%2,%q1),u(fun_cname,%2))])])][setr(d,[setq(5,trim(ifelse(gt(numpos(`,secure(%1)),1),after(after(objeval(%2,%1),`),`),rest(after(objeval(%2,%1),`)))))][u(do_before[setr(4,member(" : ;,mid(r(5),0,1)))],%#,mid(r(5),1,1))][objeval(%#,s(ifelse(member(; " :,mid(r(5),0,1)),delete(r(5),0,1),r(5))))][v(do_after[r(4)])])])][setq(7,[r(6)])]
-&CHK_PLAYERS ChanFunc=[localize([setq(0,iter(%0,ifelse(isdbref(pmatch(##)),pmatch(##))))][ifelse(words(r(0)),r(0),%#)])]
+&GENERICDO6 ChanFunc=[setq(0,1)][setr(b,[ulocal(format_chan,%2)])][setr(6,[u(fn_processmask[!!match(get([v(STOR-DB)]/COMMASK_CHANLIST),%q1)],%0,%1,%2,%3,%4,%5,%6,%7,%8,%9)][setq(b,[ulocal([v(F-DB)]/format_peruser,##,%qe,%q1)]%qb %qa)][setr(c,[localize([setq(6,get(%2/_ch_alias_%q1))][objeval(%2,[s(%q6)]%b)])])][setr(k,[localize([ifelse(and(hasattr(%2/_ch_mask_%q1),match(get([v(STOR-DB)]/COMMASK_CHANLIST),%q1)),u(fun_maskcname,%2,%q1),u(fun_cname,%2))])])][setr(d,[setq(5,trim(ifelse(gt(numpos(`,secure(%1)),1),after(after(objeval(%2,%1),`),`),rest(after(objeval(%2,%1),`)))))][u(do_before[setr(4,member(" : ;,mid(%q5,0,1)))],%#,mid(%q5,1,1))][objeval(%#,s(ifelse(member(; " :,mid(%q5,0,1)),delete(%q5,0,1),%q5)))][v(do_after[r(4)])])])][setq(7,%q6)]
+&FN_PROCESSMASK0 ChanFunc=[setq(a,ifelse(gt(numpos(`,%1),1),strfunc(elist,iter(u(chk_players,before(after(secure(%1),`),`)),[u(fun_cname2,##)],,|)@and@|,@),u(fun_cname2,u(chk_players,first(after(secure(%1),`))))))][ifelse(!!$r(a),setr(a,%b%[To: %qa%]:))]
+&FN_PROCESSMASK1 ChanFunc=[setq(a,ifelse(gt(numpos(`,%1),1),strfunc(elist,iter(u(chk_masks,before(after(secure(%1),`),`)),[u(fun_cmasks,%i0)],,|)@and@|,@),u(fun_cmasks,u(chk_masks,first(after(secure(%1),`))))))][ifelse(!!$r(a),setr(a,%b%[To: %qa%]:))]
+&CHK_MASKS ChanFunc=[localize([setr(0,iter(%0,switch([and(isdbref(pmatch(%i0)),!hasattr(pmatch(%i0),_ch_mask_%q1))],1,pmatch(%i0),[iter(get([v(STOR-DB)]/CHLIST_%q1),ifelse(strmatch(get(%i0/_ch_mask_%q1),%i1*),X%i0[ibreak(0)]))])))])]
+&FUN_CMASKS ChanFunc=[ifelse(match(%0,X*),get([delete(%0,0,1)]/_ch_mask_%q1),cname(%0))]
+&CHK_PLAYERS ChanFunc=[localize([setr(0,iter(%0,ifelse(isdbref(pmatch(##)),pmatch(##))))])]
 &DO_BEFORE0 ChanFunc=%b[u(fn_saystring,%0)] "
 &DO_AFTER0 ChanFunc="
 &DO_BEFORE1 ChanFunc=%b[u(fn_saystring,%0)] "
@@ -380,7 +385,7 @@ think Continuing with loading of script...
 &ERROR_DEFAULT ChanFunc=ComSys: Sorry, you have no access to that channel.
 &PROCESS_ERROR ChanFunc=[default([v(F-DB)]/error_custom,get([v(F-DB)]/error_default))][u([v(FX-DB)]/do_custerror,wipe)]
 &SET_ERROR ChanFunc=[u([v(FX-DB)]/do_custerror,set,%0)]
-&DATA_COMCHANGES ChanFunc=Version|Date|Author|Description~-------|------------|--------------|-----------------------------------------~1.0.0|XX/XX/XX|Ashen-Shugar|Original Version of AshCom V2~1.1.5|05/21/17|Ashen-Shugar|Fix for @chan/on and @chan/off to handle locks~1.1.6|08/07/17|Ashen-Shugar|Add arg %2 to locks for length of string sent and cleanup of deleting channels~1.2.0|09/22/17|Ashen-Shugar|comset to control how output on channels work~1.2.1|10/04/17|Ashen-Shugar|Fix a bug reported by Ixokai with +comset~1.2.2|11/24/17|Ashen-Shugar|Fix for version checking at start (warning only) and fix on comcfg/notify with case sensitivity~1.2.3|09/25/18|Ashen-Shugar|Add timestamp capability to channel output~1.2.4|01/13/19|Ashen-Shugar|@cboot/@clist fixes.  channels() function~1.2.5|02/25/19|Ashen-Shugar|modified comall to optionally specify channel~1.2.6|04/01/19|Ashen-Shugar|Introduction of in-line changes file/command~1.2.7|04/10/19|Ashen-Shugar|Comfunctions help added~1.2.8|04/28/19|Ashen-Shugar|Minute, Hour, Day added to last~1.2.9|05/15/19|Ashen-Shugar|Improved lock messages added~1.3.0|08/10/19|Ashen-Shugar|Fixed timeformats now showing up for ./=commands~1.3.1|01/04/20|Ashen-Shugar|Fix in @cemit to allow objects to hear it~1.3.2|02/05/20|Ashen-Shugar|Added @cemitnp for noparse @cemit~1.3.3|07/23/20|Ashen-Shugar|comvariables for config vars~1.3.4|11/20/20|Ashen-Shugar|comgag handles aliases~1.3.5|11/22/20|Ashen-Shugar|Better handling on aliases with invalid channels~1.3.6|11/27/20|Ashen-Shugar|Fixed timeformats -- were broken with recent updates~-------|------------|--------------|-----------------------------------------
+&DATA_COMCHANGES ChanFunc=Version|Date|Author|Description~-------|------------|--------------|-----------------------------------------~1.0.0|XX/XX/XX|Ashen-Shugar|Original Version of AshCom V2~1.1.5|05/21/17|Ashen-Shugar|Fix for @chan/on and @chan/off to handle locks~1.1.6|08/07/17|Ashen-Shugar|Add arg %2 to locks for length of string sent and cleanup of deleting channels~1.2.0|09/22/17|Ashen-Shugar|comset to control how output on channels work~1.2.1|10/04/17|Ashen-Shugar|Fix a bug reported by Ixokai with +comset~1.2.2|11/24/17|Ashen-Shugar|Fix for version checking at start (warning only) and fix on comcfg/notify with case sensitivity~1.2.3|09/25/18|Ashen-Shugar|Add timestamp capability to channel output~1.2.4|01/13/19|Ashen-Shugar|@cboot/@clist fixes.  channels() function~1.2.5|02/25/19|Ashen-Shugar|modified comall to optionally specify channel~1.2.6|04/01/19|Ashen-Shugar|Introduction of in-line changes file/command~1.2.7|04/10/19|Ashen-Shugar|Comfunctions help added~1.2.8|04/28/19|Ashen-Shugar|Minute, Hour, Day added to last~1.2.9|05/15/19|Ashen-Shugar|Improved lock messages added~1.3.0|08/10/19|Ashen-Shugar|Fixed timeformats now showing up for ./=commands~1.3.1|01/04/20|Ashen-Shugar|Fix in @cemit to allow objects to hear it~1.3.2|02/05/20|Ashen-Shugar|Added @cemitnp for noparse @cemit~1.3.3|07/23/20|Ashen-Shugar|comvariables for config vars~1.3.4|11/20/20|Ashen-Shugar|comgag handles aliases~1.3.5|11/22/20|Ashen-Shugar|Better handling on aliases with invalid channels~1.3.6|11/27/20|Ashen-Shugar|Fixed timeformats -- were broken with recent updates~1.3.7|03/12/22|Ashen-Shugar|Fixed `to` to mask names in channels with masks~-------|------------|--------------|-----------------------------------------
 @set ChanFunc=INHERIT
 @set ChanFunc=HALTED
 @@
