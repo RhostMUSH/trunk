@@ -5514,42 +5514,50 @@
 
 & @tag
   Command: @tag <tagname>
-           @tag/list 
+           @tag/list [<number>]
            @tag/list <searchstring>
            @tag/add <tagname>=<#dbref>
            @tag/remove <tagname>
   
   This command gets used to manage and list the named tags of Rhost's tag
   system (see wizhelp tags).
- 
-  The first form lists the #dbref stored behind the tag named <tagname>. If
-  the tag does not exist, #-1 gets returned. This also goes for tags that
-  previously existed, but the #dbref stored behind them has been @destroyed
-  in the meantime - even if a new object once more is valid behind this
-  #dbref.
- 
-  @tag/list lists all current valid tags and the #dbref associated with them.
-  @tag/list also accepts an optional search string as an argument. This
-  can get used to filter the taglist by names. It accepts wildcards and is
-  case-insensitive. 
- 
-  @tag/add gets used to add a tag. If a named tag already exists, an error
-  is returned.
- 
-  @tag/remove removes an existing tag. If the tag named <tagname> does not
-  exist, an error is returned.
- 
+   
+  Option: @tag <tagname>
+    The first form lists the #dbref stored behind the tag named <tagname>. 
+    If the tag does not exist, #-1 gets returned. This also goes for tags that
+    previously existed, but the #dbref stored behind them has been @destroyed
+    in the meantime - even if a new object once more is valid behind this
+    #dbref.  
+  
+  Option: @tag/list [<number>]
+    The second form allows you to specify an optional number for the page 
+    for @tag/list.  @tag/list lists all current valid tags and the #dbref 
+    associated with them.  
+    Note: If you specify '0' it will list the entire @tag/list unpaged.
+  
+  Option: @tag/list <searchstring>
+    The third form accepts an optional search string as an argument. This
+    can get used to filter the taglist by names. It accepts wildcards and is
+    case-insensitive. 
+   
+  Option: @tag/add <tagname>=<dbref# of target>
+    The forth form is used to add a tag. If @tag/add attempts to add a named 
+    tag that already exists, an error is returned.
+   
+  Option: @tag/remove <tagname>
+    The fifth and final form removes an existing tag. If @tag/remove attempts
+    to remove a named <tagname> that does not exist, an error is returned.
+   
   The following sanity checks are performed for tags:
- 
-  * Tagnames cannot be more than 32 characters in length
-  * Tagnames cannot contain whitespace.
-  * Tags need to be supplied with a valid, existing object's #dbref on
-     creation.
-  * Up to 16 tags can reference the same #dbref
-  * Unicode is valid in tagnames!
-  * On destruction of an object, all referencing tags get also removed.
- 
-  See also: wizhelp tags, help tag()
+    * Tagnames cannot be more than 32 characters in length
+    * Tagnames cannot contain whitespace.
+    * Tags need to be supplied with a valid, existing object's #dbref on
+      creation.
+    * Up to 16 tags can reference the same #dbref
+    * Unicode is valid in tagnames!
+    * On destruction of an object, all referencing tags get also removed.
+   
+  See also: wizhelp tags, help tag(), help @ltag
    
 & TOTEMS
   Topic: TOTEMS
