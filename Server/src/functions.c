@@ -13178,11 +13178,43 @@ FUNCTION(fun_listprotection)
    char *tstr, *tstr2, *s_strtokr, *s_strtok, *s_matchstr, c_buf;
    int aflags, i_key, i_matchint, i_first;
    dbref thing, aowner;
+   PROTECTNAME *bp;
 
    if (!fn_range_check("LISTPROTECTION", nfargs, 1, 3, buff, bufcx))
       return;
+
    i_first =  0;
 
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_key = atoi(fargs[1]);
+      if ( (i_key < 0) || (i_key > 5) ) {
+         i_key = 0;
+      }
+   } else { 
+      i_key = 0;
+   }
+
+   /* Do reverse lookup on target only if wizard doing it */
+   if ( (i_key == 5) && Wizard(player) ) {
+      if ( !fargs[0] || !*fargs[0] ) {
+         safe_str("#-1 NO MATCH", buff, bufcx);
+      } else {
+         for ( bp=mudstate.protectname_head; bp; bp=bp->next) {
+            if ( !stricmp(bp->name, fargs[0]) ) {
+               dbval(buff, bufcx, bp->i_name);
+               i_first = 1;
+               break;
+            }
+         }
+         if ( !i_first ) {
+            safe_str("#-1 NO MATCH", buff, bufcx);
+         }
+      }
+      return;
+   } else {
+      i_key = 0;
+   }
+  
    thing = lookup_player(player, fargs[0], 0);
    if ( !Good_chk(thing) ) {
       safe_str("#-1 NO MATCH", buff, bufcx);
@@ -13190,14 +13222,6 @@ FUNCTION(fun_listprotection)
    }
    if ( !Wizard(player) && (thing != player) ) {
       thing = player;
-   }
-   if ( (nfargs > 1) && *fargs[1] ) {
-      i_key = atoi(fargs[1]);
-      if ( (i_key < 0) || (i_key > 4) ) {
-         i_key = 0;
-      }
-   } else { 
-      i_key = 0;
    }
    if ( (nfargs > 2) && *fargs[2] ) {
       c_buf = *fargs[2];
