@@ -4,7 +4,7 @@
 
 #include "copyright.h"
 
-#define MUSH_VERSION            "4.2.1-47"         /* Base version number*/
+#define MUSH_VERSION            "4.2.1-48"         /* Base version number*/
 
 #if defined(ZENTY_ANSI) && defined(REALITY_LEVELS)
 #define EXT_MUSH_VER "RL(A)"

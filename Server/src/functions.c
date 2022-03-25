@@ -32697,6 +32697,7 @@ FUNCTION(fun_sortlist)
       case 'd':  /* Dbref */
       case 'f':  /* Float */
       case 'a':  /* Alphanumeric */
+      case 'i':  /* Alphanumeric Case-Insensitive */
       case 'm':  /* Merge type */
          sorttype = *(fargs[0]+1);
          if ( (*(fargs[0]+2) == '|') && (*(fargs[0]+3)) ) {
