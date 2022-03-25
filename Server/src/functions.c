@@ -32573,7 +32573,7 @@ a_comp(const void *s1, const void *s2)
 static int
 a_casecomp(const void *s1, const void *s2)
 {
-    return stricmp(*(char **) s1, *(char **) s2);
+    return strcasecmp(*(char **) s1, *(char **) s2);
 }
 
 static int
@@ -32805,8 +32805,8 @@ FUNCTION(fun_sortlist)
                if ( !i_initial ) {
                   s_chk = s_strtok[i];
                } else {
-                  if ( (i_order  && (stricmp(s_strtok[i], s_chk) > 0)) ||
-                       (!i_order && (stricmp(s_chk, s_strtok[i]) > 0)) ) {
+                  if ( (i_order  && (strcasecmp(s_strtok[i], s_chk) > 0)) ||
+                       (!i_order && (strcasecmp(s_chk, s_strtok[i]) > 0)) ) {
                      s_chk = s_strtok[i];
                   }
                }
