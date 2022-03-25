@@ -23020,6 +23020,8 @@
   The following <order> types are allowed:  
     +a  -- (default) sort alphanumerically by maximum value 
     -a  -- (default) sort alphanumerically by minimum value
+    +i  -- sort alphanumerically by maximum value (Case-insensitive)
+    -i  -- sort alphanumerically by minimum value (Case-insensitive)
     +n  -- sort integers numerically by maximum value
     -n  -- sort integers numerically by minimum value
     +f  -- sort floating numerically by maximum value
