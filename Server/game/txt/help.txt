@@ -22977,9 +22977,9 @@
     order.  Lexicographic order is used for words, and numeric order is used
     for numbers and dbrefs.
   * <sort type> may be used to specify the type of sort to perform (use d for
-    dbref, n for integer numeric, f for floating numeric, and a for
-    alphanumeric).  If omitted or left blank, the sort() function will
-    automatically determine the type of sort to perform.
+    dbref, n for integer numeric, f for floating numeric, a for alphanumeric
+    and i for case-insensitive alphanumeric). If omitted or left blank, the
+    sort() function will automatically determine the type of sort to perform.
   * If <delim> is specified, it (rather than a space) is used to separate items
     in the list.  You may specify an alternate delimiter without specifying
     a sort type by passing a null <sort type> parameter.

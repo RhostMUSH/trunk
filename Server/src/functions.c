@@ -2182,6 +2182,7 @@ return_bit(dbref player)
 #define NUMERIC_LIST    2
 #define DBREF_LIST      3
 #define FLOAT_LIST      4
+#define ALPHANUMCASE_LIST      8
 
 static int
 autodetect_list(char *ptrs[], int nitems)
@@ -2266,6 +2267,8 @@ get_list_type(char *fargs[], int nfargs, int type_pos,
                return NUMERIC_LIST;
             case 'f':
                return FLOAT_LIST;
+            case 'i':
+               return ALPHANUMCASE_LIST;
             case '\0':
                return autodetect_list(ptrs, nitems);
             default:
@@ -32568,6 +32571,12 @@ a_comp(const void *s1, const void *s2)
 }
 
 static int
+a_casecomp(const void *s1, const void *s2)
+{
+    return stricmp(*(char **) s1, *(char **) s2);
+}
+
+static int
 f_comp(const void *s1, const void *s2)
 {
     if (((f_rec *) s1)->data > ((f_rec *) s2)->data)
@@ -32597,6 +32606,9 @@ do_asort(char *s[], int n, int sort_type)
     switch (sort_type) {
          case ALPHANUM_LIST:
             qsort((void *) s, n, sizeof(char *), a_comp);
+            break;
+         case ALPHANUMCASE_LIST:
+            qsort((void *) s, n, sizeof(char *), a_casecomp);
             break;
          case NUMERIC_LIST:
             ip = (i_rec *) malloc(n * sizeof(i_rec));
@@ -32788,6 +32800,16 @@ FUNCTION(fun_sortlist)
                   }
                }
                break;
+            case 'i': /* AlphaNumeric Case-Insensitive */
+               if ( !i_initial ) {
+                  s_chk = s_strtok[i];
+               } else {
+                  if ( (i_order  && (stricmp(s_strtok[i], s_chk) > 0)) ||
+                       (!i_order && (stricmp(s_chk, s_strtok[i]) > 0)) ) {
+                     s_chk = s_strtok[i];
+                  }
+               }
+               break;
             case 'm': /* Merge */
                if ( i_first && osep ) {
                   safe_str(osep, buff, bufcx);
@@ -32830,6 +32852,9 @@ FUNCTION(fun_sortlist)
             if ( i_null ) fval(buff, bufcx, f_chk);
             break;
          case 'a': /* AlphaNumeric */
+            if ( i_null ) safe_str(s_chk, buff, bufcx);
+            break;
+         case 'i': /* AlphaNumeric Case-Insensitive */
             if ( i_null ) safe_str(s_chk, buff, bufcx);
             break;
          case 'm': /* it's already handled */
