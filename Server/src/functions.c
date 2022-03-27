@@ -25195,9 +25195,11 @@ handle_totem_flags(dbref player, dbref cause, dbref caller, char *s_arg0, char *
       i_not = 0;
       if ( *s_tok == '!' ) {
          i_not = 1;
-         hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
+         hashp = find_totem(target,s_tok+1);
+         // hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
       } else {
-         hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
+         hashp = find_totem(target,s_tok);
+         // hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
       }
       if ( hashp ) {
          if ( (!i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue)) ||
@@ -25539,7 +25541,8 @@ FUNCTION(fun_hastotem)
        if ( !*fargs[1] ) {
           ival(buff, bufcx, 0);
        } else {
-          hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
+          hashp = find_totem(target,fargs[1]);
+          // hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
           if ( hashp ) {
              if ( (dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
                 ival(buff, bufcx, totem_cansee_bit(player, target, hashp->listperm));

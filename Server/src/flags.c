@@ -1477,7 +1477,7 @@ find_toggle_perm(dbref thing, char *togglename, dbref player)
     char *cp;
     TOGENT *tp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the name is valid */
 
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
@@ -1507,7 +1507,7 @@ find_totem(dbref thing, char *totemname)
 {
     char *cp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the totem name is valid */
 
     for (cp = totemname; *cp; cp++)
 	*cp = ToLower((int)*cp);
@@ -1519,7 +1519,7 @@ find_toggle(dbref thing, char *togglename)
 {
     char *cp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the toggle name is valid */
 
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
