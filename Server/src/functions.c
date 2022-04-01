@@ -22551,10 +22551,10 @@ FUNCTION(fun_comp)
 
 FUNCTION(fun_ncomp)
 {
-   int64_t x, y;
+   double x, y;
 
-   x = strtoll(fargs[0], NULL, 10);
-   y = strtoll(fargs[1], NULL, 10);
+   x = safe_atof(fargs[0]);
+   y = safe_atof(fargs[1]);
    ival(buff, bufcx, (x == y ? 0 : (x < y ? -1 : 1)) );
 }
 
