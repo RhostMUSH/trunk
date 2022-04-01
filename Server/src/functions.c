@@ -34,7 +34,6 @@ char *rindex(const char *, int);
 #include <assert.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <stdint.h>
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
