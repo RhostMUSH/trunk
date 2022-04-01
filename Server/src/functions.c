@@ -22548,6 +22548,10 @@ FUNCTION(fun_comp)
     }
 }
 
+/* --------------------------------------------------------------------------
+ * fun_ncomp: Compares two numbers.  Returns -1,0,1 depending on if the
+ * left operand is less than, equal to, or greater than the right operand.
+ */
 FUNCTION(fun_ncomp)
 {
    double x, y;
