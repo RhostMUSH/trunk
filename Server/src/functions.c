@@ -34,6 +34,7 @@ char *rindex(const char *, int);
 #include <assert.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <stdint.h>
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
@@ -22550,10 +22551,10 @@ FUNCTION(fun_comp)
 
 FUNCTION(fun_ncomp)
 {
-   int x, y;
+   int64_t x, y;
 
-   x = atoi(fargs[0]);
-   y = atoi(fargs[1]);
+   x = strtoll(fargs[0], NULL, 10);
+   y = strtoll(fargs[1], NULL, 10);
    ival(buff, bufcx, (x == y ? 0 : (x < y ? -1 : 1)) );
 }
 
