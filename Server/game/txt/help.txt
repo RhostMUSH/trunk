@@ -12328,6 +12328,8 @@
 & %t
 & %b
 & %-
+& %-m
+& %-p
 & %i
 & %d
 & %q
@@ -15759,6 +15761,7 @@
     2 - list only the protected names that are not marked as aliases.
     3 - list protect names that are marked as aliases and the @alias.
     4 - list only the @alias
+    5 - list player dbref# who has specified protected name (wizard only)
   
   If the player is invalid, it returns an error, otherwise it returns an
   empty string if nothing is found for that criteria.  If the key is outside
@@ -22974,9 +22977,9 @@
     order.  Lexicographic order is used for words, and numeric order is used
     for numbers and dbrefs.
   * <sort type> may be used to specify the type of sort to perform (use d for
-    dbref, n for integer numeric, f for floating numeric, and a for
-    alphanumeric).  If omitted or left blank, the sort() function will
-    automatically determine the type of sort to perform.
+    dbref, n for integer numeric, f for floating numeric, a for alphanumeric
+    and i for case-insensitive alphanumeric). If omitted or left blank, the
+    sort() function will automatically determine the type of sort to perform.
   * If <delim> is specified, it (rather than a space) is used to separate items
     in the list.  You may specify an alternate delimiter without specifying
     a sort type by passing a null <sort type> parameter.
@@ -23017,6 +23020,8 @@
   The following <order> types are allowed:  
     +a  -- (default) sort alphanumerically by maximum value 
     -a  -- (default) sort alphanumerically by minimum value
+    +i  -- sort alphanumerically by maximum value (Case-insensitive)
+    -i  -- sort alphanumerically by minimum value (Case-insensitive)
     +n  -- sort integers numerically by maximum value
     -n  -- sort integers numerically by minimum value
     +f  -- sort floating numerically by maximum value
@@ -30167,35 +30172,42 @@
   
 & RXDESC()
   Function: rxdesc(<target>)
-            rxdesc(desc, <reality>)
-            rxdesc(adesc, <reality>)
+            rxdesc(<subarg>, <reality>)
   
-  Returns a space separated list of all realitylevel-based descriptions that
-  are visible to <target>. You must control <target>. If no levels are listed,
-  nothing is returned. If you do not control the target, or if the target does
-  not exist, '#-1' is returned.
+  The first form returns a space separated list of all realitylevel-based 
+  descriptions that are visible to <target>. You must control <target>. If no 
+  levels are listed, nothing is returned. If you do not control the target, or 
+  if the target does not exist, '#-1' is returned.
   
-  The second form will show the description attribute of the specified
-  reality.  The enactor must either belong to that reality or be a GUILDMASTER
-  or higher in staff permission to fetch the reality's desc attribute.
-  Partial matches to reality names are acepted and will return the first match.
-  For any reality that doesn't exist or you have no access to, '#-1' is
-  returned.
+  The second form will show the specified subarg value for the specified 
+  reality.  You must either be a guildmaster or higher or belong to the
+  specified reality to get the information of that reality.
   
-  The third form will return the ADESC attribute that will be used for the
-  matching description.  By default, anything with 'desc' will have 'adesc'.
+  Currently the following <subarg> values are possible:
+    desc   -- show the description attribute name of the specified reality.
+    adesc  -- show the adesc (action description) of the specified reality.
+    value  -- show the bitmask value of the reality in decimal form.
+    hex    -- show the bitmask value of the reality in hexidecimal form.
+
+  The default value 'adesc' will always be returned automatically for any 
+  reality with the 'desc' attribute defined for that reality.
+  
+  The <subarg> 'value' and 'hex' will return '0' for any reality that 
+  you do not have access to or any reality that does not exist.   
   
   Example:
     > say rxdesc(me)
     You say "DESC SPECIAL"
     > say rxlevel(me)
     You say 'Real specialDesc'.
-    > say (desc,real)
+    > say rxdesc(desc,real)
     You say "DESC"
-    > say (desc,spec)
+    > say rxdesc(desc,spec)
     You say "SPECIAL"
-    > say (desc,moo)
+    > say rxdesc(desc,moo)
     You ssay "#-1"
+    > say rxdesc(hex,spec)
+    You say "0x00001000"
   
   See Also: hasrxlevel(), hastxlevel(), rxlevel(), txlevel(), listrlevels(),
             chkreality()
@@ -34199,6 +34211,11 @@
  * reality levels have optional @adesc trigger for each unique description.
  * when you exceed max args for commands or functions, it now warns you [ASH]
  * global_attrdefault handles argument '%1' for target attrib set on [ASH]
+ * value and hex args added to rxdesc() [ASH]
+ * reordered @list power/@list depower to be alphanumerical [ASH]
+ * built in functions, @functions, or @lfunctions set DARK will only show
+   listings for wizards or higher now but still useable by anyone [ASH]
+ * listprotections() now will do reverse lookups for wizards [ASH]
   
   Bug Fixes
   ------------
@@ -34212,3 +34229,6 @@
  * @rxlevel/@txlevel didn't properly handle empty entries after a
    successful entry [ASH]
  * @rxlevel/@txlevel had a memory leak with empty/invalid lists [ASH]
+ * @hook/list didn't properly show hooking '}' properly [ASH]
+ * fix introduced bug (this patchlevel) of mail/reply with spaces [ASH]
+ * @tag/list had a one-off and wasn't well documented [ASH]

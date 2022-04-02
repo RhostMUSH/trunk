@@ -2182,6 +2182,7 @@ return_bit(dbref player)
 #define NUMERIC_LIST    2
 #define DBREF_LIST      3
 #define FLOAT_LIST      4
+#define ALPHANUMCASE_LIST      8
 
 static int
 autodetect_list(char *ptrs[], int nitems)
@@ -2266,6 +2267,8 @@ get_list_type(char *fargs[], int nfargs, int type_pos,
                return NUMERIC_LIST;
             case 'f':
                return FLOAT_LIST;
+            case 'i':
+               return ALPHANUMCASE_LIST;
             case '\0':
                return autodetect_list(ptrs, nitems);
             default:
@@ -13178,11 +13181,43 @@ FUNCTION(fun_listprotection)
    char *tstr, *tstr2, *s_strtokr, *s_strtok, *s_matchstr, c_buf;
    int aflags, i_key, i_matchint, i_first;
    dbref thing, aowner;
+   PROTECTNAME *bp;
 
    if (!fn_range_check("LISTPROTECTION", nfargs, 1, 3, buff, bufcx))
       return;
+
    i_first =  0;
 
+   if ( (nfargs > 1) && *fargs[1] ) {
+      i_key = atoi(fargs[1]);
+      if ( (i_key < 0) || (i_key > 5) ) {
+         i_key = 0;
+      }
+   } else { 
+      i_key = 0;
+   }
+
+   /* Do reverse lookup on target only if wizard doing it */
+   if ( (i_key == 5) && Wizard(player) ) {
+      if ( !fargs[0] || !*fargs[0] ) {
+         safe_str("#-1 NO MATCH", buff, bufcx);
+      } else {
+         for ( bp=mudstate.protectname_head; bp; bp=bp->next) {
+            if ( !stricmp(bp->name, fargs[0]) ) {
+               dbval(buff, bufcx, bp->i_name);
+               i_first = 1;
+               break;
+            }
+         }
+         if ( !i_first ) {
+            safe_str("#-1 NO MATCH", buff, bufcx);
+         }
+      }
+      return;
+   } else {
+      i_key = 0;
+   }
+  
    thing = lookup_player(player, fargs[0], 0);
    if ( !Good_chk(thing) ) {
       safe_str("#-1 NO MATCH", buff, bufcx);
@@ -13190,14 +13225,6 @@ FUNCTION(fun_listprotection)
    }
    if ( !Wizard(player) && (thing != player) ) {
       thing = player;
-   }
-   if ( (nfargs > 1) && *fargs[1] ) {
-      i_key = atoi(fargs[1]);
-      if ( (i_key < 0) || (i_key > 4) ) {
-         i_key = 0;
-      }
-   } else { 
-      i_key = 0;
    }
    if ( (nfargs > 2) && *fargs[2] ) {
       c_buf = *fargs[2];
@@ -25172,9 +25199,11 @@ handle_totem_flags(dbref player, dbref cause, dbref caller, char *s_arg0, char *
       i_not = 0;
       if ( *s_tok == '!' ) {
          i_not = 1;
-         hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
+         hashp = find_totem(target,s_tok+1);
+         // hashp = (TOTEMENT *)hashfind(s_tok+1, &mudstate.totem_htab);
       } else {
-         hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
+         hashp = find_totem(target,s_tok);
+         // hashp = (TOTEMENT *)hashfind(s_tok, &mudstate.totem_htab);
       }
       if ( hashp ) {
          if ( (!i_not && ((dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue)) ||
@@ -25516,7 +25545,8 @@ FUNCTION(fun_hastotem)
        if ( !*fargs[1] ) {
           ival(buff, bufcx, 0);
        } else {
-          hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
+          hashp = find_totem(target,fargs[1]);
+          // hashp = (TOTEMENT *)hashfind(fargs[1], &mudstate.totem_htab);
           if ( hashp ) {
              if ( (dbtotem[target].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
                 ival(buff, bufcx, totem_cansee_bit(player, target, hashp->listperm));
@@ -32548,6 +32578,12 @@ a_comp(const void *s1, const void *s2)
 }
 
 static int
+a_casecomp(const void *s1, const void *s2)
+{
+    return strcasecmp(*(char **) s1, *(char **) s2);
+}
+
+static int
 f_comp(const void *s1, const void *s2)
 {
     if (((f_rec *) s1)->data > ((f_rec *) s2)->data)
@@ -32577,6 +32613,9 @@ do_asort(char *s[], int n, int sort_type)
     switch (sort_type) {
          case ALPHANUM_LIST:
             qsort((void *) s, n, sizeof(char *), a_comp);
+            break;
+         case ALPHANUMCASE_LIST:
+            qsort((void *) s, n, sizeof(char *), a_casecomp);
             break;
          case NUMERIC_LIST:
             ip = (i_rec *) malloc(n * sizeof(i_rec));
@@ -32665,6 +32704,7 @@ FUNCTION(fun_sortlist)
       case 'd':  /* Dbref */
       case 'f':  /* Float */
       case 'a':  /* Alphanumeric */
+      case 'i':  /* Alphanumeric Case-Insensitive */
       case 'm':  /* Merge type */
          sorttype = *(fargs[0]+1);
          if ( (*(fargs[0]+2) == '|') && (*(fargs[0]+3)) ) {
@@ -32768,6 +32808,16 @@ FUNCTION(fun_sortlist)
                   }
                }
                break;
+            case 'i': /* AlphaNumeric Case-Insensitive */
+               if ( !i_initial ) {
+                  s_chk = s_strtok[i];
+               } else {
+                  if ( (i_order  && (strcasecmp(s_strtok[i], s_chk) > 0)) ||
+                       (!i_order && (strcasecmp(s_chk, s_strtok[i]) > 0)) ) {
+                     s_chk = s_strtok[i];
+                  }
+               }
+               break;
             case 'm': /* Merge */
                if ( i_first && osep ) {
                   safe_str(osep, buff, bufcx);
@@ -32810,6 +32860,9 @@ FUNCTION(fun_sortlist)
             if ( i_null ) fval(buff, bufcx, f_chk);
             break;
          case 'a': /* AlphaNumeric */
+            if ( i_null ) safe_str(s_chk, buff, bufcx);
+            break;
+         case 'i': /* AlphaNumeric Case-Insensitive */
             if ( i_null ) safe_str(s_chk, buff, bufcx);
             break;
          case 'm': /* it's already handled */
@@ -37030,6 +37083,7 @@ FUNCTION(fun_rxlevel)
 FUNCTION(fun_rxdesc)
 {
     dbref target;
+    char *s_val;
     int i, add_space, cmp_x, cmp_y, cmp_z;
 
     if (!fn_range_check("RXDESC", nfargs, 1, 2, buff, bufcx))
@@ -37079,6 +37133,49 @@ FUNCTION(fun_rxdesc)
              safe_str("#-1",buff,bufcx);
           }
        }
+    } else if ( (nfargs > 1) && (stricmp((char *)"hex", fargs[0]) == 0) ) {
+       if ( !*fargs[0] || !*fargs[1] ) {
+          safe_str("0x00000000",buff,bufcx);
+       } else {
+          add_space = 0;
+          s_val = alloc_sbuf("rxdesc_hex");
+          for ( i = 0; i < mudconf.no_levels; i++ ) {
+             if ( Guildmaster(player) || (RxLevel(player) & mudconf.reality_level[i].value) == mudconf.reality_level[i].value ) {
+                if ( pstricmp(mudconf.reality_level[i].name, fargs[1], strlen(fargs[1])) == 0 ) {
+                   sprintf(s_val, "0x%08X", mudconf.reality_level[i].value);
+                   safe_str(s_val, buff, bufcx);
+                   add_space = 1;
+                   break;
+                }
+             }
+          }
+          free_sbuf(s_val);
+          if ( !add_space ) {
+             safe_str("0x00000000",buff,bufcx);
+          }
+       }
+    } else if ( (nfargs > 1) && (stricmp((char *)"value", fargs[0]) == 0) ) {
+       if ( !*fargs[0] || !*fargs[1] ) {
+          safe_str("0",buff,bufcx);
+       } else {
+          add_space = 0;
+          for ( i = 0; i < mudconf.no_levels; i++ ) {
+             if ( Guildmaster(player) || (RxLevel(player) & mudconf.reality_level[i].value) == mudconf.reality_level[i].value ) {
+                if ( pstricmp(mudconf.reality_level[i].name, fargs[1], strlen(fargs[1])) == 0 ) {
+                   ival(buff, bufcx, mudconf.reality_level[i].value);
+                   add_space = 1;
+                   break;
+                }
+             }
+          }
+          if ( !add_space ) {
+             safe_str("0",buff,bufcx);
+          }
+       }
+    } else if ( nfargs > 1 ) {
+       safe_str((char *)"#-1 UNRECOGNIZED SUBARG '", buff, bufcx);
+       safe_str(fargs[0], buff, bufcx);
+       safe_str((char *)"' FOR FUNCTION RXDESC", buff, bufcx);
     } else {
        init_match(player, fargs[0], NOTYPE);
        match_everything(MAT_EXIT_PARENTS);
@@ -39519,6 +39616,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
        nptrs = 0;
        for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
                 fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
+          if ( (fp->perms & CF_DARK) && !Wizard(player) )
+             continue;
           if (check_access(player, fp->perms, fp->perms2, 0)) {
              ptrs[nptrs] = fp->name;
              nptrs++;
@@ -39539,6 +39638,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     if ( !key || (key & 2) ) {
        nptrs2 = 0;
        for (ufp = ufun_head; ufp; ufp = ufp->next) {
+         if ( (ufp->perms & CF_DARK) && !Wizard(player) )
+             continue;
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             ptrs2[nptrs2] = ufp->name;
             nptrs2++;
@@ -39559,6 +39660,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     if ( !key || (key & 4) ) {
        j = nptrs3 = 0;
        for (ufp = ulfun_head; ufp; ufp = ufp->next) {
+         if ( (ufp->perms & CF_DARK) && !Wizard(player) )
+             continue;
          if (check_access(player, ufp->perms, ufp->perms2, 0)) {
             if ( ufp->owner == player ) {
                ptrs3[nptrs3] = ufp->name;

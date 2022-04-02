@@ -85,6 +85,8 @@ guest_displaylastsite to control guest site info on connect.
 				- Thanks asymmetricia
 @rxlevel/@txlevel borked empty lists in several ways.
 				- Thanks Thenomain
+mail/reply didn't strip spaces properly
+				- Thanks Myrddin
 
 
                          RhostMUSH 3.9.5 Update File

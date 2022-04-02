@@ -2751,13 +2751,16 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
               }
               if ( i_start < 1 ) {
                  i_start = 0;
+                 i_pagetot = (i_total / 20) + 1;
+              } else {
+                 if ( i_start > ((i_total / 20) + 1) ) {
+                    i_start = (i_total / 20) + 1;
+                 }
+                 i_pagetot = (i_total / 20) + 1;
+                 // i_page = i_start + 1;
+                 i_page = i_start;
+                 i_start = ((i_start - 1) * 20) + 1;
               }
-              if ( i_start > (i_total / 20) ) {
-                 i_start = (i_total / 20);
-              }
-              i_pagetot = (i_total / 20) + 1;
-              i_page = i_start + 1;
-              i_start *= 20;
               /* Paged value -- we want null tagname now */
               *tagname = '\0';
            } else if ( !*tagname ) {
@@ -2766,10 +2769,9 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                    storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
                  i_total++;
               }
-              i_start = 0;
               i_pagetot = (i_total / 20) + 1;
-              i_page = i_start + 1;
-              i_start *= 20;
+              i_start = 1;
+              i_page = 1;
            }
           
            /* Notify header */
@@ -2780,11 +2782,12 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                 storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
               if(storedtag) {
                  if ( !*tagname ) {
-                    i_count++;
                     if ( i_count < i_start ) {
+                       i_count++;
                        continue;
                     }
-                    if ( i_count > (i_start + 20) ) {
+                    i_count++;
+                    if ( i_start && (i_count > (i_start + 20)) ) {
                        break;
                     }
                  }
@@ -2827,7 +2830,11 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
            }
            if ( i_personal )  {
               if ( !*tagname ) {
-                 sprintf(buff, "== Page %4d/%4d ======================================\r\n", i_page, i_pagetot);
+                 if ( i_start ) {
+                    sprintf(buff, "== Page %4d/%4d ======================================\r\n", i_page, i_pagetot);
+                 } else {
+                    sprintf(buff, "== All %4d Pages ======================================\r\n", i_pagetot);
+                 }
               } else {
                  strcpy(buff, (char *)"==========================================================\r\n");
               }
@@ -2837,6 +2844,11 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
            } else {
               if ( !*tagname ) {
                  sprintf(buff, "== Page %4d/%4d ======================================", i_page, i_pagetot);
+                 if ( i_start ) {
+                    sprintf(buff, "== Page %4d/%4d ======================================", i_page, i_pagetot);
+                 } else {
+                    sprintf(buff, "== All %4d Pages ======================================", i_pagetot);
+                 }
               } else {
                   strcpy(buff, (char *)"==========================================================");
               }

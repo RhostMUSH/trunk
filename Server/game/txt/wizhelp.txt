@@ -2924,6 +2924,8 @@
 & @site
   Command: @site[/switch] <site>=<mask>
   
+  This will remove sites listed in @list site_information.
+  
   This command takes site and mask information just as @admin would for
   permit_site, register_site, forbid_site, and noguest.  However, instead
   of setting the various site, it will remove all matching instances of
@@ -3505,12 +3507,13 @@
  
     advbuffers      allocations       attr_permissions  attributes 
     bad_names       buffers           commands          config_permissions
-    costs           db_stats          default_flags     flags             
-    functions       funperms          globals           hashstats         
-    logging         options           permissions       process         
-    site_info       switches          user_attributes   toggles         
-    mail_globals    guest_names      *rlevels           cmdslogged      
-    powers          depowers         *stacks            vattrcmds
+    costs           cmdslogged        depowers          db_stats        
+    default_flags   default_toggles   flags             functions       
+    funperms        globals           guest_names       hashstats     
+    logging         mail_globals      options           permissions   
+    powers          process          *rlevels           site_info     
+   *stacks          switches          toggles           user_attributes   
+    vattrcmds
  
   Type wizhelp @list <option> for help with a particular option.
   
@@ -3687,13 +3690,23 @@
   
   Lists statistics for the database cache.
 
+& @list default_toggles
+  Command: @list default_toggles
+  
+  Lists the toggles that are automatically given to players, things, rooms,
+  exits, and robots when they are created.
+  
+  See Also: default_flags, player_toggles, thing_toggles, room_toggles, 
+            exit_toggles, robot_toggles.
+
 & @list default_flags
   Command: @list default_flags
   
   Lists the flags that are automatically given to players, things, rooms,
   exits, and robots when they are created.
   
-  See Also: player_flags, thing_flags, room_flags, exit_flags, robot_flags.
+  See Also: default_toggles, player_flags, thing_flags, room_flags, 
+            exit_flags, robot_flags.
 
 & @list flags
   Command: @list flags
@@ -3975,88 +3988,115 @@
   Command: @list powers
   
   Lists the access restrictions on the various powers
+    api             - Target is allowed to be used as an API handler
+    boot            - Players may use the @boot power on other to level
     change_quotas   - Player may change the building quotas of others.
-    chown_mine      - Player may @chown objects to yourself even if not
+    chown_anywhere  - Players may @chown anything remotely.
+    chown_me        - Player may @chown objects to yourself even if not
                       CHOWN_OK.
-    chown_others    - Player may @chown objects you control to others.
+    chown_other     - Player may @chown objects you control to others.
+    examine_all     - Players may examine everything based on level.
+    examine_full    - Player can examine anything.
+    execscript      - Player has permission to use execscript() function.
     expanded_who    - WHO report includes additional information about the 
                       players listed.
+    formatting      - Target passes %0-%4 args to attribute formats.
     free_money      - All commands are free.
+    free_page       - Page costs no money for player (if cost enabled).
     free_quota      - Quotas are ignored for this player.
+    free_wall       - Players may @wall and do so for free.
+    fulltel         - Player can @teleport anywhere.
     grab_player     - Player may @tel any other player to themselves.
+    halt_queue      - Player may halt the queue of specified level.
+    halt_queue_all  - Player may halt the entire queue including by PID.
+    hidebit         - Player's staff bit is hidden.
     join_player     - Player may @tel to the loc of any other player.
     long_fingers    - Player may operate on objects that normally must be
                       near the player even if they are not.
-    priv_attributes - Player may modify read-only attributes and see invisible
-                      attributes.
-    priv_flags      - Player sees and may modify privileged flags.
-    rename_myself   - Player may change his name and password.
-    see_all_queue   - Player sees entire contents of queue.
-    see_hidden      - Player sees hidden players in the WHO report.
-    stat_any        - Player may get @stats on any player.
+    monitorapi      - Players toggled MONITOR_SITE will see API connects.
+                      Warning: can be very very spammy.
+    no_boot         - Player can not be @booted to the specified level.
+    noforce         - Player can not be @forced to the specified level.
+    nokill          - Player may not be killed to the specified level.
   
 { 'wizhelp @list powers2' for more }
 & @list powers2
   Command: @list powers (continued)
   
-    steal_money     - Player may give negative money.
-    nokill          - Player may not be killed.
+    nowho           - Players may use @hide.
+    pcreate         - Players may use the @pcreate ability.
+    priv_attributes - Player may modify read-only attributes and see invisible
+                      attributes.
+    priv_flags      - Player sees and may modify privileged flags.
+    purge           - Player can use /purge switch to @nuke/@destroy.
+    rename_myself   - Player may change his name and password.
     search_any      - Player can @search/@find based on level.
     security        - Player can use some wiz flags based on level.
+    see_queue       - Player may see queue entries up to specified level.
+    see_queue_all   - Player sees entire contents of queue.
+    see_hidden      - Player sees hidden players in the WHO report.
+    shutdown        - Player may @shutdown the mush
+    stat_any        - Player may get @stats on any player.
+    steal           - Player may give negative money.
+    tel_anything    - Players may teleport anything up to bitlevel control.
+    tel_anywhere    - Players may teleport anywhere to bitlevel control.
+    use_freelist    - Players may specify free dbref#'s for create/open/etc.
+    wiz_idle        - Players can used the enhanced 'idle' command.
+    wiz_spoof       - Target can spoof as if a wizard.
+    wiz_who         - Players see site information on WHO
     who_unfind      - Player can see hidden player in WHO
     wraith          - Player can go through exits w/o passing lock.
     shutdown        - Player can shutdown the game.
-    hidebit         - Player's staff bit is hidden.
-    purge           - Player can use /purge switch to @nuke/@destroy.
-    fulltel         - Player can @teleport anywhere.
-    examine_full    - Player can examine anything.
     
   See Also: @list depowers
 
 & @list depowers
   Command: @list depowers
   
+  Note: @depowers have precedence over @power and bitlevel.
+  
   Lists the access restrictions on the various depowers
-    wall            - Player can not use @wall.
-    steal           - Player is limited on rob/steal.
-    wiz_who         - Player can't see a wiz-who.
-    boot            - Player can not use @boot.
-    force           - Player can not @fo anyone but self.
-    com             - Player can't use hardcoded comsystem.
-    master          - Player can't execute master-room code.
-    nuke            - Player can't @nuke, @turtle or @toad.
-    override        - Player can't override locks by default.
-    tel_anything    - Player can't teleport anything.
-    power           - Player can't use @power.
-    modify          - Player can't modify anything but self.
-    chown_other     - Player can't chown things to others.
-    unl_quota       - Player can't have infinite quota.
-    give            - Player can't give anything.
-    nogold          - Player is restricted on gold to give.
-    password        - Player can't use @newpassword/@password.
-    long_fingers    - Player can't access things remotely.
-    create          - Player can't @create/@open/@dig/@pcreate
-    cloak           - Player can't wizcloak/cloak.
-    page            - Player can't page.
-    locks           - Player can't pass locks.
- 
+    abuse            - Player can't use any $commands but his own.
+    boot             - Player can not use @boot.
+    chown_me         - Player can't chown things to himself.
+    chown_other      - Player can't chown things to others.
+    cloak            - Player can't wizcloak/cloak.
+    com              - Player can't use hardcoded comsystem.
+    command          - Player can't use any $commands.
+    create           - Player can't @create/@open/@dig/@pcreate
+    dark             - Player can't go dark/cloaked/wizcloaked
+    examine          - Player can't examine anything but self.
+    force            - Player can not @fo anyone but self.
+    free             - Player doesn't have free/infinite money.
+    give             - Player can't give anything.
+    locks            - Player can't pass locks.
+    long_fingers     - Player can't access things remotely.
+    master           - Player can't execute master-room code.
+    modify           - Player can't modify anything but self.
+    mortal_examine   - Player examines/decompiles/etc as a mortal.
+    nogold           - Player is restricted on gold to give.
+   
 { wizhelp @list depowers2 to continue }
 
 & @list depowers2
   Command: @list depowers (continued)
-  
-    command         - Player can't use any $commands.
-    examine         - Player can't examine anything but self.
-    free            - Player doesn't have free/infinite money.
-    tel_anywhere    - Player can't teleport anywhere.
-    pcreate         - Player can't pcreate.
-    quota           - Player can't give quota.
-    chown_me        - Player can't chown things to himself.
-    abuse           - Player can't use any $commands but his own.
-    search_any      - Player can't @search/@find things.
-    receive         - Player limited on what they can receive.
-    nosteal         - Player can't steal.
-    mortal_examine  - Player examines/decompiles/etc as a mortal.
+    nosteal          - Player can't steal.
+    nuke             - Player can't @nuke, @turtle or @toad.
+    override         - Player can't override locks by default.
+    page             - Player can't page.
+    password         - Player can't use @newpassword/@password.
+    personal_command - Player can't use $commands on things they own
+    pcreate          - Player can't pcreate.
+    power            - Player can't use @power.
+    quota            - Player can't give quota.
+    receive          - Player limited on what they can receive.
+    search_any       - Player can't @search/@find things.
+    steal            - Player is limited on rob/steal.
+    tel_anything     - Player can't teleport anything.
+    tel_anywhere     - Player can't teleport anywhere.
+    unl_quota        - Player can't have infinite quota.
+    wall             - Player can not use @wall.
+    wiz_who          - Player can't see a wiz-who.
   
   See Also: @list powers
 
@@ -4125,7 +4165,13 @@
                 NoAutoReg    - This site can not autoregister
                 Hard Connect - This site can use connect screen commands.
  
-  See Also: forbid_site, forbidapi_site, permit_site, register_site, 
+  A site may have '(AutoSite)' beside it which means that RhostMUSH has set
+  that site restricted automatically, usually through triggering protection
+  such as attempts to exceed maximum connections a minute.
+  
+  You may remove sites with the '@site' command.
+  
+  See Also: @site, forbid_site, forbidapi_site, permit_site, register_site, 
             suspect_site, trust_site, noguest_site, noautoreg_site, 
             forbid_host, suspect_host, register_host, noguest_host, 
             noautoreg_host, validate_host, hardconn_host, nobroadcast_host, 
@@ -5468,42 +5514,50 @@
 
 & @tag
   Command: @tag <tagname>
-           @tag/list 
+           @tag/list [<number>]
            @tag/list <searchstring>
            @tag/add <tagname>=<#dbref>
            @tag/remove <tagname>
   
   This command gets used to manage and list the named tags of Rhost's tag
   system (see wizhelp tags).
- 
-  The first form lists the #dbref stored behind the tag named <tagname>. If
-  the tag does not exist, #-1 gets returned. This also goes for tags that
-  previously existed, but the #dbref stored behind them has been @destroyed
-  in the meantime - even if a new object once more is valid behind this
-  #dbref.
- 
-  @tag/list lists all current valid tags and the #dbref associated with them.
-  @tag/list also accepts an optional search string as an argument. This
-  can get used to filter the taglist by names. It accepts wildcards and is
-  case-insensitive. 
- 
-  @tag/add gets used to add a tag. If a named tag already exists, an error
-  is returned.
- 
-  @tag/remove removes an existing tag. If the tag named <tagname> does not
-  exist, an error is returned.
- 
+   
+  Option: @tag <tagname>
+    The first form lists the #dbref stored behind the tag named <tagname>. 
+    If the tag does not exist, #-1 gets returned. This also goes for tags that
+    previously existed, but the #dbref stored behind them has been @destroyed
+    in the meantime - even if a new object once more is valid behind this
+    #dbref.  
+  
+  Option: @tag/list [<number>]
+    The second form allows you to specify an optional number for the page 
+    for @tag/list.  @tag/list lists all current valid tags and the #dbref 
+    associated with them.  
+    Note: If you specify '0' it will list the entire @tag/list unpaged.
+  
+  Option: @tag/list <searchstring>
+    The third form accepts an optional search string as an argument. This
+    can get used to filter the taglist by names. It accepts wildcards and is
+    case-insensitive. 
+   
+  Option: @tag/add <tagname>=<dbref# of target>
+    The forth form is used to add a tag. If @tag/add attempts to add a named 
+    tag that already exists, an error is returned.
+   
+  Option: @tag/remove <tagname>
+    The fifth and final form removes an existing tag. If @tag/remove attempts
+    to remove a named <tagname> that does not exist, an error is returned.
+   
   The following sanity checks are performed for tags:
- 
-  * Tagnames cannot be more than 32 characters in length
-  * Tagnames cannot contain whitespace.
-  * Tags need to be supplied with a valid, existing object's #dbref on
-     creation.
-  * Up to 16 tags can reference the same #dbref
-  * Unicode is valid in tagnames!
-  * On destruction of an object, all referencing tags get also removed.
- 
-  See also: wizhelp tags, help tag()
+    * Tagnames cannot be more than 32 characters in length
+    * Tagnames cannot contain whitespace.
+    * Tags need to be supplied with a valid, existing object's #dbref on
+      creation.
+    * Up to 16 tags can reference the same #dbref
+    * Unicode is valid in tagnames!
+    * On destruction of an object, all referencing tags get also removed.
+   
+  See also: wizhelp tags, help tag(), help @ltag
    
 & TOTEMS
   Topic: TOTEMS
@@ -7111,15 +7165,16 @@
   old_elist                online_reg                open_cost               
   output_database          output_limit              page_cost               
   pagelock_notify          paranoid_allocate         paranoid_exit_linking
-  parent_follow            parentable_control_lock   partial_conn
-  partial_deconn           passapi_host              passapi_site
-  passproxy_host           passproxy_site            paycheck
-  pcreate_paranoia         pcreate_paranoia_fail     pemit_any_object
-  pemit_far_players        penn_playercmds           penn_setq
-  penn_switches            permit_site               player_attr_default
-  player_dark              player_flags              player_listen
-  player_match_commands    player_match_own_command  player_name_spaces
-  player_parent            player_queue_limit        player_quota           
+  parent_follow            parent_nest_limit         parentable_control_lock 
+  partial_conn             partial_deconn            passapi_host            
+  passapi_site             passproxy_host            passproxy_site          
+  paycheck                 pcreate_paranoia          pcreate_paranoia_fail   
+  pemit_any_object         pemit_far_players         penn_playercmds         
+  penn_setq                penn_switches             permit_site             
+  player_attr_default      player_dark               player_flags            
+  player_listen            player_match_commands     player_match_own_command
+  player_name_spaces       player_parent             player_queue_limit      
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8927,7 +8982,7 @@
   Why the VA attribute?  Why not?  I felt it was being all alone
   and left out of the fun ;)
   
-Example:
+  Example:
     > @admin global_error_obj=10
     Set.
     > @va #10=[pemit(%#,You typed '%0')]
@@ -9318,6 +9373,11 @@ Example:
          - ignore      establish ignore inheritance of attribute/command.
          - igswitch    specifies if command bypasses failed /switch notices.
          - fail        specified what happens instead of 'permission denied'
+         - include     when used with before/after treat like an @include
+  
+  Quick Examples:
+    > hook_cmd @name before include
+    > hook_cmd @create ignore
   
   For detailed information on how to set up hooks, please see wizhelp on:
                                 HOOK SETUP
@@ -9552,9 +9612,10 @@ Example:
   Config parameter: includenest <value>.  Default: 3
   
   Specifies the total number of times @include can be nested within itself.
-  Please try to keep this value somewhat low to avoid attacks on your mush.
+  Please try to keep this value somewhat low to avoid attacks on your mush
+  as well as limit the overall stack space the mush takes in resource.
   
-  See Also: includecnt
+  See Also: includecnt, parent_nest_limit
 
 & initial_size
   Config parameter: initial_size <value>.  Default: 1000
@@ -10532,6 +10593,20 @@ Example:
         control of each parent in order to view it, which I found too 
         restrictive.
   
+  
+& parent_nest_limit
+  Config parameter: parent_nest_limit <value>.    Default: 10
+  
+  This controls how deep with nesting parent lookups can occur.  Please
+  be aware that the higher the parent level the higher the stack requirements.
+  
+  If you exceed the stack space of your current shell, the mush could 
+  potentially run out of memory for stack and will shut itself down.
+  
+  Do to this either give yourself plenty of growing room or keep this
+  value to reasonable limits.
+  
+  See Also: includenest
   
 & parentable_control_lock
   Config parameter: parentable_control_lock <yes/no>.  Default: no
@@ -14568,6 +14643,7 @@ Example:
      V - This is the same as '&' and looks for <char>_@set on HOOK_OBJ.
      M - This is the same as '-' and looks for <char>_mail on HOOK_OBJ.
      N - This is the same as ']' and looks for <char>_N on HOOK_OBJ.
+     Z - This is the same as '}' and looks for <char>_Z on HOOK_OBJ.
   
   Example:
     > &A_POSE #1234=<function-executed-after-:/;/pose> 

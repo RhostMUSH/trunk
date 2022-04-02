@@ -555,6 +555,7 @@ extern char *   FDECL(power_description, (dbref, dbref, int, int));
 extern char *   FDECL(depower_description, (dbref, dbref, int, int));
 extern FLAGENT *FDECL(find_flag, (dbref, char *));
 extern TOGENT *FDECL(find_toggle, (dbref, char *));
+extern TOTEMENT *FDECL(find_totem, (dbref, char *));
 extern char *   FDECL(decode_flags, (dbref, dbref, FLAG, FLAG, FLAG, FLAG));
 extern void     FDECL(decode_flags_func, (dbref, dbref, FLAG, FLAG, FLAG, FLAG, char *, char *));
 extern int      FDECL(has_flag, (dbref, dbref, char *));

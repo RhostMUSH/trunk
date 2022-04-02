@@ -11212,7 +11212,7 @@ void do_hook(dbref player, dbref cause, int key, char *name)
                                  "N %-30.30s | %s", "(']' hook on 'no parsing')", s_ptrbuff));
                else if ( strcmp(cmdp->cmdname, "Z") == 0 ) 
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                 "N %-30.30s | %s", "('}' hook on 'no parsing (nospace)')", s_ptrbuff));
+                                 "Z %-30.30s | %s", "('}' hook on 'no parsing(spc)')", s_ptrbuff));
                else 
                   notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                  "%-32.32s | %s", cmdp->cmdname, s_ptrbuff));
