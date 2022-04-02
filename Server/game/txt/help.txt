@@ -15514,6 +15514,8 @@
     You say "-1"
     > say ncomp(2,2)
     You say "0"
+    > say ncomp(1.1,1.2)
+    You say "-1"
    
   See Also: alphamin(), alphamax(), comp(), strdistance()
   
