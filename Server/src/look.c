@@ -1389,6 +1389,37 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
     free_lbuf(tpr_buff);
 }
 
+char *stristr( const char *str1, const char *str2 )
+{
+   const char *p1 = str1 ;
+   const char *p2 = str2 ;
+   const char *r = (*p2 == 0 ? str1 : 0);
+
+   while ( *p1 != 0 && *p2 != 0 ) {
+      if ( ToLower( (unsigned char)*p1 ) == ToLower( (unsigned char)*p2 ) ) {
+         if ( r == 0 ) {
+            r = p1;
+         }
+         p2++;
+      } else {
+         p2 = str2 ;
+         if ( r != 0 ) {
+            p1 = r + 1;
+         }
+
+         if ( ToLower( (unsigned char)*p1 ) == ToLower( (unsigned char)*p2 ) ) {
+            r = p1;
+            p2++;
+         } else {
+            r = 0;
+         }
+      }
+      p1++;
+  }
+
+  return (*p2 == 0 ? (char*)r : 0);
+}
+
 char *
 grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 {
@@ -1396,7 +1427,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
     dbref aowner, othing;
     int ca, aflags, go2, go3, timechk, i_chk, i_chkflag;
     ATTR *attr;
-    char *as, *buf, *bp, *retbuff, *go1, *buf2, *buf3;
+    char *as, *buf, *bp, *retbuff, *go1, *buf2, *pstr;
     char tbuf[80], tbuf2[80];
 
     retbuff = alloc_lbuf("grep_int");
@@ -1404,6 +1435,10 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
     go1 = strpbrk(watr, "?\\*");
     i_chkflag = 0;
     if (strpbrk(wcheck, "?\\*")) {
+        if ( i_key & 2 ) {
+           i_key &= ~2;
+           i_chkflag = 1;
+        }
 	go3 = 0;
 	buf2 = wcheck;
     } else {
@@ -1450,7 +1485,20 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
   	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
   		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
                 i_chk = 0;
-                i_chk = quick_wild(buf2, buf);
+                if ( i_chkflag ) {
+                   if ( (pstr = stristr(buf, buf2)) != NULL ) {
+                      if ( (pstr == buf) || isspace(*(pstr-1)) ) {
+                         pstr+=strlen(buf2);
+                         if ( !*pstr || (isspace(*(pstr))) ) {
+                            i_chk = 1;
+                         }
+                      }
+                   }
+                } else {
+                   i_chk = quick_wild(buf2, buf);
+                }
+/* This is no longer needed as now handled by strstr */
+/* 
                 if ( i_chkflag && !i_chk ) {
                    buf3 = alloc_lbuf("enhanced_grep");
                    sprintf(buf3, "* %s *", buf2);
@@ -1477,6 +1525,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
                    }
                    free_lbuf(buf3);
                 }
+*/
 		if (i_chk) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
