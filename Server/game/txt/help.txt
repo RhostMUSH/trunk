@@ -34218,6 +34218,7 @@
  * built in functions, @functions, or @lfunctions set DARK will only show
    listings for wizards or higher now but still useable by anyone [ASH]
  * listprotections() now will do reverse lookups for wizards [ASH]
+ * grep() rewritten for no-wild matchh to use strstr [ASH]
   
   Bug Fixes
   ------------
@@ -34234,3 +34235,4 @@
  * @hook/list didn't properly show hooking '}' properly [ASH]
  * fix introduced bug (this patchlevel) of mail/reply with spaces [ASH]
  * @tag/list had a one-off and wasn't well documented [ASH]
+ * grep() with no-wild doesn't always work plus bug in #dbref/attr output [ASH]

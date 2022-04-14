@@ -1396,7 +1396,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
     dbref aowner, othing;
     int ca, aflags, go2, go3, timechk, i_chk, i_chkflag;
     ATTR *attr;
-    char *as, *buf, *bp, *retbuff, *go1, *buf2, *buf3;
+    char *as, *buf, *bp, *retbuff, *go1, *buf2, *pstr, *tb1, *tb1p, *tb2, *tb2p, *tbp;
     char tbuf[80], tbuf2[80];
 
     retbuff = alloc_lbuf("grep_int");
@@ -1404,6 +1404,10 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
     go1 = strpbrk(watr, "?\\*");
     i_chkflag = 0;
     if (strpbrk(wcheck, "?\\*")) {
+        if ( i_key & 2 ) {
+           i_key &= ~2;
+           i_chkflag = 1;
+        }
 	go3 = 0;
 	buf2 = wcheck;
     } else {
@@ -1427,6 +1431,8 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
        timechk = 10;
     if ( mudconf.cputimechk > 3600 )
        timechk = 3600;
+    tb1p = tb1 = alloc_lbuf("grep_buff1");
+    tb2p = tb2 = alloc_lbuf("grep_buff2");
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
 	attr = atr_num(ca);
 	if (!attr)
@@ -1450,7 +1456,34 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
   	         (Wizard(player) || (!(attr->flags & AF_PINVIS) && !(aflags & AF_PINVIS))) && 
   		 (Read_attr(player, othing, attr, aowner, aflags, 0)) ) {
                 i_chk = 0;
-                i_chk = quick_wild(buf2, buf);
+                if ( i_chkflag ) {
+                   memset(tb1, '\0', LBUF_SIZE);
+                   memset(tb2, '\0', LBUF_SIZE);
+                   tb1p = tb1;
+                   tb2p = tb2;
+                   tbp = buf;
+                   while ( *tbp ) {
+                      safe_chr(ToLower(*tbp), tb1, &tb1p);
+                      tbp++;
+                   }
+                   tbp = buf2;
+                   while ( *tbp ) {
+                      safe_chr(ToLower(*tbp), tb2, &tb2p);
+                      tbp++;
+                   }
+                   if ( (pstr = strstr(tb1, tb2)) != NULL ) {
+                      if ( (pstr == tb1) || isspace(*(pstr-1)) ) {
+                         pstr+=strlen(tb2);
+                         if ( !*pstr || (isspace(*(pstr))) ) {
+                            i_chk = 1;
+                         }
+                      }
+                   }
+                } else {
+                   i_chk = quick_wild(buf2, buf);
+                }
+/* This is no longer needed as now handled by strstr */
+/* 
                 if ( i_chkflag && !i_chk ) {
                    buf3 = alloc_lbuf("enhanced_grep");
                    sprintf(buf3, "* %s *", buf2);
@@ -1477,6 +1510,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
                    }
                    free_lbuf(buf3);
                 }
+*/
 		if (i_chk) {
                     if ( i_key ) {
                        sprintf(tbuf2, "#%d/", othing);
@@ -1489,6 +1523,8 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	    free_lbuf(buf);
 	}
     }
+    free_lbuf(tb1);
+    free_lbuf(tb2);
     if (bp != retbuff)
 	*(bp - 1) = '\0';
     else
