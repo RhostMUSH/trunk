@@ -17952,11 +17952,13 @@ FUNCTION(fun_privatize)
        mudstate.global_regs_wipe = 0;
     } else {
        mudstate.global_regs_wipe = 1;
-       if ( nfargs > 1 ) {
-          fun_localize(buff, bufcx, player, cause, caller, fargs+1, nfargs-1, cargs, ncargs);
-          mudstate.global_regs_wipe = 0;
-       }
     }
+
+    if ( nfargs > 1 ) {
+       fun_localize(buff, bufcx, player, cause, caller, fargs+1, nfargs-1, cargs, ncargs);
+    }
+    mudstate.global_regs_wipe = 0;
+
     free_lbuf(sbuff);
 }
 
