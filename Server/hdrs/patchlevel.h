@@ -18,7 +18,7 @@
 
 #define PATCHLEVEL		0		/* Patch sequence number     */
 #define PATCHLEVELEXT		""
-#define	MUSH_RELEASE_DATE	"04/14/2022"	/* Source release date       */
+#define	MUSH_RELEASE_DATE	"04/21/2022"	/* Source release date       */
 
 /* Define if an ALPHA release */
 /* #define ALPHA 0 */
