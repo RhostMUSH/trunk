@@ -2091,8 +2091,8 @@ char ucs32toascii(long ucs)
                      , 0x257C, '-', 0x257D, '|', 0x257E, '-', 0x257F, '|'
                      , 0x25CF, '*', 0x25CC, 'o', 0x25CB, 'o'};
 
-   // Array length: 262 Update code below when increasing/decreasing:
-   for(i=0;i<261;i++)
+   // Array length: 268 Update code below when increasing/decreasing:
+   for(i=0;i<266;i+=2)
       if(utfcodes[i] == ucs)
          return utfcodes[i+1];
    return '?';
