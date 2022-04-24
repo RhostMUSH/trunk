@@ -34188,6 +34188,10 @@
  * Updated 'help global_ansimask' to be actually accurate. [AMB]
  * Fixed PM times higher than 11:00. This now even allows for 'weird' PM
    times like 13:00 PM [AMB]
+ * hastotem(), ortotem() and andtotem() are now correctly being case-
+   insensitive in totem names [AMB]
+ * privatize() now actually uses the second argument if the first is 0.
+   The function NOP'd before. Bug and fix by Thenomain and Polk [AMB]
 
 & 4.2.1
   Release Date: 09/13/21
@@ -34207,6 +34211,10 @@
    wizhelp, and plushelp files. [ASH]
  * sample entry in wizhelp.txt for how includes work (wizhelp helpinc) [ASH]
  * guest_displaylastsite to toggle displaying guest last connect info [ASH]
+ * sort() and sortlist() now have an 'i' option for case-insensitive
+   comparisons [AMB]
+ * ncomp() is now able to handle 64bit floats [MYR]
+ * Added more characters to the automagic UTF8-non-UTF8 converter [AMB]
   
   Changes
   -------
