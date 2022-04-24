@@ -24800,29 +24800,89 @@ FUNCTION(fun_unesclist)
 
 FUNCTION(fun_escape)
 {
-    char *s, *d, *s2, c_chr[5], *cptr;
+    char *s, *d, *s2, *s3, *s3p, *cptr;
+    int i_cnt;
+    static char c_chr[30];
 
-    if (!fn_range_check("ESCAPEX", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("ESCAPEX", nfargs, 1, 3, buff, bufcx))
        return;
     s = fargs[0];
     if ( nfargs > 1 )
        s2 = fargs[1];
     else
        s2 = NULL;
+    if ( nfargs > 2 )
+       s3 = fargs[2];
+    else
+       s3 = NULL;
 
+    memset(c_chr, '\0', sizeof(c_chr));
+    i_cnt = 0;
     cptr = c_chr;
+    if ( strchr(s2, 'a' ) ) {
 #ifdef C_SUB
-    *cptr = 'c';
-    cptr++;
+       *cptr = 'c';
+       i_cnt++;
+       cptr++;
 #endif
 #ifdef TINY_SUB
-    *cptr = 'x';
-    cptr++;
+       *cptr = 'x';
+       i_cnt++;
+       cptr++;
 #endif
 #ifdef M_SUB
-    *cptr = 'm';
-    cptr++;
+       *cptr = 'm';
+       i_cnt++;
+       cptr++;
 #endif
+    }
+    if ( strchr(s2, 's' ) ) {
+       *cptr = 't';
+       cptr++;
+       *cptr = 'b';
+       cptr++;
+       *cptr = 'r';
+       cptr++;
+       i_cnt+=3;
+    }
+    if ( strchr(s2, 'd' ) ) {
+       *cptr = '#';
+       cptr++;
+       *cptr = '@';
+       cptr++;
+       *cptr = '!';
+       cptr++;
+       *cptr = ':';
+       cptr++;
+       *cptr = 'l';
+       cptr++;
+       i_cnt+=5;
+    }
+    if ( strchr(s2, 'p' ) ) {
+       *cptr = 'n';
+       cptr++;
+       *cptr = 'k';
+       cptr++;
+       *cptr = 's';
+       cptr++;
+       *cptr = 'o';
+       cptr++;
+       *cptr = 'p';
+       cptr++;
+       *cptr = 'a';
+       cptr++;
+       i_cnt+=6;
+    }
+    if ( strchr(s2, 'x' ) && s3 && *s3 ) {
+       for ( s3p = s3; *s3p; s3p++ ) {
+          i_cnt++;
+          if ( i_cnt >= sizeof(c_chr) ) {
+             break;
+          }
+          *cptr = *s3p;
+          cptr++;
+       }
+    }
     *cptr = '\0';
 
     d=*bufcx;
@@ -24839,7 +24899,8 @@ FUNCTION(fun_escape)
           case ')':   /* Added 7/00 Ash */
           case ';':
           case ',':   /* Added 7/00 Ash */
-              if ( s2 && strchr(s2, 'a') && (*s == '%') && *(s+1) && strchr(c_chr, *(s+1)) ) {
+              if ( s2 && (strchr(s2, 'a') || strchr(s2, 'x') || strchr(s2, 'd') || strchr(s2, 'p') || strchr(s2, 's') ) &&
+                   (*s == '%') && *(s+1) && strchr(c_chr, ToLower(*(s+1))) ) {
                  safe_chr(*s, buff, bufcx);
                  break;
               }
@@ -28681,7 +28742,7 @@ FUNCTION(fun_sandbox)
 FUNCTION(fun_objeval)
 {
     dbref obj;
-    int prev_nocode;
+    int prev_nocode, i_target;
     char *result, *cp;
 
     if (!fn_range_check("OBJEVAL", nfargs, 2, 3, buff, bufcx))
@@ -28689,11 +28750,15 @@ FUNCTION(fun_objeval)
     mudstate.objevalst = 0;
     prev_nocode = mudstate.nocodeoverride;
 
+    i_target = 0;
     if ( (nfargs >= 3) && *fargs[2] && Wizard(player) ) {
        cp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2],
                  cargs, ncargs, (char **)NULL, 0);
-       if ( cp && *cp && (atoi(cp) > 0) ) {
+       if ( cp && *cp && (atoi(cp) & 1) ) {
           mudstate.nocodeoverride = 1;
+       }
+       if ( cp && *cp && Guildmaster(player) && (atoi(cp) & 2) ) {
+          i_target = 1;
        }
        free_lbuf(cp);
     }
@@ -28706,11 +28771,15 @@ FUNCTION(fun_objeval)
         obj = NOTHING;
     free_lbuf(cp);
     if (obj != NOTHING) {
-        if ( obj != NOTHING && !Wizard(obj) && obj != player )
+        if ( !Wizard(obj) && (obj != player) )
            mudstate.objevalst = 1;
-        result = exec(obj, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+        if ( i_target ) {
+           result = exec(obj, obj, obj, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+        } else {
+           result = exec(obj, player, player, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+        }
     } else {
-        if ( !Wizard(cause) && cause != player )
+        if ( !Wizard(cause) && (cause != player) )
            mudstate.objevalst = 1;
         result = exec(player, cause, player, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
     }

@@ -19256,13 +19256,20 @@
   See Also: secure(), securex(), escapex(), esclist(), unesclist()
   
 & ESCAPEX()
-  Function: escapex(<string> [,<omission>])
+  Function: escapex(<string> [,<omission> [,<omission list>])
   
   This functions exactly like escape(), except you may specify what characters
   you wish to omit from being escaped through <omition>.  The optional special
   characters can be used when looking to escape out fields:
      f - omit the first escape (backslash) from the string.
      a - omit all forms of ansi substitutions from the string.
+     s - omit all forms of whitespace (%b, %t, %r)
+     d - omit all dbref forms (%#, %!, %@, %l)
+     p - omit all player pronouns (%n, %p, %a, %s)
+     x - omit all %-subs specified in <omission list>.  Example: <, n, s, etc
+  
+  Note: <omission> can be combined.  So you  may specify both 'as' or 'asp' 
+        and so forth. 
   
   Example:
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
@@ -20656,9 +20663,12 @@
   useful when you need to parse arguments under a different permission 
   level than the one you currently at.
   
-  Permission override, if specified to '1' by a wizard enactor, will
-  override the NO_CODE flag on the target and still execute any code
-  of that person.  This is ignored for any enactor not a wizard.
+  The following permission overrides are allowed as a bitmask.
+    1 - Wizard only, will override the NO_CODE flag on the target and still 
+        execute any code of that person.  This is ignored for any enactor 
+        not a wizard.
+    2 - Guildmaster and higher only.  Will enforce player, cause, and caller
+        as the <thing> as a 'true' sudo to that target for the <function>.
    
   Examples:
     > (Let's assume #4523 is an object owned by a normal player)
@@ -34219,6 +34229,8 @@
    listings for wizards or higher now but still useable by anyone [ASH]
  * listprotections() now will do reverse lookups for wizards [ASH]
  * grep() rewritten for no-wild matchh to use strstr [ASH]
+ * escapex() takes more arguments for specific exclusions [ASH]
+ * objeval() takes special arg for wiz handling like a sudo() function [ASH]
   
   Bug Fixes
   ------------
