@@ -24819,7 +24819,7 @@ FUNCTION(fun_escape)
     memset(c_chr, '\0', sizeof(c_chr));
     i_cnt = 0;
     cptr = c_chr;
-    if ( strchr(s2, 'a' ) ) {
+    if ( s2 && strchr(s2, 'a' ) ) {
 #ifdef C_SUB
        *cptr = 'c';
        i_cnt++;
@@ -24836,7 +24836,7 @@ FUNCTION(fun_escape)
        cptr++;
 #endif
     }
-    if ( strchr(s2, 's' ) ) {
+    if ( s2 && strchr(s2, 's' ) ) {
        *cptr = 't';
        cptr++;
        *cptr = 'b';
@@ -24845,7 +24845,7 @@ FUNCTION(fun_escape)
        cptr++;
        i_cnt+=3;
     }
-    if ( strchr(s2, 'd' ) ) {
+    if ( s2 && strchr(s2, 'd' ) ) {
        *cptr = '#';
        cptr++;
        *cptr = '@';
@@ -24858,7 +24858,7 @@ FUNCTION(fun_escape)
        cptr++;
        i_cnt+=5;
     }
-    if ( strchr(s2, 'p' ) ) {
+    if ( s2 && strchr(s2, 'p' ) ) {
        *cptr = 'n';
        cptr++;
        *cptr = 'k';
@@ -24873,7 +24873,7 @@ FUNCTION(fun_escape)
        cptr++;
        i_cnt+=6;
     }
-    if ( strchr(s2, 'x' ) && s3 && *s3 ) {
+    if ( s2 && strchr(s2, 'x' ) && s3 && *s3 ) {
        for ( s3p = s3; *s3p; s3p++ ) {
           i_cnt++;
           if ( i_cnt >= sizeof(c_chr) ) {

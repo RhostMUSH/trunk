@@ -34248,3 +34248,4 @@
  * fix introduced bug (this patchlevel) of mail/reply with spaces [ASH]
  * @tag/list had a one-off and wasn't well documented [ASH]
  * grep() with no-wild doesn't always work plus bug in #dbref/attr output [ASH]
+ * escapex could crash on input (introduced this patch)
