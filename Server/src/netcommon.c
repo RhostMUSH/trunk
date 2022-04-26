@@ -6084,6 +6084,7 @@ do_command(DESC * d, char *command)
                      }
                   }
                }
+               s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
             if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
                free_lbuf(s_user);
