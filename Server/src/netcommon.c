@@ -5972,7 +5972,6 @@ do_command(DESC * d, char *command)
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                            queue_string(d, "Exec: Error - Permission Denied\r\n");
                            queue_string(d, "Return: <NULL>\r\n\r\n");
-                           queue_string(d, "\r\n");
                         }
                         free_lbuf(s_get);
                      } else {
