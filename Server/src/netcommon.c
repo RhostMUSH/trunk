@@ -5724,8 +5724,6 @@ do_command(DESC * d, char *command)
 #endif
 
             while ( s_strtok ) {
-               s_snarfheader[0] = 0;
-               s_snarfvalue[0] = 0;
                // Check if we have a header
                i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
                if ( 2 == i_snarfheaders ) {
