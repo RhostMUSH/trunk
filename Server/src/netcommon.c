@@ -5073,10 +5073,10 @@ do_command(DESC * d, char *command)
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
     char *s_usepass, *s_usepassptr,
-         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_strtok, *s_strtokr, *s_buffer,
+         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4;
+    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5706,6 +5706,8 @@ do_command(DESC * d, char *command)
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
             s_snarfing4 = alloc_lbuf("cmd_get4");
+            s_snarfheader = alloc_lbuf("cmd_getheader");
+            s_snarfvalue = alloc_lbuf("cmd_getvalue");
             s_buffer = alloc_lbuf("cmd_get_buff");
             s_usepassptr = s_usepass = alloc_lbuf("cmd_get_userpass");
             s_user = alloc_lbuf("cmd_get_user");
@@ -5714,74 +5716,100 @@ do_command(DESC * d, char *command)
             i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
 #ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
-            int i_socksnarf = 0, i_sockver = 0;
+            int i_socksnarf = 0;
             char *s_sockhost = alloc_lbuf("cmd_sockhost");
             char *s_sockkey = alloc_lbuf("cmd_sockkey");
+            char *s_sockver = alloc_lbuf("cmd_sockver");
             ///// END NEW WEBSOCK
 #endif
 
             while ( s_strtok ) {
+               // Check if we have a header
+               i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
+               if ( 2 == i_snarfheaders ) {
 
 #ifdef ENABLE_WEBSOCKETS
                ////////   NEW WEBSOCK
                ///// TODO: Improve logic here
-               if ( !stricmp(s_strtok, (char *)"Upgrade: WebSocket") ) {
-                   i_socksnarf++;
-               }
-               if ( !stricmp(s_strtok, (char *)"Connection: Upgrade") ) {
-                   i_socksnarf++;
-               }
-               if ( (sscanf(s_strtok, "Host: %s", s_sockhost) == 1) ) {
-                   i_socksnarf++;
-               }
-               if ( (sscanf(s_strtok, "Sec-WebSocket-Version: %d", &i_sockver) == 1) ) {
-                   if (i_sockver == 13)
-                       i_socksnarf++;
-               }
-               if ( (sscanf(s_strtok, "Sec-WebSocket-Key: %s", s_sockkey) == 1) ) {
-                   if (validate_websocket_key(s_sockkey)) {
-                       i_socksnarf++;
-                   }
-               }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Upgrade" ) ) {
+                     if ( !stricmp(s_snarfvalue, (char *)"Websocket" ) ) {
+                        i_socksnarf++;
+                     }
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Connection" ) ) {
+                     if ( !stricmp(s_snarfvalue, (char *)"Upgrade" ) ) {
+                        i_socksnarf++;
+                     }
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Host" ) ) {
+                     strcpy(s_snarfhost, s_snarfvalue);
+                     i_socksnarf++;
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Version" ) ) {
+                     strcpy(s_sockver, s_snarfvalue);
+                     if ( !stricmp(s_sockver, (char *)"13" ) ) {
+                        i_socksnarf++;
+                     }
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Key" ) ) {
+                     strcpy(s_sockkey, s_snarfvalue);
+                     if (validate_websocket_key(s_sockkey)) {
+                        i_socksnarf++;
+                     }
+                  }
+
                ////////   END NEW WEBSOCK
 #endif
 
-               if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
-                  i_snarfing = 1;
-               }
-               if ( !i_snarfing4 && (sscanf(s_strtok, "Origin: %[^\n]", s_snarfing4) == 1) ) {
-                  i_snarfing4 = 1;
-               }
-               if ( sscanf(s_strtok, "Parse: %[^\n]", s_snarfing2) == 1 ) {
-                  /* Default behavior -- set to 0 */
-                  if ( stricmp( s_snarfing2, (char *)"parse") == 0 ) {
-                     i_parse = 0;
-                  } else if ( stricmp( s_snarfing2, (char *)"ansiparse") == 0 ) {
-                     i_parse = 3;
-                  /* Do not parse -- ergo, only percent subs */
-                  } else if ( stricmp( s_snarfing2, (char *)"noparse") == 0 ) {
-                     i_parse = 1;
-                  } else if ( stricmp( s_snarfing2, (char *)"ansinoparse") == 0 ) {
-                     i_parse = 4;
-                  } else if ( stricmp( s_snarfing2, (char *)"ansionly") == 0 ) {
-                  /* Take the string and only process it through the ansi processor */
-                     i_parse = 2;
-                  /* Illegal value so just set to default */
-                  } else {
-                     i_parse = 0;
+                  if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
+                     strcpy(s_snarfing, s_snarfvalue);
+                     i_snarfing = 1;
                   }
-               }
-               if ( sscanf(s_strtok, "Encode: %[^\n]", s_snarfing3) == 1 ) {
-                  if ( stricmp(s_snarfing3, (char *)"yes") == 0) {
-                     i_encode64 = 1;
-                  }
-               }
-               if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
-                  i_usepass = strlen(s_user);
-                  decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
-                  i_usepass = 1;
-               }
 
+                  if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
+                     strcpy(s_snarfing4, s_snarfvalue);
+                     i_snarfing4 = 1;
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Parse" ) ) {
+                     /* Default behavior -- set to 0 */
+                     if ( stricmp( s_snarfvalue, (char *)"parse") == 0 ) {
+                        i_parse = 0;
+                     } else if ( stricmp( s_snarfvalue, (char *)"ansiparse") == 0 ) {
+                        i_parse = 3;
+                     /* Do not parse -- ergo, only percent subs */
+                     } else if ( stricmp( s_snarfvalue, (char *)"noparse") == 0 ) {
+                        i_parse = 1;
+                     } else if ( stricmp( s_snarfvalue, (char *)"ansinoparse") == 0 ) {
+                        i_parse = 4;
+                     } else if ( stricmp( s_snarfvalue, (char *)"ansionly") == 0 ) {
+                     /* Take the string and only process it through the ansi processor */
+                        i_parse = 2;
+                     /* Illegal value so just set to default */
+                     } else {
+                        i_parse = 0;
+                     }
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Encode" ) ) {
+                     if ( !stricmp(s_snarfvalue, (char *)"yes" ) ) {
+                        i_encode64 = 1;
+                     }
+                  }
+
+                  if ( !i_usepass && !stricmp(s_snarfheader, (char *)"Authorization" ) ) {
+                     if ( sscanf(s_snarfvalue, "Basic %[^\n]", s_user) == 1 ) {
+                        i_usepass = strlen(s_user);
+                        decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
+                        i_usepass = 1;
+                     }
+                  }
+               }
                s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
 
@@ -5808,13 +5836,13 @@ do_command(DESC * d, char *command)
                   queue_string(d, "Content-type: text/plain\r\n");
                   queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                   queue_string(d, "Exec: Error - Invalid target\r\n");
-                  queue_string(d, "Return: <NULL>\r\n");
+                  queue_string(d, "Return: <NULL>\r\n\r\n");
                } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
                   queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
                   queue_string(d, "Content-type: text/plain\r\n");
                   queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                   queue_string(d, "Exec: Error - Permission Denied\r\n");
-                  queue_string(d, "Return: <NULL>\r\n");
+                  queue_string(d, "Return: <NULL>\r\n\r\n");
                } else {
                   atrp = atr_str3("_APIIP");
                   i_snarfing = 0;
@@ -5832,7 +5860,7 @@ do_command(DESC * d, char *command)
                      queue_string(d, "Content-type: text/plain\r\n");
                      queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                      queue_string(d, "Exec: Error - IP not allowed\r\n");
-                     queue_string(d, "Return: <NULL>\r\n");
+                     queue_string(d, "Return: <NULL>\r\n\r\n");
                      i_snarfing = 1;
                   }
                   free_lbuf(s_get);
@@ -5926,24 +5954,24 @@ do_command(DESC * d, char *command)
                                  s_snarfing2 = s_snarfing;
                                  i_encode64 = strlen(s_buffer);
                                  encode_base64((const char*)s_buffer, i_encode64, s_snarfing, &s_snarfing2);
-                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_snarfing));
+                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_snarfing));
                                  s_snarfing2 = alloc_lbuf("tmp_get_buffer");
                               } else {
-                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n", (LBUF_SIZE - 14), s_buffer));
+                                 queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_buffer));
                               }
                            } else {
                               queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
                               queue_string(d, "Content-type: text/plain\r\n");
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Error - Empty String\r\n");
-                              queue_string(d, "Return: <NULL>\r\n");
+                              queue_string(d, "Return: <NULL>\r\n\r\n");
                            }
                         } else {
                            queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
                            queue_string(d, "Content-type: text/plain\r\n");
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                            queue_string(d, "Exec: Error - Permission Denied\r\n");
-                           queue_string(d, "Return: <NULL>\r\n");
+                           queue_string(d, "Return: <NULL>\r\n\r\n");
                         }
                         free_lbuf(s_get);
                      } else {
@@ -5951,7 +5979,7 @@ do_command(DESC * d, char *command)
                         queue_string(d, "Content-type: text/plain\r\n");
                         queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                         queue_string(d, "Exec: Error - Permission Denied\r\n");
-                        queue_string(d, "Return: <NULL>\r\n");
+                        queue_string(d, "Return: <NULL>\r\n\r\n");
                      }
                   }
                }
@@ -5960,7 +5988,7 @@ do_command(DESC * d, char *command)
                queue_string(d, "Content-type: text/plain\r\n");
                queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                queue_string(d, "Exec: Error - Malformed User or Password\r\n");
-               queue_string(d, "Return: <NULL>\r\n");
+               queue_string(d, "Return: <NULL>\r\n\r\n");
                free_lbuf(s_user);
             }
 
@@ -5968,12 +5996,15 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfing2);
             free_lbuf(s_snarfing3);
             free_lbuf(s_snarfing4);
+            free_lbuf(s_snarfheader);
+            free_lbuf(s_snarfvalue);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
 #ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             free_lbuf(s_sockhost);
             free_lbuf(s_sockkey);
+            free_lbuf(s_sockver);
             ///// END NEW WEBSOCK
 #endif
             process_output(d);
@@ -6020,22 +6051,35 @@ do_command(DESC * d, char *command)
             i_snarfing = i_usepass = i_snarfing4 = 0;
             i_time = 0.0;
             while ( s_strtok ) {
-               if ( !i_snarfing && (sscanf(s_strtok, "Exec: %[^\n]", s_snarfing) == 1) ) {
-                  i_snarfing = 1;
-               }
-               if ( !i_snarfing4 && (sscanf(s_strtok, "Origin: %[^\n]", s_snarfing4) == 1) ) {
-                  i_snarfing = 1;
-               }
-               if ( sscanf(s_strtok, "Time: %lf", &i_time) == 1 ) {
-                  if ( i_time < 0 )
-                     i_time = 0;
-                  if ( i_time > 2000000000 )
-                     i_time = 2000000000;
-               }
-               if ( !i_usepass && (sscanf(s_strtok, "Authorization: Basic %[^\n]", s_user) == 1) ) {
-                  i_usepass = strlen(s_user);
-                  decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
-                  i_usepass = 1;
+               // Check if we have a header
+               i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
+               if ( 2 == i_snarfheaders ) {
+                  if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
+                     strcpy(s_snarfing, s_snarfvalue);
+                     i_snarfing = 1;
+                  }
+
+                  if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
+                     strcpy(s_snarfing4, s_snarfvalue);
+                     i_snarfing4 = 1;
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"Time" ) ) {
+                     if ( 1 == sscanf(s_snarfvalue, "%lf", &i_time) ) {
+                        if ( i_time < 0 )
+                           i_time = 0;
+                        if ( i_time > 2000000000 )
+                           i_time = 2000000000;
+                     }
+                  }
+
+                  if ( !i_usepass && !stricmp(s_snarfheader, (char *)"Authorization" ) ) {
+                     if ( sscanf(s_snarfvalue, "Basic %[^\n]", s_user) == 1 ) {
+                        i_usepass = strlen(s_user);
+                        decode_base64((const char*)s_user, i_usepass, s_usepass, &s_usepassptr, 0);
+                        i_usepass = 1;
+                     }
+                  }
                }
                s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
