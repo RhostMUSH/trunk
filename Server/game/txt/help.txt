@@ -34192,6 +34192,7 @@
    insensitive in totem names [AMB]
  * privatize() now actually uses the second argument if the first is 0.
    The function NOP'd before. Bug and fix by Thenomain and Polk [AMB]
+ * Standards compliance fixes for the web API by Polk [AMB]
 
 & 4.2.1
   Release Date: 09/13/21
