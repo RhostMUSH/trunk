@@ -6043,6 +6043,8 @@ do_command(DESC * d, char *command)
 #else
             s_snarfing = alloc_lbuf("cmd_post");
             s_snarfing4 = alloc_lbuf("cmd_post2");
+            s_snarfheader = alloc_lbuf("cmd_post_snarfheader");
+            s_snarfvalue = alloc_lbuf("cmd_post_snarfvalue");
             s_buffer = alloc_lbuf("cmd_post_buff");
             s_usepassptr = s_usepass = alloc_lbuf("cmd_post_userpass");
             s_user = alloc_lbuf("cmd_post_user");
@@ -6166,6 +6168,8 @@ do_command(DESC * d, char *command)
             }
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing4);
+            free_lbuf(s_snarfheader);
+            free_lbuf(s_snarfvalue);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);
