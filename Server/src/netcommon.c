@@ -5745,7 +5745,7 @@ do_command(DESC * d, char *command)
                   }
 
                   if ( !stricmp(s_snarfheader, (char *)"Host" ) ) {
-                     strcpy(s_snarfhost, s_snarfvalue);
+                     strcpy(s_sockhost, s_snarfvalue);
                      i_socksnarf++;
                   }
 
