@@ -90,6 +90,40 @@ int reserved;
  * execution
  */
 
+ATRCACHE *atrcache_head;
+
+void
+init_atrcache( void ) {
+   int i_cnt;
+   ATRCACHE *cp, *cpnext;
+
+   cpnext = NULL;
+   for ( i_cnt = 0; i_cnt < mudconf.atrcachemax; i_cnt++ ) {
+      cp = (ATRCACHE *) malloc(sizeof(ATRCACHE));
+      cp->name = NULL;
+      cp->s_cache = NULL;
+      cp->s_cachebuild = NULL;
+      cp->i_interval=3600;
+      cp->i_lastrun=0;
+      cp->owner = 1;
+      cp->visible = 0;
+      cp->lock = 1;
+      cp->enabled=0;
+      cp->next = NULL;
+      if ( !atrcache_head ) {
+           atrcache_head = cp;
+      } else {
+         for (cpnext = atrcache_head; cpnext->next; cpnext = cpnext->next);
+         cpnext->next = cp;
+      }
+   }
+   STARTLOG(LOG_ALWAYS, "ATC", "INFO")
+      log_text((char *) "AtrCache: Initialized with ");
+      log_number(mudconf.atrcachemax);
+      log_text((char *) " total caches.");
+   ENDLOG
+}
+
 void
 setq_templates(dbref thing)
 {
@@ -2457,6 +2491,9 @@ main(int argc, char *argv[])
     pool_init(POOL_QENTRY, sizeof(BQUE));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
 
+    pool_init(POOL_ATRCACHE, LBUF_SIZE);
+    pool_init(POOL_ATRNAME, SBUF_SIZE);
+
     init_pid_table();
     tcache_init();
     pcache_init();
@@ -2533,6 +2570,8 @@ main(int argc, char *argv[])
 
     fcache_init();
     helpindex_init();
+
+    init_atrcache();
 
 #ifndef NODEBUGMONITOR
     debugmem = shmConnect(mudconf.debug_id, 0, &shmid);   

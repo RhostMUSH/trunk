@@ -1331,6 +1331,8 @@ extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
 extern int totem_list(char *, int, dbref, dbref, char *);
 extern void totem_set(dbref, dbref, char *, int);
+extern void do_atrcache_fetch(dbref, char *, char *, char **);
+
 
 int do_convtime(char *, struct tm *);
 
@@ -12645,6 +12647,11 @@ FUNCTION(fun_decrypt)
 }
 
 #endif
+
+FUNCTION(fun_atrcache)
+{
+   do_atrcache_fetch(player, fargs[0], buff, bufcx);
+}
 
 FUNCTION(fun_default)
 {
@@ -38340,6 +38347,7 @@ FUN flist[] =
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRCNT", fun_attrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRPASS", fun_attrpass, 3, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ATRCACHE", fun_atrcache, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"AVG", fun_avg, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},

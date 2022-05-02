@@ -354,6 +354,7 @@ NDECL(cf_init)
     mudconf.blacklist_max = 100000;	/* Default maximum blacklists allowed */
     mudconf.connect_perm = 0;		/* Permissions of connect */
     mudconf.elements_compat = 0;	/* Enable elementsz compatibility */
+    mudconf.atrcachemax = 10;		/* Default number of atrcaches to prep */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -1239,6 +1240,27 @@ CF_HAND(cf_int_runtime)
     }
     else
        return -1;
+}
+
+/* This only works at runtime via config */
+CF_HAND(cf_verifyint_runtime)
+{
+    int vp_old = 0;
+
+    if ( !mudstate.initializing) {
+       notify(player, "This value can only be set in the .conf file at boot time.");
+       return -1;
+    }
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < extra2) || (vp_old > extra)) {
+        if ( !mudstate.initializing) 
+           notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
+	return -1;
+    } else {
+        *vp = vp_old;
+	return 0;
+    }
 }
 
 CF_HAND(cf_vint)
@@ -4007,6 +4029,10 @@ CONF conftable[] =
      cf_acmd_access, CA_GOD | CA_IMMORTAL, NULL,
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure attribute access permissions."},
+    {(char *) "atrcachemax",
+     cf_verifyint_runtime, CA_GOD | CA_IMMORTAL, &mudconf.atrcachemax, 200, 1, CA_WIZARD,
+     (char *) "Max value allowed for atrcache caching variables.\r\n"\
+              "(Range: 1-200)               Default: 10   Value: %d"},
     {(char *) "bad_name",
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 0, 0, CA_WIZARD,
      (char *) "Specify a list of bad player names."},
@@ -6105,6 +6131,7 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_vint) ||
            (tp->interpreter == cf_verifyint) ||
            (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_verifyint_runtime) ||
            (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
@@ -6127,6 +6154,7 @@ void list_options_values(dbref player, int p_val, char *s_val)
            (tp->interpreter == cf_vint) ||
            (tp->interpreter == cf_verifyint) ||
            (tp->interpreter == cf_verifyint_mysql) ||
+           (tp->interpreter == cf_verifyint_runtime) ||
            (tp->interpreter == cf_timerint) ||
            (tp->interpreter == cf_chartoint) ||
            (tp->interpreter == cf_recurseint)) &&
@@ -6260,6 +6288,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                if ( (tp->interpreter == cf_int) ||
                     (tp->interpreter == cf_verifyint) ||
                     (tp->interpreter == cf_verifyint_mysql) ||
+                    (tp->interpreter == cf_verifyint_runtime) ||
                     (tp->interpreter == cf_bool) ||
                     (tp->interpreter == cf_who_bool) ||
                     (tp->interpreter == cf_int_runtime) ||

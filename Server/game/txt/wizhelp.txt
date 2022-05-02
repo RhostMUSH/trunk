@@ -3582,11 +3582,33 @@
                  queue. (@wait, @trigger, @switch, @dolist, etc).
     Pcaches    - Total number of cache entries of players.
     ZListNodes - Zone buffers, used to hold the zone linking information.
+    AtrCache   - lbufs specific for attribute execution caches (contents)
+    AtrName    - sbufs specific for attribute execution caches (names)
    
+  For a breakdown of all the segments under the allocations, refer to:
+  
+  { @list allocations2 }
+  
+& @list allocations2
+  Command: @list allocations (continued)
+  
   Information is given for current Tprintf dynamic allocation buffers:
     Current    - Current allocated dynamic (unsafe_tprintf) buffers
     Maximum    - Current maximum ever allocated
     Average    - Average allocated over period of time
+  
+  Total Overhead Totems & AtrCaches
+    Size       - Size of the structure
+    Slots      - number of entries
+    Objects    - the multiplier for slots (if shown)
+    Total Mem  - Total memory used
+  
+  Information is given for the blacklist states:
+     NoDNS     - Blacklist denying reverse DNS lookup on sites
+     Black     - The full forbid blacklist for the site
+     Size      - Size of the blacklist
+     InUse     - How many are being currently used
+     Total Mem - Total memory each blacklist will use.
   
   Information is given for total network usage:
     Total-In   - Total bytes of all inbound traffic for current reboot
@@ -7053,27 +7075,27 @@
   ansi_default             ansi_textfiles           api_nodns
   api_port                 areg_file                areg_lim               
   aregh_file               atrperms                 atrperms_checkall
-  atrperms_max             attr_access              attr_alias             
-  attr_cmd_access          authenticate             bad_name               
-  badsite_file             bcc_hidden               blacklist_max
-  blind_snuffs_cons        brace_compatibility      break_compatability    
-  cache_depth              cache_steal_dirty        cache_trim             
-  cache_width              cap_articles             cap_conjunctions       
-  cap_preposition          check_interval           check_offset           
-  clone_copies_cost        cluster_cap              clusterfunc_cap        
-  comcost                  command_dark             command_quota_increment
-  command_quota_max        compress_program         compression            
-  config_access            conn_timeout             connect_file           
-  connect_methods          connect_perm             connect_reg_file       
-  cpu_secure_lvl           cpuintervalchk           cputimechk             
-  crash_database           create_max_cost          create_min_cost        
-  dark_sleepers            default_home             delim_null             
-  descs_are_local          dig_cost                 door_file              
-  door_index               down_file                down_motd_message      
-  dump_interval            dump_message             dump_offset            
-  earn_limit               elements_compat          empower_fulltel        
-  enable_tstamps           enforce_checksums        enforce_unfindable     
-  enhanced_convtime        error_file 
+  atrperms_max             atrcachemax              attr_access            
+  attr_alias               attr_cmd_access          authenticate           
+  bad_name                 badsite_file             bcc_hidden             
+  blacklist_max            blind_snuffs_cons        brace_compatibility    
+  break_compatability      cache_depth              cache_steal_dirty      
+  cache_trim               cache_width              cap_articles           
+  cap_conjunctions         cap_preposition          check_interval         
+  check_offset             clone_copies_cost        cluster_cap            
+  clusterfunc_cap          comcost                  command_dark           
+  command_quota_increment  command_quota_max        compress_program       
+  compression              config_access            conn_timeout           
+  connect_file             connect_methods          connect_perm           
+  connect_reg_file         cpu_secure_lvl           cpuintervalchk         
+  cputimechk               crash_database           create_max_cost        
+  create_min_cost          dark_sleepers            default_home           
+  delim_null               descs_are_local          dig_cost               
+  door_file                door_index               down_file              
+  down_motd_message        dump_interval            dump_message           
+  dump_offset              earn_limit               elements_compat        
+  empower_fulltel          enable_tstamps           enforce_checksums      
+  enforce_unfindable       enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7510,6 +7532,25 @@
   Specifies the file seen when AUTOREGISTRATION is enabled at the connect
   screen and a player who is able to autoregister AND able to create
   connects to the mush.
+
+& atrcachemax
+  Config parameter: atrcachemax <value>    Default: 10
+  
+  Specifies the number of execution caches for attribute contents you can
+  use in the game.  The maximum value you can use is 200.  
+  
+  These caches will store execution values from functions into a memory
+  bound cache, and upon hitting a pre-defined interval from the last
+  time it was fetched, will re-cache the value before fetching.
+  
+  This can only be done on boot (or reboot) of the mush.  Attempting
+  to do this with a running game will return an error.
+  
+  All caches upon a system reboot are reset and unitialized.
+  
+  @list alloc will show the allocation used for this.
+  
+  See Also: @list
 
 & atrperms
   Config parameter: atrperms <field1> <field2> ... <fieldX>

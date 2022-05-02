@@ -28,6 +28,7 @@ extern char * parse_ansi_name(dbref, char *);
 extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
+extern void do_atrcache_fetch(dbref, char *, char *, char **);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -1906,6 +1907,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       safe_str(mudstate.curr_plrcmd, buff, &bufc);
                    }
                    dstr++;
+                /* Do cache value here -- atrcache value goodness */
+                } else if ( (*(dstr+1) == 'h') && (*(dstr+2) == '<') && (strchr(dstr+2, '>') != NULL) ) {
+                   atr_gotten = tbang_tmp = alloc_lbuf("atrcache_subs");
+                   dstr+=3;
+                   while ( dstr && (*dstr != '>') ) {
+                      safe_chr(*dstr++, tbang_tmp, &atr_gotten);
+                   }
+                   do_atrcache_fetch(player, tbang_tmp, buff, &bufc);
+                   free_lbuf(tbang_tmp);
                 /* Do the bangs if there */
                 } else if ( isdigit((unsigned char)*(dstr+1)) ) {
                    if ( isdigit((unsigned char)*(dstr+2)) ) {

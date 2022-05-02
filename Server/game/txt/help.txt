@@ -106,18 +106,19 @@
   train     use         version      wield        whisper       who        
   worn
   
-  @@           @break       @chown      @clone      @crc32obj      @create   
-  @decompile   @destroy     @dig        @doing      @dolist        @drain 
-  @edit        @emit        @entrances  @eval       @extansi       @femit
-  @find        @force       @fpose      @fsay       @goto          @halt
-  @hide        @include     @jump       @label      @last          @link
-  @list        @listmotd    @lfunction  @lock       @lset          @ltag
-  @mailsig     @mvattr      @name       @notify     @oemit         @open 
-  @parent      @password    @pemit      @pipe       @program       @protect
-  @ps          @quitprogram @quota      @register   @robot         @search 
-  @set         @skip        @sql        @sqlconnect @sqldisconnect @stats  
-  @sudo        @sweep       @switch     @teleport   @totem         @trigger
-  @unlink      @unlock      @verb       @wait       @wall          @wipe        
+  @@         @atrcache    @break       @chown      @clone      @crc32obj    
+  @create    @decompile   @destroy     @dig        @doing      @dolist      
+  @drain     @edit        @emit        @entrances  @eval       @extansi     
+  @femit     @find        @force       @fpose      @fsay       @goto        
+  @halt      @hide        @include     @jump       @label      @last        
+  @link      @list        @listmotd    @lfunction  @lock       @lset        
+  @ltag      @mailsig     @mvattr      @name       @notify     @oemit       
+  @open      @parent      @password    @pemit      @pipe       @program     
+  @protect   @ps          @quitprogram @quota      @register   @robot       
+  @search    @set         @skip        @sql        @sqlconnect @sqldisconnect
+  @stats     @sudo        @sweep       @switch     @teleport   @totem       
+  @trigger   @unlink      @unlock      @verb       @wait       @wall        
+  @wipe        
   
 { 'help commands2' for more (attribute-commands) }
 
@@ -3166,7 +3167,7 @@
   inside.
  
   Example:
-     @va me=$foobar *:@fo #1234=%0;@@ This controls my foobar puppet.
+     @va me=$foobar *:@fo #12345=%0;@@ This controls my foobar puppet.
   
   See Also: @break, @assert, idle
   
@@ -3197,6 +3198,282 @@
       Before assert
   
   See Also: $-COMMAND, @@, @break, @skip, @jump, @rollback, @goto
+
+& @atrcache
+  Command: @atrcache[/switch(es)] <cachename/slot> [=<target/value>]
+  
+  The @atrcache command is ued to cache out the EXECUTION of a string so
+  that it won't have to keep evaluating this until the next interval 
+  specified.  This is intended to be used for heavy use cases where
+  execution of code can have a huge performance hit or on something
+  that would be called intensely in a loop that could also cause delay,
+  lage, or intensive loads.
+  
+  The maximum caches are handled by a config parameter.  10 default
+  with an absolute maximum being 200.
+  
+  On system start (or reboot) all caches are unitialized and any
+  cached values will have been cleared.
+      
+  The following switches exist for the command.  Individual help is
+  availalbe for each one.
+      @atrcache/init <cacheslot> = <name to use>
+        -- initialize the cache slot for use.
+      @atrcache/delete <cacheslot/cachename>
+        -- uninitialize and deallocate cache slot.
+      @atrcache/name <cacheslot or cachename> = <newname>
+        -- rename the specified cache slot.
+      @atrcache/owner <cacheslot or cachename> = <new owner>
+        -- specify the new owner for the specified cache slot.
+      @atrcache/visible <cacheslot or cachename> = <boolean>
+        -- toggle if the cache slot is globally avaialble to fetch
+      @atrcache/lock <cacheslot or cachename> = <boolean>
+        -- toggle enforcing of recaching by owner or control.
+      @atrcache/fetch <cacheslot or cachename>
+        -- fetch the cache (useful for testing)
+      @atrcache/interval <cacheslot or cachename> = <value>
+        -- specify the new interval for recaching the cache
+      @atrcache/cache <cacheslot or cachename>
+        -- force recache the specified cache slot
+      @atrcache/list [0 for all, or page value]
+        -- give overview summary of all cache slots
+      @atrcache/info[/noansi] <cacheslot or cachename>
+        -- give detailed information of the specified cache.
+      @atrcache/set <cacheslot or cachename> = <evaluated string>
+        -- assign the cache slot the string to be executed for caching
+      @atrcache/noansi  
+        -- used with the /info switch to supress ansi output
+  
+  See Also: atrcache(), %-h
+
+& @atrcache/init
+  Command: @atrcache/init <cache slot> = <name>
+  
+  This command is Immortal only.
+  
+  This command, part of the @atrcache command switches, will initialize the 
+  specified cache slot with the specified name.  If the cache slot is
+  outside of range and error will occur.
+  
+  A valid name is a unique name that starts with an alpha letter, and is a 
+  single word without white space or special characters.  This name is
+  case insensitive.  Names must be 30 characters or less.
+  
+  Example:
+    > @atrcache/init 5=MyTest
+    @atrcache/init: Slot 5 [mytest] has been enabled and initialized.
+  
+  See Also: @atrcache/delete, @atrcache/info, @atrcache/list
+
+& @atrcache/delete
+  Command: @atrcache/delete <cache slot or name>
+  
+  This command, part of the @atrcache command switches, will uninitialize
+  the specified slot.  It does this by removing the name, the cached data,
+  and the exec cache buffer and then deallocates those buffers back to the
+  game system for re-use.
+  
+  This will also tag the specified cache slot as inactive.
+  
+  Example:
+    > @atrcache/delete mytest
+    @atrcache/delete: Cache slot 5 [mytest] has been de-allocated and uninit...
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list
+ 
+& @atrcache/name
+  Command: @atrcache/name <cache slot or name> = <new name>
+  
+  This command, part of the @atrcache command switches, will rename the
+  specified slot with the new name.  You can not name caches that
+  are not in use.
+  
+  A valid name is a unique name that starts with an alpha letter, and is a 
+  single word without white space or special characters.  This name is
+  case insensitive.  Names must be 30 characters or less.
+  
+  Example:
+    > @atrcache/name mytest=mynewtest
+    @atrcache/name: Slot 5 [mytest] renamed to 'mynewtest'.
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list
+
+& @atrcache/owner
+  Command: @atrcache/owner <cache slot or name> = <new owner>
+  
+  This command, part of the @atrcache command switches, will change the
+  owner (and thus who controls) the specified cache slot.  Be aware that
+  all cache executions are done *at the owner's level*.  This could
+  be a security risk or return results that may not be expected.
+  
+  Be aware that if at any reason the owner doesn't exist, maybe an
+  object or player being purged who was an owner, while the cache slot
+  will still fetch the existing cached data, NEW CACHE UPDATES will
+  be disabled until this is resolved.
+   
+  Example:
+    > @atrcache/owner mytest=*Tester
+    @atrcache/owner: Slot 5 [mynewtest] owner changed from #12345
+          [Ashen-Shugar] to #17396 [Tester]
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list
+  
+& @atrcache/visible
+  Command: @atrcache/visible <cache slot or name> = <boolean>
+  
+  This command, part of the @atrcache command switches, will toggle
+  the specified cache to be visible.  A cache that is visible is
+  globally fetchable by anyone or anything in the game.  
+  
+  If the 'lock' security mode is disabled, then visible being toggled 
+  WILL RECACHE the cache slot once the cache slot exceeds the interval.
+  
+  Immortals will always trigger the cache upon interval and will always
+  be able to see caches despite the visibility.
+  
+  Example:
+    > @atrcache/visible mynewtest=1
+    @atrcache/visible: Slot 5 [mynewtest] visibility changed from 0 to 1.
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/lock
+
+& @atrcache/lock
+  Command: @atrcache/lock <cache slot or name> = <boolean>
+  
+  This command, part of the @atrcache command switches, will toggle
+  the specified cache to be locked.  This is the default value.  Once
+  a cache is 'locked' it requires being fetched by someone who owns
+  or controls the cache for the cache slot to re-cache upon exceeding
+  the interval.  This provides added protection against globaly
+  visible cache slots.
+  
+  Immortals will always trigger the cache upon interval.
+  
+  Example:
+    > @atrcache/lock mynewtest=1
+    @atrcache/lock: Slot 5 [mynewtest] lock changed from 1 to 1.
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible
+
+& @atrcache/fetch
+  Command: @atrcache/fetch <cache slot or name>
+  
+  This command, part of the @atrcache command switches, will fetch the cache
+  from the specified cache slot.  If the interval is exceeded it will
+  cause the cache to re-cache the value beofre displaying it on the fetch.
+  
+  This command follows the /lock and /visible permissions accordingly.
+  
+  Example:
+    > @atrcache/fetch mynewtest
+      #12345
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible,
+            @atrcache/set, @atrcache/cache, atrcache(), %-h
+
+& @atrcache/interval
+  Command: @atrcache/interval <cache slot or name> = <interval>
+  
+  This command, part of the @atrcache command switches, will set the 
+  interval that the cache slot will re-cache the value to be fetched.
+  This value is in seconds and must be 60 seconds or greater.
+  
+  The interval always defaults to 3600 (1 hour) on initialization.
+  
+  Example:
+    > @atrcache/interval mynewtest=60
+    @atrcache/interval: Slot 5 [mynewtest] interval changed from 3600 to 60.
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible
+
+& @atrcache/cache
+  Command: @atrcache/cache <cache slot or name>
+  
+  This command, part of the @atrcache command switches, will force the
+  cache slot to re-cache the value for fetching.
+  
+  This follows all rules of Immortal, visibility and locks.
+  
+  Example:
+    > @atrcache/cache mynewtest
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible,
+            @atrcache/set, @atrcache/fetch, atrcache(), %-h
+
+& @atrcache/list
+  Command: @atrcache/list
+           @atrcache/list 0
+           @atrcache/list <page value>
+  
+  This command, part of the @atrcache command switches, will list the caches
+  that are currently defined.
+  
+  Immortals will see all caches, even those not currently in use or
+  initialized.  
+  
+  Normal players will only see caches that are visible to them or they
+  control.
+  
+  Immortals will see more information on lists than other players.
+  
+  Example:
+    > @atrcache/list
+    Slot Name                           Interval   Fetched             Control   
+    --------------------------------------------------------------------------
+    005  mynewtest                      60         1651470439          Yes       
+    -- Page:  0/ 1 -----------------   1 Visible,   1 Controlled, 101 Total --
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible
+
+& @atrcache/set
+  Command: @atrcache/set <cache slot or name> = <string to evaluate>
+  
+  This command, part of the @atrcache command switches, will set the cache
+  to the specified string.  Upon fetching, this string is evaluated per the
+  owner specified as 'owner' in the cache.
+  
+  You must control the cache slot to be able to set the value.
+    
+  If the owner is invalid, the cache will not be updated.
+  
+  Example:
+    > @va me=[lwho()]
+    Set.
+    > @atrcache/set mynewtest=[v(va)]
+    @atrcache/set: Cache value set to slot 5 [mynewtest].
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible,
+            @atrcache/lock, @atrcache/cache, @atrcache/fetch
+
+& @atrcache/info
+& @atrcache/noansi
+& @atrcache/noansi/info
+& @atrcache/info/noansi
+  Command: @atrcache/info[/noansi] <cache slot or name>
+  
+  This command, part of the @atrcache command switches, will display detailed
+  information about the cache slot specified.  You must control or own the 
+  cache slot to be able to garner information about it.
+  
+  This information is the same between Immortal and normal owners.
+    
+  Example:
+    > @cache/info/noansi mynewtest
+    -------------------------------------------------------------------------
+    Slot: 5   Name: mynewtest                        
+    Visible: 1  Locked: 1  Enabled: True
+    Owner: #17396 [Tester]
+    Interval: 60
+    Last Fetched: 0 [Never Fetched]
+    --------------------------------------------------------------------------
+    Cache: #12345
+    --------------------------------------------------------------------------
+    Exec-: [lwho()]
+    --------------------------------------------------------------------------
+  
+  See Also: @atrcache/init, @atrcache/info, @atrcache/list, @atrcache/visible,
+            @atrcache/lock, @atrcache/cache, @atrcache/fetch
+
 
 & @break
   Command: @break[/switch] <value> [=<command(s)>]
@@ -3361,11 +3638,11 @@
     /preserve -- Preserve the wildcard pattern and wipe everything else.
   
   Example:
-    > @cluster/wipe #1234/va*
+    > @cluster/wipe #12345/va*
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
-    > @cluster/wipe/regexp #1234/^..$
+    > @cluster/wipe/regexp #12345/^..$
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 22 attributes wiped.
-    > @cluster/wipe/owner Corum/#1234/va*
+    > @cluster/wipe/owner Corum/#12345/va*
     Cluster wipe: 24 total objects, 0 no-match, 0 safe, 4 attributes wiped.
   
   See Also: clusters, cluster functions, cluster commands, >
@@ -5412,10 +5689,10 @@
   automatically opened in the room that the new exit goes TO and which is
   linked back to where you are.  
   
-              I.e.  @open north;n=#1234,south;s
+              I.e.  @open north;n=#12345,south;s
   
-  This would open exit 'north;n' from here to #1234, and an exit 'south;s'
-  from #1234 to here, assuming you have rights to open exits and link to
+  This would open exit 'north;n' from here to #12345, and an exit 'south;s'
+  from #12345 to here, assuming you have rights to open exits and link to
   the rooms in question.
   
   The optional <free dbref#> can be used if you have permission to specify
@@ -5434,13 +5711,13 @@
   You may use the lastcreate() function to see the last thing @open'd
   
   Examples:
-    > @open North <N>;north;n=#1234,South <S>;south;s
+    > @open North <N>;north;n=#12345,South <S>;south;s
     Opened.
     Linked.
     Opened.
     Linked.
   
-    > @open/ansi [ansi(hb,North <N>)];north;n=#1234,[ansi(hr,South <S>)];south;s
+    > @open/ansi [ansi(hb,North <N>)];north;n=#12345,[ansi(hr,South <S>)];south;s
     Ansi string entered for North <N> of 'North <N>'. (this is in blue)
     Opened.
     Linked.
@@ -11690,28 +11967,28 @@
  
   Help is available for the following functions:
  
- @@()               ABS()              ACCENT()            ACOS()        
- ADD()              AFTER()            AINDEX()            AIINDEX()         
- ALPHAMAX()         ALPHAMIN()         AND()               ANDCHR()        
- ANDFLAG()          ANDFLAGS()         ANDTOTEM()          ANDTOTEMS()
- ANSI()             ANSIPOS()          APOSS()             ARGS()
- ARRAY()            ART()              ASC()               ASIN()           
- ATAN()             ATAN2()            ATTRCNT()           ATTRPASS()        
- AVG()              BEFORE()           BETWEEN()           BITTYPE()        
- BOUND()            BRACKETS()         CAND()              CAPSTR()   
- CASE()             CASEALL()          CAT()               CEIL()  
- CENTER()           CHARIN()           CHAROUT()           CHKREALITY()
- CHKTRACE()         CHOMP()            CHR()               CITER() 
- CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()
- CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()       CLUSTER_GET_EVAL()
- CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()   CLUSTER_LATTR() 
- CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()       CLUSTER_STATS()   
- CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT()
- CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()
- CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()      CLUSTER_XGET()  
- CMDS()             CNAME()            COLORS()            COLUMNS() 
- COMP()             CON()              CONFIG()            CONN()             
- CONTROLS()         CONVSECS()    
+ @@()                 ABS()              ACCENT()           ACOS()        
+ ADD()                AFTER()            AINDEX()           AIINDEX()         
+ ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
+ ANDFLAG()            ANDFLAGS()         ANDTOTEM()         ANDTOTEMS()
+ ANSI()               ANSIPOS()          APOSS()            ARGS()
+ ARRAY()              ART()              ASC()              ASIN()           
+ ATAN()               ATAN2()            ATRCACHE()         ATTRCNT()         
+ ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
+ BITTYPE()            BOUND()            BRACKETS()         CAND()            
+ CAPSTR()             CASE()             CASEALL()          CAT()             
+ CEIL()               CENTER()           CHARIN()           CHAROUT()          
+ CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
+ CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
+ CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
+ CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
+ CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
+ CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
+ CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
+ CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
+ CLUSTER_XGET()       CMDS()             CNAME()            COLORS()          
+ COLUMNS()            COMP()             CON()              CONFIG()           
+ CONN()               CONTROLS()         CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -12330,6 +12607,7 @@
 & %-
 & %-m
 & %-p
+& %-h
 & %i
 & %d
 & %q
@@ -12370,6 +12648,8 @@
                  the positional stack location 0 through 999.  BANGS supported.
     %-m        = The last command executed that issued @hook.  
     %-p        = The last direct-player command executed that issued @hook.  
+    %-h<cache> = Show the specified cache value ( works like atrcache() )
+                 Example: %-h<mynewcache>
     %i0-%i99   = Equivalent to itext(0) through itext(99). [%il for outer]
     %i_0-%i_99 = Equivalent to inum(0) through inum(99) [%i_l for outer]
                  BANGS supported.  Note: '99' depends on recursion limit.
@@ -17169,6 +17449,28 @@
  
   See Also: poss(), subj(), obj()
   
+& ATRCACHE()
+  Function: atrcache(<cache slot or name>)
+  
+  This function returns the value of the cached data in the specified
+  cache slot by slot number or name.  If the interval has exceeded from
+  the last cache, this function, depending on permissions, will recache
+  the results before fetching it.
+  
+  Permissions on this function follow the same series of Immortal, 
+  visibility, and lock.
+  
+  If you do not have permission to view the specified cache, an error
+  will be displayed.
+  
+  Examples:
+    > say atrcache(mynewtest)
+    You say "#12345"
+    > say atrcache(notacache)
+    You say "#-1 INVALID CACHE"
+  
+  See Also: @atrcache, %-h
+
 & ATTRCNT()
   Function: attrcnt(<object> [,<key>])
   
@@ -17736,7 +18038,7 @@
   
   Example:
     > look
-    A Room(#1234R)
+    A Room(#12345R)
     You see a room.
     Obvious exits:
     An Exit <AE>
@@ -19027,11 +19329,11 @@
     t1(#366)
     radio(#223p)
     The Wizard's Pointy Hat(#188S0)
-    A red rose(#1234C)
+    A red rose(#12345C)
     Spybot(#2672p)
     You have 1086 Gold Coins.
     > say lcon(me)
-    You say "#366 #223 #188 #1234 #2672"
+    You say "#366 #223 #188 #12345 #2672"
     > say xcon(me,2,2)
     You say "#223 #188"
     > say lcon(me/puppet)
@@ -22245,7 +22547,7 @@
   
   Examples:
     > say lset(me,no_inherit)
-    @lset: [DefaultLock] set NO_INHERIT on Ashen-Shugar(#1234)
+    @lset: [DefaultLock] set NO_INHERIT on Ashen-Shugar(#12345)
     You say ""
     > say lset(me)
     @lset: [DefaultLock] on Player(#123): no_inherit
@@ -23298,13 +23600,13 @@
   
   Example:
     > say %n %#
-    You say "Bob #1234"
+    You say "Bob #12345"
     > say pmatch(bob)
-    You say "#1234"
-    > say pmatch(#1234)
-    You say "#1234"
+    You say "#12345"
+    > say pmatch(#12345)
+    You say "#12345"
     > say pmatch(*bob)
-    You say "#1234"
+    You say "#12345"
   
   See Also: num(), pfind()
   
@@ -23318,7 +23620,7 @@
   
   Example:
     > say pfind(Bob)
-    You say "#1234"
+    You say "#12345"
   
   See Also: num(), pmatch()
   
@@ -23719,7 +24021,7 @@
     (PID: 196  )   [126]Umbra Code (UC)(#2642VIS[s]):@trigger me/LOOP_CLEANUP
     ----- Semaphore Queue -----
     (PID: 71   )   [#901]Tester(#901Pc>Dp^UF<[so]):@pemit me=zoot
-    (PID: 84   )   [#1234]Bob(#734P-ci>WFO<[UsO]):think foo
+    (PID: 84   )   [#12345]Bob(#734P-ci>WFO<[UsO]):think foo
     Totals: Player...0/0        Object...0/0        Wait...4/4  Semaphore...2/2
     > say pid()
       You say "227 224 195 196 71 84"
@@ -25870,8 +26172,8 @@
   This is a sideeffect function.
   
   Example:
-    > say cluster_add(#1234,#9876)
-    Cluster object #9876 has been added to #1234
+    > say cluster_add(#12345,#9876)
+    Cluster object #9876 has been added to #12345
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(),
             cluster_get(), cluster_get_eval(), cluster_grep(), 
@@ -31281,7 +31583,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.2.0
+  *** Current Revision: 4.2.2
   ***************************************************************************
   
   Available Revisions:
@@ -31301,7 +31603,7 @@
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
     4.1.0: 4.1.0p0, 4.1.0p1, 4.1.0p2
-      4.2: 4.2.0, 4.2.1
+      4.2: 4.2.0, 4.2.1, 4.2.2
   
   See Also: historical, credits
 
@@ -34259,3 +34561,24 @@
  * escapex could crash on input (introduced this patch)
  * Standards compliance fixes for the web API by Polk [AMB]
  * Fix for Websocket POST crash by Polk [AMB]
+  
+& 4.2.2
+  Release Date: 05/01/22
+  
+  New Features
+  ------------
+ * @atrcache -- A method to cache an evaluation into a buffer for 
+   sticky content until a pre-defined cache expire is met [ASH]
+ * atrcache(<cache>) -- function to fetch the specified cache [ASH]
+ * %-h<cache> -- substitution version of the function above [ASH]
+ * atrcachemax -- max number of caches allowed (10 default, 200 max) [ASH]
+  
+  Changes
+  -------
+ * Allocations modified to add the new buffers for caches [ASH]
+ * @list alloc shows values for the new atrcache handler [ASH]
+ * evaluation stack modified for new substitution handling
+ * game load engine modified for new cache handling
+  
+  Bug Fixes
+  ------------

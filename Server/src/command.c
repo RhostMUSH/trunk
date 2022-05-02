@@ -203,6 +203,23 @@ NAMETAB attrib_sw[] =
     {(char *) "rename", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_RENAME},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB atrcache_sw[] =
+{
+    {(char *) "init", 3, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_INIT},
+    {(char *) "delete", 2, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_DELETE},
+    {(char *) "name", 2, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_NAME},
+    {(char *) "owner", 2, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_OWNER},
+    {(char *) "visible", 3, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_VIS},
+    {(char *) "lock", 3, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATRCACHE_LOCK},
+    {(char *) "fetch", 2, CA_PUBLIC, 0, ATRCACHE_FETCH},
+    {(char *) "interval", 3, CA_PUBLIC, 0, ATRCACHE_IVAL},
+    {(char *) "cache", 2, CA_PUBLIC, 0, ATRCACHE_CACHE},
+    {(char *) "list", 2, CA_PUBLIC, 0, ATRCACHE_LIST},
+    {(char *) "info", 3, CA_PUBLIC, 0, ATRCACHE_INFO},
+    {(char *) "set", 3, CA_PUBLIC, 0, ATRCACHE_SET},
+    {(char *) "noansi", 3, CA_PUBLIC, 0, ATRCACHE_NOANSI | SW_MULTIPLE},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB blacklist_sw[] =
 {
     {(char *) "list", 2, CA_IMMORTAL, 0, BLACKLIST_LIST},
@@ -1324,6 +1341,8 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_CMDARG | CS_NOINTERP | CS_STRIP_AROUND, 0, do_assert},
     {(char *) "@attribute", attrib_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_attribute},
+    {(char *) "@atrcache", atrcache_sw, CA_NO_GUEST | CA_NO_SLAVE, CA_NO_CODE,
+     0, CS_TWO_ARG | CS_INTERP | CS_CMDARG, 0, do_atrcache},
     {(char *) "@blacklist", blacklist_sw, CA_LOCATION | CA_IMMORTAL, 0, 0, CS_ONE_ARG | CS_INTERP, 0, do_blacklist},
     {(char *) "@boot", boot_sw, CA_NO_GUEST | CA_NO_SLAVE | CA_NO_WANDER, 0,
      0, CS_ONE_ARG | CS_INTERP, 0, do_boot},

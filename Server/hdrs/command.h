@@ -35,6 +35,7 @@ CMD_TWO_ARG_CMDARG(do_aflags);
 CMD_TWO_ARG(do_alias);			/* Change the alias of something */
 CMD_TWO_ARG(do_areg);
 CMD_TWO_ARG(do_attribute);		/* Manage user-named attributes */
+CMD_TWO_ARG_CMDARG(do_atrcache);	/* Force someone to do something */
 CMD_ONE_ARG(do_blacklist);		/* Load/Clear/List blacklist.txt file */
 CMD_ONE_ARG(do_boot);			/* Force-disconnect a player */
 CMD_TWO_ARG_CMDARG(do_break);

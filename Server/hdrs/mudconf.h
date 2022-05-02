@@ -421,6 +421,7 @@ struct confdata {
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
+	int	atrcachemax;	/* Maximum atrcaches allowed -- 200 hard cap */
 	int	lfunction_max;	/* Maximum lfunctions allowed */
 	int	function_max;	/* Maximum functions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
@@ -849,6 +850,7 @@ struct statedata {
 	int	wipe_state;	/* do_wipe state counter */
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
+	int	atrcachemax;	/* Maximum atrcaches allowed -- 200 hard cap */
 	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
 	int	notrace;	/* Do not trace */
 	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */

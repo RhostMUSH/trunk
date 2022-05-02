@@ -48,6 +48,19 @@
 #define SPLIT_FG		0x20
 #define SPLIT_BG		0x40
 
+typedef struct atrcache {
+        char	*name;		/* Cache name */
+	char	*s_cache;	/* Holder of the cached data */
+	char	*s_cachebuild;	/* Code that is executed to cache data */
+	time_t	i_interval;	/* interval (in seconds) to re-run s_cachebuild */
+	time_t	i_lastrun;	/* time it was last checked against */
+	dbref	owner;		/* Owner of the cache (who's allowed to make changes) */
+	int	enabled;	/* Is cache initialized and enabled */
+	int	visible;	/* Is cache executable/visible to everyone? */
+	int	lock;		/* Is cache only executable by owner/controller? */
+        struct atrcache *next;	/* Next item in list */
+} ATRCACHE;
+
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */
 	char	s_bghex[5];	/* Hex representation - background */
@@ -607,6 +620,20 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	ATTRIB_ACCESS	0x00000001	/* Change access to attribute */
 #define	ATTRIB_RENAME	0x00000002	/* Rename attribute */
 #define	ATTRIB_DELETE	0x00000004	/* Delete attribute */
+
+#define ATRCACHE_INIT	0x00000001	/* initialize cache by slot */
+#define ATRCACHE_NAME	0x00000002	/* Rename cache by name (or slot) */
+#define ATRCACHE_DELETE	0x00000004	/* Remove a cache by name (or slot) */
+#define ATRCACHE_FETCH	0x00000008	/* Fetch the value of the cache */
+#define ATRCACHE_IVAL	0x00000010	/* Change interval of checking for specific name or slot */
+#define ATRCACHE_CACHE	0x00000020	/* Force a cache update on the cache */
+#define ATRCACHE_LIST	0x00000040	/* list all the caches currently in use */
+#define ATRCACHE_INFO	0x00000080	/* Get information on the specific cache */
+#define ATRCACHE_OWNER	0x00000100	/* Change owner of the specific cache */
+#define ATRCACHE_SET    0x00000200	/* Set the cache information */
+#define ATRCACHE_VIS	0x00000400	/* Is the fetch and cache visible to everyone */
+#define ATRCACHE_LOCK	0x00000800	/* Does recaching require owner or control? */
+#define ATRCACHE_NOANSI	0x00001000	/* Don't ansi parenmatch INFO */
 
 #define	BOOT_QUIET	0x00000001	/* Inhibit boot message to victim */
 #define	BOOT_PORT	0x00000002	/* Boot by port number */

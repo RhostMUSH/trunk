@@ -39,7 +39,7 @@ typedef struct pooldata {
 
 POOL pools[NUM_POOLS];
 const char *poolnames[] =
-{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes"};
+{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "AtrName"};
 
 #define POOL_MAGICNUM 0xdeadbeef
 
@@ -82,9 +82,9 @@ pool_err(const char *logsys, int logflag, int poolnum,
     } else if (logflag != LOG_ALLOCATE) {
 	sprintf(mudstate.buffer,
 #ifdef BIT64
-		"\n***< %.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s). >***",
+		"\r\n***< %.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s). >***",
 #else
-		"\n***< %.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s). >***",
+		"\r\n***< %.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s). >***",
 #endif
 		action, pools[poolnum].pool_size, tag, reason,
 		(pmath1) ph, line_num, file_name);
@@ -147,6 +147,8 @@ pool_check(const char *tag, int line_num, char *file_name)
     pool_vfy(POOL_DESC, tag, line_num, file_name);
     pool_vfy(POOL_QENTRY, tag, line_num, file_name);
     pool_vfy(POOL_ZLISTNODE, tag, line_num, file_name);
+    pool_vfy(POOL_ATRCACHE, tag, line_num, file_name);
+    pool_vfy(POOL_ATRNAME, tag, line_num, file_name);
 }
 
 char *
@@ -453,9 +455,9 @@ showTrackedPacketStats(dbref player)
 {
     char *buff;
 
-    buff = unsafe_tprintf("\nNetwork Stats (Bytes)   Daily-In:     Average-In:   Total-In:\n"
+    buff = unsafe_tprintf("\r\nNetwork Stats (Bytes)   Daily-In:     Average-In:   Total-In:\r\n"
                           "                        %-13.0f %-13.0f %-16.0f"
-                          "\n\n                        Daily-Out:    Average-Out:  Total-Out:\n"
+                          "\r\n\r\n                        Daily-Out:    Average-Out:  Total-Out:\r\n"
                           "                        %-13.0f %-13.0f %-16.0f",
                           mudstate.daily_bytesin, 
                          ((mudstate.avg_bytesin == 0) ? mudstate.daily_bytesin : mudstate.avg_bytesin), 
@@ -477,7 +479,7 @@ showBlacklistStats(dbref player)
    i_ndsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
    s_buff = alloc_mbuf("blacklist_stats");
    
-   notify(player, "\nBlacklist Stats    Size   Inuse     Total Mem (Bytes)");
+   notify(player, "\r\nBlacklist Stats    Size   Inuse     Total Mem (Bytes)");
 
    if ( i_blsize > 1000000000 ) {
       i_diver = (double) i_blsize / 1000000000.0;
@@ -530,9 +532,32 @@ showTotemStats(dbref player)
      i_show = i_tot / 1000.0;
      c_let = 'K';
   }
-  notify(player, unsafe_tprintf("\nTotal overhead of @totems per dbref# -- %d", sizeof(OBJTOTEM)));
+  notify(player, unsafe_tprintf("\r\nTotal overhead of @totems per dbref# -- %d", sizeof(OBJTOTEM)));
   notify(player, "    Size   Slots    Objects   Total Memory");
   notify(player, unsafe_tprintf("    %4d  %6d   %8d   %.0f (%.2f%c)", (sizeof(OBJTOTEM) / TOTEM_SLOTS), TOTEM_SLOTS, mudstate.db_top, i_tot, i_show, c_let));
+}
+
+void
+showAtrCacheStats(dbref player)
+{
+  double i_tot;
+  double i_show;
+  char c_let;
+
+  i_tot = (double)sizeof(ATRCACHE) * mudconf.atrcachemax;
+  if ( i_tot > 1000000000.0 ) {
+     i_show = i_tot / 1000000000.0;
+     c_let = 'G';
+  } else if ( i_tot > 1000000.0 ) {
+     i_show = i_tot / 1000000.0;
+     c_let = 'M';
+  } else  {
+     i_show = i_tot / 1000.0;
+     c_let = 'K';
+  }
+  notify(player, "\r\nTotal overhead of Atr Caches: (Not Including AtrCache/AtrNames above)");
+  notify(player, "    Size   Slots    Total Memory");
+  notify(player, unsafe_tprintf("    %4d  %6d     %.0f (%.2f%c)", sizeof(ATRCACHE), mudconf.atrcachemax, i_tot, i_show, c_let));
 }
 
 void 
@@ -547,6 +572,7 @@ list_bufstats(dbref player)
     showTrackedBufferStats(player);
     showBlacklistStats(player);
     showTotemStats(player);
+    showAtrCacheStats(player);
     showTrackedPacketStats(player);
     showdbstats(player);
 }
