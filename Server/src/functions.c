@@ -1332,6 +1332,7 @@ extern void objecttag_match(char *, char *);
 extern int totem_list(char *, int, dbref, dbref, char *);
 extern void totem_set(dbref, dbref, char *, int);
 extern void do_atrcache_fetch(dbref, char *, char *, char **);
+extern void do_atrcache_handler(dbref, char *, int, char *, char **);
 
 
 int do_convtime(char *, struct tm *);
@@ -12650,7 +12651,38 @@ FUNCTION(fun_decrypt)
 
 FUNCTION(fun_atrcache)
 {
-   do_atrcache_fetch(player, fargs[0], buff, bufcx);
+   static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", NULL};
+   int i_len, i_len2, i_found, i_cnt;
+
+   if (!fn_range_check("ATRCACHE", nfargs, 1, 2, buff, bufcx))
+        return;
+
+   if ( nfargs == 1 ) {
+      do_atrcache_fetch(player, fargs[0], buff, bufcx);
+   } else {
+      if ( !*fargs[1] ) {
+         safe_str("#-1 INVALID ARGUMENT", buff, bufcx);
+      } else {
+         i_len = strlen(fargs[1]);
+         i_found = i_cnt = 0;
+         for ( sp = s_switch; sp && *sp; sp++ ) {
+            i_len2 = strlen(*sp);
+            if ( i_len2 > i_len ) {
+               i_len2 = i_len;
+            }
+            if ( strncasecmp(*sp, fargs[1], i_len2) == 0 ) {
+               i_found = 1;
+               break;
+            }
+            i_cnt++;
+         }
+         if ( i_found ) {
+            do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx);
+         } else {
+            safe_str("#-1 INVALID ARGUMENT", buff, bufcx);
+         }
+      }
+   }
 }
 
 FUNCTION(fun_default)
@@ -38347,7 +38379,7 @@ FUN flist[] =
     {"ATAN2", fun_atan2, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRCNT", fun_attrcnt, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ATTRPASS", fun_attrpass, 3, 0, CA_PUBLIC, CA_NO_CODE},
-    {"ATRCACHE", fun_atrcache, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ATRCACHE", fun_atrcache, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"AVG", fun_avg, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BEEP", fun_beep, 1, 0, CA_WIZARD, 0},
     {"BEFORE", fun_before, 0, FN_VARARGS, CA_PUBLIC, 0},

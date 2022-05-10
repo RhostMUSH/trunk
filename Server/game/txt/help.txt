@@ -3414,7 +3414,8 @@
   Normal players will only see caches that are visible to them or they
   control.
   
-  Immortals will see more information on lists than other players.
+  Immortals will see more information on lists than other players including
+  if the cache is Enabled, Disabled, or if the enabled cache has a BadOwner.
   
   Example:
     > @atrcache/list
@@ -17450,7 +17451,7 @@
   See Also: poss(), subj(), obj()
   
 & ATRCACHE()
-  Function: atrcache(<cache slot or name>)
+  Function: atrcache(<cache slot or name> [,<switch>])
   
   This function returns the value of the cached data in the specified
   cache slot by slot number or name.  If the interval has exceeded from
@@ -17463,8 +17464,24 @@
   If you do not have permission to view the specified cache, an error
   will be displayed.
   
+  The following <switches> are available:
+     fetch        -- (default) will fetch the value of the cash.
+ +*  recache      -- run a recache of the specified cache based on interval
+  *  interval     -- return the interval that recaches are done
+  *  visible      -- return if the cache is visible or not
+  *  lock         -- return the hardening cache lock
+  *  lastrun      -- return the last time the cache was executed
+  *  owner        -- return the current owner of the cache
+ +*  forcerecache -- force a recache of the specified cache
+  *  exec         -- show the execution stack the cache uses
+  
+  Any value with a '*' requires owner or Immortal to use the switch.
+  Any value with a '+' requires a valid owner on the cache.
+  
   Examples:
     > say atrcache(mynewtest)
+    You say "#12345"
+    > say atrcache(mynewtest, fetch)
     You say "#12345"
     > say atrcache(notacache)
     You say "#-1 INVALID CACHE"
@@ -34579,6 +34596,8 @@
  * @list alloc shows values for the new atrcache handler [ASH]
  * evaluation stack modified for new substitution handling
  * game load engine modified for new cache handling
+ * atrcache() handles sub-arguments for owner/immortal [ASH]
   
   Bug Fixes
   ------------
+ * (introduced this version) @atrcache stronger perms [ASH]

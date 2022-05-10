@@ -505,6 +505,383 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx)
    }
 }
 
+void
+do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int key)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff, *retbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           ((cp->visible && !cp->lock) || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         /* Past interval, re-cache the data from executor */
+         s_tbuff = alloc_lbuf("atrcache_recache");
+         if ( key || (mudstate.now >= (cp->i_interval + cp->i_lastrun)) ) {
+         /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
+            if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
+               strcpy(s_tbuff, cp->s_cachebuild);
+               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+               strcpy(cp->s_cache, retbuff);
+               free_lbuf(retbuff);
+               cp->i_lastrun = mudstate.now;
+            }
+         } 
+         sprintf(s_tbuff, "%ld", cp->i_lastrun);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_interval(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_interval");
+         sprintf(s_tbuff, "%ld", cp->i_interval);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_visible(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_visible");
+         sprintf(s_tbuff, "%d", cp->visible);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_lock(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_lock");
+         sprintf(s_tbuff, "%d", cp->lock);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_lastrun(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_lastrun");
+         sprintf(s_tbuff, "%ld", cp->i_lastrun);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_owner(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_owner");
+         sprintf(s_tbuff, "#%d", cp->owner);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_execval(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_execval");
+         sprintf(s_tbuff, "%s", cp->s_cachebuild);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufcx)
+{
+   switch ( key ) {
+      case 0: /* cache */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 0);
+         break;
+      case 1: /* interval */
+         do_atrcache_interval(player, s_slot, buff, bufcx);
+         break;
+      case 2: /* visible */
+         do_atrcache_visible(player, s_slot, buff, bufcx);
+         break;
+      case 3: /* lock */
+         do_atrcache_lock(player, s_slot, buff, bufcx);
+         break;
+      case 4: /* last */
+         do_atrcache_lastrun(player, s_slot, buff, bufcx);
+         break;
+      case 5: /* owner */
+         do_atrcache_owner(player, s_slot, buff, bufcx);
+         break;
+      case 6: /* fetch */
+         do_atrcache_fetch(player, s_slot, buff, bufcx);
+         break;
+      case 7: /* forced recache */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 1);
+         break;
+      case 8: /* exec cache to build */
+         do_atrcache_execval(player, s_slot, buff, bufcx);
+         break;
+      default: /* Error */
+         safe_str("#-1 UNRECOGNIZED SWITCH", buff, bufcx);
+         break;
+   }
+}
+
 /* ---------------------------------------------------------------------------
  * do_atrcache: Set up an object cache
  */
@@ -851,16 +1228,19 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
             if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
                   ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
                   (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
-               s_tbuff = alloc_lbuf("atrcache_cache");
-               strcpy(s_tbuff, cp->s_cachebuild);
-               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
-               strcpy(cp->s_cache, retbuff);
-               free_lbuf(retbuff);
-               sprintf(s_tbuff, "@atrcache/cache: Cache on slot %d [%s] has been forcefully refreshed.", i_cnt, cp->name);
-               notify(player, s_tbuff);
-               free_lbuf(s_tbuff);
-               cp->i_lastrun = mudstate.now;
-               i_found = 1;
+               /* Do not recache if bad user */
+               if ( Good_chk(cp->owner) ) {
+                  s_tbuff = alloc_lbuf("atrcache_cache");
+                  strcpy(s_tbuff, cp->s_cachebuild);
+                  retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+                  strcpy(cp->s_cache, retbuff);
+                  free_lbuf(retbuff);
+                  sprintf(s_tbuff, "@atrcache/cache: Cache on slot %d [%s] has been forcefully refreshed.", i_cnt, cp->name);
+                  notify(player, s_tbuff);
+                  free_lbuf(s_tbuff);
+                  cp->i_lastrun = mudstate.now;
+                  i_found = 1;
+               }
             }
             i_cnt++;
          }
@@ -931,8 +1311,15 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                      i_cur++;
                      continue;
                   }
-                  sprintf(s_tbuff, "%03d  %-30s %-10d %-10d %-4d %-4d %-8s", i_cnt, (cp ? cp->name : (char *)"(NULL)"), 
-                          (int)cp->i_interval, (int)cp->i_lastrun, cp->lock, cp->visible, (char *)"Enabled");
+                  sprintf(s_tbuff, "%03d  %-30s %-10d %-10d %-4d %-4d %s%-8s%s", i_cnt, (cp ? cp->name : (char *)"(NULL)"), 
+                          (int)cp->i_interval, (int)cp->i_lastrun, cp->lock, cp->visible, 
+#ifdef ZENTY_ANSI
+                          (Good_chk(cp->owner) ? SAFE_ANSI_GREEN : SAFE_ANSI_RED),
+                          (Good_chk(cp->owner) ? (char *)"Enabled" : (char *)"BadUser"), ANSI_NORMAL);
+#else
+                          (Good_chk(cp->owner) ? ANSI_GREEN : ANSI_RED),
+                          (Good_chk(cp->owner) ? (char *)"Enabled" : (char *)"BadUser"), ANSI_NORMAL);
+#endif
                   notify(player, s_tbuff);
                   i_cur++;
                } else if ( cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner)) ) {
