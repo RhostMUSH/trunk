@@ -5885,7 +5885,7 @@ do_command(DESC * d, char *command)
                                             s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                             s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                             parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                            strcpy(s_buffer, s_ansi2); 
+                                            strcpy(s_buffer, s_ansi3);
                                             free_lbuf(s_ansi1);
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);
@@ -5899,7 +5899,7 @@ do_command(DESC * d, char *command)
                                          s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                          s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                          parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                         strcpy(s_buffer, s_ansi2); 
+                                         strcpy(s_buffer, s_ansi3);
                                          free_lbuf(s_ansi1);
                                          free_lbuf(s_ansi2);
                                          free_lbuf(s_ansi3);
@@ -5918,7 +5918,7 @@ do_command(DESC * d, char *command)
                                             s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                             s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                             parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                            strcpy(s_buffer, s_ansi2); 
+                                            strcpy(s_buffer, s_ansi3);
                                             free_lbuf(s_ansi1);
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);
