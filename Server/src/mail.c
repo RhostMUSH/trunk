@@ -8426,11 +8426,11 @@ void
 do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 {
     int key2, flags, flags2, forcesend, i_fill1, i_fill2, i_fill3,
-        i_fill4, i_fill5, i_fill6, i_version, acheck, i_pass;
+        i_fill4, i_fill5, i_fill6, i_version, acheck, i_pass, i_forced;
     char *p1, *p2, *atrxxx;
     dbref owner, owner2;
 
-    recblock = i_version = 0;
+    recblock = i_version = i_forced = 0;
     i_fill1 = i_fill2 = i_fill3 = 0;
     i_fill4 = i_fill5 = i_fill6 = 0;
     if (key & M_FSEND) {
@@ -8440,6 +8440,11 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	override = 0;
     }
 
+    if ( (key & M_QUICK) && (key & (M_FORWARD|M_REPLY)) ) {
+       i_forced = 1;
+       key &=~M_QUICK;
+    }
+ 
     if ( (key & M_SAVE) && (key & M_READM) ) {
        key &= ~M_SAVE;
        i_version = 32;
@@ -8449,6 +8454,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	notify_quiet(player, "Mail: Mail is currently turned off.");
 	return;
     }
+
     lastplayer = player;
     lastflag = key;
     if (!Wizard(Owner(player))) {
@@ -8457,6 +8463,12 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 		return;
 	}
     }
+
+    if ( (key & M_QUICK) && (key & ~M_QUICK) ) {
+       notify_quiet(player, "Illegal combination of switches.");
+       return;
+    }
+
     if ((!mudstate.nuke_status) && (!God(player)) && (key != M_PASS) && (isPlayer(player)) && (((key != M_QUICK) && (key != 0)) || ((key == 0) && ((*buf1 != '\0') || (*buf2 != '\0'))))) {
 	p1 = atr_get(player, A_MPASS, &owner, &flags);
 	if (*p1 != '\0') {
@@ -8505,7 +8517,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
            buf1++;
         }
 	if ((*buf2 != '\0') && (*buf1 != '\0')) {
-           if (Brandy(player) && !forcesend && isPlayer(player)) {
+           if ( (Brandy(player) && !i_forced) && !forcesend && isPlayer(player)) {
 	      atrxxx = atr_get(player, A_SAVESENDMAIL, &owner2, &flags2);
 	      if ( *atrxxx ) {
                  notify_quiet(player, "Mail: You already have a message in progress.");
@@ -8556,7 +8568,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
            buf1++;
         }
 	if (*buf1 != '\0') {
-           if (Brandy(player) && isPlayer(player)) {
+           if ( (Brandy(player) && !i_forced) && isPlayer(player)) {
               atrxxx = atr_get(player, A_SAVESENDMAIL, &owner2, &flags2);
               if ( *atrxxx ) {
                  notify_quiet(player, "Mail: You already have a message in progress.");
@@ -8735,7 +8747,11 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	}
 	break;
     default:
-	notify_quiet(player, "MAIL ERROR: Unknown mail command.");
+        if ( key & (M_ALL|M_ANON|M_FSEND|M_QUICK|M_SAVE) ) {
+           notify_quiet(player, "Illegal combination of switches.");
+        } else {
+	   notify_quiet(player, "MAIL ERROR: Unknown mail command.");
+        }
     }
 }
 

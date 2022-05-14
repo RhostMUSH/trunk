@@ -27635,7 +27635,7 @@
                                you to read it.  That player MUST have their
                                mail set to be shared by you!
   mail/delete                - This purges all marked mail.
-  mail/forward <num> [<arg>] <player-list>[=[<subject>//]<optionaltext>] 
+  mail/forward[/quick] <num> [<arg>] <player-list>[=[<subj>//]<optionaltext>] 
                                This forwards the target message to the 
                                specified list of players.
   mail/lock <key>            - This locks your mail from the given  player(s).
@@ -27666,8 +27666,8 @@
                                of it, and gives you availability to yank mail
                                that hasn't been read.
   mail/reject [<arg>]        - This sets or resets your reject message.
-  mail/reply [<arg>]<message-#>[<arg>]=[<subject>//]<body> - This replies to
-                               the given message.
+  mail/reply[/quick] [<arg>]<message-#>[<arg>]=[<subject>//]<body> - This 
+                               replies to the given message.
   
   { see help mail cmdlist3 for more }
   
@@ -27713,7 +27713,7 @@
     mail/autofor               - Sets an autoforward to another user.
     mail/check                 - Reads mail in shared mailbox.
     mail/delete                - Purges marked mail.
-    mail/forward               - Forwards a mail message.
+    mail/forward[/quick]       - Forwards a mail message.
     mail/lock                  - Locks mail against user(s).
     mail/mark[/save]           - Marks mail to delete (or save).
     mail/next [-]              - Reads next (or previous) message.
@@ -27725,7 +27725,7 @@
     mail[/read]                - Reads the message (/read switch optional).
     mail/recall                - Recalls a sent message.
     mail/reject                - Sets message to player failing mail lock.
-    mail/reply                 - Replies to a mail message.
+    mail/reply[/quick]         - Replies to a mail message.
     mail[/send]                - Sends message (/send switch optional)
     mail/share                 - Allows you to share your mailbox to others.
     mail/status                - Detail listing of messages in your mailbox.
@@ -28309,9 +28309,12 @@
   See Also: mail write, mail forward, mail reply, mail recall
   
 & mail/reply
+& mail/reply/quick
 & mail reply
-  Command: mail/reply [@|^]<msg #>[*]=[<subject>//]<message>.
+  Command: mail/reply[/quick] [@|^]<msg #>[*]=[<subject>//]<message>.
 
+  Note: The /quick switch will bypass the BRANDY_MAIL toggle.
+  
   Reply to a mail message with your own message.  The @, ^, and * are optional
   to preface or follow the message number.  You can only reply to messages in
   the current folder.  You may also specify an optional subject.
@@ -28328,6 +28331,7 @@
   
   Examples:
     > mail/reply 2=Sure, I'll come to the party.  
+    > mail/reply/quick 2=Sure, I'll come to the party.  
     > mail/reply 1*=What did you mean?
     > mail/reply @12=Why don't we all get together tomorrow?
     > mail/reply ^9*=I'm not sure if we should build that.
@@ -28338,8 +28342,11 @@
   See Also: mail forward, mail send
   
 & mail/forward
+& mail/forward/quick
 & mail forward
-  Command: mail/forward <msg #> [@|^]<list> [=[<subject>//]<additional text>]
+  Command: mail/forward[/quick] <msg #> [@|^]<list> [=[<subj>//]<text>]
+  
+  Note: the /quick switch bypasses the BRANDY_MAIL toggle.
   
   Forward a mail message to someone.  Note that you do not have to include your
   own message, which is appended to the bottom of the message.  The
@@ -28349,6 +28356,7 @@
   
   Examples:
     > mail/forward 3 myfriend
+    > mail/forward/quick 3 myfriend
     > mail/forward 2 &friendlist=Weird!!!//What do you think of this?
     > mail/forward 12 @friend1 #12345 friend2=Can you believe this?!
   
@@ -30074,6 +30082,9 @@
   making it the body of the message and immediately sending it 
   (which is the default).  See help on 'mail send' for more info on
   how this works.
+  
+  Note: using the /quick switch to reply and forward will bypass
+        the editor.
   
   See Also: mail send, penn_mail toggle, mail_stripreturn toggle
   
@@ -34597,6 +34608,7 @@
  * evaluation stack modified for new substitution handling
  * game load engine modified for new cache handling
  * atrcache() handles sub-arguments for owner/immortal [ASH]
+ * /quick with mail/reply and mail/forward will bypass BRANDY_MAIL [ASH]
   
   Bug Fixes
   ------------

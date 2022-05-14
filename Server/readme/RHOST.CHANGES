@@ -3,6 +3,8 @@ SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
 				- Thanks Pres
 UTF8 -> ASCII fallback for selecct characters.
         - Thanks WStarter for the idea, and Pres for the POC
+/quick switch to mail/reply and mail/forward to bypass BRANDY toggle.
+				- Thanks HarukaWatanabeLA
 
 
                          RhostMUSH 4.0 Update File

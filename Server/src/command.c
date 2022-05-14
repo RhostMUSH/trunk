@@ -723,7 +723,7 @@ NAMETAB mail_sw[] =
     {(char *) "number", 2, CA_PUBLIC, 0, M_NUMBER},
     {(char *) "check", 2, CA_PUBLIC, 0, M_CHECK},
     {(char *) "unmark", 3, CA_PUBLIC, 0, M_UNMARK},
-    {(char *) "quick", 3, CA_PUBLIC, 0, M_QUICK},
+    {(char *) "quick", 3, CA_PUBLIC, 0, M_QUICK | SW_MULTIPLE},
     {(char *) "share", 2, CA_PUBLIC, 0, M_SHARE},
     {(char *) "password", 3, CA_PUBLIC, 0, M_PASS},
     {(char *) "page", 3, CA_PUBLIC, 0, M_PAGE},
