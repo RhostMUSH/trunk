@@ -607,6 +607,7 @@
   
 { see 'wizhelp api setup' for steps on how to set up a dbref# for use }
 { see 'wizhelp api processing' to see how to actually use the API system }
+{ see 'wizhelp api headers' to see all the available headers for API }
 { see 'wizhelp api return' for values you can expect back from the API }
 { see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
 { see 'wizhelp api commands' for mush based commands used for the API }
@@ -655,8 +656,9 @@
 { see 'wizhelp api return' for values you can expect back from the API }
 { see 'wizhelp api errorcodes' for HTTP error codes that it can respond with }
 
+& API HEADERS
 & API PROCESSING
-  Topic: API PROCESSING
+  Topic: API PROCESSING/API HEADERS
   
   To actually execute an API request, you need to send a web request to the 
   API handler.  The API handler handles two request types.  POST and GET.
@@ -666,6 +668,9 @@
   
   The following headers are available with the following options:
   POST:
+     header - Exec64:
+       -- This works just like Exec but expects an base64 format input.
+          This will always have priority over Exec.
      header - Exec:
        -- The Exec: header is used to tell the mush what code to execute.
           You would encapsulate the code you want to run in double quotes.
@@ -680,6 +685,9 @@
           Example:  Time: "100.5"
   
   GET:
+     header - Exec64:
+       -- This works just like Exec but expects an base64 format input.
+          This will always have priority over Exec.
      header - Exec:
        -- The Exec: header is used to tell the mush what code to execute.
           Unlike the POST requester, this only accepts functions/strings.

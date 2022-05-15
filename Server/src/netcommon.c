@@ -5074,9 +5074,9 @@ do_command(DESC * d, char *command)
 #endif
     char *s_usepass, *s_usepassptr,
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
-         *s_get, *s_pass;
+         *s_get, *s_pass, *s_enc64, *s_enc64ptr;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
+    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5713,7 +5713,7 @@ do_command(DESC * d, char *command)
             s_user = alloc_lbuf("cmd_get_user");
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
-            i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
+            i_enc64 = i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
 #ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             int i_socksnarf = 0;
@@ -5723,6 +5723,7 @@ do_command(DESC * d, char *command)
             ///// END NEW WEBSOCK
 #endif
 
+            s_enc64 = alloc_lbuf("cmd_get_exec64");
             while ( s_strtok ) {
                // Check if we have a header
                i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
@@ -5769,6 +5770,11 @@ do_command(DESC * d, char *command)
                   if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
                      strcpy(s_snarfing, s_snarfvalue);
                      i_snarfing = 1;
+                  }
+
+                  if ( !i_enc64 && !stricmp(s_snarfheader, (char *)"Exec64" ) ) {
+                     strcpy(s_enc64, s_snarfvalue);
+                     i_enc64 = i_snarfing = 1;
                   }
 
                   if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
@@ -5869,6 +5875,10 @@ do_command(DESC * d, char *command)
                      if ( atrp ) {
                         s_get = atr_get(thing, atrp->number, &aowner, &aflags);
                         if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                           if ( i_enc64 ) {
+                              s_enc64ptr = s_snarfing;
+                              decode_base64((const char*)s_enc64, strlen(s_enc64), s_snarfing, &s_enc64ptr, 0);
+                           } 
                            if ( *s_snarfing ) {
                               free_lbuf(s_buffer);
                               i_cputog = mudstate.chkcpu_toggle;
@@ -5992,6 +6002,7 @@ do_command(DESC * d, char *command)
                free_lbuf(s_user);
             }
 
+            free_lbuf(s_enc64);
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing2);
             free_lbuf(s_snarfing3);
@@ -6050,8 +6061,9 @@ do_command(DESC * d, char *command)
             s_user = alloc_lbuf("cmd_post_user");
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
-            i_snarfing = i_usepass = i_snarfing4 = 0;
+            i_enc64 = i_snarfing = i_usepass = i_snarfing4 = 0;
             i_time = 0.0;
+            s_enc64 = alloc_lbuf("cmd_post_exec64");
             while ( s_strtok ) {
                // Check if we have a header
                i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
@@ -6059,6 +6071,11 @@ do_command(DESC * d, char *command)
                   if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
                      strcpy(s_snarfing, s_snarfvalue);
                      i_snarfing = 1;
+                  }
+
+                  if ( !i_enc64 && !stricmp(s_snarfheader, (char *)"Exec64" ) ) {
+                     strcpy(s_enc64, s_snarfvalue);
+                     i_enc64 = i_snarfing = 1;
                   }
 
                   if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
@@ -6127,6 +6144,10 @@ do_command(DESC * d, char *command)
                      if ( atrp ) {
                         s_get = atr_get(thing, atrp->number, &aowner, &aflags);
                         if ( *s_get && mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                           if ( i_enc64 ) {
+                              s_enc64ptr = s_snarfing;
+                              decode_base64((const char*)s_enc64, strlen(s_enc64), s_snarfing, &s_enc64ptr, 0);
+                           } 
                            if ( *s_snarfing ) {
 	                      wait_que(thing, thing, i_time, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
                               queue_string(d, "HTTP/1.1 200 OK\r\n");
@@ -6166,6 +6187,8 @@ do_command(DESC * d, char *command)
                queue_string(d, "Exec: Error - Malformed User or Password\r\n");
                free_lbuf(s_user);
             }
+
+            free_lbuf(s_enc64);
             free_lbuf(s_snarfing);
             free_lbuf(s_snarfing4);
             free_lbuf(s_snarfheader);
