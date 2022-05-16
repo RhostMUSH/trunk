@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ps u -p $(cat ./netrhost.pid 2>/dev/null) 2>/dev/null
 echo ""
 echo $(uptime 2>/dev/null)

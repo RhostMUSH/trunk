@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Checks the status of your local repo versus the upstream repo.
 # 0: diverged
 # 1: up-to-date

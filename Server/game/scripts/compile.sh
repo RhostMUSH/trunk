@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "$#" -ne "1" ]
 then
-   echo "One(1) argument is expected.  Allowed arguments:"
+   echo "One(1)argument is expected.  Allowed arguments:"
    echo "   patch     -- patch the source."
    echo "   status    -- status of the source (compiling or completed)."
    echo "   rollback  -- roll back to the previous combined binary."

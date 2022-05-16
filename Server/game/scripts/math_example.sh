@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##############################################################################
 # This is a simple example bash script to demonstrate some of the power
 # of the execscript module of RhostMUSH.

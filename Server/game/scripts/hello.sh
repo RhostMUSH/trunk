@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 if [ -n "$1" ]
 then
    echo "hello from the script with args: '$@'"

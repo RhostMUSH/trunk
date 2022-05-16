@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 x="$@"
 if [ -z "$x" ]
 then

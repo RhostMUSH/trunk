@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #lynx --version > /dev/null 2>&1
 curl --version > /dev/null 2>&1
 if [ $? -ne 0 ]

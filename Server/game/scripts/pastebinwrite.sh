@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 tst=$(pastebinit -h 2>&1|grep -c "not found")
 if [ $tst -gt 0 ]
 then

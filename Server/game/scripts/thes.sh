@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -f /usr/bin/wn ]
 then
    if [ -z "$@" ]
