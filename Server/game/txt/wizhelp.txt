@@ -616,12 +616,17 @@
 & POST
 & HEAD
 & PUT
+& API TIMEOUT
 & API COMMANDS
   Topic: API COMMANDS
   
   The following commands are used by the API engine.
   PUT/HEAD    -- push info to the mush from the client
   GET/POST    -- pull info from the mush to the client
+  
+  Note: You may have multiple GET and POST responses in a single connection.
+        To utilize this specify -H "Keep-Alive: timeout=xx" where 'XX' is
+        the desired connection value (1-300)
   
   To restrict these commands you may use the 'logout_cmd_access' config.
   
@@ -683,6 +688,12 @@
           If a negative value is fed to this, it defaults to '0'.  You may
           use fractional values.
           Example:  Time: "100.5"
+     header - Keep-Alive:
+       -- Maximum value handled by 'max_api_timeout'
+          The value expected after this is 'timeout=XX' where XX is the
+          number of seconds the connection is expected to remain.  Closing
+          the socket will immediately close the connection.  Default 1s.
+          Example: -H "Keep-Alive: timeout=20"
   
   GET:
      header - Exec64:
@@ -707,6 +718,12 @@
           Options you can pass this is 'yes' to enable, and 'no' to disable.
           No is the default value.  This is handy when you have multi-line
           input that headers may not necessarily handle.
+     header - Keep-Alive:
+       -- Maximum value handled by 'max_api_timeout'
+          The value expected after this is 'timeout=XX' where XX is the
+          number of seconds the connection is expected to remain.  Closing
+          the socket will immediately close the connection.  Default 1s.
+          Example: -H "Keep-Alive: timeout=20"
   
 { see 'wizhelp api setup' for steps on how to set up a dbref# for use }
 { see 'wizhelp api return' for values you can expect back from the API }
@@ -751,6 +768,12 @@
   
   POST Example: (this is from a command line using the 'curl' application)
 > curl -X POST --user "#12:ya" -H "Exec: @emit hi." --head http://localhost:2222
+  
+  MIXED KeepAlive Example: (again from the curl application)
+> curl -X GET --user "#12:ya" -H "Keep-Alive: 20" -H "Exec: [lnum(10)]" 
+    --head http://localhost:2222 --next -X GET --user "#12:ya" 
+    -H "Exec: [lnum(20)]" --head http://localhost:2222 --next -X POST 
+    --user "#12:ya" -H "Exec: @emit [lwho()]" --head http://localhost:2222
   
   See Also: @api 
    
@@ -7167,10 +7190,11 @@
   mailbox_size             maildelete               mailinclude_file       
   mailmutt                 mailprog                 mailsub                
   mailmax_send             master_room              match_own_commands     
-  manlog_file              map_delim_space          max_cpu_cycles         
-  max_dest_limit           max_folders              max_lastsite_api       
-  max_lastsite_cnt         max_name_protect         max_pcreate_lim        
-  max_pcreate_time         max_percentsubs          max_players
+  manlog_file              map_delim_space          max_api_timeout
+  max_cpu_cycles           max_dest_limit           max_folders            
+  max_lastsite_api         max_lastsite_cnt         max_name_protect       
+  max_pcreate_lim          max_pcreate_time         max_percentsubs        
+  max_players
   
 { 'wizhelp config parameters4' for more }
 
@@ -10068,6 +10092,21 @@
   
   See Also: global_aconnect, global_adisconnect
 
+& max_api_timeout
+  Config parameter: max_api_timeout <num>.  Default: 20
+  
+  This specifies the maximum value allowed for the "Keep-Alive: timeout=XX"
+  parameter for the API handler.  The default value for the maximum connection
+  allowed is 20 seconds.  The maximum value for the maximum connection
+  allowed is 300 seconds (5 minutes).  The minimum value is 1 second.
+  Any API call attempting to set a value outside this range gets reset to the
+  maximum or minimum value depending on the high/low value specified.
+  
+  By default, any API connections established without a Keep-Alive value will
+  be set at 1 second.
+  
+  See Also: api
+  
 & max_cpu_cycles
   Config parameter: max_cpu_cycles <num>.  Default: 3
   

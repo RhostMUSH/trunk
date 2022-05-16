@@ -205,6 +205,10 @@
   POST Example: (this is from a command line using the 'curl' application)
 > curl -X POST --user "#12:ya" -H "Exec: @emit hi." --head http://localhost:2222
   
+  Note: You may have multiple GET and POST responses in a single connection.
+        To utilize this specify -H "Keep-Alive: timeout=xx" where 'XX' is
+        the desired connection value (1-300)
+  
   To have a target dbref# enabled for API processing, please alert a staff
   on your game as it requires staff approval and authentication to enable
   the dbref# to be usable for the API sub engine.
@@ -34601,6 +34605,7 @@
  * %-h<cache> -- substitution version of the function above [ASH]
  * atrcachemax -- max number of caches allowed (10 default, 200 max) [ASH]
  * exec64 handler for API to 64 encapsulate the input [ASH]
+ * max_api_timeout -- maximum timeout value for the API connection [ASH]
   
   Changes
   -------
@@ -34610,7 +34615,11 @@
  * game load engine modified for new cache handling
  * atrcache() handles sub-arguments for owner/immortal [ASH]
  * /quick with mail/reply and mail/forward will bypass BRANDY_MAIL [ASH]
+ * API now allows multiple transactions [ASH]
+ * API is aggressively queued to insure faster response [ASH]
   
   Bug Fixes
   ------------
  * (introduced this version) @atrcache stronger perms [ASH]
+ * API could potentially hang with inactivity [ASH]
+ * API POST was not HTML compliant [ASH]

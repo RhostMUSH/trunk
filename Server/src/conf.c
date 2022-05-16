@@ -355,6 +355,7 @@ NDECL(cf_init)
     mudconf.connect_perm = 0;		/* Permissions of connect */
     mudconf.elements_compat = 0;	/* Enable elementsz compatibility */
     mudconf.atrcachemax = 10;		/* Default number of atrcaches to prep */
+    mudconf.max_api_timeout = 20;	/* Maximum API timeout value */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -4207,6 +4208,10 @@ CONF conftable[] =
     {(char *) "map_delim_space",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.map_delim_space, 0, 0, CA_PUBLIC,
      (char *) "MAP() uses space/separator?"},
+    {(char *) "max_api_timeout",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_api_timeout, 300, 1, CA_WIZARD,
+     (char *) "Max time an API connection (in seconds) is alloweed to stay connected\r\n"\
+              "(Range: 1-300)   Default: 20   Value: %d"},
     {(char *) "max_cpu_cycles",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_cpu_cycles, 0, 0, CA_WIZARD,
      (char *) "Max cpu slams allowed before smackdown.\r\n"\

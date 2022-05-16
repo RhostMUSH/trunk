@@ -616,6 +616,11 @@ shovechars(int port,char* address)
 		FD_SET(d->descriptor, &input_set);
 	    if (d->output_head)
 		FD_SET(d->descriptor, &output_set);
+            /* If API we always want to test input and output */
+            if ( d->flags & DS_API ) {
+		FD_SET(d->descriptor, &input_set);
+		FD_SET(d->descriptor, &output_set);
+            }
 	    if (d->flags & DS_AUTH_IN_PROGRESS) {
                 if ( d->flags & DS_API ) {
                    d->flags &= ~DS_AUTH_IN_PROGRESS;
@@ -984,8 +989,10 @@ shovechars(int port,char* address)
 		    shutdownsock(d, R_SOCKDIED);
 		}
 	    }
+
+            /* Force API disconnect if timeon greater than timeout value */
             if ( (d->flags & DS_API) ) {
-		if ( (d->connected_at + 5) < time(NULL) ) {
+		if ( (d->connected_at + d->timeout) < time(NULL) ) {
 			shutdownsock(d, R_API);
 		}
             }

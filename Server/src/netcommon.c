@@ -3033,9 +3033,12 @@ NDECL(check_idle)
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
-	    }
-            if ( (idletime > 5) && (d->flags & DS_API) ) {
-		shutdownsock(d, R_API);
+	    } else if ( d->flags & DS_API ) {
+               /* Force API disconnecting after d->timeout from connection */
+               if ( (idletime > (d->timeout)) || (mudstate.now > (d->connected_at + d->timeout)) ) {
+                  process_output(d);
+		  shutdownsock(d, R_API);
+               }
             }
 	}
     }
@@ -5076,7 +5079,7 @@ do_command(DESC * d, char *command)
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass, *s_enc64, *s_enc64ptr;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
+    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5109,6 +5112,7 @@ do_command(DESC * d, char *command)
     }
     mudstate.breakdolist = 0;
     
+    i_timeout = 1;
     /* snoop on player input -Thorin */
     if (d->snooplist) {
 	for (node = d->snooplist; node; node = node->next) {
@@ -5767,6 +5771,17 @@ do_command(DESC * d, char *command)
                ////////   END NEW WEBSOCK
 #endif
 
+                  if ( (d->timeout == 1) && !stricmp(s_snarfheader, (char *)"Keep-Alive" ) ) {
+                     if ( !strncasecmp(s_snarfvalue, (char *)"timeout=", 8) ) {
+                        i_timeout = atoi(strchr(s_snarfvalue, '=')+1);
+                        if ( i_timeout < 1 )
+                           i_timeout = 1;
+                        if ( i_timeout > mudconf.max_api_timeout ) 
+                           i_timeout = mudconf.max_api_timeout;
+                        d->timeout = i_timeout;
+                     }
+                  }
+
                   if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
                      strcpy(s_snarfing, s_snarfvalue);
                      i_snarfing = 1;
@@ -6019,7 +6034,7 @@ do_command(DESC * d, char *command)
             ///// END NEW WEBSOCK
 #endif
             process_output(d);
-            if (d->flags & DS_API)
+            if ((d->flags & DS_API) && (d->timeout == 1) )
                 shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -6068,6 +6083,17 @@ do_command(DESC * d, char *command)
                // Check if we have a header
                i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
                if ( 2 == i_snarfheaders ) {
+                  if ( (d->timeout == 1) && !stricmp(s_snarfheader, (char *)"Keep-Alive" ) ) {
+                     if ( !strncasecmp(s_snarfvalue, (char *)"timeout=", 8) ) {
+                        i_timeout = atoi(strchr(s_snarfvalue, '=')+1);
+                        if ( i_timeout < 1 )
+                           i_timeout = 1;
+                        if ( i_timeout > mudconf.max_api_timeout ) 
+                           i_timeout = mudconf.max_api_timeout;
+                        d->timeout = i_timeout;
+                     }
+                  }
+
                   if ( !i_snarfing && !stricmp(s_snarfheader, (char *)"Exec" ) ) {
                      strcpy(s_snarfing, s_snarfvalue);
                      i_snarfing = 1;
@@ -6158,25 +6184,25 @@ do_command(DESC * d, char *command)
                                  queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
                               }
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                              queue_string(d, "Exec: Ok - Queued\r\n");
+                              queue_string(d, "Exec: Ok - Queued\r\n\r\n");
                            } else {
                               queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
                               queue_string(d, "Content-type: text/plain\r\n");
                               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                              queue_string(d, "Exec: Error - Empty String\r\n");
+                              queue_string(d, "Exec: Error - Empty String\r\n\r\n");
                            }
                         } else {
                            queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
                            queue_string(d, "Content-type: text/plain\r\n");
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Permission Denied\r\n");
+                           queue_string(d, "Exec: Error - Permission Denied\r\n\r\n");
                         }
                         free_lbuf(s_get);
                      } else {
                         queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
                         queue_string(d, "Content-type: text/plain\r\n");
                         queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                        queue_string(d, "Exec: Error - Permission Denied\r\n");
+                        queue_string(d, "Exec: Error - Permission Denied\r\n\r\n");
                      }
                   }
                }
@@ -6184,7 +6210,7 @@ do_command(DESC * d, char *command)
                queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
                queue_string(d, "Content-type: text/plain\r\n");
                queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-               queue_string(d, "Exec: Error - Malformed User or Password\r\n");
+               queue_string(d, "Exec: Error - Malformed User or Password\r\n\r\n");
                free_lbuf(s_user);
             }
 
@@ -6196,7 +6222,8 @@ do_command(DESC * d, char *command)
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);
-            shutdownsock(d, R_API);
+            if ((d->flags & DS_API) && (d->timeout == 1) )
+               shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;

@@ -97,6 +97,7 @@ struct confdata {
 	char	postdump_msg[128];  /* Message displayed after @dump-ing */
         char  spam_msg[128];    /* Message displayed when spammonitor kicks in */
         char  spam_objmsg[128]; /* Message displayed when object spammonitor kicks in */
+	int	max_api_timeout;	/* Maximum API timeout value -- default 1 */
 	int	mailmutt;	/* Is MUTT the mail program of choice */
 	int	whereis_notify;
 	int	max_size;
