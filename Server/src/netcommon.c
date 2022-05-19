@@ -41,6 +41,7 @@ char *index(const char *, int);
 #include "websock2.h"
 ///// END NEW WEBSOCK
 #endif
+#include "lua.h"
 
 #include "debug.h"
 #define FILENUM NETCOMMON_C
@@ -5075,9 +5076,10 @@ do_command(DESC * d, char *command)
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
+    lua_t *lua;
     char *s_usepass, *s_usepassptr,
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
-         *s_get, *s_pass, *s_enc64, *s_enc64ptr;
+         *s_get, *s_pass, *s_enc64, *s_enc64ptr, *s_lua, *s_luaptr;
     double i_time;
     int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout;
     dbref aowner, thing;
@@ -5706,6 +5708,7 @@ do_command(DESC * d, char *command)
             break;
 #else
             i_encode64 = 0;
+            s_lua = NULL;
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
@@ -5790,6 +5793,21 @@ do_command(DESC * d, char *command)
                   if ( !i_enc64 && !stricmp(s_snarfheader, (char *)"Exec64" ) ) {
                      strcpy(s_enc64, s_snarfvalue);
                      i_enc64 = i_snarfing = 1;
+                  }
+
+                  if ( !s_lua && !stricmp(s_snarfheader, (char *)"X-Lua" ) ) {
+                     s_lua = alloc_lbuf("cmd_lua");
+                     strcpy(s_lua, s_snarfvalue);
+                  }
+
+
+                  if ( !stricmp(s_snarfheader, (char *)"X-Lua64" ) ) {
+                     if(s_lua) {
+                         free_lbuf(s_lua);
+                     }
+                     s_lua = alloc_lbuf("cmd_lua");
+                     s_luaptr = s_lua;
+                     decode_base64((const char*)s_snarfvalue, strlen(s_snarfvalue), s_lua, &s_luaptr, 0);
                   }
 
                   if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
@@ -5885,6 +5903,38 @@ do_command(DESC * d, char *command)
                      i_snarfing = 1;
                   }
                   free_lbuf(s_get);
+
+                  if ( s_lua )  {
+                     lua = open_lua_interpreter(thing);
+                     free_lbuf(s_buffer);
+                     s_buffer = exec_lua_script(lua, s_lua);
+                     close_lua_interpreter(lua);
+
+                     queue_string(d, "HTTP/1.1 200 OK\r\n");
+                     queue_string(d, "Content-type: text/plain\r\n");
+                     if ( i_snarfing4 ) {
+                        queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
+                        queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
+                        queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                     }
+                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                     queue_string(d, "X-Lua: Ok - Executed\r\n");
+                     if ( i_encode64 ) {
+                        free_lbuf(s_snarfing2);
+                        s_snarfing2 = s_snarfing;
+                        i_encode64 = strlen(s_buffer);
+                        encode_base64((const char*)s_buffer, i_encode64, s_snarfing, &s_snarfing2);
+                        queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_snarfing));
+                        s_snarfing2 = alloc_lbuf("tmp_get_buffer");
+                     } else {
+                        queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_buffer));
+                     }
+
+                     free_lbuf(s_lua);
+                     s_lua = NULL;
+                     i_snarfing = 1; /* We already handled this, move on */
+                  }
+
                   if ( !i_snarfing ) {
                      atrp = atr_str3("_APIPASSWD");
                      if ( atrp ) {
