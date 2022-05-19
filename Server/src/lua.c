@@ -138,6 +138,7 @@ void
 close_lua_interpreter(lua_t *lua)
 {
 	lua_close(lua->state);
+	free(lua);
 }
 
 char *
