@@ -93,9 +93,13 @@ open_lua_interpreter(dbref run_as)
 	lua_pop(lua->state, 1);
 	luaL_requiref(lua->state, "coroutine", luaopen_coroutine, 1);
 	lua_pop(lua->state, 1);
+	luaL_requiref(lua->state, "os", luaopen_os, 1);
+	lua_pop(lua->state, 1);
 
-	/* Remove naughty functions */
+	/* We're going to make changes to the global table */
 	lua_pushglobaltable(lua->state);
+
+	/* Remove naughty functions from basic */
 	lua_pushnil(lua->state);
 	lua_setfield(lua->state, -2, "assert");
 	lua_pushnil(lua->state);
@@ -115,6 +119,12 @@ open_lua_interpreter(dbref run_as)
 	lua_pushnil(lua->state);
 	lua_setfield(lua->state, -2, "warn");
 
+	/* Remove naughty functions from os */
+	lua_getglobal(lua->state, "os");
+	lua_pushnil(lua->state);
+	lua_setfield(lua->state, -2, "getenv");
+	lua_pop(lua->state, 1); /* pops os */
+
 	/* Create 'rhost' table containing rhost functions */
 	lua_newtable(lua->state);
 
@@ -124,6 +134,7 @@ open_lua_interpreter(dbref run_as)
 
 	/* Stick rhost table into the global */
 	lua_setfield(lua->state, -2, "rhost");
+
 	lua_pop(lua->state, 1); /* pops global */
 
 	/* Stores run_as dbref in lua registry table for us to retrieve later */
