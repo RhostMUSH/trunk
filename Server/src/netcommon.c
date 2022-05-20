@@ -5923,10 +5923,10 @@ do_command(DESC * d, char *command)
                      }
                      queue_string(d, unsafe_tprintf("Content-Length: %i\r\n\r\n", i_lualength));
                      s_luaptr = s_buffer;
-                     while(i_lualength > LBUF_SIZE) {
-                         i_lualength -= LBUF_SIZE;
-                         queue_write(d, s_luaptr, LBUF_SIZE);
-                         s_luaptr += LBUF_SIZE;
+                     while(i_lualength > LBUF_SIZE - 1) {
+                         i_lualength -= LBUF_SIZE - 1;
+                         queue_write(d, s_luaptr, LBUF_SIZE - 1);
+                         s_luaptr += LBUF_SIZE - 1;
                      }
                      if(i_lualength) {
                          queue_write(d, s_luaptr, i_lualength);
