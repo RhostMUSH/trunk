@@ -9,6 +9,6 @@ typedef struct _luatype {
 
 extern lua_t *open_lua_interpreter(dbref run_as);
 extern void close_lua_interpreter(lua_t *lua);
-extern char *exec_lua_script(lua_t *lua, char *scriptbuf);
+extern char *exec_lua_script(lua_t *lua, char *scriptbuf, int *len);
 
 #endif /* _M_LUA_H */

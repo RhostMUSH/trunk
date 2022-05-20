@@ -5081,7 +5081,7 @@ do_command(DESC * d, char *command)
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
          *s_get, *s_pass, *s_enc64, *s_enc64ptr, *s_lua, *s_luaptr;
     double i_time;
-    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout;
+    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout, i_lualength;
     dbref aowner, thing;
     ATTR *atrp;
 #endif
@@ -5800,7 +5800,6 @@ do_command(DESC * d, char *command)
                      strcpy(s_lua, s_snarfvalue);
                   }
 
-
                   if ( !stricmp(s_snarfheader, (char *)"X-Lua64" ) ) {
                      if(s_lua) {
                          free_lbuf(s_lua);
@@ -5907,7 +5906,7 @@ do_command(DESC * d, char *command)
                   if ( s_lua )  {
                      lua = open_lua_interpreter(thing);
                      free_lbuf(s_buffer);
-                     s_buffer = exec_lua_script(lua, s_lua);
+                     s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
                      close_lua_interpreter(lua);
 
                      queue_string(d, "HTTP/1.1 200 OK\r\n");
@@ -5920,16 +5919,20 @@ do_command(DESC * d, char *command)
                      queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                      queue_string(d, "X-Lua: Ok - Executed\r\n");
                      if ( i_encode64 ) {
-                        free_lbuf(s_snarfing2);
-                        s_snarfing2 = s_snarfing;
-                        i_encode64 = strlen(s_buffer);
-                        encode_base64((const char*)s_buffer, i_encode64, s_snarfing, &s_snarfing2);
-                        queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_snarfing));
-                        s_snarfing2 = alloc_lbuf("tmp_get_buffer");
-                     } else {
-                        queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_buffer));
+                        queue_string(d, "X-Lua-Warning: Base64 Encoding not supported for output\r\n");
                      }
-
+                     queue_string(d, unsafe_tprintf("Content-Length: %i\r\n\r\n", i_lualength));
+                     s_luaptr = s_buffer;
+                     while(i_lualength > LBUF_SIZE) {
+                         i_lualength -= LBUF_SIZE;
+                         queue_write(d, s_luaptr, LBUF_SIZE);
+                         s_luaptr += LBUF_SIZE;
+                     }
+                     if(i_lualength) {
+                         queue_write(d, s_luaptr, i_lualength);
+                     }
+                     free(s_buffer);
+                     s_buffer = alloc_lbuf("cmd_post_buff");
                      free_lbuf(s_lua);
                      s_lua = NULL;
                      i_snarfing = 1; /* We already handled this, move on */

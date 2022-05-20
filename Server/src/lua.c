@@ -201,20 +201,24 @@ close_lua_interpreter(lua_t *lua)
 }
 
 char *
-exec_lua_script(lua_t *lua, char *scriptbuf)
+exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
 {
-    char *res;
+    char *res = 0;
     const char *raw;
     size_t size;
     int error;
 
-    res = alloc_lbuf("lua_exec_lua_script_res");
-
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
         if(raw) {
-            strncpy(res, lua_tolstring(lua->state, -1, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
+            res = malloc(size + 1);
+            strncpy(res, raw, size + 1);
+            res[size] = 0; /* Just coding defensively here */
         }
+    }
+
+    if(len && res) {
+        *len = strlen(res);
     }
 
     return res;
