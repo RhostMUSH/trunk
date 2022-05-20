@@ -126,9 +126,14 @@ lua_t *
 open_lua_interpreter(dbref run_as)
 {
     lua_t *lua;
+    char *filename;
+
+    filename = alloc_lbuf("lua_filename");
 
     lua = malloc(sizeof(lua_t));
     lua->state = luaL_newstate();
+
+    /* Add base libraries */
     luaL_requiref(lua->state, "base", luaopen_base, 1);
     lua_pop(lua->state, 1);
     luaL_requiref(lua->state, "string", luaopen_string, 1);
@@ -146,6 +151,15 @@ open_lua_interpreter(dbref run_as)
 
     /* We're going to make changes to the global table */
     lua_pushglobaltable(lua->state);
+
+    /* Bring in JSON Support */
+    snprintf(filename, LBUF_SIZE - 1, "%s/%s", mudconf.txt_dir, "dkjson.lua");
+    if(luaL_dofile(lua->state, filename)) {
+        log_text("LUA : Error loading dkjson.lua");
+        end_log();
+    } else {
+        lua_setfield(lua->state, -2, "json");
+    }
 
     /* Remove naughty functions from basic */
     lua_pushnil(lua->state);
@@ -190,6 +204,8 @@ open_lua_interpreter(dbref run_as)
     lua_pushinteger(lua->state, run_as);
     lua_settable(lua->state, LUA_REGISTRYINDEX);
 
+    free_lbuf(filename);
+
     return lua;
 }
 
@@ -215,6 +231,11 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
             strncpy(res, raw, size + 1);
             res[size] = 0; /* Just coding defensively here */
         }
+    } else {
+        raw = lua_tolstring(lua->state, -1, &size);
+        log_text("LUA : Error ");
+        log_text(raw);
+        end_log();
     }
 
     if(len && res) {
