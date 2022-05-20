@@ -17,6 +17,46 @@
 
 static const char *rhost_run_as_key = "rhost_run_as";
 
+static int
+lua_check_read_perms(dbref player, dbref thing, ATTR *attr,
+                     int aowner, int aflags)
+{
+    int see_it;
+
+    /* If we have explicit read permission to the attr, return it */
+
+    if (See_attr_explicit(player, thing, attr, aowner, aflags))
+       return 1;
+
+    /* If we are nearby or have examine privs to the attr and it is
+     * visible to us, return it.
+     */
+
+    if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
+        return 0;
+    see_it = See_attr(player, thing, attr, aowner, aflags, 0);
+    if ((Examinable(player, thing) || nearby(player, thing))) {
+        if ( ((attr)->flags & (AF_INTERNAL)) ||
+             (((attr)->flags & (AF_DARK)) && !Immortal(player)) ||
+             (((attr)->flags & (AF_MDARK)) && !Wizard(player)) )
+           return 0;
+        else
+           return 1;
+    }
+    /* For any object, we can read its visible attributes, EXCEPT
+     * for descs, which are only visible if read_rem_desc is on.
+     */
+
+    if (see_it) {
+       if (!mudconf.read_rem_desc && (attr->number == A_DESC)) {
+          return 0;
+       } else {
+          return 1;
+       }
+    }
+    return 0;
+}
+
 /* rhost_get() allows lua to request an attribute from a dbref
  * Arguments: integer dbref, string attribute
  */
@@ -49,7 +89,6 @@ rhost_get(lua_State *L)
     strncpy(attr, lua_tolstring(L, -1, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
     lua_pop(L, 1); /* pops attribute name */
 
-
     atrp = atr_str4(attr);
     if(!atrp) {
         lua_pushliteral(L, "rhost_get: Invalid attribute");
@@ -65,6 +104,15 @@ rhost_get(lua_State *L)
     lua_pop(L, 1); /* pops dbref */
 
     result = atr_get(thing, atrp->number, &owner, &flags);
+
+    if(!lua_check_read_perms(run_as, thing, atrp, owner, flags)) {
+        lua_pushliteral(L, "rhost_get: Permission Denied");
+        lua_error(L);
+        lua_pop(L, 1);
+
+        free_lbuf(attr);
+        return 1;
+    }
 
     lua_pushstring(L, result);
 
