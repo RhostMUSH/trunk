@@ -25,6 +25,9 @@ lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
 {
     size_t size;
     const char *ret = lua_tolstring(L, src_index, &size);
+    if(!ret) {
+        ret = "";
+    }
     strncpy(dest, lua_tolstring(L, src_index, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
 }
 
@@ -154,6 +157,7 @@ rhost_strfunc(lua_State *L)
     dbref run_as;
 
     /* Check argument count */
+    argv = lua_gettop(L);
     if(argv < 2 || argv > 3) {
         lua_pushliteral(L, "rhost_strfunc: Incorrect number of arguments");
         lua_error(L);
@@ -255,19 +259,22 @@ open_lua_interpreter(dbref run_as)
     lua_setfield(lua->state, -2, "getenv");
     lua_pop(lua->state, 1); /* pops os */
 
-    /* Create 'rhost' table containing rhost functions */
-    lua_newtable(lua->state);
+    /* Bring in rhost table */
+    snprintf(filename, LBUF_SIZE - 1, "%s/%s", mudconf.txt_dir, "rhost.lua");
+    if(luaL_dofile(lua->state, filename)) {
+        log_text("LUA : Error loading rhost.lua");
+        end_log();
+    } else {
+        lua_setfield(lua->state, -2, "rhost");
+    }
 
     /* Add Rhost functions */
+    lua_getglobal(lua->state, "rhost");
     lua_pushcfunction(lua->state, rhost_get);
     lua_setfield(lua->state, -2, "get");
     lua_pushcfunction(lua->state, rhost_strfunc);
     lua_setfield(lua->state, -2, "strfunc");
-
-    /* Stick rhost table into the global */
-    lua_setfield(lua->state, -2, "rhost");
-
-    lua_pop(lua->state, 1); /* pops global */
+    lua_pop(lua->state, 1); /* pops rhost */
 
     /* Stores run_as dbref in lua registry table for us to retrieve later */
     lua_pushlightuserdata(lua->state, (void *)rhost_run_as_key);
