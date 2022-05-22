@@ -303,16 +303,19 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
 
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
-        if(raw) {
-            res = malloc(size + 1);
-            strncpy(res, raw, size + 1);
-            res[size] = 0; /* Just coding defensively here */
-        }
     } else {
         raw = lua_tolstring(lua->state, -1, &size);
+        size = strlen(raw);
+
         log_text("LUA : Error ");
         log_text((char *)raw);
         end_log();
+    }
+
+    if(raw) {
+        res = malloc(size + 1);
+        strncpy(res, raw, size + 1);
+        res[size] = 0; /* Just coding defensively here */
     }
 
     if(len && res) {
