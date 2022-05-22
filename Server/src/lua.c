@@ -165,11 +165,11 @@ rhost_strfunc(lua_State *L)
         return 0;
     }
 
-    if(argv == 3) {
-         /* Third argument: args */
-         fargs[2] = alloc_lbuf("lua_rhost_strfunc_delim");
-         lua_stack_to_lbuf(L, fargs[2], -1);
-         lua_pop(L, 1); /* pops args */
+    /* Third argument: delimiter */
+    if(argv > 2) {
+        fargs[2] = alloc_lbuf("lua_rhost_strfunc_delim");
+        lua_stack_to_lbuf(L, fargs[2], -1);
+        lua_pop(L, 1); /* pops args */
     }
 
     /* Second argument: args */
