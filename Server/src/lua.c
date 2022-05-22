@@ -17,6 +17,13 @@
 
 static const char *rhost_run_as_key = "rhost_run_as";
 
+static void
+lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
+{
+    size_t size;
+    strncpy(dest, lua_tolstring(L, src_index, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
+}
+
 static int
 lua_check_read_perms(dbref player, dbref thing, ATTR *attr,
                      int aowner, int aflags)
@@ -63,7 +70,7 @@ lua_check_read_perms(dbref player, dbref thing, ATTR *attr,
 static int
 rhost_get(lua_State *L)
 {
-    size_t argv, size;
+    size_t argv;
     char *attr, *result;
     lua_Integer thing;
     ATTR *atrp;
@@ -71,7 +78,7 @@ rhost_get(lua_State *L)
 
     /* Check argument count */
     argv = lua_gettop(L);
-    if(argv != 2) {
+    if(argv < 2) {
         lua_pushliteral(L, "rhost_get: Incorrect number of arguments");
         lua_error(L);
         lua_pop(L, 1);
@@ -86,7 +93,7 @@ rhost_get(lua_State *L)
 
     /* Second argument: attribute name */
     attr = alloc_lbuf("lua_rhost_get_attr");
-    strncpy(attr, lua_tolstring(L, -1, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
+    lua_stack_to_lbuf(L, attr, -1);
     lua_pop(L, 1); /* pops attribute name */
 
     atrp = atr_str4(attr);
@@ -234,7 +241,7 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     } else {
         raw = lua_tolstring(lua->state, -1, &size);
         log_text("LUA : Error ");
-        log_text(raw);
+        log_text((char *)raw);
         end_log();
     }
 
