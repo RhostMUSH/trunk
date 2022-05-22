@@ -9,11 +9,14 @@
 #include "db.h"
 #include "alloc.h"
 #include "externs.h"
+#include "functions.h"
 #include "lua.h"
 
 #include "lua/src/lua.h"
 #include "lua/src/lauxlib.h"
 #include "lua/src/lualib.h"
+
+extern FUNCTION(fun_strfunc);
 
 static const char *rhost_run_as_key = "rhost_run_as";
 
@@ -21,8 +24,27 @@ static void
 lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
 {
     size_t size;
+    const char *ret = lua_tolstring(L, src_index, &size);
+    log_text("[lua_stack_to_lbuf] Fetching: ");
+    log_number(src_index);
+    log_text(" : ");
+    log_text(ret);
+    end_log();
     strncpy(dest, lua_tolstring(L, src_index, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
 }
+
+static dbref
+lua_pull_run_as(lua_State *L)
+{
+    dbref run_as;
+    /* Pull run_as in lua registry table */
+    lua_pushlightuserdata(L, (void *)rhost_run_as_key);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    run_as = lua_tonumber(L, -1);
+    lua_pop(L, 1); /* pops rhost_run_as_key */
+    return run_as;
+}
+
 
 static int
 lua_check_read_perms(dbref player, dbref thing, ATTR *attr,
@@ -78,7 +100,7 @@ rhost_get(lua_State *L)
 
     /* Check argument count */
     argv = lua_gettop(L);
-    if(argv < 2) {
+    if(argv != 2) {
         lua_pushliteral(L, "rhost_get: Incorrect number of arguments");
         lua_error(L);
         lua_pop(L, 1);
@@ -86,10 +108,7 @@ rhost_get(lua_State *L)
     }
 
     /* Pull run_as in lua registry table */
-    lua_pushlightuserdata(L, (void *)rhost_run_as_key);
-    lua_gettable(L, LUA_REGISTRYINDEX);
-    run_as = lua_tonumber(L, -1);
-    lua_pop(L, 1); /* pops rhost_run_as_key */
+    run_as = lua_pull_run_as(L);
 
     /* Second argument: attribute name */
     attr = alloc_lbuf("lua_rhost_get_attr");
@@ -126,6 +145,61 @@ rhost_get(lua_State *L)
     free_lbuf(result);
     free_lbuf(attr);
 
+    return 1;
+}
+
+/* rhost_strfunc() allows lua to call any function
+ * Arguments: string function name, string arguments
+ */
+static int
+rhost_strfunc(lua_State *L)
+{
+    char *fargs[3], *ret, *retptr;
+    int argv;
+    dbref run_as;
+
+    argv = lua_gettop(L);
+    log_text("[rhost_strfunc] argv: ");
+    log_number(argv);
+    end_log();
+
+    /* Check argument count */
+    if(argv < 2 || argv > 3) {
+        lua_pushliteral(L, "rhost_strfunc: Incorrect number of arguments");
+        lua_error(L);
+        lua_pop(L, 1);
+        return 0;
+    }
+
+    if(argv == 3) {
+         /* Third argument: args */
+         fargs[2] = alloc_lbuf("lua_rhost_strfunc_delim");
+         lua_stack_to_lbuf(L, fargs[2], -1);
+         lua_pop(L, 1); /* pops args */
+    }
+
+    /* Second argument: args */
+    fargs[1] = alloc_lbuf("lua_rhost_strfunc_args");
+    lua_stack_to_lbuf(L, fargs[1], -1);
+    lua_pop(L, 1); /* pops args */
+
+    /* First argument: func */
+    fargs[0] = alloc_lbuf("lua_rhost_strfunc_func");
+    lua_stack_to_lbuf(L, fargs[0], -1);
+    lua_pop(L, 1); /* pops func*/
+
+    run_as = lua_pull_run_as(L);
+    log_text("[rhost_strfunc] Run as: ");
+    log_number(run_as);
+    end_log();
+
+    ret = alloc_lbuf("lua_rhost_strfunc_ret");
+    retptr = ret;
+    fun_strfunc(ret, &retptr, run_as, run_as, run_as, fargs, argv, NULL, 0);
+
+    lua_pushstring(L, ret);
+
+    free_lbuf(ret);
     return 1;
 }
 
@@ -200,6 +274,8 @@ open_lua_interpreter(dbref run_as)
     /* Add Rhost functions */
     lua_pushcfunction(lua->state, rhost_get);
     lua_setfield(lua->state, -2, "get");
+    lua_pushcfunction(lua->state, rhost_strfunc);
+    lua_setfield(lua->state, -2, "strfunc");
 
     /* Stick rhost table into the global */
     lua_setfield(lua->state, -2, "rhost");
