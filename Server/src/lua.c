@@ -115,7 +115,7 @@ rhost_get(lua_State *L)
 
     atrp = atr_str4(attr);
     if(!atrp) {
-        lua_pushliteral(L, "rhost_get: Invalid attribute");
+        lua_pushliteral(L, "rhost_get: Invalid object or attribute");
         lua_error(L);
         lua_pop(L, 1);
 
