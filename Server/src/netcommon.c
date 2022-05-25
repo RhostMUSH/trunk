@@ -5904,35 +5904,43 @@ do_command(DESC * d, char *command)
                   free_lbuf(s_get);
 
                   if ( s_lua )  {
-                     lua = open_lua_interpreter(thing);
-                     free_lbuf(s_buffer);
-                     s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
-                     close_lua_interpreter(lua);
+                     if ( Totem(atoi(s_user),9) & TOTEM_API_LUA ) {
+                        lua = open_lua_interpreter(thing);
+                        free_lbuf(s_buffer);
+                        s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
+                        close_lua_interpreter(lua);
 
-                     queue_string(d, "HTTP/1.1 200 OK\r\n");
-                     queue_string(d, "Content-type: text/plain\r\n");
-                     if ( i_snarfing4 ) {
-                        queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
-                        queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
-                        queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                        queue_string(d, "HTTP/1.1 200 OK\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
+                        if ( i_snarfing4 ) {
+                           queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
+                           queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
+                           queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                        }
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "X-Lua: Ok - Executed\r\n");
+                        if ( i_encode64 ) {
+                           queue_string(d, "X-Lua-Warning: Base64 Encoding not supported for output\r\n");
+                        }
+                        queue_string(d, unsafe_tprintf("Content-Length: %i\r\n\r\n", i_lualength));
+                        s_luaptr = s_buffer;
+                        while(i_lualength > LBUF_SIZE - 1) {
+                            i_lualength -= LBUF_SIZE - 1;
+                            queue_write(d, s_luaptr, LBUF_SIZE - 1);
+                            s_luaptr += LBUF_SIZE - 1;
+                        }
+                        if(i_lualength) {
+                            queue_write(d, s_luaptr, i_lualength);
+                        }
+                        free(s_buffer);
+                        s_buffer = alloc_lbuf("cmd_post_buff");
+                     } else {
+                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "Exec: Error - Permission Denied\r\n");
+                        queue_string(d, "Return: <NULL>\r\n\r\n");
                      }
-                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                     queue_string(d, "X-Lua: Ok - Executed\r\n");
-                     if ( i_encode64 ) {
-                        queue_string(d, "X-Lua-Warning: Base64 Encoding not supported for output\r\n");
-                     }
-                     queue_string(d, unsafe_tprintf("Content-Length: %i\r\n\r\n", i_lualength));
-                     s_luaptr = s_buffer;
-                     while(i_lualength > LBUF_SIZE - 1) {
-                         i_lualength -= LBUF_SIZE - 1;
-                         queue_write(d, s_luaptr, LBUF_SIZE - 1);
-                         s_luaptr += LBUF_SIZE - 1;
-                     }
-                     if(i_lualength) {
-                         queue_write(d, s_luaptr, i_lualength);
-                     }
-                     free(s_buffer);
-                     s_buffer = alloc_lbuf("cmd_post_buff");
                      free_lbuf(s_lua);
                      s_lua = NULL;
                      i_snarfing = 1; /* We already handled this, move on */
