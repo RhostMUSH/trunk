@@ -1139,7 +1139,6 @@ CF_HAND(cf_rlevel)
 
     memset(strbuff, '\0', LBUF_SIZE);
     pst = strbuff;
-fprintf(stderr, "Test1: %s\n", str);
     /* Store description value */
     while ( *str && !isspace(*str) ) {
        *pst++ = *str++;
@@ -1149,7 +1148,6 @@ fprintf(stderr, "Test1: %s\n", str);
         mc->reality_level[mc->no_levels].attr[32] = '\0';
     }
     
-fprintf(stderr, "Test2: %s\n", str);
     /* Check for @adesc action for reality */
     for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
 
