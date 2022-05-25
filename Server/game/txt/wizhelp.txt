@@ -5738,10 +5738,8 @@
     /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
                 Syntax:  @totem/letter totemname=tierlevel letter
     /slot     - display all the slots and the number of totems assigned.
-  
-    Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
-                Syntax:  @totem/clean
+                Syntax:  @totem/clean [<target>]  ('all' is default)
    
   You may see individual help with 'help @totem/switchname' for any of the
   above switches for more detail on each sub-topic.
@@ -6075,11 +6073,37 @@
     > totem_letter mytotem 0 m
     > totem_letter mytotem1 1 m
     > totem_letter mytotem2 2 m
-   
+  
+  See Also: @totem
+
 & @totem/clean
 & totem clean
 & @totem clean
-  Not currently implemented.
+  Command: @totem/clean [all]
+           @totem/clean <target>
+  
+  This command will clean the target (or the entire database) of all totems
+  that have invalid flag definitions.  You may wish to consider the need for
+  this prior to running it as this does no harm to the database at all and
+  due to the dynamic totem system it is entirely possible that totem masks
+  may be set or unset dynamically on the fly.
+  
+  If, however, you wish to clean individual targets or the entire database
+  then it is possible to do so.
+  
+  You must control the target in order to clean it.
+  
+  All changes made will be dumped to the database on next db write but
+  are immediately changed and avaialble in-memory until then.
+  
+  Note: only immortals may clean the entire database.
+  
+  Examples:
+    > @totem/clean *myplayer
+    > @totem/clean all
+    > @totem/clean
+  
+  See Also: @totem, @totem/validate, @totem/info
 
 & @totem/slots
 & totem slots
@@ -6215,8 +6239,6 @@
   
   {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
-  See Also: @flag, @flagdef, @toggledef
-
 & @totemdef4
 & @toggledef4
 & @flagdef4
@@ -6245,7 +6267,10 @@
   
   See Also: flag_access_set, flag_access_unset, flag_access_see,
             toggle_access_set, toggle_access_unset, toggle_access_see,
-            flag_access_type, toggle_access_type, @flagdef, @toggledef
+            flag_access_type, toggle_access_type, totem_access_set,
+            totem_access_unset, totem_access_see, totem_access_type,
+            @flagdef, @toggledef, @totemdef
+  
 & @hook
   Command: @hook[/<switch(s)>] [<command/attribute>]
   

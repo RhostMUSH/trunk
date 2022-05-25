@@ -1848,6 +1848,97 @@ flag_set(dbref target, dbref player, char *flag, int key)
     free_lbuf(tbuff);
 }
 
+int
+totem_clean(char *s_target, dbref player)
+{
+   int i_count, i_totem, i_change, i_first, i_retval, i_playertotems[TOTEM_SLOTS], totems[TOTEM_SLOTS];
+   dbref target, thing;
+   char *s_buff, *s_buffptr;
+   TOTEMENT *storedtag;
+
+   i_retval = -777;
+
+   /* Initialize totem slots */
+   for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+      totems[i_totem] = 0;
+   }
+
+   /* Mark what totems are valid */
+   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         storedtag;
+         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      if ( storedtag ) {
+         totems[storedtag->flagpos] |= storedtag->flagvalue;
+      }
+   }
+
+   s_buffptr = s_buff = alloc_lbuf("totem_clean");
+   if ( !*s_target || (stricmp(s_target, (char *)"all") == 0) ) {
+      /* target everyone -- only immortals can do this */
+      if ( !Immortal(player ) ) {
+         notify(player, "@totem/clean: only immortals can run this against the entire database.");
+         return i_retval;
+      }
+      notify_quiet(player, "@totem/clean: Cleaning all objects of invalid totem slots.");
+      i_count = 0;
+      DO_WHOLE_DB(thing) {
+         /* If it's an invalid objects, we don't f'n care */
+         if ( !Good_chk(thing) ) {
+            continue;
+         }
+
+         /* Check and sanitize players, if changes mark db for update
+          * Backup player totems then compare on changes
+          */
+    
+         i_first = i_change = 0;
+         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+            i_playertotems[i_totem] = dbtotem[thing].flags[i_totem];
+            dbtotem[thing].flags[i_totem] &= totems[i_totem];
+            /* Flag to dump to database */
+            if ( i_playertotems[i_totem] != dbtotem[thing].flags[i_totem] ) {
+               i_change = dbtotem[thing].modified = 1;
+               if ( !i_first && (i_change == 1) ) {
+                  i_first = 1;
+                  i_count++;
+                  notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "   -> Player %s(#%d) cleaned of invalid totems slots.", Name(thing), thing));
+               }
+               notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "      ----> Slot %d: Fixed.", i_totem));
+            }
+         }
+      }
+      notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: %d total dbref#'s cleaned.", i_count));
+   } else {
+      /* target player only -- check if valid or controls */
+      init_match(player, s_target, NOTYPE);
+      match_everything(MAT_EXIT_PARENTS);
+      target = match_result();
+      if ( !Good_chk(target) || !Controls(player, target) ) {
+         i_retval = -12;
+      } else {
+         i_first = i_change = 0;
+         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+            i_playertotems[i_totem] = dbtotem[target].flags[i_totem];
+            dbtotem[target].flags[i_totem] &= totems[i_totem];
+            /* Flag to dump to database */
+            if ( i_playertotems[i_totem] != dbtotem[target].flags[i_totem] ) {
+               i_change = dbtotem[target].modified = 1;
+               if ( !i_first && (i_change == 1) ) {
+                  i_first = 1;
+                  notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: Player %s(#%d) cleaned of invalid totems slots.", Name(target), target));
+               }
+               notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "      ----> Slot %d: Fixed.", i_totem));
+            }
+         }
+         if ( i_change == 0 ) {
+            notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: Player %s(#%d) had no invalid slots to clean.", Name(target), target));
+         }
+      }
+   }
+   free_lbuf(s_buff);
+   return i_retval;
+}
+
 void 
 totem_set(dbref target, dbref player, char *totem, int key)
 {
@@ -5749,6 +5840,9 @@ totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
       case -13: /* Invalid target */
          safe_str((char *)"Totem with aliases can not be altered.", s_inbuff, &s_buffptr);
          break;
+      case -14: /* Reserved slot */
+         safe_str((char *)"Totem slot is reserved for hardcode mods only.", s_inbuff, &s_buffptr);
+         break;
       case -777: /* snuff messages */
          break;
       default: /* Invalid error -- log it */ 
@@ -6504,6 +6598,12 @@ totem_letter(char *totem, char totem_lett, int totem_tier)
   return 1;
 }
 
+
+/* Totem_perms:
+   0 - dynamic
+   1 - static (through config)
+   2 - permanent 
+*/
 int 
 totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
 {
@@ -6525,6 +6625,11 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   /* Deny if totem_slot not between 0-(TOTEM_SLOTS-1) */
   if ( (totem_slot < 0) || (totem_slot > (TOTEM_SLOTS - 1)) ) {
     return -2;
+  }
+
+  /* Totem is hardcoded reserved only -- disable if not a hardcode definition */
+  if ( (mudconf.totem_reserved[totem_slot] == 1) && (totem_perm != 2) ) {
+    return -14;
   }
 
   /* Deny if totem_value is not a valid singular bitwise mask */
@@ -7104,7 +7209,11 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_CLEAN: /* Totem clean -- clear old bits from target */
-         notify(player, "Sorry, this option is not yet implemented.");
+         s_buff = alloc_lbuf("totem_clean");
+         retvalue = totem_clean(flag1, player);
+         totem_handle_error(retvalue, player, (char *)"clean", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
          break;
       case TOTEM_DISPLAY: /* Totem display -- display all 32 flags for specified slot.  Format: @totem/display slotnumber */
          s_buff = alloc_lbuf("totem_display");

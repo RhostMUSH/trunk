@@ -34606,6 +34606,8 @@
  * atrcachemax -- max number of caches allowed (10 default, 200 max) [ASH]
  * exec64 handler for API to 64 encapsulate the input [ASH]
  * max_api_timeout -- maximum timeout value for the API connection [ASH]
+ * finally got around to adding @totem/clean [ASH]
+ * added the ability to define totem slots as hardcode reserved [ASH]
   
   Changes
   -------
@@ -34617,6 +34619,7 @@
  * /quick with mail/reply and mail/forward will bypass BRANDY_MAIL [ASH]
  * API now allows multiple transactions [ASH]
  * API is aggressively queued to insure faster response [ASH]
+ * /query switch to help, wizhelp, etc does color matching cleaner [ASH]
   
   Bug Fixes
   ------------

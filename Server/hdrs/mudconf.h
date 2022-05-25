@@ -101,6 +101,7 @@ struct confdata {
 	int	mailmutt;	/* Is MUTT the mail program of choice */
 	int	whereis_notify;
 	int	max_size;
+	int	totem_reserved[TOTEM_SLOTS];	/* Reservations of totems */
 	int	name_spaces;	/* allow player names to have spaces */
 	int	fork_dump;	/* perform dump in a forked process */
 	int	fork_vfork;	/* use vfork to fork */
