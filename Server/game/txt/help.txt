@@ -34608,6 +34608,8 @@
  * max_api_timeout -- maximum timeout value for the API connection [ASH]
  * finally got around to adding @totem/clean [ASH]
  * added the ability to define totem slots as hardcode reserved [ASH]
+ * @totemdef has a /slot option to show locked slots to hardcode [ASH]
+ * totemvalid() wiz function to show specific totem markers [ASH]
   
   Changes
   -------
@@ -34620,9 +34622,13 @@
  * API now allows multiple transactions [ASH]
  * API is aggressively queued to insure faster response [ASH]
  * /query switch to help, wizhelp, etc does color matching cleaner [ASH]
+ * @totem/clean takes optional target player and target MASK [ASH]
+ * @totem/validate can now target a specific player [ASH]
+ * Cleanup of @*def commands and variable defines [ASH]
   
   Bug Fixes
   ------------
  * (introduced this version) @atrcache stronger perms [ASH]
  * API could potentially hang with inactivity [ASH]
  * API POST was not HTML compliant [ASH]
+ * Compiling without OPENSSL would kick out an error [ASH]
