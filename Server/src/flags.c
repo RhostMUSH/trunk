@@ -6610,6 +6610,23 @@ totem_rename(char *totem, char *totemren)
   return stat;
 }
 
+void
+totem_clear(dbref player) {
+   int i_totem;
+
+   /* We want good_obj here and not good_chk */
+   if ( Good_obj(player) ) {
+      /* clear out all the totems */
+      for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+         dbtotem[player].flags[i_totem] = 0;
+      }
+
+      /* Flag the item to be modifiable */
+      dbtotem[player].modified = 1;
+
+   }
+}
+
 int 
 totem_remove(char *totem)
 {

@@ -5,6 +5,8 @@ UTF8 -> ASCII fallback for selecct characters.
         - Thanks WStarter for the idea, and Pres for the POC
 /quick switch to mail/reply and mail/forward to bypass BRANDY toggle.
 				- Thanks HarukaWatanabeLA
+player_absolute lookup for aliases in location to match PennMUSH
+				- Thanks Myrddin
 
 
                          RhostMUSH 4.0 Update File

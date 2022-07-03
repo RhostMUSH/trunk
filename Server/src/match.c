@@ -161,6 +161,28 @@ choose_thing(thing1, thing2)
 }
 
 void
+NDECL(match_player_absolute)
+{
+    dbref match;
+    char *p;
+
+    if (have_exact)
+	return;
+
+    if (!mudconf.player_absolute)
+	return;
+
+    for (p = (char *) match_name; isspace((int)*p); p++);
+    if ((match = lookup_player(NOTHING, p, 1)) != NOTHING) {
+       if ( Good_chk(match) && Good_chk(match_who) && (Location(match_who) == Location(match)) ) {
+          exact_match = match;
+          have_exact = 1;
+          local_match = 0;
+       }
+    }
+}
+
+void
 NDECL(match_player)
 {
     dbref match;
@@ -750,6 +772,7 @@ match_everything(key)
     if (key & MAT_HOME)
 	match_home();
     match_player();
+    match_player_absolute();
     if (have_exact)
 	return;
 

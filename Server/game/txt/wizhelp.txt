@@ -7261,10 +7261,10 @@
   paycheck                 pcreate_paranoia          pcreate_paranoia_fail   
   pemit_any_object         pemit_far_players         penn_playercmds         
   penn_setq                penn_switches             permit_site             
-  player_attr_default      player_dark               player_flags            
-  player_listen            player_match_commands     player_match_own_command
-  player_name_spaces       player_parent             player_queue_limit      
-  player_quota           
+  player_absolute          player_attr_default       player_dark             
+  player_flags             player_listen             player_match_commands   
+  player_match_own_command player_name_spaces        player_parent           
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -10857,6 +10857,17 @@
   See Also: badsite_file, forbid_site, register_site, forbidapi_site, 
             SITE LISTS.
 
+& player_absolute
+  Config parameter: player_absolute <boolean>.   Default: 0 (off)
+  
+  Specifies if player cache lookups happen at the location of the player.
+  This will allow looking at players, for example, by using their aliases.
+  
+  By default this is not the standard behavior of mush based engines.
+  
+  This effects look, senses, rob, locate(), and any other feature that
+  does a *specific* player based lookup match.
+  
 & player_attr_default
   Config parameter: player_attr_default <dbref>.  Default: -1
   

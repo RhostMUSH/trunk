@@ -568,6 +568,7 @@ dbref	victim, recipient;
 	match_neighbor();
 	match_absolute();
 	match_player();
+        match_player_absolute();
 	if ((victim = noisy_match_result ()) == NOTHING)
 		return;
 
@@ -576,6 +577,7 @@ dbref	victim, recipient;
 		match_neighbor ();
 		match_absolute ();
 		match_player ();
+		match_player_absolute ();
 		if ((recipient = noisy_match_result ()) == NOTHING)
 			return;
 	} else {

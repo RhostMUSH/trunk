@@ -17470,6 +17470,7 @@
   
   The following <switches> are available:
      fetch        -- (default) will fetch the value of the cash.
+ +*  grab         -- do a force recache then fetch value.
  +*  recache      -- run a recache of the specified cache based on interval
   *  interval     -- return the interval that recaches are done
   *  visible      -- return if the cache is visible or not
@@ -34610,6 +34611,8 @@
  * added the ability to define totem slots as hardcode reserved [ASH]
  * @totemdef has a /slot option to show locked slots to hardcode [ASH]
  * totemvalid() wiz function to show specific totem markers [ASH]
+ * grab is a force recache and fetch combined for atrcache() [ASH]
+ * player_absolute config param does local alias matches for players [ASH]
   
   Changes
   -------
@@ -34632,3 +34635,4 @@
  * API could potentially hang with inactivity [ASH]
  * API POST was not HTML compliant [ASH]
  * Compiling without OPENSSL would kick out an error [ASH]
+ * totems were not reset on destroyed objects [ASH]

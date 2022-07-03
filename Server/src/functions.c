@@ -12669,7 +12669,7 @@ FUNCTION(fun_decrypt)
 
 FUNCTION(fun_atrcache)
 {
-   static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", NULL};
+   static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", "grab", NULL};
    int i_len, i_len2, i_found, i_cnt;
 
    if (!fn_range_check("ATRCACHE", nfargs, 1, 2, buff, bufcx))
@@ -30985,6 +30985,7 @@ FUNCTION(fun_locate)
                 break;
             case 'p':
                 match_player();
+                match_player_absolute();
                 break;
             case '*':
                 match_everything(MAT_EXIT_PARENTS);

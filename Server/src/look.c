@@ -2390,6 +2390,7 @@ do_look(dbref player, dbref cause, int key, char *name)
     if (Privilaged(player) || HasPriv(player, NOTHING, POWER_LONG_FINGERS, POWER3, NOTHING)) {
 	match_absolute();
 	match_player();
+        match_player_absolute();
     }
     match_here();
     match_me();

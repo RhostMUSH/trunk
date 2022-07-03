@@ -769,6 +769,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
   if(Privilaged(player) || HasPriv(player,NOTHING,POWER_CHOWN_ANYWHERE,POWER3,POWER_LEVEL_NA)) {
     match_player();
     match_absolute();
+    match_player_absolute();
   }
   
   thing = match_result();
@@ -3092,6 +3093,7 @@ int	ibf = -1;
 	if (Wizard(player)) {
 		match_absolute();
 		match_player();
+		match_player_absolute();
 	}
 	match_me();
 	match_here();
