@@ -9438,10 +9438,15 @@
  
   Sets the gender for <object>, which is used to determine which pronouns to
   use when replacing %p, %o, %s, and %a parameters in messages that apply to
-  <object>.  Genders that start with M or m are considered male, those
-  starting with F, f, W, or w are considered female, those starting with
-  P or p are considered plural, and anything else is considered neuter.
- 
+  <object>.  
+  
+  Genders for the following substitutions are triggered if @sex starts with
+  the following letters:
+      m/M           -- male     (he/him/his)
+      f/F/w/W       -- female   (she/her/hers)
+      p/P           -- plural   (they/them/thirs)
+      Anything else -- neuter   (it/it/its)
+  
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
  
@@ -12318,14 +12323,18 @@
   
 & GENDER
   Topic: GENDER
- 
+   
   A player's (virtual) gender is specified in the Sex attribute.  This
   attribute controls how gender-specific pronoun substitutions are evaluated
-  for the player.  If the player's Sex attribute starts with an 'M' or an 'm'
-  then the player is assumed to be male,  'F', 'f', 'W', and 'w' indicate
-  female, and anything else indicates neuter.
+  for the player.  A player's SEX attribute starts with the following
+  letters will trigger the special handling:
   
-  See Also: SUBSTITUTIONS
+  'M' or an 'm' then the player is assumed to be male.
+  'F', 'f', 'W', and 'w' indicate female.
+  'P' or 'p' will indicated a plural sex.
+   anything else indicates neuter.
+  
+  See Also: @sex, SUBSTITUTIONS
   
 & GOALS
   Topic: GOALS
@@ -13813,10 +13822,52 @@
   EXAMPLES:             help printf examples
                         help printf penn      (for penn align-like examples)
                         help printf borders   (a quick example on borders)
+                        help printf subs      (coding center/ljust/rjust)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             wrapcolumns(), array(), template()
 
+& PRINTF SUBS
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  These are ways to duplicate the common format functions on other
+  codebases.  Printf is fully color/ansi aware.
+  
+  --- center
+    Example 1:
+      > think center(- test -,70)
+      > think printf($^70s,- test -)
+    Example 2:
+      > think center(- test -,70,-)
+      > think printf($^70:-:s,- test -)
+    Example 3: (do not cut off)
+      > think center(- test -,4,-)
+      > think printf($^4+:-:s,- test -)
+  
+  --- ljust
+    Example 1:
+      > think ljust(- test -,70)
+      > think printf($-70s,- test -)
+    Example 2:
+      > think ljust(- test -,70,-)
+      > think printf($-70:-:s,- test -)
+    Example 3: (do not cut off)
+      > think ljust(- test -,4,-)
+      > think printf($-4+:-:s,- test -)
+  
+  --- rjust
+    Example 1:
+      > think rjust(- test -,70)
+      > think printf($70s,- test -)
+    Example 2:
+      > think rjust(- test -,70,-)
+      > think printf($70:-:s,- test -)
+    Example 3: (do not cut off)
+      > think rjust(- test -,4,-)
+      > think printf($4+:-:s,- test -)
+  
+  See Also: printf(), printf examples
+    
 & PRINTF BORDERS
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
@@ -14384,7 +14435,7 @@
     > say obj(me)
     You say "him"
    
-  See Also: SUBSTITUTIONS, poss(), subj(), aposs()
+  See Also: @sex, GENDER, SUBSTITUTIONS, poss(), subj(), aposs()
   
 & POSS()
   Function: poss(<object>)
@@ -14399,7 +14450,7 @@
     > say poss(me)
     You say "his"
     
-  See Also: SUBSTITUTIONS, obj(), subj(), aposs()
+  See Also: @sex, GENDER, SUBSTITUTIONS, obj(), subj(), aposs()
   
 & ARGS()
   Function: args([[<filter(s)>, [<delim>]])
@@ -14526,7 +14577,7 @@
     > say aposs(me)
     You say "his"
    
-  See Also: SUBSTITUTIONS, obj(), subj(), poss()
+  See Also: @sex, GENDER, SUBSTITUTIONS, obj(), subj(), poss()
   
 & SUBJ()
   Function: subj(<object>)
@@ -14541,7 +14592,7 @@
     > say subj(me)
     You say "he"
    
-  See Also: SUBSTITUTIONS, obj(), poss(), aposs()
+  See Also: @sex, GENDER, SUBSTITUTIONS, obj(), poss(), aposs()
   
 & @sql
   Command: @sql <query>
@@ -16188,7 +16239,8 @@
     > subeval(this [add(1,1)] %p)
     You say "this [add(1,1)] his" 
   
-  See Also: SUBSTITUTIONS, eval(), subeval(), ueval(), streval(), u(), v()
+  See Also: @sex, GENDER, SUBSTITUTIONS, eval(), subeval(), ueval(), streval(),
+            u(), v()
   
 & SAFEBUFF()
   Function: safebuff(<list> [[,<delim>, [<length>]])
@@ -34628,6 +34680,7 @@
  * @totem/clean takes optional target player and target MASK [ASH]
  * @totem/validate can now target a specific player [ASH]
  * Cleanup of @*def commands and variable defines [ASH]
+ * Improvement of help for printf/@sex [ASH]
   
   Bug Fixes
   ------------
