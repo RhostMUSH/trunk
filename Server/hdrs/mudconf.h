@@ -101,6 +101,7 @@ struct confdata {
 	int	mailmutt;	/* Is MUTT the mail program of choice */
 	int	whereis_notify;
 	int	max_size;
+	int	totem_reserved[TOTEM_SLOTS];	/* Reservations of totems */
 	int	name_spaces;	/* allow player names to have spaces */
 	int	fork_dump;	/* perform dump in a forked process */
 	int	fork_vfork;	/* use vfork to fork */
@@ -249,6 +250,7 @@ struct confdata {
         int     allow_whodark;  /* Allows players set DARK from not showing on WHO */
         int     allow_ansinames;/* Allows names of all dbtypes to be ansified */
                                 /* 0:none/1:player/2:thing/4:room/8:exit/15:everything */
+	int	player_absolute;/* Allow absolute player name matches at location */
         int     who_comment;    /* Allows the (Bummer) and other messages in WHO */
         int     safe_wipe;      /* Anything set SAFE or INDESTRUCTIBLE can't be @wiped */
         int     secure_jumpok;  /* Sorry, only arch and higher can set jump_ok on non-rooms */

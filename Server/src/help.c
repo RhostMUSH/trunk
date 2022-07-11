@@ -180,11 +180,13 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     FILE *fp;
     char *p, *line, *sh_key1, *sh_key2, *sh_tmp;
     int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header,
-        i_cntr, i_tier0chk, i_shkey, i_shcnt, i_shflag;
+        i_cntr, i_tier0chk, i_shkey, i_shcnt, i_shflag, i_magic;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
     char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_buff, *s_buffptr, *s_nbuff[2];
+
+    i_magic = 0;
 
     if (*topic == '\0')
 	topic = (char *) "help";
@@ -284,11 +286,18 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                    s_buffptr = topic;
                    memset(s_buff2, '\0', LBUF_SIZE);
                    s_buff2ptr = s_buff2;
+                   i_magic = 0;
                    while ( *s_buffptr ) {
                       if ( *s_buffptr == '*' ) {
+                         if ( isprint(*(s_buffptr+1)) ) {
+                            if ( i_magic ) {
+                               safe_str((char *)".*", s_buff2, &s_buff2ptr);
+                            }
+                         }
                          s_buffptr++;
                          continue;
                       }
+                      i_magic = 1;
                       if ( *s_buffptr == '?' ) {
                          safe_chr('.', s_buff2, &s_buff2ptr);
                       } else {
@@ -622,7 +631,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char filename[129 + 40], *mybuff, *myp;
    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
         *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
-   int first, found, matched, one_through, space_compress, i_noindex, i_header;
+   int first, found, matched, one_through, space_compress, i_noindex, i_header, i_magic;
    int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk, i_bufffilled;
    FILE *fp_indx, *fp_help;
 
@@ -641,7 +650,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       return(1);
    }
 
-   i_bufffilled = 0;
+   i_magic = i_bufffilled = 0;
 
    i_noindex = i_suggest = 0;
    if ( key & DYN_NOLABEL ) {
@@ -779,11 +788,18 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                   s_buffptr = msg;
                   memset(s_buff2, '\0', LBUF_SIZE);
                   s_buff2ptr = s_buff2;
+                  i_magic = 0;
                   while ( *s_buffptr ) {
                     if ( *s_buffptr == '*' ) {
+                       if ( isprint(*(s_buffptr+1)) ) {
+                          if ( i_magic ) {
+                             safe_str((char *)".*", s_buff2, &s_buff2ptr);
+                          }
+                       }
                        s_buffptr++;
                        continue;
                     }
+                    i_magic = 1;
                     if ( *s_buffptr == '?' ) {
                        safe_chr('.', s_buff2, &s_buff2ptr);
                     } else {

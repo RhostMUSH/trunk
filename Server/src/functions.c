@@ -1333,6 +1333,7 @@ extern int totem_list(char *, int, dbref, dbref, char *);
 extern void totem_set(dbref, dbref, char *, int);
 extern void do_atrcache_fetch(dbref, char *, char *, char **);
 extern void do_atrcache_handler(dbref, char *, int, char *, char **);
+extern char * totem_valid(dbref, char *, int);
 
 
 int do_convtime(char *, struct tm *);
@@ -8785,6 +8786,23 @@ FUNCTION(fun_foreach)
 }
 
 
+FUNCTION(fun_totemvalid)
+{
+   char *s_return;
+   int i_keyslot;
+
+   if (!fn_range_check("TOTEMVALID", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   i_keyslot = -1;
+   if ( nfargs > 1 ) {
+      i_keyslot = atoi(fargs[1]);
+   }
+   s_return = totem_valid(player, fargs[0], i_keyslot);
+   safe_str(s_return, buff, bufcx);
+   free_lbuf(s_return);
+}
+
 FUNCTION(fun_totems)
 {
    int i_return;
@@ -12651,7 +12669,7 @@ FUNCTION(fun_decrypt)
 
 FUNCTION(fun_atrcache)
 {
-   static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", NULL};
+   static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", "grab", NULL};
    int i_len, i_len2, i_found, i_cnt;
 
    if (!fn_range_check("ATRCACHE", nfargs, 1, 2, buff, bufcx))
@@ -30967,6 +30985,7 @@ FUNCTION(fun_locate)
                 break;
             case 'p':
                 match_player();
+                match_player_absolute();
                 break;
             case '*':
                 match_everything(MAT_EXIT_PARENTS);
@@ -38957,6 +38976,7 @@ FUN flist[] =
 #ifdef USE_SIDEEFFECT
     {"TOTEMSET", fun_totemset, 2, 0, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"TOTEMVALID", fun_totemvalid, 1, FN_VARARGS, CA_WIZARD, CA_NO_CODE},
     {"TOTMATCH", fun_totmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTWILDMATCH", fun_totwildmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOTMEMBER", fun_totmember, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

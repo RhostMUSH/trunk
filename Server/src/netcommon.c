@@ -5088,7 +5088,7 @@ do_command(DESC * d, char *command)
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout;
     struct SNOOPLISTNODE *node;
     struct sockaddr_in p_sock;
     struct in_addr p_addr;

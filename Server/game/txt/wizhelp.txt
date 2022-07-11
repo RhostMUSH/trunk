@@ -5724,7 +5724,7 @@
     /rename   - Rename the totem.  CONFIG: totem_rename
                 Syntax:  @totem/rename totemname=newname
     /validate - Does a validation check on totems for dangling slot/values
-                Syntax:  @totem/validate
+                Syntax:  @totem/validate [<player>]
     /info     - Does information lookup on the specified totem.
                 Syntax:  @totem/info totemname
     /fulllist - Does full expansion of totem list (NAME|SLOT|VALUE)
@@ -5738,10 +5738,8 @@
     /letter   - Assign a flag letter to totem.  CONFIG: totem_letter
                 Syntax:  @totem/letter totemname=tierlevel letter
     /slot     - display all the slots and the number of totems assigned.
-  
-    Currently not implemented:
     /clean    - Will clean the dangling slot/values off all players
-                Syntax:  @totem/clean
+                Syntax:  @totem/clean [[<target>] [=<args>]] ('all' is default)
    
   You may see individual help with 'help @totem/switchname' for any of the
   above switches for more detail on each sub-topic.
@@ -5930,7 +5928,7 @@
 & @totem/validate
 & totem validate
 & @totem validate
-  Command: @totem/validate
+  Command: @totem/validate [<target>]
   
   This command will go through all the totems and print out any invalid
   totems.  Invalid totems are totems that are defined on players that 
@@ -5943,9 +5941,12 @@
   This will display all invalid totem values, what slot they exist in,
   and a list of every dbref# in the database that currently has defined
   an unreferenced totem bitmask.
+  
+  You may specify an optional player instead of the entire database.
    
   Example:
     > @totem/validate
+    > @totem/validate *player
   
   See Also: @totem 
 
@@ -6075,11 +6076,43 @@
     > totem_letter mytotem 0 m
     > totem_letter mytotem1 1 m
     > totem_letter mytotem2 2 m
-   
+  
+  See Also: @totem
+
 & @totem/clean
 & totem clean
 & @totem clean
-  Not currently implemented.
+  Command: @totem/clean [all]
+           @totem/clean <target>
+           @totem/clean <target>=<s1>/<mask1> <s2>/<mask2> ... <sN>/<maskN>
+  
+  This command will clean the target (or the entire database) of all totems
+  that have invalid flag definitions.  You may wish to consider the need for
+  this prior to running it as this does no harm to the database at all and
+  due to the dynamic totem system it is entirely possible that totem masks
+  may be set or unset dynamically on the fly.
+  
+  If, however, you wish to clean individual targets or the entire database
+  then it is possible to do so.
+  
+  You must control the target in order to clean it.
+  
+  All changes made will be dumped to the database on next db write but
+  are immediately changed and avaialble in-memory until then.
+  
+  You may specify one or more slots <sN> and masks <maskN> to specify
+  specific cleaning.  This way you can clean off specific masks and leave
+  others that you may wish to reuse.  Masks may be combined or separated.
+  
+  Note: only immortals may clean the entire database.
+  
+  Examples:
+    > @totem/clean
+    > @totem/clean all
+    > @totem/clean *myplayer
+    > @totem/clean *myplayer=3/0x1007703 4/0x00010000 4/0x10000000
+  
+  See Also: @totem, @totem/validate, @totem/info
 
 & @totem/slots
 & totem slots
@@ -6115,7 +6148,7 @@
   
   The @toggledef handles all TOGGLES.  (help @toggledef4 for options)
   The @flagdef handles all FLAGS.      (help @flagdef4 for options)
-  The @totemdef handles all TOTEMS.      (help @totemdef4 for options)
+  The @totemdef handles all TOTEMS.    (help @totemdef4 for options)
   
   The following switches exist for this command.
     /set    - This sets permissions of who can SET the flag.
@@ -6134,6 +6167,8 @@
                  'NoM'  - defines if the flag is un-modifiable.
                  'T'    - Unique to Totems ([P]ermanent, [S]tatic, [T]emporary)
                  'Slot' - Unique to Totems (slot position for @totem)
+    /slot   - Unique to Totems. Will show all the current slots available in 
+              totems and if they are locked to hardcode only or not.
   
   Keep in mind that if the columns are EMPTY, it defaults to whatever the mush
   standard permissions are for setting and unsetting those flags.
@@ -6215,8 +6250,6 @@
   
   {see 'wizhelp @flagdef4' for a list of all @admin related parameters}
   
-  See Also: @flag, @flagdef, @toggledef
-
 & @totemdef4
 & @toggledef4
 & @flagdef4
@@ -6245,7 +6278,10 @@
   
   See Also: flag_access_set, flag_access_unset, flag_access_see,
             toggle_access_set, toggle_access_unset, toggle_access_see,
-            flag_access_type, toggle_access_type, @flagdef, @toggledef
+            flag_access_type, toggle_access_type, totem_access_set,
+            totem_access_unset, totem_access_see, totem_access_type,
+            @flagdef, @toggledef, @totemdef
+  
 & @hook
   Command: @hook[/<switch(s)>] [<command/attribute>]
   
@@ -7225,10 +7261,10 @@
   paycheck                 pcreate_paranoia          pcreate_paranoia_fail   
   pemit_any_object         pemit_far_players         penn_playercmds         
   penn_setq                penn_switches             permit_site             
-  player_attr_default      player_dark               player_flags            
-  player_listen            player_match_commands     player_match_own_command
-  player_name_spaces       player_parent             player_queue_limit      
-  player_quota           
+  player_absolute          player_attr_default       player_dark             
+  player_flags             player_listen             player_match_commands   
+  player_match_own_command player_name_spaces        player_parent           
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -10821,6 +10857,17 @@
   See Also: badsite_file, forbid_site, register_site, forbidapi_site, 
             SITE LISTS.
 
+& player_absolute
+  Config parameter: player_absolute <boolean>.   Default: 0 (off)
+  
+  Specifies if player cache lookups happen at the location of the player.
+  This will allow looking at players, for example, by using their aliases.
+  
+  By default this is not the standard behavior of mush based engines.
+  
+  This effects look, senses, rob, locate(), and any other feature that
+  does a *specific* player based lookup match.
+  
 & player_attr_default
   Config parameter: player_attr_default <dbref>.  Default: -1
   
@@ -13089,9 +13136,9 @@
   CLOAK()          CODEPOINT()      DOING()       DYNHELP()     EXECSCRIPT()
   HASDEPOWER()     HASPOWER()       HASTOGGLE()   ISHIDDEN()    LATTRP()    
   LDEPOWERS()      LOGTOFILE()      LOGSTATUS()   LOOKUP_SITE() LPOWERS()   
-  LTOGGLES()       MAILALIAS()      MAILQUICK()   MAILQUOTA()   MAILSIZE()  
-  MAILSTATUS()     MSIZETOT()       NSLOOKUP()    QUOTA()       SIZE()      
-  TEXTFILE()       MAILREAD()       MAILSEND()   
+  LTOGGLES()       MAILALIAS()      MAILQUICK()   MAILQUOTA()   MAILREAD()
+  MAILSEND()       MAILSIZE()       MAILSTATUS()  MSIZETOT()    NSLOOKUP()  
+  QUOTA()          SIZE()           TEXTFILE()    TOTEMVALID()
 
 & EXECSCRIPT()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
@@ -13644,6 +13691,52 @@
   
   See Also: @dynhelp, dynhelp()
 
+& TOTEMVALID()
+  Function: totemvalid([all])
+            totemvalid(<target>)
+            totemvalid(<target>, <slot>)
+  
+  This function returns list reports on the totems within the system.
+
+  --- totemvalid() ( or totemvalid(all) )
+  The first argument (defaults to 'all') will list every dbref# in the
+  database that has an invalid @totem mask defined.  An invalid totem
+  mask is one that has a mask on the player without a defined name.
+  
+  This is entirely legal and possible as with dynamic totems they can
+  be added or removed on the fly without causing any issues or damage
+  to the database.  They are dynamic for a reason.  This just empowers
+  the admins to clean up the database with masks that will no longer
+  be used for house-cleaning.
+  
+  --- totemvalid(<target>)
+  The second argument will list all slots on the target that have
+  invalid totem masks.  This is useful for use in lists and
+  functional processing.
+  
+  --- totemvalid(<target>, <slot>)
+  The third option allows drilling down and more detail on the target.
+  You may specify the slot to show any specific masks that are invalid.
+  Any slot that is valid and fine will show '0x0000000' (or no masks).
+  
+  You may specify two unique slot values for different results:
+    -1  -- This is functionaly the same as totemvalid(<target>)
+    -2  -- This will produce the list in the form <slot>/<mask>
+  
+  Examples:
+    > think totemvalid()
+    #123 #234 #456
+    > think totemvalid(#123)
+    3 5
+    > think totemvalid(#123,-1)
+    3 5
+    > think totemvalid(#123,3)
+    0x00005001              (notice the masks will be added to what is bad)
+    > think totemvalid(#123,-2)
+    3/0x00005001 5/0x10000000
+   
+  See Also: @totem, @totemdef 
+  
 & CLOAK()
   Function: cloak(<target>,<player>)
   

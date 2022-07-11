@@ -17472,6 +17472,7 @@
   
   The following <switches> are available:
      fetch        -- (default) will fetch the value of the cash.
+ +*  grab         -- do a force recache then fetch value.
  +*  recache      -- run a recache of the specified cache based on interval
   *  interval     -- return the interval that recaches are done
   *  visible      -- return if the cache is visible or not
@@ -34608,6 +34609,12 @@
  * atrcachemax -- max number of caches allowed (10 default, 200 max) [ASH]
  * exec64 handler for API to 64 encapsulate the input [ASH]
  * max_api_timeout -- maximum timeout value for the API connection [ASH]
+ * finally got around to adding @totem/clean [ASH]
+ * added the ability to define totem slots as hardcode reserved [ASH]
+ * @totemdef has a /slot option to show locked slots to hardcode [ASH]
+ * totemvalid() wiz function to show specific totem markers [ASH]
+ * grab is a force recache and fetch combined for atrcache() [ASH]
+ * player_absolute config param does local alias matches for players [ASH]
   
   Changes
   -------
@@ -34619,9 +34626,15 @@
  * /quick with mail/reply and mail/forward will bypass BRANDY_MAIL [ASH]
  * API now allows multiple transactions [ASH]
  * API is aggressively queued to insure faster response [ASH]
+ * /query switch to help, wizhelp, etc does color matching cleaner [ASH]
+ * @totem/clean takes optional target player and target MASK [ASH]
+ * @totem/validate can now target a specific player [ASH]
+ * Cleanup of @*def commands and variable defines [ASH]
   
   Bug Fixes
   ------------
  * (introduced this version) @atrcache stronger perms [ASH]
  * API could potentially hang with inactivity [ASH]
  * API POST was not HTML compliant [ASH]
+ * Compiling without OPENSSL would kick out an error [ASH]
+ * totems were not reset on destroyed objects [ASH]

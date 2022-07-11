@@ -492,6 +492,7 @@ NAMETAB flagdef_sw[] =
     {(char *) "letter", 2, CA_IMMORTAL, 0, FLAGDEF_CHAR},
     {(char *) "index", 2, CA_IMMORTAL, 0, FLAGDEF_INDEX},
     {(char *) "type", 2, CA_IMMORTAL, 0, FLAGDEF_TYPE},
+    {(char *) "slot", 2, CA_IMMORTAL, 0, FLAGDEF_SLOT},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB force_sw[] =

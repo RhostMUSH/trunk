@@ -25,6 +25,7 @@ extern double NDECL(next_timer);
 extern int FDECL(alarm_msec, (double));
 extern void FDECL(show_desc_redir, (dbref, dbref, int));
 extern void FDECL(look_atrs_redir, (dbref, dbref, int, int, dbref, int));
+extern void FDECL(totem_clear, (dbref));
 
 static int check_type;
 
@@ -759,48 +760,52 @@ destroy_obj(dbref player, dbref obj, int purge)
     s_Parent(obj, NOTHING);
     s_Exits(obj, NOTHING);
     if (purge) {
-	atr_free(obj);
-	s_Name(obj, NULL);
-	s_Flags3(obj, 0);
-	s_Flags4(obj, 0);
-	s_Toggles(obj, 0);
-	s_Toggles2(obj, 0);
-	s_Toggles3(obj, 0);
-	s_Toggles4(obj, 0);
-	s_Contents(obj, NOTHING);
-	s_Next(obj, NOTHING);
-	s_Owner(obj, GOD);
-	s_Pennies(obj, 0);
-	s_Flags(obj, (TYPE_THING | GOING));
-	s_Flags2(obj, 0);
+       atr_free(obj);
+       s_Name(obj, NULL);
+       s_Flags3(obj, 0);
+       s_Flags4(obj, 0);
+       s_Toggles(obj, 0);
+       s_Toggles2(obj, 0);
+       s_Toggles3(obj, 0);
+       s_Toggles4(obj, 0);
+       s_Contents(obj, NOTHING);
+       s_Next(obj, NOTHING);
+       s_Owner(obj, GOD);
+       s_Pennies(obj, 0);
+       s_Flags(obj, (TYPE_THING | GOING));
+       s_Flags2(obj, 0);
 #ifndef STANDALONE
-  TAGENT *tagentry;
-  char *tagrem, *tagremp, *s_strtok, *s_strtokr;
-  tagremp = tagrem = alloc_lbuf("tag_destpurge");
-  for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-       tagentry;
-       tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
-      if( tagentry->tagref == obj) {
-        if(*tagrem) 
-          safe_chr(' ', tagrem, &tagremp);
-        safe_str(tagentry->tagname, tagrem, &tagremp);
-      }
-    }
-  s_strtok = strtok_r(tagrem, " ", &s_strtokr);
-  while( s_strtok ) {
-        objecttag_remove(s_strtok);
-        s_strtok = strtok_r(NULL, " ", &s_strtokr);
-      }
-  free_lbuf(tagrem);
+       /* clear totems */
+       totem_clear(obj);
+
+       TAGENT *tagentry;
+       char *tagrem, *tagremp, *s_strtok, *s_strtokr;
+
+       tagremp = tagrem = alloc_lbuf("tag_destpurge");
+       for (tagentry = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
+            tagentry;
+            tagentry = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+          if( tagentry->tagref == obj) {
+             if(*tagrem) 
+                safe_chr(' ', tagrem, &tagremp);
+             safe_str(tagentry->tagname, tagrem, &tagremp);
+          }
+       }
+
+       s_strtok = strtok_r(tagrem, " ", &s_strtokr);
+       while( s_strtok ) {
+          objecttag_remove(s_strtok);
+          s_strtok = strtok_r(NULL, " ", &s_strtokr);
+       }
+       free_lbuf(tagrem);
 #endif
-  }
-    else {
-      s_Flags4(obj, Flags4(obj) & ~BOUNCE);
-      s_Flags2(obj, (Flags2(obj) | RECOVER) & ~BYEROOM);
-      s_Flags(obj, (Flags(obj) | HALT) & ~PUPPET);
-      s_Next(obj, Owner(obj));
-      s_Owner(obj, GOD);
-      s_Contents(obj, player);
+    } else {
+       s_Flags4(obj, Flags4(obj) & ~BOUNCE);
+       s_Flags2(obj, (Flags2(obj) | RECOVER) & ~BYEROOM);
+       s_Flags(obj, (Flags(obj) | HALT) & ~PUPPET);
+       s_Next(obj, Owner(obj));
+       s_Owner(obj, GOD);
+       s_Contents(obj, player);
     }
     cache_reset(0);
     return;
@@ -1164,6 +1169,9 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	s_Flags2(obj, 0);
 	s_Exits(obj, NOTHING);
 #ifndef STANDALONE
+	/* clear totems */
+	totem_clear(obj);
+
   TAGENT *tagentry;
   char *tagrem, *tagremp, *s_strtok, *s_strtokr;
   tagremp = tagrem = alloc_lbuf("tag_purge");
@@ -1386,6 +1394,9 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    s_Link(obj, NOTHING);
 	    obj = owner;
 #ifndef STANDALONE
+      /* clear totems */
+      totem_clear(obj);
+
       TAGENT *tagentry;
       char *tagrem, *tagremp, *s_strtok, *s_strtokr;
       tagremp = tagrem = alloc_lbuf("tag_destpurge");

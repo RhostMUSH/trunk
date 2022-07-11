@@ -508,7 +508,7 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx)
 void
 do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int key)
 {
-   int i_slot, i_found, i_cnt;
+   int i_slot, i_found, i_cnt, i_noshow;
    char *s_tbuff, *retbuff;
    ATRCACHE *cp;
 
@@ -516,8 +516,14 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
       return;
    }
    
+   i_noshow = 0;
+   if ( key & 2 ) {
+      key &= ~2;
+      i_noshow = 1;
+   }
    if ( !s_slot || !*s_slot ) {
-      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      if ( !i_noshow ) 
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
       return;
    }
 
@@ -525,7 +531,8 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
    if ( isdigit(*s_slot) ) {
       i_slot = atoi(s_slot);
       if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
-         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         if ( !i_noshow ) 
+            safe_str("#-1 INVALID CACHE", buff, bufcx);
          return;
       }
    }
@@ -552,13 +559,15 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
                cp->i_lastrun = mudstate.now;
             }
          } 
-         sprintf(s_tbuff, "%ld", cp->i_lastrun);
-         safe_str(s_tbuff, buff, bufcx);
+         if ( !i_noshow ) {
+            sprintf(s_tbuff, "%ld", cp->i_lastrun);
+            safe_str(s_tbuff, buff, bufcx);
+         }
          free_lbuf(s_tbuff);
          break;
       }
    }
-   if ( !i_found ) {
+   if ( !i_found && !i_noshow ) {
       safe_str("#-1 INVALID CACHE", buff, bufcx);
    }
 }
@@ -875,6 +884,10 @@ do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufc
          break;
       case 8: /* exec cache to build */
          do_atrcache_execval(player, s_slot, buff, bufcx);
+      case 9: /* grab -- force recache then grab */
+         /* passing '3' is a bitmask to snuff output */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 3);
+         do_atrcache_fetch(player, s_slot, buff, bufcx);
          break;
       default: /* Error */
          safe_str("#-1 UNRECOGNIZED SWITCH", buff, bufcx);
@@ -1716,6 +1729,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 	match_neighbor();
 	match_absolute();
 	match_player();
+        match_player_absolute();
 	if ((victim = noisy_match_result()) == NOTHING) return;
 
 	if (!isPlayer(victim)) {
@@ -1796,6 +1810,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 		match_neighbor ();
 		match_absolute ();
 		match_player ();
+		match_player_absolute ();
 		if ((recipient = noisy_match_result ()) == NOTHING)
 			return;
 	} else {
@@ -1891,6 +1906,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 	match_neighbor();
 	match_absolute();
 	match_player();
+	match_player_absolute();
 	if ((victim = noisy_match_result()) == NOTHING) return;
 
 	if (!isPlayer(victim)) {
@@ -1910,6 +1926,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 		match_neighbor ();
 		match_absolute ();
 		match_player ();
+		match_player_absolute ();
 		if ((recipient = noisy_match_result ()) == NOTHING)
 			return;
 	} else {
@@ -2242,6 +2259,7 @@ int	count, lcomp;
 		match_neighbor();
 		match_absolute();
 		match_player();
+		match_player_absolute();
 		if ((victim = noisy_match_result()) == NOTHING) return;
 
 		if (God(victim)) {

@@ -771,6 +771,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
 #define FLAGDEF_INDEX	32	/* Show the permission index allowed */
 #define FLAGDEF_TYPE	64	/* Define type restrictions */
+#define FLAGDEF_SLOT	128	/* Show slot permissions */
 
 #define	FRC_PREFIX	0	/* #num command */
 #define	FRC_COMMAND	1	/* what=command */

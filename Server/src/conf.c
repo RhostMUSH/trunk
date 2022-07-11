@@ -356,6 +356,7 @@ NDECL(cf_init)
     mudconf.elements_compat = 0;	/* Enable elementsz compatibility */
     mudconf.atrcachemax = 10;		/* Default number of atrcaches to prep */
     mudconf.max_api_timeout = 20;	/* Maximum API timeout value */
+    mudconf.player_absolute = 0;	/* Player absolute (cache) lookup at location */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -1139,7 +1140,6 @@ CF_HAND(cf_rlevel)
 
     memset(strbuff, '\0', LBUF_SIZE);
     pst = strbuff;
-fprintf(stderr, "Test1: %s\n", str);
     /* Store description value */
     while ( *str && !isspace(*str) ) {
        *pst++ = *str++;
@@ -1149,7 +1149,6 @@ fprintf(stderr, "Test1: %s\n", str);
         mc->reality_level[mc->no_levels].attr[32] = '\0';
     }
     
-fprintf(stderr, "Test2: %s\n", str);
     /* Check for @adesc action for reality */
     for(; *str && ((*str == ' ') || (*str == '\t')); ++str);
 
@@ -5144,6 +5143,9 @@ CONF conftable[] =
     {(char *) "permit_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.access_list, 0, 0, CA_WIZARD,
      (char *) "Site permission for allowing site."},
+    {(char *) "player_absolute",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.player_absolute, 0, 0, CA_PUBLIC,
+     (char *) "Player cache lookups done at location?"},
     {(char *) "player_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.player_dark, 0, 0, CA_PUBLIC,
      (char *) "Can players set themselves/puppets dark?"},

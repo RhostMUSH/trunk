@@ -92,6 +92,26 @@ int reserved;
 
 ATRCACHE *atrcache_head;
 
+/* Set totem reservation values */
+void
+set_totem_reserved( int i_slot, int i_val ) {
+   if ( (i_slot >= 0) && (i_slot < TOTEM_SLOTS) )
+      mudconf.totem_reserved[i_slot] = (i_val ? 1 : 0);
+}
+
+/* Initialize totem reservation slots */
+void
+init_totemreservations( void ) {
+   int i_slots;
+
+   for ( i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+      mudconf.totem_reserved[i_slots] = 0;
+   }
+
+   /* Add hardcode reservations here */
+   set_totem_reserved(9, 1);
+}
+
 void
 init_atrcache( void ) {
    int i_cnt;
@@ -2517,6 +2537,7 @@ main(int argc, char *argv[])
 #ifdef ENABLE_DOORS
     initDoorSystem();
 #endif
+    init_totemreservations();
     hashinit(&mudstate.player_htab, 521);
     hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);

@@ -32,6 +32,7 @@ extern void FDECL(init_match, (dbref, const char *, int));
 extern void FDECL(init_match_real, (dbref, const char *, int, int));
 extern void FDECL(init_match_check_keys, (dbref, const char *, int));
 extern void NDECL(match_player);
+extern void NDECL(match_player_absolute);
 extern void NDECL(match_absolute);
 extern void NDECL(match_numeric);
 extern void NDECL(match_me);
