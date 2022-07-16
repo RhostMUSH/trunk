@@ -188,6 +188,11 @@
 /* 0x40000000 free */
 /* 0x80000000 free */
 
+/* Totems */
+
+/* Slot 9 */
+#define TOTEM_API_LUA 0x00000400
+
 /* First word of toggles - Thorin 3/95 */
 
 #define TOG_MONITOR		0x00000001	/* Active monitor on player */
