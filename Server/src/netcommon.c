@@ -5080,22 +5080,21 @@ do_command(DESC * d, char *command)
 #endif
     char *s_usepass, *s_usepassptr,
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
-#ifdef ENABLE_LUA
-         *s_get, *s_pass, *s_enc64, *s_enc64ptr, *s_lua, *s_luaptr;
-    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout, i_lualength;
-    lua_t *lua;
-#else
          *s_get, *s_pass, *s_enc64, *s_enc64ptr;
-    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders, i_timeout;
-#endif
     double i_time;
+    int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
     dbref aowner, thing;
     ATTR *atrp;
+#endif
+#ifdef ENABLE_LUA
+    char *s_lua, *s_luaptr;
+    int i_lualength;
+    lua_t *lua;
 #endif
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout;
     struct SNOOPLISTNODE *node;
     struct sockaddr_in p_sock;
     struct in_addr p_addr;
