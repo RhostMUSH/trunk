@@ -821,7 +821,7 @@ int pay_quota(dbref player, dbref who, int cost, int ttype, int pay)
   who = Owner(who);
 
   if ((!Builder(who) && !HasPriv(who,NOTHING,POWER_FREE_QUOTA,POWER3,POWER_LEVEL_NA)) ||
-	(DePriv(player,NOTHING,DP_UNL_QUOTA,POWER7,POWER_LEVEL_NA))) {
+	(DePriv(who,NOTHING,DP_UNL_QUOTA,POWER7,POWER_LEVEL_NA))) {
     rval = 0;
     atr1 = atr_get(who,A_RQUOTA,&owner,&flags);
     if (!Altq(who)) {
