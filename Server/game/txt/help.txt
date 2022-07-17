@@ -34615,6 +34615,7 @@
  * totemvalid() wiz function to show specific totem markers [ASH]
  * grab is a force recache and fetch combined for atrcache() [ASH]
  * player_absolute config param does local alias matches for players [ASH]
+ * Lua support for the WebAPI. Configurable with 'make config' [POLK]
   
   Changes
   -------
@@ -34638,3 +34639,5 @@
  * API POST was not HTML compliant [ASH]
  * Compiling without OPENSSL would kick out an error [ASH]
  * totems were not reset on destroyed objects [ASH]
+ * hasquota() was checking for the UNL_QUOTA depower on the user instead
+   of the target [AMB]
