@@ -357,6 +357,7 @@ NDECL(cf_init)
     mudconf.atrcachemax = 10;		/* Default number of atrcaches to prep */
     mudconf.max_api_timeout = 20;	/* Maximum API timeout value */
     mudconf.player_absolute = 0;	/* Player absolute (cache) lookup at location */
+    mudconf.setqlabel = 0;		/* Label enforcing for setq */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5390,6 +5391,9 @@ CONF conftable[] =
     {(char *) "see_owned_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.see_own_dark, 0, 0, CA_PUBLIC,
      (char *) "Can you see dark things you control?"},
+    {(char *) "setqlabel",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setqlabel, 0, 0, CA_PUBLIC,
+     (char *) "Are registers that have labels protected?"},
     {(char *) "sha2rounds",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.sha2rounds, 999999, 5000, CA_WIZARD,
      (char *) "SHA2 round recursion for password encryption.\r\n"\

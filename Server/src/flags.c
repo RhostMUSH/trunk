@@ -686,17 +686,18 @@ int fh_none(dbref target, dbref player, int flag, int fflags, int reset)
 TOTEMENT totem_table[] =
 {
 /* NAME, BITVALUE, LETTER, LETTER-TIER, SLOT, BASE-PERMS, SEE-PERMS, SET-PERMS, UNSET-PERMS, TYPE-PERMS, PERM?, ALIASED?, FUNC-HANDLE */
-  {"MARKER0", 0x00000001, '0', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER1", 0x00000002, '1', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER2", 0x00000004, '2', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER3", 0x00000008, '3', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER4", 0x00000010, '4', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER5", 0x00000020, '5', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER6", 0x00000040, '6', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER7", 0x00000080, '7', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER8", 0x00000100, '8', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER9", 0x00000200, '9', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {NULL, 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
+  {"MARKER0", 	0x00000001, '0', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER1", 	0x00000002, '1', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER2", 	0x00000004, '2', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER3", 	0x00000008, '3', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER4", 	0x00000010, '4', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER5", 	0x00000020, '5', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER6", 	0x00000040, '6', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER7", 	0x00000080, '7', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER8", 	0x00000100, '8', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER9", 	0x00000200, '9', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"SETQLABEL",	0x80000000, 's', 2, 9, 0, 0, 0,		0, 		0, 2, 0, totem_any},
+  { NULL,	0x00000000, ' ', 0, 0, 0, 0, 0, 	0, 		0, 0, 0, NULL}
 };
 
 /* Toggle table, 4th item tells which toggle word, 0 for 1st word, TOGGLE2, TOGGLE3, or TOGGLE4 */
@@ -1514,6 +1515,25 @@ find_totem(dbref thing, char *totemname)
     return (TOTEMENT *) hashfind(totemname, &mudstate.totem_htab);
 }
 
+int
+check_totem(dbref thing, dbref player, char *totemname) {
+   TOTEMENT *hashp;
+   int i_ret;
+
+   i_ret = 0;
+   if ( Good_obj(thing) && Good_obj(player) && totemname && *totemname ) {
+      hashp = find_totem(thing, totemname);
+      if ( hashp ) {
+         if ( (dbtotem[thing].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
+            if ( totem_cansee_bit(player, thing, hashp->listperm) ) {
+               i_ret = 1;
+             }
+          } 
+      }
+   }
+   return i_ret;
+}
+
 TOGENT *
 find_toggle(dbref thing, char *togglename)
 {
@@ -1555,6 +1575,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
 {
     FLAGENT *fp;
     TOGENT *tp;
+    TOTEMENT *tmp;
     int negate, result, perm, i_ovperm, i_uovperm, i_chkflags, i_setmuffle;
     char *pt1, *pt2, st, *tbuff, *tpr_buff, *tprp_buff, *tpr_buff2, *tprp_buff2;
 
@@ -1604,7 +1625,13 @@ flag_set(dbref target, dbref player, char *flag, int key)
                 tp = find_toggle_perm(target, pt1, player);
                 if ( !i_setmuffle) {
                    if ( tp == NULL ) {
-		      notify(player, "I don't understand that flag.");
+                      tmp = find_totem_perm(target, pt1, player);
+                      if ( tmp == NULL ) {
+		         notify(player, "I don't understand that flag.");
+                      } else {
+                         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @totem me=%s?]", pt1));
+                         tprp_buff = tpr_buff;
+                      }
                    } else {
                       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
                       tprp_buff = tpr_buff;
@@ -2048,14 +2075,16 @@ totem_clean(char *s_target, char *s_totems, dbref player)
 void 
 totem_set(dbref target, dbref player, char *totem, int key)
 {
-    TOTEMENT *fp, *tp;
+    TOTEMENT *tmp;
+    TOGENT *tp;
+    FLAGENT *fp;
     FLAG i_flag;
     int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
 
-    fp = (TOTEMENT*)NULL;
+    fp = (FLAGENT*)NULL;
     pt1 = totem;
     st = 1;
     while (st) {
@@ -2088,12 +2117,19 @@ totem_set(dbref target, dbref player, char *totem, int key)
 		notify(player, "You must specify a totem or totem to set.");
             }
 	} else {
-	    tp = find_totem(target, pt1);
-	    if (tp == NULL) {
+	    tmp = find_totem(target, pt1);
+	    if (tmp == NULL) {
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
-                fp = find_totem_perm(target, pt1, player);
+                fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
-		   notify(player, "I don't understand that totem.");
+                   tp = find_toggle_perm(target, pt1, player);
+                   if ( tp == NULL ) {
+		      notify(player, "I don't understand that totem.");
+                   } else {
+                      tprp_buff = tpr_buff = alloc_lbuf("totem_message");
+                      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that totem [Did you mean @toggle me=%s?]", pt1));
+                      free_lbuf(tpr_buff);
+                   }
                 } else {
                    tprp_buff = tpr_buff = alloc_lbuf("totem_message");
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that totem [Did you mean @set me=%s?]", pt1));
@@ -2108,24 +2144,24 @@ totem_set(dbref target, dbref player, char *totem, int key)
 		     notify(player, "Permission denied.");
                     perm = 0;
                 } 
-                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
-                             ((Typeof(target) == TYPE_PLAYER) && (tp->typeperm & DEF_PLAYER)) ||
-                             ((Typeof(target) == TYPE_THING) && (tp->typeperm & DEF_THING)) ||
-                             ((Typeof(target) == TYPE_EXIT) && (tp->typeperm & DEF_EXIT)) ) ) {
-                    if ( !(tp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tmp->typeperm & DEF_ROOM)) || 
+                             ((Typeof(target) == TYPE_PLAYER) && (tmp->typeperm & DEF_PLAYER)) ||
+                             ((Typeof(target) == TYPE_THING) && (tmp->typeperm & DEF_THING)) ||
+                             ((Typeof(target) == TYPE_EXIT) && (tmp->typeperm & DEF_EXIT)) ) ) {
+                    if ( !(tmp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
                                             DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                     } else if ( (tmp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                     } else if ( (tmp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                     } else if ( (tmp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                     } else if ( (tmp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                     } else if ( (tmp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                     } else if ( (tmp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
                         perm = 0;
                      }
                      if ( !perm )
@@ -2134,10 +2170,10 @@ totem_set(dbref target, dbref player, char *totem, int key)
 		if ( perm ) {
 		/* Invoke the totem handler, and print feedback */
 
-                  i_flag = dbtotem[target].flags[tp->flagpos];
-                  i_flagchk = !(tp->flagvalue & i_flag);
-                  i_ovperm = (tp->setovperm &~ CA_LOGFLAG);
-                  i_uovperm = (tp->usetovperm &~ CA_LOGFLAG);
+                  i_flag = dbtotem[target].flags[tmp->flagpos];
+                  i_flagchk = !(tmp->flagvalue & i_flag);
+                  i_ovperm = (tmp->setovperm &~ CA_LOGFLAG);
+                  i_uovperm = (tmp->usetovperm &~ CA_LOGFLAG);
                   if (((i_ovperm > 0) && !negate) || 
                       ((i_uovperm > 0) && negate)) {
                      if ((i_ovperm > 0) && !negate) 
@@ -2146,12 +2182,12 @@ totem_set(dbref target, dbref player, char *totem, int key)
                         result = check_access(player, i_uovperm, 0, 0);
                        /* Some things you just can *not* override */
                      if ( result ) {
-		          result = tp->handler(target, player, tp->flagvalue,
-				               tp->flagpos, negate);
+		          result = tmp->handler(target, player, tmp->flagvalue,
+				               tmp->flagpos, negate);
                      }
                   } else {
-		     result = tp->handler(target, player, tp->flagvalue,
-		   		     tp->flagpos, negate);
+		     result = tmp->handler(target, player, tmp->flagvalue,
+		   		     tmp->flagpos, negate);
                   }
                   if ( result ) {
                      dbtotem[target].modified = 1;
@@ -2164,11 +2200,11 @@ totem_set(dbref target, dbref player, char *totem, int key)
                        if ( negate ) {
                           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (cleared totem%s%s).",
                                        Name(target), (!i_flagchk ? " " : " [again] "),
-                                       tp->flagname) );
+                                       tmp->flagname) );
                        } else {
                           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (set totem%s%s).",
                                        Name(target), (i_flagchk ? " " : " [again] "),
-                                       tp->flagname) );
+                                       tmp->flagname) );
                        }
                        free_lbuf(tpr_buff);
                     } else {
@@ -2188,6 +2224,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 {
     FLAGENT *fp;
     TOGENT *tp;
+    TOTEMENT *tmp;
     FLAG i_flag;
     int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
@@ -2232,7 +2269,14 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
                 fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
-		   notify(player, "I don't understand that toggle.");
+                   tmp = find_totem_perm(target, pt1, player);
+                   if ( tmp == NULL ) {
+		      notify(player, "I don't understand that toggle.");
+                   } else {
+                      tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
+                      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @totem me=%s?]", pt1));
+                      free_lbuf(tpr_buff);
+                   }
                 } else {
                    tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));

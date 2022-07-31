@@ -274,6 +274,7 @@ struct confdata {
         int     restrict_home2; /* Define level of restriction (2nd word) */
 	char    invname[80];    /* Define name of inventory type - default 'backpack' */
 	int     sideeffects;	/* Define sideeffects (set-1,create-2,link-4,pemit-8,tel-16) */
+	int     setqlabel;	/* Enforce only using labels for setq if label present */
 	int	raw_formatting; /* Allow raw input formatting */
 	int	enforce_checksums; /* Enforce checksums on command matching */
 	int     restrict_sidefx; /* Restrict setting side-effects to bitlevel (0 default/any) */

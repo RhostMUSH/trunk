@@ -52,6 +52,9 @@
            cr  <name> <password>  (short for create)
            reg <name> <password>  (short for register)
   
+  Note: If you intend to see registers (setq) please check help on
+        'REGISTERS'.  It's plural.
+  
   Note:  To create/log in a character with spaces in their name, please use
          "<name>".  Ergo, surround your name with double quotes.
          The 'register' command does not allow creation with spaces.
@@ -168,14 +171,15 @@
   MAIL                MAX ARGS           ME                  MONEY           
   MOVING              OBJECT TYPES       PARENT OBJECTS      PUPPETS         
   QUICKREFERENCE      REALITY LEVELS     REGEXPS             REGEXP SYNTAX   
-  REGEXP CLASSES      REGEXP EXAMPLES    ROBBERY             ROYALTY         
-  SEARCH CLASSES      SEMAPHORES         SENSES              SETQ_TEMPLATES  
-  SIDEEFFECTS         SINGLETHREADING    SPECIAL CHARACTERS  SPOOFING        
-  SQL                 SQLESCAPE          STACK               SUBSTITUTIONS   
-  SUCCESS             SWITCHES           TOGGLES             USEFUL          
-  UNICODE SUPPORT     USER ATTRIBUTES    VARIABLE EXITS      VATOVZ         
-  VERBS               WANDERER           WILDCARDS           WIZARD ATTRIBUTES
-  ZATOZZ              ZONES              $-COMMANDS          #LAMBDA          
+  REGEXP CLASSES      REGEXP EXAMPLES    REGISTERS           ROBBERY          
+  ROYALTY             SEARCH CLASSES     SEMAPHORES          SENSES           
+  SETQ_TEMPLATES      SIDEEFFECTS        SINGLETHREADING     SPECIAL CHARACTERS
+  SPOOFING            SQL                SQLESCAPE           STACK             
+  SUBSTITUTIONS       SUCCESS            SWITCHES            TOGGLES           
+  USEFUL              UNICODE SUPPORT    USER ATTRIBUTES     VARIABLE EXITS    
+  VATOVZ              VERBS              WANDERER            WILDCARDS         
+  WIZARD ATTRIBUTES   ZATOZZ             ZONES               $-COMMANDS        
+  #LAMBDA          
   
 & API
   Topic: API
@@ -11586,6 +11590,14 @@
   
   See Also: get, look, @afail, @fail, @lock, @ofail, SHOWFAILCMD
   
+& TOTEMS
+  Topic: TOTEMS
+  
+  This is a super set of FLAGS and TOGGLES.  This is in progress of
+  migrating all flags and totems to.  This description will expand
+  as the process continues in the future.
+  
+  See Also: @totem, FLAGS, TOGGLES
 & FLAGS
   Topic: FLAGS
  
@@ -11601,8 +11613,47 @@
   or 'help flag list'. For more specific information on a particular flag,
   request help on the flag's name, as in 'help ENTER_OK'.
   
-  See Also: FLAG LIST
+  See Also: @set, FLAG LIST, TOTEMS, TOTEM LIST
   
+& TOTEM LIST
+  Topic: TOTEM LIST
+  
+  Flag  Title        Flag  Title           Flag  Title      Flag  Title
+  -------------------------------------------------------------------------
+    a   SETQLABEL
+  
+  See Also: flag list, toggle list, attribute flags
+  
+  For information on a particular totem, type 'help <totemname>'.
+  If you do not receive the expected result, try: 'help <totemname> totem'
+
+& SETQLABEL TOTEM
+  Totem: SETQLABEL
+  
+  The SETQLABEL totem is used on a target to enforce protection of any
+  register that has a label.  This is in reference to registers set
+  with the setq/setr functions.  The method of setting the label can
+  be done with the penn_setq enabled feature or with the non-standard
+  method.
+  
+  Examples: [without penn_setq disabled -- think config(penn_setq) ]
+    > say [setq(0,foo,bar)]%q<bar> [setq(0,moo)]%q<bar>
+    You say "foo moo"
+    > @totem me=setqlabel
+    Set.
+    > say [setq(0,foo,bar)]%q<bar> [setq(0,moo)]%q<bar>
+    You say "foo #-1 GLOBAL REGISTER '0' LABEL PROTECTEDfoo"
+  
+  Examples: [with penn_setq enabled -- think config(penn_setq) ]
+    > say [setq(bar,foo)]%q<bar> [setq(0,moo)]%q<bar>
+    You say "foo moo"
+    > @totem me=setqlabel
+    Set.
+    > say [setq(bar,foo)]%q<bar> [setq(0,moo)]%q<bar>
+    You say "foo #-1 GLOBAL REGISTER '0' LABEL PROTECTEDfoo"
+  
+  See Also: setq(), setr(), %q, r(), REGISTERS
+
 & FLAG LIST
   Topic: FLAG LIST
  
@@ -11623,7 +11674,7 @@
     = - BYEROOM        < - ANSI              > - ANSICOLOR    z - CONTROL_OK
     - - NO_FLASH
  
-  See Also: flag list2, attribute flags
+  See Also: flag list2, attribute flags, totem list
   
   For information on a particular flag, type 'help <flagname>'.
   If you do not receive the expected result, try: 'help <flagname> flag'
@@ -11645,7 +11696,7 @@
     4 - MARKER4        5 - MARKER5        6 - MARKER6        7 - MARKER7
     8 - MARKER8        9 - MARKER9        $ - COMMANDS
   
-  See Also: flag list, attribute flags, flag aliases
+  See Also: flag list, attribute flags, flag aliases, totem list
   
   For information on a particular flag, type 'help <flagname>'.
   If you do not receive the expected result, try: 'help <flagname> flag'
@@ -25433,6 +25484,9 @@
   
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
+  
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
    
   Example:
     > &TEST me=Test on [mudname()] at [time()].
@@ -25442,7 +25496,7 @@
     You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            setqmatch(), SETQ_TEMPLATE
+            setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQ_OLD()
   Function: setq_old(<register>,<string>[,<label>])
@@ -25471,8 +25525,11 @@
   
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
+  
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
 
-  See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
+  See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
   Function: setqmatch(<string>, <pattern>[,delim])
@@ -25488,6 +25545,9 @@
   If it fails, it returns 0.  If optional delimiter of 'n' is specified,
   then it returns nothing for failures or successes.  Default is 'y' for
   returning values.
+  
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
  
   Example:
     > say setqmatch(This is a test, *test) -- [r(0)]
@@ -25499,7 +25559,7 @@
     > say setqmatch(kow, wok, n)
     You say ""
   
-  See Also: listmatch(), match(), totmatch(), wildmatch(), setq()
+  See Also: listmatch(), match(), totmatch(), wildmatch(), setq(), REGISTERS
   
 & SETQ_TEMPLATES
   You can specify 'templates' for setq registers to automatically have 
@@ -25520,7 +25580,10 @@
   You may redefine these labels as you would normally with nameq(), 
   setq(), or setr().
   
-  See Also: nameq(), setq(), setr()
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
+  
+  See Also: nameq(), setq(), setr(), REGISTERS
   
 & SETR()
   Function: setr(<register>,<string>[,<label>])
@@ -25552,6 +25615,9 @@
   
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
+  
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
    
   Example: 
     > &TEST me=Test on [mudname()] at [time()].
@@ -25559,7 +25625,7 @@
     You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            setqmatch(), SETQ_TEMPLATE
+            setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETR_OLD()
   Function: setr_old(<register>,<string>[,<label>])
@@ -25589,7 +25655,10 @@
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
   
-  See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE
+  If the target has SETQLABEL enabled or the config parameter is set,
+  then any register that has a label must have the label to set new values.
+  
+  See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -30340,6 +30409,51 @@
   
                          help differences
   
+& REGISTERS
+  Topic: REGISTISTERS
+  
+  Registers are used in setq(), setr(), r, and %q functions and substitutions.
+  Registers can be considered temporary variables that will be active during
+  the duration of the execution stack.
+  
+  An execution stack is one (or more) commands that are executed one after
+  the other and will share regiwsters between them.  Once the command set
+  is completed, the registers are unset and cleared for their next use.
+  
+  The original registers were 0-9 and later expanded to a-z.  There
+  resides an ability to set labels (or naming) registers with unique names.
+  
+  The labels of registers may contain whitespace and be the size of an SBUF.
+  An SBUF may be 32 characters or 64 characters depending on what options
+  were set upon your RhostMUSH.  For full compatibility between RhostMUSHs
+  it is recommended to keep your labels under 30 characters in size.
+  
+  The config parameter penn_setq, shown with @list options system or by
+  using the config() function to return it's state (0 off, 1 on), can
+  be used to simplify the labeling of registers.
+  
+  penn_setq will either reset the register with the label or choose the
+  first unlabeled register and apply the label.
+   
+  Examples:
+    > setq(0,foo)     --- set label '0' with string 'foo'
+    > setq(0,foo,bar) --- set label '0' with string 'foo' and label 'bar'
+    > r(0)            --- return value of register 0
+    > r(bar)          --- return value of register with label bar
+    > %q0             --- return value of register 0
+    > %q<0>           --- return value of register 0
+    > %q<bar>         --- return value of register with label bar
+  
+  Examples: (with penn_setq enabled)
+    > setq(bar,foo)   --- set the first free register to 'foo' and label 'bar'
+    > r(0)            --- return value of register 0
+    > r(bar)          --- return value of register with label bar
+    > %q0             --- return value of register 0
+    > %q<0>           --- return value of register 0
+    > %q<bar>         --- return value of register with label bar
+   
+  See Also: setq(), setr(), r(), %q, USER ATTRIBUTES
+
 & USER ATTRIBUTES
   Topic: USER ATTRIBUTES
   
@@ -30359,7 +30473,7 @@
   exist, control of the object you're trying to set it on, or global 
   permissions prefixes that may be established.
   
-  See Also: &, >, @set, set(), @cpattr, @mvattr
+  See Also: &, >, @set, set(), @cpattr, @mvattr, REGISTERS
 
 & UTF8 SUPPORT
 & UNICODE SUPPORT
@@ -34665,6 +34779,8 @@
  * totemvalid() wiz function to show specific totem markers [ASH]
  * grab is a force recache and fetch combined for atrcache() [ASH]
  * player_absolute config param does local alias matches for players [ASH]
+ * SETQLABEL @totem to protect labeled registers from being overwritten [ASH]
+ * @admin setqlabel like SETQLABEL @totem but globally [ASH]
   
   Changes
   -------
@@ -34681,6 +34797,8 @@
  * @totem/validate can now target a specific player [ASH]
  * Cleanup of @*def commands and variable defines [ASH]
  * Improvement of help for printf/@sex [ASH]
+ * totem help expanded on [ASH]
+ * @totem, @set, and @toggle have improved help on mixing them up [ASH]
   
   Bug Fixes
   ------------
@@ -34689,3 +34807,4 @@
  * API POST was not HTML compliant [ASH]
  * Compiling without OPENSSL would kick out an error [ASH]
  * totems were not reset on destroyed objects [ASH]
+ * setq/setr didn't always display error on null labels [ASH]

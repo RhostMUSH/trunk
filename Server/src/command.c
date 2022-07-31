@@ -6550,9 +6550,14 @@ list_options_system(dbref player)
     else
        notify(player, "Name shown before descs when looking at non-owned things ------- DISABLED");
     if ( mudconf.penn_setq )
-       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- ENABLED");
+       notify(player, "Setq/Setr registers use PennMUSH compatiability mode ----------- ENABLED");
     else
-       notify(player, "Setq/Setr use PennMUSH compatiability mode --------------------- DISABLED");
+       notify(player, "Setq/Setr registers use PennMUSH compatiability mode ----------- DISABLED");
+    if ( mudconf.setqlabel ) {
+       notify(player, "Registers with labels are enforced to use label to set them ---- ENABLED");
+    } else {
+       notify(player, "Registers with labels are enforced to use label to set them ---- DISABLED");
+    }
     if ( mudconf.format_compatibility )
        notify(player, "Attribute formatting compatibility (&<name>FORMAT) ------------- FORMAT AFTER");
     else

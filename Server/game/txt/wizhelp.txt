@@ -7292,12 +7292,12 @@
   sconnect_cmd              sconnect_host             sconnect_reip           
   search_cost               secure_atruselock         secure_dark             
   secure_functions          secure_jumpok             see_owned_dark          
-  sha2rounds                showother_altname         shs_reverse             
-  sidefx_maxcalls           sidefx_returnval          sideeffects             
-  signal_action             signal_crontab            signal_object           
-  signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               sqlite_db_path          
-  sqlite_query_limit        stack_limit
+  setqlabel                 sha2rounds                showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_crontab          
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit
   
 { 'wizhelp config parameters6' for more}
 
@@ -11654,6 +11654,14 @@
   look at a room.  It does not affect the inventory or examine commands,
   both of which show all objects.
 
+& setqlabel
+  Config parameter: setqlabel <yes/no>.    Default: no
+  
+  Specifies if SETQ/SETR registers that have a label applied will require
+  the label to be used to set the register.  Attempting to set a register
+  with the 0-9/a-z value on a labeled register with this enabled will
+  result in an error message being returend.
+  
 & sha2rounds
   Config parameter: sha2rounds <value>.    Default: 5000
   
