@@ -34264,7 +34264,8 @@ FUNCTION(fun_nameq)
 
 FUNCTION(fun_setq_old)
 {
-    int regnum, i, i_namefnd, i_penntog;
+    int regnum, i, i_namefnd, i_penntog, i_chk;
+
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
       return;
 
@@ -34295,6 +34296,7 @@ FUNCTION(fun_setq_old)
 
     regnum = -1;
     i_namefnd = 0;
+    i_chk = 0;
     if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
          (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
@@ -34303,6 +34305,7 @@ FUNCTION(fun_setq_old)
                (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2])) == 0) ) {
              regnum = i;
              i_namefnd = 1;
+             i_chk = 0;
              break;
           }
        }
@@ -34315,6 +34318,7 @@ FUNCTION(fun_setq_old)
                 }
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 1;
                 break;
              }
           }
@@ -34326,10 +34330,12 @@ FUNCTION(fun_setq_old)
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 0;
                 break;
              }
           }
        } else {
+          i_chk = 1;
           if ( !is_number(fargs[0]) )
              regnum = -1;
           else
@@ -34349,10 +34355,11 @@ FUNCTION(fun_setq_old)
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
           }
+          i_chk = 1;
           regnum = i;
        }
 
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34372,7 +34379,7 @@ FUNCTION(fun_setq_old)
     if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34471,7 +34478,7 @@ FUNCTION(fun_args)
 
 FUNCTION(fun_setq)
 {
-    int regnum, i, i_namefnd, i_nfargs;
+    int regnum, i, i_namefnd, i_nfargs, i_chk;
     char *result, *result_orig, *result_second;
 
     if (!fn_range_check("SETQ", nfargs, 2, 3, buff, bufcx))
@@ -34523,6 +34530,7 @@ FUNCTION(fun_setq)
     }
     i_namefnd = 0;
     regnum = -1;
+    i_chk = 0;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
           (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
@@ -34531,6 +34539,7 @@ FUNCTION(fun_setq)
                (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
+             i_chk = 0;
              break;
           }
        }
@@ -34543,6 +34552,7 @@ FUNCTION(fun_setq)
                 }
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 1;
                 break;
              }
           }
@@ -34554,10 +34564,12 @@ FUNCTION(fun_setq)
                   !stricmp(mudstate.global_regsname[i], result_orig) ) {
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 0;
                 break;
              }
           }
        } else {
+          i_chk = 1;
           if ( !is_number(result_orig) )
              regnum = -1;
           else
@@ -34575,10 +34587,11 @@ FUNCTION(fun_setq)
              if ( mudstate.nameofqreg[i] == tolower(*result_orig) )
                 break;
           }
+          i_chk = 1;
           regnum = i;
        }
 
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34601,7 +34614,7 @@ FUNCTION(fun_setq)
     if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34630,7 +34643,7 @@ FUNCTION(fun_setq)
 
 FUNCTION(fun_setr_old)
 {
-    int regnum, i, i_namefnd, i_penntog;
+    int regnum, i, i_namefnd, i_penntog, i_chk;
 
     if (!fn_range_check("SETR", nfargs, 2, 3, buff, bufcx))
       return;
@@ -34661,6 +34674,7 @@ FUNCTION(fun_setr_old)
 
     i_namefnd = 0;
     regnum = -1;
+    i_chk = 0;
     if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
          (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
@@ -34669,6 +34683,7 @@ FUNCTION(fun_setr_old)
                (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2]) ) == 0) ) {
              regnum = i;
              i_namefnd = 1;
+             i_chk = 0;
              break;
           }
        }
@@ -34681,6 +34696,7 @@ FUNCTION(fun_setr_old)
                 }
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 1;
                 break;
              }
           }
@@ -34692,10 +34708,12 @@ FUNCTION(fun_setr_old)
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 0;
                 break;
              }
           }
        } else {
+          i_chk = 1;
           if (!is_number(fargs[0]))
              regnum = -1;
           else
@@ -34715,10 +34733,11 @@ FUNCTION(fun_setr_old)
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
           }
+          i_chk = 1;
           regnum = i;
        }
 
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34739,7 +34758,7 @@ FUNCTION(fun_setr_old)
     if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34761,7 +34780,7 @@ FUNCTION(fun_setr_old)
 
 FUNCTION(fun_setr)
 {
-    int regnum, i, i_namefnd, i_nfargs;
+    int regnum, i, i_namefnd, i_nfargs, i_chk;
     char *result, *result_orig, *result_second;
 
     if (!fn_range_check("SETR", nfargs, 2, 3, buff, bufcx))
@@ -34814,6 +34833,7 @@ FUNCTION(fun_setr)
 
     i_namefnd = 0;
     regnum = -1;
+    i_chk = 0;
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
          (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
@@ -34822,6 +34842,7 @@ FUNCTION(fun_setr)
                (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
              i_namefnd = 1;
+             i_chk = 0;
              break;
           }
        }
@@ -34834,6 +34855,7 @@ FUNCTION(fun_setr)
                 }
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 1;
                 break;
              }
           }
@@ -34845,10 +34867,12 @@ FUNCTION(fun_setr)
                   !stricmp(mudstate.global_regsname[i], result_orig) ) {
                 regnum = i;
                 i_namefnd = 1;
+                i_chk = 0;
                 break;
              }
           }
        } else {
+          i_chk = 1;
           if (!is_number(result_orig))
              regnum = -1;
           else
@@ -34867,9 +34891,10 @@ FUNCTION(fun_setr)
                 break;
           }
           regnum = i;
+          i_chk = 1;
        }
 
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34893,7 +34918,7 @@ FUNCTION(fun_setr)
     if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);

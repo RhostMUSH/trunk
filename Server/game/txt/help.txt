@@ -34808,3 +34808,4 @@
  * Compiling without OPENSSL would kick out an error [ASH]
  * totems were not reset on destroyed objects [ASH]
  * setq/setr didn't always display error on null labels [ASH]
+ * setqlabel didn't always check label properly [ASH]
