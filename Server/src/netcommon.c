@@ -41,6 +41,9 @@ char *index(const char *, int);
 #include "websock2.h"
 ///// END NEW WEBSOCK
 #endif
+#ifdef ENABLE_LUA
+#include "lua.h"
+#endif
 
 #include "debug.h"
 #define FILENUM NETCOMMON_C
@@ -5083,6 +5086,11 @@ do_command(DESC * d, char *command)
     dbref aowner, thing;
     ATTR *atrp;
 #endif
+#ifdef ENABLE_LUA
+    char *s_lua, *s_luaptr;
+    int i_lualength;
+    lua_t *lua;
+#endif
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
@@ -5706,6 +5714,9 @@ do_command(DESC * d, char *command)
             break;
 #else
             i_encode64 = 0;
+#ifdef ENABLE_LUA
+            s_lua = NULL;
+#endif
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
@@ -5791,6 +5802,22 @@ do_command(DESC * d, char *command)
                      strcpy(s_enc64, s_snarfvalue);
                      i_enc64 = i_snarfing = 1;
                   }
+
+#ifdef ENABLE_LUA
+                  if ( !s_lua && !stricmp(s_snarfheader, (char *)"X-Lua" ) ) {
+                     s_lua = alloc_lbuf("cmd_lua");
+                     strcpy(s_lua, s_snarfvalue);
+                  }
+
+                  if ( !stricmp(s_snarfheader, (char *)"X-Lua64" ) ) {
+                     if(s_lua) {
+                         free_lbuf(s_lua);
+                     }
+                     s_lua = alloc_lbuf("cmd_lua");
+                     s_luaptr = s_lua;
+                     decode_base64((const char*)s_snarfvalue, strlen(s_snarfvalue), s_lua, &s_luaptr, 0);
+                  }
+#endif
 
                   if ( !i_snarfing4 && !stricmp(s_snarfheader, (char *)"Origin" ) ) {
                      strcpy(s_snarfing4, s_snarfvalue);
@@ -5885,6 +5912,52 @@ do_command(DESC * d, char *command)
                      i_snarfing = 1;
                   }
                   free_lbuf(s_get);
+
+#ifdef ENABLE_LUA
+                  if ( s_lua )  {
+                     if ( Totem(atoi(s_user),9) & TOTEM_API_LUA ) {
+                        lua = open_lua_interpreter(thing);
+                        free_lbuf(s_buffer);
+                        s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
+                        close_lua_interpreter(lua);
+
+                        queue_string(d, "HTTP/1.1 200 OK\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
+                        if ( i_snarfing4 ) {
+                           queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
+                           queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
+                           queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
+                        }
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "X-Lua: Ok - Executed\r\n");
+                        if ( i_encode64 ) {
+                           queue_string(d, "X-Lua-Warning: Base64 Encoding not supported for output\r\n");
+                        }
+                        queue_string(d, unsafe_tprintf("Content-Length: %i\r\n\r\n", i_lualength));
+                        s_luaptr = s_buffer;
+                        while(i_lualength > LBUF_SIZE - 1) {
+                            i_lualength -= LBUF_SIZE - 1;
+                            queue_write(d, s_luaptr, LBUF_SIZE - 1);
+                            s_luaptr += LBUF_SIZE - 1;
+                        }
+                        if(i_lualength) {
+                            queue_write(d, s_luaptr, i_lualength);
+                        }
+                        free(s_buffer);
+                        s_buffer = alloc_lbuf("cmd_post_buff");
+                     } else {
+                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+                        queue_string(d, "Content-type: text/plain\r\n");
+                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                        queue_string(d, "Exec: Error - Permission Denied\r\n");
+                        queue_string(d, "Return: <NULL>\r\n\r\n");
+                     }
+                     free_lbuf(s_lua);
+                     s_lua = NULL;
+                     i_snarfing = 1; /* We already handled this, move on */
+                  }
+#endif
+
                   if ( !i_snarfing ) {
                      atrp = atr_str3("_APIPASSWD");
                      if ( atrp ) {

@@ -11462,6 +11462,8 @@
   
   - Thanks to Exaurdon for endless braincells fried helping Lensman with bugs.
   
+  - Thanks to David Kolf for dkjson.lua
+  
   - Thanks to several people and organizations that are too numerous to mention
   
 & DROP-TOS
@@ -34781,6 +34783,7 @@
  * player_absolute config param does local alias matches for players [ASH]
  * SETQLABEL @totem to protect labeled registers from being overwritten [ASH]
  * @admin setqlabel like SETQLABEL @totem but globally [ASH]
+ * Lua support for the WebAPI. Configurable with 'make config' [POLK]
   
   Changes
   -------
@@ -34809,3 +34812,5 @@
  * totems were not reset on destroyed objects [ASH]
  * setq/setr didn't always display error on null labels [ASH]
  * setqlabel didn't always check label properly [ASH]
+ * hasquota() was checking for the UNL_QUOTA depower on the user instead
+   of the target [AMB]

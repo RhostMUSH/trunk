@@ -552,8 +552,11 @@
 /* 0x10000000 free */
 /* 0x20000000 free */
 /* 0x40000000 free */
-#define	TOTEM_SETQLABEL	 0x80000000 /* slot 9 */
+#define	TOTEM_SETQLABEL	0x80000000 /* slot 9 */
 #define	TOTEM_SETQLABEL_SLOT	9
+#define TOTEM_API_LUA 	0x00000400 /* slot 9 */
+#define	TOTEM_API_LUA_SLOT  	9
+
 
 /* Undeclared words of totems (outside of reserved 3 slots) */
 
@@ -751,6 +754,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 
 /* Define totem functionaries for totem flags */
 #define SetqLabel(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_SETQLABEL_SLOT] & TOTEM_SETQLABEL)))
+#define LuaAPI(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_API_LUA_SLOT] & TOTEM_API_LUA)))
 
 #define InProgram(x)    ((Flags4(x) & INPROGRAM) != 0)
 #define Login(x)	((Flags4(x) & LOGIN) != 0)

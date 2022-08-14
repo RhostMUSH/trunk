@@ -87,7 +87,7 @@ BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
 MORELIBS="\$(EXTLIBS)"
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
 BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
@@ -219,6 +219,7 @@ DEF[24]=""
 DEF[25]="-DPCRE_SYSLIB"
 DEF[26]="-DCRYPT_GLIB2"
 DEF[27]="-DENABLE_WEBSOCKETS"
+DEF[28]="-DENABLE_LUA"
 
 if [ "${MYSQL_VER}" != "0" ]
 then
@@ -449,6 +450,7 @@ echo "[${X[16]}] 16. Alternate WHO      [${X[17]}] 17. Old SETQ/SETR      [${X[1
 echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[21]}] 21. Old Reality Lvls" 
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords   [${X[27]}] 27. Websocket support"
+echo "[${X[28]}] 28. Enable LUA in API"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
@@ -724,6 +726,9 @@ info() {
      27) echo "This option enables the support for Websockets introduced in"
          echo "RhostMUSH release 4.1.0p2. This option allows you to use the"
          echo "Websocket protocol for connections with the games you run."
+         ;;
+     28) echo "This option enables the support for using LUA in the WebAPI"
+         echo "calls that you send to RhostMUSH."
          ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
@@ -2080,6 +2085,11 @@ updatemakefile() {
       echo "Generating Makefile for low-memory compiling.  Please wait..."
       echo "# This is needed if server hosting us has extreme low memory and no swap" >> ../src/custom.defs
       echo "CFLAGS = --param ggc-min-expand=0 --param ggc-min-heapsize=8192" >> ../src/custom.defs
+   fi
+   if [ "${X[28]}" = "X" ]
+   then
+      echo "# Enable LUA integration for WebAPI" >> ../src/custom.defs
+      echo "USELUA = 1" >> ../src/custom.defs
    fi
    if [ "${MS[1]}" = "X" ]
    then
