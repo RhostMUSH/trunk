@@ -393,7 +393,8 @@ NDECL(cf_init)
     for ( i = 0; i < TOTEM_SLOTS; i++ ) {
        mudstate.totem_slots[i] = 0;
     }
-    mudstate.help_shell = 0;	/* help redirection */
+    mudstate.execscript_noreg = 0;	/* execscript has no registers processed */
+    mudstate.help_shell = 0;		/* help redirection */
     mudstate.no_space_compress = 0;	/* Override space compression */
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
@@ -849,7 +850,7 @@ NDECL(cf_init)
     mudstate.whisper_state = 0;
     mudstate.nowall_over = 0;
     mudstate.eval_rec = 0;
-    for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
 	mudstate.global_regs_backup[i] = NULL;
@@ -4031,7 +4032,7 @@ CONF conftable[] =
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure attribute access permissions."},
     {(char *) "atrcachemax",
-     cf_verifyint_runtime, CA_GOD | CA_IMMORTAL, &mudconf.atrcachemax, 200, 1, CA_WIZARD,
+     cf_verifyint_runtime, CA_GOD | CA_IMMORTAL, &mudconf.atrcachemax, ATRCACHE_MAX, 1, CA_WIZARD,
      (char *) "Max value allowed for atrcache caching variables.\r\n"\
               "(Range: 1-200)               Default: 10   Value: %d"},
     {(char *) "bad_name",
@@ -6284,6 +6285,9 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
           sprintf(tempbuff, "%d", SBUF_SIZE);
           safe_str(tempbuff, buff, bufc);
        }
+    } else if ( stricmp(param_name, (char *)"register_count") == 0 ) {
+       sprintf(tempbuff, "%d", MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST);
+       safe_str(tempbuff, buff, bufc);
     } else {
        if (stricmp(param_name, "sideeffects_txt") == 0) {
 	 param_name[11] = '\0';

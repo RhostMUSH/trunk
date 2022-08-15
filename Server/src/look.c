@@ -2235,7 +2235,7 @@ show_desc_redir(dbref player, dbref loc, int key)
 void 
 look_in(dbref player, dbref cause, dbref loc, int key)
 {
-    char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *s, *nfmt, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
     int pattr, oattr, aattr, is_terse, showkey, has_namefmt, aflags2, x, chk_tog;
     time_t chk_stop;
     dbref aowner2;
@@ -2284,7 +2284,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
        mudstate.chkcpu_stopper = time(NULL);
        mudstate.chkcpu_toggle = 0;
        if ( mudconf.formats_are_local ) {
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             savereg[x] = alloc_lbuf("ulocal_reg");
             saveregname[x] = alloc_sbuf("ulocal_regname");
             pt = savereg[x];
@@ -2295,7 +2295,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
        }
        s = cpuexec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             pt = mudstate.global_regs[x];
             npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);

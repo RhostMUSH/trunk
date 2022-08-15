@@ -6413,7 +6413,7 @@ NDECL(process_commands)
 		    if (d->flags & DS_HAS_DOOR && t->cmd[0] != '!')
 			door_raw_input(d, t->cmd); 
 		    else {
-                        for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+                        for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
                            *mudstate.global_regs[i] = '\0';
                            *mudstate.global_regs_backup[i] = '\0';
                            *mudstate.global_regsname[i] = '\0';

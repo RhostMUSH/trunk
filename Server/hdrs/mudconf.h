@@ -710,6 +710,7 @@ struct statedata {
 	char	guild_hdr[12];
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
 	int	global_error_inside;	/* Are we inside the global error obj */
+	int	execscript_noreg;	/* Do not cache any setq regs to execscript */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */
@@ -776,9 +777,9 @@ struct statedata {
 	int	ntfy_nest_lev;	/* Current nesting of notifys */
 	int	lock_nest_lev;	/* Current nesting of lock evals */
         int     ufunc_nest_lev; /* Current nesting of USER functions */
-	char	*global_regs[MAX_GLOBAL_REGS];	/* Global registers */
-	char	*global_regsname[MAX_GLOBAL_REGS];	/* Global register names */
-        char    *global_regs_backup[MAX_GLOBAL_REGS];
+	char	*global_regs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global registers */
+	char	*global_regsname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global register names */
+        char    *global_regs_backup[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
         char    nameofqreg[37]; /* Buffer to hold qregs */
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
 	int	mail_state;

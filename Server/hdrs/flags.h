@@ -444,26 +444,28 @@
 #define ANSI_EXIT	8
 
 /* ---------- First word of totems */
-#define	TOTEM_MARKER0	 0x00000001 /* slot 9 */
+#define	TOTEM_MARKER0	0x00000001 /* slot 9 */
 #define TOTEM_MARKER0_SLOT	9
-#define	TOTEM_MARKER1	 0x00000002 /* slot 9 */
+#define	TOTEM_MARKER1	0x00000002 /* slot 9 */
 #define TOTEM_MARKER1_SLOT	9
-#define	TOTEM_MARKER2	 0x00000004 /* slot 9 */
+#define	TOTEM_MARKER2	0x00000004 /* slot 9 */
 #define TOTEM_MARKER2_SLOT	9
-#define	TOTEM_MARKER3	 0x00000008 /* slot 9 */
+#define	TOTEM_MARKER3	0x00000008 /* slot 9 */
 #define TOTEM_MARKER3_SLOT	9
-#define	TOTEM_MARKER4	 0x00000010 /* slot 9 */
+#define	TOTEM_MARKER4	0x00000010 /* slot 9 */
 #define TOTEM_MARKER4_SLOT	9
-#define	TOTEM_MARKER5	 0x00000020 /* slot 9 */
+#define	TOTEM_MARKER5	0x00000020 /* slot 9 */
 #define TOTEM_MARKER5_SLOT	9
-#define	TOTEM_MARKER6	 0x00000040 /* slot 9 */
+#define	TOTEM_MARKER6	0x00000040 /* slot 9 */
 #define TOTEM_MARKER6_SLOT	9
-#define	TOTEM_MARKER7	 0x00000080 /* slot 9 */
+#define	TOTEM_MARKER7	0x00000080 /* slot 9 */
 #define TOTEM_MARKER7_SLOT	9
-#define	TOTEM_MARKER8	 0x00000100 /* slot 9 */
+#define	TOTEM_MARKER8	0x00000100 /* slot 9 */
 #define TOTEM_MARKER8_SLOT	9
-/* 0x00000200 free */
-/* 0x00000400 free */
+#define	TOTEM_MARKER9	0x00000200 /* slot 9 */
+#define TOTEM_MARKER9_SLOT	9
+#define TOTEM_API_LUA	0x00000400 /* slot 9 */
+#define TOTEM_API_LUA_SLOT	9
 /* 0x00000800 free */
 /* 0x00001000 free */
 /* 0x00002000 free */
@@ -552,13 +554,16 @@
 /* 0x10000000 free */
 /* 0x20000000 free */
 /* 0x40000000 free */
-#define	TOTEM_SETQLABEL	0x80000000 /* slot 9 */
-#define	TOTEM_SETQLABEL_SLOT	9
-#define TOTEM_API_LUA 	0x00000400 /* slot 9 */
-#define	TOTEM_API_LUA_SLOT  	9
+#define TOTEM_SETQLABEL	0x80000000 /* slot 9 */
+#define TOTEM_SETQLABEL_SLOT	9
 
+/* Undeclared words of totems (outside of reserved 3 slots)
+ * 
+ * Undeclared words are outside the 'three' word levels of totems
+ * These will have the default of '?' as the flag letter
+ * and can only be referenced by name
+ */
 
-/* Undeclared words of totems (outside of reserved 3 slots) */
 
 /* ---------------------------------------------------------------------------
  * TOTEMENT: Information about object totem flags.
@@ -756,6 +761,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define SetqLabel(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_SETQLABEL_SLOT] & TOTEM_SETQLABEL)))
 #define LuaAPI(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_API_LUA_SLOT] & TOTEM_API_LUA)))
 
+/* Flag and Toggle definitions */
 #define InProgram(x)    ((Flags4(x) & INPROGRAM) != 0)
 #define Login(x)	((Flags4(x) & LOGIN) != 0)
 #define Bouncer(x)	((Flags4(x) & BOUNCE) != 0)

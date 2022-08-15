@@ -605,8 +605,8 @@ int *desclist_match(dbref player, dbref thing, int i_type)
 void did_it_rlevel(dbref player, dbref thing, int what, const char *def, int owhat, 
 	const char *odef, int awhat, char *args[], int nargs)
 {
-char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt,
-        *saveregname[MAX_GLOBAL_REGS], *npt;
+char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt,
+        *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
 char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
@@ -651,7 +651,7 @@ ATTR 	*tst_glb, *format_atr;
 	  found_a_desc = 0;
           if ( mudconf.descs_are_local ) {
              i_didsave = 1;
-             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                 savereg[x] = alloc_lbuf("ulocal_reg");
                 saveregname[x] = alloc_sbuf("ulocal_regname");
                 pt = savereg[x];
@@ -939,7 +939,7 @@ ATTR 	*tst_glb, *format_atr;
 	}		
         if ( i_didsave && mudconf.descs_are_local ) {
            i_didsave = 0;
-           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
               pt = mudstate.global_regs[x];
               npt = mudstate.global_regsname[x];
               safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -1078,7 +1078,7 @@ ATTR 	*tst_glb, *format_atr;
       }
       if ( i_didsave && mudconf.descs_are_local ) {
          i_didsave = 0;
-         for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             pt = mudstate.global_regs[x];
             npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);

@@ -634,6 +634,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define ATRCACHE_VIS	0x00000400	/* Is the fetch and cache visible to everyone */
 #define ATRCACHE_LOCK	0x00000800	/* Does recaching require owner or control? */
 #define ATRCACHE_NOANSI	0x00001000	/* Don't ansi parenmatch INFO */
+#define ATRCACHE_INUSE	0x00002000	/* Don't ansi parenmatch INFO */
 
 #define	BOOT_QUIET	0x00000001	/* Inhibit boot message to victim */
 #define	BOOT_PORT	0x00000002	/* Boot by port number */

@@ -325,6 +325,33 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 }
 
 static char *
+pool_stats_extra(int poolnum, const char *text)
+{
+    char *buf;
+    char format_str[80];
+
+    buf = alloc_mbuf("pool_stats_extra");
+    if ( !strcmp(text, "Lbufs") || !strcmp(text, "Sbufs") ) {
+       memset(format_str, '\0', sizeof(format_str));
+       strcpy(format_str, "%-14s %5d %9d %9d %15s %6s %14.14g");
+       if ( !strcmp(text, "Lbufs") ) {
+          sprintf(buf, format_str, (char *)"Lbufs (Regs)", pools[poolnum].pool_size, 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2));
+       } else {
+          sprintf(buf, format_str, (char *)"Sbufs (Regs)", pools[poolnum].pool_size,
+                   (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+                   (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)(MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST));
+       }
+    } 
+    return buf;
+}
+
+static char *
 pool_stats(int poolnum, const char *text)
 {
     char *buf;
@@ -353,10 +380,25 @@ pool_stats(int poolnum, const char *text)
        strcat(format_str, " %14.9g");
     else
        strcat(format_str, " %14.14g");
-    sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	    pools[poolnum].num_alloc, pools[poolnum].max_alloc,
-	    pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-            pools[poolnum].max_alloc * pools[poolnum].pool_size);
+
+    if ( strcmp(text, "Lbufs") == 0 ) {
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+	       pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
+    } else if ( strcmp(text, "Sbufs") == 0 ) {
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+	       pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+               pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) * pools[poolnum].pool_size);
+    } else {
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+	       pools[poolnum].num_alloc, pools[poolnum].max_alloc,
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               pools[poolnum].max_alloc * pools[poolnum].pool_size);
+    }
     return buf;
 }
 
@@ -447,6 +489,12 @@ list_bufstat(dbref player, int poolnum, const char *pool_name)
 
     buff = pool_stats(poolnum, poolnames[poolnum]);
     notify(player, buff);
+    free_mbuf(buff);
+    buff = pool_stats_extra(poolnum, poolnames[poolnum]);
+    /* buff is always allocated */
+    if ( *buff ) {
+       notify(player, buff);
+    }
     free_mbuf(buff);
 }
 

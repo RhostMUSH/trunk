@@ -106,7 +106,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
 		char *command, char *cargs[], int ncargs)
 {
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
-        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+        *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
    time_t i_now;
    int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline;
 
@@ -162,7 +162,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    cntr=1;
    tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
    if ( i_clearreg || i_localize ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
          saveregname[x] = alloc_sbuf("ulocal_regname");
       }
@@ -188,7 +188,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             }
             mudstate.dolistnest++;
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   *savereg[x] = '\0';
                   *saveregname[x] = '\0';
                   pt = savereg[x];
@@ -237,7 +237,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             mudstate.rollbackcnt = i_rollback;
             strcpy(mudstate.rollback, s_rollback);
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   pt = mudstate.global_regs[x];
                   npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -269,7 +269,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
       }
    }
    if ( i_clearreg || i_localize ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          free_lbuf(savereg[x]);
          free_sbuf(saveregname[x]);
       }

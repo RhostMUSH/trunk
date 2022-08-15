@@ -169,6 +169,7 @@ setq_templates(dbref thing)
             if ( s_intok2 && *s_intok2 ) {
 #ifdef EXPANDED_QREGS
                if ( isalpha(*c_field) ) {
+                  /* MAX_GLOBAL_REGS only */
                   for ( i = 0; i < MAX_GLOBAL_REGS; i++ ) {
                      if ( mudstate.nameofqreg[i] == tolower(*c_field) )
                         break;
@@ -277,8 +278,8 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
         do_brk, aflags_set, oldchk, chkwild, i_inparen;
     char *buff, *s, *s2, *s3, *as, *s_uselock, *atext, *result, buff2[LBUF_SIZE+1];
-    char *args[10], *savereg[MAX_GLOBAL_REGS], *pt, *cpuslam, *cputext, *cpulbuf,
-         *saveregname[MAX_GLOBAL_REGS], *npt;
+    char *args[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *cpuslam, *cputext, *cpulbuf,
+         *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
     ATTR *ap, *ap2;
 
     DPUSH; /* #70 */
@@ -418,7 +419,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                         aflags_set = ap2->number;
                         if ( atext ) {
                            if ( !(attrib2 & AF_NOPROG) ) {
-                              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                              for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                                  savereg[x] = alloc_lbuf("ulocal_reg");
                                  saveregname[x] = alloc_sbuf("ulocal_regname");
                                  pt = savereg[x];
@@ -448,7 +449,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                                  atr_set_flags(parent, aflags_set, (attrib2 | AF_NOPROG) );
                               }
                               free_lbuf(cputext);
-                              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                              for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                                  pt = mudstate.global_regs[x];
                                  npt = mudstate.global_regsname[x];
                                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -2670,7 +2671,7 @@ main(int argc, char *argv[])
     set_signals();
 
     /* initialize the buffers and variables */
-    for (mindb = 0; mindb < MAX_GLOBAL_REGS; mindb++) {
+    for (mindb = 0; mindb < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); mindb++) {
 	mudstate.global_regs[mindb] = alloc_lbuf("main.global_reg");
 	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_regname");
 	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");

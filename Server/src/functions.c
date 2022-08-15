@@ -15687,7 +15687,7 @@ FUNCTION(fun_zfunlocal)
     int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     /* We need at least one argument */
 
@@ -15763,7 +15763,7 @@ FUNCTION(fun_zfunlocal)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -15787,7 +15787,7 @@ FUNCTION(fun_zfunlocal)
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -15803,8 +15803,8 @@ FUNCTION(fun_zfunldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
-         *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (ZFUNLOCAL) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -15870,7 +15870,7 @@ FUNCTION(fun_zfunldefault)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -15916,7 +15916,7 @@ FUNCTION(fun_zfunldefault)
        free_lbuf(pass);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -15932,8 +15932,8 @@ FUNCTION(fun_zfun2ldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
-         *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (ZFUN2LDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -16004,7 +16004,7 @@ FUNCTION(fun_zfun2ldefault)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -16050,7 +16050,7 @@ FUNCTION(fun_zfun2ldefault)
        free_lbuf(pass);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -16542,7 +16542,7 @@ FUNCTION(fun_ulocal)
     dbref aowner, thing;
     int aflags, anum, x, tval;
     ATTR *ap;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     /* We need at least one argument */
 
@@ -16595,7 +16595,7 @@ FUNCTION(fun_ulocal)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_reg_name");
       pt = savereg[x];
@@ -16620,7 +16620,7 @@ FUNCTION(fun_ulocal)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -16635,8 +16635,8 @@ FUNCTION(fun_uldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
-         *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
         safe_str("#-1 FUNCTION (ULDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -16689,7 +16689,7 @@ FUNCTION(fun_uldefault)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -16737,7 +16737,7 @@ FUNCTION(fun_uldefault)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -16752,7 +16752,7 @@ FUNCTION(fun_u2local)
     dbref aowner, thing;
     int aflags, anum, x, tval;
     ATTR *ap;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     /* We need at least one argument */
 
@@ -16805,7 +16805,7 @@ FUNCTION(fun_u2local)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -16830,7 +16830,7 @@ FUNCTION(fun_u2local)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -16846,7 +16846,7 @@ FUNCTION(fun_zfun2local)
     int aflags, anum, goodzone, x, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     /* We need at least one argument */
 
@@ -16922,7 +16922,7 @@ FUNCTION(fun_zfun2local)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -16946,7 +16946,7 @@ FUNCTION(fun_zfun2local)
     free_lbuf(atext);
     safe_str(result, buff, bufcx);
     free_lbuf(result);
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -16961,8 +16961,8 @@ FUNCTION(fun_u2ldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS], *s_fargs0, *s_xargs[LBUF_SIZE/2],
-         *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (U2LDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -17015,7 +17015,7 @@ FUNCTION(fun_u2ldefault)
     }
     /* Evaluate it using the rest of the passed function args */
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
@@ -17064,7 +17064,7 @@ FUNCTION(fun_u2ldefault)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
 
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
       safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -17918,8 +17918,8 @@ FUNCTION(fun_localfunc)
  */
 FUNCTION(fun_localize)
 {
-    char *result, *pt, *savereg[MAX_GLOBAL_REGS], *resbuff, *npt, *saveregname[MAX_GLOBAL_REGS];
-    int x, i_flagreg[MAX_GLOBAL_REGS], i_reverse;
+    char *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *resbuff, *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+    int x, i_flagreg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_reverse;
 
     if (!fn_range_check("LOCALIZE", nfargs, 1, 3, buff, bufcx)) {
        return;
@@ -17939,24 +17939,27 @@ FUNCTION(fun_localize)
              *pt = ToLower(*pt);
              pt++;
           }
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
-             if ( strchr(resbuff, mudstate.nameofqreg[x]) != NULL )
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
+             if ( mudstate.global_regsname[x] && *mudstate.global_regsname[x] && !stricmp(resbuff, mudstate.global_regsname[x]) ) {
                 i_flagreg[x] = (i_reverse ? 0 : 1);
-             else
+             } else if ( (x < MAX_GLOBAL_REGS) && (strchr(resbuff, mudstate.nameofqreg[x]) != NULL) ) {
+                i_flagreg[x] = (i_reverse ? 0 : 1);
+             } else {
                 i_flagreg[x] = (i_reverse ? 1 : 0);
+             }
           }
        } else {
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              i_flagreg[x] = 1;
           }
        }
        free_lbuf(resbuff);
     } else {
-       for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+       for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
           i_flagreg[x] = 1;
        }
     }
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       if ( !i_flagreg[x] )
          continue;
       savereg[x] = alloc_lbuf("ulocal_reg");
@@ -17972,7 +17975,7 @@ FUNCTION(fun_localize)
     }
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
     cargs, ncargs, (char **)NULL, 0);
-    for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+    for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       if ( !i_flagreg[x] )
          continue;
       pt = mudstate.global_regs[x];
@@ -18265,7 +18268,7 @@ FUNCTION(fun_execscript)
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS],
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
        i_flagtype, i_return;
    dbref aowner, d_atrname;
    time_t i_now;
@@ -18563,10 +18566,17 @@ FUNCTION(fun_execscript)
    /* set setq register to environment variables */
    s_varset = alloc_mbuf("execscript_variables2");
    s_nregsptr = s_nregs = alloc_lbuf("execscript_regnames");
-   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
+   for ( i_count = 0; i_count < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i_count++) {
+      if ( mudstate.execscript_noreg ) {
+         break;
+      }
       i_flags[i_count] = 0;
       if ( *mudstate.global_regs[i_count] ) {
-         sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         if ( i_count >= MAX_GLOBAL_REGS ) {
+            sprintf(s_varset, "MUSHQ_%d", i_count);
+         } else {
+            sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         }
          i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
          if ( mudstate.global_regsname[i_count] && *(mudstate.global_regsname[i_count]) ) {
             sprintf(s_varset, "MUSHN_%s", mudstate.global_regsname[i_count]);
@@ -18581,8 +18591,13 @@ FUNCTION(fun_execscript)
                s_buff++;
             }
             if ( i_noex ) {
-               sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%c'", 
-                        mudstate.global_regsname[i_count], ToUpper(mudstate.nameofqreg[i_count]));
+               if ( i_count >= MAX_GLOBAL_REGS ) {
+                  sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%d'", 
+                           mudstate.global_regsname[i_count], i_count);
+               } else {
+                  sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%c'", 
+                           mudstate.global_regsname[i_count], ToUpper(mudstate.nameofqreg[i_count]));
+               }
                notify_quiet(player, s_varset);
             } else {
                if ( *s_nregs ) {
@@ -18591,7 +18606,11 @@ FUNCTION(fun_execscript)
                i_flags[i_count] = 1;
                safe_str(s_varset, s_nregs, &s_nregsptr);
                i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
-               sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+               if ( i_count >= MAX_GLOBAL_REGS ) {
+                  sprintf(s_varset, "MUSHQN_%d", i_count);
+               } else {
+                  sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+               }
                i_varset = setenv(s_varset, mudstate.global_regsname[i_count], 1);
             }
          }
@@ -18769,10 +18788,10 @@ FUNCTION(fun_execscript)
             } else {
                s_string = NULL;
             }
-            if ( ((*s_dbref == 'q') || (*s_dbref == 'Q')) && 
+            if ( !mudstate.execscript_noreg && ((*s_dbref == 'q') || (*s_dbref == 'Q')) && 
                  (!*(s_dbref+1) || (((*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N')) && !*(s_dbref+2))) ) {
                   if ( (*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N' ) ) {
-                    for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
+                    for ( i_id = 0; i_id < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i_id++ ) {
                        if ( *(mudstate.global_regsname[i_id]) && !stricmp(mudstate.global_regsname[i_id], s_variable) ) {
                           if ( !s_string || !*s_string ) {
                              *mudstate.global_regs[i_id]='\0';
@@ -18783,6 +18802,7 @@ FUNCTION(fun_execscript)
                        }
                     }
                   } else if ( (strlen(s_variable) == 1) && (index(mudstate.nameofqreg, ToLower(*s_variable)) != NULL) ) {
+                    /* Locked to only MAX_GLOBAL_REGS */
                     for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
                        if ( ToLower(*s_variable) == mudstate.nameofqreg[i_id] ) {
                           if ( !s_string || !*s_string ) {
@@ -18900,11 +18920,22 @@ FUNCTION(fun_execscript)
       free_lbuf(s_inread2);
    }
    /* Cleanup registers */
-   for ( i_count = 0; i_count < MAX_GLOBAL_REGS; i_count++) {
-      sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+   for ( i_count = 0; i_count < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i_count++) {
+      if ( mudstate.execscript_noreg ) {
+         break;
+      }
+      if ( i_count >= MAX_GLOBAL_REGS ) {
+         sprintf(s_varset, "MUSHQ_%d", i_count);
+      } else {
+         sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+      }
       unsetenv(s_varset);
       if ( i_flags[i_count] ) {
-         sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         if ( i_count >= MAX_GLOBAL_REGS ) {
+            sprintf(s_varset, "MUSHQN_%d", i_count);
+         } else {
+            sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         }
          unsetenv(s_varset);
       }
    }
@@ -18948,6 +18979,16 @@ FUNCTION(fun_execscript)
    free_lbuf(s_nregs);
    free_mbuf(s_varset);
    free_lbuf(s_combine);
+}
+
+FUNCTION(fun_execscriptnr)
+{
+   int exec_noreg;
+
+   exec_noreg = mudstate.execscript_noreg;
+   mudstate.execscript_noreg = 1;
+   fun_execscript(buff, bufcx, player, cause, caller, fargs, nfargs, cargs, ncargs);
+   mudstate.execscript_noreg = exec_noreg;
 }
 
 /* ---------------------------------------------------------------------------
@@ -27270,7 +27311,7 @@ FUNCTION(fun_lcmds)
 FUNCTION(fun_array)
 {
    char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
-   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS], i_widthexp, i_widthchk, i_widthtmp;
+   int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_widthexp, i_widthchk, i_widthtmp;
    time_t it_now;
    ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
 
@@ -27292,9 +27333,9 @@ FUNCTION(fun_array)
    if ( *fargs[1] ) {
       i_regs = atoi(fargs[1]);
    }
-   if ( (i_regs < 1) || (i_regs > MAX_GLOBAL_REGS) ) {
+   if ( (i_regs < 1) || (i_regs > (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
       safe_str("#-1 ARRAY REQUIRES BETWEEN 1 AND ", buff, bufcx);
-      ival(buff, bufcx, MAX_GLOBAL_REGS);
+      ival(buff, bufcx, (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST));
       safe_str(" FOR REGISTER COUNT", buff, bufcx);
       return;
    }
@@ -33956,7 +33997,7 @@ FUNCTION(fun_dec)
     regnum = atoi(fargs[0]);
     i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+    for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
        if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
             (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
           regnum = i;
@@ -33968,6 +34009,7 @@ FUNCTION(fun_dec)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
+          /* Can only do MAX_GLOBAL_REGS for these */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -33990,7 +34032,7 @@ FUNCTION(fun_dec)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else if (mudstate.global_regs[regnum]) {
        pt1 = mudstate.global_regs[regnum];
@@ -34067,7 +34109,7 @@ FUNCTION(fun_inc)
     regnum = atoi(fargs[0]);
     i = i_namefnd = 0;
 #ifdef EXPANDED_QREGS
-    for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+    for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
        if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
             (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
           regnum = i;
@@ -34080,6 +34122,7 @@ FUNCTION(fun_inc)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)(*fargs[0])) ) {
+          /* Can only do MAX_GLOBAL_REGS for these */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -34102,7 +34145,7 @@ FUNCTION(fun_inc)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else if (mudstate.global_regs[regnum]) {
        pt1 = mudstate.global_regs[regnum];
@@ -34139,7 +34182,7 @@ FUNCTION(fun_pushregs)
           regnum = 1;
 
        if ( regnum == 0 ) {
-          for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
+          for ( cntr = 0; cntr < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); cntr++ ) {
              if ( !mudstate.global_regs_backup[cntr] )
                 continue;
              if ( !mudstate.global_regs[cntr] )
@@ -34149,7 +34192,7 @@ FUNCTION(fun_pushregs)
              *mudstate.global_regs_backup[cntr]='\0';
           }
        } else {
-          for ( cntr = 0; cntr < MAX_GLOBAL_REGS; cntr++ ) {
+          for ( cntr = 0; cntr < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); cntr++ ) {
              if ( !mudstate.global_regs[cntr] )
                 continue;
              if ( !mudstate.global_regs_backup[cntr] )
@@ -34168,7 +34211,7 @@ FUNCTION(fun_pushregs)
              } else if (isalpha(*(strtok+1))) {
                 regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
              }
-             if ( (regnum >= 0) && (regnum < MAX_GLOBAL_REGS) ) {
+             if ( (regnum >= 0) && (regnum < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
                 if ( mudstate.global_regs[regnum] ) {
                    if ( !mudstate.global_regs_backup[regnum] )
                       mudstate.global_regs_backup[regnum] = alloc_lbuf("fun_pushregs");
@@ -34182,7 +34225,7 @@ FUNCTION(fun_pushregs)
              } else if (isalpha(*(strtok+1))) {
                 regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
              }
-             if ( (regnum >= 0) && (regnum < MAX_GLOBAL_REGS) ) {
+             if ( (regnum >= 0) && (regnum < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
                 if ( mudstate.global_regs_backup[regnum] ) {
                    if ( !mudstate.global_regs[regnum] )
                       mudstate.global_regs[regnum] = alloc_lbuf("fun_pushregs");
@@ -34215,7 +34258,7 @@ FUNCTION(fun_nameq)
 
     if ( strlen(fargs[0]) > 1 ) {
        regnum = -1;
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( mudstate.global_regsname[i] && *(mudstate.global_regsname[i]) &&
                (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
              regnum = i;
@@ -34232,6 +34275,7 @@ FUNCTION(fun_nameq)
 #ifdef EXPANDED_QREGS
     if ( (regnum == -1) && isalpha(*fargs[0]) ) {
        if ( !i_namefnd && isalpha((int)*fargs[0]) ) {
+          /* This only handles MAX_GLOBAL_REGS */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -34248,7 +34292,11 @@ FUNCTION(fun_nameq)
        if ( (nfargs == 1) || (nfargs == 3) ) {
           if ( i_returnnum && i_namefnd ) {
 #ifdef EXPANDED_QREGS
-             safe_chr(mudstate.nameofqreg[regnum], buff, bufcx);
+             if ( regnum >= MAX_GLOBAL_REGS ) {
+                safe_str("#-1 OUTSIDE 36 REGISTER LETTERING", buff, bufcx);
+             } else {
+                safe_chr(mudstate.nameofqreg[regnum], buff, bufcx);
+             }
 #else
              ival(buff, bufcx, regnum);
 #endif
@@ -34271,7 +34319,7 @@ FUNCTION(fun_setq_old)
 
     if (nfargs > 2)
     {
-       if( !*fargs[2] ) {
+       if( !*fargs[2] || (strlen(fargs[2]) < 2)) {
           safe_str("#-1 INVALID LABEL", buff, bufcx);
           return;
        }
@@ -34286,9 +34334,9 @@ FUNCTION(fun_setq_old)
 
     i_penntog = 0;
     if ( mudconf.penn_setq && (nfargs == 2)) {
-       if ( !((strlen(fargs[0]) <= 1) && isalnum(*fargs[0])) )
+       if ( *fargs[0] && !((strlen(fargs[0]) <= 1) && isalnum(*fargs[0])) ) {
           i_penntog = 1;
-       if ( !*fargs[0] ) {
+       } else if ( (strlen(fargs[0]) <= 1) && !isalnum(*fargs[0]) ) {
           safe_str("#-1 INVALID LABEL", buff, bufcx);
           return;
        }
@@ -34300,7 +34348,7 @@ FUNCTION(fun_setq_old)
     if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
          (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
                (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2])) == 0) ) {
              regnum = i;
@@ -34310,7 +34358,7 @@ FUNCTION(fun_setq_old)
           }
        }
        if ( !i_namefnd ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
                 if ( ((!i_penntog && (strcmp(fargs[0], "+") == 0)) || i_penntog) && 
                      mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
@@ -34325,7 +34373,7 @@ FUNCTION(fun_setq_old)
        }
     } else {
        if ( strlen(fargs[0]) > 1 ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
@@ -34351,6 +34399,7 @@ FUNCTION(fun_setq_old)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)*fargs[0]) ) {
+          /* Can only do MAX_GLOBAL_REGS with this */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -34359,7 +34408,9 @@ FUNCTION(fun_setq_old)
           regnum = i;
        }
 
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34376,10 +34427,12 @@ FUNCTION(fun_setq_old)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34499,7 +34552,7 @@ FUNCTION(fun_setq)
        }
        result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                             EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
-       if(!*result_second)
+       if(!*result_second || (strlen(result_second) < 2))
        {
            safe_str("#-1 INVALID LABEL", buff, bufcx);
            free_lbuf(result_orig);
@@ -34523,6 +34576,11 @@ FUNCTION(fun_setq)
        result_second = alloc_lbuf("penn_setq_args");
        if ( (strlen(result_orig) <= 1) && isalnum(*result_orig) ) {
           *result_second = '\0';
+       } else if ( (strlen(result_orig) <= 1) && !isalnum(*result_orig) ) {
+          safe_str("#-1 INVALID LABEL", buff, bufcx);
+          free_lbuf(result_orig);
+          free_lbuf(result_second);
+          return;
        } else {
            strcpy(result_second, result_orig);
            strcpy(result_orig, (char *)"+");
@@ -34534,7 +34592,7 @@ FUNCTION(fun_setq)
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
           (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
                (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
@@ -34544,7 +34602,7 @@ FUNCTION(fun_setq)
           }
        }
        if ( !i_namefnd ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
                 if ( (strcmp(result_orig, "+") == 0) && mudstate.global_regs[i] &&
                   *mudstate.global_regs[i] ) {
@@ -34559,7 +34617,7 @@ FUNCTION(fun_setq)
        }
     } else {
        if ( strlen(result_orig) > 1 ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], result_orig) ) {
                 regnum = i;
@@ -34583,6 +34641,7 @@ FUNCTION(fun_setq)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)*result_orig) ) {
+          /* Can only do MAX_GLOBAL_REGS with this */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*result_orig) )
                 break;
@@ -34591,7 +34650,9 @@ FUNCTION(fun_setq)
           regnum = i;
        }
 
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34611,10 +34672,12 @@ FUNCTION(fun_setq)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34650,7 +34713,7 @@ FUNCTION(fun_setr_old)
 
     if (nfargs > 2)
     {
-       if( !*fargs[2] ) {
+       if( !*fargs[2] || (strlen(fargs[2]) < 2)) {
          safe_str("#-1 INVALID LABEL", buff, bufcx);
          return;
        }
@@ -34664,9 +34727,9 @@ FUNCTION(fun_setr_old)
 
     i_penntog = 0;
     if ( mudconf.penn_setq && (nfargs == 2)) {
-       if ( !((strlen(fargs[0]) <= 1) && isalnum(*fargs[0])) )
+       if ( *fargs[0] && !((strlen(fargs[0]) <= 1) && isalnum(*fargs[0])) )
           i_penntog = 1;
-       if ( !*fargs[0] ) {
+       if ( !i_penntog && (strlen(fargs[0]) <= 1) && !isalnum(*fargs[0]) ) {
           safe_str("#-1 INVALID LABEL", buff, bufcx);
           return;
        }
@@ -34678,7 +34741,7 @@ FUNCTION(fun_setr_old)
     if ( (i_penntog || (strcmp(fargs[0], "!") == 0) || (strcmp(fargs[0], "+") == 0)) && 
          (i_penntog || ((nfargs > 2) && *fargs[2])) ) {
        /* First, walk the list to match the variable name */
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
                (stricmp(mudstate.global_regsname[i], (i_penntog ? fargs[0] : fargs[2]) ) == 0) ) {
              regnum = i;
@@ -34688,7 +34751,7 @@ FUNCTION(fun_setr_old)
           }
        }
        if ( !i_namefnd ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
                 if ( ((!i_penntog && (strcmp(fargs[0], "+") == 0)) || i_penntog) && 
                      mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
@@ -34703,7 +34766,7 @@ FUNCTION(fun_setr_old)
        }
     } else {
        if ( strlen(fargs[0]) > 1 ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
@@ -34729,6 +34792,7 @@ FUNCTION(fun_setr_old)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)*fargs[0]) ) {
+          /* MAX_GLOBAL_REGS only for this */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -34737,7 +34801,10 @@ FUNCTION(fun_setr_old)
           regnum = i;
        }
 
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+         
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34755,10 +34822,12 @@ FUNCTION(fun_setr_old)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34801,7 +34870,7 @@ FUNCTION(fun_setr)
        }
        result_second = exec(player, cause, caller, EV_STRIP | EV_FCHECK |
                             EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
-       if(!*result_second)
+       if(!*result_second || (strlen(result_second) < 2))
        {
            safe_str("#-1 INVALID LABEL", buff, bufcx);
            free_lbuf(result_orig);
@@ -34825,6 +34894,11 @@ FUNCTION(fun_setr)
        result_second = alloc_lbuf("penn_setr_args");
        if ( (strlen(result_orig) <= 1) && isalnum(*result_orig) ) {
           *result_second = '\0';
+       } else if ( (strlen(result_orig) <= 1) && !isalnum(*result_orig) ) {
+          safe_str("#-1 INVALID LABEL", buff, bufcx);
+          free_lbuf(result_orig);
+          free_lbuf(result_second);
+          return;
        } else {
            strcpy(result_second, result_orig);
            strcpy(result_orig, (char *)"+");
@@ -34837,7 +34911,7 @@ FUNCTION(fun_setr)
     if ( ((strcmp(result_orig, "!") == 0) || (strcmp(result_orig, "+") == 0)) && 
          (i_nfargs > 2) && *result_second ) {
        /* First, walk the list to match the variable name */
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
                (stricmp(mudstate.global_regsname[i], result_second) == 0) ) {
              regnum = i;
@@ -34847,7 +34921,7 @@ FUNCTION(fun_setr)
           }
        }
        if ( !i_namefnd ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
                 if ( (strcmp(result_orig, "+") == 0) && mudstate.global_regs[i] &&
                   *mudstate.global_regs[i] ) {
@@ -34862,7 +34936,7 @@ FUNCTION(fun_setr)
        }
     } else {
        if ( strlen(result_orig) > 1 ) {
-          for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+          for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], result_orig) ) {
                 regnum = i;
@@ -34886,6 +34960,7 @@ FUNCTION(fun_setr)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)*result_orig) ) {
+          /* MAX_GLOBAL_REGS only */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*result_orig) )
                 break;
@@ -34894,7 +34969,9 @@ FUNCTION(fun_setr)
           i_chk = 1;
        }
 
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34915,10 +34992,12 @@ FUNCTION(fun_setr)
        }
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+       if ( regnum == -1 ) {
+          safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+       } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
           safe_str("#-1 GLOBAL REGISTER '", buff, bufcx);
           safe_chr(*fargs[0], buff, bufcx);
           safe_str("' LABEL PROTECTED", buff, bufcx);
@@ -34951,7 +35030,7 @@ FUNCTION(fun_r)
     i_namefnd = 0;
     regnum = -1;
     if ( strlen(fargs[0]) > 1 ) {
-       for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
           if ( *(mudstate.global_regsname[i]) &&
                !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
              regnum = i;
@@ -34972,6 +35051,7 @@ FUNCTION(fun_r)
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
        if ( !i_namefnd && isalpha((int)*fargs[0]) ) {
+          /* MAX_GLOBAL_REGS only */
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
              if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) )
                 break;
@@ -34982,7 +35062,7 @@ FUNCTION(fun_r)
           safe_str(mudstate.global_regs[regnum], buff, bufcx);
     }
 #else
-    if ((regnum < 0) || (regnum >= MAX_GLOBAL_REGS)) {
+    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else if (mudstate.global_regs[regnum]) {
        safe_str(mudstate.global_regs[regnum], buff, bufcx);
@@ -37923,8 +38003,8 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     dbref thing;
     int anum, i, i_bypass;
     ATTR *ap;
-    char *atext, *result, *xargs[MAX_ARG], *savereg[MAX_GLOBAL_REGS], *pt, 
-         *npt, *saveregname[MAX_GLOBAL_REGS];
+    char *atext, *result, *xargs[MAX_ARG], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, 
+         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     /* We need at least one argument */
 
@@ -38013,7 +38093,7 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        xargs[i] = fargs[i];
     }
     if ( i_is_local ) {
-       for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+       for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
          savereg[i] = alloc_lbuf("cluster_ulocal_reg");
          saveregname[i] = alloc_sbuf("cluster_ulocal_regname");
          pt = savereg[i];
@@ -38055,7 +38135,7 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
           break;
     }
     if ( i_is_local ) {
-       for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+       for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
          pt = mudstate.global_regs[i];
          npt = mudstate.global_regsname[i];
          safe_str(savereg[i], mudstate.global_regs[i], &pt);
@@ -38633,6 +38713,7 @@ FUN flist[] =
     {"EXTRACTWORD", fun_extractword, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXTRACT", fun_extract, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"EXECSCRIPT", fun_execscript, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
+    {"EXECSCRIPTNR", fun_execscriptnr, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"FBETWEEN", fun_fbetween, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FBOUND", fun_fbound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"FDIV", fun_fdiv, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

@@ -7350,6 +7350,39 @@
 
 { 'wizhelp config parameters reality' for more (reality levels) }
 
+& CONFIG PARAMETERS DISPLAY
+  These are config parameters that are only useful for displaying 
+  values for use in code or other situations.
+  
+  lbuf_size        mbuf_size          sbuf_size      register_count
+
+& lbuf_size
+  Config Display: lbuf_size
+  
+  This value will display what the current LBUF buffer size is in bytes.
+  
+  See Also: mbuf_size, sbuf_size
+
+& mbuf_size
+  Config Display: mbuf_size
+  
+  This value will display what the current MBUF buffer size is in bytes.
+  
+  See Also: lbuf_size, sbuf_size
+
+& sbuf_size
+  Config Display: sbuf_size
+  
+  This value will display what the current SBUF buffer size is in bytes.
+  
+  See Also: mbuf_size, lbuf_size
+
+& register_count
+  Config Display: register_count
+  
+  This value will display the total number of setq registers allowed.
+  This can be boosted with config parameter settings above 36.  
+
 & mysql_delay
   Config parameter: mysql_delay <value>.  Default: 0 (range 60-86400)
   
@@ -13142,20 +13175,25 @@
   ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  ACCOUNT_WHO() AFLAGS()    
   BEEP()           BYPASS()         CANSEE()      CHECKPASS()   CHKGARBAGE()
   CLOAK()          CODEPOINT()      DOING()       DYNHELP()     EXECSCRIPT()
-  HASDEPOWER()     HASPOWER()       HASTOGGLE()   ISHIDDEN()    LATTRP()    
-  LDEPOWERS()      LOGTOFILE()      LOGSTATUS()   LOOKUP_SITE() LPOWERS()   
-  LTOGGLES()       MAILALIAS()      MAILQUICK()   MAILQUOTA()   MAILREAD()
-  MAILSEND()       MAILSIZE()       MAILSTATUS()  MSIZETOT()    NSLOOKUP()  
-  QUOTA()          SIZE()           TEXTFILE()    TOTEMVALID()
+  EXECSCRIPTNR()   HASDEPOWER()     HASPOWER()    HASTOGGLE()   ISHIDDEN()  
+  LATTRP()         LDEPOWERS()      LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE()
+  LPOWERS()        LTOGGLES()       MAILALIAS()   MAILQUICK()   MAILQUOTA() 
+  MAILREAD()       MAILSEND()       MAILSIZE()    MAILSTATUS()  MSIZETOT()  
+  NSLOOKUP()       QUOTA()          SIZE()        TEXTFILE()    TOTEMVALID()
 
 & EXECSCRIPT()
+& EXECSCRIPTNR()
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])
+  Function: execscriptnr(<script name> [,<arg 0>,...,<arg 9>])
   
   Note:  This function issues a shell interpreter so will have some
          overhead compared to calling it natively through an API.
   
   Note2: You may specify subdirectory overrides with the @admin param
          execscriptpath.  This only allows alphanumerical characters.
+  
+  Note3: execscriptnr is exactly the same as execscript except it will
+         not pass any register data to the script (setq registers).
     
   Requirements:  /usr/bin/timeout (on MacOSX link to /usr/local/bin/gtimeout)
                  script/binary existing in ~/game/scripts and chmod u+rx

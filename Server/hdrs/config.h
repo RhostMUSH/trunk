@@ -38,6 +38,48 @@
 #define MAX_GLOBAL_REGS		10	/* r() registers */
 #endif
 
+/* 
+ * This option will requiure either penn_setq enabled or by using the
+ * +/! options to setq to specify 'next in line' for setting labels.
+ *
+ * The only way to access these additional registers is with labels
+ * Default behavior is '0' for no additional registers
+ *
+ * The expected overhead for each addition register is:
+ *    (LBUF_SIZE * 2) + SBUF_SIZE
+ *
+ * This has been tested vigeriously with upwards to 10k extra.
+ * The overhead in setting all 10k registers took 3-5 seconds.
+ * After that, using them was as fast as normal.
+ *
+ * I would suggest keeping the value under a few hundred due to overhead.
+ *
+ * Keep in mind extra overhead in the stack with queued processing.
+ *
+ * The default value for this is 0
+ */
+#ifdef DYN_MAX_GLOBAL_BOOST
+#define MAX_GLOBAL_BOOST	DYN_MAX_GLOBAL_BOOST
+#else
+#define MAX_GLOBAL_BOOST	0    	/* Boost the q-regs */
+#endif
+
+/* 
+ * ATRCACHE_MAX is the global buffers that can be assigned for
+ * function evaluation.  Generally 200 is more than enough but
+ * on games that you may want more, you are welcome to use this.
+ *
+ * Keep in mind that expected overhead for atrcaches are:
+ *    (LBUF_SIZE * 2) + SBUF_SIZE
+ *
+ * The default value for this is 200
+ */
+#ifdef DYN_ATRCACHE_MAX
+#define ATRCACHE_MAX		DYN_ATRCACHE_MAX
+#else
+#define ATRCACHE_MAX		200 	/* @atrcache max possible */
+#endif
+
 /* ---------------------------------------------------------------------------
  * Database R/W flags.
  */

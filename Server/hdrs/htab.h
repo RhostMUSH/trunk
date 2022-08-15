@@ -84,8 +84,8 @@ struct bque {
 	char	*text;		/* buffer for comm, env, and scr text */
 	char	*comm;		/* command */
 	char	*env[NUM_ENV_VARS];	/* environment vars */
-	char	*scr[MAX_GLOBAL_REGS];	/* temp vars */
-        char    *scrname[MAX_GLOBAL_REGS]; /* Temp names */
+	char	*scr[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* temp vars */
+        char    *scrname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST]; /* Temp names */
 	int	nargs;		/* How many args I have */
 	int	pid;
 	int	stop_bool;	/* Boolean if we are to stop the process */

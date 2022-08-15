@@ -34784,6 +34784,10 @@
  * SETQLABEL @totem to protect labeled registers from being overwritten [ASH]
  * @admin setqlabel like SETQLABEL @totem but globally [ASH]
  * Lua support for the WebAPI. Configurable with 'make config' [POLK]
+ * execscriptnr() like execscript but no longer passing registers [ASH]
+ * Compile time option for BOOSTING registers from 36 to high values [ASH]
+ * Compile time option to increase total allowable @atrcache max [ASH]
+ * register_count 'fake' config param to display total registers [ASH]
   
   Changes
   -------
@@ -34802,6 +34806,7 @@
  * Improvement of help for printf/@sex [ASH]
  * totem help expanded on [ASH]
  * @totem, @set, and @toggle have improved help on mixing them up [ASH]
+ * Enbedding optional config handler for config menu [ASH]
   
   Bug Fixes
   ------------
@@ -34814,3 +34819,5 @@
  * setqlabel didn't always check label properly [ASH]
  * hasquota() was checking for the UNL_QUOTA depower on the user instead
    of the target [AMB]
+ * off by one register initialization in low level stack routine [ASH]
+ * improvement on label warnings for registers [ASH]

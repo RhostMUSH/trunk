@@ -1262,6 +1262,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
          }
          break;
       case ATRCACHE_LIST: /* list all the caches currently in use */
+      case ATRCACHE_INUSE: /* list all the caches currently in use */
          i_cnt = i_cur = i_vis = i_control = i_enabled = 0;
          s_tbuff = alloc_lbuf("atrcache_list");
          if ( Wizard(player) ) {
@@ -1284,7 +1285,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   i_vis++;
                }
             } else {
-               if ( Immortal(player) ) {
+               if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
                   i_vis++;
                   i_control++;
                }
@@ -1292,7 +1293,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
          }
  
          /* Immortals see all */
-         if ( Immortal(player) ) {
+         if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
             i_vis = mudconf.atrcachemax;
          }
 
@@ -1349,7 +1350,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   i_cur++;
                }   
             } else {
-               if ( Wizard(player) ) {
+               if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
                   if ( (i_found != 0) && ((i_cur < ((i_found - 1) * 20)) || (i_cur >= (i_found * 20))) ) {
                      i_cnt++;
                      i_cur++;

@@ -821,7 +821,7 @@ int pay_quota(dbref player, dbref who, int cost, int ttype, int pay)
   who = Owner(who);
 
   if ((!Builder(who) && !HasPriv(who,NOTHING,POWER_FREE_QUOTA,POWER3,POWER_LEVEL_NA)) ||
-	(DePriv(who,NOTHING,DP_UNL_QUOTA,POWER7,POWER_LEVEL_NA))) {
+        (DePriv(who,NOTHING,DP_UNL_QUOTA,POWER7,POWER_LEVEL_NA))) {
     rval = 0;
     atr1 = atr_get(who,A_RQUOTA,&owner,&flags);
     if (!Altq(who)) {
@@ -1398,8 +1398,8 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
 {
    int a, any, chkwild, i_regexp, i_case, i_notify, i_inline, x,
         i_nobreak, i_breakst, i_localize, i_clearreg, i_jump, i_rollback, i_chkinline, i_orig;
-   char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS],
-        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
+        *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
 
    if (!expr || (nargs <= 0))
       return;
@@ -1470,7 +1470,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             retbuff = replace_tokens(args[a+1], NULL, NULL, expr);
             if ( i_inline ) {
                if ( i_clearreg || i_localize ) {
-                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                      savereg[x] = alloc_lbuf("ulocal_reg");
                      saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
@@ -1513,7 +1513,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   mudstate.breakst = i_breakst;
                }
                if ( i_clearreg || i_localize ) {
-                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                      pt = mudstate.global_regs[x];
                      npt = mudstate.global_regsname[x];
                      safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -1530,7 +1530,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
          } else {
             if ( i_inline ) {
                if ( i_clearreg || i_localize ) {
-                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                      savereg[x] = alloc_lbuf("ulocal_reg");
                      saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
@@ -1572,7 +1572,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   mudstate.breakst = i_breakst;
                }
                if ( i_clearreg || i_localize ) {
-                  for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                  for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                      pt = mudstate.global_regs[x];
                      npt = mudstate.global_regsname[x];
                      safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -1600,7 +1600,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
          retbuff = replace_tokens(args[a], NULL, NULL, expr);
          if ( i_inline ) {
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   savereg[x] = alloc_lbuf("ulocal_reg");
                   saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
@@ -1643,7 +1643,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                mudstate.breakst = i_breakst;
             }
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   pt = mudstate.global_regs[x];
                   npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -1660,7 +1660,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
       } else {
          if ( i_inline ) {
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   savereg[x] = alloc_lbuf("ulocal_reg");
                   saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
@@ -1703,7 +1703,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                mudstate.breakst = i_breakst;
             }
             if ( i_clearreg || i_localize ) {
-               for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                   pt = mudstate.global_regs[x];
                   npt = mudstate.global_regsname[x];
                   safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -2212,9 +2212,9 @@ dbref next_exit(dbref player, dbref this, int exam_here)
 void did_it(dbref player, dbref thing, int what, const char *def, int owhat, 
 	const char *odef, int awhat, char *args[], int nargs)
 {
-  char	*d, *buff, *act, *charges, *lcbuf, *pt, *npc_name, *savereg[MAX_GLOBAL_REGS], *master_str, *master_ret;
-  char *pt2, *savereg2[MAX_GLOBAL_REGS], *tmpformat_buff, *tpr_buff, *tprp_buff,
-       *npt2, *savereg2name[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS];
+  char	*d, *buff, *act, *charges, *lcbuf, *pt, *npc_name, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *master_str, *master_ret;
+  char *pt2, *savereg2[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *tmpformat_buff, *tpr_buff, *tprp_buff,
+       *npt2, *savereg2name[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
   dbref	loc, aowner, aowner2, master, aowner3;
   int	num, aflags, cpustopper, nocandoforyou, x, aflags2, o_chkr, tst_attr, aflags3, chkoldstate, i_didsave;
   int   did_allocate_buff;
@@ -2262,7 +2262,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                     !Immortal(Owner(thing))) ))) {
                 if ( mudconf.descs_are_local ) {
                    i_didsave = 1;
-                   for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                   for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                       savereg2[x] = alloc_lbuf("ulocal_reg");
                       savereg2name[x] = alloc_sbuf("ulocal_regname");
                       pt2 = savereg2[x];
@@ -2305,7 +2305,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                              ((what == A_LCON_FMT) ||
                               (what == A_LEXIT_FMT) ||
                               (what == A_LDEXIT_FMT)) ) {
-                           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                              savereg[x] = alloc_lbuf("ulocal_reg");
                              saveregname[x] = alloc_sbuf("ulocal_reg");
                              pt = savereg[x];
@@ -2333,7 +2333,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                               ((what == A_LCON_FMT) ||
                               (what == A_LEXIT_FMT) ||
                               (what == A_LDEXIT_FMT)) ) {
-                           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                              pt = mudstate.global_regs[x];
                              npt = mudstate.global_regsname[x];
                              safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -2549,7 +2549,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 	/* do the action attribute */
         if ( i_didsave && mudconf.descs_are_local ) {
            i_didsave = 0;
-           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
               pt2 = mudstate.global_regs[x];
               npt2 = mudstate.global_regsname[x];
               safe_str(savereg2[x],mudstate.global_regs[x],&pt2);
@@ -2647,7 +2647,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
       }
       if ( i_didsave && mudconf.descs_are_local ) {
          i_didsave = 0;
-         for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             pt2 = mudstate.global_regs[x];
             npt2 = mudstate.global_regsname[x];
             safe_str(savereg2[x],mudstate.global_regs[x],&pt2);

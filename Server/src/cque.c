@@ -86,7 +86,7 @@ void execute_entry(BQUE *queue)
 
 		/* Load scratch args */
 
-		for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+		for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 		    if (queue->scr[i]) {
 			strcpy(mudstate.global_regs[i],
 			       queue->scr[i]);
@@ -436,13 +436,13 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->env[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scr[a] )
                    freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                 else
                    freezepid->scr[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scrname[a] )
                    freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                 else
@@ -514,13 +514,13 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->env[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scr[a] )
                    freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                 else
                    freezepid->scr[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scrname[a] )
                    freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                 else
@@ -643,13 +643,13 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->env[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scr[a] )
                       freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                    else
                       freezepid->scr[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scrname[a] )
                       freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                    else
@@ -724,13 +724,13 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->env[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scr[a] )
                       freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                    else
                       freezepid->scr[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scrname[a] )
                       freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                    else
@@ -1685,13 +1685,13 @@ setup_que(dbref player, dbref cause, char *command,
 	    tlen += (strlen(args[a]) + 1);
     }
     if (sargs) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a])
 		tlen += (strlen(sargs[a]) + 1);
 	}
     }
     if ( sargsname ) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a])
 		tlen += (strlen(sargsname[a]) + 1);
 	}
@@ -1706,10 +1706,10 @@ setup_que(dbref player, dbref cause, char *command,
     for (a = 0; a < NUM_ENV_VARS; a++) {
 	tmp->env[a] = NULL;
     }
-    for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+    for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	tmp->scr[a] = NULL;
     }
-    for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+    for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	tmp->scrname[a] = NULL;
     }
 
@@ -1731,7 +1731,7 @@ setup_que(dbref player, dbref cause, char *command,
 	}
     }
     if (sargs) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a]) {
 		strcpy(tptr, sargs[a]);
 		tmp->scr[a] = tptr;
@@ -1740,7 +1740,7 @@ setup_que(dbref player, dbref cause, char *command,
 	}
     }
     if ( sargsname ) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a]) {
 		strcpy(tptr, sargsname[a]);
 		tmp->scrname[a] = tptr;
@@ -1909,7 +1909,7 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
              return;
           }
           recpidval = atoi(eventorig);
-          if ( (recpidval < 0) || (recpidval > MAX_GLOBAL_REGS) ) {
+          if ( (recpidval < 0) || (recpidval > (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
              notify(player, "Invalid register defined with /RECPID switch.");
              return;
           }
@@ -2234,7 +2234,7 @@ do_top(int ncmds)
     for (count = 0; count < ncmds; count++) {
 	if (!test_top()) {
 	    mudstate.debug_cmd = cmdsave;
-	    for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+	    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 		*mudstate.global_regs[i] = '\0';
 		*mudstate.global_regsname[i] = '\0';
    	        *mudstate.global_regs_backup[i] = '\0';
@@ -2252,7 +2252,7 @@ do_top(int ncmds)
         mudstate.curr_cmd = (char *) "";
     }
 
-    for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 	*mudstate.global_regs[i] = '\0';
 	*mudstate.global_regsname[i] = '\0';
   	*mudstate.global_regs_backup[i] = '\0';

@@ -124,7 +124,7 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
            char *fargs[], int nfargs, char *cargs[], int ncargs, int key, char *name)
 {
   int i, nqregs, curq, erroffset, offsets[99], subpatterns, qindex, flags, len;
-  char *qregs[MAX_GLOBAL_REGS];
+  char *qregs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
   pcre *re;
   const char *errptr;
 
@@ -158,14 +158,14 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
    */
   if (subpatterns == 0)
     subpatterns = 33;
-  nqregs = list2arr(qregs, MAX_GLOBAL_REGS, fargs[2], ' ');
+  nqregs = list2arr(qregs, MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST, fargs[2], ' ');
   for (i = 0; i < nqregs; i++) {
     if (qregs[i] && qregs[i][0] && !qregs[i][1] &&
         ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1))
       curq = qindex;
     else
       curq = -1;
-    if (curq < 0 || curq >= MAX_GLOBAL_REGS)
+    if (curq < 0 || curq >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))
       continue;
     if (subpatterns < 0)
       mudstate.global_regs[curq][0] = '\0';

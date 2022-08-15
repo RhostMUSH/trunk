@@ -218,6 +218,7 @@ NAMETAB atrcache_sw[] =
     {(char *) "info", 3, CA_PUBLIC, 0, ATRCACHE_INFO},
     {(char *) "set", 3, CA_PUBLIC, 0, ATRCACHE_SET},
     {(char *) "noansi", 3, CA_PUBLIC, 0, ATRCACHE_NOANSI | SW_MULTIPLE},
+    {(char *) "inuse", 3, CA_PUBLIC, 0, ATRCACHE_INUSE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB blacklist_sw[] =
@@ -2282,8 +2283,8 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
    dbref thing2;
    int attrib2, aflags_set, i_cpuslam, x, retval, no_hook;
    time_t i_now, i_rollback, i_jump;
-   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS], *pt, *result, *cpuslam, *cp, *atextptr,
-        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   char *atext, *cputext, *cpulbuf, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *result, *cpuslam, *cp, *atextptr,
+        *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
 
    if ( mudstate.no_hook ) {
       return 0;
@@ -2301,7 +2302,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
       aflags_set = hk_ap2->number;
       if ( atext && !(attrib2 & AF_NOPROG) ) {
          if ( save_flg ) {
-            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+            for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                savereg[x] = alloc_lbuf("ulocal_reg");
                saveregname[x] = alloc_sbuf("ulocal_regname");
                pt = savereg[x];
@@ -2360,7 +2361,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
          }
          mudstate.password_nochk = 0;
          if ( save_flg ) {
-            for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+            for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                pt = mudstate.global_regs[x];
                npt = mudstate.global_regsname[x];
                safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -6479,6 +6480,14 @@ list_options_system(dbref player)
 #else
     notify(player, "A-Z setq registers --------------------------------------------- DISABLED");
 #endif
+    bptr = alloc_mbuf("list_option_system");
+    if ( MAX_GLOBAL_BOOST > 0 ) {
+       sprintf(bptr, "The default %2d registers have been expanded -------------------- +%d", MAX_GLOBAL_REGS, MAX_GLOBAL_BOOST);
+    } else {
+       sprintf(bptr, "The default %2d registers are not expanded ---------------------- N/A", MAX_GLOBAL_REGS);
+    }
+    notify(player, bptr);
+    free_mbuf(bptr);
 #ifdef ATTR_HACK
     if ( mudconf.hackattr_see == 0 ) {
        notify(player, "Attributes starting with _ and ~ ------------------------------- WIZARD ONLY");
@@ -8737,8 +8746,8 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     switch (flagvalue) {
        case LIST_ALLOCATOR:
 	   list_bufstats(player);
-           notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS * 2)));
-           notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", MAX_GLOBAL_REGS));
+           notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)));
+           notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)));
 #ifndef NODEBUGMONITOR
            notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
            notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
@@ -10536,7 +10545,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command, char *args[], int nargs)
 {
    dbref target;
-   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS], *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
    int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback, i_chkinline, i_orig;
    time_t i_now;
 
@@ -10573,7 +10582,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    old_trainmode=mudstate.trainmode;
 
    if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
          saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
@@ -10633,7 +10642,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    strcpy(mudstate.rollback, s_rollback);
    free_lbuf(s_rollback); 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          pt = mudstate.global_regs[x];
          npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);

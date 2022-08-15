@@ -628,7 +628,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
     dbref loc, aowner;
     int oattr, aattr, x, aflags, chk_tog;
     time_t chk_stop;
-    char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS], *pt, *saveregname[MAX_GLOBAL_REGS], *npt;
+    char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
 
     if ( mudstate.remotep != NOTHING ) {
        notify(player, "You can't go that way by remote.");
@@ -645,7 +645,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
           chk_tog = mudstate.chkcpu_toggle;
           mudstate.chkcpu_stopper = time(NULL);
           mudstate.chkcpu_toggle = 0;
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              savereg[x] = alloc_lbuf("ulocal_reg_moveexit");
              saveregname[x] = alloc_sbuf("ulocal_regname_moveexit");
              pt = savereg[x];
@@ -674,7 +674,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
              }
           }
           free_lbuf(retbuff);
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              pt = mudstate.global_regs[x];
              npt = mudstate.global_regsname[x];
              safe_str(savereg[x],mudstate.global_regs[x],&pt);

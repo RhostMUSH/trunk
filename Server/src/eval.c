@@ -1376,8 +1376,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
-    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
-         *nptsavereg, *saveregname[MAX_GLOBAL_REGS], c_allargs;
+    char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
+         *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
     char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr;
     static char tfunbuff[33], tfunlocal[100];
     dbref aowner, twhere, sub_aowner;
@@ -2027,7 +2027,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    } else {
 #ifdef EXPANDED_QREGS
                       if ( *t_bufa && !*(t_bufa+1) && isalnum(*t_bufa) ) {
-                         for ( w = 0; w < 37; w++ ) {
+                         /* We can only check the first MAX_GLOBAL_REGS letters/numbers */
+                         for ( w = 0; w < MAX_GLOBAL_REGS; w++ ) {
                             if ( mudstate.nameofqreg[w] == tolower(*t_bufa) )
                                break;
                          }
@@ -2068,7 +2069,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          }
 #endif
                       } else {
-                         for ( sub_cntr = 0 ; sub_cntr < MAX_GLOBAL_REGS; sub_cntr++ ) {
+                         for ( sub_cntr = 0 ; sub_cntr < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); sub_cntr++ ) {
                             if (  mudstate.global_regsname[sub_cntr] &&
                                   !stricmp(mudstate.global_regsname[sub_cntr], t_bufa) ) {
 #ifdef BANGS
@@ -2094,7 +2095,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		   i = (*dstr - '0');
 #ifdef EXPANDED_QREGS
                    if ( *dstr && isalpha((int)*dstr) ) {
-                      for ( w = 0; w < 37; w++ ) {
+                      /* We can only check the first MAX_GLOBAL_REGS letters/numbers */
+                      for ( w = 0; w < MAX_GLOBAL_REGS; w++ ) {
                          if ( mudstate.nameofqreg[w] == tolower(*dstr) )
                             break;
                       }
@@ -3155,7 +3157,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    mudstate.ufunc_nest_lev++;
 		    mudstate.func_invk_ctr++;
                     if ( ufp->flags & FN_PRES ) {
-                       for (z = 0; z < MAX_GLOBAL_REGS; z++) {
+                       for (z = 0; z < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); z++) {
                           savereg[z] = alloc_lbuf("ulocal_reg");
                           saveregname[z] = alloc_sbuf("ulocal_regname");
                           ptsavereg = savereg[z];
@@ -3182,7 +3184,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     }
 		    mudstate.allowbypass = 0;
                     if ( ufp->flags & FN_PRES ) {
-                       for (z = 0; z < MAX_GLOBAL_REGS; z++) {
+                       for (z = 0; z < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); z++) {
                           ptsavereg = mudstate.global_regs[z];
                           nptsavereg = mudstate.global_regsname[z];
                           safe_str(savereg[z],mudstate.global_regs[z],&ptsavereg);
