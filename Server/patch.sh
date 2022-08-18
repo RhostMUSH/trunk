@@ -107,6 +107,7 @@ else
    cp -f rhost_tmp/Server/bin/asksource* bin
    cp -f rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
    cp -f rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
+   cp -f rhost_tmp/Server/game/txt/*.lua game/txt/
    cp -f rhost_tmp/Server/readme/RHOST.CHANGES readme/RHOST.CHANGES
    # copy directories missing
    for i in $(find rhost_tmp/Server/src/ -type d -maxdepth 1)
