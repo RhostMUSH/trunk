@@ -49,6 +49,8 @@ char *index(const char *, int);
 #define FILENUM NETCOMMON_C
 
 extern int ndescriptors;
+extern int FDECL(alarm_msec, (double));
+
 
 /* Logged out command table definitions */
 
@@ -5917,8 +5919,26 @@ do_command(DESC * d, char *command)
                   if ( s_lua )  {
                      if ( Totem(atoi(s_user),9) & TOTEM_API_LUA ) {
                         lua = open_lua_interpreter(thing);
+                        if(!lua) {
+                           queue_string(d, "HTTP/1.1 500 Internal Server Error\r\n");
+                           queue_string(d, "Content-type: text/plain\r\n");
+                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                           queue_string(d, "Exec: Error - Timeout opening interpreter\r\n");
+                           queue_string(d, "Return: <NULL>\r\n\r\n");
+                           goto end_lua; /* Abort, abort! */
+                        }
+
                         free_lbuf(s_buffer);
                         s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
+                        if(!s_buffer) {
+                           queue_string(d, "HTTP/1.1 500 Internal Server Error\r\n");
+                           queue_string(d, "Content-type: text/plain\r\n");
+                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+                           queue_string(d, "Exec: Error - Timeout running script\r\n");
+                           queue_string(d, "Return: <NULL>\r\n\r\n");
+                           goto end_lua; /* Abort, abort! */
+                        }
+      
                         close_lua_interpreter(lua);
 
                         queue_string(d, "HTTP/1.1 200 OK\r\n");
@@ -5952,6 +5972,7 @@ do_command(DESC * d, char *command)
                         queue_string(d, "Exec: Error - Permission Denied\r\n");
                         queue_string(d, "Return: <NULL>\r\n\r\n");
                      }
+                     end_lua: /* I'm using goto as a poor man's exception system. Fite me. --polk */
                      free_lbuf(s_lua);
                      s_lua = NULL;
                      i_snarfing = 1; /* We already handled this, move on */
@@ -5983,7 +6004,7 @@ do_command(DESC * d, char *command)
                                             s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                             s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                             parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                            strcpy(s_buffer, s_ansi2); 
+                                            strcpy(s_buffer, s_ansi3); 
                                             free_lbuf(s_ansi1);
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);
@@ -5997,7 +6018,7 @@ do_command(DESC * d, char *command)
                                          s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                          s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                          parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                         strcpy(s_buffer, s_ansi2); 
+                                         strcpy(s_buffer, s_ansi3); 
                                          free_lbuf(s_ansi1);
                                          free_lbuf(s_ansi2);
                                          free_lbuf(s_ansi3);
@@ -6016,7 +6037,7 @@ do_command(DESC * d, char *command)
                                             s_ansi2p = s_ansi2 = alloc_lbuf("get_parse_ansibuf2");
                                             s_ansi3p = s_ansi3 = alloc_lbuf("get_parse_ansibuf3");
                                             parse_ansi(s_snarfing, s_ansi1, &s_ansi1p, s_ansi2, &s_ansi2p, s_ansi3, &s_ansi3p);
-                                            strcpy(s_buffer, s_ansi2); 
+                                            strcpy(s_buffer, s_ansi3); 
                                             free_lbuf(s_ansi1);
                                             free_lbuf(s_ansi2);
                                             free_lbuf(s_ansi3);

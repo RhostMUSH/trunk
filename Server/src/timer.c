@@ -55,12 +55,18 @@ extern void		NDECL(pcache_trim);
 int alarm_msec(double time)
 {
 struct itimerval it_val;
-double time_rounded;
+double time_remainder, time_usec, time_sec;
 double i_rounder;
   // This function will _never_ stop the timer; use alarm_stop() for that.
   i_rounder = 0.1;
   if ( mudconf.mtimer != 0 )
      i_rounder = 1.0 / (double)mudconf.mtimer;
+
+  time_remainder = fmod(time,1);
+  time_sec = time - time_remainder;
+  time_usec = roundf(1000000 * time_remainder * mudconf.mtimer) / mudconf.mtimer;
+
+/*
   time = (time <= 0 ? i_rounder : time );
   time_rounded = roundf(time * (double)mudconf.mtimer) / (double)mudconf.mtimer; // Round to specified decimal place
   it_val.it_value.tv_sec = floor(time_rounded); // Second
@@ -69,10 +75,14 @@ double i_rounder;
   } else {
      it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,((double)mudconf.mtimer / 10.0))); // Decimal
   }
+*/
+
+  it_val.it_value.tv_sec = (time_t) time_sec;
+  it_val.it_value.tv_usec = (suseconds_t) time_usec;
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
 /* Debugging
-  fprintf(stderr, "Timer Triggered");
+  fprintf(stderr, "Time Triggered -- Value: %ld/%ld      Value2: %f/%f/%f\n", it_val.it_value.tv_sec, it_val.it_value.tv_usec, time_sec, time_usec, time);
  */
   mudstate.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);

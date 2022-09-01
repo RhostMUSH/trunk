@@ -17,8 +17,17 @@
 #include "lua/src/lualib.h"
 
 extern FUNCTION(fun_strfunc);
+extern int FDECL(alarm_msec, (double));
+extern int FDECL(next_timer, ());
 
 static const char *rhost_run_as_key = "rhost_run_as";
+
+static void lua_timer_hook(lua_State *L, lua_Debug *ar)
+{
+    if(mudstate.alarm_triggered) {
+        luaL_error(L, "Alarm triggered");
+    }
+}
 
 static void
 lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
@@ -251,6 +260,7 @@ open_lua_interpreter(dbref run_as)
     /* Bring in JSON Support */
     snprintf(filename, LBUF_SIZE - 1, "%s/%s", mudconf.txt_dir, "dkjson.lua");
     if(luaL_dofile(lua->state, filename)) {
+        lua_pop(lua->state, 1);
         log_text("LUA : Error loading dkjson.lua");
         end_log();
     } else {
@@ -286,6 +296,7 @@ open_lua_interpreter(dbref run_as)
     /* Bring in rhost table */
     snprintf(filename, LBUF_SIZE - 1, "%s/%s", mudconf.txt_dir, "rhost.lua");
     if(luaL_dofile(lua->state, filename)) {
+        lua_pop(lua->state, 1);
         log_text("LUA : Error loading rhost.lua");
         end_log();
     } else {
@@ -307,6 +318,8 @@ open_lua_interpreter(dbref run_as)
 
     free_lbuf(filename);
 
+    lua_sethook(lua->state, &lua_timer_hook, LUA_MASKCOUNT, 1);
+
     return lua;
 }
 
@@ -325,6 +338,7 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     size_t size;
     int error;
 
+    alarm_msec(15);
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
     } else {
@@ -342,9 +356,13 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
         res[size] = 0; /* Just coding defensively here */
     }
 
-    if(len && res) {
+    if(res) {
         *len = strlen(res);
+    } else {
+        *len = 0;
     }
+    mudstate.alarm_triggered = 0;
+    alarm_msec(next_timer());
 
     return res;
 }

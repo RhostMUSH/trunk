@@ -34807,6 +34807,7 @@
  * totem help expanded on [ASH]
  * @totem, @set, and @toggle have improved help on mixing them up [ASH]
  * Enbedding optional config handler for config menu [ASH]
+ * protection for LUA for API [ASH]
   
   Bug Fixes
   ------------
@@ -34821,3 +34822,4 @@
    of the target [AMB]
  * off by one register initialization in low level stack routine [ASH]
  * improvement on label warnings for registers [ASH]
+ * some issues with the built in timer for alarm handling [ASH]
