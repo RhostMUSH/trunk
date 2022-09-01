@@ -338,7 +338,7 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     size_t size;
     int error;
 
-    alarm_msec(15);
+    alarm_msec(5);
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
     } else {
@@ -350,7 +350,7 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
         end_log();
     }
 
-    if(raw) {
+    if(raw && !mudstate.alarm_triggered) {
         res = malloc(size + 1);
         strncpy(res, raw, size + 1);
         res[size] = 0; /* Just coding defensively here */

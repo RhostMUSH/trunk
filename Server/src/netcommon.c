@@ -5936,6 +5936,8 @@ do_command(DESC * d, char *command)
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                            queue_string(d, "Exec: Error - Timeout running script\r\n");
                            queue_string(d, "Return: <NULL>\r\n\r\n");
+                           /* We need to re-cache the buffer here */
+                           s_buffer = alloc_lbuf("cmd_post_buff");
                            goto end_lua; /* Abort, abort! */
                         }
       
