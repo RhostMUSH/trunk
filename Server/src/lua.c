@@ -196,6 +196,7 @@ rhost_strfunc(lua_State *L)
     if(argv > 2) {
         fargs[2] = alloc_lbuf("lua_rhost_strfunc_delim");
         lua_stack_to_lbuf(L, fargs[2], -1);
+        free_lbuf(fargs[2]);
         /* log_text("rhost_strfunc : fargs[2] : "); log_text(fargs[2]); end_log(); */
         lua_pop(L, 1); /* pops args */
     }
@@ -203,12 +204,14 @@ rhost_strfunc(lua_State *L)
     /* Second argument: args */
     fargs[1] = alloc_lbuf("lua_rhost_strfunc_args");
     lua_stack_to_lbuf(L, fargs[1], -1);
+    free_lbuf(fargs[1]);
     /* log_text("rhost_strfunc : fargs[1] : "); log_text(fargs[1]); end_log(); */
     lua_pop(L, 1); /* pops args */
 
     /* First argument: func */
     fargs[0] = alloc_lbuf("lua_rhost_strfunc_func");
     lua_stack_to_lbuf(L, fargs[0], -1);
+    free_lbuf(fargs[0]);
     /* log_text("rhost_strfunc : fargs[0] : "); log_text(fargs[0]); end_log(); */
     lua_pop(L, 1); /* pops func*/
 
