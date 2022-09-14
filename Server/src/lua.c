@@ -223,7 +223,55 @@ rhost_strfunc(lua_State *L)
 
     lua_pushstring(L, ret);
 
+    free_lbuf(fargs[0]);
+    free_lbuf(fargs[1]);
+    if(argv > 2) {
+        free_lbuf(fargs[2]);
+    }
     free_lbuf(ret);
+    return 1;
+}
+
+/* rhost_parseansi() allows lua to parse to ANSI output
+ * Arguments: string text
+ */
+static int
+rhost_parseansi(lua_State *L)
+{
+    char *fargs[1], *ascii, *asciip, *accents, *accentsp, *utf8, *utf8p;
+    int argv;
+
+    /* Check argument count */
+    argv = lua_gettop(L);
+    /* log_text("rhost_parseansi : gettop : "); log_number(argv); end_log(); */
+    if(argv < 1) {
+        lua_pushliteral(L, "rhost_parseansi: Incorrect number of arguments");
+        lua_error(L);
+        lua_pop(L, 1);
+        return 0;
+    }
+
+    /* First argument: str */
+    fargs[0] = alloc_lbuf("lua_rhost_parseansi_str");
+    lua_stack_to_lbuf(L, fargs[0], -1);
+    /* log_text("rhost_parseansi : fargs[0] : "); log_text(fargs[0]); end_log(); */
+    lua_pop(L, 1); /* pops str */
+
+    asciip = ascii = alloc_lbuf("lua_rhost_parseansi_ascii");
+    accentsp = accents = alloc_lbuf("lua_rhost_parseansi_ascii");
+    utf8p = utf8 = alloc_lbuf("lua_rhost_parseansi_utf8");
+    parse_ansi(fargs[0], ascii, &asciip, accents, &accentsp, utf8, &utf8p);
+
+    /* log_text("rhost_parseansi : got back ascii: "); log_text(ascii); end_log(); */
+    /* log_text("rhost_parseansi : got back accents : "); log_text(accents); end_log(); */
+    /* log_text("rhost_parseansi : got back utf8 : "); log_text(utf8); end_log(); */
+
+    lua_pushstring(L, utf8);
+
+    free_lbuf(fargs[0]);
+    free_lbuf(ascii);
+    free_lbuf(accents);
+    free_lbuf(utf8);
     return 1;
 }
 
@@ -309,6 +357,9 @@ open_lua_interpreter(dbref run_as)
     lua_setfield(lua->state, -2, "get");
     lua_pushcfunction(lua->state, rhost_strfunc);
     lua_setfield(lua->state, -2, "strfunc");
+    lua_pushcfunction(lua->state, rhost_parseansi);
+    lua_setfield(lua->state, -2, "parseansi");
+
     lua_pop(lua->state, 1); /* pops rhost */
 
     /* Stores run_as dbref in lua registry table for us to retrieve later */
