@@ -9500,6 +9500,9 @@
 & @saystring
   Command: @saystring[/<switch>] <object> = <string>
   
+  Note: By default this does not evaluate.  If the config parameter
+        saystring_eval is enabled, this will evaluate.
+  
   Sets the substitute string that is used instead of the default 'says' when
   you talk in a location.  
   
@@ -9520,6 +9523,18 @@
   Set.
   > "hello
   Player barks "hello"
+  > think config(saystring_eval)
+  0
+  > @saystring me=[pickrand(foo bar)]
+  Set.
+  > "hello
+  Player [pickrand(foo bar)] "hello"
+  > think config(saystring_eval)
+  1
+  > "hello
+  Player foo "hello"
+  > "hello
+  Player bar "hello"
   
   See Also: say, ", safelog toggle
   
@@ -34808,6 +34823,7 @@
  * @totem, @set, and @toggle have improved help on mixing them up [ASH]
  * Enbedding optional config handler for config menu [ASH]
  * protection for LUA for API [ASH]
+ * @saystring optionally evaluates with saystring_eval config [ASH]
   
   Bug Fixes
   ------------

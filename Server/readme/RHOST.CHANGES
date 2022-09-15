@@ -7,6 +7,8 @@ UTF8 -> ASCII fallback for selecct characters.
 				- Thanks HarukaWatanabeLA
 player_absolute lookup for aliases in location to match PennMUSH
 				- Thanks Myrddin
+@saystring optionally evaluates with @admin param saystring_eval.
+				- Thanks Ophelia@Liberation
 
 
                          RhostMUSH 4.0 Update File

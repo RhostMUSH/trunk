@@ -464,6 +464,7 @@ struct confdata {
 	int	connect_methods;		/* Disable optionally connect methods */
 	int	blacklist_max;	/* Maximum blacklists allowed */
 	int	connect_perm;	/* Connect permissions */
+	int	saystring_eval;	/* Does @saystring evaluate */
 	char	string_conn[SBUF_SIZE];		/* String for the connect command */
 	char	string_create[SBUF_SIZE];	/* String for the connect command */
 	char	string_conndark[SBUF_SIZE];	/* String for the dark connect */

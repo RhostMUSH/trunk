@@ -358,6 +358,7 @@ NDECL(cf_init)
     mudconf.max_api_timeout = 20;	/* Maximum API timeout value */
     mudconf.player_absolute = 0;	/* Player absolute (cache) lookup at location */
     mudconf.setqlabel = 0;		/* Label enforcing for setq */
+    mudconf.saystring_eval = 0;		/* @saystring evaluate? */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5362,6 +5363,9 @@ CONF conftable[] =
     {(char *) "safer_passwords",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.safer_passwords, 0, 0, CA_PUBLIC,
      (char *) "Enforcement of harder passwords?"},
+    {(char *) "saystring_eval",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.saystring_eval, 0, 0, CA_PUBLIC,
+     (char *) NULL},
     {(char *) "sconnect_cmd",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.sconnect_cmd, 31, 0, CA_WIZARD,
      (char *) NULL},

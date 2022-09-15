@@ -7289,15 +7289,16 @@
   rwho_host                 rwho_info_port            rwho_password           
   rwho_transmit             sacrifice_adjust          sacrifice_factor        
   safe_wipe                 safer_passwords           safer_ufun              
-  sconnect_cmd              sconnect_host             sconnect_reip           
-  search_cost               secure_atruselock         secure_dark             
-  secure_functions          secure_jumpok             see_owned_dark          
-  setqlabel                 sha2rounds                showother_altname       
-  shs_reverse               sidefx_maxcalls           sidefx_returnval        
-  sideeffects               signal_action             signal_crontab          
-  signal_object             signal_object_type        space_compress          
-  spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        stack_limit
+  saystring_eval            sconnect_cmd              sconnect_host           
+  sconnect_reip             search_cost               secure_atruselock       
+  secure_dark               secure_functions          secure_jumpok           
+  see_owned_dark            setqlabel                 sha2rounds              
+  showother_altname         shs_reverse               sidefx_maxcalls         
+  sidefx_returnval          sideeffects               signal_action           
+  signal_crontab            signal_object             signal_object_type      
+  space_compress            spam_limit                spam_msg                
+  spam_objmsg               sqlite_db_path            sqlite_query_limit      
+  stack_limit
   
 { 'wizhelp config parameters6' for more}
 
@@ -11571,6 +11572,14 @@
   
   See Also: @password, @newpassword
 
+& saystring_eval
+  Config parameter: saystring_eval <boolean>.   Default: 0 (no)
+  
+  This parameter enables the evaluation of the @saystring variable.
+  By default this does not evaluate and sees the string as a literal
+  string.  If this is enabled, then saystrings are evaluated as the
+  owner of the @saystring.
+  
 & sconnect_cmd
   Config parameter: sconnect_cmd <string>.   Default: (NULL)
   

@@ -105,7 +105,7 @@ void do_think (dbref player, dbref cause, int key, char *message)
 void do_say (dbref player, dbref cause, int key, char *message)
 {
   dbref	loc, aowner;
-  char	*buf2, *bp, *pbuf, *tpr_buff, *tprp_buff, *s_mogrify, *s_execmogrify, *s_array[5], *s_trash;
+  char	*buf2, *bp, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *s_mogrify, *s_execmogrify, *s_array[5], *s_trash;
   int	say_flags, depth, aflags, say_flags2, no_ansi, i_mogrify;
   ATTR  *atr_p;
   
@@ -173,7 +173,18 @@ void do_say (dbref player, dbref cause, int key, char *message)
 
 	switch (key) {
 	case SAY_SAY:
-                pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                if ( mudconf.saystring_eval ) {
+                   pbuftmp = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                   if ( pbuftmp && *pbuftmp ) {
+                      pbuf = cpuexec(player, player, player, EV_FCHECK|EV_EVAL, pbuftmp,
+                                     (char **)NULL, 0, (char **)NULL, 0);
+                      free_lbuf(pbuftmp);
+                   } else {
+                      pbuf = pbuftmp;
+                   }
+                } else {
+                   pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                }
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
                 mudstate.posesay_fluff = 1;
                 mudstate.posesay_dbref = player;
@@ -1593,7 +1604,18 @@ void do_say (dbref player, dbref cause, int key, char *message)
 		default:
 			buf2 = alloc_lbuf("do_say.wizshout");
 			bp = buf2;
-                        pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                        if ( mudconf.saystring_eval ) {
+                           pbuftmp = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                           if ( pbuftmp && *pbuftmp ) {
+                              pbuf = cpuexec(player, player, player, EV_FCHECK|EV_EVAL, pbuftmp,
+                                             (char **)NULL, 0, (char **)NULL, 0);
+                              free_lbuf(pbuftmp);
+                           } else {
+                              pbuf = pbuftmp;
+                           }
+                        } else {
+                           pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                        }
                         if ( pbuf && *pbuf ) {
                            tprp_buff = tpr_buff = alloc_lbuf("do_say");
                            safe_str(safe_tprintf(tpr_buff, &tprp_buff, " %.30s \"", pbuf), buf2, &bp);
@@ -2791,7 +2813,7 @@ void do_pemit (dbref player, dbref cause, int key, char *recipient,
 {
 dbref	target, loc, aowner, darray[LBUF_SIZE/2];
 char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
-char	*pc1, *tell, *tx, sep1, *pbuf, *tpr_buff, *tprp_buff, *recipient_buff;
+char	*pc1, *tell, *tx, sep1, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *recipient_buff;
 char    *strtok, *strtokr, *strtokbuf;
 #ifdef REALITY_LEVELS
 char    *pt3, *r_bufr, *s_ptr, *reality_buff;
@@ -3342,7 +3364,18 @@ ZLISTNODE *z_ptr, *y_ptr;
                   break;
                case PEMIT_FSAY:
                   tprp_buff = tpr_buff = alloc_lbuf("do_pemit");
-                  pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                  if ( mudconf.saystring_eval ) {
+                     pbuftmp = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                     if ( pbuftmp && *pbuftmp ) {
+                        pbuf = cpuexec(player, player, player, EV_FCHECK|EV_EVAL, pbuftmp,
+                                       (char **)NULL, 0, (char **)NULL, 0);
+                        free_lbuf(pbuftmp);
+                     } else {
+                        pbuf = pbuftmp;
+                     }
+                  } else {
+                     pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+                  }
                   if ( SafeLog(target) && (target == player) ) {
                      if ( pbuf && *pbuf ) {
 		        notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s %.30s \"%s\"", Name(target), pbuf, result));
@@ -3643,7 +3676,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
 void do_com(dbref player, dbref cause, int key, 
 	const char *arg1, const char *a2)
 {
-  char arg2[2048],chan[1000],*ptr, *pbuf;
+  char arg2[2048],chan[1000],*ptr, *pbuf, *pbuftmp;
   static char mess[2000];
   int aflags, aflags2;
   dbref aowner, aowner2;
@@ -3711,7 +3744,18 @@ void do_com(dbref player, dbref cause, int key,
     com_send(chan,mess);
   }
   else if (arg2[0] == '"'){
-    pbuf = atr_pget(player, A_SAYSTRING, &aowner2, &aflags2);
+     if ( mudconf.saystring_eval ) {
+        pbuftmp = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
+        if ( pbuftmp && *pbuftmp ) {
+           pbuf = cpuexec(player, player, player, EV_FCHECK|EV_EVAL, pbuftmp,
+                          (char **)NULL, 0, (char **)NULL, 0);
+           free_lbuf(pbuftmp);
+        } else {
+           pbuf = pbuftmp;
+        }
+    } else {
+       pbuf = atr_pget(player, A_SAYSTRING, &aowner2, &aflags2);
+    }
     if ( pbuf && *pbuf )
        sprintf(mess, "[%s] %s %.30s, ",chan,Name(player), pbuf);
     else
