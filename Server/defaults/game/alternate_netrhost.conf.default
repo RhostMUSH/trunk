@@ -441,8 +441,9 @@ idle_cmdcount  -1
 # guests
 
 guest_namelist
-num_guests      0
-guest_randomize 0
+num_guests            0
+guest_randomize       0
+guest_displaylastsite 1
 
 # inventories
 
@@ -564,6 +565,8 @@ penn_setq              0
 parent_follow          1
 elements_compat        0
 raw_formatting         1
+setqlabel              0
+player_absolute        0
 
 # ObjIDs
 objid_localtime 0
