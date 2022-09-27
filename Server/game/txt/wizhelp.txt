@@ -4516,12 +4516,12 @@
 & @noflaglevel
   Command: @noflaglevel[</switches>] <object>[=<level>]
  
-  This command allows the lowering of the bitlevel threshold after which
+  This command allows the lowering of the bitlevel threshold at which
   the NO_MODIFY and NO_EXAMINE flags stop taking effect, on a per-object
   basis.
  
   For example, it allows you to set the NO_MODIFY flag on an Architect-
-   -owned object, and then set a NoModify-Level of 3 (Architect) on the
+   -owned object, and then set a NoModify-Level of 4 (Councilor) on the
   object. This results in Councilors being able to modify the object,
   despite the NO_MODIFY flag - but Architects and lower cannot.
  
