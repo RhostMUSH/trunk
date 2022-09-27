@@ -4513,8 +4513,8 @@
   See Also: @password, safer_passwords
   See Also: (normal help) @password
 
-& @noflaglevel
-  Command: @noflaglevel[</switches>] <object>[=<level>]
+& @flaglevel
+  Command: @flaglevel[</switches>] <object>[=<level>]
  
   This command allows the lowering of the bitlevel threshold at which
   the NO_MODIFY and NO_EXAMINE flags stop taking effect, on a per-object
@@ -4545,7 +4545,7 @@
   Without switches, the command simply shows the currently set levels.
  
   Examples:
-    > @noflaglevel/nomod Foo=4
+    > @flaglevel/nomod Foo=4
     NoExamine level of Foo set to 4
  
  

@@ -464,7 +464,7 @@ ATTR attr[] =
     {"Name", A_NAME, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
     {"NameFormat", A_NAME_FMT, AF_ODARK | AF_NOPROG, NULL},
-    {"NoFlagLevel", A_NOFLAGLEVEL, AF_DARK | AF_NOPROG | AF_WIZARD | AF_NOCMD,
+    {"FlagLevel", A_FLAGLEVEL, AF_DARK | AF_NOPROG | AF_WIZARD | AF_NOCMD,
      NULL},
     {"Odesc", A_ODESC, AF_ODARK | AF_NOPROG, NULL},
     {"Odfail", A_ODFAIL, AF_ODARK | AF_NOPROG, NULL},

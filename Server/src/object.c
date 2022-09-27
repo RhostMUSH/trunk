@@ -2924,7 +2924,7 @@ int obj_nomodlevel(dbref thing)
     if(!Good_obj(thing))
         return -1;
     buff = alloc_lbuf("nomod.level");  
-    (void) atr_get_str(buff, thing, A_NOFLAGLEVEL, &aowner, &aflags);
+    (void) atr_get_str(buff, thing, A_FLAGLEVEL, &aowner, &aflags);
     if(buff)
     {
         s_strtok = strtok_r(buff, " \t", &s_strtokr);
@@ -2948,7 +2948,7 @@ int obj_noexlevel(dbref thing)
     if(!Good_obj(thing))
         return -1;
     buff = alloc_lbuf("noex.level");  
-    (void) atr_get_str(buff, thing, A_NOFLAGLEVEL, &aowner, &aflags);
+    (void) atr_get_str(buff, thing, A_FLAGLEVEL, &aowner, &aflags);
     if(buff)
     {
         s_strtok = strtok_r(buff, " \t", &s_strtokr);

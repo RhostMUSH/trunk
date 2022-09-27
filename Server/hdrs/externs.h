@@ -915,9 +915,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define NEWPASSWORD_DES 2	/* Force @newpassword to use DES */
 
-#define NOFLAGLEVEL_CLEAR 1 /* Clear NoFlagLevel setting */
-#define NOFLAGLEVEL_NOMOD 2 /* NoFlagLevel NO_MODIFY setting */
-#define NOFLAGLEVEL_NOEX 4 /* NoFlagLevel NO_EXAMINE setting */
+#define FLAGLEVEL_CLEAR 1 /* Clear FlagLevel setting */
+#define FLAGLEVEL_NOMOD 2 /* FlagLevel NO_MODIFY setting */
+#define FLAGLEVEL_NOEX 4 /* FlagLevel NO_EXAMINE setting */
 
 
 #define	OPEN_LOCATION	0	/* Open exit in my location */

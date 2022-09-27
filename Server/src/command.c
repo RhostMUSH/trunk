@@ -899,11 +899,11 @@ NAMETAB newpassword_sw[] =
     {(char *) "des", 1, CA_WIZARD, 0, NEWPASSWORD_DES},
     {NULL, 0, 0, 0, 0}};
 
-NAMETAB noflaglevel_sw[] =
+NAMETAB flaglevel_sw[] =
 {
-    {(char *) "clear", 1, CA_WIZARD, 0, NOFLAGLEVEL_CLEAR | SW_MULTIPLE},
-    {(char *) "nomod", 1, CA_WIZARD, 0, NOFLAGLEVEL_NOMOD},
-    {(char *) "noex", 1, CA_WIZARD, 0, NOFLAGLEVEL_NOEX},
+    {(char *) "clear", 1, CA_WIZARD, 0, FLAGLEVEL_CLEAR | SW_MULTIPLE},
+    {(char *) "nomod", 1, CA_WIZARD, 0, FLAGLEVEL_NOMOD},
+    {(char *) "noex", 1, CA_WIZARD, 0, FLAGLEVEL_NOEX},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB password_sw[] =
@@ -1523,8 +1523,8 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
     {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
      PASS_ANY, CS_TWO_ARG, 0, do_newpassword},
-    {(char *) "@noflaglevel", noflaglevel_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
-    0, CS_TWO_ARG | CS_INTERP, 0, do_noflaglevel},
+    {(char *) "@flaglevel", Flaglevel_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    0, CS_TWO_ARG | CS_INTERP, 0, do_flaglevel},
     {(char *) "@notify", notify_sw,
      CA_GBL_INTERP | CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG, 0, do_notify},
@@ -14690,7 +14690,7 @@ do_crc32obj(dbref player, dbref cause, int key, char *s_name, char *s_passwd)
    free_lbuf(s_array[3]);
 }
 
-void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
+void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
     char *buff;
@@ -14700,9 +14700,9 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
 
-    if(key & NOFLAGLEVEL_NOMOD)
+    if(key & FLAGLEVEL_NOMOD)
         flagsw=1;
-    else if(key & NOFLAGLEVEL_NOEX)
+    else if(key & FLAGLEVEL_NOEX)
         flagsw=2;
 
     nomodval = obj_nomodlevel(thing);
@@ -14710,27 +14710,27 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
 
     if((nomodval < 0) || (noexval < 0))
     {
-        notify(player,unsafe_tprintf("%s has an invalid NoFlag-Level! Clearing the attribute.",Name(thing)));
-        atr_clr(thing,A_NOFLAGLEVEL);
+        notify(player,unsafe_tprintf("%s has an invalid Flag-Level! Clearing the attribute.",Name(thing)));
+        atr_clr(thing,A_FLAGLEVEL);
         return;
     }
 
     if (!arg || !*arg)
     {
-				if(key & NOFLAGLEVEL_CLEAR)
+				if(key & FLAGLEVEL_CLEAR)
 				{
 						if(flagsw)
 						{
-                buff = alloc_sbuf("noflaglevel.level");
+                buff = alloc_sbuf("Flaglevel.level");
                 if(flagsw == 1)
                 {
                     nomodval=0;
                     if((nomodval + noexval) < 1)
-                        atr_clr(thing,A_NOFLAGLEVEL);
+                        atr_clr(thing,A_FLAGLEVEL);
                     else
                     {
                         sprintf(buff, "%d %d", nomodval, noexval); 
-                        atr_add_raw(thing, A_NOFLAGLEVEL, buff); 
+                        atr_add_raw(thing, A_FLAGLEVEL, buff); 
                     }
                     notify(player,unsafe_tprintf("NoModify level has been cleared from %s.",Name(thing)));
                 }
@@ -14738,11 +14738,11 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
                 {
                     noexval=0;
                     if((nomodval + noexval) < 1)
-                        atr_clr(thing,A_NOFLAGLEVEL);
+                        atr_clr(thing,A_FLAGLEVEL);
                     else
                     {
                         sprintf(buff, "%d %d", nomodval, noexval); 
-                        atr_add_raw(thing, A_NOFLAGLEVEL, buff); 
+                        atr_add_raw(thing, A_FLAGLEVEL, buff); 
                     }
                     notify(player,unsafe_tprintf("NoExamine level has been cleared from %s.",Name(thing)));
                 }
@@ -14750,8 +14750,8 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
 						}
 						else
 						{
-								atr_clr(thing,A_NOFLAGLEVEL);
-								notify(player,unsafe_tprintf("NoFlag-Levels of %s cleared.",Name(thing)));
+								atr_clr(thing,A_FLAGLEVEL);
+								notify(player,unsafe_tprintf("Flag-Levels of %s cleared.",Name(thing)));
 						}
             return;
 				}
@@ -14762,9 +14762,9 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
 						return;
         }
     }
-    else if(key & NOFLAGLEVEL_CLEAR)
+    else if(key & FLAGLEVEL_CLEAR)
     {
-        notify_quiet(player,"@noflaglevel/clear accepts no level argument");
+        notify_quiet(player,"@flaglevel/clear accepts no level argument");
         return;
     }
     else if(!key) 
@@ -14774,25 +14774,25 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     }
     else if(!is_number(arg))
     {
-        notify_quiet(player, "Please specify a NoFlag-Level between 2 (Guildmaster) and 5 (Royalty)!");
+        notify_quiet(player, "Please specify a Flag-Level between 2 (Guildmaster) and 5 (Royalty)!");
         return;
     }
     else if((atoi(arg) < 1) || (atoi(arg) > 5))
     {
-        notify_quiet(player, "Please specify a NoFlag-Level between 2 (Guildmaster) and 5 (Royalty)!");
+        notify_quiet(player, "Please specify a Flag-Level between 2 (Guildmaster) and 5 (Royalty)!");
         return;
     }
     
-    buff = alloc_sbuf("noflaglevel.level");
+    buff = alloc_sbuf("flaglevel.level");
     if(flagsw == 1)
     {
         nomodval=atoi(arg);
 				if((nomodval + noexval) < 1)
-						atr_clr(thing,A_NOFLAGLEVEL);
+						atr_clr(thing,A_FLAGLEVEL);
 				else
 				{
 						sprintf(buff, "%d %d", nomodval, noexval); 
-						atr_add_raw(thing, A_NOFLAGLEVEL, buff); 
+						atr_add_raw(thing, A_FLAGLEVEL, buff); 
 				}
         notify(player,unsafe_tprintf("NoModify level of %s set to %d",Name(thing),atoi(arg)));
     }
@@ -14800,11 +14800,11 @@ void do_noflaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     {
         noexval=atoi(arg);
 				if((nomodval + noexval) < 1)
-						atr_clr(thing,A_NOFLAGLEVEL);
+						atr_clr(thing,A_FLAGLEVEL);
 				else
 				{
 						sprintf(buff, "%d %d", nomodval, noexval); 
-						atr_add_raw(thing, A_NOFLAGLEVEL, buff); 
+						atr_add_raw(thing, A_FLAGLEVEL, buff); 
 				}
         notify(player,unsafe_tprintf("NoExamine level of %s set to %d",Name(thing),atoi(arg)));
     }
