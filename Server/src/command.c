@@ -1523,7 +1523,7 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
     {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
      PASS_ANY, CS_TWO_ARG, 0, do_newpassword},
-    {(char *) "@flaglevel", Flaglevel_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    {(char *) "@flaglevel", flaglevel_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
     0, CS_TWO_ARG | CS_INTERP, 0, do_flaglevel},
     {(char *) "@notify", notify_sw,
      CA_GBL_INTERP | CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
