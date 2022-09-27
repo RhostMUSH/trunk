@@ -136,6 +136,7 @@ CMD_TWO_ARG_ARGV(do_mvattr);		/* Move attributes on object */
 CMD_TWO_ARG(do_mudwho);			/* WHO for inter-mud page/who support */
 CMD_TWO_ARG(do_name);			/* Change the name of something */
 CMD_TWO_ARG(do_newpassword);		/* Change passwords */
+CMD_TWO_ARG(do_noflaglevel); /* @noflaglevel */
 CMD_TWO_ARG(do_notify);			/* Notify or drain semaphore */
 CMD_ONE_ARG(do_nuke);
 CMD_TWO_ARG_ARGV(do_open);		/* Open an exit */

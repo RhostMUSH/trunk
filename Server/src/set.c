@@ -158,7 +158,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
         (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify(player, "Permission denied.");
       return;
@@ -306,7 +306,7 @@ char	*oldalias, *trimalias;
 		oldalias = atr_pget(thing, A_ALIAS, &aowner, &aflags);
 		trimalias = trim_spaces(alias);
 
-                if ( NoMod(thing) && !WizMod(player) ) {
+                if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!Controls(player, thing) &&
                     !could_doit(player,thing,A_LTWINK,0,0)) {
@@ -400,7 +400,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
           * you are not #1 and are trying to do something to #1.
           */
 
-         nomtest = ((NoMod(thing) && !WizMod(player)) || 
+         nomtest = ((NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
                     (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
          if (ap && !nomtest && (God(player) ||
@@ -449,7 +449,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || 
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
         (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
         (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify_quiet(player, "Permission denied.");
@@ -527,7 +527,7 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
    NAMETAB *nt;
 
    if (parse_attrib(player, name, &thing, &atr)) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -576,7 +576,7 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
    }
 
    if ((thing = match_controlled(player, name)) != NOTHING) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -635,7 +635,7 @@ dbref	exit;
 		notify_quiet(player, "I don't know which one you mean!");
 		break;
 	default:
-                if ( NoMod(exit) && !WizMod(player) ) {
+                if ( NoMod(exit) && !WizMod(player) && (obj_nomodlevel(exit) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!controls(player, exit) &&
                     !could_doit(player,exit,A_LTWINK,0,0)) {
@@ -686,7 +686,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
   bLeaveFlags = (key & CHOWN_PRESERVE) && Wizard(player);
   
   if (parse_attrib(player, name, &thing, &atr)) {
-    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
       notify_quiet(player, "Permission Denied.");
       return;
     }
@@ -832,7 +832,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
 	     (DePriv(player,Owner(thing),DP_CHOWN_OTHER,POWER7,NOTHING) && (player != Owner(thing))) ||
 	     (DePriv(player,owner,DP_CHOWN_OTHER,POWER7,NOTHING) && (player != owner))) {
     notify_quiet(player, "Permission denied.");
-  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
     notify_quiet(player, "Permission Denied.");
   } else if (canpayfees(player, owner, cost, quota, Typeof(thing))) {
     giveto(Owner(thing), cost, NOTHING);
@@ -1130,7 +1130,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
 	  notify(player,pt1);
 	  free_lbuf(pt1);
 	} else {
-          if ( NoMod(thing) && !WizMod(player) ) {
+          if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
              notify_quiet(player, "Permission denied.");
           } else { 
              if (key == TOGGLE_CLEAR) {
@@ -1324,7 +1324,7 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
       return;
    }
 
-   nomtest = ( (NoMod(it) && !WizMod(player)) ||
+   nomtest = ( (NoMod(it) && !WizMod(player) && (obj_nomodlevel(it) > obj_bitlevel(player))) ||
                (DePriv(player,Owner(it),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(it))) ||
                (Backstage(player) && NoBackstage(it) && !Immortal(player)));
 

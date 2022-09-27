@@ -2887,3 +2887,83 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
   free_lbuf(tagname);
 }
 #endif
+
+int obj_bitlevel(dbref target)
+{
+   int res;
+
+   if(!Good_obj(target))
+       res = -1;
+   else if( God(target) )
+       res = 7;
+    else if( Immortal(target) )
+       res = 6;
+    else if( Wizard(target) )
+       res = 5;
+    else if( Admin(target) )
+       res = 4;
+    else if( Builder(target) )
+       res = 3;
+    else if( Guildmaster(target) )
+       res = 1;
+    else if( Wanderer(target) || Guest(target) )
+       res = 0;
+    else
+       res = 1;
+	  
+	return res;
+}
+
+int obj_nomodlevel(dbref thing)
+{
+    char* buff, *s_strtok, *s_strtokr;
+    int res=6, aflags;
+    dbref aowner;
+    if(mudconf.imm_nomod)
+        res=7;
+    if(!Good_obj(thing))
+        return -1;
+    buff = alloc_lbuf("nomod.level");  
+    (void) atr_get_str(buff, thing, A_NOFLAGLEVEL, &aowner, &aflags);
+    if(buff)
+    {
+        s_strtok = strtok_r(buff, " \t", &s_strtokr);
+        if (s_strtok && *s_strtok)
+        {
+            if(!is_number(s_strtok))
+                res = -1;
+            else
+                res = atoi(s_strtok);
+        }
+    }
+    free_lbuf(buff);
+    return res;
+}
+
+int obj_noexlevel(dbref thing)
+{
+    char* buff, *s_strtok, *s_strtokr;
+    int res=6, aflags;
+    dbref aowner;
+    if(!Good_obj(thing))
+        return -1;
+    buff = alloc_lbuf("noex.level");  
+    (void) atr_get_str(buff, thing, A_NOFLAGLEVEL, &aowner, &aflags);
+    if(buff)
+    {
+        s_strtok = strtok_r(buff, " \t", &s_strtokr);
+        if (s_strtok && *s_strtok)
+        {
+            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            if (s_strtok && *s_strtok)
+            {
+                if(!is_number(s_strtok))
+                    res = -1;
+                else
+                    res = atoi(s_strtok);
+            }
+        }
+    }
+    free_lbuf(buff);
+    return res;
+}

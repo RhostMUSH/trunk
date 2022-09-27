@@ -4513,6 +4513,44 @@
   See Also: @password, safer_passwords
   See Also: (normal help) @password
 
+& @noflaglevel
+  Command: @noflaglevel[</switches>] <object>[=<level>]
+ 
+  This command allows the lowering of the bitlevel threshold after which
+  the NO_MODIFY and NO_EXAMINE flags stop taking effect, on a per-object
+  basis.
+ 
+  For example, it allows you to set the NO_MODIFY flag on an Architect-
+   -owned object, and then set a NoModify-Level of 3 (Architect) on the
+  object. This results in Councilors being able to modify the object,
+  despite the NO_MODIFY flag - but Architects and lower cannot.
+ 
+  The same principle applies to the NoExamine-Levels.
+ 
+  This command is useful for scenarios where you wish to have global
+  code objects that you want to keep at low bitlevels, but don't want
+  your modify/examine-@powered staff or certain build-staff to be able
+  to tamper with.
+ 
+  The settable levels range from 2 (Guildmaster) to 5 (Royalty).
+  This allows making objects modifyable for Royalty even if the
+  NO_MODIFY flag is set, and the config paramter 'imm_nomod' is enabled.
+ 
+  The following switches exist:
+    /nomod - Set the NoModify-Level
+    /noex  - Set the NoExamine-Level
+    /clear - Clears either all, or just a specific level (In combination
+             with  the switches above)
+ 
+  Without switches, the command simply shows the currently set levels.
+ 
+  Examples:
+    > @noflaglevel/nomod Foo=4
+    NoExamine level of Foo set to 4
+ 
+ 
+  See Also: NO_MODIFY, NO_EXAMINE, imm_nomod
+
 & @nuke
   Command: @nuke[/<switch>] <player>
   

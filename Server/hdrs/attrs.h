@@ -150,6 +150,7 @@ typedef struct afstruct {
 
 #define A_CHANNEL       126     /* +com channels */
 #define A_GUILD         127     /* player's guild */
+#define A_NOFLAGLEVEL    128     /* Custom NO_MODIFY Level */
 #define A_ZA		129	/* ZA attribute (ZB-ZZ follow) [Thorin]*/
 
 #define A_BCCMAIL       155     /* Blind Carbon Copy Mail */

@@ -464,6 +464,8 @@ ATTR attr[] =
     {"Name", A_NAME, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
     {"NameFormat", A_NAME_FMT, AF_ODARK | AF_NOPROG, NULL},
+    {"NoFlagLevel", A_NOFLAGLEVEL, AF_DARK | AF_NOPROG | AF_WIZARD | AF_NOCMD,
+     NULL},
     {"Odesc", A_ODESC, AF_ODARK | AF_NOPROG, NULL},
     {"Odfail", A_ODFAIL, AF_ODARK | AF_NOPROG, NULL},
     {"Odrop", A_ODROP, AF_ODARK | AF_NOPROG, NULL},
@@ -3182,20 +3184,25 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
 {
     char *buff;
     dbref parent;
-    int lev, i_player, i_chk;
+    int lev, i_player, i_chk, i_wiz=0, i_lev=-1;
     ATTR *ap;
     ZLISTNODE *z_ptr;
 
     i_chk = 0;
     if ( *retobj != -1 ) {
        i_player = *retobj;
-       if ( Good_obj(i_player) && Wizard(i_player) )
+       if ( Good_obj(i_player))
+       {
+          if(Wizard(i_player))
+             i_wiz=1;
+          i_lev = obj_noexlevel(i_player);
           i_chk = 1;
+       }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && (parent != thing) )
+        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_bitlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
@@ -3236,20 +3243,25 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 {
     char *buff;
     dbref parent, gbl_parent;
-    int lev, i_player, i_chk;
+    int lev, i_player, i_chk, i_wiz=0, i_lev=-1;
     ATTR *ap;
     ZLISTNODE *z_ptr;
 
     i_chk = 0;
     if ( *retobj != -1 ) {
        i_player = *retobj;
-       if ( Good_obj(i_player) && Wizard(i_player) )
+       if ( Good_obj(i_player))
+       {
+          if(Wizard(i_player))
+             i_wiz=1;
+          i_lev = obj_noexlevel(i_player);
           i_chk = 1;
+       }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && (parent != thing) )
+        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_bitlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {

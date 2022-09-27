@@ -248,7 +248,7 @@ int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
                                             ExFullWizAttr(p))) )
      return 0;
 
-  if ( !(key & 1) && NoEx(x) && (a->number != A_LAMBDA)  && !Wizard(p))
+  if ( !(key & 1) && NoEx(x) && (a->number != A_LAMBDA)  && !Wizard(p) && (obj_noexlevel(x) > obj_bitlevel(p)))
      return 0;
 
   if (Backstage(p) && NoBackstage(x))
@@ -310,7 +310,7 @@ int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
   if( God(Owner(x)) )
     return 0;
 
-  if ( !(key & 1) && NoEx(x) && !Wizard(p))
+  if ( !(key & 1) && NoEx(x) && !Wizard(p) && (obj_noexlevel(x) > obj_bitlevel(p)))
     return 0;
 
   if (Backstage(p) && NoBackstage(x))
@@ -408,7 +408,7 @@ int Examinable(dbref p, dbref x)
        (!Cloak(x) && !Recover(x) && !NoEx(x)) )
     return 1;
 
-  if (NoEx(x) && !Wizard(p))
+  if (NoEx(x) && !Wizard(p) && (obj_noexlevel(x) > obj_bitlevel(p)))
     return 0;
 
   if( Owner(p) == Owner(x) )
@@ -474,7 +474,7 @@ int Examinable(dbref p, dbref x)
 #else
 int Examinable(dbref p,dbref x)
 {
-  if (NoEx(x) && !Wizard(p))
+  if (NoEx(x) && !Wizard(p) && (obj_noexlevel(x) > obj_bitlevel(p)))
     return 0;
 
   if( Owner(p) == Owner(x) )
@@ -579,7 +579,7 @@ int Controls(dbref p, dbref x)
 int Controlsforattr(dbref p, dbref x, ATTR *a, int f)
 {
 #ifndef STANDALONE
-  if ((Good_obj(x) && !WizMod(p) && NoMod(x)) || (Good_obj(x) && DePriv(p,Owner(x),DP_MODIFY,POWER7,NOTHING) &&
+  if ((Good_obj(x) && (!WizMod(p) && NoMod(x) && (obj_nomodlevel(x) > obj_bitlevel(p)))) || (Good_obj(x) && DePriv(p,Owner(x),DP_MODIFY,POWER7,NOTHING) &&
 #else
   if ((Good_obj(x) && DePriv(p,Owner(x),DP_MODIFY,POWER7,NOTHING) &&
 #endif

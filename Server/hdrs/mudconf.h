@@ -510,6 +510,7 @@ struct confdata {
 	int	mtimer;		/* The millisecond timer offset range (default 10) */
 	int hastype_always_zero; /* Make hastype() return zero on invalid objects */
 #else
+  int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */
 	int	opencost;	/* cost of @open command */

@@ -1764,7 +1764,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
 	    continue;
 	}
-        if ((NoMod(thing2) && !WizMod(player)) ||
+        if ((NoMod(thing2) && !WizMod(player) && (obj_nomodlevel(thing2) > obj_bitlevel(player))) ||
                  (DePriv(player,Owner(thing2),DP_MODIFY,POWER7,NOTHING))) {
             tprp_buff = tpr_buff;
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
@@ -2027,7 +2027,7 @@ look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_clus
 		       check_exclude, hash_insert, i_tree, i_cluster, override, i_display);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
-             if ( NoEx(Parent(parent)) && !Wizard(player) )
+             if ( NoEx(Parent(parent)) && !Wizard(player) && (obj_noexlevel(Parent(parent)) > obj_bitlevel(player)) )
                break;
              if (Backstage(player) && NoBackstage(Parent(parent)) &&
                  !Immortal(player))

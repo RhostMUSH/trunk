@@ -321,7 +321,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
     if (thing == NOTHING)
 	return;
 
-    nomtest = ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(thing) != Owner(player))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
+    nomtest = ((NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(thing) != Owner(player))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
     /* Allow unlink if where is not specified */
 
     if (!where || !*where) {
@@ -493,7 +493,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
 
       /* Make sure we can do it */
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -621,7 +621,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         return;
       }
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -742,7 +742,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
          return;
       }
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -791,7 +791,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           }
           return;
         }
-        if ( (NoMod(thing) && !WizMod(player)) ||
+        if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
              (Backstage(player) && NoBackstage(thing)) ) {
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
@@ -816,7 +816,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           }
           return;
         }
-        if ( (NoMod(thing) && !WizMod(player)) ||
+        if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
              (Backstage(player) && NoBackstage(thing)) ) {
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
@@ -862,7 +862,7 @@ do_parent(dbref player, dbref cause, int key, char *tname, char *pname)
 
     /* Make sure we can do it */
 
-    if ( NoMod(thing) && !WizMod(player) ) {
+    if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }
