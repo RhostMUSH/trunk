@@ -3202,7 +3202,7 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
+        if ( i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
@@ -3261,7 +3261,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
+        if ( i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {

@@ -14724,7 +14724,10 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
                 buff = alloc_sbuf("Flaglevel.level");
                 if(flagsw == 1)
                 {
-                    nomodval=0;
+                    if(mudconf.imm_nomod)
+                        nomodval=6;
+                    else
+                        nomodval=5;
                     if((nomodval + noexval) < 1)
                         atr_clr(thing,A_FLAGLEVEL);
                     else
@@ -14736,7 +14739,7 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
                 }
                 else
                 {
-                    noexval=0;
+                    noexval=5;
                     if((nomodval + noexval) < 1)
                         atr_clr(thing,A_FLAGLEVEL);
                     else
