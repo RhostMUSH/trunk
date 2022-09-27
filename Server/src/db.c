@@ -3195,14 +3195,14 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
        {
           if(Wizard(i_player))
              i_wiz=1;
-          i_lev = obj_noexlevel(i_player);
+          i_lev = obj_bitlevel(i_player);
           i_chk = 1;
        }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_bitlevel(parent) > i_lev)  && (parent != thing) )
+        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
@@ -3254,14 +3254,14 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
        {
           if(Wizard(i_player))
              i_wiz=1;
-          i_lev = obj_noexlevel(i_player);
+          i_lev = obj_bitlevel(i_player);
           i_chk = 1;
        }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_bitlevel(parent) > i_lev)  && (parent != thing) )
+        if ( !i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
