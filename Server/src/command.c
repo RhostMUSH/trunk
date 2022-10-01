@@ -14700,6 +14700,9 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
 
+    if(!Good_chk(thing))
+        return;
+
     if(key & FLAGLEVEL_NOMOD)
         flagsw=1;
     else if(key & FLAGLEVEL_NOEX)

@@ -2905,7 +2905,7 @@ int obj_bitlevel(dbref target)
     else if( Builder(target) )
        res = 3;
     else if( Guildmaster(target) )
-       res = 1;
+       res = 2;
     else if( Wanderer(target) || Guest(target) )
        res = 0;
     else
@@ -2921,7 +2921,7 @@ int obj_nomodlevel(dbref thing)
     dbref aowner;
     if(mudconf.imm_nomod)
         res=7;
-    if(!Good_obj(thing))
+    if(!Good_chk(thing))
         return -1;
     buff = alloc_lbuf("nomod.level");  
     (void) atr_get_str(buff, thing, A_FLAGLEVEL, &aowner, &aflags);
@@ -2945,7 +2945,7 @@ int obj_noexlevel(dbref thing)
     char* buff, *s_strtok, *s_strtokr;
     int res=6, aflags;
     dbref aowner;
-    if(!Good_obj(thing))
+    if(!Good_chk(thing))
         return -1;
     buff = alloc_lbuf("noex.level");  
     (void) atr_get_str(buff, thing, A_FLAGLEVEL, &aowner, &aflags);
