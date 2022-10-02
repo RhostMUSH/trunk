@@ -2917,10 +2917,10 @@ int obj_bitlevel(dbref target)
 int obj_nomodlevel(dbref thing)
 {
     char* buff, *s_strtok, *s_strtokr;
-    int res=6, aflags;
+    int res=5, aflags;
     dbref aowner;
     if(mudconf.imm_nomod)
-        res=7;
+        res=6;
     if(!Good_chk(thing))
         return -1;
     buff = alloc_lbuf("nomod.level");  
@@ -2934,6 +2934,13 @@ int obj_nomodlevel(dbref thing)
                 res = -1;
             else
                 res = atoi(s_strtok);
+            if(res == -1)
+            {
+                if(mudconf.imm_nomod)
+                    res=6;
+                else
+                    res=5;
+            }
         }
     }
     free_lbuf(buff);
@@ -2943,7 +2950,7 @@ int obj_nomodlevel(dbref thing)
 int obj_noexlevel(dbref thing)
 {
     char* buff, *s_strtok, *s_strtokr;
-    int res=6, aflags;
+    int res=5, aflags;
     dbref aowner;
     if(!Good_chk(thing))
         return -1;
@@ -2961,6 +2968,8 @@ int obj_noexlevel(dbref thing)
                     res = -1;
                 else
                     res = atoi(s_strtok);
+                if(res == -1)
+                    res=5;
             }
         }
     }

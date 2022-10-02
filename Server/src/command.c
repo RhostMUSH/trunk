@@ -14711,13 +14711,6 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     nomodval = obj_nomodlevel(thing);
     noexval = obj_noexlevel(thing);
 
-    if((nomodval < 0) || (noexval < 0))
-    {
-        notify(player,unsafe_tprintf("%s has an invalid Flag-Level! Clearing the attribute.",Name(thing)));
-        atr_clr(thing,A_FLAGLEVEL);
-        return;
-    }
-
     if (!arg || !*arg)
     {
 				if(key & FLAGLEVEL_CLEAR)
@@ -14727,11 +14720,8 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
                 buff = alloc_sbuf("Flaglevel.level");
                 if(flagsw == 1)
                 {
-                    if(mudconf.imm_nomod)
-                        nomodval=6;
-                    else
-                        nomodval=5;
-                    if((nomodval + noexval) < 1)
+                    nomodval=-1;
+                    if((nomodval + noexval) == -2)
                         atr_clr(thing,A_FLAGLEVEL);
                     else
                     {
@@ -14742,8 +14732,8 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
                 }
                 else
                 {
-                    noexval=5;
-                    if((nomodval + noexval) < 1)
+                    noexval=-1;
+                    if((nomodval + noexval) == -2)
                         atr_clr(thing,A_FLAGLEVEL);
                     else
                     {
@@ -14793,25 +14783,15 @@ void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
     if(flagsw == 1)
     {
         nomodval=atoi(arg);
-				if((nomodval + noexval) < 1)
-						atr_clr(thing,A_FLAGLEVEL);
-				else
-				{
-						sprintf(buff, "%d %d", nomodval, noexval); 
-						atr_add_raw(thing, A_FLAGLEVEL, buff); 
-				}
+        sprintf(buff, "%d %d", nomodval, noexval); 
+        atr_add_raw(thing, A_FLAGLEVEL, buff); 
         notify(player,unsafe_tprintf("NoModify level of %s set to %d",Name(thing),atoi(arg)));
     }
     else
     {
         noexval=atoi(arg);
-				if((nomodval + noexval) < 1)
-						atr_clr(thing,A_FLAGLEVEL);
-				else
-				{
-						sprintf(buff, "%d %d", nomodval, noexval); 
-						atr_add_raw(thing, A_FLAGLEVEL, buff); 
-				}
+        sprintf(buff, "%d %d", nomodval, noexval); 
+        atr_add_raw(thing, A_FLAGLEVEL, buff); 
         notify(player,unsafe_tprintf("NoExamine level of %s set to %d",Name(thing),atoi(arg)));
     }
     free_sbuf(buff);
