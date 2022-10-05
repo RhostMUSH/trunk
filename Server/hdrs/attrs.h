@@ -150,6 +150,7 @@ typedef struct afstruct {
 
 #define A_CHANNEL       126     /* +com channels */
 #define A_GUILD         127     /* player's guild */
+#define A_FLAGLEVEL    128     /* Custom bitlevels thresholdsfor flags */
 #define A_ZA		129	/* ZA attribute (ZB-ZZ follow) [Thorin]*/
 
 #define A_BCCMAIL       155     /* Blind Carbon Copy Mail */
@@ -260,7 +261,14 @@ typedef struct afstruct {
 #define	A_TEMP		255
 
 #define	A_USER_START	256	/* Start of user-named attributes */
+#define A_USER_MAXIMUM	2000000000 /* Absolute ceiling on maximum user attribs in database */
+#define A_INLINE_START	2100000000 /* Start of highend user named attributes */
+#define A_INLINE_END	2200000000 /* End of highend user named attributes */
 #define	ATR_BUF_CHUNK	100	/* Min size to allocate for attribute buffer */
 #define	ATR_BUF_INCR	6	/* Max size of one attribute */
+
+/* Define all attributes > 21000000000 here */
+#define A_HIGHATTRTEST	2100000000	/* The start testing of high-attrs */
+#define A_HIGHATTRTEST2	2100000001	/* Let's try to go way down */
 
 #endif

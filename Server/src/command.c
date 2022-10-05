@@ -899,6 +899,13 @@ NAMETAB newpassword_sw[] =
     {(char *) "des", 1, CA_WIZARD, 0, NEWPASSWORD_DES},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB flaglevel_sw[] =
+{
+    {(char *) "clear", 1, CA_WIZARD, 0, FLAGLEVEL_CLEAR | SW_MULTIPLE},
+    {(char *) "nomod", 1, CA_WIZARD, 0, FLAGLEVEL_NOMOD},
+    {(char *) "noex", 1, CA_WIZARD, 0, FLAGLEVEL_NOEX},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB password_sw[] =
 {
     {(char *) "attribute", 1, CA_PUBLIC, 0, PASS_ATTRIB | SW_MULTIPLE},
@@ -1516,6 +1523,8 @@ CMDENT command_table[] =
      0, CS_TWO_ARG | CS_INTERP, 0, do_name},
     {(char *) "@newpassword", newpassword_sw, CA_WIZARD | CA_ADMIN | CA_IMMORTAL, 0,
      PASS_ANY, CS_TWO_ARG, 0, do_newpassword},
+    {(char *) "@flaglevel", flaglevel_sw, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0,
+    0, CS_TWO_ARG | CS_INTERP, 0, do_flaglevel},
     {(char *) "@notify", notify_sw,
      CA_GBL_INTERP | CA_NO_SLAVE | CA_NO_GUEST, CA_NO_CODE,
      0, CS_TWO_ARG, 0, do_notify},
@@ -2028,6 +2037,7 @@ NDECL(init_cmdtab)
 	    cp->handler = do_setattr;
             cp->hookmask = 0;
 	    cp->cmdtype = CMD_ATTR_e;
+fprintf(stderr, "AttrValue: %s/%d/%d\n", cp->cmdname, cp->extra, ap->number);
 	    stat = hashadd(cp->cmdname, (int *) cp, &mudstate.command_htab);
       stat = (stat < 0) ? 0 : 1;
       if(!stat) {
@@ -2481,6 +2491,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
     DPUSH; /* #27 */
 
+
     /* This should never happen, but with memory corruption it's possible 
      * Thus, we put a check in to validate both the command and the player
      */
@@ -2685,7 +2696,6 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	(*(cmdp->handler)) (player, cause, key);
 	break;
     case CS_ONE_ARG:		/* <cmd> <arg> */
-
 	/* If an unparsed command, just give it to the handler */
 
 	if (cmdp->callseq & CS_UNPARSE) {
@@ -2794,18 +2804,21 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
 	    /* Call the correct command handler */
 
+notify(1234, unsafe_tprintf("values3: %d", cmdp->extra));
 	    if (cmdp->callseq & CS_CMDARG) {
 		(*(cmdp->handler)) (player, cause, key,
 				    buf1, buf2, cargs, ncargs);
 	    } else {
-	      if (cmdp->callseq & CS_SEP)
+	      if (cmdp->callseq & CS_SEP) {
+notify(1234, unsafe_tprintf("values3b: %d", cmdp->extra));
 		(*(cmdp->handler)) (player, cause, key, xkey,
 				    buf1, buf2);
-	      else if(cmdp->callseq & CS_PASS_SWITCHES)
+	      } else if(cmdp->callseq & CS_PASS_SWITCHES) {
 		(*(cmdp->handler)) (player, cause, switchp, buf1, buf2);
-	      else 
+	      } else {
 		(*(cmdp->handler)) (player, cause, key,
 				    buf1, buf2);
+              }
 	    }
 
 	    /* Free the buffer, if needed */
@@ -3058,9 +3071,11 @@ CMDENT * lookup_command(char *cmdname) {
       cmd.perms |= aliasp->perms;
       cmd.perms2 |= aliasp->perms2;
       retval = &cmd;
+notify(1234, unsafe_tprintf("Value: %s/%d", cmdname, cmd.extra));
     } else {
        cmdp = (CMDENT *) hashfind(cmdname, &mudstate.command_vattr_htab);
        if (cmdp) {
+notify(1234, unsafe_tprintf("Value: %s/%d", cmdname, cmdp->extra));
           retval = cmdp;
        }
     }
@@ -14679,4 +14694,111 @@ do_crc32obj(dbref player, dbref cause, int key, char *s_name, char *s_passwd)
    free_lbuf(s_array[1]);
    free_lbuf(s_array[2]);
    free_lbuf(s_array[3]);
+}
+
+void do_flaglevel(dbref player, dbref cause, int key, char *object, char *arg)
+{
+    dbref thing;
+    char *buff;
+    int flagsw=0, nomodval=0, noexval=0;
+
+    /* find thing */
+    if ((thing = match_controlled(player, object)) == NOTHING)
+        return;
+
+    if(!Good_chk(thing))
+        return;
+
+    if(key & FLAGLEVEL_NOMOD)
+        flagsw=1;
+    else if(key & FLAGLEVEL_NOEX)
+        flagsw=2;
+
+    nomodval = obj_nomodlevel(thing);
+    noexval = obj_noexlevel(thing);
+
+    if (!arg || !*arg)
+    {
+				if(key & FLAGLEVEL_CLEAR)
+				{
+						if(flagsw)
+						{
+                buff = alloc_sbuf("Flaglevel.level");
+                if(flagsw == 1)
+                {
+                    nomodval=-1;
+                    if((nomodval + noexval) == -2)
+                        atr_clr(thing,A_FLAGLEVEL);
+                    else
+                    {
+                        sprintf(buff, "%d %d", nomodval, noexval); 
+                        atr_add_raw(thing, A_FLAGLEVEL, buff); 
+                    }
+                    notify(player,unsafe_tprintf("NoModify level has been cleared from %s.",Name(thing)));
+                }
+                else
+                {
+                    noexval=-1;
+                    if((nomodval + noexval) == -2)
+                        atr_clr(thing,A_FLAGLEVEL);
+                    else
+                    {
+                        sprintf(buff, "%d %d", nomodval, noexval); 
+                        atr_add_raw(thing, A_FLAGLEVEL, buff); 
+                    }
+                    notify(player,unsafe_tprintf("NoExamine level has been cleared from %s.",Name(thing)));
+                }
+                free_sbuf(buff);
+						}
+						else
+						{
+								atr_clr(thing,A_FLAGLEVEL);
+								notify(player,unsafe_tprintf("Flag-Levels of %s cleared.",Name(thing)));
+						}
+            return;
+				}
+        else
+        {
+            notify(player,unsafe_tprintf("%s NoMod level: %d", Name(thing), nomodval));
+            notify(player,unsafe_tprintf("%s NoExamine level: %d", Name(thing), noexval));
+						return;
+        }
+    }
+    else if(key & FLAGLEVEL_CLEAR)
+    {
+        notify_quiet(player,"@flaglevel/clear accepts no level argument");
+        return;
+    }
+    else if(!key) 
+    {
+        notify_quiet(player,"Please specify either the /nomod or /noex switch.");
+        return;
+    }
+    else if(!is_number(arg))
+    {
+        notify_quiet(player, "Please specify a Flag-Level between 2 (Guildmaster) and 5 (Royalty)!");
+        return;
+    }
+    else if((atoi(arg) < 1) || (atoi(arg) > 5))
+    {
+        notify_quiet(player, "Please specify a Flag-Level between 2 (Guildmaster) and 5 (Royalty)!");
+        return;
+    }
+    
+    buff = alloc_sbuf("flaglevel.level");
+    if(flagsw == 1)
+    {
+        nomodval=atoi(arg);
+        sprintf(buff, "%d %d", nomodval, noexval); 
+        atr_add_raw(thing, A_FLAGLEVEL, buff); 
+        notify(player,unsafe_tprintf("NoModify level of %s set to %d",Name(thing),atoi(arg)));
+    }
+    else
+    {
+        noexval=atoi(arg);
+        sprintf(buff, "%d %d", nomodval, noexval); 
+        atr_add_raw(thing, A_FLAGLEVEL, buff); 
+        notify(player,unsafe_tprintf("NoExamine level of %s set to %d",Name(thing),atoi(arg)));
+    }
+    free_sbuf(buff);
 }

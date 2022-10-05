@@ -35779,6 +35779,7 @@ FUNCTION(fun_vattrcnt)
        count = 0;
        for (anum = atr_head(target, &cp); anum; anum = atr_next(&cp)) {
           if (anum >= A_USER_START) count++;
+          else if (anum >= A_INLINE_START) count++;
        }
        if ( db[target].nvattr != count ) {
           s_mbuff = alloc_mbuf("fun_vattr");

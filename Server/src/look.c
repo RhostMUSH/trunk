@@ -1764,7 +1764,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
 	    continue;
 	}
-        if ((NoMod(thing2) && !WizMod(player)) ||
+        if ((NoMod(thing2) && !WizMod(player) && (obj_nomodlevel(thing2) > obj_bitlevel(player))) ||
                  (DePriv(player,Owner(thing2),DP_MODIFY,POWER7,NOTHING))) {
             tprp_buff = tpr_buff;
 	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Bad destination object -> %s", dest));
@@ -2027,7 +2027,7 @@ look_atrs(dbref player, dbref thing, int check_parents, int i_tree, dbref i_clus
 		       check_exclude, hash_insert, i_tree, i_cluster, override, i_display);
 	    check_exclude = 1;
             if ( Good_obj(Parent(parent)) ) {
-             if ( NoEx(Parent(parent)) && !Wizard(player) )
+             if ( NoEx(Parent(parent)) && !Wizard(player) && (obj_noexlevel(Parent(parent)) > obj_bitlevel(player)) )
                break;
              if (Backstage(player) && NoBackstage(Parent(parent)) &&
                  !Immortal(player))
@@ -4130,7 +4130,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
         tprp_buff = tpr_buff;
         raw_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%c%s %.3000s=",
                             (i_tf ? qualout : (char *)""), 
-                            ((ap->number < A_USER_START) ? '@' : '&'), buff2, tname), 0, 0);
+                            ( ((ap->number < A_USER_START) || (ap->number >= A_INLINE_START)) ? '@' : '&'), buff2, tname), 0, 0);
         noansi_notify(player, buf);
         if ( !i_tf || (i_tf && !(i_key & DECOMP_NOEXTRA)) ) {
 	   if (aflags & AF_LOCK) {
@@ -4380,7 +4380,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 		   tprp_buff = tpr_buff;
 		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%c%s %s=%s",
 			         (i_tf ? qualout : (char *)""), 
-                                 ((ca < A_USER_START) ?  '@' : '&'),
+                                 ( ((ca < A_USER_START) || (ca >= A_INLINE_START)) ?  '@' : '&'),
 			         buff, thingname, got));
    
 		   if (aflags & AF_LOCK) {

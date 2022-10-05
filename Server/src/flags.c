@@ -1639,7 +1639,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
                    }
                }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player))) {
                   if ( !i_setmuffle )
@@ -2138,7 +2138,7 @@ totem_set(dbref target, dbref player, char *totem, int key)
                 }
               }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || 
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
@@ -2285,7 +2285,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                 }
               }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || 
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
@@ -2443,7 +2443,7 @@ power_set(dbref target, dbref player, char *power, int key)
 	    if (tp == NULL) {
 		notify(player, "I don't understand that power.");
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player)))
 		  notify(player, "Permission denied.");
@@ -2546,7 +2546,7 @@ depower_set(dbref target, dbref player, char *power, int key)
 	    if (tp == NULL) {
 		notify(player, "I don't understand that depower.");
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player)))
 		  notify(player, "Permission denied.");

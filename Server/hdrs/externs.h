@@ -321,6 +321,9 @@ extern int FDECL(objecttag_add, (char*, dbref, int, int));
 extern dbref FDECL(objecttag_get, (char*, dbref, int));
 extern int FDECL(objecttag_remove, (char*));
 extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
+extern int FDECL(obj_bitlevel, (dbref));
+extern int FDECL(obj_nomodlevel, (dbref));
+extern int FDECL(obj_noexlevel, (dbref));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
@@ -911,6 +914,11 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define NFY_PID		8	/* Notify or Drain based on PID */
 
 #define NEWPASSWORD_DES 2	/* Force @newpassword to use DES */
+
+#define FLAGLEVEL_CLEAR 1 /* Clear FlagLevel setting */
+#define FLAGLEVEL_NOMOD 2 /* FlagLevel NO_MODIFY setting */
+#define FLAGLEVEL_NOEX 4 /* FlagLevel NO_EXAMINE setting */
+
 
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */

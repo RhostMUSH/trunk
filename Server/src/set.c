@@ -158,7 +158,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
         (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify(player, "Permission denied.");
       return;
@@ -306,7 +306,7 @@ char	*oldalias, *trimalias;
 		oldalias = atr_pget(thing, A_ALIAS, &aowner, &aflags);
 		trimalias = trim_spaces(alias);
 
-                if ( NoMod(thing) && !WizMod(player) ) {
+                if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!Controls(player, thing) &&
                     !could_doit(player,thing,A_LTWINK,0,0)) {
@@ -400,7 +400,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
           * you are not #1 and are trying to do something to #1.
           */
 
-         nomtest = ((NoMod(thing) && !WizMod(player)) || 
+         nomtest = ((NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
                     (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
          if (ap && !nomtest && (God(player) ||
@@ -449,7 +449,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || 
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
         (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
         (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify_quiet(player, "Permission denied.");
@@ -527,7 +527,7 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
    NAMETAB *nt;
 
    if (parse_attrib(player, name, &thing, &atr)) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -576,7 +576,7 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
    }
 
    if ((thing = match_controlled(player, name)) != NOTHING) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -635,7 +635,7 @@ dbref	exit;
 		notify_quiet(player, "I don't know which one you mean!");
 		break;
 	default:
-                if ( NoMod(exit) && !WizMod(player) ) {
+                if ( NoMod(exit) && !WizMod(player) && (obj_nomodlevel(exit) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!controls(player, exit) &&
                     !could_doit(player,exit,A_LTWINK,0,0)) {
@@ -686,7 +686,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
   bLeaveFlags = (key & CHOWN_PRESERVE) && Wizard(player);
   
   if (parse_attrib(player, name, &thing, &atr)) {
-    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
       notify_quiet(player, "Permission Denied.");
       return;
     }
@@ -832,7 +832,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
 	     (DePriv(player,Owner(thing),DP_CHOWN_OTHER,POWER7,NOTHING) && (player != Owner(thing))) ||
 	     (DePriv(player,owner,DP_CHOWN_OTHER,POWER7,NOTHING) && (player != owner))) {
     notify_quiet(player, "Permission denied.");
-  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
     notify_quiet(player, "Permission Denied.");
   } else if (canpayfees(player, owner, cost, quota, Typeof(thing))) {
     giveto(Owner(thing), cost, NOTHING);
@@ -911,6 +911,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       }
       a_name = atr_num3(atr);
       if ( a_name ) {
+notify(1234, "Test A");
          set_attr_internal(owner, thing, a_name->number, s_string, SET_TREECHK, owner, &val, 1);   
          if ( val ) 
             break;
@@ -954,6 +955,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
          if ( a_name ) {
             atr_get_str(s_tmp, thing, a_name->number, &aowner, &aflags);
             if ( !*s_tmp ) {
+notify(1234, "Test B");
                set_attr_internal(owner, thing, a_name->number, s_string, SET_QUIET | SET_BYPASS, owner, &val, 1);   
             }
          }
@@ -984,17 +986,20 @@ int	aflags, could_hear, aflags2;
 char    *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2];
 ATTR	*attr;
 
+notify(1234, unsafe_tprintf("getting here: %d", attrnum));
    if ( i_chk )
       attr = atr_num4(attrnum);
    else
       attr = atr_num2(attrnum);
    if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
+notify(1234, "Broke shit");
       if ( !(key & SET_TREECHK) )
          notify_quiet(player,"Permission denied.");
       *val = 1;
       return;
    }
 
+notify(1234,"Ping 1");
    atr_pget_info(thing, attrnum, &aowner, &aflags);
    if (attr && Set_attr(player, thing, attr, aflags)) { 
       if ( (attr->check != NULL) &&
@@ -1002,6 +1007,7 @@ ATTR	*attr;
          *val = 1;
          return;
       }
+notify(1234,"Ping 2");
       if ( Good_obj(mudconf.global_attrdefault) &&
            !Recover(mudconf.global_attrdefault) &&
            !Going(mudconf.global_attrdefault) &&
@@ -1009,6 +1015,7 @@ ATTR	*attr;
            (thing != mudconf.global_attrdefault) ) {
          buff2 = alloc_lbuf("global_attr_chk");
          atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
+notify(1234,"Ping 3");
          if ( *buff2 ) {
             tcont[0] = attrtext;
             tcont[1] = alloc_sbuf("see_attr_internal_thingy");
@@ -1016,6 +1023,7 @@ ATTR	*attr;
             buff2ret = cpuexec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
                                EV_STRIP | EV_FCHECK | EV_EVAL, buff2, tcont, 2, (char **)NULL, 0);
             free_sbuf(tcont[1]);
+notify(1234,"Ping 4");
             if ( atoi(buff2ret) == 0 ) {
                free_lbuf(buff2);
                free_lbuf(buff2ret);
@@ -1028,6 +1036,7 @@ ATTR	*attr;
          }
          free_lbuf(buff2);
       } 
+notify(1234,"Ping 5");
       if (((attr->flags) & AF_NOANSI) && index(attrtext,ESC_CHAR)) {
          if ( !((attrnum == 220) && Good_obj(thing) && (thing != NOTHING) && ExtAnsi(thing)) ) {
             if ( !(key & SET_TREECHK) )
@@ -1036,6 +1045,7 @@ ATTR	*attr;
             return;
          }
       }
+notify(1234,"Ping 6");
       if (((attr->flags) & AF_NORETURN) && (index(attrtext,'\n') || index(attrtext, '\r'))) {
          if ( !(key & SET_TREECHK) )
             notify_quiet(player,"Return codes not allowed on this attribute.");
@@ -1043,16 +1053,19 @@ ATTR	*attr;
          return;
       }
       *val = 0;
+notify(1234,"Ping 7");
       if ( key & SET_TREECHK ) {
          return;
       }
       could_hear = Hearer(thing);
       mudstate.vlplay = player;
 
+notify(1234,"Ping 8");
       if ( !(key & SET_TREE) && ReqTrees(thing) && !(key & SET_BYPASS) && (strchr(attr->name, *(mudconf.tree_character)) != NULL) ) {
          notify_quiet(player, "Target requires TREE set method for TREE attributes.");
          return;
       }
+notify(1234,"Ping 9");
       if ( key & SET_TREE ) {
          *val = set_trees(thing, (char *)attr->name, Owner(player), aflags);
          if ( *val != 0 ) {
@@ -1069,11 +1082,13 @@ ATTR	*attr;
             return;
          }
       }
+notify(1234,"Ping 10");
       if ( attrnum == A_QUEUEMAX ) 
          atr_add(thing, attrnum, attrtext, thing, aflags);
       else
          atr_add(thing, attrnum, attrtext, Owner(player), aflags);
 
+notify(1234,"Ping 11");
       if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
          STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
             log_name_and_loc(player);
@@ -1094,11 +1109,15 @@ ATTR	*attr;
          ENDLOG
       }
 
+notify(1234,"Ping 12");
       handle_ears(thing, could_hear, Hearer(thing));
       if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+notify(1234,"Ping 13");
          if (mudstate.vlplay != NOTHING) {
+notify(1234,"Ping 14");
             if ( (key & SET_NOISY) || TogNoisy(player) ) {
                tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
+notify(1234,"Ping 15");
                if ( *attrtext )
                   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s",Name(thing),attr->name));
                else
@@ -1107,11 +1126,13 @@ ATTR	*attr;
             } else
                notify_quiet(player, "Set.");
          } else {
+notify(1234,"Ping 16");
             notify_quiet(player, "Permission denied.");
             *val = 1;
          }
       }
    } else {
+notify(1234,"Ping 17");
       if ( !(key & SET_TREECHK ) )
          notify_quiet(player, "Permission denied.");
       *val = 1;
@@ -1130,7 +1151,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
 	  notify(player,pt1);
 	  free_lbuf(pt1);
 	} else {
-          if ( NoMod(thing) && !WizMod(player) ) {
+          if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
              notify_quiet(player, "Permission denied.");
           } else { 
              if (key == TOGGLE_CLEAR) {
@@ -1324,7 +1345,7 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
       return;
    }
 
-   nomtest = ( (NoMod(it) && !WizMod(player)) ||
+   nomtest = ( (NoMod(it) && !WizMod(player) && (obj_nomodlevel(it) > obj_bitlevel(player))) ||
                (DePriv(player,Owner(it),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(it))) ||
                (Backstage(player) && NoBackstage(it) && !Immortal(player)));
 
@@ -1596,6 +1617,7 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
       }
 
       /* Go set it */
+notify(1234, "Test C");
       set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
       if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
          strcpy(mudstate.lbuf_buffer, p);
@@ -1622,8 +1644,9 @@ void do_setattr(dbref player, dbref cause, int attrnum, int key,
 		char *name, char *attrtext)
 {
 dbref	thing;
-int	val;
+int	val, val2;
 
+        val2 = attrnum;
 	init_match(player, name, NOTYPE);
 	match_everything(MAT_EXIT_PARENTS);
 	thing = noisy_match_result();
@@ -1631,6 +1654,7 @@ int	val;
         val = 0;
 	if (thing == NOTHING)
 		return;
+notify(1234, unsafe_tprintf("Test D - %d / %d", attrnum, val2));
 	set_attr_internal(player, thing, attrnum, attrtext, key, cause, &val, 0);
 }
 
