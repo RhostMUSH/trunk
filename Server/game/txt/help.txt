@@ -34803,6 +34803,8 @@
  * Compile time option for BOOSTING registers from 36 to high values [ASH]
  * Compile time option to increase total allowable @atrcache max [ASH]
  * register_count 'fake' config param to display total registers [ASH]
+ * Added @flaglevel to allow, per-object, to change the bitlevel at which
+   the NO_MODIFY and NO_EXAMINE flags take effect [AMB]
   
   Changes
   -------
