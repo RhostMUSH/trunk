@@ -76,8 +76,12 @@ extern ATTR *	FDECL(atr_str_mtch, (char *s));
 extern ATTR attr[];
 
 extern ATTR **anum_table;
-#define anum_get(x)	(anum_table[(x)])
-#define anum_set(x,v)	anum_table[(x)] = v
+extern ATTR **anum_table_inline;
+
+extern ATTR *	FDECL(anum_get_f, (long x));
+extern void	FDECL(anum_set_f, (long x, ATTR *v));
+#define anum_get(x) anum_get_f(x)
+#define anum_set(x,v) anum_set_f(x,v)
 extern void	FDECL(anum_extend,(int));
 
 #define	ATR_INFO_CHAR	'\1'	/* Leading char for attr control data */

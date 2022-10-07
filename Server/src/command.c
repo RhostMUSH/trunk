@@ -2490,6 +2490,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
     DPUSH; /* #27 */
 
+
     /* This should never happen, but with memory corruption it's possible 
      * Thus, we put a check in to validate both the command and the player
      */
@@ -2533,12 +2534,17 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
         DPOP; /* #27 */
 	return;
     }
-    key = cmdp->extra & ~SW_MULTIPLE;
-    if (key & SW_GOT_UNIQUE) {
-	i = 1;
-	key = key & ~SW_GOT_UNIQUE;
+    if ( cmdp->cmdtype == CMD_ATTR_e ) {
+       key = cmdp->extra;
+       i = 0;
     } else {
-	i = 0;
+       key = cmdp->extra & ~SW_MULTIPLE;
+       if (key & SW_GOT_UNIQUE) {
+	   i = 1;
+	   key = key & ~SW_GOT_UNIQUE;
+       } else {
+	   i = 0;
+       }
     }
 
     /* Check command switches.  Note that there may be more than one,
@@ -2694,7 +2700,6 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	(*(cmdp->handler)) (player, cause, key);
 	break;
     case CS_ONE_ARG:		/* <cmd> <arg> */
-
 	/* If an unparsed command, just give it to the handler */
 
 	if (cmdp->callseq & CS_UNPARSE) {
@@ -2807,14 +2812,15 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 		(*(cmdp->handler)) (player, cause, key,
 				    buf1, buf2, cargs, ncargs);
 	    } else {
-	      if (cmdp->callseq & CS_SEP)
+	      if (cmdp->callseq & CS_SEP) {
 		(*(cmdp->handler)) (player, cause, key, xkey,
 				    buf1, buf2);
-	      else if(cmdp->callseq & CS_PASS_SWITCHES)
+	      } else if(cmdp->callseq & CS_PASS_SWITCHES) {
 		(*(cmdp->handler)) (player, cause, switchp, buf1, buf2);
-	      else 
+	      } else {
 		(*(cmdp->handler)) (player, cause, key,
 				    buf1, buf2);
+              }
 	    }
 
 	    /* Free the buffer, if needed */

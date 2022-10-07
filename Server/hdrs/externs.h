@@ -263,6 +263,7 @@ extern void	FDECL(log_perror, (const char *, const char *,const char *,
 			const char *));
 extern void	FDECL(log_text, (char *));
 extern void	FDECL(log_number, (int));
+extern void	FDECL(log_unsigned, (int));
 extern void	FDECL(log_name, (dbref));
 extern void	FDECL(log_name_and_loc, (dbref));
 extern char *	FDECL(OBJTYP, (dbref));

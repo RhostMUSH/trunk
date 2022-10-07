@@ -270,6 +270,20 @@ log_number(int num)
     fprintf(f_foo, "%d", num);
 }
 
+void 
+log_unsigned(int num)
+{
+    FILE *f_foo;
+
+    if ( mudstate.f_logfile_name )
+       f_foo = mudstate.f_logfile_name;
+    else
+       f_foo = stderr;
+
+    fprintf(f_foo, "%u", (unsigned int)num);
+}
+
+
 /* ---------------------------------------------------------------------------
  * log_name: write the name, db number, and flags of an object to the log.
  * If the object does not own itself, append the name, db number, and flags

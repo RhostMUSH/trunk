@@ -89,6 +89,29 @@ int member(dbref thing, dbref list)
  * different in that it checks + as well as - cases
  */
 
+ATTR *
+anum_get_f(long x)
+{
+    ATTR *y;
+
+    if ( x >= A_INLINE_START ) {
+       y = anum_table_inline[x - A_INLINE_START]; 
+    } else {
+       y = anum_table[x];
+    }
+    return y;
+}
+
+void
+anum_set_f(long x, ATTR *v)
+{
+    if ( x >= A_INLINE_START ) { 
+       anum_table_inline[x - A_INLINE_START] = v;
+    } else {
+       anum_table[x] = v; 
+    }
+}
+
 int is_rhointeger (char *str)
 {
       while (*str && isspace((int)*str)) str++;       /* Leading spaces */
@@ -2950,3 +2973,4 @@ int	aflags, tog_val,
   return doit;
 }
 #endif
+

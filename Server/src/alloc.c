@@ -608,6 +608,36 @@ showAtrCacheStats(dbref player)
   notify(player, unsafe_tprintf("    %4d  %6d     %.0f (%.2f%c)", sizeof(ATRCACHE), mudconf.atrcachemax, i_tot, i_show, c_let));
 }
 
+
+extern int anum_alc_top;
+extern int anum_alc_inline_top;
+
+void
+showAttrStats(dbref player)
+{
+  static char s_buff[80];
+  int i_attr;
+  double i_tot, i_show;
+  char c_let;
+
+  memset(s_buff, '\0', 80);
+  i_attr = 255 + anum_alc_inline_top - A_INLINE_START + 1;
+  i_tot = (double)i_attr * (double)sizeof(ATTR *);
+  if ( i_tot > 1000000000.0 ) {
+     i_show = i_tot / 1000000000.0;
+     c_let = 'G';
+  } else if ( i_tot > 1000000.0 ) {
+     i_show = i_tot / 1000000.0;
+     c_let = 'M';
+  } else  {
+     i_show = i_tot / 1000.0;
+     c_let = 'K';
+  }
+   notify(player, "\r\nInline Attributes    Size     Total Memory");
+   sprintf(s_buff,"%-10d           %-8d %.0f (%.2f%c)", i_attr, sizeof(ATTR *), i_tot, i_show, c_let);
+   notify(player, s_buff);
+}
+
 void 
 list_bufstats(dbref player)
 {
@@ -619,6 +649,7 @@ list_bufstats(dbref player)
 
     showTrackedBufferStats(player);
     showBlacklistStats(player);
+    showAttrStats(player);
     showTotemStats(player);
     showAtrCacheStats(player);
     showTrackedPacketStats(player);

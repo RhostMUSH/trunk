@@ -34805,6 +34805,7 @@
  * register_count 'fake' config param to display total registers [ASH]
  * Added @flaglevel to allow, per-object, to change the bitlevel at which
    the NO_MODIFY and NO_EXAMINE flags take effect [AMB]
+ * Added > 2.1b+ attributes num internal attrib handler (40 million) [ASH]
   
   Changes
   -------
@@ -34826,6 +34827,7 @@
  * Enbedding optional config handler for config menu [ASH]
  * protection for LUA for API [ASH]
  * @saystring optionally evaluates with saystring_eval config [ASH]
+ * Modified @list alloc to show internal attrib overhead [ASH]
   
   Bug Fixes
   ------------

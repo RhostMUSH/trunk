@@ -1152,7 +1152,7 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 	   vattr_delete(buff);
 	   notify(player, "Attribute deleted.");
         } else {
-           if ( va->number < 255 ) {
+           if ( (va->number < (A_USER_START - 1)) || (va->number >= A_INLINE_START) ) {
               notify(player, unsafe_tprintf("Attribute %s in use by %d dbref#'s, but is listed internal.  Deleting.", va->name, delcnt));
 	      vattr_delete(buff);
 	      notify(player, "Attribute deleted.");
@@ -1332,7 +1332,11 @@ NDECL(init_attrtab)
     hashinit(&mudstate.attr_name_htab, 521);
     buff = alloc_sbuf("init_attrtab");
     for (a = attr; a->number; a++) {
+        /* Anum extend handles outside ranges but won't abort */
 	anum_extend(a->number);
+        if ( (a->number < 0) || (a->number > A_INLINE_END) ) {
+           continue;
+        }
 	anum_set(a->number, a);
 	for (p = buff, q = (char *) a->name; *q; p++, q++)
 	    *p = ToLower((int)*q);
@@ -1935,7 +1939,9 @@ atr_str_bool(char *s)
  */
 
 ATTR **anum_table = NULL;
+ATTR **anum_table_inline = NULL;
 int anum_alc_top = 0;
+int anum_alc_inline_top = 0;
 
 void 
 anum_extend(int newtop)
@@ -1948,24 +1954,61 @@ anum_extend(int newtop)
 #else
     delta = 1000;
 #endif
-    if (newtop <= anum_alc_top)
-	return;
-    if (newtop < anum_alc_top + delta)
-	newtop = anum_alc_top + delta;
-    if (anum_table == NULL) {
-	anum_table = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
-	for (i = 0; i <= newtop; i++)
-	    anum_table[i] = NULL;
+    if ( newtop >= A_INLINE_START ) {
+       if ( newtop <= anum_alc_inline_top )
+          return;
+
+       /* This shouldn't happen but if the src is modified for this abort it */
+       if ( newtop >= A_INLINE_END) {
+	  STARTLOG(LOG_ALWAYS, "ATTR", "INLINE")
+             log_text("Built-in attribute number ");
+             log_unsigned(newtop);
+             log_text(" outside of range.");
+          ENDLOG
+          return;
+       }
+       if (anum_table_inline == NULL) {
+	   anum_table_inline = (ATTR **) malloc(((newtop - A_INLINE_START) + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= (newtop - A_INLINE_START); i++)
+	       anum_table_inline[i] = NULL;
+       } else {
+	   anum_table2 = (ATTR **) malloc(((newtop - A_INLINE_START) + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= (anum_alc_inline_top - A_INLINE_START); i++)
+	       anum_table2[i] = anum_table_inline[i];
+	   for (i = anum_alc_inline_top + 1; i <= (newtop - A_INLINE_START); i++)
+	       anum_table2[i] = NULL;
+	   free((char *) anum_table_inline);
+	   anum_table_inline = anum_table2;
+       }
+       anum_alc_inline_top = newtop;
+    } else if ( newtop < 0 ) {
+       /* This shouldn't happen but if the src is modified for this abort it */
+       STARTLOG(LOG_ALWAYS, "ATTR", "INLINE")
+          log_text("Built-in attribute number ");
+          log_unsigned(newtop);
+          log_text(" outside of range.");
+       ENDLOG
+       return;
     } else {
-	anum_table2 = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
-	for (i = 0; i <= anum_alc_top; i++)
-	    anum_table2[i] = anum_table[i];
-	for (i = anum_alc_top + 1; i <= newtop; i++)
-	    anum_table2[i] = NULL;
-	free((char *) anum_table);
-	anum_table = anum_table2;
+       if (newtop <= anum_alc_top)
+	   return;
+       if (newtop < anum_alc_top + delta)
+	   newtop = anum_alc_top + delta;
+       if (anum_table == NULL) {
+	   anum_table = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= newtop; i++)
+	       anum_table[i] = NULL;
+       } else {
+	   anum_table2 = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= anum_alc_top; i++)
+	       anum_table2[i] = anum_table[i];
+	   for (i = anum_alc_top + 1; i <= newtop; i++)
+	       anum_table2[i] = NULL;
+	   free((char *) anum_table);
+	   anum_table = anum_table2;
+       }
+       anum_alc_top = newtop;
     }
-    anum_alc_top = newtop;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1978,8 +2021,12 @@ atr_num_mtch(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2007,8 +2054,12 @@ atr_num_chkpass(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2036,8 +2087,12 @@ atr_num_objid(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2065,8 +2120,12 @@ atr_num_exec(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2094,8 +2153,12 @@ atr_num_aladd(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2123,8 +2186,12 @@ atr_num_pinfo(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2152,8 +2219,12 @@ atr_num_ex(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2181,8 +2252,12 @@ atr_num4(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2210,8 +2285,12 @@ atr_num3(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2239,8 +2318,12 @@ atr_num2(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2268,8 +2351,12 @@ atr_num_lattr(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2297,8 +2384,12 @@ atr_num(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2326,8 +2417,12 @@ atr_num_bool(int anum)
     static ATTR tattr2;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2574,7 +2669,7 @@ al_add(dbref thing, int attrnum)
 	if (anum == attrnum)
 	    return;
     }
-    if ((attrnum >= A_USER_START) && (db[thing].nvattr >= mudconf.vlimit)) {
+    if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (db[thing].nvattr >= mudconf.vlimit)) {
       if (mudstate.vlplay != NOTHING) {
 #ifndef STANDALONE
 	attr = atr_num_aladd(attrnum);
@@ -2608,7 +2703,7 @@ al_add(dbref thing, int attrnum)
       return;
     }
     do_limit_add = 0;
-    if ( (attrnum > A_USER_START) && mudstate.new_vattr && 
+    if ( (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
          !((mudstate.vlplay != NOTHING) && 
           ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
@@ -2677,7 +2772,7 @@ al_add(dbref thing, int attrnum)
           free_lbuf(s_chkattr);
        }
     }
-    if ( attrnum > 2000000000 ) {
+    if ( (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
        attr = atr_num_aladd(attrnum);
        broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
                          NULL, NULL, thing, 0, 0, NULL);
@@ -2716,7 +2811,7 @@ al_add(dbref thing, int attrnum)
 
     al_code(&cp, attrnum);
     *cp = '\0';
-    if (attrnum >= A_USER_START)
+    if ( (attrnum >= A_USER_START) && (attrnum < A_INLINE_START) )
       (db[thing].nvattr)++;
     if ( do_limit_add ) {
        atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
@@ -2752,7 +2847,7 @@ al_delete(dbref thing, int attrnum)
 	dp = cp;
 	anum = al_decode(&cp);
 	if (anum == attrnum) {
-	    if (anum >= A_USER_START)
+	    if ( (anum >= A_USER_START) && (anum < A_INLINE_START) )
 	      (db[thing].nvattr)--;
 	    while (*cp) {
 		anum = al_decode(&cp);
@@ -2763,7 +2858,7 @@ al_delete(dbref thing, int attrnum)
 	}
     }
 
-    if ( (attrnum > A_USER_START) && mudstate.new_vattr && 
+    if ( (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
          !((mudstate.vlplay != NOTHING) && 
           ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
@@ -3675,7 +3770,7 @@ void val_count()
       cache_reset(0);
     count = 0;
     for (anum = atr_head(d, &cp); anum; anum = atr_next(&cp)) {
-      if (anum >= A_USER_START) count++;
+      if ((anum >= A_USER_START) && (anum < A_INLINE_START)) count++;
     }
     db[d].nvattr = count; 
   }
@@ -3702,7 +3797,7 @@ int atrcint(dbref player, dbref thing, int key)
                s_tprintfptr = s_tprintf;
                if (attr && attr->name)
                   log_text((char *)safe_tprintf(s_tprintf, &s_tprintfptr, "Attribute Name is: %s\n",attr->name));
-               if ( (key == 1) && (anum > 255) ) {
+               if ( (key == 1) && (anum > (A_USER_START - 1)) && (anum < A_INLINE_START) ) {
                   newatr = alloc_sbuf("atrcint");
 #ifndef STANDALONE
                   sprintf(newatr, "XYZZY_%d_%d", (int)(mudstate.now), anum);
@@ -4400,7 +4495,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    }
    DO_WHOLE_DB(i) {
       for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
-         if ( ca > A_USER_START ) {
+         if ( (ca > A_USER_START) && (ca < A_INLINE_START) ) {
             atr = atr_num2(ca);
             if ( atr ) {
                va = (VATTR *) vattr_find((char *)atr->name);

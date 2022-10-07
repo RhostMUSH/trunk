@@ -261,7 +261,27 @@ typedef struct afstruct {
 #define	A_TEMP		255
 
 #define	A_USER_START	256	/* Start of user-named attributes */
+#define A_USER_MAXIMUM	2000000000 /* Absolute ceiling on maximum user attribs in database */
+#define A_INLINE_START	2100000000 /* Start of highend user named attributes */
+#define A_INLINE_END    2140000000 /* End of highend user named attributes -- DO NOT EXCEED MAXINT (2^32)*/
 #define	ATR_BUF_CHUNK	100	/* Min size to allocate for attribute buffer */
 #define	ATR_BUF_INCR	6	/* Max size of one attribute */
+
+/* Define all attributes > 21000000000 here 
+ * 
+ * Note: You can go out of order, however, it's strongly suggested that
+ *       you do not.  It does no harm, but every entry skipped does take
+ *       up extra memory.  While small, it can add up.
+ *       
+ * You have 40 million built-in attributes you may assign.  Have fun.
+ * That being between 2100000000 - 2140000000.
+ */
+
+/* Examples
+ * #define A_HIGHATTRTEST	2100000000
+ * #define A_HIGHATTRTEST2	2100000001
+ * #define A_HIGHATTRTEST3	2100000002
+ * #define A_HIGHATTRTEST4	2100000003
+ */
 
 #endif
