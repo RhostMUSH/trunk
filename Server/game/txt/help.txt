@@ -34843,3 +34843,4 @@
  * off by one register initialization in low level stack routine [ASH]
  * improvement on label warnings for registers [ASH]
  * some issues with the built in timer for alarm handling [ASH]
+ * display in @list alloc had some erraneous values [ASH]
