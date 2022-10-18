@@ -2116,6 +2116,7 @@ welcome_user(DESC * d)
 	fcache_dump(d, FC_CONN_REG, (char *)NULL);
     else
 	fcache_dump(d, FC_CONN, (char *)NULL);
+
     VOIDRETURN; /* #124 */
 }
 
@@ -2519,6 +2520,15 @@ announce_connect(dbref player, DESC * d, int dc)
 
 
     look_in(player, player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
+    if ( d && Prompt(d->player) ) {
+       progatr = atr_get(d->player, A_PROGPROMPT, &aowner, &aflags);
+       if ( *progatr ) {
+          s_buff = s_buffptr = alloc_lbuf("process_ic_command");
+          queue_string(d, safe_tprintf(s_buff, &s_buffptr, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
+          free_lbuf(s_buff);
+       }
+       free_lbuf(progatr);
+    }
     if ( InProgram(player) ) {
        if ( (mudconf.login_to_prog && !(ProgCon(player))) || 
             (!mudconf.login_to_prog && ProgCon(player)) ) {
@@ -5122,6 +5132,16 @@ do_command(DESC * d, char *command)
     }
     mudstate.breakdolist = 0;
     
+    if ( d && Prompt(d->player) ) {
+       s_rollback = atr_get(d->player, A_PROGPROMPT, &aowner, &aflags);
+       if ( *s_rollback ) {
+          s_strtokr = s_strtok = alloc_lbuf("process_ic_command");
+          queue_string(d, safe_tprintf(s_strtok, &s_strtokr, "%s%s%s \377\371", ANSI_HILITE, s_rollback, ANSI_NORMAL));
+          free_lbuf(s_strtok);
+       }
+       free_lbuf(s_rollback);
+    }
+
     i_timeout = 1;
     /* snoop on player input -Thorin */
     if (d->snooplist) {

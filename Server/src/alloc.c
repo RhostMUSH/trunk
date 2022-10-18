@@ -7,6 +7,7 @@
 #include "alloc.h"
 #include "mudconf.h"
 #include "externs.h"
+#include "debug.h"
 
 /* ensure quad byte divisible length to avoid bus error on some machines */
 #define QUADALIGN(x) ((pmath1)(x) % ALLIGN1 ? \
@@ -643,21 +644,62 @@ showAttrStats(dbref player)
 }
 
 void 
-list_bufstats(dbref player)
+list_bufstats(dbref player, char *s_key)
 {
-    int i;
+    int i, i_found;
 
-    notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
-    for (i = 0; i < NUM_POOLS; i++)
-	list_bufstat(player, i, poolnames[i]);
+    i_found = 0;
 
-    showTrackedBufferStats(player);
-    showBlacklistStats(player);
-    showAttrStats(player);
-    showTotemStats(player);
-    showAtrCacheStats(player);
-    showTrackedPacketStats(player);
-    showdbstats(player);
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"quick") ) {
+       i_found = 1;
+       notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
+       for (i = 0; i < NUM_POOLS; i++)
+	   list_bufstat(player, i, poolnames[i]);
+    }
+
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"quick") ) {
+       i_found = 1;
+       showTrackedBufferStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"blacklist") ) {
+       i_found = 1;
+       showBlacklistStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"attrib") ) {
+       i_found = 1;
+       showAttrStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"totem") ) {
+       i_found = 1;
+       showTotemStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"cache") ) {
+       i_found = 1;
+       showAtrCacheStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"network") ) {
+       i_found = 1;
+       showTrackedPacketStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"db") ) {
+       i_found = 1;
+       showdbstats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"stack") ) {
+       i_found = 1;
+       notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)));
+       notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)));
+#ifndef NODEBUGMONITOR
+       notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
+       notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
+#else
+       notify(player, "Debug Monitor is disabled.");
+#endif
+    }
+
+    if ( !i_found && s_key && *s_key ) {
+       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, or stack.");
+    }
 }
 
 void 

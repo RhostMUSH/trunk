@@ -8760,15 +8760,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
     }
     switch (flagvalue) {
        case LIST_ALLOCATOR:
-	   list_bufstats(player);
-           notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)));
-           notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)));
-#ifndef NODEBUGMONITOR
-           notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
-           notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
-#else
-	   notify(player, "Debug Monitor is disabled.");
-#endif
+	   list_bufstats(player, s_ptr2);
 	   break;
        case LIST_BUFTRACE:
 	   list_buftrace(player, 0);

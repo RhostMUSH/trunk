@@ -3618,6 +3618,9 @@
    
   For a breakdown of all the segments under the allocations, refer to:
   
+  Following suboptions are available to @list alloc:
+       quick, blacklist, attrib, totem, cache, network, db, or stack
+  
   { @list allocations2 }
   
 & @list allocations2
@@ -13783,6 +13786,42 @@
     (stores the helpfile 'mail' into your VA attribute)
   
   See Also: @dynhelp, dynhelp()
+
+
+& TOTEM LIST
+  Topic: TOTEM LIST
+  
+  Flag  Title        Flag  Title           Flag  Title      Flag  Title
+  -------------------------------------------------------------------------
+    u   API_LUA       {p}  PROMPT
+  
+  See Also: flag list, toggle list, attribute flags
+  
+  For information on a particular totem, type 'wizhelp <totemname>'.
+  If you do not receive the expected result, try: 'wizhelp <totemname> totem'
+
+& API_LUA TOTEM
+  Totem: API_LUA
+  
+  The API_LUA totem is used to enable and allow LUA integration in the API
+  transport for the Rhost API subsystem.  This allows LUA integration and
+  expands greatly in what can be done.
+  
+  Individual help will be provided.  This area is TBD.
+  
+& PROMPT TOTEM
+  Totem: PROMPT
+  
+  This totem when tagged on a player will allow that player to always show
+  the prompt that would normally be available only with @program.  This 
+  will read the attribute @progprompt (see help on @progprompt)
+  
+  See Also: @progprompt
+
+& @progprompt
+  Redirected from 'help @progprompt'
+  
+!!help/@progprompt
 
 & TOTEMVALID()
   Function: totemvalid([all])

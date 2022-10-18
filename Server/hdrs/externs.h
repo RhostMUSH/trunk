@@ -398,7 +398,7 @@ extern int	FDECL(exit_visible, (dbref, dbref, int));
 extern int	FDECL(exit_displayable, (dbref, dbref, int));
 extern void	FDECL(did_it, (dbref, dbref, int, const char *, int,
 			const char *, int, char *[], int));
-extern void	FDECL(list_bufstats, (dbref));
+extern void	FDECL(list_bufstats, (dbref, char *));
 extern void	FDECL(list_buftrace, (dbref, int));
 
 /* From set.c */

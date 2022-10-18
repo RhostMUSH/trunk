@@ -697,6 +697,7 @@ TOTEMENT totem_table[] =
   {"MARKER8", 	0x00000100, '8', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
   {"MARKER9", 	0x00000200, '9', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
   {"API_LUA", 	0x00000400, 'u', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 	0, 2, 0, totem_any},
+  {"PROMPT", 	0x00000800, 'p', 2, 9, 0, 0, CA_WIZARD, CA_WIZARD, 	0, 2, 0, totem_any},
   {"SETQLABEL",	0x80000000, 's', 2, 9, 0, 0, 0,		0, 		0, 2, 0, totem_any},
   { NULL,	0x00000000, ' ', 0, 0, 0, 0, 0, 	0, 		0, 0, 0, NULL}
 };

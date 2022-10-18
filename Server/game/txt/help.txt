@@ -11637,7 +11637,7 @@
   
   Flag  Title        Flag  Title           Flag  Title      Flag  Title
   -------------------------------------------------------------------------
-    a   SETQLABEL
+   {a}  SETQLABEL
   
   See Also: flag list, toggle list, attribute flags
   
@@ -11653,7 +11653,7 @@
   be done with the penn_setq enabled feature or with the non-standard
   method.
   
-  Examples: [without penn_setq disabled -- think config(penn_setq) ]
+  Example: [without penn_setq disabled -- think config(penn_setq) ]
     > say [setq(0,foo,bar)]%q<bar> [setq(0,moo)]%q<bar>
     You say "foo moo"
     > @totem me=setqlabel
@@ -34806,6 +34806,7 @@
  * Added @flaglevel to allow, per-object, to change the bitlevel at which
    the NO_MODIFY and NO_EXAMINE flags take effect [AMB]
  * Added > 2.1b+ attributes num internal attrib handler (40 million) [ASH]
+ * PROMPT @totem to enable prompts permanently while enabled [ASH]
   
   Changes
   -------
@@ -34828,6 +34829,7 @@
  * protection for LUA for API [ASH]
  * @saystring optionally evaluates with saystring_eval config [ASH]
  * Modified @list alloc to show internal attrib overhead [ASH]
+ * split options in @list options to subcatagories optionally [ASH]
   
   Bug Fixes
   ------------
