@@ -5091,13 +5091,15 @@ do_command(DESC * d, char *command)
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
     char *s_usepass, *s_usepassptr,
-         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_strtok, *s_strtokr, *s_buffer,
+         *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_buffer,
          *s_get, *s_pass, *s_enc64, *s_enc64ptr;
     double i_time;
     int i_cputog, i_encode64, i_snarfing, i_enc64, i_parse, i_usepass, i_snarfing4, i_snarfheaders;
-    dbref aowner, thing;
+    dbref thing;
     ATTR *atrp;
 #endif
+    dbref aowner;
+    char *s_strtok, *s_strtokr;
 #ifdef ENABLE_LUA
     char *s_lua, *s_luaptr;
     int i_lualength;
