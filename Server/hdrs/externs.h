@@ -138,7 +138,7 @@ extern void	FDECL(areg_add, (char *, dbref));
 extern int	FDECL(areg_del_player, (dbref));
 
 /* From cque.c */
-extern void     FDECL(show_que_func, (dbref, char *, int, char, char *, char *[], char));
+extern void     FDECL(show_que_func, (dbref, char *, int, char, char *, char *[], char, int));
 
 extern int	FDECL(nfy_que, (dbref, int, int, int));
 extern int	FDECL(halt_que, (dbref, dbref));

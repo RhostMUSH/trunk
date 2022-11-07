@@ -8151,10 +8151,10 @@ FUNCTION(fun_pmatch)
 
 FUNCTION(fun_pid)
 {
-   int i_keyval;
+   int i_keyval, i_player;
    char sep, c_type;
 
-   if (!fn_range_check("PID", nfargs, 1, 4, buff, bufcx)) 
+   if (!fn_range_check("PID", nfargs, 1, 5, buff, bufcx)) 
       return;
 
    i_keyval = atoi(fargs[0]);
@@ -8163,14 +8163,21 @@ FUNCTION(fun_pid)
       sep = *fargs[1];
    else
       sep = ' ';
+
    if ( (nfargs > 2) && *fargs[2] )
       c_type = tolower(*fargs[2]);
    else
       c_type = 'q';
-   if ( nfargs > 3 )
-      show_que_func(player, fargs[3], i_keyval, c_type, buff, bufcx, sep);
+
+   if ( (nfargs > 4) && *fargs[4] ) 
+      i_player = atoi(fargs[4]);
    else
-      show_que_func(player, (char *)NULL, i_keyval, c_type, buff, bufcx, sep);
+      i_player = 0;
+
+   if ( nfargs > 3 )
+      show_que_func(player, fargs[3], i_keyval, c_type, buff, bufcx, sep, i_player);
+   else
+      show_que_func(player, (char *)NULL, i_keyval, c_type, buff, bufcx, sep, i_player);
 }
 
 FUNCTION(fun_port)
@@ -18267,9 +18274,9 @@ FUNCTION(fun_execscript)
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
-        *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
-       i_flagtype, i_return;
+        *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2, *s_combine2;
+   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
+       i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -18406,7 +18413,16 @@ FUNCTION(fun_execscript)
       i_alttimeout = 1;
    }
 
-   sprintf(s_combine, "./scripts/%.100s", fargs[0]);
+   if ( !*(mudconf.execscripthome) || 
+        (*(mudconf.execscripthome) && ((stat(mudconf.execscripthome, &st_buf) == -1) || (st_buf.st_mode & S_IWOTH) || !(geteuid() == st_buf.st_uid))) ) {
+      if ( *(mudconf.execscripthome) ) {
+         sprintf(s_combine, "Warning: Path '%.1000s' is not accessable or has wrong permissions.", mudconf.execscripthome);
+         notify_quiet(player, s_combine);
+      }
+      sprintf(s_combine, "./scripts/%.100s", fargs[0]);
+   } else {
+      sprintf(s_combine, "%.1000s/%.100s", mudconf.execscripthome, fargs[0]);
+   }
    if ( (stat(s_combine, &st_buf) == -1) || !(st_buf.st_mode & S_IXUSR) || !(st_buf.st_mode & S_IRUSR) ) {
       sprintf(s_combine, "#-1 UNABLE TO EXECUTE '%s'", fargs[0]);
       safe_str(s_combine, buff, bufcx);
@@ -18414,6 +18430,9 @@ FUNCTION(fun_execscript)
       return;
    }
    
+   s_combine2 = alloc_lbuf("fun_execscript2");
+   strcpy(s_combine2, s_combine);
+
    sprintf(s_combine, "#%d %s", player, Name(player));
    setenv("MUSH_PLAYER", s_combine, 1);
    sprintf(s_combine, "#%d %s", cause, Name(cause));
@@ -18619,7 +18638,8 @@ FUNCTION(fun_execscript)
    free_mbuf(s_varset);
 
    i_noex = 0;
-   sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
+// sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
+   sprintf(s_combine, "%.1000s.set", s_combine2);
    if ( stat(s_combine, &st_buf) == 0 ) {
       if ( unlink(s_combine) != 0 ) {
          s_buff = alloc_lbuf("fun_execscript_errors");
@@ -18655,16 +18675,16 @@ FUNCTION(fun_execscript)
          s_inbufptr++;
       }
       if ( i_alttimeout == 1 )
-         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s %.*s", fargs[0], (LBUF_SIZE - 200), sptr);
+         sprintf(s_combine, "../bin/timeout -9 5 %.1000s %.*s", s_combine2, (LBUF_SIZE - 200), sptr);
       else
-         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s %.*s", fargs[0], (LBUF_SIZE - 200), sptr);
+         sprintf(s_combine, "/usr/bin/timeout -s 9 5 %.1000s %.*s", s_combine2, (LBUF_SIZE - 200), sptr);
       free_lbuf(s_inbuf);
       free_lbuf(sptr);
    } else {
       if ( i_alttimeout == 1 )
-         sprintf(s_combine, "../bin/timeout -9 5 ./scripts/%.100s", fargs[0]);
+         sprintf(s_combine, "../bin/timeout -9 5 %.1000s", s_combine2);
       else
-         sprintf(s_combine, "/usr/bin/timeout -s 9 5 ./scripts/%.100s", fargs[0]);
+         sprintf(s_combine, "/usr/bin/timeout -s 9 5 %.1000s", s_combine2);
    }
 
    fp = popen(s_combine, "r");
@@ -18707,7 +18727,7 @@ FUNCTION(fun_execscript)
    /* We also set the variables in use -back- based on setq regs and contents of MUSHL_VARS */
    s_varset = alloc_mbuf("execscript_variables2");
    if ( !i_noex ) {
-      sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
+      sprintf(s_combine, "%.1000s.set", s_combine2);
       s_buff = alloc_lbuf("fun_execscript_errors");
       s_inread2 = alloc_lbuf("fun_execscript_read2");
       s_appendptr = s_append = alloc_lbuf("fun_execscript_buffer");
@@ -18979,6 +18999,7 @@ FUNCTION(fun_execscript)
    free_lbuf(s_nregs);
    free_mbuf(s_varset);
    free_lbuf(s_combine);
+   free_lbuf(s_combine2);
 }
 
 FUNCTION(fun_execscriptnr)

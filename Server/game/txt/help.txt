@@ -24119,7 +24119,7 @@
             cosh(), sinh(), tanh()
   
 & PID()
-  Function: pid([<display> [,<separator> [,<type> [,<target>]]])
+  Function: pid([<display> [,<separator> [,<type> [,<target>] [,<key>]]])
   
   This function returns the queue process table based on various arguments.
   
@@ -24144,9 +24144,13 @@
     s    - show all semaphore jobs
     p    - show all player queue jobs (jobs currently being ran)
     o    - show all object queue jobs (jobs currently being ran)
+    c    - show count of all processes
   
   <target> is an optional target to narrow down queue values.  The <target> 
   may be a player or a process ID (PID).  Default is everyone.
+  
+  <key> if set to '1' will cause <target>, if a player type, to list all
+  processes owned by that player.
   
   {help pid2 for examples}
 
@@ -34807,6 +34811,7 @@
    the NO_MODIFY and NO_EXAMINE flags take effect [AMB]
  * Added > 2.1b+ attributes num internal attrib handler (40 million) [ASH]
  * PROMPT @totem to enable prompts permanently while enabled [ASH]
+ * execscripthome config parameter for overriding directory for scripts [ASH]
   
   Changes
   -------
@@ -34830,6 +34835,7 @@
  * @saystring optionally evaluates with saystring_eval config [ASH]
  * Modified @list alloc to show internal attrib overhead [ASH]
  * split options in @list options to subcatagories optionally [ASH]
+ * PID() has optional argument to show all processes by player [ASH]
   
   Bug Fixes
   ------------
@@ -34846,3 +34852,4 @@
  * improvement on label warnings for registers [ASH]
  * some issues with the built in timer for alarm handling [ASH]
  * display in @list alloc had some erraneous values [ASH]
+ * potential issue with a race condition on CPU alarm for API [ASH]

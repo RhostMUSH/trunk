@@ -5112,6 +5112,7 @@ do_command(DESC * d, char *command)
     struct SNOOPLISTNODE *node;
     struct sockaddr_in p_sock;
     struct in_addr p_addr;
+    struct itimerval itimer;
     DESC *sd, *d2, *dssl, *dsslnext;
     NAMETAB *cp;
 
@@ -5741,6 +5742,37 @@ do_command(DESC * d, char *command)
 #ifdef ENABLE_LUA
             s_lua = NULL;
 #endif
+/* ---- this is the initialization chunk required for profiling/cpu handling */
+            /* As this is not part of the 'main' command set, we must initialize all the
+             * things that would normally be initialized for normal commands for this
+             */
+            /* For all valid commands we must initialize the timers */
+            mudstate.heavy_cpu_recurse = 0;
+            mudstate.heavy_cpu_tmark1 = time(NULL);
+            mudstate.chkcpu_toggle = 0;
+            mudstate.chkcpu_stopper = time(NULL);
+            mudstate.chkcpu_locktog = 0;
+            mudstate.stack_val = 0;
+            mudstate.stack_toggle = 0;
+            mudstate.sidefx_currcalls = 0;
+            mudstate.curr_percentsubs = 0;
+            mudstate.tog_percentsubs = 0;
+            mudstate.sidefx_toggle = 0;
+            mudstate.log_maximum = 0;
+
+            /* profiling */
+            mudstate.evalcount = 0;
+            mudstate.funccount = 0;
+            mudstate.allocsin = 0;
+            mudstate.allocsout = 0;
+            mudstate.attribfetchcount = 0;
+            itimer.it_interval.tv_sec = 0;
+            itimer.it_interval.tv_usec = 0;
+            itimer.it_value.tv_usec = 0;
+            itimer.it_value.tv_sec = 1000;
+            setitimer(ITIMER_PROF, &itimer, NULL);
+/* End of the profile/cpu chunk */
+
             s_snarfing = alloc_lbuf("cmd_get");
             s_snarfing2 = alloc_lbuf("cmd_get2");
             s_snarfing3 = alloc_lbuf("cmd_get3");
@@ -5947,6 +5979,7 @@ do_command(DESC * d, char *command)
                            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                            queue_string(d, "Exec: Error - Timeout opening interpreter\r\n");
                            queue_string(d, "Return: <NULL>\r\n\r\n");
+                           broadcast_monitor(thing, MF_CPU, "LUA INTERPRETER TIMEOUT REACHED", (char *)"LUA", NULL, thing, 0, 0, NULL);
                            goto end_lua; /* Abort, abort! */
                         }
 
@@ -5960,6 +5993,7 @@ do_command(DESC * d, char *command)
                            queue_string(d, "Return: <NULL>\r\n\r\n");
                            /* We need to re-cache the buffer here */
                            s_buffer = alloc_lbuf("cmd_post_buff");
+                           broadcast_monitor(thing, MF_CPU, "LUA EXECUTION TIMEOUT REACHED", (char *)"LUA API->GET", NULL, thing, 0, 0, NULL);
                            goto end_lua; /* Abort, abort! */
                         }
       
@@ -6185,6 +6219,37 @@ do_command(DESC * d, char *command)
             RETURN(0); /* #147 */
             break;
 #else
+/* ---- this is the initialization chunk required for profiling/cpu handling */
+            /* As this is not part of the 'main' command set, we must initialize all the
+             * things that would normally be initialized for normal commands for this
+             */
+            /* For all valid commands we must initialize the timers */
+            mudstate.heavy_cpu_recurse = 0;
+            mudstate.heavy_cpu_tmark1 = time(NULL);
+            mudstate.chkcpu_toggle = 0;
+            mudstate.chkcpu_stopper = time(NULL);
+            mudstate.chkcpu_locktog = 0;
+            mudstate.stack_val = 0;
+            mudstate.stack_toggle = 0;
+            mudstate.sidefx_currcalls = 0;
+            mudstate.curr_percentsubs = 0;
+            mudstate.tog_percentsubs = 0;
+            mudstate.sidefx_toggle = 0;
+            mudstate.log_maximum = 0;
+
+            /* profiling */
+            mudstate.evalcount = 0;
+            mudstate.funccount = 0;
+            mudstate.allocsin = 0;
+            mudstate.allocsout = 0;
+            mudstate.attribfetchcount = 0;
+            itimer.it_interval.tv_sec = 0;
+            itimer.it_interval.tv_usec = 0;
+            itimer.it_value.tv_usec = 0;
+            itimer.it_value.tv_sec = 1000;
+            setitimer(ITIMER_PROF, &itimer, NULL);
+/* End of the profile/cpu chunk */
+
             s_snarfing = alloc_lbuf("cmd_post");
             s_snarfing4 = alloc_lbuf("cmd_post2");
             s_snarfheader = alloc_lbuf("cmd_post_snarfheader");

@@ -2304,7 +2304,7 @@
   methods to garner outside shell access but extreme caution should
   be used in using this anyway.
   
-  See Also: execscript()
+  See Also: execscript(), execscripthome
 
 & POWER FULLTEL
   Power argument: @power[/switch] <user>=[@g|@a|@c] fulltel
@@ -7212,35 +7212,35 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index               examine_flags              examine_public_attrs
-  examine_restrictive       exec_secure                execscriptpath
-  exit_attr_default         exit_flags                 exit_parent           
-  exit_quota                exit_separator             exit_toggles          
-  exits_connect_rooms       expand_goto                fascist_teleport      
-  file_object               find_money_chance          flag_alias            
-  flag_name                 flag_access_see            flag_access_set          
-  flag_access_type          flag_access_unset          float_precision       
-  float_switches            forbid_host                forbid_site        
-  forbidapi_host            forbidapi_site             fork_dump          
-  format_compatibility      fork_vfork                 format_contents    
-  format_exits              format_name                formats_are_local  
-  full_file                 full_motd_message          function_access    
-  function_alias            function_invocation_limit  function_max       
-  function_recursion_limit  gdbm_cache_size            gdbm_database        
-  global_aconnect           global_adisconnect         global_ansimask    
-  global_attrdefault        global_clone_exit          global_clone_obj   
-  global_clone_player       global_clone_room          global_clone_thing 
-  global_error_cmd          global_error_obj           global_parent_exit 
-  global_parent_obj         global_parent_player       global_parent_room 
-  global_parent_thing       good_name                  goodmail_host      
-  gconf_file                guest_char_num             guest_displaylastsite
-  guest_file                guest_namelist             guest_randomize       
-  guild_attrname            guild_default              guild_hdr             
-  hackattr_nowiz            hackattr_see               hardconn_host          
-  hardconn_site             hasattrp_compat            hastype_always_zero    
-  heavy_cpu_max             help_file                  help_index    
-  help_separator            hide_nospoof               hook_cmd 
-  hook_obj                  hook_offline
+  error_index             examine_flags              examine_public_attrs
+  examine_restrictive     exec_secure                execscripthome
+  execscriptpath          exit_attr_default          exit_flags              
+  exit_parent             exit_quota                 exit_separator       
+  exit_toggles            exits_connect_rooms        expand_goto            
+  fascist_teleport        file_object                find_money_chance      
+  flag_alias              flag_name                  flag_access_see        
+  flag_access_set         flag_access_type           flag_access_unset      
+  float_precision         float_switches             forbid_host            
+  forbid_site             forbidapi_host             forbidapi_site         
+  fork_dump               format_compatibility       fork_vfork             
+  format_contents         format_exits               format_name            
+  formats_are_local       full_file                  full_motd_message      
+  function_access         function_alias             function_invocation_limit
+  function_max            function_recursion_limit   gdbm_cache_size        
+  gdbm_database           global_aconnect            global_adisconnect     
+  global_ansimask         global_attrdefault         global_clone_exit      
+  global_clone_obj        global_clone_player        global_clone_room      
+  global_clone_thing      global_error_cmd           global_error_obj       
+  global_parent_exit      global_parent_obj          global_parent_player   
+  global_parent_room      global_parent_thing        good_name              
+  goodmail_host           gconf_file                 guest_char_num         
+  guest_displaylastsite   guest_file                 guest_namelist         
+  guest_randomize         guild_attrname             guild_default          
+  guild_hdr               hackattr_nowiz             hackattr_see           
+  hardconn_host           hardconn_site              hasattrp_compat        
+  hastype_always_zero     heavy_cpu_max              help_file              
+  help_index              help_separator             hide_nospoof           
+  hook_cmd                hook_obj                   hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -8450,7 +8450,16 @@
   non-alphanumeric characters.  Ergo, it will only then escape out characters
   that are not A-Z, a-z, or 0-9.
   
-  See Also: execscript()
+  See Also: execscript(), execscripthome
+
+& execscripthome
+  Config parameter: execscripthome <strings>.  Default: (empty)
+  
+  This is the optional override of where you wish to have the scripts for
+  execscript lie.  The default directory for these scripts will be in
+  ~/game/scripts off your main RhostMUSH directory path.  
+  
+  See Also: execscript(), execscriptpath
 
 & execscriptpath
   Config parameter: execscriptpath <strings>.  Default: (empty)
@@ -8461,7 +8470,7 @@
   alpha-numerical characters and will not allow any other character 
   including wildcards.
   
-  See Also: execscript()
+  See Also: execscript(), execscripthome
   
 & exit_attr_default
   Config parameter: exit_attr_default <dbref>.  Default: -1
@@ -13291,6 +13300,7 @@
   
   { 'wizhelp execscript2' for environment variables passed to the script }
   
+& EXECSCRIPT VARIABLES
 & EXECSCRIPT2
   (CONTINUED)
   Function: execscript(<script name> [,<arg 0>,...,<arg 9>])

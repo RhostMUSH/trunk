@@ -2356,11 +2356,12 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
 }
 
 void
-show_que_func(dbref player, char *target, int key, char s_type, char *buff, char **bufcx, char sep)
+show_que_func(dbref player, char *target, int key, char s_type, char *buff, char **bufcx, char sep, int i_player)
 {
    BQUE *tmp;
    dbref player_targ, obj_targ;
-   int first, i_pid;
+   char *s_tmp;
+   int first, i_pid, i_count;
 
    i_pid = -1;
    if ( target && *target ) {
@@ -2378,11 +2379,17 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
               !HasPriv(player, obj_targ, POWER_SEE_QUEUE, POWER3, NOTHING))) {
             return;
          }
+         /* flip to check all ownership by player specified */
+         if ( i_player && isPlayer(obj_targ)) {
+            player_targ = obj_targ;
+            obj_targ = NOTHING;
+         }
       }
    } else {
       player_targ = obj_targ = NOTHING;
    }
-   first = 0;
+   first = i_count = 0;
+   /* Player running queue */
    if ( s_type == 'p' ) {
       for ( tmp = mudstate.qfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
@@ -2393,6 +2400,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          first = 1;
       }
    } 
+   /* Object running queue */
    if ( s_type == 'o' ) {
       for ( tmp = mudstate.qlfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
@@ -2403,25 +2411,41 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          first = 1;
       }
    }
-   if ( (s_type == 'q') || (s_type == 'w') ) {
+   /* Wait queue */
+   if ( (s_type == 'q') || (s_type == 'w') || (s_type == 'c') ) {
       for ( tmp = mudstate.qwait; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
             continue;
-         fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         if ( s_type == 'c' ) {
+            i_count++;
+         } else {
+            fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         }
          first = 1;
       }
    }
-   if ( (s_type == 'q') || (s_type == 's') ) {
+   /* Semaphore queue */
+   if ( (s_type == 'q') || (s_type == 's') || (s_type == 'c') ) {
       for ( tmp = mudstate.qsemfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
             continue;
-         fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         if ( s_type == 'c' ) {
+            i_count++;
+         } else {
+            fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         }
          first = 1;
       }
+   }
+   if ( s_type == 'c' ) {
+      s_tmp = alloc_sbuf("func_pid_count");
+      sprintf(s_tmp, "%d", i_count);
+      safe_str(s_tmp, buff, bufcx);
+      free_sbuf(s_tmp);
    }
 }
 
