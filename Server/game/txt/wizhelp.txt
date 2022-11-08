@@ -7339,14 +7339,14 @@
   signal_crontab            signal_object             signal_object_type      
   space_compress            spam_limit                spam_msg                
   spam_objmsg               sqlite_db_path            sqlite_query_limit      
-  stack_limit
+  stack_limit               start_build               starting_money          
+  starting_quota            strfunc_softfuncs
   
 { 'wizhelp config parameters6' for more}
 
 & config parameters6
   Topic: CONFIG PARAMETERS (continued)
 
-  start_build               starting_money            starting_quota
   string_conn               string_conndark           string_connhide
   string_create             string_register           suspect_host            
   suspect_site              sweep_dark                switch_default_all      
@@ -12034,6 +12034,16 @@
   auto-restart script to decide whether or not to bring the mush back up,
   for instance.
 
+& strfunc_softfuncs
+  Config parameter: strfunc_softfuncs <value>.  Default: 0
+  
+  This will specify if the strfunc() function handles soft functions or
+  just hardcoded functions.  The values that can be specified are as
+  follows.
+      0 - only hardcoded functions (default)
+      1 - hardcoded functions and @functions
+      2 - hardcoded functions, @functions, and @lfunctions
+  
 & string_conn
   Config parameter: string_conn <string>.  Default: connect
   

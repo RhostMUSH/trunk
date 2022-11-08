@@ -16714,6 +16714,17 @@
   This in effect will turn any function in the game into a string
   oriented function.  Thus the name, 'strfunc'.
   
+  This will optionally allow executing @functions and/or @lfunctions
+  based on the config parameter strfunc_softfuncs.
+    0 - only hardcoded functions
+    1 - hardcoded and @functions
+    2 - hardcoded, @functions, and @lfunctions.
+  
+  You may use the config() function to check the value of the
+  strfunc_softfuncs config parameter.
+  
+  @list options system will also show the state of this feature.
+  
   Examples:
     > say add(1,2,3,4)
     You say "10"
@@ -34812,7 +34823,8 @@
  * Added > 2.1b+ attributes num internal attrib handler (40 million) [ASH]
  * PROMPT @totem to enable prompts permanently while enabled [ASH]
  * execscripthome config parameter for overriding directory for scripts [ASH]
-  
+ * config parameter strfunc_softfuncs to control strfunc with softfuncs [ASH]
+
   Changes
   -------
  * Allocations modified to add the new buffers for caches [ASH]
@@ -34836,6 +34848,7 @@
  * Modified @list alloc to show internal attrib overhead [ASH]
  * split options in @list options to subcatagories optionally [ASH]
  * PID() has optional argument to show all processes by player [ASH]
+ * strfunc() optionally handles @function and @lfunction [ASH]
   
   Bug Fixes
   ------------
@@ -34853,3 +34866,4 @@
  * some issues with the built in timer for alarm handling [ASH]
  * display in @list alloc had some erraneous values [ASH]
  * potential issue with a race condition on CPU alarm for API [ASH]
+ * Hardening of some internal conditionals against db corruption [ASH]

@@ -6470,6 +6470,13 @@ list_options_system(dbref player)
     } else {
        notify(player, "elements() compatibility [behaves like elementsmux()] ---------- DISABLED");
     }
+    if ( mudconf.strfunc_softfuncs == 1) {
+       notify(player, "strfunc() enhancement allowing @function but not @lfunction ---- ENABLED");
+    } else if ( mudconf.strfunc_softfuncs == 2) {
+       notify(player, "strfunc() enhancement allowing @function and @lfunction -------- ENABLED");
+    } else {
+       notify(player, "strfunc() enhancement allowing @function or @lfunction --------- DISABLED");
+    }
 #ifdef USE_SIDEEFFECT
     notify(player, "Sideeffects [SIDEFX required] ---------------------------------- ENABLED");
 #else

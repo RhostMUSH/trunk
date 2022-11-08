@@ -422,6 +422,7 @@ struct confdata {
 	char	execscripthome[LBUF_SIZE];	/* execscript home override */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
+	int 	strfunc_softfuncs;	/* Allow soft functgions for strfunc -- 1 @function, 2 @function + @lfunction */
         int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */

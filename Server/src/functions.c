@@ -18078,8 +18078,11 @@ FUNCTION(fun_con)
 FUNCTION(fun_strfunc)
 {
    FUN *fp;
-   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr;
-   int nitems, tst, i;
+   UFUN *ufp;
+   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, *retval, *s_attr,
+        *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *ptsavereg, *nptsavereg;
+   int nitems, tst, i, i_soft, i_found, aflags, feval, z, is_trace_bkup;
+   dbref aowner, i_player;
 
    varargs_preamble("STRFUNC", 3);
 
@@ -18097,15 +18100,35 @@ FUNCTION(fun_strfunc)
       p++;
    }
 
+   i_soft = i_found = 0;
    fp = (FUN *) hashfind(list, &mudstate.func_htab);
    if ( !fp ) {
-      safe_str("#-1 INVALID FUNCTION", buff, bufcx);
-      free_lbuf(list);
-      return;
+      if ( mudconf.strfunc_softfuncs >= 1 ) {
+         ufp = (UFUN *) hashfind(list, &mudstate.ufunc_htab);
+         if ( ufp ) {
+            i_found = 1;
+         } else {
+            if ( mudconf.strfunc_softfuncs >= 2 ) {
+               retval = alloc_lbuf("strfunc_lfun");
+               sprintf(retval, "%d_%s", Owner(player), list);
+               ufp = (UFUN *) hashfind(retval, &mudstate.ulfunc_htab);
+               if ( ufp ) {
+                  i_found = 2;
+               }
+               free_lbuf(retval);
+            }
+         }
+      }
+      if ( !i_found ) {
+         safe_str("#-1 INVALID FUNCTION", buff, bufcx);
+         free_lbuf(list);
+         return;
+      }
    }
 
    free_lbuf(list);
-   if (!check_access(player, fp->perms, fp->perms2, 0)) {
+   if ( (!i_found && !check_access(player, fp->perms, fp->perms2, 0)) ||
+        ( i_found && !check_access(player, ufp->perms, ufp->perms2, 0)) ) {
       if ( mudstate.func_ignore && !mudstate.func_bypass ) {
          safe_str("#-1 INVALID FUNCTION", buff, bufcx);
          return;
@@ -18115,7 +18138,7 @@ FUNCTION(fun_strfunc)
       }
    }
 
-   if ( !stricmp((char *)fp->name, "strfunc") ) {
+   if ( fp && !stricmp((char *)fp->name, "strfunc") ) {
       safe_str("#-1 CAN NOT STRFUNC ITSELF", buff, bufcx);
       return;
    }
@@ -18158,9 +18181,104 @@ FUNCTION(fun_strfunc)
       nitems++;
    }
 
-   if ( (nitems == fp->nargs) || (nitems == -fp->nargs) ||
-        (fp->flags & FN_VARARGS) ) {
+   if ( fp && ((nitems == fp->nargs) || (nitems == -fp->nargs) ||
+               (fp->flags & FN_VARARGS)) ) {
       fp->fun(buff, bufcx, player, cause, caller, ptrs, nitems, cargs, ncargs);
+   } else if ( ufp ) {
+      i_player = player;
+      if (ufp->flags & FN_PRIV) {
+         i_player = ufp->obj;
+      } 
+      if ( ((ufp->minargs > 0) && (nitems < ufp->minargs)) ||
+           ((ufp->maxargs > 0) && (nitems > ufp->maxargs)) ) {
+         safe_str((char *) "#-1 FUNCTION (", buff, bufcx);
+         safe_str((char *) ufp->name, buff, bufcx);
+         if ( abs(ufp->minargs) != ufp->maxargs ) {
+            if ( ufp->maxargs == -1 ) {
+               safe_str((char *) ") EXPECTS ", buff, bufcx);
+            } else {
+               safe_str((char *) ") EXPECTS BETWEEN ", buff, bufcx);
+            }
+            ival(buff, bufcx, ((ufp->minargs == -1) ? 1 : ufp->minargs));
+            if ( ufp->maxargs == -1 ) {
+               safe_str((char *) " OR MORE", buff, bufcx);
+            } else {
+               safe_str((char *) " AND ", buff, bufcx);
+               ival(buff, bufcx, ufp->maxargs);
+            }
+         } else {
+            safe_str((char *) ") EXPECTS ", buff, bufcx);
+            ival(buff, bufcx, ufp->maxargs);
+         }
+         if ( ufp->maxargs == 1 ) {
+            safe_str((char *) " ARGUMENT [RECEIVED ", buff, bufcx);
+         } else {
+            safe_str((char *) " ARGUMENTS [RECEIVED ", buff, bufcx);
+         }
+         ival(buff, bufcx, nitems);
+         safe_chr(']', buff, bufcx);
+      } else {
+         s_attr = atr_get(ufp->obj, ufp->atr, &aowner, &aflags);
+         if ( s_attr && *s_attr ) {
+            feval = EV_STRIP | EV_FCHECK | EV_EVAL;
+            if ( (ufp->perms2 & CA_NO_EVAL) || !(ufp->perms2 * CA_EVAL) ) {
+               if ( mudconf.brace_compatibility )
+                  feval = (feval & ~EV_EVAL & ~EV_STRIP) | EV_STRIP_ESC;
+               else
+                  feval = (feval & ~EV_EVAL) | EV_STRIP_ESC;
+            }
+            if (ufp && (ufp->perms & CA_EVAL)) {
+               feval = (feval | EV_EVAL | EV_STRIP | ~EV_STRIP_ESC);
+            }
+            if (ufp && (ufp->flags & FN_NOTRACE)) {
+               feval = (feval | EV_NOTRACE);
+            }
+            if (ufp && (ufp->perms2 & CA_NO_PARSE)) {
+               feval = (feval | EV_FIGNORE | EV_EVAL | EV_NOFCHECK) & ~(EV_FCHECK);
+            }
+            if ( ufp->flags & FN_PRES ) {
+               for (z = 0; z < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); z++) {
+                  savereg[z] = alloc_lbuf("ulocal_reg");
+                  saveregname[z] = alloc_sbuf("ulocal_regname");
+                  ptsavereg = savereg[z];
+                  nptsavereg = saveregname[z];
+                  safe_str(mudstate.global_regs[z],savereg[z],&ptsavereg);
+                  safe_str(mudstate.global_regsname[z],saveregname[z],&nptsavereg);
+                  if ( ufp->flags & FN_PROTECT ) {
+                     *mudstate.global_regs[z] = '\0';
+                     *mudstate.global_regsname[z] = '\0';
+                  }
+               }
+            }
+            mudstate.allowbypass = 1;
+            is_trace_bkup = 0;
+            if ( ufp->flags & FN_NOTRACE ) {
+               is_trace_bkup = mudstate.notrace;
+               mudstate.notrace = 1;
+            }
+
+            retval = exec(i_player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, s_attr, ptrs, nitems, (char **)NULL, 0);
+            safe_str(retval, buff, bufcx);
+            free_lbuf(retval);
+
+            if ( ufp->flags & FN_NOTRACE ) {
+               mudstate.notrace = is_trace_bkup;
+            }
+            mudstate.allowbypass = 0;
+            if ( ufp->flags & FN_PRES ) {
+               for (z = 0; z < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); z++) {
+                  ptsavereg = mudstate.global_regs[z];
+                  nptsavereg = mudstate.global_regsname[z];
+                  safe_str(savereg[z],mudstate.global_regs[z],&ptsavereg);
+                  safe_str(saveregname[z],mudstate.global_regsname[z],&nptsavereg);
+                  free_lbuf(savereg[z]);
+                  free_sbuf(saveregname[z]);
+               }
+            }
+         }
+         if ( s_attr )
+            free_lbuf(s_attr);
+      }
    } else {
       tprp_buff = tpr_buff = alloc_lbuf("strfunc_tprbuff");
       safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#-1 FUNCTION (%s) EXPECTS %d ARGUMENTS [RECEIVED %d]",

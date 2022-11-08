@@ -359,6 +359,7 @@ NDECL(cf_init)
     mudconf.player_absolute = 0;	/* Player absolute (cache) lookup at location */
     mudconf.setqlabel = 0;		/* Label enforcing for setq */
     mudconf.saystring_eval = 0;		/* @saystring evaluate? */
+    mudconf.strfunc_softfuncs = 0;	/* @function/@lfuncton to strfunc() */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5461,6 +5462,10 @@ CONF conftable[] =
     {(char *) "status_file",
      cf_string, CA_DISABLED, (int *) mudconf.status_file, 128, 0, CA_WIZARD,
      (char *) "File where @shutdown commands are sent."},
+    {(char *) "strfunc_softfuncs",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.strfunc_softfuncs, 0, 0, CA_PUBLIC,
+     (char *) "Does strfunc allow softfunction handling.\r\n"\
+              "   1 - @fun, 2 - @fun/@lfun  Default: 0   Value: %d"},
     {(char *) "string_conn",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.string_conn, 31, 0, CA_WIZARD,
      (char *) "String that is used as the 'connect [co]' command."},

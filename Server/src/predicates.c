@@ -228,7 +228,7 @@ int ZoneWizard(dbref player, dbref target)
 {
   ZLISTNODE *ptr; 
 
-  if( !Inherits(player) ) 
+  if( !Good_chk(player) || !Inherits(player) ) 
     return 0;
 
   if( db[target].zonelist &&
@@ -249,6 +249,9 @@ int ZoneWizard(dbref player, dbref target)
 
 int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
 {
+
+  if ( !Good_obj(p) || !Good_obj(x) || !a )
+     return 0;
 
   if ( key & 2 ) {
      if ( ((a)->flags & AF_INTERNAL) || (f & AF_INTERNAL) ) {
@@ -321,6 +324,9 @@ int See_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key)
 
 int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
 {
+  if ( !Good_obj(p) || !Good_obj(x) || !a )
+    return 0;
+
   if( ((a)->flags & (AF_INTERNAL)) || (f & (AF_INTERNAL)) )
     return 0;
 
@@ -421,7 +427,7 @@ int Read_attr(dbref p, dbref x, ATTR* a, dbref o, int f, int key )
 #ifndef STANDALONE
 int Examinable(dbref p, dbref x) 
 {
-  if ( !Good_obj(x) )
+  if ( !Good_obj(x) || !Good_obj(p) )
     return 0;
 
   if( (Recover(x) || Going(x)) && !Immortal(Owner(p)) )
