@@ -34867,3 +34867,4 @@
  * display in @list alloc had some erraneous values [ASH]
  * potential issue with a race condition on CPU alarm for API [ASH]
  * Hardening of some internal conditionals against db corruption [ASH]
+ * compile issues without including ZENTY_ANSI on compiles [ASH]

@@ -2295,7 +2295,7 @@ announce_connect(dbref player, DESC * d, int dc)
     int aflags, num, key, aflags2;
     char *buf, *tbuf, *time_str, *progatr;
     DESC *dtemp;
-    char *argv[1];
+    char *argv[1], *s_pmt, *s_pmtptr;
     int totsucc, totfail, newfail;
 #ifdef ZENTY_ANSI
     char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
@@ -2523,9 +2523,9 @@ announce_connect(dbref player, DESC * d, int dc)
     if ( d && Prompt(d->player) ) {
        progatr = atr_get(d->player, A_PROGPROMPT, &aowner, &aflags);
        if ( *progatr ) {
-          s_buff = s_buffptr = alloc_lbuf("process_ic_command");
-          queue_string(d, safe_tprintf(s_buff, &s_buffptr, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
-          free_lbuf(s_buff);
+          s_pmt = s_pmtptr = alloc_lbuf("process_ic_command");
+          queue_string(d, safe_tprintf(s_pmt, &s_pmtptr, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
+          free_lbuf(s_pmt);
        }
        free_lbuf(progatr);
     }

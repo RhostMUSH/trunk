@@ -260,7 +260,12 @@ rhost_parseansi(lua_State *L)
     asciip = ascii = alloc_lbuf("lua_rhost_parseansi_ascii");
     accentsp = accents = alloc_lbuf("lua_rhost_parseansi_ascii");
     utf8p = utf8 = alloc_lbuf("lua_rhost_parseansi_utf8");
+#ifdef ZENTY_ANSI
     parse_ansi(fargs[0], ascii, &asciip, accents, &accentsp, utf8, &utf8p);
+#else
+    /* take raw, zenty ansi not enabled */
+    strcpy(utf8, fargs[0]);
+#endif
 
     /* log_text("rhost_parseansi : got back ascii: "); log_text(ascii); end_log(); */
     /* log_text("rhost_parseansi : got back accents : "); log_text(accents); end_log(); */
