@@ -6182,13 +6182,11 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfvalue);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
-#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             free_lbuf(s_sockhost);
             free_lbuf(s_sockkey);
             free_lbuf(s_sockver);
             ///// END NEW WEBSOCK
-#endif
             process_output(d);
             if ((d->flags & DS_API) && (d->timeout == 1) )
                 shutdownsock(d, R_API);
