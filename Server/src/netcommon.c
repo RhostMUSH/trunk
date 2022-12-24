@@ -5926,6 +5926,7 @@ do_command(DESC * d, char *command)
                 ENDLOG;
                 complete_handshake(d, s_sockkey);
 #else
+                s_dtime = (char *) ctime(&mudstate.now);
                 queue_string(d, "HTTP/1.1 501 Websockets not enabled\r\n");
                 queue_string(d, "Content-type: text/plain\r\n");
                 queue_string(d, unsafe_tprintf("Date: %s\r\n\r\n", s_dtime));
