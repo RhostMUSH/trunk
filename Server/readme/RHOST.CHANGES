@@ -9,6 +9,8 @@ player_absolute lookup for aliases in location to match PennMUSH
 				- Thanks Myrddin
 @saystring optionally evaluates with @admin param saystring_eval.
 				- Thanks Ophelia@Liberation
+@rxlevel/@txlevel did not honor QUIET flag.
+				- Thanks Myrddin
 
 
                          RhostMUSH 4.0 Update File

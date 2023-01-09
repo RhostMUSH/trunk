@@ -282,13 +282,15 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
            result = 0xffffffff;
            andmask = 0;
            ormask = 0;
-           buff3 = name_rlevel(result, RxLevel(thing), 2);
-           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-           notify_quiet(player, buff);
+           if ( !Quiet(player) ) {
+              buff3 = name_rlevel(result, RxLevel(thing), 2);
+              sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+              notify_quiet(player, buff);
+              free_lbuf(buff3);
+           }
            sprintf(buff, "%08X %08X", ((RxLevel(thing) & andmask) | ormask), TxLevel(thing));
            atr_add_raw(thing, A_RLEVEL, buff);
            free_lbuf(buff);
-           free_lbuf(buff3);
         } else {
            notify_quiet(player, "I don't know what you want to set!");
         }
@@ -299,10 +301,12 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ( key & REALITY_RESET ) {
        andmask = 0;
        result = 0xffffffff;
-       buff3 = name_rlevel(result, RxLevel(thing), 2);
-       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-       free_lbuf(buff3);
-       notify_quiet(player, buff2);
+       if ( !Quiet(player) ) {
+          buff3 = name_rlevel(result, RxLevel(thing), 2);
+          sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+          free_lbuf(buff3);
+          notify_quiet(player, buff2);
+       }
     } else {
        andmask = ~ormask;
     }
@@ -337,31 +341,36 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
         result = find_rlevel(lname);
         if(!result)
         {
-            notify_quiet(player, "No such reality level.");
+            sprintf(buff2, "No such reality level '%s'", lname);
+            notify_quiet(player,  buff2);
             continue;
         }
         if(negate)
         {
             andmask &= ~result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_rlevel, 2);
-               sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Cleared.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_rlevel, 2);
+                  sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Cleared.");
+               }
             }
         }
         else
         {
             ormask |= result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_rlevel, 1);
-               sprintf(buff2, "Set - %s (set RxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Set.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_rlevel, 1);
+                  sprintf(buff2, "Set - %s (set RxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Set.");
+               }
             }
         }
     }
@@ -391,13 +400,15 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
            result = 0xffffffff;
            andmask = 0;
            ormask = 0;
-           buff3 = name_rlevel(result, TxLevel(thing), 2);
-           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-           notify_quiet(player, buff);
+           if ( !Quiet(player) ) {
+              buff3 = name_rlevel(result, TxLevel(thing), 2);
+              sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+              free_lbuf(buff3);
+              notify_quiet(player, buff);
+           }
            sprintf(buff, "%08X %08X", RxLevel(thing), ((TxLevel(thing) & andmask) | ormask));
            atr_add_raw(thing, A_RLEVEL, buff);
            free_lbuf(buff);
-           free_lbuf(buff3);
         } else {
            notify_quiet(player, "I don't know what you want to set!");
         }
@@ -408,10 +419,12 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ( key & REALITY_RESET ) {
        andmask = 0;
        result = 0xffffffff;
-       buff3 = name_rlevel(result, TxLevel(thing), 2);
-       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-       free_lbuf(buff3);
-       notify_quiet(player, buff2);
+       if ( !Quiet(player) ) {
+          buff3 = name_rlevel(result, TxLevel(thing), 2);
+          sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+          free_lbuf(buff3);
+          notify_quiet(player, buff2);
+       }
     } else {
        andmask = ~ormask;
     }
@@ -448,31 +461,36 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
         result = find_rlevel(lname);
         if(!result)
         {
-            notify_quiet(player, "No such reality level.");
+            sprintf(buff2, "No such reality level '%s'", lname);
+            notify_quiet(player,  buff2);
             continue;
         }
         if(negate)
         {
             andmask &= ~result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_tlevel, 2);
-               sprintf(buff2, "Set - %s (cleared TxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Cleared.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_tlevel, 2);
+                  sprintf(buff2, "Set - %s (cleared TxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Cleared.");
+               }
             }
         }
         else
         {
             ormask |= result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_tlevel, 1);
-               sprintf(buff2, "Set - %s (set TxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Set.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_tlevel, 1);
+                  sprintf(buff2, "Set - %s (set TxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Set.");
+               }
             }
         }
     }
