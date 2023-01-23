@@ -5785,14 +5785,12 @@ do_command(DESC * d, char *command)
             strcpy(s_buffer, arg);
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
             i_enc64 = i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
-#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             int i_socksnarf = 0;
             char *s_sockhost = alloc_lbuf("cmd_sockhost");
             char *s_sockkey = alloc_lbuf("cmd_sockkey");
             char *s_sockver = alloc_lbuf("cmd_sockver");
             ///// END NEW WEBSOCK
-#endif
 
             s_enc64 = alloc_lbuf("cmd_get_exec64");
             while ( s_strtok ) {
@@ -5800,7 +5798,6 @@ do_command(DESC * d, char *command)
                i_snarfheaders = sscanf(s_strtok, (char *)"%[^:]: %[^\n]", s_snarfheader, s_snarfvalue);
                if ( 2 == i_snarfheaders ) {
 
-#ifdef ENABLE_WEBSOCKETS
                ////////   NEW WEBSOCK
                ///// TODO: Improve logic here
 
@@ -5830,13 +5827,16 @@ do_command(DESC * d, char *command)
 
                   if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Key" ) ) {
                      strcpy(s_sockkey, s_snarfvalue);
+#ifdef ENABLE_WEBSOCKETS
                      if (validate_websocket_key(s_sockkey)) {
                         i_socksnarf++;
                      }
+#else
+                     i_socksnarf++;
+#endif
                   }
 
                ////////   END NEW WEBSOCK
-#endif
 
                   if ( (d->timeout == 1) && !stricmp(s_snarfheader, (char *)"Keep-Alive" ) ) {
                      if ( !strncasecmp(s_snarfvalue, (char *)"timeout=", 8) ) {
@@ -5917,17 +5917,22 @@ do_command(DESC * d, char *command)
                s_strtok = strtok_r(NULL, "\n", &s_strtokr);
             }
 
-#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             if (i_socksnarf >= 5) {
                 free_lbuf(s_user); // Was allocated but will not be used
+#ifdef ENABLE_WEBSOCKETS
                 STARTLOG(LOG_ALWAYS, "NET", "WS");
                 log_text("Received WebSocket opening handshake.");
                 ENDLOG;
                 complete_handshake(d, s_sockkey);
+#else
+                s_dtime = (char *) ctime(&mudstate.now);
+                queue_string(d, "HTTP/1.1 501 Websockets not enabled\r\n");
+                queue_string(d, "Content-type: text/plain\r\n");
+                queue_string(d, unsafe_tprintf("Date: %s\r\n\r\n", s_dtime));
+#endif
             } else
             ///// END NEW WEBSOCK
-#endif
             if ( ((*s_usepass == '#') && isdigit(*(s_usepass+1))) && (strchr(s_usepass, ':') != NULL) ) {
                free_lbuf(s_user);
                s_user = s_usepass+1;
@@ -6178,13 +6183,11 @@ do_command(DESC * d, char *command)
             free_lbuf(s_snarfvalue);
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
-#ifdef ENABLE_WEBSOCKETS
             ///// NEW WEBSOCK
             free_lbuf(s_sockhost);
             free_lbuf(s_sockkey);
             free_lbuf(s_sockver);
             ///// END NEW WEBSOCK
-#endif
             process_output(d);
             if ((d->flags & DS_API) && (d->timeout == 1) )
                 shutdownsock(d, R_API);
