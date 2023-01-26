@@ -449,7 +449,7 @@ void do_force_prefixed(dbref player, dbref cause, int key,
 }
 
 void
-do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx)
+do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx, char **cargs, int ncargs)
 {
    int i_slot, i_found, i_cnt;
    char *s_tbuff, *retbuff;
@@ -484,16 +484,18 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx)
            (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
          i_found = 1;
          /* Past interval, re-cache the data from executor */
-         if ( mudstate.now >= (cp->i_interval + cp->i_lastrun) ) {
+         if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+              ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
          /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
             if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
                s_tbuff = alloc_lbuf("atrcache_fetch");
                strcpy(s_tbuff, cp->s_cachebuild);
-               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, cargs, ncargs, (char **)NULL, 0);
                strcpy(cp->s_cache, retbuff);
                free_lbuf(retbuff);
                free_lbuf(s_tbuff);
                cp->i_lastrun = mudstate.now;
+               cp->commandtrig = 0;
             }
          } 
          safe_str(cp->s_cache, buff, bufcx);
@@ -506,7 +508,7 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx)
 }
 
 void
-do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int key)
+do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int key, char **cargs, int ncargs)
 {
    int i_slot, i_found, i_cnt, i_noshow;
    char *s_tbuff, *retbuff;
@@ -549,14 +551,17 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
          i_found = 1;
          /* Past interval, re-cache the data from executor */
          s_tbuff = alloc_lbuf("atrcache_recache");
-         if ( key || (mudstate.now >= (cp->i_interval + cp->i_lastrun)) ) {
+         if ( key || 
+              ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+              ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
          /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
             if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
                strcpy(s_tbuff, cp->s_cachebuild);
-               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, cargs, ncargs, (char **)NULL, 0);
                strcpy(cp->s_cache, retbuff);
                free_lbuf(retbuff);
                cp->i_lastrun = mudstate.now;
+               cp->commandtrig = 0;
             }
          } 
          if ( !i_noshow ) {
@@ -855,11 +860,11 @@ do_atrcache_execval(dbref player, char *s_slot, char *buff, char **bufcx)
 }
 
 void
-do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufcx)
+do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufcx, char **cargs, int ncargs)
 {
    switch ( key ) {
       case 0: /* cache */
-         do_atrcache_recache(player, s_slot, buff, bufcx, 0);
+         do_atrcache_recache(player, s_slot, buff, bufcx, 0, cargs, ncargs);
          break;
       case 1: /* interval */
          do_atrcache_interval(player, s_slot, buff, bufcx);
@@ -877,17 +882,17 @@ do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufc
          do_atrcache_owner(player, s_slot, buff, bufcx);
          break;
       case 6: /* fetch */
-         do_atrcache_fetch(player, s_slot, buff, bufcx);
+         do_atrcache_fetch(player, s_slot, buff, bufcx, cargs, ncargs);
          break;
       case 7: /* forced recache */
-         do_atrcache_recache(player, s_slot, buff, bufcx, 1);
+         do_atrcache_recache(player, s_slot, buff, bufcx, 1, cargs, ncargs);
          break;
       case 8: /* exec cache to build */
          do_atrcache_execval(player, s_slot, buff, bufcx);
       case 9: /* grab -- force recache then grab */
          /* passing '3' is a bitmask to snuff output */
-         do_atrcache_recache(player, s_slot, buff, bufcx, 3);
-         do_atrcache_fetch(player, s_slot, buff, bufcx);
+         do_atrcache_recache(player, s_slot, buff, bufcx, 3, cargs, ncargs);
+         do_atrcache_fetch(player, s_slot, buff, bufcx, cargs, ncargs);
          break;
       default: /* Error */
          safe_str("#-1 UNRECOGNIZED SWITCH", buff, bufcx);
@@ -977,6 +982,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   cp->s_cachebuild = alloc_atrcache("atrcache_exec");
                   cp->owner = player;
                   cp->enabled = 1;
+                  cp->commandtrig = 1;
                   sprintf(s_tbuff, "@atrcache/init: Slot %d [%s] has been enabled and initialized.", i_slot, cp->name);
                   notify(player, s_tbuff);
                   break;
@@ -1101,6 +1107,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   cp->owner = 1;
                   cp->enabled = 0;
                   cp->i_lastrun = 0;
+                  cp->commandtrig = 0;
                   break;
                } else {
                   notify(player, "@atrcache/delete: You have no permission on that cache slot.");
@@ -1142,7 +1149,8 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
                i_found = 1;
                /* Past interval, re-cache the data from executor */
-               if ( mudstate.now >= (cp->i_interval + cp->i_lastrun) ) {
+               if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+                    ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
                   /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
                   /* Logic:
                    *   Immortal -- always recache 
@@ -1159,6 +1167,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                      free_lbuf(retbuff);
                      free_lbuf(s_tbuff);
                      cp->i_lastrun = mudstate.now;
+                     cp->commandtrig = 0;
                   }
                } 
                notify(player, cp->s_cache);
@@ -1179,8 +1188,8 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
             return;
          }
          i_setval = atoi(command);
-         if ( i_setval < 60 ) {
-            notify(player, "@atrcache/interval: Expecting valid interval (> 60 seconds).");
+         if ( (i_setval < 60) && (i_setval != 0) ) {
+            notify(player, "@atrcache/interval: Expecting valid interval (> 60 seconds or 0).");
             return;
          }
          i_slot = -1;
@@ -1203,10 +1212,17 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
                i_found = 1;
                retbuff = s_tbuff = alloc_lbuf("atrcache_interval");
-               notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d.", 
-                       i_cnt, cp->name, cp->i_interval, i_setval));
-               free_lbuf(s_tbuff);
+               if ( i_setval == 0 ) {
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d (per commmand triggered).", 
+                          i_cnt, cp->name, cp->i_interval, i_setval));
+                  cp->commandtrig = 1;
+               } else {
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d.", 
+                          i_cnt, cp->name, cp->i_interval, i_setval));
+               }
                cp->i_interval = i_setval;
+               free_lbuf(s_tbuff);
+               break;
             }
             i_cnt++;
          }
@@ -1252,7 +1268,9 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   notify(player, s_tbuff);
                   free_lbuf(s_tbuff);
                   cp->i_lastrun = mudstate.now;
+                  cp->commandtrig = 0;
                   i_found = 1;
+                  break;
                }
             }
             i_cnt++;
@@ -1403,7 +1421,11 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   } else {
                      notify(player, safe_tprintf(s_tbuff, &retbuff, "Owner: #%d [Invalid Owner -- Will not Re-Cache]", cp->owner));
                   }
-                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d", cp->i_interval));
+                  if ( cp->i_interval == 0 ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d (command triggered)", cp->i_interval));
+                  } else {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d", cp->i_interval));
+                  }
                   if ( cp->i_lastrun == 0 ) {
                      notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [Never Fetched]", cp->i_lastrun));
                   } else {
@@ -1436,7 +1458,11 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   notify(player, safe_tprintf(s_tbuff, &retbuff, "Slot: %-3d Name: %-30s   \r\nVisible: %d  Locked: %d  Enabled: False", 
                                  i_cnt, (char *)"N/A", cp->visible, cp->lock));
                   notify(player, safe_tprintf(s_tbuff, &retbuff, "Owner: #%d [Default owner always 1]", cp->owner));
-                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d [Default interval]", cp->i_interval));
+                  if ( cp->i_interval == 0 ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d [Default interval -- command triggered]", cp->i_interval));
+                  } else {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d [Default interval]", cp->i_interval));
+                  }
                   notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [Never Fetched]", cp->i_lastrun));
                   notify(player, "------------------------------------------------------------------------------");
                   notify(player, "Cache: N/A [unitialized]");
@@ -1493,6 +1519,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   i_setval, (Good_chk((dbref)i_setval) ? Name((dbref)i_setval) : (char *)"#-1 Bad Owner")));
                free_lbuf(s_tbuff);
                cp->owner = i_setval;
+               break;
             }
             i_cnt++;
          }
@@ -1582,6 +1609,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                        cp->name, cp->visible, i_setval));
                free_lbuf(s_tbuff);
                cp->visible = i_setval;
+               break;
             }
             i_cnt++;
          }
@@ -1623,6 +1651,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                         cp->name, cp->lock, i_setval));
                free_lbuf(s_tbuff);
                cp->lock = i_setval;
+               break;
             }
             i_cnt++;
          }

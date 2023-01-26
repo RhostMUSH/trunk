@@ -130,6 +130,7 @@ init_atrcache( void ) {
       cp->lock = 1;
       cp->enabled=0;
       cp->next = NULL;
+      cp->commandtrig = 0;
       if ( !atrcache_head ) {
            atrcache_head = cp;
       } else {
@@ -142,6 +143,18 @@ init_atrcache( void ) {
       log_number(mudconf.atrcachemax);
       log_text((char *) " total caches.");
    ENDLOG
+}
+
+void
+reset_atrcache_commandtrig( void ) {
+   ATRCACHE *cp;
+
+   for (cp = atrcache_head; cp->next; cp = cp->next) {
+      if ( cp->enabled )
+         cp->commandtrig = 1;
+      else
+         cp->commandtrig = 0;
+   }
 }
 
 void

@@ -56,6 +56,8 @@ extern void fun_crc32obj(char *, char **, dbref, dbref, dbref, char **, int, cha
 
 extern double FDECL(time_ng, (double*));
 extern void FDECL(populate_tor_seed, (void));
+extern void FDECL(reset_atrcache_commandtrig, (void));
+
 
 #ifdef CACHE_OBJS
 #define CACHING "object"
@@ -3194,6 +3196,7 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate.start_of_cmds = 0;
     succ = i_fndexit = 0;
     cache_reset(0);
+    reset_atrcache_commandtrig();
     memset(lst_cmd, 0, sizeof(lst_cmd));
     memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
 #ifndef NODEBUGMONITOR

@@ -3252,6 +3252,8 @@
       @atrcache/noansi  
         -- used with the /info switch to supress ansi output
   
+  Indivitual help is available on each switch with 'help @atrcache/switchname'
+  
   See Also: atrcache(), %-h
 
 & @atrcache/init
@@ -3384,7 +3386,13 @@
   
   This command, part of the @atrcache command switches, will set the 
   interval that the cache slot will re-cache the value to be fetched.
-  This value is in seconds and must be 60 seconds or greater.
+  This value is in seconds and must be 60 seconds or greater with
+  one exception.
+  
+  If the interval is set to '0' then the cache will process on every new
+  command specified.  This is especially useful in any internal lookups
+  and executions of attributes, such as lock evaluations, that may trigger
+  multiple times for a single command. 
   
   The interval always defaults to 3600 (1 hour) on initialization.
   
@@ -34824,7 +34832,8 @@
  * PROMPT @totem to enable prompts permanently while enabled [ASH]
  * execscripthome config parameter for overriding directory for scripts [ASH]
  * config parameter strfunc_softfuncs to control strfunc with softfuncs [ASH]
-
+ * @atrcache will optionally handle caches per command and handles args [ASH]
+  
   Changes
   -------
  * Allocations modified to add the new buffers for caches [ASH]
@@ -34849,7 +34858,9 @@
  * split options in @list options to subcatagories optionally [ASH]
  * PID() has optional argument to show all processes by player [ASH]
  * strfunc() optionally handles @function and @lfunction [ASH]
-  
+ * @atrcache/interval handles '0' for per-command updates [ASH]
+ * @atrcache was unoptimized for some loop conditions [ASH]
+    
   Bug Fixes
   ------------
  * (introduced this version) @atrcache stronger perms [ASH]

@@ -58,6 +58,7 @@ typedef struct atrcache {
 	int	enabled;	/* Is cache initialized and enabled */
 	int	visible;	/* Is cache executable/visible to everyone? */
 	int	lock;		/* Is cache only executable by owner/controller? */
+	int	commandtrig;	/* Check if new command then force recache -- if interval is '0' command refresh */
         struct atrcache *next;	/* Next item in list */
 } ATRCACHE;
 

@@ -1331,8 +1331,8 @@ extern int objecttag_list(char*);
 extern void objecttag_match(char *, char *);
 extern int totem_list(char *, int, dbref, dbref, char *);
 extern void totem_set(dbref, dbref, char *, int);
-extern void do_atrcache_fetch(dbref, char *, char *, char **);
-extern void do_atrcache_handler(dbref, char *, int, char *, char **);
+extern void do_atrcache_fetch(dbref, char *, char *, char **, char **, int);
+extern void do_atrcache_handler(dbref, char *, int, char *, char **, char **, int);
 extern char * totem_valid(dbref, char *, int);
 
 
@@ -12683,7 +12683,7 @@ FUNCTION(fun_atrcache)
         return;
 
    if ( nfargs == 1 ) {
-      do_atrcache_fetch(player, fargs[0], buff, bufcx);
+      do_atrcache_fetch(player, fargs[0], buff, bufcx, cargs, ncargs);
    } else {
       if ( !*fargs[1] ) {
          safe_str("#-1 INVALID ARGUMENT", buff, bufcx);
@@ -12702,7 +12702,7 @@ FUNCTION(fun_atrcache)
             i_cnt++;
          }
          if ( i_found ) {
-            do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx);
+            do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx, cargs, ncargs);
          } else {
             safe_str("#-1 INVALID ARGUMENT", buff, bufcx);
          }
