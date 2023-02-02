@@ -7,11 +7,10 @@
 @@  necessary objects for you and modify all referenced dbref's in the      @@
 @@  code.                                                                   @@
 @@                                                                          @@
-@@                      Rockpath's Job System V 2.1.2                       @@
-@@     Jobs System has been upgraded to allow for different staff tiers.    @@
-@@     +request/cancel has been created to allow for user-side deletion.    @@
-@@                  Use +jobs/help to see the help file                     @@
-@@                         Some bugs were squashed.                         @@
+@@                      Rockpath's Job System V 2.1.3                       @@
+@@         +job/assign now sends a mail to inform the staff member          @@
+@@            Removed @pemit upon notification of job assignment            @@
+@@                                                                          @@
 @@  Instructions should appear at the bottom when you finish installation.  @@
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -51,7 +50,7 @@
 
 &CMD`CLAIM Rockpath's Jobs System=$+job/claim *:@break [u([v(database)]/bool`is-staff)]={@break [t([setr(j, [u([v(database)]/fn`get-job, %0)])])]={@skip/ifelse [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %#)])])])]={@eval [set(%qj, handler:%#)];@pemit %#=[u([v(database)]/fn`prompt, jobs)] You have claimed [name(%qj)].; @pemit/list [listdiff([iter([get(%qj/tier)], [u([v(database)]/tier-grab`##)])], %#)]=[u([v(database)]/fn`prompt, jobs)] [cname(%#)] has claimed [name(%qj)].}, @pemit %#=[u([v(database)]/fn`prompt, jobs)] You don't have permission to change that job.}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] You must specify a valid Job.};@pemit %#=[error()]
 
-&CMD`ASSIGN Rockpath's Jobs System=$+job/assign *=*:@break [u([v(database)]/bool`is-staff)]={@break [t([setr(j, [u([v(database)]/fn`get-job, %0)])])]={@skip/ifelse [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %#)])])])]={@break [and([t([setr(+, [pmatch(%1)], handler)])], [u([v(database)]/bool`is-staff, %q<handler>)])]={@break [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %q<handler>)])])])]={@eval [set(%qj, handler:%q<handler>)]; @pemit %#=[u([v(database)]/fn`prompt, jobs)] You have set [name(%qj)]'s Handler to [cname(%q<handler>)].; @pemit %q<handler>=[u([v(database)]/fn`prompt, jobs)] You have been assigned [name(%qj)]; @pemit [listdiff([iter([get(%qj/tier)], [u([v(database)]/tier-grab`##)])], %q<handler> %#)]}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] [cname(%q<handler>)] cannot access that Job. Please set the job to the appropriate Tier first.}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] Pick a valid Staff Member}, @pemit %#=[u([v(database)]/fn`prompt, jobs)] You don't have permission to change that job.}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] You must specify a valid Job.};@pemit %#=[error()]
+&CMD`ASSIGN Rockpath's Jobs System=$+job/assign *=*:@break [u([v(database)]/bool`is-staff)]={@break [t([setr(j, [u([v(database)]/fn`get-job, %0)])])]={@skip/ifelse [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %#)])])])]={@break [and([t([setr(+, [pmatch(%1)], handler)])], [u([v(database)]/bool`is-staff, %q<handler>)])]={@break [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %q<handler>)])])])]={@eval [set(%qj, handler:%q<handler>)]; @pemit %#=[u([v(database)]/fn`prompt, jobs)] You have set [name(%qj)]'s Handler to [cname(%q<handler>)].; mail %q<handler>=You have been assigned [name(%qj)]}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] [cname(%q<handler>)] cannot access that Job. Please set the job to the appropriate Tier first.}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] Pick a valid Staff Member}, @pemit %#=[u([v(database)]/fn`prompt, jobs)] You don't have permission to change that job.}; @pemit %#=[u([v(database)]/fn`prompt, jobs)] You must specify a valid Job.};@pemit %#=[error()]
 
 &CMD`RENAME Rockpath's Jobs System=$+job/rename *=*:@break [u([v(database)]/bool`is-staff)]={@break [t([setr(j, [u([v(database)]/fn`get-job, %0)])])]={@skip/ifelse [t([lor([iter([get(%qj/tier)], [u([v(database)]/tier`##, %#)])])])]={@eval [set(%qj, JName:%1)];@pemit %#=[u([v(database)]/fn`prompt, Jobs)] You have set [name(%qj)]'s Job Name to '%1'.}, @pemit %#=[u([v(database)]/fn`prompt, Jobs)] You don't have permission to change that job.}; @pemit %#=[u([v(database)]/fn`prompt, Jobs)] You must specify a valid Job.};@pemit %#=[error()]
 
@@ -132,7 +131,8 @@
  
 &FN`PROMPT Rockpath's Job Database=[switch(%0, jobs, [ansi(hc, JOBS)], game, [ansi(hm, GAME)])]:
  
-&Last_Update Rockpath's Job Database=Nov 11, 2020
+&Last_Update Rockpath's Job Database=Jan 19, 2023
+&version Rockpath's Job Database=2.1.3
  
 @set Rockpath's Job Database=INHERIT SIDEFX
  
