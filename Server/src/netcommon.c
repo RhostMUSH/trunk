@@ -5221,7 +5221,7 @@ do_command(DESC * d, char *command)
            arg = haproxy_srcip;
        }
     }
-    if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+    else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
        s_rollback = alloc_lbuf("sconnect_handler");
        addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
