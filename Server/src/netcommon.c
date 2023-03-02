@@ -5219,6 +5219,14 @@ do_command(DESC * d, char *command)
        if(haproxy_srcip) {
            command = mudconf.sconnect_cmd;
            arg = haproxy_srcip;
+           STARTLOG(LOG_ALWAYS, "NET", "PROXY");
+            log_text("Received HAPROXY IP");
+            log_text(arg);
+           ENDLOG
+       } else {
+           STARTLOG(LOG_ALWAYS, "NET", "PROXY");
+            log_text("HAPROXY attempt without IP");
+           ENDLOG
        }
        RETURN(0); /* #147 */
     }
