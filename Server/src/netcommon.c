@@ -5108,7 +5108,7 @@ do_command(DESC * d, char *command)
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout, i_do_proxy;
     struct SNOOPLISTNODE *node;
     struct sockaddr_in p_sock;
     struct in_addr p_addr;
@@ -5118,6 +5118,7 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+    i_do_proxy = 0;
     time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
@@ -5212,12 +5213,12 @@ do_command(DESC * d, char *command)
        RETURN(0); /* #147 */
     }
     /* Support haproxy PROXY as though it were our own */
-    if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+    if ( !d->player && *arg && *command && mudconf.sconnect_reip &&
          !strcmp("PROXY", command) ) {
        strtok_r(arg, " ", &haproxy_rest); /* TCP4 */
        haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest); /* Source IP */
        if(haproxy_srcip) {
-           command = mudconf.sconnect_cmd;
+           /* Put the source IP in arg to simulate the stunnel command */
            arg = haproxy_srcip;
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
             log_text("Received HAPROXY IP");
@@ -5228,10 +5229,14 @@ do_command(DESC * d, char *command)
             log_text("HAPROXY attempt without IP");
            ENDLOG
        }
-       RETURN(1); /* We're done one way or another */
+       i_do_proxy = 1;
     }
     else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
+       i_do_proxy = 1;
+    }
+
+    if ( i_do_proxy ) {
        s_rollback = alloc_lbuf("sconnect_handler");
        addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
        if ( d->flags & DS_SSL ) {
