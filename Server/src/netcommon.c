@@ -5220,6 +5220,7 @@ do_command(DESC * d, char *command)
            command = mudconf.sconnect_cmd;
            arg = haproxy_srcip;
        }
+       RETURN(0); /* #147 */
     }
     else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
