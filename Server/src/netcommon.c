@@ -5106,7 +5106,7 @@ do_command(DESC * d, char *command)
     lua_t *lua;
 #endif
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
-         *s_sitetmp, *s_sitebuff, *haproxy_proto, *haproxy_srcip, *haproxy_rest;
+         *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
         maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout;
     struct SNOOPLISTNODE *node;
@@ -5214,8 +5214,8 @@ do_command(DESC * d, char *command)
     /* Support haproxy PROXY as though it were our own */
     if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp("PROXY", command) ) {
-       haproxy_proto = strtok_r(arg, " ", &haproxy_rest);
-       haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest);
+       strtok_r(arg, " ", &haproxy_rest); /* TCP4 */
+       haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest); /* Source IP */
        if(haproxy_srcip) {
            command = mudconf.sconnect_cmd;
            arg = haproxy_srcip;
@@ -5228,7 +5228,7 @@ do_command(DESC * d, char *command)
             log_text("HAPROXY attempt without IP");
            ENDLOG
        }
-       RETURN(0); /* #147 */
+       RETURN(1); /* We're done one way or another */
     }
     else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
