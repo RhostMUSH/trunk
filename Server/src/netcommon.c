@@ -5220,6 +5220,7 @@ do_command(DESC * d, char *command)
        if(haproxy_srcip) {
            /* Put the source IP in arg to simulate the stunnel command */
            arg = haproxy_srcip;
+           i_do_proxy = 1;
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
             log_text("Received HAPROXY IP");
             log_text(arg);
@@ -5228,8 +5229,8 @@ do_command(DESC * d, char *command)
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
             log_text("HAPROXY attempt without IP");
            ENDLOG
+           RETURN(0);
        }
-       i_do_proxy = 1;
     }
     else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
