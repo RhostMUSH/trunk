@@ -5520,6 +5520,15 @@ do_command(DESC * d, char *command)
           free_lbuf(s_rollback);
           free_lbuf(s_sitetmp);
           free_mbuf(addrsav);
+
+          if ( (d->flags & DS_API) ) {
+             arg = haproxy_rest;
+             arg = strstr(arg, "\n");
+             if(arg) {
+                arg += 1; /* Skip the \n */
+                do_command(d, arg);
+             }
+          }
           RETURN(0); /* #147 */
        } else {
 
