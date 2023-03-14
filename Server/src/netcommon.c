@@ -5213,6 +5213,7 @@ do_command(DESC * d, char *command)
        RETURN(0); /* #147 */
     }
     /* Support haproxy PROXY as though it were our own */
+    haproxy_rest = 0;
     if ( !d->player && *arg && *command && mudconf.sconnect_reip &&
          !strcmp("PROXY", command) ) {
        strtok_r(arg, " ", &haproxy_rest); /* TCP4 */
@@ -5521,12 +5522,17 @@ do_command(DESC * d, char *command)
           free_lbuf(s_sitetmp);
           free_mbuf(addrsav);
 
-          if ( (d->flags & DS_API) ) {
-             arg = haproxy_rest;
-             arg = strstr(arg, "\n");
+          if ( haproxy_rest && (d->flags & DS_API) ) {
+             arg = strstr(haproxy_rest, "\r\n");
              if(arg) {
-                arg += 1; /* Skip the \n */
+                arg += 2; /* Skip the \r\n */
                 do_command(d, arg);
+             } else {
+                arg = strstr(haproxy_rest, "n");
+                if(arg) {
+                   arg += 1; /* Skip the \n */
+                   do_command(d, arg);
+                }
              }
           }
           RETURN(0); /* #147 */
