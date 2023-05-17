@@ -5223,7 +5223,7 @@ do_command(DESC * d, char *command)
            arg = haproxy_srcip;
            i_do_proxy = 1;
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
-            log_text("Received HAPROXY IP");
+            log_text("Received HAPROXY IP ");
             log_text(arg);
            ENDLOG
        } else {
@@ -5528,7 +5528,7 @@ do_command(DESC * d, char *command)
                 arg += 2; /* Skip the \r\n */
                 do_command(d, arg);
              } else {
-                arg = strstr(haproxy_rest, "n");
+                arg = strstr(haproxy_rest, "\n");
                 if(arg) {
                    arg += 1; /* Skip the \n */
                    do_command(d, arg);
