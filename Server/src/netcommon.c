@@ -5192,6 +5192,16 @@ do_command(DESC * d, char *command)
      * normal logged-in command processor or to create/connect
      * cval: 0 normal, 1 disable, 2 ignore
      */
+   
+    /* Check if arg is mixed IPV6/IPV4 due to bugs in perl's IP handler */
+    if ( !d->player && *arg && *command && !strcmp(mudconf.sconnect_cmd, command) &&
+         (strchr(arg, ':') != NULL) && (strchr(arg, '.') != NULL) ) {
+       /* find last char of ':' */
+       arg = strrchr(arg, ':');
+       if ( *arg ) {
+          arg++;
+       }
+    }
     
     addroutbuf = NULL;
     if ( !d->player && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
