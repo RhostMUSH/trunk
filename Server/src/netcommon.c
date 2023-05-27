@@ -87,18 +87,6 @@ extern int encode_base64(const char *, int, char *, char **);
 extern int check_tor(struct in_addr, int);
 
 
-/* for aconnect: player = room, target = connecting player */
-/*
-#define CANSEE(player, target) \
-   (!Cloak(target) || Wizard(player)) \
-   && (!(Dark(target) && mudconf.player_dark) 
-   && (!SCloak(target) || Immortal(player))
-*/
-#define CANSEE(player, target) \
-   (!Cloak(target) || Wizard(player)) && \
-   (!(Dark(target) && mudconf.player_dark) || Wizard(player)) && \
-   (!SCloak(target) || Immortal(player))
-    
 #ifdef LOCAL_RWHO_SERVER
 void FDECL(dump_rusers, (DESC * call_by));
 
