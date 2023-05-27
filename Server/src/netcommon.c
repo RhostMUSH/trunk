@@ -87,18 +87,6 @@ extern int encode_base64(const char *, int, char *, char **);
 extern int check_tor(struct in_addr, int);
 
 
-/* for aconnect: player = room, target = connecting player */
-/*
-#define CANSEE(player, target) \
-   (!Cloak(target) || Wizard(player)) \
-   && (!(Dark(target) && mudconf.player_dark) 
-   && (!SCloak(target) || Immortal(player))
-*/
-#define CANSEE(player, target) \
-   (!Cloak(target) || Wizard(player)) && \
-   (!(Dark(target) && mudconf.player_dark) || Wizard(player)) && \
-   (!SCloak(target) || Immortal(player))
-    
 #ifdef LOCAL_RWHO_SERVER
 void FDECL(dump_rusers, (DESC * call_by));
 
@@ -5106,9 +5094,9 @@ do_command(DESC * d, char *command)
     lua_t *lua;
 #endif
     char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
-         *s_sitetmp, *s_sitebuff, *haproxy_proto, *haproxy_srcip, *haproxy_rest;
+         *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout, i_do_proxy;
     struct SNOOPLISTNODE *node;
     struct sockaddr_in p_sock;
     struct in_addr p_addr;
@@ -5118,6 +5106,7 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+    i_do_proxy = 0;
     time_str = NULL;
     chk_perm = store_perm = 0;
     cmdsave = mudstate.debug_cmd;
@@ -5192,16 +5181,6 @@ do_command(DESC * d, char *command)
      * normal logged-in command processor or to create/connect
      * cval: 0 normal, 1 disable, 2 ignore
      */
-   
-    /* Check if arg is mixed IPV6/IPV4 due to bugs in perl's IP handler */
-    if ( !d->player && *arg && *command && !strcmp(mudconf.sconnect_cmd, command) &&
-         (strchr(arg, ':') != NULL) && (strchr(arg, '.') != NULL) ) {
-       /* find last char of ':' */
-       arg = strrchr(arg, ':');
-       if ( *arg ) {
-          arg++;
-       }
-    }
     
     addroutbuf = NULL;
     if ( !d->player && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
@@ -5222,26 +5201,32 @@ do_command(DESC * d, char *command)
        RETURN(0); /* #147 */
     }
     /* Support haproxy PROXY as though it were our own */
-    if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+    haproxy_rest = 0;
+    if ( !d->player && *arg && *command && mudconf.sconnect_reip &&
          !strcmp("PROXY", command) ) {
-       haproxy_proto = strtok_r(arg, " ", &haproxy_rest);
-       haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest);
+       strtok_r(arg, " ", &haproxy_rest); /* TCP4 */
+       haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest); /* Source IP */
        if(haproxy_srcip) {
-           command = mudconf.sconnect_cmd;
+           /* Put the source IP in arg to simulate the stunnel command */
            arg = haproxy_srcip;
+           i_do_proxy = 1;
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
-            log_text("Received HAPROXY IP");
+            log_text("Received HAPROXY IP ");
             log_text(arg);
            ENDLOG
        } else {
            STARTLOG(LOG_ALWAYS, "NET", "PROXY");
             log_text("HAPROXY attempt without IP");
            ENDLOG
+           RETURN(0);
        }
-       RETURN(0); /* #147 */
     }
     else if ( !d->player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
+       i_do_proxy = 1;
+    }
+
+    if ( i_do_proxy ) {
        s_rollback = alloc_lbuf("sconnect_handler");
        addroutbuf = (char *) addrout(d->address.sin_addr, (d->flags & DS_API));
        if ( d->flags & DS_SSL ) {
@@ -5524,6 +5509,20 @@ do_command(DESC * d, char *command)
           free_lbuf(s_rollback);
           free_lbuf(s_sitetmp);
           free_mbuf(addrsav);
+
+          if ( haproxy_rest && (d->flags & DS_API) ) {
+             arg = strstr(haproxy_rest, "\r\n");
+             if(arg) {
+                arg += 2; /* Skip the \r\n */
+                do_command(d, arg);
+             } else {
+                arg = strstr(haproxy_rest, "\n");
+                if(arg) {
+                   arg += 1; /* Skip the \n */
+                   do_command(d, arg);
+                }
+             }
+          }
           RETURN(0); /* #147 */
        } else {
 

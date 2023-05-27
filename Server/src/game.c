@@ -1005,8 +1005,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
-	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
-                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
+	              ( CANSEE(target,mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
+                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
                    
                     /* Replace @N/@n and @K/@k with name and colorname */

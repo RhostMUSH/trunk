@@ -1070,6 +1070,11 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			   !(Flags2(Owner(x)) & BUILDER) && \
 			   !(((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) || \
                              (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER))))
+#define CANSEE(player, target) \
+   ((!Cloak(target) || Wizard(player)) && \
+   (!(Dark(target) && mudconf.player_dark) || Wizard(player)) && \
+   (!SCloak(target) || Immortal(player)))
+
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
@@ -1201,5 +1206,6 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Has_power(p,x)  (check_access((p),powers_nametab[x].flag, 0, 0))
 
 #define WizMod(x) (Immortal(x) || (Wizard(x) && !mudconf.imm_nomod))
+
 
 #endif
