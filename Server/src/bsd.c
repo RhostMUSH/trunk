@@ -1719,8 +1719,7 @@ shutdownsock(DESC * d, int reason)
 	d->doing[0] = '\0';
 	d->quota = mudconf.cmd_quota_max;
 	d->last_time = 0;
-	d->host_info = site_check((d->address).sin_addr,
-				  mudstate.access_list, 1, 0, 0) |
+	d->host_info = (site_check((d->address).sin_addr, mudstate.access_list, 1, 0, 0) & ~0x0FFFFFFF) | 
 	    			  site_check((d->address).sin_addr,
 				  mudstate.suspect_list, 0, 0, 0);
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
@@ -2147,7 +2146,7 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
        }
     }
     free_lbuf(t_addroutbuf);
-    d->host_info = site_check((*a).sin_addr, mudstate.access_list, 1, 0, 0) |
+    d->host_info = (site_check((*a).sin_addr, mudstate.access_list, 1, 0, 0) & ~0x0FFFFFFF) | 
 		   site_check((*a).sin_addr, mudstate.suspect_list, 0, 0, 0);
     i_sitemax = site_check((*a).sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
     if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
