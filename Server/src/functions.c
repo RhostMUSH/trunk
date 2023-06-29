@@ -20979,11 +20979,31 @@ FUNCTION(fun_version)
 
 FUNCTION(fun_strlenvis)
 {
+   char *s_buff;
+   ANSISPLIT outsplit[LBUF_SIZE];
+
+
+   if ( !*fargs[0] ) {
+      ival(buff, bufcx, 0);
+      return;
+   }
+
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   s_buff = alloc_lbuf("fun_elementpos");
+   split_ansi(strip_ansi(fargs[0]), s_buff, outsplit);
+   ival(buff, bufcx, strlen(s_buff));
+   free_lbuf(s_buff);
+}
+
+/*
+FUNCTION(fun_strlenvis)
+{
    int i_count;
    
    i_count = count_extended(fargs[0]);
    ival(buff, bufcx, (int) strlen(strip_all_special(fargs[0])) - i_count);
 }
+*/
 
 FUNCTION(fun_strlenraw)
 {

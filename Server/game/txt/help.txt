@@ -34881,3 +34881,4 @@
  * compile issues without including ZENTY_ANSI on compiles [ASH]
  * @rxlevel/@txlevel did not honor the QUIET flag [ASH]
  * suspect site was erraneously tagged with some site configs [ASH]
+ * strlenvis() was not UTF8 aware [ASH]
