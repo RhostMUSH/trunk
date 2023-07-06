@@ -13,6 +13,8 @@
 #define QUADALIGN(x) ((pmath1)(x) % ALLIGN1 ? \
                       (x) + ALLIGN1 - ((pmath1)(x) % ALLIGN1) : (x))
 
+extern int global_timezone_max;
+
 /* this structure size must be x % 4 = 0 */
 typedef struct pool_header {
     int magicnum;		/* For consistency check */
@@ -332,7 +334,7 @@ pool_stats_extra(int poolnum, const char *text)
     char format_str[80];
 
     buf = alloc_mbuf("pool_stats_extra");
-    if ( !strcmp(text, "Lbufs") || !strcmp(text, "Sbufs") ) {
+    if ( !strcmp(text, "Lbufs") || !strcmp(text, "Sbufs") || !strcmp(text, "Mbufs") ) {
        memset(format_str, '\0', sizeof(format_str));
        strcpy(format_str, "%-14s %5d %9d %9d %15s %6s %14.14g");
        if ( !strcmp(text, "Lbufs") ) {
@@ -341,6 +343,11 @@ pool_stats_extra(int poolnum, const char *text)
                    ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
                    (char *)"^", (char *)"^", 
                    pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2));
+       } else if ( !strcmp(text, "Mbufs") ) {
+          sprintf(buf, format_str, (char *)" \\Mbufs (TZ)", pools[poolnum].pool_size, 
+                   global_timezone_max, global_timezone_max,
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)global_timezone_max);
        } else {
           sprintf(buf, format_str, (char *)" \\Sbufs (Regs)", pools[poolnum].pool_size,
                    (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
@@ -388,6 +395,12 @@ pool_stats(int poolnum, const char *text)
                pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
+    } else if ( strcmp(text, "Mbufs") == 0 ) {
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+	       pools[poolnum].num_alloc - global_timezone_max, 
+               pools[poolnum].max_alloc - global_timezone_max,
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - global_timezone_max) * pools[poolnum].pool_size);
     } else if ( strcmp(text, "Sbufs") == 0 ) {
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
 	       pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 

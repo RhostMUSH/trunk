@@ -7,6 +7,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+
+#include <dirent.h>
+
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
@@ -110,6 +113,75 @@ init_totemreservations( void ) {
 
    /* Add hardcode reservations here */
    set_totem_reserved(9, 1);
+}
+
+#define MAXTZONES 1000
+char *global_timezones[MAXTZONES] = {'\0'};
+int global_timezone_max = 0;
+
+/* Initialize timezone data for the server */
+int
+walk_subdirs( char *s_dir, char *prefix, int *i_cnt)
+{
+   DIR *dir;
+   char *t_buff, *t_buff2;
+   struct dirent *files;
+   struct stat st_buf;
+
+   dir = opendir(s_dir);
+
+   if ( dir == NULL ) {
+      STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+         log_text((char *) "File path not found.");
+      ENDLOG
+      return 1;
+   }
+
+   t_buff = alloc_mbuf("walk_subdirs");
+   t_buff2 = alloc_mbuf("walk_subdirs");
+   while ( (files = readdir(dir)) != NULL ) {
+      if ( *i_cnt >= (MAXTZONES - 1) ) {
+         STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+            log_text((char *) "More than maximum zones found.");
+         ENDLOG
+         break;
+      }
+      if ( (strcmp(files->d_name, ".") != 0) && (strcmp(files->d_name, "..") != 0) ) {
+         sprintf(t_buff2, "%s/%s", s_dir, files->d_name);
+         stat(t_buff2, &st_buf);
+         if ( st_buf.st_mode & S_IFDIR ) {
+            sprintf(t_buff, "%s/", files->d_name);
+            walk_subdirs(t_buff2, t_buff, i_cnt);
+         }
+         global_timezones[*i_cnt] = alloc_mbuf("init_timezones");
+         if ( *prefix ) {
+            sprintf(global_timezones[*i_cnt], "%s%.*s", prefix, MBUF_SIZE - 1, files->d_name);
+         } else {
+            sprintf(global_timezones[*i_cnt], "%.*s", MBUF_SIZE - 1, files->d_name);
+         }
+         (*i_cnt)++;
+      }
+   }
+   free_mbuf(t_buff);
+   free_mbuf(t_buff2);
+   return 0;
+}
+
+void
+init_timezones( void ) {
+   int i_cnt, i_err;
+
+   i_cnt = 0;
+   i_err = walk_subdirs((char *)"/usr/share/zoneinfo/posix", (char *)"", &i_cnt);
+
+   if ( !i_err ) {
+      STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+         log_text((char *) "A total of ");
+         log_number(i_cnt);
+         log_text((char *) " timezones have been loaded.");
+      ENDLOG
+   }
+   global_timezone_max = i_cnt;
 }
 
 void
@@ -2607,6 +2679,7 @@ main(int argc, char *argv[])
     helpindex_init();
 
     init_atrcache();
+    init_timezones();
 
 #ifndef NODEBUGMONITOR
     debugmem = shmConnect(mudconf.debug_id, 0, &shmid);   

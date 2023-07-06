@@ -175,12 +175,49 @@
   ROYALTY             SEARCH CLASSES     SEMAPHORES          SENSES           
   SETQ_TEMPLATES      SIDEEFFECTS        SINGLETHREADING     SPECIAL CHARACTERS
   SPOOFING            SQL                SQLESCAPE           STACK             
-  SUBSTITUTIONS       SUCCESS            SWITCHES            TOGGLES           
-  USEFUL              UNICODE SUPPORT    USER ATTRIBUTES     VARIABLE EXITS    
-  VATOVZ              VERBS              WANDERER            WILDCARDS         
-  WIZARD ATTRIBUTES   ZATOZZ             ZONES               $-COMMANDS        
-  #LAMBDA          
+  SUBSTITUTIONS       SUCCESS            SWITCHES            TIMEZONE
+  TOGGLES             USEFUL             UNICODE SUPPORT     USER ATTRIBUTES   
+  VARIABLE EXITS      VATOVZ             VERBS               WANDERER          
+  WILDCARDS           WIZARD ATTRIBUTES  ZATOZZ              ZONES             
+  $-COMMANDS          #LAMBDA          
   
+
+& TIMEZONE
+  Topic: TIMEZONE
+  
+  The TIMEZONE attribute (set with &TIMEZONE <target>=<string>) is used to 
+  specify the prerred timezone that the player wants.  This will override
+  the system local timezone.
+  
+  You may use the special string 'localtime' to specify you wish to use
+  the system timezone the mush runs on for the timezone.
+  
+  For a list of valid timezones, please refer to the 'listtzones()'
+  function.  By default some 600+ timezones will be available to 
+  choose from.
+  
+  Functions currently aware of timezones in this manner:
+    secstz(), msecstz(), time(), listtzones()
+  
+  Examples of timezones you may set (but is far from all available):
+    > &TIMEZONE me=US/Eastern
+    > &TIMEZONE me=US/Hawaii
+    > &TIMEZONE me=Brazil/East
+    > &TIMEZONE me=Etc/GMT+1
+  
+  Some functions like secstz(), msecstz() and time() allow you to specify
+  the timezone as an argument.  Using thoe functions this way will 
+  override any &TIMEZONE setting a player may have set.
+  
+  Timezones follow the following logic for lookup:
+
+  function-argument -> timezone on player -> localtime.
+  
+  Any invalid timezone lookup will default back to GMT time and NOT
+  localtime.
+   
+  See Also: localtzone(), secstz(), msecstz()
+ 
 & API
   Topic: API
   
@@ -12111,32 +12148,32 @@
   
 & FUNCTION LIST3
     
-  LISTFLAGS()    LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTAGS()    LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
-  LIT()          LJC()         LJUST()        LLOC()           LMAX()         
-  LMIN()         LMUL()        LN()           LNOR()           LNUM()         
-  LNUM2()        LOC()         LOCALFUNC()    LOCALIZE()       LOCATE()       
-  LOCK()         LOCKCHECK()   LOCKDECODE()   LOCKENCODE()     LOG()          
-  LOR()          LRAND()       LREPLACE()     LROOMS()         LSET()         
-  LSUB()         LT()          LTE()          LTOGGLES()       LTOTEMS()      
-  LWHO()         LXNOR()       LXOR()         LZONE()          MAILQUICK()    
-  MAP()          MATCH()       MASK()         MAX()            MEDIT()
-  MEMBER()       MERGE()       MID()          MIN()            MIX()          
-  MOD()          MODULO()      MODIFYTIME()   MONEY()          MONEYNAME()     
-  MOON()         MSECS()       MUDNAME()      MUL()            MUNGE()        
-  MWORDS()       NAME()        NAMEQ()        NAND()           NCOMP()        
-  NEARBY()       NEQ()         NEXT()         NOR()            NOSTR()        
-  NOT()          NOTCHR()      NPEMIT()       NSITER()         NUM()          
-  NUMMATCH()     NULL()        NUMMEMBER()    NUMPOS()         NUMWILDMATCH() 
-  OBJ()          OBJEVAL()     OBJID()        OEMIT()          OPEN()         
-  OR()           ORCHR()       ORFLAG()       ORFLAGS()        ORTOTEM()      
-  ORTOTEMS()     OWNER()       PACK()         PACKMATH()       PARENMATCH()   
-  PARENT()       PARSE()       PARSESTR()     PEDIT()          PEMIT()        
-  PFIND()        PGREP()       PI()           PID()            PMATCH()       
-  PORT()         POS()         POSS()         POWER()          POWER10()      
-  PRINTF()       PRIVATIZE()   PROGRAMMER()   PTIMEFMT()       PUSHREGS()     
-  QUOTA()        R()           RACE()         RAND()           RANDPOS()      
-  RANDMATCH()    RANDEXTRACT() 
+  LISTFLAGS()    LISTINTER()    LISTMATCH()   LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS()  LISTTAGS()     LISTTOGGLES() LISTTOTEMS()     LISTUNION()    
+  LISTTZONES()   LIT()          LJC()         LJUST()          LLOC()         
+  LMAX()         LMIN()         LMUL()        LN()             LNOR()         
+  LNUM()         LNUM2()        LOC()         LOCALFUNC()      LOCALIZE()     
+  LOCATE()       LOCK()         LOCKCHECK()   LOCKDECODE()     LOCKENCODE()   
+  LOG()          LOR()          LRAND()       LREPLACE()       LROOMS()       
+  LSET()         LSUB()         LT()          LTE()            LTOGGLES()     
+  LTOTEMS()      LWHO()         LXNOR()       LXOR()           LZONE()        
+  MAILQUICK()    MAP()          MATCH()       MASK()           MAX()          
+  MEDIT()        MEMBER()       MERGE()       MID()            MIN()          
+  MIX()          MOD()          MODULO()      MODIFYTIME()     MONEY()        
+  MONEYNAME()    MOON()         MSECS()       MSECSTZ()        MUDNAME()      
+  MUL()          MUNGE()        MWORDS()      NAME()           NAMEQ()        
+  NAND()         NCOMP()        NEARBY()      NEQ()            NEXT()         
+  NOR()          NOSTR()        NOT()         NOTCHR()         NPEMIT()       
+  NSITER()       NUM()          NUMMATCH()    NULL()           NUMMEMBER()    
+  NUMPOS()       NUMWILDMATCH() OBJ()         OBJEVAL()        OBJID()        
+  OEMIT()        OPEN()         OR()          ORCHR()          ORFLAG()       
+  ORFLAGS()      ORTOTEM()      ORTOTEMS()    OWNER()          PACK()         
+  PACKMATH()     PARENMATCH()   PARENT()      PARSE()          PARSESTR()     
+  PEDIT()        PEMIT()        PFIND()       PGREP()          PI()           
+  PID()          PMATCH()       PORT()        POS()            POSS()         
+  POWER()        POWER10()      PRINTF()      PRIVATIZE()      PROGRAMMER()   
+  PTIMEFMT()     PUSHREGS()     QUOTA()       R()              RACE()         
+  RAND()         RANDPOS()      RANDMATCH()   RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -12152,24 +12189,24 @@
   RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
   ROUND()         RSET()          RULER()        RXLEVEL()      S()          
   SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()       SEARCHOBJID()
-  SEARCHNG()      SEARCHNGOBJID() SECS()         SECURE()       SECUREX()    
-  SEES()          SET()           SETDIFF()      SETINTER()     SETQ()       
-  SETQ_OLD()      SETQMATCH()     SETR()         SETR_OLD()     SETUNION()   
-  SHIFT()         SHL()           SHR()          SHUFFLE()      SIGN()       
-  SIN()           SINGLETIME()    SORT()         SORTBY()       SORTLIST()   
-  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
-  SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
-  SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
-  STARTSECS()     STATS()         STDERR()       STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
-  SWITCH()        SWITCHALL()     T()            TAG()          TAGMATCH()
-  TAN()           TEL()           TEMPLATE()     TIME()         TIMEFMT()
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTEMS()        TOTEMSET()     TOTMATCH()     TOTMEMBER()  
-  TOTPOS()        TOTWILDMATCH()  TR()           TRACE()        TRANSLATE()  
-  TRIM()
+  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()       SECURE()     
+  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()   
+  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()   
+  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()    
+  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()     
+  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
+  SPELLNUM()      SPLICE()        SQL()          SQLESCAPE()    SQLOFF()    
+  SQLON()         SQLPING()       SQLITE_QUERY() SQRT()         SQUISH()     
+  STARTTIME()     STARTSECS()     STATS()        STDERR()       STEP()       
+  STR()           STRCAT()        STRDISTANCE()  STREQ()        STREVAL()    
+  STRFUNC()       STRIP()         STRIPACCENTS() STRIPANSI()    STRLEN()     
+  STRMATCH()      STRMATH()       SUB()          SUBEVAL()      SUBJ()       
+  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAG()        
+  TAGMATCH()      TAN()           TEL()          TEMPLATE()     TIME()       
+  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
+  TOOCT()         TOTCMDS()       TOTEMS()       TOTEMSET()     TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE()     TRIM()
   
 { 'help function list5' for more }
 
@@ -12345,8 +12382,8 @@
                        WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
-  Time:                CONVSECS() CONVTIME() MSECS() PTIMEFMT() SECS() 
-                       SINGLETIME() TIME() TIMEFMT()
+  Time:                CONVSECS() CONVTIME() LISTTZONES() MSECS() MSECSTZ() 
+                       PTIMEFMT() SECS() SECSTZ() SINGLETIME() TIME() TIMEFMT()
              See Also: help time functions  
   
   { 'help function classes6' for more }
@@ -14992,17 +15029,56 @@
   See Also: map(), iter(), merge(), elements(), list(), elementpos(), inf()
   
 & TIME()
-  Function: time()
+  Function: time([<timezone>])
  
   Gives you the current time.
   WARNING!  This is the time on the machine that the mud is running on, and
   not where you are.
- 
-  Example:
-    > say time()
-    You say "Thu Dec 19 09:48:06 1991"
   
-  See Also: convsecs(), convtime(), secs(), msecs()
+  You may specify an optional timezone that time() will handle or you may
+  set a TIMEZONE attribute for the timezone you wish to use.
+   
+  Example:
+    > say time()                       (assume localtime was GMT)
+    You say "Thu Dec 19 09:48:06 1991"
+    > say time(GMT+1)
+    You say "Thu Dec 19 10:49:11 1991"
+  
+  See Also: convsecs(), convtime(), secs(), msecs(), secstz(), msecstz(),
+            listtzones(), secstz(), msecstz()
+ 
+& LISTTZONES()
+  Function: listtzones([<timezone> [,<key>]])
+  
+  This function will list all the valid timezones that the server recognizes
+  with the use of the TIMEZONE attribute and specific functions that handle
+  timezones.
+  
+  As of this writing these functions are:
+    time()          secstz()          msecstz()        listtzones()
+  
+  The <timezone> may be a wildcarded option to display any matching timezone.
+
+  The <key> can be '0' or '1'.  A '1' specifies that you want the offset 
+  from GMT for the specified timezone.
+  
+  If you use <key> with a wildcard, it will return the offset of the 
+  FIRST MATCHING TIMEZONE ONLY.  It will ignore any other matches.
+  
+  
+  Examples:
+    > listtzones()  (note this returns about 600+ entities)
+      Navajo Atlantic/Cape_Verde Atlantic/Stanley Atlantic/Madeira ...
+      ... ... ...
+      ... ... ...
+      ... Asia/Yerevan Asia/Ujung_Pandang Asia
+    > listtzones(US/*e*)
+      US/Pacific-New US/Central US/Aleutian US/Indiana-Starke US/Eastern
+    > listtzones(US/Central,1)
+      -18000
+  
+  See Also: TIMEZONE, secstz(), msecstz(), time()
+
  
 & timezone list
   Zone   Zone Name                           Zone Location    UTC/GMT Offset
@@ -18619,7 +18695,8 @@
     > say reboottime()
     You say "Sat Dec  7 00:09:13 1991
     
-  See Also: convtime(), starttime(), rebootsecs(), startsecs(), msecs()
+  See Also: convtime(), starttime(), rebootsecs(), startsecs(), msecs(),
+            secstz(), msecstz()
   
 & STARTTIME()
   Function: starttime()
@@ -18631,7 +18708,8 @@
     > say starttime()
     You say "Sat Dec  7 00:09:13 1991
   
-  See Also: convtime(), reboottime(), startsecs(), rebootsecs(), msecs()
+  See Also: convtime(), reboottime(), startsecs(), rebootsecs(), msecs(),
+            secstz(), msecstz()
   
 & REBOOTSECS()
   Function: rebootsecs()
@@ -18642,7 +18720,8 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), startsecs(), reboottime(), msecs()
+  See Also: startime(), secs(), startsecs(), reboottime(), msecs(),
+            secstz(), msecstz()
   
 & STARTSECS()
   Function: startsecs()
@@ -18653,7 +18732,8 @@
     > say startsecs()
     You say "2324234"
    
-  See Also: startime(), secs(), rebootsecs(), reboottime(), msecs()
+  See Also: startime(), secs(), rebootsecs(), reboottime(), msecs(),
+            secstz(), msecstz()
   
 & WRITABLE()
   Function: writable(<player>, <target>/<attrib>)
@@ -19038,7 +19118,7 @@
       SAMPLE OUTPUT:  3d12:03
       NOTE: This example uses advanced features, see: help timefmt advanced
   
-  See Also: timefmt advanced
+  See Also: timefmt advanced, secs(), secstz()
   
 & TIMEFMT TIME
   The following format specifiers are available for processing the <secs>
@@ -19054,7 +19134,7 @@
   'P'    AM or PM                 AM/PM
   'p'    am or pm                 am/pm
   
-  See Also: timefmt examples, secs(), msecs()
+  See Also: timefmt examples, secs(), msecs(), secstz(), msecstz()
   
 & TIMEFMT DATE
   The following format specifiers are available for processing the <secs>
@@ -19074,7 +19154,7 @@
   'Y'    Year                     0..????
   'y'    Year (two digit)         0..99
   
-  See Also: timefmt examples, secs(), msecs()
+  See Also: timefmt examples, secs(), msecs(), secstz(), msecstz()
   
 & TIMEFMT ELAPSED
   The following format specifiers are available for processing the <secs>
@@ -19270,16 +19350,25 @@
                       if the total character count is less than two. IE: '12'
   
 & MSECS()
+& MSECSTZ()
 & SECS()
+& SECSTZ()
   Function: secs()
             msecs()
+            secstz([<timezone>])
+            msecstz([<timezone>])
  
   Returns the number of elapsed seconds since midnight, January 1, 1970.
   This is an easy way to time things.
   
   The msecs() function works like secs() but gives the fractional millisecond
   of the current time.
-   
+  
+  The secstz() and msecstz() are timezone aware and will optionally allow you
+  to specify the timezone as an override, or if you have the TIMEZONE
+  attribute, it will use that.  It uses local system time if neither are
+  specified meaning it falls back to the behavior of secs()/msecs().
+  
   Example:
      > say secs()
      You say "692636020"
@@ -19288,8 +19377,22 @@
      You say "692636043"
      > say msecs()
      You say "692636049.7"
+     > &TIMEZONE me=localtime   (note: localtime in this case was CDT/CST)
+     Set.
+     > say secs() [secstz()]
+     You say "692636143 692636143"
+     > &TIMEZONE me=localtime
+     Set.
+     > say secs() [secstz()]
+     You say "692636143 692636143"
+     > &TIMEZONE me=GMT
+     > say secs() [secstz()]   (note: secs() is localtime, not GMT)
+     You say "692667350 / 692685350"
+     > say secs() [secstz(localtime)]   (note: secs() is localtime, not GMT)
+     You say "692667350 / 692685350"
   
-  See Also: convsecs(), convtime(), time(), timefmt()
+  See Also: secstz(), msecstz(), secs(), msecs(), convsecs(), convtime(), 
+            time(), timefmt(), listtzones(), TIMEZONE
   
 & MWORDS()
 & WORDS()
@@ -19410,7 +19513,7 @@
     > say moon(999999999)
     You say "The Moon is Waning Gibbous (72% of Full)"
   
-  See Also: time(), secs(), timefmt()
+  See Also: time(), secs(), secstz(), timefmt(, secstz())
   
 & LCON()
   Function: lcon(<obj>[/swi] [[,<swi> [,<sep> [,<name> [,<objid> [,<count>]])
@@ -19726,6 +19829,7 @@
   characters can be used when looking to escape out fields:
      f - omit the first escape (backslash) from the string.
      a - omit all forms of ansi substitutions from the string.
+     8 - omit all UTF8 encoding %<u####> form
      s - omit all forms of whitespace (%b, %t, %r)
      d - omit all dbref forms (%#, %!, %@, %l)
      p - omit all player pronouns (%n, %p, %a, %s)
@@ -23417,7 +23521,7 @@
     You say "Wed Jun 24 10:22:54 1992"
   This function may also be called as secs2time().
   
-  See Also: convtime(), secs(), time(), timefmt()
+  See Also: convtime(), secs(), secstz(), time(), timefmt()
   
 & CONVTIME()
   Function: convtime(<time string>)
@@ -23443,7 +23547,7 @@
   
   Enhanced date checking is handled with the 'enhanced_convtime' param.
   
-  See Also: convsecs(), secs(), time(), timefmt()
+  See Also: convsecs(), secs(), secstz(), time(), timefmt()
   
 & SORT()
   Function: sort(<list>[, <sort type>[, <delim> [, <sep>]]])
@@ -24280,7 +24384,7 @@
     > say singletime(123456)
     You say "1d"
  
-  Related Topics: secs(), time(), timefmt()
+  Related Topics: secs(), secstz(), time(), timefmt()
 
 & CTU()
   Function: ctu(<number>, <units-from>, <units-to>)
@@ -31665,8 +31769,12 @@
      
   convsecs()    - Converts Unix seconds to a time string.
   convtime()    - Converts a time string to Unix seconds.
+  listtzones()  - List all valid timezones recognized by the server.
+  msecs()       - Returns the current time in Unix miliseconds.
+  msecstz()     - Returns the current time in Unix miliseconds based on tz.
   ptimefmt()    - Performs time formatting, PennMUSH style.
   secs()        - Returns the current time in Unix seconds.
+  secstz()      - Returns the current time in Unix seconds based on tz.
   singletime()  - Converts seconds to a single time element.
   time()        - Returns the current time, formatted as a string.
   timefmt()     - Returns the current, or a specified time, formatted.
@@ -34833,6 +34941,8 @@
  * execscripthome config parameter for overriding directory for scripts [ASH]
  * config parameter strfunc_softfuncs to control strfunc with softfuncs [ASH]
  * @atrcache will optionally handle caches per command and handles args [ASH]
+ * secstz()/msecstz() for EPOCH seconds based on specified timezone [ASH]
+ * listtzone() for listing timezones and offset of timezone [ASH]
   
   Changes
   -------
@@ -34860,6 +34970,8 @@
  * strfunc() optionally handles @function and @lfunction [ASH]
  * @atrcache/interval handles '0' for per-command updates [ASH]
  * @atrcache was unoptimized for some loop conditions [ASH]
+ * escapex() now handles option '8' for UTF8 [ASH]
+ * time() now is timezone aware optionally.
     
   Bug Fixes
   ------------

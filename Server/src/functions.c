@@ -1296,6 +1296,7 @@ static struct PENN_COLORMAP penn_namecolors[]= {
 };
 
 UFUN *ufun_head, *ulfun_head;
+extern char *global_timezones[1000];
 extern NAMETAB lock_sw[];
 extern NAMETAB access_nametab[];
 extern NAMETAB access_nametab2[];
@@ -9146,11 +9147,43 @@ FUNCTION(fun_sign)
 
 FUNCTION(fun_time)
 {
-    char *temp;
+    char *temp, *s_env, *s_tmp, *s_chratr;
+    dbref aowner;
+    int i_tz, aflags;
+    ATTR *ap;
 
+    i_tz = 0;
+    s_env = alloc_sbuf("convtime_env");
+    if ( *fargs[0] ) {
+       s_tmp = getenv("TZ");
+       sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+       i_tz = 1;
+       setenv("TZ", fargs[0], 1);
+       tzset();
+    } else {
+       ap = atr_str("TIMEZONE");
+       if ( ap ) {
+          s_tmp = getenv("TZ");
+          sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr ) {
+             i_tz = 1;
+             setenv("TZ", s_chratr, 1);
+             tzset();
+          }
+          free_lbuf(s_chratr);
+       }
+    }
     temp = (char *) ctime(&mudstate.now);
     temp[strlen(temp) - 1] = '\0';
     safe_str(temp, buff, bufcx);
+    if ( i_tz && *s_env ) {
+       setenv("TZ", s_env, 1);
+    } else {
+       setenv("TZ", (char *)"localtime", 1);
+    }
+    tzset();
+    free_sbuf(s_env);
 }
 
 /* ---------------------------------------------------------------------------
@@ -12296,6 +12329,105 @@ FUNCTION(fun_template)
  * fun_secs: Seconds since 0:00 1/1/70
  */
 
+FUNCTION(fun_msecstz)
+{
+    char *s_env, *s_tmp, *s_chratr;
+    dbref aowner;
+    int i_tz, aflags, offset;
+    time_t i_now;
+    struct tm lt, ltnew;
+    ATTR *ap;
+
+    i_now = time(NULL);
+    localtime_r(&i_now, &lt);
+
+    i_tz = 0;
+    s_env = alloc_sbuf("msecstz");
+    if ( *fargs[0] ) {
+       s_tmp = getenv("TZ");
+       sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+       i_tz = 1;
+       setenv("TZ", fargs[0], 1);
+       tzset();
+    } else {
+       ap = atr_str("TIMEZONE");
+       if ( ap ) {
+          s_tmp = getenv("TZ");
+          sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr ) {
+             i_tz = 1;
+             setenv("TZ", s_chratr, 1);
+             tzset();
+          }
+          free_lbuf(s_chratr);
+       }
+    }
+    localtime_r(&i_now, &ltnew);
+    offset = ltnew.tm_gmtoff - lt.tm_gmtoff;
+
+    if ( i_tz ) {
+       if ( *s_env ) {
+          setenv("TZ", s_env, 1);
+       } else {
+          setenv("TZ", (char *)"localtime", 1);
+       }
+       tzset();
+    } 
+    fval(buff, bufcx, mudstate.nowmsec + (double)offset );
+    free_sbuf(s_env);
+}
+
+FUNCTION(fun_secstz)
+{
+    char *s_env, *s_tmp, *s_chratr;
+    dbref aowner;
+    int i_tz, aflags, offset;
+    time_t i_now;
+    struct tm lt, ltnew;
+    ATTR *ap;
+
+    i_now = time(NULL);
+    localtime_r(&i_now, &lt);
+    offset = 0;
+
+    i_tz = 0;
+    s_env = alloc_sbuf("secstz");
+    if ( *fargs[0] ) {
+       s_tmp = getenv("TZ");
+       sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+       i_tz = 1;
+       setenv("TZ", fargs[0], 1);
+       tzset();
+    } else {
+       ap = atr_str("TIMEZONE");
+       if ( ap ) {
+          s_tmp = getenv("TZ");
+          sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr ) {
+             i_tz = 1;
+             setenv("TZ", s_chratr, 1);
+             tzset();
+          }
+          free_lbuf(s_chratr);
+       }
+    }
+    localtime_r(&i_now, &ltnew);
+    offset = ltnew.tm_gmtoff - lt.tm_gmtoff;
+
+    if ( i_tz ) {
+       if ( *s_env ) {
+          setenv("TZ", s_env, 1);
+       } else {
+          setenv("TZ", (char *)"localtime", 1);
+       }
+       tzset();
+    } 
+    ival(buff, bufcx, mudstate.now + offset);
+    free_sbuf(s_env);
+}
+
 FUNCTION(fun_msecs)
 {
     fval(buff, bufcx, mudstate.nowmsec);
@@ -12476,7 +12608,6 @@ do_convtime(char *str, struct tm *ttm)
 #undef LEAPYEAR_1900
 }
 
-
 FUNCTION(fun_convtime)
 {
     struct tm *ttm;
@@ -12500,6 +12631,7 @@ FUNCTION(fun_convtime)
        safe_str("-1", buff, bufcx);
     }
 }
+
 
 /* ---------------------------------------------------------------------------
  * fun_starttime: What time did this system last reboot?
@@ -19120,6 +19252,61 @@ FUNCTION(fun_execscript)
    free_lbuf(s_combine2);
 }
 
+FUNCTION(fun_listtzones)
+{
+   char **s_ptr, *s_env, *s_tmp;
+   int i_first;
+   time_t i_now;
+   struct tm lt;
+
+   if (!fn_range_check("LISTTZONES", nfargs, 1, 2, buff, bufcx))
+      return;
+
+   s_ptr = global_timezones;
+   i_first = 0;
+
+   if ( (nfargs > 1) && *fargs[0] && (atoi(fargs[1]) == 1) ) {
+      while ( s_ptr && *s_ptr ) {
+         if ( quick_wild(fargs[0], *s_ptr) ) {
+            s_env = alloc_sbuf("fun_listtzones_sbuf");
+            s_tmp = getenv("TZ");
+            i_first = 1;
+            setenv("TZ", *s_ptr, 1);
+            tzset();
+            if ( *s_env ) {
+               setenv("TZ", s_env, 1);
+            } else {
+               setenv("TZ", (char *)"localtime", 1);
+            }
+
+            i_now = time(NULL);
+            localtime_r(&i_now, &lt);
+
+            ival(buff, bufcx, (int)lt.tm_gmtoff);
+
+            tzset();
+            free_sbuf(s_env);
+            break;
+         }
+         s_ptr++;
+      }
+      if ( !i_first ) {
+         notify_quiet(player, "Warning: lookup failed for timezone.");
+         ival(buff, bufcx, 0);
+      }
+   } else {
+      while ( s_ptr && *s_ptr ) {
+         if ( !*fargs[0] || (*fargs[0] && quick_wild(fargs[0], *s_ptr)) ) {
+            if ( i_first )
+               safe_chr(' ', buff, bufcx);
+            safe_str(*s_ptr, buff, bufcx);
+            i_first = 1;
+         }
+         s_ptr++;
+      }
+   }
+}
+
 FUNCTION(fun_execscriptnr)
 {
    int exec_noreg;
@@ -25092,6 +25279,10 @@ FUNCTION(fun_escape)
        i_cnt++;
        cptr++;
 #endif
+    }
+    if ( s2 && strchr(s2, '8' ) ) {
+       *cptr = '<';
+       cptr++;
     }
     if ( s2 && strchr(s2, 's' ) ) {
        *cptr = 't';
@@ -33995,6 +34186,100 @@ FUNCTION(fun_rjust)
     safe_str(fargs[0], buff, bufcx);
 }
 
+FUNCTION(fun_ncenter)
+{
+   int width, len, filllen, lead_chrs, trail_chrs, i, i_offset, q;
+   char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
+   ANSISPLIT outsplit[LBUF_SIZE], fillersplit[LBUF_SIZE], retbuff[LBUF_SIZE], *p_in, *p_out;
+
+   if (!fn_range_check("CENTER", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   if ( !*fargs[1] ) {
+      safe_str(fargs[0], buff, bufcx);
+      return;
+   }
+
+   /* Handle arg0 */
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   s_outbuff = alloc_lbuf("fun_center");
+   memset(s_outbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), s_outbuff, outsplit);
+  
+   width = atoi(fargs[1]);
+   len = strlen(s_outbuff);
+   if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
+      safe_str(fargs[0], buff, bufcx);
+      free_lbuf(s_filler);
+      free_lbuf(s_outbuff);
+      return;
+   }
+
+   s_filler = alloc_lbuf("fun_center");
+   memset(s_filler, '\0', LBUF_SIZE);
+   initialize_ansisplitter(fillersplit, LBUF_SIZE);
+   if ( (nfargs > 2) && *fargs[2] ) {
+      /* Handle arg2 */
+      split_ansi(strip_ansi(fargs[2]), s_filler, fillersplit);
+      if ( !*s_filler ) {
+         split_ansi((char *)" ", s_filler, fillersplit);
+      }
+   } else {
+      split_ansi((char *)" ", s_filler, fillersplit);
+   }
+
+   s_retbuff = alloc_lbuf("fun_center");
+   memset(s_retbuff, '\0', LBUF_SIZE);
+   initialize_ansisplitter(retbuff, LBUF_SIZE);
+
+   filllen = strlen(s_filler);
+   lead_chrs = (width / 2) - (len / 2) + .5;
+   
+   /* Handle prefix */
+   p_in = fillersplit;
+   s_in = s_filler;
+   p_out = retbuff;
+   s_out = s_retbuff;
+   for (i = 0; i < lead_chrs; i++) {
+      i_offset = i % filllen;
+      clone_ansisplitter(p_out, p_in + i_offset);
+      p_out++;
+      *s_out++ = *(s_in + i_offset);
+   }
+
+   /* Handle buffer */
+   p_in = outsplit;
+   s_in = s_outbuff;
+
+   while ( *s_in ) {
+      *s_out++ = *s_in++;
+      clone_ansisplitter(p_out, p_in);
+      p_in++;
+      p_out++;
+   }
+
+   /* Handle suffix */
+   s_in = s_filler;
+   p_in = fillersplit;
+   trail_chrs = width - lead_chrs - len;
+   q = i + strlen(s_outbuff);
+
+   for ( i = 0; i < trail_chrs; i++) {
+      i_offset = q % filllen;
+      clone_ansisplitter(p_out, p_in + i_offset);
+      p_out++;
+      *s_out++ = *(s_in + i_offset);
+      q++;
+   }
+
+   s_finalbuff = rebuild_ansi(s_retbuff, retbuff, 0);
+   safe_str(s_finalbuff, buff, bufcx);
+   free_lbuf(s_finalbuff);
+   free_lbuf(s_retbuff);
+   free_lbuf(s_outbuff);
+   free_lbuf(s_filler);
+}
+
 FUNCTION(fun_center)
 {
     char filler[LBUF_SIZE], t_buff[8], *s, *t;
@@ -38737,6 +39022,7 @@ FUN flist[] =
     {"CASEALL", fun_caseall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"CAT", fun_cat, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CEIL", fun_ceil, 1, 0, CA_PUBLIC, CA_NO_CODE},
+//  {"NCENTER", fun_ncenter, 0, FN_VARARGS, CA_PUBLIC, 0},  -- not in use yet
     {"CENTER", fun_center, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"CHILDREN", fun_children, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CHARIN", fun_charin, 1, FN_VARARGS, CA_WIZARD, 0},
@@ -38989,6 +39275,7 @@ FUN flist[] =
     {"LISTTOGGLES", fun_listtoggles, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTTOTEMS", fun_listtotems, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"LISTTZONES", fun_listtzones, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
     {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"LJC", fun_ljc, 2, FN_VARARGS, CA_PUBLIC, 0},
@@ -39061,6 +39348,7 @@ FUN flist[] =
     {"MOVE", fun_move, 2, 0, CA_PUBLIC, 0},
 #endif
     {"MSECS", fun_msecs, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"MSECSTZ", fun_msecstz, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"MSIZETOT", fun_msizetot, 0, 0, CA_IMMORTAL, 0},
     {"MUDNAME", fun_mudname, 0, 0, CA_PUBLIC, 0},
     {"MUL", fun_mul, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -39204,6 +39492,7 @@ FUN flist[] =
     {"SEARCHOBJID", fun_searchobjid, -1, 0, CA_PUBLIC, 0},
     {"SEARCHNGOBJID", fun_searchngobjid, -1, 0, CA_PUBLIC, 0},
     {"SECS", fun_secs, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"SECSTZ", fun_secstz, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SECURE", fun_secure, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SECUREX", fun_secure, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SEES", fun_sees, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -39283,7 +39572,7 @@ FUN flist[] =
     {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
-    {"TIME", fun_time, 0, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TIME", fun_time, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TIMEFMT", fun_timefmt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOBIN", fun_tobin, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TODEC", fun_todec, 1, 0, CA_PUBLIC, CA_NO_CODE},

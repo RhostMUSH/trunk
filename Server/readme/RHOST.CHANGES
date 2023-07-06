@@ -11,6 +11,8 @@ player_absolute lookup for aliases in location to match PennMUSH
 				- Thanks Ophelia@Liberation
 @rxlevel/@txlevel did not honor QUIET flag.
 				- Thanks Myrddin
+Added '8' option to escapex for enbedded UTF8 support
+				- Thanks Thenomain
 
 
                          RhostMUSH 4.0 Update File
