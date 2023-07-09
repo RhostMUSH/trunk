@@ -34030,6 +34030,176 @@ FUNCTION(fun_setinter)
  * rjust, ljust, center: Justify or center text, specifying fill character
  */
 
+#define ANSIRJUST 1
+#define ANSILJUST 2
+#define ANSICENTER 3
+void
+handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, char **fargs, int nfargs, int cut, int i_just)
+{
+   int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store;
+   char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
+   ANSISPLIT outsplit[LBUF_SIZE], fillersplit[LBUF_SIZE], retbuff[LBUF_SIZE], *p_in, *p_out;
+
+   i_cut = cut;
+
+   if ( !*fargs[1] ) {
+      safe_str(fargs[0], buff, bufcx);
+      return;
+   }
+
+   if ( (nfargs >= 4) && *fargs[3] ) {
+      i_cut = atoi(fargs[3]) ? 1 : 0;
+   }
+
+   /* Handle arg0 */
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+   s_outbuff = alloc_lbuf("fun_ljust");
+   memset(s_outbuff, '\0', LBUF_SIZE);
+   split_ansi(strip_ansi(fargs[0]), s_outbuff, outsplit);
+  
+   width = atoi(fargs[1]);
+   len = strlen(s_outbuff);
+
+   if ( i_just == ANSICENTER ) {
+      if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
+         safe_str(fargs[0], buff, bufcx);
+         free_lbuf(s_outbuff);
+         return;
+      }
+   }
+
+   if ( width > (LBUF_SIZE-2) )
+      width = LBUF_SIZE - 2;
+
+   s_filler = alloc_lbuf("fun_ljustfill");
+   memset(s_filler, '\0', LBUF_SIZE);
+   initialize_ansisplitter(fillersplit, LBUF_SIZE);
+   if ( (nfargs > 2) && *fargs[2] ) {
+      /* Handle arg2 */
+      split_ansi(strip_ansi(fargs[2]), s_filler, fillersplit);
+      if ( !*s_filler ) {
+         split_ansi((char *)" ", s_filler, fillersplit);
+      }
+   } else {
+      split_ansi((char *)" ", s_filler, fillersplit);
+   }
+
+   s_retbuff = alloc_lbuf("fun_ljustret");
+   memset(s_retbuff, '\0', LBUF_SIZE);
+   initialize_ansisplitter(retbuff, LBUF_SIZE);
+
+   filllen = strlen(s_filler);
+   if ( i_just == ANSICENTER ) { 
+      lead_chrs = (width / 2) - (len / 2) + .5;
+   } else {
+      lead_chrs = width - len;
+   }
+   p_out = retbuff;
+   s_out = s_retbuff;
+   
+   i_store = 0;
+   if ( (i_just == ANSIRJUST) || (i_just == ANSICENTER) ) {
+      /* Handle prefix */
+      p_in = fillersplit;
+      s_in = s_filler;
+      for (i = 0; i < lead_chrs; i++) {
+         i_offset = i % filllen;
+         clone_ansisplitter(p_out, p_in + i_offset);
+         p_out++;
+         *s_out++ = *(s_in + i_offset);
+      }
+      i_store = i;
+   }
+
+   /* Handle buffer */
+   p_in = outsplit;
+   s_in = s_outbuff;
+
+   if ( i_cut ) {
+      i = width;
+   } else {
+      i = LBUF_SIZE;
+   }
+
+   while ( *s_in ) {
+      if ( i <= 0 )
+         break;
+      i--;
+      *s_out++ = *s_in++;
+      clone_ansisplitter(p_out, p_in);
+      p_in++;
+      p_out++;
+   }
+
+   if ( (i_just == ANSILJUST) || (i_just == ANSICENTER) ) {
+      /* Handle suffix */
+      s_in = s_filler;
+      p_in = fillersplit;
+      if ( i_just == ANSICENTER ) { 
+         trail_chrs = width - lead_chrs - len;
+         q = i_store + strlen(s_outbuff);
+      } else {
+         trail_chrs = width - len;
+         q = strlen(s_outbuff);
+      }
+   
+      for ( i = 0; i < trail_chrs; i++) {
+         i_offset = q % filllen;
+         clone_ansisplitter(p_out, p_in + i_offset);
+         p_out++;
+         *s_out++ = *(s_in + i_offset);
+         q++;
+      }
+   }
+
+   s_finalbuff = rebuild_ansi(s_retbuff, retbuff, 0);
+   safe_str(s_finalbuff, buff, bufcx);
+   free_lbuf(s_finalbuff);
+   free_lbuf(s_retbuff);
+   free_lbuf(s_outbuff);
+   free_lbuf(s_filler);
+}
+
+FUNCTION(fun_ansiljust)
+{
+   if (!fn_range_check("LJUST", nfargs, 2, 4, buff, bufcx))
+      return;
+
+   handle_ansijust(buff, bufcx, player, cause, caller, fargs, nfargs, 0, ANSILJUST);
+}
+
+FUNCTION(fun_ansiljc)
+{
+   if (!fn_range_check("LJC", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   handle_ansijust(buff, bufcx, player, cause, caller, fargs, nfargs, 1, ANSILJUST);
+}
+
+FUNCTION(fun_ansirjust)
+{
+   if (!fn_range_check("RJUST", nfargs, 2, 4, buff, bufcx))
+      return;
+
+   handle_ansijust(buff, bufcx, player, cause, caller, fargs, nfargs, 0, ANSIRJUST);
+}
+
+FUNCTION(fun_ansirjc)
+{
+   if (!fn_range_check("RJC", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   handle_ansijust(buff, bufcx, player, cause, caller, fargs, nfargs, 1, ANSIRJUST);
+}
+
+FUNCTION(fun_ansicenter)
+{
+   if (!fn_range_check("CENTER", nfargs, 2, 3, buff, bufcx))
+      return;
+
+   handle_ansijust(buff, bufcx, player, cause, caller, fargs, nfargs, 0, ANSICENTER);
+}
+
 FUNCTION(fun_ljust)
 {
     int spaces, i, i_len, filllen;
@@ -34186,99 +34356,6 @@ FUNCTION(fun_rjust)
     safe_str(fargs[0], buff, bufcx);
 }
 
-FUNCTION(fun_ncenter)
-{
-   int width, len, filllen, lead_chrs, trail_chrs, i, i_offset, q;
-   char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
-   ANSISPLIT outsplit[LBUF_SIZE], fillersplit[LBUF_SIZE], retbuff[LBUF_SIZE], *p_in, *p_out;
-
-   if (!fn_range_check("CENTER", nfargs, 2, 3, buff, bufcx))
-      return;
-
-   if ( !*fargs[1] ) {
-      safe_str(fargs[0], buff, bufcx);
-      return;
-   }
-
-   /* Handle arg0 */
-   initialize_ansisplitter(outsplit, LBUF_SIZE);
-   s_outbuff = alloc_lbuf("fun_center");
-   memset(s_outbuff, '\0', LBUF_SIZE);
-   split_ansi(strip_ansi(fargs[0]), s_outbuff, outsplit);
-  
-   width = atoi(fargs[1]);
-   len = strlen(s_outbuff);
-   if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
-      safe_str(fargs[0], buff, bufcx);
-      free_lbuf(s_filler);
-      free_lbuf(s_outbuff);
-      return;
-   }
-
-   s_filler = alloc_lbuf("fun_center");
-   memset(s_filler, '\0', LBUF_SIZE);
-   initialize_ansisplitter(fillersplit, LBUF_SIZE);
-   if ( (nfargs > 2) && *fargs[2] ) {
-      /* Handle arg2 */
-      split_ansi(strip_ansi(fargs[2]), s_filler, fillersplit);
-      if ( !*s_filler ) {
-         split_ansi((char *)" ", s_filler, fillersplit);
-      }
-   } else {
-      split_ansi((char *)" ", s_filler, fillersplit);
-   }
-
-   s_retbuff = alloc_lbuf("fun_center");
-   memset(s_retbuff, '\0', LBUF_SIZE);
-   initialize_ansisplitter(retbuff, LBUF_SIZE);
-
-   filllen = strlen(s_filler);
-   lead_chrs = (width / 2) - (len / 2) + .5;
-   
-   /* Handle prefix */
-   p_in = fillersplit;
-   s_in = s_filler;
-   p_out = retbuff;
-   s_out = s_retbuff;
-   for (i = 0; i < lead_chrs; i++) {
-      i_offset = i % filllen;
-      clone_ansisplitter(p_out, p_in + i_offset);
-      p_out++;
-      *s_out++ = *(s_in + i_offset);
-   }
-
-   /* Handle buffer */
-   p_in = outsplit;
-   s_in = s_outbuff;
-
-   while ( *s_in ) {
-      *s_out++ = *s_in++;
-      clone_ansisplitter(p_out, p_in);
-      p_in++;
-      p_out++;
-   }
-
-   /* Handle suffix */
-   s_in = s_filler;
-   p_in = fillersplit;
-   trail_chrs = width - lead_chrs - len;
-   q = i + strlen(s_outbuff);
-
-   for ( i = 0; i < trail_chrs; i++) {
-      i_offset = q % filllen;
-      clone_ansisplitter(p_out, p_in + i_offset);
-      p_out++;
-      *s_out++ = *(s_in + i_offset);
-      q++;
-   }
-
-   s_finalbuff = rebuild_ansi(s_retbuff, retbuff, 0);
-   safe_str(s_finalbuff, buff, bufcx);
-   free_lbuf(s_finalbuff);
-   free_lbuf(s_retbuff);
-   free_lbuf(s_outbuff);
-   free_lbuf(s_filler);
-}
 
 FUNCTION(fun_center)
 {
@@ -39022,8 +39099,8 @@ FUN flist[] =
     {"CASEALL", fun_caseall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"CAT", fun_cat, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CEIL", fun_ceil, 1, 0, CA_PUBLIC, CA_NO_CODE},
-//  {"NCENTER", fun_ncenter, 0, FN_VARARGS, CA_PUBLIC, 0},  -- not in use yet
-    {"CENTER", fun_center, 0, FN_VARARGS, CA_PUBLIC, 0},
+    {"CENTER", fun_ansicenter, 0, FN_VARARGS, CA_PUBLIC, 0},
+//  {"CENTER", fun_center, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"CHILDREN", fun_children, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CHARIN", fun_charin, 1, FN_VARARGS, CA_WIZARD, 0},
     {"CHAROUT", fun_charout, 1, FN_VARARGS, CA_WIZARD, 0},
@@ -39277,8 +39354,10 @@ FUN flist[] =
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTTZONES", fun_listtzones, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
-    {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
-    {"LJC", fun_ljc, 2, FN_VARARGS, CA_PUBLIC, 0},
+//  {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
+    {"LJUST", fun_ansiljust, 0, FN_VARARGS, CA_PUBLIC, 0},
+//  {"LJC", fun_ljc, 2, FN_VARARGS, CA_PUBLIC, 0},
+    {"LJC", fun_ansiljc, 2, FN_VARARGS, CA_PUBLIC, 0},
     {"LLOC", fun_lloc, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"LMAX", fun_lmax, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LMIN", fun_lmin, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -39462,8 +39541,10 @@ FUN flist[] =
     {"REVWORDS", fun_revwords, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RIGHT", fun_right, 2, FN_VARARGS, CA_PUBLIC, 0},
     {"RINDEX", fun_rindex, 4, 0, CA_PUBLIC, CA_NO_CODE},
-    {"RJUST", fun_rjust, 0, FN_VARARGS, CA_PUBLIC, 0},
-    {"RJC", fun_rjc, 2, FN_VARARGS, CA_PUBLIC, 0},
+//  {"RJUST", fun_rjust, 0, FN_VARARGS, CA_PUBLIC, 0},
+    {"RJUST", fun_ansirjust, 0, FN_VARARGS, CA_PUBLIC, 0},
+//  {"RJC", fun_rjc, 2, FN_VARARGS, CA_PUBLIC, 0},
+    {"RJC", fun_ansirjc, 2, FN_VARARGS, CA_PUBLIC, 0},
     {"RLOC", fun_rloc, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"RNUM", fun_rnum, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ROMAN", fun_roman, 1, 0, CA_PUBLIC, CA_NO_CODE},

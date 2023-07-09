@@ -160,11 +160,21 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     subpatterns = 33;
   nqregs = list2arr(qregs, MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST, fargs[2], ' ');
   for (i = 0; i < nqregs; i++) {
+    curq = -1;
     if (qregs[i] && qregs[i][0] && !qregs[i][1] &&
-        ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1))
+        ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1)) {
       curq = qindex;
-    else
-      curq = -1;
+    } else {
+      qindex = 0;
+      for ( qindex = 0; qindex < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); qindex++ ) {
+        if ( mudstate.global_regsname[qindex] && 
+             *(mudstate.global_regsname[qindex]) &&
+             !stricmp(mudstate.global_regsname[qindex], qregs[i]) ) {
+            curq = qindex;
+            break;
+         }
+      }
+    }
     if (curq < 0 || curq >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))
       continue;
     if (subpatterns < 0)

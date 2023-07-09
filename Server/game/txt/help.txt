@@ -17319,6 +17319,8 @@
   You may have to escape mush-special characters (like (, ), {, }, etc)
   Any invalid registers specified will be skipped over and ignored.
   
+  Register list may contain labels.
+    
   Examples:
     > say regmatch(cookies=30,\(.+\)=\(\[0-9\]*\))
     You say "1"
@@ -17343,6 +17345,8 @@
   You may also use a-z as registers if currently enabled on your RhostMUSH.
   You may have to escape mush-special characters (like (, ), {, }, etc)
   Any invalid registers specified will be skipped over and ignored.
+  
+  Register list may contain labels.
   
   Examples:
     > say regmatchi(cookies=30,\(.+\)=\(\[0-9\]*\))
@@ -25283,8 +25287,8 @@
   
 & RJ()
 & RJUST()
-  Function: rjust(<string>, <length>[, <fill>])
-            rj(<string>, <length>[, <fill>])
+  Function: rjust(<string>, <length>[, <fill> [,<cut>]])
+            rj(<string>, <length>[, <fill> [,<cut>]])
  
   This function pads a string with leading <fill> characters, or with spaces
   if no fill character is given) ("right-justifies") so it is <length> long.
@@ -25292,7 +25296,9 @@
   truncated. <fill> may be a string of over one character.
   
   If you wish to use ansified filler, use printf() instead.
-   
+  
+  You may specify an optional 'cut' argument to rjust() to mimic rjc() 
+  
   Examples:
     > say -[rjust(foo,6)]-
     You say "-   foo-"
@@ -25374,8 +25380,8 @@
  
 & LJ()
 & LJUST()
-  Functions: ljust(<string>, <length>[, <fill>])
-  Functions: lj(<string>, <length>[, <fill>])
+  Functions: ljust(<string>, <length>[, <fill> [,<cut>]])
+  Functions: lj(<string>, <length>[, <fill> [,<cut>]]])
  
   This function pads a string with trailing <fill> characters, or with spaces
   if no fill character is given) ("left-justifies") so it is <length> long.
@@ -25383,7 +25389,9 @@
   truncated.  <fill> may be a string of more than one character.
   
   If you wish to use ansified filler, use printf() instead.
-   
+  
+  You may specify an optional 'cut' argument to ljust() to mimic ljc() 
+  
   Examples:
     > say -[ljust(foo,6)]-
     You say "-foo   -"
@@ -34943,6 +34951,8 @@
  * @atrcache will optionally handle caches per command and handles args [ASH]
  * secstz()/msecstz() for EPOCH seconds based on specified timezone [ASH]
  * listtzone() for listing timezones and offset of timezone [ASH]
+ * ljc/rjc/ljust/rjust/center are now ANSI aware [ASH]
+ * regmatch() now allows named registers [ASH]
   
   Changes
   -------
