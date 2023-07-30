@@ -32669,14 +32669,45 @@ FUNCTION(fun_stripansi)
 
 FUNCTION(fun_stripaccents) {
 #ifdef ZENTY_ANSI
-   char *cp;
+   char *cp, *cp2, ascii, *hexbuf, *hexbuf2;
+   long ucs = 0;
 
    cp = fargs[0];
    while ( *cp ) {
-      if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) )
+      /* ACCENTS */
+      if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) ) {
          cp+=3;
-      else
-         safe_chr(*cp++, buff, bufcx);
+         continue;
+      }
+
+      /* UTF8 */
+      if ( (*cp == '%') && (*(cp + 1) == '<') && (*(cp + 2) == 'u') ) {
+         /* Check if a kage-encoded Unicode <%uXXXXX> (with a variable number
+            of hex digits) is there. If it is, parse and downcast it
+         */
+         cp2 = cp + 2;
+         hexbuf = alloc_lbuf("fun_stripaccents_unicode");
+         hexbuf2 = hexbuf;
+         while(*(++cp2) && isxdigit(*cp2)) {
+             *hexbuf2++ = *cp2;
+         }
+         *hexbuf2 = '\0';
+         ucs = strtol(hexbuf, hexbuf2, 16);
+         free_lbuf(hexbuf);
+         ascii = ucs32toascii(ucs);
+
+         /* Only use the downcast result if it's a valid Kage point
+            and it properly downcasts, otherwise just treat as regular ASCII */
+         if(*cp2 == '>' && ascii != '?') {
+             safe_chr(ascii, buff, bufcx);
+             cp = ++cp2;
+             continue;
+         }
+         /* else fallthrough */
+      }
+
+      /* ASCII */
+      safe_chr(*cp++, buff, bufcx);
    }
 #else
    safe_str(fargs[0], buff, bufcx);
@@ -39238,6 +39269,7 @@ FUN flist[] =
     {"STREVAL", fun_streval, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"STRIP", fun_strip, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRIPACCENTS", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
+    {"STRIPUNICODE", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
     {"STRIPANSI", fun_stripansi, 1, 0, CA_PUBLIC, 0},
     {"STRCAT", fun_strcat, 0,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRFUNC", fun_strfunc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
