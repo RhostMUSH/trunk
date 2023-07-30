@@ -2111,7 +2111,7 @@ char ucs32toascii(long ucs)
                      };
 
    // Array length: 268 Update code below when increasing/decreasing:
-   for(i=0;i<266;i+=2)
+   for(i=0;i<sizeof(utfcodes)/sizeof(long);i+=2)
       if(utfcodes[i] == ucs)
          return utfcodes[i+1];
    return '?';
