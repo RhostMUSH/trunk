@@ -2986,11 +2986,20 @@ NDECL(check_idle)
 
     DESC_SAFEITER_ALL(d, dnext) {
 	if (d->flags & DS_CONNECTED) {
+
+
+	#ifdef ENABLE_WEBSOCKETS
+	    /* Websockets don't like these random bytes. They want Unicode. */
+	    if (!(d->flags & DS_WEBSOCKETS)) {
+	#endif
             if ( KeepAlive(d->player) ) {
                /* Send NOP code to players to keep NAT/routers/firewalls happy */
                queue_string(d, "\377\361");
 	       process_output(d);
             }
+	#ifdef ENABLE_WEBSOCKETS
+	    }
+	#endif
             if ( d->last_time > mudstate.now )
 	       idletime = 0;
             else
