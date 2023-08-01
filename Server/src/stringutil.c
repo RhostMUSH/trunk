@@ -2110,10 +2110,16 @@ char ucs32toascii(long ucs)
                      , 0x00fa, 'u', 0x00fb, 'u', 0x00fc, 'u', 0x00fd, 'y'
                      };
 
-   // Array length: 268 Update code below when increasing/decreasing:
+   /* ASCII is as ASCII does */
+   if(ucs < 128)
+       return ucs;
+
+   /* Walk the substitutes array */
    for(i=0;i<sizeof(utfcodes)/sizeof(long);i+=2)
       if(utfcodes[i] == ucs)
          return utfcodes[i+1];
+
+   /* Fallback */
    return '?';
 }
 #endif
