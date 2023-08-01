@@ -32677,11 +32677,9 @@ FUNCTION(fun_stripaccents) {
       /* ACCENTS */
       if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) ) {
          cp+=3;
-         continue;
-      }
 
       /* UTF8 */
-      if ( (*cp == '%') && (*(cp + 1) == '<') && (*(cp + 2) == 'u') ) {
+      } else if ( (*cp == '%') && (*(cp + 1) == '<') && (*(cp + 2) == 'u') ) {
          /* Check if a kage-encoded Unicode <%uXXXXX> (with a variable number
             of hex digits) is there. If it is, parse and downcast it
          */
@@ -32692,22 +32690,27 @@ FUNCTION(fun_stripaccents) {
              *hexbuf2++ = *cp2;
          }
          *hexbuf2 = '\0';
-         ucs = strtol(hexbuf, hexbuf2, 16);
+         ucs = strtol(hexbuf, NULL, 16);
          free_lbuf(hexbuf);
          ascii = ucs32toascii(ucs);
 
          /* Only use the downcast result if it's a valid Kage point
             and it properly downcasts, otherwise just treat as regular ASCII */
-         if(*cp2 == '>' && ascii != '?') {
+         if(*cp2 != '>') {
+             /* Not a Kage codepoint after all */
+             safe_chr(*cp++, buff, bufcx);
+         } else if(ascii == '?' && ucs != 0xbf ) {
+             /* Not downconverted; ignore */
+             cp = ++cp2;
+         } else {
+             /* Downconverted, so use the downconversion */
              safe_chr(ascii, buff, bufcx);
              cp = ++cp2;
-             continue;
          }
-         /* else fallthrough */
+      } else {
+         /* ASCII */
+         safe_chr(*cp++, buff, bufcx);
       }
-
-      /* ASCII */
-      safe_chr(*cp++, buff, bufcx);
    }
 #else
    safe_str(fargs[0], buff, bufcx);
