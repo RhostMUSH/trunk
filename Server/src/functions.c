@@ -3959,7 +3959,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 
   buffleft = strlen(expandbuff);
 
-  if( (buffleft < winfo.width) && !strchr(expandbuff, '\r') ) {
+  if( (buffleft <= winfo.width) && !strchr(expandbuff, '\r') ) {
       if ( i_justifylast && (winfo.just == JUST_JUST) )
          winfo.just = JUST_LEFT;
       wrap_out( expandbuff, winfo.width, &winfo, buff, bufcx, " ", 1 );
@@ -3996,7 +3996,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           /* instead of going backwards, we go forward... no pain */
           // We want to find the true length in the string, without ansi
           for(lstspc=pp=leftstart,pchr=0;
-              (*pp != '\0') && (pchr < winfo.width);pp++) {
+              (*pp != '\0') && (pchr <= winfo.width);pp++) {
               // Skip over the first char of a comment. count the second.
               if(((*pp == '%')|| (*pp == '\\')) &&
                  ((*(pp+1) == '%') || (*(pp+1) == '\\')))
