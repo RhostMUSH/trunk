@@ -12162,14 +12162,14 @@
   SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
   STARTSECS()     STATS()         STDERR()       STEP()         STR()        
   STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRLEN()       STRMATCH()   
-  STRMATH()       SUB()           SUBEVAL()      SUBJ()         SUBNETMATCH()
-  SWITCH()        SWITCHALL()     T()            TAG()          TAGMATCH()
-  TAN()           TEL()           TEMPLATE()     TIME()         TIMEFMT()
-  TOBIN()         TODEC()         TOGGLE()       TOHEX()        TOOCT()
-  TOTCMDS()       TOTEMS()        TOTEMSET()     TOTMATCH()     TOTMEMBER()  
-  TOTPOS()        TOTWILDMATCH()  TR()           TRACE()        TRANSLATE()  
-  TRIM()
+  STRIP()         STRIPACCENTS()  STRIPANSI()    STRIPUNICODE() STRLEN()     
+  STRMATCH()      STRMATH()       SUB()          SUBEVAL()      SUBJ()       
+  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAG()        
+  TAGMATCH()      TAN()           TEL()          TEMPLATE()     TIME()       
+  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
+  TOOCT()         TOTCMDS()       TOTEMS()       TOTEMSET()     TOTMATCH()   
+  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
+  TRANSLATE()     TRIM()
   
 { 'help function list5' for more }
 
@@ -12339,10 +12339,10 @@
                        RJUST() ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX()
                        SHL() SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
                        STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
-                       STRLEN() STRMATCH() SUBEVAL() SUBNETMATCH() SWITCH() 
-                       SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
-                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
-                       WRAPCOLUMNS() XORCHR()
+                       STRLEN() STRMATCH() STRIPUNICODE() SUBEVAL()
+                       SUBNETMATCH() SWITCH() SWITCHALL() T() TEMPLATE()
+                       TOTPOS() TR() TRANSLATE() TRIM() UCSTR() UNESCLIST()
+                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() MSECS() PTIMEFMT() SECS() 
@@ -24494,16 +24494,34 @@
 & STRIPACCENTS()
   Function: stripaccents(<string>)
   
-  Returns the string with accented characters converted to non-accented.
-  This function assumes the ISO 8859-1 character set.
-  
+  Returns the string with accented (see also: ACCENTS) characters converted to
+  non-accented.  This usage assumes the ISO 8859-1 character set.
+
+  Additionally, Unicode codepoints (see also: UNICODE SUPPORT) are converted to
+  their closest non-accented character where available.
+
   Example:
     > say stripaccents(Aul(e-with-diaeresis))
     You say "Aule"
-   
-  See Also: chr(), asc(), strip(), stripansi(), tr(), accent(), ACCENTS.
 
+  If the accent or Unicode character has no ASCII version, it will not be shown.
+
+  Example:
+    > say stripaccents(Aul(latin-small-letter-thorn))
+    You say "Aul"
+
+  This function is also called stripunicode().
+ 
+  See Also: chr(), asc(), strip(), stripansi(), stripunicode(), tr(), accent(),
+            ACCENTS, UNICODE SUPPORT.
   
+& STRIPUNICODE()
+  Function: stripunicode(<string>)
+  
+  This is an alias to stripaccents().
+
+  See Also: stripaccents()
+
 & ACOS()
   Function: acos(<number> [,<units>])
    
@@ -31627,7 +31645,8 @@
   streq()       - Compares two strings, returning true if they match.
   streval()     - Evaluates the string based on the permission level specified.
   strip()       - Strips out every occurrence of a character in a string.
-  stripaccents()- Strip accents from specified string.
+  stripaccents()- Convert string to closest ASCII version.
+  stripunicode()- Alias to stripaccents(), above.
   strlen()      - Returns the length of a string.
   strlenraw()   - Returns the length of the RAW string.
   strlenvis()   - Returns the length of the VISUAL string.
