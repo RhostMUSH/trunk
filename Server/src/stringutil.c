@@ -2108,6 +2108,8 @@ char ucs32toascii(long ucs)
                      , 0x00f2, 'o', 0x00f3, 'o', 0x00f4, 'o', 0x00f5, 'o'
                      , 0x00f6, 'o', 0x00f8, 'o', 0x00f7, '-', 0x00f9, 'u'
                      , 0x00fa, 'u', 0x00fb, 'u', 0x00fc, 'u', 0x00fd, 'y'
+                     , 0x00bf, '?', 0x00a6, '|', 0x2030, '%', 0x0160, 'S'
+                     , 0x0161, 's', 0x00df, 's' /* Sorry Ambrosia */
                      };
 
    /* ASCII is as ASCII does */
