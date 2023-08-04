@@ -3996,7 +3996,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           /* instead of going backwards, we go forward... no pain */
           // We want to find the true length in the string, without ansi
           for(lstspc=pp=leftstart,pchr=0;
-              (*pp != '\0') && (pchr <= winfo.width);pp++) {
+              (*pp != '\0') && (pchr < winfo.width);pp++) {
               // Skip over the first char of a comment. count the second.
               if(((*pp == '%')|| (*pp == '\\')) &&
                  ((*(pp+1) == '%') || (*(pp+1) == '\\')))
@@ -4045,6 +4045,13 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
                  lstspc=pp;
           }
 
+         if(pchr == winfo.width && (*pp == ' ' || *pp == '\0')) {
+            /* If we have a full width AND the next character is our null-terminator or a space,
+            * we want to grab the entire width.
+            */
+            lstspc = pp;
+          }
+
           if(pchr == 0) {
               if ( i_inansi && !i_haveansi ) {
                  safe_str((char *)SAFE_ANSI_NORMAL, buff, bufcx);
@@ -4056,7 +4063,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           if(leftstart != expandbuff)
               safe_str("\r\n", buff, bufcx );
 
-          if((lstspc == leftstart) || (pchr != winfo.width)) {
+          if((lstspc == leftstart) || (pchr != winfo.width)) { // Eat the entire width
               if ( i_justifylast && (winfo.just == JUST_JUST) )
                  winfo.just = JUST_LEFT;
               wrap_out(leftstart, pp - leftstart, &winfo, buff, bufcx, " ", 0);
@@ -4090,8 +4097,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           leftstart += winfo.width;
           buffleft -= winfo.width;
         }
-        else { /* we hit a space, chop it there */
-          wrap_out( leftstart, pp - leftstart, &winfo, buff, bufcx, " ", 0 );
+        else { /* we hit a space, chop it there, but don't include the space in the buffer */
+          wrap_out( leftstart, pp - leftstart - 1, &winfo, buff, bufcx, " ", 0 );
           safe_str( "\r\n", buff, bufcx );
           buffleft -= pp - leftstart + 1;
           leftstart += pp - leftstart + 1; /* eat the space */
