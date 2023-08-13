@@ -4072,11 +4072,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
          * we want to grab the entire width.
          */
          if(pchr == winfo.width) {
-            if(*pp == ' ' || *pp == '\0')
-               lstspc = pp;
-            else {
             // skip any control characters
-            
             ppTempShift = seek_next_real_char(pp, &i_haveansi, &i_inansi);
 
             if(*(pp + ppTempShift) == ' ' || *(pp + ppTempShift) == '\0')  {
@@ -4084,7 +4080,6 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
                lstspc = pp;
             }
           }
-         }
 
           if(leftstart != expandbuff)
               safe_str("\r\n", buff, bufcx );
