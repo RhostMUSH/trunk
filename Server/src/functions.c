@@ -3880,6 +3880,60 @@ FUNCTION(fun_nslookup)
    }
 }
 
+int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
+   char *pp = leftstart;
+
+   // Always escaped, return the next character.
+   if(*pp == '\\')
+      return 1;
+
+   if(*pp == '%') {
+      // Escaped %, we know we want the next character.
+      if(*(pp+1) == '%')
+         return 1;
+
+      // Accents can chain, so we continue
+      if((*(pp+1) == 'f') && isprint(*(pp+2))) {
+         return 3 + seek_next_real_char(leftstart + 3, i_haveansi, i_inansi);
+      }
+
+      // ansi can chain, so we continue
+      if((*(pp+1) == SAFE_CHR)
+   #ifdef SAFE_CHR2
+         || (*(pp+1) == SAFE_CHR2 )
+   #endif
+   #ifdef SAFE_CHR3
+         || (*(pp+1) == SAFE_CHR3 )
+   #endif
+      ) {
+         if ( isAnsi[(int) *(pp+2)] || (*(pp+2) == 'h') ) {
+            *i_haveansi=1;
+            *i_inansi=1;
+            if ( *(pp+2) == 'n' ) {
+               *i_haveansi=0;
+            }
+            return 3 + seek_next_real_char(leftstart + 3, i_haveansi, i_inansi);
+         }
+         if ( (*(pp+2) == '0') && (*(pp+3) && ((*(pp+3) == 'X') || (*(pp+3) == 'x'))) ) {
+            if ( *(pp+4) && *(pp+5) && isxdigit(*(pp+4)) && isxdigit(*(pp+5)) ) {
+               return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
+            }
+         }
+      }
+
+      // Unicode can chain
+      if ( (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
+            isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
+            (*(pp+5) == '>') ) {
+         return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
+      }
+      // This should let us grab any future %c codes.
+   }
+
+   // We have a real letter.  Return the current position.
+   return 0;
+}
+
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
@@ -3887,6 +3941,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   char* leftstart;
   char *crp;
   char *pp;
+  int ppTempShift;
 #ifdef ZENTY_ANSI
   int pchr, i_haveansi = 0;
   char *lstspc;
@@ -3997,59 +4052,12 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           // We want to find the true length in the string, without ansi
           for(lstspc=pp=leftstart,pchr=0;
               (*pp != '\0') && (pchr < winfo.width);pp++) {
-              // Skip over the first char of a comment. count the second.
-              if(((*pp == '%')|| (*pp == '\\')) &&
-                 ((*(pp+1) == '%') || (*(pp+1) == '\\')))
-                  continue;
-
-              if( (*pp == '%') && ((*(pp+1) == 'f') && isprint(*(pp+2))) ) {
-                 pp+=2;
-                 continue;
-              }
-              // Skip over ansi
-              if( (*pp == '%') && ((*(pp+1) == SAFE_CHR)
-#ifdef SAFE_CHR2
-                               || (*(pp+1) == SAFE_CHR2 )
-#endif
-#ifdef SAFE_CHR3
-                               || (*(pp+1) == SAFE_CHR3 )
-#endif
-)) {
-                 if ( isAnsi[(int) *(pp+2)] ) {
-                    i_haveansi=1;
-                    i_inansi=1;
-                    if ( *(pp+2) == 'n' ) {
-                       i_haveansi=0;
-                    }
-                    pp+=2;
-                    continue;
-                 }
-                 if ( (*(pp+2) == '0') && (*(pp+3) && ((*(pp+3) == 'X') || (*(pp+3) == 'x'))) ) {
-                    if ( *(pp+4) && *(pp+5) && isxdigit(*(pp+4)) && isxdigit(*(pp+5)) ) {
-                       pp+=5;
-                       continue;
-                    }
-                 }
-              }
-              if ( (*pp == '%') && (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
-                   isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
-                   (*(pp+5) == '>') ) {
-                 
-                 pp+=5;
-              }
-              // This should let us grab any future %c codes.
-
+               pp += seek_next_real_char(pp, &i_haveansi, &i_inansi);
+              
               pchr++;
 
               if(*pp == ' ')
                  lstspc=pp;
-          }
-
-         if(pchr == winfo.width && (*pp == ' ' || *pp == '\0')) {
-            /* If we have a full width AND the next character is our null-terminator or a space,
-            * we want to grab the entire width.
-            */
-            lstspc = pp;
           }
 
           if(pchr == 0) {
@@ -4059,6 +4067,24 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
               free_lbuf(expandbuff);
               return;
           }
+
+         /* If we have a full width AND the next character is our null-terminator or a space,
+         * we want to grab the entire width.
+         */
+         if(pchr == winfo.width) {
+            if(*pp == ' ' || *pp == '\0')
+               lstspc = pp;
+            else {
+            // skip any control characters
+            
+            ppTempShift = seek_next_real_char(pp, &i_haveansi, &i_inansi);
+
+            if(*(pp + ppTempShift) == ' ' || *(pp + ppTempShift) == '\0')  {
+               pp += ppTempShift;
+               lstspc = pp;
+            }
+          }
+         }
 
           if(leftstart != expandbuff)
               safe_str("\r\n", buff, bufcx );
