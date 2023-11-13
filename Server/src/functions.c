@@ -3881,6 +3881,60 @@ FUNCTION(fun_nslookup)
    }
 }
 
+int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
+   char *pp = leftstart;
+
+   // Always escaped, return the next character.
+   if(*pp == '\\')
+      return 1;
+
+   if(*pp == '%') {
+      // Escaped %, we know we want the next character.
+      if(*(pp+1) == '%')
+         return 1;
+
+      // Accents can chain, so we continue
+      if((*(pp+1) == 'f') && isprint(*(pp+2))) {
+         return 3 + seek_next_real_char(leftstart + 3, i_haveansi, i_inansi);
+      }
+
+      // ansi can chain, so we continue
+      if((*(pp+1) == SAFE_CHR)
+   #ifdef SAFE_CHR2
+         || (*(pp+1) == SAFE_CHR2 )
+   #endif
+   #ifdef SAFE_CHR3
+         || (*(pp+1) == SAFE_CHR3 )
+   #endif
+      ) {
+         if ( isAnsi[(int) *(pp+2)] || (*(pp+2) == 'h') ) {
+            *i_haveansi=1;
+            *i_inansi=1;
+            if ( *(pp+2) == 'n' ) {
+               *i_haveansi=0;
+            }
+            return 3 + seek_next_real_char(leftstart + 3, i_haveansi, i_inansi);
+         }
+         if ( (*(pp+2) == '0') && (*(pp+3) && ((*(pp+3) == 'X') || (*(pp+3) == 'x'))) ) {
+            if ( *(pp+4) && *(pp+5) && isxdigit(*(pp+4)) && isxdigit(*(pp+5)) ) {
+               return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
+            }
+         }
+      }
+
+      // Unicode can chain
+      if ( (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
+            isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
+            (*(pp+5) == '>') ) {
+         return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
+      }
+      // This should let us grab any future %c codes.
+   }
+
+   // We have a real letter.  Return the current position.
+   return 0;
+}
+
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
@@ -3888,6 +3942,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   char* leftstart;
   char *crp;
   char *pp;
+  int ppTempShift;
 #ifdef ZENTY_ANSI
   int pchr, i_haveansi = 0;
   char *lstspc;
@@ -3960,7 +4015,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 
   buffleft = strlen(expandbuff);
 
-  if( (buffleft < winfo.width) && !strchr(expandbuff, '\r') ) {
+  if( (buffleft <= winfo.width) && !strchr(expandbuff, '\r') ) {
       if ( i_justifylast && (winfo.just == JUST_JUST) )
          winfo.just = JUST_LEFT;
       wrap_out( expandbuff, winfo.width, &winfo, buff, bufcx, " ", 1 );
@@ -3998,48 +4053,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           // We want to find the true length in the string, without ansi
           for(lstspc=pp=leftstart,pchr=0;
               (*pp != '\0') && (pchr < winfo.width);pp++) {
-              // Skip over the first char of a comment. count the second.
-              if(((*pp == '%')|| (*pp == '\\')) &&
-                 ((*(pp+1) == '%') || (*(pp+1) == '\\')))
-                  continue;
-
-              if( (*pp == '%') && ((*(pp+1) == 'f') && isprint(*(pp+2))) ) {
-                 pp+=2;
-                 continue;
-              }
-              // Skip over ansi
-              if( (*pp == '%') && ((*(pp+1) == SAFE_CHR)
-#ifdef SAFE_CHR2
-                               || (*(pp+1) == SAFE_CHR2 )
-#endif
-#ifdef SAFE_CHR3
-                               || (*(pp+1) == SAFE_CHR3 )
-#endif
-)) {
-                 if ( isAnsi[(int) *(pp+2)] ) {
-                    i_haveansi=1;
-                    i_inansi=1;
-                    if ( *(pp+2) == 'n' ) {
-                       i_haveansi=0;
-                    }
-                    pp+=2;
-                    continue;
-                 }
-                 if ( (*(pp+2) == '0') && (*(pp+3) && ((*(pp+3) == 'X') || (*(pp+3) == 'x'))) ) {
-                    if ( *(pp+4) && *(pp+5) && isxdigit(*(pp+4)) && isxdigit(*(pp+5)) ) {
-                       pp+=5;
-                       continue;
-                    }
-                 }
-              }
-              if ( (*pp == '%') && (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
-                   isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
-                   (*(pp+5) == '>') ) {
-                 
-                 pp+=5;
-              }
-              // This should let us grab any future %c codes.
-
+               pp += seek_next_real_char(pp, &i_haveansi, &i_inansi);
+              
               pchr++;
 
               if(*pp == ' ')
@@ -4054,10 +4069,23 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
               return;
           }
 
+         /* If we have a full width AND the next character is our null-terminator or a space,
+         * we want to grab the entire width.
+         */
+         if(pchr == winfo.width) {
+            // skip any control characters
+            ppTempShift = seek_next_real_char(pp, &i_haveansi, &i_inansi);
+
+            if(*(pp + ppTempShift) == ' ' || *(pp + ppTempShift) == '\0')  {
+               pp += ppTempShift;
+               lstspc = pp;
+            }
+          }
+
           if(leftstart != expandbuff)
               safe_str("\r\n", buff, bufcx );
 
-          if((lstspc == leftstart) || (pchr != winfo.width)) {
+          if((lstspc == leftstart) || (pchr != winfo.width)) { // Eat the entire width
               if ( i_justifylast && (winfo.just == JUST_JUST) )
                  winfo.just = JUST_LEFT;
               wrap_out(leftstart, pp - leftstart, &winfo, buff, bufcx, " ", 0);
@@ -4091,8 +4119,8 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           leftstart += winfo.width;
           buffleft -= winfo.width;
         }
-        else { /* we hit a space, chop it there */
-          wrap_out( leftstart, pp - leftstart, &winfo, buff, bufcx, " ", 0 );
+        else { /* we hit a space, chop it there, but don't include the space in the buffer */
+          wrap_out( leftstart, pp - leftstart - 1, &winfo, buff, bufcx, " ", 0 );
           safe_str( "\r\n", buff, bufcx );
           buffleft -= pp - leftstart + 1;
           leftstart += pp - leftstart + 1; /* eat the space */
@@ -32880,14 +32908,48 @@ FUNCTION(fun_stripansi)
 
 FUNCTION(fun_stripaccents) {
 #ifdef ZENTY_ANSI
-   char *cp;
+   char *cp, *cp2, ascii, *hexbuf, *hexbuf2;
+   long ucs = 0;
 
    cp = fargs[0];
    while ( *cp ) {
-      if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) )
+      /* ACCENTS */
+      if ( (*cp == '%') && (*(cp + 1) == 'f') && isprint(*(cp + 2)) ) {
          cp+=3;
-      else
+
+      /* UTF8 */
+      } else if ( (*cp == '%') && (*(cp + 1) == '<') && (*(cp + 2) == 'u') ) {
+         /* Check if a kage-encoded Unicode <%uXXXXX> (with a variable number
+            of hex digits) is there. If it is, parse and downcast it
+         */
+         cp2 = cp + 2;
+         hexbuf = alloc_lbuf("fun_stripaccents_unicode");
+         hexbuf2 = hexbuf;
+         while(*(++cp2) && isxdigit(*cp2)) {
+             *hexbuf2++ = *cp2;
+         }
+         *hexbuf2 = '\0';
+         ucs = strtol(hexbuf, NULL, 16);
+         free_lbuf(hexbuf);
+         ascii = ucs32toascii(ucs);
+
+         /* Only use the downcast result if it's a valid Kage point
+            and it properly downcasts, otherwise just treat as regular ASCII */
+         if(*cp2 != '>') {
+             /* Not a Kage codepoint after all */
+             safe_chr(*cp++, buff, bufcx);
+         } else if(ascii == '?' && ucs != 0xbf ) {
+             /* Not downconverted; ignore */
+             cp = ++cp2;
+         } else {
+             /* Downconverted, so use the downconversion */
+             safe_chr(ascii, buff, bufcx);
+             cp = ++cp2;
+         }
+      } else {
+         /* ASCII */
          safe_chr(*cp++, buff, bufcx);
+      }
    }
 #else
    safe_str(fargs[0], buff, bufcx);
@@ -39628,6 +39690,7 @@ FUN flist[] =
     {"STREVAL", fun_streval, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"STRIP", fun_strip, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRIPACCENTS", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
+    {"STRIPUNICODE", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
     {"STRIPANSI", fun_stripansi, 1, 0, CA_PUBLIC, 0},
     {"STRCAT", fun_strcat, 0,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRFUNC", fun_strfunc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
