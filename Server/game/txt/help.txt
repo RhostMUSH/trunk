@@ -24613,37 +24613,32 @@
   See Also: ACCENTS, chr(), asc(), tr(), stripaccents(), substitutions,
             UNICODE SUPPORT
 
+& STRIPUNICODE()
 & STRIPACCENTS()
   Function: stripaccents(<string>)
+            stripunicode(<string>)
   
   Returns the string with accented (see also: ACCENTS) characters converted to
   non-accented.  This usage assumes the ISO 8859-1 character set.
-
+  
   Additionally, Unicode codepoints (see also: UNICODE SUPPORT) are converted to
   their closest non-accented character where available.
-
+  
   Example:
     > say stripaccents(Aul(e-with-diaeresis))
     You say "Aule"
-
+  
   If the accent or Unicode character has no ASCII version, it will not be shown.
-
+  
   Example:
     > say stripaccents(Aul(latin-small-letter-thorn))
     You say "Aul"
-
+  
   This function is also called stripunicode().
- 
+   
   See Also: chr(), asc(), strip(), stripansi(), stripunicode(), tr(), accent(),
             ACCENTS, UNICODE SUPPORT.
   
-& STRIPUNICODE()
-  Function: stripunicode(<string>)
-  
-  This is an alias to stripaccents().
-
-  See Also: stripaccents()
-
 & ACOS()
   Function: acos(<number> [,<units>])
    
@@ -25331,6 +25326,8 @@
   
   You may specify an optional 'cut' argument to rjust() to mimic rjc() 
   
+  This function is UTF8 aware.
+  
   Examples:
     > say -[rjust(foo,6)]-
     You say "-   foo-"
@@ -25356,6 +25353,8 @@
   You may specify an optional fill character.
   
   If you wish to use ansified filler, use printf() instead.
+  
+  This function is UTF8 aware.
    
   Examples:
     > say -[rjc(foo,6)]-
@@ -25401,6 +25400,8 @@
   You may specify an optional fill character.
   
   If you wish to use ansified filler, use printf() instead.
+  
+  This function is UTF8 aware.
    
   Examples:
     > say -[ljc(foo,6)]-
@@ -25423,6 +25424,8 @@
   If you wish to use ansified filler, use printf() instead.
   
   You may specify an optional 'cut' argument to ljust() to mimic ljc() 
+  
+  This function is UTF8 aware.
   
   Examples:
     > say -[ljust(foo,6)]-
@@ -25879,6 +25882,8 @@
   unmodified.  The <fill> may contain more than one character.
   
   If you wish to use ansified filler, use printf() instead.
+  
+  This function is UTF8 aware.
    
   Example:
     > say center(a,5,-)
@@ -34984,7 +34989,7 @@
  * @atrcache will optionally handle caches per command and handles args [ASH]
  * secstz()/msecstz() for EPOCH seconds based on specified timezone [ASH]
  * listtzone() for listing timezones and offset of timezone [ASH]
- * ljc/rjc/ljust/rjust/center are now ANSI aware [ASH]
+ * ljc/rjc/ljust/rjust/center are now ANSI and UTF8 aware [ASH]
  * regmatch() now allows named registers [ASH]
   
   Changes
@@ -35015,6 +35020,8 @@
  * @atrcache was unoptimized for some loop conditions [ASH]
  * escapex() now handles option '8' for UTF8 [ASH]
  * time() now is timezone aware optionally.
+ * stripunicode is now an alias to stripaccents [ASH]
+ * Rewrote all the API handlers to be centralized [ASH]
     
   Bug Fixes
   ------------
@@ -35037,3 +35044,4 @@
  * @rxlevel/@txlevel did not honor the QUIET flag [ASH]
  * suspect site was erraneously tagged with some site configs [ASH]
  * strlenvis() was not UTF8 aware [ASH]
+ * LBUF overflow in lua code [ASH]

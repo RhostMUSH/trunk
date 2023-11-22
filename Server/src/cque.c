@@ -25,7 +25,8 @@ extern double NDECL(next_timer);
 extern double FDECL(time_ng, (double*));
 extern int FDECL(alarm_msec, (double));
 
-#define MUMAXPID	32767
+// #define MUMAXPID	32767
+ #define MUMAXPID	262136
 #ifdef MAXINT
 #define MYMAXINT	MAXINT
 #else

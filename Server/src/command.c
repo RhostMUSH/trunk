@@ -453,6 +453,7 @@ NAMETAB examine_sw[] =
     {(char *) "regexp", 1, CA_PUBLIC, 0, EXAM_REGEXP | SW_MULTIPLE},
     {(char *) "cluster", 1, CA_PUBLIC, 0, EXAM_CLUSTER},
     {(char *) "display", 1, CA_PUBLIC, 0, EXAM_DISPLAY | SW_MULTIPLE},
+    {(char *) "snapshot", 1, CA_PUBLIC, 0, EXAM_SNAPSHOT},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB extansi_sw[] =
@@ -1136,12 +1137,12 @@ NAMETAB snapshot_sw[] =
   {(char *) "verify", 2, CA_IMMORTAL, 0, SNAPSHOT_VERIFY},
   {(char *) "unall", 3, CA_IMMORTAL, 0, SNAPSHOT_UNALL},
   {(char *) "overwrite", 2, CA_IMMORTAL, 0, SNAPSHOT_OVER | SW_MULTIPLE},
+  {(char *) "attributes", 2, CA_IMMORTAL, 0, SNAPSHOT_ATTRS | SW_MULTIPLE},
 /* -- this isn't fully baked yet and I'm lazy
   {(char *) "powers", 2, CA_IMMORTAL, 0, SNAPSHOT_POWER | SW_MULTIPLE},
   {(char *) "depowers", 3, CA_IMMORTAL, 0, SNAPSHOT_DPOWER | SW_MULTIPLE},
   {(char *) "flags", 2, CA_IMMORTAL, 0, SNAPSHOT_FLAGS | SW_MULTIPLE},
   {(char *) "toggles", 2, CA_IMMORTAL, 0, SNAPSHOT_TOGGL | SW_MULTIPLE},
-  {(char *) "attributes", 2, CA_IMMORTAL, 0, SNAPSHOT_ATTRS | SW_MULTIPLE},
   {(char *) "other", 2, CA_IMMORTAL, 0, SNAPSHOT_OTHER | SW_MULTIPLE},
 */
   {NULL, 0, 0, 0, 0}};

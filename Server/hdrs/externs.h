@@ -69,8 +69,8 @@ typedef struct ansisplit {
 	char	c_bgansi;	/* Normal background ansi */
 	int	i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
-        int	i_ascii8;	/* ASCII-8 encoding */
-    int i_utf8; /* UTF-8 encoding */
+	int	i_ascii8;	/* ASCII-8 encoding */
+	int 	i_utf8; 	/* UTF-8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {
@@ -751,6 +751,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EXAM_REGEXP	64	/* Examine by Regexp */
 #define EXAM_CLUSTER    128     /* Examine by Cluster */
 #define EXAM_DISPLAY	256	/* Do  ansified display of examine */
+#define EXAM_SNAPSHOT	512	/* Do a @snapshot image */
 
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */

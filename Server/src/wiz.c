@@ -25,7 +25,7 @@ char *strtok_r(char *, const char *, char **);
 
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*, int);
-extern int remote_read_sanitize(FILE *, dbref, int, int);
+extern int remote_read_sanitize(FILE *, dbref, int, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern ATRCACHE *atrcache_head;
@@ -4214,7 +4214,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             return;
          }
          tprp_buff = tpr_buff = alloc_lbuf("do_snapshot_verify");
-         if ( remote_read_sanitize(f_snap, NOTHING, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS) != 0 ) {
+         if ( remote_read_sanitize(f_snap, NOTHING, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS, i_tkey) != 0 ) {
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Filename %s is a corrupt image file.", s_mbname));
          } else {
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Filename %s has been verified clean.", s_mbname));

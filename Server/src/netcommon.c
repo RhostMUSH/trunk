@@ -593,6 +593,57 @@ strip_returntab(const char *raw, int key)
     RETURN(buf); /* #105 */
 }
 
+/* html handler for API -- cleanup and rewrite */
+void  
+handle_html(DESC *d, int code, char *buf1, char *buf2, char *buf3, char *buf4)
+{
+   char *s_dtime;
+
+   s_dtime = (char *) ctime(&mudstate.now);
+
+   switch(code) {
+      case 200: /* OK */
+         queue_string(d, "HTTP/1.1 200 OK\r\n");
+         break;
+      case 400: /* Bad Request */
+         queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
+         break;
+      case 403: /* Forbidden */
+         queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
+         break;
+      case 404: /* Not Found */
+         queue_string(d, "HTTP/1.1 404 Not Found\r\n");
+         break;
+      case 500: /* Internal Server Error */
+         queue_string(d, "HTTP/1.1 500 Internal Server Error\r\n");
+         break;
+      case 501: /* SSL not enabled */
+       queue_string(d, "HTTP/1.1 501 Not Implemented\r\n");
+         break;
+   }
+
+   /* Standard header */
+   queue_string(d, "Content-type: text/plain\r\n");
+   queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
+
+   /* Additional fields */
+   if ( buf1 && *buf1 ) {
+      queue_string(d, buf1);
+   }
+
+   if ( buf2 && *buf2 ) {
+      queue_string(d, buf2);
+   }
+
+   if ( buf3 && *buf3 ) {
+      queue_string(d, buf3);
+   }
+
+   if ( buf4 && *buf4 ) {
+      queue_string(d, buf4);
+   }
+}
+
 /* --------------------------------------------------
  * do_snoop: turns snooping on and off on a player for an immortal
  * [Thorin - 02/95]
@@ -5595,10 +5646,7 @@ do_command(DESC * d, char *command)
 
     if ( (d->flags & DS_API) && (cp == NULL) ) {
        s_dtime = (char *) ctime(&mudstate.now);
-       queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-       queue_string(d, "Content-type: text/plain\r\n");
-       queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-       queue_string(d, "Exec: Error - Invalid Headers Supplied\r\n");
+       handle_html(d, 400, (char *) "Exec: Error - Invalid Headers Supplied\r\n\r\n", NULL, NULL, NULL);
        process_output(d);
        shutdownsock(d, R_API);
        mudstate.debug_cmd = cmdsave;
@@ -5762,11 +5810,8 @@ do_command(DESC * d, char *command)
             }
             s_dtime = (char *) ctime(&mudstate.now);
 #ifndef HAS_OPENSSL
-            queue_string(d, "HTTP/1.1 200 OK\r\n");
-            queue_string(d, "Content-type: text/plain\r\n");
-            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-            queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
-            queue_string(d, "Return: <NULL>\r\n");
+            handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n", 
+                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
@@ -5964,9 +6009,7 @@ do_command(DESC * d, char *command)
                 complete_handshake(d, s_sockkey);
 #else
                 s_dtime = (char *) ctime(&mudstate.now);
-                queue_string(d, "HTTP/1.1 501 Websockets not enabled\r\n");
-                queue_string(d, "Content-type: text/plain\r\n");
-                queue_string(d, unsafe_tprintf("Date: %s\r\n\r\n", s_dtime));
+                handle_html(d, 501, (char *)"Return: Error - Websockets not enabled\r\n\r\n", NULL, NULL, NULL);
 #endif
             } else
             ///// END NEW WEBSOCK
@@ -5978,17 +6021,11 @@ do_command(DESC * d, char *command)
                s_pass++;
                thing = atoi(s_user);
                if ( !Good_chk(thing) ) {
-                  queue_string(d, "HTTP/1.1 404 Not Found\r\n");
-                  queue_string(d, "Content-type: text/plain\r\n");
-                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                  queue_string(d, "Exec: Error - Invalid target\r\n");
-                  queue_string(d, "Return: <NULL>\r\n\r\n");
+                  handle_html(d, 404, (char *)"Exec: Error - Invalid target\r\n", 
+                              (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
-                  queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                  queue_string(d, "Content-type: text/plain\r\n");
-                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                  queue_string(d, "Exec: Error - Permission Denied\r\n");
-                  queue_string(d, "Return: <NULL>\r\n\r\n");
+                  handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n", 
+                              (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                } else {
                   atrp = atr_str3("_APIIP");
                   i_snarfing = 0;
@@ -6002,11 +6039,8 @@ do_command(DESC * d, char *command)
                      sprintf(s_get, "%s", (char *)"127.0.0.1");
                   }
                   if ( !lookup(inet_ntoa(d->address.sin_addr), s_get, 1, &aflags) ) {
-                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                     queue_string(d, "Content-type: text/plain\r\n");
-                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                     queue_string(d, "Exec: Error - IP not allowed\r\n");
-                     queue_string(d, "Return: <NULL>\r\n\r\n");
+                     handle_html(d, 403, (char *)"Exec: Error - IP not allowed\r\n", 
+                                 (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                      i_snarfing = 1;
                   }
                   free_lbuf(s_get);
@@ -6016,11 +6050,8 @@ do_command(DESC * d, char *command)
                      if ( Totem(atoi(s_user),9) & TOTEM_API_LUA ) {
                         lua = open_lua_interpreter(thing);
                         if(!lua) {
-                           queue_string(d, "HTTP/1.1 500 Internal Server Error\r\n");
-                           queue_string(d, "Content-type: text/plain\r\n");
-                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Timeout opening interpreter\r\n");
-                           queue_string(d, "Return: <NULL>\r\n\r\n");
+                           handle_html(d, 500, (char *)"Exec: Error - Timeout opening interpreter\r\n",
+                                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                            broadcast_monitor(thing, MF_CPU, "LUA INTERPRETER TIMEOUT REACHED", (char *)"LUA", NULL, thing, 0, 0, NULL);
                            goto end_lua; /* Abort, abort! */
                         }
@@ -6028,11 +6059,8 @@ do_command(DESC * d, char *command)
                         free_lbuf(s_buffer);
                         s_buffer = exec_lua_script(lua, s_lua, &i_lualength);
                         if(!s_buffer) {
-                           queue_string(d, "HTTP/1.1 500 Internal Server Error\r\n");
-                           queue_string(d, "Content-type: text/plain\r\n");
-                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Timeout running script\r\n");
-                           queue_string(d, "Return: <NULL>\r\n\r\n");
+                           handle_html(d, 500, (char *)"Exec: Error - Timeout running script\r\n",
+                                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                            /* We need to re-cache the buffer here */
                            s_buffer = alloc_lbuf("cmd_post_buff");
                            broadcast_monitor(thing, MF_CPU, "LUA EXECUTION TIMEOUT REACHED", (char *)"LUA API->GET", NULL, thing, 0, 0, NULL);
@@ -6041,14 +6069,13 @@ do_command(DESC * d, char *command)
       
                         close_lua_interpreter(lua);
 
-                        queue_string(d, "HTTP/1.1 200 OK\r\n");
-                        queue_string(d, "Content-type: text/plain\r\n");
+                        /* This is a one off for various handlings for LUA */
+                        handle_html(d, 200, NULL, NULL, NULL, NULL);
                         if ( i_snarfing4 ) {
                            queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
                            queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
                            queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
                         }
-                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                         queue_string(d, "X-Lua: Ok - Executed\r\n");
                         if ( i_encode64 ) {
                            queue_string(d, "X-Lua-Warning: Base64 Encoding not supported for output\r\n");
@@ -6066,11 +6093,8 @@ do_command(DESC * d, char *command)
                         free(s_buffer);
                         s_buffer = alloc_lbuf("cmd_post_buff");
                      } else {
-                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                        queue_string(d, "Content-type: text/plain\r\n");
-                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                        queue_string(d, "Exec: Error - Permission Denied\r\n");
-                        queue_string(d, "Return: <NULL>\r\n\r\n");
+                        handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                    (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                      }
                      end_lua: /* I'm using goto as a poor man's exception system. Fite me. --polk */
                      free_lbuf(s_lua);
@@ -6159,14 +6183,14 @@ do_command(DESC * d, char *command)
                                  ENDLOG
                               }
                               mudstate.chkcpu_toggle = i_cputog;
-                              queue_string(d, "HTTP/1.1 200 OK\r\n");
-                              queue_string(d, "Content-type: text/plain\r\n");
+
+                              /* This is a one off handler */
+                              handle_html(d, 200, NULL, NULL, NULL, NULL);
                               if ( i_snarfing4 ) {
                                  queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
                                  queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
                                  queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
                               }
-                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Ok - Executed\r\n");
                               if ( i_encode64 ) {
                                  free_lbuf(s_snarfing2);
@@ -6179,35 +6203,23 @@ do_command(DESC * d, char *command)
                                  queue_string(d, unsafe_tprintf("Return: %.*s\r\n\r\n", (LBUF_SIZE - 14), s_buffer));
                               }
                            } else {
-                              queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-                              queue_string(d, "Content-type: text/plain\r\n");
-                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                              queue_string(d, "Exec: Error - Empty String\r\n");
-                              queue_string(d, "Return: <NULL>\r\n\r\n");
+                              handle_html(d, 400, (char *)"Exec: Error - Empty String\r\n",
+                                          (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                            }
                         } else {
-                           queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                           queue_string(d, "Content-type: text/plain\r\n");
-                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Permission Denied\r\n");
-                           queue_string(d, "Return: <NULL>\r\n\r\n");
+                           handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                         }
                         free_lbuf(s_get);
                      } else {
-                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                        queue_string(d, "Content-type: text/plain\r\n");
-                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                        queue_string(d, "Exec: Error - Permission Denied\r\n");
-                        queue_string(d, "Return: <NULL>\r\n\r\n");
+                        handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                    (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                      }
                   }
                }
             } else {
-               queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-               queue_string(d, "Content-type: text/plain\r\n");
-               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-               queue_string(d, "Exec: Error - Malformed User or Password\r\n");
-               queue_string(d, "Return: <NULL>\r\n\r\n");
+               handle_html(d, 403, (char *)"Exec: Error - Malformed User or Password\r\n",
+                           (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                free_lbuf(s_user);
             }
 
@@ -6247,10 +6259,8 @@ do_command(DESC * d, char *command)
             }
             s_dtime = (char *) ctime(&mudstate.now);
 #ifndef HAS_OPENSSL
-            queue_string(d, "HTTP/1.1 200 OK\r\n");
-            queue_string(d, "Content-type: text/plain\r\n");
-            queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-            queue_string(d, "Exec: Error - SSL not compiled in RhostMUSH\r\n");
+            handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n",
+                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
@@ -6359,15 +6369,11 @@ do_command(DESC * d, char *command)
                s_pass++;
                thing = atoi(s_user);
                if ( !Good_chk(thing) ) {
-                  queue_string(d, "HTTP/1.1 404 Not Found\r\n");
-                  queue_string(d, "Content-type: text/plain\r\n");
-                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                  queue_string(d, "Exec: Error - Invalid target\r\n");
+                  handle_html(d, 404, (char *)"Exec: Error - Invalid Target\r\n",
+                              (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                } else if ( !HasPriv(thing, NOTHING, POWER_API, POWER5, NOTHING) )  {
-                  queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                  queue_string(d, "Content-type: text/plain\r\n");
-                  queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                  queue_string(d, "Exec: Error - Permission Denied\r\n");
+                  handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                              (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                } else {
                   atrp = atr_str3("_APIIP");
                   i_snarfing = 0;
@@ -6381,10 +6387,8 @@ do_command(DESC * d, char *command)
                      sprintf(s_get, "%s", (char *)"127.0.0.1");
                   }
                   if ( !lookup(inet_ntoa(d->address.sin_addr), s_get, 1, &aflags) ) {
-                     queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                     queue_string(d, "Content-type: text/plain\r\n");
-                     queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                     queue_string(d, "Exec: Error - IP not allowed\r\n");
+                     handle_html(d, 403, (char *)"Exec: Error - IP not allowed\r\n",
+                                 (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                      i_snarfing = 1;
                   }
                   free_lbuf(s_get);
@@ -6399,41 +6403,33 @@ do_command(DESC * d, char *command)
                            } 
                            if ( *s_snarfing ) {
 	                      wait_que(thing, thing, i_time, NOTHING, s_snarfing, (char **)NULL, 0, NULL, NULL);
-                              queue_string(d, "HTTP/1.1 200 OK\r\n");
-                              queue_string(d, "Content-type: text/plain\r\n");
+
+                              /* One off handler */
+                              handle_html(d, 200, NULL, NULL, NULL, NULL);
                               if ( i_snarfing4 ) {
                                  queue_string(d, unsafe_tprintf("Access-Control-Allow-Origin: %s\r\n", s_snarfing4));
                                  queue_string(d, "Access-Control-Allow-Methods: POST, GET\r\n");
                                  queue_string(d, "Vary: Accept-Encoding, Origin\r\n");
                               }
-                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
                               queue_string(d, "Exec: Ok - Queued\r\n\r\n");
                            } else {
-                              queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-                              queue_string(d, "Content-type: text/plain\r\n");
-                              queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                              queue_string(d, "Exec: Error - Empty String\r\n\r\n");
+                              handle_html(d, 400, (char *)"Exec: Error - Empty String\r\n",
+                                          (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                            }
                         } else {
-                           queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                           queue_string(d, "Content-type: text/plain\r\n");
-                           queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                           queue_string(d, "Exec: Error - Permission Denied\r\n\r\n");
+                           handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                         }
                         free_lbuf(s_get);
                      } else {
-                        queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-                        queue_string(d, "Content-type: text/plain\r\n");
-                        queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-                        queue_string(d, "Exec: Error - Permission Denied\r\n\r\n");
+                        handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                    (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                      }
                   }
                }
             } else {
-               queue_string(d, "HTTP/1.1 403 Forbidden\r\n");
-               queue_string(d, "Content-type: text/plain\r\n");
-               queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-               queue_string(d, "Exec: Error - Malformed User or Password\r\n\r\n");
+               handle_html(d, 403, (char *)"Exec: Error - Malformed User or Password\r\n",
+                           (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
                free_lbuf(s_user);
             }
 
@@ -6501,14 +6497,11 @@ do_command(DESC * d, char *command)
     /* Any API foo should just drop here as we have nothing for them to do */
     if ( d->flags & DS_API ) {
        s_dtime = (char *) ctime(&mudstate.now);
-       queue_string(d, "HTTP/1.1 400 Bad Request\r\n");
-       queue_string(d, "Content-type: text/plain\r\n");
-       queue_string(d, unsafe_tprintf("Date: %s", s_dtime));
-       queue_string(d, "Exec: Error - Unrecognized Input\r\n");
+       handle_html(d, 400, (char *)"Exec: Error - Unrecognized Input\r\n", NULL, NULL,  NULL);
        if ( cp ) {
-          queue_string(d, unsafe_tprintf("Return: Bad command -> %s", cp->name));
+          queue_string(d, unsafe_tprintf("Return: Bad command -> %s\r\n\r\n", cp->name));
        } else { 
-          queue_string(d, "Return: <NULL>\r\n");
+          queue_string(d, "Return: <NULL>\r\n\r\n");
        }
        process_output(d);
        shutdownsock(d, R_API);

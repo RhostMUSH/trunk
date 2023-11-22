@@ -51,13 +51,14 @@ lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
         dest[0] = 0;
         return;
     }
-    strncpy(dest, lua_tolstring(L, src_index, &size), LBUF_SIZE >= size ? LBUF_SIZE : size);
+    strncpy(dest, lua_tolstring(L, src_index, &size), size >= (LBUF_SIZE - 1) ? LBUF_SIZE - 1 : size);
 }
 
 static dbref
 lua_pull_run_as(lua_State *L)
 {
     dbref run_as;
+
     /* Pull run_as in lua registry table */
     lua_pushlightuserdata(L, (void *)rhost_run_as_key);
     lua_gettable(L, LUA_REGISTRYINDEX);
@@ -83,6 +84,7 @@ lua_check_read_perms(dbref player, dbref thing, ATTR *attr,
 
     if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
         return 0;
+
     see_it = See_attr(player, thing, attr, aowner, aflags, 0);
     if ((Examinable(player, thing) || nearby(player, thing))) {
         if ( ((attr)->flags & (AF_INTERNAL)) ||
@@ -121,6 +123,7 @@ rhost_get(lua_State *L)
     /* Check argument count */
     argv = lua_gettop(L);
     /* log_text("rhost_get : gettop : "); log_number(argv); end_log(); */
+
     if(argv != 2) {
         lua_pushliteral(L, "rhost_get: Incorrect number of arguments");
         lua_error(L);

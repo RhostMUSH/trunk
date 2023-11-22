@@ -3884,6 +3884,10 @@ FUNCTION(fun_nslookup)
 int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
    char *pp = leftstart;
 
+   /* If it was null this could have crashed the function */
+   if ( !pp || !*pp )
+      return 0;
+
    // Always escaped, return the next character.
    if(*pp == '\\')
       return 1;
@@ -4053,12 +4057,12 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           // We want to find the true length in the string, without ansi
           for(lstspc=pp=leftstart,pchr=0;
               (*pp != '\0') && (pchr < winfo.width);pp++) {
-               pp += seek_next_real_char(pp, &i_haveansi, &i_inansi);
-              
-              pchr++;
 
-              if(*pp == ' ')
-                 lstspc=pp;
+             pp += seek_next_real_char(pp, &i_haveansi, &i_inansi);
+             pchr++;
+
+             if (*pp == ' ')
+                lstspc=pp;
           }
 
           if(pchr == 0) {
@@ -4070,17 +4074,17 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
           }
 
          /* If we have a full width AND the next character is our null-terminator or a space,
-         * we want to grab the entire width.
-         */
-         if(pchr == winfo.width) {
+          * we want to grab the entire width.
+          */
+         if (pchr == winfo.width) {
             // skip any control characters
             ppTempShift = seek_next_real_char(pp, &i_haveansi, &i_inansi);
 
-            if(*(pp + ppTempShift) == ' ' || *(pp + ppTempShift) == '\0')  {
+            if (*(pp + ppTempShift) == ' ' || *(pp + ppTempShift) == '\0')  {
                pp += ppTempShift;
                lstspc = pp;
             }
-          }
+         }
 
           if(leftstart != expandbuff)
               safe_str("\r\n", buff, bufcx );
@@ -25206,15 +25210,62 @@ FUNCTION(fun_secure)
 
 FUNCTION(fun_esclist)
 {
-    char *s_index, *s, *s2;
+    char *s_index, *s, *s2, *s_buff, *s_buffptr, *s_split0, *s_pos, *s_output;
     int i_escape;
+    ANSISPLIT split0[LBUF_SIZE], split_index[LBUF_SIZE], *p_0, *p_split;
+
+    if ( !*fargs[0] || !strchr(fargs[0], '|') ) {
+       return;
+    }
 
     s_index = alloc_lbuf("fun_esclist");
     memset(s_index, '\0', LBUF_SIZE);
     s2 = s_index;
 
     i_escape = 0;
-    s = fargs[0];
+
+    initialize_ansisplitter(split0, LBUF_SIZE);
+    initialize_ansisplitter(split_index, LBUF_SIZE);
+    s_split0 = alloc_lbuf("fun_esclist_ansi");
+    split_ansi(strip_ansi(fargs[0]), s_split0, split0);
+
+    s_buff = s_split0;
+    p_0 = split0;
+    while ( *s_buff && (*s_buff != '|') ) {
+       s_buff++;
+       p_0++;
+    }
+    if ( *s_buff == '|' ) {
+       *s_buff = '\0';
+       s_buff++;
+       p_0++;
+    }
+
+    s = s_split0;
+
+    s_buffptr = s_buff;
+    p_split = split_index;
+    while ( *s_buffptr ) {
+       s_pos = strchr(s, *s_buffptr);
+       if ( s_pos ) {
+          if ( (split0+(s_pos - s))->i_utf8 == (p_0+(s_buffptr-s_buff))->i_utf8) {
+             safe_chr('\\', s_index, &s2);
+             clone_ansisplitter(p_split, p_0+(s_buffptr-s_buff));
+             p_split++;
+          }
+       }
+       safe_chr(*s_buffptr, s_index, &s2);
+       clone_ansisplitter(p_split, p_0+(s_buffptr-s_buff));
+       s_buffptr++;
+       p_split++;
+    }
+    s_output = rebuild_ansi(s_index, split_index, 0);
+    safe_str(s_output, buff, bufcx);
+    free_lbuf(s_output);
+    free_lbuf(s_index);
+    free_lbuf(s_split0);
+
+/* -- Don't need this anymore, this is pre-utf8 handler
     while ( s && *s ) {
        if ( *s != '|' ) {
           *s2 = *s;
@@ -25239,6 +25290,7 @@ FUNCTION(fun_esclist)
        s++;
     }
     free_lbuf(s_index);
+*/
 }
 
 FUNCTION(fun_unesclist)
@@ -27056,6 +27108,33 @@ FUNCTION(fun_caplist)
 /* ---------------------------------------------------------------------------
  * fun_creplace: Replace/Overwrite/Overwrite & Cut, at position.
  */
+
+/* ---- this function isn't fully cooked yet so ignore for now
+FUNCTION(fun_creplaceansi)
+{
+   char *sop;
+   int i_val;
+
+   if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
+       return;
+
+   sop = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+   i_val = atoi(sop);
+   if ( i_val < 1 || i_val > (LBUF_SIZE-1) ) {
+      curr_temp = alloc_mbuf("creplace");
+      sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE);
+      safe_str(curr_temp, buff, bufcx);
+      free_mbuf(curr_temp);
+      free_lbuf(sop);
+      return;
+   }
+   curr_temp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+   sop_temp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
+
+
+}
+*/
+
 FUNCTION(fun_creplace)
 {
    char *curr, *cp, sep, *sop, *sp, *curr_temp, *sop_temp;
@@ -32955,6 +33034,7 @@ FUNCTION(fun_stripaccents) {
    safe_str(fargs[0], buff, bufcx);
 #endif
 }
+
 
 /* ---------------------------------------------------------------------------
  * fun_space: Make spaces.
@@ -39690,7 +39770,6 @@ FUN flist[] =
     {"STREVAL", fun_streval, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"STRIP", fun_strip, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRIPACCENTS", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
-    {"STRIPUNICODE", fun_stripaccents, 1, 0, CA_PUBLIC, 0},
     {"STRIPANSI", fun_stripansi, 1, 0, CA_PUBLIC, 0},
     {"STRCAT", fun_strcat, 0,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"STRFUNC", fun_strfunc, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

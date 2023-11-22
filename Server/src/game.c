@@ -2436,31 +2436,14 @@ NDECL(process_preload)
     fp = (FWDLIST *) alloc_lbuf("process_preload.fwdlist");
     tstr = alloc_lbuf("process_preload.string");
     tstr2 = alloc_lbuf("process_preload.string");
-    DO_WHOLE_DB(thing) {
 
-       /* Ignore GOING objects */
+    /* We need to walk once through to set up all attribute tags and other things
+     * we do not need need to execute queue for this, it's just setting up attribs/cache
+     * we can *not* do any evaluation in this loop.  This just sets cache/attributes ONLY
+     */
+    DO_WHOLE_DB(thing) {
        if (Going(thing))
           continue;
-
-       do_top(10);
-
-
-       /* Clear semaphores on objects */
-       /* atr_clr(thing, A_SEMAPHORE); */
-
-       /* Look for a STARTUP attribute in parents */
-       if ( !mudconf.no_startup ) {
-          ITER_PARENTS(thing, parent, lev) {
-             if (Flags(thing) & HAS_STARTUP) {
-                did_it(Owner(thing), thing, 0, NULL, 0, NULL, A_STARTUP, (char **) NULL, 0);
-                /* Process queue entries as we add them */
-                do_second();
-                do_top(10);
-                cache_reset(0);
-                break;
-             }
-          }
-       }
 
        /* Load the memory based structure data for Totems A_PRIVS is *Totems */
        (void) atr_get_str(tstr, thing, A_PRIVS, &aowner, &aflags);
@@ -2502,17 +2485,6 @@ NDECL(process_preload)
           }
        }
 
-       /* Look for a FORWARDLIST attribute */
-       if (H_Fwdlist(thing)) {
-          (void) atr_get_str(tstr, thing, A_FORWARDLIST, &aowner, &aflags);
-          if (*tstr) {
-             fwdlist_load(fp, GOD, tstr);
-             if (fp->count > 0)
-                fwdlist_set(thing, fp);
-          }
-          cache_reset(0);
-       }
-
        /* Look for an OBJECTTAG attribute */
        if (H_ObjectTag(thing)) {
           (void) atr_get_str(tstr, thing, A_OBJECTTAG, &aowner, &aflags);
@@ -2530,6 +2502,45 @@ NDECL(process_preload)
              }
           }
        }
+    }
+
+    /* This runs the startups and other baseline */
+    DO_WHOLE_DB(thing) {
+       /* Ignore GOING objects */
+       if (Going(thing))
+          continue;
+
+       do_top(10);
+
+
+       /* Clear semaphores on objects */
+       /* atr_clr(thing, A_SEMAPHORE); */
+
+       /* Look for a STARTUP attribute in parents */
+       if ( !mudconf.no_startup ) {
+          ITER_PARENTS(thing, parent, lev) {
+             if (Flags(thing) & HAS_STARTUP) {
+                did_it(Owner(thing), thing, 0, NULL, 0, NULL, A_STARTUP, (char **) NULL, 0);
+                /* Process queue entries as we add them */
+                do_second();
+                do_top(10);
+                cache_reset(0);
+                break;
+             }
+          }
+       }
+
+       /* Look for a FORWARDLIST attribute */
+       if (H_Fwdlist(thing)) {
+          (void) atr_get_str(tstr, thing, A_FORWARDLIST, &aowner, &aflags);
+          if (*tstr) {
+             fwdlist_load(fp, GOD, tstr);
+             if (fp->count > 0)
+                fwdlist_set(thing, fp);
+          }
+          cache_reset(0);
+       }
+
     }
 
     free_lbuf(fp);

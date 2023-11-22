@@ -1611,17 +1611,30 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
 }
 
 int 
-remote_read_sanitize(FILE *f, dbref i, int db_format, int flags)
+remote_read_sanitize(FILE *f, dbref i, int db_format, int flags, int i_type)
 {
    int i_ref, i_count;
    char *t_str;
    BOOLEXP *tempbool;
+
+/* -- not implemented or tested yet 
+   if ( i_type & SNAPSHOT_ATTRS ) {
+      if (!get_list(f, i, 2, &i_count)) {
+         return(1);
+      }
+      if ( feof(f) )
+         return(1);
+      return(0);
+   }
+*/
 
    i_count = 0;
    i_ref = getref(f);
    t_str = NULL;
    if ( feof(f) || (i_ref < 0) || (i_ref > 7) )
       return(1);
+
+
    if (!(flags & V_ATRNAME)) 
       t_str = (char *)getstring_noalloc(f); /* Player name */
    if ( feof(f) || !t_str || !*t_str )
@@ -1724,15 +1737,19 @@ remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count, int ke
    char *t_str;
    BOOLEXP *tempbool;
 
-   i_ref = remote_read_sanitize(f, i, db_format, flags);
+   i_ref = remote_read_sanitize(f, i, db_format, flags, key);
    if ( i_ref != 0 ) {
       return(3);
    }
    rewind(f);
-   i_ref = getref(f);
-   if ( i_ref != Typeof(i) ) {
-      return(1);
+
+   if ( !key ) {
+      i_ref = getref(f);
+      if ( i_ref != Typeof(i) ) {
+         return(1);
+      }
    }
+
    if (!(flags & V_ATRNAME)) {
       t_str = (char *)getstring_noalloc(f);
       if ( !key || (key & SNAPSHOT_OTHER) ) {

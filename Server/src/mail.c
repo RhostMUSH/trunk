@@ -291,7 +291,7 @@ stricmp(char *buf1, char *buf2)
 
     p1 = buf1;
     p2 = buf2;
-    while ((*p1 != '\0') && (*p2 != '\0') && (tolower(*p1) == tolower(*p2))) {
+    while ( p1 && p2 && (*p1 != '\0') && (*p2 != '\0') && (tolower(*p1) == tolower(*p2))) {
 	p1++;
 	p2++;
     }
