@@ -35022,6 +35022,7 @@
  * time() now is timezone aware optionally.
  * stripunicode is now an alias to stripaccents [ASH]
  * Rewrote all the API handlers to be centralized [ASH]
+ * Max pids and formatting raised from 32K to 256K queues [ASH]
     
   Bug Fixes
   ------------

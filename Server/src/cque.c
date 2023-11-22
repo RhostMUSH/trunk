@@ -2508,7 +2508,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                stop_chr = ' ';
 	    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
 			       tmp->sem,
@@ -2517,7 +2517,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       bufp, tmp->comm));
 	    else if (tmp->waittime > 0)
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
                                mtimerlen,
@@ -2525,12 +2525,12 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       bufp, tmp->comm));
 	    else if (Good_obj(tmp->sem))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, tmp->sem,
 			       bufp, tmp->comm));
 	    else
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c %s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, bufp, tmp->comm));
 	    bp = bufp;
 	    if (key == PS_LONG) {
