@@ -121,20 +121,27 @@ int global_timezone_max = 0;
 
 /* Initialize timezone data for the server */
 int
-walk_subdirs( char *s_dir, char *prefix, int *i_cnt)
+walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
 {
    DIR *dir;
-   char *t_buff, *t_buff2;
+   char *t_buff, *t_buff2, *s_dirt;
    struct dirent *files;
    struct stat st_buf;
 
    dir = opendir(s_dir);
+   s_dirt = s_dir;
 
    if ( dir == NULL ) {
-      STARTLOG(LOG_ALWAYS, "TZ", "INFO")
-         log_text((char *) "File path not found.");
-      ENDLOG
-      return 1;
+      if ( s_dir2 && *s_dir2 ) {
+         dir = opendir(s_dir2);
+      }
+      if ( dir == NULL ) {
+         STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+            log_text((char *) "File path not found.");
+         ENDLOG
+         return 1;
+      }
+      s_dirt = s_dir2;
    }
 
    t_buff = alloc_mbuf("walk_subdirs");
@@ -147,11 +154,11 @@ walk_subdirs( char *s_dir, char *prefix, int *i_cnt)
          break;
       }
       if ( (strcmp(files->d_name, ".") != 0) && (strcmp(files->d_name, "..") != 0) ) {
-         sprintf(t_buff2, "%s/%s", s_dir, files->d_name);
+         sprintf(t_buff2, "%s/%s", s_dirt, files->d_name);
          stat(t_buff2, &st_buf);
          if ( st_buf.st_mode & S_IFDIR ) {
             sprintf(t_buff, "%s/", files->d_name);
-            walk_subdirs(t_buff2, t_buff, i_cnt);
+            walk_subdirs(t_buff2, (char *)NULL, t_buff, i_cnt);
          }
          global_timezones[*i_cnt] = alloc_mbuf("init_timezones");
          if ( *prefix ) {
@@ -172,7 +179,7 @@ init_timezones( void ) {
    int i_cnt, i_err;
 
    i_cnt = 0;
-   i_err = walk_subdirs((char *)"/usr/share/zoneinfo/posix", (char *)"", &i_cnt);
+   i_err = walk_subdirs((char *)"/usr/share/zoneinfo/posix", (char *)"/usr/share/zoneinfo", (char *)"", &i_cnt);
 
    if ( !i_err ) {
       STARTLOG(LOG_ALWAYS, "TZ", "INFO")
