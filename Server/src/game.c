@@ -124,12 +124,15 @@ int
 walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
 {
    DIR *dir;
-   char *t_buff, *t_buff2, *s_dirt;
+   FILE *fp;
+   char *t_buff, *t_buff2, *s_dirt; 
+   static char s_tst[3];
    struct dirent *files;
    struct stat st_buf;
 
    dir = opendir(s_dir);
    s_dirt = s_dir;
+   memset(s_tst, '\0', sizeof(s_tst));
 
    if ( dir == NULL ) {
       if ( s_dir2 && *s_dir2 ) {
@@ -160,6 +163,19 @@ walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
             sprintf(t_buff, "%s/", files->d_name);
             walk_subdirs(t_buff2, (char *)NULL, t_buff, i_cnt);
          }
+
+         /* Let's validate the file as a TZ file */
+         fp = fopen(t_buff2, "r");
+         if ( fp ) {
+            fread( &s_tst, 2, 1, fp );
+            fclose(fp);
+            if ( strcmp(s_tst, "TZ") ) {
+               continue;
+            }
+         } else {
+            continue;
+         }
+                 
          global_timezones[*i_cnt] = alloc_mbuf("init_timezones");
          if ( *prefix ) {
             sprintf(global_timezones[*i_cnt], "%s%.*s", prefix, MBUF_SIZE - 1, files->d_name);
