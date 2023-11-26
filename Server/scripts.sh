@@ -69,6 +69,7 @@ function help
    echo "   -p -- update patcher and this script."
    echo "   -c -- convert old makefile with new makefile."
    echo "   -m -- update main Makefile and src/Makefile to latest."
+   echo "   -f -- update all bin scripts including asksource scripts."
 }
 
 function update_execscripts
@@ -107,9 +108,17 @@ function update_bins
    for i in $(ls ${lc_bin}/asksource.save_template ${lc_bin}/mysql.blank ${lc_bin}/mysql_config ${lc_bin}/*.sh)
    do
       lc_file="$(echo "${i##*/}")"
-      if [ "${lc_file}" = "asksource.sh" ]
+      if [ -z "${asksource}" -a "${lc_file}" = "asksource.sh" ]
       then
          continue
+      else
+         diff $i ./bin/${lc_file} > /dev/null 2>&1
+         if [ $? -ne 0 ]
+         then
+            mv -f ./bin/${lc_file} ./bin/${lc_file}.${lc_date} 2>/dev/null
+            cp -pf ${lc_bin}/${lc_file} ./bin/${lc_file}
+            tail -n +2 ./bin/asksource.sh > ./bin/asksource.blank
+         fi
       fi
       diff $i ./bin/${lc_file} > /dev/null 2>&1
       if [ $? -ne 0 ]
@@ -377,6 +386,10 @@ case "$@" in
       update_execscripts
       ;;
    -b|-B|--bin) # bins
+      update_bins
+      ;;
+   -f|-F|--fullbin) # bins
+      asksource=1
       update_bins
       ;;
    -c|-C|--convert) # do convert
