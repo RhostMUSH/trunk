@@ -118,6 +118,12 @@ function update_bins
             mv -f ./bin/${lc_file} ./bin/${lc_file}.${lc_date} 2>/dev/null
             cp -pf ${lc_bin}/${lc_file} ./bin/${lc_file}
             tail -n +2 ./bin/asksource.sh > ./bin/asksource.blank
+            if [ -z "${lc_update}" ]
+            then
+               lc_update="${lc_file}"
+            else
+               lc_update="${lc_update} ${lc_file}"
+            fi
          fi
       fi
       diff $i ./bin/${lc_file} > /dev/null 2>&1
