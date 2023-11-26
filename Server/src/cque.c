@@ -26,7 +26,11 @@ extern double FDECL(time_ng, (double*));
 extern int FDECL(alarm_msec, (double));
 
 // #define MUMAXPID	32767
- #define MUMAXPID	262136
+#ifdef DYN_MAXPIDS
+#define MUMAXPID	DYN_MAXPIDS
+#else
+#define MUMAXPID	262136
+#endif
 #ifdef MAXINT
 #define MYMAXINT	MAXINT
 #else
@@ -2641,6 +2645,8 @@ do_ps(dbref player, dbref cause, int key, char *target)
 	   sprintf(bufp, "Totals: Player...%d/%d  Object...%d/%d  Wait...%d/%d  Semaphore...%d/%d",
 		   pqent, pqtot, oqent, oqtot, wqent, wqtot, sqent, sqtot);
        notify(player, bufp);
+       sprintf(bufp, "Queue TimerInterval: [%d max pids] %d times a second (1/%d second)", MUMAXPID, mudconf.mtimer, mudconf.mtimer);
+/*
        switch (mudconf.mtimer) {
           case 1: strcpy(bufp, "Queue TimerInterval: every second (1/1 second)");
                   break;
@@ -2653,6 +2659,7 @@ do_ps(dbref player, dbref cause, int key, char *target)
           default: strcpy(bufp, "Queue TimerInterval: Unknown -- Contact staff)");
                   break;
        }
+*/
        notify(player, bufp);
        free_mbuf(bufp);
     } else {
