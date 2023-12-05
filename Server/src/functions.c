@@ -14325,20 +14325,91 @@ FUNCTION(fun_cloak)
   }
 }
 
+FUNCTION(fun_isunicode)
+{
+    char *outbuff, *o;
+    int i_val;
+    ANSISPLIT outsplit[LBUF_SIZE], *p;
+
+    if ( *fargs[0] == '\0' ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    outbuff = alloc_lbuf("isunicode");
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    i_val = 1;
+    p = outsplit;
+    o = outbuff;
+    while ( o && p && *o ) {
+       if ( !p->i_utf8 && !isalpha(*o) && (*o != '-') && (*o != '_') ) {
+          i_val = 0;
+          break;
+       }
+       p++;
+       o++;
+    }
+
+    free_lbuf(outbuff);
+    ival(buff, bufcx, i_val);
+}
+
+FUNCTION(fun_isutf8)
+{
+    char *outbuff, *o;
+    int i_val;
+    ANSISPLIT outsplit[LBUF_SIZE], *p;
+
+    if ( *fargs[0] == '\0' ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    outbuff = alloc_lbuf("isutf8");
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    i_val = 1;
+    p = outsplit;
+    o = outbuff;
+    while ( o && p && *o ) {
+       if ( !p->i_utf8 ) {
+          i_val = 0;
+          break;
+       }
+       p++;
+       o++;
+    }
+
+    free_lbuf(outbuff);
+    ival(buff, bufcx, i_val);
+}
+
 /*
  * Borrowed from PennMUSH 1.50
  */
 FUNCTION(fun_isword)
 {
-    char *p;
+    char *p, *outbuff;
     int i_val;
+    ANSISPLIT outsplit[LBUF_SIZE];
 
     if ( *fargs[0] == '\0' ) {
        ival(buff, bufcx, 0);
        return;
     }
     i_val = 1;
-    for (p = fargs[0]; *p; p++)
+
+    outbuff = alloc_lbuf("isword");
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    for (p = outbuff; *p; p++)
     {
         if (!isalpha((int)*p) && (*p != '-'))
         {
@@ -14346,6 +14417,8 @@ FUNCTION(fun_isword)
             break;
         }
     }
+    free_lbuf(outbuff);
+
     ival(buff, bufcx, i_val);
 }
 
@@ -35912,52 +35985,150 @@ FUNCTION(fun_r)
 
 FUNCTION(fun_isnum)
 {
-    safe_str((is_number(fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isnum"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((is_number(outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isalnum)
 {
-    safe_str((isalnum((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isalnum"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isalnum((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isalpha)
 {
-    safe_str((isalpha((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isalpha"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isalpha((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isint)
 {
-    safe_str((is_rhointeger((char *)fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isint"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((is_rhointeger((char *)outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isdigit)
 {
-    safe_str((isdigit((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isdigit"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isdigit((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_islower)
 {
-    safe_str((islower((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("islower"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((islower((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_ispunct)
 {
-    safe_str((ispunct((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("ispunct"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((ispunct((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isspace)
 {
-    safe_str((isspace((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isspace"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isspace((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isupper)
 {
-    safe_str((isupper((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isupper"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isupper((int)*outbuff) ? "1" : "0"), buff, bufcx);
 }
 
 FUNCTION(fun_isxdigit)
 {
-    safe_str((isxdigit((int)*fargs[0]) ? "1" : "0"), buff, bufcx);
+    char *outbuff;
+    ANSISPLIT outsplit[LBUF_SIZE];
+
+    outbuff = alloc_lbuf("isxdigit"); 
+    memset(outbuff, '\0', LBUF_SIZE);
+    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+
+    safe_str((isxdigit((int)*outbuff) ? "1" : "0"), buff, bufcx);
+
+    free_lbuf(outbuff);
 }
 
 /* ---------------------------------------------------------------------------
@@ -39622,7 +39793,9 @@ FUN flist[] =
     {"ISPUNCT", fun_ispunct, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISSPACE", fun_isspace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISTAG", fun_istag, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISUNICODE", fun_isunicode, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISUPPER", fun_isupper, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ISUTF8", fun_isutf8, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISWORD", fun_isword, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISXDIGIT", fun_isxdigit, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ITER", fun_iter, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},

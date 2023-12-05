@@ -12117,32 +12117,33 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()           COS()          CRC32()       CRC32OBJ()
-  CREATE()        CREATETIME()    CREPLACE()     CTU()         DEC()       
-  DECODE64()      DECRYPT()       DEFAULT()      DELETE()      DELEXTRACT()
-  DESTROY()       DICE()          DIG()          DIGEST()      DIST2D()    
-  DIST3D()        DIV()           E()            EDEFAULT()    EDIT()      
-  EDITANSI()      EE()            ELIST()        ELEMENTPOS()  ELEMENTS()  
-  ELEMENTSMUX()   ELOCK()         EMIT()         ENCODE64()    ENCRYPT()   
-  ENTRANCES()     EQ()            ERROR()        ESCAPE()      ESCAPEX()   
-  ESCLIST()       EVAL()          EXIT()         EXP()         EXTRACT()   
-  EXTRACTWORD()   FBETWEEN()      FBOUND()       FDIV()        FILTER()    
-  FINDABLE()      FIRST()         FLAGS()        FLOOR()       FLOORDIV()  
-  FOLD()          FOLDERCURRENT() FOLDERLIST()   FOREACH()     FULLNAME()  
-  GARBLE()        GET()           GET_EVAL()     GLOBALROOM()  GRAB()      
-  GRABALL()       GREP()          GT()           GTE()         GUILD()     
-  HASATTR()       HASATTRP()      HASFLAG()      HASTOGGLE()   HASTOTEM()  
-  HASTYPE()       HASQUOTA()      HASRXLEVEL()   HASTXLEVEL()  HOME()      
-  IBREAK()        IDLE()          IFELSE()       IINDEX()      ILEV()      
-  INC()           INDEX()         INF()          INPROGRAM()   INSERT()    
-  INUM()          INZONE()        ISALNUM()      ISALPHA()     ISCLUSTER() 
-  ISDBREF()       ISDIGIT()       ISHIDDEN()     ISNUM()       ISOBJID()   
-  ISPUNCT()       ISSPACE()       ISTAG()        ISWORD()      ISXDIGIT()  
-  ITER()          ITEXT()         KEEPFLAGS()    KEEPTYPE()    LADD()      
-  LAND()          LAST()          LASTCREATE()   LATTR()       LAVG()      
-  LCMDS()         LCON()          LCSTR()        LDELETE()     LDIV()      
-  LEMIT()         LEFT()          LEXITS()       LFLAGS()      LINK()      
-  LIST()          LISTCOMMANDS()  LISTDIFF()     LISTFUNCTIONS()
+  CONVTIME()      COR()           COS()         CRC32()        CRC32OBJ()
+  CREATE()        CREATETIME()    CREPLACE()    CTU()          DEC()       
+  DECODE64()      DECRYPT()       DEFAULT()     DELETE()       DELEXTRACT()
+  DESTROY()       DICE()          DIG()         DIGEST()       DIST2D()    
+  DIST3D()        DIV()           E()           EDEFAULT()     EDIT()      
+  EDITANSI()      EE()            ELIST()       ELEMENTPOS()   ELEMENTS()  
+  ELEMENTSMUX()   ELOCK()         EMIT()        ENCODE64()     ENCRYPT()   
+  ENTRANCES()     EQ()            ERROR()       ESCAPE()       ESCAPEX()   
+  ESCLIST()       EVAL()          EXIT()        EXP()          EXTRACT()   
+  EXTRACTWORD()   FBETWEEN()      FBOUND()      FDIV()         FILTER()    
+  FINDABLE()      FIRST()         FLAGS()       FLOOR()        FLOORDIV()  
+  FOLD()          FOLDERCURRENT() FOLDERLIST()  FOREACH()      FULLNAME()  
+  GARBLE()        GET()           GET_EVAL()    GLOBALROOM()   GRAB()      
+  GRABALL()       GREP()          GT()          GTE()          GUILD()     
+  HASATTR()       HASATTRP()      HASFLAG()     HASTOGGLE()    HASTOTEM()  
+  HASTYPE()       HASQUOTA()      HASRXLEVEL(   HASTXLEVEL()   HOME()      
+  IBREAK()        IDLE()          IFELSE()      IINDEX()       ILEV()      
+  INC()           INDEX()         INF()         INPROGRAM()    INSERT()    
+  INUM()          INZONE()        ISALNUM()     ISALPHA()      ISCLUSTER() 
+  ISDBREF()       ISDIGIT()       ISHIDDEN()    ISNUM()        ISOBJID()   
+  ISPUNCT()       ISSPACE()       ISTAG()       ISUNICODE()    ISUTF8()
+  ISWORD()        ISXDIGIT()      ITER()        ITEXT()        KEEPFLAGS()  
+  KEEPTYPE()      LADD()          LAND()        LAST()         LASTCREATE() 
+  LATTR()         LAVG()          LCMDS()       LCON()         LCSTR()      
+  LDELETE()       LDIV()          LEMIT()       LEFT()         LEXITS()     
+  LFLAGS()        LINK()          LIST()        LISTCOMMANDS() LISTDIFF()   
+  LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -12383,17 +12384,18 @@
                        EDITANSI() ELEMENTPOS() ENCODE64() ENCRYPT() ESCAPE() 
                        ESCAPEX() ESCLIST() EVAL() GARBLE() IFELSE() ISALNUM() 
                        ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISOBJID() 
-                       ISPUNCT() ISSPACE() ISTAG() ISWORD() ISXDIGIT() LCSTR() 
-                       LEFT() LIT() LJC() LJUST() MEDIT() MERGE() MID() NOSTR()
-                       NOTCHR() NUMPOS() ORCHR() PARSESTR() PEDIT() POS() 
-                       PRINTF() RANDPOS() REPEAT() REPLACE() RIGHT() RJC() 
-                       RJUST() ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX()
-                       SHL() SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
-                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
-                       STRLEN() STRMATCH() STRIPUNICODE() SUBEVAL()
-                       SUBNETMATCH() SWITCH() SWITCHALL() T() TEMPLATE()
-                       TOTPOS() TR() TRANSLATE() TRIM() UCSTR() UNESCLIST()
-                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
+                       ISPUNCT() ISSPACE() ISTAG() ISUNICODE() ISUTF8() 
+                       ISWORD() ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() 
+                       MEDIT() MERGE() MID() NOSTR() NOTCHR() NUMPOS() ORCHR()
+                       PARSESTR() PEDIT() POS() PRINTF() RANDPOS() REPEAT() 
+                       REPLACE() RIGHT() RJC() RJUST() ROTL() ROTR() S() 
+                       SCRAMBLE() SECURE() SECUREX() SHL() SHR() SHUFFLE() 
+                       SPACE() SPLICE() SQUISH() STR() STRDISTANCE() STREQ() 
+                       STREVAL() STRIP() STRIPACCENTS() STRLEN() STRMATCH() 
+                       STRIPUNICODE() SUBEVAL() SUBNETMATCH() SWITCH() 
+                       SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
+                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
+                       WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() LISTTZONES() MSECS() MSECSTZ() 
@@ -26045,7 +26047,7 @@
     You say "0"
  
   See Also: isdbref(), isalnum(), ispunct(), isxdigit(), isdigit(), isspace(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
   
 & ISALNUM()
   Function: isalnum(<string>)
@@ -26061,7 +26063,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), ispunct(), isxdigit(), isdigit(), isspace(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
   
 & ISCLUSTER()
   Function: iscluster(<target>)
@@ -26091,7 +26093,7 @@
     You say "1"
    
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), isdigit(), isspace(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
   
 & ISHIDDEN()
   Function: ishidden(<player>)
@@ -26156,7 +26158,7 @@
     You say "0"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            istag(), isword(), isdigit(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isdigit(), isobjid()
 
 & ISDIGIT()
   Function: isdigit(<string>)
@@ -26172,7 +26174,7 @@
     You say "1"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            istag(), isword(), isint(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isint(), isobjid()
   
 & ISXDIGIT()
   Function: isxdigit(<string>)
@@ -26188,7 +26190,7 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), ispunct(), isspace(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
   
 & ISSPACE()
   Function: isspace(<string>)
@@ -26206,7 +26208,7 @@
     You say "0"
  
   See Also: isdbref(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
   
 & ISTAG()
   Function: istag(<string>)
@@ -26224,7 +26226,7 @@
      You say "0"
   
   See Also: @ltag, isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), 
-            ispunct(), isdbref(), isword(), isobjid()
+            ispunct(), isdbref(), isword(), isunicode(), isutf8(), isobjid()
 
 & ISDBREF()
   Function: isdbref(<string>)
@@ -26244,7 +26246,7 @@
      You say "0"
   
   See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            istag(), isword(), isobjid()
+            istag(), isword(), isunicode(), isutf8(), isobjid()
 
 & ISOBJID()
   Function: isobjid(<string>)
@@ -26269,7 +26271,43 @@
      You say "0"
   
   See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
-            istag(), isword(), isdbref()
+            istag(), isword(), isunicode(), isutf8(), isdbref()
+  
+& ISUNICODE()
+  Function: isunicode(<string>)
+  
+  This function will return '1' if the argument is a valid unicode word.  A 
+  valid unicode word is defined as a string that is alpha, contains a
+   hyphen (-) char, contains an underscore (_) char, or contains unicode.
+  
+  Example:
+    > say isunicode(testing)
+    You say "1"
+    > say isunicode(testing0)
+    You say "0"
+    > say isunicode(testing-me_%<u2222>)
+    You say "1"
+  
+  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
+            istag(), isword(), isutf8(), isdbref()
+
+& ISUTF8()
+  Function: isutf8(<string>)
+  
+  This function will return '1' if the argument is a valid utf8.  A 
+  valid utf8 is defined as a string that contains entirely utf8 chars.
+  No other characters will be allowed. 
+  
+  Example:
+    > say isutf8(testing)
+    You say "0"
+    > say isutf8(%<u1234>%<u2222>)
+    You say "1"
+    > say isutf8(%<u1234>%<u2222>nope)
+    You say "0"
+  
+  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct(),
+            istag(), isword(), isunicode(), isdbref()
   
 & ISWORD()
   Function: isword(<string>)
@@ -26285,7 +26323,7 @@
     > say isword(testing-me)
     You say "1"
   
-  See Also: isalnum(), isalpha()
+  See Also: isalnum(), isalpha(), isunicode(), isutf8()
   
 & ISNUM()
   Function: isnum(<string>)
@@ -31730,6 +31768,8 @@
   ispunct()     - Returns true if first character of input is a punctuation.
   isspace()     - Returns true if first character of input is a whitespace.
   istag()       - Returns true if passed a valid tag.
+  isunicode()   - Returns true if argument contains only alpha or unicode.
+  isutf8()      - Returns true if the argument contains only unicode.
   isword()      - Returns true if the argument contains only alpha characters. 
   isxdigit()    - Returns true if first character of input is a hexadecimal.
   lcstr()       - Lowercases a string.
@@ -34997,6 +35037,9 @@
  * ljc/rjc/ljust/rjust/center are now ANSI and UTF8 aware [ASH]
  * regmatch() now allows named registers [ASH]
  * creplace() is ansi/utf8 aware and has new 'r' argument [ASH]
+ * isutf8() and isunicode() for utf8/unicode-word validation [ASH]
+ * isword(), isnum(), isalnum(), isalpha(), isint(), isdigit(), islower(),
+   ispunct(), isspace(), isupper(), isxdigit() UTF8 and ANSI aware [ASH]
   
   Changes
   -------
