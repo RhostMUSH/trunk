@@ -21281,7 +21281,7 @@ FUNCTION(fun_strlenvis)
    }
 
    initialize_ansisplitter(outsplit, LBUF_SIZE);
-   s_buff = alloc_lbuf("fun_elementpos");
+   s_buff = alloc_lbuf("fun_strlenvis");
    split_ansi(strip_ansi(fargs[0]), s_buff, outsplit);
    ival(buff, bufcx, strlen(s_buff));
    free_lbuf(s_buff);

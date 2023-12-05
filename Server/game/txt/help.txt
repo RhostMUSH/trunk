@@ -13723,9 +13723,10 @@
   characters, skips <len> characters, and then copies the remainder of the 
   string.
   
-  You may specify a <key> of 1 to tell mid() to take the string raw and
-  not do ansi-aware processing.  This will speed up the function.
-  The default is '0' which does ansi processing.
+  You may specify a <key> of 1 to tell mid() to do ansi processing and
+  This will slow down the function.
+  
+  The default is '0' which does NOT do ansi processing.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -15427,9 +15428,10 @@
   Right will take a string and return the right-most position of characters
   from the string.  
   
-  You may specify a <key> of 1 to tell right() to take the string raw and
-  not do ansi-aware processing.  This will speed up the function.
-  The default is '0' which does ansi processing.
+  You may specify a <key> of 1 to tell right() to enable ansi processing 
+  This will slow down the function.
+  
+  The default is '0' which does NOT do ansi processing.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -15452,9 +15454,10 @@
   Left will take a string and return the left-most position of characters
   from the string.
   
-  You may specify a <key> of 1 to tell left() to take the string raw and
-  not do ansi-aware processing.  This will speed up the function.
-  The default is '0' which does ansi processing.
+  You may specify a <key> of 1 to tell left() to enable ansi processing
+  This will slow down the function.
+  
+  The default is '0' which does NOT do ansi processing.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -15992,9 +15995,10 @@
   right of the <first> character.  Note that the first character in a
   string is numbered zero, and not one.
   
-  You may specify a <key> of 1 to tell mid() to take the string raw and
-  not do ansi-aware processing.  This will speed up the function.
-  The default is '0' which does ansi processing.
+  You may specify a <key> of 1 to tell mid() to enable ansi translation
+  and do ansi-aware processing.  This will slow down the function.
+  
+  The default is '0' which does not do ansi processing.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -20162,8 +20166,8 @@
   If you want to return the portion of the string after the first space,
   use the first() function instead.  This function is case sensitive.
   
-  You may specify a <key> of 1 to disable ansi handling which will speed
-  this function up.  The default is '0' which allows ansi handling.
+  You may specify a <key> of 1 to enable ansi handling which will slow
+  this function down.  The default is '0' which disallows ansi handling.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -20223,8 +20227,8 @@
   If you want to return the portion of the string after the first space,
   use the rest() function instead.  This function is case sensitive.
   
-  You may specify a <key> of 1 to disable ansi handling which will speed
-  this function up.  The default is '0' which allows ansi handling.
+  You may specify a <key> of 1 to enable ansi handling which will slow
+  this function down.  The default is '0' which disallows ansi handling.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
@@ -24791,9 +24795,10 @@
   This function translates every character in <string> that exists in
   <find> to the character at an identical position in <replace>. 
   
-  If you specify the <type> of '1', then tr by default will not be made 
-  ansi-aware and also process strings faster without the ansi overhead.
-  The default value is '0' which allows tr() to be fully ansi-aware.
+  If you specify the <type> of '1', then tr will be made ansi-aware and 
+  also process strings slower withthe ansi overhead.
+  
+  The default value is '0' which allows tr() to be in raw mode.
    
   Ranges of characters separated by -'s are accepted. <find> and <replace> 
   must be the same length after expansion of ranges. If a character exists 
@@ -35096,3 +35101,4 @@
  * strlenvis() was not UTF8 aware [ASH]
  * LBUF overflow in lua code [ASH]
  * zoneinfo was not set up properly for BSD [ASH]
+ * key help for ansi_aware functions (like delete() and tr()) reversed [ASH]
