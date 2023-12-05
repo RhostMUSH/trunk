@@ -27109,31 +27109,204 @@ FUNCTION(fun_caplist)
  * fun_creplace: Replace/Overwrite/Overwrite & Cut, at position.
  */
 
-/* ---- this function isn't fully cooked yet so ignore for now
 FUNCTION(fun_creplaceansi)
 {
-   char *sop;
-   int i_val;
+   char *s_in1, *s_in2, *s_out, *s_pos, *s_pin1, *s_pin2, *s_pout, 
+        *s_return, *curr_temp, *sop_temp, *s_strtok, *s_strtokr, sep;
+   int i_val, i_len, i_cnt, i_range;
+   ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in1, *p_in2, *p_out;
 
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
-   sop = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
-   i_val = atoi(sop);
+   s_pos = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+   i_val = atoi(s_pos);
    if ( i_val < 1 || i_val > (LBUF_SIZE-1) ) {
       curr_temp = alloc_mbuf("creplace");
-      sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE);
+      sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE - 1);
       safe_str(curr_temp, buff, bufcx);
       free_mbuf(curr_temp);
-      free_lbuf(sop);
       return;
    }
    curr_temp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
    sop_temp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
 
+   s_in1 = alloc_lbuf("creplaceansi_arg0");
+   s_in2 = alloc_lbuf("creplaceansi_arg2");
+   s_out = alloc_lbuf("creplaceansi_out");
+
+   memset(s_in1, '\0', LBUF_SIZE);
+   memset(s_in2, '\0', LBUF_SIZE);
+   memset(s_out, '\0', LBUF_SIZE);
+
+   initialize_ansisplitter(insplit1, LBUF_SIZE);
+   initialize_ansisplitter(insplit2, LBUF_SIZE);
+   initialize_ansisplitter(outsplit, LBUF_SIZE);
+
+   split_ansi(strip_ansi(curr_temp), s_in1, insplit1);
+   split_ansi(strip_ansi(sop_temp), s_in2, insplit2);
+
+   free_lbuf(sop_temp);
+
+   if ( (strchr(s_pos, ' ') != 0) || (strchr(s_pos, '\t') != 0) ) {
+      // 3 argument handling
+      if ( nfargs > 3) {
+         safe_str("#-1 MULTI-REPLACE OPTION REQUIRES 3 ARGS ONLY.", buff, bufcx);
+         free_lbuf(s_pos);
+         free_lbuf(s_in1);
+         free_lbuf(s_in2);
+         free_lbuf(s_out);
+         free_lbuf(curr_temp);
+         return;
+      }
+
+      if ( !*s_pos || !*s_in2 ) {
+         free_lbuf(s_pos);
+         free_lbuf(s_in1);
+         free_lbuf(s_in2);
+         free_lbuf(s_out);
+         safe_str(curr_temp, buff, bufcx);
+         free_lbuf(curr_temp);
+         return;
+      }
+
+
+      p_in1 = insplit1;
+      p_in2 = insplit2;
+      p_out = outsplit;
+      s_pin1 = s_in1;
+      s_pin2 = s_in2;
+      s_pout = s_out;
+
+      while ( s_pin1 && *s_pin1) {
+         *s_pout++ = *s_pin1++;
+         clone_ansisplitter(p_out++, p_in1++);
+      }
+
+      i_len = strlen(s_out);
+
+      s_strtok = strtok_r(s_pos, " \t", &s_strtokr);
+      while ( s_strtok ) {
+         i_range = atoi(s_strtok) - 1;
+         if ( (i_range >= 0) && (i_range < i_len) ) {
+            *(s_out + i_range) = *s_pin2;
+            clone_ansisplitter(outsplit + i_range, p_in2);
+            s_pin2++;
+            p_in2++;
+            if ( !*s_pin2 ) {
+               s_pin2 = s_in2;
+               p_in2 = insplit2;
+            }
+         }
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      
+      s_return = rebuild_ansi(s_out, outsplit, 0);
+      free_lbuf(s_pos);
+      free_lbuf(s_in1);
+      free_lbuf(s_in2);
+      free_lbuf(s_out);
+
+   } else {
+      // Multi argument handling
+      if ( nfargs > 3 ) {
+         sep = ToLower((int)*fargs[3]);
+      } else {
+         sep = 'o';
+      }
+
+      p_in1 = insplit1;
+      p_in2 = insplit2;
+      p_out = outsplit;
+      s_pin1 = s_in1;
+      s_pin2 = s_in2;
+      s_pout = s_out;
+      i_cnt = 0;
+
+      switch(sep) {
+         case 'o': // Overwrite
+            i_len = strlen(s_in2);
+            for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
+               if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
+                  if ( *s_pin1 ) {
+                     *s_pout++ = *s_pin1++;
+                     clone_ansisplitter(p_out++, p_in1++);
+                  }
+               } else {
+                  if ( *s_pin2 ) {
+                     *s_pout++ = *s_pin2++;
+                     s_pin1++;
+                     clone_ansisplitter(p_out++, p_in2++);
+                  }
+               }
+            }
+            break;
+         case 'c': // Overwrite & Cut
+            i_len = strlen(s_in2);
+            i_range = strlen(s_in1);
+            for ( i_cnt = 0; i_cnt <= i_range; i_cnt++ ) {
+               if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
+                  if ( *s_pin1 ) {
+                     *s_pout++ = *s_pin1++;
+                     clone_ansisplitter(p_out++, p_in1++);
+                  }
+               } else {
+                  if ( *s_pin2 && *s_pin1 ) {
+                     *s_pout++ = *s_pin2++;
+                     s_pin1++;
+                     clone_ansisplitter(p_out++, p_in2++);
+                  }
+               }
+            }
+            break;
+         case 'i': // insert
+            i_len = strlen(s_in2);
+            for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
+               if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
+                  if ( *s_pin1 ) {
+                     *s_pout++ = *s_pin1++;
+                     clone_ansisplitter(p_out++, p_in1++);
+                  }
+               } else {
+                  if ( *s_pin2 ) {
+                     *s_pout++ = *s_pin2++;
+                     clone_ansisplitter(p_out++, p_in2++);
+                  }
+               }
+            }
+            break;
+         case 'r': // replace
+            i_len = strlen(s_in2);
+            for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
+               if ( i_cnt < (i_val - 1) ) {
+                  if ( *s_pin1 ) {
+                     *s_pout++ = *s_pin1++;
+                     clone_ansisplitter(p_out++, p_in1++);
+                  }
+               } else {
+                  if ( !*s_pin2 ) {
+                     break;
+                  }
+                  *s_pout++ = *s_pin2++;
+                  clone_ansisplitter(p_out++, p_in2++);
+               }
+            }
+            break;
+      }
+
+      s_return = rebuild_ansi(s_out, outsplit, 0);
+      free_lbuf(s_pos);
+      free_lbuf(s_in1);
+      free_lbuf(s_in2);
+      free_lbuf(s_out);
+   }
+   
+   free_lbuf(curr_temp);
+
+   safe_str(s_return, buff, bufcx);
+   free_lbuf(s_return);
 
 }
-*/
 
 FUNCTION(fun_creplace)
 {
@@ -39317,7 +39490,8 @@ FUN flist[] =
     {"COUNTSPECIAL", fun_countspecial, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CRC32", fun_crc32, 1,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CRC32OBJ", fun_crc32obj, 2,  FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+/*  {"CREPLACE", fun_creplace, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE}, */
+    {"CREPLACE", fun_creplaceansi, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef USE_SIDEEFFECT
     {"CREATE", fun_create, 1, FN_VARARGS, CA_PUBLIC, 0},
 #endif

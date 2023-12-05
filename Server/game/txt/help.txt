@@ -16706,6 +16706,8 @@
   Note:  The second option can use output from totpos() to stage and prep
          the values you want to replace depending on the situation.
   
+  This function is UTF8 and ansi aware.
+    
   Valid types are: 
         o - overwrite : starting at position it'll continue to overwrite
             until the end of the <string2>. (this is the default behavior)
@@ -16713,6 +16715,7 @@
             overwrite up to the maximum length of the original string.
         i - insert : starting at position it'll insert all of string2
             into the string.
+        r - replace string at position with <string2>
   
   Examples:
     > say creplace(this is a test,4,whee)
@@ -16723,6 +16726,8 @@
     You say "thiwheewheewho" 
     > say creplace(this is a test,4,wheewheewhoowha!,i)
     You say "thiwheewheewhoowha!s is a test"
+    > say creplace(this is a test,4,moo!,r)
+    You say "thimoo!"
   
   Option 2 Example:
     > say creplace(this is a test,1 3 4,X)
@@ -34991,6 +34996,7 @@
  * listtzone() for listing timezones and offset of timezone [ASH]
  * ljc/rjc/ljust/rjust/center are now ANSI and UTF8 aware [ASH]
  * regmatch() now allows named registers [ASH]
+ * creplace() is ansi/utf8 aware and has new 'r' argument [ASH]
   
   Changes
   -------
