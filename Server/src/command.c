@@ -203,6 +203,8 @@ NAMETAB attrib_sw[] =
     {(char *) "access", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_ACCESS},
     {(char *) "delete", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_DELETE},
     {(char *) "rename", 1, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_RENAME},
+    {(char *) "loadcache", 2, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_CACHELD},
+    {(char *) "showcache", 2, CA_GOD | CA_IMMORTAL | CA_WIZARD, 0, ATTRIB_CACHESH},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB atrcache_sw[] =
@@ -6413,18 +6415,21 @@ list_options_convtime(dbref player)
 }
 
 static void
-list_options_system(dbref player)
+list_options_system(dbref player, int key)
 {
-   char buf2[64], buf3[64], buf4[64], dbdumptime[25], dbchktime[25], playerchktime[125],
-        newstime[25], mailtime[25], aregtime[25], mushtime[25], *bptr;
-   time_t c_count, d_count, i_count;
+   char buf2[64], buf3[64], buf4[64], buf5[64], dbdumptime[25], dbchktime[25], 
+        playerchktime[125], vattrchktime[25], newstime[25], mailtime[25], aregtime[25], 
+        mushtime[25], *bptr;
+   time_t c_count, d_count, i_count, v_count;
 #ifdef MYSQL_VERSION
    char *tbuf;
 #endif
 
+   memset(vattrchktime, '\0', 25);
    memset(playerchktime, '\0', 125);
 /* "------------------------------------------------------------------" */
    notify(player, "--- System Player Config Parameters ------------------------------------------");
+if ( !key ) {
 #ifdef TINY_SUB
    sprintf(playerchktime, 
            "%cx ------------------------------------------------------------- %s",
@@ -6688,21 +6693,25 @@ list_options_system(dbref player)
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
     notify(player, unsafe_tprintf("Maximum attribs per object [VLIMIT] is: %d", mudconf.vlimit));
     notify(player, unsafe_tprintf("Maximum attribs per page of lattr output is: %d", ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)));
+}
 
     if ( Guildmaster(player) ) {
        c_count = (time_t)floor(mudstate.check_counter);
        d_count = (time_t)floor(mudstate.dump_counter);
        i_count = (time_t)floor(mudstate.idle_counter);
+       v_count = (time_t)floor(mudstate.vattr_counter);
        memset(dbdumptime, '\0', 25);
        memset(dbchktime, '\0', 25);
        strncpy(dbchktime,(char *) ctime(&c_count), 24);
        strncpy(dbdumptime,(char *) ctime(&d_count), 24);
        strncpy(playerchktime,(char *) ctime(&i_count), 24);
+       strncpy(vattrchktime,(char *) ctime(&v_count), 24);
        notify(player, "\r\n--- System Timers and Triggers -----------------------------------------------");
-       notify(player, unsafe_tprintf("--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n",
+       notify(player, unsafe_tprintf("--> Next DB Check: %s [%s to trigger]\r\n--> Next DB Dump: %s [%s to trigger]\r\n--> Next Idle User Check: %s [%s to trigger]\r\n--> Next Vattr Cache Check: %s [%s to trigger]\r\n",
                       dbchktime, cmd_time_format_2(c_count - mudstate.now, buf2),
                       dbdumptime, cmd_time_format_2(d_count - mudstate.now, buf3),
-                      playerchktime, cmd_time_format_2(i_count - mudstate.now, buf4)));
+                      playerchktime, cmd_time_format_2(i_count - mudstate.now, buf4),
+                      vattrchktime, cmd_time_format_2(v_count - mudstate.now, buf5)));
 
        memset(newstime, 0, sizeof(newstime));
        memset(mailtime, 0, sizeof(mailtime));
@@ -7036,9 +7045,10 @@ list_options_config(dbref player)
                mudconf.dump_interval, mudconf.check_interval,
                mudconf.idle_interval, mudconf.rwho_interval);
        notify(player, buff);
-       sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
+       sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f  Vattrcheck...%.1f",
                mudstate.dump_counter - now, mudstate.check_counter - now,
-               mudstate.idle_counter - now, mudstate.rwho_counter - now);
+               mudstate.idle_counter - now, mudstate.rwho_counter - now,
+               mudstate.vattr_counter);
        notify(player, buff);
        sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds",
              //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
@@ -7953,9 +7963,10 @@ list_options(dbref player)
 	    mudconf.dump_interval, mudconf.check_interval,
 	    mudconf.idle_interval, mudconf.rwho_interval);
     notify(player, buff);
-    sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f",
+    sprintf(buff, "Timers: Dump...%.1f  Clean...%.1f  Idlecheck...%.1f  Rwho...%.1f  Vattrcheck...%.1f",
 	    mudstate.dump_counter - now, mudstate.check_counter - now,
-	    mudstate.idle_counter - now, mudstate.rwho_counter - now);
+	    mudstate.idle_counter - now, mudstate.rwho_counter - now,
+            mudstate.vattr_counter);
     notify(player, buff);
     memset(buff, 0, MBUF_SIZE);
     sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds", 
@@ -8798,7 +8809,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
               else if ( (stricmp(s_ptr2, "config") == 0) )
                  list_options_config(player);
               else if ( (stricmp(s_ptr2, "system") == 0) )
-                 list_options_system(player);
+                 list_options_system(player, 0);
+              else if ( (stricmp(s_ptr2, "timers") == 0) )
+                 list_options_system(player, 1);
               else if ( (stricmp(s_ptr2, "convtime") == 0) ) {
                  if ( !(mudconf.enhanced_convtime) )
                     notify(player, "Extended convtime() is not available.");
@@ -8985,8 +8998,9 @@ int flagcheck(char *fname, char *rbuff)
 void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char *cargs[], int ncargs) 
 {
   char *buff, *s_buff, *t_buff, *s_chkattr, *s_format;
-  int atrnum, aflags, atrcnt, i_page, i_key;
+  int atrnum, aflags, atrcnt, i_page, i_key, i_ap;
   VATTR *vp;
+  ATTR *ap;
   dbref i, aowner;
 
   i_page = i_key = 0;
@@ -9004,7 +9018,20 @@ void do_aflags(dbref player, dbref cause, int key, char *fname, char *args, char
      return;
   }
   if ( key & AFLAGS_SEARCH ) {
-     notify(player, "Invalid switch combination.");
+     if ( fname && *fname ) {
+        i_ap = atoi(fname);
+        ap = atr_num(i_ap);
+        if ( ap ) {
+           s_format = alloc_sbuf("do_aflags");
+           sprintf(s_format, "@aflags: search found attribute '%s' with vattr integer id '%d'.", ap->name, i_ap);
+           notify(player, s_format);
+           free_lbuf(s_format);
+        } else {
+           notify(player, "@aflags: search can not find an attribute with that vattr integer id.");
+        }
+     } else {
+        notify(player, "@aflags: search expects Vattr integer id.");
+     }
      return;
   }
 

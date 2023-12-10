@@ -2164,7 +2164,8 @@ NDECL(do_second)
 	    next = (trail = point)->next;
 	    continue;		/* Skip if not timed-wait */
 	}
-        if ( (d_timediff > 120) || (d_timediff < -120) ) {
+        /* We'll raise offsets to 5 minutes now before it wigs out */
+        if ( (d_timediff > 300) || (d_timediff < -300) ) {
            point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         }

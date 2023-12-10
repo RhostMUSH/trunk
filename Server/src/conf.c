@@ -182,6 +182,7 @@ NDECL(cf_init)
     mudconf.idle_timeout = 3600;
     mudconf.conn_timeout = 120;
     mudconf.idle_interval = 60;
+    mudconf.vattr_interval = 86400;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
 #ifdef QDBM
@@ -396,6 +397,11 @@ NDECL(cf_init)
     for ( i = 0; i < TOTEM_SLOTS; i++ ) {
        mudstate.totem_slots[i] = 0;
     }
+    for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
+       mudstate.vattr_reuse[i] = 0;
+    }
+    mudstate.vattr_reuseptr = NOTHING;
+    mudstate.vattr_reusecnt = 0;
     mudstate.execscript_noreg = 0;	/* execscript has no registers processed */
     mudstate.help_shell = 0;		/* help redirection */
     mudstate.no_space_compress = 0;	/* Override space compression */
@@ -618,6 +624,7 @@ NDECL(cf_init)
     mudconf.wizcmd_quota_max = 1000;
     mudconf.cmd_quota_incr = 1;
     mudconf.control_flags = 0xffffffff;		/* Everything for now... */
+    mudconf.control_flags &= ~CF_VATTRCHECK;	/* Do not include vattr checking */
     mudconf.log_options = LOG_ALWAYS | LOG_BUGS | LOG_SECURITY |
 	LOG_NET | LOG_LOGIN | LOG_DBSAVES | LOG_CONFIGMODS |
 	LOG_SHOUTS | LOG_STARTUP | LOG_WIZARD |
@@ -1350,6 +1357,22 @@ CF_HAND(cf_timerint)
     }
 }
 
+CF_HAND(cf_verifyintvattr)
+{
+    int vp_old = 0;
+
+    sscanf(str, "%d", &vp_old);
+    if ((vp_old < extra2) || (vp_old > extra)) {
+        if ( !mudstate.initializing) 
+           notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
+	return -1;
+    } else {
+        *vp = vp_old;
+         mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
+	return 0;
+    }
+}
+
 CF_HAND(cf_verifyint)
 {
     int vp_old = 0;
@@ -1364,6 +1387,7 @@ CF_HAND(cf_verifyint)
 	return 0;
     }
 }
+
 CF_HAND(cf_verifyint_mysql)
 {
     int vp_old = 0;
@@ -5560,6 +5584,10 @@ CONF conftable[] =
     {(char *) "vattr_command",
      cf_cmd_vattr, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_vattr_htab, 0, 0, CA_WIZARD,
      (char *) "Define dynamic VATTR commands."},
+    {(char *) "vattr_interval",
+     cf_verifyintvattr, CA_GOD | CA_IMMORTAL, &mudconf.vattr_interval, 2592000, 3600, CA_WIZARD,
+     (char *) "Timeslice for next vattr cache (must be >0)\r\n"\
+              "     (Range: 3600-2592000)    Default: 86400   Value: %d"},
     {(char *) "vercustomstr",
      cf_stringver, CA_GOD | CA_IMMORTAL, (int *) mudconf.vercustomstr, SBUF_SIZE-1, 0, CA_WIZARD,
      (char *) "Extra string used for @version\r\n"\

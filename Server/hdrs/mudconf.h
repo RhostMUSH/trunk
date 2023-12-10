@@ -17,6 +17,10 @@
 /* CONFDATA:	runtime configurable parameters */
 
 #define MAXEVLEVEL	10
+
+/* Define max attribute caches for recycling */
+#define MAXVATTRCACHE 100000
+
 typedef unsigned char Uchar;
 
 typedef struct confdata CONFDATA;
@@ -115,6 +119,7 @@ struct confdata {
 	int	idle_timeout;	/* Boot off players idle this long in secs */
 	int	conn_timeout;	/* Allow this long to connect before booting */
 	int	idle_interval;	/* when to check for idle users */
+	int	vattr_interval;	/* when to check for idle users */
 	int	retry_limit;	/* close conn after this many bad logins */
 	int	regtry_limit;
 	int	output_limit;	/* Max # chars queued for output */
@@ -684,6 +689,7 @@ struct statedata {
 	double	dump_counter;	/* Countdown to next db dump */
 	double	check_counter;	/* Countdown to next db check */
 	double	idle_counter;	/* Countdown to next idle check */
+	double	vattr_counter;	/* Countdown to next vattr check */
 	double	rwho_counter;	/* Countdown to next RWHO dump */
 	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
@@ -748,6 +754,10 @@ struct statedata {
         int	totem_slots[TOTEM_SLOTS];/* totem slots */
 	int	errornum;
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	int 	vattr_reuse[MAXVATTRCACHE + 1];
+	int 	vattr_reuseptr;
+	int 	vattr_reusecnt;
+
 	int	no_space_compress;	/* State data to not allow space compress */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */
@@ -890,6 +900,9 @@ struct statedata {
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	int 	vattr_reuse[MAXVATTRCACHE + 1];
+	int 	vattr_reuseptr;
+	int 	vattr_reusecnt;
 	ALIST	iter_alist;	/* Attribute list for iterations */
 	char	*mod_alist;	/* Attribute list for modifying */
 	int	mod_size;	/* Length of modified buffer */
@@ -932,6 +945,7 @@ extern STATEDATA mudstate;
 #define CF_RWHO_XMIT	0x0040		/* Update remote RWHO data */
 #define CF_ALLOW_RWHO	0x0080		/* Allow the RWHO command */
 #define CF_DEQUEUE	0x0100		/* Remove entries from the queue */
+#define CF_VATTRCHECK	0x0200		/* Vattr Cache Check */
 
 /* Host information codes */
 

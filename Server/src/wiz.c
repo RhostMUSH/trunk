@@ -3416,6 +3416,7 @@ NAMETAB enable_names[] = {
 {(char *)"local_rwho",		3,	CA_PUBLIC,	0, CF_ALLOW_RWHO},
 {(char *)"logins",		3,	CA_PUBLIC,	0, CF_LOGIN},
 {(char *)"transmit_rwho",	1,	CA_PUBLIC,	0, CF_RWHO_XMIT},
+{(char *)"vattrchecking",	1,	CA_PUBLIC,	0, CF_VATTRCHECK},
 { NULL,				0,	0,		0, 0}};
 
 void do_global (dbref player, dbref cause, int key, char *flag)

@@ -625,6 +625,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	ATTRIB_ACCESS	0x00000001	/* Change access to attribute */
 #define	ATTRIB_RENAME	0x00000002	/* Rename attribute */
 #define	ATTRIB_DELETE	0x00000004	/* Delete attribute */
+#define ATTRIB_CACHELD  0x00000008	/* Load attribute cache */
+#define ATTRIB_CACHESH  0x00000010	/* Show attribute cache */
 
 #define ATRCACHE_INIT	0x00000001	/* initialize cache by slot */
 #define ATRCACHE_NAME	0x00000002	/* Rename cache by name (or slot) */

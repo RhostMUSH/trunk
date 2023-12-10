@@ -16451,7 +16451,7 @@
   A value less than 1 or larger than the length of the string is
   ignored.
   
-  This function is ansi-aware.
+  This function is ansi-aware.  The <delim> can be multi-character.
   
   You may specify a null delimiter (default is a space).
   
@@ -16516,7 +16516,7 @@
   See Also: numpos(), pos(), randpos(), creplace(), elementpos()
   
 & NUMPOS()
-  Function: numpos(<match>,<string>[,<type>])
+  Function: numpos(<match>, <string> [,<type> [,<ansi-aware>]])
   
   This function returns the total number of matches of 'match' in the
   string 'string'.  This works like totpos() but returns the number
@@ -16526,6 +16526,11 @@
   You may optionally specify a <type> of '1' to tell numpos() to match ANY
   of the characters specified in <string> and to return the total.
   
+  If you specify <ansi-aware> it will be ansi-aware and handle utf8. 
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is 
+        configured default or not.  In which case the 'type' is reversed.
+   
   Example:
     > say numpos(t,this is a test)
     You say "3"
@@ -16533,6 +16538,8 @@
     You say "6"
     > say totpos(t,foobles)
     You say "0"
+    > say numpos(ansi(hb,ts),ansi(hr,this is a test),1,1)
+    You say "6"
   
   See Also: totpos(), pos(), randpos()
   
@@ -26318,7 +26325,8 @@
   Function: isword(<string>)
   
   This function will return '1' if the argument is a valid word.  A valid word
-  is defined as a string that is totally alpha or contains a hyphen (-) char.
+  is defined as a string that is totally alpha, contains a hyphen (-) char, or
+  contains an accent character.
   
   Example:
     > say isword(testing)
@@ -35045,6 +35053,9 @@
  * isutf8() and isunicode() for utf8/unicode-word validation [ASH]
  * isword(), isnum(), isalnum(), isalpha(), isint(), isdigit(), islower(),
    ispunct(), isspace(), isupper(), isxdigit() UTF8 and ANSI aware [ASH]
+ * @enable/@disable for vattrchecking -- automate reusing deleted attribs [ASH]
+ * @attribute/show, @attribute/load -- load cache for reuseable attris [ASH]
+ * vattr_interval to specify interval of when the cache is refreshed [ASH]
   
   Changes
   -------
@@ -35077,6 +35088,9 @@
  * stripunicode is now an alias to stripaccents [ASH]
  * Rewrote all the API handlers to be centralized [ASH]
  * Max pids and formatting raised from 32K to 256K queues [ASH]
+ * numpos() is now UTF8/ANSI aware [ASH]
+ * elementpos()'s delim is now UTF8 aware [ASH]
+ * isword() now recogizes accents [ASH]
     
   Bug Fixes
   ------------
@@ -35102,3 +35116,4 @@
  * LBUF overflow in lua code [ASH]
  * zoneinfo was not set up properly for BSD [ASH]
  * key help for ansi_aware functions (like delete() and tr()) reversed [ASH]
+ * elementpos() did not process utf8/ansi properly for delim [ASH]

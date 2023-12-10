@@ -1039,6 +1039,125 @@ s_MPass(dbref thing, const char *s)
 
 #ifndef STANDALONE
 
+/* First 100k attributes only -- allow overhead buffering */
+void
+do_recache_vattrs( dbref player, int key, char *s_type, int i_internal )
+{
+   int i, i_min, i_max, i_repeat, i_pass;
+   char *s_buff, *s_ptr, *s_tmp;
+   ATTR *va;
+
+   i_min = 513; /* Let's skip past 512 just to be safe and give some buffer */
+   i_pass = i_repeat = 1;
+   i_max = ((mudstate.attr_next - 1) < (MAXVATTRCACHE - 1) ? (mudstate.attr_next - 1) : (MAXVATTRCACHE - 1));
+   switch(key) {
+      case 0: /* load cache */
+         /* Clear the current cache for reloading */
+         for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
+            mudstate.vattr_reuse[i] = 0;
+         }
+         mudstate.vattr_reuseptr = NOTHING;
+         mudstate.vattr_reusecnt = 0;
+         /* Start at 512 to be 'safe' */
+         if ( !i_internal ) 
+            notify(player, "Loading free attribute cache.  Please wait...");
+         while ( i_repeat ) {
+            if ( !i_internal ) 
+               notify(player, unsafe_tprintf("...pass %d", i_pass));
+            i_pass++;
+            for ( i = i_min; i < i_max; i++ ) {
+               if ( i >= mudstate.attr_next || mudstate.vattr_reusecnt > (MAXVATTRCACHE - 1) )
+                  break;
+               va = atr_num_vattr(i);
+               if ( !va ) {
+                  mudstate.vattr_reuse[mudstate.vattr_reusecnt] = i;
+                  if ( mudstate.vattr_reuseptr == NOTHING ) {
+                     mudstate.vattr_reuseptr = mudstate.vattr_reusecnt;
+                  }
+                  mudstate.vattr_reusecnt++;
+               }
+               va = NULL;
+               if ( mudstate.vattr_reusecnt >= (MAXVATTRCACHE - 1) ) {
+                  i_repeat = 0;
+                  break;
+               }
+            }
+            if ( i_repeat && (mudstate.vattr_reusecnt < (MAXVATTRCACHE - 1)) ) {
+               i_min += (MAXVATTRCACHE - 1);
+               i_max += (MAXVATTRCACHE - 1);
+               if ( i_min >= mudstate.attr_next ) {
+                  i_repeat = 0;
+               }
+               if ( i_max >= mudstate.attr_next ) {
+                  i_max = (mudstate.attr_next - 1);
+               }
+            }
+            if ( mudstate.vattr_reusecnt >= (MAXVATTRCACHE - 1)) {
+               i_repeat = 0;
+            }
+         }
+         if ( !i_internal ) {
+            notify(player, "Completed.");
+            if ( mudstate.vattr_reusecnt == 0 ) {
+               notify(player, "There are no attributes to be re-used.");
+            } else {
+               notify(player, unsafe_tprintf("Total re-useable attributes cached: %d, Next to be used: %d", 
+                      mudstate.vattr_reusecnt, mudstate.vattr_reuse[mudstate.vattr_reuseptr]));
+            }
+         }
+         break;
+      case 1: /* list cache */
+         if ( !i_internal && !mudstate.vattr_reusecnt ) {
+            notify(player, "Free attribute-number cache has not been populated.");
+         } else if ( !i_internal ) {
+            notify(player, "Showing free attrib-numbers.");
+            notify(player, "------------------------------------------------------------------------------");
+            i_max=(mudstate.vattr_reusecnt / 180) + 1;
+            i_min = atoi(s_type);
+            if ( i_min < 1 )
+               i_min = 1;
+            if ( i_min > i_max )
+               i_min = i_max;
+            s_tmp = alloc_sbuf("attribute_cachesb");
+            s_ptr = s_buff = alloc_mbuf("attribute_cachemb");
+            i_repeat = 0;
+            i_pass = (i_min - 1) * 180;
+            for ( i = i_pass; i < i_pass + 180; i++ ) {
+               if ( (i >= (MAXVATTRCACHE - 1)) || (i >= mudstate.vattr_reusecnt) ) {
+                  break;
+               }
+               if ( mudstate.vattr_reuse[i] ) {
+                  sprintf(s_tmp, "%12d", mudstate.vattr_reuse[i]);
+               } else {
+                  sprintf(s_tmp, "%12s", (char *)" ");
+               }
+               if ( i_repeat % 6 ) {
+                  safe_str(s_tmp, s_buff, &s_ptr);
+               } else if ( i_repeat != 0 ) {
+                  if ( i_repeat != 6 )
+                     safe_str(s_tmp, s_buff, &s_ptr);
+                  notify(player, s_buff);
+                  memset(s_buff, '\0', MBUF_SIZE);
+                  s_ptr = s_buff;
+               } else {
+                  safe_str(s_tmp, s_buff, &s_ptr);
+               }
+               i_repeat++;
+            }
+            if ( *s_buff ) {
+               notify(player, s_buff);
+            }
+            free_sbuf(s_tmp);
+            free_mbuf(s_buff);
+            notify(player, "------------------------------------------------------------------------------");
+            notify(player, unsafe_tprintf("Page %d out of %d", i_min, i_max));
+            notify(player, unsafe_tprintf("Total re-useable attributes cached: %d, Next to be used: %d", 
+                   mudstate.vattr_reusecnt, mudstate.vattr_reuse[mudstate.vattr_reuseptr]));
+         }
+         break;
+   }
+}
+
 /* ---------------------------------------------------------------------------
  * do_attrib: Manage user-named attributes.
  */
@@ -1054,7 +1173,17 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
     VATTR *va;
     ATTR *va2;
 
+    /* If cache is specified, cache the attribute reuse cache */
     /* Look up the user-named attribute we want to play with */
+    if ( key == ATTRIB_CACHELD ) {
+       do_recache_vattrs(player, 0, aname, 0);
+       return;
+    }
+   
+    if ( key == ATTRIB_CACHESH ) {
+       do_recache_vattrs(player, 1, aname, 0);
+       return;
+    }
 
     i = delcnt = 0;
     buff = alloc_sbuf("do_attribute");
@@ -2346,6 +2475,39 @@ atr_num2(int anum)
 
 ATTR *
 atr_num_lattr(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_vattr(int anum)
 {
     VATTR *va;
     static ATTR tattr;

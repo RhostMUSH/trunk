@@ -103,8 +103,23 @@ VATTR *vattr_alloc(char *name, int flags)
 {
 	int number;
 
-	if (((number = mudstate.attr_next++) & 0x7f) == 0)
-		number = mudstate.attr_next++;
+#ifndef STANDALONE
+        if ( (mudconf.control_flags & CF_VATTRCHECK) &&
+#else
+        if (
+#endif
+           (mudstate.vattr_reuseptr >= 0) && mudstate.vattr_reusecnt && (mudstate.vattr_reuse[mudstate.vattr_reuseptr] > 0) ) {
+           number = mudstate.vattr_reuse[mudstate.vattr_reuseptr];
+           mudstate.vattr_reuse[mudstate.vattr_reuseptr] = 0;
+           if ( mudstate.vattr_reuseptr >= mudstate.vattr_reusecnt ) {
+              mudstate.vattr_reuseptr = NOTHING;
+           } else {
+              mudstate.vattr_reuseptr++;
+           }
+        } else {
+	   if (((number = mudstate.attr_next++) & 0x7f) == 0)
+		   number = mudstate.attr_next++;
+        }
 	anum_extend(number);
 	return(vattr_define(name, number, flags));
 }

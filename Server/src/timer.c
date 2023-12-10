@@ -44,6 +44,7 @@ int clock_gettime(int clk_id, struct timespec* t) {
 
 extern void		NDECL(do_second);
 extern void		FDECL(fork_and_dump, (int key, char *msg));
+extern void		FDECL(do_recache_vattrs, (dbref, int, char *, int));
 //extern unsigned int	FDECL(alarm, (unsigned int seconds));
 extern void		NDECL(pcache_trim);
 
@@ -156,6 +157,7 @@ void NDECL(init_timer)
 	mudstate.check_counter = ((mudconf.check_offset == 0) ?
 		mudconf.check_interval : mudconf.check_offset) + mudstate.nowmsec;
 	mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
+	mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
 	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
 	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
 	alarm_msec (next_timer());
@@ -210,6 +212,13 @@ char	*cmdsave;
 		cache_reset(0);
 		check_idle();
 
+	}
+
+	if ((mudconf.control_flags & CF_VATTRCHECK) &&
+	    (mudstate.vattr_counter <= mudstate.nowmsec)) {
+		mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
+		mudstate.debug_cmd = (char *)"< vattrcheck >";
+                do_recache_vattrs( GOD, 0, (char *)NULL, 1);
 	}
 
 #ifdef HAVE_GETRUSAGE

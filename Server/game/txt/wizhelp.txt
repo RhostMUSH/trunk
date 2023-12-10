@@ -2860,18 +2860,23 @@
 
 & @attribute
   Command: @attribute[/<switch>] <attrib>[=<value>]
+           @attribute[/<switch>] <page #>
   
   Performs operations on user-named attributes depending on the switch used.
   The following switches are available:
-     /access   - Changes the access to the named attribute.  <value> is a
-                 space-separated list of permissions to add or remove from
-                 the attribute's access permissions.
-     /delete   - Removes the named attribute from the attribute table.
-                 This switch does not remove instances of the attribute from
-                 objects, and any that remain will be renamed to the 
-                 user-named attribute that re-uses the attribute number
-                 of the deleted attribute.
-     /rename   - Changes the name of the named attribute to <value>.
+     /access    - Changes the access to the named attribute.  <value> is a
+                  space-separated list of permissions to add or remove from
+                  the attribute's access permissions.
+     /delete    - Removes the named attribute from the attribute table.
+                  This switch does not remove instances of the attribute from
+                  objects, and any that remain will be renamed to the 
+                  user-named attribute that re-uses the attribute number
+                  of the deleted attribute.
+     /rename    - Changes the name of the named attribute to <value>.
+     /loadcache - using the second option, loads the first 100,000 attributes
+                  that can be reused.
+     /showcache - using the second option, shows the given page of attributes
+                  that are to be reused.  This is attribute ID numbers only.
  
   After completion of this command you will be presented with the
   current permissions list for the attribute in question (not /delete).
@@ -2890,7 +2895,7 @@
   
   Example:  @attribute/access wiz_only_attribute=royalty pinvisible
   
-  See Also: attr_access
+  See Also: attr_access, vattr_interval, @enable, @disable
  
 & @cmdquota
   Command: @cmdquota[/<switch>] <player|port> = <1-99999>
@@ -3247,22 +3252,25 @@
   
   Turns off the indicated RhostMUSH runtime parameter.  The following 
   parameters may be turned off:
-    building      - Allows players to use the building commands.
-    checkpointing - Enables periodic database checkpoint dumping.
-    cleaning      - Enables periodic scanning of the database for rooms
-                    to be destroyed.
-    dequeueing    - Allows commands to be removed from the queue and
-                    executed.
-    idlechecking  - Enables periodic checking for and booting of idle
-                    players.
-    interpret     - Enables execution of commands that place commands
-                    on the queue.
-    local_rwho    - Enables the RWHO command for querying a remote RWHO
-                    server.
-    logins        - Allows nonwizard players to connect to their characters.
-    transmit_rwho - Enables transmission of player data to a remote RWHO
-                    server.
-  These parameters are all enabled by default.
+   0x0001  logins        - Allows nonwizard players to connect to their 
+                           characters.
+   0x0002  building      - Allows players to use the building commands.
+   0x0004  interpret     - Enables execution of commands that place commands
+                           on the queue.
+   0x0008  checkpointing - Enables periodic database checkpoint dumping.
+   0x0010  cleaning      - Enables periodic scanning of the database for rooms
+                           to be destroyed.
+   0x0020  idlechecking  - Enables periodic checking for and booting of idle
+                           players.
+   0x0040  transmit_rwho - Enables transmission of player data to a remote RWHO
+                           server.
+   0x0080  local_rwho    - Enables the RWHO command for querying a remote RWHO
+                           server.
+   0x0100  dequeueing    - Allows commands to be removed from the queue and
+                           executed.
+   0x0200  vattrchecking - Enables the attribute cache reuse feature
+  
+  These parameters, other than vattrchecking,  are all enabled by default.
   
   Example:  @disable logins
   
@@ -3305,22 +3313,25 @@
   
   Turns on the indicated RhostMUSH runtime parameter.  The following 
   parameters may be turned on:
-    building      - Allows players to use the building commands.
-    checkpointing - Enables periodic database checkpoint dumping.
-    cleaning      - Enables periodic scanning of the database for rooms
-                    to be destroyed.
-    dequeueing    - Allows commands to be removed from the queue and
-                    executed.
-    idlechecking  - Enables periodic checking for and booting of idle
-                    players.
-    interpret     - Enables execution of commands that place commands
-                    on the queue.
-    local_rwho    - Enables the RWHO command for querying a remote RWHO
-                    server.
-    logins        - Allows nonwizard players to connect to their characters.
-    transmit_rwho - Enables transmission of player data to a remote RWHO
-                    server.
-  These parameters are all enabled by default.
+   0x0001  logins        - Allows nonwizard players to connect to their 
+                           characters.
+   0x0002  building      - Allows players to use the building commands.
+   0x0004  interpret     - Enables execution of commands that place commands
+                           on the queue.
+   0x0008  checkpointing - Enables periodic database checkpoint dumping.
+   0x0010  cleaning      - Enables periodic scanning of the database for rooms
+                           to be destroyed.
+   0x0020  idlechecking  - Enables periodic checking for and booting of idle
+                           players.
+   0x0040  transmit_rwho - Enables transmission of player data to a remote RWHO
+                           server.
+   0x0080  local_rwho    - Enables the RWHO command for querying a remote RWHO
+                           server.
+   0x0100  dequeueing    - Allows commands to be removed from the queue and
+                           executed.
+   0x0200  vattrchecking - Enables the attribute cache reuse feature
+  
+  These parameters, other than vattrchecking,  are all enabled by default.
   
   Example:  @enable logins
   
@@ -3812,11 +3823,14 @@
                     to connect.
     transmit_rwho - Indicates whether or not user information is to be
                     periodically sent to the configured remote RWHO server.
+    vattrchcking  - Indicates whether or not the attribute re-use cache
+                    is enabled or not.  If enabled it reuses deleted attribs.
   
   See Also: RWHO, @dbck, @disable, @enable, @kick, @list permissions, @purge,
             @timewarp, checkpoint, conn_timeout, dump_interval, dump_offset,
             idle_interval, idle_timeout, rwho_data_port, rwho_dump_interval,
-            rwho_host, rwho_info_port, rwho_password, rwho_transmit.
+            rwho_host, rwho_info_port, rwho_password, rwho_transmit,
+            vattr_interval.
 
 & @list hashstats
   Command: @list hashstats
@@ -3908,6 +3922,7 @@
     mysql          - list MySQL parameters (if enabled)
     convtime       - list convtime extended formats
     display        - display target config parameter ( works like config() )
+    timers         - list the current timers for the mush (Guildmaster+ only)
   
   Individual help is available on each sub option.
    
@@ -4032,6 +4047,14 @@
  
   See Also: config(), @list options 
 
+& @list options timers
+  Config Subtopic: @list options timers
+  
+  This will show the current db and system related timers and when they
+  are expected to trigger next.
+  
+  See Also: @list options
+  
 & @list permissions
   Command: @list permissions
   
@@ -4926,12 +4949,14 @@
   '_' attributes as well as those with the atrperms @admin parameter.
   
   Following switches exist:
-    /full -- give full statistics of the attribute, like count in use.
-    /perm -- list all current attribute based prefix permissions.
-    /list -- alias for /perm
-    /add  -- add a prefix attribute mask.
-    /del  -- delete a prefix attribute mask.
-    /mod  -- modify a prefix attribute mask.
+    /full   -- give full statistics of the attribute, like count in use.
+    /perm   -- list all current attribute based prefix permissions.
+    /list   -- alias for /perm
+    /add    -- add a prefix attribute mask.
+    /del    -- delete a prefix attribute mask.
+    /mod    -- modify a prefix attribute mask.
+    /search -- with /perm allows pattern matching with globbing
+               alone can be used to search an attribute name by numerical id
   
   The @aflags without the switches display the permissions of the
   specified attribute name.  Using the /full switch returns the count
@@ -4969,7 +4994,7 @@
      'wizhelp @aflags args'    -- explains the arguments to @aflags
      'wizhelp @aflags bits'    -- help on the level bits for see/set perms
   
-  See Also: atrperms, atrperms_max, atrperms_checkall
+  See Also: atrperms, atrperms_max, atrperms_checkall, @attribute
 
 & @aflags bits
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
@@ -5034,6 +5059,7 @@
                    specified attribute prefix.  You can set from '0' to '8'
                    as defined by bitlevel permissions. (help bittype())
   
+& @aflags/mod
 & @aflags mod
   Command: @aflags/mod <prefix> [<own> <tgt>]=<set> <see> [<own> <tgt> <enact>]
   
@@ -5065,6 +5091,7 @@
   
   See Also: @aflags, @aflags add, @aflags del, @aflags perm
 
+& @aflags/del
 & @aflags del
   Command: @aflags/del <prefix> [<owner> <target> <enactor>]
   
@@ -5090,6 +5117,7 @@
    
   See Also: @aflags, @aflags add, @aflags mod, @aflags perm
 
+& @aflags/add
 & @aflags add
   Command: @aflags/add <prefix>=<set> <see> [<owner>] [<target>] [<enactor>]
   
@@ -5115,6 +5143,8 @@
   
   See Also: @aflags, @aflags del, @aflags mod, @aflags perm
   
+& @aflags/perm/search
+& @aflags/perm
 & @aflags perm
   Command: @aflags/perm [<value>]
   
@@ -5128,7 +5158,7 @@
    
   Example:  @aflags/perm
             @aflags/perm 2
-
+            @aflags/perm/search *test*
   ----------------------------------------------------------------------------
   Attribute Prefix                                                 Set     See
   ----------------------------------------------------------------------------
@@ -5154,6 +5184,21 @@
     
   See Also: @aflags, @aflags add, @aflags del, @aflags mod, @aflags args
 
+& @aflags/search
+  Command: @aflags/search <value>
+  
+  This command will search the attribute name cache for the matching attribute
+  that is assigned the unique numerical id <value>.
+  
+  The /search switch may also be used with the /perm switch for content
+  filtering.
+  
+  Example: 
+    > @aflags/search 100
+    @aflags: search found attribute 'VA' with vattr integer id '100'.
+  
+  See Also: @aflags, @attribute
+   
 & @icmd
   Command: @icmd</switch> <player [= arguments]>
   
@@ -7362,14 +7407,14 @@
   trace_output_limit        trace_topdown             tree_character          
   trust_site                uncompress_program        unowned_safe            
   user_attr_flags           validate_host             vattr_command           
-  vattr_limit_checkwiz      vercustomstr              vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  wizcommand_quota_max      zone_parents
+  vattr_interval            vattr_limit_checkwiz      vercustomstr            
+  vlimit                    wait_cost                 wall_cost               
+  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
+  who_default               who_unfindable            who_showwiz             
+  who_wizlevel              who_whowiztype            whohost_size            
+  wiz_override              wiz_uselock               wizard_help_file        
+  wizard_help_index         wizard_motd_file          wizard_motd_message     
+  wizard_queue_limit        wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -7642,7 +7687,10 @@
     DELETE()  -- Key field reversed if DISABLED
     LEFT()    -- Key field reversed if DISABLED
     RIGHT()   -- Key field reversed if DISABLED
-  
+    NUMPOS()  -- Key field reversed if DISABLED
+   
+  See normal help on the functions for more information.
+   
 & ansi_txtfiles
   Config parameter: ansi_textfiles <boolean>   Default: 0
   
@@ -9662,11 +9710,20 @@
   Sets the dbref of the ICMD Object, usable with @icmd/eval.
   See 'wizhelp @icmd'
 
+& vattr_interval
+  Config parameter: vattr_interval <secs>.  Default: 3600
+  
+  Sets the interval that the attribute cache should be refreshed for
+  use with setting new attributes.
+  
+  See Also: @enable, @disable, @attribute
+
 & idle_interval
   Config parameter: idle_interval <secs>.  Default: 60
   
   Sets the interval between checks for idle users. 
-  See Also: conn_timeout, idle_timeout.
+  
+  See Also: conn_timeout, idle_timeout, @enable, @disable
 
 & idle_message
   Config parameter: idle_message <yes/no>.  Default: yes
