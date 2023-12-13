@@ -35056,6 +35056,9 @@
  * @enable/@disable for vattrchecking -- automate reusing deleted attribs [ASH]
  * @attribute/show, @attribute/load -- load cache for reuseable attris [ASH]
  * vattr_interval to specify interval of when the cache is refreshed [ASH]
+ * pos() and totpos() handles UTF8/ansi [ASH]
+ * numpos() is now UTF8/ANSI aware [ASH]
+ * elementpos()'s delim is now UTF8 aware [ASH]
   
   Changes
   -------
@@ -35088,8 +35091,6 @@
  * stripunicode is now an alias to stripaccents [ASH]
  * Rewrote all the API handlers to be centralized [ASH]
  * Max pids and formatting raised from 32K to 256K queues [ASH]
- * numpos() is now UTF8/ANSI aware [ASH]
- * elementpos()'s delim is now UTF8 aware [ASH]
  * isword() now recogizes accents [ASH]
     
   Bug Fixes
@@ -35117,3 +35118,4 @@
  * zoneinfo was not set up properly for BSD [ASH]
  * key help for ansi_aware functions (like delete() and tr()) reversed [ASH]
  * elementpos() did not process utf8/ansi properly for delim [ASH]
+ * bug introduced in numpos() with UTF8 fixed [ASH]

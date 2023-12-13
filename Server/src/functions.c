@@ -24464,9 +24464,248 @@ FUNCTION(fun_moneyname)
    }
 }
 
+void
+do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
+{
+    int i = 1, i_key;
+    char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob1, *ob2, *ob3;
+    int gotone = 0;
+    ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], 
+              *sp1, *sp2, *sp3, *sp2b;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
+    initialize_ansisplitter(outsplit1, LBUF_SIZE);
+    outbuff1 = alloc_lbuf("do_pos_ansi1");
+    memset(outbuff1, '\0', LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[0]), outbuff1, outsplit1);
+    ob1 = outbuff1;
+    sp1 = outsplit1;
+
+    initialize_ansisplitter(outsplit2, LBUF_SIZE);
+    outbuff2 = alloc_lbuf("do_pos_ansi2");
+    memset(outbuff2, '\0', LBUF_SIZE);
+    split_ansi(strip_ansi(fargs[1]), outbuff2, outsplit2);
+    ob2 = outbuff2;
+    sp2 = outsplit2;
+
+    initialize_ansisplitter(outsplit3, LBUF_SIZE);
+    outbuff3 = alloc_lbuf("do_pos_ansi3");
+    memset(outbuff3, '\0', LBUF_SIZE);
+    ob3 = outbuff3;
+    sp3 = outsplit3;
+
+    i = 1;
+    if ( i_key ) {
+       t = u = NULL;
+       while (*ob2) {
+          t = outbuff1;
+          sp1 = outsplit1;
+          while ( t && *t ) {
+             if ( (*t == *ob2) && (sp2->i_ascii8 == sp1->i_ascii8) && (sp2->i_utf8 == sp1->i_utf8) ) {
+                break;
+             }
+             t++, sp1++;
+          }
+          if ( t && *t ) {
+             if ( i_type == 2 ) {
+                if ( i_key == 2 ) {
+                   safe_chr(*ob2, outbuff3, &ob3);
+                   clone_ansisplitter(sp3, sp2);
+                   sp3++;
+                } else {
+                   if( gotone )
+                      safe_chr(' ', buff, bufcx);
+                   gotone = 1;
+                   ival(buff, bufcx, i);
+                }
+             }
+
+             if ( i_type == 1 ) {
+                if ( !u ) {
+                   u = t;
+                   break;
+                }
+             }
+          }
+          ob2++;
+          sp2++;
+          i++;
+       }
+       if ( u && (i_type == 1) ) {
+          ival(buff, bufcx, i);
+          free_lbuf(outbuff1);
+          free_lbuf(outbuff2);
+          free_lbuf(outbuff3);
+          return;
+       }
+    } else {
+       while (*ob2) {
+          u = ob2;
+          t = outbuff1;
+          sp1 = outsplit1;
+          sp2b = sp2;
+          while ( *t && (*t == *u) && 
+                  ((sp1->i_ascii8 == sp2b->i_ascii8) && (sp1->i_utf8 == sp2b->i_utf8)) ) {
+             ++t, ++u;
+             ++sp1, ++sp2b;
+          }
+          if (*t == '\0') {
+             if ( i_type == 2 ) {
+                if( gotone )
+                   safe_chr(' ', buff, bufcx);
+                gotone = 1;
+                ival(buff, bufcx, i);
+             }
+
+             if ( i_type == 1 ) {
+                ival(buff, bufcx, i);
+                free_lbuf(outbuff1);
+                free_lbuf(outbuff2);
+                free_lbuf(outbuff3);
+                return;
+             }
+          }
+          ++i, ++ob2, ++sp2;
+       }
+    }
+    if ( i_type == 1 ) {
+       safe_str("#-1", buff, bufcx);
+    } else if ( (i_type == 2) && (i_key == 2) ) {
+       free_lbuf(outbuff1);
+       outbuff1 = rebuild_ansi(outbuff3, outsplit3, 0);
+       safe_str(outbuff1, buff, bufcx);
+    }
+    free_lbuf(outbuff1);
+    free_lbuf(outbuff2);
+    free_lbuf(outbuff3);
+    return;
+}
+
+void
+do_pos_noansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
+{
+    int i = 1, i_key;
+    char *s, *t, *u;
+    int gotone = 0;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
+    s = strip_all_special(fargs[1]);
+    i = 1;
+    if ( i_key ) {
+       t = u = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if ( i_type == 2 ) {
+                if ( i_key == 2 ) {
+                   safe_chr(*s, buff, bufcx);
+                } else {
+                   if( gotone )
+                      safe_chr(' ', buff, bufcx);
+                   gotone = 1;
+                   ival(buff, bufcx, i);
+                }
+             }
+
+             if ( i_type == 1 ) {
+                if ( !u ) {
+                   u = t;
+                   break;
+                }
+             }
+          }
+          ++s;
+          ++i;
+       }
+       if ( i_type == 1 ) {
+          ival(buff, bufcx, i);
+          return;
+       }
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+             ++t, ++u;
+          if (*t == '\0') {
+             if ( i_type == 2 ) {
+                if( gotone )
+                   safe_chr(' ', buff, bufcx);
+                gotone = 1;
+                ival(buff, bufcx, i);
+             }
+
+             if ( i_type == 1 ) {
+                ival(buff, bufcx, i);
+                return;
+             }
+          }
+          ++i, ++s;
+       }
+    }
+    if ( i_type == 1 ) {
+       safe_str("#-1", buff, bufcx);
+    }
+    return;
+}
+
+
 /* ---------------------------------------------------------------------------
  * fun_pos: Find a word in a string */
 
+FUNCTION(fun_pos)
+{
+   int i_noansi;
+
+   if (!fn_range_check("POS", nfargs, 2, 4, buff, bufcx))
+      return;
+
+   i_noansi = 0;
+   if ( (nfargs > 3) && fargs[3] ) {
+      i_noansi = atoi(fargs[3]);
+   }
+
+   if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
+
+   if ( i_noansi ) {
+      do_pos_noansi(buff, bufcx, fargs, nfargs, 1);
+   } else {
+      do_pos_ansi(buff, bufcx, fargs, nfargs, 1);
+   }
+}
+
+FUNCTION(fun_totpos)
+{
+   int i_noansi;
+
+   if (!fn_range_check("TOTPOS", nfargs, 2, 4, buff, bufcx))
+      return;
+
+   i_noansi = 0;
+   if ( (nfargs > 3) && fargs[3] ) {
+      i_noansi = atoi(fargs[3]);
+   }
+
+   if ( !mudconf.ansi_default )
+       i_noansi = !i_noansi;
+
+   if ( i_noansi ) {
+      do_pos_noansi(buff, bufcx, fargs, nfargs, 2);
+   } else {
+      do_pos_ansi(buff, bufcx, fargs, nfargs, 2);
+   }
+}
+
+/*
 FUNCTION(fun_pos)
 {
     int i = 1, i_key;
@@ -24515,12 +24754,66 @@ FUNCTION(fun_pos)
     safe_str("#-1", buff, bufcx);
     return;
 }
+*/
+
+/*
+FUNCTION(fun_totpos)
+{
+    int i = 1, i_key;
+    char *s, *t, *u;
+    int gotone = 0;
+
+    if (!fn_range_check("TOTPOS", nfargs, 2, 3, buff, bufcx))
+      return;
+
+    i_key = 0;
+    if ( (nfargs > 2) && *fargs[2] ) {
+       i_key = atoi(fargs[2]);
+    }
+
+    s = strip_all_special(fargs[1]);
+    i = 1;
+    if ( i_key ) {
+       t = NULL;
+       while (*s) {
+          t = strchr(fargs[0], *s);
+          if ( t ) {
+             if ( i_key == 2 ) {
+                safe_chr(*s, buff, bufcx);
+             } else {
+                if( gotone )
+                   safe_chr(' ', buff, bufcx);
+                gotone = 1;
+                ival(buff, bufcx, i);
+             }
+          }
+          ++s;
+          ++i;
+       }
+    } else {
+       while (*s) {
+          u = s;
+          t = fargs[0];
+          while (*t && *t == *u)
+             ++t, ++u;
+          if (*t == '\0') {
+             if( gotone )
+                safe_chr(' ', buff, bufcx);
+             gotone = 1;
+             ival(buff, bufcx, i);
+          }
+          ++i, ++s;
+       }
+    }
+    return;
+}
+*/
 
 FUNCTION(fun_numpos)
 {
     int i = 1, count, i_key, i_type;
     char *s, *t, *u, *s_in1, *s_in2;
-    ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], *p1, *p2;
+    ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], *p1, *p2, *p2b;
 
     if (!fn_range_check("NUMPOS", nfargs, 2, 4, buff, bufcx))
       return;
@@ -24541,15 +24834,13 @@ FUNCTION(fun_numpos)
 
     if ( i_type ) {
        initialize_ansisplitter(insplit1, LBUF_SIZE);
-       initialize_ansisplitter(insplit2, LBUF_SIZE);
-
        s_in1 = alloc_lbuf("fun_numposarg0");
-       s_in2 = alloc_lbuf("fun_numposarg1");
-
        memset(s_in1, '\0', LBUF_SIZE);
-       memset(s_in2, '\0', LBUF_SIZE);
-
        split_ansi(strip_ansi(fargs[0]), s_in1, insplit1);
+
+       initialize_ansisplitter(insplit2, LBUF_SIZE);
+       s_in2 = alloc_lbuf("fun_numposarg1");
+       memset(s_in2, '\0', LBUF_SIZE);
        split_ansi(strip_ansi(fargs[1]), s_in2, insplit2);
 
        /* This is computationally expensive as hell -- limit input of string to check */
@@ -24561,8 +24852,6 @@ FUNCTION(fun_numpos)
           return;
        }
 
-       s = s_in1;
-       t = s_in2;
        p1 = insplit1;
        p2 = insplit2;
 
@@ -24572,12 +24861,19 @@ FUNCTION(fun_numpos)
 
        if ( i_key ) {
           t = NULL;
-          while ( *s ) {
-             t = strchr(s_in1, *s);
-             if ( t ) {
-                if ( p2->i_utf8 == (p1 + (t - s_in1))->i_utf8 ) {
-                   count++;
+          while ( s && *s ) {
+             t = s_in1;
+             p1 = insplit1;
+             while ( *t ) {
+                if ( (*t == *s) && 
+                     (p1->i_utf8 == p2->i_utf8) &&
+                     (p1->i_ascii8 == p2->i_ascii8) ) {
+                   break;
                 }
+                t++, p1++;
+             }
+             if ( *t ) {
+                count++;
              }
              ++s;
              ++i;
@@ -24587,10 +24883,12 @@ FUNCTION(fun_numpos)
           while ( *s ) {
              u = s;
              t = s_in1;
-             while ( *t && (*t == *u) ) {
-                if ( p1->i_utf8 == p2->i_utf8 ) {
-                   ++t, ++u, ++p1, ++p2;
-                }
+             p1 = insplit1;
+             p2b = (insplit2 + (u - s_in2));
+             while ( *t && (*t == *u) && 
+                     (p1->i_utf8 == p2b->i_utf8) &&
+                     (p1->i_ascii8 == p2b->i_ascii8) ) {
+                   ++t, ++u, ++p1, ++p2b;
              }
              if ( *t == '\0' ) {
                 count++;
@@ -24701,56 +24999,6 @@ FUNCTION(fun_elementpos)
    free_lbuf(outbuff);
 }
 
-FUNCTION(fun_totpos)
-{
-    int i = 1, i_key;
-    char *s, *t, *u;
-    int gotone = 0;
-
-    if (!fn_range_check("TOTPOS", nfargs, 2, 3, buff, bufcx))
-      return;
-
-    i_key = 0;
-    if ( (nfargs > 2) && *fargs[2] ) {
-       i_key = atoi(fargs[2]);
-    }
-
-    s = strip_all_special(fargs[1]);
-    i = 1;
-    if ( i_key ) {
-       t = NULL;
-       while (*s) {
-          t = strchr(fargs[0], *s);
-          if ( t ) {
-             if ( i_key == 2 ) {
-                safe_chr(*s, buff, bufcx);
-             } else {
-                if( gotone )
-                   safe_chr(' ', buff, bufcx);
-                gotone = 1;
-                ival(buff, bufcx, i);
-             }
-          }
-          ++s;
-          ++i;
-       }
-    } else {
-       while (*s) {
-          u = s;
-          t = fargs[0];
-          while (*t && *t == *u)
-             ++t, ++u;
-          if (*t == '\0') {
-             if( gotone )
-                safe_chr(' ', buff, bufcx);
-             gotone = 1;
-             ival(buff, bufcx, i);
-          }
-          ++i, ++s;
-       }
-    }
-    return;
-}
 
 FUNCTION(fun_randpos)
 {
