@@ -16465,15 +16465,20 @@
             creplace()
 
 & POS()
-  Function: pos(<string1>,<string2>[,<type>])
+  Function: pos(<string1>, <string2> [,<type> [,<key> ]])
    
-  This function returns the position that string1 begins in string2,
+  This function returns the position that <string1> begins in <string2>,
   with the first position being 1.
-  If string1 is not in string2, then it returns #-1.
+  
+  If <string1> is not in <string2>, then it returns #-1.
   
   You may optionally specify a <type> of '1' to tell pos() to match ANY
   of the characters specified in <string1> and to return the first match. 
   
+  If you specify a <key> of 1, it will enable utf8/ansi aware mode.
+  
+  Note: the config parameter ansi_default if enabled reverses this.
+   
   Example: 
     > say pos(man,superman)
     You say "6"
@@ -16485,13 +16490,14 @@
   See Also: totpos(), numpos(), randpos(), elementpos()
   
 & TOTPOS()
-  Function: totpos(<match>,<string>[,<type>])
+  Function: totpos(<match>, <string> [,<type> [,<key>]])
   
-  This function returns all the positions of 'match' in the given 'string'.
+  This function returns all the positions of <match> in the given <string>.
+  
   This works just like pos() but will give the character placement of
   all the matches instead of the pos()'s first match.
   
-  If a match is not found in string, an empty value is returned (null).
+  If a <match> is not found in <string>, an empty value is returned (null).
   
   The following types are available:
     1 - Tells totpos() to match ANY of the characters specified in 
@@ -16499,10 +16505,14 @@
     2 - Tells totpos() to match ANY of the characters specified in
         <string> and return the characters matched, in order, that
         were found.
-  
+   
   Note:  Options 1 and 2 are good mixes to stage and prep replacement
          with the creplace() function.
-   
+  
+  If <key> is set to '1', it will assume utf8/ansi mode for the function.
+  
+  Note: the config parameter ansi_default if enabled reverses this.
+    
   Example:
     > say totpos(t,this is a test)
     You say "1 11 14"

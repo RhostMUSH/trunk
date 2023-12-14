@@ -7688,6 +7688,8 @@
     LEFT()    -- Key field reversed if DISABLED
     RIGHT()   -- Key field reversed if DISABLED
     NUMPOS()  -- Key field reversed if DISABLED
+    POS()     -- Key field reversed if DISABLED
+    TOTPOS()  -- Key field reversed if DISABLED
    
   See normal help on the functions for more information.
    
