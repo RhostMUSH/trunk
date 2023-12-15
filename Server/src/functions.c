@@ -27694,7 +27694,7 @@ FUNCTION(fun_creplaceansi)
 {
    char *s_in1, *s_in2, *s_out, *s_pos, *s_pin1, *s_pin2, *s_pout, 
         *s_return, *curr_temp, *sop_temp, *s_strtok, *s_strtokr, sep;
-   int i_val, i_len, i_cnt, i_range;
+   int i_val, i_len, i_cnt, i_range, i_rangecnt;
    ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in1, *p_in2, *p_out;
 
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
@@ -27803,10 +27803,19 @@ FUNCTION(fun_creplaceansi)
       s_pin2 = s_in2;
       s_pout = s_out;
       i_cnt = 0;
+      i_rangecnt = 0;
+      if ( nfargs > 4 ) {
+         i_rangecnt = atoi(fargs[4]);
+         if ( i_rangecnt < 0 ) {
+            i_rangecnt = 0;
+         }
+      }
 
       switch(sep) {
          case 'o': // Overwrite
             i_len = strlen(s_in2);
+            if ( i_rangecnt && i_rangecnt < i_len ) 
+               i_len = i_rangecnt - 1;;
             for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
                if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
                   if ( *s_pin1 ) {
@@ -27816,7 +27825,10 @@ FUNCTION(fun_creplaceansi)
                } else {
                   if ( *s_pin2 ) {
                      *s_pout++ = *s_pin2++;
-                     s_pin1++;
+                     if ( *s_pin1 ) {
+                        s_pin1++;
+                        p_in1++;
+                     }
                      clone_ansisplitter(p_out++, p_in2++);
                   }
                }
@@ -27824,6 +27836,8 @@ FUNCTION(fun_creplaceansi)
             break;
          case 'c': // Overwrite & Cut
             i_len = strlen(s_in2);
+            if ( i_rangecnt && i_rangecnt < i_len ) 
+               i_len = i_rangecnt - 1;
             i_range = strlen(s_in1);
             for ( i_cnt = 0; i_cnt <= i_range; i_cnt++ ) {
                if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
@@ -27834,7 +27848,10 @@ FUNCTION(fun_creplaceansi)
                } else {
                   if ( *s_pin2 && *s_pin1 ) {
                      *s_pout++ = *s_pin2++;
-                     s_pin1++;
+                     if ( *s_pin1 ) {
+                        s_pin1++;
+                        p_in1++;
+                     }
                      clone_ansisplitter(p_out++, p_in2++);
                   }
                }
@@ -27842,6 +27859,8 @@ FUNCTION(fun_creplaceansi)
             break;
          case 'i': // insert
             i_len = strlen(s_in2);
+            if ( i_rangecnt && i_rangecnt < i_len ) 
+               i_len = i_rangecnt - 1;
             for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
                if ( (i_cnt < (i_val - 1)) || (i_cnt > (i_val + i_len - 1)) ) {
                   if ( *s_pin1 ) {
@@ -27858,6 +27877,9 @@ FUNCTION(fun_creplaceansi)
             break;
          case 'r': // replace
             i_len = strlen(s_in2);
+            if ( i_rangecnt && i_rangecnt < i_len ) 
+               i_len = i_rangecnt - 1;
+            i_range = 0;
             for ( i_cnt = 0; i_cnt < LBUF_SIZE; i_cnt++ ) {
                if ( i_cnt < (i_val - 1) ) {
                   if ( *s_pin1 ) {
@@ -27865,9 +27887,10 @@ FUNCTION(fun_creplaceansi)
                      clone_ansisplitter(p_out++, p_in1++);
                   }
                } else {
-                  if ( !*s_pin2 ) {
+                  if ( !*s_pin2 || (i_range > i_len) ) {
                      break;
                   }
+                  i_range++;
                   *s_pout++ = *s_pin2++;
                   clone_ansisplitter(p_out++, p_in2++);
                }

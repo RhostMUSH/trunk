@@ -20994,11 +20994,13 @@
   See Also: andflag(), andflags(), orflag(), hasflag(), flags(), lflags()
   
 & ANDCHR()
-  Function: andchr(<string>,<listofcharacters>)
+  Function: andchr(<string>, <listofcharacters> [,<key>])
   
   This function returns true(1) if the specified <string> contains
   at least one of every character in <listofcharacters>.  If one
   of the characters does not exist, it'll return false(0).
+  
+  You may specify <key> to make this function utf8/ansi aware.
   
   Examples:
     > say andchr(wizards,zdi)
@@ -21009,11 +21011,13 @@
   See Also: orchr(), xorchr(), notchr()
   
 & ORCHR()
-  Function: orchr(<string>,<listofcharacters>)
+  Function: orchr(<string>, <listofcharacters> [,<key>])
   
   This function returns true(1) if any one of the characters in
   <listofcharacters> exists in <string>.  It will return false(0)
   if none of the characters exist in <string>.
+  
+  You may specify <key> to make this function utf8/ansi aware.
   
   Examples:
     > say orchr(wizards,ymqi)
@@ -21024,11 +21028,13 @@
   See Also: andchr(), xorchr(), notchr()
   
 & XORCHR()
-  Function: xorchr(<string>,<listofcharacters>)
+  Function: xorchr(<string>, <listofcharacters> [,<key>])
   
   This function returns true(1) if only ONE of the characters in
   <listofcharacters> exists in <string>.  It will return false(0)
   under every other situation.
+  
+  You may specify <key> to make this function utf8/ansi aware.
   
   Examples:
     > say xorchr(wizards,qim)
@@ -21041,11 +21047,13 @@
   See Also: andchr(), orchr(), notchr()
   
 & NOTCHR()
-  Function: notchr(<string>,<listofcharacters>)
+  Function: notchr(<string>, <listofcharacters> [,<key>])
   
   This function returns true(1) if NONE of the characters in
   <listofcharacters> exists in <string>.  It will return false(0)
   if any of the characters exist in <string>.
+  
+  You may specify <key> to make this function utf8/ansi aware.
   
   Examples:
     > say notchr(wizards,qim)
@@ -23845,9 +23853,10 @@
   See Also: setdiff(), setinter(), sort(), listunion()
   
 & MERGE()
-  Function: merge(<string1>,<string2>,<character>)
+  Function: merge(<string1>, <string2>, <character> [,<key>])
   
   This function merges <string1> and <string2>, depending on <character>.
+  
   If a character in <string1> is the same as <character>, it is replaced
   by the character in the corresponding position in <string2>.  The two
   strings must be of the same length.
@@ -23855,6 +23864,10 @@
   Spaces need to be treated specially. A null character is considered to
   equal a space, for <character>.
   
+  If you specify <key> it will optionally be utf8/ansi aware.
+  
+  Note: if ansi_default is enabled, <key> is reversed.
+    
   Examples:
     > say merge(AB--EF,abcdef,-)
     You say, "ABcdEF"
@@ -35129,3 +35142,4 @@
  * key help for ansi_aware functions (like delete() and tr()) reversed [ASH]
  * elementpos() did not process utf8/ansi properly for delim [ASH]
  * bug introduced in numpos() with UTF8 fixed [ASH]
+ * range option to creplace() was not working [ASH]
