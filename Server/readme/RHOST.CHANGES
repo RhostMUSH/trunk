@@ -13,6 +13,8 @@ player_absolute lookup for aliases in location to match PennMUSH
 				- Thanks Myrddin
 Added '8' option to escapex for enbedded UTF8 support
 				- Thanks Thenomain
+A crapton of testing and finding functions needing UTF8
+				- Thanks Thenomain
 
 
                          RhostMUSH 4.0 Update File

@@ -216,7 +216,7 @@
   Any invalid timezone lookup will default back to GMT time and NOT
   localtime.
    
-  See Also: localtzone(), secstz(), msecstz()
+  See Also: listtzones(), secstz(), msecstz()
  
 & API
   Topic: API
