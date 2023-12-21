@@ -190,6 +190,40 @@ walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
    return 0;
 }
 
+/* Validate timezones -- this ovewrites inbuffer with case-sensitive version */
+int
+validate_timezones( char *s_timezone ) {
+   char **s_ptr, *s_inptr;
+   static char s_tmp[SBUF_SIZE+1];
+   int i_found;
+
+   i_found = 0;
+   memset(s_tmp, '\0', SBUF_SIZE + 1);
+   if ( s_timezone && *s_timezone ) {
+      strncpy(s_tmp, s_timezone, SBUF_SIZE - 1);
+   }
+
+   if ( s_tmp && *s_tmp ) {
+      s_inptr = s_tmp;
+      while ( *s_inptr ) {
+         if ( (*s_inptr == '+') || (*s_inptr == '-') ) {
+            *s_inptr = '\0';
+            break;
+         }
+         s_inptr++;
+      }
+      for ( s_ptr = global_timezones; s_ptr && *s_ptr; s_ptr++ ) {
+         if ( !stricmp(*s_ptr, s_tmp) ) {
+            /* This is a compare -- the buffer will never be exceeded */
+            strncpy(s_timezone, *s_ptr, strlen(*s_ptr));
+            i_found = 1;
+            break;
+         }
+      }
+   }
+   return(i_found);
+}
+
 void
 init_timezones( void ) {
    int i_cnt, i_err;

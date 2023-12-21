@@ -8,6 +8,7 @@
 #include "mudconf.h"
 #include "externs.h"
 #include "debug.h"
+#include "ansi.h"
 
 /* ensure quad byte divisible length to avoid bus error on some machines */
 #define QUADALIGN(x) ((pmath1)(x) % ALLIGN1 ? \
@@ -360,18 +361,21 @@ pool_stats_extra(int poolnum, const char *text)
 }
 
 static char *
-pool_stats(int poolnum, const char *text)
+pool_stats(int poolnum, const char *text, int i_color)
 {
     char *buf;
-    char format_str[80];
+    char format_str[80], s_warn[20], s_norm[20];
+    double i_check = 0;
 
     buf = alloc_mbuf("pool_stats");
     memset(format_str, '\0', sizeof(format_str));
+    memset(s_warn, '\0', sizeof(s_warn));
+    memset(s_norm, '\0', sizeof(s_norm));
     strcpy(format_str, "%-14.14s %5d");
     if ( pools[poolnum].num_alloc > 999999999 )
-       strcat(format_str, " %9.4g");
+       strcat(format_str, " %s%9.4g%s");
     else
-       strcat(format_str, " %9.9g");
+       strcat(format_str, " %s%9.9g%s");
     if ( pools[poolnum].max_alloc > 999999999 )
        strcat(format_str, " %9.4g");
     else
@@ -390,26 +394,56 @@ pool_stats(int poolnum, const char *text)
        strcat(format_str, " %14.14g");
 
     if ( strcmp(text, "Lbufs") == 0 ) {
+       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2); 
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 50 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 20 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	       pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
                pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
     } else if ( strcmp(text, "Mbufs") == 0 ) {
+       i_check = pools[poolnum].num_alloc - global_timezone_max; 
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 150 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 100 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	       pools[poolnum].num_alloc - global_timezone_max, 
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - global_timezone_max, 
                pools[poolnum].max_alloc - global_timezone_max,
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                (pools[poolnum].max_alloc - global_timezone_max) * pools[poolnum].pool_size);
     } else if ( strcmp(text, "Sbufs") == 0 ) {
+       i_check = pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); 
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 50 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 20 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	       pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
                pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST),
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                (pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) * pools[poolnum].pool_size);
     } else {
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	       pools[poolnum].num_alloc, pools[poolnum].max_alloc,
+	       s_warn, pools[poolnum].num_alloc, s_norm, pools[poolnum].max_alloc,
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                pools[poolnum].max_alloc * pools[poolnum].pool_size);
     }
@@ -497,17 +531,39 @@ pool_trace(dbref player, int poolnum, const char *text, int key)
 }
 
 static void 
-list_bufstat(dbref player, int poolnum, const char *pool_name)
+list_bufstat(dbref player, int poolnum, const char *pool_name, int i_color)
 {
-    char *buff;
+    char *buff, *colorbuff;
 
-    buff = pool_stats(poolnum, poolnames[poolnum]);
+    buff = pool_stats(poolnum, poolnames[poolnum], i_color);
+#ifdef ZENTY_ANSI
+    if ( i_color ) {
+       colorbuff = alloc_lbuf("list_bufstat");
+       sprintf(colorbuff, "%s%s%s%s", ANSI_HILITE, ANSI_GREEN, buff, ANSI_NORMAL);
+       notify(player, colorbuff);
+       free_lbuf(colorbuff);
+    } else {
+       notify(player, buff);
+    }
+#else
     notify(player, buff);
+#endif
     free_mbuf(buff);
     buff = pool_stats_extra(poolnum, poolnames[poolnum]);
     /* buff is always allocated */
     if ( *buff ) {
+#ifdef ZENTY_ANSI
+       if ( i_color ) {
+          colorbuff = alloc_lbuf("list_bufstat");
+          sprintf(colorbuff, "%s%s%s%s", ANSI_HILITE, ANSI_CYAN, buff, ANSI_NORMAL);
+          notify(player, colorbuff);
+          free_lbuf(colorbuff);
+       } else {
+          notify(player, buff);
+       }
+#else
        notify(player, buff);
+#endif
     }
     free_mbuf(buff);
 }
@@ -659,20 +715,36 @@ showAttrStats(dbref player)
 void 
 list_bufstats(dbref player, char *s_key)
 {
-    int i, i_found;
+    int i, i_found, i_color;
 
-    i_found = 0;
+    i_found = 0; 
+    i_color = 0;
 
-    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"quick") ) {
-       i_found = 1;
-       notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
-       for (i = 0; i < NUM_POOLS; i++)
-	   list_bufstat(player, i, poolnames[i]);
+    if ( s_key && *s_key && !strcasecmp(s_key, (char *)"cquick")) {
+       i_color = 1;
     }
 
-    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"quick") ) {
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"quick") || 
+                               !strcasecmp(s_key, (char *)"cquick")) ) {
        i_found = 1;
-       showTrackedBufferStats(player);
+#ifdef ZENTY_ANSI
+       if ( i_color ) {
+          notify(player, unsafe_tprintf("%s%sBuffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem%s",
+                         ANSI_HILITE, ANSI_BLUE, ANSI_NORMAL));
+       } else {
+          notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
+       }
+#else
+       notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
+#endif
+       for (i = 0; i < NUM_POOLS; i++)
+	   list_bufstat(player, i, poolnames[i], i_color);
+    }
+
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"quick") ||
+                               !strcasecmp(s_key, (char *)"cquick")) ) {
+       i_found = 1;
+       showTrackedBufferStats(player, i_color);
     }
     if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"blacklist") ) {
        i_found = 1;
@@ -711,7 +783,7 @@ list_bufstats(dbref player, char *s_key)
     }
 
     if ( !i_found && s_key && *s_key ) {
-       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, or stack.");
+       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, stack, or cquick.");
     }
 }
 

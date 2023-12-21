@@ -1297,6 +1297,7 @@ static struct PENN_COLORMAP penn_namecolors[]= {
 
 UFUN *ufun_head, *ulfun_head;
 extern char *global_timezones[1000];
+extern int validate_timezones( char * );
 extern NAMETAB lock_sw[];
 extern NAMETAB access_nametab[];
 extern NAMETAB access_nametab2[];
@@ -6577,16 +6578,18 @@ FUNCTION(fun_valid)
  * * given type (such as an object name).
  */
 
-  char *mbuf;
+  char *mbuf, *p;
   int i_tag;
   struct boolexp *okey;
+  dbref dbitem;
   CMDENT *cmdp;
   FLAGENT *flgp;
   FUN *fp;
   UFUN *ufp;
   PENNANSI *cm;
   TOGENT *tp;
-  TZONE_MUSH *tzmush;
+  TOTEMENT *totp;
+//TZONE_MUSH *tzmush;
 
   if (!fargs[0] || !*fargs[0]) {
       safe_str("#-1", buff, bufcx);
@@ -6678,6 +6681,7 @@ FUNCTION(fun_valid)
   } else if (!stricmp(fargs[0], "ansicodes")) {
      ival(buff, bufcx, validate_ansi(fargs[1]));
   } else if (!stricmp(fargs[0], "timezone")) {
+/*
      i_tag = 0;
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
         if ( stricmp((char *)tzmush->mush_tzone, (char *)fargs[1]) == 0 ) {
@@ -6686,6 +6690,8 @@ FUNCTION(fun_valid)
         }
      }
      ival(buff, bufcx, i_tag);
+*/
+     ival(buff, bufcx, validate_timezones(fargs[1]));
   } else if (!stricmp(fargs[0], "locktype")) {
      /* fargs[1] checked against null/empty above */
      i_tag = search_nametab(player, lock_sw, fargs[1]);
@@ -6696,6 +6702,25 @@ FUNCTION(fun_valid)
      if (okey == TRUE_BOOLEXP)
         i_tag = 0;
      free_boolexp(okey);
+     ival(buff, bufcx, i_tag);
+  } else if ( !stricmp(fargs[0], "tag")) {
+    p = fargs[1];
+    i_tag = 0;
+    if (*p++ == NUMBER_TOKEN) {
+      if ( strlen(fargs[1]) > 1 ) {
+         dbitem = objecttag_get(p, player, 0);
+         if (Good_obj(dbitem)) {
+            i_tag = 1;
+         }
+      }
+    }
+    ival(buff, bufcx, i_tag);
+  } else if ( !stricmp(fargs[0], "totem")) {
+     i_tag = 0;
+     totp = find_totem(player, fargs[1]);
+     if ( totp ) {
+        i_tag = totem_cansee_bit(player, player, totp->listperm);
+     }
      ival(buff, bufcx, i_tag);
   } else {
      safe_str("#-1", buff, bufcx);
@@ -9187,6 +9212,9 @@ FUNCTION(fun_time)
     i_tz = 0;
     s_env = alloc_sbuf("convtime_env");
     if ( *fargs[0] ) {
+       if ( !validate_timezones(fargs[0]) ) {
+          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+       }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
        i_tz = 1;
@@ -9195,9 +9223,12 @@ FUNCTION(fun_time)
     } else {
        ap = atr_str("TIMEZONE");
        if ( ap ) {
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr && !validate_timezones(s_chratr) ) {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+          }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
-          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr ) {
              i_tz = 1;
              setenv("TZ", s_chratr, 1);
@@ -12376,6 +12407,9 @@ FUNCTION(fun_msecstz)
     i_tz = 0;
     s_env = alloc_sbuf("msecstz");
     if ( *fargs[0] ) {
+       if ( !validate_timezones(fargs[0]) ) {
+          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+       }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
        i_tz = 1;
@@ -12384,9 +12418,12 @@ FUNCTION(fun_msecstz)
     } else {
        ap = atr_str("TIMEZONE");
        if ( ap ) {
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr && !validate_timezones(s_chratr) ) {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+          }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
-          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr ) {
              i_tz = 1;
              setenv("TZ", s_chratr, 1);
@@ -12426,6 +12463,9 @@ FUNCTION(fun_secstz)
     i_tz = 0;
     s_env = alloc_sbuf("secstz");
     if ( *fargs[0] ) {
+       if ( !validate_timezones(fargs[0]) ) {
+          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+       }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
        i_tz = 1;
@@ -12434,9 +12474,12 @@ FUNCTION(fun_secstz)
     } else {
        ap = atr_str("TIMEZONE");
        if ( ap ) {
+          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
+          if ( *s_chratr && !validate_timezones(s_chratr) ) {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+          }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
-          s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr ) {
              i_tz = 1;
              setenv("TZ", s_chratr, 1);

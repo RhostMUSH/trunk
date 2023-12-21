@@ -204,6 +204,7 @@
     > &TIMEZONE me=US/Hawaii
     > &TIMEZONE me=Brazil/East
     > &TIMEZONE me=Etc/GMT+1
+    > &TIMEZONE me=GMT
   
   Some functions like secstz(), msecstz() and time() allow you to specify
   the timezone as an argument.  Using thoe functions this way will 
@@ -215,9 +216,27 @@
   
   Any invalid timezone lookup will default back to GMT time and NOT
   localtime.
+  
+  Refer to 'timezone error handling' for how timezones handle errors.
    
-  See Also: listtzones(), secstz(), msecstz()
+  See Also: listtzones(), secstz(), msecstz(), time()
  
+& TIMEZONE ERROR HANDLING
+  Topic: TIMEZONE (error handling)
+  
+  An invalid timezone entered in a timezone aware function like time(),
+  secstz(), or msecstz() will warn the player (or enactor) of the
+  invalid timezone then fall back to GMT time.
+  
+  To repeat.  This falls back to GMT time.  It does NOT fall back
+  to the local time of the server, which may not be what you 
+  expect.   
+  
+  This follows procedure of what would happen if you set an invalid
+  timezone on a physial server.  It will fall back to GMT time.
+  
+  You may use listtzones() to check for system recognized timezones.
+   
 & API
   Topic: API
   
@@ -17830,12 +17849,14 @@
      ufunction  - returns '1' if string is valid @function/@lfunction.
      flag       - returns '1' if string is a valid flag.
      toggle     - returns '1' if string is a valid toggle.
+     totem      - returns '1' if string is a valid totem.
      qreg       - returns '1' if string is valid qreg label.
      colorname  - returns '1' if string is a valid +name for ansi.
      ansicodes  - always returns '1'.  Meant for Penn compatibility.
      timezone   - returns '1' if string is a valid timezone.
      locktype   - returns '1' if string is a valid lock switch/type.
      lockkey    - returns '1' if string is a valid string for locking.
+     tag        - returns '1' if string is a valid tag (must start with a #)
   
   If a valid option is not specified, this function returns #-1.
   
@@ -35082,6 +35103,7 @@
  * pos() and totpos() handles UTF8/ansi [ASH]
  * numpos() is now UTF8/ANSI aware [ASH]
  * elementpos()'s delim is now UTF8 aware [ASH]
+ * @list alloc cquick for a color encoded buffer listing [ASH]
   
   Changes
   -------
@@ -35115,6 +35137,7 @@
  * Rewrote all the API handlers to be centralized [ASH]
  * Max pids and formatting raised from 32K to 256K queues [ASH]
  * isword() now recogizes accents [ASH]
+ * functions for timezone awareness now warn on invalid TZ [ASH]
     
   Bug Fixes
   ------------

@@ -28,6 +28,6 @@ char *real_tprintf(char *filename, int lineNo,
  *  - at the end of the main Rhost work loop
  */
 void freeTrackedBuffers(void);
-void showTrackedBufferStats(dbref player);
+void showTrackedBufferStats(dbref player, int color);
 
 #endif

@@ -30,6 +30,7 @@
 #include "tprintf.h"
 
 #include <assert.h>
+#include "ansi.h"
 
 #define TPRINTF_LIST_SIZE 10
 typedef struct _tprintf_list {
@@ -236,7 +237,7 @@ void freeTrackedBuffers(void) {
 
 }
 
-void showTrackedBufferStats(dbref player) {
+void showTrackedBufferStats(dbref player, int color) {
   char *buff = NULL;
   int avg = 0;
   
@@ -247,12 +248,24 @@ void showTrackedBufferStats(dbref player) {
       avg = bufferStats.current;
   }
   
+#ifdef ZENTY_ANSI
+  buff = unsafe_tprintf(
+	                 "%s%s\nTprintf Stats   Current  Maximum   Average\n"
+			 "                %-5d    %-5d     %-5d%s",
+                         (char *)(color ? ANSI_HILITE : ""),
+                         (char *)(color ? ANSI_GREEN : ""),
+	                 bufferStats.current,
+		         bufferStats.maxLength,
+			 avg,
+                         (char *)(color ? ANSI_NORMAL : ""));
+#else
   buff = unsafe_tprintf(
 	                 "\nTprintf Stats   Current  Maximum   Average\n"
 			 "                %-5d    %-5d     %-5d",
 	                 bufferStats.current,
 		         bufferStats.maxLength,
 			 avg);
+#endif
 
   
   notify(player, buff);
