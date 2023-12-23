@@ -12334,7 +12334,7 @@ FUNCTION(fun_ptimefmt)
 
   if ( i_tz ) {
      if ( *s_env ) {
-        setenv("TZ", fargs[2], 1);
+        setenv("TZ", s_env, 1);
      } else {
         setenv("TZ", (char *)"localtime", 1);
      }
