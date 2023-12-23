@@ -22978,6 +22978,31 @@
   See Also: toggle(), totemset(), lset(), set(), writable(), &, @set, 
             SIDEEFFECTS, ATTRIBUTE TREES
   
+& RUNINTZ()
+  Function: runintz(<string>, <timezone>)
+  
+  This function will evaluate and run the <string> in the specified
+  <timezone>.  If the <timezone> is invalid, the function will error out.
+  
+  If you pass a null <string> the function will immediately return out.
+  
+  This is useful to sandbox a string and evaluate it in a forced timezone.
+  All time related functions will honor the timezone.
+  
+  Examples:
+    > say ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860)
+      You say "Sat Dec 23 03:14:20 AM CST"
+    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),US/Hawaii)
+      You say "Fri Dec 22 11:14:20 PM HST"
+    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),GMT)
+      You say "Sat Dec 23 09:14:20 AM GMT"
+    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),CST6CDT)
+      You say "Sat Dec 23 03:14:20 AM CST"
+    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),localtime)
+      You say "Sat Dec 23 03:14:20 AM CST"
+  
+  See Also: ptimefmt(), secstz(), time(), TIMEZONE
+
 & RULER()
   Function: ruler(<object>/<attribute>, <ruler value>)
   
