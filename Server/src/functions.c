@@ -11915,7 +11915,9 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 't': /* Timezone */
-                fm.lastval = (int)l_timezone;
+                // fm.lastval = (int)l_timezone;
+                tms3 = mush_localtime64_r(&secs2, tms2);
+                fm.lastval = (int)(0 - tms3->tm_gmtoff);
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;
