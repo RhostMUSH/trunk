@@ -2944,7 +2944,7 @@ CF_HAND(cf_stringtz)
     /* Copy the string to the buffer if it is not too big */
 
     if ( !str || !*str ) {
-       retval = 0;
+       retval = -3;
        if ( !mudstate.initializing ) {
           tt = mudstate.now;
           ttm = localtime(&tt);

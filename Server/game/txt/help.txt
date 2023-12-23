@@ -197,7 +197,7 @@
   choose from.
   
   Functions currently aware of timezones in this manner:
-    ptimefmt(), secstz(), msecstz(), time(), listtzones()
+    ptimefmt(), secstz(), msecstz(), time(), listtzones(), runintz()
   
   Examples of timezones you may set (but is far from all available):
     > &TIMEZONE me=US/Eastern
@@ -218,8 +218,10 @@
   localtime.
   
   Refer to 'timezone error handling' for how timezones handle errors.
+  
+  Note: runintz() can be used to run functions in a specified timezone.
    
-  See Also: listtzones(), secstz(), msecstz(), time()
+  See Also: listtzones(), secstz(), msecstz(), time(), runintz()
  
 & TIMEZONE ERROR HANDLING
   Topic: TIMEZONE (error handling)
@@ -12199,48 +12201,34 @@
  
 & FUNCTION LIST4
   
-  REBOOTSECS()    REBOOTTIME()    REGEDIT()      REGEDITI()     REGEDITALL()
-  REGEDITALLI()   REGMATCH()      REGMATCHI()    REGLMATCH()    REGLMATCHI()
-  REGLMATCHALL()  REGLMATCHALLI() REGRAB()       REGRABI()      REGREP()      
-  REGREPI()       RESWITCH()      RESWITCHI()    RESWITCHALL()  RESWITCHALLI()
-  REMAINDER()     REMIT()         REMFLAGS()     REMOVE()       REMTYPE()     
-  REPEAT()        REPLACE()       REST()         REVERSE()      REVWORDS()    
-  RIGHT()         RINDEX()        RJC()          RJUST()        RLOC()        
-  RNUM()          ROMAN()         ROOM()         ROTL()         ROTR()        
-  ROUND()         RSET()          RULER()        RXLEVEL()      S()          
-  SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()       SEARCHOBJID()
-<<<<<<< HEAD
-  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()       SECURE()     
-  SECUREX()       SEES()          SET()          SETDIFF()      SETINTER()   
-  SETQ()          SETQ_OLD()      SETQMATCH()    SETR()         SETR_OLD()   
-  SETUNION()      SHIFT()         SHL()          SHR()          SHUFFLE()    
-  SIGN()          SIN()           SINGLETIME()   SORT()         SORTBY()     
-  SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()   SPACE()      
-  SPELLNUM()      SPLICE()        SQL()          SQLESCAPE()    SQLOFF()    
-  SQLON()         SQLPING()       SQLITE_QUERY() SQRT()         SQUISH()     
-  STARTTIME()     STARTSECS()     STATS()        STDERR()       STEP()       
-  STR()           STRCAT()        STRDISTANCE()  STREQ()        STREVAL()    
-  STRFUNC()       STRIP()         STRIPACCENTS() STRIPANSI()    STRLEN()     
-=======
-  SEARCHNG()      SEARCHNGOBJID() SECS()         SECURE()       SECUREX()    
-  SEES()          SET()           SETDIFF()      SETINTER()     SETQ()       
-  SETQ_OLD()      SETQMATCH()     SETR()         SETR_OLD()     SETUNION()   
-  SHIFT()         SHL()           SHR()          SHUFFLE()      SIGN()       
-  SIN()           SINGLETIME()    SORT()         SORTBY()       SORTLIST()   
-  SOUNDEX()       SOUNDLIKE()     SOUNDSLIKE()   SPACE()        SPELLNUM()   
-  SPLICE()        SQL()           SQLESCAPE()    SQLOFF()       SQLON()      
-  SQLPING()       SQLITE_QUERY()  SQRT()         SQUISH()       STARTTIME()  
-  STARTSECS()     STATS()         STDERR()       STEP()         STR()        
-  STRCAT()        STRDISTANCE()   STREQ()        STREVAL()      STRFUNC()    
-  STRIP()         STRIPACCENTS()  STRIPANSI()    STRIPUNICODE() STRLEN()     
->>>>>>> master
-  STRMATCH()      STRMATH()       SUB()          SUBEVAL()      SUBJ()       
-  SUBNETMATCH()   SWITCH()        SWITCHALL()    T()            TAG()        
-  TAGMATCH()      TAN()           TEL()          TEMPLATE()     TIME()       
-  TIMEFMT()       TOBIN()         TODEC()        TOGGLE()       TOHEX()      
-  TOOCT()         TOTCMDS()       TOTEMS()       TOTEMSET()     TOTMATCH()   
-  TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()           TRACE()      
-  TRANSLATE()     TRIM()
+  REBOOTSECS()   REBOOTTIME()    REGEDIT()       REGEDITI()     REGEDITALL()
+  REGEDITALLI()  REGMATCH()      REGMATCHI()     REGLMATCH()    REGLMATCHI()
+  REGLMATCHALL() REGLMATCHALLI() REGRAB()        REGRABI()      REGREP()      
+  REGREPI()      RESWITCH()      RESWITCHI()     RESWITCHALL()  RESWITCHALLI()
+  REMAINDER()    REMIT()         REMFLAGS()      REMOVE()       REMTYPE()     
+  REPEAT()       REPLACE()       REST()          REVERSE()      REVWORDS()    
+  RIGHT()        RINDEX()        RJC()           RJUST()        RLOC()        
+  RNUM()         ROMAN()         ROOM()          ROTL()         ROTR()        
+  ROUND()        RSET()          RULER()         RUNINTZ()      RXLEVEL()      
+  S()            SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()     
+  SEARCHOBJID()  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()     
+  SECURE()       SECUREX()       SEES()          SET()          SETDIFF()   
+  SETINTER()     SETQ()          SETQ_OLD()      SETQMATCH()    SETR()      
+  SETR_OLD()     SETUNION()      SHIFT()         SHL()          SHR()       
+  SHUFFLE()      SIGN()          SIN()           SINGLETIME()   SORT()      
+  SORTBY()       SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()
+  SPACE()        SPELLNUM()      SPLICE()        SQL()          SQLESCAPE() 
+  SQLOFF()       SQLON()         SQLPING()       SQLITE_QUERY() SQRT()      
+  SQUISH()       STARTTIME()     STARTSECS()     STATS()        STDERR()    
+  STEP()         STR()           STRCAT()        STRDISTANCE()  STREQ()     
+  STREVAL()      STRFUNC()       STRIP()         STRIPACCENTS() STRIPANSI() 
+  STRLEN()       STRMATCH()      STRMATH()       SUB()          SUBEVAL()    
+  SUBJ()         SUBNETMATCH()   SWITCH()        SWITCHALL()    T()          
+  TAG()          TAGMATCH()      TAN()           TEL()          TEMPLATE()   
+  TIME()         TIMEFMT()       TOBIN()         TODEC()        TOGGLE()     
+  TOHEX()        TOOCT()         TOTCMDS()       TOTEMS()       TOTEMSET()   
+  TOTMATCH()     TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()         
+  TRACE()        TRANSLATE()     TRIM()
   
 { 'help function list5' for more }
 
@@ -12419,6 +12407,7 @@
   
   Time:                CONVSECS() CONVTIME() LISTTZONES() MSECS() MSECSTZ() 
                        PTIMEFMT() SECS() SECSTZ() SINGLETIME() TIME() TIMEFMT()
+                       RUNINTZ()
              See Also: help time functions  
   
   { 'help function classes6' for more }
@@ -19115,7 +19104,7 @@
   $m - Month of the year         $Z - Time zone
   $M - Minutes after the hour    $$ - $ character.
   
-  See Also: timefmt(), TIMEZONE
+  See Also: timefmt(), runintz(), TIMEZONE
   
 & TIMEFMT()
   Function: timefmt(<format string>, <secs> [,<output timezone>])
@@ -19141,7 +19130,7 @@
         of preferred timezones (example, &TZ me=GMT CST EST) that
         you wish to use for matching.  This honors parents.
   
-  See Also: time(), singletime(), ptimefmt(), timezone list
+  See Also: time(), singletime(), ptimefmt(), runintz(), timezone list
   
 & TIMEFMT ESCAPES
   To cause the timefmt function to output a '$' character it must be
@@ -31931,6 +31920,7 @@
   secs()        - Returns the current time in Unix seconds.
   secstz()      - Returns the current time in Unix seconds based on tz.
   singletime()  - Converts seconds to a single time element.
+  runintz()     - Run the arguments in specified timezone.
   time()        - Returns the current time, formatted as a string.
   timefmt()     - Returns the current, or a specified time, formatted.
 
@@ -35043,6 +35033,7 @@
  * grep() rewritten for no-wild matchh to use strstr [ASH]
  * escapex() takes more arguments for specific exclusions [ASH]
  * objeval() takes special arg for wiz handling like a sudo() function [ASH]
+ * runintz() function to force-run any functions in a specified timezone [ASH]
   
   Bug Fixes
   ------------
@@ -35112,6 +35103,7 @@
  * elementpos()'s delim is now UTF8 aware [ASH]
  * @list alloc cquick for a color encoded buffer listing [ASH]
  * timezone config parameter to specify the timezone for the mush [ASH]
+ * runintz() to sandbox functions in a specific timezone [ASH]
   
   Changes
   -------

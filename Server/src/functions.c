@@ -12517,6 +12517,41 @@ FUNCTION(fun_msecstz)
     free_sbuf(s_env);
 }
 
+FUNCTION(fun_runintz)
+{
+    char *s_retarg0, *s_retarg1, *s_env, *s_tmp;
+
+    if ( !*fargs[0] ) {
+       return;
+    }
+    if ( !*fargs[1] ) {
+       safe_str("#-1 INVALID TIMEZONE SPECIFIED", buff, bufcx);
+       return;
+    }
+   
+    s_retarg1 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+    if ( validate_timezones(s_retarg1) ) {
+       s_tmp = getenv("TZ");
+       s_env = alloc_sbuf("fun_runintz");
+       sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
+       setenv("TZ", s_retarg1, 1);
+       tzset();
+       s_retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+       safe_str(s_retarg0, buff, bufcx);
+       free_lbuf(s_retarg0);
+       if ( *s_env ) {
+          setenv("TZ", s_env, 1);
+       } else {
+          setenv("TZ", (char *)"localtime", 1);
+       }
+       tzset();
+       free_sbuf(s_env);
+    } else {
+       safe_str("#-1 INVALID TIMEZONE SPECIFIED", buff, bufcx);
+    }
+    free_lbuf(s_retarg1);
+}
+
 FUNCTION(fun_secstz)
 {
     char *s_env, *s_tmp, *s_chratr;
@@ -40771,6 +40806,7 @@ FUN flist[] =
 #ifdef REALITY_LEVELS
 #ifdef USE_SIDEEFFECT
     {"RULER", fun_ruler, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"RUNINTZ", fun_runintz, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"RXLEVEL", fun_rxlevel, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #else
     {"RXLEVEL", fun_rxlevel, 1, 0, CA_PUBLIC, CA_NO_CODE},
