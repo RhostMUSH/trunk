@@ -9240,12 +9240,14 @@ FUNCTION(fun_time)
     temp = (char *) ctime(&mudstate.now);
     temp[strlen(temp) - 1] = '\0';
     safe_str(temp, buff, bufcx);
-    if ( i_tz && *s_env ) {
-       setenv("TZ", s_env, 1);
-    } else {
-       setenv("TZ", (char *)"localtime", 1);
+    if ( i_tz ) {
+       if ( *s_env ) {
+          setenv("TZ", s_env, 1);
+       } else {
+          setenv("TZ", (char *)"localtime", 1);
+       }
+       tzset();
     }
-    tzset();
     free_sbuf(s_env);
 }
 

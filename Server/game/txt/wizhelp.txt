@@ -7398,23 +7398,24 @@
   switch_search             switch_substitutions      terse_shows_contents    
   terse_shows_exits         terse_shows_move_messages thing_attr_default      
   thing_flags               thing_parent              thing_quota             
-  thing_toggles             timeslice                 toggle_access_see       
-  toggle_access_set         toggle_access_type        toggle_access_unset     
-  totem_add                 totem_alias               totem_access_see
-  totem_access_set          totem_access_type         totem_access_unset
-  totem_letter              totem_name                totem_rename
-  totem_types               tor_localhost             tor_paranoid            
-  trace_output_limit        trace_topdown             tree_character          
-  trust_site                uncompress_program        unowned_safe            
-  user_attr_flags           validate_host             vattr_command           
-  vattr_interval            vattr_limit_checkwiz      vercustomstr            
-  vlimit                    wait_cost                 wall_cost               
-  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit      
-  who_default               who_unfindable            who_showwiz             
-  who_wizlevel              who_whowiztype            whohost_size            
-  wiz_override              wiz_uselock               wizard_help_file        
-  wizard_help_index         wizard_motd_file          wizard_motd_message     
-  wizard_queue_limit        wizcommand_quota_max      zone_parents
+  thing_toggles             timeslice                 timezone
+  toggle_access_see         toggle_access_set         toggle_access_type      
+  toggle_access_unset       totem_add                 totem_alias             
+  totem_access_see          totem_access_set          totem_access_type       
+  totem_access_unset        totem_letter              totem_name              
+  totem_rename              totem_types               tor_localhost           
+  tor_paranoid              trace_output_limit        trace_topdown           
+  tree_character            trust_site                uncompress_program      
+  unowned_safe              user_attr_flags           validate_host           
+  vattr_command             vattr_interval            vattr_limit_checkwiz    
+  vercustomstr              vlimit                    wait_cost               
+  wall_cost                 whereis_notify            wizmax_dest_limit       
+  wizmax_vattr_limit        who_default               who_unfindable          
+  who_showwiz               who_wizlevel              who_whowiztype          
+  whohost_size              wiz_override              wiz_uselock             
+  wizard_help_file          wizard_help_index         wizard_motd_file        
+  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max    
+  zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -12447,6 +12448,7 @@
   
   Sets how much quota it costs to create a thing (and also how much the
   remaining quota is increased when a thing is @destroyed.
+  
   See Also: @quota, exit_quota, player_quota, room_quota, QUOTAS.
 
 & timeslice
@@ -12456,8 +12458,17 @@
   increased.  Each command a user types in (commands executed by machines do
   not count) decreases that user's quota by 1, and the user's commands are
   only executed if the quota is greater than zero.
+  
   See Also: command_quota_incr, command_quota_max.
 
+& timezone
+  Config parameter: timezone [<valid timezone string>.  Default: localtime
+  
+  This will specify the default timezone that the mush will use.  All 
+  base timefunctions will be based on this timezone.
+  
+  See Also: TIMEZONE (in normal help)
+   
 & totem_add
   Config parameter: totem_add <totemname> <slot> <bitvalue>
   

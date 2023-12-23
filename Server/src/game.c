@@ -2700,6 +2700,8 @@ main(int argc, char *argv[])
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
+    /* Read in timezone data before the config files */
+    init_timezones();
     /* Clean the conf to avoid naughtiness */
     unlink("rhost_vattr.conf");
 
@@ -2747,7 +2749,6 @@ main(int argc, char *argv[])
     helpindex_init();
 
     init_atrcache();
-    init_timezones();
 
 #ifndef NODEBUGMONITOR
     debugmem = shmConnect(mudconf.debug_id, 0, &shmid);   

@@ -59,6 +59,9 @@ extern int totem_letter(char *, char, int);
 extern int totem_add(char *, int, int, int);
 extern void totem_handle_error(int, dbref, char *, char *);
 extern int totem_rename(char *, char *);
+extern int validate_timezones( char * );
+extern int global_timezone_max;
+
 /* Lensy: Not external, but a forward declaration is needed */
 CF_HAND(cf_dynstring);
 #endif
@@ -374,6 +377,9 @@ NDECL(cf_init)
     memset(mudconf.execscriptpath, '\0', sizeof(mudconf.execscriptpath));
     memset(mudconf.execscripthome, '\0', sizeof(mudconf.execscripthome));
     strcpy(mudconf.tree_character, (char *)"`");
+    strcpy(mudconf.timezone, (char *)"localtime"); /* Default localtime to timezone */
+    setenv("TZ", mudconf.timezone, 1);	/* Set timezone to variable */
+    tzset();				/* Set timezone */
     memset(mudstate.tor_localcache, '\0', sizeof(mudstate.tor_localcache));
     memset(mudconf.sconnect_cmd, '\0', sizeof(mudconf.sconnect_cmd));
     memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
@@ -2924,6 +2930,84 @@ CF_HAND(cf_stringver)
     }
     strcpy((char *) vp, str);
     init_version();
+    return retval;
+}
+
+CF_HAND(cf_stringtz)
+{
+    int retval, len;
+    long l_diff;
+    char *buff, *buff2, *buff3;
+    struct tm *ttm;
+    time_t tt;
+
+    /* Copy the string to the buffer if it is not too big */
+
+    if ( !str || !*str ) {
+       retval = 0;
+       if ( !mudstate.initializing ) {
+          tt = mudstate.now;
+          ttm = localtime(&tt);
+
+          buff = alloc_lbuf("cf_stringtz.LOG");
+          buff2 = alloc_lbuf("cf_stringtz2.LOG");
+          buff3 = alloc_lbuf("cf_stringtz3.LOG");
+          strcpy(buff3, (char *)"%Z");
+          len = strftime(buff2, (LBUF_SIZE - 100), buff3, ttm);
+          if ( len == 0 ) {
+             sprintf(buff, "Current timezone set: %s (invalid)", mudconf.timezone);
+          } else {
+             sprintf(buff, "Current timezone set: %s (%s)", mudconf.timezone, buff2);
+          }
+          notify_quiet(player, buff);
+          free_lbuf(buff);
+          free_lbuf(buff2);
+          free_lbuf(buff3);
+       }
+    } else {
+       if ( validate_timezones( str ) ) {
+          retval = 0;
+          l_diff = strlen(str);
+          if (l_diff >= extra) {
+             str[extra - 1] = '\0';
+             if (mudstate.initializing) {
+                STARTLOG(LOG_STARTUP, "CNF", "NFND")
+                   buff = alloc_lbuf("cf_stringtz.LOG");
+                   sprintf(buff, "%.3900s: String truncated", cmd);
+                   log_text(buff);
+                   free_lbuf(buff);
+                ENDLOG
+             } else {
+                buff = alloc_lbuf("cf_stringtz.LOG");
+                sprintf(buff, "String truncated [%ld over max of %ld characters]", l_diff - extra, extra);
+                notify(player, buff);
+                free_lbuf(buff);
+             }
+             retval = 1;
+          } else {
+             STARTLOG(LOG_STARTUP, "CNF", "TZ")
+                buff = alloc_lbuf("cf_stringtz.LOG");
+                sprintf(buff, "Current timezone set: %s", str);
+                log_text(buff);
+                free_lbuf(buff);
+             ENDLOG
+          }
+          strcpy((char *) vp, str);
+          setenv("TZ", mudconf.timezone, 1);	/* Set timezone to variable */
+          tzset();				/* Set timezone */
+       } else {
+          STARTLOG(LOG_STARTUP, "CNF", "NFND")
+             buff = alloc_lbuf("cf_stringtz.LOG");
+             sprintf(buff, "Invalid TIMEZONE specified (%d loaded): %.3900s", global_timezone_max,  str);
+             if ( !mudstate.initializing ) {
+                notify_quiet(player, buff);
+             }
+             log_text(buff);
+             free_lbuf(buff);
+          ENDLOG
+          retval = -1;
+       }
+    }
     return retval;
 }
 
@@ -5554,6 +5638,10 @@ CONF conftable[] =
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 100000, 1, CA_WIZARD,
      (char *) "Timeslice for next player commands (must be >0)\r\n"\
               "                             Default: 1000   Value: %d"},
+    {(char *) "timezone",
+     cf_stringtz, CA_GOD | CA_IMMORTAL, (int *) mudconf.timezone, 31, 0, CA_WIZARD,
+     (char *) "Set the mush default global timezone\r\n"\
+              "                                 (default localtime)"},
     {(char *) "trace_output_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.trace_limit, 0, 0, CA_WIZARD,
      (char *) "Limit on how much output you can have.\r\n"\
