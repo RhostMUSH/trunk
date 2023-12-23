@@ -197,7 +197,7 @@
   choose from.
   
   Functions currently aware of timezones in this manner:
-    secstz(), msecstz(), time(), listtzones()
+    ptimefmt(), secstz(), msecstz(), time(), listtzones()
   
   Examples of timezones you may set (but is far from all available):
     > &TIMEZONE me=US/Eastern
@@ -19076,7 +19076,7 @@
   See Also: wrapcolumns(), wrap(), array(), printf(), template()
   
 & PTIMEFMT()
-  ptimefmt(<format>[, <secs>])
+  ptimefmt(<format>[, <secs> [,<timezone>]])
    
   This function takes a format and a time in seconds (Or the current time)
   and returns the format with escape sequences in it expanded to the
@@ -19084,6 +19084,13 @@
   on.
    
   A list of all codes is in HELP PTIMEFMT2
+  
+  You may specify a timezone to ptimefmt to change the timezone it works
+  under.  This follows timezones under 'help timezone'.  
+  
+  Note: Due to the nature of ptimefmt() it will require an override 
+        timezone to be passed to it and will not honor the TIMEZONE 
+        attribute at this time.
    
   Example:
   > think ptimefmt($A\, the $dth day of $B.)
@@ -19108,7 +19115,7 @@
   $m - Month of the year         $Z - Time zone
   $M - Minutes after the hour    $$ - $ character.
   
-  See Also: timefmt()
+  See Also: timefmt(), TIMEZONE
   
 & TIMEFMT()
   Function: timefmt(<format string>, <secs> [,<output timezone>])
@@ -35138,6 +35145,7 @@
  * Max pids and formatting raised from 32K to 256K queues [ASH]
  * isword() now recogizes accents [ASH]
  * functions for timezone awareness now warn on invalid TZ [ASH]
+ * ptimefmt() is now TZ aware
     
   Bug Fixes
   ------------

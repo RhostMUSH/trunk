@@ -12213,33 +12213,68 @@ FUNCTION(fun_timefmt)
  */
 FUNCTION(fun_ptimefmt)
 {
-  char *s_buff, *s;
+  char *s_buff, *s, *tz_tmp, *s_env;
   struct tm *ttm;
   time_t tt;
-  int len, n;
+  int len, n, i_tz;
   unsigned int val;
 
-  if (!fn_range_check("PTIMEFMT", nfargs, 0, 2, buff, bufcx))
+
+  if (!fn_range_check("PTIMEFMT", nfargs, 0, 3, buff, bufcx))
     return;
 
   if (!fargs[0] || !*fargs[0])
     return;     /* No field? Bad user. */
 
+  tz_tmp = NULL;
+  s_env = NULL;
+
+  i_tz = 0;
+  if ( (nfargs > 2) && *fargs[2] ) {
+    i_tz = 1;
+  }
+
+  if ( i_tz ) {
+     if ( !validate_timezones(fargs[2]) ) {
+        notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[2]));
+     }
+     tz_tmp = getenv("TZ");
+     s_env = alloc_sbuf("fun_ptimefmt");
+     sprintf(s_env, "%.*s", SBUF_SIZE - 1, tz_tmp);
+     setenv("TZ", fargs[2], 1);
+     tzset();
+  }
+
   val = 0;
-  if (nfargs == 2) {
-    val = (unsigned int) atoi(fargs[1]);
-    if (!is_integer(fargs[1]) || ((int)val < 0)) {
-      safe_str("#-1 VALUE MUST BE A POSITIVE INTEGER", buff, bufcx);
-      return;
-    }
-    tt = (time_t) val;
-  } else
+  if (nfargs >= 2) {
+     if ( *fargs[1] ) {
+        val = (unsigned int) atoi(fargs[1]);
+        if (!is_integer(fargs[1]) || ((int)val < 0)) {
+           safe_str("#-1 VALUE MUST BE A POSITIVE INTEGER", buff, bufcx);
+           if ( i_tz ) {
+              if ( *s_env ) {
+                setenv("TZ", s_env, 1);
+              } else {
+                setenv("TZ", (char *)"localtime", 1);
+              }
+              tzset();
+              free_sbuf(s_env);
+           }
+           return;
+        }
+        tt = (time_t) val;
+     } else {
+        tt = mudstate.now;
+     }
+  } else {
     tt = mudstate.now;
+  }
 
   ttm = localtime(&tt);
   len = strlen(fargs[0]);
-  if ( len > LBUF_SIZE )
+  if ( len > LBUF_SIZE ) {
      len = LBUF_SIZE;
+  }
   s_buff = alloc_lbuf("fun_ptimefmt");
   s = alloc_lbuf("fun_ptimefmt2");
   memset(s_buff, 0, LBUF_SIZE);
@@ -12254,6 +12289,15 @@ FUNCTION(fun_ptimefmt)
          safe_str("#-1 INVALID ESCAPE CODE", buff, bufcx);
          free_lbuf(s_buff);
          free_lbuf(s);
+         if ( i_tz ) {
+            if ( *s_env ) {
+               setenv("TZ", s_env, 1);
+            } else {
+               setenv("TZ", (char *)"localtime", 1);
+            }
+            tzset();
+            free_sbuf(s_env);
+         }
          return;
       }
     }
@@ -12268,6 +12312,15 @@ FUNCTION(fun_ptimefmt)
      * return an empty string.
      */
     free_lbuf(s);
+    if ( i_tz ) {
+       if ( *s_env ) {
+          setenv("TZ", s_env, 1);
+       } else {
+          setenv("TZ", (char *)"localtime", 1);
+       }
+       tzset();
+       free_sbuf(s_env);
+    }
     return;
   }
   for (n = 0; n < len; n++) {
@@ -12278,6 +12331,16 @@ FUNCTION(fun_ptimefmt)
   }
   safe_str(s, buff, bufcx);
   free_lbuf(s);
+
+  if ( i_tz ) {
+     if ( *s_env ) {
+        setenv("TZ", fargs[2], 1);
+     } else {
+        setenv("TZ", (char *)"localtime", 1);
+     }
+     tzset();
+     free_sbuf(s_env);
+  }
 }
 
 /* Template display/builder functions
