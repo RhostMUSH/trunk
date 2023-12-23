@@ -35166,3 +35166,4 @@
  * elementpos() did not process utf8/ansi properly for delim [ASH]
  * bug introduced in numpos() with UTF8 fixed [ASH]
  * range option to creplace() was not working [ASH]
+ * timefmt() assumed 'timezone' variable which not in non-posix systems [ASH]

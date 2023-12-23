@@ -11545,7 +11545,7 @@ FUNCTION(fun_timefmt)
   double secs2;
   int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags;
   dbref aowner;
-  long l_offset = 0;
+  long l_offset = 0, l_timezone = 0;
   TZONE_MUSH *tzmush;
   ATTR *aptz;
   struct tm *tms, *tms2, *tms3;
@@ -11575,6 +11575,9 @@ FUNCTION(fun_timefmt)
   /* tms2 = localtime(&secs); */
   tms2 = localtime(&mudstate.now);
 
+#ifndef BSD_LIKE /* because BSD sucks for POSIX compliance */
+  l_timezone = timezone;
+#endif
 
   tzmush = NULL;
   i_frell = 0;
@@ -11598,9 +11601,9 @@ FUNCTION(fun_timefmt)
            }
         }
 #endif
-        secs = i_frell + secs + (time_t)timezone + (time_t)(tzmush->mush_offset);
-        secs2 = (double)i_frell + secs2 + (double)(time_t)timezone + (double)(time_t)(tzmush->mush_offset);
-        i_frell += (time_t)mudstate.now + (time_t)timezone + (time_t)(tzmush->mush_offset);
+        secs = i_frell + secs + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
+        secs2 = (double)i_frell + secs2 + (double)(time_t)l_timezone + (double)(time_t)(tzmush->mush_offset);
+        i_frell += (time_t)mudstate.now + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
@@ -11624,7 +11627,7 @@ FUNCTION(fun_timefmt)
      i_aptz = 0;
      for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
         sprintf(s_aptztmp, " %.20s ", tzmush->mush_tzone);
-        if ( (strstr(s_aptz, s_aptztmp) != NULL) && ((int)(tzmush->mush_offset) == -((int)timezone)) ) {
+        if ( (strstr(s_aptz, s_aptztmp) != NULL) && ((int)(tzmush->mush_offset) == -((int)l_timezone)) ) {
            i_aptz = 1;
            break;
         }
@@ -11634,7 +11637,7 @@ FUNCTION(fun_timefmt)
 
      if ( !i_aptz ) {
         for ( tzmush = timezone_list; tzmush->mush_tzone != NULL; tzmush++ ) {
-           if ( (int)(tzmush->mush_offset) == -((int)timezone) ) {
+           if ( (int)(tzmush->mush_offset) == -((int)l_timezone) ) {
               break;
            }
         }
@@ -11912,7 +11915,7 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 't': /* Timezone */
-                fm.lastval = (int)timezone;
+                fm.lastval = (int)l_timezone;
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
                 fmtdone = 1;

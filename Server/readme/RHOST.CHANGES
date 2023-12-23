@@ -15,6 +15,8 @@ Added '8' option to escapex for enbedded UTF8 support
 				- Thanks Thenomain
 A crapton of testing and finding functions needing UTF8
 				- Thanks Thenomain
+BSD not compliant with timezone variable as non-POSIX
+				- Thanks Oleo
 
 
                          RhostMUSH 4.0 Update File
