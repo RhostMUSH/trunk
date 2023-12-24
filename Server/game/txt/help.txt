@@ -4061,9 +4061,12 @@
       /regexp  - use regular expression matching
       /tree    - Examine based on Penn trees using '`' as a separator.
       /tf      - allows prefix formatting for clients.
+      /db      - changes dbref# of target instead of name
       /noextra - when used in junction with /tf removes the additional
                  flags and other information from attribute displaying.
       /tags    - Show just @tag/adds
+  
+  Note: /db and /tf can not be used together.
   
   Example: @decompile MyObject/attr*
            @decompile MyObject
@@ -35129,6 +35132,7 @@
  * @list alloc cquick for a color encoded buffer listing [ASH]
  * timezone config parameter to specify the timezone for the mush [ASH]
  * runintz() to sandbox functions in a specific timezone [ASH]
+ * added /db switch to @decompile [ASH]
   
   Changes
   -------

@@ -4168,13 +4168,22 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
     char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff,
          *qual, *qualout;
     dbref aowner, thing;
-    int val, aflags, ca, key_buff, i_regexp, i_tree, i_tf;
+    int val, aflags, ca, key_buff, i_regexp, i_tree, i_tf, i_db;
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
 
-    i_regexp = i_tree = i_tf = 0;
+    i_regexp = i_tree = i_db = i_tf = 0;
 
+    if ( (key & DECOMP_TF) && (key & DECOMP_DB) ) {
+       notify(player, "Illegal combination of switches.");
+       return;
+    }
+
+    if ( key & DECOMP_DB ) {
+       i_db = 1;
+       key &= ~DECOMP_DB;
+    }
     if ( key & DECOMP_TF ) {
        i_tf = 1;
        key &= ~DECOMP_TF;
@@ -4235,7 +4244,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
             return;
          }
       }
-      if ( i_tf ) {
+      if ( i_tf || i_db ) {
          sprintf(qual, "#%d", thing);
       } else {
          if ( qualin && *qualin )
@@ -4282,7 +4291,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
        }
     }
 
-    if ( i_tf ) {
+     if ( i_tf || i_db ) {
        sprintf(qual, "#%d", thing);
     } else {
        if ( qualin && *qualin )
@@ -4306,18 +4315,18 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
             *(thingname + LBUF_SIZE - 1) = '\0';
 	    val = OBJECT_DEPOSIT(Pennies(thing));
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("%s@create %s=%d", (i_tf ? qualout : (char *)""), thingname, val));
+	       noansi_notify(player, unsafe_tprintf("%s@create %s=%d", ((i_tf || i_db) ? qualout : (char *)""), thingname, val));
 	    break;
 	case TYPE_ROOM:
 	    strcpy(thingname, "here");
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("%s@dig/teleport %s", (i_tf ? qualout : (char *)""), Name(thing)));
+	       noansi_notify(player, unsafe_tprintf("%s@dig/teleport %s", ((i_tf || i_db) ? qualout : (char *)""), Name(thing)));
 	    break;
 	case TYPE_EXIT:
 	    strncpy(thingname, Name(thing), LBUF_SIZE - 1);
             *(thingname + LBUF_SIZE - 1) = '\0';
             if ( !key )
-	       noansi_notify(player, unsafe_tprintf("%s@open %s", (i_tf ? qualout : (char *)""),  Name(thing)));
+	       noansi_notify(player, unsafe_tprintf("%s@open %s", ((i_tf || i_db) ? qualout : (char *)""),  Name(thing)));
 	    for (got = thingname; *got; got++) {
 		if (*got == EXIT_DELIMITER) {
 		    *got = '\0';
@@ -4335,7 +4344,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 
     if ( !key_buff || (key_buff & DECOMP_ATTRS) ) {
        if (bool != TRUE_BOOLEXP) {
-          noansi_notify(player, unsafe_tprintf("%s@lock %s=%s", (i_tf ? qualout : (char *)""), thingname,
+          noansi_notify(player, unsafe_tprintf("%s@lock %s=%s", ((i_tf || i_db) ? qualout : (char *)""), thingname,
                                          unparse_boolexp_decompile(player, bool)));
        }
     }
@@ -4373,20 +4382,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 		   free_boolexp(bool);
 		   tprp_buff = tpr_buff;
 		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
-			         (i_tf ? qualout : (char *)""), attr->name, thingname, ltext));
+			         ((i_tf || i_db) ? qualout : (char *)""), attr->name, thingname, ltext));
 	       } else {
                    strncpy(buff, attr->name, (MBUF_SIZE - 1));
                    *(buff + MBUF_SIZE - 1) = '\0';
 		   tprp_buff = tpr_buff;
 		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%c%s %s=%s",
-			         (i_tf ? qualout : (char *)""), 
+			         ((i_tf || i_db) ? qualout : (char *)""), 
                                  ( ((ca < A_USER_START) || (ca >= A_INLINE_START)) ?  '@' : '&'),
 			         buff, thingname, got));
    
 		   if (aflags & AF_LOCK) {
 		       tprp_buff = tpr_buff;
 		       noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock %s/%s",
-					     (i_tf ? qualout : (char *)""), thingname, buff));
+					     ((i_tf || i_db) ? qualout : (char *)""), thingname, buff));
 		   }
 /*                 if ( !i_tf ) { */
 		      for (np = indiv_attraccess_nametab;
@@ -4399,7 +4408,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
       
 		              tprp_buff = tpr_buff;
 			      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@set %s/%s = %s",
-                                             (i_tf ? qualout : (char *)""),
+                                             ((i_tf || i_db) ? qualout : (char *)""),
 				             thingname,
 				             buff,
 				             np->name));
@@ -4416,23 +4425,23 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 
 #ifdef REALITY_LEVELS
     if ( !key_buff || (key_buff & DECOMP_ATTRS) )
-       decompile_rlevels(player, thing, thingname, qualout, i_tf);
+       decompile_rlevels(player, thing, thingname, qualout, (i_tf|i_db));
 #endif /* REALITY_LEVELS */
 
     if ( !key_buff || (key_buff & DECOMP_FLAGS) ) {
-       decompile_flags(player, thing, thingname, qualout, i_tf);
-       decompile_toggles(player, thing, thingname, qualout, i_tf);
-       decompile_totems(player, thing, thingname, qualout, i_tf);
+       decompile_flags(player, thing, thingname, qualout, (i_tf|i_db));
+       decompile_toggles(player, thing, thingname, qualout, (i_tf|i_db));
+       decompile_totems(player, thing, thingname, qualout, (i_tf|i_db));
     }
 
     /* If the object has a parent, report it */
 
     if ( (!key_buff || (key_buff & DECOMP_ATTRS)) && (Parent(thing) != NOTHING) )
 	noansi_notify(player, unsafe_tprintf("%s@parent %s=%s", 
-                              (i_tf ? qualout : (char *)""), thingname, Name(Parent(thing))));
+                              ((i_tf | i_db) ? qualout : (char *)""), thingname, Name(Parent(thing))));
 
     if ( !key_buff || (key_buff & DECOMP_TAGS) ) {
-      decompile_tags(player, thing, thingname, qualout, i_tf);
+      decompile_tags(player, thing, thingname, qualout, (i_tf|i_db));
     }
 
     if ( mudstate.outputflushed ) {

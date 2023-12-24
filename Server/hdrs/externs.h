@@ -691,6 +691,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DECOMP_TF	0x00000010	/* Stupid /tf compatibility to @decompile for PennMUSH */
 #define DECOMP_NOEXTRA	0x00000020	/* no extra fluff in @decompile/tf */
 #define DECOMP_TAGS	0x00000040	/* Decompile tags */
+#define DECOMP_DB	0x00000080	/* Use DB instead of name */
 
 #define	DBCK_DEFAULT	0x00000001	/* Get default tests too */
 #define	DBCK_REPORT	0x00000002	/* Report info to invoker */

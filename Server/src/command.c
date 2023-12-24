@@ -342,6 +342,7 @@ NAMETAB decomp_sw[] =
     {(char *) "tf", 2, CA_PUBLIC, 0, DECOMP_TF | SW_MULTIPLE},
     {(char *) "noextra", 2, CA_PUBLIC, 0, DECOMP_NOEXTRA | SW_MULTIPLE},
     {(char *) "tags", 2, CA_PUBLIC, 0, DECOMP_TAGS | SW_MULTIPLE},
+    {(char *) "db", 2, CA_PUBLIC, 0, DECOMP_DB | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
    
 NAMETAB dbclean_sw[] =

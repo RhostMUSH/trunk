@@ -17,6 +17,8 @@ A crapton of testing and finding functions needing UTF8
 				- Thanks Thenomain
 BSD not compliant with timezone variable as non-POSIX
 				- Thanks Oleo
+@decompile finally has /db switch with some arm-twisting by Hope :)
+				- Thanks Hope
 
 
                          RhostMUSH 4.0 Update File
