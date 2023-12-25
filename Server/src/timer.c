@@ -174,10 +174,11 @@ char	*cmdsave;
 	/* this routine can be used to poll from interface.c */
 
 	if (!mudstate.alarm_triggered) {
-           STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
-              log_text("Timer trigger event -- Alarm reset.");
-           ENDLOG
-           mudstate.alarm_triggered = 0;
+//         STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
+//            log_text("Timer trigger event -- Alarm not found -- forcing alarm cycle.");
+//         ENDLOG
+           /* No alarm triggered, make sure we trigger next alarm */
+           alarm_msec(next_timer());
            return;
         }
 	mudstate.alarm_triggered = 0;
