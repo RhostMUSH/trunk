@@ -85,6 +85,7 @@ double i_rounder;
 /* Debugging
   fprintf(stderr, "Time Triggered -- Value: %ld/%ld      Value2: %f/%f/%f\n", it_val.it_value.tv_sec, it_val.it_value.tv_usec, time_sec, time_usec, time);
  */
+  mudstate.alarm_triggered = 1;  /* Force timer to 1 here */
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -172,9 +173,6 @@ char	*cmdsave;
 
 	/* this routine can be used to poll from interface.c */
 
-        /* If there is no alarm_msec state abort from dispatch and move on */
-	if (!mudstate.alarm_triggered) return;
-
         if ( mudstate.alarm_triggered == 2 ) {
            STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
               log_text("ALARM Timer trigger event -- forcing alarm reset.");
@@ -184,6 +182,10 @@ char	*cmdsave;
            alarm_msec(next_timer());
            return;
         }
+
+        /* If there is no alarm_msec state abort from dispatch and move on */
+	if (!mudstate.alarm_triggered) return;
+
 	mudstate.lastnowmsec = mudstate.nowmsec;
 	mudstate.lastnow = mudstate.now;
 	mudstate.nowmsec = time_ng(NULL);
