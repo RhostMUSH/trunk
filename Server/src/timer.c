@@ -179,6 +179,7 @@ char	*cmdsave;
 //         ENDLOG
            /* No alarm triggered, make sure we trigger next alarm */
            alarm_msec(next_timer());
+           mudstate.alarm_triggered = 1;
            return;
         }
 	mudstate.alarm_triggered = 0;
