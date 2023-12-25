@@ -160,7 +160,6 @@ void NDECL(init_timer)
 	mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
 	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
 	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
-        mudstate.alarm_triggered = 0;
 	alarm_msec (next_timer());
 }
 
@@ -173,15 +172,7 @@ char	*cmdsave;
 
 	/* this routine can be used to poll from interface.c */
 
-	if (!mudstate.alarm_triggered) {
-//         STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
-//            log_text("Timer trigger event -- Alarm not found -- forcing alarm cycle.");
-//         ENDLOG
-           /* No alarm triggered, make sure we trigger next alarm */
-           alarm_msec(next_timer());
-           mudstate.alarm_triggered = 1;
-           return;
-        }
+	if (!mudstate.alarm_triggered) return;	
 	mudstate.alarm_triggered = 0;
 	mudstate.lastnowmsec = mudstate.nowmsec;
 	mudstate.lastnow = mudstate.now;
@@ -264,7 +255,7 @@ char	*cmdsave;
 #endif
 
 	/* reset alarm */
-        mudstate.alarm_triggered = 0;
+
 	alarm_msec (next_timer());
 	mudstate.debug_cmd = cmdsave;
 }

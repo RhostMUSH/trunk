@@ -2140,8 +2140,7 @@ NDECL(do_second)
     i_offset = 0;
     d_timediff = (int)mudstate.nowmsec - (int)mudstate.lastnowmsec;
     for (point = mudstate.qwait, trail = NULL; point ; point = next) {
-        /* We'll raise offsets to 5 minutes now before it wigs out */
-        if ( (d_timediff > 300) || (d_timediff < -300) ) {
+        if ( (d_timediff > 120) || (d_timediff < -120) ) {
            point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         } 
