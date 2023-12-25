@@ -180,11 +180,10 @@ char	*cmdsave;
               log_text("ALARM Timer trigger event -- forcing alarm reset.");
            ENDLOG
            /* Reset alarm and retrigger next timer with alarm state */
-           mudstate.alarm_triggered = 0;
+           mudstate.alarm_triggered = 1;  /* Force timer from 2 to 1 here */
            alarm_msec(next_timer());
            return;
         }
-	mudstate.alarm_triggered = 0;
 	mudstate.lastnowmsec = mudstate.nowmsec;
 	mudstate.lastnow = mudstate.now;
 	mudstate.nowmsec = time_ng(NULL);
