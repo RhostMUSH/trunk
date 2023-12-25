@@ -302,12 +302,9 @@ int local_mysql_ping(MYSQL *mysql_struct, dbref player)
         log_text("Timeout Failure to respond to SQL database in sql-query.");
      ENDLOG
      sql_shutdown(player);
-     mudstate.alarm_triggered = 0;
-     alarm_msec(next_timer());
+     mudstate.alarm_triggered = 2;
      return 0;
   }
-  mudstate.alarm_triggered = 0;
-  alarm_msec(next_timer());
   return mysql_return;
 }
 
@@ -514,16 +511,13 @@ static int sql_query(dbref player,
      log_text("Timeout Failure to respond to SQL database in sql-query.");
      ENDLOG
      sql_shutdown(player);
-     mudstate.alarm_triggered = 0;
-     alarm_msec(next_timer());
+     mudstate.alarm_triggered = 2;
      free_lbuf(s_qstr);
      if (buff)
         safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
      return 0;
   }
   free_lbuf(s_qstr);
-  mudstate.alarm_triggered = 0;
-  alarm_msec(next_timer());
 
 
   if ((got_rows) && (mysql_errno(mysql_struct) == CR_SERVER_GONE_ERROR)) {
@@ -564,16 +558,13 @@ static int sql_query(dbref player,
          log_text("Timeout Failure to respond to SQL database in sql-query.");
          ENDLOG
          sql_shutdown(player);
-         mudstate.alarm_triggered = 0;
-         alarm_msec(next_timer());
+         mudstate.alarm_triggered = 2;
          free_lbuf(s_qstr);
          if (buff)
            safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
          return 0;
       }
       free_lbuf(s_qstr);
-      mudstate.alarm_triggered = 0;
-      alarm_msec(next_timer());
     } else {
       notify(player, "The SQL engine forced a failure on a timeout and couldn't reconnect.");
       STARTLOG(LOG_PROBLEMS, "SQL", "ERR");

@@ -47,8 +47,7 @@ expect(int s, int match, char *buf)
 	ptr = buf;
 	n = recv(s, ptr, size, MSG_PEEK);
 	if (n <= 0) {
-		mudstate.alarm_triggered = 0;
-		alarm_msec(next_timer());
+		mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	size -= n;
@@ -57,19 +56,16 @@ expect(int s, int match, char *buf)
 		do {
 			cc = read(s, ptr, n);
 			if (cc < 0) {
-                                mudstate.alarm_triggered = 0;
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			if (cc != n) {
-                                mudstate.alarm_triggered = 0;
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			ptr += n;
 			if ((n = recv(s, ptr, size, MSG_PEEK)) <= 0) {
-                                mudstate.alarm_triggered = 0;
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			size -= n;
@@ -81,18 +77,15 @@ expect(int s, int match, char *buf)
 		newline = 1 + p - ptr;
 	cc = read(s, buf, newline);
 	if (cc < 0) {
-                mudstate.alarm_triggered = 0;
-		alarm_msec(next_timer());
+                mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	if (cc != newline) {
-                mudstate.alarm_triggered = 0;
-		alarm_msec(next_timer());
+                mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	buf[newline] = '\0';
-	mudstate.alarm_triggered = 0;
-	alarm_msec(next_timer());
+	mudstate.alarm_triggered = 2;
 	if (!isxdigit((int)*buf)) {
 		return 0;
 	}

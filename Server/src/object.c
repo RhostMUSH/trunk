@@ -2355,6 +2355,7 @@ do_dbck(dbref player, dbref cause, int key)
     check_floating();
 #ifndef STANDALONE
     if (player != NOTHING) {
+        /* We want this as it's resetting the game for the most part */
         mudstate.alarm_triggered = 0;
 	alarm_msec(next_timer());
 	if (!Quiet(player))

@@ -26,6 +26,7 @@ static void lua_timer_hook(lua_State *L, lua_Debug *ar)
 {
     if(mudstate.alarm_triggered) {
         luaL_error(L, "Alarm triggered");
+        mudstate.alarm_triggered = 2;
     }
 }
 
@@ -420,8 +421,6 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     } else {
         *len = 0;
     }
-    mudstate.alarm_triggered = 0;
-    alarm_msec(next_timer());
 
     return res;
 }

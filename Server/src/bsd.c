@@ -1918,6 +1918,7 @@ start_auth(DESC * d)
 
     if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
+          mudstate.alarm_triggered = 2;
   	  d->flags &= ~DS_AUTH_IN_PROGRESS;
           logbuff = alloc_lbuf("start_auth.LOG.timeout");
           if( errno != EINTR ) {
@@ -1938,11 +1939,6 @@ start_auth(DESC * d)
 	  VOIDRETURN; /* #8 */
         }
     }
-
-    /* recalibrate the mush timers */
-
-    mudstate.alarm_triggered = 0;
-    alarm_msec(next_timer());
 
     d->flags |= DS_AUTH_CONNECTING;
     DPOP; /* #8 */
@@ -2817,6 +2813,7 @@ sighandler(int sig)
 
     switch (sig) {
     case SIGALRM:		/* Timer */
+        /* This will allow dispatch() to update the queue */
 	mudstate.alarm_triggered = 1;
 	break;
     case SIGCHLD:		/* Change in child status */

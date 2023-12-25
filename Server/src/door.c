@@ -408,6 +408,7 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonbloc
 	sin.sin_family = AF_INET;
         alarm_msec(3);
 	if (connect(new_port, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+           mudstate.alarm_triggered = 2;
            if( errno != EINPROGRESS ) {
 	      close(new_port);
 	      new_port = -1;
@@ -423,8 +424,6 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonbloc
 	    maxd = new_port + 1;
 	  new_port = setup_player(d, new_port, doorIdx);
 	}
-        mudstate.alarm_triggered = 0;
-        alarm_msec(next_timer());
       }
     }
   }

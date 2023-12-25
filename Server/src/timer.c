@@ -85,7 +85,6 @@ double i_rounder;
 /* Debugging
   fprintf(stderr, "Time Triggered -- Value: %ld/%ld      Value2: %f/%f/%f\n", it_val.it_value.tv_sec, it_val.it_value.tv_usec, time_sec, time_usec, time);
  */
-  mudstate.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -173,13 +172,16 @@ char	*cmdsave;
 
 	/* this routine can be used to poll from interface.c */
 
-	if (!mudstate.alarm_triggered) {
-//         STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
-//            log_text("Timer trigger event -- Alarm not found -- forcing alarm cycle.");
-//         ENDLOG
-           /* No alarm triggered, make sure we trigger next alarm */
+        /* If there is no alarm_msec state abort from dispatch and move on */
+	if (!mudstate.alarm_triggered) return;
+
+        if ( mudstate.alarm_triggered == 2 ) {
+           STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
+              log_text("ALARM Timer trigger event -- forcing alarm reset.");
+           ENDLOG
+           /* Reset alarm and retrigger next timer with alarm state */
+           mudstate.alarm_triggered = 0;
            alarm_msec(next_timer());
-           mudstate.alarm_triggered = 1;
            return;
         }
 	mudstate.alarm_triggered = 0;
