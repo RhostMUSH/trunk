@@ -1,8 +1,11 @@
 /* object.c - low-level object manipulation routines */
 
+#include <ctype.h>
+
 #include "copyright.h"
 #include "autoconf.h"
 
+#include "bst.h"
 #include "db.h"
 #include "mudconf.h"
 #include "command.h"
@@ -36,6 +39,8 @@ struct tagentry {
   dbref        tagref;
   int          i_personal;
 };
+
+BST *tag_tree = NULL;
 #endif
 
 #ifdef STANDALONE
@@ -2372,6 +2377,21 @@ do_dbck(dbref player, dbref cause, int key)
  * loading in game.c
  */
 
+// tag_compare_func is a comparison function for btree logic that sorts tags.
+// personal/local tags will be sorted at the end of the list.
+int tag_compare_func(const void *a, const void *b) {
+    TAGENT *tagA = (TAGENT *)a;
+    TAGENT *tagB = (TAGENT *)b;
+
+    if (tagA->i_personal && !tagB->i_personal) {
+        return 1;
+    } else if (!tagA->i_personal && tagB->i_personal) {
+        return -1;
+    } else {
+        return strcmp(tagA->tagname, tagB->tagname);
+    }
+}
+
 int objecttag_add(char *tag, dbref thing, int i_personal, int i_loader)
 {
   char *lcname, *lcnp, *astr, *s_strtok, *s_strtokr, *nattr, *nattrp;
@@ -2436,8 +2456,15 @@ int objecttag_add(char *tag, dbref thing, int i_personal, int i_loader)
 
   stat = hashadd2(lcname, (int *)newtag, &mudstate.objecttag_htab, 0);
   stat = (stat < 0) ? 0 : 1;
-  if(stat == 0)
+  if(stat == 0) {
     free(newtag);
+  } else {
+  	// good add to the hash table.  add to our bst.
+  	if (tag_tree == NULL) {
+  		tag_tree = bst_create(tag_compare_func);
+  	}
+  	bst_insert(tag_tree, newtag);
+  }
 
   nattrp = nattr = alloc_lbuf("add_tagattr"); 
   (void) atr_get_str(astr, thing, A_OBJECTTAG, &aowner, &aflags);
@@ -2569,6 +2596,8 @@ int objecttag_remove(char *tag)
     atr_add_raw(storedtag->tagref, A_OBJECTTAG, astr2);
   }
 
+  bst_delete(tag_tree, storedtag, NULL);
+
   free_lbuf(astr);
   free_lbuf(astr2);
 
@@ -2586,6 +2615,7 @@ int objecttag_list(char* buff)
   char *s_hashstr, *s_buffp;
   int i_first;
   TAGENT *storedtag;
+  BSTNode *node;
 
   if( !buff )
     return 0;
@@ -2593,9 +2623,8 @@ int objecttag_list(char* buff)
   s_hashstr = alloc_lbuf("objecttag_list");
   s_buffp = buff;
   i_first = 0;
-  for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-   storedtag;
-   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+  for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
+    storedtag = (TAGENT *)node->data;
     if(storedtag) {
       if ( i_first ) {
         safe_chr(' ', buff, &s_buffp);
@@ -2613,9 +2642,10 @@ void objecttag_match(char *buff, char *match)
 {
   TAGENT *storedtag;
   char* buffp = buff;
-  for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-   storedtag;
-   storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+  BSTNode *node;
+
+  for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
+    storedtag = (TAGENT *)node->data;
     if(storedtag) {
       if(quick_wild(match, storedtag->tagname)) {
         safe_str(storedtag->tagname, buff, &buffp);
@@ -2630,39 +2660,92 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
     char *buff, *buffp, *tbuff, *s_tbuff;
     int i_first;
     TAGENT *storedtag;
+    BSTNode *node;
 
     buffp = buff = alloc_lbuf("decompile_tags");
     tbuff = alloc_mbuf("decompile_tags");
     i_first = 0;
-    
-    for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-      storedtag;
-      storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+
+    for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
+        storedtag = (TAGENT *)node->data;
         if(storedtag) {
-        if(storedtag->tagref == thing) {
-          if ( i_first ) {
-             safe_str("\n", buff, &buffp);
-          }
-          i_first = 1;
-          if ( storedtag->i_personal ) {
-             s_tbuff = strchr(storedtag->tagname+3, '_')+1;
-             sprintf(tbuff, "%s@ltag/add %s=%s", (i_tf ? qualout : (char *)""), s_tbuff, thingname);
-          } else {
-             sprintf(tbuff, "%s@tag/add %s=%s", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
-          }
-          safe_str(tbuff, buff, &buffp);
+            if(storedtag->tagref == thing) {
+                if ( i_first ) {
+                    safe_str("\n", buff, &buffp);
+                }
+                i_first = 1;
+                if ( storedtag->i_personal ) {
+                    s_tbuff = strchr(storedtag->tagname+3, '_')+1;
+                    sprintf(tbuff, "%s@ltag/add %s=%s", (i_tf ? qualout : (char *)""), s_tbuff, thingname);
+                } else {
+                    sprintf(tbuff, "%s@tag/add %s=%s", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
+                }
+                safe_str(tbuff, buff, &buffp);
+            }
         }
-      }
     }
+
     noansi_notify(player, buff); 
     free_mbuf(tbuff);
     free_lbuf(buff);
 }
 
+// is_valid_tagname_with_unicode checks if a tagname is valid. unicode characters are legal.
+// Valid tag names are comprised of 0-9, a-z, A-Z, _, -, and unicode characters.
+// They must have at least one non-numeric character (to avoid collisions with dbrefs).
+// Returns 1 if valid, 0 if not.
+char is_valid_tagname(char *tagname) {
+    char *c = tagname;
+    int hex_count = 0;
+    int valid = 0;
+
+    if (!c) {
+        return 0;
+    }
+
+    while (*c) {
+        if (*c == '%') {
+            // check for unicode sequence start
+            if (*(c + 1) && *(c + 1) == '<' && *(c + 2) && *(c + 2) == 'u') {
+                c += 3; // move to the start of the hex digits
+                hex_count = 0;
+
+                while (*c && isxdigit(*c) && hex_count < 4) {
+                    hex_count++;
+                    c++;
+                }
+
+                if (hex_count != 4 || *c != '>') {
+                    // invalid Unicode sequence
+                    return 0;
+                }
+                valid = 1; // valid non-numeric character found
+            } else {
+                // '%' not part of a valid Unicode sequence
+                return 0;
+            }
+        } else if (isalnum(*c) || (*c == '_') || (*c == '-')) {
+            if (!valid && !isdigit(*c)) {
+                 valid = 1;
+            }
+        } else {
+            // Invalid character
+            return 0;
+        }
+
+        c++;
+    }
+
+    return valid;
+}
+
 void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 {
   char *buff, *buffp, *s_hashstr, *tagname, *t_distag, t_warn = ' ';
-  TAGENT *storedtag;
+  ANSISPLIT outsplit[LBUF_SIZE];
+  TAGENT *storedtag = NULL;
+  BSTNode *node = NULL;
+  char *s_buff = NULL;
   int result, i_personal, *hashp, i_total, i_start, i_count, i_page, i_pagetot;
   dbref p;
 
@@ -2690,7 +2773,10 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 
   switch (key) {
      case TAG_ADD: /* tag add */
-        if( !*tagname || ((*tagname == '_') && !i_personal) ) {
+        if( !*tagname
+            || ((*tagname == '_') && !i_personal)
+            || !is_valid_tagname(tagname) )
+        {
            notify(player,"#-1 No tagname or invalid tagname specified.");
         } else if (!*target) {
            notify(player,"#-1 No dbref specified.");
@@ -2786,61 +2872,52 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
               i_start = 1;
               i_page = 1;
            }
-          
+
            /* Notify header */
            notify(player, buff);
            *buff = '\0';
-           for (storedtag = (TAGENT *) hash_firstentry(&mudstate.objecttag_htab);
-                storedtag;
-                storedtag = (TAGENT *) hash_nextentry(&mudstate.objecttag_htab)) {
+
+           // display the requested tags
+           for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
+              storedtag = (TAGENT *)node->data;
               if(storedtag) {
                  if ( !*tagname ) {
+                    i_count++;
                     if ( i_count < i_start ) {
-                       i_count++;
                        continue;
                     }
-                    i_count++;
-                    if ( i_start && (i_count > (i_start + 20)) ) {
+                    if ( i_start && (i_count > (i_start + 19)) ) {
                        break;
                     }
                  }
-                 if(*tagname) {
-                    if(quick_wild(tagname, storedtag->tagname)) {
-                       if ( i_personal ) {
-                          t_warn = ' ';
-                          t_distag = strchr(storedtag->tagname+3, '_') + 1;
-                          hashp = hashfind(t_distag, &mudstate.objecttag_htab);
-                          if ( hashp ) {
+
+                 if (!*tagname || quick_wild(tagname, storedtag->tagname)) {
+                     t_warn = ' ';
+                     t_distag = storedtag->tagname;
+
+                     s_buff = alloc_lbuf("objecttag_list");
+                     memset(s_buff, '\0', LBUF_SIZE);
+                     split_ansi(strip_ansi(storedtag->tagname), s_buff, outsplit);
+
+                     if (i_personal) {
+                         t_distag = strchr(storedtag->tagname + 3, '_') + 1;
+                         if (hashfind(t_distag, &mudstate.objecttag_htab)) {
                              t_warn = 'W';
-                          }
-                          sprintf(s_hashstr, "%c  %-32s | %-8s | #%d", t_warn, t_distag,
-                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
-                       } else {
-                          sprintf(s_hashstr, " %-32s | %-8s | #%d", storedtag->tagname, 
-                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
-                       }
-                       // safe_str(s_hashstr, buff, &buffp);
-                       notify(player, s_hashstr);
-                    }
-                 } else {
-                    if ( i_personal ) {
-                          t_warn = ' ';
-                          t_distag = strchr(storedtag->tagname+3, '_') + 1;
-                          hashp = hashfind(t_distag, &mudstate.objecttag_htab);
-                          if ( hashp ) {
-                             t_warn = 'W';
-                          }
-                          sprintf(s_hashstr, "%c  %-32s | %-8s | #%d", t_warn, t_distag,
-                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
-                    } else {
-                       sprintf(s_hashstr, " %-32s | %-8s | #%d", storedtag->tagname,
-                                  (char *)(storedtag->i_personal ? "- Yes -" : " "), storedtag->tagref);
-                    }
-                    // safe_str(s_hashstr, buff, &buffp);
-                    notify(player, s_hashstr);
+                         }
+                     }
+
+                     sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
+                             t_warn,
+                             (32 + strlen(t_distag) - strlen(s_buff)),
+                             t_distag,
+                             (i_personal ? "- Yes -" : " "), storedtag->tagref);
+
+                     free_lbuf(s_buff);
+                     notify(player, s_hashstr);
                  }
               }
            }
+
            if ( i_personal )  {
               if ( !*tagname ) {
                  if ( i_start ) {

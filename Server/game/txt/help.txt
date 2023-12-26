@@ -6289,12 +6289,12 @@
   The following sanity checks are performed for tags:
   
   * Tagnames cannot be more than 30 characters in length
-  * Tagnames cannot contain whitespace.
+  * Tagnames can only contain alphanumeric, _, -, and unicode characters
+  * Tagnames cannot be all numbers (to avoid conflict with dbrefs)
   * Tags need to be supplied with a valid, existing object's #dbref on
     creation.  This object you must own or control in some manner.
   * Up to 5 tags can reference the same #dbref.  If global tags exceed
     this number, local tags can no longer be assigned.
-  * Unicode is valid in tagnames!
   * On destruction of an object, all referencing tags get also removed.
   * Global tags have precedence over local tags.
   
