@@ -399,8 +399,8 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     int error, alarm_trig;
 
     alarm_trig =  mudstate.alarm_triggered;
-    mudstate.alarm_triggered = 0;
     alarm_msec(5);
+    mudstate.alarm_triggered = 0;
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
     } else {

@@ -294,8 +294,8 @@ int local_mysql_ping(MYSQL *mysql_struct, dbref player)
   int mysql_return, alarm_trig;
 
   alarm_trig = mudstate.alarm_triggered;
-  mudstate.alarm_triggered = 0;
   alarm_msec(5);
+  mudstate.alarm_triggered = 0;
   mysql_return = mysql_ping(mysql_struct);
   if ( mudstate.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
@@ -506,8 +506,8 @@ static int sql_query(dbref player,
   memset(s_qstr, '\0', LBUF_SIZE);
   strncpy(s_qstr, q_string, LBUF_SIZE - 2);
   alarm_trig = mudstate.alarm_triggered;
-  mudstate.alarm_triggered = 0;
   alarm_msec(5);
+  mudstate.alarm_triggered = 0;
   got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
   if ( mudstate.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
@@ -556,8 +556,8 @@ static int sql_query(dbref player,
       memset(s_qstr, '\0', LBUF_SIZE);
       strncpy(s_qstr, q_string, LBUF_SIZE - 2);
       alarm_trig = mudstate.alarm_triggered;
-      mudstate.alarm_triggered = 0;
       alarm_msec(5);
+      mudstate.alarm_triggered = 0;
       got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
       if ( mudstate.alarm_triggered ) {
          notify(player, "The SQL engine forced a failure on a timeout.");
