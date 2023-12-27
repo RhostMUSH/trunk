@@ -396,8 +396,10 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     char *res = 0;
     const char *raw;
     size_t size;
-    int error;
+    int error, alarm_trig;
 
+    alarm_trig =  mudstate.alarm_triggered;
+    mudstate.alarm_triggered = 0;
     alarm_msec(5);
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
@@ -415,6 +417,8 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
         strncpy(res, raw, size + 1);
         res[size] = 0; /* Just coding defensively here */
     }
+    if ( mudstate.alarm_triggered != 2 )
+       mudstate.alarm_triggered = alarm_trig;
 
     if(res) {
         *len = strlen(res);
