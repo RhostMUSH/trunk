@@ -2908,7 +2908,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 
                      sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
                              t_warn,
-                             (32 + strlen(t_distag) - strlen(s_buff)),
+                             (31 + strlen(t_distag) - strlen(s_buff)),
                              t_distag,
                              (i_personal ? "- Yes -" : " "), storedtag->tagref);
 
