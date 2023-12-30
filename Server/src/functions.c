@@ -3992,8 +3992,10 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
         winfo.just = JUST_IGNORE;
         break;
       default:
-        safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
-        return;
+        winfo.just = JUST_LEFT;
+        break;
+        // safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
+        // return;
     }
   }
   if( nfargs >= 4 ) {

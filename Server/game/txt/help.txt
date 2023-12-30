@@ -18827,7 +18827,7 @@
   to the next line, overriding the logic of the word wrapping. 
   
   <jst> may be any of the following.  You can just use the first character.
-     left      - all text is wrapped to the left margin
+     left      - all text is wrapped to the left margin (default)
      right     - all text is wrapped to the right margin
      center    - all text is wrapped to the center
      justified - all text is 'stretched' from the left to right margin.
@@ -35168,6 +35168,7 @@
  * isword() now recogizes accents [ASH]
  * functions for timezone awareness now warn on invalid TZ [ASH]
  * ptimefmt() is now TZ aware
+ * wrap defaults to LEFT justify if no justification given [ASH]
     
   Bug Fixes
   ------------
