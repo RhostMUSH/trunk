@@ -2589,8 +2589,15 @@
   Note: If you are paging people with spaces in their name, start the page
         with a comma.  i.e.  page ,player with space, player2 = message
   
-  You may use the &PAGEFORMAT and &OUTPAGEFORMAT attributes for format
+  You may use the &PAGEFORMAT and &OUTPAGEFORMAT attributes to format
   incoming and outgoing pages.
+  
+  Switches available:
+     /noansi   -- show raw ansi (the %c/%x substitutions) instead of colors.
+     /port     -- page to the specified port (wizard only).
+     /location -- if no <message> will page the player with your location.
+  
+  Note: /noeval can be emulated by starting page with the ] command.
   
   <control> is the formatter for the page (", ;, :, etc)
   
@@ -2601,37 +2608,43 @@
   name on the WHO list.  You may specify from one to more players in a page 
   and you can use a comma to delimit the player list instead of a space for
   players that contain spaces in their names.  You can not however, mix 
-  commas and spaces.
+  commas and spaces.  
  
-  You can format the message one of several ways by specifying ':', ';', or
-  '"' as the first character of the message.  ':' and ';' format the message
-  as 'From afar, <player> <message>', with ';' omitting the space between
-  <player> and <message>.  '"' formats the message in normal page format
-  (this is the default).
-  
-  Switches available:
-    noansi -- show raw ansi (the %c/%x substitutions) instead of colors.
+  You can format the message with <control> one of several ways.
+    :<message> -- poses <space>    (ie: From afar, myname foo.)
+    ;<message> -- possessive poses <no space>    (ie: From afar, mynamefoo)
+    "<message> -- normal page (default)    (ie: myname pages: foo)
  
 { 'help page2' for more }
   
 & page2  
-  If your Idle attribute is set to something, then it is sent to anyone
-  who successfully pages you.  This is useful for when you are away from
-  your terminal for a short while.
+  Command: p[age] (continued)
   
-  You can selectively disable pages from certain players with the '@lock/page'
-  command (players must pass the lock in order to page you).  If someone
-  cannot page you, they will be sent a message including of your Reject
-  attribute if they try.  If someone pages you while you are not connected,
-  they are sent a message including your Away attribute.
+  @idle attribute:
+      If your Idle attribute is set to something, then it is sent to anyone
+      who successfully pages you.  This is useful for when you are away from
+      your terminal for a short while.  This attribute is evaluated.
+  
+  @lock/page and @reject attribute:
+      You can selectively disable pages from certain players with the 
+      '@lock/page' command (players must pass the lock in order to page you).
+      If someone cannot page you, they will be sent a message including of 
+      your Reject attribute if they try.  If someone pages you while you are 
+      not connected, they are sent a message including your Away attribute.
    
-  Everyone you page is stored so that you may repeat the page to the entire
-  list using the 'lpage' command.  To respond to someone who just paged you,
-  you may use the 'rpage' command.
+  lp[age], rp[age], mrp[age]:
+      Everyone you page is stored so that you may repeat the page to the entire
+      list using the 'lpage' command.  To respond to someone who just paged 
+      you, you may use the 'rpage' command or mrpage to the entire list.
   
-  NOTE:  You may set the MUXPAGE @toggle (@toggle me=muxpage) so that page
-         works similiar to how you expect in MUX/TM3.  'lp' will still work
-         the same.
+  &pageformat, &outpageformat:
+      These are useful to customize the output of outgoing and incoming page
+      messages.
+  
+  Toggles useful for page:
+      MUXPAGE (@toggle) -- makes page behave like MUX/TM3 so that you can 
+                           repage someone without an equal sign.
+      VPAGE (@toggle)   -- Shows the primary alias of anyone who pages you.
   
   See Also: pose, say, whisper, :, ;, ", }, ], \\, @pemit, @away, @idle,
             @reject, rpage, lpage, mrpage, PAGEFORMAT, OUTPAGEFORMAT
