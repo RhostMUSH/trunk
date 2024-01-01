@@ -15070,7 +15070,7 @@
   See Also: map(), iter(), merge(), elements(), list(), elementpos(), inf()
   
 & TIME()
-  Function: time([<timezone>])
+  Function: time([<timezone>] [,<enforcement>])
  
   Gives you the current time.
   WARNING!  This is the time on the machine that the mud is running on, and
@@ -15078,6 +15078,11 @@
   
   You may specify an optional timezone that time() will handle or you may
   set a TIMEZONE attribute for the timezone you wish to use.
+  
+  You may specify <enforcement> and it will enforce the timezone passed to
+  time and return '#-1' for instances that have invalid timezones.
+  
+  Otherwise, it will return a warning and default to UTC time.
    
   Example:
     > say time()                       (assume localtime was GMT)
@@ -19434,8 +19439,8 @@
 & SECSTZ()
   Function: secs()
             msecs()
-            secstz([<timezone>])
-            msecstz([<timezone>])
+            secstz([<timezone>] [,<enforcement>])
+            msecstz([<timezone>] [,<enforcement>])
  
   Returns the number of elapsed seconds since midnight, January 1, 1970.
   This is an easy way to time things.
@@ -19447,6 +19452,11 @@
   to specify the timezone as an override, or if you have the TIMEZONE
   attribute, it will use that.  It uses local system time if neither are
   specified meaning it falls back to the behavior of secs()/msecs().
+  
+  secstz() and msecstz() allow an <enforcement> toggle that if set to '1' will
+  force following valid timezones and return a '#-1' on invalid timezones.
+  
+  Without this value, secstz() and msecstz() will return UTC time.
   
   Example:
      > say secs()
@@ -35182,6 +35192,7 @@
  * functions for timezone awareness now warn on invalid TZ [ASH]
  * ptimefmt() is now TZ aware
  * wrap defaults to LEFT justify if no justification given [ASH]
+ * secstz(), msecstz() and time() have optional second arg to enforce TZ [ASH]
     
   Bug Fixes
   ------------

@@ -9208,14 +9208,28 @@ FUNCTION(fun_time)
 {
     char *temp, *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags;
+    int i_tz, aflags, i_enforce;
     ATTR *ap;
 
+    if (!fn_range_check("TIME", nfargs, 1, 2, buff, bufcx))
+       return;
+
     i_tz = 0;
+    i_enforce = 0;
+    if ( (nfargs > 1) && *fargs[1] ) {
+       i_enforce = 1;
+    }
+
     s_env = alloc_sbuf("convtime_env");
     if ( *fargs[0] ) {
        if ( !validate_timezones(fargs[0]) ) {
-          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          if ( i_enforce ) {
+             free_sbuf(s_env);
+             safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+             return;
+          } else {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          }
        }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -9227,7 +9241,14 @@ FUNCTION(fun_time)
        if ( ap ) {
           s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr && !validate_timezones(s_chratr) ) {
-             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             if ( i_enforce ) {
+                free_sbuf(s_env);
+                free_lbuf(s_chratr);
+                safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+                return;
+             } else {
+                notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             }
           }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -12468,19 +12489,34 @@ FUNCTION(fun_msecstz)
 {
     char *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, offset;
+    int i_tz, aflags, offset, i_enforce;
     time_t i_now;
     struct tm lt, ltnew;
     ATTR *ap;
+
+    if (!fn_range_check("MSECSTZ", nfargs, 1, 2, buff, bufcx))
+       return;
 
     i_now = time(NULL);
     localtime_r(&i_now, &lt);
 
     i_tz = 0;
+    i_enforce = 0;
     s_env = alloc_sbuf("msecstz");
+
+    if ( (nfargs > 1) && *fargs[1] ) {
+       i_enforce = atoi(fargs[1]);
+    }
+
     if ( *fargs[0] ) {
        if ( !validate_timezones(fargs[0]) ) {
-          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          if ( i_enforce ) {
+             free_sbuf(s_env);
+             safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+             return;
+          } else {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          }
        }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -12492,7 +12528,14 @@ FUNCTION(fun_msecstz)
        if ( ap ) {
           s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr && !validate_timezones(s_chratr) ) {
-             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             if ( i_enforce ) {
+                free_sbuf(s_env);
+                free_lbuf(s_chratr);
+                safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+                return;
+             } else {
+                notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             }
           }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -12558,20 +12601,34 @@ FUNCTION(fun_secstz)
 {
     char *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, offset;
+    int i_tz, aflags, offset, i_enforce;
     time_t i_now;
     struct tm lt, ltnew;
     ATTR *ap;
 
+    if (!fn_range_check("SECSTZ", nfargs, 1, 2, buff, bufcx))
+       return;
+
     i_now = time(NULL);
     localtime_r(&i_now, &lt);
     offset = 0;
-
+    i_enforce = 0;
     i_tz = 0;
     s_env = alloc_sbuf("secstz");
+
+    if ( (nfargs > 1) && *fargs[1] ) {
+       i_enforce = atoi(fargs[1]);
+    }
+
     if ( *fargs[0] ) {
        if ( !validate_timezones(fargs[0]) ) {
-          notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          if ( i_enforce ) {
+             free_sbuf(s_env);
+             safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+             return;
+          } else {
+             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", fargs[0]));
+          }
        }
        s_tmp = getenv("TZ");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -12583,7 +12640,14 @@ FUNCTION(fun_secstz)
        if ( ap ) {
           s_chratr = atr_pget(player, ap->number , &aowner, &aflags);
           if ( *s_chratr && !validate_timezones(s_chratr) ) {
-             notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             if ( i_enforce ) {
+                free_sbuf(s_env);
+                free_lbuf(s_chratr);
+                safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+                return;
+             } else {
+                notify_quiet(player, unsafe_tprintf("Warning: invalid timezone %s", s_chratr));
+             }
           }
           s_tmp = getenv("TZ");
           sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
@@ -40677,7 +40741,7 @@ FUN flist[] =
     {"MOVE", fun_move, 2, 0, CA_PUBLIC, 0},
 #endif
     {"MSECS", fun_msecs, 0, 0, CA_PUBLIC, CA_NO_CODE},
-    {"MSECSTZ", fun_msecstz, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"MSECSTZ", fun_msecstz, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"MSIZETOT", fun_msizetot, 0, 0, CA_IMMORTAL, 0},
     {"MUDNAME", fun_mudname, 0, 0, CA_PUBLIC, 0},
     {"MUL", fun_mul, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -40824,7 +40888,7 @@ FUN flist[] =
     {"SEARCHOBJID", fun_searchobjid, -1, 0, CA_PUBLIC, 0},
     {"SEARCHNGOBJID", fun_searchngobjid, -1, 0, CA_PUBLIC, 0},
     {"SECS", fun_secs, 0, 0, CA_PUBLIC, CA_NO_CODE},
-    {"SECSTZ", fun_secstz, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"SECSTZ", fun_secstz, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SECURE", fun_secure, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SECUREX", fun_secure, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SEES", fun_sees, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -40904,7 +40968,7 @@ FUN flist[] =
     {"TEMPLATE", fun_template, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TESTLOCK", fun_testlock, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TEXTFILE", fun_textfile, 1, FN_VARARGS, CA_WIZARD, 0},
-    {"TIME", fun_time, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"TIME", fun_time, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TIMEFMT", fun_timefmt, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TOBIN", fun_tobin, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TODEC", fun_todec, 1, 0, CA_PUBLIC, CA_NO_CODE},
