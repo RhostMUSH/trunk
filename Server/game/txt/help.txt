@@ -31403,6 +31403,18 @@
   
   See Also: regexp syntax, regexp classes
 
+& ME OBI-WAN KENOBI
+& OBI-WAN
+& KENOBI
+& OBI-WAN KENOBI
+  I'm your only hope?  Oh padwan, we pity you.
+
+& EGG
+& EASTER
+& EASTER EGG
+& EASTEREGG
+  What?  Where?  (kicks egg behind) I see nothing here.
+
 & regular expression functions
   Function lists: Regular Expressions
   
