@@ -163,6 +163,10 @@ walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
             sprintf(t_buff, "%s/", files->d_name);
             walk_subdirs(t_buff2, (char *)NULL, t_buff, i_cnt);
          }
+         /* Abort on recursion check for cnt > value -- alert handled in recursion call */
+         if ( *i_cnt >= (MAXTZONES - 1) ) {
+            break;
+         }
 
          /* Let's validate the file as a TZ file */
          fp = fopen(t_buff2, "r");
