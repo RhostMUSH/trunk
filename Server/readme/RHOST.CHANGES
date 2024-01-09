@@ -19,6 +19,8 @@ BSD not compliant with timezone variable as non-POSIX
 				- Thanks Oleo
 @decompile finally has /db switch with some arm-twisting by Hope :)
 				- Thanks Hope
+wrap() didn't default to LEFT justification
+				- Thanks Hope
 
 
                          RhostMUSH 4.0 Update File

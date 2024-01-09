@@ -6454,6 +6454,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                          (tp->interpreter == cf_string_sub) ||
                          (tp->interpreter == cf_string_chr) ||
                          (tp->interpreter == cf_stringver) ||
+                         (tp->interpreter == cf_stringtz) ||
                          (tp->interpreter == cf_dynstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {
