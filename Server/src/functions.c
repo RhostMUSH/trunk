@@ -6609,7 +6609,7 @@ FUNCTION(fun_valid)
       ival(buff, bufcx, (ok_player_name(fargs[1]) &&
                         (lookup_player(NOTHING, fargs[1], 0) == NOTHING)));
   } else if (!stricmp(fargs[0], "password")) {
-      ival(buff, bufcx, ok_password(fargs[1], player, 1));
+      ival(buff, bufcx, ok_password(fargs[1], (char *)NULL, player, 1));
   } else if (!stricmp(fargs[0], "command")) {
      cmdp = lookup_command(fargs[1]);
      if ( cmdp && (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&

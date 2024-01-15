@@ -7344,13 +7344,13 @@
   parent_follow            parent_nest_limit         parentable_control_lock 
   partial_conn             partial_deconn            passapi_host            
   passapi_site             passproxy_host            passproxy_site          
-  paycheck                 pcreate_paranoia          pcreate_paranoia_fail   
-  pemit_any_object         pemit_far_players         penn_playercmds         
-  penn_setq                penn_switches             permit_site             
-  player_absolute          player_attr_default       player_dark             
-  player_flags             player_listen             player_match_commands   
-  player_match_own_command player_name_spaces        player_parent           
-  player_queue_limit       player_quota           
+  passwd_distance          paycheck                  pcreate_paranoia        
+  pcreate_paranoia_fail    pemit_any_object          pemit_far_players       
+  penn_playercmds          penn_setq                 penn_switches           
+  permit_site              player_absolute           player_attr_default     
+  player_dark              player_flags              player_listen           
+  player_match_commands    player_match_own_command  player_name_spaces      
+  player_parent            player_queue_limit        player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8912,6 +8912,19 @@
   
   See Also: passapi_site, @site
    
+& passwd_distance
+  Config parameter: passwd_distance <value>         Default: 0
+  
+  Enables levenshtein distance checks for the @password command.  It enforces
+  that the new password is <value> number of characters distant from the
+  old password.  If this is set to '0' then this checking is disabled.
+  
+  This only enforces checks against the previous password set, and will
+  only impact the @password command since there is no way to reverse hash
+  a password to see what the value was stored in the database.
+  
+  See Also: safer_passwords
+
 & forbidapi_host
 & forbid_host
   Config parameter: forbid_host <!host> <host> ... <host>
@@ -11678,10 +11691,12 @@
   
   Both passwords will use a simplistic entropy check that enforces non
   sequential passwords of uniqueness.
+  
+  You may enable levenshtein checks by using the passwd_distance config.
  
   Note:  Guest players still are allowed 'guest' as their password.
   
-  See Also: @password, @newpassword
+  See Also: @password, @newpassword, levenshtein
 
 & saystring_eval
   Config parameter: saystring_eval <boolean>.   Default: 0 (no)
@@ -15664,3 +15679,9 @@
 
 & HELP3INC
   This is the help3inc entry -- [ansi(hc,cyan 3)] - %n
+
+& @password
+  Re-directing to normal help entry for @password
+  
+!!help/@password
+

@@ -364,6 +364,7 @@ NDECL(cf_init)
     mudconf.setqlabel = 0;		/* Label enforcing for setq */
     mudconf.saystring_eval = 0;		/* @saystring evaluate? */
     mudconf.strfunc_softfuncs = 0;	/* @function/@lfuncton to strfunc() */
+    mudconf.passwd_distance = 0;	/* strdistance for secure passwords */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5229,6 +5230,10 @@ CONF conftable[] =
     {(char *) "passproxy_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.passproxy_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to bypass proxy checks."},
+    {(char *) "passwd_distance",
+     cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.passwd_distance, 5, 0, CA_WIZARD,
+     (char *) "Password strdistance check for secure passwords.\r\n"\
+              "(Range: 0-5)   Default: 0   Value: %d"},
     {(char *) "paycheck",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.paycheck, 0, 0, CA_PUBLIC,
      (char *) "Money player receives daily on connect.\r\n"\

@@ -365,7 +365,7 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
    /* Make sure the password is OK.  Name is checked in create_obj */
 
    pbuf = trim_spaces(password);
-   if (!ok_password(pbuf, creator, 0)) {
+   if (!ok_password(pbuf, (char *)NULL, creator, 0)) {
       free_lbuf(pbuf);
       return NOTHING;
    }
@@ -549,7 +549,7 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
          target = atr_get(player, A_PASS, &aowner, &aflags);
          if ( !*target || !check_pass(player, oldpass, 0, 0, NOTHING) ) {
             notify(player, "Sorry.");
-         } else if (!ok_password(newpass, player, 0)) {
+         } else if ( !ok_password(newpass, oldpass, player, 0) ) {
             notify(player, "Bad new password.");
          } else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
             notify(player, "Sorry.");

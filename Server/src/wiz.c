@@ -2083,7 +2083,7 @@ void do_newpassword(dbref player, dbref cause, int key, char *name,
       return;
    }
 
-   if (*password != '\0' && !ok_password(password, player, 0)) {
+   if (*password != '\0' && !ok_password(password, (char *)NULL, player, 0)) {
       /* Can set null passwords, but not bad passwords */
       notify_quiet(player, "Bad password");
       return;
@@ -4311,7 +4311,7 @@ void do_api(dbref player, dbref cause, int key, char *s_target, char *s_string)
          break;
 
       case API_PASSWORD:
-         if ( *s_string && !ok_password(s_string, player, 0) ) {
+         if ( *s_string && !ok_password(s_string, (char *)NULL, player, 0) ) {
             notify(player, safe_tprintf(s_tmp, &s_tmpptr, "@api: Invalid password specified: %s", s_string));
          } else {
             sprintf(s_buff, "%s", (char *)"_APIPASSWD");

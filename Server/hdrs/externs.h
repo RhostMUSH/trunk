@@ -384,7 +384,7 @@ extern int	FDECL(ok_name, (const char *));
 extern int	FDECL(ok_player_name, (const char *));
 extern int	FDECL(ok_attr_name, (const char *));
 extern int	FDECL(ok_totem_name, (const char *));
-extern int	FDECL(ok_password, (const char *, dbref, int));
+extern int	FDECL(ok_password, (const char *, const char *, dbref, int));
 extern void	FDECL(handle_ears, (dbref, int, int));
 extern dbref	FDECL(match_possessed, (dbref, dbref, char *, dbref, int));
 extern void	FDECL(parse_range, (char **, dbref *, dbref *));

@@ -6581,6 +6581,18 @@ if ( !key ) {
 #else
     notify(player, "Player password encryption method ------------------------------ DES");
 #endif
+    if ( mudconf.safer_passwords ) {
+       notify(player, "Player password requires safer passwords ----------------------- ENABLED");
+       if ( mudconf.passwd_distance ) {
+          notify(player, unsafe_tprintf(
+                         "Player password do levenshtein checks [%d diff check] ----------- ENABLED",
+                      mudconf.passwd_distance));
+       } else {
+          notify(player, "Player password do levenshtein checks -------------------------- DISABLED");
+       }
+    } else {
+       notify(player, "Player password requires safer passwords ----------------------- DISABLED");
+    }
     notify(player, unsafe_tprintf("Current TREE character is defined as --------------------------- %s", mudconf.tree_character));
     if (mudconf.parent_control)
        notify(player, "Lock Control for all @lock processing -------------------------- PARENTS");
@@ -7432,8 +7444,12 @@ list_options(dbref player)
     } else {
       notify(player, "Alternate inventories are disabled.");
     }
-    if ( mudconf.safer_passwords )
-       notify(player, "Password setting/resetting require tougher/harder passwords.");
+    if ( mudconf.safer_passwords ) {
+       if ( mudconf.passwd_distance )
+          notify(player, "Password setting/resetting require tougher/harder passwords (levenshtein).");
+       else
+          notify(player, "Password setting/resetting require tougher/harder passwords (non-levenshtein).");
+    }
     if ( mudconf.mail_tolist )
        notify(player, "Mail automatically adds the 'To:' list in sent mail.");
     else

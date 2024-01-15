@@ -2746,7 +2746,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
   TAGENT *storedtag = NULL;
   BSTNode *node = NULL;
   char *s_buff = NULL;
-  int result, i_personal, *hashp, i_total, i_start, i_count, i_page, i_pagetot;
+  int result, i_personal, i_total, i_start, i_count, i_page, i_pagetot;
   dbref p;
 
   i_page = i_pagetot = i_count = i_personal = i_total = i_start = 0;

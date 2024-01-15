@@ -24,6 +24,7 @@ extern dbref	FDECL(match_thing, (dbref, char *));
 #ifndef STANDALONE
 extern int attrib_cansee(dbref, const char *, dbref, dbref);
 extern int attrib_canset(dbref, const char *, dbref, dbref);
+extern void fun_strdistance(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 #endif
 
 /* ---------------------------------------------------------------------------
@@ -1282,12 +1283,13 @@ int pass_entropy(char *password)
    return i_entropy;
 }
 
-int ok_password(const char *password, dbref player, int key)
+int ok_password(const char *password, const char *oldpassword, dbref player, int key)
 {
   const char *scan;
   int num_upper, num_lower, num_special;
 #ifndef STANDALONE
-  int i_sha512;
+  char *s_tmp, *s_tmpptr, *s_array[2];
+  int i_sha512, i_strdist;
 #endif
 
   if (*password == '\0')
@@ -1333,6 +1335,20 @@ int ok_password(const char *password, dbref player, int key)
 /* Key is a toggle to say if you want the return or not to the player */
 #ifndef STANDALONE
   if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
+     if ( mudconf.passwd_distance && oldpassword && *oldpassword ) {
+        s_tmpptr = s_tmp = alloc_lbuf("strdistance_passwd");
+        s_array[0] = oldpassword;
+        s_array[1] = password;
+        fun_strdistance(s_tmp, &s_tmpptr, player, player, player, s_array, 2, (char **)NULL, 0);
+        i_strdist = atoi(s_tmp); 
+        free_lbuf(s_tmp);
+        /* Strdistance must be X charactrrs different from previous password */
+        if ( i_strdist <= mudconf.passwd_distance ) {
+           notify_quiet(player, 
+              unsafe_tprintf("The password must be at least %d characters different from previous password.", mudconf.passwd_distance));
+           return 0;
+        }
+     }
      /* length must be 5 or more */
      if ( (i_sha512 && (strlen(password) < 14 )) || (!i_sha512 && (strlen(password) < 5)) ) {
            if ( i_sha512 ) {

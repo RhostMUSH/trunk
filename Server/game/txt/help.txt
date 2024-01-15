@@ -5911,26 +5911,21 @@
   No white space characters (spaces, tabs, carriage returns, etc) are 
   allowed in the password.
   
-  If secured passwords are enabled, it will enforce a minimum length
-  of 5 characters (with DES encryption) or 14 characters (for SHA512
-  encryption) for passwords and require at least one lowercase letter,
-  one uppercase letter, and require a special character which is
-  non-alphanumeric or ', or -.  It will also use a lose-based entropy
-  check which does simplistic validation for tougher guessing password
-  entries.  It will also require passing an entropy check.  Entropy
-  requires unique non-repeating sequences.
+  If secured passwords are enabled, the following restrictions are enabled:
+     DES:
+       -- 5 character minimum length
+     SHA512:
+       -- 14 character minimum length
+     BOTH DES & SHA512:
+       -- minimum 1 lower case letter
+       -- minimum 1 upper case letter
+       -- minimum 1 number/digit
+       -- minimum 1 special character (non-alphanumeric)
+       -- entropy check for non repeating or incremental/decremental characters
+       -- (optional) levenshtein distance check from 1-5 characters
   
   Please see @list options system to see what method of password
   algo is currently in place.
- 
-  Of interest, breaking apart the SHA512 password segment, you will 
-  see a string in the form:
-      $6$<seed>$<passwd> 
-  
-  The breakdown:
-      $6$      -- The type of encryption.  In this case SHA2 format.
-      <seed>   -- the randomized seed that is applied to the passwd.
-      <passwd> -- the encrypted SHA512 hashed password
   
   Examples:
     > @password myoldeasypass=Ui8^lpV4.Tx2n@vwy   (set a very complex pass)
@@ -5944,7 +5939,31 @@
     > say attrpass(me/va,test,chk)
     You say "1"
   
-  See Also: @name, attrpass()
+  See Also: @name, attrpass(), PASSWORD LAYOUT
+
+& PASSWORD LAYOUT
+  Topic: PASSWORD LAYOUT
+   
+  For SHA512 passwords (This is limited to 160 characters or less):
+     The layout of the format:
+         example: $6$4Y7KAboyw$TT7iBirzXNgOyb/igkaddja...etcetc
+         syntax:  $6$<seed>$<passwd> 
+     
+     The breakdown:
+         $6$      -- The type of encryption.  In this case SHA2 format.
+         <seed>   -- the randomized seed that is applied to the passwd.
+         <passwd> -- the encrypted SHA512 hashed password
+     
+  For DES passwords (This is limited to 8 characters or less):
+     The layout of the format:
+         example: XXslj5t891
+         syntax:  <seed><passwd> 
+     
+     The breakdown:
+         <seed>   -- This is the seed for DES.  Sadly yes, it's always XX
+         <passwd> -- the encrypted DES hashed password
+  
+  Obviously SHA512 (SHA2) passwords are far more secure.
   
 & @lemit
   Command: @lemit <message>
@@ -35168,6 +35187,7 @@
  * timezone config parameter to specify the timezone for the mush [ASH]
  * runintz() to sandbox functions in a specific timezone [ASH]
  * added /db switch to @decompile [ASH]
+ * optionally added levenshtein distance checks to @password [ASH]
   
   Changes
   -------
@@ -35205,6 +35225,7 @@
  * ptimefmt() is now TZ aware
  * wrap defaults to LEFT justify if no justification given [ASH]
  * secstz(), msecstz() and time() have optional second arg to enforce TZ [ASH]
+ * @list options system shows password security levels [ASH]
     
   Bug Fixes
   ------------

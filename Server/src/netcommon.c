@@ -4978,7 +4978,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       } else {
          player = create_player(user, password, NOTHING, 0, user, 0);
          if (player == NOTHING) {
-            if ( !ok_password(password, NOTHING, 0) ) {
+            if ( !ok_password(password, (char *)NULL, NOTHING, 0) ) {
                queue_string(d, (char *)"Invalid password specified.\r\n");
                if ( mudconf.safer_passwords ) {
                   queue_string(d, (char *)"Passwords must have 1 upper, 1 lower, and 1 non-alpha and be 5+ chars long.\r\n");

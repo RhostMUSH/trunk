@@ -319,6 +319,7 @@ struct confdata {
         int     paranoid_exit_linking; /* unlinked exits can't be linked unless controlled */
         int     notonerr_return; /* If function returns '#-1' not() returns '0' if disabled */
         int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
+	int	passwd_distance;	/* strdistance password length checks */
         int     max_sitecons;	/* Define maximum number of connects from a site */
 	int	mail_def_object;	/* Default object to use global mail eval aliases */
 	int	mail_autodeltime;	/* Autodelete on mail - time in days */

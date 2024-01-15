@@ -6823,7 +6823,7 @@ mail_pass(dbref player, char *buf1, char *buf2)
 	    atr_clr(player, A_MPASS);
 	    notify_quiet(player, "Mail: Password cleared.");
 	} else {
-	    if (!ok_password(buf2, player, 1) || (*buf2 == '+')) {
+	    if (!ok_password(buf2, (char *)NULL, player, 1) || (*buf2 == '+')) {
 		notify_quiet(player, "MAIL ERROR: Bad password given in +set.");
 	    } else {
 		atr_add_raw(player, A_MPASS, mush_crypt(buf2, 0));
