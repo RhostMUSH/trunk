@@ -1337,8 +1337,8 @@ int ok_password(const char *password, const char *oldpassword, dbref player, int
   if ( mudconf.safer_passwords && (strcmp(password, "guest") != 0) && (strcmp(password, "Nyctasia") != 0) ) {
      if ( mudconf.passwd_distance && oldpassword && *oldpassword ) {
         s_tmpptr = s_tmp = alloc_lbuf("strdistance_passwd");
-        s_array[0] = oldpassword;
-        s_array[1] = password;
+        s_array[0] = (char *)oldpassword;
+        s_array[1] = (char *)password;
         fun_strdistance(s_tmp, &s_tmpptr, player, player, player, s_array, 2, (char **)NULL, 0);
         i_strdist = atoi(s_tmp); 
         free_lbuf(s_tmp);

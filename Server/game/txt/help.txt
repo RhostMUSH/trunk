@@ -899,6 +899,8 @@
   
 & BANGS NOTATION
 & BANG NOTATION
+  Topic: BANG NOTATION
+  
   Bang notation allows you to use '!' and '!!' in functions for 'not' and
   'not-not' functionality.  This works similarly to the C equivalent of
   using 'bangs'.  A value of '1' means the condition was matched, '0' not.
@@ -938,7 +940,38 @@
   Bang notation may or may not be enabled based on the RhostMUSH that you are
   on.  Please check @list options to see if it is currently enabled.
   
-  See Also: %-, %q, %i, %d, t()
+  See Also: %-, %q, %i, %d, t(), BANG SYNTAX
+
+& BANG SYNTAX
+  Topic: BANG SYNTAX
+  
+  The following BANG notations exist:
+    !   - 'not' BOOLEAN/MATH value.         Example:   !match(me,you)   [1]
+    !!  - 'not not' BOOLEAN/MATH value.     Example:  !!match(me,you)   [0]
+    !$  - 'not' STRING value.               Example:  !$grep(me,you)    [1]
+    !!$ - 'not not' STRING value.           Example: !!$grep(me,you)    [0]
+    !^  - 'not' TRUE BOOLEAN (like t())     Example:  !^grep(me,you)    [1]
+    !!^ - 'not not' TRUE BOOLEAN (like t()) Example: !!^grep(me,you)    [0]
+  
+  Note: All BANG notations will work.
+  The following features work with BANG notation (using !!^ as example)
+    -- Functions:
+         > [!!^add(1,2)]
+         > !!^add(1,2)
+    -- Q-regs
+         > %q<!!^0>                             
+         > [setq(0,moo,mylabel)] %q<!!^mylabel>
+    -- %0-%9 command arguments (using %- option)
+         > %-!!^0  (for %0)
+         > %-!!^9  (for %9)
+    -- %d for @dolist/inline
+         > @dolist/inline a b c=think %d!!^0
+         > @dolist/inline a b c={@dolist/inline 1 2 3=think %d!!^0 %d!!^1}
+    -- %i for iter()/list()
+         > think iter(a b c,%i!!^0)
+         > think iter(1 2 3,iter(a b c,%i!!^0 %i!!^1))
+  
+  See Also: BANG NOTATION, t()
   
 & VARIABLE EXITS
   Variable exits are done somewhat differently than Penn and TinyMUSH3.  First,
@@ -19170,7 +19203,8 @@
         of preferred timezones (example, &TZ me=GMT CST EST) that
         you wish to use for matching.  This honors parents.
   
-  See Also: time(), singletime(), ptimefmt(), runintz(), timezone list
+  See Also: time(), singletime(), ptimefmt(), runintz(), TIMEZONE,
+            timezone list
   
 & TIMEFMT ESCAPES
   To cause the timefmt function to output a '$' character it must be
@@ -19384,6 +19418,7 @@
   't'    Offset of MUSH local TZ        0..?      Offset in secs of current TZ
   'I'    Offset from GMT time           0..?      Offset in secs from GMT
   'i'    Abbreviation of Timezone       XYZ       
+  'j'    'Real' timezone of server	XYZ
   'N'    Timezone Longname              <str>     Returns the Timezone Name
   'n'    Timezone Shortname             <str>     Returns geographical area
   
@@ -19413,15 +19448,16 @@
   d    Days in weeks     0 - 6         I    Seconds offset from GMT time
   w    Weeks in month    0 - 4         z    Returns '1' if daylight savings
   u    Years in century  0 - 99        i    Returns the timezone abbreviation
-  U    Century in Mill.  0 - 9         N    Returns the longname of timezone
-  m    Elapsed Mill.     0 - ????      n    Return the shortname of timezone
- *c    Elapsed days      0 - ????      t    Seconds offset of existing timezone
- *X    Hours in day      0 - 24       *!    Don't print field if value is 0
-  x    Elapsed hours     0 - ????      ~    Pad with space but not if value 0
- *F    Mins. in hours    0 - 60        @    Prnt if value or prev. value not 0
-  f    Elapsed mins.     0 - ????      #    Pad with spc if val/prev val not 0
-  G    Secs. in minute   0 - 60       *0-9  Format column with # alignment   
-  g    Elapsed secs.     0 - ????      $    Use special code (this list)     
+  U    Century in Mill.  0 - 9         j    Returns 'true' timezone of server
+  m    Elapsed Mill.     0 - ????      N    Returns the longname of timezone
+ *c    Elapsed days      0 - ????      n    Return the shortname of timezone
+ *X    Hours in day      0 - 24        t    Seconds offset of existing timezone
+  x    Elapsed hours     0 - ????     *!    Don't print field if value is 0
+ *F    Mins. in hours    0 - 60        ~    Pad with space but not if value 0
+  f    Elapsed mins.     0 - ????      @    Prnt if value or prev. value not 0
+  G    Secs. in minute   0 - 60        #    Pad with spc if val/prev val not 0
+  g    Elapsed secs.     0 - ????     *0-9  Format column with # alignment   
+                                       $    Use special code (this list)      
   
   Note: Codes with a '*' were used in the example that follows.
   

@@ -11568,7 +11568,7 @@ FUNCTION(fun_timefmt)
   char *pp, *fmtbuff, *s_aptz, *s_aptztmp;
   time_t secs, i_frell;
   double secs2;
-  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags;
+  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags, len;
   dbref aowner;
   long l_offset = 0, l_timezone = 0;
   TZONE_MUSH *tzmush;
@@ -11910,6 +11910,15 @@ FUNCTION(fun_timefmt)
                 }
                 sprintf(fmtbuff, "%d", fm.lastval);
                 showfield(fmtbuff, buff, bufcx, &fm, 1);
+                fmtdone = 1;
+                break;
+              case 'j': /* The Time Zone tzset() based Itself */
+                tms3 = localtime(&mudstate.now);
+                s_aptz = alloc_lbuf("j_timefmt");
+                len = strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
+                sprintf(fmtbuff, "%s", s_aptz);
+                free_lbuf(s_aptz);
+                showfield(fmtbuff, buff, bufcx, &fm, 0);
                 fmtdone = 1;
                 break;
               case 'i': /* The Time Zone Itself */
