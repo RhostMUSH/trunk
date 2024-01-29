@@ -428,39 +428,119 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
  * exec: Process a command line, evaluating function calls and %-substitutions.
  */
 
+/* Format:  sex:%s-subj:%o-obj:%p-poss:%a-aposs  */
+#define PRONLEN 40
+char *
+fetch_gender(dbref player, int i_type) {
+   static char pronbuff[PRONLEN];
+   char *s_buff, *s_buff2, *s_tok, *s_tokr, *s_tok2, *s_tokr2, *s_token;
+   int i_len, i_ret, i_ltype, i_cnt, aflags;
+   dbref aowner;
+
+   memset(pronbuff, '\0', PRONLEN);
+   i_ltype = i_type;
+   i_ret = 1;
+   s_token = atr_pget(player, A_SEX, &aowner, &aflags);
+
+   if ( (i_type < 1) || (i_type > 4) ) {
+      i_ltype = 0;
+   }
+   if ( i_ltype && s_token && *s_token ) {
+      s_buff = alloc_lbuf("fetch_gender");
+      s_buff2 = alloc_lbuf("fetch_gender2");
+      sprintf(s_buff, "%.*s", LBUF_SIZE - 1, mudconf.added_pronouns);
+      s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      i_len = strlen(s_token);
+      while ( s_tok && *s_tok ) {
+         if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
+            sprintf(s_buff2, "%.*s", LBUF_SIZE - 1, s_tok);
+            i_cnt = 0;
+            s_tok2 = strtok_r(s_buff2, ":", &s_tokr2);
+            while ( s_tok2 && *s_tok2 ) {
+               if ( i_cnt == i_type ) {
+                  strncpy(pronbuff, s_tok2, PRONLEN - 1);
+               }
+               i_cnt++;
+               s_tok2 = strtok_r(NULL, ":", &s_tokr2);
+            }
+            break;
+         }
+         s_tok = strtok_r(NULL, " \t", &s_tokr);
+      }
+      free_lbuf(s_buff);
+      free_lbuf(s_buff2);
+   }
+   free_lbuf(s_token);
+   return(pronbuff);
+}
+
+/* Format:  sex:%s-subj:%o-obj:%p-poss:%a-aposs  */
+int
+lookup_gender(char *s_token) {
+   char *s_buff, *s_tok, *s_tokr;
+   int i_len, i_ret = 1;
+
+   if ( s_token && *s_token ) {
+      s_buff = alloc_lbuf("lookup_gender");
+      sprintf(s_buff, "%.*s", LBUF_SIZE - 1, mudconf.added_pronouns);
+      s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      i_len = strlen(s_token);
+      while ( s_tok && *s_tok ) {
+         if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
+            i_ret = 5;
+            break;
+         }
+         s_tok = strtok_r(NULL, " \t", &s_tokr);
+      }
+      free_lbuf(s_buff);
+   }
+   return(i_ret);
+}
+
 int 
 get_gender(dbref player)
 {
     char first, *atr_gotten;
     dbref aowner;
-    int aflags;
+    int aflags, i_ret;
 
     DPUSH; /* #62 */
+    i_ret = 0;
     atr_gotten = atr_pget(player, A_SEX, &aowner, &aflags);
     first = *atr_gotten;
-    free_lbuf(atr_gotten);
     switch (first) {
     case 'P':
     case 'p':
-        DPOP; /* #62 */
-	return 4;
+        i_ret = 4;
+        // DPOP; /* #62 */
+	// return 4;
+        break;
     case 'M':
     case 'm':
-        DPOP; /* #62 */
-	return 3;
+        i_ret = 3;
+        // DPOP; /* #62 */
+	// return 3;
+        break;
     case 'F':
     case 'f':
     case 'W':
     case 'w':
-        DPOP; /* #62 */
-	return 2;
+        i_ret = 2;
+        // DPOP; /* #62 */
+	// return 2;
+        break;
     default:
-        DPOP; /* #62 */
-	return 1;
+        i_ret = lookup_gender(atr_gotten);
+        if ( !i_ret )
+           i_ret = 1;
+        // DPOP; /* #62 */
+	// return 1;
+        break;
     }
 /*NOTREACHED */
     DPOP; /* #62 */
-    return 0;
+    free_lbuf(atr_gotten);
+    return i_ret;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2125,10 +2205,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case 'o':
 		if (gender < 0)
 		    gender = get_gender(cause);
-		if (!gender)
+		if (!gender) {
 		    tbuf = Name(cause);
-		else
+		} else if ( gender == 5 ) {
+                    tbuf = fetch_gender(cause, 2);
+                } else {
 		    tbuf = (char *) obj[gender];
+                }
                 if ( !sub_override_process(SUB_O, tbuf, (char *)"O", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
@@ -2140,6 +2223,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    gender = get_gender(cause);
 		if (!gender) {
                     sprintf(tbuf, "%.1000ss", Name(cause));
+		} else if ( gender == 5 ) {
+                    sprintf(tbuf, "%s", fetch_gender(cause, 3));
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) poss[gender]);
 		}
@@ -2152,10 +2237,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case 's':
 		if (gender < 0)
 		    gender = get_gender(cause);
-		if (!gender)
+		if (!gender) {
 		    tbuf = Name(cause);
-		else
+		} else if ( gender == 5 ) {
+                    tbuf = fetch_gender(cause, 1);
+		} else {
 		    tbuf = (char *) subj[gender];
+                }
                 if ( !sub_override_process(SUB_S, tbuf, (char *)"S", buff, &bufc, cause, caller, feval) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
@@ -2167,6 +2255,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    gender = get_gender(cause);
 		if (!gender) {
                     sprintf(tbuf, "%.1000ss", Name(cause));
+		} else if ( gender == 5 ) {
+                    sprintf(tbuf, "%s", fetch_gender(cause, 4));
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) absp[gender]);
 		}

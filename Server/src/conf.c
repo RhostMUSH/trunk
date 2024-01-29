@@ -377,6 +377,7 @@ NDECL(cf_init)
     memset(mudconf.help_separator, '\0', sizeof(mudconf.help_separator));
     memset(mudconf.execscriptpath, '\0', sizeof(mudconf.execscriptpath));
     memset(mudconf.execscripthome, '\0', sizeof(mudconf.execscripthome));
+    memset(mudconf.added_pronouns, '\0', sizeof(mudconf.added_pronouns));
     strcpy(mudconf.tree_character, (char *)"`");
     strcpy(mudconf.timezone, (char *)"localtime"); /* Default localtime to timezone */
     setenv("TZ", mudconf.timezone, 1);	/* Set timezone to variable */
@@ -2902,6 +2903,63 @@ CF_HAND(cf_string_chr)
     return retval;
 }
 
+/* Format:  sex:%s-subj:%o-obj:%p-poss:%a-aposs  */
+CF_HAND(cf_pronstring)
+{
+    int retval, i_cnt;
+    char *s_buff, *s_strtok, *s_strtokr, *s_pt;
+
+    retval = 0;
+    if ( strlen(str) ) {
+       s_buff = alloc_lbuf("cf_pronstring");
+       memset(s_buff, '\0', LBUF_SIZE);
+       strncpy(s_buff, str, LBUF_SIZE - 1);
+       s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+       if ( s_strtok && *s_strtok ) {
+          retval = 1;
+          while ( s_strtok && *s_strtok ) {
+             i_cnt = 0;
+             for ( s_pt = s_strtok; s_pt && *s_pt; s_pt++ ) {
+                if ( *s_pt == ':' )
+                   i_cnt++;
+             }
+             if ( i_cnt != 4 ) {
+                retval = 0;
+                break;
+             }
+             s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+          }
+          if ( retval ) {
+             strcpy((char *) vp, str);
+          }
+       }
+       free_lbuf(s_buff);
+    }
+    if ( mudstate.initializing ) {
+       s_buff = alloc_lbuf("cf_pronstring2");
+       STARTLOG(LOG_STARTUP, "CNF", "PRON")
+          if ( retval ) {
+             sprintf(s_buff, "Added pronouns: %s", str);
+          } else {
+             if ( !retval && str && *str ) {
+                sprintf(s_buff, "%s", "syntax required: sexname1:subj1:obj1:poss1:aposs1 sexname2:subj2:obj2:poss2:aposs2 ...");
+             } else {
+                sprintf(s_buff, "%s", "Added pronouns: Cleared");
+             }
+          }
+          log_text(s_buff);
+       ENDLOG
+       free_lbuf(s_buff);
+    }
+    if ( str && *str && !retval && !mudstate.initializing ) {
+       notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1 sexname2:subj2:obj2:poss2:aposs2 ...");
+    } else if (!retval) {
+       strcpy((char *) vp, str);
+       // Clearing the value
+    }
+    return retval;
+}
+
 CF_HAND(cf_stringver)
 {
     int retval;
@@ -4393,6 +4451,9 @@ CONF conftable[] =
     {(char *) "admin_object",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.admin_object, 0, 0, CA_WIZARD,
      (char *) "The object that will be used to load and save inline conf parameters.   Default: -1   Value: %d"},
+    {(char *) "added_pronouns",
+     cf_pronstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.added_pronouns, LBUF_SIZE - 1, 0, CA_PUBLIC,
+     (char *) "String for additional pronoun substitutions for sexes."},
     {(char *) "ansi_default",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ansi_default, 0, 0, CA_WIZARD,
      (char *) "Are functions that are ansi aware made ansi-aware by default?"},
@@ -6461,6 +6522,7 @@ void cf_display(dbref player, char *param_name, int key, char *buff, char **bufc
                          (tp->interpreter == cf_stringver) ||
                          (tp->interpreter == cf_stringtz) ||
                          (tp->interpreter == cf_dynstring) ||
+                         (tp->interpreter == cf_pronstring) ||
                          (tp->interpreter == cf_dynguest) ||
 			 (tp->interpreter == cf_sidefx && bVerboseSideFx)) {
                    if ( i_type == 1 ) {

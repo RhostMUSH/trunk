@@ -307,6 +307,7 @@ struct confdata {
         char    forbidapi_host[LBUF_SIZE]; /* Forbid API host names */
         char    passapi_host[LBUF_SIZE]; /* Allow API unrestricted (minus forbid) host names */
         char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
+	char	added_pronouns[LBUF_SIZE]; /* Added pronouns for %s/%o/%p/%a */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
 	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */

@@ -12539,6 +12539,18 @@
   'P' or 'p' will indicated a plural sex.
    anything else indicates neuter.
   
+   Note: Additional genders and pronouns may be added dynamically to your
+         game.  Please check config(added_pronouns) for additional genders.
+         The format of each gender will be:
+           > gender subj(%s) obj(%o) poss(%p) aposs(%a)
+  
+         Example: 
+           > think config(added_pronouns)
+             robot:what:what:whats:whats
+           > @sex me=robot
+           > think %s
+             what
+  
   See Also: @sex, SUBSTITUTIONS
   
 & GOALS
@@ -35224,6 +35236,7 @@
  * runintz() to sandbox functions in a specific timezone [ASH]
  * added /db switch to @decompile [ASH]
  * optionally added levenshtein distance checks to @password [ASH]
+ * Added the ability to have dynamic genders to the game [ASH]
   
   Changes
   -------

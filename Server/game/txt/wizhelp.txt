@@ -7222,33 +7222,34 @@
   particular parameter.
   
   abort_on_bug             accent_extend            access                 
-  admin_object             ahear_maxcount           ahear_maxtime          
-  alias                    allow_ansinames          allow_whodark          
-  alt_inventories          altover_inv              always_blind           
-  ansi_default             ansi_textfiles           api_nodns
-  api_port                 areg_file                areg_lim               
-  aregh_file               atrperms                 atrperms_checkall
-  atrperms_max             atrcachemax              attr_access            
-  attr_alias               attr_cmd_access          authenticate           
-  bad_name                 badsite_file             bcc_hidden             
-  blacklist_max            blind_snuffs_cons        brace_compatibility    
-  break_compatability      cache_depth              cache_steal_dirty      
-  cache_trim               cache_width              cap_articles           
-  cap_conjunctions         cap_preposition          check_interval         
-  check_offset             clone_copies_cost        cluster_cap            
-  clusterfunc_cap          comcost                  command_dark           
-  command_quota_increment  command_quota_max        compress_program       
-  compression              config_access            conn_timeout           
-  connect_file             connect_methods          connect_perm           
-  connect_reg_file         cpu_secure_lvl           cpuintervalchk         
-  cputimechk               crash_database           create_max_cost        
-  create_min_cost          dark_sleepers            default_home           
-  delim_null               descs_are_local          dig_cost               
-  door_file                door_index               down_file              
-  down_motd_message        dump_interval            dump_message           
-  dump_offset              earn_limit               elements_compat        
-  empower_fulltel          enable_tstamps           enforce_checksums      
-  enforce_unfindable       enhanced_convtime        error_file 
+  added_pronouns           admin_object             ahear_maxcount         
+  ahear_maxtime            alias                    allow_ansinames        
+  allow_whodark            alt_inventories          altover_inv            
+  always_blind             ansi_default             ansi_textfiles         
+  api_nodns                api_port                 areg_file              
+  areg_lim                 aregh_file               atrperms               
+  atrperms_checkall        atrperms_max             atrcachemax            
+  attr_access              attr_alias               attr_cmd_access        
+  authenticate             bad_name                 badsite_file           
+  bcc_hidden               blacklist_max            blind_snuffs_cons      
+  brace_compatibility      break_compatability      cache_depth            
+  cache_steal_dirty        cache_trim               cache_width            
+  cap_articles             cap_conjunctions         cap_preposition        
+  check_interval           check_offset             clone_copies_cost      
+  cluster_cap              clusterfunc_cap          comcost                
+  command_dark             command_quota_increment  command_quota_max      
+  compress_program         compression              config_access          
+  conn_timeout             connect_file             connect_methods        
+  connect_perm             connect_reg_file         cpu_secure_lvl         
+  cpuintervalchk           cputimechk               crash_database         
+  create_max_cost          create_min_cost          dark_sleepers          
+  default_home             delim_null               descs_are_local        
+  dig_cost                 door_file                door_index             
+  down_file                down_motd_message        dump_interval          
+  dump_message             dump_offset              earn_limit             
+  elements_compat          empower_fulltel          enable_tstamps         
+  enforce_checksums        enforce_unfindable       enhanced_convtime      
+  error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7548,6 +7549,30 @@
   wizhelp PERMISSIONS.
   
   See Also: PERMISSIONS, @list.
+
+& added_pronouns
+  Config parameter: added_pronouns <colon seperated strings>
+  
+  This allows you to add additional genders and pronouns to the game.  This
+  is a dynamic list that can be used for additional matches. 
+  
+  Genders are looked up by *partial match* and will return the *first match*
+  to the @sex the player has set.  The built-in pronouns will always have
+  first match.  
+  
+  Due to this, any gender that starts with p, f, w, or m will not be 
+  recognized as these are reserved letters for existing genders.
+  
+  Syntax for adding a gender will be:
+      -------------------------------------------------------
+      @sex        %s      %o     %p         %a
+      -------------------------------------------------------
+      gender-name:subject:object:possessive:plural-possessive
+  
+  For example:
+      cow:moo:mooing:moos:moosmore sow:oink:oinking:oinker:oinkers
+  
+  See Also: (Normal help) @sex, GENDER
 
 & admin_object
   Config parameter: admin_object <dbref>   Default: -1
