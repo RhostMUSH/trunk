@@ -1,8 +1,17 @@
 @@ This is daily code.  This will emulate MUX/TM3's @daily
+@@ set the totems in your conf file
+@@ totem_add daily 7 0x80000000
+@@ totem_letter daily 0 d
+@@ 
 @create Daily Emulator <DE>
+@tag/add daily=Daily Emulator <DE>
 @set Daily Emulator <DE>=safe ind inh !halt
 @startup Daily Emulator <DE>=@wait 300=@tr/quiet me/do_daily
-&DO_DAILY Daily Emulator <DE>=@wait/until [convtime([extract(time(),1,3)] 23:59:59 [extract(time(),5,1)])]={@dolist [search(eval=[lit([hasattr(##,daily)])])]=@tr/quiet ##/daily;@wait 300=@tr/quiet me/do_daily}
+@@ this is the old daily -- new one is @totem aware
+@@ &DO_DAILY Daily Emulator <DE>=@wait/until [convtime([extract(time(),1,3)] [v(DAILY_TRIGGER)] [extract(time(),5,1)])]={@dolist [search(eval=[lit([hasattr(##,daily)])])]=@tr/quiet ##/daily;@wait 300=@tr/quiet me/do_daily}
+&DO_DAILY Daily Emulator <DE>=@wait/until [convtime([extract(time(),1,3)] [v(DAILY_TRIGGER)] [extract(time(),5,1)])]={@dolist [search(totem=d)]={@tr/quiet ##/daily};@wait 300=@tr/quiet me/do_daily}
+@@ set daily hour to the military time (HH:MM:SS) you wish to have daily trigger
+&DAILY_TRIGGER me=23:59:59
 @@
 @@ This is only intended to emulate TM3/MUX2 @daily.  If you have myrddin's mushcron, it's fairly pointless.
 @@ This triggers at midnight every night.
