@@ -17809,7 +17809,7 @@
   See Also: poss(), subj(), obj()
   
 & ATRCACHE()
-  Function: atrcache(<cache slot or name> [,<switch>])
+  Function: atrcache(<cache slot or name> [,<switch> [,<arg1>, <arg2>,...]])
   
   This function returns the value of the cached data in the specified
   cache slot by slot number or name.  If the interval has exceeded from
@@ -17822,6 +17822,9 @@
   If you do not have permission to view the specified cache, an error
   will be displayed.
   
+  This function will already read arguments passed from the stack, which you
+  can override with specified arguments to the function.
+    
   The following <switches> are available:
      fetch        -- (default) will fetch the value of the cash.
  +*  grab         -- do a force recache then fetch value.
@@ -17837,11 +17840,13 @@
   Any value with a '*' requires owner or Immortal to use the switch.
   Any value with a '+' requires a valid owner on the cache.
   
-  Examples:
+  Examples: 
     > say atrcache(mynewtest)
     You say "#12345"
     > say atrcache(mynewtest, fetch)
     You say "#12345"
+    > say atrcache(mynewtest, fetch, arg-v0, arg-v1, arg-v2)
+    You say "#12345 arg-v0 arg-v1 arg-v2"
     > say atrcache(notacache)
     You say "#-1 INVALID CACHE"
   
@@ -23072,7 +23077,7 @@
             SIDEEFFECTS, ATTRIBUTE TREES
   
 & RUNINTZ()
-  Function: runintz(<string>, <timezone>)
+  Function: runintz(<timezone>, <string>)
   
   This function will evaluate and run the <string> in the specified
   <timezone>.  If the <timezone> is invalid, the function will error out.
@@ -23085,13 +23090,13 @@
   Examples:
     > say ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860)
       You say "Sat Dec 23 03:14:20 AM CST"
-    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),US/Hawaii)
+    > say runintz(US/Hawaii, ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860))
       You say "Fri Dec 22 11:14:20 PM HST"
-    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),GMT)
+    > say runintz(GMT, ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860))
       You say "Sat Dec 23 09:14:20 AM GMT"
-    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),CST6CDT)
+    > say runintz(CST6CDT, ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860))
       You say "Sat Dec 23 03:14:20 AM CST"
-    > say runintz(ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860),localtime)
+    > say runintz(localtime, ptimefmt($a $b $d $I:$M:$S $p $Z,1703322860))
       You say "Sat Dec 23 03:14:20 AM CST"
   
   See Also: ptimefmt(), secstz(), time(), TIMEZONE
@@ -35275,6 +35280,8 @@
  * wrap defaults to LEFT justify if no justification given [ASH]
  * secstz(), msecstz() and time() have optional second arg to enforce TZ [ASH]
  * @list options system shows password security levels [ASH]
+ * atrcache() optionally allows arguments to be overridden passed [ASH]
+ * argument list of runintz() has been flipped for better execution [ASH]
     
   Bug Fixes
   ------------

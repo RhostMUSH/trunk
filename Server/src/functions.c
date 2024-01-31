@@ -12583,16 +12583,16 @@ FUNCTION(fun_runintz)
        return;
     }
    
-    s_retarg1 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
-    if ( validate_timezones(s_retarg1) ) {
+    s_retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
+    if ( validate_timezones(s_retarg0) ) {
        s_tmp = getenv("TZ");
        s_env = alloc_sbuf("fun_runintz");
        sprintf(s_env, "%.*s", SBUF_SIZE - 1, s_tmp);
-       setenv("TZ", s_retarg1, 1);
+       setenv("TZ", s_retarg0, 1);
        tzset();
-       s_retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
-       safe_str(s_retarg0, buff, bufcx);
-       free_lbuf(s_retarg0);
+       s_retarg1 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
+       safe_str(s_retarg1, buff, bufcx);
+       free_lbuf(s_retarg1);
        if ( *s_env ) {
           setenv("TZ", s_env, 1);
        } else {
@@ -12603,7 +12603,7 @@ FUNCTION(fun_runintz)
     } else {
        safe_str("#-1 INVALID TIMEZONE SPECIFIED", buff, bufcx);
     }
-    free_lbuf(s_retarg1);
+    free_lbuf(s_retarg0);
 }
 
 FUNCTION(fun_secstz)
@@ -13066,7 +13066,7 @@ FUNCTION(fun_atrcache)
    static char **sp, *s_switch[]={"recache", "interval", "visible", "lock", "lastrun", "owner", "fetch", "forcerecache", "exec", "grab", NULL};
    int i_len, i_len2, i_found, i_cnt;
 
-   if (!fn_range_check("ATRCACHE", nfargs, 1, 2, buff, bufcx))
+   if (!fn_range_check("ATRCACHE", nfargs, 1, 40, buff, bufcx))
         return;
 
    if ( nfargs == 1 ) {
@@ -13089,7 +13089,11 @@ FUNCTION(fun_atrcache)
             i_cnt++;
          }
          if ( i_found ) {
-            do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx, cargs, ncargs);
+            if ( nfargs > 2 ) {
+               do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx, fargs+2, nfargs-2);
+            } else {
+               do_atrcache_handler(player, fargs[0], i_cnt, buff, bufcx, cargs, ncargs);
+            }
          } else {
             safe_str("#-1 INVALID ARGUMENT", buff, bufcx);
          }
