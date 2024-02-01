@@ -11586,8 +11586,10 @@ FUNCTION(fun_timefmt)
                                    "May", "June", "July", "August",
                                    "September", "October", "November",
                                    "December" };
-
   struct timefmt_format fm;
+#ifdef BSD_LIKE
+  char h[2], m[2];
+#endif
 
   if (!fn_range_check("TIMEFMT", nfargs, 2, 3, buff, bufcx))
     return;
@@ -11602,6 +11604,23 @@ FUNCTION(fun_timefmt)
 
 #ifndef BSD_LIKE /* because BSD sucks for POSIX compliance */
   l_timezone = timezone;
+#else /* All hail the hackjob from hell */
+  len = strftime(s_bsdtz, 99, (char *)"%z", tms2);
+  if ( len >= 4 ) {
+    if ( *s_bsdtz == '-' ) {
+       h[0] = s_bsdtz[1];
+       h[1] = s_bsdtz[2];
+       m[0] = s_bsdtz[3];
+       m[1] = s_bsdtz[4];
+       l_timezone  = -((atoi(h) * 3600) + (atoi(m) * 60));
+     } else {
+       h[0] = s_bsdtz[0];
+       h[1] = s_bsdtz[1];
+       m[0] = s_bsdtz[2];
+       m[1] = s_bsdtz[3];
+       l_timezone  = ((atoi(h) * 3600) + (atoi(m) * 60));
+     }
+   }
 #endif
 
   tzmush = NULL;
