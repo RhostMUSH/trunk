@@ -11588,7 +11588,7 @@ FUNCTION(fun_timefmt)
                                    "December" };
   struct timefmt_format fm;
 #ifdef BSD_LIKE
-  char h[2], m[2];
+  char h[2], m[2], s_bsdtz[10];
 #endif
 
   if (!fn_range_check("TIMEFMT", nfargs, 2, 3, buff, bufcx))
@@ -11605,7 +11605,7 @@ FUNCTION(fun_timefmt)
 #ifndef BSD_LIKE /* because BSD sucks for POSIX compliance */
   l_timezone = timezone;
 #else /* All hail the hackjob from hell */
-  len = strftime(s_bsdtz, 99, (char *)"%z", tms2);
+  len = strftime(s_bsdtz, 9, (char *)"%z", tms2);
   if ( len >= 4 ) {
     if ( *s_bsdtz == '-' ) {
        h[0] = s_bsdtz[1];
