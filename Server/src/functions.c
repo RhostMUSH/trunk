@@ -11588,7 +11588,7 @@ FUNCTION(fun_timefmt)
                                    "December" };
   struct timefmt_format fm;
 #ifdef BSD_LIKE
-  char h[2], m[2], s_bsdtz[10];
+  char h[3], m[3], s_bsdtz[10];
 #endif
 
   if (!fn_range_check("TIMEFMT", nfargs, 2, 3, buff, bufcx))
@@ -11605,6 +11605,9 @@ FUNCTION(fun_timefmt)
 #ifndef BSD_LIKE /* because BSD sucks for POSIX compliance */
   l_timezone = timezone;
 #else /* All hail the hackjob from hell */
+  memset(h, '\0', sizeof(h));
+  memset(m, '\0', sizeof(m));
+  memset(s_bsdtz, '\0', sizeof(s_bsdtz));
   len = strftime(s_bsdtz, 9, (char *)"%z", tms2);
   if ( len >= 4 ) {
     if ( *s_bsdtz == '-' ) {
@@ -11612,13 +11615,13 @@ FUNCTION(fun_timefmt)
        h[1] = s_bsdtz[2];
        m[0] = s_bsdtz[3];
        m[1] = s_bsdtz[4];
-       l_timezone  = -((atoi(h) * 3600) + (atoi(m) * 60));
+       l_timezone  = ((atoi(h) * 3600) + (atoi(m) * 60));
      } else {
        h[0] = s_bsdtz[0];
        h[1] = s_bsdtz[1];
        m[0] = s_bsdtz[2];
        m[1] = s_bsdtz[3];
-       l_timezone  = ((atoi(h) * 3600) + (atoi(m) * 60));
+       l_timezone  = -((atoi(h) * 3600) + (atoi(m) * 60));
      }
    }
 #endif
@@ -11644,6 +11647,8 @@ FUNCTION(fun_timefmt)
                  i_frell = -3600;
            }
         }
+#else
+        i_frell = 0;
 #endif
         secs = i_frell + secs + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
         secs2 = (double)i_frell + secs2 + (double)(time_t)l_timezone + (double)(time_t)(tzmush->mush_offset);
