@@ -76,8 +76,6 @@
 
 &CMD`REQ-HELP Rockpath's Jobs System=$+request/help:@eval [pemit(%#, [u(me/req-help)])]
 
-&CMD`STATUS Rockpath's Jobs System=$+job/status *=*:@switch/first 0=[gte([bittype(%#)], 3)], [pemit(%#, [u([v(database)]/fn`prompt, game)] You don't have permission to do that! :<)], [isnum(%0)], [pemit(%#, [u([v(database)]/fn`prompt, game)] You must specify a number.)], [and([gt(%0, 0)],[gte([get([v(database)]/count)], %0)])], [pemit(%#, [u([v(database)]/fn`prompt, jobs)] Invalid job #! Please choose a number listed in +jobs.)], [t([setr(0, [u([v(database)]/fn`get-job, %0)])])], [pemit(%#, [u([v(database)]/fn`prompt, jobs)] Invalid job!)], [if([gte([bittype(%#)], 5)], [u([v(database)]/fn`status,%q0,%1)], [if([gte([get(%q0/tier)], 2)], [u([v(database)]/fn`status,%q0,%1)], [pemit(%#, [u([v(database)]/fn`prompt, jobs)] You cannot change that job's status.)])])]
-
 @set Rockpath's Jobs System=INHERIT SIDEFX
 
 @toggle Rockpath's Jobs System=PENN_MAIL
@@ -100,21 +98,21 @@
 
 &LIST`CATEGORIES Rockpath's Job Database=ADMIN APP BUILD CG CODE FORUM BUG PITCH TYPO PLOT THEME QUERY NONE
 
-&FN`DEL-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Del: [name(%0)], [cname(%#)] has deleted your request. A copy has been attached.%r%r[get(%0/describe)])][destroy(%0)][pemit(%#, [u(fn`prompt, Jobs)] You have deleted [name(%0)].)]
+&FN`DEL-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Del: [name(%0)], [cname(%#)] has deleted your request. A copy has been attached.%r%r[get(%0/describe)])][pemit(%#, [u(fn`prompt, Jobs)] You have deleted [ansi(hy, [name(%0)])].)][destroy(%0)]
 
-&FN`APPROVE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], App: [name(%q0)],[cname(%#)] has approved your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u(fn`prompt, Jobs)] You have approved [name(%0)].)]
+&FN`APPROVE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], App: [name(%q0)],[cname(%#)] has approved your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u(fn`prompt, Jobs)] You have approved [ansi(hy, [name(%0)])].)][destroy(%0)]
 
-&FN`DENY-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Den: [name(%0)],[cname(%#)] has denied your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u(fn`prompt, Jobs)] You have denied [name(%0)].)]
+&FN`DENY-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Den: [name(%0)],[cname(%#)] has denied your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u(fn`prompt, Jobs)] You have denied [ansi(hy, [name(%0)])].)][destroy(%0)]
 
-&FN`COMPLETE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Com: [name(%0)],[cname(%#)] has completed your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][destroy(%0)][pemit(%#, [u(fn`prompt, Jobs)] You have completed [name(%0)])]
+&FN`COMPLETE-JOB Rockpath's Job Database=[mailsend([get(%0/requester)], Com: [name(%0)],[cname(%#)] has completed your request. A copy has been attached.%r%r[get(%0/describe)]%r[repeat(-, 78)]%rComments from [cname(%#)]: %1)][pemit(%#, [u(fn`prompt, Jobs)] You have completed [ansi(hy, [name(%0)])].)][destroy(%0)]
 
 &FN`STATUS Rockpath's Job Database=[set(%0, status:[switch(%1, new, NEW, underway, UNWY, done, DONE, complete, DONE, 50, 1/2 Done, 25, 1/4 Done, 75, 3/4 Done, 100, DONE, on hold, HOLD, hold, HOLD, ---)])][pemit(%#, [u(fn`prompt, Jobs)] You have set [name(%0)]'s status as '[get(%0/status)]'.)]
 
 &FN`URGENT Rockpath's Job Database=[set(%0, urgency:[setr(3, [switch(%1, 1, 1, 2, 2, 3, 3, green, 1, yellow, 2, red, 3, 4)])])][pemit(%#, [u(fn`prompt, Jobs)] You have set [name(%0)]'s urgency as 'Level %q3'.)])]
 
-&FN`CANCEL-REQUEST Rockpath's Job Database=[mailsend([get(%0/requester)], Canceled: [name(%0)], You have canceled your request. A copy has been attached.%r%r[get(%0/describe)])][pemit([listunion([iter([get(%0/tier)], [u(tier-grab`##)])], )], [u(fn`prompt, Jobs)] [ansi(m, %N)] (%#) has canceled [ansi(hy, [name(%0)])])][destroy(%0)]
+&FN`CANCEL-REQUEST Rockpath's Job Database=[mailsend([get(%0/requester)], Canceled: [name(%0)], You have canceled your request. A copy has been attached.%r%r[get(%0/describe)])][pemit([listunion([iter([get(%0/tier)], [u(tier-grab`##)])], )], [u(fn`prompt, Jobs)] [ansi(m, %N)] (%#) has canceled [ansi(hy, [name(%0)])].)][destroy(%0)]
 
-&fn`formathelp Rockpath's Job Database=[regeditalli(%0,(%\+((%\w)+(/(%\w)+)?)),[ansi(hg,$1)],(<(.*?)>),[ansi(hr,$1)],(=),[ansi(hc,$1)], %{,,%},)]
+&FN`FORMATHELP Rockpath's Job Database=[regeditalli(%0,(%\+((%\w)+(/(%\w)+)?)),[ansi(hg,$1)],(<(.*?)>),[ansi(hr,$1)],(=),[ansi(hc,$1)], %{,,%},)]
 
 &BOOL`IS-STAFF Rockpath's Job Database=[lor([iter([lattr(me/tier`*)], [u(##, %#)])])]
 
@@ -127,11 +125,9 @@
 &TIER-GRAB`BUILDER Rockpath's Job Database=search(eplayer=u(tier`builder, ##))
 &TIER`BUILDER Rockpath's Job Database=[hasflag(%0, architect)]
 
-@set Rockpath's Job Database=INHERIT SIDEFX
-
 &CREDIT Rockpath's Job Database=Inspiration taken from Anomaly Jobs. This setup-file was based off of Myrddin's BBoard Setup File. The code above is all my own doing.
  
-&FN`PROMPT Rockpath's Job Database=[switch(%0, jobs, [ansi(hc, JOBS)], game, [ansi(hm, GAME)])]:
+&FN`PROMPT Rockpath's Job Database=[switch(%0, jobs, [ansi(hc, JOBS)], game, [ansi(hm, GAME)], req, [ansi(hy, REQ)])]:
  
 &Last_Update Rockpath's Job Database=Jan 19, 2023
 &version Rockpath's Job Database=2.1.3
