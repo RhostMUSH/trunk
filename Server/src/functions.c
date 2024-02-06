@@ -26157,7 +26157,7 @@ FUNCTION(fun_unesclist)
 FUNCTION(fun_escape)
 {
     char *s, *d, *s2, *s3, *s3p, *cptr;
-    int i_cnt;
+    int i_cnt, i_reverse;
     static char c_chr[30];
 
     if (!fn_range_check("ESCAPEX", nfargs, 1, 3, buff, bufcx))
@@ -26172,6 +26172,11 @@ FUNCTION(fun_escape)
     else
        s3 = NULL;
 
+    if ( s2 && strchr(s2, 'r') ) {
+       i_reverse = 1;
+    } else {
+       i_reverse = 0;
+    }
     memset(c_chr, '\0', sizeof(c_chr));
     i_cnt = 0;
     cptr = c_chr;
@@ -26261,13 +26266,18 @@ FUNCTION(fun_escape)
           case ',':   /* Added 7/00 Ash */
               if ( s2 && (strchr(s2, 'a') || strchr(s2, 'x') || strchr(s2, 'd') || strchr(s2, 'p') || strchr(s2, 's') ) &&
                    (*s == '%') && *(s+1) && strchr(c_chr, ToLower(*(s+1))) ) {
+                 if ( i_reverse ) {
+                    safe_chr('\\', buff, bufcx);
+                 }
                  safe_chr(*s, buff, bufcx);
                  break;
               }
-              if ( !(s2 && strchr(s2, *s)) )
+              if ( (!i_reverse && !(s2 && strchr(s2, *s))) ||
+                   ( i_reverse &&  (s2 && strchr(s2, *s))) )
                  safe_chr('\\', buff, bufcx);
           default:
-              if ( (d == *bufcx) && !(s2 && strchr(s2, 'f')) ) {
+              if ( (!i_reverse && ((d == *bufcx) && !(s2 && strchr(s2, 'f')))) ||
+                   ( i_reverse && ((d == *bufcx) &&  (s2 && strchr(s2, 'f')))) ) {
                  safe_chr('\\', buff, bufcx);
               }
               safe_chr(*s, buff, bufcx);

@@ -39,6 +39,7 @@ char *index(const char *, int);
 #endif
 #include "copyright.h"
 #include "autoconf.h"
+#include <strings.h>
 
 #ifdef VMS
 #include "multinet_root:[multinet.include.sys]file.h"

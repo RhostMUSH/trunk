@@ -1029,6 +1029,8 @@
   
   Help is available on MUX, PENN and OTHER side-effects by name.
   
+  See Also: SIDEFX
+  
 & ALT INVENTORIES
   RhostMUSH has the option of allowing alternate inventories.  Alternate
   inventories are seen by the 'worn' and 'wielded' commands.  There are
@@ -10039,6 +10041,17 @@
   Please check '@list options' to see what side-effects (if any) are
   enabled on the RhostMUSH you're on and if you have access to them.
   
+  If global sideeffects are enabled, the setting of this flag will
+  then disable the ability to use sideeffects and not grant it.
+  
+  Please check the config parameter 'global_sideeffects' if this
+  is enabled or not.  By default this is disabled.
+  
+  Example:
+    > think config(global_sideeffects)
+  
+  See Also: SIDEEFFECTS
+
 & COMMANDS FLAG
   Flag: COMMANDS([$])  
   
@@ -19995,13 +20008,20 @@
      d - omit all dbref forms (%#, %!, %@, %l)
      p - omit all player pronouns (%n, %p, %a, %s)
      x - omit all %-subs specified in <omission list>.  Example: <, n, s, etc
+  ------------------
+     r - exception handler to reverse the effect of the conditions above
   
   Note: <omission> can be combined.  So you  may specify both 'as' or 'asp' 
         and so forth. 
   
   Example:
+    > @va me=%crred%cn [add(1,1)]
     > say escapex(Hey, Sneak a peak at Wiz's desc... [get($1/desc)],\[\])
     You say "\Hey \,Sneak a peek at Wiz's desc... [get\(#1/desc\)]"
+    > say escapex(v(va),a)
+    You say "red \[add\(1\,1\)\]"    (red would be ansified red)
+    > say escapex(v(va),ra)
+    You say "\%crred\%cn [add(1,1)]"
   
   See Also: escape(), secure(), securex(), esclist(), unesclist()
   
@@ -35242,6 +35262,7 @@
  * added /db switch to @decompile [ASH]
  * optionally added levenshtein distance checks to @password [ASH]
  * Added the ability to have dynamic genders to the game [ASH]
+ * global_sideeffects config param to globally enable SIDEFX [ASH]
   
   Changes
   -------
@@ -35282,6 +35303,7 @@
  * @list options system shows password security levels [ASH]
  * atrcache() optionally allows arguments to be overridden passed [ASH]
  * argument list of runintz() has been flipped for better execution [ASH]
+ * escapex has 'r' option to reverse the effect of how it handles escapes [ASH]
     
   Bug Fixes
   ------------

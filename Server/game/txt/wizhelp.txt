@@ -7278,15 +7278,16 @@
   global_clone_obj        global_clone_player        global_clone_room      
   global_clone_thing      global_error_cmd           global_error_obj       
   global_parent_exit      global_parent_obj          global_parent_player   
-  global_parent_room      global_parent_thing        good_name              
-  goodmail_host           gconf_file                 guest_char_num         
-  guest_displaylastsite   guest_file                 guest_namelist         
-  guest_randomize         guild_attrname             guild_default          
-  guild_hdr               hackattr_nowiz             hackattr_see           
-  hardconn_host           hardconn_site              hasattrp_compat        
-  hastype_always_zero     heavy_cpu_max              help_file              
-  help_index              help_separator             hide_nospoof           
-  hook_cmd                hook_obj                   hook_offline
+  global_parent_room      global_parent_thing        global_sideeffects
+  good_name               goodmail_host              gconf_file               
+  guest_char_num          guest_displaylastsite      guest_file               
+  guest_namelist          guest_randomize            guild_attrname           
+  guild_default           guild_hdr                  hackattr_nowiz           
+  hackattr_see            hardconn_host              hardconn_site            
+  hasattrp_compat         hastype_always_zero        heavy_cpu_max            
+  help_file               help_index                 help_separator           
+  hide_nospoof            hook_cmd                   hook_obj                 
+  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -9403,6 +9404,18 @@
             global_parent_obj
             lobal_parent_obj
 
+& global_sideeffects
+  Config parameter: global_sideeffects <boolean>.    Default: 0 (off)
+  
+  Impact:  SIDEFX flag
+  
+  This config option will toggle on or off the effects of the SIDEFX
+  flag globally throughout the database.  If this option is enabled,
+  then anything that is set SIDEFX will not be able to use sideeffects
+  in effect reversing the effect.
+  
+  See Also: sideeffects, sideeffects_txt
+  
 & global_clone_player
   Config parameter: global_clone_player <dbref>.    Default: -1
   

@@ -283,6 +283,7 @@ NDECL(cf_init)
     mudconf.switch_substitutions = 0;
     mudconf.ifelse_substitutions = 0;
     mudconf.sideeffects = 32;  /* Enable only list() by default */
+    mudconf.global_sideeffects = 0;	/* Enable sideeffeects globally */
     mudconf.raw_formatting = 1;       /* Allow raw formatting via } command */
     mudconf.sidefx_returnval = 0; /* sideeffects that create return dbref# if enabled */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
@@ -4763,6 +4764,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.global_parent_thing, 0, 0, CA_PUBLIC,
      (char *) "Object that THING attributes are inherited from.\r\n"\
               "                             Default: -1   Value: %d"},
+    {(char *) "global_sideeffects",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.global_sideeffects, 0, 0, CA_PUBLIC,
+     (char *) "Are sideeffects enabled globally?"},
     {(char *) "good_name",
      cf_badname, CA_GOD | CA_IMMORTAL, NULL, 1, 0, CA_WIZARD,
      (char *) "Remove names from the bad_name list."},

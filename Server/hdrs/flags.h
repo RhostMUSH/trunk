@@ -788,7 +788,9 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define NoUselock(x)    ((Flags3(x) & NO_USELOCK) != 0)
 #define NoAnsiName(x)   ((Flags3(x) & NO_ANSINAME) != 0)
 #define Spoof(x)        ((Flags3(x) & SPOOF) != 0)
-#define SideFX(x)	((Flags3(x) & SIDEFX) != 0)
+// #define SideFX(x)	((Flags3(x) & SIDEFX) != 0)
+#define SideFX(x)	( (((Flags3(x) & SIDEFX) != 0) && !mudconf.global_sideeffects) || \
+                          (((Flags3(x) & SIDEFX) == 0) && mudconf.global_sideeffects) )
 #define VanillaErrors(x) ((Toggles(x) & TOG_VANILLA_ERRORS) != 0)
 #define No_Ansi_Ex(x)	((Toggles(x) & TOG_NO_ANSI_EX) != 0)
 #define CpuTime(x)	((Toggles(x) & TOG_CPUTIME) != 0)
