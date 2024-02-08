@@ -25,4 +25,4 @@
 @Startup Global: The Medusa Object=@dolist search(eplayer=[lit([hasflag(##,guest)])])={@swi/f [hasflag(##,connect)]=0,@set ##=!fubar !slave}
 &SITES Global: The Medusa Object=*.static.midphase.com *static.bresnan.net
 &VERSION Global: The Medusa Object=1.0.0 07/18/2017
-@set Global: The Medusa Object=INDESTRUCTABLE SAFE INHERIT
+@set Global: The Medusa Object=INDESTRUCTIBLE SAFE INHERIT

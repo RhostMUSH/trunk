@@ -92,8 +92,4 @@
 &CMD_+SKIM_BACKUP Send Mail RhostAliases <SMA>=$+skim*:@fo %#={mail/status %0}
 &MAIL_STATUS_BM Send Mail RhostAliases <SMA>=[ifelse(eq(setr(0,before(after(v(0),%(),%))),get(%1/MailCurrent)),+,%b)][before(after(v(0),%[),%])][rjust(r(0),5)]%) %b[ljc(trim(after(before(v(0),<),:)),19)][ljc(trim(ifelse(words(setr(0,after(v(0),Subj:))),r(0),NONE)),20)][ljust(before(after(v(0),> %(),%bB),6)][extract(before(after(v(0),<),>),1,4)]
 @set Send Mail RhostAliases <SMA>/CMD_+SKIM_BACKUP = no_command
-@set Send Mail RhostAliases <SMA>=INDESTRUCTABLE
-@set Send Mail RhostAliases <SMA>=SHOWFAILCMD
-@set Send Mail RhostAliases <SMA>=SAFE
-@set Send Mail RhostAliases <SMA>=INHERIT
-@set Send Mail RhostAliases <SMA>=STOP
+@set Send Mail RhostAliases <SMA>=INDESTRUCTIBLE SAFE INHERIT SHOWFAILCMD STOP
