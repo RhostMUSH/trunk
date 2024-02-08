@@ -366,6 +366,7 @@ NDECL(cf_init)
     mudconf.saystring_eval = 0;		/* @saystring evaluate? */
     mudconf.strfunc_softfuncs = 0;	/* @function/@lfuncton to strfunc() */
     mudconf.passwd_distance = 0;	/* strdistance for secure passwords */
+    mudconf.nobracket_locks = 0;	/* Are brackets required for locks */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5181,6 +5182,9 @@ CONF conftable[] =
     {(char *) "nobroadcast_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.nobroadcast_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to not MONITOR."},
+    {(char *) "nobracket_locks",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.nobracket_locks, 0, 0, CA_PUBLIC,
+     (char *) "Do Evaluation @locks no longer require []'s around them?"},
     {(char *) "nodns_site",
      cf_site, CA_GOD | CA_IMMORTAL, (int *) &mudstate.special_list,
      H_NODNS, 0, CA_WIZARD,

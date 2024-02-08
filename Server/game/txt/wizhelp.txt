@@ -7334,25 +7334,26 @@
   name_with_desc           nand_compat               newpass_god             
   news_file                news_index                newuser_file            
   no_startup               noauth_site               noautoreg_host          
-  noautoreg_site           nobroadcast_host          noguest_host            
-  noguest_site             nodns_site                nonindxtxt_maxlines     
-  noregist_onwho           noshell_prog              nospam_connect          
-  notify_recursion_limit   notonerr_return           null_is_idle            
-  num_guests               oattr_enable_altname      oattr_uses_altname      
-  objid_localtime          objid_offset              offline_reg             
-  old_elist                online_reg                open_cost               
-  output_database          output_limit              page_cost               
-  pagelock_notify          paranoid_allocate         paranoid_exit_linking
-  parent_follow            parent_nest_limit         parentable_control_lock 
-  partial_conn             partial_deconn            passapi_host            
-  passapi_site             passproxy_host            passproxy_site          
-  passwd_distance          paycheck                  pcreate_paranoia        
-  pcreate_paranoia_fail    pemit_any_object          pemit_far_players       
-  penn_playercmds          penn_setq                 penn_switches           
-  permit_site              player_absolute           player_attr_default     
-  player_dark              player_flags              player_listen           
-  player_match_commands    player_match_own_command  player_name_spaces      
-  player_parent            player_queue_limit        player_quota           
+  noautoreg_site           nobracket_locks           nobroadcast_host        
+  noguest_host             noguest_site              nodns_site              
+  nonindxtxt_maxlines      noregist_onwho            noshell_prog            
+  nospam_connect           notify_recursion_limit    notonerr_return         
+  null_is_idle             num_guests                oattr_enable_altname    
+  oattr_uses_altname       objid_localtime           objid_offset            
+  offline_reg              old_elist                 online_reg              
+  open_cost                output_database           output_limit            
+  page_cost                pagelock_notify           paranoid_allocate       
+  paranoid_exit_linking    parent_follow             parent_nest_limit       
+  parentable_control_lock  partial_conn              partial_deconn          
+  passapi_host             passapi_site              passproxy_host          
+  passproxy_site           passwd_distance           paycheck                
+  pcreate_paranoia         pcreate_paranoia_fail     pemit_any_object        
+  pemit_far_players        penn_playercmds           penn_setq               
+  penn_switches            permit_site               player_absolute         
+  player_attr_default      player_dark               player_flags            
+  player_listen            player_match_commands     player_match_own_command
+  player_name_spaces       player_parent             player_queue_limit      
+  player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -8872,6 +8873,19 @@
   poorly configured remote hosts.  You can check out what sites are having
   AUTH difficulties by reviewing the mush.log file.
 
+& nobracket_locks
+  Config parameter: nobracket_locks <boolean>     Default: 0 (no)
+  
+  This specifies if you no longer require []'s around an evaluation @lock.
+  This is provided to allow compatibility with non-Rhost codebases.
+  
+  Example:
+    -- With nobracket_locks disabled
+       > @lock me=CANUSE/1
+       > &CANUSE me=[and(1,1)]   # []'s are required
+    -- With nobracket_locks enabled
+       > &CANUSE me=and(1,1)   # []'s are no longer required
+  
 & nobroadcast_host
   Config parameter: nobroadcast_host <!host> <host> ... <host>
   

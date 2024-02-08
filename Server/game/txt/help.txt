@@ -35263,6 +35263,7 @@
  * optionally added levenshtein distance checks to @password [ASH]
  * Added the ability to have dynamic genders to the game [ASH]
  * global_sideeffects config param to globally enable SIDEFX [ASH]
+ * config param nobracket_locks remove requirement of []'s on evallocks [ASH]
   
   Changes
   -------

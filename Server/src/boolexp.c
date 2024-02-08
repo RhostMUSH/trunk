@@ -161,8 +161,13 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
                if ( b && *((char *)b->sub1) ) {
                   strcpy(mybuff[1], (char *)b->sub1);
                }
-	       buff2 = cpuexec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
-			       buff, mybuff, 2, (char **)NULL, 0);
+               if ( mudconf.nobracket_locks) {
+ 	          buff2 = cpuexec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP | EV_FCHECK,
+  			          buff, mybuff, 2, (char **)NULL, 0);
+               } else {
+  	          buff2 = cpuexec(source, player, player, EV_FIGNORE | EV_EVAL | EV_TOP,
+  		   	          buff, mybuff, 2, (char **)NULL, 0);
+               }
                free_sbuf(mybuff[0]);
                free_lbuf(mybuff[1]);
                if ( mudstate.chkcpu_toggle && !lockchk )
