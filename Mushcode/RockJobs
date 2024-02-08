@@ -58,8 +58,6 @@
 
 &CMD`MYJOBS Rockpath's Jobs System=$+jobs/mine:@assert [u(#jobsdb/bool`is-staff)]={@pemit %#=[error()]}; @pemit %#=[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, [mudname()] Jobs)] >)]%r[ansi(c, [printf($3^s $6-s $12-s $25-s $6-s $12-s $8s, #, Type, Requester, Job Title, Start, Handler, Status)])]%r[repeat(-, 78)]; @eval [iter([revwords([lcon(#jobsdb/object)])], [ifelse([and([hasattr(##, handler)], [strmatch(%#, [get(##/handler)])])], [pemit(%#, [ansi([switch([get(##/urgency)], 1, hg, 2, hy, 3, hr, n)], [printf($3^s $6-s $12-s $25-s $6-s $12-s $8s, [after([name(##)], %b)], [get(##/category)], [name([get(##/requester)])], [get(##/JName)], [if([hasattr(##/started)], [timefmt($02M/$02D, [get(##/started)])], --------)], [if([hasattr(##, handler)], [name([get(##/handler)])], -----)], [get(##/status)])])])])])]; @pemit %#=[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, End Jobs)] >)]
 
-&CMD`STATUS Rockpath's Jobs System=$+job/status *=*:@assert [u(#jobsdb/bool`is-staff)]={@pemit %#=[error()]}; @assert [t([setr(J, [u(#jobsdb/fn`get-job, %0)])])]={@pemit %#=[u(#jobsdb/fn`prompt, jobs)] You must specify a valid Job.}; @skip/ifelse [t([lor([iter([get(%qJ/tier)], [u(#jobsdb/tier`##, %#)])])])]={@eval [u(#jobsdb/fn`status, %qJ, %1)]; @pemit %#=[u(#jobsdb/fn`prompt, Jobs)] You have set [name(%qJ)]'s status as '[get(%qJ/status)]'.}, {@pemit %#=[u(#jobsdb/fn`prompt, jobs)] You don't have permission to look at that job.}
-
 &CMD`CATEGORIZE Rockpath's Jobs System=$+job/cat *=*:@break [u(#jobsdb/bool`is-staff)]={@break [t([setr(j, [u(#jobsdb/fn`get-job, %0)])])]={@skip/ifelse [t([lor([iter([get(%qj/tier)], [u(#jobsdb/tier`##, %#)])])])]={@break [t([match([u(#jobsdb/list`categories)], %1)])]={@eval [set(%qj, category:[ucstr(%1)])][pemit(%#, [u(#jobsdb/fn`prompt, jobs)] You have changed the category of [name(%qj)] to [ucstr(%1)].)]}; @pemit %#=[u(#jobsdb/fn`prompt, jobs)] Please choose a proper category: [elist([get(#jobsdb/list`categories)],or,,,,[ansi(y, %0)])]}, @pemit %#=[u(#jobsdb/fn`prompt, jobs)] You don't have permission to change that job.}; @pemit %#=[u(#jobsdb/fn`prompt, jobs)] You must specify a valid Job.};@pemit %#=[error()]
 
 &REQ-HELP Rockpath's Jobs System=[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, Request System Help)] >)]%r[u(#jobsdb/fn`formathelp,{+request - Start going through a +request.%r+request/create <Category>/<Topic>=<Contents> - Create a new request. The categories are: [elist([get(#jobsdb/list`categories)],or,,,,[ansi(y, %0)])]%r+requests - Look at all the requests you've made.%r+request <#> - Look at the details of a request.%r+request/comment <#>=<comment> - Comment on a request..%r+request/cancel <#> - Cancel one of your requests.})]%r[printf($^78:[ansi(hb, -=)]:s, < [ansi(hw, End Help)] >)]
@@ -79,6 +77,8 @@
 &CMD`HELP Rockpath's Jobs System=$+jobs/help:@skip/ifelse [u(#jobsdb/bool`is-staff)]={[pemit(%#, [u(desc)])]}, [pemit(%#, [error()])]
 
 &CMD`REQ-HELP Rockpath's Jobs System=$+request/help:@eval [pemit(%#, [u(me/req-help)])]
+
+&CMD`STATUS Rockpath's Jobs System=$+job/status *=*:@assert [u(#jobsdb/bool`is-staff)]={@pemit %#=[error()]}; @assert [t([setr(J, [u(#jobsdb/fn`get-job, %0)])])]={@pemit %#=[u(#jobsdb/fn`prompt, jobs)] You must specify a valid Job.}; @skip/ifelse [t([lor([iter([get(%qJ/tier)], [u(#jobsdb/tier`##, %#)])])])]={@eval [u(#jobsdb/fn`status, %qJ, %1)]; @pemit %#=[u(#jobsdb/fn`prompt, Jobs)] You have set [name(%qJ)]'s status as '[get(%qJ/status)]'.}, {@pemit %#=[u(#jobsdb/fn`prompt, jobs)] You don't have permission to look at that job.}
 
 @set Rockpath's Jobs System=INHERIT SIDEFX
 
