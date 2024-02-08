@@ -5415,7 +5415,7 @@ do_command(DESC * d, char *command)
 
              /* Do suspect site checks -- flag suspect, log, continue on */
              strcpy(s_sitebuff, mudconf.suspect_host);
-             if ( ( (site_check(p_addr, mudstate.access_list, 1, 0, 0) & ~0x0FFFFFFF) | 
+             if ( ( (site_check(p_addr, mudstate.access_list, 1, 0, 0) & ~0x4) | 
                    site_check(p_addr, mudstate.suspect_list, 0, 0, 0)) ||
                   (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
                 if ( (i_valid == 2) || (i_valid == 4) || (i_valid == 6) ) {

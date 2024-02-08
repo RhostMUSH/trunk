@@ -35336,3 +35336,4 @@
  * timefmt() assumed 'timezone' variable which not in non-posix systems [ASH]
  * timefmt() had to have 't' option re-handled for non posix systems [ASH]
  * time() could potentially mangle the timezones with wrong args [ASH]
+ * bug introduced that broke register sites [ASH]
