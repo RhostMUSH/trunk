@@ -19195,17 +19195,23 @@
   Any unrecognized codes or other text will be returned unchanged.
   Some servers might support more codes than the ones listed below.
    
-  $a - Abbreviated weekday name  $p - AM/PM  ($P may also work)
-  $A - Full weekday name         $S - Seconds after the minute
-  $b - Abbreviated month name    $U - Week of the year from 1rst Sunday
-  $B - Full month name           $w - Day of the week. 0 = Sunday
-  $c - Date and time             $W - Week of the year from 1rst Monday
-  $d - Day of the month          $x - Date
-  $H - Hour of the 24-hour day   $X - Time
-  $I - Hour of the 12-hour day   $y - Two-digit year
-  $j - Day of the year           $Y - Four-digit year
-  $m - Month of the year         $Z - Time zone
-  $M - Minutes after the hour    $$ - $ character.
+  $a - Abbreviated weekday name  $P - am/pm
+  $A - Full weekday name         $r - Same as $I:$M:$S $p
+  $b - Abbreviated month name    $R - Same as $H:$M
+  $B - Full month name           $S - Seconds after the minute
+  $c - Date and time             $t - Tab
+  $C - Century                   $u - Day of Week (Sunday=7)
+  $d - Day of the month          $U - Week of the year from 1st Sunday
+  $F - ISO8601 YMD               $V - ISO8601 Week Number.
+  $g - Two-digit ISO8601 year    $w - Day of the week (Sunday=0)
+  $G - All-digit ISO8601 year    $W - Week of the year from 1st Monday
+  $H - Hour of the 24-hour day   $x - Date
+  $I - Hour of the 12-hour day   $X - Time
+  $j - Day of the year           $y - Two-digit year
+  $m - Month of the year         $Y - All-digit year
+  $M - Minutes after the hour    $z - Time zone offset
+  $n - Newline                   $Z - Time zone
+  $p - AM/PM                     $$ - $ character
   
   See Also: timefmt(), runintz(), TIMEZONE
   
@@ -35264,6 +35270,7 @@
  * Added the ability to have dynamic genders to the game [ASH]
  * global_sideeffects config param to globally enable SIDEFX [ASH]
  * config param nobracket_locks remove requirement of []'s on evallocks [ASH]
+ * config param robot_owns_create will enable @robots to own things [ASH]
   
   Changes
   -------
@@ -35305,6 +35312,7 @@
  * atrcache() optionally allows arguments to be overridden passed [ASH]
  * argument list of runintz() has been flipped for better execution [ASH]
  * escapex has 'r' option to reverse the effect of how it handles escapes [ASH]
+ * added more formatting allowances to ptimefmt() for MUX compatability [ASH]
     
   Bug Fixes
   ------------

@@ -367,6 +367,7 @@ NDECL(cf_init)
     mudconf.strfunc_softfuncs = 0;	/* @function/@lfuncton to strfunc() */
     mudconf.passwd_distance = 0;	/* strdistance for secure passwords */
     mudconf.nobracket_locks = 0;	/* Are brackets required for locks */
+    mudconf.robot_owns_create = 0;	/* Robots own things it creates */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -5483,6 +5484,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.robotcost, 0, 0, CA_PUBLIC,
      (char *) "Cost of creating a @robot.\r\n"\
               "                             Default: 1000   Value: %d"},
+    {(char *) "robot_owns_create",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.robot_owns_create, 0, 0, CA_PUBLIC,
+     (char *) "Do robots own things that they create?"},
     {(char *) "robot_flags",
      cf_set_flags, CA_GOD | CA_IMMORTAL, (int *) &mudconf.robot_flags, 0, 0, CA_WIZARD,
      (char *) "Flags a robot is set with."},

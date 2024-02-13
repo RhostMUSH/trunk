@@ -4986,6 +4986,17 @@ countwords(char *str, char sep)
     return n;
 }
 
+// an ^he(ir|rb)
+// an ^ho(mag|nest|no|ur)
+// an ^un
+// a  ^unanim(ous|ity)
+// a  ^uni([acflopqtvx]|dim|dir|sex|son)
+// a  ^u[bcfhjkqrst][aeiou]
+// a  ^e[uw]
+// a  ^onc?e[-\ ]?
+// a  ^[aeiou][.-]
+// an ^y[lt]
+
 FUNCTION(fun_art)
 {
     int i_key;
@@ -12343,7 +12354,10 @@ FUNCTION(fun_ptimefmt)
       s_buff[n] = 0x5;
     else if (s_buff[n] == '$') {
       s_buff[n] = '%';
-      if ( s_buff[n+1] && !index("aAbBcdHIJmMpSUwWxXyYzZ$",s_buff[n+1]) ) {
+// Rhost's default
+//    if ( s_buff[n+1] && !index("aAbBcdHIjmMpSUwWxXyYzZ$",s_buff[n+1]) ) {
+// Mux's extended
+      if ( s_buff[n+1] && !index("aAbBcCdFgGHIjmMnpPrRStuUVwWxXyYzZ$",s_buff[n+1]) ) {
          safe_str("#-1 INVALID ESCAPE CODE", buff, bufcx);
          free_lbuf(s_buff);
          free_lbuf(s);

@@ -388,6 +388,7 @@ struct confdata {
         char    mail_anonymous[32];     /* Anonymous player mail is sent to */
         int     sidefx_maxcalls;        /* Maximum sideeffects allowed in a command */
 	int	nobracket_locks;	/* Evaluation locks won't require []'s around it */
+	int	robot_owns_create;	/* Robots own things they create */
 	int	global_sideeffects;	/* Are sideeffects enabled globally by default */
         char    oattr_uses_altname[32]; /* o-attribs use this name optionally */
         int     oattr_enable_altname;   /* Enable/disable alternate names through exits */

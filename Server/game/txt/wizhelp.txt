@@ -7370,25 +7370,25 @@
   read_remote_name          recycling                 register_create_file    
   register_host             register_site             regtry_limit            
   restrict_home             restrict_sidefx           retry_limit             
-  robot_cost                robot_flags               robot_speech            
-  robot_toggles             room_aconnect             room_adisconnect        
-  room_attr_default         room_flags                room_parent             
-  room_quota                room_toggles              roomlog_path            
-  round_kludge              rwho_data_port            rwho_dump_interval      
-  rwho_host                 rwho_info_port            rwho_password           
-  rwho_transmit             sacrifice_adjust          sacrifice_factor        
-  safe_wipe                 safer_passwords           safer_ufun              
-  saystring_eval            sconnect_cmd              sconnect_host           
-  sconnect_reip             search_cost               secure_atruselock       
-  secure_dark               secure_functions          secure_jumpok           
-  see_owned_dark            setqlabel                 sha2rounds              
-  showother_altname         shs_reverse               sidefx_maxcalls         
-  sidefx_returnval          sideeffects               signal_action           
-  signal_crontab            signal_object             signal_object_type      
-  space_compress            spam_limit                spam_msg                
-  spam_objmsg               sqlite_db_path            sqlite_query_limit      
-  stack_limit               start_build               starting_money          
-  starting_quota            strfunc_softfuncs
+  robot_cost                robot_flags               robot_owns_create
+  robot_speech              robot_toggles             room_aconnect           
+  room_adisconnect          room_attr_default         room_flags              
+  room_parent               room_quota                room_toggles            
+  roomlog_path              round_kludge              rwho_data_port          
+  rwho_dump_interval        rwho_host                 rwho_info_port          
+  rwho_password             rwho_transmit             sacrifice_adjust        
+  sacrifice_factor          safe_wipe                 safer_passwords         
+  safer_ufun                saystring_eval            sconnect_cmd            
+  sconnect_host             sconnect_reip             search_cost             
+  secure_atruselock         secure_dark               secure_functions        
+  secure_jumpok             see_owned_dark            setqlabel               
+  sha2rounds                showother_altname         shs_reverse             
+  sidefx_maxcalls           sidefx_returnval          sideeffects             
+  signal_action             signal_crontab            signal_object           
+  signal_object_type        space_compress            spam_limit              
+  spam_msg                  spam_objmsg               sqlite_db_path          
+  sqlite_query_limit        stack_limit               start_build             
+  starting_money            starting_quota            strfunc_softfuncs
   
 { 'wizhelp config parameters6' for more}
 
@@ -11534,6 +11534,12 @@
   See Also: @list, robot_toggles, exit_flags, player_flags, room_flags, 
             thing_flags.
 
+& robot_owns_create
+  Config parameter: robot_owns_create <boolean>.   Default: false
+  
+  Specifies if robots are to own things that they individually create, dig,
+  or open.  By default this is always owned by the owner of the robot.
+  
 & robot_toggles
   Config parameter: robot_toggles <toggles>.  Default: blank
   

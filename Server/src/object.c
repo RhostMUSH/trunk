@@ -385,9 +385,13 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
     if (!self_owned) {
 	if (!Good_obj(player))
 	    return NOTHING;
-	owner = Owner(player);
-	if (!Good_obj(owner))
-	    return NOTHING;
+        if ( Robot(player) && mudconf.robot_owns_create ) {
+           owner = player;
+        } else {
+	   owner = Owner(player);
+	   if (!Good_obj(owner))
+	       return NOTHING;
+        }
     } else {
 	owner = NOTHING;
     }
