@@ -1032,7 +1032,7 @@ static void search_mark (dbref player, int key, FILE** master)
 					
 void do_search (dbref player, dbref cause, int key, char *arg)
 {
-int	flag, destitute, evc, playercnt=0, roomcnt=0, exitcnt=0, objectcnt=0, nogarb=0;
+int	flag, destitute, evc, playercnt=0, roomcnt=0, exitcnt=0, objectcnt=0, nogarb=0, i_ansi=0;
 char	*buff, *outbuf, *bp;
 dbref	thing, from, to;
 SEARCH	searchparm;
@@ -1040,6 +1040,10 @@ FILE* master;
 
         if ( mudconf.switch_search != 0 ) {
            nogarb = 1;
+        }
+        if ( key & SEARCH_ANSI ) {
+           i_ansi = 1;
+           key &= ~SEARCH_ANSI;
         }
 	if ( key & SEARCH_NOGARBAGE ) {
            if ( mudconf.switch_search == 0 )
@@ -1107,7 +1111,11 @@ FILE* master;
 				destitute = 0;
 				notify (player, "\r\nROOMS:");
 			}
-			buff = unparse_object (player, thing, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, thing, 0);
+                        } else {
+			   buff = unparse_object (player, thing, 0);
+                        }
 			notify (player, buff);
 			free_lbuf(buff);
                         roomcnt++;
@@ -1130,24 +1138,36 @@ FILE* master;
 			to = Location (thing);
 
 			bp = outbuf;
-			buff = unparse_object (player, thing, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, thing, 0);
+                        } else {
+			   buff = unparse_object (player, thing, 0);
+                        }
 			safe_str(buff, outbuf, &bp);
 			free_lbuf(buff);
 
 			safe_str((char *)" [from ", outbuf, &bp);
-			buff = unparse_object (player, from, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, from, 0);
+                        } else {
+			   buff = unparse_object (player, from, 0);
+                        }
 			safe_str(((from==NOTHING) ? "NOWHERE" : buff),
 				outbuf, &bp);
 			free_lbuf(buff);
 
 			safe_str((char *)" to ", outbuf, &bp);
-			buff = unparse_object (player, to, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, to, 0);
+                        } else {
+			   buff = unparse_object (player, to, 0);
+                        }
 			safe_str(((to==NOTHING) ? "NOWHERE" : buff),
 				outbuf, &bp);
 			free_lbuf(buff);
 
 			safe_chr(']', outbuf, &bp);
-			*bp = '\0';
+			// *bp = '\0';
 			notify (player, outbuf);
                         exitcnt++;
 		}
@@ -1167,17 +1187,25 @@ FILE* master;
 			}
 
 			bp = outbuf;
-			buff = unparse_object (player, thing, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, thing, 0);
+                        } else {
+			   buff = unparse_object (player, thing, 0);
+                        }
 			safe_str(buff, outbuf, &bp);
 			free_lbuf(buff);
 
 			safe_str((char *)" [owner: ", outbuf, &bp);
-			buff = unparse_object (player, Owner (thing), 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, Owner (thing), 0);
+                        } else {
+			   buff = unparse_object (player, Owner (thing), 0);
+                        }
 			safe_str(buff, outbuf, &bp);
 			free_lbuf(buff);
 
 			safe_chr(']', outbuf, &bp);
-			*bp = '\0';
+			// *bp = '\0';
 			notify (player, outbuf);
                         objectcnt++;
 		}
@@ -1196,21 +1224,28 @@ FILE* master;
 				notify (player, "\r\nPLAYERS:");
 			}
 			bp = outbuf;
-			buff = unparse_object (player, thing, 0);
+                        if ( i_ansi ) {
+			   buff = unparse_object_ansi(player, thing, 0);
+                        } else {
+			   buff = unparse_object (player, thing, 0);
+                        }
 			safe_str(buff, outbuf, &bp);
 			free_lbuf(buff);
 			if (searchparm.s_wizard) {
 			  if (Immortal(cause) || (Wizard(cause) && !Immortal(thing))) {
 				safe_str((char *)" [location: ",
 					outbuf, &bp);
-				buff = unparse_object (player,
-					Location (thing), 0);
+                                if ( i_ansi ) {
+				   buff = unparse_object_ansi(player, Location (thing), 0);
+                                } else {
+				   buff = unparse_object (player, Location (thing), 0);
+                                }
 				safe_str(buff, outbuf, &bp);
 				free_lbuf(buff);
 				safe_chr(']', outbuf, &bp);
 			  }
 			}
-			*bp = '\0';
+			// *bp = '\0';
 			notify (player, outbuf);
                         playercnt++;
 		}

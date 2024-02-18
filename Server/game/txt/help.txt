@@ -6323,6 +6323,7 @@
   
   The following switches exist for @search:
       /nogarbage     - (immortal only) search without garbage/recover checks.
+      /ansi          - display ansified names of output where available
   
   Examples:
     @search flags=PWc              <-- search for connected wizards.
@@ -35271,6 +35272,7 @@
  * global_sideeffects config param to globally enable SIDEFX [ASH]
  * config param nobracket_locks remove requirement of []'s on evallocks [ASH]
  * config param robot_owns_create will enable @robots to own things [ASH]
+ * added /ansi switch to @search [ASH]
   
   Changes
   -------
@@ -35345,3 +35347,4 @@
  * timefmt() had to have 't' option re-handled for non posix systems [ASH]
  * time() could potentially mangle the timezones with wrong args [ASH]
  * bug introduced that broke register sites [ASH]
+ * potential buffer corruption in ansi handler for names for garbage [ASH]

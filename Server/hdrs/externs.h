@@ -1166,6 +1166,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SRCH_UNMARK	3	/* Clear mark bit for matches */
 
 #define SEARCH_NOGARBAGE 256	/* Garbage collector */
+#define SEARCH_ANSI	512	/* Enable ansi in output */
 
 #define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
 #define	STAT_ALL	1	/* Display global stats */
