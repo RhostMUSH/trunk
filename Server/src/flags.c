@@ -3996,8 +3996,8 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
                sprintf(buf, "%.100s%.3400s%s(#%d%.300s) {%.100s}", buf2, Name(target), 
                        CF_ANSI_NORMAL, target, fp, name_str);
             }
-            free_mbuf(fp);
          }
+         free_mbuf(fp);
       } else {
          /* show only the name. */
          if ( !Wizard(player) && name_str[0] != '\0' &&
@@ -4188,8 +4188,9 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
 	          sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
                else
 	          sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
-            } else
+            } else {
 	       sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+            }
 	    free_mbuf(fp);
 	} else {
 	       /* show only the name. */

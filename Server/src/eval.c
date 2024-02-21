@@ -29,6 +29,7 @@ extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
 extern void do_atrcache_fetch(dbref, char *, char *, char **, char **, int);
+extern int down_ansi(int, int, int);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -892,10 +893,10 @@ static const int mux_isprint[256] =
 void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf2ptr, char *buff_utf, char **bufuptr)
 {
     char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
-    char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp, ucssubstitute;
+    char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp, ucssubstitute, c1, c2;
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi;
-
+    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi, 
+        i_r, i_g, i_b, i_upper;
 
 /* Debugging only
     fprintf(stderr, "Value: %s\n", string);
@@ -913,7 +914,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     i_utfnum = 0;
     i_utfcnt = 0;
     s_intbuf[3] = '\0';
-    ch = ch1 = ch2 = '\0';
+    c1 = c2 = ch = ch1 = ch2 = '\0';
     i_inansi = 0;
 
     while( *string && 
@@ -938,28 +939,28 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr(*string, buff, &bufc);
                 safe_chr(*string, buff2, &bufc2);
                 safe_chr(*string, buff_utf, &bufc_utf);
-            } else if ((*string == '%') && ((*(string+1) == SAFE_CHR )
+            } else if ((*string == '%') && ((ToLower(*(string+1)) == SAFE_CHR )
 #ifdef SAFE_CHR2
-                                        || (*(string+1) == SAFE_CHR2 )
+                                        || (ToLower(*(string+1)) == SAFE_CHR2 )
 #endif
 #ifdef SAFE_CHR3
-                                        || (*(string+1) == SAFE_CHR3 )
+                                        || (ToLower(*(string+1)) == SAFE_CHR3 )
 #endif
 )) {
-                if(*(string+1) == SAFE_CHR) {
+                if( ToLower(*(string+1)) == SAFE_CHR) {
                   safe_str((char*)SAFE_CHRST, buff, &bufc);
                   safe_str((char*)SAFE_CHRST, buff2, &bufc2);
                   safe_str((char*)SAFE_CHRST, buff_utf, &bufc_utf);
                 }
 #ifdef SAFE_CHR2
-                else if(*(string+1) == SAFE_CHR2) {
+                else if( ToLower(*(string+1)) == SAFE_CHR2) {
                   safe_str((char*)SAFE_CHRST2, buff, &bufc);
                   safe_str((char*)SAFE_CHRST2, buff2, &bufc2);
                   safe_str((char*)SAFE_CHRST2, buff_utf, &bufc_utf);
                 }
 #endif
 #ifdef SAFE_CHR3
-                else if(*(string+1) == SAFE_CHR3) {
+                else if( ToLower(*(string+1)) == SAFE_CHR3) {
                   safe_str((char*)SAFE_CHRST3, buff, &bufc);
                   safe_str((char*)SAFE_CHRST3, buff2, &bufc2);
                   safe_str((char*)SAFE_CHRST3, buff_utf, &bufc_utf);
@@ -982,12 +983,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_str("%<", buff2, &bufc2);
                 safe_str("%<", buff_utf, &bufc_utf);
                 string++;
-            } else if ( ((*string != SAFE_CHR)
+            } else if ( ((ToLower(*string) != SAFE_CHR)
 #ifdef SAFE_CHR2
-                           && (*string != SAFE_CHR2)
+                           && (ToLower(*string) != SAFE_CHR2)
 #endif
 #ifdef SAFE_CHR3
-                           && (*string != SAFE_CHR3)
+                           && (ToLower(*string) != SAFE_CHR3)
 #endif
                            ) && (*string != 'f') && (*string != '<') ) {
                 safe_chr('%', buff, &bufc);
@@ -1107,11 +1108,53 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    }
                 }
             } else {
+                i_upper = 0;
+                if ( isupper(*string) )
+                   i_upper = 1;
                 switch (*++string) {
                 case '\0':
                     safe_chr(*string, buff, &bufc);
                     safe_chr(*string, buff2, &bufc2);
                     safe_chr(*string, buff_utf, &bufc_utf);
+                    break;
+                case '<': /* MUX compatible ansi sequences */
+                    if ( (tmp = strchr(string, '>')) != NULL ) {
+                       i_tohex = 0;
+                       if ( sscanf(string, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                          if ( (c1 != '<') || (c2 != '>') ) {
+                             string = tmp;
+                          } else {
+                             i_tohex = down_ansi(i_r, i_g, i_b);
+                             if ( i_upper ) 
+                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
+                             else
+                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
+                             safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
+                             safe_str(s_final, buff_utf, &bufc_utf);
+                             sprintf(s_final, "%dm", i_tohex);
+                          }
+                       } else if ( sscanf(string, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                          if ( (c1 != '<') || (c2 != '>') ) {
+                             string = tmp;
+                          } else {
+                             i_tohex = down_ansi(i_r, i_g, i_b);
+                             if ( i_upper ) 
+                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
+                             else
+                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
+                             safe_str(s_final, buff, &bufc);
+                             safe_str(s_final, buff2, &bufc2);
+                             safe_str(s_final, buff_utf, &bufc_utf);
+                             sprintf(s_final, "%dm", i_tohex);
+                          }
+                       }
+                       string = tmp;
+                    } else {
+                       safe_chr(*string, buff, &bufc);
+                       safe_chr(*string, buff2, &bufc2);
+                       safe_chr(*string, buff_utf, &bufc_utf);
+                    } 
                     break;
                 case '0': /* Do XTERM color here */
                     switch ( *(string+1) ) {
@@ -1463,7 +1506,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
-    int prefeval, preeval, inumext;
+    int prefeval, preeval, inumext, i_capansi;
 #ifdef EXPANDED_QREGS
     int w;
 #endif
@@ -1493,7 +1536,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     DPUSH; /* #67 */
 		
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
-    inumext = prefeval = preeval = 0;
+    inumext = prefeval = preeval = i_capansi = 0;
 #ifdef EXPANDED_QREGS
     w = 0;
 #endif
@@ -1771,6 +1814,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     c_last_chr = 'M';
 #endif
 #endif
+                i_capansi = 0;
+                if ( isupper(*dstr) )
+                   i_capansi = 1;
                 if ( Good_obj(mudconf.hook_obj) &&
                      (((c_last_chr == 'C') && (mudconf.sub_override & SUB_C) && !(mudstate.sub_overridestate & SUB_C)) ||
                       ((c_last_chr == 'X') && (mudconf.sub_override & SUB_X) && !(mudstate.sub_overridestate & SUB_X)) ||
@@ -1810,19 +1856,21 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #ifdef ZENTY_ANSI
                 /* Leave the ansi code intact */
                 if(!(eval & EV_PARSE_ANSI)) {        
+                    if ( !(*(dstr+1) == '<') )
+                       i_capansi = 0;
                     safe_chr('%', buff, &bufc);
-                    if(*dstr == SAFE_CHR)
-                      safe_chr(SAFE_CHR, buff, &bufc);
+                    if(ToLower(*dstr) == SAFE_CHR)
+                      safe_chr((i_capansi ? ToUpper(SAFE_CHR) : SAFE_CHR), buff, &bufc);
 #ifdef SAFE_CHR2
-                    else if(*dstr == SAFE_CHR2)
-                      safe_chr(SAFE_CHR2, buff, &bufc);
+                    else if(ToLower(*dstr) == SAFE_CHR2)
+                      safe_chr((i_capansi ? ToUpper(SAFE_CHR2) : SAFE_CHR2), buff, &bufc);
 #endif
 #ifdef SAFE_CHR3
-                    else if(*dstr == SAFE_CHR3)
-                      safe_chr(SAFE_CHR3, buff, &bufc);
+                    else if(ToLower(*dstr) == SAFE_CHR3)
+                      safe_chr((i_capansi ? ToUpper(SAFE_CHR3) : SAFE_CHR3), buff, &bufc);
 #endif
                     else
-                      safe_chr(SAFE_CHR, buff, &bufc);
+                      safe_chr((i_capansi ? ToUpper(SAFE_CHR) : SAFE_CHR), buff, &bufc);
                     break;
                 }
 #endif

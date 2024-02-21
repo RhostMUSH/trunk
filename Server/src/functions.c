@@ -1338,6 +1338,32 @@ extern void do_atrcache_handler(dbref, char *, int, char *, char **, char **, in
 extern char * totem_valid(dbref, char *, int);
 
 
+int
+down_ansi(int i_r, int i_g, int i_b) 
+{
+   int i_tohex, i_r2, i_g2, i_b2, rgb_diff, rgb_diff2;
+   MUXANSI  *cx;
+
+   rgb_diff = rgb_diff2 = 1000;
+   for (cx = mux_namecolors; cx->s_hex; cx++) {
+      if(cx->i_dec < 16)
+         continue;
+
+      sscanf(cx->s_hex, "%2x%2x%2x", &i_r2, &i_g2, &i_b2);
+      rgb_diff = abs(i_r2 - i_r) + abs(i_g2 - i_g) + abs(i_b2 - i_b);
+
+      if ( rgb_diff < rgb_diff2 ) {
+         rgb_diff2 = rgb_diff;
+         i_tohex = cx->i_dec;
+
+         /* Exact match -- break out */
+         if ( rgb_diff2 == 0 )
+            break;
+      }
+   }
+   return i_tohex;
+}
+
 int do_convtime(char *, struct tm *);
 
 /* pom.c definitions */

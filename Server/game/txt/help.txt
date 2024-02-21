@@ -10697,9 +10697,42 @@
   ANSICOLOR.
   
 { 'help ansi usage' on how to use ansi}
+{ 'help ansi encoding' on the syntax for ansi substitutions}
   
   See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
   
+& ANSI ENCODING
+  Topic: ANSI ENCODING
+  
+  The following percent substitutions work for ansi.  The ansi substitution
+  can be either %x, %c, or enabled to use both.  Please check your RhostMUSH
+  configuration on what options for ansi are available.
+  To see system settings:  
+    > @list options system
+  
+  We will assume '%c' is the ansi substitution for syntax preferences and
+  examples with the below:
+  -- Base Ansi:
+      + %cr%ch foo %cn --- ansi 'h'ilite and foreground 'r'ed and 'n'ormalize
+      + %cR%ch foo %cn --- ansi 'h'ilite and background 'r'ed and 'n'ormalize
+
+  -- XTERM Ansi: (0x foreground, 0X background)
+    > think colors(+pink,h)
+      0xda
+      + %c0xda foo %cn --- ansi XTERM foreground encode 0xda (pink)
+      + %c0Xda foo %cn --- ansi XTERM background encode 0xda (pink)
+  -- 24 Bit color (XTERM compatible for now): (%c foreground, %C background)
+    > think colors(+pink, x)
+      #ffafd7
+      + %c<#ffafd7> foo %cn --- 24color foreground #ffafd7 (pink)
+      + %C<#ffafd7> foo %cn --- 24color background #ffafd7 (pink)
+    > think colors(+pink, r)
+      255 175 215
+      + %c<255 175 215> foo %cn --- 24color foreground(RGB) 255 175 215 (pink)
+      + %C<255 175 215> foo %cn --- 24color background(RGB) 255 175 215 (pink)
+    
+  See Also: ANSI USAGE
+
 & ANSI USAGE
   Topic: ANSI USAGE
   
@@ -10729,6 +10762,8 @@
     256 color mode: 
     > think ansi(+pink,this is pink)
     > think ansi(0xda,this is also pink)
+  
+  See Also: ANSI ENCODING
     
 & XTERMCOLOR
   Flag: XTERMCOLOR([t])
@@ -35273,6 +35308,7 @@
  * config param nobracket_locks remove requirement of []'s on evallocks [ASH]
  * config param robot_owns_create will enable @robots to own things [ASH]
  * added /ansi switch to @search [ASH]
+ * natively handle %c<#FFFFFF> and %c<R G B> ansi markup for MUX compat [ASH]
   
   Changes
   -------
