@@ -9647,8 +9647,9 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   int padwidth = 0;
   int currwidth = 0;
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
-       *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
-  int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
+       *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u, 
+       *s_t, *s_tp, *s_tp2;
+  int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk, 
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent, i_mux;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
@@ -9669,6 +9670,8 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   memset(s_padstring, '\0', sizeof(s_padstring));
   i_linecnt = i_chk = i_lastspace = spares = 0;
   i_savejust = -1;
+
+  s_tp = s_t = alloc_lbuf("format_muxcolor");
 
   if ( fm->tabtospace > 0 ) {
      t = s_padstring;
@@ -9939,28 +9942,28 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              if ( ((*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR) 
 #ifdef SAFE_CHR2
-                                   || (*(s_pp+1) == SAFE_CHR2)
+                                   ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                   || (*(s_pp+1) == SAFE_CHR3)
+                                   ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && isAnsi[(int) *(s_pp+2)]) ||
+                   ) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  safe_chr(*s_pp, buff, bufcx);
                  safe_chr(*(s_pp+1), buff, bufcx);
                  safe_chr(*(s_pp+2), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                         || (*(s_pp+1) == SAFE_CHR2)
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                         || (*(s_pp+1) == SAFE_CHR3)
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && (*(s_pp+2) == '0') && 
+                          ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
                            *(s_pp+4) && isxdigit(*(s_pp+4)) && *(s_pp+5) && isxdigit(*(s_pp+5)) ) {
                  safe_chr(*s_pp, buff, bufcx);
@@ -9971,6 +9974,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  safe_chr(*(s_pp+5), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=6;
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
+#endif
+                           ) && (*(s_pp+2) == '<' ) ) {
+                 i_usepadding = 1;
+                 safe_chr(*s_pp, buff, bufcx);
+                 safe_chr(*(s_pp+1), buff, bufcx);
+                 s_pp = skip_mux_ansi(s_pp+2, buff, bufcx);
               } else if (*s_pp ) {
                  break;
               }
@@ -10020,12 +10035,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              if ( ((*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                   || (*(s_pp+1) == SAFE_CHR2)
+                                   ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                   || (*(s_pp+1) == SAFE_CHR3)
+                                   ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
@@ -10035,12 +10050,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  safe_chr(*(s_pp+2), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                         || (*(s_pp+1) == SAFE_CHR2)
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                         || (*(s_pp+1) == SAFE_CHR3)
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
@@ -10053,6 +10068,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  safe_chr(*(s_pp+5), buff, bufcx);
                  i_usepadding = 1;
                  s_pp+=6;
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
+#endif
+#ifdef SAFE_CHR3
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
+#endif
+                           ) && (*(s_pp+2) == '<' ) ) {
+                 i_usepadding = 1;
+                 safe_chr(*s_pp, buff, bufcx);
+                 safe_chr(*(s_pp+1), buff, bufcx);
+                 s_pp = skip_mux_ansi(s_pp+2, buff, bufcx);
               } else if (*s_pp ) {
                  break;
               }
@@ -10116,12 +10143,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
             i_inansi=1;
             continue;
          }
-         if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == SAFE_CHR)
+         if ( (*fmtbuff == '%') && ( (*(fmtbuff+1) == SAFE_CHR)  || (*(fmtbuff+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                || (*(fmtbuff+1) == SAFE_CHR2)
+                                ||   (*(fmtbuff+1) == SAFE_CHR2) || (*(fmtbuff+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                || (*(fmtbuff+1) == SAFE_CHR3)
+                                ||   (*(fmtbuff+1) == SAFE_CHR3) || (*(fmtbuff+1) == SAFE_UCHR3)
 #endif
 )) {
             if ( isAnsi[(int) *(fmtbuff+2)] ) {
@@ -10167,6 +10194,26 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                   continue;
                }
             }
+            if ( (*(fmtbuff+2) == '<') && (strchr(fmtbuff+2, '>') != NULL) ) {
+               memset(s_t, '\0', LBUF_SIZE);
+               s_tp = s_t;
+               s_tp2 = fmtbuff;
+               fmtbuff = skip_mux_ansi(fmtbuff+2, s_t, &s_tp);
+               safe_chr( *s_tp2, buff, bufcx );
+               safe_chr( *(s_tp2+1), buff, bufcx );
+               safe_chr( *s_tp2, s_padbuf, &s_padbufptr );
+               safe_chr( *(s_tp2+1), s_padbuf, &s_padbufptr );
+               safe_str(s_t, s_padbuf, &s_padbufptr);
+               if ( fm->breakonreturn && shold ) {
+                  safe_chr( *s_tp2, shold, sholdptr );
+                  safe_chr( *(s_tp2+1), shold, sholdptr );
+                  safe_str(s_t, shold, sholdptr);
+               }
+               if ( *s_t ) {
+                  i_inansi=1;
+               }
+               continue;
+            }
          }
 
 #endif
@@ -10197,12 +10244,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef ZENTY_ANSI
                x1 = x2 = '\0';
                while ( *s_pp ) {
-                  if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+                  if ( ((*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                       || (*(s_pp+1) == SAFE_CHR2)
+                                       ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                       || (*(s_pp+1) == SAFE_CHR3)
+                                       ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && isAnsi[(int) *(s_pp+2)]) ||
                        ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
@@ -10280,12 +10327,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                      }
                      s_pp+=3;
                      i_usepadding = 1;
-                  } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+                  } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                             || (*(s_pp+1) == SAFE_CHR2)
+                                             ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                             || (*(s_pp+1) == SAFE_CHR3)
+                                             ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && (*(s_pp+2) == '0') && 
                               ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
@@ -10299,6 +10346,41 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                      }
                      s_pp+=6;
                      i_usepadding = 1;
+                  } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+                                             ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
+#endif
+#ifdef SAFE_CHR3
+                                             ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
+#endif
+) && (*(s_pp+2) == '<') ) {
+                     memset(s_t, '\0', LBUF_SIZE);
+                     s_tp = s_t;
+                     s_tp2 = s_pp;
+                     s_pp = skip_mux_ansi(s_pp+2, s_t, &s_tp);
+                     if ( 0 
+#ifdef SAFE_CHR
+                          || (*(s_tp2+1) == SAFE_UCHR) 
+#endif
+#ifdef SAFE_CHR2
+                          || (*(s_tp2+1) == SAFE_UCHR2) 
+#endif
+#ifdef SAFE_CHR3         
+                          || (*(s_tp2+1) == SAFE_UCHR3)
+#endif
+                     ) {
+                        if ( *s_t ) {
+                           memset(s_normalbg, '\0', MBUF_SIZE);
+                           sprintf(s_normalbg, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     } else {
+                        if ( *s_t ) {
+                           memset(s_normal, '\0', MBUF_SIZE);
+                           sprintf(s_normal, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     }
                   } else if (*s_pp ) {
                      if ( i_padme < i_padmecurr ) {
                         s_pp++;
@@ -10492,12 +10574,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              safe_chr( *(fmtbuff+1), shold, sholdptr );
              safe_chr( *(fmtbuff+2), shold, sholdptr );
              fmtbuff+=3;
-          } else if ( (*fmtbuff == '%') && ((*(fmtbuff+1) == SAFE_CHR)
+          } else if ( (*fmtbuff == '%') && ( (*(fmtbuff+1) == SAFE_CHR)  || (*(fmtbuff+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                        || (*(fmtbuff+1) == SAFE_CHR2)
+                                        ||   (*(fmtbuff+1) == SAFE_CHR2) || (*(fmtbuff+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                        || (*(fmtbuff+1) == SAFE_CHR3)
+                                        ||   (*(fmtbuff+1) == SAFE_CHR3) || (*(fmtbuff+1) == SAFE_UCHR3)
 #endif
 )) {
              if ( isAnsi[(int) *(fmtbuff+2)] ) {
@@ -10515,6 +10597,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                    safe_chr( *(fmtbuff+5), shold, sholdptr );
                    fmtbuff+=6;
                 }
+             } else if ( (*(fmtbuff+2) == '<') && (strchr(fmtbuff+2, '>') != NULL) ) {
+                safe_chr( *fmtbuff, shold, sholdptr );
+                safe_chr( *(fmtbuff+1), shold, sholdptr );
+                fmtbuff = skip_mux_ansi(fmtbuff+2, shold, sholdptr);
              } else {
                 break;
              }
@@ -10555,12 +10641,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              if ( ((*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                   || (*(s_pp+1) == SAFE_CHR2)
+                                   ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                   || (*(s_pp+1) == SAFE_CHR3)
+                                   ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
@@ -10638,12 +10724,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  }
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                         || (*(s_pp+1) == SAFE_CHR2)
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                         || (*(s_pp+1) == SAFE_CHR3)
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
@@ -10657,6 +10743,41 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  }
                  i_usepadding = 1;
                  s_pp+=6;
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+                                             ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
+#endif
+#ifdef SAFE_CHR3
+                                             ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
+#endif
+) && (*(s_pp+2) == '<') ) {
+                     memset(s_t, '\0', LBUF_SIZE);
+                     s_tp = s_t;
+                     s_tp2 = s_pp;
+                     s_pp = skip_mux_ansi(s_pp+2, s_t, &s_tp);
+                     if ( 0 
+#ifdef SAFE_CHR
+                          || (*(s_tp2+1) == SAFE_UCHR) 
+#endif
+#ifdef SAFE_CHR2
+                          || (*(s_tp2+1) == SAFE_UCHR2) 
+#endif
+#ifdef SAFE_CHR3
+                          || (*(s_tp2+1) == SAFE_UCHR3) 
+#endif
+                    ) {
+                        if ( *s_t ) {
+                           memset(s_normalbg, '\0', MBUF_SIZE);
+                           sprintf(s_normalbg, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     } else {
+                        if ( *s_t ) {
+                           memset(s_normal, '\0', MBUF_SIZE);
+                           sprintf(s_normal, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     }
               } else if (*s_pp ) {
                  if ( i_padme < i_padmenow ) {
                     i_padme++;
@@ -10750,12 +10871,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
            i_chk = 0;
 #ifdef ZENTY_ANSI
            while ( *s_pp ) {
-              if ( ((*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              if ( ((*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                   || (*(s_pp+1) == SAFE_CHR2)
+                                   ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                   || (*(s_pp+1) == SAFE_CHR3)
+                                   ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && isAnsi[(int) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
@@ -10833,12 +10954,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  }
                  i_usepadding = 1;
                  s_pp+=3;
-              } else if ( (*s_pp == '%') && ((*(s_pp+1) == SAFE_CHR)
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                                         || (*(s_pp+1) == SAFE_CHR2)
+                                         ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                                         || (*(s_pp+1) == SAFE_CHR3)
+                                         ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
 ) && (*(s_pp+2) == '0') && 
                           ((*(s_pp+3) == 'X') || (*(s_pp+3) == 'x')) &&
@@ -10852,6 +10973,41 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                  }
                  i_usepadding = 1;
                  s_pp+=6;
+              } else if ( (*s_pp == '%') && ( (*(s_pp+1) == SAFE_CHR)  || (*(s_pp+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+                                             ||   (*(s_pp+1) == SAFE_CHR2) || (*(s_pp+1) == SAFE_UCHR2)
+#endif
+#ifdef SAFE_CHR3
+                                             ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
+#endif
+) && (*(s_pp+2) == '<') ) {
+                     memset(s_t, '\0', LBUF_SIZE);
+                     s_tp = s_t;
+                     s_tp2 = s_pp;
+                     s_pp = skip_mux_ansi(s_pp+2, s_t, &s_tp);
+                     if ( 0
+#ifdef SAFE_CHR
+                          || (*(s_tp2+1) == SAFE_UCHR) 
+#endif
+#ifdef SAFE_CHR2
+                          || (*(s_tp2+1) == SAFE_UCHR2) 
+#endif
+#ifdef SAFE_CHR3
+                          || (*(s_tp2+1) == SAFE_UCHR3) 
+#endif
+                    ) {
+                        if ( *s_t ) {
+                           memset(s_normalbg, '\0', MBUF_SIZE);
+                           sprintf(s_normalbg, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     } else {
+                        if ( *s_t ) {
+                           memset(s_normal, '\0', MBUF_SIZE);
+                           sprintf(s_normal, "%c%c%.100s", *s_tp2, *(s_tp2+1), s_t);
+                           i_usepadding = 1;
+                        }
+                     }
               } else if (*s_pp ) {
                  if ( i_padme < i_padmenow ) {
                     i_padme++;
@@ -10942,6 +11098,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   free_mbuf(s_normal);
   free_mbuf(s_normalbg);
   free_mbuf(s_accent);
+  free_lbuf(s_t);
   if ( i_savejust != -1 )
      fm->leftjust = i_savejust;
 }
@@ -12490,12 +12647,12 @@ FUNCTION(fun_template)
      if ( *ptbase >= '0' && *ptbase <= '9' ) {
         i = *ptbase - '0';
 #ifdef ZENTY_ANSI
-        if ( pt[i] && (*pt[i] == '%') && ((*(pt[i]+1) == SAFE_CHR)
+        if ( pt[i] && (*pt[i] == '%') && ( (*(pt[i]+1) == SAFE_CHR) || (*(pt[i]+1) == SAFE_UCHR) 
 #ifdef SAFE_CHR2
-             || (*(pt[i]+1) == SAFE_CHR2)
+             || (*(pt[i]+1) == SAFE_CHR2) || (*(pt[i]+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-             || (*(pt[i]+1) == SAFE_CHR3)
+             || (*(pt[i]+1) == SAFE_CHR3) || (*(pt[i]+1) == SAFE_UCHR3)
 #endif
            )) {
            safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* % */
@@ -12511,6 +12668,8 @@ FUNCTION(fun_template)
               safe_chr(*(pt[i]+2), s_newstr, &s_newstrptr);	/* first hex */
               safe_chr(*(pt[i]+3), s_newstr, &s_newstrptr);	/* second hex */
               pt[i]+=4;
+           } else if ( *(pt[i]) == '<' ) {
+              pt[i] = skip_mux_ansi(pt[i], s_newstr, &s_newstrptr);
            }
            i_ansi[i]=1;
            continue;
@@ -37387,6 +37546,7 @@ FUNCTION(fun_trace)
  * Thorin 11/14/95
  */
 
+/* THIS FUNCTION IS DEPRECIATED */
 FUNCTION(fun_ljc)
 {
   int len, idx, filllen;
@@ -37581,6 +37741,7 @@ FUNCTION(fun_countspecial)
   ival(buff, bufcx, i_val);
 }
 
+/* THIS FUNCTION IS DEPRECIATED */
 FUNCTION(fun_rjc)
 {
   int len, inlen, idx, spaces, filllen;

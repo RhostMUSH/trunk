@@ -86,6 +86,9 @@ extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
 extern int encode_base64(const char *, int, char *, char **);
 extern int check_tor(struct in_addr, int);
 
+extern char * skip_mux_ansi(char *, char *, char **);
+extern int count_mux_ansi(char *);
+
 
 #ifdef LOCAL_RWHO_SERVER
 void FDECL(dump_rusers, (DESC * call_by));
@@ -179,12 +182,12 @@ strip_safe_ansi(const char *raw)
            ((*(p+1) == '\\') || (*(p+1) == '%')))
             p++;
 
-        if( (*p == '%') && ((*(p+1) == SAFE_CHR)
+        if( (*p == '%') && ( (*(p+1) == SAFE_CHR)  || (*(p+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                        || (*(p+1) == SAFE_CHR2)
+                        ||   (*(p+1) == SAFE_CHR2) || (*(p+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                        || (*(p+1) == SAFE_CHR3)
+                        ||   (*(p+1) == SAFE_CHR3) || (*(p+1) == SAFE_UCHR3)
 #endif
 )) {
            if ( isAnsi[(int) *(p+2)] ) {
@@ -194,6 +197,10 @@ strip_safe_ansi(const char *raw)
            if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
                 (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
               continue;
            }
            *q++ = *p++;
@@ -216,12 +223,12 @@ strip_all_special2(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-        if ( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+        if ( (*p == '%') && ( (*(p+1) == SAFE_CHR)  || (*(p+1) == SAFE_UCHR) 
 #ifdef SAFE_CHR2
-                         || (*(p+1) == SAFE_CHR2)
+                         ||   (*(p+1) == SAFE_CHR2) || (*(p+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                         || (*(p+1) == SAFE_CHR3)
+                         ||   (*(p+1) == SAFE_CHR3) || (*(p+1) == SAFE_UCHR3)
 #endif
 )) {
            if ( isAnsi[(int) *(p+2)]) {
@@ -231,6 +238,10 @@ strip_all_special2(const char *raw)
            if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
                 *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
               continue;
            }
            *q++ = *p++;
@@ -260,12 +271,12 @@ strip_all_special(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-        if ( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+        if ( (*p == '%') && ( (*(p+1) == SAFE_CHR)  || (*(p+1) == SAFE_UCHR) 
 #ifdef SAFE_CHR2
-                         || (*(p+1) == SAFE_CHR2)
+                         ||   (*(p+1) == SAFE_CHR2) || (*(p+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                         || (*(p+1) == SAFE_CHR3)
+                         ||   (*(p+1) == SAFE_CHR3) || (*(p+1) == SAFE_UCHR3)
 #endif
 )) {
            if ( isAnsi[(int) *(p+2)]) {
@@ -275,6 +286,11 @@ strip_all_special(const char *raw)
            if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
                 *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           /* Strip mux ansi */
+           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
               continue;
            }
            *q++ = *p++;
@@ -304,12 +320,12 @@ strip_all_ansi(const char *raw)
     DPUSH; /* #100 */
 
     while (p && *p) {
-        if( (*p == '%') && ((*(p+1) == SAFE_CHR) 
+        if( (*p == '%') && ( (*(p+1) == SAFE_CHR)  || (*(p+1) == SAFE_UCHR) 
 #ifdef SAFE_CHR2
-                        || (*(p+1) == SAFE_CHR2)
+                        ||   (*(p+1) == SAFE_CHR2) || (*(p+1) == SAFE_UCHR2)
 #endif
 #ifdef SAFE_CHR3
-                        || (*(p+1) == SAFE_CHR3)
+                        ||   (*(p+1) == SAFE_CHR3) || (*(p+1) == SAFE_UCHR3)
 #endif
 )) {
            if ( isAnsi[(int) *(p+2)] ) {
@@ -319,6 +335,11 @@ strip_all_ansi(const char *raw)
            if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
                 (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
+              continue;
+           }
+           /* Strip mux ansi */
+           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
               continue;
            }
            *q++ = *p++;
