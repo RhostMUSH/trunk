@@ -35351,6 +35351,7 @@
  * argument list of runintz() has been flipped for better execution [ASH]
  * escapex has 'r' option to reverse the effect of how it handles escapes [ASH]
  * added more formatting allowances to ptimefmt() for MUX compatability [ASH]
+ * better integration with MUX ansi handling (ongoing) [ASH]
     
   Bug Fixes
   ------------

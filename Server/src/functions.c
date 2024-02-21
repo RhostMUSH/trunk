@@ -1336,6 +1336,8 @@ extern void totem_set(dbref, dbref, char *, int);
 extern void do_atrcache_fetch(dbref, char *, char *, char **, char **, int);
 extern void do_atrcache_handler(dbref, char *, int, char *, char **, char **, int);
 extern char * totem_valid(dbref, char *, int);
+extern char * skip_mux_ansi(char *, char *, char **);
+extern int count_mux_ansi(char *);
 
 
 int
@@ -3166,7 +3168,7 @@ FUNCTION(fun_strcat)
 #ifdef ZENTY_ANSI
 int string_count(char* src, int numchars)
 {
-    int idx, ichr;
+    int idx, ichr, i;
     for( idx = 0, ichr = 0; idx < numchars && src[idx]; idx++ )
     {
         if(((src[idx] == '%') || (src[idx] == '\\')) &&
@@ -3177,12 +3179,12 @@ int string_count(char* src, int numchars)
            idx+=2;
            continue;
         }
-        if ( (src[idx] == '%') && ((src[idx+1] == SAFE_CHR)
+        if ( (src[idx] == '%') && ( ((src[idx+1] == SAFE_CHR)  || (src[idx+1] == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                               || (src[idx+1] == SAFE_CHR2 )
+                               ||   ((src[idx+1] == SAFE_CHR2) || (src[idx+1] == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                               || (src[idx+1] == SAFE_CHR3 )
+                               ||   ((src[idx+1] == SAFE_CHR3) || (src[idx+1] == SAFE_UCHR3))
 #endif
 )) {
            if ( isAnsi[(int) src[idx+2]] ) {
@@ -3194,6 +3196,12 @@ int string_count(char* src, int numchars)
                  idx+=5;
                  continue;
               }
+           }
+           if ( src[idx+2] == '<' ) {
+              i = count_mux_ansi(src+idx+2);
+              if ( i )
+                 idx += i + 2;
+              continue;
            }
        }
        if ( (src[idx] == '%') && (src[idx+1] == '<') && src[idx+2] && src[idx+3] && src[idx+4] &&
@@ -3910,6 +3918,7 @@ FUNCTION(fun_nslookup)
 
 int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
    char *pp = leftstart;
+   int i = 0;
 
    /* If it was null this could have crashed the function */
    if ( !pp || !*pp )
@@ -3930,12 +3939,12 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
       }
 
       // ansi can chain, so we continue
-      if((*(pp+1) == SAFE_CHR)
+      if( (*(pp+1) == SAFE_CHR) || (*(pp+1) == SAFE_UCHR)
    #ifdef SAFE_CHR2
-         || (*(pp+1) == SAFE_CHR2 )
+         || (*(pp+1) == SAFE_CHR2 ) || (*(pp+1) == SAFE_UCHR2 )
    #endif
    #ifdef SAFE_CHR3
-         || (*(pp+1) == SAFE_CHR3 )
+         || (*(pp+1) == SAFE_CHR3 ) || (*(pp+1) == SAFE_UCHR3 )
    #endif
       ) {
          if ( isAnsi[(int) *(pp+2)] || (*(pp+2) == 'h') ) {
@@ -3949,6 +3958,13 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
          if ( (*(pp+2) == '0') && (*(pp+3) && ((*(pp+3) == 'X') || (*(pp+3) == 'x'))) ) {
             if ( *(pp+4) && *(pp+5) && isxdigit(*(pp+4)) && isxdigit(*(pp+5)) ) {
                return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
+            }
+         }
+         if ( *(pp+2) == '<' ) {
+            i = count_mux_ansi(pp+2);
+            if ( i ) {
+               i+=2; // need to include the '%' and the '<'
+               return i + seek_next_real_char(leftstart + i, i_haveansi, i_inansi);
             }
          }
       }
@@ -9633,7 +9649,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
        *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk,
-      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent;
+      center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent, i_mux;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
   ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
 
@@ -9763,12 +9779,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              idx+=3;
              continue;
           }
-          if( (*s == '%') && ((*(s+1) == SAFE_CHR)
+          if( (*s == '%') && ( (*(s+1) == SAFE_CHR)  || (*(s+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
-                          || (*(s+1) == SAFE_CHR2 )
+                          ||   (*(s+1) == SAFE_CHR2) || (*(s+1) == SAFE_UCHR2 )
 #endif
 #ifdef SAFE_CHR3
-                          || (*(s+1) == SAFE_CHR3 )
+                          ||   (*(s+1) == SAFE_CHR3) || (*(s+1) == SAFE_UCHR3 )
 #endif
 )) {
              if ( isAnsi[(int) *(s+2)] ) {
@@ -9788,6 +9804,11 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                 *t++ = *s++;
                 idx+=6;
                 continue;
+             }
+             if ( *(s+2) == '<' ) {
+                i_mux = count_mux_ansi(s+2);
+                if ( i_mux )
+                   idx += i_mux + 2;
              }
           }
 #endif
@@ -27546,12 +27567,12 @@ FUNCTION(fun_lcstr)
     ap = fargs[0];
     while (*ap) {
 #ifdef ZENTY_ANSI
-        if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+        if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR) || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                          || (*(ap+1) == SAFE_CHR2)
+                          ||   ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                          || (*(ap+1) == SAFE_CHR3)
+                          ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
            if ( isAnsi[(int) *(ap+2)] ) {
@@ -27571,6 +27592,11 @@ FUNCTION(fun_lcstr)
               safe_chr(*(ap+5), buff, bufcx);
               ap+=6;
               continue;
+           }
+           if ( *(ap+2) == '<' ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              ap = skip_mux_ansi(ap+2, buff, bufcx);
            }
         }
         if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -27595,12 +27621,12 @@ FUNCTION(fun_ucstr)
     ap = fargs[0];
     while (*ap) {
 #ifdef ZENTY_ANSI
-        if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+        if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR) || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                          || (*(ap+1) == SAFE_CHR2)
+                          ||   ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                          || (*(ap+1) == SAFE_CHR3)
+                          ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
            if ( isAnsi[(int) *(ap+2)] ) {
@@ -27620,6 +27646,11 @@ FUNCTION(fun_ucstr)
               safe_chr(*(ap+5), buff, bufcx);
               ap+=6;
               continue;
+           }
+           if ( *(ap+2) == '<' ) {
+              safe_chr(*ap, buff, bufcx);
+              safe_chr(*(ap+1), buff, bufcx);
+              ap = skip_mux_ansi(ap+2, buff, bufcx);
            }
         }
         if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -27644,12 +27675,12 @@ FUNCTION(fun_capstr)
    if( *fargs[0]  ) {
 #ifdef ZENTY_ANSI
        while ( *ap ) {
-          if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+          if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR)  || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                            || (*(ap+1) == SAFE_CHR2)
+                            ||   ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                            || (*(ap+1) == SAFE_CHR3)
+                            ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
              if ( isAnsi[(int) *(ap+2)] ) {
@@ -27669,6 +27700,11 @@ FUNCTION(fun_capstr)
                 safe_chr(*(ap+5), buff, bufcx);
                 ap+=6;
                 continue;
+             }
+             if ( *(ap+2) == '<' ) {
+                safe_chr(*ap, buff, bufcx);
+                safe_chr(*(ap+1), buff, bufcx);
+                ap = skip_mux_ansi(ap+2, buff, bufcx);
              }
           }
           if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -27756,12 +27792,12 @@ FUNCTION(fun_caplist)
              ap = curr;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
-                if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+                if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR)  || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                                   || (*(ap+1) == SAFE_CHR2)
+                                   ||  ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                                   || (*(ap+1) == SAFE_CHR3)
+                                   ||  ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
                    if ( isAnsi[(int) *(ap+2)] ) {
@@ -27781,6 +27817,11 @@ FUNCTION(fun_caplist)
                       safe_chr(*(ap+5), buff, bufcx);
                       ap+=6;
                       continue;
+                   }
+                   if ( *(ap+2) == '<' ) {
+                      safe_chr(*ap, buff, bufcx);
+                      safe_chr(*(ap+1), buff, bufcx);
+                      ap = skip_mux_ansi(ap+2, buff, bufcx);
                    }
                 }
                 if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -27859,12 +27900,12 @@ FUNCTION(fun_caplist)
           ap = curr;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
-             if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+             if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR) || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                               || (*(ap+1) == SAFE_CHR2)
+                               ||   ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                               || (*(ap+1) == SAFE_CHR3)
+                               ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
                 if ( isAnsi[(int) *(ap+2)] ) {
@@ -27884,6 +27925,11 @@ FUNCTION(fun_caplist)
                    safe_chr(*(ap+5), buff, bufcx);
                    ap+=6;
                    continue;
+                }
+                if ( *(ap+2) == '<' ) {
+                   safe_chr(*ap, buff, bufcx);
+                   safe_chr(*(ap+1), buff, bufcx);
+                   ap = skip_mux_ansi(ap+2, buff, bufcx);
                 }
              }
              if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -27935,12 +27981,12 @@ FUNCTION(fun_caplist)
            i_cap = 0;
            while ( *ap ) {
 #ifdef ZENTY_ANSI
-              if ( (*ap == '%') && ((*(ap+1) == SAFE_CHR)
+              if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR)  || (*(ap+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                               || (*(ap+1) == SAFE_CHR2)
+                               ||    ((*(ap+1) == SAFE_CHR2) || (*(ap+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                               || (*(ap+1) == SAFE_CHR3)
+                               ||    ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
                  if ( isAnsi[(int) *(ap+2)] ) {
@@ -27960,6 +28006,11 @@ FUNCTION(fun_caplist)
                     safe_chr(*(ap+5), buff, bufcx);
                     ap+=6;
                     continue;
+                 }
+                 if ( *(ap+2) == '<' ) {
+                    safe_chr(*ap, buff, bufcx);
+                    safe_chr(*(ap+1), buff, bufcx);
+                    ap = skip_mux_ansi(ap+2, buff, bufcx);
                  }
               }
               if ( (*ap == '%') && (*(ap+1) == 'f') ) {
@@ -34112,12 +34163,12 @@ FUNCTION(fun_stripansi)
 
     while (*cp) {
 #ifdef ZENTY_ANSI
-        if ( (*cp == '%') && ((*(cp+1) == SAFE_CHR)
+        if ( (*cp == '%') && ( ((*(cp+1) == SAFE_CHR)  || (*(cp+1) == SAFE_UCHR))
 #ifdef SAFE_CHR2
-                          || (*(cp+1) == SAFE_CHR2)
+                          ||   ((*(cp+1) == SAFE_CHR2) || (*(cp+1) == SAFE_UCHR2))
 #endif
 #ifdef SAFE_CHR3
-                          || (*(cp+1) == SAFE_CHR3)
+                          ||   ((*(cp+1) == SAFE_CHR3) || (*(cp+1) == SAFE_UCHR3))
 #endif
 )) {
            if ( isAnsi[(int) *(cp+2)] ) {
@@ -34129,16 +34180,19 @@ FUNCTION(fun_stripansi)
               cp+=6;
               continue;
            }
+           if ( *(cp+2) == '<' ) {
+              cp = skip_mux_ansi(cp+2, (char *)NULL, (char **)NULL);
+           }
            safe_chr(*cp++, buff, bufcx);
         } else {
-            safe_chr(*cp++, buff, bufcx);
+           safe_chr(*cp++, buff, bufcx);
         }
 
 #else
        if (*cp == ESC_CHAR)
-           while ( *cp && (*cp++ != 'm'));
+          while ( *cp && (*cp++ != 'm'));
        else
-           safe_chr(*cp++, buff, bufcx);
+          safe_chr(*cp++, buff, bufcx);
 #endif
     }
 }

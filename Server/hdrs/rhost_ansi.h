@@ -180,7 +180,9 @@
 #ifdef TINY_SUB
 /* Begin %x subs */
 #define SAFE_CHR	'x'
+#define SAFE_UCHR	'X'
 #define SAFE_CHRST	"%x"
+#define SAFE_UCHRST	"%X"
 #define SAFE_ANSI_NORMAL  "%xn"
 
 #define SAFE_ANSI_HILITE   "%xh"
@@ -223,10 +225,14 @@
 /* Begin %c subs */
 #ifdef SAFE_CHR
 #define SAFE_CHR2	'c'
+#define SAFE_UCHR2	'C'
 #define SAFE_CHRST2	"%c"
+#define SAFE_UCHRST2	"%C"
 #else
 #define SAFE_CHR 'c'
+#define SAFE_UCHR 'C'
 #define SAFE_CHRST	"%c"
+#define SAFE_UCHRST	"%C"
 #define SAFE_ANSI_NORMAL  "%cn"
 
 #define SAFE_ANSI_HILITE   "%ch"
@@ -271,14 +277,20 @@
 #ifdef SAFE_CHR
   #ifdef SAFE_CHR2
     #define SAFE_CHR3	'm'
-    #define SAFE_CHRST3	"%m"
+    #define SAFE_UCHR3	'M'
+    #define SAFE_CHRST3	 "%m"
+    #define SAFE_UCHRST3 "%M"
   #else
     #define SAFE_CHR2 'm'
-    #define SAFE_CHRST2	"%m"
+    #define SAFE_UCHR2 'M'
+    #define SAFE_CHRST2	 "%m"
+    #define SAFE_UCHRST2 "%M"
   #endif
 #else
 #define SAFE_CHR 'm'
+#define SAFE_UCHR 'M'
 #define SAFE_CHRST	"%m"
+#define SAFE_UCHRST	"%M"
 #define SAFE_ANSI_NORMAL  "%mn"
 
 #define SAFE_ANSI_HILITE   "%mh"
@@ -346,23 +358,29 @@ static char isAnsi[256] =
 #else
 #ifdef TINY_SUB
 #define SAFE_CHR	'x'
+#define SAFE_UCHR	'X'
 #endif
 #ifdef C_SUB
   #ifdef SAFE_CHR
     #define SAFE_CHR2	'c'
+    #define SAFE_UCHR2	'C'
   #else
     #define SAFE_CHR	'c'
+    #define SAFE_UCHR	'C'
   #endif
 #endif
 #ifdef M_SUB
   #ifdef SAFE_CHR
     #ifdef SAFE_CHR2
-      #define SAFE_CHR3	'm'
+      #define SAFE_CHR3	 'm'
+      #define SAFE_UCHR3 'M'
     #else
-      #define SAFE_CHR2 'm'
+      #define SAFE_CHR2  'm'
+      #define SAFE_UCHR2 'M'
     #endif
   #else
-    #define SAFE_CHR 'm'
+    #define SAFE_CHR  'm'
+    #define SAFE_UCHR 'M'
   #endif
 #endif
 #endif

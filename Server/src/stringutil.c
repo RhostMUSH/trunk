@@ -17,7 +17,7 @@
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref FDECL(match_thing, (dbref, char *));
 extern NAMETAB attraccess_nametab[];
-
+extern int down_ansi(int, int, int);
 
 /*
  * set attribs hidden
@@ -1055,14 +1055,65 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
    return s_buffer;
 }
 
+int
+count_mux_ansi(char *s_input)
+{
+   char *s_ptr, *s_tmp;
+   int r, g, b, i_good, i_cnt;
+
+   s_ptr = s_input;
+   i_good = i_cnt = 0;
+   if ( *s_input == '<' ) {
+      if ( (s_tmp = strchr(s_input, '>')) != NULL) {
+         if ( sscanf(s_input, "<#%02x%02x%02x>", &r, &g, &b ) == 3 )
+            i_good = 1;
+         if ( !i_good && (sscanf(s_input, "<%d %d %d>", &r, &g, &b) == 3) )
+            i_good = 1;
+         if ( i_good ) {
+            i_cnt = (s_tmp + 1) - s_ptr;
+         }
+      }
+   }
+   return i_cnt;
+}
+
+char *
+skip_mux_ansi(char *s_input, char *buff, char **bufcx) 
+{
+   char *s_ptr, *s_tmp;
+   int r, g, b, i_good;
+
+   s_ptr = s_input;
+   i_good = 0;
+   if ( *s_input == '<' ) {
+      if ( (s_tmp = strchr(s_input, '>')) != NULL ) {
+         if ( sscanf(s_input, "<#%02x%02x%02x>", &r, &g, &b ) == 3 )
+            i_good = 1;
+         if ( !i_good && (sscanf(s_input, "<%d %d %d>", &r, &g, &b) == 3) )
+            i_good = 1;
+         if ( i_good ) {
+            if ( buff ) {
+               *s_tmp = '\0';
+               safe_str(s_ptr, buff, bufcx);
+               safe_chr('>', buff, bufcx);
+               *s_tmp = '>';
+            }
+            s_ptr = s_tmp+1;
+         }
+      }
+   }
+   return s_ptr;
+}
+
 void
 split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #ifdef ZENTY_ANSI
 
    ANSISPLIT *s_ptr;
-   char *s_inptr, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
-   char buf_utf8[17];
+   char *s_inptr, *s_inptrtmp, *s_outptr;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt, 
+       i_tohex, i_upper, i_r, i_g, i_b;
+   char buf_utf8[17], c1, c2;
 
    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
@@ -1073,6 +1124,8 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_inptr = s_input;
    s_outptr = s_output;
    s_ptr = s_split;
+   s_inptrtmp = NULL;
+   i_tohex = i_upper = 0;
 
    memset(buf_utf8, '\0', sizeof(buf_utf8));
    memset(s_ptr->s_fghex, '\0', 5);
@@ -1084,14 +1137,15 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->i_ascii8 = 0;
    s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
-      if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
+      if ( (*s_inptr == '%') && ((ToLower(*(s_inptr+1)) == SAFE_CHR)
 #ifdef SAFE_CHR2
-                        || (*(s_inptr+1) == SAFE_CHR2)
+                        || (ToLower(*(s_inptr+1)) == SAFE_CHR2)
 #endif
 #ifdef SAFE_CHR3
-                        || (*(s_inptr+1) == SAFE_CHR3)
+                        || (ToLower(*(s_inptr+1)) == SAFE_CHR3)
 #endif
 )) {
+         /* 8 bit color */
          if ( isAnsi[(int) *(s_inptr+2)] ) {
             switch (*(s_inptr+2)) {
                case 'f':
@@ -1136,6 +1190,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             s_inptr+=3;
             continue;
          }
+         /* XTERM colors */
          if ( (*(s_inptr+2) == '0') && ((*(s_inptr+3) == 'x') || (*(s_inptr+3) == 'X')) &&
               *(s_inptr+4) && *(s_inptr+5) && isxdigit(*(s_inptr+4)) && isxdigit(*(s_inptr+5)) ) {
             if ( *(s_inptr+3) == 'X' ) {
@@ -1151,6 +1206,56 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             }
             s_inptr+=6;
             continue;
+         }
+         /* 24 Bit colors */
+         if ( (*(s_inptr+2) == '<') && ((s_inptrtmp = strchr(s_inptr+2, '>')) != NULL) ) {
+            i_upper = 0;
+            if ( isupper(*(s_inptr+1)) )
+               i_upper = 1;
+            if ( sscanf(s_inptr+2, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+               if ( (c1 != '<') || (c2 != '>') ) {
+                  s_inptr = s_inptrtmp+1;
+               } else {
+#ifdef STANDALONE
+                  i_tohex = 0;
+#else
+                  i_tohex = down_ansi(i_r, i_g, i_b);
+#endif
+                  if ( i_upper ) {
+                     i_hex2 = 1;
+                     i_ansi2 = 0;
+                     s_ptr->c_bgansi ='\0';
+                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
+                  } else {
+                     i_hex1 = 1;
+                     i_ansi1 = 0;
+                     s_ptr->c_fgansi ='\0';
+                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
+                  }
+               }
+            } else if ( sscanf(s_inptr+2, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+               if ( (c1 != '<') || (c2 != '>') ) {
+                  s_inptr = s_inptrtmp+1;
+               } else {
+#ifdef STANDALONE
+                  i_tohex = 0;
+#else
+                  i_tohex = down_ansi(i_r, i_g, i_b);
+#endif
+                  if ( i_upper ) {
+                     i_hex2 = 1;
+                     i_ansi2 = 0;
+                     s_ptr->c_bgansi ='\0';
+                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
+                  } else {
+                     i_hex1 = 1;
+                     i_ansi1 = 0;
+                     s_ptr->c_fgansi ='\0';
+                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
+                  }    
+               }  
+            }
+            s_inptr = s_inptrtmp+1;
          }
       }
       if ( (*s_inptr == '%') && (*(s_inptr+1) == 'f') ) {
