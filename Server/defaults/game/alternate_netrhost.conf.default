@@ -432,7 +432,6 @@ mailmutt         0
 
 # idling
 
-delim_null     0
 idle_interval  60
 idle_timeout   3600
 idle_message   1
@@ -564,6 +563,8 @@ round_kludge           0
 shs_reverse            0
 mux_child_compat       0
 mux_lcon_compat        0
+delim_null             0
+nobracket_locks        0
 old_elist              0
 rooms_can_open         0
 switch_search          0
