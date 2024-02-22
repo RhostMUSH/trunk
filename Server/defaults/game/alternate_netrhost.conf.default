@@ -304,6 +304,7 @@ empower_fulltel           0
 secure_jumpok             0
 restrict_sidefx           0
 sideeffects               32
+global_sideeffects        0
 sidefx_maxcalls           1000
 sidefx_returnval          0
 pemit_far_players         0
@@ -324,6 +325,7 @@ max_percentsubs           1000000
 max_dest_limit            1000
 wizmax_dest_limit         100000
 safer_passwords           0
+passwd_distance           0
 sha2rounds                5000
 secure_atruselock         0
 wiz_override              1
@@ -332,6 +334,7 @@ hide_nospoof              0
 newpass_god               0
 nospam_connect            0
 robot_speech              1
+robot_owns_create         0
 examine_restrictive       0
 player_listen             0
 ahear_maxtime             0
@@ -354,6 +357,8 @@ pagelock_notify           1
 posesay_funct             0
 global_error_cmd          0
 enforce_checksums         0
+saystring_eval            0
+strfunc_softfuncs         0
 
 # money and costs
 
@@ -488,6 +493,7 @@ name_with_desc            1
 enhanced_convtime         0
 exit_separator            %b%b
 help_separator            %b%b
+#added_pronouns
 
 # who/where
 
@@ -552,6 +558,7 @@ hasattrp_compat        0
 lattr_default_oldstyle 0
 penn_playercmds        0
 penn_switches          0
+float_switches         0
 power_objects          0
 round_kludge           0
 shs_reverse            0
@@ -586,6 +593,8 @@ zones_like_parents      0
 
 # misc
 
+timezone localtime
+
 #hook_cmd
 enable_tstamps  0
 login_to_prog   1
@@ -619,6 +628,7 @@ api_port        -1
 max_api_timeout 20
 
 # Execscript
+#execscripthome
 #execscriptpath
 
 # Account system
@@ -629,8 +639,12 @@ string_connhide chide
 string_create create
 string_register register
 
+# Snapshots
+#image_dir
+
 # Attribute cache
-atrcachemax 10
+atrcachemax    10
+vattr_interval 3600
 
 # unknown
 #listen_parents
