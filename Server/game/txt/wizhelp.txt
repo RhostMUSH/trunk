@@ -7666,6 +7666,22 @@
   So to enable just ROOMs and PLAYERs to have the possibility to have ansi
   in their names, you would set the allow_ansinames value to '1+4' or '5'.
 
+& allow_fancy_quotes
+  Config parameter: allow_fancy_quotes <value>.  Default: 0
+  
+  This parameter specifies wether fancy special UTF-8 quote characters
+  should be converted to normal ASCII quotes. This is the default.
+
+  See Also: allow_fullwidth_colon, (normal help) UNICODE SUPPORT, UTF8
+
+& allow_fullwidth_colon
+  Config parameter: allow_fullwidth_colon <value>.  Default: 0
+  
+  This parameter specifies wether fancy special UTF-8 colon characters
+  should be converted to normal ASCII colons. This is the default.
+
+  See Also: allow_fancy_quotes, (normal help) UNICODE SUPPORT, UTF8
+
 & allow_whodark
   Config parameter: allow_whodark <yes/no>.  Default: yes
   
