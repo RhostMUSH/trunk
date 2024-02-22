@@ -11568,6 +11568,14 @@
   
   See Also: room_adisconnect
 
+& rollbackmax
+  Config parameter: rollbackmax <value>  (Default 1000)
+  
+  Specifies the max amount of times the @rollback command can repeat the 
+  current command queue. This is to prevent abuse and infinite loops.
+ 
+  See Also: (normal help) @rollback
+
 & room_adisconnect
   Config parameter: room_adisconnect <value>.  Default: 0
   
