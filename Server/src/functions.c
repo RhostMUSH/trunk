@@ -21644,6 +21644,39 @@ FUNCTION(fun_delextract)
     free_lbuf(curr);
 }
 
+double
+xlate_double(char *arg)
+{
+    int temp;
+    char *temp2;
+
+    if (arg[0] == '#') {
+       arg++;
+       if (is_integer(arg)) {
+          temp = atoi(arg);
+          if (temp == -1) {
+             if ( !mudconf.notonerr_return )
+                temp = 0;
+             else
+                temp = 1;
+          }
+          return temp;
+       }
+       if ( (mudconf.notonerr_return) && (atoi(arg) == -1) )
+          return 1;
+       return 0;
+    }
+    // temp2 = trim_space_sep(arg, ' ');
+    temp2 = arg;
+    while ( temp2 && isspace(*temp2) )
+       temp2++;
+    if (!*temp2)
+       return 0;
+    if (is_float2(temp2))
+       return safe_atof(temp2);
+    return 1;
+}
+
 int
 xlate(char *arg)
 {
@@ -22715,7 +22748,8 @@ FUNCTION(fun_xnor)
 
 FUNCTION(fun_not)
 {
-    ival(buff, bufcx, !xlate(fargs[0]));
+//  ival(buff, bufcx, !xlate(fargs[0]));
+    fval(buff, bufcx, !xlate_double(fargs[0]));
 }
 
 FUNCTION(fun_sqrt)
