@@ -3938,7 +3938,7 @@ void val_count()
   }
 }
 
-int atrcint(dbref player, dbref thing, int key)
+int atrcint(dbref player, dbref thing, int key, char *s_wild)
 {
    char *cp, *newatr, *s_tprintf, *s_tprintfptr;
    int anum, aflags, count;
@@ -4005,8 +4005,19 @@ int atrcint(dbref player, dbref thing, int key)
 #endif
            }
         }
-        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
+        if ( Read_attr(player, thing, attr, aowner, aflags, 0) ) {
+#ifndef STANDALONE
+           if ( !s_wild || !*s_wild ) {
+              count++;
+           } else if (s_wild && *s_wild ) {
+              if ( ((*s_wild == '^' ) && quick_regexp_match(s_wild, (char *)attr->name, 0)) ||
+                   ((*s_wild != '^' ) && quick_wild(s_wild, (char *)attr->name)) ) {
+                 count++;
+              }
+           }
+#else
            count++;
+#endif
         }
      }
    }

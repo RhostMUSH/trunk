@@ -4180,7 +4180,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          /* Fix up the ol object - it's probably corrupted if mismatched attributes */
          i_dirnums = -1;
          while ( i_dirnums == -1 ) {
-            i_dirnums = atrcint(player, thing, 1);
+            i_dirnums = atrcint(player, thing, 1, (char *)NULL);
             if ( i_dirnums == -1 )
                i_flag++;
          }

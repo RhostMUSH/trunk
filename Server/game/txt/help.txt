@@ -17902,7 +17902,7 @@
   See Also: @atrcache, %-h
 
 & ATTRCNT()
-  Function: attrcnt(<object> [,<key>])
+  Function: attrcnt(<object>[/<pattern>] [,<key>])
   
   This returns the total number of attributes that the target object has.
   This gets around some limitations of words(lattr(<object>)) due to the
@@ -17917,13 +17917,22 @@
   
   If there is attribute corruption, the value returned will be '-1'.
   
+  You may specify <pattern> as a wildcard pattern or if you start the
+  <pattern> with a ^ character it will assume a regex pattern to match.
+   
   Examples:
     > say attrcnt(me)
     You say "20"
     > say words(lattr(me))
     You say "20"
+    > say attrcnt(me/v*)             (globbing wild pattern)
+    You say "5"
+    > say attrcnt(me/^v.*$)          (regex pattern)
+    You say "5"
+    > say words(lattr(me/v*))
+    You say "5"
   
-  See Also: words(), lattr(), vattrcnt()
+  See Also: words(), lattr(), vattrcnt(), cluster_attrcnt()
   
 & ATTRPASS()
   Function: attrpass(<object>/<attribute>, <password>, <type>)
@@ -26799,7 +26808,7 @@
             cluster_hasflag(), cluster_add()
 
 & CLUSTER_ATTRCNT()
-  Function: cluster_attrcnt(<object> [,<key>])
+  Function: cluster_attrcnt(<object>[/<pattern>] [,<key>])
   
   This function returns the total attributes in the given cluster.
   
@@ -26811,11 +26820,20 @@
   
   If there is attribute corruption, the value returned will be '-1'.
   
+  You may specify <pattern> as a wildcard pattern or if you start the
+  <pattern> with a ^ character it will assume a regex pattern to match.
+  
   Examples:
     > say cluster_attrcnt(cluster#1)
     You say "20192"
     > say words(cluster_lattr(cluster#1))	(this will hit the LBUF limit)
     You say "622"
+    > say cluster_attrcnt(cluster#1/v*)         (globbing pattern)
+    You say "192"
+    > say cluster_attrcnt(cluster#1/^v.*$)      (regex pattern)
+    You say "192"
+    > say words(cluster_lattr(cluster#1/v*))
+    You say "192"
   
   See Also: @cluster, cluster_attrcnt(), cluster_default(), cluster_edefault(),
             cluster_get(), cluster_get_eval(), cluster_grep(), 
@@ -35352,6 +35370,7 @@
  * escapex has 'r' option to reverse the effect of how it handles escapes [ASH]
  * added more formatting allowances to ptimefmt() for MUX compatability [ASH]
  * better integration with MUX ansi handling (ongoing) [ASH]
+ * allowed attrcnt() and cluster_attrcnt() to handle attrib patterns [ASH]
     
   Bug Fixes
   ------------

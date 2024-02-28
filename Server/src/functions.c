@@ -37965,21 +37965,33 @@ FUNCTION(fun_vattrcnt)
 FUNCTION(fun_attrcnt)
 {
   dbref target;
+  char *s_name, *s_wild;
   int key = 0;
 
   if (!fn_range_check("ATTRCNT", nfargs, 1, 2, buff, bufcx))
      return;
+
+  s_wild = NULL;
   if ( (nfargs > 1) && *fargs[1] )
      key = atoi(fargs[1]);
   if ( (key < 0) || (key > 3) )
      key = 3;
-  init_match(player,fargs[0],NOTYPE);
+
+  if ( (s_wild = strchr(fargs[0], '/')) != NULL ) {
+     *s_wild = '\0';
+     s_wild++;
+     s_name = fargs[0];
+     init_match(player,s_name,NOTYPE);
+  } else {
+     init_match(player,fargs[0],NOTYPE);
+  }
   match_everything(MAT_EXIT_PARENTS);
   target = noisy_match_result();
+
   if (!Good_obj(target) || !Examinable(player,target))
     safe_str("#-1", buff, bufcx);
   else
-    safe_str(myitoa(atrcint(player,target, key)), buff, bufcx);
+    safe_str(myitoa(atrcint(player, target, key, s_wild)), buff, bufcx);
 }
 
 FUNCTION(fun_aflags)
@@ -39810,16 +39822,27 @@ FUNCTION(fun_cluster_attrcnt)
 {
   dbref target, aowner;
   int key = 0, aflags, i_vattrcnt, i_cnt;
-  char *s_text, *s_strtok, *s_strtokptr;
+  char *s_text, *s_strtok, *s_strtokptr, *s_name, *s_wild;
   ATTR *attr;
 
   if (!fn_range_check("CLUSTER_ATTRCNT", nfargs, 1, 2, buff, bufcx))
      return;
+
+  s_wild = NULL;
+
   if ( (nfargs > 1) && *fargs[1] )
      key = atoi(fargs[1]);
   if ( (key < 0) || (key > 3) )
      key = 3;
-  target = match_thing(player, fargs[0]);
+  
+  if ( (s_wild = strchr(fargs[0], '/')) != NULL ) {
+     *s_wild = '\0';
+      s_wild++;
+      s_name = fargs[0];
+      target = match_thing(player, s_name);
+  } else {
+     target = match_thing(player, fargs[0]);
+  }
   if (!Good_obj(target) || !Examinable(player,target) || !Cluster(target) ) {
     safe_str("#-1", buff, bufcx);
   } else {
@@ -39833,12 +39856,13 @@ FUNCTION(fun_cluster_attrcnt)
              aowner = match_thing(player, s_strtok);
              i_cnt = 0;
              if ( Good_chk(aowner) && Cluster(aowner) )
-                i_cnt = atrcint(player, aowner, key);
+                i_cnt = atrcint(player, aowner, key, s_wild);
              if ( i_cnt < 0 ) {
                 ival(buff, bufcx, -1);
                 break;
              }
-             i_vattrcnt += (i_cnt - 1);
+             // i_vattrcnt += (i_cnt - 1);
+             i_vattrcnt += i_cnt;
              s_strtok = strtok_r(NULL, " ", &s_strtokptr);
           }
           safe_str(myitoa(i_vattrcnt), buff, bufcx);
