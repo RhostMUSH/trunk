@@ -1,6 +1,6 @@
 & bboard
 ==============================================================================
-                Commands for Myrddin's Bulletin Board 5.0.2
+                Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      Myrddin's BBS is a global, multi-threaded board with a rich set of
      features. To see help on a particular topic, type '+help <topic>'
@@ -19,7 +19,7 @@
 
 & bbread
 ==============================================================================
-                  Commands for Myrddin's Bulletin Board 5.0.2
+                  Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      +bbread                         Scans joined bulletin board groups.
      +bbread <#>                     Scans messages in group <#>.
@@ -28,10 +28,14 @@
                                         of numbers (ie. 1-6), or any combo.
      +bbread <#>/<msg>*              Reads <msg> and all replies, if any.
      +bbread <#>/u                   Reads all unread messages in group <#>.
+
      +bbcatchup <#>                  Marks all messages in group <#> as read.
                                         You can use multiple group #'s/names
                                         or may use the word 'all' to catchup
                                         on all messages on all boards.
+
+     +bbew <#>                       Lists unread messages in group <#>
+
      +bbnext                         Reads the 'next' unread message.
      +bbnext <#>                     Reads the 'next' unread message in group
                                         <#>.
@@ -47,7 +51,7 @@ See also: +help bbpost, +help bbmisc, +help bbcolors
 
 & bbpost
 ==============================================================================
-                  Commands for Myrddin's Bulletin Board 5.0.2
+                  Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      +bbpost <#>/<title>             This starts a post to group <#>.
      +bbwrite <text>                 This adds text to an already started post.
@@ -78,7 +82,7 @@ See also: +help bbread, +help bbmisc, +help bbcolors
 
 & bbcolors
 ==============================================================================
-                  Commands for Myrddin's Bulletin Board 5.0.2
+                  Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      STAFF COMMANDS:
      +bbcolor <type>=<code>          Set a color (usually via an ansi() call)
@@ -111,7 +115,7 @@ See also: +help bbread, +help bbpost, +help bbtimeout, +help bbchanges
 
 & bbmisc
 ==============================================================================
-                  Commands for Myrddin's Bulletin Board 5.0.2
+                  Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      +bbremove <#>/<list>            Removes a message by you. <list> can be a
                                        single number, a group of numbers, or a
@@ -126,7 +130,10 @@ See also: +help bbread, +help bbpost, +help bbtimeout, +help bbchanges
      +bbtimeout <#>/<#>=<days>       Changes timeout for a message to <days>.
      +bbnotify <#>=<on|off>          Turn post notification for group <#> on
                                        or off.
-  
+
+     +bbversion                      See full version of BBS, as well as a
+                                       notification if there are any local
+                                       hacks.
   
 For a '.sig', set an attribute on you called BB_SIG, and place your
 signature in that.
@@ -186,6 +193,23 @@ Concluded in: +help bbtimeout2
 The most recent version of this code, bug fixes, and patches can be found at:
                             www.firstmagic.com
   
+5.1.2 (May 2021):
+     BugFix:  '+bbread <#>/u' would give confusing error message if there were
+              no unread messages on that board.
+
+5.1.1 (Mar 2021):
+     Feature: '+bbnew' (no arg) will give a message listing of all unread
+              messages on all boards.
+
+5.1.0 (Mar 2021):
+     Feature: '+bbnew <#>' will give a message listing of unread messages in a
+              board.
+     BugFix:  +bbreply announcements now include the topic replied to rather
+              than a message ID.
+     BugFix:  '+bbread' on games with large numbers of groups will no longer
+              see that list truncated.
+     BugFix:  '+bbremove x/y' will no longer silently fail if x/y doesn't exist.
+
 5.0.1/5.0.2 (July 2020):
      BugFix:  Nearly full systems would cause problems for things like +bbnext
      BugFix:  Fix flakey id list generation from 5.0.1
@@ -263,7 +287,7 @@ The most recent version of this code, bug fixes, and patches can be found at:
 
 & bbwiz
 ==============================================================================
-               Wizard Commands for Myrddin's Bulletin Board 5.0.2
+               Wizard Commands for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
      +bbnewgroup <title>             Creates a new group.
      +bbcleargroup <#>               Clears group <#> and all it's messages.
@@ -309,7 +333,7 @@ CANREAD Examples:
 
 & bbconfig
 ==============================================================================
-          Configuration Parameters for Myrddin's Bulletin Board 5.0.2
+          Configuration Parameters for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
 There are two types of configuration parameters: global and group.  Global
 configuration parameters affect the BB system as a whole, while group 
@@ -336,7 +360,7 @@ See '+help bbconfig2' for info on Group parameters
 
 & bbconfig2
 ==============================================================================
-          Configuration Parameters for Myrddin's Bulletin Board 5.0.2
+          Configuration Parameters for Myrddin's Bulletin Board 5.2.6
 ------------------------------------------------------------------------------
 To set a Group parameter:
   
