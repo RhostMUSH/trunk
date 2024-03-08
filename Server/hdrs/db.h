@@ -279,7 +279,7 @@ extern void	FDECL(al_delete, (dbref, int));
 extern void	FDECL(al_destroy, (dbref));
 extern void	NDECL(al_store);
 extern void	NDECL(val_count);
-extern int	FDECL(atrcint, (dbref, dbref, int));
+extern int	FDECL(atrcint, (dbref, dbref, int, char *));
 extern void	FDECL(db_grow, (dbref));
 extern void	NDECL(db_free);
 extern void	NDECL(db_make_minimal);
