@@ -2886,14 +2886,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
    i_penntog = 0;
 
    if ( mudconf.penn_setq && (nfargs == 2) ) {
-      if ( *s_arg0 && 
-           ( !((strlen(s_arg0) <= 1) && isalnum(*s_arg0)) ||
-             (mudconf.setq_nums && is_number(s_arg0))
-           ) 
-         ) {
+      if ( *s_arg0 && !((strlen(s_arg0) <= 1) && isalnum(*s_arg0))) {
          i_penntog = 1;
-      } else if ( ((strlen(s_arg0) <= 1) && !isalnum(*s_arg0)) ||
-                  (mudconf.setq_nums && !is_number(s_arg0)) ) {
+      } else if ( ((strlen(s_arg0) <= 1) && !isalnum(*s_arg0)) ) {
          safe_str("#-1 INVALID LABEL", buff, bufcx);
          if ( i_alloc ) {
             free_lbuf(s_arg0);

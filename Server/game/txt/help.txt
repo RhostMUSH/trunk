@@ -35453,3 +35453,4 @@
  * potential buffer corruption in ansi handler for names for garbage [ASH]
  * potential crash with using SETQ_TEMPLATE [ASH]
  * privatize() didn't properly unhook privitizing registers [ASH]
+ * fix #1 for the setq/setr rewrite with broken labels with setq_nums [ASH]
