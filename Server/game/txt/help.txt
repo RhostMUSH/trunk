@@ -35454,3 +35454,4 @@
  * potential crash with using SETQ_TEMPLATE [ASH]
  * privatize() didn't properly unhook privitizing registers [ASH]
  * fix #1 for the setq/setr rewrite with broken labels with setq_nums [ASH]
+ * fix #2 for the setq/setr rewrite with broken labels with penn_setq [ASH]

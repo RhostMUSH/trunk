@@ -2809,6 +2809,8 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
    s_arg0 = fargs[0];
    s_arg1 = fargs[1];
    s_arg2 = NULL;
+   i_penntog = 0;
+   regnum = -1;
 
    if ( !*s_arg0 ) {
       if ( mudconf.penn_setq ) {
@@ -2887,7 +2889,8 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 
    if ( mudconf.penn_setq && (nfargs == 2) ) {
       if ( *s_arg0 && !((strlen(s_arg0) <= 1) && isalnum(*s_arg0))) {
-         i_penntog = 1;
+         if ( !(mudconf.setq_nums && is_number(s_arg0)) )
+            i_penntog = 1;
       } else if ( ((strlen(s_arg0) <= 1) && !isalnum(*s_arg0)) ) {
          safe_str("#-1 INVALID LABEL", buff, bufcx);
          if ( i_alloc ) {
@@ -2969,7 +2972,7 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
          }
       }
    }
-   if ( regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) )
+   if ( (regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) )
       regnum = -1;
 
    i = 0;
