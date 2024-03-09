@@ -2180,8 +2180,28 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    if ( (*dstr != '>') ) {
                       dstr = orig_dstr;
                    } else {
+                      if ( mudconf.setq_nums && is_number(t_bufa) ) {
+                         i = atoi(t_bufa);
+                         if ( (i >= 0) && (i <= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
+		            if ( mudstate.global_regs[i] ) {
+#ifdef BANGS
+                         
+                               if ( regbang_not || regbang_yes ) {
+                                  tbang_tmp = alloc_lbuf("bang_qregs");
+                                  strcpy(tbang_tmp, mudstate.global_regs[i]);
+                                  issue_bangs(regbang_not, regbang_yes, regbang_string, regbang_truebool, tbang_tmp);
+                                  safe_str(tbang_tmp, buff, &bufc);
+                                  free_lbuf(tbang_tmp);
+                               } else {
+		                  safe_str(mudstate.global_regs[i], buff, &bufc);
+                               }
+#else
+		               safe_str(mudstate.global_regs[i], buff, &bufc);
+#endif
+                            }
+                         }
 #ifdef EXPANDED_QREGS
-                      if ( *t_bufa && !*(t_bufa+1) && isalnum(*t_bufa) ) {
+                      } else if ( *t_bufa && !*(t_bufa+1) && isalnum(*t_bufa) ) {
                          /* We can only check the first MAX_GLOBAL_REGS letters/numbers */
                          for ( w = 0; w < MAX_GLOBAL_REGS; w++ ) {
                             if ( mudstate.nameofqreg[w] == tolower(*t_bufa) )
@@ -2205,7 +2225,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
                          }
 #else
-                      if ( *t_bufa && !*(t_bufa+1) && isdigit(*t_bufa) ) {
+                      } else if ( *t_bufa && !*(t_bufa+1) && isdigit(*t_bufa) ) {
 		         i = (*t_bufa - '0');
 		         if ((i >= 0) && (i <= 9) && mudstate.global_regs[i] ) {
 #ifdef BANGS

@@ -3015,6 +3015,8 @@
 & @blacklist
   Command: @blacklist[/<switch>] [<argument>]
            @blacklist/nodns[/<switch>] [<argument>]
+           @blacklist/noguest[/<switch>] [<argument>]
+           @blacklist/register[/<switch>] [<argument>]
   
   NOTE:  If you @blacklist 127.0.0.1 you may inadvertently disable SSL tunnels
   
@@ -3031,8 +3033,16 @@
   The second argument, like the normal @blacklist, only applies to NoDNS 
   entries.
   
+  The third argument, like the normal @blacklist, only applies to NoGuest 
+  entries.
+  
+  The fourth argument, like the normal @blacklist, only applies to Register 
+  entries.
+  
   The blacklist file will be blacklist.txt
   The NoDNS blacklist file will be blacklist_nodns.txt
+  The Noguest blacklist file will be blacklist_nogst.txt
+  The Register blacklist file will be blacklist_reg.txt
   
   You may optionally have a netmask (in ipv4 or CIDR notation) after the IP
   in the blacklist.txt.  If no masks is seen, it will assume /32.  
@@ -3049,8 +3059,10 @@
               Note: MASK if not specified assumes 255.255.255.255
   
   The following feature switches can be used with the above 4 switches:
-    /nodns - If this is used with any of the 4 main switches, it will 
-             work against the NoDNS lists and not the blacklists.
+    /nodns     - If this is used with any of the 4 main switches, it will 
+                 work against the NoDNS lists and not the blacklists.
+    /noguest   - Like /nodns, but for setting up noguest
+    /register  - Like /nodns, but for setting up register
   
 { see 'wizhelp @blacklist2' for arguments and examples }
 { 'wizhelp blacklist file' for an example of the blacklist.txt file }
@@ -3073,6 +3085,7 @@
     Examples:
     > @blacklist/list 1   (shows page 1)
     > @blacklist/list     (shows page 1)
+    > @blacklist/list/reg (shows page 1 of register sites)
     > @blacklist/list all (shows all sites)
     > @blacklist/list 0   (shows all sites)
     > @blacklist/mask 20  (shows page 20) 
@@ -3080,7 +3093,9 @@
     > @blacklist/mask 0   (shows all sites)
     > @blacklist/search 50.42.* (shows all sites starting with 50.42.)
     > @blacklist/add 12.12.12.0 255.255.255.0 (add IP with MASK)
+    > @blacklist/add/nodns 12.12.12.0 255.255.255.0 (add IP with MASK)
     > @blacklist/del 12.12.12.0 255.255.255.0 (delete IP with MASK)
+    > @blacklist/del/nodns 12.12.12.0 255.255.255.0 (delete IP with MASK)
   
   With /list, any entry that has a [M] before the IP signifies that there
   is a non-standard netmask associated with the IP.  A nonstandard netmask
@@ -3094,6 +3109,8 @@
   See Also: forbid_site, @site, blacklist_max
 
 & blacklist_nodns file
+& blacklist_reg file
+& blacklist_nogst file
 & blacklist file
   Topic: blacklist file contents
   
@@ -3112,6 +3129,12 @@
   one or more spaces and/or one or more tabs.
   
   If the IP or netmask is invalid, it will skip the entry.
+  
+  The existing files for blacklists that will exist in the 'game' directory:
+      blacklist.txt         - main forbid blacklist
+      blacklist_nodns.txt   - stop dns lookups
+      blacklist_nogst.txt   - deny guests from sites
+      blacklist_reg.txt     - set up register site permissions
   
   See Also: @site, @blacklist
   
@@ -7381,14 +7404,15 @@
   safer_ufun                saystring_eval            sconnect_cmd            
   sconnect_host             sconnect_reip             search_cost             
   secure_atruselock         secure_dark               secure_functions        
-  secure_jumpok             see_owned_dark            setqlabel               
-  sha2rounds                showother_altname         shs_reverse             
-  sidefx_maxcalls           sidefx_returnval          sideeffects             
-  signal_action             signal_crontab            signal_object           
-  signal_object_type        space_compress            spam_limit              
-  spam_msg                  spam_objmsg               sqlite_db_path          
-  sqlite_query_limit        stack_limit               start_build             
-  starting_money            starting_quota            strfunc_softfuncs
+  secure_jumpok             see_owned_dark            setq_nums
+  setqlabel                 sha2rounds                showother_altname       
+  shs_reverse               sidefx_maxcalls           sidefx_returnval        
+  sideeffects               signal_action             signal_crontab          
+  signal_object             signal_object_type        space_compress          
+  spam_limit                spam_msg                  spam_objmsg             
+  sqlite_db_path            sqlite_query_limit        stack_limit             
+  start_build               starting_money            starting_quota          
+  strfunc_softfuncs
   
 { 'wizhelp config parameters6' for more}
 
@@ -11904,13 +11928,25 @@
   look at a room.  It does not affect the inventory or examine commands,
   both of which show all objects.
 
+& setq_nums
+  Config parameter: setq_nums <yes/no>.    Default: no (0)
+  
+  This will define if the extension register numbers will be available
+  with all setq/r functionality.  This will effect:
+     setq(),       setq_old(),       setr(),    setr_old(),    r(), 
+     %q,           SETQ_TEMPLATES,   xinc(),    xdec(),        nameq()
+  
+  See Also: setqlabel
+
 & setqlabel
-  Config parameter: setqlabel <yes/no>.    Default: no
+  Config parameter: setqlabel <yes/no>.    Default: no (0)
   
   Specifies if SETQ/SETR registers that have a label applied will require
   the label to be used to set the register.  Attempting to set a register
   with the 0-9/a-z value on a labeled register with this enabled will
   result in an error message being returend.
+  
+  See Also: setq_nums
   
 & sha2rounds
   Config parameter: sha2rounds <value>.    Default: 5000

@@ -339,6 +339,7 @@ NDECL(cf_init)
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
+    mudconf.setq_nums = 0;		/* Specify if setq allows > 9 for numbers */
     mudconf.delim_null = 0;		/* Allow '@@' for null delims */
     mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
@@ -459,8 +460,13 @@ NDECL(cf_init)
     mudstate.includenest = 0;
     mudstate.wipe_state = 0;		/* State of @wipe/wipe() */
     mudstate.blacklist_cnt = 0;		/* Total number of blacklisted elements */
+    mudstate.blacklist_nodns_cnt = 0;	/* Total number of dns blacklisted elements */
+    mudstate.blacklist_nogst_cnt = 0;	/* Total number of noguest blacklisted elements */
+    mudstate.blacklist_reg_cnt = 0;	/* Total number of register blacklisted elements */
     mudstate.bl_list = NULL;		/* Blacklist */
     mudstate.nd_list = NULL;		/* NoDNS */
+    mudstate.rg_list = NULL;		/* Register */
+    mudstate.ng_list = NULL;		/* NoGuest */
     mudstate.log_chk_reboot = 0;
     mudstate.f_logfile_name = NULL;
     mudstate.last_network_owner = -1;	/* Last user with network issue */
@@ -5586,6 +5592,9 @@ CONF conftable[] =
     {(char *) "see_owned_dark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.see_own_dark, 0, 0, CA_PUBLIC,
      (char *) "Can you see dark things you control?"},
+    {(char *) "setq_nums",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setq_nums, 0, 0, CA_PUBLIC,
+     (char *) "Does setq() family allow numbers greater than 9?"},
     {(char *) "setqlabel",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setqlabel, 0, 0, CA_PUBLIC,
      (char *) "Are registers that have labels protected?"},

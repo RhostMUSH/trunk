@@ -1742,12 +1742,18 @@ shutdownsock(DESC * d, int reason)
         strcpy(tchbuff, mudconf.register_host);
         if ((char *)mudconf.register_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_REGISTRATION;
+        if ( blacklist_check((d->address).sin_addr, 2) ) {
+           d->host_info = d->host_info | H_REGISTRATION;
+        }
         strcpy(tchbuff, mudconf.autoreg_host);
         if ((char *)mudconf.autoreg_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_NOAUTOREG;
         strcpy(tchbuff, mudconf.noguest_host);
         if ((char *)mudconf.noguest_host && lookup(d->longaddr, tchbuff, i_guestcnt, &i_retvar))
            d->host_info = d->host_info | H_NOGUEST;
+        if ( blacklist_check((d->address).sin_addr, 3) ) {
+           d->host_info = d->host_info | H_NOGUEST;
+        }
         strcpy(tchbuff, mudconf.suspect_host);
         if ((char *)mudconf.suspect_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_SUSPECT;
@@ -2160,12 +2166,18 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     strcpy(tchbuff, mudconf.register_host);
     if ((char *)mudconf.register_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_REGISTRATION;
+    if ( blacklist_check((*a).sin_addr, 2) ) {
+       d->host_info = d->host_info | H_REGISTRATION;
+    }
     strcpy(tchbuff, mudconf.autoreg_host);
     if ((char *)mudconf.autoreg_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_NOAUTOREG;
     strcpy(tchbuff, mudconf.noguest_host);
     if ((char *)mudconf.noguest_host && lookup(addr, tchbuff, i_guestcnt, &i_retvar))
        d->host_info = d->host_info | H_NOGUEST;
+    if ( blacklist_check((*a).sin_addr, 3) ) {
+       d->host_info = d->host_info | H_NOGUEST;
+    }
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar))
        d->host_info = d->host_info | H_SUSPECT;

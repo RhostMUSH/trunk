@@ -330,6 +330,9 @@ setq_templates(dbref thing)
                   regnum = atoi(c_field);
                }
 #endif
+               if ( (regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) )
+                  regnum = -1;
+
                if ( regnum != -1 ) {
                   strncpy(mudstate.global_regsname[regnum], s_intok2, (SBUF_SIZE - 1));
                }

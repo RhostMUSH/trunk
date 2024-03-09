@@ -455,7 +455,8 @@ struct confdata {
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
 	int	penn_setq;	/* Do Penn setq formatting */
-  int pagelock_notify ; /* Show login message if PAGE LOCK is set */
+	int	setq_nums;	/* Allow numbers > 9 in setq register declarations */
+	int pagelock_notify ; /* Show login message if PAGE LOCK is set */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
@@ -872,6 +873,8 @@ struct statedata {
 	int	help_shell;	/* Shell to the next help index */
 	int	blacklist_cnt;
 	int	blacklist_nodns_cnt;
+	int	blacklist_nogst_cnt;
+	int	blacklist_reg_cnt;
 	int	wipe_state;	/* do_wipe state counter */
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
@@ -884,6 +887,8 @@ struct statedata {
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
         BLACKLIST *nd_list; 	/* The nodns list */
+        BLACKLIST *rg_list; 	/* The register list */
+        BLACKLIST *ng_list; 	/* The noguest list */
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */

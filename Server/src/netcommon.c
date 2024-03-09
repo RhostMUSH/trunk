@@ -5419,14 +5419,16 @@ do_command(DESC * d, char *command)
              /* Do register site checks -- flag register, log, continue on */
              strcpy(s_sitebuff, mudconf.register_host);
              if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ||
-                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ||
+                   blacklist_check(p_addr, 2) ) {
                 i_valid = 2;
              }
 
              /* Do noguest site checks -- flag noguest, log, continue on */
              strcpy(s_sitebuff, mudconf.noguest_host);
              if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_NOGUEST) == H_NOGUEST) ||
-                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ||
+                   blacklist_check(p_addr, 3) ) {
                 if ( i_valid == 2 ) {
                    i_valid |= 4;
                 } else {
@@ -6628,6 +6630,8 @@ NDECL(process_commands)
 /* Types are:
  * 0 - Blacklist
  * 1 - NoDNS
+ * 2 - Register
+ * 3 - NoGuest
  */
 int
 blacklist_check(struct in_addr host, int i_type)
@@ -6648,6 +6652,12 @@ blacklist_check(struct in_addr host, int i_type)
          break;
       case 1: /* NoDNS */
          b_host = mudstate.nd_list;
+         break;
+      case 2: /* Register */
+         b_host = mudstate.rg_list;
+         break;
+      case 3: /* NoGuest */
+         b_host = mudstate.ng_list;
          break;
    }
 

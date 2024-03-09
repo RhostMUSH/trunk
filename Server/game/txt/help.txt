@@ -25861,7 +25861,7 @@
          with xinc() and xdec() for MUX/Tiny style support.
   
 & NAMEQ()
-  Function: nameq(<register or label> [,<new label> [,<key>]])
+  Function: nameq([<register or label> [,<new label> [,<key>]]])
   
   The nameq() function will label (or re-label) a setq register with the
   specified label.  You may use any name of 31 characters or less for
@@ -25870,18 +25870,30 @@
   sequentially.  If you do not specify a new label, it will display
   the existing label (if one exists) for that register.
   
-  If you specify a key of 1, <new label> MUST be null/empty, and this
-  will return the register (0-9 or a-z) assigned to the specified label.
+  The following keys exist:
+    1 - <new label> MUST be null/empty, and this will return the 
+        register (0-9 or a-z) assigned to the specified label.
+    2 - Like '1' above, but will show numerical value of a-z
+        This requires setq_nums enabled.
   
+  Option 1 and 2 for the key will return the register if given a label,
+  or the label (or nothing if no label exists) if given a register.
+   
   Example:
+    > say nameq()
+      36
     > say [setq(0,Test 1 2 3)][r(0)]
-    You say "Test 1 2 3"
+      You say "Test 1 2 3"
     > say [setq(0,Test 1 2 3)][nameq(0,Foo Foo)][r(Foo Foo)]
-    You say "Test 1 2 3"
+      You say "Test 1 2 3"
     > say [setq(0,Test 1 2 3)][nameq(0,Foo Foo)][nameq(0)]
-    You say "Foo Foo"
+      You say "Foo Foo"
     > say [setq(0,Test 1 2 3)][nameq(0,Foo Foo)][nameq(Foo Foo,,1)]
-    You say "0"
+      You say "0"
+    > say [setq(a,store,foo)][nameq(foo,,1)]
+      You say "a"
+    > say [setq(a,store,foo)][nameq(foo,,2)]  (this assumes setq_nums enabled)
+      You say "10"
   
   See Also: setq(), setr(), r(), SETQ_TEMPLATE
 
@@ -25925,15 +25937,18 @@
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
   
+  Note: if setq_nums is enabled, you may specify numerical registers 
+        greater than 9 up to the total number of registers defined.
+  
   If the target has SETQLABEL enabled or the config parameter is set,
   then any register that has a label must have the label to set new values.
    
   Example:
     > &TEST me=Test on [mudname()] at [time()].
     > say [setq(0,u(TEST))]'[r(0)]' has length [strlen(r(0))].
-    You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
+      You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
     > say [setq(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
-    You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
+      You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
             setqmatch(), SETQ_TEMPLATE, REGISTERS
@@ -25966,10 +25981,21 @@
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
   
+  Note: if setq_nums is enabled, you may specify numerical registers 
+        greater than 9 up to the total number of registers defined.
+  
   If the target has SETQLABEL enabled or the config parameter is set,
   then any register that has a label must have the label to set new values.
-
-  See Also: setr_old(), setq(), setr(), nameq(), SETQ_TEMPLATE, REGISTERS
+  
+  Example:
+    > &TEST me=Test on [mudname()] at [time()].
+    > say [setq_old(0,u(TEST))]'[r(0)]' has length [strlen(r(0))].
+      You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
+    > say [setq_old(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
+      You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
+  
+  See Also: setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
+            setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
   Function: setqmatch(<string>, <pattern>[,delim])
@@ -26023,6 +26049,8 @@
   If the target has SETQLABEL enabled or the config parameter is set,
   then any register that has a label must have the label to set new values.
   
+  Registers that are invalid and out of range will be ignored.
+    
   See Also: nameq(), setq(), setr(), REGISTERS
   
 & SETR()
@@ -26056,13 +26084,16 @@
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
   
+  Note: if setq_nums is enabled, you may specify numerical registers 
+        greater than 9 up to the total number of registers defined.
+  
   If the target has SETQLABEL enabled or the config parameter is set,
   then any register that has a label must have the label to set new values.
    
   Example: 
     > &TEST me=Test on [mudname()] at [time()].
     > say '[setr(0,u(TEST))]' has length [strlen(r(0))].
-    You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
+      You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
             setqmatch(), SETQ_TEMPLATE, REGISTERS
@@ -26095,10 +26126,19 @@
   If the label is 0-9 or a-z when using '+' or '!' it assumes you want the
   register set and not a label assigned.
   
+  Note: if setq_nums is enabled, you may specify numerical registers 
+        greater than 9 up to the total number of registers defined.
+  
   If the target has SETQLABEL enabled or the config parameter is set,
   then any register that has a label must have the label to set new values.
   
-  See Also: setq_old(), setq(), setr(), nameq(), SETQ_TEMPLATE, REGISTERS
+  Example: 
+    > &TEST me=Test on [mudname()] at [time()].
+    > say '[setr_old(0,u(TEST))]' has length [strlen(r(0))].
+      You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
+  
+  See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
+            setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -35327,6 +35367,11 @@
  * config param robot_owns_create will enable @robots to own things [ASH]
  * added /ansi switch to @search [ASH]
  * natively handle %c<#FFFFFF> and %c<R G B> ansi markup for MUX compat [ASH]
+ * setq_nums config parameter to allow referencing regs numerically > 9 [ASH]
+ * nameq() returns total registers available [ASH]
+ * nameq() optionally returns numerical position of label [ASH]
+ * @blacklist/noguest and @blacklist/register added [ASH]
+ * setr()/setq()/r()/%q/xinc()/xdec()/nameq() handle high-number regs [ASH]
   
   Changes
   -------
@@ -35371,6 +35416,8 @@
  * added more formatting allowances to ptimefmt() for MUX compatability [ASH]
  * better integration with MUX ansi handling (ongoing) [ASH]
  * allowed attrcnt() and cluster_attrcnt() to handle attrib patterns [ASH]
+ * reworked all setq/setr/r functions for better optimization [ASH]
+ * @blacklist rewritten to handle easier future modification [ASH]
     
   Bug Fixes
   ------------
@@ -35404,3 +35451,5 @@
  * time() could potentially mangle the timezones with wrong args [ASH]
  * bug introduced that broke register sites [ASH]
  * potential buffer corruption in ansi handler for names for garbage [ASH]
+ * potential crash with using SETQ_TEMPLATE [ASH]
+ * privatize() didn't properly unhook privitizing registers [ASH]
