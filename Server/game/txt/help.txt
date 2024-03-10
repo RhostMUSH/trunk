@@ -25878,8 +25878,31 @@
   
   Option 1 and 2 for the key will return the register if given a label,
   or the label (or nothing if no label exists) if given a register.
-   
-  Example:
+  
+  Special keys exist where <register or label> is a wildcard match.
+    l/L - show all registers that currently have labels.
+          -- Wildcards match label.
+    v/V - show all registers that currently contain contents.
+          -- wildcards match register contents.
+    n/N - show all registers  that currenty contain contents.
+          -- wildcards match register reference numbers.
+    u/U - show all registers that have labels or contents
+          -- wildcards match register contents or label.
+    b/B - show all registers that have labels and contents
+          -- wildcards match register contents or label.
+    f/F - show all registers that have labels and contents
+          -- wildcards match register reference numbers or label.
+    a/A - show all registers that have labels and contents
+          -- wildcards match register reference numbers, contents, or label.
+  
+  Note: Using a capital letter will display a-z instead of 10-36 for register.
+  
+  { see 'help nameq2 for examples }
+
+& NAMEQ2
+  Function: nameq([<register or label> [,<new label> [,<key>]]])
+  
+  Examples:
     > say nameq()
       36
     > say [setq(0,Test 1 2 3)][r(0)]
@@ -25894,6 +25917,16 @@
       You say "a"
     > say [setq(a,store,foo)][nameq(foo,,2)]  (this assumes setq_nums enabled)
       You say "10"
+    > say [setq(0,foo)][setq(a,,bar)][nameq(*,,U)]
+      You say "0 a"
+    > say [setq(0,foo)][setq(a,,bar)][nameq(*,,V)]
+      You say "0"
+    > say [setq(0,foo)][setq(a,,bar)][nameq(*,,L)]
+      You say "a"
+    > say [setq(0,foo)][setq(a,,bar)][nameq(*,,l)]
+      You say "10"
+  
+  Note: registers go from 0-9 then a-z where a-z would be assigned 11-36. 
   
   See Also: setq(), setr(), r(), SETQ_TEMPLATE
 
@@ -35372,6 +35405,7 @@
  * nameq() optionally returns numerical position of label [ASH]
  * @blacklist/noguest and @blacklist/register added [ASH]
  * setr()/setq()/r()/%q/xinc()/xdec()/nameq() handle high-number regs [ASH]
+ * added features to help list registers with nameq() [ASH]
   
   Changes
   -------

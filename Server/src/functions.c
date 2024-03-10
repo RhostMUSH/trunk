@@ -36495,9 +36495,35 @@ FUNCTION(fun_pushregs)
     }
 }
 
+void
+fun_nameq_display(int i_val, int *i_namefnd, int i_cap, char *buff, char **bufcx)
+{
+   if ( *i_namefnd ) 
+      safe_chr(' ', buff, bufcx);
+#ifdef EXPANDED_QREGS
+   if ( !mudconf.setq_nums ) {
+      if ( i_val < MAX_GLOBAL_REGS ) {
+         safe_chr(mudstate.nameofqreg[i_val], buff, bufcx);
+      } else {
+         ival(buff, bufcx, i_val);
+      }
+   } else {
+      if ( i_cap && (i_val < MAX_GLOBAL_REGS) ) {
+         safe_chr(mudstate.nameofqreg[i_val], buff, bufcx);
+      } else {
+         ival(buff, bufcx, i_val);
+      }
+   }
+#else
+   ival(buff, bufcx, i_val);
+#endif
+   *i_namefnd = 1;
+}
+
 FUNCTION(fun_nameq)
 {
-    int regnum, i_namefnd, i, i_returnnum;
+    int regnum, i_namefnd, i, i_returnnum, i_cap;
+    static char s_num[15];
 
     if (!fn_range_check("SETQ", nfargs, 1, 3, buff, bufcx))
       return;
@@ -36510,11 +36536,99 @@ FUNCTION(fun_nameq)
     if ( !(nfargs > 2) && (nfargs > 1) && *fargs[1] && (strlen(fargs[1]) < 2) )
        return;
 
-    i_namefnd = i_returnnum = 0;
+    i_namefnd = i_returnnum = i_cap = 0;
     regnum = -1;
 
-    if ( (nfargs > 2) && *fargs[2] )
-       i_returnnum = atoi(fargs[2]);
+    if ( (nfargs > 2) && *fargs[2] ) {
+       switch ( *fargs[2] ) {
+          case 'L': /* List all registers with labels (do a-z over 10-36) */
+             i_cap = 1;
+          case 'l': /* List all registers with labels */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( *mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i]) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'N': /* List all registers with contents (do a-z over 10-36) */
+             i_cap = 1;
+          case 'n': /* List all registers with values */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                sprintf(s_num, "%d", i);
+                if ( *mudstate.global_regs[i] && quick_wild(fargs[0], s_num) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'V': /* List all registers with labels (do a-z over 10-36) */
+             i_cap = 1;
+          case 'v': /* List all registers with values */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( *mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i]) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'U': /* List all registers with labels or values (do a-z over 10-36) */
+             i_cap = 1;
+          case 'u': /* List all registers in use with labels or values */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( (*mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i])) || 
+                     (*mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i])) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'B': /* List all registers with labels and values (do a-z over 10-36) */
+             i_cap = 1;
+          case 'b': /* List all registers in use with labels and values */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || quick_wild(fargs[0], mudstate.global_regs[i])) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'F': /* List all registers with labels and contents (do a-z over 10-36) */
+             i_cap = 1;
+          case 'f': /* List all registers in use with labels and contents */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                sprintf(s_num, "%d", i);
+                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || quick_wild(fargs[0], s_num)) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          case 'A': /* List all registers with labels, values and contents (do a-z over 10-36) */
+             i_cap = 1;
+          case 'a': /* List all registers in use with labels, values and contents */
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                sprintf(s_num, "%d", i);
+                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || 
+                      quick_wild(fargs[0], mudstate.global_regs[i]) ||
+                      quick_wild(fargs[0], s_num)) ) {
+                   fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
+                }
+             }
+             regnum = -2;
+             break;
+          default: /* Assume integer and set accordingly */
+             i_returnnum = atoi(fargs[2]);
+             break;
+       }
+    }
+    if ( regnum == -2 ) {
+       /* Special handlers -- return out of function */
+       return;
+    }
 
     if ( !((strlen(fargs[0]) == 1) ||
           (mudconf.setq_nums && is_number(fargs[0]))) ) {
