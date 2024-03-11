@@ -36725,6 +36725,23 @@ FUNCTION(fun_nameq)
     }
 }
 
+FUNCTION(fun_setp)
+{
+   int i_loop;
+   char *s_array[2];
+
+   if (nfargs % 2) {
+      safe_str("#-1 FUNCTION (SETP) EXPECTS AN EVEN NUMBER OF ARGS", buff, bufcx);
+      return;
+   }
+
+   for ( i_loop = 0; i_loop < nfargs; i_loop+=2 ) {
+      s_array[0] = fargs[i_loop];
+      s_array[1] = fargs[i_loop+1];
+      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETQ", 0, 1);
+   }
+}
+
 FUNCTION(fun_setq)
 {
    process_setqs(player, cause, caller, buff, bufcx, fargs, nfargs, cargs, ncargs, (char *)"SETQ", 0, 1);
@@ -40991,6 +41008,7 @@ FUN flist[] =
     {"SETQ", fun_setq, 2, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SETQ_OLD", fun_setq_old, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"SETP", fun_setp, 2, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SETQMATCH", fun_setqmatch, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef OLD_SETQ
     {"SETR", fun_setr_old, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

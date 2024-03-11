@@ -6892,7 +6892,7 @@
   use.
   
   See Also: @drain, @notify, @ps, SEMAPHORES, setq(), setr(), r(), nameq(), 
-            pid()
+            pid(), setp()
   
 & @wipe
   Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
@@ -11852,7 +11852,7 @@
     > say [setq(bar,foo)]%q<bar> [setq(0,moo)]%q<bar>
     You say "foo #-1 GLOBAL REGISTER '0' LABEL PROTECTEDfoo"
   
-  See Also: setq(), setr(), %q, r(), REGISTERS
+  See Also: setp(), setq(), setr(), %q, r(), REGISTERS
 
 & FLAG LIST
   Topic: FLAG LIST
@@ -12330,22 +12330,22 @@
   S()            SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()     
   SEARCHOBJID()  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()     
   SECURE()       SECUREX()       SEES()          SET()          SETDIFF()   
-  SETINTER()     SETQ()          SETQ_OLD()      SETQMATCH()    SETR()      
-  SETR_OLD()     SETUNION()      SHIFT()         SHL()          SHR()       
-  SHUFFLE()      SIGN()          SIN()           SINGLETIME()   SORT()      
-  SORTBY()       SORTLIST()      SOUNDEX()       SOUNDLIKE()    SOUNDSLIKE()
-  SPACE()        SPELLNUM()      SPLICE()        SQL()          SQLESCAPE() 
-  SQLOFF()       SQLON()         SQLPING()       SQLITE_QUERY() SQRT()      
-  SQUISH()       STARTTIME()     STARTSECS()     STATS()        STDERR()    
-  STEP()         STR()           STRCAT()        STRDISTANCE()  STREQ()     
-  STREVAL()      STRFUNC()       STRIP()         STRIPACCENTS() STRIPANSI() 
-  STRLEN()       STRMATCH()      STRMATH()       SUB()          SUBEVAL()    
-  SUBJ()         SUBNETMATCH()   SWITCH()        SWITCHALL()    T()          
-  TAG()          TAGMATCH()      TAN()           TEL()          TEMPLATE()   
-  TIME()         TIMEFMT()       TOBIN()         TODEC()        TOGGLE()     
-  TOHEX()        TOOCT()         TOTCMDS()       TOTEMS()       TOTEMSET()   
-  TOTMATCH()     TOTMEMBER()     TOTPOS()        TOTWILDMATCH() TR()         
-  TRACE()        TRANSLATE()     TRIM()
+  SETINTER()     SETP()          SETQ()          SETQ_OLD()     SETQMATCH()  
+  SETR()         SETR_OLD()      SETUNION()      SHIFT()        SHL()        
+  SHR()          SHUFFLE()       SIGN()          SIN()          SINGLETIME() 
+  SORT()         SORTBY()        SORTLIST()      SOUNDEX()      SOUNDLIKE()  
+  SOUNDSLIKE()   SPACE()         SPELLNUM()      SPLICE()       SQL()        
+  SQLESCAPE()    SQLOFF()        SQLON()         SQLPING()      SQLITE_QUERY()
+  SQRT()         SQUISH()        STARTTIME()     STARTSECS()    STATS()      
+  STDERR()       STEP()          STR()           STRCAT()       STRDISTANCE()
+  STREQ()        STREVAL()       STRFUNC()       STRIP()        STRIPACCENTS()
+  STRIPANSI()    STRLEN()        STRMATCH()      STRMATH()      SUB()        
+  SUBEVAL()      SUBJ()          SUBNETMATCH()   SWITCH()       SWITCHALL()  
+  T()            TAG()           TAGMATCH()      TAN()          TEL()        
+  TEMPLATE()     TIME()          TIMEFMT()       TOBIN()        TODEC()      
+  TOGGLE()       TOHEX()         TOOCT()         TOTCMDS()      TOTEMS()     
+  TOTEMSET()     TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH()
+  TR()           TRACE()         TRANSLATE()     TRIM()
   
 { 'help function list5' for more }
 
@@ -12454,8 +12454,9 @@
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LISTTAGS() LOCKCHECK()
                       LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQ()
                       NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
-                      SANDBOX() SETQ() SETQ_OLD() SETQMATCH() SETR() SETR_OLD()
-                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TAGMATCH() TRACE()
+                      SANDBOX() SETP() SETQ() SETQ_OLD() SETQMATCH() SETR() 
+                      SETR_OLD() SOUNDEX() SOUNDLIKE() STDERR() TAG() 
+                      TAGMATCH() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -12544,7 +12545,7 @@
   Side-Effects:        CLONE() CREATE() DESTROY() DIG() EMIT() LEMIT() LINK() 
                        LIST() LOCK() NAME() NAMEQ() NPEMIT() OEMIT() OPEN() 
                        PARENT() PEMIT() R() REMIT() RSET() RULER() RXLEVEL() 
-                       SET() SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() 
+                       SET() SETP() SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() 
                        TOGGLE() TOTEMSET() TXLEVEL() WIPE() ZEMIT()
              See Also: help side effect functions  
   
@@ -12870,7 +12871,7 @@
     You say "Fee fie foo fum"
     item says "-->fum"<-- bar -->Wizard says "Fee fie<--"
   
-  See Also: setq(), r(), setr(), nameq(), SUBSTITUTIONS
+  See Also: setq(), setp(), r(), setr(), nameq(), SUBSTITUTIONS
   
 & %
 & %%
@@ -14829,7 +14830,7 @@
     > think array(abcdefghij,3,0,,2)%q0 - %q1 - %q2
     abcd - efg - hij
   
-  See Also: printf(), setq(), setr(), r(), template(), substitutions
+  See Also: printf(), setq(), setp(), setr(), r(), template(), substitutions
 
 & APOSS()
   Function: aposs(<object>)
@@ -16301,7 +16302,7 @@
   
   Note:  You may use nameq() to get the letter/number of a label.
   
-  See Also: setq(), setr(), nameq(), r(), substitutions
+  See Also: setp(), setq(), setr(), nameq(), r(), substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -21752,7 +21753,7 @@
   value of %q0 to its original "are delicious!"
    
   See Also:  zfunlocal2(), zfun(), zfun2(), zfunldefault(), zfun2ldefault(), 
-             setq(), r()
+             setq(), r(), setp()
   
 & ULOCAL()
   Function:  ulocal([<obj>/]<attr>[,<arg>]...)
@@ -21795,7 +21796,7 @@
   value of %q0 to its original "are delicious!"
    
   See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r(),
-             @lfunction
+             setp(), @lfunction
   
 & PRIVATIZE()
   Function: privatize(<boolean>)
@@ -21841,7 +21842,7 @@
   
   For Example 1, we will show the difference between calling the function,
   localizing the function, the privatizing before localizing the function.
-
+  
   Example: (option 1)
     > @va me=(before R0: [r(0)])[setq(0,internal)] --My R0:[r(0)]--
     Set.
@@ -21881,8 +21882,8 @@
     > say [setr(0,T)]:[setr(1,C)], [privatize(1,u(va),0 1 3 4,,1)], %q0:%q1
     You say "T:C, O:, T:C"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
-            sandbox(), subeval(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), setp(),
+            setr(), setq(), r(), sandbox(), subeval(), @lfunction
 
 & SANDBOX()
   Function: sandbox(<string>, <function list> [,<key> [,<local> [,<type>]]])
@@ -21991,8 +21992,8 @@
   
   Note: You can interchange the number with the letter.  a=10, b=11, c=12, etc
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
-            sandbox(), subeval(), @lfunction
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), setp(),
+            setq(), setr(), r(), sandbox(), subeval(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -25796,7 +25797,7 @@
     > say [setq(0,testing,bob)][setq(bob,testing2)]%q<bob>
     You say "testing2"
    
-  See Also: setq(), setr(), nameq(), inc(), dec()
+  See Also: setq(), setr(), setp(), nameq(), inc(), dec()
   
 & XINC()
   Function: xinc(<number> [,<key>])
@@ -25844,7 +25845,7 @@
     > say [setq(0,The)] 1: [r(0)] [inc(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: dec(), xdec(), xinc(), setq(), setr(), r()
+  See Also: dec(), xdec(), xinc(), setq(), setr(), r(), setp()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25897,7 +25898,7 @@
     > say [setq(0,The)] 1: [r(0)] [dec(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: inc(), setq(), setr(), r()
+  See Also: inc(), xinc(), xdec(), setq(), setr(), r(), setp()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25971,7 +25972,29 @@
   
   Note: registers go from 0-9 then a-z where a-z would be assigned 11-36. 
   
-  See Also: setq(), setr(), r(), SETQ_TEMPLATE
+  See Also: setq(), setr(), r(), setp(), SETQ_TEMPLATE
+
+& SETP()
+  Function: setp(<register1>, <string1>, ..., <registerN>, <stringN>)
+  
+  This function works like setq() in how it sets registers, but it allows
+  setting more than one register at once.
+  
+  This function follows all rules and guidelines that setq() would follow
+  when setting registers and/or labels. 
+  
+  This function honors the SETQLABEL @totem and all standard restrictions.
+  
+  This function will set registers in order, meaning you can reference a
+  previously set register in the chain.
+  
+  Examples:
+    > say [setp(0,foo,1,bar,2,%q0%q1baz)]%q2
+      foobarbaz
+    > say [setp(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
+      moo goes the cow.
+  
+  See Also: setq(), setr(), r(), nameq(), localize(), privatize()
 
 & SETQ()
   Function: setq(<register>,<string>[,<label>])
@@ -26026,7 +26049,7 @@
     > say [setq(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
-  See Also: setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
+  See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
             setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQ_OLD()
@@ -26070,7 +26093,7 @@
     > say [setq_old(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
-  See Also: setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
+  See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
             setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
@@ -26101,7 +26124,8 @@
     > say setqmatch(kow, wok, n)
     You say ""
   
-  See Also: listmatch(), match(), totmatch(), wildmatch(), setq(), REGISTERS
+  See Also: setp(), listmatch(), match(), totmatch(), wildmatch(), setq(), 
+            REGISTERS
   
 & SETQ_TEMPLATES
   You can specify 'templates' for setq registers to automatically have 
@@ -26127,7 +26151,7 @@
   
   Registers that are invalid and out of range will be ignored.
     
-  See Also: nameq(), setq(), setr(), REGISTERS
+  See Also: nameq(), setq(), setr(), setp(), r(), REGISTERS
   
 & SETR()
   Function: setr(<register>,<string>[,<label>])
@@ -26172,7 +26196,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            setqmatch(), SETQ_TEMPLATE, REGISTERS
+            setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETR_OLD()
   Function: setr_old(<register>,<string>[,<label>])
@@ -26214,7 +26238,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            setqmatch(), SETQ_TEMPLATE, REGISTERS
+            setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -31056,7 +31080,7 @@
     > %q<0>           --- return value of register 0
     > %q<bar>         --- return value of register with label bar
    
-  See Also: setq(), setr(), r(), %q, USER ATTRIBUTES
+  See Also: setq(), setr(), r(), setp(), %q, USER ATTRIBUTES
 
 & USER ATTRIBUTES
   Topic: USER ATTRIBUTES
@@ -31976,7 +32000,8 @@
   privatize() - All localized variables are initialized to null
   pushregs() - Preserves, and restores setq() registers.
   r() - Accesses local registers.
-  sandbox() - Evaluates code with specific function restrictions
+  sandbox() - Evaluates code with specific function restrictions.
+  setp() - Copies 1 or more strings into one or more registers.
   setq() - Copies a string into a local register.
   setq_old() - Like setq(), but uses old MUSH style evaluation.
   setqmatch() - Sets a register if a pattern matches <string>.
@@ -32303,6 +32328,7 @@
   ruler()         - Display a ruler outline of contents of an attribute.
   rxlevel()       - Sets or unsets a reality receive level for an object.
   set()           - Sets an attribute on an object.
+  setp()          - Copies one or more strings into one or more registers.
   setq()          - Copies a string into a local register.
   setq_old()      - Like setq(), but with old-style MUSH functionality.
   setr()          - Like setq(), but also displays the string.
@@ -35450,6 +35476,7 @@
  * setr()/setq()/r()/%q/xinc()/xdec()/nameq() handle high-number regs [ASH]
  * added features to help list registers with nameq() [ASH]
  * localize() and privatize now aware of high register values [ASH]
+ * added setp() which handles one or more register sets [ASH]
   
   Changes
   -------
