@@ -18866,20 +18866,31 @@ FUNCTION(fun_localfunc)
  */
 FUNCTION(fun_localize)
 {
-    char *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *resbuff, *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
-    int x, i_flagreg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_reverse;
+    char *result, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *resbuff, *npt, 
+         *s_strtok, *s_strtokr, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+    int x, i_flagreg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_reverse, i_reg, i_len, i_multi;
 
-    if (!fn_range_check("LOCALIZE", nfargs, 1, 3, buff, bufcx)) {
+    if (!fn_range_check("LOCALIZE", nfargs, 1, 4, buff, bufcx)) {
        return;
     }
 
-    i_reverse = 0;
+    i_reverse = i_multi = 0;
+    /* Reverse how localize handles registers */
     if ( (nfargs > 2) && *fargs[2] ) {
        resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[2], cargs, ncargs, (char **)NULL, 0);
        i_reverse = atoi(resbuff);
        free_lbuf(resbuff);
     }
+
+    /* enable multi-arg handler for multiple regnames and enhanced registers */
+    if ( (nfargs > 3) && *fargs[3] ) {
+       i_multi = atoi(fargs[3]);
+    }
+
     if ( (nfargs > 1) && *fargs[1] ) {
+       for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
+          i_flagreg[x] = (i_reverse ? 0 : 1); /* Reverse logic for this */
+       }
        resbuff = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
        if ( *resbuff ) {
           pt = resbuff;
@@ -18887,28 +18898,51 @@ FUNCTION(fun_localize)
              *pt = ToLower(*pt);
              pt++;
           }
-          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-             if ( mudstate.global_regsname[x] && *mudstate.global_regsname[x] && !stricmp(resbuff, mudstate.global_regsname[x]) ) {
-                i_flagreg[x] = (i_reverse ? 0 : 1);
-             } else if ( (x < MAX_GLOBAL_REGS) && (strchr(resbuff, mudstate.nameofqreg[x]) != NULL) ) {
-                i_flagreg[x] = (i_reverse ? 0 : 1);
+          if ( i_multi ) {
+             s_strtok = strtok_r(resbuff, " \t", &s_strtokr);
+          } else {
+             s_strtok = resbuff;
+          }
+          while (s_strtok && *s_strtok ) {
+             i_reg = -1;
+             i_len = strlen(s_strtok);
+             if ( is_integer(s_strtok) ) {
+                i_reg = atoi(s_strtok);
+             }
+             for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
+                /* Match register name */
+                if ( i_multi && mudstate.global_regsname[x] && *mudstate.global_regsname[x] && !stricmp(s_strtok, mudstate.global_regsname[x]) ) {
+                   i_flagreg[x] = (i_reverse ? 1 : 0);
+                /* Match a-z and 0-9 */
+                } else if ( i_multi && (i_len == 1 ) && (x < MAX_GLOBAL_REGS) && (mudstate.nameofqreg[x] == *s_strtok) ) {
+                   i_flagreg[x] = (i_reverse ? 1 : 0);
+                /* Match register by number */
+                } else if ( i_multi && mudconf.setq_nums && (x <= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) && (i_reg == x) ) {
+                   i_flagreg[x] = (i_reverse ? 1 : 0);
+                /* Old format just match a-z and 0-9 to input string */
+                } else if ( !i_multi && (x < MAX_GLOBAL_REGS) && (strchr(s_strtok, mudstate.nameofqreg[x]) != NULL) ) {
+                   i_flagreg[x] = (i_reverse ? 1 : 0);
+                }
+             }
+             if ( i_multi ) {
+                s_strtok = strtok_r(NULL, " \t", &s_strtokr);
              } else {
-                i_flagreg[x] = (i_reverse ? 1 : 0);
+                break; /* Single arg -- handle like old method */
              }
           }
        } else {
           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-             i_flagreg[x] = 1;
+             i_flagreg[x] = (i_reverse ? 1 : 0);
           }
        }
        free_lbuf(resbuff);
     } else {
        for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-          i_flagreg[x] = 1;
+          i_flagreg[x] = (i_reverse ? 1 : 0);
        }
     }
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      if ( !i_flagreg[x] )
+      if ( i_flagreg[x] ) /* If flagged ignore restoring */
          continue;
       savereg[x] = alloc_lbuf("ulocal_reg");
       saveregname[x] = alloc_sbuf("ulocal_regname");
@@ -18924,7 +18958,7 @@ FUNCTION(fun_localize)
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
     cargs, ncargs, (char **)NULL, 0);
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      if ( !i_flagreg[x] )
+      if ( i_flagreg[x] ) /* If flagged ignore restoring */
          continue;
       pt = mudstate.global_regs[x];
       npt = mudstate.global_regsname[x];
@@ -18943,7 +18977,7 @@ FUNCTION(fun_privatize)
     int i_wipe;
 
     sbuff = NULL;
-    if (!fn_range_check("PRIVATIZE", nfargs, 1, 4, buff, bufcx)) {
+    if (!fn_range_check("PRIVATIZE", nfargs, 1, 5, buff, bufcx)) {
        return;
     }
     if ( !fargs[0] || !*fargs[0] ) {

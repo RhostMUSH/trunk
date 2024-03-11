@@ -21799,7 +21799,7 @@
   
 & PRIVATIZE()
   Function: privatize(<boolean>)
-            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
+            privatize(<boolean> [,<str>, [,<regs>, [<key>]] [,<multi>]])
   
   This function has two uses.  
   
@@ -21808,14 +21808,14 @@
   initializing to null every register that is referenced within the localized
   register.  A boolean of '0' turns off privatization.
   
-  The second option allows you to pass a string to be evaluated which will
+  The second option allows you to pass a <str> to be evaluated which will
   combine localize() and privatize() for the duration of the evaluation
-  of the string.  
+  of the <str>.  
   
   The register list can be 0-9 or a-z.  You can not use labels.  These will
   be, by default, what registers will be privatized/localized.  
   
-  The <key> if '1' will reverse the effect of <register-list> and effective
+  The <key> if '1' will reverse the effect of <regs> and effective
   turn the list to an omission list.
   
   Once privatization is finished, functionality returns as normally expected. 
@@ -21825,11 +21825,19 @@
         that are used in localized functions (localize(), ulocal(), etc)
     0 - Toggle off the feature to initialize to null registers (default).
   
-{ see 'help privatize2' for examples }
+  If you specify <multi> to '1' it assumes the register lists specified will
+  be mulitple space-seperated arguments.  This allows extended checks with
+  labels and register numbers that are greater than 9 if setq_nums is 
+  enabled.
+  
+  <multi> allows full labels, a-z, 0-9, and 0-MAXARGS.  MAXARGS can be found 
+  with nameq().  The default is 36.
+   
+  { see 'help privatize2' for examples }
+ 
 & PRIVATIZE2
-  (CONTINUED)
   Function: privatize(<boolean>)
-            privatize(<boolean> [,<string>, [,<register-list>, [<key>]]])
+            privatize(<boolean> [,<str>, [,<regs>, [<key>]] [,<multi>]])
   
   For Example 1, we will show the difference between calling the function,
   localizing the function, the privatizing before localizing the function.
@@ -21847,6 +21855,12 @@
   For Example 2, we show what it's like to essentially privatize a specific
   evaluation which auto-localizes the results.
   
+  { see 'help privatize3' for examples on the second option }
+
+& PRIVATIZE3
+  Function: privatize(<boolean>)
+            privatize(<boolean> [,<str>, [,<regs>, [<key>]] [,<multi>]])
+  
   Example: (option 2)
     > @va me=[setr(0,ONE)]:[r(1)]
     Set.
@@ -21858,7 +21872,15 @@
     You say "TWO:CHEESE, ONE:, ONE:CHEESE"
     > say [setr(0,TWO)]:[setr(1,CHEESE)], [privatize(1,u(va),0,1)], %q0:%q1
     You say "TWO:CHEESE, ONE:, ONE:CHEESE"
-
+  
+  Example: (option 2 with multi argument enabled)
+    > @va me=[setr(0,O)]:[r(1)]
+    Set.
+    > say [setr(0,T)]:[setr(1,C)], [privatize(1,u(va),0 3 4,,1)], %q0:%q1
+    You say "T:C, O:C, T:C"
+    > say [setr(0,T)]:[setr(1,C)], [privatize(1,u(va),0 1 3 4,,1)], %q0:%q1
+    You say "T:C, O:, T:C"
+  
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), 
             sandbox(), subeval(), @lfunction
 
@@ -21920,7 +21942,7 @@
             localize(), subeval(), @lfunction
 
 & LOCALIZE()
-  Function: localize(<string> [,<register-list>, [<key>]])
+  Function: localize(<string> [,<register-list>, [<key>], [<multi-word>]])
   
   This function will evaluate <string> while preserving all setq() registers
   outside of the function.  This is handy for calling global code or other
@@ -21929,15 +21951,30 @@
   You may specify a register list if you want only specific registers to be
   localized.  Otherwise, by default it assumes all registers.
   
-  Accepted register values are:
-    0-9 -- Standard Q registers.
-    a-z -- Extended Q registers.
+  Default accepted register values are:
+    0-9       -- Standard Q registers.
+    a-z       -- Extended Q registers.
+  
+  You may toggle the <multi-word> argument to '1' to enable <register-list>
+  to be a space/tab delimited list of registers.
+  The multi-word accepted register values are:
+    0-9       -- Standard Q registers.
+    a-z       -- Extended Q registers.
+    label     -- 'label' in this case is the name of the register label
+    0-MAXREGS -- MAX regs can be found with the nameq() function (default 36)
   
   If the <key> is set to 1, the behavior is reversed and any register that
   you specify will be omitted from localization.  The default is '0'.
    
-  Example:
+ { see 'help localize2' for examples }
+
+& LOCALIZE2 
+  Function: localize(<string> [,<register-list>, [<key>], [<multi-word>]])
+  
+  Examples:
     > @va me=[setq(0,internal)]--My R0:[r(0)]--
+    Set.
+    > @vb me=[setq(30,internal)]--My R30:[r(30)]--
     Set.
     > say [setq(0,external)][r(0)][u(va)][r(0)]
     You say "external--My R0:internal--internal"
@@ -21947,6 +21984,12 @@
     You say "external--My R0:internal--internal"
   
   Note: In the last example, we allowed '12345' to be localized, but not '0'.
+  
+  Example: (with setq_nums enabled)
+    > say [setq(30,external)][r(30)][localize(u(vb),1 3 5 30 a b,,1)][r(30)]
+    You say "external--My R30:internal--external"
+  
+  Note: You can interchange the number with the letter.  a=10, b=11, c=12, etc
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), 
             sandbox(), subeval(), @lfunction
@@ -35406,6 +35449,7 @@
  * @blacklist/noguest and @blacklist/register added [ASH]
  * setr()/setq()/r()/%q/xinc()/xdec()/nameq() handle high-number regs [ASH]
  * added features to help list registers with nameq() [ASH]
+ * localize() and privatize now aware of high register values [ASH]
   
   Changes
   -------
