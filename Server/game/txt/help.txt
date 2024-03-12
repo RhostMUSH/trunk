@@ -6892,7 +6892,7 @@
   use.
   
   See Also: @drain, @notify, @ps, SEMAPHORES, setq(), setr(), r(), nameq(), 
-            pid(), setp()
+            pid(), setp(), namep()
   
 & @wipe
   Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
@@ -12287,32 +12287,32 @@
   
 & FUNCTION LIST3
     
-  LISTFLAGS()    LISTINTER()    LISTMATCH()   LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTAGS()     LISTTOGGLES() LISTTOTEMS()     LISTUNION()    
-  LISTTZONES()   LIT()          LJC()         LJUST()          LLOC()         
-  LMAX()         LMIN()         LMUL()        LN()             LNOR()         
-  LNUM()         LNUM2()        LOC()         LOCALFUNC()      LOCALIZE()     
-  LOCATE()       LOCK()         LOCKCHECK()   LOCKDECODE()     LOCKENCODE()   
-  LOG()          LOR()          LRAND()       LREPLACE()       LROOMS()       
-  LSET()         LSUB()         LT()          LTE()            LTOGGLES()     
-  LTOTEMS()      LWHO()         LXNOR()       LXOR()           LZONE()        
-  MAILQUICK()    MAP()          MATCH()       MASK()           MAX()          
-  MEDIT()        MEMBER()       MERGE()       MID()            MIN()          
-  MIX()          MOD()          MODULO()      MODIFYTIME()     MONEY()        
-  MONEYNAME()    MOON()         MSECS()       MSECSTZ()        MUDNAME()      
-  MUL()          MUNGE()        MWORDS()      NAME()           NAMEQ()        
-  NAND()         NCOMP()        NEARBY()      NEQ()            NEXT()         
-  NOR()          NOSTR()        NOT()         NOTCHR()         NPEMIT()       
-  NSITER()       NUM()          NUMMATCH()    NULL()           NUMMEMBER()    
-  NUMPOS()       NUMWILDMATCH() OBJ()         OBJEVAL()        OBJID()        
-  OEMIT()        OPEN()         OR()          ORCHR()          ORFLAG()       
-  ORFLAGS()      ORTOTEM()      ORTOTEMS()    OWNER()          PACK()         
-  PACKMATH()     PARENMATCH()   PARENT()      PARSE()          PARSESTR()     
-  PEDIT()        PEMIT()        PFIND()       PGREP()          PI()           
-  PID()          PMATCH()       PORT()        POS()            POSS()         
-  POWER()        POWER10()      PRINTF()      PRIVATIZE()      PROGRAMMER()   
-  PTIMEFMT()     PUSHREGS()     QUOTA()       R()              RACE()         
-  RAND()         RANDPOS()      RANDMATCH()   RANDEXTRACT() 
+  LISTFLAGS()    LISTINTER()  LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS()  LISTTAGS()   LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
+  LISTTZONES()   LIT()        LJC()          LJUST()          LLOC()         
+  LMAX()         LMIN()       LMUL()         LN()             LNOR()         
+  LNUM()         LNUM2()      LOC()          LOCALFUNC()      LOCALIZE()     
+  LOCATE()       LOCK()       LOCKCHECK()    LOCKDECODE()     LOCKENCODE()   
+  LOG()          LOR()        LRAND()        LREPLACE()       LROOMS()       
+  LSET()         LSUB()       LT()           LTE()            LTOGGLES()     
+  LTOTEMS()      LWHO()       LXNOR()        LXOR()           LZONE()        
+  MAILQUICK()    MAP()        MATCH()        MASK()           MAX()          
+  MEDIT()        MEMBER()     MERGE()        MID()            MIN()          
+  MIX()          MOD()        MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()    MOON()       MSECS()        MSECSTZ()        MUDNAME()      
+  MUL()          MUNGE()      MWORDS()       NAME()           NAMEP()
+  NAMEQ()        NAND()       NCOMP()        NEARBY()         NEQ()          
+  NEXT()         NOR()        NOSTR()        NOT()            NOTCHR()       
+  NPEMIT()       NSITER()     NUM()          NUMMATCH()       NULL()         
+  NUMMEMBER()    NUMPOS()     NUMWILDMATCH() OBJ()            OBJEVAL()      
+  OBJID()        OEMIT()      OPEN()         OR()             ORCHR()        
+  ORFLAG()       ORFLAGS()    ORTOTEM()      ORTOTEMS()       OWNER()        
+  PACK()         PACKMATH()   PARENMATCH()   PARENT()         PARSE()        
+  PARSESTR()     PEDIT()      PEMIT()        PFIND()          PGREP()        
+  PI()           PID()        PMATCH()       PORT()           POS()          
+  POSS()         POWER()      POWER10()      PRINTF()         PRIVATIZE()    
+  PROGRAMMER()   PTIMEFMT()   PUSHREGS()     QUOTA()          R()            
+  RACE()         RAND()       RANDPOS()      RANDMATCH()      RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -12452,9 +12452,9 @@
             See Also: help logical functions
   
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LISTTAGS() LOCKCHECK()
-                      LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQ()
-                      NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS() R() 
-                      SANDBOX() SETP() SETQ() SETQ_OLD() SETQMATCH() SETR() 
+                      LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEP()
+                      NAMEQ() NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS()
+                      R() SANDBOX() SETP() SETQ() SETQ_OLD() SETQMATCH() SETR()
                       SETR_OLD() SOUNDEX() SOUNDLIKE() STDERR() TAG() 
                       TAGMATCH() TRACE()
             See Also: help miscellaneous functions
@@ -12543,10 +12543,11 @@
              See Also: help aliased functions  
   
   Side-Effects:        CLONE() CREATE() DESTROY() DIG() EMIT() LEMIT() LINK() 
-                       LIST() LOCK() NAME() NAMEQ() NPEMIT() OEMIT() OPEN() 
-                       PARENT() PEMIT() R() REMIT() RSET() RULER() RXLEVEL() 
-                       SET() SETP() SETQ() SETQ_OLD() SETR() SETR_OLD() TEL() 
-                       TOGGLE() TOTEMSET() TXLEVEL() WIPE() ZEMIT()
+                       LIST() LOCK() NAME() NAMEP() NAMEQ() NPEMIT() OEMIT() 
+                       OPEN() PARENT() PEMIT() R() REMIT() RSET() RULER() 
+                       RXLEVEL() SET() SETP() SETQ() SETQ_OLD() SETR() 
+                       SETR_OLD() TEL() TOGGLE() TOTEMSET() TXLEVEL() WIPE() 
+                       ZEMIT()
              See Also: help side effect functions  
   
   Dbase Side-Effects:  SQLITE_QUERY()
@@ -12871,7 +12872,7 @@
     You say "Fee fie foo fum"
     item says "-->fum"<-- bar -->Wizard says "Fee fie<--"
   
-  See Also: setq(), setp(), r(), setr(), nameq(), SUBSTITUTIONS
+  See Also: setq(), setp(), r(), setr(), nameq(), namep(), SUBSTITUTIONS
   
 & %
 & %%
@@ -16302,7 +16303,7 @@
   
   Note:  You may use nameq() to get the letter/number of a label.
   
-  See Also: setp(), setq(), setr(), nameq(), r(), substitutions
+  See Also: setp(), setq(), setr(), namep(), nameq(), r(), substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -25797,7 +25798,7 @@
     > say [setq(0,testing,bob)][setq(bob,testing2)]%q<bob>
     You say "testing2"
    
-  See Also: setq(), setr(), setp(), nameq(), inc(), dec()
+  See Also: setq(), setr(), setp(), namep(), nameq(), inc(), dec()
   
 & XINC()
   Function: xinc(<number> [,<key>])
@@ -25910,9 +25911,9 @@
   The nameq() function will label (or re-label) a setq register with the
   specified label.  You may use any name of 31 characters or less for
   the label.  You may use any character, including spaces.  The labels
-  do not have to be unique, but be aware it will find the first match
-  sequentially.  If you do not specify a new label, it will display
-  the existing label (if one exists) for that register.
+  have to be unique, and will return an error for a label already inn use.
+  If you do not specify a new label, it will display the existing 
+  label (if one exists) for that register.
   
   The following keys exist:
     1 - <new label> MUST be null/empty, and this will return the 
@@ -25972,8 +25973,27 @@
   
   Note: registers go from 0-9 then a-z where a-z would be assigned 11-36. 
   
-  See Also: setq(), setr(), r(), setp(), SETQ_TEMPLATE
+  See Also: namep(), setq(), setr(), r(), setp(), SETQ_TEMPLATE
 
+& NAMEP()
+  Function: namep(<register1>, <label1>, ..., <registerN>, <labelN>)
+  
+  This function works like nameq() in how it sets labels to registers, but
+  it allows setting more than one register at once.
+  
+  This function follows all rules and guidelines that nameq() would follow
+  when setting labels on registers.
+  
+  As with nameq(), any label previously defined can not be used on a register.
+  
+  This function requires an even number of arguments.
+  
+  Examples:
+    > say [setp(0,val1,1,val2)][namep(0,foolabel,1,barlabel)]%q<foolabel>
+    You say "val1"
+  
+  See Also: nameq(), setp(), setq(), setr(), r(), localize(), privatize()
+  
 & SETP()
   Function: setp(<register1>, <string1>, ..., <registerN>, <stringN>)
   
@@ -25994,7 +26014,7 @@
     > say [setp(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
       moo goes the cow.
   
-  See Also: setq(), setr(), r(), nameq(), localize(), privatize()
+  See Also: setq(), setr(), r(), namep(), nameq(), localize(), privatize()
 
 & SETQ()
   Function: setq(<register>,<string>[,<label>])
@@ -26050,7 +26070,7 @@
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            setqmatch(), SETQ_TEMPLATE, REGISTERS
+            namep(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQ_OLD()
   Function: setq_old(<register>,<string>[,<label>])
@@ -26094,7 +26114,7 @@
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            setqmatch(), SETQ_TEMPLATE, REGISTERS
+            namep(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
   Function: setqmatch(<string>, <pattern>[,delim])
@@ -26151,7 +26171,7 @@
   
   Registers that are invalid and out of range will be ignored.
     
-  See Also: nameq(), setq(), setr(), setp(), r(), REGISTERS
+  See Also: namep(), nameq(), setq(), setr(), setp(), r(), REGISTERS
   
 & SETR()
   Function: setr(<register>,<string>[,<label>])
@@ -26196,7 +26216,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            namep(), setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETR_OLD()
   Function: setr_old(<register>,<string>[,<label>])
@@ -26238,7 +26258,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            namep(), setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -31994,6 +32014,7 @@
   localize() - Evaluates code while preserving all setq() registers.
   moon() - Returns the phase of the moon for the specified time.
   nameq() - (Re)names setq variables with a new label.
+  namep() - (Re)names multiple setq variables with a new label.
   null() - Eats all output from <string> (evaluates).
   parenmatch() - Returns an ansified match of (), {} and []s.
   pid() - Return a list of process id's
@@ -32317,6 +32338,7 @@
   lock()          - Sets a specified lock on an object.
   name()          - Sets the name of an object.
   nameq()         - (Re)names setq variables with a new label.
+  namep()         - (Re)names multiple setq variables with a new label.
   npemit()        - Like pemit(), but will not strip spaces.
   oemit()         - Like emit(), but will omit a specified target.
   open()          - Opens an exit.
@@ -35477,6 +35499,7 @@
  * added features to help list registers with nameq() [ASH]
  * localize() and privatize now aware of high register values [ASH]
  * added setp() which handles one or more register sets [ASH]
+ * namep() added which handles one ore more register names [ASH]
   
   Changes
   -------
@@ -35523,6 +35546,7 @@
  * allowed attrcnt() and cluster_attrcnt() to handle attrib patterns [ASH]
  * reworked all setq/setr/r functions for better optimization [ASH]
  * @blacklist rewritten to handle easier future modification [ASH]
+ * nameq() validates labels are not in use before setting [ASH]
     
   Bug Fixes
   ------------

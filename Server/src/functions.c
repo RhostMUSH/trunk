@@ -36719,10 +36719,48 @@ FUNCTION(fun_nameq)
              safe_str(mudstate.global_regsname[regnum], buff, bufcx);
           }
        } else {
-          strncpy(mudstate.global_regsname[regnum], fargs[1], (SBUF_SIZE - 1));
-          *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          /* If label is already in use, don't set it */
+          i_namefnd = 0;
+          if ( fargs[1] && *fargs[1] ) {
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( mudstate.global_regsname[i] && *(mudstate.global_regsname[i]) &&
+                     (stricmp(mudstate.global_regsname[i], fargs[1]) == 0) ) {
+                   i_namefnd = 1;
+                   break;
+                }
+             }
+          }
+          if ( i_namefnd ) {
+             safe_str("#-1 LABEL [", buff, bufcx);
+             safe_str(fargs[1], buff, bufcx);
+             safe_str("] ALREADY IN USE", buff, bufcx);
+          } else { 
+             strncpy(mudstate.global_regsname[regnum], fargs[1], (SBUF_SIZE - 1));
+             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+          }
        }
     }
+}
+
+FUNCTION(fun_namep)
+{
+   int i_loop;
+   char *s_array[2];
+
+   if (nfargs % 2) {
+      safe_str("#-1 FUNCTION (NAMEP) EXPECTS AN EVEN NUMBER OF ARGS", buff, bufcx);
+      return;
+   }
+
+   for ( i_loop = 0; i_loop < nfargs; i_loop+=2 ) {
+      s_array[0] = fargs[i_loop];
+      s_array[1] = fargs[i_loop+1];
+      if ( !*s_array[0] || !*s_array[1] ) {
+         safe_str("#-1 ARGUMENTS EXPECTED", buff, bufcx);
+      } else {
+         fun_nameq(buff, bufcx, player, cause, cause, s_array, 2, (char **)NULL, 0);
+      }
+   }
 }
 
 FUNCTION(fun_setp)
@@ -36738,7 +36776,7 @@ FUNCTION(fun_setp)
    for ( i_loop = 0; i_loop < nfargs; i_loop+=2 ) {
       s_array[0] = fargs[i_loop];
       s_array[1] = fargs[i_loop+1];
-      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETQ", 0, 1);
+      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETP", 0, 1);
    }
 }
 
@@ -40856,6 +40894,7 @@ FUN flist[] =
 #else
     {"NAME", fun_name, 1, 0, CA_PUBLIC, 0},
 #endif
+    {"NAMEP", fun_namep, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NAMEQ", fun_nameq, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NAND", fun_nand, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"NCOMP", fun_ncomp, 2, 0, CA_PUBLIC, CA_NO_CODE},
