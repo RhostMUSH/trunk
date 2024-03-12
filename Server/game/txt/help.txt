@@ -6892,7 +6892,7 @@
   use.
   
   See Also: @drain, @notify, @ps, SEMAPHORES, setq(), setr(), r(), nameq(), 
-            pid(), setp(), namep()
+            pid(), setqm(), nameqm()
   
 & @wipe
   Command: @wipe[/<switch(es)>] <object>[/<wild-attr>]
@@ -11852,7 +11852,7 @@
     > say [setq(bar,foo)]%q<bar> [setq(0,moo)]%q<bar>
     You say "foo #-1 GLOBAL REGISTER '0' LABEL PROTECTEDfoo"
   
-  See Also: setp(), setq(), setr(), %q, r(), REGISTERS
+  See Also: setqm(), setq(), setr(), %q, r(), REGISTERS
 
 & FLAG LIST
   Topic: FLAG LIST
@@ -12300,8 +12300,8 @@
   MEDIT()        MEMBER()     MERGE()        MID()            MIN()          
   MIX()          MOD()        MODULO()       MODIFYTIME()     MONEY()        
   MONEYNAME()    MOON()       MSECS()        MSECSTZ()        MUDNAME()      
-  MUL()          MUNGE()      MWORDS()       NAME()           NAMEP()
-  NAMEQ()        NAND()       NCOMP()        NEARBY()         NEQ()          
+  MUL()          MUNGE()      MWORDS()       NAME()           NAMEQ()
+  NAMEQM()       NAND()       NCOMP()        NEARBY()         NEQ()          
   NEXT()         NOR()        NOSTR()        NOT()            NOTCHR()       
   NPEMIT()       NSITER()     NUM()          NUMMATCH()       NULL()         
   NUMMEMBER()    NUMPOS()     NUMWILDMATCH() OBJ()            OBJEVAL()      
@@ -12330,7 +12330,7 @@
   S()            SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()     
   SEARCHOBJID()  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()     
   SECURE()       SECUREX()       SEES()          SET()          SETDIFF()   
-  SETINTER()     SETP()          SETQ()          SETQ_OLD()     SETQMATCH()  
+  SETINTER()     SETQ()          SETQM()         SETQ_OLD()     SETQMATCH()  
   SETR()         SETR_OLD()      SETUNION()      SHIFT()        SHL()        
   SHR()          SHUFFLE()       SIGN()          SIN()          SINGLETIME() 
   SORT()         SORTBY()        SORTLIST()      SOUNDEX()      SOUNDLIKE()  
@@ -12452,10 +12452,10 @@
             See Also: help logical functions
   
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LISTTAGS() LOCKCHECK()
-                      LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEP()
+                      LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQM()
                       NAMEQ() NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS()
-                      R() SANDBOX() SETP() SETQ() SETQ_OLD() SETQMATCH() SETR()
-                      SETR_OLD() SOUNDEX() SOUNDLIKE() STDERR() TAG() 
+                      R() SANDBOX() SETQ() SETQM() SETQ_OLD() SETQMATCH() 
+                      SETR() SETR_OLD() SOUNDEX() SOUNDLIKE() STDERR() TAG() 
                       TAGMATCH() TRACE()
             See Also: help miscellaneous functions
   
@@ -12543,9 +12543,9 @@
              See Also: help aliased functions  
   
   Side-Effects:        CLONE() CREATE() DESTROY() DIG() EMIT() LEMIT() LINK() 
-                       LIST() LOCK() NAME() NAMEP() NAMEQ() NPEMIT() OEMIT() 
+                       LIST() LOCK() NAME() NAMEQM() NAMEQ() NPEMIT() OEMIT()
                        OPEN() PARENT() PEMIT() R() REMIT() RSET() RULER() 
-                       RXLEVEL() SET() SETP() SETQ() SETQ_OLD() SETR() 
+                       RXLEVEL() SET() SETQ() SETQM() SETQ_OLD() SETR() 
                        SETR_OLD() TEL() TOGGLE() TOTEMSET() TXLEVEL() WIPE() 
                        ZEMIT()
              See Also: help side effect functions  
@@ -12872,7 +12872,7 @@
     You say "Fee fie foo fum"
     item says "-->fum"<-- bar -->Wizard says "Fee fie<--"
   
-  See Also: setq(), setp(), r(), setr(), nameq(), namep(), SUBSTITUTIONS
+  See Also: setq(), setqm(), r(), setr(), nameq(), nameqm(), SUBSTITUTIONS
   
 & %
 & %%
@@ -14831,7 +14831,7 @@
     > think array(abcdefghij,3,0,,2)%q0 - %q1 - %q2
     abcd - efg - hij
   
-  See Also: printf(), setq(), setp(), setr(), r(), template(), substitutions
+  See Also: printf(), setq(), setqm(), setr(), r(), template(), substitutions
 
 & APOSS()
   Function: aposs(<object>)
@@ -16303,7 +16303,7 @@
   
   Note:  You may use nameq() to get the letter/number of a label.
   
-  See Also: setp(), setq(), setr(), namep(), nameq(), r(), substitutions
+  See Also: setqm(), setq(), setr(), nameqm(), nameq(), r(), substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -21754,7 +21754,7 @@
   value of %q0 to its original "are delicious!"
    
   See Also:  zfunlocal2(), zfun(), zfun2(), zfunldefault(), zfun2ldefault(), 
-             setq(), r(), setp()
+             setq(), r(), setqm()
   
 & ULOCAL()
   Function:  ulocal([<obj>/]<attr>[,<arg>]...)
@@ -21797,7 +21797,7 @@
   value of %q0 to its original "are delicious!"
    
   See Also:  ulocal2(), u(), u2(), uldefault(), u2ldefault(), setq(), r(),
-             setp(), @lfunction
+             setqm(), @lfunction
   
 & PRIVATIZE()
   Function: privatize(<boolean>)
@@ -21883,7 +21883,7 @@
     > say [setr(0,T)]:[setr(1,C)], [privatize(1,u(va),0 1 3 4,,1)], %q0:%q1
     You say "T:C, O:, T:C"
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), setp(),
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), setqm(),
             setr(), setq(), r(), sandbox(), subeval(), @lfunction
 
 & SANDBOX()
@@ -21993,7 +21993,7 @@
   
   Note: You can interchange the number with the letter.  a=10, b=11, c=12, etc
   
-  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), setp(),
+  See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), setqm(),
             setq(), setr(), r(), sandbox(), subeval(), @lfunction
   
 & LOCALFUNC()
@@ -25798,7 +25798,7 @@
     > say [setq(0,testing,bob)][setq(bob,testing2)]%q<bob>
     You say "testing2"
    
-  See Also: setq(), setr(), setp(), namep(), nameq(), inc(), dec()
+  See Also: setq(), setr(), setqm(), nameqm(), nameq(), inc(), dec()
   
 & XINC()
   Function: xinc(<number> [,<key>])
@@ -25846,7 +25846,7 @@
     > say [setq(0,The)] 1: [r(0)] [inc(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: dec(), xdec(), xinc(), setq(), setr(), r(), setp()
+  See Also: dec(), xdec(), xinc(), setq(), setr(), r(), setqm()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25899,7 +25899,7 @@
     > say [setq(0,The)] 1: [r(0)] [dec(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: inc(), xinc(), xdec(), setq(), setr(), r(), setp()
+  See Also: inc(), xinc(), xdec(), setq(), setr(), r(), setqm()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25973,10 +25973,10 @@
   
   Note: registers go from 0-9 then a-z where a-z would be assigned 11-36. 
   
-  See Also: namep(), setq(), setr(), r(), setp(), SETQ_TEMPLATE
+  See Also: nameqm(), setq(), setr(), r(), setqm(), SETQ_TEMPLATE
 
-& NAMEP()
-  Function: namep(<register1>, <label1>, ..., <registerN>, <labelN>)
+& NAMEQM()
+  Function: nameqm(<register1>, <label1>, ..., <registerN>, <labelN>)
   
   This function works like nameq() in how it sets labels to registers, but
   it allows setting more than one register at once.
@@ -25989,13 +25989,13 @@
   This function requires an even number of arguments.
   
   Examples:
-    > say [setp(0,val1,1,val2)][namep(0,foolabel,1,barlabel)]%q<foolabel>
+    > say [setqm(0,val1,1,val2)][nameqm(0,foolabel,1,barlabel)]%q<foolabel>
     You say "val1"
   
-  See Also: nameq(), setp(), setq(), setr(), r(), localize(), privatize()
+  See Also: nameq(), setqm(), setq(), setr(), r(), localize(), privatize()
   
-& SETP()
-  Function: setp(<register1>, <string1>, ..., <registerN>, <stringN>)
+& SETQM()
+  Function: setqm(<register1>, <string1>, ..., <registerN>, <stringN>)
   
   This function works like setq() in how it sets registers, but it allows
   setting more than one register at once.
@@ -26009,12 +26009,12 @@
   previously set register in the chain.
   
   Examples:
-    > say [setp(0,foo,1,bar,2,%q0%q1baz)]%q2
+    > say [setqm(0,foo,1,bar,2,%q0%q1baz)]%q2
       foobarbaz
-    > say [setp(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
+    > say [setqm(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
       moo goes the cow.
   
-  See Also: setq(), setr(), r(), namep(), nameq(), localize(), privatize()
+  See Also: setq(), setr(), r(), nameqm(), nameq(), localize(), privatize()
 
 & SETQ()
   Function: setq(<register>,<string>[,<label>])
@@ -26069,8 +26069,8 @@
     > say [setq(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
-  See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            namep(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+  See Also: setqm(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
+            nameqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQ_OLD()
   Function: setq_old(<register>,<string>[,<label>])
@@ -26113,8 +26113,8 @@
     > say [setq_old(0,u(TEST),test)][setq(test,Test: [u(test)])][r(0)]
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
-  See Also: setp(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            namep(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+  See Also: setqm(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
+            nameqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
   Function: setqmatch(<string>, <pattern>[,delim])
@@ -26144,7 +26144,7 @@
     > say setqmatch(kow, wok, n)
     You say ""
   
-  See Also: setp(), listmatch(), match(), totmatch(), wildmatch(), setq(), 
+  See Also: setqm(), listmatch(), match(), totmatch(), wildmatch(), setq(), 
             REGISTERS
   
 & SETQ_TEMPLATES
@@ -26171,7 +26171,7 @@
   
   Registers that are invalid and out of range will be ignored.
     
-  See Also: namep(), nameq(), setq(), setr(), setp(), r(), REGISTERS
+  See Also: nameqm(), nameq(), setq(), setr(), setqm(), r(), REGISTERS
   
 & SETR()
   Function: setr(<register>,<string>[,<label>])
@@ -26216,7 +26216,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            namep(), setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(), setqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETR_OLD()
   Function: setr_old(<register>,<string>[,<label>])
@@ -26258,7 +26258,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            namep(), setp(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(), setqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -31100,7 +31100,7 @@
     > %q<0>           --- return value of register 0
     > %q<bar>         --- return value of register with label bar
    
-  See Also: setq(), setr(), r(), setp(), %q, USER ATTRIBUTES
+  See Also: setq(), setr(), r(), setqm(), %q, USER ATTRIBUTES
 
 & USER ATTRIBUTES
   Topic: USER ATTRIBUTES
@@ -31980,78 +31980,78 @@
 & logarithmic functions
   Function Lists: Logarithmic Functions
 
-  e() - Returns the numeric constant e.
-  exp() - Returns the result of raising e to a power.
-  ln() - Returns the natural logarithm of a value.
-  log() - Returns the common logarithm of a value.
-  pi() - Returns the numeric constant pi.
-  power() - Raises a value to the nth power.
-  power10() - Raises 10 to the factor of a value.
-  shl() - Performs a leftwards bit-shift on a value.
-  shr() - Performs a rightwards bit-shift on a value.
-  sqrt() - Returns the square root of a value.
+  e()           - Returns the numeric constant e.
+  exp()         - Returns the result of raising e to a power.
+  ln()          - Returns the natural logarithm of a value.
+  log()         - Returns the common logarithm of a value.
+  pi()          - Returns the numeric constant pi.
+  power()       - Raises a value to the nth power.
+  power10()     - Raises 10 to the factor of a value.
+  shl()         - Performs a leftwards bit-shift on a value.
+  shr()         - Performs a rightwards bit-shift on a value.
+  sqrt()        - Returns the square root of a value.
 
 & logical functions
   Function Lists: Logical Functions
  
-  and() - Returns the value of And'ing booleans together.
-  mask() - Applies a specified mask to a value.
-  nand() - Returns the inverse of an And on booleans.
-  nor() - Returns the inverse of an Or on booleans.
-  or() - Returns the value of Or'ing booleans together.
-  xor() - Returns the exclusive Or of booleans.
-  xnor() - Returns the exclusive inverse of an And of values.
-  cand() - Like and, except stops after the first non-true value.
-  cor() - Like or, except stops after the first non-true value.
+  and()         - Returns the value of And'ing booleans together.
+  mask()        - Applies a specified mask to a value.
+  nand()        - Returns the inverse of an And on booleans.
+  nor()         - Returns the inverse of an Or on booleans.
+  or()          - Returns the value of Or'ing booleans together.
+  xor()         - Returns the exclusive Or of booleans.
+  xnor()        - Returns the exclusive inverse of an And of values.
+  cand()        - Like and, except stops after the first non-true value.
+  cor()         - Like or, except stops after the first non-true value.
 
 & miscellaneous functions
   Function Lists: Miscellaneous Functions
  
-  @@() - Eats all output from <string> (doesn't evaluate).
-  asc() - Returns the ASCII numerical value of a character.
-  chr() - Returns the character of an ASCII numerical value.
-  error() - Returns one of the random error messages in standard format.
-  localize() - Evaluates code while preserving all setq() registers.
-  moon() - Returns the phase of the moon for the specified time.
-  nameq() - (Re)names setq variables with a new label.
-  namep() - (Re)names multiple setq variables with a new label.
-  null() - Eats all output from <string> (evaluates).
-  parenmatch() - Returns an ansified match of (), {} and []s.
-  pid() - Return a list of process id's
-  privatize() - All localized variables are initialized to null
-  pushregs() - Preserves, and restores setq() registers.
-  r() - Accesses local registers.
-  sandbox() - Evaluates code with specific function restrictions.
-  setp() - Copies 1 or more strings into one or more registers.
-  setq() - Copies a string into a local register.
-  setq_old() - Like setq(), but uses old MUSH style evaluation.
-  setqmatch() - Sets a register if a pattern matches <string>.
-  setr() - Like setq(), but returns its string argument.
-  setr_old() - Like setr(), but uses old MUSH style evaluation.
-  soundex() - Returns the soundex pattern of a word.
-  soundlike() - Compares the soundex of two words.
-  tag() - Returns the #dbref stored behind a named tag.
-  trace() - Controls the trace flag on an object.
+  @@()          - Eats all output from <string> (doesn't evaluate).
+  asc()         - Returns the ASCII numerical value of a character.
+  chr()         - Returns the character of an ASCII numerical value.
+  error()       - Returns one of the random error messages in standard format.
+  localize()    - Evaluates code while preserving all setq() registers.
+  moon()        - Returns the phase of the moon for the specified time.
+  nameq()       - (Re)names setq variables with a new label.
+  nameqm()      - (Re)names multiple setq variables with a new label.
+  null()        - Eats all output from <string> (evaluates).
+  parenmatch()  - Returns an ansified match of (), {} and []s.
+  pid()         - Return a list of process id's
+  privatize()   - All localized variables are initialized to null
+  pushregs()    - Preserves, and restores setq() registers.
+  r()           - Accesses local registers.
+  sandbox()     - Evaluates code with specific function restrictions.
+  setq()        - Copies a string into a local register.
+  setqm()       - Copies 1 or more strings into one or more registers.
+  setq_old()    - Like setq(), but uses old MUSH style evaluation.
+  setqmatch()   - Sets a register if a pattern matches <string>.
+  setr()        - Like setq(), but returns its string argument.
+  setr_old()    - Like setr(), but uses old MUSH style evaluation.
+  soundex()     - Returns the soundex pattern of a word.
+  soundlike()   - Compares the soundex of two words.
+  tag()         - Returns the #dbref stored behind a named tag.
+  trace()       - Controls the trace flag on an object.
 
 & object information functions
   Function Lists: Object Information Functions
  
-  aposs() - Returns the absolute possessive pronoun of an object.
-  art() - Returns the article proper for the word.
-  attrcnt() - Returns the number of attributes on an object.
-  cname() - Returns the colorized/accented name of the target.
-  controls() - Returns true if object2 controls object1
-  default() - Returns the value of obj/attr if readable, or a default.
-  edefault() - Like default(), but evaluates like get_eval()
-  elock() - Checks if <victim> would pass the named lock on <object>.
-  fullname() - Returns the full name of the indicated object.
-  get() - Retrieves the contents of an attribute on an object.
-  get_eval() - Same as get(), but evaluates the contents.
-  grab() - Matches a pattern against each word of <string>.
-  graball() - Like grab(), but returns all matches.
-  grep() - Returns a list of matching attributes.
-  guild() - Returns the guild of a specified user.
-  hasattr() - Returns true if an object has the specified attribute.
+  aposs()       - Returns the absolute possessive pronoun of an object.
+  art()         - Returns the article proper for the word.
+  attrcnt()     - Returns the number of attributes on an object.
+  cname()       - Returns the colorized/accented name of the target.
+  controls()    - Returns true if object2 controls object1
+  default()     - Returns the value of obj/attr if readable, or a default.
+  edefault()    - Like default(), but evaluates like get_eval()
+  elock()       - Checks if <victim> would pass the named lock on <object>.
+  fullname()    - Returns the full name of the indicated object.
+  get()         - Retrieves the contents of an attribute on an object.
+  get_eval()    - Same as get(), but evaluates the contents.
+  grab()        - Matches a pattern against each word of <string>.
+  graball()     - Like grab(), but returns all matches.
+  grep()        - Returns a list of matching attributes.
+  guild()       - Returns the guild of a specified user.
+  hasattr()     - Returns true if an object has the specified attribute.
   hasattrp()    - Like hasattr(), but also checks parents.
   hasflag()     - Returns true if an object has the specified flag set.
   hastoggle()   - Returns true if an object has the specified toggle set.
@@ -32338,7 +32338,7 @@
   lock()          - Sets a specified lock on an object.
   name()          - Sets the name of an object.
   nameq()         - (Re)names setq variables with a new label.
-  namep()         - (Re)names multiple setq variables with a new label.
+  nameqm()        - (Re)names multiple setq variables with a new label.
   npemit()        - Like pemit(), but will not strip spaces.
   oemit()         - Like emit(), but will omit a specified target.
   open()          - Opens an exit.
@@ -32350,8 +32350,8 @@
   ruler()         - Display a ruler outline of contents of an attribute.
   rxlevel()       - Sets or unsets a reality receive level for an object.
   set()           - Sets an attribute on an object.
-  setp()          - Copies one or more strings into one or more registers.
   setq()          - Copies a string into a local register.
+  setqm()          - Copies one or more strings into one or more registers.
   setq_old()      - Like setq(), but with old-style MUSH functionality.
   setr()          - Like setq(), but also displays the string.
   setr_old()      - Like setr(), but with old-style MUSH functionality.
@@ -35498,8 +35498,8 @@
  * setr()/setq()/r()/%q/xinc()/xdec()/nameq() handle high-number regs [ASH]
  * added features to help list registers with nameq() [ASH]
  * localize() and privatize now aware of high register values [ASH]
- * added setp() which handles one or more register sets [ASH]
- * namep() added which handles one ore more register names [ASH]
+ * added setqm() which handles one or more register sets [ASH]
+ * nameqm() added which handles one ore more register names [ASH]
   
   Changes
   -------
@@ -35547,6 +35547,7 @@
  * reworked all setq/setr/r functions for better optimization [ASH]
  * @blacklist rewritten to handle easier future modification [ASH]
  * nameq() validates labels are not in use before setting [ASH]
+ * setp renamed to setqm, namep renamed to nameqm
     
   Bug Fixes
   ------------
