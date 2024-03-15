@@ -1338,6 +1338,8 @@ extern void do_atrcache_handler(dbref, char *, int, char *, char **, char **, in
 extern char * totem_valid(dbref, char *, int);
 extern char * skip_mux_ansi(char *, char *, char **);
 extern int count_mux_ansi(char *);
+extern void build_sweep(dbref, dbref, dbref, int, char *, char *, char **, char *);
+
 
 
 int
@@ -2681,6 +2683,73 @@ do_reverse(char *from, char *to, char **tocx, int i_transpose)
           safe_chr( *fp--, to, tocx);
        }
     }
+}
+
+/* Functional of @sweep */
+FUNCTION(fun_sweep)
+{
+   char *s_switch[] = {"commands", "connected", "exits", "here", "inventory", "listeners", "players", NULL};
+   char **s_p, *sep, *s_strtok, *s_strtokr, *s_tmp, *s_what;
+   int i_switch[] = { SWEEP_COMMANDS, SWEEP_CONNECT, SWEEP_EXITS, SWEEP_HERE, SWEEP_ME, SWEEP_LISTEN, SWEEP_PLAYER, 0};
+   int *i_p, i_key, i_target, i_max;
+
+   if (!fn_range_check("SWEEP", nfargs, 1, 4, buff, bufcx)) {
+      return;
+   }
+
+   s_what = fargs[0];
+
+   if (mudstate.last_cmd_timestamp == mudstate.now) {
+      mudstate.heavy_cpu_recurse += 1;
+   }
+
+   /* this is a stupidly expensive function.  Increase limits against non-wizzes */
+   if ( mudconf.heavy_cpu_max > 10 ) {
+      i_max = 5;
+   } else {
+      i_max = 1;
+   }
+   if ( (!Wizard(player) && (mudstate.heavy_cpu_recurse > i_max)) ||
+        mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+      return;
+   }
+
+   i_p = 0;
+   s_p = NULL;
+
+   if ( (nfargs > 2) && *fargs[2] ) {
+      sep = fargs[2];
+   } else {
+      sep = " ";
+   }
+   
+   i_key = 0;
+   i_target = player;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      s_tmp = alloc_lbuf("fun_sweep");
+      strcpy(s_tmp, fargs[1]);
+      s_strtok = strtok_r(s_tmp, " /t", &s_strtokr);
+      while ( s_strtok ) {
+         i_p = i_switch;
+         for ( s_p = s_switch; *s_p; s_p++, i_p++) {
+            if ( strncasecmp(*s_p, s_strtok, strlen(s_strtok)) == 0 ) {
+               i_key |= *i_p;
+            }
+         }
+         s_strtok = strtok_r(NULL, " /t", &s_strtokr);
+      }
+      free_lbuf(s_tmp);
+   } 
+   if ( (nfargs > 3)  && *fargs[3] ) {
+      init_match(player, fargs[3], NOTYPE);
+      match_everything(MAT_EXIT_PARENTS);
+      i_target = match_result();
+      if ( !Good_chk(i_target) || !Controls(player, i_target) )
+         i_target = player;
+   }
+   
+   build_sweep(i_target, cause, caller, i_key, s_what, buff, bufcx, sep);
 }
 
 FUNCTION(fun_stderr)
@@ -41099,6 +41168,7 @@ FUN flist[] =
     {"SUBEVAL", fun_subeval, 1,FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SUBJ", fun_subj, 1, 0, CA_PUBLIC, 0},
     {"SUBNETMATCH", fun_subnetmatch, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"SWEEP", fun_sweep, 2, FN_VARARGS, CA_WIZARD, CA_NO_CODE},
     {"SWITCH", fun_switch, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SWITCHALL", fun_switchall, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"T", fun_t, 1, 1, CA_PUBLIC, CA_NO_CODE},

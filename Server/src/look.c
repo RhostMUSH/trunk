@@ -3753,6 +3753,136 @@ do_entrances(dbref player, dbref cause, int key, char *name)
     notify(player, "key: T(hing), P(layer), R(oom), E(xit), p(arent), F(orward)");
 }
 
+static void
+build_sweep_check(char *buff, char **bufcx, dbref player, dbref what, int key, int is_loc, int *first, char *sep) 
+{
+   dbref aowner, parent, what2;
+   int canhear, cancom, isplayer, ispuppet, isconnected, attr, aflags;
+   int is_parent, lev;
+   char *as, *s_buff, *s;
+   static char s_dbref[20];
+   ATTR *ap;
+
+   canhear = cancom = isplayer = ispuppet = isconnected = is_parent = 0;
+
+   if ( !Good_chk(what) ) 
+      return;
+
+   s_buff = NULL;
+   memset(s_dbref, '\0', 20);
+
+   if ((key & SWEEP_LISTEN) && (((Typeof(what) == TYPE_EXIT) || is_loc) && Audible(what))) {
+      canhear = 1;
+   } else if (key & SWEEP_LISTEN) {
+      if ( H_Listen(what) && Bouncer(what)) {
+         canhear = 1;
+      }
+      if (Monitor(what)) {
+         s_buff = alloc_lbuf("Hearer");
+      } else {
+         s_buff = NULL;
+      }
+      if ( (mudconf.listen_parents == 0) || !Monitor(what) ) {
+         for (attr = atr_head(what, &as); attr; attr = atr_next(&as)) {
+            if (attr == A_LISTEN) {
+               canhear = 1;
+               break;
+            }
+            if (Monitor(what)) {
+               ap = atr_num(attr);
+               if (!ap || (ap->flags & AF_NOPROG))
+                  continue;
+               atr_get_str(s_buff, what, attr, &aowner, &aflags);
+               /* Make sure we can execute it */
+               if ((s_buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                  continue;
+   
+               /* Make sure there's a : in it */
+               for (s = s_buff + 1; *s && (*s != ':'); s++);
+               if (s) {
+                  canhear = 1;
+                  break;
+               }
+            }
+         }
+      } else {
+         ITER_PARENTS(what, parent, lev) {
+            for (attr = atr_head(parent, &as); attr; attr = atr_next(&as)) {
+               if ((parent == what) && (attr == A_LISTEN)) {
+                  canhear = 1;
+                  break;
+               }
+               if (Monitor(what)) {
+                  ap = atr_num(attr);
+                  if (!ap || (ap->flags & AF_NOPROG))
+                     continue;
+                  atr_get_str(s_buff, parent, attr, &aowner, &aflags);
+                  /* Make sure we can execute it */
+                  if ((s_buff[0] != AMATCH_LISTEN) || (aflags & AF_NOPROG))
+                     continue;
+                  if ( (what != parent) && ((ap->flags & AF_PRIVATE) || (aflags & AF_PRIVATE)) )
+                     continue;
+
+                  /* Make sure there's a : in it */
+                  for (s = s_buff + 1; *s && (*s != ':'); s++);
+                  if (s) {
+                     canhear = 1;
+                     break;
+                  }
+               }
+            }
+         }
+      }
+      if (s_buff)
+         free_lbuf(s_buff);
+   }
+
+   if ((key & SWEEP_COMMANDS) && (Typeof(what) != TYPE_EXIT)) {
+      /* Look for commands on the object and parents too */
+      ITER_PARENTS(what, parent, lev) {
+         if (Commer(parent)) {
+            cancom = 1;
+            if (lev) {
+               is_parent = 1;
+               break;
+            }
+         }
+      }
+   }
+   if (key & SWEEP_CONNECT) {
+      if ( Connected(what) || (Puppet(what) && Connected(Owner(what))) ||
+           (mudconf.player_listen && (Typeof(what) == TYPE_PLAYER) &&
+           canhear && Connected(Owner(what)))) {
+         isconnected = 1;
+      }
+   }
+   if (key & SWEEP_PLAYER || isconnected) {
+      if (Typeof(what) == TYPE_PLAYER)
+         isplayer = 1;
+      if (Puppet(what))
+         ispuppet = 1;
+   }
+   if (canhear || cancom || isplayer || ispuppet || isconnected) {
+      sprintf(s_dbref, "#%d", what);
+
+      if (Cloak(what))
+         what2 = what;
+      else
+         what2 = Owner(what);
+
+      if ( Good_chk(what2) && Good_chk(what) ) {
+         if ( !Cloak(what2) || (Cloak(what2) && 
+              ((!Immortal(what2) && (Wizard(player)) && (!SCloak(what2))) || Immortal(player)))) {
+            if ( *first ) {
+               safe_str(sep, buff, bufcx);
+            }
+            *first = 1;
+            safe_str(s_dbref, buff, bufcx);
+         }
+      }
+   }
+}
+
 /* check the current location for bugs */
 static void 
 sweep_check(dbref player, dbref what, int key, int is_loc)
@@ -3763,12 +3893,7 @@ sweep_check(dbref player, dbref what, int key, int is_loc)
     char *buf, *buf2, *bp, *as, *buff, *s, *tpr_buff, *tprp_buff;
     ATTR *ap;
 
-    canhear = 0;
-    cancom = 0;
-    isplayer = 0;
-    ispuppet = 0;
-    isconnected = 0;
-    is_parent = 0;
+    canhear = cancom = isplayer = ispuppet = isconnected = is_parent = 0;
 
     if ( !Good_obj(what) ) 
        return;
@@ -3923,6 +4048,91 @@ sweep_check(dbref player, dbref what, int key, int is_loc)
 	}
 	free_lbuf(buf);
     }
+}
+
+/* return dbref#'s in buff that match */
+void
+build_sweep(dbref player, dbref cause, dbref caller, int key, char *where, char *buff, char **bufcx, char *sep)
+{
+   dbref here, sweeploc, start;
+   int where_key, what_key, first;
+   char *mysep;
+
+// do_sweep(player, cause, key, where);
+// return;
+
+   where_key = key & (SWEEP_ME | SWEEP_HERE | SWEEP_EXITS);
+   what_key = key & (SWEEP_COMMANDS | SWEEP_LISTEN | SWEEP_PLAYER | SWEEP_CONNECT);
+
+   if (where && *where) {
+      sweeploc = match_controlled(player, where);
+      if (!Good_chk( sweeploc )) {
+         return;
+      }
+   } else {
+      sweeploc = player;
+   }
+
+   if ( !sep || !*sep ) {
+      mysep = (char *)" ";
+   } else {
+      mysep = sep;
+   }
+   first = 0;
+
+   if (!where_key)
+      where_key = -1;
+
+   if (!what_key) {
+      what_key = -1;
+   } else if (what_key == SWEEP_VERBOSE) {
+      what_key = SWEEP_VERBOSE | SWEEP_COMMANDS;
+   }
+
+   /* Check my location.  If I have none or it is dark, check just me. */
+   if (where_key & SWEEP_HERE) {
+      if (Has_location(sweeploc)) {
+         here = Location(sweeploc);
+         if (!Good_chk(here) || (Dark(here) && !mudconf.sweep_dark && !Examinable(player, here))) {
+            /* Dark -- can't search for bugs */
+            build_sweep_check(buff, bufcx, player, sweeploc, what_key, 0, &first, sep);
+         } else {
+            build_sweep_check(buff, bufcx, player, here, what_key, 1, &first, sep);
+            for (here = Contents(here); here != NOTHING; here = Next(here)) {
+               build_sweep_check(buff, bufcx, player, here, what_key, 0, &first, sep);
+            }
+         }
+      } else {
+         build_sweep_check(buff, bufcx, player, sweeploc, what_key, 0, &first, sep);
+      }
+   }
+
+   if ((where_key & SWEEP_EXITS) && Has_location(sweeploc)) {
+      /* Check exits in my location */
+      start = Location(sweeploc);
+      if (Good_chk(start)) {
+      /* Sweep exits */
+         for (here = Exits(start); here != NOTHING; here = Next(here)) {
+            build_sweep_check(buff, bufcx, player, here, what_key, 0, &first, sep);
+         }
+      }
+   }
+
+   /* Check my inventory */
+   if ((where_key & SWEEP_ME) && Has_contents(sweeploc)) {
+      /* Sweep inventory */
+      for (here = Contents(sweeploc); here != NOTHING; here = Next(here)) {
+         build_sweep_check(buff, bufcx, player, here, what_key, 0, &first, sep);
+      }
+   }
+
+   /* Check carried exits */
+   if ((where_key & SWEEP_EXITS) && Has_exits(sweeploc)) {
+      /* Sweep exits */
+      for (here = Exits(sweeploc); here != NOTHING; here = Next(here)) {
+         build_sweep_check(buff, bufcx, player, here, what_key, 0, &first, sep);
+      }
+   }
 }
 
 void 

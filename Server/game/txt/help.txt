@@ -6509,6 +6509,7 @@
   
 & @sweep
   Command: @sweep[/<switches>]
+  
   This command tells you all of the objects, players, and exits that are
   listening in the room you are currently in, as well as the objects you are
   carrying.  Most objects only listen for a particular string or phrase, so
@@ -35500,6 +35501,7 @@
  * localize() and privatize now aware of high register values [ASH]
  * added setqm() which handles one or more register sets [ASH]
  * nameqm() added which handles one ore more register names [ASH]
+ * added sweep() function to mimic @sweep [ASH]
   
   Changes
   -------

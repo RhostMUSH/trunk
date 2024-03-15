@@ -13452,7 +13452,55 @@
   LATTRP()         LDEPOWERS()      LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE()
   LPOWERS()        LTOGGLES()       MAILALIAS()   MAILQUICK()   MAILQUOTA() 
   MAILREAD()       MAILSEND()       MAILSIZE()    MAILSTATUS()  MSIZETOT()  
-  NSLOOKUP()       QUOTA()          SIZE()        TEXTFILE()    TOTEMVALID()
+  NSLOOKUP()       QUOTA()          SIZE()        SWEEP()       TEXTFILE()  
+  TOTEMVALID()
+
+& SWEEP()
+  Function: sweep(<target> [,<switches> [,<seperator> [,<run-as>]]])
+  
+  This function mimics the functionality of the normal @sweep command.
+  It will return a list of dbref#'s that will have matched the conditions
+  for listeners in the sweep.
+  
+  <target>    - is the target location you wish to issue a sweep against.
+  <switches>  - are the optional switches to narrow down the sweep.
+                You may specify more than one switch at a time.
+  <seperator> - is the output seperator for the return values.
+  <run-as>    - is the target you wish to run the sweep as.
+   
+  The following switches exist:
+     here      - Check the room I am in.
+     inventory - Check my inventory.
+     exits     - Check exits in the room.
+     commands  - Check for objects that have $-commands set on them.
+     connected - Check for connected players and their puppets.
+     listeners - Check for objects with @listen set to something.
+     players   - Check for players and their puppets, whether or not they
+                 are connected.
+  
+  Example:
+    > think [num(moose)] [num(tester)]
+    #789 #567
+    > @sweep here
+    Sweeping location...
+    Sweeping inventory...
+      Tester is listening. [commands player connected]
+      Moose is listening. [player]
+    Sweeping carried exits...
+    Sweep complete.
+    > think sweep(here)
+    #567 #789
+    > think sweep(here,,|)
+    #567|#789
+    > think sweep(here,commands)
+    #567
+  
+  See Also: @sweep
+
+& @sweep
+  Re-Directing to normal help.
+  
+!!help/@sweep
 
 & EXECSCRIPT()
 & EXECSCRIPTNR()
