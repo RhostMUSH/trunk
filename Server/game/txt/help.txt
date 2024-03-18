@@ -35587,3 +35587,4 @@
  * privatize() didn't properly unhook privitizing registers [ASH]
  * fix #1 for the setq/setr rewrite with broken labels with setq_nums [ASH]
  * fix #2 for the setq/setr rewrite with broken labels with penn_setq [ASH]
+ * off by one in %q<##> with setq_nums enabled [ASH]

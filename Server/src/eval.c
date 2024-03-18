@@ -2182,7 +2182,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    } else {
                       if ( mudconf.setq_nums && is_number(t_bufa) ) {
                          i = atoi(t_bufa);
-                         if ( (i >= 0) && (i <= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
+                         if ( (i >= 0) && (i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
 		            if ( mudstate.global_regs[i] ) {
 #ifdef BANGS
                          
