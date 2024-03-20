@@ -3021,6 +3021,17 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                   break;
                }
             }
+            /* Backward compatibility to pull first char on register */
+#ifdef EXPANDED_QREGS
+            if ( (regnum == -1) && !mudconf.penn_setq ) {
+               for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
+                  if ( mudstate.nameofqreg[i] == ToLower(*s_arg0) ) {
+                     regnum = i;
+                     break;
+                  }
+               }
+            }
+#endif
          }
       } else {
          /* Just yoink the number */
