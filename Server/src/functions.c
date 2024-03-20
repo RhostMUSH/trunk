@@ -18986,7 +18986,7 @@ FUNCTION(fun_localize)
                 } else if ( i_multi && (i_len == 1 ) && (x < MAX_GLOBAL_REGS) && (mudstate.nameofqreg[x] == *s_strtok) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 /* Match register by number */
-                } else if ( i_multi && mudconf.setq_nums && (x <= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) && (i_reg == x) ) {
+                } else if ( i_multi && mudconf.setq_nums && (x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) && (i_reg == x) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 /* Old format just match a-z and 0-9 to input string */
                 } else if ( !i_multi && (x < MAX_GLOBAL_REGS) && (strchr(s_strtok, mudstate.nameofqreg[x]) != NULL) ) {
@@ -24492,7 +24492,7 @@ FUNCTION(fun_xcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2;
-    int i, j, t, loop, can_prnt, did_prnt, i_objid;
+    int i, j, t, loop, can_prnt, did_prnt, i_objid, i_nplisten;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
@@ -24507,6 +24507,7 @@ FUNCTION(fun_xcon)
     cancom = 0;
     isplayer = 0;
     ispuppet = 0;
+    i_nplisten = 0;
     first = atoi(fargs[1]);
     how_many = atoi(fargs[2]);
     if ( first <= 0 || how_many <= 0 ) {
@@ -24527,20 +24528,24 @@ FUNCTION(fun_xcon)
     } else
        pt1 = strchr(fargs[0],'/');
     if (pt2) {
-      if (!stricmp(pt2,"PLAYER"))
+      if (!stricmp(pt2,"PLAYER")) {
         t = 1;
-      else if (!stricmp(pt2,"OBJECT"))
+      } else if (!stricmp(pt2,"OBJECT")) {
         t = 2;
-      else if (!stricmp(pt2,"PUPPET"))
+      } else if (!stricmp(pt2,"PUPPET")) {
         t = 3;
-      else if (!stricmp(pt2,"LISTEN"))
+      } else if (!stricmp(pt2,"LISTEN")) {
         t = 4;
-      else if (!stricmp(pt2,"CONNECT"))
+      } else if (!stricmp(pt2,"NPLISTEN")) {
+        t = 4;
+        i_nplisten = 1;
+      } else if (!stricmp(pt2,"CONNECT")) {
         t = 5;
-      else if (!stricmp(pt2,"CMDLISTEN"))
+      } else if (!stricmp(pt2,"CMDLISTEN")) {
         t = 6;
-      else if (!stricmp(pt2,"VISIBLE"))
+      } else if (!stricmp(pt2,"VISIBLE")) {
         t = 7;
+      }
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -24554,6 +24559,10 @@ FUNCTION(fun_xcon)
       } else if (!stricmp(pt1+1,"LISTEN")) {
         t = 4;
         *pt1 = '\0';
+      } else if (!stricmp(pt1+1,"NPLISTEN")) {
+        t = 4;
+        *pt1 = '\0';
+        i_nplisten = 1;
       } else if (!stricmp(pt1+1,"CONNECT")) {
         t = 5;
         *pt1 = '\0';
@@ -24657,8 +24666,11 @@ FUNCTION(fun_xcon)
                 if (buff2)
                   free_lbuf(buff2);
               }
-              if (Typeof(thing) == TYPE_PLAYER)
-                isplayer = 1;
+              if (Typeof(thing) == TYPE_PLAYER) {
+                if ( !i_nplisten ) {
+                   isplayer = 1;
+                }
+              }
               if (Puppet(thing))
                 ispuppet = 1;
               if ( (t == 6) && !canhear && !isplayer && !ispuppet) {
@@ -24747,7 +24759,7 @@ FUNCTION(fun_lcon)
 {
     dbref thing, it, parent, aowner;
     char *tbuf, *pt1, *buff2, *as, *s, *pt2, *namebuff, *namebufcx;
-    int i, j, t, loop, i_objid, i_conchk, i_content;
+    int i, j, t, loop, i_objid, i_conchk, i_content, i_nplisten;
     int gotone = 0;
     int canhear, cancom, isplayer, ispuppet;
     int attr, aflags;
@@ -24783,26 +24795,31 @@ FUNCTION(fun_lcon)
     ispuppet = 0;
     pt2 = NULL;
     pt1 = NULL;
+    i_nplisten = 0;
 
     if ( (nfargs > 1) && *fargs[1] ) {
        pt2 = fargs[1];
     } else
        pt1 = strchr(fargs[0],'/');
     if (pt2) {
-      if (!stricmp(pt2,"PLAYER"))
+      if (!stricmp(pt2,"PLAYER")) {
         t = 1;
-      else if (!stricmp(pt2,"OBJECT"))
+      } else if (!stricmp(pt2,"OBJECT")) {
         t = 2;
-      else if (!stricmp(pt2,"PUPPET"))
+      } else if (!stricmp(pt2,"PUPPET")) {
         t = 3;
-      else if (!stricmp(pt2,"LISTEN"))
+      } else if (!stricmp(pt2,"LISTEN")) {
         t = 4;
-      else if (!stricmp(pt2,"CONNECT"))
+      } else if (!stricmp(pt2,"NPLISTEN")) {
+        t = 4;
+        i_nplisten = 1;
+      } else if (!stricmp(pt2,"CONNECT")) {
         t = 5;
-      else if (!stricmp(pt2,"CMDLISTEN"))
+      } else if (!stricmp(pt2,"CMDLISTEN")) {
         t = 6;
-      else if (!stricmp(pt2,"VISIBLE"))
+      } else if (!stricmp(pt2,"VISIBLE")) {
         t = 7;
+      }
     } else if (pt1) {
       if (!stricmp(pt1+1,"PLAYER")) {
         t = 1;
@@ -24816,6 +24833,10 @@ FUNCTION(fun_lcon)
       } else if (!stricmp(pt1+1,"LISTEN")) {
         t = 4;
         *pt1 = '\0';
+      } else if (!stricmp(pt1+1,"NPLISTEN")) {
+        t = 4;
+        *pt1 = '\0';
+        i_nplisten = 1;
       } else if (!stricmp(pt1+1,"CONNECT")) {
         t = 5;
         *pt1 = '\0';
@@ -24918,8 +24939,11 @@ FUNCTION(fun_lcon)
                    if (buff2)
                       free_lbuf(buff2);
                  }
-                 if (Typeof(thing) == TYPE_PLAYER)
-                   isplayer = 1;
+                 if (Typeof(thing) == TYPE_PLAYER) {
+                   if ( !i_nplisten ) {
+                      isplayer = 1;
+                   }
+                 }
                  if (Puppet(thing))
                    ispuppet = 1;
                  if ( (t == 6) && !canhear && !isplayer && !ispuppet) {

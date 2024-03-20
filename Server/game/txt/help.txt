@@ -19757,6 +19757,8 @@
       /CONNECT   -- lists all connected players in the contents.
       /PUPPET    -- lists all flag type 'PUPPET' in the contents.
       /LISTEN    -- lists all listening things in the contents.
+      /NPLISTEN  -- lists all listening things in the contents excluding all
+                    players not listening.
       /CMDLISTEN -- lists all listening/command things in the contents.
       /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
@@ -19801,6 +19803,8 @@
       /CONNECT   -- lists all connected players in the contents.
       /PUPPET    -- lists all flag type 'PUPPET' in the contents.
       /LISTEN    -- lists all listening things in the contents.
+      /NPLISTEN  -- lists all listening things in the contents excluding all
+                    players not listening.
       /CMDLISTEN -- lists all listening/command things in the contents.
       /VISIBLE   -- lists only things visible (not-dark) as if looking.
   
@@ -35502,6 +35506,8 @@
  * added setqm() which handles one or more register sets [ASH]
  * nameqm() added which handles one ore more register names [ASH]
  * added sweep() function to mimic @sweep [ASH]
+ * added nplisten for xcon()/lcon() to omit players not 
+   explicitly listening [ASH]
   
   Changes
   -------
