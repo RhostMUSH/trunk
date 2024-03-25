@@ -36921,6 +36921,52 @@ FUNCTION(fun_setqm)
    }
 }
 
+FUNCTION(fun_setrm)
+{
+   int i_loop, i_nfargs, i_first;
+   char *s_array[2], *sep, *esep;
+
+   if (nfargs < 2) {
+      safe_str("#-1 FUNCTion (SETRM) EXPECTS 2 OR MORE ARGUMENTS", buff, bufcx);
+      return;
+   }
+   if (nfargs == 3 ) {
+      safe_str("#-1 FUNCTion (SETRM) NEEDS > 4 ARGUMENTS WITH DELIMITER", buff, bufcx);
+      return;
+   }
+
+   sep = (char *)" ";
+   esep = NULL;
+   i_first = 0;
+
+   /* If odd arguments, last argument is seperator */
+   if (nfargs % 2) {
+      i_nfargs = nfargs - 1;
+      if ( *fargs[nfargs-1] ) {
+         esep = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
+                     fargs[nfargs-1], cargs, ncargs, (char **)NULL, 0);
+         if ( *esep ) {
+            sep = esep;
+         }
+      }
+   } else {
+      i_nfargs = nfargs;
+   }
+
+   for ( i_loop = 0; i_loop < i_nfargs; i_loop+=2 ) {
+      s_array[0] = fargs[i_loop];
+      s_array[1] = fargs[i_loop+1];
+      if ( i_first ) {
+         safe_str(sep, buff, bufcx);
+      }
+      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETQM", 1, 1);
+      i_first = 1;
+   }
+   if ( esep ) {
+      free_lbuf(esep);
+   }
+}
+
 FUNCTION(fun_setq)
 {
    process_setqs(player, cause, caller, buff, bufcx, fargs, nfargs, cargs, ncargs, (char *)"SETQ", 0, 1);
@@ -41203,6 +41249,7 @@ FUN flist[] =
     {"SETR", fun_setr, 2, FN_NO_EVAL|FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SETR_OLD", fun_setr_old, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"SETRM", fun_setrm, 2, FN_VARARGS|FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"SETUNION", fun_setunion, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"SHIFT", fun_shift, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"SHL", fun_shl, 2, 0, CA_PUBLIC, CA_NO_CODE},

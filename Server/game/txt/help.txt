@@ -12333,22 +12333,22 @@
   S()            SAFEBUFF()      SANDBOX()       SCRAMBLE()     SEARCH()     
   SEARCHOBJID()  SEARCHNG()      SEARCHNGOBJID() SECS()         SECSTZ()     
   SECURE()       SECUREX()       SEES()          SET()          SETDIFF()   
-  SETINTER()     SETQ()          SETQM()         SETQ_OLD()     SETQMATCH()  
-  SETR()         SETR_OLD()      SETUNION()      SHIFT()        SHL()        
-  SHR()          SHUFFLE()       SIGN()          SIN()          SINGLETIME() 
-  SORT()         SORTBY()        SORTLIST()      SOUNDEX()      SOUNDLIKE()  
-  SOUNDSLIKE()   SPACE()         SPELLNUM()      SPLICE()       SQL()        
-  SQLESCAPE()    SQLOFF()        SQLON()         SQLPING()      SQLITE_QUERY()
-  SQRT()         SQUISH()        STARTTIME()     STARTSECS()    STATS()      
-  STDERR()       STEP()          STR()           STRCAT()       STRDISTANCE()
-  STREQ()        STREVAL()       STRFUNC()       STRIP()        STRIPACCENTS()
-  STRIPANSI()    STRLEN()        STRMATCH()      STRMATH()      SUB()        
-  SUBEVAL()      SUBJ()          SUBNETMATCH()   SWITCH()       SWITCHALL()  
-  T()            TAG()           TAGMATCH()      TAN()          TEL()        
-  TEMPLATE()     TIME()          TIMEFMT()       TOBIN()        TODEC()      
-  TOGGLE()       TOHEX()         TOOCT()         TOTCMDS()      TOTEMS()     
-  TOTEMSET()     TOTMATCH()      TOTMEMBER()     TOTPOS()       TOTWILDMATCH()
-  TR()           TRACE()         TRANSLATE()     TRIM()
+  SETINTER()     SETQ()          SETQ_OLD()      SETQM()        SETQMATCH()  
+  SETR()         SETR_OLD()      SETRM()         SETUNION()     SHIFT()      
+  SHL()          SHR()           SHUFFLE()       SIGN()         SIN()        
+  SINGLETIME()   SORT()          SORTBY()        SORTLIST()     SOUNDEX()    
+  SOUNDLIKE()    SOUNDSLIKE()    SPACE()         SPELLNUM()     SPLICE()     
+  SQL()          SQLESCAPE()     SQLOFF()        SQLON()        SQLPING()    
+  SQLITE_QUERY() SQRT()          SQUISH()        STARTTIME()    STARTSECS()  
+  STATS()        STDERR()        STEP()          STR()          STRCAT()     
+  STRDISTANCE()  STREQ()         STREVAL()       STRFUNC()      STRIP()      
+  STRIPACCENTS() STRIPANSI()     STRLEN()        STRMATCH()     STRMATH()    
+  SUB()          SUBEVAL()       SUBJ()          SUBNETMATCH()  SWITCH()     
+  SWITCHALL()    T()             TAG()           TAGMATCH()     TAN()        
+  TEL()          TEMPLATE()      TIME()          TIMEFMT()      TOBIN()      
+  TODEC()        TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()    
+  TOTEMS()       TOTEMSET()      TOTMATCH()      TOTMEMBER()    TOTPOS()     
+  TOTWILDMATCH() TR()            TRACE()         TRANSLATE()    TRIM()
   
 { 'help function list5' for more }
 
@@ -12458,8 +12458,8 @@
                       LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQM()
                       NAMEQ() NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS()
                       R() SANDBOX() SETQ() SETQM() SETQ_OLD() SETQMATCH() 
-                      SETR() SETR_OLD() SOUNDEX() SOUNDLIKE() STDERR() TAG() 
-                      TAGMATCH() TRACE()
+                      SETR() SETR_OLD() SETRM() SOUNDEX() SOUNDLIKE() STDERR()
+                      TAG() TAGMATCH() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -12550,8 +12550,8 @@
                        LIST() LOCK() NAME() NAMEQM() NAMEQ() NPEMIT() OEMIT()
                        OPEN() PARENT() PEMIT() R() REMIT() RSET() RULER() 
                        RXLEVEL() SET() SETQ() SETQM() SETQ_OLD() SETR() 
-                       SETR_OLD() TEL() TOGGLE() TOTEMSET() TXLEVEL() WIPE() 
-                       ZEMIT()
+                       SETR_OLD() SETRM() TEL() TOGGLE() TOTEMSET() TXLEVEL() 
+                       WIPE() ZEMIT()
              See Also: help side effect functions  
   
   Dbase Side-Effects:  SQLITE_QUERY()
@@ -12876,7 +12876,8 @@
     You say "Fee fie foo fum"
     item says "-->fum"<-- bar -->Wizard says "Fee fie<--"
   
-  See Also: setq(), setqm(), r(), setr(), nameq(), nameqm(), SUBSTITUTIONS
+  See Also: setq(), setqm(), r(), setr(), setrm(), nameq(), nameqm(), 
+            SUBSTITUTIONS
   
 & %
 & %%
@@ -14835,7 +14836,8 @@
     > think array(abcdefghij,3,0,,2)%q0 - %q1 - %q2
     abcd - efg - hij
   
-  See Also: printf(), setq(), setqm(), setr(), r(), template(), substitutions
+  See Also: printf(), setq(), setqm(), setr(), setrm(), r(), template(), 
+            substitutions
 
 & APOSS()
   Function: aposs(<object>)
@@ -16307,7 +16309,8 @@
   
   Note:  You may use nameq() to get the letter/number of a label.
   
-  See Also: setqm(), setq(), setr(), nameqm(), nameq(), r(), substitutions
+  See Also: setqm(), setq(), setr(), setrm(), nameqm(), nameq(), r(), 
+            substitutions
   
 & LISTFLAGS()
   Function: listflags()
@@ -21892,7 +21895,7 @@
     You say "T:C, O:, T:C"
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), localize(), setqm(),
-            setr(), setq(), r(), sandbox(), subeval(), @lfunction
+            setr(), setrm(), setq(), r(), sandbox(), subeval(), @lfunction
 
 & SANDBOX()
   Function: sandbox(<string>, <function list> [,<key> [,<local> [,<type>]]])
@@ -22002,7 +22005,7 @@
   Note: You can interchange the number with the letter.  a=10, b=11, c=12, etc
   
   See Also: pushregs(), ulocal(), zfunlocal(), eval(), privatize(), setqm(),
-            setq(), setr(), r(), sandbox(), subeval(), @lfunction
+            setq(), setr(), setrm(), r(), sandbox(), subeval(), @lfunction
   
 & LOCALFUNC()
   Function: localfunc(<function-name>, <args>...)
@@ -25839,7 +25842,7 @@
     > say [setq(0,testing,bob)][setq(bob,testing2)]%q<bob>
     You say "testing2"
    
-  See Also: setq(), setr(), setqm(), nameqm(), nameq(), inc(), dec()
+  See Also: setq(), setr(), setrm(), setqm(), nameqm(), nameq(), inc(), dec()
   
 & XINC()
   Function: xinc(<number> [,<key>])
@@ -25887,7 +25890,7 @@
     > say [setq(0,The)] 1: [r(0)] [inc(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: dec(), xdec(), xinc(), setq(), setr(), r(), setqm()
+  See Also: dec(), xdec(), xinc(), setq(), setr(), setrm(), r(), setqm()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25940,7 +25943,7 @@
     > say [setq(0,The)] 1: [r(0)] [dec(0)] 2: [r(0)]
     You say " 1: The #-1 GLOBAL REGISTER NOT AN INTEGER 2: The
   
-  See Also: inc(), xinc(), xdec(), setq(), setr(), r(), setqm()
+  See Also: inc(), xinc(), xdec(), setq(), setr(), setrm(), r(), setqm()
   
   Note:  Check @list options for the line 'Mux Formatted Inc() and Dec()'. If
          this is enabled, the functionality of inc() and dec() are swapped
@@ -25949,12 +25952,14 @@
 & NAMEQ()
   Function: nameq([<register or label> [,<new label> [,<key>]]])
   
-  The nameq() function will label (or re-label) a setq register with the
-  specified label.  You may use any name of 31 characters or less for
-  the label.  You may use any character, including spaces.  The labels
-  have to be unique, and will return an error for a label already inn use.
-  If you do not specify a new label, it will display the existing 
-  label (if one exists) for that register.
+  The nameq() function has multiple features.  It can return registers
+  that match given conditions, or label or re-label registers.
+  
+  You may use any name of 31 characters or less for the label.  You may 
+  use any character, including spaces.  The labels have to be unique, 
+  and will return an error for a label already inn use.  If you do not 
+  specify a new label, it will display the existing label (if one exists) 
+  for that register.
   
   The following keys exist:
     1 - <new label> MUST be null/empty, and this will return the 
@@ -26014,7 +26019,7 @@
   
   Note: registers go from 0-9 then a-z where a-z would be assigned 11-36. 
   
-  See Also: nameqm(), setq(), setr(), r(), setqm(), SETQ_TEMPLATE
+  See Also: nameqm(), setq(), setr(), setrm(), r(), setqm(), SETQ_TEMPLATE
 
 & NAMEQM()
   Function: nameqm(<register1>, <label1>, ..., <registerN>, <labelN>)
@@ -26033,7 +26038,8 @@
     > say [setqm(0,val1,1,val2)][nameqm(0,foolabel,1,barlabel)]%q<foolabel>
     You say "val1"
   
-  See Also: nameq(), setqm(), setq(), setr(), r(), localize(), privatize()
+  See Also: nameq(), setqm(), setq(), setr(), setrm(), r(), localize(), 
+            privatize()
   
 & SETQM()
   Function: setqm(<register1>, <string1>, ..., <registerN>, <stringN>)
@@ -26055,7 +26061,8 @@
     > say [setqm(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
       moo goes the cow.
   
-  See Also: setq(), setr(), r(), nameqm(), nameq(), localize(), privatize()
+  See Also: setq(), setr(), setrm(), r(), nameqm(), nameq(), localize(), 
+            privatize()
 
 & SETQ()
   Function: setq(<register>,<string>[,<label>])
@@ -26111,7 +26118,7 @@
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setqm(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            nameqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(),setrm(),  setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQ_OLD()
   Function: setq_old(<register>,<string>[,<label>])
@@ -26155,7 +26162,7 @@
       You say "Test: Test on TestMUSH at Tue Feb 23 17:00:51 1993"
   
   See Also: setqm(), setr(), setr_old(), setq_old(), r(), nameq(), inc(), dec(), 
-            nameqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(), setrm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & SETQMATCH()
   Function: setqmatch(<string>, <pattern>[,delim])
@@ -26212,7 +26219,8 @@
   
   Registers that are invalid and out of range will be ignored.
     
-  See Also: nameqm(), nameq(), setq(), setr(), setqm(), r(), REGISTERS
+  See Also: nameqm(), nameq(), setq(), setr(), setrm(), setqm(), r(), 
+            REGISTERS
   
 & SETR()
   Function: setr(<register>,<string>[,<label>])
@@ -26257,8 +26265,42 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            nameqm(), setqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(), setrm(), setqm(), setrm() setqmatch(), SETQ_TEMPLATE, 
+            REGISTERS
   
+& SETRM()
+  Function: setrm(<register1>, <string1>,...,<registerN>, <stringN> [,<delim>])
+  
+  This function works like setr() in how it sets and returns registers, but it 
+  allows setting more than one register at once.
+  
+  You may specify an optional delimiter as the last argument of a 
+  reister/string pair.  For a delimiter to work an odd number of arguments
+  must be passed to the function.  The delimeter may be null/empty.
+  
+  The default delimiter if not specified is a space.
+  
+  This function follows all rules and guidelines that setr() would follow
+  when setting registers and/or labels. 
+  
+  This function honors the SETQLABEL @totem and all standard restrictions.
+  
+  This function will set registers in order, meaning you can reference a
+  previously set register in the chain.
+  
+  Note: examples expect penn_setq to be enabled.
+  
+  Examples: 
+    > say [setrm(0,foo,1,bar,2,%q0%q1baz,null())] Reg:%q2
+      You say "foobarfoobarbaz Reg:foobarbaz"
+    > say [setrm(0,foo,1,bar,2,%q0%q1baz)] Reg:%q2
+      You say "foo bar foobarbaz Reg:foobarbaz"
+      Reg:foobarbaz
+    > say [setqm(label1,moo,label2,cow,)] Val:%q<label1> goes the %q<label2>.
+      You say "moocow Val:moo goes the cow.
+  
+  See Also: setq(), setr(), setrm(), r(), nameqm(), nameq(), localize(), 
+            privatize()
 & SETR_OLD()
   Function: setr_old(<register>,<string>[,<label>])
             setr_old(<label>,<string>[,<label>])
@@ -26299,7 +26341,7 @@
       You say "'Test on TestMUSH at Tue Feb 23 17:00:51 1993.' has length 45."
   
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
-            nameqm(), setqm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
+            nameqm(), setqm(), setrm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
@@ -32068,6 +32110,7 @@
   setq_old()    - Like setq(), but uses old MUSH style evaluation.
   setqmatch()   - Sets a register if a pattern matches <string>.
   setr()        - Like setq(), but returns its string argument.
+  setrm()       - Like setqm(), but returns registers with optional delim.
   setr_old()    - Like setr(), but uses old MUSH style evaluation.
   soundex()     - Returns the soundex pattern of a word.
   soundlike()   - Compares the soundex of two words.
@@ -32401,6 +32444,7 @@
   setqm()          - Copies one or more strings into one or more registers.
   setq_old()      - Like setq(), but with old-style MUSH functionality.
   setr()          - Like setq(), but also displays the string.
+  setrm()         - Like setqm(), but returns registers with optional delim.
   setr_old()      - Like setr(), but with old-style MUSH functionality.
   tel()           - Teleports an object to a location.
   toggle()        - Toggles a toggle on an object.
@@ -35552,6 +35596,7 @@
    explicitly listening [ASH]
  * added connlast(), connleft(), connmax(), connnum(), connrecord(),
    conntotal() and CONNINFO from MUX for compatibility [ASH]
+ * added setrm() like setqm() but returns values [ASH]
   
   Changes
   -------
