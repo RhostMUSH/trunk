@@ -267,7 +267,7 @@ int main(void) {
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
 			       mush_gets(q);
                             } else if (val == 218) {
-			       printf(">%d\n",227);
+			       printf(">%d\n",228);
 			       fflush(stdout);
 			       mush_gets(q);
 			       printf("%s",q);
@@ -275,7 +275,7 @@ int main(void) {
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
 			       mush_gets(q);
                             } else if (val == 219) {
-			       printf(">%d\n",228);
+			       printf(">%d\n",227);
 			       fflush(stdout);
 			       mush_gets(q);
 			       printf("%s",q);
