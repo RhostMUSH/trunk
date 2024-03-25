@@ -12250,7 +12250,9 @@
  CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
  CLUSTER_XGET()       CMDS()             CNAME()            COLORS()          
  COLUMNS()            COMP()             CON()              CONFIG()           
- CONN()               CONTROLS()         CONVSECS()    
+ CONN()               CONNLAST()         CONNLEFT()         CONNMAX()
+ CONNNUM()            CONNRECORD()       CONNTOTAL()        CONTROLS()       
+ CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -12478,10 +12480,11 @@
 & FUNCTION CLASSES4
   Topic: FUNCTION CLASSES <continued>
                              
-  Player Information:  BITTYPE() CHARIN() CHAROUT() CMDS() CONN() HASQUOTA() 
-                       IDLE() INPROGRAM() ISHIDDEN() LISTPROTECTION() LWHO() 
-                       MONEY() MONEYNAME() PORT() PROGRAMMER() QUOTA() 
-                       TOTCMDS()
+  Player Information:  BITTYPE() CHARIN() CHAROUT() CMDS() CONN() CONNLAST()
+                       CONNLEFT() CONNMAX() CONNNUM() CONNRECORD() CONNTOTAL()
+                       HASQUOTA() IDLE() INPROGRAM() ISHIDDEN() 
+                       LISTPROTECTION() LWHO() MONEY() MONEYNAME() PORT() 
+                       PROGRAMMER() QUOTA() TOTCMDS()
              See Also: help player information functions
   
   Reality Levels:      CHKREALITY() HASRXLEVEL() HASTXLEVEL() LISTRLEVELS() 
@@ -14073,7 +14076,7 @@
     > say lwho(1,,1)
     You say "#226:662752801|20 #271:662992921|5 #1:662728521|6"
   
-  See Also: WHO, DOING, conn(), idle()
+  See Also: WHO, DOING, conn(), idle(), CONNINFO
  
 & ALIGN()
   RhostMUSH has no built in align(). 
@@ -23794,8 +23797,41 @@
     > say conn(e)
     You say "770"
   
-  See Also: WHO, idle(), lwho()
+  See Also: WHO, idle(), lwho(), CONNINFO
   
+& CONNINFO
+& CONNRECORD()
+& CONNMAX()
+& CONNTOTAL()
+& CONNNUM()
+& CONNLEFT()
+& CONNLAST()
+  Function: connrecord()
+            connmax(<player>)
+            conntotal(<player>)
+            connnum(<player>)
+            connleft(<player>)
+            connlast(<player>)
+  
+  These set of functions pull the CONNINFO data from a player.  Each function
+  references a different value of the data.
+  
+  Examples:
+  > say connrecord()      @@ record of total connections to the mush
+    32
+  > say connmax(tester)   @@ longest connection time in seconds by the player
+    289592
+  > say conntotal(tester) @@ total seconds the player has been on the the mush
+    22858928
+  > say connnum(tester)   @@ total connections player made to the mush
+    49
+  > say connleft(tester)  @@ EPOCH (in seconds) player last disconnected
+    1711325808
+  > say connlast(tester)  @@ total seconds the player's last connection was
+    5929
+  
+  See Also: idle(), conn(), lwho()
+
 & IDLE()
   Function: idle(<player> [,<boolean> [,<port>]))
  
@@ -23821,7 +23857,7 @@
     > say idle(frobozz)
     You say "-1"
   
-  See Also: WHO, conn(), lwho()
+  See Also: WHO, conn(), lwho(), CONNINFO
   
 & CONVSECS()
   Function: convsecs(<seconds>)
@@ -32118,6 +32154,12 @@
   charout()     - Returns the total number of characters output to a player.
   cmds()        - Returns the total number of commands entered for a player.
   conn()        - Returns the total connection time for a player.
+  connlast()    - Returns total seconds player's last connect session was.
+  connleft()    - Returns EPOCH time (in seconds) player was last connected.
+  connmax()     - Returns longest connection time of the player.
+  connnum()     - Returns total number of connections player made to mush.
+  connrecord()  - Returns the maximum player connections to the mush.
+  conntotal()   - Returns total seconds player made to the mush.
   hasquota()    - Returns true if the object can afford specified quota cost.
   idle()        - Returns the idle time of a player.
   inprogram()   - Returns true if the player is in a @program.
@@ -35508,6 +35550,8 @@
  * added sweep() function to mimic @sweep [ASH]
  * added nplisten for xcon()/lcon() to omit players not 
    explicitly listening [ASH]
+ * added connlast(), connleft(), connmax(), connnum(), connrecord(),
+   conntotal() and CONNINFO from MUX for compatibility [ASH]
   
   Changes
   -------

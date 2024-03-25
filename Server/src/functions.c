@@ -36681,7 +36681,7 @@ FUNCTION(fun_nameq)
        switch ( *fargs[2] ) {
           case 'L': /* List all registers with labels (do a-z over 10-36) */
              i_cap = 1;
-          case 'l': /* List all registers with labels */
+          case 'l': /* List all registers with labels -- wild match on label name */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 if ( *mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i]) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
@@ -36691,7 +36691,7 @@ FUNCTION(fun_nameq)
              break;
           case 'N': /* List all registers with contents (do a-z over 10-36) */
              i_cap = 1;
-          case 'n': /* List all registers with values */
+          case 'n': /* List all registers with contents -- wild match on reg number */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
                 if ( *mudstate.global_regs[i] && quick_wild(fargs[0], s_num) ) {
@@ -36700,9 +36700,9 @@ FUNCTION(fun_nameq)
              }
              regnum = -2;
              break;
-          case 'V': /* List all registers with labels (do a-z over 10-36) */
+          case 'V': /* List all registers with values (do a-z over 10-36) */
              i_cap = 1;
-          case 'v': /* List all registers with values */
+          case 'v': /* List all registers with values -- wild match on reg contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 if ( *mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i]) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
@@ -36712,7 +36712,7 @@ FUNCTION(fun_nameq)
              break;
           case 'U': /* List all registers with labels or values (do a-z over 10-36) */
              i_cap = 1;
-          case 'u': /* List all registers in use with labels or values */
+          case 'u': /* List all registers in use with labels or values -- wild match on label or contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 if ( (*mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i])) || 
                      (*mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i])) ) {
@@ -36723,7 +36723,7 @@ FUNCTION(fun_nameq)
              break;
           case 'B': /* List all registers with labels and values (do a-z over 10-36) */
              i_cap = 1;
-          case 'b': /* List all registers in use with labels and values */
+          case 'b': /* List all registers in use with labels and values  -- wild match on label and contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
                      (quick_wild(fargs[0], mudstate.global_regsname[i]) || quick_wild(fargs[0], mudstate.global_regs[i])) ) {
@@ -36732,9 +36732,9 @@ FUNCTION(fun_nameq)
              }
              regnum = -2;
              break;
-          case 'F': /* List all registers with labels and contents (do a-z over 10-36) */
+          case 'F': /* List all registers with labels or register match (do a-z over 10-36) */
              i_cap = 1;
-          case 'f': /* List all registers in use with labels and contents */
+          case 'f': /* List all registers in use with labels and contents -- wild match on label or register */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
                 if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
@@ -36744,9 +36744,9 @@ FUNCTION(fun_nameq)
              }
              regnum = -2;
              break;
-          case 'A': /* List all registers with labels, values and contents (do a-z over 10-36) */
+          case 'A': /* List all registers with labels, values or contents (do a-z over 10-36) */
              i_cap = 1;
-          case 'a': /* List all registers in use with labels, values and contents */
+          case 'a': /* List all registers in use with labels, values and contents -- wild match on label, contents, or register */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
                 if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
@@ -36865,6 +36865,43 @@ FUNCTION(fun_nameqm)
          fun_nameq(buff, bufcx, player, cause, cause, s_array, 2, (char **)NULL, 0);
       }
    }
+}
+
+/* All the ConnInfo voodoo goes here */
+// CONN_LAST       4       /* Duration of Last Connection */
+FUNCTION(fun_connlast)
+{
+   ival( buff, bufcx, handle_conninfo_read(fargs[0], player, CONN_LAST));
+}
+
+// CONN_LOGOUT     16      /* EPOCH (time_t) of last logout */
+FUNCTION(fun_connleft)
+{
+   ival( buff, bufcx, handle_conninfo_read(fargs[0], player, CONN_LOGOUT));
+}
+
+// CONN_TOTAL      8       /* Total number of connections */
+FUNCTION(fun_connnum)
+{
+   ival( buff, bufcx, handle_conninfo_read(fargs[0], player, CONN_TOTAL));
+}
+
+// CONN_TIME       1       /* Total Connected Time in seconds */
+FUNCTION(fun_conntotal)
+{
+   ival( buff, bufcx, handle_conninfo_read(fargs[0], player, CONN_TIME));
+}
+
+// CONN_LONGEST    2       /* Longest Connection in seconds */
+FUNCTION(fun_connmax)
+{
+   ival( buff, bufcx, handle_conninfo_read(fargs[0], player, CONN_LONGEST));
+}
+
+// Highest connection to the mush
+FUNCTION(fun_connrecord)
+{
+   ival(buff, bufcx, mudstate.recordconn);
 }
 
 FUNCTION(fun_setqm)
@@ -40723,6 +40760,12 @@ FUN flist[] =
     {"CON", fun_con, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONFIG", fun_config, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONN", fun_conn, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"CONNRECORD", fun_connrecord, -1, 0, CA_PUBLIC, 0},
+    {"CONNMAX", fun_connmax, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONNTOTAL", fun_conntotal, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONNNUM", fun_connnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONNLEFT", fun_connleft, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONNLAST", fun_connlast, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONTROLS", fun_controls, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONVSECS", fun_convsecs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONVTIME", fun_convtime, 1, 0, CA_PUBLIC, CA_NO_CODE},

@@ -252,6 +252,16 @@ extern void 	FDECL(check_auth_connect, (DESC *));
 extern void 	FDECL(check_auth, (DESC *));
 extern void	FDECL(write_auth, (DESC *));
 
+/* from utils.c */
+#define CONN_TIME       1       /* Total Connected Time in seconds */
+#define CONN_LONGEST    2       /* Longest Connection in seconds */
+#define CONN_LAST       4       /* Duration of Last Connection */
+#define CONN_TOTAL      8       /* Total number of connections */
+#define CONN_LOGOUT     16      /* EPOCH (time_t) of last logout */
+#define CONN_ALL        32      /* Do everything */
+extern void handle_conninfo_write(DESC *, dbref, int);
+extern int handle_conninfo_read(char *, dbref, int);
+
 /* from netcommon.c */
 
 extern struct timeval	FDECL(timeval_sub, (struct timeval, struct timeval));

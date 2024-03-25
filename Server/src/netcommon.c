@@ -1024,7 +1024,7 @@ int load_reboot_db( void )
   DESC* prev;
   DESC* tempd;
   FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[32 + 6], *s_text;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[32 + 6], *s_text, *s_god;
   int i_prefix, i_suffix, i_fxchk, i_descsize;
 
   DPUSH; /* #108 */
@@ -1210,6 +1210,7 @@ int load_reboot_db( void )
       log_text((char*) "Reconnecting: ");
       log_name(d->player);
     ENDLOG
+    mudstate.recordcurrconn++;
   }
   free_lbuf(s_text);
   fclose(rebootfile);
@@ -1222,6 +1223,13 @@ int load_reboot_db( void )
   STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
     log_text((char *) "Load complete.");
   ENDLOG
+  if ( mudstate.recordcurrconn > mudstate.recordconn ) {
+     mudstate.recordconn = mudstate.recordcurrconn;
+     s_god = alloc_lbuf("record_connections_reboot");
+     sprintf(s_god, "%d", mudstate.recordcurrconn);
+     atr_add_raw(GOD, A_CONNRECORD, s_god);
+     free_lbuf(s_god);
+  }
   RETURN(1); /* #108 */
 }
 
@@ -4283,7 +4291,7 @@ int chkbit(dbref player)
 static int 
 check_connect(DESC * d, const char *msg, int key, int i_attr)
 {
-   char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, 
+   char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, *s_god,  
         buff2[10], cchk[SBUF_SIZE], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
    int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size, i_chk,
        ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow;
@@ -4817,7 +4825,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             d->flags |= DS_CONNECTED;
             d->connected_at = time(0);
             d->player = player;
-
+            mudstate.recordcurrconn++;
+            if ( mudstate.recordcurrconn > mudstate.recordconn ) {
+               mudstate.recordconn = mudstate.recordcurrconn;
+               s_god = alloc_lbuf("record_connections");
+               sprintf(s_god, "%d", mudstate.recordcurrconn);
+               atr_add_raw(GOD, A_CONNRECORD, s_god);
+               free_lbuf(s_god);
+            }
             /* Give the player the MOTD file and the settable MOTD
              * message(s). Use raw notifies so the player doesn't
              * try to match on the text. */
@@ -5033,6 +5048,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             d->flags |= DS_CONNECTED;
             d->connected_at = time(0);
             d->player = player;
+            mudstate.recordcurrconn++;
+            if ( mudstate.recordcurrconn > mudstate.recordconn ) {
+               mudstate.recordconn = mudstate.recordcurrconn;
+               s_god = alloc_lbuf("record_connections");
+               sprintf(s_god, "%d", mudstate.recordcurrconn);
+               atr_add_raw(GOD, A_CONNRECORD, s_god);
+               free_lbuf(s_god);
+            }
             fcache_dump(d, FC_CREA_NEW, (char *)NULL);
             announce_connect(player, d, 0);
 

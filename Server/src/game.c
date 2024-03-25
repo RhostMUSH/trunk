@@ -2509,6 +2509,13 @@ NDECL(process_preload)
        if (Going(thing))
           continue;
 
+       if ( God(thing) ) {
+          (void) atr_get_str(tstr, thing, A_CONNRECORD, &aowner, &aflags);
+          if ( *tstr ) {
+             mudstate.recordconn = atoi(tstr);
+          }
+          
+       }
        /* Load the memory based structure data for Totems A_PRIVS is *Totems */
        (void) atr_get_str(tstr, thing, A_PRIVS, &aowner, &aflags);
        for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {

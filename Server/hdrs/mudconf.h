@@ -728,6 +728,8 @@ struct statedata {
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
 	int	global_error_inside;	/* Are we inside the global error obj */
 	int	execscript_noreg;	/* Do not cache any setq regs to execscript */
+	int	recordconn;	/* Record number of connections (max) */
+	int	recordcurrconn;	/* Record number of connections (current) */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */

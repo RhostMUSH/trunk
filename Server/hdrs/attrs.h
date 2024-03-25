@@ -283,5 +283,7 @@ typedef struct afstruct {
  * #define A_HIGHATTRTEST3	2100000002
  * #define A_HIGHATTRTEST4	2100000003
  */
+#define A_CONNINFO	2100000000
+#define A_CONNRECORD	2100000001
 
 #endif

@@ -412,6 +412,8 @@ NDECL(cf_init)
     for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
        mudstate.vattr_reuse[i] = 0;
     }
+    mudstate.recordconn = 0;
+    mudstate.recordcurrconn = 0;
     mudstate.vattr_reuseptr = NOTHING;
     mudstate.vattr_reusecnt = 0;
     mudstate.execscript_noreg = 0;	/* execscript has no registers processed */

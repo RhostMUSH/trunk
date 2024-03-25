@@ -1586,6 +1586,7 @@ shutdownsock(DESC * d, int reason)
 
     if (d->flags & DS_CONNECTED) {
 
+        handle_conninfo_write(d, d->player, CONN_ALL); /* Write A_CONNINFO */
 	strncpy(all, Name(d->player), 5);
 	*(all + 5) = '\0';
         if ( strlen(mudconf.guest_namelist) > 0 ) {
