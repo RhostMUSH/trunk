@@ -3,6 +3,8 @@
 #include <string.h>
 #include "utf8helpers.h"
 
+#define mush_gets(x)    fgets(x, BUFFER_SIZE - 1, stdin)
+
 int main(int argc, char* argv[])
 {
    char line[BUFFER_SIZE], input[BUFFER_SIZE];
@@ -30,32 +32,32 @@ int main(int argc, char* argv[])
       *argv++;
    }
 
-   gets(line);
+   mush_gets(line);
    while( line != NULL && !feof(stdin) ) {
       if (line[0] == '!') {
          // Output the current line
-         printf("%s\n",line);
+         printf("%s",line);
 
          // Reset the extansi state
          has_extansi = 0;
 
          // Get the next line (name)
-         gets(line);
+         mush_gets(line);
 
          // Strip all UTF8 from the name, and echo it back
          strcpy(input, line);
          // TODO: Add return value to denote has color
          has_color = strip_utf8(input, clean);
-         printf("%s\n", clean);
+         printf("%s", clean);
 
          // Store name with color codes, and update extansi toggle if needed
          if (has_color) {
             convert_markup(input, color, ansic, 0);
 
             for (i = 0; i < 14; i++) {
-               gets(line); printf("%s\n", line);
+               mush_gets(line); printf("%s", line);
             }
-            gets(line);
+            mush_gets(line);
             toggles2 = atoi(line);
             toggles2 |= EXTANSI_TOGGLE;
             printf("%d\n", toggles2);
@@ -64,7 +66,7 @@ int main(int argc, char* argv[])
          // If color name is saved set it and reset color flag
          // tag this object as having extansi already set
          if (has_color) {
-            printf(">%d\n%s\n",EXTANSI_ATTR, color);
+            printf(">%d\n%s",EXTANSI_ATTR, color);
             has_color = 0;
             has_extansi = 1;
          }
@@ -74,26 +76,26 @@ int main(int argc, char* argv[])
          // Don't output anything and skip ahead if this is the 
          // extansi attr and we set one earlier
          if (attrnum == EXTANSI_ATTR && has_extansi) {
-            gets(line);
-            gets(line);
+            mush_gets(line);
+            mush_gets(line);
             continue;
          } else {
-            printf("%s\n", line);
+            printf("%s", line);
          }
 
          // Get the next line, the attribute content
-         gets(line);
+         mush_gets(line);
 
          // Get the full markup for the attr contents
          strcpy(input, line);
          convert_markup(input, full, ansic, 1);
-         printf("%s\n", full);
+         printf("%s", full);
       } else {
-         printf("%s\n", line);
+         printf("%s", line);
       }
 
       // Get the next line of input
-      gets(line);
+      mush_gets(line);
    }
 
    return 0;

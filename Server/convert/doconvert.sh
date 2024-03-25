@@ -222,8 +222,12 @@ then
    fi
    echo ""
    echo "RhostMUSH allows %c _or_ %x to be ANSI.  It depends how you have it configured."
-   echo "Do you wish to convert TM3's %x ansi to Rhost's %c ansi? (Y/N) :"|tr -d '\012'
+   echo "Do you wish to convert TM3's %x ansi to Rhost's %c ansi? (Y/[N]) :"|tr -d '\012'
    read ANS
+   if [ -z "$ANS" ]
+   then
+      ANS="N"
+   fi
    if [ "$ANS" = "Y" -o "$ANS" = "y" ]
    then
       echo "Converting %x to %c..."|tr -d '\012'
@@ -233,8 +237,12 @@ then
    fi
    echo "MUX 2.4 and later uses %m for the last command.  By default this is %x for Rhost."
    echo "You should only answer yes to this for MUX 2.4 or later versions."
-   echo "Do you wish to convert MUX2.4's %m last-command? (Y/N) :"|tr -d '\012'
+   echo "Do you wish to convert MUX2.4's %m last-command? (Y/[N]) :"|tr -d '\012'
    read ANS
+   if [ -z "$ANS" ]
+   then
+      ANS="N"
+   fi
    if [ "$ANS" = "Y" -o "$ANS" = "y" ]
    then
       echo "Does your Rhost use %x for last command? (Y/N) :"|tr -d '\012'
@@ -374,6 +382,9 @@ if [ "$ERR" -gt 0 ]
 then
    echo "Converting error log messages to readable format"|tr -d '\012'
    if [ "$TYPE" = "MUX2" ]
+   then
+      IFIL=data/muxattrs.dat
+   elif [ "$TYPE" = "MUX2NEW" ]
    then
       IFIL=data/muxattrs.dat
    else

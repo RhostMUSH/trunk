@@ -50,15 +50,15 @@
 /* 2nd word of toggles */
 #define RHONODFLT 0x08000000
 
-#define LBUF_SIZE 3998
-#define INPUT_BUFF 16384
+#define LBUF_SIZE 65535
+#define mush_gets(x)	fgets(x, LBUF_SIZE - 1, stdin)
 
 char *rewrite_atr(char *);
 
 int main(void) {
 	int val, flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4, tog2, obj, inattr, variable;
 	int mage, royalty, staff, ansi, immortal, offsetchk, invar, atrcnt, loc, origattr, sanitattr;
-	char f[INPUT_BUFF], *q, *f1, *f2;
+	char f[LBUF_SIZE], *q, *f1, *f2;
 	memset(f,'\0', sizeof(f));
 	q = f;
 	f1 = f+1;
@@ -351,7 +351,7 @@ rewrite_atr(char *in_str)
 {
    int sanitattr, origattr;
    char *tck_buff, *tck_val1, *tck_val2, *tck_val3;
-   static char f[INPUT_BUFF];
+   static char f[LBUF_SIZE];
    
    strcpy(f, in_str);
    sanitattr = origattr = 0;

@@ -35600,6 +35600,8 @@
  * @blacklist rewritten to handle easier future modification [ASH]
  * nameq() validates labels are not in use before setting [ASH]
  * setp renamed to setqm, namep renamed to nameqm
+ * updated the converts and removed the need of gets() [ASH]
+ * enhanced handler of db converter for more compatability [ASh]
     
   Bug Fixes
   ------------

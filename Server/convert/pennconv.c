@@ -17,10 +17,13 @@
 #define MUXANSI   0x00000200
 #define TINYANSI  0x00040000
 
+#define LBUF_SIZE 65535
+#define mush_gets(x)	fgets(x, LBUF_SIZE - 1, stdin)
+
 int main(void) {
 	int val, flag1, flag2, flag3, nflag1, nflag2, nflag3, obj;
 	int mage, royalty, staff, ansi, immortal, offsetchk;
-	char f[16384], *q, *f1, *f2;
+	char f[LBUF_SIZE], *q, *f1, *f2;
 	memset(f,'\0', sizeof(f));
 	q = f;
 	f1 = f+1;
