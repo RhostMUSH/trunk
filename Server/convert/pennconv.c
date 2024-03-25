@@ -30,38 +30,38 @@ int main(void) {
 	f2 = f+2;
 	offsetchk = 0;
 	
-	gets(q);
+	mush_gets(q);
 	while(q != NULL && !feof(stdin) ) {
 		if(f[0] == '!') {
 			obj=atoi(f1);
 			/* object conversion */
-			printf("%s\n",q);
-			gets(q); printf("%s\n",q); /* name */
-			gets(q); /* List info - Rhost doesn't have */
-			gets(q); printf("%s\n",q); /* location */
-			gets(q); printf("%s\n",q); /* Contents */
-			gets(q); printf("%s\n",q); /* Exits */
-/*			gets(q); printf("%s\n",q);*/ /* Link */ /* PENN doesn't have */
-			gets(q); printf("%s\n",q); /* Next */
-			gets(q); printf("%s\n",q); /* Parent */
-			gets(q);
+			printf("%s",q);
+			mush_gets(q); printf("%s",q); /* name */
+			mush_gets(q); /* List info - Rhost doesn't have */
+			mush_gets(q); printf("%s",q); /* location */
+			mush_gets(q); printf("%s",q); /* Contents */
+			mush_gets(q); printf("%s",q); /* Exits */
+/*			mush_gets(q); printf("%s\n",q);*/ /* Link */ /* PENN doesn't have */
+			mush_gets(q); printf("%s",q); /* Next */
+			mush_gets(q); printf("%s",q); /* Parent */
+			mush_gets(q);
 			   if ( strchr(f, '/') == 0 && strchr(f, ':') == 0 ) {
-				   printf("%s\n", q); /* Bool */
+				   printf("%s", q); /* Bool */
 			   } else {
-				   printf("%s\n", q); /* Functionary Lock */
-/*				   gets(q);printf("%s\n",q); */  /* Bool */ /* Tiny doesn't have */
+				   printf("%s", q); /* Functionary Lock */
+/*				   mush_gets(q);printf("%s\n",q); */  /* Bool */ /* Tiny doesn't have */
 				   offsetchk = 1;
 			   }
 			/* If previous was null, last was owner, not bool */
 /*			if ( (!( q && *q) && offsetchk) || !offsetchk ) { */
-			   gets(q); printf("%s\n",q); /* Owner */
+			   mush_gets(q); printf("%s",q); /* Owner */
 /*			} */
 			offsetchk = 0;
-                        gets(q); /* Zone - Rhost doesn't use PENN zones */
-			gets(q); printf("%s\n",q); /* Pennies */
+                        mush_gets(q); /* Zone - Rhost doesn't use PENN zones */
+			mush_gets(q); printf("%s",q); /* Pennies */
 			/* flag conv */
-			gets(q); flag1 = atoi(q); 
-  			gets(q); /* PENN toggles - Rhost doesn't use */
+			mush_gets(q); flag1 = atoi(q); 
+  			mush_gets(q); /* PENN toggles - Rhost doesn't use */
 			nflag1 = (flag1 & 0xFFDFFFFF);
                         if ( nflag2 & TINYANSI )
 			   nflag2 = (flag2 & 0xD60000FF);
@@ -90,12 +90,12 @@ int main(void) {
 			printf("%i\n",nflag2);
   			printf("%i\n",nflag3);
 			fflush(stdout);
-  			gets(q);   /* powers  */
-                        gets(q);   /* Channels */
-                        gets(q);   /* Warnings */
-                        gets(q);   /* Time stuff */
-                        gets(q);   /* Local Data */
-/*			gets(q);*/ /* power 2 */ 
+  			mush_gets(q);   /* powers  */
+                        mush_gets(q);   /* Channels */
+                        mush_gets(q);   /* Warnings */
+                        mush_gets(q);   /* Time stuff */
+                        mush_gets(q);   /* Local Data */
+/*			mush_gets(q);*/ /* power 2 */ 
 			printf("0\n"); /* Flags4 */
 			printf("0\n"); /* toggles */
                         printf("0\n"); /* toggles1 */
@@ -107,7 +107,7 @@ int main(void) {
 			printf("0\n"); /* toggles7 */
 			printf("-1\n"); /* Unknown */
 			fflush(stdout);
-			gets(q);
+			mush_gets(q);
 		} else 
 		    if(f[0] == '+') {
 			    if((f[1] == 'A') || (f[1] == 'N')) {
@@ -116,15 +116,15 @@ int main(void) {
 					val = val + 256;
 				    printf("+%c%d\n",f[1],val);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    } else if(f[1] == 'X') {
 				    printf("+V74247\n",val);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    } else {
-				    printf("%s\n",q);
+				    printf("%s",q);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    }
 		    } else
 		    if(f[0] == '>') {
@@ -133,22 +133,22 @@ int main(void) {
 				val = val + 256;
 			    /* attr conversion */
 			    if((val == 96) || ((val > 199) && (val < 222))) {
-				    gets(q);
-				    gets(q);
+				    mush_gets(q);
+				    mush_gets(q);
 			    } else  {
 				    printf(">%d\n",val);
 				    fflush(stdout);
-				    gets(q);
-				    printf("%s\n",q);
-				    gets(q);
+				    mush_gets(q);
+				    printf("%s",q);
+				    mush_gets(q);
 			    }
 		    } else 
 		    if(f[0] == '-') {
-			    gets(q);
+			    mush_gets(q);
 		    } else {
-			    printf("%s\n",q);
+			    printf("%s",q);
 			    fflush(stdout);
-			    gets(q);
+			    mush_gets(q);
 		    }
 		
 		if(strstr(f, "***END OF DUMP***") != NULL )

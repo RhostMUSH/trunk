@@ -66,7 +66,7 @@ int main(void) {
 	offsetchk = atrcnt = inattr = loc = origattr = sanitattr = 0;
 	
         invar = 0;
-	gets(q);
+	mush_gets(q);
 	while(q != NULL && !feof(stdin) ) {
 		if(f[0] == '!') {
                         invar = 0;
@@ -76,39 +76,39 @@ int main(void) {
 			obj=atoi(f1);
                         atrcnt = variable = 0;
 			/* object conversion */
-			printf("%s\n",q);
-			gets(q); printf("%s\n",q); /* name */
-			gets(q); printf("%s\n",q); /* location */
+			printf("%s",q);
+			mush_gets(q); printf("%s",q); /* name */
+			mush_gets(q); printf("%s",q); /* location */
                         loc = atoi(q);
-  			gets(q);                   /* zone */
-			gets(q); printf("%s\n",q); /* Contents */
-			gets(q); printf("%s\n",q); /* Exits */
-			gets(q); 
+  			mush_gets(q);                   /* zone */
+			mush_gets(q); printf("%s",q); /* Contents */
+			mush_gets(q); printf("%s",q); /* Exits */
+			mush_gets(q); 
                         if ( atoi(q) == -4 ) {     /* if variable exit */
                            variable = 1;
                            printf("%d\n", loc);
                         } else
-                           printf("%s\n",q); /* Link */
-			gets(q); printf("%s\n",q); /* Next */
-			gets(q);
+                           printf("%s",q); /* Link */
+			mush_gets(q); printf("%s",q); /* Next */
+			mush_gets(q);
 			   if ( strchr(f, '/') == 0 && strchr(f, ':') == 0 ) {
-				   printf("%s\n", q); /* Bool */
+				   printf("%s", q); /* Bool */
 			   } else {
-				   printf("%s\n", q); /* Functionary Lock */
-				   gets(q);printf("%s\n",q); /* Bool */
+				   printf("%s", q); /* Functionary Lock */
+				   mush_gets(q);printf("%s",q); /* Bool */
 				   offsetchk = 1;
 			   }
 			/* If previous was null, last was owner, not bool */
 			if ( (!( q && *q) && offsetchk) || !offsetchk ) {
-			   gets(q); printf("%s\n",q); /* Owner */
+			   mush_gets(q); printf("%s",q); /* Owner */
 			}
 			offsetchk = 0;
-			gets(q); printf("%s\n",q); /* Parent */
-			gets(q); printf("%s\n",q); /* Pennies */
+			mush_gets(q); printf("%s",q); /* Parent */
+			mush_gets(q); printf("%s",q); /* Pennies */
 			/* flag conv */
-			gets(q); flag1 = atoi(q); 
-			gets(q); flag2 = atoi(q);
-			gets(q); flag3 = atoi(q);
+			mush_gets(q); flag1 = atoi(q); 
+			mush_gets(q); flag2 = atoi(q);
+			mush_gets(q); flag3 = atoi(q);
                         nflag1 = nflag2 = nflag3 = nflag4 = 0;
 			nflag1 = (flag1 & 0xDFDFFFFF); /* Strip royalty and immortal */
                         if ( flag2 & TM3ANSI )
@@ -163,8 +163,8 @@ int main(void) {
 			printf("%u\n",nflag3); /* Flags3 */
 			printf("%u\n",nflag4); /* Flags4 */
 			fflush(stdout);
-			gets(q); /* power 1 */
-			gets(q); /* power 2 */
+			mush_gets(q); /* power 1 */
+			mush_gets(q); /* power 2 */
 			printf("0\n"); /* toggles0 */
                         if ( variable ) 
                            printf("%u\n", 32768); /* variable toggle */
@@ -181,7 +181,7 @@ int main(void) {
 			printf("0\n"); /* toggles7 */
 			printf("-1\n"); /* Zones */
 			fflush(stdout);
-			gets(q);
+			mush_gets(q);
 		} else 
 		    if( (f[0] == '+') && !invar ) {
 			    if((f[1] == 'A') || (f[1] == 'N')) {
@@ -192,15 +192,15 @@ int main(void) {
 					val = val + 256;
 				    printf("+%c%d\n",f[1],val);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    } else if(f[1] == 'X' || f[1] == 'T') {
 				    printf("+V74247\n",val);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    } else {
-				    printf("%s\n",q);
+				    printf("%s",q);
 				    fflush(stdout);
-				    gets(q);
+				    mush_gets(q);
 			    }
 		    } else
 		    if( (f[0] == '>') && isdigit(f[1]) ) {
@@ -213,102 +213,102 @@ int main(void) {
                             if ((val >= 129) && (val <=142)) {
                                printf(">%d\n", val+30);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 143) {
                                printf(">%d\n", 174);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if ((val >= 144) && (val <= 199)) { /* Eat it */
-			       gets(q);
-			       gets(q);
+			       mush_gets(q);
+			       mush_gets(q);
                             } else if (val == 203) {
                                printf(">%d\n", 193);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 209) {
                                printf(">%d\n", 199);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 213) {
                                printf(">%d\n", 237);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 214) {
                                printf(">%d\n", 224);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 215) {
                                printf(">%d\n", 225);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 216) {
                                printf(">%d\n", 248);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 217) {
                                printf(">%d\n", 218);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
                             } else if (val == 218) {
                                printf(">%d\n", 246);
 			       fflush(stdout);
-			       gets(q);
-			       printf("%s\n",rewrite_atr(q));
+			       mush_gets(q);
+			       printf("%s",rewrite_atr(q));
                                if ( strlen(q) > LBUF_SIZE )
                                   fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-			       gets(q);
+			       mush_gets(q);
 			    } else if((val == 96) || ((val > 199) && (val < 252))) { /* Eat it */
-				    gets(q);
+				    mush_gets(q);
                                     fprintf(stderr, "Warning: Object #%d has attribute (%d) unused by RhostMUSH.  Contents: %s\n", obj, val, q);
-				    gets(q);
+				    mush_gets(q);
 			    } else  {
 				    printf(">%d\n",val);
 				    fflush(stdout);
-				    gets(q);
-				    printf("%s\n",rewrite_atr(q));
+				    mush_gets(q);
+				    printf("%s",rewrite_atr(q));
                                     if ( strlen(q) > LBUF_SIZE )
                                        fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-				    gets(q);
+				    mush_gets(q);
 			    }
 		    } else 
 		    if( (f[0] == '-') && !invar ) {
-			    gets(q);
+			    mush_gets(q);
 		    } else {
                             if ( inattr ) {
                                inattr = 0;
@@ -330,9 +330,9 @@ int main(void) {
                                   sanitattr = (sanitattr | 0x04000000);
                                printf("%d%s\n", sanitattr, strchr(q, ':'));
                             } else
-			       printf("%s\n",q);
+			       printf("%s",q);
 			    fflush(stdout);
-			    gets(q);
+			    mush_gets(q);
 		    }
 		
 		if(strstr(f, "***END OF DUMP***") != NULL )
