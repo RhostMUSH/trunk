@@ -123,7 +123,7 @@ void
 do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, 
            char *fargs[], int nfargs, char *cargs[], int ncargs, int key, char *name)
 {
-  int i, nqregs, curq, erroffset, offsets[99], subpatterns, qindex, flags, len;
+  int i, nqregs, curq, erroffset, offsets[99], subpatterns, qindex, flags, len, i_qregs;
   char *qregs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
   pcre *re;
   const char *errptr;
@@ -165,13 +165,20 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
         ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1)) {
       curq = qindex;
     } else {
-      qindex = 0;
-      for ( qindex = 0; qindex < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); qindex++ ) {
-        if ( mudstate.global_regsname[qindex] && 
-             *(mudstate.global_regsname[qindex]) &&
-             !stricmp(mudstate.global_regsname[qindex], qregs[i]) ) {
-            curq = qindex;
-            break;
+      if ( mudconf.setq_nums && is_number(qregs[i]) ) {
+         i_qregs = atoi(qregs[i]);
+         if ( (i_qregs >=0) && (i_qregs < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
+            curq = i_qregs;
+         }
+      }
+      if ( curq == -1 ) {
+         for ( qindex = 0; qindex < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); qindex++ ) {
+           if ( mudstate.global_regsname[qindex] && 
+                *(mudstate.global_regsname[qindex]) &&
+                !stricmp(mudstate.global_regsname[qindex], qregs[i]) ) {
+               curq = qindex;
+               break;
+            }
          }
       }
     }

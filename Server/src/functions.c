@@ -36945,9 +36945,9 @@ FUNCTION(fun_setrm)
       if ( *fargs[nfargs-1] ) {
          esep = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                      fargs[nfargs-1], cargs, ncargs, (char **)NULL, 0);
-         if ( *esep ) {
-            sep = esep;
-         }
+         sep = esep;
+      } else {
+         sep = (char *)"";
       }
    } else {
       i_nfargs = nfargs;
