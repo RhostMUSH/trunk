@@ -32318,6 +32318,11 @@ FUNCTION(fun_filter)
     if (!fn_range_check("FILTER", nfargs, 2, MAX_ARGS, buff, bufcx))
        return;
 
+    /* If list is empty just return */
+    if ( !*fargs[1] ) {
+       return;
+    }
+
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
     else

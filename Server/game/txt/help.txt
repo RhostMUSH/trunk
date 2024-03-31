@@ -6418,12 +6418,12 @@
   See Also: @lock, @unlock, @set, lock(), elock(), lset(), set()
  
 & @set
-  Command: @set[/<switches>] <object>=[!]<flag> [[!]<flag> [!]<flag> ...]
-           @set[/<switches>] <object>=<attribute>:<value>
-           @set[/<switches>] <object>=<attribute>:_<fromobj>/<fromattr>
-           @set[/<switches>] <object>/<attr>=[!]<attrflag>
-  Synonym: &<attribute> <object>[=<value>]
-           &`<tree`attribute> <object>[=<value>] (for setting a tree variable)
+  Command: @set[/<switches>] <obj>=[!]<flag> [[!]<flag> [!]<flag> ...]
+           @set[/<switches>] <obj>=<attribute>:<value>
+           @set[/<switches>] <obj>=<attribute>:_<fromobj>/<fromattr>
+           @set[/<switches>] <obj>/<attr>=[!]<attrflag> [,..., [!]<attrflagN>)
+  Synonym: &<attribute> <obj>[=<value>]
+           &`<tree`attribute> <obj>[=<value>] (for setting a tree variable)
  
   The available switches are:
         /QUIET  - sets/removes the target without the 'Set.' or 'Cleared.' 
@@ -6431,18 +6431,18 @@
         /TREE   - sets a TREE (with branches) of a given attribute.
         /STRICT - bypasses special meaning of '_' on attribute setting.
    
-  The first form sets (or clears) the indicated flag(s) on <object>, It 
+  The first form sets (or clears) the indicated flag(s) on <obj>, It 
   accepts multiple flags for arguments if so desired. the second form sets 
-  the <attribute> attribute on <object> to <value>, creating a new user-named 
+  the <attribute> attribute on <obj> to <value>, creating a new user-named 
   attribute if there is no attribute named <attribute>.  The third form 
   copies an attribute from another object, and the fourth form sets 
-  (or clears) an attribute flag on the <attr> attribute of <object>.
+  (or clears) one or more attribute flags on the <attr> attribute of <obj>.
   
   Note: the third form will be ignored if using /strict.
    
   When setting attributes on an object, you may also use the command
-  '@<attribute> <object> = <value>' if the attribute is a predefined
-  attribute.  You may also use the command '&<attribute> <object> = <value>'
+  '@<attribute> <obj> = <value>' if the attribute is a predefined
+  attribute.  You may also use the command '&<attribute> <obj> = <value>'
   to set either predefined attributes or user-named attributes.  Either of
   these is equivalent to the second form of the @set command.
   
@@ -6455,6 +6455,13 @@
   
 { 'help @set2' for more }
 & @set2
+  Command: @set[/<switches>] <obj>=[!]<flag> [[!]<flag> [!]<flag> ...]
+           @set[/<switches>] <obj>=<attribute>:<value>
+           @set[/<switches>] <obj>=<attribute>:_<fromobj>/<fromattr>
+           @set[/<switches>] <obj>/<attr>=[!]<attrflag> [,..., [!]<attrflagN>)
+  Synonym: &<attribute> <obj>[=<value>]
+           &`<tree`attribute> <obj>[=<value>] (for setting a tree variable)
+  
   The following flags may be set using the fourth form of the @set command:
      no_command  ($) - Prevent $-commands and ^-patterns defined in the 
                        attribute from being performed.
@@ -6478,7 +6485,6 @@
      locked      (+) - This happens if you @lock thing/attr the attribute.
      safe        (s) - The attribute can not be modified.
                   
-  Please note, you can not set multiple attributes or flags at once this way.
   Reference: ATTRIBUTE FLAGS
   
   See Also: @lset, @lock, examine, FLAGS, &, @guild, @race, ATTRIBUTE FLAGS,
@@ -35647,6 +35653,8 @@
  * setp renamed to setqm, namep renamed to nameqm
  * updated the converts and removed the need of gets() [ASH]
  * enhanced handler of db converter for more compatability [ASh]
+ * @set #obj/attr handles multiple flags [ASH]
+ * filter() when fed an empty list will return w/o evaluation [ASH]
     
   Bug Fixes
   ------------
