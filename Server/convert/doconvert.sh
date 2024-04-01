@@ -214,6 +214,12 @@ then
    echo "Converting COLUMNS() to COLUMN()..."|tr -d '\012'
    sed "s/columns(/column(/g" $1 > $1.sed2 2>/dev/null
    echo "...Finished."
+   if [ "${TYPE}" = "MUX2NEW" ]
+   then
+      echo "Converting enbedded \r\n encapsulation back to raw carrage returns"|tr -d '\012'
+      sed -i "s/\\\r\\\n/\r\n/g" $1.sed2
+      echo "... Finished."
+   fi
    if [ "${TYPE}" = "MUX2NEW" -o "${TYPE}" = "MUX2" -o "${TYPE}" = "TinyMUSH 3.1" ]
    then
       echo "Converting ELEMENTS() to ELEMENTSMUX()..."|tr -d '\012'
