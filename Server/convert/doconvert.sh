@@ -217,7 +217,9 @@ then
    if [ "${TYPE}" = "MUX2NEW" ]
    then
       echo "Converting enbedded \r\n encapsulation back to raw carrage returns"|tr -d '\012'
-      sed -i "s/\\\r\\\n/\r\n/g" $1.sed2
+      mv $1.sed2 $1.sed2mux
+      sed "s/\\\r\\\n/\r\n/g" $1.sed2mux > $1.sed2
+      rm -f $1.sed2mux
       echo "... Finished."
    fi
    if [ "${TYPE}" = "MUX2NEW" -o "${TYPE}" = "MUX2" -o "${TYPE}" = "TinyMUSH 3.1" ]
