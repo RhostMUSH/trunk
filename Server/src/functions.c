@@ -14204,7 +14204,10 @@ FUNCTION(fun_listprotection)
          }
       }
       return;
-   } else {
+   }
+
+   /* Reset key if 5 and not wizard */
+   if ( i_key == 5 ) {
       i_key = 0;
    }
   

@@ -35694,3 +35694,4 @@
  * fix #2 for the setq/setr rewrite with broken labels with penn_setq [ASH]
  * off by one in %q<##> with setq_nums enabled [ASH]
  * rewrite of setq/setr broke some backward compatibility [ASH]
+ * bug in listprotection() for alias lookup [ASH]
