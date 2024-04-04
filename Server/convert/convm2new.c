@@ -52,6 +52,76 @@
 #define LBUF_SIZE 65535
 #define mush_gets(x)	fgets(x, LBUF_SIZE - 1, stdin)
 
+char s_out[LBUF_SIZE];
+
+char *
+juggle_attrib(char *s_in)
+{
+   int val;
+   char *s_base, *s_ptr, *s_owner, *s_flags, *s_string;
+
+   s_flags = '\0';
+   s_string = '\0';
+   memset(s_out, '\0', LBUF_SIZE);
+   if ( s_in && *s_in ) {
+      if ( *s_in == '' ) {
+         /* format ^Aowner:flags:string */
+         s_base = s_in;
+         s_owner++; /* to owner */
+         s_flags = strchr(s_base, ':'); /* to owner */
+         if ( *s_flags ) {
+            s_string = strchr(s_flags+1, ':'); /* String */
+         }
+         /* Set nulls */
+         if ( *s_flags ) {
+            *s_flags = '\0';
+            s_flags++;
+         }
+         if ( *s_string ) {
+            *s_string = '\0';
+            s_string++;
+         }
+
+         val = 0;
+         if ( *s_flags )
+            val = atoi(s_flags);
+        
+         /* Strip unneeded */
+         val &= ~0x10ce2000;
+
+         /* Let's now do flag conversion */
+         if ( val & 0x00000400 ) { /* is_lock */
+            val &= ~0x00000400;
+            val |=  0x00001000;
+         }
+         if ( val & 0x00000800 ) { /* Visual */
+            val &= ~0x00000800;
+            val |=  0x00020000;
+         }
+         if ( val & 0x00001000 ) { /* Private */
+            val &= ~0x00001000;
+            val |=  0x00008000;
+         }
+         if ( val & 0x00004000 ) { /* NoParse */
+            val &= ~0x00004000;
+            val |=  0x00400000;
+         }
+         if ( val & 0x00008000 ) { /* RegExp  */
+            val &= ~0x00008000;
+            val |=  0x20000000;
+         }
+         if ( val & 0x00010000 ) { /* NoClone */
+           val &= ~0x00010000;
+           val |=  0x00200000;
+         }
+         sprintf(s_out, "%s:%d:%s", s_base, val, s_string);
+      } else {
+         strcpy(s_out, s_in);
+      }
+   }
+   return(s_out);
+}
+
 int main(void) {
    unsigned long flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4;
    int val, tog2, obj, mage, royalty, staff, ansi, immortal, atrcnt, i_dbref;
@@ -235,7 +305,7 @@ int main(void) {
                fprintf(stderr, "Warning: #1's password in SHA1 encryption.  Reset to 'Nyctasia' using crypt.\n");
                printf("XXXXFe7xx3Zo2\n"); /* set password for #1 to Nyctasia */
             } else {
-               printf("%s",q); /* Just store the password as is */
+               printf("%s",juggle_attrib(q)); /* Just store the password as is */
             }
             mush_gets(q);
          } else if (val == 42 ) {
@@ -246,153 +316,153 @@ int main(void) {
             printf(">%d\n",val+30);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 127) {
             printf(">%d\n",235);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 143) {
             printf(">%d\n",174);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 144) {
             printf(">%d\n",246);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 200) {
             printf(">%d\n",177);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 203) {
             printf(">%d\n",193);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 209) {
             printf(">%d\n",199);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 213) {
             printf(">%d\n",237);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 218) {
             printf(">%d\n",228);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 219) {
             printf(">%d\n",227);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 224) {
             printf(">%d\n",2100000000); /* Extended inaternal attributes */
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 241) {
             printf(">%d\n",225);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 242) {
             printf(">%d\n",224);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 243) {
             printf(">%d\n",245);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 199) {
             printf(">%d\n",220);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 214) {
             printf(">%d\n",236);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 216) {
             printf(">%d\n",248);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 217) {
             printf(">%d\n",218);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if (val == 226) {
             printf(">%d\n",217);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if ( (val == 96) || ((val > 199) && (val < 252)) ||
                      ((val >= 145) && (val <= 148)) ) {
@@ -403,9 +473,9 @@ int main(void) {
             printf(">%d\n",val);
             fflush(stdout);
             mush_gets(q);
-            printf("%s",q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
             mush_gets(q);
          }
       } else if(f[0] == '-') {
