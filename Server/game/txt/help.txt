@@ -35603,6 +35603,7 @@
  * added connlast(), connleft(), connmax(), connnum(), connrecord(),
    conntotal() and CONNINFO from MUX for compatibility [ASH]
  * added setrm() like setqm() but returns values [ASH]
+ * freelist() function to return the dbref#'s in the free list [ASH]
   
   Changes
   -------

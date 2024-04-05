@@ -12910,9 +12910,47 @@ FUNCTION(fun_ptimefmt)
   }
 }
 
-/* Template display/builder functions
- * handles 0-9 for args
- */
+/* Return the dbref#'s of the free list */
+FUNCTION(fun_freelist)
+{
+   int i_first, i_last, i_key;
+   STATS statinfo;
+
+   if(!get_stats(player,NOTHING,&statinfo)) {
+      safe_str("#-1 UNABLE TO GET DB STATS", buff, bufcx);
+      return;
+   }
+
+   if ( *fargs[0] ) {
+      if ( mudstate.freelist < 0 ) {
+         dbval(buff, bufcx, statinfo.s_total);
+      } else {
+         i_key = atoi(fargs[0]);
+         if ( i_key ) {
+            i_first = mudstate.freelist;
+            while ( i_first != NOTHING ) {
+               i_last = i_first;
+               i_first = Link(i_first);
+            }
+            dbval(buff, bufcx, i_last);
+         } else {
+            dbval(buff, bufcx, mudstate.freelist);
+         }
+      }
+   } else {
+      i_first = mudstate.freelist;
+      i_last = 0;
+      while ( i_first != NOTHING ) {
+         if ( i_last ) {
+            safe_chr(' ', buff, bufcx);
+         }
+         dbval(buff, bufcx, i_first);
+         i_first = Link(i_first);
+         i_last = 1;
+      }
+   }
+}
+
 FUNCTION(fun_template)
 {
   char *pt[10], *ptbase, *s_newstr, *s_newstrptr;
@@ -40905,6 +40943,7 @@ FUN flist[] =
     {"FOLDERCURRENT", fun_foldercurrent, 0, FN_VARARGS, CA_WIZARD, 0},
     {"FOLDERLIST", fun_folderlist, 1, 0, CA_WIZARD, 0},
     {"FOREACH", fun_foreach, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"FREELIST", fun_freelist, 1, 0, CA_WIZARD, CA_NO_CODE},
     {"FULLNAME", fun_fullname, 1, 0, CA_PUBLIC, 0},
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GET", fun_get, 1, 0, CA_PUBLIC, 0},

@@ -4743,7 +4743,7 @@
   
   Example:  @purge/type room
   
-  See Also: @dbck, @recover, @reclist, @dbclean
+  See Also: @dbck, @recover, @reclist, @dbclean, freelist()
 
 & @recover
   Command: @recover[/<switch>] <#dbref>
@@ -4783,7 +4783,7 @@
     > @recover #123
     Restored.
    
-  See Also: @purge, @reclist
+  See Also: @purge, @reclist, freelist()
 
 & @reclist
   Command: @reclist[/switch] <args>
@@ -4823,7 +4823,7 @@
     > @reclist/free/count
     > @reclist/free *#123*             (search dbref#'s containing '#123')
   
-  See Also: @recover, @purge
+  See Also: @recover, @purge, freelist(), freelist()
 
 & @create
   Command: @create[/switch] [#dbref] <name> [=cost]
@@ -13448,12 +13448,45 @@
   ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  ACCOUNT_WHO() AFLAGS()    
   BEEP()           BYPASS()         CANSEE()      CHECKPASS()   CHKGARBAGE()
   CLOAK()          CODEPOINT()      DOING()       DYNHELP()     EXECSCRIPT()
-  EXECSCRIPTNR()   HASDEPOWER()     HASPOWER()    HASTOGGLE()   ISHIDDEN()  
-  LATTRP()         LDEPOWERS()      LOGTOFILE()   LOGSTATUS()   LOOKUP_SITE()
-  LPOWERS()        LTOGGLES()       MAILALIAS()   MAILQUICK()   MAILQUOTA() 
-  MAILREAD()       MAILSEND()       MAILSIZE()    MAILSTATUS()  MSIZETOT()  
-  NSLOOKUP()       QUOTA()          SIZE()        SWEEP()       TEXTFILE()  
-  TOTEMVALID()
+  EXECSCRIPTNR()   FREELIST()       HASDEPOWER()  HASPOWER()    HASTOGGLE()  
+  ISHIDDEN()       LATTRP()         LDEPOWERS()   LOGTOFILE()   LOGSTATUS() 
+  LOOKUP_SITE()    LPOWERS()        LTOGGLES()    MAILALIAS()   MAILQUICK() 
+  MAILQUOTA()      MAILREAD()       MAILSEND()    MAILSIZE()    MAILSTATUS()
+  MSIZETOT()       NSLOOKUP()       QUOTA()       SIZE()        SWEEP()     
+  TEXTFILE()       TOTEMVALID()
+
+& FREELIST()
+  Function: freelist([<boolean>])
+  
+  This function, if not given any argument, will list the entire free
+  list out in so much as the LBUF can handle the values.  It lists
+  them in reverse order, or, the order that would be taken when
+  new objects would be using the list.
+  
+  The following <boolean> values exist:
+    0 - list the next free dbref# that would be assigned to an object.
+        Note: if no free dbref#'s exist, this will be the next db
+    1 - list the smallest free dbref# that could be assigned to an object.
+        Note: if no free dbref#'s exist, this will be the next db
+  
+  Examples:
+     > @reclist/free
+       Dbref: #17307
+       Dbref: #17306
+       Dbref: #17305
+       ...
+       ...
+       Dbref: #279
+       Dbref: #139
+       Total number of items: 1276
+     > say freelist() 
+       You say "#17307 #17306 #17305 ... ... #279 #139"
+     > say freelist(0)
+       You say "#17307"
+     > say freelist(1)
+       You say "#139"
+  
+  See Also: @reclist, @recover, @purge
 
 & SWEEP()
   Function: sweep(<target> [,<switches> [,<seperator> [,<run-as>]]])
