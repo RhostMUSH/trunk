@@ -2529,7 +2529,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_teval[10], *s_store[10], *t_string, 
         *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
         labelorig[16], labelbak[16];
-   int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
+   int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, i_hook,
        i_waitcnt, i_waitfirst, i_dolabel, i_gotostate, i_orig, i_chkinline;
    double i_wait;
    time_t  i_now;
@@ -2759,6 +2759,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
       if ( i_dolabel ) {
          mudstate.gotostate = 1;
       }
+      i_hook = mudstate.no_hook;
       while (s_buffptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
          i_loop++;
          cp = parse_to(&s_buffptr, ';', 0);
@@ -2769,7 +2770,11 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
          if ( i_loop >= i_rollbackcnt )
             break;
          if (cp && *cp) {
-            process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+            if ( i_hook ) {
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), 1, mudstate.no_space_compress);
+            } else {
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+            }
          }
          if ( time(NULL) > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
             notify(player, "@rollback:  Aborted for high utilization.");
@@ -2778,6 +2783,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             break;
          }
       }
+      mudstate.no_hook = i_hook;
       mudstate.jumpst = i_jump;
       if ( mudstate.chkcpu_toggle )
          break;
@@ -2860,12 +2866,13 @@ void do_include(dbref player, dbref cause, int key, char *string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
    dbref thing, owner, target;
-   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline;
+   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline, i_hook;
    time_t  i_now;
    char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
 
-   if ( desc_in_use != NULL ) {
+   /* Modified so if in @hook we can allow @includes */
+   if ( (desc_in_use != NULL) && !mudstate.no_hook ) {
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
@@ -2962,10 +2969,17 @@ void do_include(dbref player, dbref cause, int key, char *string,
    chk_tog = mudstate.chkcpu_toggle;
    i_chkinline = mudstate.chkcpu_inline;
    mudstate.chkcpu_inline = 1;
+
+   /* If @include is called inside a hook, we keep the state */
+   i_hook = mudstate.no_hook;
    while (buff1ptr && !mudstate.breakst && !mudstate.chkcpu_toggle) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
+         if ( i_hook ) {
+            process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate.no_space_compress);
+         } else {
+            process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
+         }
          if ( key & INCLUDE_IBREAK )
             mudstate.breakst = i_savebreak;
       }
@@ -2975,6 +2989,8 @@ void do_include(dbref player, dbref cause, int key, char *string,
          break;
       }
    }
+   mudstate.no_hook = i_hook;
+
    if ( key & INCLUDE_NOBREAK ) {
       mudstate.breakst = i_savebreak;
    }

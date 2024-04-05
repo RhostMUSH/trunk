@@ -35695,3 +35695,4 @@
  * off by one in %q<##> with setq_nums enabled [ASH]
  * rewrite of setq/setr broke some backward compatibility [ASH]
  * bug in listprotection() for alias lookup [ASH]
+ * potential crash in @hook/include due to uncaught stack exception [ASH]

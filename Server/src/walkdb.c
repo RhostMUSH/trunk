@@ -108,7 +108,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    char	*tbuf, *curr, *objstring, *buff2, *buff3, *buff3ptr, delimiter = ' ', *tempstr, *tpr_buff, *tprp_buff, 
         *buff3tok, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *dbfr, *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
    time_t i_now;
-   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline;
+   int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline, i_hook;
 
    pid_val = 0;
    i_storebreak = mudstate.breakst;
@@ -218,10 +218,15 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             i_chkinline = mudstate.chkcpu_inline;
             sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@dolist/inline");
             mudstate.chkcpu_inline = 1;
+            i_hook = mudstate.no_hook;
             while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
-                  process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+                  if ( i_hook ) {
+                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), 1, mudstate.no_space_compress);
+                  } else {
+                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+                  }
                }
                if ( mudstate.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
@@ -232,6 +237,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                    break;
                }
             }
+            mudstate.no_hook = i_hook;
             mudstate.chkcpu_inline = i_chkinline;
             mudstate.jumpst = i_jump;
             mudstate.rollbackcnt = i_rollback;

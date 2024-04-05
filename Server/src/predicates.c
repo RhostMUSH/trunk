@@ -1442,7 +1442,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
 		char *args[], int nargs, char *cargs[], int ncargs)
 {
    int a, any, chkwild, i_regexp, i_case, i_notify, i_inline, x,
-        i_nobreak, i_breakst, i_localize, i_clearreg, i_jump, i_rollback, i_chkinline, i_orig;
+        i_nobreak, i_breakst, i_localize, i_clearreg, i_jump, i_rollback, i_chkinline, i_orig, i_hook;
    char *cp, *s_buff, *s_buffptr, *buff, *retbuff, *s_switch_notify, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
 
@@ -1541,14 +1541,20 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                i_chkinline = mudstate.chkcpu_inline;
                sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
                mudstate.chkcpu_inline = 1;
+               i_hook = mudstate.no_hook;
                while (s_buffptr && !mudstate.chkcpu_toggle) {
                   if ( mudstate.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     if ( i_hook ) {
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                     } else {
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     }
                   }
                }
+               mudstate.no_hook = i_hook;
                mudstate.chkcpu_inline = i_chkinline;
                mudstate.jumpst = i_jump;
                mudstate.rollbackcnt = i_rollback;
@@ -1600,14 +1606,20 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                i_chkinline = mudstate.chkcpu_inline;
                sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
                mudstate.chkcpu_inline = 1;
+               i_hook = mudstate.no_hook;
                while (s_buffptr && !mudstate.chkcpu_toggle) {
                   if ( mudstate.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     if ( i_hook ) {
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                     } else {
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     }
                   }
                }
+               mudstate.no_hook = i_hook;
                mudstate.chkcpu_inline = i_chkinline;
                strcpy(mudstate.rollback, s_rollback);
                mudstate.jumpst = i_jump;
@@ -1671,14 +1683,20 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             i_chkinline = mudstate.chkcpu_inline;
             sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
             mudstate.chkcpu_inline = 1;
+            i_hook = mudstate.no_hook;
             while (s_buffptr && !mudstate.chkcpu_toggle) {
                if ( mudstate.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                  if ( i_hook ) {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                  } else {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                  }
                }
             }
+            mudstate.no_hook = i_hook;
             mudstate.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
             mudstate.jumpst = i_jump;
@@ -1731,14 +1749,20 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
             i_chkinline = mudstate.chkcpu_inline;
             sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
             mudstate.chkcpu_inline = 1;
+            i_hook = mudstate.no_hook;
             while (s_buffptr && !mudstate.chkcpu_toggle) {
                if ( mudstate.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
-                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                  if ( i_hook ) {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                  } else {
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                  }
                }
             }
+            mudstate.no_hook = i_hook;
             mudstate.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
             mudstate.jumpst = i_jump;

@@ -3125,7 +3125,7 @@ process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg, int inhook, int no_space)
 {
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
-    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0;
+    int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0, i_hook;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
@@ -4951,10 +4951,15 @@ process_command(dbref player, dbref cause, int interactive,
                   mudstate.global_error_inside = 1;
                   i_now = mudstate.now;
                   lcbuf_temp_ptr = lcbuf;
+                  i_hook = mudstate.no_hook;
                   while (lcbuf_temp_ptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
                      lcbuf_temp = parse_to(&lcbuf_temp_ptr, ';', 0);
                      if (lcbuf_temp && *lcbuf_temp) {
-                        process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, mudstate.no_hook, no_space);
+                        if ( i_hook ) {
+                           process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, 1, no_space);
+                        } else {
+                           process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, mudstate.no_hook, no_space);
+                        }
                      }
                      if ( time(NULL) > (i_now + 5) ) {
                         notify(player, "global handler:  Aborted for high utilization.");
@@ -4963,6 +4968,7 @@ process_command(dbref player, dbref cause, int interactive,
                         break;
                      }
                   }
+                  mudstate.no_hook = i_hook;
                   mudstate.global_error_inside = i_trace;
                } else {
                   i_trace = 0;
@@ -9717,7 +9723,7 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
 
 void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig, i_hook;
   time_t i_now;
 
   if ( mudconf.break_compatibility ) {
@@ -9745,10 +9751,15 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           }
           mudstate.chkcpu_inline = 1;
           i_orig = mudstate.chkcpu_toggle;
+          i_hook = mudstate.no_hook;
           while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                if ( i_hook ) {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                } else {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                }
              }
              if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@assert:  Aborted for high utilization.");
@@ -9757,6 +9768,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
                 break;
              }
           }
+          mudstate.no_hook = i_hook;
           mudstate.chkcpu_toggle = i_orig;
           mudstate.chkcpu_inline = i_chkinline;
           mudstate.jumpst = i_jump;
@@ -9775,7 +9787,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
 
 void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig, i_hook;
   time_t i_now;
 
   if ( mudstate.jumpst > 0 ) {
@@ -9808,10 +9820,15 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
           }
           mudstate.chkcpu_inline = 1;
           i_orig = mudstate.chkcpu_toggle;
+          i_hook = mudstate.no_hook;
           while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                if ( i_hook ) {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                } else {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                }
              }
              if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@jump:  Aborted for high utilization.");
@@ -9820,6 +9837,7 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
                 break;
              }
           }
+          mudstate.no_hook = i_hook;
           mudstate.chkcpu_inline = i_chkinline;
           mudstate.rollbackcnt = i_rollback;
           mudstate.jumpst = i_jump;
@@ -9859,7 +9877,7 @@ void do_goto(dbref player, dbref cause, int key, char *label) {
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
   char *arg1_eval = NULL, *cp, *s_rollback;
-  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig;
+  int i_evaled = 0, i_rollback, i_jump, i_chkinline, i_orig, i_hook;
   time_t i_now;
 
   if ( mudconf.break_compatibility ) {
@@ -9888,10 +9906,15 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
              i_now = time(NULL);
           }
           mudstate.chkcpu_inline = 1;
+          i_hook = mudstate.no_hook;
           while (arg2 && !mudstate.chkcpu_toggle && !mudstate.breakst) {
              cp = parse_to(&arg2, ';', 0);
              if (cp && *cp) {
-                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                if ( i_hook ) {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                } else {
+                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                }
              }
              if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@break:  Aborted for high utilization.");
@@ -9900,6 +9923,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
                 break;
              }
           }
+          mudstate.no_hook = i_hook;
           mudstate.chkcpu_inline = i_chkinline;
           mudstate.jumpst = i_jump;
           mudstate.rollbackcnt = i_rollback;
@@ -10371,7 +10395,7 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
 void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int nargs)
 {
    char *s_rollback;
-   int i_rollback, i_jump;
+   int i_rollback, i_jump, i_hook;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr > 0 ) {
@@ -10390,7 +10414,13 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
          i_jump = mudstate.jumpst;
          i_rollback = mudstate.rollbackcnt;
          strcpy(mudstate.rollback, string);
-         process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+         i_hook = mudstate.no_hook;
+         if ( i_hook ) {
+            process_command(player, cause, 1, string, args, nargs, 0, 1, mudstate.no_space_compress);
+         } else {
+            process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+         }
+         mudstate.no_hook = i_hook;
          mudstate.jumpst = i_jump;
          mudstate.rollbackcnt = i_rollback;
          strcpy(mudstate.rollback, s_rollback);
@@ -10411,7 +10441,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
 {
    dbref loc, obj;
    char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff, *s_rollback;
-   int i_jump, i_rollback;
+   int i_jump, i_rollback, i_hook;
    struct itimerval itimer;
 
    if ( mudstate.train_cntr >= 2 ) {
@@ -10454,7 +10484,13 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    if ( string ) {
       strcpy(mudstate.rollback, string);
    }
-   process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+   i_hook = mudstate.no_hook;
+   if ( i_hook ) {
+      process_command(player, cause, 1, string, args, nargs, 0, 1, mudstate.no_space_compress);
+   } else {
+      process_command(player, cause, 1, string, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+   }
+   mudstate.no_hook = i_hook;
    mudstate.rollbackcnt = i_rollback;
    mudstate.jumpst = i_jump;
    strcpy(mudstate.rollback, s_rollback);
@@ -10466,7 +10502,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
 {
    char *retbuff, *cp, *mys, *s_buildptr, *s_build, *s_rollback;
    time_t i_now;
-   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump, i_chkinline, i_orig;
+   int old_trainmode, i_breakst, i_joiner, i_rollback, i_jump, i_chkinline, i_orig, i_hook;
 
    if ( !nargs || !args[0] || !*args[0] )
       return;
@@ -10516,10 +10552,15 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          }
          i_chkinline = mudstate.chkcpu_inline;
          mudstate.chkcpu_inline = 1;
+         i_hook = mudstate.no_hook;
          while ( mys ) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
-               process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+               if ( i_hook ) {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+               } else {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+               }
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -10528,6 +10569,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                }
             }
          }
+         mudstate.no_hook = i_hook;
          mudstate.chkcpu_inline = i_chkinline;
          free_lbuf(s_build);
       } else {
@@ -10543,10 +10585,15 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          i_chkinline = mudstate.chkcpu_inline;
          sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
          mudstate.chkcpu_inline = 1;
+         i_hook = mudstate.no_hook;
          while (mys) {
             cp = parse_to(&mys, ';', 0);
             if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
-               process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+               if ( i_hook ) {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+               } else {
+                  process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+               }
                if ( time(NULL) > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate.breakst=1;
@@ -10555,6 +10602,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                }
             }
          }
+         mudstate.no_hook = i_hook;
          mudstate.chkcpu_inline = i_chkinline;
       }
       mudstate.trainmode = old_trainmode;
@@ -10571,10 +10619,15 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       i_chkinline = mudstate.chkcpu_inline;
       sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@skip");
       mudstate.chkcpu_inline = 1;
+      i_hook = mudstate.no_hook;
       while (mys) {
          cp = parse_to(&mys, ';', 0);
          if (cp && *cp && !mudstate.breakst && !mudstate.chkcpu_toggle) {
-            process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+            if ( i_hook ) {
+               process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+            } else {
+               process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+            }
             if ( time(NULL) > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate.breakst=1;
@@ -10583,6 +10636,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             }
          }
       }
+      mudstate.no_hook = i_hook;
       mudstate.chkcpu_inline = i_chkinline;
    }
    mudstate.chkcpu_toggle = i_orig;
@@ -10611,7 +10665,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
 {
    dbref target;
    char *retbuff, *cp, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
-   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback, i_chkinline, i_orig;
+   int old_trainmode, x, i_breakst, forcehalted_state, i_jump, i_rollback, i_chkinline, i_orig, i_hook;
    time_t i_now;
 
    if ( !s_command || !*s_command ) {
@@ -10678,10 +10732,15 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       i_now = time(NULL);
    }
    mudstate.chkcpu_inline = 1;
+   i_hook = mudstate.no_hook;
    while (s_command && !mudstate.chkcpu_toggle && !mudstate.breakst) {
       cp = parse_to(&s_command, ';', 0);
       if (cp && *cp) {
-         process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+         if ( i_hook ) {
+            process_command(target, target, 0, cp, args, nargs, 0, 1, mudstate.no_space_compress);
+         } else {
+            process_command(target, target, 0, cp, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+         }
          if ( time(NULL) > (i_now + 5) ) {
             notify(player, "@sudo:  Aborted for high utilization.");
             mudstate.breakst=1;
@@ -10690,6 +10749,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
          }
       }
    }
+   mudstate.no_hook = i_hook;
    mudstate.chkcpu_toggle = i_orig;
    mudstate.chkcpu_inline = i_chkinline;
    /* Breaks are local */
@@ -10726,7 +10786,7 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
 {
    dbref loc;
    char *s_rollback, *s_stringptr;
-   int i_rollback, i_jump, i_nospace, i_train;
+   int i_rollback, i_jump, i_nospace, i_train, i_hook;
    struct itimerval itimer;
 
    if ( (key & PREPARSE_RAW) && !mudconf.raw_formatting ) {
@@ -10797,7 +10857,13 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
    i_rollback = mudstate.rollbackcnt;
    mudstate.jumpst = mudstate.rollbackcnt = 0;
    strcpy(mudstate.rollback, s_stringptr);
-   process_command(player, cause, 1, s_stringptr, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+   i_hook = mudstate.no_hook;
+   if ( i_hook ) {
+      process_command(player, cause, 1, s_stringptr, args, nargs, 0, 1, mudstate.no_space_compress);
+   } else {
+      process_command(player, cause, 1, s_stringptr, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+   }
+   mudstate.no_hook = i_hook;
    mudstate.jumpst = i_jump;
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);
