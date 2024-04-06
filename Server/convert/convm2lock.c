@@ -5,7 +5,7 @@
 int main(int argc, char **argv) {
 FILE *fpin, *fpout, *fpout2;
 char *s_in, s_buf[100000];
-int  i_dbref;
+int  i_dbref, i_newdbref;
    
    memset(s_buf, '\0', sizeof(s_buf));
 
@@ -33,10 +33,16 @@ int  i_dbref;
       exit(1);
    }
    
+   i_newdbref = 0;
    while ( !feof(fpin) ) {
       fgets( s_buf, 99999, fpin );
-      if ( *s_buf == '!' ) {
+      if ( !strcmp(s_buf, "<\n") ) {
+         i_newdbref = 0;
+         continue;
+      }
+      if ( *s_buf == '!' && !i_newdbref ) {
          i_dbref = atoi(s_buf+1);
+         i_newdbref = 1;
          continue;
       }
       if ( (*s_buf == '>') && (atoi(s_buf+1) == 42) ) {
