@@ -114,11 +114,12 @@ issue_bangs(int bang_not, int bang_yes, int bang_string, int bang_truebool, char
 #endif
 
 int
-sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, char **bufc, dbref cause, dbref caller, int feval) {
+sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, char **bufc, dbref cause, dbref caller, int feval, char inchr) {
    ATTR *sub_ap;
    int sub_aflags;
    dbref sub_aowner;
-   char *s_buf, *sub_txt, *sub_buf;
+   char *s_buf, *sub_txt, *sub_buf, *s_array[2];
+   static char s_buff[10];
 
    if ( Good_obj(mudconf.hook_obj) && (mudconf.sub_override & i_include) && !(mudstate.sub_overridestate & i_include) ) {
       s_buf = alloc_sbuf("sub_override_process");
@@ -132,7 +133,11 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
             safe_str(s_include, buff, bufc);
          else {
             mudstate.sub_overridestate = mudstate.sub_overridestate | i_include;
-            sub_buf = cpuexec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+            sprintf(s_buff, "%c", inchr);
+            s_array[0] = s_buff;
+            s_array[1] = NULL;
+            /* We want to force evaluation here */
+            sub_buf = cpuexec(mudconf.hook_obj, cause, caller, feval | EV_EVAL, sub_txt, s_array, 1, (char **)NULL, 0);
             if ( !*sub_buf )
                safe_str(s_include, buff, bufc);
             else
@@ -1527,8 +1532,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
-    char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr;
-    static char tfunbuff[33], tfunlocal[100];
+    char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr, *s_tmparray[3];
+    static char tfunbuff[33], tfunlocal[100], s_chr[10];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
@@ -2003,19 +2008,19 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 break;
             case 'f':		/* Accents */
             case 'F':	
-                if ( !sub_override_process(SUB_F, (char *)"%f", (char *)"F", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_F, (char *)"%f", (char *)"F", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str("%f", buff, &bufc);
                 }
                 break;
 	    case 'r':		/* Carriage return */
 	    case 'R':
-                if ( !sub_override_process(SUB_R, (char *)"\r\n", (char *)"R", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_R, (char *)"\r\n", (char *)"R", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str((char *)"\r\n", buff, &bufc);
                 }
 		break;
 	    case 't':		/* Tab */
 	    case 'T':
-                if ( !sub_override_process(SUB_T, (char *)"\t", (char *)"T", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_T, (char *)"\t", (char *)"T", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str("\t", buff, &bufc);
                 }
 		break;
@@ -2307,7 +2312,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 } else {
 		    tbuf = (char *) obj[gender];
                 }
-                if ( !sub_override_process(SUB_O, tbuf, (char *)"O", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_O, tbuf, (char *)"O", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		break;
@@ -2323,7 +2328,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) poss[gender]);
 		}
-                if ( !sub_override_process(SUB_P, tbuf, (char *)"P", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_P, tbuf, (char *)"P", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
                 free_lbuf(tbuf);
@@ -2339,7 +2344,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		} else {
 		    tbuf = (char *) subj[gender];
                 }
-                if ( !sub_override_process(SUB_S, tbuf, (char *)"S", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_S, tbuf, (char *)"S", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		break;
@@ -2355,7 +2360,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		} else {
                     sprintf(tbuf, "%.1000s", (char *) absp[gender]);
 		}
-                if ( !sub_override_process(SUB_A, tbuf, (char *)"A", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_A, tbuf, (char *)"A", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
                 free_lbuf(tbuf);
@@ -2368,7 +2373,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 trace_array[1] = NULL;
                 trace_array[2] = NULL;
                 fun_objid(trace_buff, &trace_buffptr, player, cause, cause, trace_array, 1, (char **)NULL, 0);
-                if ( !sub_override_process(SUB_COLON, trace_buff, (char *)"COLON", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_COLON, trace_buff, (char *)"COLON", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(trace_buff, buff, &bufc);
                 }
 		free_sbuf(tbuf);
@@ -2377,7 +2382,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case '#':		/* Invoker DB number */
 		tbuf = alloc_sbuf("exec.invoker");
 		sprintf(tbuf, "#%d", cause);
-                if ( !sub_override_process(SUB_NUM, tbuf, (char *)"NUM", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_NUM, tbuf, (char *)"NUM", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		free_sbuf(tbuf);
@@ -2385,7 +2390,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    case '!':		/* Executor DB number */
 		tbuf = alloc_sbuf("exec.executor");
 		sprintf(tbuf, "#%d", player);
-                if ( !sub_override_process(SUB_BANG, tbuf, (char *)"BANG", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_BANG, tbuf, (char *)"BANG", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		free_sbuf(tbuf);
@@ -2393,7 +2398,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case '@':           /* Immediate Executor DB number */
                 tbuf = alloc_sbuf("exec.executor");
                 sprintf(tbuf, "#%d", caller);
-                if ( !sub_override_process(SUB_AT, tbuf, (char *)"AT", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_AT, tbuf, (char *)"AT", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
                 free_sbuf(tbuf);
@@ -2564,7 +2569,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
             case 'W':		/* TwinkLock enactor */
 		tbuf = alloc_sbuf("exec.twink");
 		sprintf(tbuf, "#%d", mudstate.twinknum);
-                if ( !sub_override_process(SUB_W, tbuf, (char *)"W", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_W, tbuf, (char *)"W", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		free_sbuf(tbuf);
@@ -2611,7 +2616,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       } else {
                          mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_K;
                          mudstate.trace_indent++;
-		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                         sprintf(s_chr, "%c", savec);
+                         s_tmparray[0] = s_chr;
+                         s_tmparray[1] = NULL;
+                         s_tmparray[2] = NULL;
+		         sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, s_tmparray, 1, (char **)NULL, 0);
                          mudstate.trace_indent--;
                          if ( !*sub_buf ) {
                             if ( t_bufb ) {
@@ -2644,7 +2653,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		break;
 	    case 'N':		/* Invoker name */
 	    case 'n':
-                if ( !sub_override_process(SUB_N, Name(cause), (char *)"N", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_N, Name(cause), (char *)"N", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(Name(cause), buff, &bufc);
                 }
 		break;
@@ -2664,7 +2673,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
 		tbuf = alloc_sbuf("exec.exloc");
 		sprintf(tbuf, "#%d", twhere);
-                if ( !sub_override_process(SUB_L, tbuf, (char *)"L", buff, &bufc, cause, caller, feval) ) {
+                if ( !sub_override_process(SUB_L, tbuf, (char *)"L", buff, &bufc, cause, caller, feval, savec) ) {
 		   safe_str(tbuf, buff, &bufc);
                 }
 		free_sbuf(tbuf);
@@ -2863,7 +2872,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          if ( *sub_txt ) {
                             mudstate.sub_overridestate = mudstate.sub_overridestate | i_last_chr;
                             mudstate.trace_indent++;
-                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                            sprintf(s_chr, "%c", savec);
+                            s_tmparray[0] = s_chr;
+                            s_tmparray[1] = NULL;
+                            s_tmparray[2] = NULL;
+                            sub_buf = exec(mudconf.hook_obj, cause, caller, feval, sub_txt, s_tmparray, 1, (char **)NULL, 0);
                             mudstate.trace_indent--;
                             mudstate.sub_overridestate = mudstate.sub_overridestate & ~i_last_chr;
                             safe_str(sub_buf, buff, &bufc);
@@ -2924,8 +2937,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                          sub_txt2 = atr_pget(mudconf.hook_obj, sub_ap->number, &sub_aowner, &sub_aflags);
                          if ( sub_txt2 && *sub_txt2) {
                             mudstate.trace_indent++;
+                            sprintf(s_chr, "%c", savec);
+                            s_tmparray[0] = s_chr;
+                            s_tmparray[1] = NULL;
+                            s_tmparray[2] = NULL;
                             sub_buf2 = exec(mudconf.hook_obj, cause, caller, 
-                                            EV_EVAL|EV_STRIP|EV_FCHECK, sub_txt2, (char **)NULL, 0, (char **)NULL, 0);
+                                            EV_EVAL|EV_STRIP|EV_FCHECK, sub_txt2, s_tmparray, 1, (char **)NULL, 0);
                             mudstate.trace_indent--;
                             sub_delim = 1;
                             if ( *sub_buf2 ) {
@@ -2976,12 +2993,17 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                       if ( sub_txt  ) {
                          if ( *sub_txt ) {
                             mudstate.trace_indent++;
+                            sprintf(s_chr, "%c", savec);
+                            s_tmparray[1] = s_chr;
+                            s_tmparray[2] = NULL;
                             if ( sub_delim ) {
+                               s_tmparray[0] = t_bufa;
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
-                                         sub_txt, (char **)&t_bufa, 1, (char **)NULL, 0);
+                                         sub_txt, s_tmparray, 2, (char **)NULL, 0);
                             } else {
+                               s_tmparray[0] = (char *)"";
                                sub_buf = exec(mudconf.hook_obj, player, caller, EV_EVAL|EV_STRIP|EV_FCHECK, 
-                                         sub_txt, (char **)NULL, 0, (char **)NULL, 0);
+                                         sub_txt, s_tmparray, 2, (char **)NULL, 0);
                             }
                             mudstate.trace_indent--;
                             safe_str(sub_buf, buff, &bufc);

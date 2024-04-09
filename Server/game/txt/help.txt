@@ -35656,6 +35656,7 @@
  * enhanced handler of db converter for more compatability [ASh]
  * @set #obj/attr handles multiple flags [ASH]
  * filter() when fed an empty list will return w/o evaluation [ASH]
+ * pass additional arguments to sub_include and sub_override vals [ASH]
     
   Bug Fixes
   ------------

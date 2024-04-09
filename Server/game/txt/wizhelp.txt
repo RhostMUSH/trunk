@@ -12306,12 +12306,31 @@
   for example.  If the delimiter is a numerical value, it will use that
   value to specify how many spaces to take after the %-substitution.
   
+  Values passwed to CHR_<character>:
+     %1 - the percent substitution included, like y, Y, etc.  Case sensitive.
+  
+  Values passed to SUB_<character>:
+     %0 - the string between the substitution and CHR_ delimiter
+     %1 - the percent substitution included, like y, Y, etc.  Case sensitive.
+  
   NOTE:  If <character> is an invalid character for an attribute name,
          then specify the ordinal of that character.  [asc(<character>)]
          You then use the 3 digit representation of that number for the
          attribute.  Example:  '*' would be '042'.  So SUB_042/CHR_042.
   
   You may use valid() to verify if the character is a valid for attributes.
+  
+  { see wizhelp sub_include2 for examples }
+  
+& sub_include2
+  Config parameter: sub_include <string>.    Default: (empty)
+  
+  Values passwed to CHR_<character>:
+     %1 - the percent substitution included, like y, Y, etc.  Case sensitive.
+  
+  Values passed to SUB_<character>:
+     %0 - the string between the substitution and CHR_ delimiter
+     %1 - the percent substitution included, like y, Y, etc.  Case sensitive.
   
   Examples:  (assume hook_obj is set up to be dbref #456)
     > &SUB_Y #456=[add(1,1)]                  (just return '2')
@@ -12340,6 +12359,9 @@
   A percent substitution that is overridden can have that percent substitution
   as part of the string in the attribute.  There is no need of concern for
   infinite loops.  The following substitutions exist:
+  
+  The value of '%0' used in the SUB_<character> field will be the substitution
+  being passed.  This is case sensitive.  For example 'n', 'N', '#', and so on.
   
   - Sub --- Value --- HEX ------------+- Sub --- Value --- HEX ---------------
     %n ----     1     (0x00000001)    |  %r ----   512     (0x00000200)
@@ -12391,6 +12413,8 @@
   In addition, only the '%c' and '%x' substitutions are allowed 'null returns'
   and any other substitution that returns an empty string will use the
   hardcode substitution in its stead.
+  
+  %0 will be passedd as the substitution being used.
   
   See Also: sub_include, @hook, hook_obj, HOOK SETUP
 
