@@ -297,6 +297,7 @@ struct confdata {
         int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
         int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
+	int	enforce_added_pronouns;	/* Always use added pronounts and not built ins */
         char    forbid_host[LBUF_SIZE]; /* forbid host names */
         char    suspect_host[LBUF_SIZE]; /* suspect host names */
         char    register_host[LBUF_SIZE]; /* register host names */

@@ -514,36 +514,43 @@ get_gender(dbref player)
     i_ret = 0;
     atr_gotten = atr_pget(player, A_SEX, &aowner, &aflags);
     first = *atr_gotten;
-    switch (first) {
-    case 'P':
-    case 'p':
-        i_ret = 4;
-        // DPOP; /* #62 */
-	// return 4;
-        break;
-    case 'M':
-    case 'm':
-        i_ret = 3;
-        // DPOP; /* #62 */
-	// return 3;
-        break;
-    case 'F':
-    case 'f':
-    case 'W':
-    case 'w':
-        i_ret = 2;
-        // DPOP; /* #62 */
-	// return 2;
-        break;
-    default:
-        i_ret = lookup_gender(atr_gotten);
-        if ( !i_ret )
-           i_ret = 1;
-        // DPOP; /* #62 */
-	// return 1;
-        break;
+    if ( mudconf.enforce_added_pronouns ) {
+       i_ret = lookup_gender(atr_gotten);
+       if ( !i_ret ) {
+          i_ret = 1;
+       }
+    } else {
+       switch (first) {
+          case 'P':
+          case 'p':
+              i_ret = 4;
+              // DPOP; /* #62 */
+	      // return 4;
+              break;
+          case 'M':
+          case 'm':
+              i_ret = 3;
+              // DPOP; /* #62 */
+	      // return 3;
+              break;
+          case 'F':
+          case 'f':
+          case 'W':
+          case 'w':
+              i_ret = 2;
+              // DPOP; /* #62 */
+	      // return 2;
+              break;
+          default:
+              i_ret = lookup_gender(atr_gotten);
+              if ( !i_ret ) {
+                 i_ret = 1;
+              }
+              // DPOP; /* #62 */
+	      // return 1;
+              break;
+       }
     }
-/*NOTREACHED */
     DPOP; /* #62 */
     free_lbuf(atr_gotten);
     return i_ret;

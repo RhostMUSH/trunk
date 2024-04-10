@@ -369,6 +369,7 @@ NDECL(cf_init)
     mudconf.passwd_distance = 0;	/* strdistance for secure passwords */
     mudconf.nobracket_locks = 0;	/* Are brackets required for locks */
     mudconf.robot_owns_create = 0;	/* Robots own things it creates */
+    mudconf.enforce_added_pronouns = 0;	/* Enforce use of added_pronouns */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -4534,6 +4535,9 @@ CONF conftable[] =
     {(char *) "elements_compat",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.elements_compat, 0, 0, CA_PUBLIC,
      (char *) "Enable elements() compatibility to elementsmux?"},
+    {(char *) "enforce_added_pronouns",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_added_pronouns, 0, 0, CA_PUBLIC,
+     (char *) "Are added_pronouns always used and built in ignored?"},
     {(char *) "enforce_checksums",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.enforce_checksums, 0, 0, CA_PUBLIC,
      (char *) "Are CRC checksums required for $commands?"},

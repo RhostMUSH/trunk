@@ -7271,8 +7271,8 @@
   down_file                down_motd_message        dump_interval          
   dump_message             dump_offset              earn_limit             
   elements_compat          empower_fulltel          enable_tstamps         
-  enforce_checksums        enforce_unfindable       enhanced_convtime      
-  error_file 
+  enforce_added_pronouns   enforce_checksums        enforce_unfindable     
+  enhanced_convtime        error_file 
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7589,6 +7589,13 @@
   Due to this, any gender that starts with p, f, w, or m will not be 
   recognized as these are reserved letters for existing genders.
   
+  The exception to this rule is if you have enabled enforce_added_pronouns.
+  Enabling that configuration parameter will bypass all built in lookups
+  and use just the added_pronouns.
+  
+  Be aware that a failed lookup of any added_pronouns defaults to the
+  neutered sex of it, it, its.
+  
   Syntax for adding a gender will be:
       -------------------------------------------------------
       @sex        %s      %o     %p         %a
@@ -7598,7 +7605,7 @@
   For example:
       cow:moo:mooing:moos:moosmore sow:oink:oinking:oinker:oinkers
   
-  See Also: (Normal help) @sex, GENDER
+  See Also: enforce_added_pronouns, (Normal help) @sex, GENDER 
 
 & admin_object
   Config parameter: admin_object <dbref>   Default: -1
@@ -8491,6 +8498,18 @@
   Indicates if convtime() will allow enhanced formats to be processed
   with the convtime function.  Due to a slightly higher overhead this
   is disabled by default.
+
+& enforce_added_pronouns
+  Config parameter: enforce_added_pronouns <yes/no>.  Default: no
+  
+  specifies if all pronoun substitutions (%s, %p, %o, %a) is handled
+  through the values specified in the config param ADDED_PRONOUNS 
+  and bypasses the built in he, she, it, they.
+  
+  This allows more flexibility for setting pronoun substitutions 
+  and removes the hardlimit of any starting with h, s, f, p
+  
+  See Also: added_pronouns
 
 & enforce_unfindable
   Config parameter: enforce_unfindable <yes/no>.  Default: no

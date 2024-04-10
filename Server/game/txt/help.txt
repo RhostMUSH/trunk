@@ -9597,7 +9597,12 @@
   
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
- 
+
+  Note: Additional genders and pronouns may be added dynamically to your
+        game.  Please check config(added_pronouns) for additional genders.
+        The format of each gender will be:
+           > gender(@sex) subj(%s) obj(%o) poss(%p) aposs(%a)
+  
   Example: @sex me = female
            @sex me = No thank you (Silly, but possible.  Treated as neuter)
   
@@ -12603,7 +12608,7 @@
    Note: Additional genders and pronouns may be added dynamically to your
          game.  Please check config(added_pronouns) for additional genders.
          The format of each gender will be:
-           > gender subj(%s) obj(%o) poss(%p) aposs(%a)
+           > gender(@sex) subj(%s) obj(%o) poss(%p) aposs(%a)
   
          Example: 
            > think config(added_pronouns)
@@ -35604,6 +35609,7 @@
    conntotal() and CONNINFO from MUX for compatibility [ASH]
  * added setrm() like setqm() but returns values [ASH]
  * freelist() function to return the dbref#'s in the free list [ASH]
+ * config param enforce_added_pronouns to bypass built-ins [ASH]
   
   Changes
   -------
