@@ -1058,6 +1058,8 @@
   See Also: config parameters, signal_object, signal_object_type
 
 & flags
+  Topic: FLAGS
+  
   Information is available on the following flags:
  
        INHERIT(I)         MARKED(m)          STARTUP(z)          SUSPECT(u)
@@ -1077,6 +1079,23 @@
   
   Note:  ROYALTY in RhostMUSH is the same as WIZARD everywhere else. 
   
+  See Also: bitlevels
+  
+& BITLEVELS
+  Topic: BITLEVELS
+  
+  The following baseline bitlevels exist for empowerment.
+  
+  7 -- god (#1)
+  6 -- Immortal (Super-Royalty)
+  5 -- Wizard (Royalty)
+  4 -- Councilor
+  3 -- Architect
+  2 -- Guildmaster
+  1 -- Normal Player
+  0 -- Guest/Wanderer
+  
+  See Also: flags
 & global inheritance
   There is the possibility to set up global inheritance for object types.
   There are various methods to do this.  First, there is a 'filtering'
@@ -6630,6 +6649,7 @@
 
 & INHERIT
   Flag: INHERIT(I) (all types)
+  
   When set on an object, gives the object access to the ROYALTY and IMMORTAL
   powers that its owner has, and also allows that object to control the player
   and other INHERIT objects owned by that player.
@@ -6639,6 +6659,7 @@
 
 & MARKED
   Flag: MARKED(m) (all types)
+  
   This flag is used by the database cleaning routines to check the
   connectivity of the database, and also by the @mark commands to select
   objects for special attention.  Since database cleaning is performed
@@ -6650,6 +6671,7 @@
 
 & STARTUP
   Flag: STARTUP(z) (all types)
+  
   This flag is managed internally by the server and it is not directly
   settable.  It indicates whether or not the object has a STARTUP attribute
   that is to be run when the RhostMUSH is booted.  This saves a considerable 
@@ -6661,6 +6683,7 @@
 
 & SUSPECT
   Flag: SUSPECT(u) (players)
+  
   When set on a player, causes name changes, kills, and attempted kills 
   to be reported to all connected wizards.  If you are @toggled MONITOR
   then all connects and disconnects of suspect players are individually
@@ -6687,11 +6710,12 @@
   room ownership, please use an IMMORTAL player.
   
   See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
-            IMMORTAL, CONTROL, INHERIT
+            IMMORTAL, CONTROL, INHERIT, BITLEVEL
 
 & SUPER-ROYALTY
 & IMMORTAL
   Flag: IMMORTAL(i) (players) [bitlevel 6]
+  
   A player that is set IMMORTAL is essentially #1.  They can do absolutely
   anything in the game except directly affect #1 and what #1 owns.  They
   should be set only when you require an administrator to have full access
@@ -6712,11 +6736,12 @@
           and set/remove the immortal flag.
   
   See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), COUNCILOR,
-            CONTROL, INHERIT
+            CONTROL, INHERIT, BITLEVEL
 
 & WIZARD
 & ROYALTY
   Flag: ROYALTY(W) (players) [bitlevel 5]
+  
   A player that is set ROYALTY controls all of the objects in the
   database (except for player #1 and immortal), regardless of their 
   ownership or flags.  In general, ROYALTY can do anything using 
@@ -6742,10 +6767,11 @@
         + Ability to do some internal configurations.
   
   See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL,
-            CONTROL, INHERIT
+            CONTROL, INHERIT, BITLEVEL
 
 & COUNCILOR
   Flag: COUNCILOR(a) (players) [bitlevel 4]
+  
   A player set COUNCILOR controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, a
   COUNCILOR can do anything a ROYALTY can except mess with ROYALTY or
@@ -6766,10 +6792,11 @@
                      @newpassword, @pcreate, slay, and directly affect
                      players their level and lower.
   
-  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
 
 & ARCHITECT
   Flag: ARCHITECT(B) (players) [bitlevel 3]
+  
   A player set ARCHITECT controls all objects in the database of equal
   level or less regardless of ownership or flags.  In general, an
   ARCHITECT is a low-powered ROYALTY with various wizard commands
@@ -6792,10 +6819,11 @@
         + Able to give negative money (Steal)
         + Able to @toggle the MONITOR
   
-  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
+  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
 
 & GUILDMASTER
   Flag: GUILDMASTER(g) (players) [bitlevel 2]
+  
   A player set GUILDMASTER is able to see/view other players and
   anything their level and lower.  They can grant/remove quota,
   and anything they run in the queue is considered free.
@@ -6811,16 +6839,18 @@
         + Can examine/decompile things their level and lower.
         + Can set @quota/@guild on their level and lower.
   
-  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL
+  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
 
 & SLAVE
   Flag: SLAVE(s) (players)
+  
   A player set slave can't do any database related commands or talk.
   If mixed with the fubar flag, they're basically a statue.
   
   See Also: FUBAR
 & FUBAR
   Flag: FUBAR(f) (players)
+  
   A player set fubar is unable to do anything but pose and  say.
   The user can not QUIT, use any $ command, any built in command, move,
   or do anything other than those two commands.  The flag lives up to
@@ -6830,6 +6860,7 @@
 
 & CLOAK
   Flag: CLOAK(b) (players)
+  
   A player set cloak does not trigger the 'has arrived', 'has left', 
   'has connected' or 'has disconnected' messages.  They will arrive
   in any room oblivious to anyone else.  However, they do still 
@@ -6837,11 +6868,13 @@
 
 & SCLOAK
   Flag: SCLOAK(Z) (super-royalty (immortal) only)
+  
   A super-royalty set scloak will be totally unseeable by royalty.
   This works as the standard built-in cloak does to mortals.
 
 & SPOOF
   Flag: SPOOF([S]) (super-royalty (immortal) only)
+  
   A super-royalty set spoof flag will be totally unseeable by anyone
   below super-royalty.  When set, it disables a wizards normal ability
   to 'bypass' NOSPOOF by making them be effected like a mortal.
@@ -6850,20 +6883,23 @@
 
 & DR_PURGE
   Flag: DR_PURGE([x]) (internal flag only)
+  
   This flag is a marker for rooms so once they are destroyed they 
   automatically bypass the recover list and are gone for good.  This flag
   is set by using @destroy/purge on the room.  If the room is set !BYEROOM
   before the room is destroyed, it will remove this flag from it as well.
 
 & GUEST
-  Flag: GUEST(!) (royalty and higher only)
+  Flag: GUEST(!) (royalty and higher only) [bitlevel 0]
+  
   Any player set guest can not build/create/dig no matter what their quota
   is set to.  They also may not set/unset any attribute on themselves
   or anything else.  This flag is automatically set on any guest character
   This flag is only seeable by royalty and higher.
 
 & WANDERER
-  Flag: WANDERER(^) (councilor and higher only)
+  Flag: WANDERER(^) (councilor and higher only) [bitlevel 0]
+  
   Any player set wanderer can not build/create/dig no matter what their
   quota is set to.  This flag is just like the GUEST flag except it is seeable
   and changeable by COUNCILORS whereas the GUEST flag is seeable and
@@ -6876,11 +6912,13 @@
   
 & DPSHIFT
   Flag: DPSHIFT([B]) (immortal only)
+  
   This is an internal flag in use with the @depower system and shouldn't
   be manually set or unset on anything.
 
 & CMDCHECK
   Flag: CMDCHECK([K]) (immortal only)
+  
   This is an internal flag in use with command parsing permissions
   and should not be manually set or unset on anything.
 
@@ -6888,6 +6926,7 @@
 & NOCONNECT
 & NO_CONNECT
   Flag: NO_CONNECT([A]) (councilor and higher)
+  
   This flag when set on a player stops them from being able to connect to
   their character.  Keep in mind, this flag will work on councilors and
   lower.  The '[A]' uses a second flag list.
@@ -6943,6 +6982,7 @@
 & NOMODIFY
 & NO_MODIFY
   Flag: NO_MODIFY([M]) (royalty and higher)
+  
   This flag when set on anything makes it so that object can not be
   altered in any way (attributes, flags, etc) even by the owner.
   This flag uses the second flag list.  Immortals and royalty are
@@ -6959,6 +6999,7 @@
 & NOEXAMINE
 & NO_EXAMINE
   Flag: NO_EXAMINE([E]) (royalty and higher)
+  
   This flag when set on anything makes it so the object can not be
   examined or @decompiled no matter the user's permissions.  This
   holds true for all switches of examine as well.  This flag uses
@@ -6971,11 +7012,13 @@
 
 & CMDPARSE
   Flag: CMDPARSE([K]) (immortal only)
+  
   This is an internal flag that is used with the @icmd system.  It should
   not be manually set.
 
 & GUILDOBJ
   Flag: GUILDOBJ(j) (councilor higher settable, royalty higher removable)
+  
   This flag does absolutely nothing.  It is used specifically as a marker
   for guildobjects to allow an easy method to search for them.
 
@@ -6983,6 +7026,7 @@
 & NOPOSSESS
 & NO_POSSESS
   Flag: NO_POSSESS([C]) (royalty and higher)
+  
   This flag when set on a player makes it so that player can not be
   on from two separate sites at once.  In addition, it makes it so
   that player is unable to connect from the same site more than
@@ -6998,6 +7042,7 @@
   
 & RECOVER
   Flag: RECOVER($) (super-royalty (immortal) only)
+  
   This flag is an internal flag that is used to monitor the recovery
   information for rooms/things/players/etc destroyed so that they can be
   recovered in the future.  If such a thing happens, notify a super-royalty
@@ -7009,6 +7054,7 @@
 & NOMOVE
 & NO_MOVE
   Flag: NO_MOVE([N])
+  
   This flag is settable only by royalty and higher.  It in effect stops that
   player from being able to move short of @teleporting.  They can not move
   through exits, get picked up or dropped, nor can they leave or enter 
@@ -7020,6 +7066,7 @@
 
 & STOP
   Flag: STOP([D])
+  
   This flag stops processing (ie: looking for) matching $commands once it 
   finds a match of the $command on an object set STOP.
   
@@ -7028,6 +7075,7 @@
 & NOSTOP
 & NO_STOP
   Flag: NO_STOP([F])
+  
   This flag when finding a matching $command on an object that has the NOSTOP
   flag set, will first check the master room for a matching $command.  If it
   finds one, it will execute that $command instead of the one on the object
@@ -7039,6 +7087,7 @@
 
 & SEE_OEMIT
   Flag: SEE_OEMIT([O])
+  
   This flag when set allows the target to see [oemit] <text> if they were
   being oemitted by use of the @oemit command.  This flag is settable only
   by ROYALTY and higher.
@@ -7046,6 +7095,7 @@
 & NOANSINAME
 & NO_ANSINAME
   Flag: NO_ANSINAME([n])
+  
   This flag when set on a non-player, will disable that target from 
   displaying ansi colors in it's name.  If specified on a player, then
   not only will that player be disabled from having an ansi name, but
@@ -7054,6 +7104,7 @@
 & NOGOBJ
 & NO_GOBJ
   Flag: NO_GOBJ([G])
+  
   This flag when set disables the target from executing any commands on
   anything that has the GUILD_OBJ flag set.  This is settable by ROYALTY
   and higher only.
@@ -7061,6 +7112,7 @@
 & NOPESTER
 & NO_PESTER
   Flag: NO_PESTER([p])
+  
   This flag when set disables the target from being able to whisper or @pemit
   at all.  This lives up to the flag's name.  This is settable by ROYALTY
   and higher only.
@@ -7068,6 +7120,7 @@
 & NOOVERRIDE
 & NO_OVERRIDE
   Flag: NO_OVERRIDE([V])
+  
   This flag when set disables the target from overriding locks.  This allows
   ROYALTY and IMMORTAL from overriding locks (including uselocks and the
   like) as though a nice feature, it can become tiresome.  Settable by
@@ -7078,6 +7131,7 @@
 & NOUSELOCK
 & NO_USELOCK
   Flag: NO_USELOCK([U])
+  
   This flag when set disables the target from overriding uselocks.  This 
   allows ROYALTY and IMMORTAL from overriding only uselocks to avoid 
   difficulties in triggering code that you may not desire.
@@ -7094,6 +7148,7 @@
 
 & PINVISIBLE
   Attribute Flag: PINVISIBLE(v)
+  
   This attribute flag is used to set attributes so that they can no longer
   be 'visible' with examine, @decompile, lattr() or any of the other wildcard
   matching attribute functions/commands.  However, they still can be gotten

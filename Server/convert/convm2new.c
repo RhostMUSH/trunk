@@ -298,7 +298,7 @@ int main(void) {
          if (val > 255)
             val = val + 256;
          /* attr conversion */
-         if( (val == 5) && (obj == 1) ) {
+         if( (val == 5) && (obj == 1) ) { /* Password */
             printf(">5\n");
             mush_gets(q); /* read password and toss away */
             if ( strstr(q, "$SHA1$") != NULL ) {
@@ -308,11 +308,11 @@ int main(void) {
                printf("%s",juggle_attrib(q)); /* Just store the password as is */
             }
             mush_gets(q);
-         } else if (val == 42 ) {
+         } else if (val == 42 ) { /* Lock attribute -- handled by a separate routine */
             /* Eat it */
             mush_gets(q);
             mush_gets(q);
-         } else if ((val >= 129) && (val <= 142)) {
+         } else if ((val >= 129) && (val <= 142)) { /* These are 1 to 1 but a 30 offset between MUX and Rhost */
             printf(">%d\n",val+30);
             fflush(stdout);
             mush_gets(q);
@@ -320,7 +320,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 127) {
+         } else if (val == 127) { /* Getlock */
             printf(">%d\n",235);
             fflush(stdout);
             mush_gets(q);
@@ -328,7 +328,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 143) {
+         } else if (val == 143) { /* Teleport from fail */
             printf(">%d\n",174);
             fflush(stdout);
             mush_gets(q);
@@ -336,7 +336,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 144) {
+         } else if (val == 144) { /* LastIP */
             printf(">%d\n",246);
             fflush(stdout);
             mush_gets(q);
@@ -344,7 +344,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 200) {
+         } else if (val == 200) { /* Last Paged */
             printf(">%d\n",177);
             fflush(stdout);
             mush_gets(q);
@@ -352,7 +352,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 203) {
+         } else if (val == 203) { /* Mail signature */
             printf(">%d\n",193);
             fflush(stdout);
             mush_gets(q);
@@ -360,7 +360,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 209) {
+         } else if (val == 209) { /* Speech Lock */
             printf(">%d\n",199);
             fflush(stdout);
             mush_gets(q);
@@ -368,7 +368,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 213) {
+         } else if (val == 213) { /* Create Array -- holds last created dbref#s */
             printf(">%d\n",237);
             fflush(stdout);
             mush_gets(q);
@@ -376,7 +376,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 218) {
+         } else if (val == 218) { /* Create time */
             printf(">%d\n",228);
             fflush(stdout);
             mush_gets(q);
@@ -384,7 +384,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 219) {
+         } else if (val == 219) { /* Modify time */
             printf(">%d\n",227);
             fflush(stdout);
             mush_gets(q);
@@ -392,7 +392,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 224) {
+         } else if (val == 224) { /* ConnInfo */
             printf(">%d\n",2100000000); /* Extended inaternal attributes */
             fflush(stdout);
             mush_gets(q);
@@ -400,7 +400,15 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 241) {
+         } else if (val == 225) { /* Mail Lock */
+            printf(">%d\n",157);
+            fflush(stdout);
+            mush_gets(q);
+            if ( strlen(q) > LBUF_SIZE )
+               fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
+            mush_gets(q);
+         } else if (val == 241) { /* Exit Format */
             printf(">%d\n",225);
             fflush(stdout);
             mush_gets(q);
@@ -408,7 +416,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 242) {
+         } else if (val == 242) { /* Content Format */
             printf(">%d\n",224);
             fflush(stdout);
             mush_gets(q);
@@ -416,7 +424,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 243) {
+         } else if (val == 243) { /* Name Format */
             printf(">%d\n",245);
             fflush(stdout);
             mush_gets(q);
@@ -424,7 +432,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 199) {
+         } else if (val == 199) { /* Moniker/Ansiname */
             printf(">%d\n",220);
             fflush(stdout);
             mush_gets(q);
@@ -432,7 +440,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 214) {
+         } else if (val == 214) { /* Saystring */
             printf(">%d\n",236);
             fflush(stdout);
             mush_gets(q);
@@ -440,7 +448,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 216) {
+         } else if (val == 216) { /* @exitto */
             printf(">%d\n",248);
             fflush(stdout);
             mush_gets(q);
@@ -448,7 +456,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 217) {
+         } else if (val == 217) { /* Chown Lock */
             printf(">%d\n",218);
             fflush(stdout);
             mush_gets(q);
@@ -456,7 +464,7 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
-         } else if (val == 226) {
+         } else if (val == 226) { /* Open Lock */
             printf(">%d\n",217);
             fflush(stdout);
             mush_gets(q);
@@ -465,11 +473,11 @@ int main(void) {
             printf("%s",juggle_attrib(q));
             mush_gets(q);
          } else if ( (val == 96) || ((val > 199) && (val < 252)) ||
-                     ((val >= 145) && (val <= 148)) ) {
+                     ((val >= 145) && (val <= 148)) ) { /* Eat Remaining and report */
             mush_gets(q);
             fprintf(stderr, "Warning: Object #%d has attribute (%d) unused by RhostMUSH.  Contents: %s\n", obj, val, q);
             mush_gets(q);
-         } else  {
+         } else  {  /* Write out user-defined (> 256) attribute */
             printf(">%d\n",val);
             fflush(stdout);
             mush_gets(q);

@@ -813,6 +813,10 @@
 
 & NEW USERS
 & GUESTS
+& WANDERER
+  Flag: GUEST(!)/WANDERER(^)
+  Bittype: 0
+   
   Guests are considered a temporary player bit on a mush.  They have severely
   limited access and are essentially a look but do not touch type of player.
   
@@ -829,6 +833,10 @@
   Remember, guests CAN NOT MAIL.  This is something that will likely cause
   confusion regardless of what game you are on.  This is also intentional.
   
+  Note: a normal player without GUEST or WANDERER will be bittype 1.
+    
+  See Also: FLAGS, bittype() 
+
 & SQL
   SQL is available in two flavors in RhostMUSH, both are built in and both can
   be ran at the same time.  
@@ -10227,6 +10235,7 @@
   
 & COUNCILOR
   Flag: COUNCILOR(a)  
+  Bitlevel: 4
   
   This flag, when set on players, will allow them most
   wizard powers and the ability to effect anything equal to or less
@@ -10234,7 +10243,7 @@
   by #<object> or *<player>.  Only ROYALTY or SUPER-ROYALTY can
   set or unset this flag.
   
-  See Also: GUILDMASTER, ARCHITECT, ROYALTY, IMMORTAL
+  See Also: FLAGS, GUILDMASTER, ARCHITECT, ROYALTY, IMMORTAL, bittype()
   
 & CHOWN_OK
   Flag: CHOWN_OK(C)
@@ -10551,6 +10560,7 @@
   
 & ARCHITECT
   Flag: ARCHITECT(B)  
+  Bitlevel: 3
   
   If a player is ARCHITECT, they have various wizard powers
   available to them and fewer restrictions to do things.  They can
@@ -10558,10 +10568,11 @@
   *<player>.  Only ROYALTY, SUPER-ROYALTY, or #1 can set this flag
   on players.
   
-  See Also: GUILDMASTER, COUNCILOR, ROYALTY, IMMORTAL
+  See Also: FLAGS, GUILDMASTER, COUNCILOR, ROYALTY, IMMORTAL, bittype()
   
 & ROYALTY
   Flag: ROYALTY(W)   
+  Bitlevel: 5
   
   If a person is ROYALTY, they are a wizard, unkillable, 
   subject to fewer restrictions, and able to use wizard commands.  
@@ -10569,18 +10580,32 @@
   Only player #1 or SUPER-ROYALTY can set and unset the ROYALTY flag of 
   other players.  No ROYALTY can turn their own ROYALTY flag off.   
   
-  See Also: GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL
+  This is equal to the wizard flag in other codebases.
   
+  See Also: FLAGS, GUILDMASTER, ARCHITECT, COUNCILOR, IMMORTAL, bittype()
+  
+& GOD
+& GHOD
+  Built-in
+  Bitlevel: 7
+  
+  This is not a flag but a designation.  By default, the #1 player
+  is considered the god player.  They control everything.
+  
+  See Also: FLAGS, GUILDMASTER, ARCHITECT, COUNCILOR, ROYALTY, IMMORTAL, 
+            bittype()
+
 & SUPER-ROYALTY
 & IMMORTAL
   Flag: SUPER-ROYALTY (IMMORTAL)(i)   
+  Bitlevel: 6
   
   This flag when set on a player allows them to be a hybrid wizard.  
   They can basically do anything, see anything, be anything.  The 
   only thing they can not do is set or unset this flag or directly 
-  affect #1.  It's generally wise if you don't annoy these people.
+  affect #1 (god).  It's generally wise if you don't annoy these people.
   
-  See Also: GUILDMASTER, ARCHITECT, COUNCILOR, ROYALTY
+  See Also: FLAGS, GOD, GUILDMASTER, ARCHITECT, COUNCILOR, ROYALTY, bittype()
   
 & NOWALLS
 & NO_WALLS
@@ -10618,12 +10643,13 @@
   
 & GUILDMASTER
   Flag: GUILDMASTER(g)   
+  Bittype: 2
   
   This flag, when set on a player, allows that player a 
   few extra permissions like @quota and examining other's objects.
   This flag is settable only by ROYALTY and SUPER-ROYALTY.
   
-  See Also: ARCHITECT, COUNCILOR, ROYALTY, IMMORTAL
+  See Also: FLAGS, ARCHITECT, COUNCILOR, ROYALTY, IMMORTAL, bittype()
   
 & VERBOSE
   Flag: VERBOSE(v)   
@@ -11825,6 +11851,8 @@
   or 'help flag list'. For more specific information on a particular flag,
   request help on the flag's name, as in 'help ENTER_OK'.
   
+  Note: for the bitlevel of the player you may use the bittype() function.
+    
   See Also: @set, FLAG LIST, TOTEMS, TOTEM LIST
   
 & TOTEM LIST
@@ -25805,18 +25833,21 @@
   checks ownership.
   
   The following permission levels are shown:
-    God (#1)        7
-    Super-Royalty   6
-    Royalty         5
-    Councilor       4
-    Architect       3
-    Guildmaster     2
-    Citizen         1
-    Wanderer/Guest  0
-    ERROR           #-1
+    God (#1)                 7
+    Super-Royalty/Immortal   6
+    Royalty/Wizard           5
+    Councilor                4
+    Architect                3
+    Guildmaster              2
+    Citizen (Normal Player)  1
+    Wanderer/Guest           0
+    ERROR                  #-1
  
   If a player has more than one bit flag set, their highest one takes
   precedence.
+  
+  See Also: FLAGS, GOD, IMMORTAL, ROYALTY, COUNCILOR, ARCHITECT, GUILDMASTER,
+            GUEST, WANDERER
  
 & GLOBALROOM()
   Function: globalroom()
