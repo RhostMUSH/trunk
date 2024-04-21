@@ -1079,7 +1079,7 @@
   
   Note:  ROYALTY in RhostMUSH is the same as WIZARD everywhere else. 
   
-  See Also: bitlevels
+  See Also: BITLEVELS, CONTROL
   
 & BITLEVELS
   Topic: BITLEVELS
@@ -1095,7 +1095,8 @@
   1 -- Normal Player
   0 -- Guest/Wanderer
   
-  See Also: flags
+  See Also: FLAGS, CONTROL
+
 & global inheritance
   There is the possibility to set up global inheritance for object types.
   There are various methods to do this.  First, there is a 'filtering'
@@ -6792,7 +6793,8 @@
                      @newpassword, @pcreate, slay, and directly affect
                      players their level and lower.
   
-  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
+  See Also: GUILDMASTER, ARCHITECT, ROYALTY (or WIZARD), IMMORTAL, CONTROL,
+            INHERIT, BITLEVEL
 
 & ARCHITECT
   Flag: ARCHITECT(B) (players) [bitlevel 3]
@@ -6819,7 +6821,8 @@
         + Able to give negative money (Steal)
         + Able to @toggle the MONITOR
   
-  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
+  See Also: GUILDMASTER, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, CONTROL,
+            INHERIT, BITLEVEL
 
 & GUILDMASTER
   Flag: GUILDMASTER(g) (players) [bitlevel 2]
@@ -6839,15 +6842,24 @@
         + Can examine/decompile things their level and lower.
         + Can set @quota/@guild on their level and lower.
   
-  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, BITLEVEL
+  See Also: ARCHITECT, COUNCILOR, ROYALTY (or WIZARD), IMMORTAL, CONTROL,
+            INHERIT, BITLEVEL
 
+& STATUE
+  Effect: medusa or statue
+  
+  Setting the player FUBAR and SLAVE will make them a statue.
+  
+  They will not be able to do anything, including QUIT.
+  
 & SLAVE
   Flag: SLAVE(s) (players)
   
   A player set slave can't do any database related commands or talk.
   If mixed with the fubar flag, they're basically a statue.
   
-  See Also: FUBAR
+  See Also: FUBAR, STATUE
+  
 & FUBAR
   Flag: FUBAR(f) (players)
   
@@ -6856,7 +6868,7 @@
   or do anything other than those two commands.  The flag lives up to
   it's name.
   
-  See Also: SLAVE
+  See Also: SLAVE, STATUE
 
 & CLOAK
   Flag: CLOAK(b) (players)
