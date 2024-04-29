@@ -5052,6 +5052,50 @@ NAMETAB powers_nametab[] =
     {(char *) "unkillable", 1, CA_WIZARD, 0, CA_WIZARD | CA_IMMORTAL},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB access_nametab[] =
+{
+    {(char *) "god", 2, CA_GOD, 0, CA_GOD},
+    {(char *) "immortal", 3, CA_IMMORTAL, 0, CA_IMMORTAL},
+    {(char *) "royalty", 3, CA_IMMORTAL, 0, CA_WIZARD},
+    {(char *) "wizard", 3, CA_IMMORTAL, 0, CA_WIZARD},
+    {(char *) "councilor", 4, CA_WIZARD, 0, CA_ADMIN},
+    {(char *) "architect", 4, CA_WIZARD, 0, CA_BUILDER},
+    {(char *) "guildmaster", 5, CA_WIZARD, 0, CA_GUILDMASTER},
+    {(char *) "robot", 2, CA_WIZARD, 0, CA_ROBOT},
+    {(char *) "no_haven", 4, CA_PUBLIC, 0, CA_NO_HAVEN},
+    {(char *) "no_robot", 4, CA_WIZARD, 0, CA_NO_ROBOT},
+    {(char *) "no_slave", 5, CA_PUBLIC, 0, CA_NO_SLAVE},
+    {(char *) "no_suspect", 5, CA_WIZARD, 0, CA_NO_SUSPECT},
+    {(char *) "no_guest", 5, CA_WIZARD, 0, CA_NO_GUEST},
+    {(char *) "no_wanderer", 5, CA_WIZARD, 0, CA_NO_WANDER},
+    {(char *) "global_build", 8, CA_PUBLIC, 0, CA_GBL_BUILD},
+    {(char *) "global_interp", 8, CA_PUBLIC, 0, CA_GBL_INTERP},
+    {(char *) "disabled", 4, CA_IMMORTAL, 0, CA_DISABLED},
+    {(char *) "need_location", 6, CA_PUBLIC, 0, CA_LOCATION},
+    {(char *) "need_contents", 9, CA_PUBLIC, 0, CA_CONTENTS},
+    {(char *) "need_player", 6, CA_PUBLIC, 0, CA_PLAYER},
+    {(char *) "dark", 4, CA_IMMORTAL, 0, CF_DARK},
+    {(char *) "ignore", 6, CA_IMMORTAL, 0, CA_IGNORE},
+    {(char *) "ignore_mortal", 8, CA_IMMORTAL, 0, CA_IGNORE_MORTAL},
+    {(char *) "ignore_gm", 8, CA_IMMORTAL, 0, CA_IGNORE_GM},
+    {(char *) "ignore_arch", 8, CA_IMMORTAL, 0, CA_IGNORE_ARCH},
+    {(char *) "ignore_counc", 8, CA_IMMORTAL, 0, CA_IGNORE_COUNC},
+    {(char *) "ignore_royal", 8, CA_IMMORTAL, 0, CA_IGNORE_ROYAL},
+    {(char *) "ignore_immortal", 8, CA_GOD, 0, CA_IGNORE_IM},
+    {(char *) "ignore_zone", 8, CA_IMMORTAL, 0, CA_IGNORE_ZONE},
+    {(char *) "disable_zone", 8, CA_IMMORTAL, 0, CA_DISABLE_ZONE},
+    {(char *) "logflag", 3, CA_IMMORTAL, 0, CA_LOGFLAG},
+    {NULL, 0, 0, 0, 0}};
+
+/* Second permission level of access for commands/functions/other */
+NAMETAB access_nametab2[] =
+{
+    {(char *) "no_code", 5, CA_WIZARD, 0, CA_NO_CODE},
+    {(char *) "no_eval", 5, CA_WIZARD, 0, CA_NO_EVAL},
+    {(char *) "eval", 5, CA_WIZARD, 0, CA_EVAL},
+    {(char *) "bypass", 5, CA_WIZARD, 0, CA_SB_BYPASS},
+    {(char *) "noparse", 5, CA_WIZARD, 0, CA_NO_PARSE},
+    {NULL, 0, 0, 0, 0}};
 
 /* ---------------------------------------------------------------------------
  * list_allpower: List internal commands.
@@ -5129,6 +5173,7 @@ static void list_vattrcmds(dbref player) {
   ATTR *atr;
 
   DPUSH; /* #31 */
+
   buff = alloc_lbuf("list_vattrcmds");
   
   notify(player, "Listing all commands and attributes linked to them:");
@@ -5154,7 +5199,7 @@ static void list_vattrcmds(dbref player) {
 
 }
 
-static void list_cmdtable(dbref player) {
+static void list_cmdtable(dbref player, char *s_command) {
   CMDENT *cmdp;
   const char *ptrs[LBUF_SIZE / 2];
   char *buff;  
@@ -5166,6 +5211,44 @@ static void list_cmdtable(dbref player) {
   buff = alloc_lbuf("list_cmdtable");
   bp = buff;
   *bp = '\0';
+
+  if ( s_command && *s_command ) {
+     cmdp = (CMDENT *) hashfind(s_command, &mudstate.command_htab);
+     if ( !cmdp ) {
+        cmdp = (CMDENT *) hashfind(s_command, &mudstate.command_vattr_htab);
+     }
+     if ( cmdp ) {
+        if ( check_access(player, cmdp->perms, cmdp->perms2, 0) ) {
+           sprintf(buff, "%.30s:", cmdp->cmdname);
+           listset_nametab(player, access_nametab, access_nametab2,
+                           cmdp->perms, cmdp->perms2, buff, 1);
+           switch (cmdp->callseq & CS_NARG_MASK) {
+              case CS_NO_ARGS:
+                 sprintf(buff, "Syntax: %s[</switch(s)>]             (no arguments)", cmdp->cmdname);
+                 break;
+              case CS_ONE_ARG:
+                 sprintf(buff, "Syntax: %s[</switch(s)>] <argument>", cmdp->cmdname);
+                 break;
+              case CS_TWO_ARG:
+                 sprintf(buff, "Syntax: %s[</switch(s)>] <argument> = <argument>", cmdp->cmdname);
+                 break;
+              default:
+                 sprintf(buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+           }
+           notify(player, buff);
+        } else {
+           notify_quiet(player, "Permission denied.");
+        }
+     } else {
+        if ( Wizard(player) ) {
+           notify_quiet(player, "Command not found.");
+        } else {
+           notify_quiet(player, "Permission denied.");
+        }
+     }
+     free_lbuf(buff);
+     VOIDRETURN;  /* #31 */
+  }
 
   safe_str("Commands: ", buff, &bp);
   for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
@@ -5267,51 +5350,6 @@ list_attrtable(dbref player)
 /* ---------------------------------------------------------------------------
  * list_cmdaccess: List access commands.
  */
-
-NAMETAB access_nametab[] =
-{
-    {(char *) "god", 2, CA_GOD, 0, CA_GOD},
-    {(char *) "immortal", 3, CA_IMMORTAL, 0, CA_IMMORTAL},
-    {(char *) "royalty", 3, CA_IMMORTAL, 0, CA_WIZARD},
-    {(char *) "wizard", 3, CA_IMMORTAL, 0, CA_WIZARD},
-    {(char *) "councilor", 4, CA_WIZARD, 0, CA_ADMIN},
-    {(char *) "architect", 4, CA_WIZARD, 0, CA_BUILDER},
-    {(char *) "guildmaster", 5, CA_WIZARD, 0, CA_GUILDMASTER},
-    {(char *) "robot", 2, CA_WIZARD, 0, CA_ROBOT},
-    {(char *) "no_haven", 4, CA_PUBLIC, 0, CA_NO_HAVEN},
-    {(char *) "no_robot", 4, CA_WIZARD, 0, CA_NO_ROBOT},
-    {(char *) "no_slave", 5, CA_PUBLIC, 0, CA_NO_SLAVE},
-    {(char *) "no_suspect", 5, CA_WIZARD, 0, CA_NO_SUSPECT},
-    {(char *) "no_guest", 5, CA_WIZARD, 0, CA_NO_GUEST},
-    {(char *) "no_wanderer", 5, CA_WIZARD, 0, CA_NO_WANDER},
-    {(char *) "global_build", 8, CA_PUBLIC, 0, CA_GBL_BUILD},
-    {(char *) "global_interp", 8, CA_PUBLIC, 0, CA_GBL_INTERP},
-    {(char *) "disabled", 4, CA_IMMORTAL, 0, CA_DISABLED},
-    {(char *) "need_location", 6, CA_PUBLIC, 0, CA_LOCATION},
-    {(char *) "need_contents", 9, CA_PUBLIC, 0, CA_CONTENTS},
-    {(char *) "need_player", 6, CA_PUBLIC, 0, CA_PLAYER},
-    {(char *) "dark", 4, CA_IMMORTAL, 0, CF_DARK},
-    {(char *) "ignore", 6, CA_IMMORTAL, 0, CA_IGNORE},
-    {(char *) "ignore_mortal", 8, CA_IMMORTAL, 0, CA_IGNORE_MORTAL},
-    {(char *) "ignore_gm", 8, CA_IMMORTAL, 0, CA_IGNORE_GM},
-    {(char *) "ignore_arch", 8, CA_IMMORTAL, 0, CA_IGNORE_ARCH},
-    {(char *) "ignore_counc", 8, CA_IMMORTAL, 0, CA_IGNORE_COUNC},
-    {(char *) "ignore_royal", 8, CA_IMMORTAL, 0, CA_IGNORE_ROYAL},
-    {(char *) "ignore_immortal", 8, CA_GOD, 0, CA_IGNORE_IM},
-    {(char *) "ignore_zone", 8, CA_IMMORTAL, 0, CA_IGNORE_ZONE},
-    {(char *) "disable_zone", 8, CA_IMMORTAL, 0, CA_DISABLE_ZONE},
-    {(char *) "logflag", 3, CA_IMMORTAL, 0, CA_LOGFLAG},
-    {NULL, 0, 0, 0, 0}};
-
-/* Second permission level of access for commands/functions/other */
-NAMETAB access_nametab2[] =
-{
-    {(char *) "no_code", 5, CA_WIZARD, 0, CA_NO_CODE},
-    {(char *) "no_eval", 5, CA_WIZARD, 0, CA_NO_EVAL},
-    {(char *) "eval", 5, CA_WIZARD, 0, CA_EVAL},
-    {(char *) "bypass", 5, CA_WIZARD, 0, CA_SB_BYPASS},
-    {(char *) "noparse", 5, CA_WIZARD, 0, CA_NO_PARSE},
-    {NULL, 0, 0, 0, 0}};
 
 static void 
 list_cmdaccess(dbref player, char *s_mask, int key)
@@ -8820,7 +8858,7 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	   list_attrtable(player);
 	   break;
        case LIST_COMMANDS:
-	   list_cmdtable(player);
+	   list_cmdtable(player, s_ptr2);
 	   break;
        case LIST_SWITCHES:
 	   list_cmdswitches(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));

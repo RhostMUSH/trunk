@@ -7348,36 +7348,36 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index             examine_flags              examine_public_attrs
-  examine_restrictive     exec_secure                execscripthome
-  execscriptpath          exit_attr_default          exit_flags              
-  exit_parent             exit_quota                 exit_separator       
-  exit_toggles            exits_connect_rooms        expand_goto            
-  fascist_teleport        file_object                find_money_chance      
-  flag_alias              flag_name                  flag_access_see        
-  flag_access_set         flag_access_type           flag_access_unset      
-  float_precision         float_switches             forbid_host            
-  forbid_site             forbidapi_host             forbidapi_site         
-  fork_dump               format_compatibility       fork_vfork             
-  format_contents         format_exits               format_name            
-  formats_are_local       full_file                  full_motd_message      
-  function_access         function_alias             function_invocation_limit
-  function_max            function_recursion_limit   gdbm_cache_size        
-  gdbm_database           global_aconnect            global_adisconnect     
-  global_ansimask         global_attrdefault         global_clone_exit      
-  global_clone_obj        global_clone_player        global_clone_room      
-  global_clone_thing      global_error_cmd           global_error_obj       
-  global_parent_exit      global_parent_obj          global_parent_player   
-  global_parent_room      global_parent_thing        global_sideeffects
-  good_name               goodmail_host              gconf_file               
-  guest_char_num          guest_displaylastsite      guest_file               
-  guest_namelist          guest_randomize            guild_attrname           
-  guild_default           guild_hdr                  hackattr_nowiz           
-  hackattr_see            hardconn_host              hardconn_site            
-  hasattrp_compat         hastype_always_zero        heavy_cpu_max            
-  help_file               help_index                 help_separator           
-  hide_nospoof            hook_cmd                   hook_obj                 
-  hook_offline
+  error_index               examine_flags          examine_public_attrs
+  examine_restrictive       exec_secure            execscripthome
+  execscriptpath            execscript_rawpush     exit_attr_default        
+  exit_flags                exit_parent            exit_quota               
+  exit_separator            exit_toggles           exits_connect_rooms      
+  expand_goto               fascist_teleport       file_object              
+  find_money_chance         flag_alias             flag_name                
+  flag_access_see           flag_access_set        flag_access_type         
+  flag_access_unset         float_precision        float_switches           
+  forbid_host               forbid_site            forbidapi_host           
+  forbidapi_site            fork_dump              format_compatibility     
+  fork_vfork                format_contents        format_exits             
+  format_name               formats_are_local      full_file                
+  full_motd_message         function_access        function_alias           
+  function_invocation_limit function_max           function_recursion_limit 
+  gdbm_cache_size           gdbm_database          global_aconnect          
+  global_adisconnect        global_ansimask        global_attrdefault       
+  global_clone_exit         global_clone_obj       global_clone_player      
+  global_clone_room         global_clone_thing     global_error_cmd         
+  global_error_obj          global_parent_exit     global_parent_obj        
+  global_parent_player      global_parent_room     global_parent_thing      
+  global_sideeffects        good_name              goodmail_host            
+  gconf_file                guest_char_num         guest_displaylastsite    
+  guest_file                guest_namelist         guest_randomize          
+  guild_attrname            guild_default          guild_hdr                
+  hackattr_nowiz            hackattr_see           hardconn_host            
+  hardconn_site             hasattrp_compat        hastype_always_zero      
+  heavy_cpu_max             help_file              help_index               
+  help_separator            hide_nospoof           hook_cmd                 
+  hook_obj                  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -8657,6 +8657,16 @@
   
   See Also: execscript(), execscripthome
 
+& execscript_rawpush
+  Config parameter: execscript_rawpush <boolean>.  Default: off (0)
+  
+  This option if enabled will push the raw evaluation of ansi, unicode, and
+  such into environment variables of execscript().  This may be useful to
+  bypass the need to do handling of the markup.  There is some potential
+  security risk with using this so by default it is disabled.
+  
+  See Also: execscript()
+  
 & execscripthome
   Config parameter: execscripthome <strings>.  Default: (empty)
   
@@ -13693,6 +13703,8 @@
               -- MUSHV_BAR -- The BAR variable contents
               -- MUSHV_D0_FOO -- The FOO off #0
               -- MUSHV_D10_BAR -- The BAR off #10
+      -- If execscript_rawpush is enabled
+              -- MUSH_FARGS1...MUSH_FARGS999 -- evaluated arguments
   
   Note: The EXECSCRIPT @power is not inheritable.
   
@@ -13732,6 +13744,9 @@
     MUSHN_<arg>       - Register name contents of the setq register.
                         Note: setq 0 label of 'bob' will have MUSHQ_0 and
                               MUSHN_BOB have the same contents.
+    MUSH_FARGS1-999   - This will be the EVALUATED arguments that you passed
+                        to execscript.  For example unicode and ansi will be
+                        parsed and no longer the markup.
   
   Examples:
     > say execscript(hello.sh)

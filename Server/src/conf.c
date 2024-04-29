@@ -349,6 +349,7 @@ NDECL(cf_init)
     mudconf.posesay_funct = 0;		/* Enable functions in SPEECH_PREFIX/SPEECH_SUFFIX */
     mudconf.rollbackmax = 1000;		/* Maximum rollback value (10-10000) */
     mudconf.exec_secure = 1;		/* execscript() escapes out everything by default */
+    mudconf.execscript_rawpush = 0;	/* Allow raw pushing of execscript */
     mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
     mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
@@ -4566,6 +4567,9 @@ CONF conftable[] =
     {(char *) "exec_secure",
      cf_bool, CA_DISABLED, &mudconf.exec_secure, 0, 0, CA_WIZARD,
      (char *) "Is execscript() escaping everything?"},
+    {(char *) "execscript_rawpush",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.execscript_rawpush, 0, 0, CA_WIZARD,
+     (char *) "Is execscript() writing raw to env vars?"},
     {(char *) "execscripthome",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.execscripthome, LBUF_SIZE-1, 0, CA_WIZARD,
      (char *) "The main home directory override where execscripts reside."},

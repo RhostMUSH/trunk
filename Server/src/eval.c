@@ -632,41 +632,80 @@ static void
 tcache_finish(void)
 {
     TCENT *xp;
-    char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptext = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL, 
-         *tstr, *tstr2, *s_grep;
-    int i_apflags, i_targetlist, i_tabspace;
+    char *tpr_buff = NULL, *tprp_buff = NULL, *s_aptextptr = NULL, *s_strtokr = NULL, *tbuff = NULL, 
+         *tstr, *tstr2, *s_grep, *s_grep2;
+    int i_apflags, i_targetlist, i_tabspace, i_tracegrep, i_tracetab, i_bounceforward, i_flags,
+        i_ansigrep, i_lastplayer;
 #ifdef PCRE_EXEC
-    char *trace_buffptr, *trace_array[4], *trace_tmp, *s_xorigbuff;
+    char *trace_buffptr, *trace_array[4], *trace_tmp, *trace_tmpptr, *s_xorigbuff;
     int i_trace;
 #endif
     dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
-    ATTR *ap_log, *ap_byusr;
+    ATTR *ap_log;
 
     DPUSH; /* #66 */
 
     for (i = 0; i < LBUF_SIZE; i++)
        targetlist[i]=-2000000;
 
+    i_lastplayer = i_ansigrep = i_tracegrep = i_tracetab = i_bounceforward = -1;
+
+    /* Save the looping on attribute lookups */
+    ap_log = atr_str_exec("TRACE_GREP");
+    if ( ap_log ) {
+       i_tracegrep = ap_log->number;
+       i_flags = ap_log->flags;
+    }
+    ap_log = atr_str_exec("TRACETAB");
+    if ( ap_log ) {
+       i_tracetab = ap_log->number;
+    }
+    ap_log = atr_str_exec("BOUNCEFORWARD");
+    if ( ap_log ) {
+       i_bounceforward = ap_log->number;
+    }
+    ap_log = atr_str_exec("TRACE_GREPCOLOR");
+    if ( ap_log ) {
+       i_ansigrep = ap_log->number;
+    }
 
     tprp_buff = tpr_buff = alloc_lbuf("tcache_finish");
     tbuff = alloc_lbuf("bounce_on_notify_exec");
     s_xorigbuff = alloc_lbuf("xorig_buffer");
+    s_grep = alloc_lbuf("trace_output");
+    s_grep2 = alloc_lbuf("trace_output2");
     while (tcache_head != NULL) {
 	xp = tcache_head;
 	tcache_head = xp->next;
         tprp_buff = tpr_buff;
-        ap_log = atr_str_exec("TRACE_GREP");
-        if ( ap_log ) {
-           s_grep = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
-           if ( s_grep && *s_grep ) {
+        *s_grep = '\0';
+        if ( i_tracegrep > 0 ) {
+           (void) atr_get_str(s_grep, xp->player, i_tracegrep, &i_apowner, &i_apflags);
+           if ( *s_grep ) {
               sprintf(s_xorigbuff, "%.*s", (LBUF_SIZE-1), xp->orig);
 #ifdef PCRE_EXEC
-              if ( (i_apflags & AF_REGEXP) || (ap_log->flags & AF_REGEXP) ) {
+              if ( (i_apflags & AF_REGEXP) || (i_flags & AF_REGEXP) ) {
                  trace_buffptr = tstr2 = alloc_lbuf("grep_regexp");
-                 trace_tmp = alloc_lbuf("grep_regexp_tmp");
+                 trace_tmpptr = trace_tmp = alloc_lbuf("grep_regexp_tmp");
 #ifdef ZENTY_ANSI
-                 sprintf(trace_tmp, "%s$0%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL);
+                 if ( (i_ansigrep > 0) && ((i_lastplayer == -1) || (i_lastplayer != xp->player)) ) {
+                    (void) atr_get_str(s_grep2, xp->player, i_ansigrep, &i_apowner, &i_apflags);
+                    i_lastplayer = xp->player;
+                 }
+                 if ( *s_grep2 ) {
+                    trace_array[0] = s_grep2;
+                    trace_array[1] = (char *)"$0";
+                    trace_array[2] = NULL;
+                    trace_array[3] = NULL;
+                    i_trace = mudstate.notrace;
+                    mudstate.notrace = 1;
+                    fun_ansi(trace_tmp, &trace_tmpptr, xp->player, xp->player, xp->player, trace_array, 2, (char **)NULL, 0);
+                    mudstate.notrace = i_trace;
+                 } else {
+                    sprintf(trace_tmp, "%s$0%s", SAFE_ANSI_RED, SAFE_ANSI_NORMAL);
+                 }
 #else
+                 /* Non-zenti ansi doesn't get to choose the color */
                  sprintf(trace_tmp, "%s$0%s", ANSI_RED, ANSI_NORMAL);
 #endif
                  trace_array[0] = s_xorigbuff;
@@ -679,7 +718,31 @@ tcache_finish(void)
                  mudstate.notrace = i_trace;
                  free_lbuf(trace_tmp);
               } else {
+#ifdef ZENTY_ANSI
+                 if ( (i_ansigrep > 0) && ((i_lastplayer == -1) || (i_lastplayer != xp->player)) ) {
+                    (void) atr_get_str(s_grep2, xp->player, i_ansigrep, &i_apowner, &i_apflags);
+                    i_lastplayer = xp->player;
+                 }
+                 if ( *s_grep2 ) {
+                    trace_array[0] = s_grep2;
+                    trace_array[1] = s_grep;
+                    trace_array[2] = NULL;
+                    trace_array[3] = NULL;
+                    trace_tmpptr = trace_tmp = alloc_lbuf("grep_regexp_tmp");
+                    i_trace = mudstate.notrace;
+                    mudstate.notrace = 1;
+                    fun_ansi(trace_tmp, &trace_tmpptr, xp->player, xp->player, xp->player, trace_array, 2, (char **)NULL, 0);
+                    mudstate.notrace = i_trace;
+                    edit_string(s_xorigbuff, &tstr, (char **)NULL, s_grep, trace_tmp, 1, 0, 1, 0);
+                    tstr2 = alloc_lbuf("fun_with_grep");
+                    strcpy(tstr2, tstr);
+                    free_lbuf(trace_tmp);
+                 } else {
+                    edit_string(s_xorigbuff, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+                 }
+#else
                  edit_string(s_xorigbuff, &tstr, &tstr2, s_grep, s_grep, 0, 0, 2, 1);
+#endif
                  free_lbuf(tstr);
               }
 #else
@@ -690,34 +753,33 @@ tcache_finish(void)
               tstr2 = alloc_lbuf("fun_with_grep");
               strcpy(tstr2, xp->orig);
            }
-           free_lbuf(s_grep);
         } else {
            tstr2 = alloc_lbuf("fun_with_grep");
            strcpy(tstr2, xp->orig);
         }
 
         i_tabspace = 0;
-        ap_byusr = atr_str_exec("TRACETAB");
-        if ( ap_byusr && xp && Good_chk(xp->player) ) {
+        *s_grep = '\0';
+        if ( (i_tracetab > 0) && xp && Good_chk(xp->player) ) {
            if ( Good_chk(Owner(xp->player)) ) {
-              s_aptext = atr_get(Owner(xp->player), ap_byusr->number, &i_apowner, &i_apflags);
-              if ( !*s_aptext ) {
-                 free_lbuf(s_aptext);
-                 s_aptext = atr_get(xp->player, ap_byusr->number, &i_apowner, &i_apflags);
+              (void) atr_get_str(s_grep, Owner(xp->player), i_tracetab, &i_apowner, &i_apflags);
+              if ( !*s_grep ) {
+                 (void) atr_get_str(s_grep, xp->player, i_tracetab, &i_apowner, &i_apflags);
               }
            } else {
-              s_aptext = atr_get(xp->player, ap_byusr->number, &i_apowner, &i_apflags);
+              (void) atr_get_str(s_grep, xp->player, i_tracetab, &i_apowner, &i_apflags);
            }
-           if ( s_aptext && *s_aptext ) {
-              i_tabspace = atoi(s_aptext);
+           if ( *s_grep ) {
+              i_tabspace = atoi(s_grep);
               if ( i_tabspace > 10 )
                  i_tabspace = 10;
               if ( i_tabspace < 0 )
                  i_tabspace = 0;
               i_tabspace *= xp->i_tabbing;
            }
-           free_lbuf(s_aptext);
         }
+
+        *s_grep = '\0';
         if ( (xp->label) && *(xp->label) ) {
            if ( i_tabspace > 0 ) {
 	      notify(Owner(xp->player),
@@ -741,12 +803,12 @@ tcache_finish(void)
         }
         free_lbuf(tstr2);
 
+        *s_grep = '\0';
         if ( Bouncer(xp->player) ) {
-            ap_log = atr_str_exec("BOUNCEFORWARD");
-            if ( ap_log ) {
-               s_aptext = atr_get(xp->player, ap_log->number, &i_apowner, &i_apflags);
-               if ( s_aptext && *s_aptext ) {
-                  s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
+            if ( i_bounceforward > 0 ) {
+               (void) atr_get_str(s_grep, xp->player, i_bounceforward, &i_apowner, &i_apflags);
+               if ( *s_grep ) {
+                  s_aptextptr = strtok_r(s_grep, " ", &s_strtokr);
                   i_targetlist = 0;
                   for (i = 0; i < LBUF_SIZE; i++)
                      targetlist[i]=-2000000;
@@ -756,11 +818,14 @@ tcache_finish(void)
                         if ( (targetlist[i] == -2000000) || (targetlist[i] == passtarget) )
                            break;
                      }
-                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && isPlayer(passtarget) && (passtarget != xp->player) && (Owner(xp->player) != passtarget) ) {
-                        if ( !No_Ansi_Ex(passtarget) )
+                     if ( (targetlist[i] == -2000000) && Good_chk(passtarget) && 
+                          isPlayer(passtarget) && (passtarget != xp->player) && 
+                          (Owner(xp->player) != passtarget) ) {
+                        if ( !No_Ansi_Ex(passtarget) ) {
                            sprintf(tbuff, "%sBounce [#%d]>%s %.3950s", ANSI_HILITE, xp->player, ANSI_NORMAL, tpr_buff);
-                        else
+                        } else {
                            sprintf(tbuff, "Bounce [#%d]> %.3950s", xp->player, tpr_buff);
+                        }
                         notify_quiet(passtarget, tbuff);
                      }
                      s_aptextptr = strtok_r(NULL, " ", &s_strtokr);
@@ -768,7 +833,6 @@ tcache_finish(void)
                      i_targetlist++;
                   }
                }
-               free_lbuf(s_aptext);
             }
         }
 
@@ -782,6 +846,8 @@ tcache_finish(void)
     free_lbuf(s_xorigbuff);
     free_lbuf(tbuff);
     free_lbuf(tpr_buff);
+    free_lbuf(s_grep);
+    free_lbuf(s_grep2);
     tcache_top = 1;
     tcache_count = 0;
     DPOP; /* #66 */

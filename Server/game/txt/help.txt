@@ -4875,9 +4875,11 @@
   Lists information from internal databases.  Information is available
   about the following options:
     attributes       - Valid object attributes.
-    commands         - Commands that you may use (excluding the 
+    commands [cmd]   - Commands that you may use (excluding the 
                        attribute-setting commands as well as any exits, and
                        $-commands available).
+                       Note: you may specify an optional command to list
+                             specific values of the command.
     costs            - Lists the costs associated with many commands and
                        actions.
     default_flags    - Lists the flags that new objects receive by default
@@ -4928,11 +4930,18 @@
                values    - show all available values that you can see.
                config    - show all current status/config information.
                mail      - show all current hardcoded mail configuration.
+               convtime  - show all formats that convtime() handles
+               display   - dsplay detailed information on config options
+               mysql     - shows if mysql is enabled or disabled
+               system    - show the default system settings for the mush
+  
+    COMMANDS   cmdname   - show the permissions and syntax of the command
   
   Examples:
     > @list options boolean            (For first page - default)
     > @list options boolean 2          (For second page) 
     > @list options boolean *switch*   (For all values that contain 'switch')
+    > @list commands @emit             (Show syntax and permissions for @emit)
   
   See Also: help, news
   
@@ -10973,6 +10982,8 @@
 & TRACE
   Flag: TRACE(T)
  
+  For help on the 'TRACE' attribute for labels, see 'help %_'
+  
   When a thing is set TRACE, it will report to its owner the result of all
   substitutions that it performs that change the original string.  The order
   for displaying nested evaluations (such as when evaluating the arguments to
@@ -13066,6 +13077,8 @@
           %_<!list>      -- List current stack, in-use stack, and all labels.
           %_<!shortlist> -- List current stack and in-use stack.
   
+  The 'TRACE' attribute controls what label is currently active.
+  
   You can have a total of 1000 label declarations total for processing per
   command queue.
   
@@ -13097,8 +13110,6 @@
   
   { see 'help %_2' to continue }
 
-& TRACE_COLOR
-& TRACE_GREP
 & %_2
   Topic: SUBSTITUTIONS (CONTINUED)
   Syntax: %_<label>      -- enables debugging if <label> is in TRACE attribute.
@@ -13108,17 +13119,18 @@
           %_<!list>      -- List current stack, in-use stack, and all labels.
           %_<!shortlist> -- List current stack and in-use stack.
   
-  You may use the attribute TRACE_COLOR to set a standard color for your
-  labels.   For instance, &TRACE_COLOR object=+purple.  You may specify 
-  colors by label as &TRACE_COLOR_<label> object=+orange.  Like 
-  &TRACE_COLOR_123.  This will fall back on 'TRACE_COLOR' if the by 
-  label isn't found.
+  The TRACE attribute controls what labels are currently active.  
   
-  You may specify a TRACE_GREP attribute on the enactor 
-  (&TRACE_GREP object=<string>) if you wish to have a specific piece 
-  of code in trace output which matches the trace output return in red 
-  the match.  If the TRACE_GREP attribute is attribute-set REGEXP, 
-  it will take the string as a regexp match.
+  The TRACE_COLOR attribute will control what color the labels are.  You may
+  specify TRACE_COLOR_<label> such as TRACE_COLOR_FOO if your label was 'foo'
+  to specify individual color of the label.
+  
+  The TRACE_GREP attribute is used to do pattern matching and highlight the
+  color of that particular pattern.  If this attribute is set REGEXP it will
+  allow regular expression pattern matching.
+  
+  The TRACE_GREPCOLOR attribute will allow you to optionally specify the
+  color of the grep.  The default color for this is red.
   
   Keep in mind, the various &TRACE attributes need to be on the executor,
   not the object enacting the command.  It will behave like the TRACE flag.
@@ -13147,6 +13159,9 @@
   
   See Also: SUBSTITUTIONS, TRACE, trace(), @label, ruler()
   
+& TRACE_COLOR
+& TRACE_GREP
+& TRACE_GREPCOLOR
 & TRACETAB
 & %_vars
   Topic: SUBSTITUTIONS (CONTINUED)
@@ -13172,6 +13187,10 @@
                       * With the REGEXP attribute flag, it uses enhanced
                         regular expression matching to hilite red any
                         matching pattern.
+  
+  TRACE_GREPCOLOR  -- This specifies the color for the grep pattern.  This
+                      defaults to red.  The value you set here is any
+                      value that the ansi() function would normally handle.
   
   TRACE_COLOR      -- This is the global generic color code that you wish
                       any label to have.  If there's not a label specific
@@ -35641,6 +35660,8 @@
  * added setrm() like setqm() but returns values [ASH]
  * freelist() function to return the dbref#'s in the free list [ASH]
  * config param enforce_added_pronouns to bypass built-ins [ASH]
+ * config param execscript_rawpush to evaluate strings in execscript [ASH]
+ * TRACE_GREPCOLOR to specify color of trace grep [ASH]
   
   Changes
   -------
@@ -35694,6 +35715,7 @@
  * @set #obj/attr handles multiple flags [ASH]
  * filter() when fed an empty list will return w/o evaluation [ASH]
  * pass additional arguments to sub_include and sub_override vals [ASH]
+ * the '>' character is no longer valid for setq lables [ASH]
     
   Bug Fixes
   ------------
@@ -35735,3 +35757,4 @@
  * rewrite of setq/setr broke some backward compatibility [ASH]
  * bug in listprotection() for alias lookup [ASH]
  * potential crash in @hook/include due to uncaught stack exception [ASH]
+ * various handlers for the added @blacklist args were missing [ASH]

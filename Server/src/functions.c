@@ -2907,6 +2907,19 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                     fargs[1], cargs, ncargs, (char **)NULL, 0);
    }
 
+   if ( strchr(s_arg0, '>') != NULL ) {
+      if ( nfargs > 2 ) {
+         safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+      } else {
+         safe_str("#-1 INVALID LABEL", buff, bufcx);
+      }
+      if ( i_alloc ) {
+         free_lbuf(s_arg0);
+         free_lbuf(s_arg1);
+      }
+      return;
+   }
+
    if ( nfargs > 2 ) {
       s_arg2 = fargs[2];
 
@@ -2941,6 +2954,16 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
             free_lbuf(s_arg2);
             return;
          }
+      }
+
+      if ( strchr(s_arg2, '>') != NULL ) {
+         safe_str("#-1 INVALID LABEL", buff, bufcx);
+         if ( i_alloc ) {
+            free_lbuf(s_arg0);
+            free_lbuf(s_arg1);
+            free_lbuf(s_arg2);
+         }
+         return;
       }
 
       /* If the third arg is 0-9 or A-Z disallow, or number if setq_nums enabled */
@@ -19492,9 +19515,10 @@ FUNCTION(fun_execscript)
    FILE *fp, *fp2;
    char *s_combine, *s_inread, *s_inbuf, *s_inbufptr, *sptr, *sptr2, *s_atrname, *s_atrchr, *s_execor, *s_execorp, *s_tptr,
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
-        *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2, *s_combine2;
+        *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2, *s_combine2,
+        *s_bf1, *s_bf1ptr, *s_bf2, *s_bf2ptr, *s_bf3, *s_bf3ptr;
    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
-       i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return;
+       i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return, i_rawpush;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -19577,7 +19601,6 @@ FUNCTION(fun_execscript)
 
    s_combine = alloc_lbuf("fun_execscript");
    strcpy(s_combine, (char *)"execscript");
-
    pent = find_power(player, s_combine);
    if ( !pent ) {
       notify(player, "#-1 POWER CHECK FAILED");
@@ -19713,6 +19736,7 @@ FUNCTION(fun_execscript)
    }
    setenv("MUSH_OWNERTOTEMS", s_combine, 1);
    free_lbuf(sptr2);
+   
 
    /* Set user defined environment variables */
    attr = atr_str("EXECSCRIPT_VARS");
@@ -19855,7 +19879,7 @@ FUNCTION(fun_execscript)
    } 
    free_mbuf(s_varset);
 
-   i_noex = 0;
+   i_rawpush = i_noex = 0;
 // sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
    sprintf(s_combine, "%.1000s.set", s_combine2);
    if ( stat(s_combine, &st_buf) == 0 ) {
@@ -19869,10 +19893,37 @@ FUNCTION(fun_execscript)
    }
    if ( nfargs > 1 ) {
       s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
+
+      if ( mudconf.execscript_rawpush ) {
+         i_rawpush = 1;
+         s_varset = alloc_mbuf("fun_execscript_mbuff"); 
+         s_bf1 = alloc_lbuf("execscript_bf1");
+         s_bf2 = alloc_lbuf("execscript_bf2");
+         s_bf3 = alloc_lbuf("execscript_bf3");
+      }
       for ( i_count = 1; i_count < nfargs; i_count++ ) {
-         if ( i_count > 1 )
+         if ( mudconf.execscript_rawpush ) {
+            /* Put the parse buffer into a register if config allows it */
+            memset(s_bf1, '\0', LBUF_SIZE);
+            memset(s_bf2, '\0', LBUF_SIZE);
+            memset(s_bf3, '\0', LBUF_SIZE);
+            s_bf1ptr = s_bf1;
+            s_bf2ptr = s_bf2;
+            s_bf3ptr = s_bf3;
+            parse_ansi(fargs[i_count], s_bf1, &s_bf1ptr, s_bf2, &s_bf2ptr, s_bf3, &s_bf3ptr); 
+            sprintf(s_varset, "MUSH_FARGS%d", i_count);
+            i_varset = setenv(s_varset, s_bf3, 1);
+         }
+         if ( i_count > 1 ) {
             safe_chr(' ', s_inbuf, &s_inbufptr);
+         }
          safe_str(fargs[i_count], s_inbuf, &s_inbufptr);
+      }
+      if ( mudconf.execscript_rawpush ) {
+         free_lbuf(s_bf1);
+         free_lbuf(s_bf2);
+         free_lbuf(s_bf3);
+         free_mbuf(s_varset);
       }
       sptr2 = sptr = alloc_lbuf("exec_remapper");
       s_inbufptr = s_inbuf;
@@ -20176,6 +20227,15 @@ FUNCTION(fun_execscript)
          }
          unsetenv(s_varset);
       }
+   }
+   /* Cleanup registers that raw writing made */
+   if ( mudconf.execscript_rawpush ) {
+      s_bf1 = alloc_mbuf("execscript_bf1_2");
+      for ( i_count = 1; i_count < nfargs; i_count++ ) {
+         sprintf(s_bf1, "MUSH_FARGS%d", i_count);
+         unsetenv(s_bf1);
+      }
+      free_mbuf(s_bf1);
    }
    /* Cleanup register names */
    if ( *s_nregs ) {

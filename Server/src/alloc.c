@@ -586,49 +586,68 @@ showTrackedPacketStats(dbref player)
    notify(player, buff);
 }
 
+double
+statsizer(int i_size, char *c_chr) {
+   double i_diver = 0.0;
+
+   if ( i_size > 1000000000 ) {
+      i_diver = (double) i_size / 1000000000.0;
+      *c_chr = 'G';
+   } else if ( i_size > 1000000 ) {
+      i_diver = (double) i_size / 1000000.0;
+      *c_chr = 'M';
+   } else if ( i_size > 1000 ) {
+      i_diver = (double) i_size / 1000.0;
+      *c_chr = 'K';
+   } else {
+      i_diver = (double) i_size;
+      *c_chr = ' ';
+   }
+   
+   return i_diver; 
+}
+
 void
 showBlacklistStats(dbref player)
 {
-   int i_blsize, i_ndsize;
+   int i_blsize, i_ndsize, i_ngsize, i_rgsize;
    double i_diver;
-   char *s_buff, c_chr;
+   char *s_buff, c_chr[2];
    
    i_blsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_cnt;
    i_ndsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
+   i_rgsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_reg_cnt;
+   i_ngsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nogst_cnt;
+
    s_buff = alloc_mbuf("blacklist_stats");
+   strcpy(c_chr, (char *)" ");
    
    notify(player, "\r\nBlacklist Stats    Size   Inuse     Total Mem (Bytes)");
 
-   if ( i_blsize > 1000000000 ) {
-      i_diver = (double) i_blsize / 1000000000.0;
-      c_chr = 'G';
-   } else if ( i_blsize > 1000000 ) {
-      i_diver = (double) i_blsize / 1000000.0;
-      c_chr = 'M';
-   } else if ( i_blsize > 1000 ) {
-      i_diver = (double) i_blsize / 1000.0;
-      c_chr = 'K';
-   } else {
-      i_diver = (double) i_blsize;
-      c_chr = ' ';
-   }
-   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", (char *)"Black List", (int)sizeof(BLACKLIST), mudstate.blacklist_cnt, i_blsize, i_diver, c_chr);
+   /* Black list */
+   i_diver = statsizer(i_blsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"Black List", (int)sizeof(BLACKLIST), mudstate.blacklist_cnt, i_blsize, i_diver, c_chr[0]);
    notify(player, s_buff);
-   if ( i_ndsize > 1000000000 ) {
-      i_diver = (double) i_ndsize / 1000000000.0;
-      c_chr = 'G';
-   } else if ( i_ndsize > 1000000 ) {
-      i_diver = (double) i_ndsize / 1000000.0;
-      c_chr = 'M';
-   } else if ( i_ndsize > 1000 ) {
-      i_diver = (double) i_ndsize / 1000.0;
-      c_chr = 'K';
-   } else {
-      i_diver = (double) i_ndsize;
-      c_chr = ' ';
-   }
-   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", (char *)"NoDNS list", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr);
+
+   /* NoDNS list */
+   i_diver = statsizer(i_ndsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"NoDNS List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
    notify(player, s_buff);
+
+   /* Register list */
+   i_diver = statsizer(i_rgsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"Regis List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
+
+   /* NoGuest list */
+   i_diver = statsizer(i_ndsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"NoGst List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
+
    free_mbuf(s_buff); 
 }
 

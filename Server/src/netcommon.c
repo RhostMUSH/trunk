@@ -6664,8 +6664,11 @@ blacklist_check(struct in_addr host, int i_type)
 
    DPUSH;
    i_return=0;
+
    if ( ((i_type == 0) && (mudstate.blacklist_cnt < 1)) ||
-        ((i_type == 1) && (mudstate.blacklist_nodns_cnt < 1)) ) {
+        ((i_type == 1) && (mudstate.blacklist_nodns_cnt < 1)) ||
+        ((i_type == 2) && (mudstate.blacklist_reg_cnt < 1)) ||
+        ((i_type == 3) && (mudstate.blacklist_nogst_cnt < 1)) ) {
       RETURN(i_return);
    }
    b_host = NULL;
@@ -6920,9 +6923,11 @@ list_siteinfo(dbref player)
     DPUSH; /* #152 */
     
     s_buff = alloc_mbuf("list_siteinfo");
-    if ( (mudstate.blacklist_cnt > 0) || (mudstate.blacklist_nodns_cnt > 0) ) {
-       sprintf(s_buff, "Blacklist: blacklist %d entries, NoDNS %d entries.",
-               mudstate.blacklist_cnt, mudstate.blacklist_nodns_cnt); 
+    if ( (mudstate.blacklist_cnt > 0) || (mudstate.blacklist_nodns_cnt > 0) ||
+         (mudstate.blacklist_nogst_cnt > 0) || (mudstate.blacklist_reg_cnt > 0) ) {
+       sprintf(s_buff, "Blacklist: blacklist %d, NoDNS %d, Reg %d, NoGuest %d",
+               mudstate.blacklist_cnt, mudstate.blacklist_nodns_cnt, 
+               mudstate.blacklist_reg_cnt, mudstate.blacklist_nogst_cnt);
        notify(player, s_buff);
     } else {
        notify(player, "Blacklist: All blacklists are currently not populated.");
