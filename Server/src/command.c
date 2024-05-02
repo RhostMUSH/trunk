@@ -36,6 +36,7 @@ char *index(const char *, int);
 extern void parse_lattr(char *, char **, dbref, dbref, dbref, char **, int, char **, int, char *, int, int);
 extern char * attrib_show(char *, int);
 extern void display_perms(dbref, int, int, char *);
+extern void display_pronouns(dbref, char *);
 extern void del_perms(dbref, char *, char *, char **, int);
 extern void add_perms(dbref, char *, char *, char **, int);
 extern void mod_perms(dbref, char *, char *, char **, int);
@@ -1821,6 +1822,28 @@ extern void ext_set_attr_internal (dbref, dbref, int, char *, int, dbref, int *,
 CMDENT *prefix_cmds[256];
 
 CMDENT *goto_cmdp;
+
+void show_hook(char *bf, char *bfptr, int key, char *cmdname)
+{
+   if ( key & HOOK_BEFORE )
+      safe_str("before ", bf, &bfptr);
+   if ( key & HOOK_AFTER )
+      safe_str("after ", bf, &bfptr);
+   if ( key & HOOK_PERMIT )
+      safe_str("permit ", bf, &bfptr);
+   if ( key & HOOK_IGNORE )
+      safe_str("ignore ", bf, &bfptr);
+   if ( key & HOOK_IGSWITCH )
+      safe_str("igswitch ", bf, &bfptr);
+   if ( key & HOOK_INCLUDE )
+      safe_str("include ", bf, &bfptr);
+   if ( key & HOOK_FAIL )
+      safe_str("fail ", bf, &bfptr);
+   if ( ((strcmp(cmdname, "@register") == 0) || (strcmp(cmdname, "@pcreate") == 0)) && (key & HOOK_AFTER) && mudconf.hook_offline ) {
+      safe_str("[offline] ", bf, &bfptr);
+   }
+   return;
+}
 
 dbref TopLocation(dbref num) {
    int i_recur;
@@ -5202,8 +5225,7 @@ static void list_vattrcmds(dbref player) {
 static void list_cmdtable(dbref player, char *s_command) {
   CMDENT *cmdp;
   const char *ptrs[LBUF_SIZE / 2];
-  char *buff;  
-  char *bp;
+  char *buff, *bp;  
   int nptrs = 0, i;
 
   DPUSH; /* #31 */
@@ -5222,18 +5244,34 @@ static void list_cmdtable(dbref player, char *s_command) {
            sprintf(buff, "%.30s:", cmdp->cmdname);
            listset_nametab(player, access_nametab, access_nametab2,
                            cmdp->perms, cmdp->perms2, buff, 1);
+           i = strlen(cmdp->cmdname);
+           if ( i > 30 )
+              i = 30;
+
            switch (cmdp->callseq & CS_NARG_MASK) {
               case CS_NO_ARGS:
-                 sprintf(buff, "Syntax: %s[</switch(s)>]             (no arguments)", cmdp->cmdname);
+                 sprintf(buff, "%*s> syntax - %s[</switch(s)>]             (no arguments)", i, (char *)" ", cmdp->cmdname);
                  break;
               case CS_ONE_ARG:
-                 sprintf(buff, "Syntax: %s[</switch(s)>] <argument>", cmdp->cmdname);
+                 sprintf(buff, "%*s> syntax - %s[</switch(s)>] <argument>", i, (char *)" ", cmdp->cmdname);
                  break;
               case CS_TWO_ARG:
-                 sprintf(buff, "Syntax: %s[</switch(s)>] <argument> = <argument>", cmdp->cmdname);
+                 sprintf(buff, "%*s> syntax - %s[</switch(s)>] <argument> = <argument>", i, (char *)" ", cmdp->cmdname);
                  break;
               default:
-                 sprintf(buff, "Syntax: %s -- I'm not sure what the syntax is.", cmdp->cmdname);
+                 sprintf(buff, "%*s> syntax - %s -- I'm not sure what the syntax is.", i, (char *)" ", cmdp->cmdname);
+           }
+           notify(player, buff);
+           *buff = '\0';
+           bp = buff;
+           for ( nptrs = 0; nptrs < i; nptrs++ ) {
+              safe_chr(' ', buff, &bp);
+           }
+           if ( cmdp && cmdp->hookmask ) {
+              safe_str((char *)"> hook flags - ", buff, &bp);
+              show_hook(buff, bp, cmdp->hookmask, cmdp->cmdname);
+           } else {
+              safe_str((char *)"> hook flags - N/A", buff, &bp);
            }
            notify(player, buff);
         } else {
@@ -8758,9 +8796,9 @@ list_rlevels(dbref player, int i_key)
 #define	LIST_BADNAMES	22
 #define LIST_TOGGLES	23
 #define LIST_MAILGBL	24
-#define LIST_GUESTS     25	/* ASH 9/17/00 */
+#define LIST_GUESTS	25	/* ASH 9/17/00 */
 #ifdef REALITY_LEVELS
-#define LIST_RLEVELS    26
+#define LIST_RLEVELS	26
 #endif /* REALITY_LEVELS */
 #define LIST_LOGCOMMANDS 27	
 #define LIST_DEPOWERS	28
@@ -8768,8 +8806,9 @@ list_rlevels(dbref player, int i_key)
 #define LIST_FUNPERMS	30
 #define	LIST_DF_TOGGLES	31
 #define LIST_BUFTRACEADV 32
-#define LIST_VATTRCMDS 33
-#define LIST_TOTEMS 34
+#define LIST_VATTRCMDS	33
+#define LIST_TOTEMS	34
+#define LIST_PRONOUNS	35
 
 NAMETAB list_names[] =
 {
@@ -8809,6 +8848,7 @@ NAMETAB list_names[] =
     {(char *) "funperms", 4, CA_IMMORTAL, 0, LIST_FUNPERMS},
     {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
     {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
+    {(char *) "pronouns", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -8921,6 +8961,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
        case LIST_FLAGS:
 	   display_flagtab(player);
 	   break;
+       case LIST_PRONOUNS:
+           display_pronouns(player, s_ptr2);
+           break;
        case LIST_TOTEMS:
            display_totemtab(player, s_ptr2);
            break;
@@ -11103,28 +11146,6 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       free_lbuf(retbuff);
       free_lbuf(namebuff);
    }
-}
-
-void show_hook(char *bf, char *bfptr, int key, char *cmdname)
-{
-   if ( key & HOOK_BEFORE )
-      safe_str("before ", bf, &bfptr);
-   if ( key & HOOK_AFTER )
-      safe_str("after ", bf, &bfptr);
-   if ( key & HOOK_PERMIT )
-      safe_str("permit ", bf, &bfptr);
-   if ( key & HOOK_IGNORE )
-      safe_str("ignore ", bf, &bfptr);
-   if ( key & HOOK_IGSWITCH )
-      safe_str("igswitch ", bf, &bfptr);
-   if ( key & HOOK_INCLUDE )
-      safe_str("include ", bf, &bfptr);
-   if ( key & HOOK_FAIL )
-      safe_str("fail ", bf, &bfptr);
-   if ( ((strcmp(cmdname, "@register") == 0) || (strcmp(cmdname, "@pcreate") == 0)) && (key & HOOK_AFTER) && mudconf.hook_offline ) {
-      safe_str("[offline] ", bf, &bfptr);
-   }
-   return;
 }
 
 void do_protect(dbref player, dbref cause, int key, char *name)

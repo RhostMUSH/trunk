@@ -556,6 +556,103 @@ get_gender(dbref player)
     return i_ret;
 }
 
+void
+display_pronouns(dbref player, char *s_filter)
+{
+   char *s_strtok, *s_strtokr, *s_buff, *s_buff2, *s_buff3, *s_gender, *s_subj, *s_obj, *s_poss, *s_abs, *s_ptr;
+   int i_count;
+   static const char *subj[5] = {"", "it", "she", "he", "they"};
+   static const char *poss[5] = {"", "its", "her", "his", "their"};
+   static const char *obj[5] = {"", "it", "her", "him", "them"};
+   static const char *absp[5] = {"", "its", "hers", "his", "theirs"};
+
+   s_buff = alloc_lbuf("display_pronouns");
+
+   /* Handle header */
+   sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", 
+           (char *)"@sex/Gender", (char *)"Subjective[%s]", 
+           (char *)"Objective[%o]", (char *)"Possessive[%p]",
+           (char *)"Absolute[%a]");
+   notify_quiet(player, s_buff);
+   notify_quiet(player, (char *)"------------------------------------------------------------------------------");
+
+   /* If config param to override not enabled, show defaults */
+   if ( !mudconf.enforce_added_pronouns ) {
+      // Female -- index 2
+      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Female/Woman", subj[2], obj[2], poss[2], absp[2]);
+      if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
+         notify_quiet(player, s_buff);
+      }
+
+      // Male -- index 3
+      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Male", subj[3], obj[3], poss[3], absp[3]);
+      if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
+         notify_quiet(player, s_buff);
+      }
+
+      // Plural -- index 4
+      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Plural", subj[4], obj[4], poss[4], absp[4]);
+      if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
+         notify_quiet(player, s_buff);
+      }
+
+      // Neuter -- index 1
+      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Neuter", subj[1], obj[1], poss[1], absp[1]);
+      if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
+         notify_quiet(player, s_buff);
+      }
+   }
+
+   /* Loop through the extra pronounts if they exist */
+   if ( *mudconf.added_pronouns ) {
+      strcpy(s_buff, mudconf.added_pronouns);
+      s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      s_buff2 = alloc_lbuf("display_pronouns_buff2");
+      s_buff3 = alloc_lbuf("display_pronouns_buff3");
+      while ( s_strtok ) {
+         i_count = 0;
+         s_ptr = s_strtok;
+         while ( s_ptr && *s_ptr ) {
+            if ( *s_ptr == ':' )
+               i_count++;
+            s_ptr++;
+         }
+          
+         /* If the string is invalid, skip it */
+         if ( i_count != 4 ) {
+            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            continue;
+         }
+
+         strcpy(s_buff2, s_strtok);
+         s_gender = s_buff2;
+
+         s_subj = strchr(s_gender, ':');
+         *s_subj++ = '\0';
+
+         s_obj = strchr(s_subj, ':');
+         *s_obj++ = '\0';
+
+         s_poss = strchr(s_obj, ':');
+         *s_poss++ = '\0';
+
+         s_abs = strchr(s_poss, ':');
+         *s_abs++ = '\0';
+
+         sprintf(s_buff3, "%-15s %-15s %-15s %-15s %-15s", s_gender, s_subj, s_obj, s_poss, s_abs);
+         if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff3)) {
+            notify_quiet(player, s_buff3);
+         }
+
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      free_lbuf(s_buff2);
+      free_lbuf(s_buff3);
+   }
+   notify_quiet(player, (char *)"------------------------------------------------------------------------------");
+   free_lbuf(s_buff);
+}
+
 /* ---------------------------------------------------------------------------
  * Trace cache routines.
  */

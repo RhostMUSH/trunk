@@ -3589,17 +3589,17 @@
   
   Lists information from internal databases.  Information is available
   about the following options:
- 
+   
     advbuffers      allocations       attr_permissions  attributes 
     bad_names       buffers           commands          config_permissions
     costs           cmdslogged        depowers          db_stats        
     default_flags   default_toggles   flags             functions       
     funperms        globals           guest_names       hashstats     
     logging         mail_globals      options           permissions   
-    powers          process          *rlevels           site_info     
-   *stacks          switches          toggles           user_attributes   
-    vattrcmds
- 
+    powers          process           pronouns         *rlevels         
+    site_info      *stacks            switches          toggles         
+    totems          user_attributes   vattrcmds
+   
   Type wizhelp @list <option> for help with a particular option.
   
   Options with a '*' by them may not be enabled at compiletime.
@@ -3824,6 +3824,18 @@
   For each object type, lists the name and key letter for all flags that may
   be set on that object type that are visible to you.
 
+& @list totems
+  Command: @list totems
+  
+  For each object type, lists the name and key letter for all totems that may
+  be set on that object type that are visible to you.
+  
+& @list pronouns
+  Command: @list pronouns
+  
+  List all the pronouns that the mush recognizes.  This will list all the
+  dynamic defined pronouns as well as the built ins.
+  
 & @list functions
   Command: @list functions
   

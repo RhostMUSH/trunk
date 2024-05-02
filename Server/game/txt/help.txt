@@ -4875,9 +4875,9 @@
   Lists information from internal databases.  Information is available
   about the following options:
     attributes       - Valid object attributes.
-    commands [cmd]   - Commands that you may use (excluding the 
-                       attribute-setting commands as well as any exits, and
-                       $-commands available).
+  * commands [cmd]   - Commands that you may use (excluding the attribute 
+                       setting commands as well as any exits, and $-commands
+                       available).
                        Note: you may specify an optional command to list
                              specific values of the command.
     costs            - Lists the costs associated with many commands and
@@ -4887,26 +4887,28 @@
     default_toggles  - Lists the toggles that new objects receive by default
                        when created.
     flags            - Lists the name and letter of all the flags.
-    functions        - Lists all the available functions.
-    options          - Lists several global options and limits.
+  * functions        - Lists all the available functions.
+  * options          - Lists several global options and limits.
         |              You may specify subtopics: boolean, values, config, 
         |              mail, and system
-        +-> boolean  - Subtopic option for listing boolean values (*)
+  *     +-> boolean  - Subtopic option for listing boolean values
         +-> config   - Subtopic option for listing config options 
         +-> convtime - Shows all formats convtime() handles
-        +-> display  - Gives detailed display for a config option
+  *     +-> display  - Gives detailed display for a config option
         +-> mail     - Subtopic option for listing mail options (*)
         +-> mysql    - Shows if MySQL is enabled or disabled
         +-> system   - Subtopic option for listing system settings
-        +-> values   - Subtopic option for listing int values (*)
+  *     +-> values   - Subtopic option for listing int values (*)
         
-    switches        - Lists what commands support switches and the switches
+  * switches        - Lists what commands support switches and the switches
                       that they do support.
     toggles         - Lists toggles supported by the mush.
     mail_globals    - Lists the default mail global parameters
     guest_names     - List the guest names (if defined)
     rlevels         - List all the reality levels enabled
     totems          - Lists the name of all the totems. (wildcard supported)
+  * pronouns        - Lists all the pronouns recognizes on the mush.
+                      (he/she/it/they/etc)
   
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
@@ -4927,15 +4929,21 @@
   
   The following topics have sub-topics currently:
     OPTIONS    boolean   - show all available boolean configs you can see.
+                           > allows filtering
                values    - show all available values that you can see.
+                           > allows filtering
                config    - show all current status/config information.
                mail      - show all current hardcoded mail configuration.
                convtime  - show all formats that convtime() handles
                display   - dsplay detailed information on config options
+                           > Requires argument
                mysql     - shows if mysql is enabled or disabled
                system    - show the default system settings for the mush
   
-    COMMANDS   cmdname   - show the permissions and syntax of the command
+    COMMANDS   <cmdname> - show the permissions and syntax of the command
+    SWITCHES   <filter>  - show commmands with switches with optional filter
+    PRONOUNS   <filter>  - show pronouns with optional filter
+    FUNCTIONS  <type>    - optionally specify type as builtin, defined, or both
   
   Examples:
     > @list options boolean            (For first page - default)
@@ -35716,6 +35724,7 @@
  * filter() when fed an empty list will return w/o evaluation [ASH]
  * pass additional arguments to sub_include and sub_override vals [ASH]
  * the '>' character is no longer valid for setq lables [ASH]
+ * @list now shows pronouns recognized on the mush [ASH]
     
   Bug Fixes
   ------------
