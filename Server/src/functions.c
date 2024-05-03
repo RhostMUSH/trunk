@@ -37227,7 +37227,7 @@ FUNCTION(fun_isnum)
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
-    safe_str((is_number(outbuff) ? "1" : "0"), buff, bufcx);
+    safe_str((is_rhonumber(outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
 }

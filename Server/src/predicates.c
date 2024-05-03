@@ -648,6 +648,53 @@ int Controlsforattr(dbref p, dbref x, ATTR *a, int f)
           ));
 }
 
+int is_rhonumber( char *str )
+{
+   int got_one;
+
+   got_one = 0;
+
+   while (*str && isspace((int)*str)) {
+      /* Leading spaces */
+      str++;
+   }
+   if ( (*str == '-') || (*str == '+') ) {
+      /* Leading minus or plus */
+      str++;
+   }
+   if (!*str) {
+      /* but not if just a minus */
+      return 0;
+   }
+
+   if (isdigit((int)*str)) {
+      /* Need at least one digit */
+      got_one = 1;
+   }
+   while (*str && isdigit((int)*str)) {
+      /* The number (int) */
+      str++;
+   }
+   if (*str == '.') {
+      /* decimal point */
+      str++;
+   }
+   if (isdigit((int)*str)) {
+      /* Need at least one digit */
+      got_one = 1;
+   }
+   while (*str && isdigit((int)*str)) {
+      /* The number (fract) */
+      str++;
+   }
+   while (*str && isspace((int)*str)) {
+      /* Trailing spaces */
+      str++;
+   }
+
+   return ((*str || !got_one) ? 0 : 1);
+}
+
 int is_number (char *str)
 {
 int	got_one;

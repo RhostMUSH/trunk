@@ -366,6 +366,7 @@ extern int	FDECL(member, (dbref, dbref));
 extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
+extern int	FDECL(is_rhonumber, (char *));
 extern int	FDECL(is_float, (char *));
 extern int	FDECL(is_float2, (char *));
 extern int	FDECL(could_doit, (dbref, dbref, int, int, int));

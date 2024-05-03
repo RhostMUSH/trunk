@@ -26716,7 +26716,8 @@
     You say "0"
   
   See Also: isdbref(), isalpha(), isalnum(), isxdigit(), ispunct(), isspace(),
-            istag(), isword(), isunicode(), isutf8(), isdigit(), isobjid()
+            isnum(), istag(), isword(), isunicode(), isutf8(), isdigit(), 
+            isobjid()
 
 & ISDIGIT()
   Function: isdigit(<string>)
@@ -26886,10 +26887,10 @@
   
 & ISNUM()
   Function: isnum(<string>)
- 
+   
   This function will return 1 if the argument is a valid number and 0
-  if it is not.
- 
+  if it is not.  This recognizes a prefix of + or - as well.
+   
   Example:
      > say isnum(22223.0000)
      You say "1"
@@ -26900,7 +26901,8 @@
      >say isnum(Bad Numbers!)
      You say "0"
   
-  See Also: isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), ispunct()
+  See Also: isint(), isspace(), isalpha(), isalnum(), isdigit(), isxdigit(), 
+            ispunct()
   
 & ANSI()
   Function: ansi(<codes>,<string>[,<codes>,<string>,...,<codes>,<string>])
@@ -35725,6 +35727,7 @@
  * pass additional arguments to sub_include and sub_override vals [ASH]
  * the '>' character is no longer valid for setq lables [ASH]
  * @list now shows pronouns recognized on the mush [ASH]
+ * isnum() now recognizes prefix of '+' for MUX compatibility [ASH]
     
   Bug Fixes
   ------------
