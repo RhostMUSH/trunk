@@ -432,6 +432,7 @@ NAMETAB edit_sw[] =
     {(char *) "single", 2, CA_PUBLIC, 0, EDIT_SINGLE},
     {(char *) "strict", 2, CA_PUBLIC, 0, EDIT_STRICT | SW_MULTIPLE},
     {(char *) "raw", 1, CA_PUBLIC, 0, EDIT_RAW | SW_MULTIPLE},
+    {(char *) "braces", 1, CA_PUBLIC, 0, EDIT_BRACES | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB emit_sw[] =

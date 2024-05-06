@@ -4364,16 +4364,20 @@
         /strict    - enforces ansi alignment for each char in original
                      string and leaves unansified anything outside that.
         /raw       - raw mode of the string.  Allows to edit ansi markup.
+        /braces    - enables special handling for editing out {}()[]
+                     but they must be escpaed out in <search> to edit.
    
   If <wild-attr> contains wildcard characters, then all attributes that
   match are edited.
   
   Example:
-    > @va me=This are a test.
+    > @va me=This are a }test.
       Set.
     > @edit me/va=are,is
-      Set - VA: This is a test
-  
+      Set - VA: This is a }test.
+    > @edit/brace me/va=\}test,test   (the } has to be escaped out)
+      Set - VA: This is a test.
+    
   See Also: medit(), edit(), editansi(), @mvattr, @cpattr
   
 & @emit
@@ -35672,6 +35676,7 @@
  * config param enforce_added_pronouns to bypass built-ins [ASH]
  * config param execscript_rawpush to evaluate strings in execscript [ASH]
  * TRACE_GREPCOLOR to specify color of trace grep [ASH]
+ * /braces switch to @edit that lets you edit {, [, and ( explicitly [ASH]
   
   Changes
   -------

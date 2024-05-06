@@ -2214,8 +2214,8 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog;
-char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2];
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog, i_braces, i_bracetog;
+char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2], *s_buff, *s_arg0, *s_buffptr;
 ATTR	*ap;
 OBLOCKMASTER master;
 
@@ -2247,7 +2247,44 @@ OBLOCKMASTER master;
 	   key = key & ~EDIT_RAW;
         }
         
-	from = args[0];
+        i_braces = 0;
+        if ( key & EDIT_BRACES ) {
+           i_braces = 1;
+           i_bracetog = 0;
+           s_buff = alloc_lbuf("@edit_braces");
+           memset(s_buff, '\0', LBUF_SIZE);
+           s_buffptr = s_buff;
+           s_arg0 = args[0];
+           while ( *s_arg0 ) {
+              switch ( *s_arg0 ) {
+                 case '\\': /* Check next char */
+                 case '%': /* Check next char */
+                    if ( (i_bracetog == 0 ) &&
+                         ( (*(s_arg0+1) == '{') || (*(s_arg0+1) == '}') ||
+                           (*(s_arg0+1) == '(') || (*(s_arg0+1) == ')') ||
+                           (*(s_arg0+1) == '[') || (*(s_arg0+1) == ']')
+                         )
+                       ) {
+                       s_arg0++;
+                       continue;
+                    }
+                    *s_buffptr = *s_arg0;
+                    if ( i_bracetog )
+                       i_bracetog = 0;
+                    else
+                       i_bracetog = 1;
+                    break;
+                 default:
+                    *s_buffptr = *s_arg0;
+                    break;
+              }
+              s_buffptr++;
+              s_arg0++;
+           } 
+           from = s_buff;
+        } else {
+  	   from = args[0];
+        }
 	to = (nargs >= 2) ? args[1] : (char *)"";
 
 	/* Look for the object and get the attribute (possibly wildcarded) */
@@ -2256,6 +2293,9 @@ OBLOCKMASTER master;
 	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0, 0)) {
 	        olist_cleanup(&master);
 		notify_quiet(player, "No match.");
+                if ( i_braces ) {
+                   free_lbuf(s_buff);
+                }
 		return;
 	}
 
@@ -2393,6 +2433,9 @@ OBLOCKMASTER master;
         free_sbuf(tcont[1]);
 	free_lbuf(atext);
 	olist_cleanup(&master);
+        if ( i_braces ) {
+           free_lbuf(s_buff);
+        }
 
 	if (!got_one) {
 		notify_quiet(player, "No matching attributes.");

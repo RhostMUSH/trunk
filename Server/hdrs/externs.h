@@ -1286,6 +1286,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
 #define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
+#define EDIT_BRACES	16	/* Edit braces in the string */
 
 #define TAG_ADD		1	/* Set new object tag */
 #define TAG_REMOVE	2 	/* Remove existing tag */
