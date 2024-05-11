@@ -1,0 +1,7 @@
+@create TriggerObj=10
+&FUN_TRIGGER TriggerObj=[iter(lnum(%+),set(me,ARG%i0:[v(%i0)]),,)][execscript(trigger.sh,%0)][wipe(me/arg*)]
+&EXECSCRIPT_VARS TriggerObj=ARG0 ARG1 ARG2 ARG3 ARG4 ARG5 ARG6 ARG7 ARG8 ARG9 ARG10
+@set TriggerObj=INHERIT SIDEFX 
+@depower/counc TriggerObj=execscript
+@startup TriggerObj=@wait 0={@function/priv trigger=me/fun_trigger}
+
