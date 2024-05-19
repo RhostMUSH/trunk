@@ -18,7 +18,11 @@
 
 #define PATCHLEVEL		0		/* Patch sequence number     */
 #define PATCHLEVELEXT		""
+<<<<<<< HEAD
 #define	MUSH_RELEASE_DATE	"05/16/2024"	/* Source release date       */
+=======
+#define	MUSH_RELEASE_DATE	"05/19/2024"	/* Source release date       */
+>>>>>>> 89464e54 (home now honors the BLIND flag)
 
 /* Define if an ALPHA release */
 /* #define ALPHA 0 */

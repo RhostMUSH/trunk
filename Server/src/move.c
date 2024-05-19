@@ -755,7 +755,7 @@ void
 do_move(dbref player, dbref cause, int key, char *direction)
 {
     dbref exit, loc;
-    int i, quiet;
+    int i, quiet, i_blind;
     char *tpr_buff, *tprp_buff;
 
     if ((!Fubar(player) && !(Flags3(player) & NOMOVE)) || (Wizard(cause))) {
@@ -772,7 +772,16 @@ do_move(dbref player, dbref cause, int key, char *direction)
                notify(player, "Bad location.");
                return;
             }
-	    if (Good_obj(loc) && !Recover(loc) && !Going(loc) &&
+            if ( loc == Home(player) ) {
+               notify(player, "You're already safe and snuggled back at home.");
+               return;
+            }
+            if ( Good_obj(loc) && ((Blind(loc) && !mudconf.always_blind) || (!Blind(loc) && mudconf.always_blind)) ) {
+               i_blind = 1;
+            } else {
+               i_blind = 0;
+            }
+	    if ( !i_blind && Good_obj(loc) && !Recover(loc) && !Going(loc) &&
 		!Dark(player) && !Dark(loc)) {
 
 		/* tell all */
