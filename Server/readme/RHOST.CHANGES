@@ -21,6 +21,8 @@ BSD not compliant with timezone variable as non-POSIX
 				- Thanks Hope
 wrap() didn't default to LEFT justification
 				- Thanks Hope
+home did not honor the BLIND flag
+				- Thanks Hope
 
 
                          RhostMUSH 4.0 Update File

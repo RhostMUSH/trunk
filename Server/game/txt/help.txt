@@ -12687,15 +12687,20 @@
   
   See Also: ME
   
+& HOME
 & HOMES
   Topic: HOMES
- 
+  Command: home
+  
   Every thing or player has a home.  This is where players when they go home,
   or things with the STICKY flag set go when dropped.  Homes are set with the
   @link command. A thing's home defaults to the room where it was created, if
   you control that room, or your home. You can link an exit to send players
   home with '@link <dir>=home'.  Drop-tos can also be set to 'home'.
   
+  The 'home' command will teleport you home (if enabled or allowed).  IF
+  you are already at 'home' it will notify you of that fact.
+   
   See Also: @link, DROP-TO, STICKY
   
 & LINKING  
@@ -35733,6 +35738,7 @@
  * the '>' character is no longer valid for setq lables [ASH]
  * @list now shows pronouns recognized on the mush [ASH]
  * isnum() now recognizes prefix of '+' for MUX compatibility [ASH]
+ * home won't let you go home if you're already home [ASH]
     
   Bug Fixes
   ------------
@@ -35775,3 +35781,4 @@
  * bug in listprotection() for alias lookup [ASH]
  * potential crash in @hook/include due to uncaught stack exception [ASH]
  * various handlers for the added @blacklist args were missing [ASH]
+ * home did not honor the BLIND flag [ASH]
