@@ -299,6 +299,7 @@ struct confdata {
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
 	int	enforce_added_pronouns;	/* Always use added pronounts and not built ins */
 	int	execscript_rawpush;	/* Allow raw (evaluated) pushing of vars to environments */
+	int	ssl_welcome;	/* enable ssl snuffing of welcome messages */
         char    forbid_host[LBUF_SIZE]; /* forbid host names */
         char    suspect_host[LBUF_SIZE]; /* suspect host names */
         char    register_host[LBUF_SIZE]; /* register host names */

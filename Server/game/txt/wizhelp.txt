@@ -7489,9 +7489,9 @@
   sideeffects               signal_action             signal_crontab          
   signal_object             signal_object_type        space_compress          
   spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        stack_limit             
-  start_build               starting_money            starting_quota          
-  strfunc_softfuncs
+  sqlite_db_path            sqlite_query_limit        ssl_welcome
+  stack_limit               start_build               starting_money          
+  starting_quota            strfunc_softfuncs
   
 { 'wizhelp config parameters6' for more}
 
@@ -11942,7 +11942,7 @@
    
   This requires sconnect_reip to be enabled.
   
-  See Also: sconnect_host, sconnect_reip
+  See Also: sconnect_host, sconnect_reip, ssl_welcome
 
 & sconnect_reip
   Config parameter: sconnect_reip <on/off>    Default: off (0)
@@ -11955,7 +11955,7 @@
   This is intended for SCONNECT or similar proxy connections to
   the mush.
   
-  See Also: sconnect_cmd, sconnect_host
+  See Also: sconnect_cmd, sconnect_host, ssl_welcome
 
 & sconnect_host
   Config parameter: sconnect_host <host(s)>   Default: localhost
@@ -11966,7 +11966,7 @@
   intended for SCONNECT or proxy connections where you wish
   to hard-set the real IP of where they are coming from.
   
-  See Also: sconnect_cmd, sconnect_reip 
+  See Also: sconnect_cmd, sconnect_reip, ssl_welcome
   
 & search_cost
   Config parameter: search_cost <amount>.  Default: 100
@@ -12298,6 +12298,19 @@
   before it's canceled.
 
   See Also: sqlite_db_path
+
+& ssl_welcome
+  Config parameter: ssl_welcome <yes/no>.   Default: no (0)
+  
+  This will enforce the welcome message to occur only after the SSL site is
+  re-handshaked for SSL/proxy connections.
+  
+  Without this option the welcome screen is limited to register/forbid 
+  notification based on the initial site, which is almost always localhost.
+  
+  SSL connections must be enabled for this parameter to have any effect.
+  
+  See Also: sconnect_reip
 
 & stack_limit
   Config parameter: stack_limit <value>.  Default: 10000

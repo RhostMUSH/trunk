@@ -5182,7 +5182,7 @@ do_command(DESC * d, char *command)
 #ifdef ZENTY_ANSI
     char *s_ansi1, *s_ansi2, *s_ansi3, *s_ansi1p, *s_ansi2p, *s_ansi3p;
 #endif
-    char *s_usepass, *s_usepassptr,
+    char *s_usepass, *s_usepassptr, s_msg[80],
          *s_user, *s_snarfing, *s_snarfing2, *s_snarfing3, *s_snarfing4, *s_snarfheader, *s_snarfvalue, *s_buffer,
          *s_get, *s_pass, *s_enc64, *s_enc64ptr;
     double i_time;
@@ -5210,6 +5210,7 @@ do_command(DESC * d, char *command)
 
     DPUSH; /* #147 */
 
+    memset(s_msg, '\0', sizeof(s_msg));
     i_do_proxy = 0;
     time_str = NULL;
     chk_perm = store_perm = 0;
@@ -5370,6 +5371,10 @@ do_command(DESC * d, char *command)
              i_valid = 1;
              /* Blacklist check and TOR check first */
              if ( blacklist_check(p_addr,0) || check_tor(p_addr, mudconf.port) ) {
+                if ( mudconf.ssl_welcome ) {
+                   d->host_info |= H_FORBIDDEN;
+                   fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
+                }
                 queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                 process_output(d);
                 sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
@@ -5422,6 +5427,10 @@ do_command(DESC * d, char *command)
              strcpy(s_sitebuff, mudconf.forbid_host);
              if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
                   (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                if ( mudconf.ssl_welcome ) {
+                   d->host_info |= H_FORBIDDEN;
+                   fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
+                }
                 queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                 process_output(d);
                 sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
@@ -5474,8 +5483,9 @@ do_command(DESC * d, char *command)
              switch(i_valid) {
                 case 2: /* Register */
                 case 10: /* Suspect * Register */
-                   queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
-                   process_output(d);
+                   // queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
+                   // process_output(d);
+                   strcpy(s_msg, (char *)"SSL Connections are flagged REGISTER ONLY from your site.\r\n");
                    d->host_info |= H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 10 ) {
@@ -5498,8 +5508,9 @@ do_command(DESC * d, char *command)
                    break;
                 case 4: /* Noguest */
                 case 12: /* Suspect * Noguest */
-                   queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
-                   process_output(d);
+                   // queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
+                   // process_output(d);
+                   strcpy(s_msg, (char *)"SSL Connections are flagged NOGUEST from your site.\r\n");
                    d->host_info |= H_NOGUEST;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 12 ) {
@@ -5522,8 +5533,9 @@ do_command(DESC * d, char *command)
                    break;
                 case 6: /* Register & NoGuest */
                 case 14: /* Suspect, Register, Noguest */
-                   queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
-                   process_output(d);
+                   // queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
+                   // process_output(d);
+                   strcpy(s_msg, (char *)"SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
                    d->host_info |= H_NOGUEST | H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 14 ) {
@@ -5593,6 +5605,15 @@ do_command(DESC * d, char *command)
 
           /* Flag the connection SSL as we're successful at this point and log and continue */
           d->flags |= DS_SSL;
+
+          /* All set up, send the welcome message to user */
+          if ( mudconf.ssl_welcome ) {
+             welcome_user(d);
+          }
+          if ( *s_msg ) {
+             queue_string(d, s_msg);
+             process_output(d);
+          }
 
           /* i_valid = 2 if it's register only, we don't want to do double logging here */
           if ( !i_valid ) {

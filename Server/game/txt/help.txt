@@ -35682,6 +35682,7 @@
  * config param execscript_rawpush to evaluate strings in execscript [ASH]
  * TRACE_GREPCOLOR to specify color of trace grep [ASH]
  * /braces switch to @edit that lets you edit {, [, and ( explicitly [ASH]
+ * ssl_welcome if enabled forces welcome screens to match SSL sites [ASH]
   
   Changes
   -------
@@ -35782,3 +35783,5 @@
  * potential crash in @hook/include due to uncaught stack exception [ASH]
  * various handlers for the added @blacklist args were missing [ASH]
  * home did not honor the BLIND flag [ASH]
+ * cleanup of a logic issue in flags.c [ASH]
+ * memory leak cleanup for timezone loader in game.c [ASH]

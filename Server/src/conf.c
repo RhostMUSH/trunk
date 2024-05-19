@@ -393,6 +393,7 @@ NDECL(cf_init)
     memset(mudconf.sconnect_host, '\0', sizeof(mudconf.sconnect_host));
     mudconf.sconnect_reip = 0;		/* Re-IP toggle for sconnect */
     mudconf.connect_methods = 0;	/* Disable optionally connect methods */
+    mudconf.ssl_welcome = 0;		/* SSL enforcement of welcome message snuffing */
     mudconf.guest_displaylastsite = 1;	/* Display guest site on connect -- default yes (default behavior) */
     strcpy(mudconf.string_conn, (char *)"connect");	/* String for the connect command */
     strcpy(mudconf.string_conndark, (char *)"cdark");	/* String for the dark connect */
@@ -5649,6 +5650,9 @@ CONF conftable[] =
     {(char *) "spam_objmsg",
      cf_string, CA_GOD | CA_IMMORTAL, (int *) mudconf.spam_objmsg, 127, 0, CA_WIZARD,
      (char *) "Message spammer receives when object reaches limit."},
+    {(char *) "ssl_welcome",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.ssl_welcome, 0, 0, CA_PUBLIC,
+     (char *) "Disable welcome screen from initial SSL connections?"},
     {(char *) "stack_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.stack_limit, 0, 0, CA_PUBLIC,
      (char *) "Ceiling of nested 'command' calls.\r\n"\

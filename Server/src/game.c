@@ -191,6 +191,11 @@ walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
    }
    free_mbuf(t_buff);
    free_mbuf(t_buff2);
+
+   if ( dir ) {
+      closedir(dir);
+   }
+
    return 0;
 }
 

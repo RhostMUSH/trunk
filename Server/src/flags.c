@@ -5440,7 +5440,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       usop_ptr = sop_ptr = alloc_lbuf("totemdef_slots");
       for ( cntr = 0; cntr < TOTEM_SLOTS; cntr++ ) {
          if ( (cntr % 4) == 0 ) {
-            if ( !cntr == 0 ) {
+            if ( cntr != 0 ) {
                safe_str("\r\n", sop_ptr, &usop_ptr);
             } 
             sprintf(tmp_ptr, "| %04d   %-6s --|", cntr, (mudconf.totem_reserved[cntr] ? (char *)"Yes" : (char *)"No"));

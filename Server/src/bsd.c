@@ -2118,10 +2118,11 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     DESC *d, *dchk, *dchknext;
     char tchbuff[LBUF_SIZE];
     char *addroutbuf, *t_addroutbuf;
-    int i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
+    int i_nope, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
 
     DPUSH; /* #11 */
 
+    i_nope = 0;
     ndescriptors++;
     d = alloc_desc("init_sock");
     d->descriptor = s;
@@ -2243,10 +2244,19 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     d->next = descriptor_list;
     d->prev = &descriptor_list;
     descriptor_list = d;
-    if ( !keyval ) {
+    if ( !keyval && mudconf.sconnect_reip && mudconf.ssl_welcome )  {
+       memset(tchbuff, 0, sizeof(tchbuff));
+       strcpy(tchbuff, mudconf.sconnect_host);
+       if ((char *)mudconf.sconnect_host && lookup(addr, tchbuff, i_sitecnt, &i_retvar)) {
+          i_nope = 1;
+       }
+    }
+    if ( !i_nope && !keyval ) {
        welcome_user(d);
        start_auth(d);
-    } else {
+    } else if ( i_nope && !keyval ) {
+       start_auth(d);
+    } else if ( keyval ) {
        d->timeout = 1;
        d->flags |= DS_API;
     }
