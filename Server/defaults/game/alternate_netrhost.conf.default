@@ -492,6 +492,7 @@ name_with_desc            1
 enhanced_convtime         0
 exit_separator            %b%b
 help_separator            %b%b
+enforce_added_pronouns    0
 #added_pronouns
 
 # who/where
