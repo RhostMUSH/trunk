@@ -1061,13 +1061,18 @@ parse() {
                   ;;
                29) # handle additional registers here
                    clear
+                   lc_stack=$(ulimit -s)
+                   if [ "${lc_stack}" = "unlimited" ]
+                   then
+                      lc_stack="2000000000"
+                   fi
                    # load the buffer for this make file option
                    if [ -n "${lc_opt29}" ]
                    then
                       lc_value="${lc_opt29}"
                    else
                       # first let's query the current configs for the game
-                      lc_value="$(grep -ow "DDYN_MAX_GLOBAL_BOOST=[0-9]*" ../src/custom.defs|cut -f2 -d"=")"
+                      lc_value="$(cat ../src/custom.defs|grep -v "^#"|grep -ow "DDYN_MAX_GLOBAL_BOOST=[0-9]*"|cut -f2 -d"=")"
                       # sanitize the value just incase
                       lc_value=$(echo "${lc_value}"|tr -cd '[0-9]')
                       # if empty pull from the config file
@@ -1094,7 +1099,7 @@ parse() {
                    else
                       lc_bufsize=4000
                    fi
-                   
+
                    ((lc_exbuf=(${lc_bufsize}*2+64)*${lc_value}))
                    if [ ${lc_exbuf} -gt 1000000000 ]
                    then
@@ -1108,6 +1113,8 @@ parse() {
                       ((lc_exbuf=${lc_exbuf}/1000))
                       lc_exbufc="Kb"
                    fi
+                   ((lc_extrastack=${lc_bufsize} * ${lc_value} / 1000 * 2 ))
+                   ((lc_test=${lc_stack} - 16536 - ${lc_extrastack}))
                    echo "           RhostMUSH config.h Modification & Configuration Utility"
                    echo "------------------------------------------------------------------------------"
                    echo "Each additional register will cause (LBUF_SIZE * 2) + SBUF_SIZE overhead."
@@ -1115,9 +1122,30 @@ parse() {
                    echo "This is generally sufficient.  If not, it's recommended not to exceed more than"
                    echo "a few hundred, but with some performance pentalties as well as significantly"
                    echo "higher memory utilization you could potentially have several thousand."
+                   echo "Increased registers will also increase process stack space requirements."
                    echo "The general suggestion is use sparingly."
                    echo ""
+                   echo "Note: to increase stack space use ulimit -s <size> at the shell."
+                   echo ""
                    echo "The default value for this parameter is generally '0'"
+                   echo ""
+                   if [ ${lc_test} -lt 0 ]
+                   then
+                      if [ ${lc_stack} -lt 16536 ]
+                      then
+                         ((lc_test=16536 + ${lc_extrastack} - ${lc_stack}))
+                      else
+                         lc_test=${lc_extrastack}
+                      fi
+                      echo "Note: Your stack space is ${lc_stack}.  You should increase your stack space by: ${lc_test}"
+                   else
+                      if [ ${lc_stack} -gt 1999999999 ]
+                      then
+                         echo "Note: Your stack space is unlimited and should be sufficient"
+                      else
+                         echo "Note: Your stack space is ${lc_stack} and should be sufficient"
+                      fi
+                   fi
                    echo ""
                    echo "Currently you have [34;1m${lc_value}[0m additional registers [${lc_exbuf}${lc_exbufc} memory]."
                    echo "------------------------------------------------------------------------------"
@@ -1148,7 +1176,23 @@ parse() {
                          ((lc_exbuf2=${lc_exbuf2}/1000))
                          lc_exbuf2c="Kb"
                       fi
+                      ((lc_extrastack2=${lc_bufsize} * ${lc_conv} / 1000 * 2 ))
+                       ((lc_test2=${lc_stack} - 16536 - ${lc_extrastack2}))
                       echo "Old memory use was ${lc_exbuf}${lc_exbufc} new memory use will be ${lc_exbuf2}${lc_exbuf2c}."
+                      echo "Old stack extra usage was ${lc_extrastack} new stack extra ussage will be ${lc_extrastack2}."
+                      if [ ${lc_test2} -lt 0 -a ${lc_conv} -gt 0 ]
+                      then
+                         echo "[33;1mWarning:[0m Current stack of ${lc_stack} insufficient for new register value."
+                         if [ ${lc_stack} -lt 16536 ]
+                         then
+                            ((lc_recommend=16536 + ${lc_extrastack2} + ${lc_extrastack2}))
+                         else
+                            ((lc_recommend=${lc_stack} + ${lc_extrastack2} + ${lc_extrastack2}))
+                         fi
+                         echo "[33;1mRecommanded MINIMUM setting is [32;1m${lc_recommend}[0m"
+                      else
+                         echo "Current stack of ${lc_stack} should be sufficient for the extra registers."
+                      fi
                       echo "Old value was [34;1m${lc_value}[0m new value is [31;1m${lc_conv}[0m.  Is this correct? (Y/N): "|tr -d '\012'
                       read ANS
                       if [ "${ANS}" = "Y" -o "${ANS}" = "y" ]
