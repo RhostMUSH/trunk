@@ -300,6 +300,7 @@ struct confdata {
 	int	enforce_added_pronouns;	/* Always use added pronounts and not built ins */
 	int	execscript_rawpush;	/* Allow raw (evaluated) pushing of vars to environments */
 	int	ssl_welcome;	/* enable ssl snuffing of welcome messages */
+	int	setq_pickend;	/* Pick setq labels from end of list instead of start */
         char    forbid_host[LBUF_SIZE]; /* forbid host names */
         char    suspect_host[LBUF_SIZE]; /* suspect host names */
         char    register_host[LBUF_SIZE]; /* register host names */

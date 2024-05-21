@@ -3015,16 +3015,31 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 
       /* If name not found, pick next free register to use */
       if ( !i_namefnd ) {
-         for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-            if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
-               if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
-                    mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
-                  continue;
+         if ( mudconf.setq_pickend ) {
+            for ( i = (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST - 1); i >= 0; i-- ) {
+               if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+                  if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
+                       mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                     continue;
+                  }
+                  regnum = i;
+                  i_namefnd = 1;
+                  i_chk = 1;
+                  break;
                }
-               regnum = i;
-               i_namefnd = 1;
-               i_chk = 1;
-               break;
+            }
+         } else {
+            for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+               if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+                  if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
+                       mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                     continue;
+                  }
+                  regnum = i;
+                  i_namefnd = 1;
+                  i_chk = 1;
+                  break;
+               }
             }
          }
       }

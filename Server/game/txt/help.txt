@@ -35683,6 +35683,7 @@
  * TRACE_GREPCOLOR to specify color of trace grep [ASH]
  * /braces switch to @edit that lets you edit {, [, and ( explicitly [ASH]
  * ssl_welcome if enabled forces welcome screens to match SSL sites [ASH]
+ * setq_pickend to go to end of stack for label assignment [ASH]
   
   Changes
   -------

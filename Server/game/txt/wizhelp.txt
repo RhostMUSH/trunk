@@ -7484,14 +7484,14 @@
   sconnect_host             sconnect_reip             search_cost             
   secure_atruselock         secure_dark               secure_functions        
   secure_jumpok             see_owned_dark            setq_nums
-  setqlabel                 sha2rounds                showother_altname       
-  shs_reverse               sidefx_maxcalls           sidefx_returnval        
-  sideeffects               signal_action             signal_crontab          
-  signal_object             signal_object_type        space_compress          
-  spam_limit                spam_msg                  spam_objmsg             
-  sqlite_db_path            sqlite_query_limit        ssl_welcome
-  stack_limit               start_build               starting_money          
-  starting_quota            strfunc_softfuncs
+  setq_pickend              setqlabel                 sha2rounds              
+  showother_altname         shs_reverse               sidefx_maxcalls         
+  sidefx_returnval          sideeffects               signal_action           
+  signal_crontab            signal_object             signal_object_type      
+  space_compress            spam_limit                spam_msg                
+  spam_objmsg               sqlite_db_path            sqlite_query_limit      
+  ssl_welcome               stack_limit               start_build             
+  starting_money            starting_quota            strfunc_softfuncs
   
 { 'wizhelp config parameters6' for more}
 
@@ -12044,8 +12044,26 @@
      setq(),       setq_old(),       setr(),    setr_old(),    r(), 
      %q,           SETQ_TEMPLATES,   xinc(),    xdec(),        nameq()
   
-  See Also: setqlabel
+  See Also: setqlabel, setq_pickend
 
+& setq_pickend
+  Config parameter: setq_pickend <yes/no>.    Default: no (0)
+  
+  By default, setq labels will start at the start of the stack, ergo it
+  will assign labels at register 0, then 1, then 2, and so forth.  
+  
+  This option will reverse that behavior and start at the end of the
+  stack first.  
+  
+  This also means that if you have configured additional registers 
+  beyond the normal 36 (0-9, a-z), that it will pick those for labels
+  prior to the original 36.
+  
+  This may be useful if you are inconsistant in softcoding where you
+  interchange label and register use and cause unintended overwrites.
+  
+  See Also: setqlabel
+  
 & setqlabel
   Config parameter: setqlabel <yes/no>.    Default: no (0)
   
@@ -12054,7 +12072,7 @@
   with the 0-9/a-z value on a labeled register with this enabled will
   result in an error message being returend.
   
-  See Also: setq_nums
+  See Also: setq_nums, setq_pickend
   
 & sha2rounds
   Config parameter: sha2rounds <value>.    Default: 5000

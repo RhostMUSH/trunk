@@ -326,7 +326,7 @@ NDECL(cf_init)
     mudconf.ansi_txtfiles = 0;		/* ANSI textfile support */
     mudconf.list_max_chars = 1000000;	/* Let's allow 1 million characters */
     mudconf.tor_paranoid = 0;
-    mudconf.float_precision = 6;		/* Precision of math functions */
+    mudconf.float_precision = 6;	/* Precision of math functions */
     mudconf.file_object = -1;		/* File object for @list_file overloading */
     mudconf.ansi_default = 0;		/* Allow ansi aware functions ansi default */
     mudconf.accent_extend = 0;		/* Can we extend accents from 251-255? */
@@ -335,11 +335,12 @@ NDECL(cf_init)
     mudconf.mysql_delay = 0;		/* Toggle to turn on/off delay > 0 sets delay */
     mudconf.name_with_desc = 0;		/* Enable state to allow looking at names of things you can't examine */
     mudconf.proxy_checker = 0;		/* Proxy Checker -- Not very reliable */
-    mudconf.idle_cmdcount = -1;  /* Make repeated commands not touch idle time */
+    mudconf.idle_cmdcount = -1;		/* Make repeated commands not touch idle time */
     mudconf.idle_stamp = 0;             /* Enable for idle checking on players */
     mudconf.idle_stamp_max = 10;        /* Enable for idle checking on players 10 max default */
     mudconf.penn_setq = 0;		/* Penn compatible setq/setr functions */
     mudconf.setq_nums = 0;		/* Specify if setq allows > 9 for numbers */
+    mudconf.setq_pickend = 0;		/* Pick setq labels from end of the stack instead of head */
     mudconf.delim_null = 0;		/* Allow '@@' for null delims */
     mudconf.parent_follow = 1;		/* Parent allows following if you control target */
     mudconf.objid_localtime = 0;	/* Objid's should use GMtime by default */
@@ -5606,6 +5607,9 @@ CONF conftable[] =
     {(char *) "setq_nums",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setq_nums, 0, 0, CA_PUBLIC,
      (char *) "Does setq() family allow numbers greater than 9?"},
+    {(char *) "setq_pickend",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setq_pickend, 0, 0, CA_PUBLIC,
+     (char *) "Set labels from end of stack instead of head?"},
     {(char *) "setqlabel",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.setqlabel, 0, 0, CA_PUBLIC,
      (char *) "Are registers that have labels protected?"},
