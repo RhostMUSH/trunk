@@ -18517,17 +18517,25 @@
   See Also: @chown
   
 & CNAME()
-  cname(<dbref>)
+  cname(<dbref> [,<key>])
    
   This function returns the name of the indicated object with any special
   colorization or accents that they may have.  When called with an exit 
   it returns the only the first alias.
   
+  If <key> is specified it forces an ansi-normal (%cn/%xn) at the end
+  of the string.  This will fix potential issues of monikers/ansinames
+  that were not properly ansi terminated.  This can be prevelant with
+  converted databases such as from MUX.  Please note that even if the
+  string has an ansi-normal it will append a second one after it.
+   
   This will colorize/accent the name using @ansiname or @extansi.
   
   Example:
     > say cname(me)
     You say "TinyPlayer"  (this would be colorized and/or accented)
+    > say cname(me,1)
+    You say "TinyPlayer"  (this enforces an ansinormal)
    
   See Also: fullname(), @alias, @name, name(), @ansiname, @extansi, %k
 
@@ -35741,6 +35749,7 @@
  * @list now shows pronouns recognized on the mush [ASH]
  * isnum() now recognizes prefix of '+' for MUX compatibility [ASH]
  * home won't let you go home if you're already home [ASH]
+ * optional second arg to cname() to force ansi-normal [ASH]
     
   Bug Fixes
   ------------

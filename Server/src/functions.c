@@ -21147,9 +21147,17 @@ FUNCTION(fun_name)
 FUNCTION(fun_cname)
 {
     dbref it, aname;
-    int i_extansi, aflags, i_val;
+    int i_extansi, aflags, i_val, i_terminate;
     char *s;
     char *namebuff, *namebufcx, *ansibuf, *ansiparse;
+
+    if (!fn_range_check("CNAME", nfargs, 1, 2, buff, bufcx))
+        return;
+
+    i_terminate = 0;
+    if ( (nfargs > 1) && *fargs[1] ) {
+       i_terminate = atoi(fargs[1]);
+    }
 
     it = match_thing(player, fargs[0]);
     if (it == NOTHING) {
@@ -21204,6 +21212,13 @@ FUNCTION(fun_cname)
        }
     } else {
        safe_str(namebuff, buff, bufcx);
+    }
+    if ( i_terminate ) {
+#ifdef ZENTY_ANSI
+       safe_str(SAFE_ANSI_NORMAL, buff, bufcx);
+#else
+       safe_str(ANSI_NORMAL, buff, bufcx);
+#endif
     }
 
     free_lbuf(namebuff);
@@ -40919,7 +40934,7 @@ FUN flist[] =
 #endif
     {"CLUSTER_XGET", fun_cluster_xget, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"CMDS", fun_cmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"CNAME", fun_cname, 1, 0, CA_PUBLIC, 0},
+    {"CNAME", fun_cname, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"CODEPOINT", fun_codepoint, 1, 0, CA_IMMORTAL, CA_NO_CODE},
     {"COLORS", fun_colors, 1, FN_VARARGS, CA_PUBLIC, 0},
     {"COLUMNS", fun_columns, 3, FN_VARARGS, CA_PUBLIC, 0},
