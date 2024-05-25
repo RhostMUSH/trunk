@@ -122,9 +122,23 @@ juggle_attrib(char *s_in)
    return(s_out);
 }
 
+char *
+juggle_attrib2(char *s_in, int isexit)  {
+   char *snip = NULL;
+
+   if ( isexit ) {
+      snip = strchr(s_in, ';');
+      if ( snip ) {
+         *snip = '\0';
+      }
+   }
+   return(s_in);
+}
+
+
 int main(void) {
    unsigned long flag1, flag2, flag3, nflag1, nflag2, nflag3, nflag4;
-   int val, tog2, obj, mage, royalty, staff, ansi, immortal, atrcnt, i_dbref;
+   int val, tog2, obj, mage, royalty, staff, ansi, immortal, atrcnt, i_dbref, i_isexit;
    char f[LBUF_SIZE], *q, *f1, *f2, *t, fstr[60];
    FILE *fpin;
 
@@ -182,6 +196,10 @@ int main(void) {
          nflag1 = (flag1 & 0xDFDFFFFF); /* Convert/Strip Flag 1 */
          nflag2 = (flag2 & 0xD00000FF); /* Convert/Strip Flag 2 */
          nflag3 = nflag4 = tog2 = 0;    /* Nullify Flag 3 , initialize flag 4 */
+         i_isexit = 0;
+         if ( nflag1 & 0x2 ) {
+            i_isexit = 1;
+         }
          if ( flag2 & MUXANSI )
             nflag2 = (nflag2 | 0x06000000);
          if ( flag2 & MUXAUDIT )
@@ -438,7 +456,7 @@ int main(void) {
             mush_gets(q);
             if ( strlen(q) > LBUF_SIZE )
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
-            printf("%s",juggle_attrib(q));
+            printf("%s",juggle_attrib2(q, i_isexit));
             mush_gets(q);
          } else if (val == 214) { /* Saystring */
             printf(">%d\n",236);
