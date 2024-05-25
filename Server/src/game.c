@@ -2510,6 +2510,9 @@ NDECL(process_preload)
      * we do not need need to execute queue for this, it's just setting up attribs/cache
      * we can *not* do any evaluation in this loop.  This just sets cache/attributes ONLY
      */
+    STARTLOG(LOG_ALWAYS, "INI", "DB-P1")
+       log_text((char*) "First Pass - Loading totems, protectnames, and tags.");
+    ENDLOG
     DO_WHOLE_DB(thing) {
        if (Going(thing))
           continue;
@@ -2580,6 +2583,9 @@ NDECL(process_preload)
        }
     }
 
+    STARTLOG(LOG_ALWAYS, "INI", "DB-P2")
+       log_text((char*) "Second Pass - Loading startup and forwardlists.");
+    ENDLOG
     /* This runs the startups and other baseline */
     DO_WHOLE_DB(thing) {
        /* Ignore GOING objects */
@@ -2618,6 +2624,10 @@ NDECL(process_preload)
        }
 
     }
+
+    STARTLOG(LOG_ALWAYS, "INI", "DB-CX")
+       log_text((char*) "Completed - Parsing startup of database.");
+    ENDLOG
 
     free_lbuf(fp);
     free_lbuf(tstr);
