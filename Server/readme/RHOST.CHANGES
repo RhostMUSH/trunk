@@ -23,6 +23,10 @@ wrap() didn't default to LEFT justification
 				- Thanks Hope
 home did not honor the BLIND flag
 				- Thanks Hope
+sqlite_db_path incorrectly defined in conf.c
+				- Thanks Hige
+off by one with '|' option in printf for wrapping
+				- Thanks Thenomain
 
 
                          RhostMUSH 4.0 Update File

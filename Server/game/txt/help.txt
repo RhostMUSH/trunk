@@ -35795,3 +35795,5 @@
  * home did not honor the BLIND flag [ASH]
  * cleanup of a logic issue in flags.c [ASH]
  * memory leak cleanup for timezone loader in game.c [ASH]
+ * sqlite_db_path was defined as int and not char in conf.c [ASH]
+ * off-by-one wrap for | option in printf [ASH]

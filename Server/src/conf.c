@@ -5913,7 +5913,7 @@ CONF conftable[] =
      (char *) "Maximum time in seconds that a SQLite query may run.\r\n"\
               "                             Default: 5   Value: %d"},
     {(char *) "sqlite_db_path",
-     cf_int, CA_GOD | CA_IMMORTAL, (int*) mudconf.sqlite_db_path, 128, 0, CA_WIZARD,
+     cf_string, CA_GOD | CA_IMMORTAL, (int*) mudconf.sqlite_db_path, 128, 0, CA_WIZARD,
      (char *) "Path to the directory to store SQLite database files, relative to game/" },
 #endif /*SQLITE*/
 #ifdef REALITY_LEVELS

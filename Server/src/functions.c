@@ -10056,9 +10056,9 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           if ( (fm->cutatlength_line == 0) && (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
              break;
           if ( ((!*start_line || (i_linecnt < *start_line)) && 
-                 (((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd)))) ||
+                 (((i_chk+1) > (fm->fieldwidth + 1 + morepadd)) && (i_stripansi > (fm->fieldwidth + 1 + morepadd)))) ||
                ((*start_line && (i_linecnt >= *start_line )) && 
-                 (((i_chk+1) > (fm->fieldwidth + morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth + morepadd + *adjust_padd)))) ) {
+                 (((i_chk+1) > (fm->fieldwidth + 1 + morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth + 1 + morepadd + *adjust_padd)))) ) {
              if ( i_lastspace > 0 ) { 
                 t = s_padstring + i_lastspace;
                 if ( (fm->cutatlength_line != 0) && (fm->cutatlength != 0) && (fm->morepadd & 4) && ((i_linecnt + 1) >= fm->cutatlength) ) {
