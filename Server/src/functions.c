@@ -9969,6 +9969,53 @@ void snarfle_special_characters(char *s_instring, char *s_outstring)
     }
 }
 
+int printf_lookahead(char *s_string)
+{
+   char *s;
+   int i_return, i_mux;
+
+   s = s_string;
+   i_return = 0;
+#ifdef ZENTY_ANSI
+   while (*s) {
+      if ( (*s == '%') && ((*(s+1) == 'f') && isprint(*(s+2))) ) {
+         s+=3;
+         continue;
+      }
+      if ( (*s == '%') && ( (*(s+1) == SAFE_CHR)  || (*(s+1) == SAFE_UCHR)
+#ifdef SAFE_CHR2
+          ||   (*(s+1) == SAFE_CHR2) || (*(s+1) == SAFE_UCHR2 )
+#endif
+#ifdef SAFE_CHR3
+          ||   (*(s+1) == SAFE_CHR3) || (*(s+1) == SAFE_UCHR3 )
+#endif
+      )) {
+         if ( isAnsi[(int) *(s+2)] ) {
+            s+=3;
+            continue;
+         }
+         if ( (*(s+2) == '0') && ((*(s+3) == 'x') || (*(s+3) == 'X')) &&
+            *(s+4) && *(s+5) && isxdigit(*(s+4)) && isxdigit(*(s+5)) ) {
+            s+=6;
+            continue;
+         }
+         if ( *(s+2) == '<' ) {
+            i_mux = count_mux_ansi(s+2);
+            if ( i_mux )
+               s+= i_mux+2;
+               continue;
+            }
+         }
+      if ( *s )
+         break;
+   }
+#endif
+   if ( *s )
+      i_return = 1;
+
+   return(i_return);
+}
+
 void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_format *fm, 
                       int numeric, char *shold, char **sholdptr, int morepadd,
                       int *adjust_padd, int *start_line)
@@ -10069,8 +10116,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                    t++;
                 i_chk = strlen(strip_all_special(t)) + fm->doindent;
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
-                *t++ = '\r';
-                *t++ = '\n';
+                if ( printf_lookahead(s) ) {
+                   *t++ = '\r';
+                   *t++ = '\n';
+                }
                 if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
                       *t++ = ' ';
@@ -10084,8 +10133,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                    *t++ = *u++;
                 }
              } else {
-                *t++ = '\r';
-                *t++ = '\n';
+                if ( printf_lookahead(s) ) {
+                   *t++ = '\r';
+                   *t++ = '\n';
+                }
                 if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
                    i_chk=0;
                    for ( i_indent = 0; i_indent < fm->doindent; i_indent++ ) {
@@ -10139,8 +10190,13 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              }
              if ( *(s+2) == '<' ) {
                 i_mux = count_mux_ansi(s+2);
-                if ( i_mux )
+                if ( i_mux ) {
                    idx += i_mux + 2;
+                   for (i_inansi = 0; i_inansi < (i_mux + 2); i_inansi++) {
+                      *t++ = *s++;
+                   }
+                }
+                i_inansi = 0;
              }
           }
 #endif
