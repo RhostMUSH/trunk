@@ -821,6 +821,7 @@ NDECL(cf_init)
     mudstate.force_halt = 0;
     mudstate.autoreg = 0;
     mudstate.initializing = 0;
+    mudstate.dbloading = 0;
     mudstate.panicking = 0;
     mudstate.logging = 0;
     mudstate.epoch = 0;

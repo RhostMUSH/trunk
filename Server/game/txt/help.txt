@@ -35750,6 +35750,8 @@
  * isnum() now recognizes prefix of '+' for MUX compatibility [ASH]
  * home won't let you go home if you're already home [ASH]
  * optional second arg to cname() to force ansi-normal [ASH]
+ * on Startmush/@reboot bypass some irrevelant attrib checks to
+   speed up the db loading process [ASH]
     
   Bug Fixes
   ------------

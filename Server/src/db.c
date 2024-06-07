@@ -2834,7 +2834,11 @@ al_add(dbref thing, int attrnum)
 	    return;
     }
     if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (db[thing].nvattr >= mudconf.vlimit)) {
-      if (mudstate.vlplay != NOTHING) {
+      if ( 
+#ifndef STANDALONE
+          !mudstate.dbloading &&
+#endif
+          (mudstate.vlplay != NOTHING) ) {
 #ifndef STANDALONE
 	attr = atr_num_aladd(attrnum);
         notify_quiet(mudstate.vlplay,"Variable attribute limit reached.");
@@ -2867,7 +2871,11 @@ al_add(dbref thing, int attrnum)
       return;
     }
     do_limit_add = 0;
-    if ( (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
+    if ( 
+#ifndef STANDALONE
+         !mudstate.dbloading && 
+#endif
+         (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
          !((mudstate.vlplay != NOTHING) && 
           ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
@@ -2936,7 +2944,7 @@ al_add(dbref thing, int attrnum)
           free_lbuf(s_chkattr);
        }
     }
-    if ( (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
+    if ( !mudstate.dbloading && (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
        attr = atr_num_aladd(attrnum);
        broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
                          NULL, NULL, thing, 0, 0, NULL);
