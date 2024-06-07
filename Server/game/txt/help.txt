@@ -35693,6 +35693,7 @@
  * ssl_welcome if enabled forces welcome screens to match SSL sites [ASH]
  * setq_pickend to go to end of stack for label assignment [ASH]
  * Added more accounting for user defined attributes [ASH]
+ * vattr stats now keep track of empty buckets [ASH]
   
   Changes
   -------

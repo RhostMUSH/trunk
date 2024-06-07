@@ -30,6 +30,7 @@ static int vstats_freecnt;
 static int vstats_lookups;
 static int vstats_maxlookup;
 static int vstats_checks;
+static int vstats_nulls;
 #ifdef GATHER_STATS
 static int page_faults = 0;
 #endif
@@ -67,6 +68,7 @@ void NDECL(vattr_init)
 	vstats_hits = 0;
 	vstats_checks = 0;
 	vstats_maxlookup = 0;
+	vstats_nulls = VHASH_SIZE;
 }
 
 VATTR *vattr_find(char *name)
@@ -175,6 +177,9 @@ VATTR *vattr_define(char *name, int number, int flags)
 
 	hash = vattr_hash(name);
 	vp->next = vhash[hash];
+        if ( vhash[hash] == NULL ) {
+           vstats_nulls--;
+        }
 	vhash[hash] = vp;
 
 	anum_extend(vp->number);
@@ -294,14 +299,14 @@ char	*buff;
 #ifdef GATHER_STATS
 	sprintf(buff, "%-15.14s %6d%8d%8d%8d%8d%8d%8d%8d%8d",
 		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
-		0, vstats_lookups, vstats_hits, 0, vstats_maxlookup, page_faults);
+		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup, page_faults);
 //	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest," 
 //                "%d page faults in lookups.\r\n", 
 //                vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup, page_faults);
 #else
 	sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
 		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
-		0, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
+		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
 //#ifdef BIT64
 //	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest\r\n",
 //#else
