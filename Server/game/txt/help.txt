@@ -35692,6 +35692,7 @@
  * /braces switch to @edit that lets you edit {, [, and ( explicitly [ASH]
  * ssl_welcome if enabled forces welcome screens to match SSL sites [ASH]
  * setq_pickend to go to end of stack for label assignment [ASH]
+ * Added more accounting for user defined attributes [ASH]
   
   Changes
   -------
@@ -35752,6 +35753,8 @@
  * optional second arg to cname() to force ansi-normal [ASH]
  * on Startmush/@reboot bypass some irrevelant attrib checks to
    speed up the db loading process [ASH]
+ * increased hash size for user-defined attribute lookups [ASH]
+ * aligned @list hash for vattrs to make more sense [ASH]
     
   Bug Fixes
   ------------

@@ -24,9 +24,12 @@ static VATTR *vfreelist;
 static int vhash_index;
 
 static int vstats_count;
+static int vstats_hits;
 static int vstats_name_cnt;
 static int vstats_freecnt;
 static int vstats_lookups;
+static int vstats_maxlookup;
+static int vstats_checks;
 #ifdef GATHER_STATS
 static int page_faults = 0;
 #endif
@@ -61,12 +64,15 @@ void NDECL(vattr_init)
 	vstats_count = 0;
 	vstats_name_cnt = 0;
 	vstats_lookups = 0;
+	vstats_hits = 0;
+	vstats_checks = 0;
+	vstats_maxlookup = 0;
 }
 
 VATTR *vattr_find(char *name)
 {
 	register VATTR *vp,*vprev;
-	int hash;
+	int hash, maxlooks;
 #if defined(GATHER_STATS) && defined(HAVE_GETRUSAGE)
 	struct rusage foo;
 	int	old_majflt;
@@ -81,9 +87,17 @@ VATTR *vattr_find(char *name)
 	vstats_lookups++;
 
 	vprev = NULL;
+        maxlooks = 0;
 	for (vp = vhash[hash]; vp != NULL;vprev = vp, vp = vp->next) {
-		if (!strcmp(name, vp->name))
+		maxlooks++;
+		if (!strcmp(name, vp->name)) {
+			vstats_hits++;
+			vstats_checks += maxlooks;
+			if ( maxlooks > vstats_maxlookup ) {
+				vstats_maxlookup = maxlooks;
+			}
 			break;
+                }
 	}
 	if(vp && vprev){ /* Rechain */
 		vprev->next = vp->next;
@@ -276,17 +290,24 @@ void list_vhashstats(dbref player)
 char	*buff;
 
 	buff = alloc_lbuf("vattr_hashstats");
+
 #ifdef GATHER_STATS
-	sprintf(buff, "Vattr stats:  %d size, %d alloc, %d free, %d name lookups," 
-                "%d page faults in lookups.\r\n", sizeof(VATTR),
-                vstats_count, vstats_freecnt, vstats_lookups, page_faults);
+	sprintf(buff, "%-15.14s %6d%8d%8d%8d%8d%8d%8d%8d%8d",
+		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+		0, vstats_lookups, vstats_hits, 0, vstats_maxlookup, page_faults);
+//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest," 
+//                "%d page faults in lookups.\r\n", 
+//                vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup, page_faults);
 #else
-#ifdef BIT64
-	sprintf(buff, "Vattr stats:  %lu size, %d alloc, %d free, %d name lookups\r\n",
-#else
-	sprintf(buff, "Vattr stats:  %u size, %d alloc, %d free, %d name lookups\r\n",
-#endif
-		sizeof(VATTR), vstats_count, vstats_freecnt, vstats_lookups);
+	sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
+		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+		0, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
+//#ifdef BIT64
+//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest\r\n",
+//#else
+//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest\r\n",
+//#endif
+//		VHASH_SIZE, vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup);
 #endif
 
 	notify(player, buff);

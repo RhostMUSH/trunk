@@ -2841,6 +2841,7 @@ main(int argc, char *argv[])
         DPOP; /* #92 */
 	exit(2);
     }
+    mudstate.dbloading = 1; /* fast-load attributes without additional checks */
     if (mindb)
 	db_make_minimal();
     else if (load_game(rebooting) < 0) {
@@ -2851,6 +2852,7 @@ main(int argc, char *argv[])
 	DPOP; /* #92 */
 	exit(2);
     }
+    mudstate.dbloading = 0;
     srandom(getpid());
     set_signals();
 
