@@ -41,9 +41,19 @@ int real_hashval(char *str, int hashmask, const char *fileName, int lineNo)
 
     if (str == NULL)
 	return 0;
+
+/******************************************
+    // This was the original Rhost hash
     hash = 0;
     for (sp = str; *sp; sp++)
 	hash = (hash << 5) + hash + *sp;
+ *****************************************/
+
+    // This is based on FNV hash -- public domain license
+    hash = 0x01000193;
+    for (sp = str; *sp; sp++)
+       hash = ( (hash * 0x01000193) ^ (int)*sp ) & 0xffffffff;
+
     return (hash & hashmask);
 }
 
