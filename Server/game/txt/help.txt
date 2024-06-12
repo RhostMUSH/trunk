@@ -26129,6 +26129,7 @@
   
 & SETQM()
   Function: setqm(<register1>, <string1>, ..., <registerN>, <stringN>)
+            setqm(R1>L1, <string1>, ...,RN>LN, <stringN>)
   
   This function works like setq() in how it sets registers, but it allows
   setting more than one register at once.
@@ -26141,10 +26142,19 @@
   This function will set registers in order, meaning you can reference a
   previously set register in the chain.
   
+  If <register> is in the form R1>L1 then R1 is the register and
+  L1 will be the label.  This is useful to assign the register and
+  label in a single argument.
+  
   Examples:
     > say [setqm(0,foo,1,bar,2,%q0%q1baz)]%q2
       foobarbaz
     > say [setqm(label1,moo,label2,cow)]%q<label1> goes the %q<label2>.
+      moo goes the cow.
+  Examples --------- (registers + labels)
+    > say [setqm(a>label1,moo,5>label2,cow)]%q<a> goes the %q<5>
+      moo goes the cow.
+    > say [setqm(a>label1,moo,5>label2,cow)]%q<label1> goes the %q<label2>
       moo goes the cow.
   
   See Also: setq(), setr(), setrm(), r(), nameqm(), nameq(), localize(), 
@@ -26356,6 +26366,7 @@
   
 & SETRM()
   Function: setrm(<register1>, <string1>,...,<registerN>, <stringN> [,<delim>])
+            setrm(R1>L1, <string1>, ...,RN>LN, <stringN> [,<delim>])
   
   This function works like setr() in how it sets and returns registers, but it 
   allows setting more than one register at once.
@@ -26374,6 +26385,10 @@
   This function will set registers in order, meaning you can reference a
   previously set register in the chain.
   
+  If <register> is in the form R1>L1 then R1 is the register and
+  L1 will be the label.  This is useful to assign the register and
+  label in a single argument.
+  
   Note: examples expect penn_setq to be enabled.
   
   Examples: 
@@ -26384,6 +26399,11 @@
       Reg:foobarbaz
     > say [setqm(label1,moo,label2,cow,)] Val:%q<label1> goes the %q<label2>.
       You say "moocow Val:moo goes the cow.
+  Examples --------- (registers + labels)
+    > say [setrm(a>label1,moo,5>label2,cow)]//%q<a> goes the %q<5>
+      moo cow//moo goes the cow.
+    > say [setrm(a>label1,moo,5>label2,cow,++)]//%q<label1> goes the %q<label2>
+      moo++cow//moo goes the cow.
   
   See Also: setq(), setr(), setrm(), r(), nameqm(), nameq(), localize(), 
             privatize()
@@ -35695,6 +35715,7 @@
  * Added more accounting for user defined attributes [ASH]
  * vattr stats now keep track of empty buckets [ASH]
  * new hash algo based on FNV for better bucket distribution [ASH]
+ * setrm/setqm allow '>' seperator for register/labels [ASH]
   
   Changes
   -------
@@ -35757,6 +35778,7 @@
    speed up the db loading process [ASH]
  * increased hash size for user-defined attribute lookups [ASH]
  * aligned @list hash for vattrs to make more sense [ASH]
+ * cleanup of @list hash to give more space for large vals [ASH]
     
   Bug Fixes
   ------------
@@ -35805,3 +35827,4 @@
  * sqlite_db_path was defined as int and not char in conf.c [ASH]
  * off-by-one wrap for | option in printf [ASH]
  * potential fix for ansi handler for '|' in printf [ASH]
+ * potential off by one in buffer for template() [ASH]

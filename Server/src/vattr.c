@@ -297,14 +297,16 @@ char	*buff;
 	buff = alloc_lbuf("vattr_hashstats");
 
 #ifdef GATHER_STATS
-	sprintf(buff, "%-15.14s %6d%8d%8d%8d%8d%8d%8d%8d%8d",
+//	sprintf(buff, "%-15.14s %6d%8d%8d%8d%8d%8d%8d%8d%8d",
+        sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d %8d",
 		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
 		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup, page_faults);
 //	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest," 
 //                "%d page faults in lookups.\r\n", 
 //                vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup, page_faults);
 #else
-	sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
+//	sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
+        sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
 		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
 		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
 //#ifdef BIT64

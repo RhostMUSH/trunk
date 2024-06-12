@@ -8329,7 +8329,11 @@ static void
 list_hashstats(dbref player)
 {
     DPUSH; /* #51 */
-    notify(player, "Hash Stats       Size Entries Deleted   Empty Lookups    Hits  Checks Longest");
+//  notify(player, "Hash Stats       Size Entries Deleted   Empty Lookups    Hits  Checks Longest");
+    notify(player, unsafe_tprintf("%-14.14s %6s %8s %5s %5s %8s %8s %8s %8s",
+           (char *)"Hash Stats", (char *)"Size", (char *)"Entries", (char *)"Del",
+           (char *)"Empty", (char *)"Lookups", (char *)"Hits", (char *)"Checks",
+           (char *)"Longest"));
     list_hashstat(player, "Commands", &mudstate.command_htab);
     list_hashstat(player, "VATTR Commands", &mudstate.command_vattr_htab);
     list_hashstat(player, "Alias", &mudstate.cmd_alias_htab);

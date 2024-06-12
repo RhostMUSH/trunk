@@ -392,7 +392,9 @@ char * real_hashinfo(const char *tab_name, HASHTAB * htab, const char *fileName,
       tab_name = errstr;
     }
     buff = alloc_mbuf("hashinfo");
-    sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
+//  Hash Stats       Size Entryes Deleted   Empty Lookups    Hits  Checks Longest
+//  sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
+    sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
 	    tab_name, htab->hashsize, htab->entries, htab->deletes,
 	    htab->nulls, htab->scans, htab->hits, htab->checks,
 	    htab->max_scan);

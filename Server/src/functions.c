@@ -13060,7 +13060,7 @@ FUNCTION(fun_template)
   }
  
   i_max = ((nfargs > 11) ? 11 : nfargs); 
-  for ( i = 0; i < i_max; i++ ) {
+  for ( i = 0; i < (i_max - 1); i++ ) {
      pt[i] = fargs[i+1]; 
   }
 
@@ -13120,7 +13120,7 @@ FUNCTION(fun_template)
            safe_chr(' ', s_newstr, &s_newstrptr);
         }
      } else {
-        for ( i = 0; i < i_max; i++ ) {
+        for ( i = 0; i < (i_max - 1); i++ ) {
            if ( i_ansi[i] ) {
               i_ansicheck = 1;
            }
@@ -37098,8 +37098,8 @@ FUNCTION(fun_connrecord)
 
 FUNCTION(fun_setqm)
 {
-   int i_loop;
-   char *s_array[2];
+   int i_loop, i_arrsize;
+   char *s_array[3], *s_reg, *s_label;
 
    if (nfargs % 2) {
       safe_str("#-1 FUNCTION (SETQM) EXPECTS AN EVEN NUMBER OF ARGS", buff, bufcx);
@@ -37107,16 +37107,27 @@ FUNCTION(fun_setqm)
    }
 
    for ( i_loop = 0; i_loop < nfargs; i_loop+=2 ) {
-      s_array[0] = fargs[i_loop];
-      s_array[1] = fargs[i_loop+1];
-      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETQM", 0, 1);
+      if ( (s_label = strchr(fargs[i_loop], '>')) != NULL ) {
+         s_reg = fargs[i_loop];
+         *s_label++ = '\0';
+         i_arrsize = 3;
+         s_array[0] = s_reg;
+         s_array[1] = fargs[i_loop+1];
+         s_array[2] = s_label;
+      } else {
+         s_array[0] = fargs[i_loop];
+         s_array[1] = fargs[i_loop+1];
+         s_array[2] = NULL;
+         i_arrsize = 2;
+      }
+      process_setqs(player, cause, caller, buff, bufcx, s_array, i_arrsize, cargs, ncargs, (char *)"SETQM", 0, 1);
    }
 }
 
 FUNCTION(fun_setrm)
 {
-   int i_loop, i_nfargs, i_first;
-   char *s_array[2], *sep, *esep;
+   int i_loop, i_nfargs, i_first, i_arrsize;
+   char *s_array[3], *sep, *esep, *s_reg, *s_label;
 
    if (nfargs < 2) {
       safe_str("#-1 FUNCTion (SETRM) EXPECTS 2 OR MORE ARGUMENTS", buff, bufcx);
@@ -37146,12 +37157,23 @@ FUNCTION(fun_setrm)
    }
 
    for ( i_loop = 0; i_loop < i_nfargs; i_loop+=2 ) {
-      s_array[0] = fargs[i_loop];
-      s_array[1] = fargs[i_loop+1];
+      if ( (s_label = strchr(fargs[i_loop], '>')) != NULL ) {
+         s_reg = fargs[i_loop];
+         *s_label++ = '\0';
+         i_arrsize = 3;
+         s_array[0] = s_reg;
+         s_array[1] = fargs[i_loop+1];
+         s_array[2] = s_label;
+      } else {
+         i_arrsize = 2;
+         s_array[0] = fargs[i_loop];
+         s_array[1] = fargs[i_loop+1];
+         s_array[2] = NULL;
+      }
       if ( i_first ) {
          safe_str(sep, buff, bufcx);
       }
-      process_setqs(player, cause, caller, buff, bufcx, s_array, 2, cargs, ncargs, (char *)"SETQM", 1, 1);
+      process_setqs(player, cause, caller, buff, bufcx, s_array, i_arrsize, cargs, ncargs, (char *)"SETQM", 1, 1);
       i_first = 1;
    }
    if ( esep ) {
