@@ -35779,6 +35779,7 @@
  * increased hash size for user-defined attribute lookups [ASH]
  * aligned @list hash for vattrs to make more sense [ASH]
  * cleanup of @list hash to give more space for large vals [ASH]
+ * improvements of @search/ansi to better handle exits [ASH]
     
   Bug Fixes
   ------------

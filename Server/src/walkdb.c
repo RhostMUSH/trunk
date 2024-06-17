@@ -1118,7 +1118,7 @@ FILE* master;
 				notify (player, "\r\nROOMS:");
 			}
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, thing, 0);
+			   buff = unparse_object_ansi(player, thing, 0, 1);
                         } else {
 			   buff = unparse_object (player, thing, 0);
                         }
@@ -1145,7 +1145,7 @@ FILE* master;
 
 			bp = outbuf;
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, thing, 0);
+			   buff = unparse_object_ansi(player, thing, 0, 1);
                         } else {
 			   buff = unparse_object (player, thing, 0);
                         }
@@ -1154,7 +1154,7 @@ FILE* master;
 
 			safe_str((char *)" [from ", outbuf, &bp);
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, from, 0);
+			   buff = unparse_object_ansi(player, from, 0, 1);
                         } else {
 			   buff = unparse_object (player, from, 0);
                         }
@@ -1164,7 +1164,7 @@ FILE* master;
 
 			safe_str((char *)" to ", outbuf, &bp);
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, to, 0);
+			   buff = unparse_object_ansi(player, to, 0, 1);
                         } else {
 			   buff = unparse_object (player, to, 0);
                         }
@@ -1194,7 +1194,7 @@ FILE* master;
 
 			bp = outbuf;
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, thing, 0);
+			   buff = unparse_object_ansi(player, thing, 0, 1);
                         } else {
 			   buff = unparse_object (player, thing, 0);
                         }
@@ -1203,7 +1203,7 @@ FILE* master;
 
 			safe_str((char *)" [owner: ", outbuf, &bp);
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, Owner (thing), 0);
+			   buff = unparse_object_ansi(player, Owner (thing), 0, 1);
                         } else {
 			   buff = unparse_object (player, Owner (thing), 0);
                         }
@@ -1231,7 +1231,7 @@ FILE* master;
 			}
 			bp = outbuf;
                         if ( i_ansi ) {
-			   buff = unparse_object_ansi(player, thing, 0);
+			   buff = unparse_object_ansi(player, thing, 0, 1);
                         } else {
 			   buff = unparse_object (player, thing, 0);
                         }
@@ -1242,7 +1242,7 @@ FILE* master;
 				safe_str((char *)" [location: ",
 					outbuf, &bp);
                                 if ( i_ansi ) {
-				   buff = unparse_object_ansi(player, Location (thing), 0);
+				   buff = unparse_object_ansi(player, Location (thing), 0, 1);
                                 } else {
 				   buff = unparse_object (player, Location (thing), 0);
                                 }

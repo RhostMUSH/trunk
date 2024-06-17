@@ -4048,9 +4048,9 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 }
 
 char *
-unparse_object_ansi(dbref player, dbref target, int obey_myopic)
+unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
 {
-    char *buf, *buf2, *fp, *ansibuf, ansitmp[30], *nfmt;
+    char *buf, *buf2, *sname, *sname_ptr, *fp, *ansibuf, ansitmp[30], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -4072,7 +4072,15 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
     } else {
 #ifdef ZENTY_ANSI
         ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
-        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_all_special(ansibuf))) == 0)) ) {
+        sname = alloc_lbuf("unparse_object_ansi_name");
+        strcpy(sname, Name(target));
+        sname_ptr = NULL;
+        if ( is_walkdb && isExit(target) ) {
+           if ( (sname_ptr = strchr(sname, ';')) != NULL ) {
+              *sname_ptr++ = '\0';
+           }
+        }
+        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(sname, strip_all_special(ansibuf))) == 0)) ) {
            if ( !Accents(player) )
               buf2 = parse_ansi_name(target, strip_safe_accents(ansibuf));
            else
@@ -4184,26 +4192,51 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
 	       /* show everything */
 	    fp = unparse_flags(player, target);
             if ( ExtAnsi(target) ) {
-               if ( ansi_ok == 0 )
-	          sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
-               else
+               if ( ansi_ok == 0 ) {
+                  if ( is_walkdb && isExit(target) ) {
+                     if ( sname_ptr && *sname_ptr ) {
+	                sprintf(buf, "%.2500s;%.1000s%s(#%d%.400s)", ansibuf, sname_ptr, CF_ANSI_NORMAL, target, fp);
+                     } else {
+	                sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
+                     }
+                  } else {
+	             sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
+                  }
+               } else
 	          sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
             } else {
-	       sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+               if ( is_walkdb && isExit(target) ) {
+	          sprintf(buf, "%.100s%.2400s%s;%.100s(#%d%.400s)", buf2, sname, CF_ANSI_NORMAL, sname_ptr, target, fp);
+               } else {
+	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+               }
             }
 	    free_mbuf(fp);
 	} else {
 	       /* show only the name. */
             if ( ExtAnsi(target) ) {
-               if ( ansi_ok == 0 )
-                  sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
-               else
+               if ( ansi_ok == 0 ) {
+                  if ( is_walkdb && isExit(target) ) {
+                     if ( sname_ptr && *sname_ptr ) {
+                        sprintf(buf, "%.2900s;%.1000s%s", buf2, sname_ptr, CF_ANSI_NORMAL);
+                     } else {
+                        sprintf(buf, "%.3900s%s", buf2, CF_ANSI_NORMAL);
+                     }
+                  } else {
+                     sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
+                  }
+               } else
                   sprintf(buf, "%.3900s", Name(target));
             } else
-               sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+               if ( is_walkdb && isExit(target) ) {
+                  sprintf(buf, "%.100s%.2800s%s;%.1000s", buf2, sname, CF_ANSI_NORMAL, sname_ptr);
+               } else {
+                  sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+               }
 	}
-    free_lbuf(ansibuf);
-    free_lbuf(buf2);    
+       free_lbuf(ansibuf);
+       free_lbuf(buf2);    
+       free_lbuf(sname);
     }
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);

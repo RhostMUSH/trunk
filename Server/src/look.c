@@ -97,7 +97,7 @@ look_inv_parse(dbref player, dbref cause, int i_attr) {
                 if (isPlayer(thing) || isThing(thing)) {
                    s_exitbuff = unparse_object_ansi_altname(player, thing, 1);
                 } else {
-                   s_exitbuff = unparse_object_ansi(player, thing, 1);
+                   s_exitbuff = unparse_object_ansi(player, thing, 1, 0);
                 }
              }
              if ( *s_array[0] ) {
@@ -2100,7 +2100,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
            if (isPlayer(thing) || isThing(thing))
               buff = unparse_object_ansi_altname(player, thing, 1);
            else
-              buff = unparse_object_ansi(player, thing, 1);
+              buff = unparse_object_ansi(player, thing, 1, 0);
         }
         if ( Good_obj(thing) && ((NoName(thing) && *buff) || !NoName(thing)) ) {
            if(Good_obj(thing) && isPlayer(thing)) {
@@ -2143,7 +2143,7 @@ look_simple(dbref player, dbref thing, int obey_terse)
            if (isPlayer(thing) || isThing(thing))
               buff = unparse_object_ansi_altname(player, thing, 1);
            else
-              buff = unparse_object_ansi(player, thing, 1);
+              buff = unparse_object_ansi(player, thing, 1, 0);
         }
         pbuf2 = atr_get(thing, A_TITLE, &aowner, &aflags);
         pbuf = atr_get(thing, A_CAPTION, &aowner, &aflags);
@@ -2277,7 +2277,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
           if (isPlayer(loc) || isThing(loc))
              s = unparse_object_ansi_altname(player, loc, 1);
           else
-             s = unparse_object_ansi(player, loc, 1);
+             s = unparse_object_ansi(player, loc, 1, 0);
     } else {
        chk_stop = mudstate.chkcpu_stopper;
        chk_tog = mudstate.chkcpu_toggle;
@@ -3292,7 +3292,7 @@ do_wielded(dbref player, dbref cause, int key)
                if (isPlayer(thing) || isThing(thing))
                   buff = unparse_object_ansi_altname(player, thing, 1);
                else
-                  buff = unparse_object_ansi(player, thing, 1);
+                  buff = unparse_object_ansi(player, thing, 1, 0);
 
 	    if (!Cloak(thing) || Immortal(player) || 
                  (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
@@ -3347,7 +3347,7 @@ do_worn(dbref player, dbref cause, int key)
                if (isPlayer(thing) || isThing(thing))
                   buff = unparse_object_ansi_altname(player, thing, 1);
                else
-                  buff = unparse_object_ansi(player, thing, 1);
+                  buff = unparse_object_ansi(player, thing, 1, 0);
 
 	    if (!Cloak(thing) || Immortal(player) || 
                  (Wizard(player) && !(Immortal(thing) && SCloak(thing)))) {
@@ -3510,7 +3510,7 @@ do_inventory(dbref player, dbref cause, int key)
              if (isPlayer(thing) || isThing(thing)) {
                 buff = unparse_object_ansi_altname(player, thing, 1);
              } else {
-                buff = unparse_object_ansi(player, thing, 1);
+                buff = unparse_object_ansi(player, thing, 1, 0);
              }
           }
 	  if ( !Cloak(thing) || Immortal(player) || 

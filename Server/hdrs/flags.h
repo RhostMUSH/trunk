@@ -685,7 +685,7 @@ extern void     FDECL(decode_flags_func, (dbref, dbref, FLAG, FLAG, FLAG, FLAG, 
 extern int      FDECL(has_flag, (dbref, dbref, char *));
 extern char *   FDECL(unparse_object, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_altname, (dbref, dbref, int));
-extern char *   FDECL(unparse_object_ansi, (dbref, dbref, int));
+extern char *   FDECL(unparse_object_ansi, (dbref, dbref, int, int));
 extern char *   FDECL(unparse_object_ansi_altname, (dbref, dbref, int));
 extern char *   FDECL(unparse_object2, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_numonly, (dbref));
