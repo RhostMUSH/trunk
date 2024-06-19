@@ -1100,7 +1100,8 @@ NAMETAB selfboot_sw[] =
 NAMETAB search_sw[] =
 {
     {(char *) "nogarbage", 1, CA_IMMORTAL, 0, SEARCH_NOGARBAGE},
-    {(char *) "ansi", 1, CA_IMMORTAL, 0, SEARCH_ANSI | SW_MULTIPLE},
+    {(char *) "ansi", 1, CA_PUBLIC, 0, SEARCH_ANSI | SW_MULTIPLE},
+    {(char *) "zone", 1, CA_PUBLIC, 0, SEARCH_ZONE | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB set_sw[] =

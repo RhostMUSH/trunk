@@ -6335,6 +6335,7 @@
   
 & @search
   Command: @search[/<switch> [<player>] [<class>=<restrict>[,<low>[,<high>]]]
+           @search[/zone/<switch> <zm> [<class>=<restrict>[,<low>[,<high>]]]
  
   Note: See 'help search classes' to see what searches are available.
   
@@ -6353,17 +6354,19 @@
   The following switches exist for @search:
       /nogarbage     - (immortal only) search without garbage/recover checks.
       /ansi          - display ansified names of output where available
+      /zone          - specify a zonemaster <zm> to do a search on
   
   Examples:
     @search flags=PWc              <-- search for connected wizards.
     @search type=room              <-- list all rooms owned by me.
+    @search/zone #123 type=room    <-- list all rooms residing in zone #123
     @search eval=gt(money(##),10)  <-- search for things worth more than 10.
     @search type=room,100,300      <-- Rooms between #100 and #300, inclusive
     @search object=Test,5000       <-- Things starting with Test from object
                                        #5000 to the end of the database.
   
   See Also: @find, search(), searchng(), searchobjid(), searchngobjid(), 
-            SEARCH CLASSES
+            zsearch(), zsearchobjid(), SEARCH CLASSES
   
 & @ltag
   Command: @ltag[</switch>] <args>
@@ -12427,7 +12430,7 @@
   XDEC()         XINC()        XGET()          XNOR()          XOR()        
   XORCHR()       ZEMIT()       ZFUN()          ZFUN2()         ZFUNDEFAULT()
   ZFUN2DEFAULT() ZFUNEVAL()    ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()  
-  ZFUN2LOCAL()   ZONECMD()     ZWHO() 
+  ZFUN2LOCAL()   ZONECMD()     ZSEARCH()       ZSEARCHOBJID()  ZWHO() 
   
 { 'help function aliases' for aliases on existing functions }
   
@@ -12469,7 +12472,8 @@
                         SEARCHOBJID() SEARCHNG() SEARCHNGOBJID()  SEES() 
                         STATS() WHERE() LISTCOMMANDS() LISTFLAGS() 
                         LISTFUNCTIONS() LISTNEWSGROUPS() LISTTOGGLES() 
-                        LISTTOTEMS() PMATCH() RNUM() VALID() XCON()
+                        LISTTOTEMS() PMATCH() RNUM() VALID() XCON(),
+                        ZSEARCH(), ZSEARCHOBJID()
               See Also: help database information functions
   
   Numerical Conversion: CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() MASK() 
@@ -12828,7 +12832,9 @@
   Topic: SEARCH CLASSES
  
   You may use the following classes in @search, search(), searchng(),
-  searchobjid(), and searchngobjid()
+  zsearch(), zsearchobjid(), searchobjid(), and searchngobjid()
+  
+  Note: all classes are availabie with /zone as well.
   
   function calls:
   
@@ -20569,10 +20575,14 @@
   
   See Also: loc(), rloc(), lrooms(), UNFINDABLE
   
+& ZSEARCH()
+& ZSEARCHOBJID()
 & SEARCH()
 & SEARCHOBJID()
   Function: search([<player>] [<class>=<restriction>[,<low>[,<high>]]])
             searchobjid([<player>] [<class>=<restriction>[,<low>[,<high>]]])
+            zsearch(<zone> [<class>=<restriction>[,<low>[,<high>]]])
+            zsearchobjid(<zone> [<class>=<restriction>[,<low>[,<high>]]])
   
   Note: See 'help search classes' on what you can search for.
   
@@ -20585,6 +20595,8 @@
   
   The searchobjid() function works like search() but returns the objid's
   instead of the dbref#'s.
+  
+  <zone> for the zone search requires a valid zonemaster to be specified.
    
   Examples:
     > say search()
@@ -20619,7 +20631,7 @@
     > say searchngobjid(me)
     You say "#226:8128285820 #289:8929292929"
   
-  See Also: search(), @search, @find, @stat, SEARCH CLASSES
+  See Also: search(), zsearch(), @search, @find, @stat, SEARCH CLASSES
   
 & STATS()
   Function: stats([<player>])
@@ -32017,14 +32029,16 @@
   where()          - Returns the true location of an object.
   listcommands()   - Lists all commands that you have access to.
   listflags()      - Lists all flags that you have access to.
+  listfunctions()  - Lists all functions you have access to.
+  listnewsgroups() - Lists all newsgroups that you have access to.
   listtoggles()    - List all toggles you have access to.
   listtotems()     - List all totems you have access to.
   pmatch()         - Returns the dbref of a matching player.
   rnum()           - Returns the dbref of an object, from a target perspective.
   valid()          - Tests validity of certain values for various options.
   xcon()           - Returns a constrained list of <object>'s contents.
-  listfunctions()  - Lists all functions you have access to.
-  listnewsgroups() - Lists all newsgroups that you have access to.
+  zsearch()        - Returns a list of objects that match zone search criteria.
+  zsearchobjid()   - Like zsearch() but returns objid's.
 
 & numerical conversion functions
   Function Lists: Numerical Conversion Functions
@@ -35716,6 +35730,7 @@
  * vattr stats now keep track of empty buckets [ASH]
  * new hash algo based on FNV for better bucket distribution [ASH]
  * setrm/setqm allow '>' seperator for register/labels [ASH]
+ * /zone to @search, zsearch(), and zsearchobjid() [ASH]
   
   Changes
   -------

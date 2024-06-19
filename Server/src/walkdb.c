@@ -622,7 +622,7 @@ void er_mark_disabled (dbref player)
  * mark bits)
  */
 
-int search_setup (dbref player, char *searchfor, SEARCH *parm, int mc)
+int search_setup (dbref player, char *searchfor, SEARCH *parm, int mc, int i_zone)
 {
 char	*pname, *searchtype, *t;
 int	err, i;
@@ -672,15 +672,31 @@ int	err, i;
 		parm->s_rst_owner = parm->s_wizard ? ANY_OWNER : player;
 	} else if (pname[0] == '#') {
 		parm->s_rst_owner = atoi (&pname[1]);
-		if (!Good_obj(parm->s_rst_owner))
+		if (!Good_obj(parm->s_rst_owner)) {
 			parm->s_rst_owner = NOTHING;
-		else if (Typeof(parm->s_rst_owner) != TYPE_PLAYER)
+		} else if (i_zone && !ZoneMaster(parm->s_rst_owner)) {
 			parm->s_rst_owner = NOTHING;
+		} else if (!i_zone && Typeof(parm->s_rst_owner) != TYPE_PLAYER) {
+			parm->s_rst_owner = NOTHING;
+		}
 
 	} else if (strcmp (pname, "me") == 0) {
 		parm->s_rst_owner = player;
 	} else {
-		parm->s_rst_owner = lookup_player (player, pname, 1);
+		if ( i_zone ) {
+			init_match (player, pname, TYPE_PLAYER);
+			match_neighbor();
+			match_absolute();
+			match_player();
+        		match_player_absolute();
+			parm->s_rst_owner = noisy_match_result();
+		} else {
+			parm->s_rst_owner = lookup_player (player, pname, 1);
+		}
+	}
+	if ( i_zone && (!Good_chk(parm->s_rst_owner) || !ZoneMaster(parm->s_rst_owner)) ) {
+		notify (player, unsafe_tprintf ("%s: not a valid zonemaster", pname));
+		return 0;
 	}
 
 	if (parm->s_rst_owner == NOTHING) {
@@ -898,112 +914,193 @@ void do_search_for_players(dbref player, dbref cause, int key, char *arg)
 	mudstate.func_invk_ctr = save_invk_ctr;
 }
 
-void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master)
+void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int i_zone)
 {
-FLAG	thing1flags, thing2flags, thing3flags, thing4flags;
-dbref	thing;
-char	*buff, *buff2, *result;
-int	save_invk_ctr, i, i_break;
+   FLAG thing1flags, thing2flags, thing3flags, thing4flags;
+   dbref thing;
+   char *buff, *buff2, *result;
+   int save_invk_ctr, i, i_break;
+   ZLISTNODE *z_ptr;
 
-	buff = alloc_sbuf("search_perform.num");
+   buff = alloc_sbuf("search_perform.num");
+   save_invk_ctr = mudstate.func_invk_ctr;
 
-	save_invk_ctr = mudstate.func_invk_ctr;
+   if ((!(parm->s_fset.word1 & IMMORTAL) && !(parm->s_fset.word2 & SCLOAK)) || Immortal(player)) {
+      if ( i_zone ) {
+         /* This should already be caught, but we love paranoia */
+         if ( !Good_chk(parm->s_rst_owner) )
+            return;
 
-	if ((!(parm->s_fset.word1 & IMMORTAL) && !(parm->s_fset.word2 & SCLOAK)) || Immortal(player)) {
-	  for (thing=parm->low_bound; thing<=parm->high_bound; thing++) {
+         for ( z_ptr = db[parm->s_rst_owner].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+            thing = z_ptr->object;
+            if ( !Good_chk(thing) )
+               break;
 
-		if ((thing % 100) == 0) {
-			cache_reset(0);
-		}
-		mudstate.func_invk_ctr = save_invk_ctr;
+            if ((thing % 100) == 0) {
+               cache_reset(0);
+            }
+            mudstate.func_invk_ctr = save_invk_ctr;
 
-		/* Check for matching type */
+            /* Check for matching type */
+            if ((parm->s_rst_type != NOTYPE) && (parm->s_rst_type != Typeof(thing)))
+               continue;
 
-		if ((parm->s_rst_type != NOTYPE) &&
-		    (parm->s_rst_type != Typeof(thing)))
-			continue;
+            /* Toss out destroyed things */
+            thing1flags = Flags(thing);
+            if ((Typeof(thing) == TYPE_THING) && (thing1flags & GOING))
+               continue;
 
-		/* Check for matching owner */
+            thing2flags = Flags2(thing);
+            if ((thing2flags & RECOVER) && (!Immortal(player)))
+               continue;
+   
+            if (Cloak(thing) && !Wizard(player)) 
+               continue;
+            if (Cloak(thing) && SCloak(thing) && !Immortal(player)) 
+               continue;
+            if (Unfindable(thing) && !Examinable(player,thing)) 
+               continue;
+   
+            /* Check for matching parent */
+            if ((parm->s_parent != NOTHING) && (parm->s_parent != Parent(thing)))
+               continue;
+   
+            /* Check for matching flags */
+            thing3flags = Flags3(thing);
+            thing4flags = Flags4(thing);
+            if ((thing1flags & parm->s_fset.word1) != parm->s_fset.word1)
+               continue;
+            if ((thing2flags & parm->s_fset.word2) != parm->s_fset.word2)
+               continue;
+            if ((thing3flags & parm->s_fset.word3) != parm->s_fset.word3)
+               continue;
+            if ((thing4flags & parm->s_fset.word4) != parm->s_fset.word4)
+               continue;
+            if ( Good_obj(thing) ) {
+               i_break = 0;
+               for ( i = 0; i < TOTEM_SLOTS; i++ ) {
+                  if ( (dbtotem[thing].flags[i] & parm->i_totems[i]) != parm->i_totems[i]) {
+                     i_break = 1;
+                     break;
+                  }
+               }
+               if ( i_break ) {
+                  continue;
+               }
+            }
+   
+            /* Check for matching name */
+            if (parm->s_rst_name != NULL) {
+               if (!string_prefix(Name(thing), parm->s_rst_name))
+                  continue;
+            }
+   
+            /* Check for successful evaluation */
+            if (parm->s_rst_eval != NULL) {
+               sprintf(buff, "#%d", thing);
+               buff2 = replace_string(BOUND_VAR, buff, parm->s_rst_eval, 0);
+               result = exec(player, cause, cause,
+                             EV_FCHECK|EV_EVAL|EV_NOTRACE, buff2,
+                             (char **)NULL, 0, (char **)NULL, 0);
+               free_lbuf(buff2);
+               if (!*result || !xlate(result)) {
+                  free_lbuf(result);
+                  continue;
+               }
+               free_lbuf(result);
+            }
+   
+            /* It passed everything.  Amazing. */
 
-		if ((parm->s_rst_owner != ANY_OWNER) &&
-		    (parm->s_rst_owner != Owner(thing)))
-			continue;
+            file_olist_add(master,thing);
+         }
+      } else {
+         for (thing=parm->low_bound; thing<=parm->high_bound; thing++) {
+            if ((thing % 100) == 0) {
+               cache_reset(0);
+            }
+            mudstate.func_invk_ctr = save_invk_ctr;
 
-		/* Toss out destroyed things */
+            /* Check for matching type */
+            if ((parm->s_rst_type != NOTYPE) && (parm->s_rst_type != Typeof(thing)))
+               continue;
 
-		thing1flags = Flags(thing);
-		if ((Typeof(thing) == TYPE_THING) && (thing1flags & GOING))
-			continue;
-		thing2flags = Flags2(thing);
-		if ((thing2flags & RECOVER) && (!Immortal(player)))
-			continue;
+            /* Check for matching owner */
+            if ((parm->s_rst_owner != ANY_OWNER) && (parm->s_rst_owner != Owner(thing)))
+               continue;
 
-		if (Cloak(thing) && !Wizard(player)) continue;
-		if (Cloak(thing) && SCloak(thing) && !Immortal(player)) continue;
-                if (Unfindable(thing) && !Examinable(player,thing)) continue;
+            /* Toss out destroyed things */
+            thing1flags = Flags(thing);
+            if ((Typeof(thing) == TYPE_THING) && (thing1flags & GOING))
+               continue;
 
-		/* Check for matching parent */
-
-		if ((parm->s_parent != NOTHING) &&
-		    (parm->s_parent != Parent(thing)))
-			continue;
-
-		/* Check for matching flags */
-
-		thing3flags = Flags3(thing);
-		thing4flags = Flags4(thing);
-		if ((thing1flags & parm->s_fset.word1) != parm->s_fset.word1)
-			continue;
-		if ((thing2flags & parm->s_fset.word2) != parm->s_fset.word2)
-			continue;
-		if ((thing3flags & parm->s_fset.word3) != parm->s_fset.word3)
-			continue;
-		if ((thing4flags & parm->s_fset.word4) != parm->s_fset.word4)
-			continue;
-                if ( Good_obj(thing) ) {
-                   i_break = 0;
-                   for ( i = 0; i < TOTEM_SLOTS; i++ ) {
-                      if ( (dbtotem[thing].flags[i] & parm->i_totems[i]) != parm->i_totems[i]) {
-                         i_break = 1;
-                         break;
-                      }
-                   }
-                   if ( i_break ) {
-                      continue;
-                   }
-                }
-
-		/* Check for matching name */
-
-		if (parm->s_rst_name != NULL) {
-			if (!string_prefix(Name(thing), parm->s_rst_name))
-				continue;
-		}
-
-		/* Check for successful evaluation */
-
-		if (parm->s_rst_eval != NULL) {
-			sprintf(buff, "#%d", thing);
-			buff2 = replace_string(BOUND_VAR, buff,
-				parm->s_rst_eval, 0);
-			result = exec(player, cause, cause,
-				EV_FCHECK|EV_EVAL|EV_NOTRACE, buff2,
-				(char **)NULL, 0, (char **)NULL, 0);
-			free_lbuf(buff2);
-			if (!*result || !xlate(result)) {
-				free_lbuf(result);
-				continue;
-			}
-			free_lbuf(result);
-		}
-
-		/* It passed everything.  Amazing. */
-
-                file_olist_add(master,thing);
-	  }
-	}
-	free_sbuf(buff);
-	mudstate.func_invk_ctr = save_invk_ctr;
+            thing2flags = Flags2(thing);
+            if ((thing2flags & RECOVER) && (!Immortal(player)))
+               continue;
+   
+            if (Cloak(thing) && !Wizard(player)) 
+               continue;
+            if (Cloak(thing) && SCloak(thing) && !Immortal(player)) 
+               continue;
+            if (Unfindable(thing) && !Examinable(player,thing)) 
+               continue;
+   
+            /* Check for matching parent */
+            if ((parm->s_parent != NOTHING) && (parm->s_parent != Parent(thing)))
+               continue;
+   
+            /* Check for matching flags */
+            thing3flags = Flags3(thing);
+            thing4flags = Flags4(thing);
+            if ((thing1flags & parm->s_fset.word1) != parm->s_fset.word1)
+               continue;
+            if ((thing2flags & parm->s_fset.word2) != parm->s_fset.word2)
+               continue;
+            if ((thing3flags & parm->s_fset.word3) != parm->s_fset.word3)
+               continue;
+            if ((thing4flags & parm->s_fset.word4) != parm->s_fset.word4)
+               continue;
+            if ( Good_obj(thing) ) {
+               i_break = 0;
+               for ( i = 0; i < TOTEM_SLOTS; i++ ) {
+                  if ( (dbtotem[thing].flags[i] & parm->i_totems[i]) != parm->i_totems[i]) {
+                     i_break = 1;
+                     break;
+                  }
+               }
+               if ( i_break ) {
+                  continue;
+               }
+            }
+   
+            /* Check for matching name */
+            if (parm->s_rst_name != NULL) {
+               if (!string_prefix(Name(thing), parm->s_rst_name))
+                  continue;
+            }
+   
+            /* Check for successful evaluation */
+            if (parm->s_rst_eval != NULL) {
+               sprintf(buff, "#%d", thing);
+               buff2 = replace_string(BOUND_VAR, buff, parm->s_rst_eval, 0);
+               result = exec(player, cause, cause,
+                             EV_FCHECK|EV_EVAL|EV_NOTRACE, buff2,
+                             (char **)NULL, 0, (char **)NULL, 0);
+               free_lbuf(buff2);
+               if (!*result || !xlate(result)) {
+                  free_lbuf(result);
+                  continue;
+               }
+               free_lbuf(result);
+            }
+   
+            /* It passed everything.  Amazing. */
+            file_olist_add(master,thing);
+         }
+      }
+   }
+   free_sbuf(buff);
+   mudstate.func_invk_ctr = save_invk_ctr;
 }
 
 static void search_mark (dbref player, int key, FILE** master)
@@ -1038,7 +1135,7 @@ static void search_mark (dbref player, int key, FILE** master)
 					
 void do_search (dbref player, dbref cause, int key, char *arg)
 {
-int	flag, destitute, evc, playercnt=0, roomcnt=0, exitcnt=0, objectcnt=0, nogarb=0, i_ansi=0;
+int	flag, destitute, evc, playercnt=0, roomcnt=0, exitcnt=0, objectcnt=0, nogarb=0, i_ansi=0, i_zone=0;
 char	*buff, *outbuf, *bp;
 dbref	thing, from, to;
 SEARCH	searchparm;
@@ -1050,6 +1147,10 @@ FILE* master;
         if ( key & SEARCH_ANSI ) {
            i_ansi = 1;
            key &= ~SEARCH_ANSI;
+        }
+        if ( key & SEARCH_ZONE ) {
+           i_zone = 1;
+           key &= ~SEARCH_ZONE;
         }
 	if ( key & SEARCH_NOGARBAGE ) {
            if ( mudconf.switch_search == 0 )
@@ -1082,16 +1183,16 @@ FILE* master;
 	}
         file_olist_init(&master,"dosearch.tmp");
 	if (evc) {
-	  if (!search_setup (player, arg, &searchparm, 1)) {
+	  if (!search_setup (player, arg, &searchparm, 1, i_zone)) {
 		mudstate.evalnum--;
 		return;
 	  }
 	}
 	else {
-	  if (!search_setup (player, arg, &searchparm, 0))
+	  if (!search_setup (player, arg, &searchparm, 0, i_zone))
 		return;
 	}
-	search_perform (player, cause, &searchparm, &master);
+	search_perform (player, cause, &searchparm, &master, i_zone);
 	destitute = 1;
 
 	/* If we are doing a @mark command, handle that here. */

@@ -30293,7 +30293,7 @@ FUNCTION(fun_alphamin)
  */
 
 void
-search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, char **bufcx, int key, int i_objid)
+search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, char **bufcx, int key, int i_objid, int i_zone)
 {
     dbref thing;
     char *nbuf;
@@ -30327,13 +30327,13 @@ search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, 
        }
     }
     if (evc) {
-       if (!search_setup(player, fargs[0], &searchparm, 1)) {
+       if (!search_setup(player, fargs[0], &searchparm, 1, i_zone)) {
           safe_str("#-1 ERROR DURING SEARCH", buff, bufcx);
           mudstate.evalnum--;
           return;
        }
     } else {
-       if (!search_setup(player, fargs[0], &searchparm, 0)) {
+       if (!search_setup(player, fargs[0], &searchparm, 0, i_zone)) {
           safe_str("#-1 ERROR DURING SEARCH", buff, bufcx);
           return;
        }
@@ -30341,7 +30341,7 @@ search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, 
     /* Do the search and report the results */
 
     file_olist_init(&master,"fsearch.tmp");
-    search_perform(player, cause, &searchparm, &master);
+    search_perform(player, cause, &searchparm, &master, i_zone);
     nbuf = alloc_sbuf("fun_search");
     for (thing = file_olist_first(&master); thing != NOTHING; thing = file_olist_next(&master)) {
         if ( key && (Going(thing) || Recover(thing)) ) continue;
@@ -30449,36 +30449,52 @@ FUNCTION(fun_strdistance)
    free_lbuf(s_word2);
 }
 
+FUNCTION(fun_zsearch)
+{
+   if ( mudconf.switch_search == 0 )
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0, 1);
+   else
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0, 1);
+}
+
+FUNCTION(fun_zsearchobjid)
+{
+   if ( mudconf.switch_search == 0 )
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1, 1);
+   else
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1, 1);
+}
+
 FUNCTION(fun_search)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0, 0);
 }
 
 FUNCTION(fun_searchng)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 0, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 0, 0);
 }
 
 FUNCTION(fun_searchobjid)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1, 0);
 }
 
 FUNCTION(fun_searchngobjid)
 {
    if ( mudconf.switch_search == 0 )
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 1, 1, 0);
    else
-      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1);
+      (void)search_guts(player, cause, caller, fargs, buff, bufcx, 0, 1, 0);
 }
 
 /* ---------------------------------------------------------------------------
@@ -41652,8 +41668,10 @@ FUN flist[] =
     {"ZFUN2LDEFAULT", fun_zfun2ldefault, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ZFUN2LOCAL", fun_zfun2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
-    {"ZWHO", fun_zwho, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ZONECMD", fun_zonecmd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ZSEARCH", fun_zsearch, -1, 0, CA_PUBLIC, 0},
+    {"ZSEARCHOBJID", fun_zsearchobjid, -1, 0, CA_PUBLIC, 0},
+    {"ZWHO", fun_zwho, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {NULL, NULL, 0, 0, 0, 0}
 };
 
