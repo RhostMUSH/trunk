@@ -35731,6 +35731,7 @@
  * new hash algo based on FNV for better bucket distribution [ASH]
  * setrm/setqm allow '>' seperator for register/labels [ASH]
  * /zone to @search, zsearch(), and zsearchobjid() [ASH]
+ * account_boot() to boot via QUIT or LOGOUT account logins [ASH]
   
   Changes
   -------
@@ -35795,6 +35796,7 @@
  * aligned @list hash for vattrs to make more sense [ASH]
  * cleanup of @list hash to give more space for large vals [ASH]
  * improvements of @search/ansi to better handle exits [ASH]
+ * cleaned up values in @list hash to avoid overflows [ASH]
     
   Bug Fixes
   ------------

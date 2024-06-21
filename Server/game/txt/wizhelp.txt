@@ -8368,7 +8368,7 @@
   
   For other connect screen commands, please refer to 'logout_cmd_access'.
   
-  See Also: logout_cmd_access, account_login(), account_owner()
+  See Also: logout_cmd_access, account_login(), account_boot(), account_owner()
   
 & connect_reg_file
   Config parameter: connect_reg_file <path>.  Default: connect_reg.txt
@@ -8887,7 +8887,8 @@
   To design what commands are to be customized, you create a '|' delimited
   list on the file_object.  
   
-  See Also: logout_cmd_access, account_login(), account_owner(), connect_perm
+  See Also: logout_cmd_access, account_login(), account_owner(), connect_perm,
+            account_boot()
   
 { see 'wizhelp file_object3' or 'wizhelp customized connect2' for examples}
   
@@ -13608,15 +13609,15 @@
 & functions
   Help is available for the following RhostMUSH wizard only functions:
   
-  ACCOUNT_LOGIN()  ACCOUNT_OWNER()  ACCOUNT_SU()  ACCOUNT_WHO() AFLAGS()    
-  BEEP()           BYPASS()         CANSEE()      CHECKPASS()   CHKGARBAGE()
-  CLOAK()          CODEPOINT()      DOING()       DYNHELP()     EXECSCRIPT()
-  EXECSCRIPTNR()   FREELIST()       HASDEPOWER()  HASPOWER()    HASTOGGLE()  
-  ISHIDDEN()       LATTRP()         LDEPOWERS()   LOGTOFILE()   LOGSTATUS() 
-  LOOKUP_SITE()    LPOWERS()        LTOGGLES()    MAILALIAS()   MAILQUICK() 
-  MAILQUOTA()      MAILREAD()       MAILSEND()    MAILSIZE()    MAILSTATUS()
-  MSIZETOT()       NSLOOKUP()       QUOTA()       SIZE()        SWEEP()     
-  TEXTFILE()       TOTEMVALID()
+  ACCOUNT_BOOT()  ACCOUNT_LOGIN()  ACCOUNT_OWNER() ACCOUNT_SU() ACCOUNT_WHO()
+  AFLAGS()        BEEP()           BYPASS()        CANSEE()     CHECKPASS() 
+  CHKGARBAGE()    CLOAK()          CODEPOINT()     DOING()      DYNHELP()   
+  EXECSCRIPT()    EXECSCRIPTNR()   FREELIST()      HASDEPOWER() HASPOWER()  
+  HASTOGGLE()     ISHIDDEN()       LATTRP()        LDEPOWERS()  LOGTOFILE() 
+  LOGSTATUS()     LOOKUP_SITE()    LPOWERS()       LTOGGLES()   MAILALIAS() 
+  MAILQUICK()     MAILQUOTA()      MAILREAD()      MAILSEND()   MAILSIZE()  
+  MAILSTATUS()    MSIZETOT()       NSLOOKUP()      QUOTA()      SIZE()      
+  SWEEP()         TEXTFILE()       TOTEMVALID()
 
 & FREELIST()
   Function: freelist([<boolean>])
@@ -14410,6 +14411,20 @@
   permission dependent.  Ie: You must have control over the target
   player to see their toggles.
 
+& ACCOUNT_BOOT()
+  Function: account_boot(<port> [,<quit|logout>])
+  
+  This function will disconnect the specified port.  It will either
+  issue a LOGOUT or a QUIT to the destinationn port.  It will default
+  to a LOGOUT.
+  
+  This is only valid to ports being utilized for the account 
+  subsystem. This will also only be valid for ports that are currently
+  logged into the master account for their players.
+  
+  See Also: file_object, account_owner(), account_su(), account_who(), 
+            account_login(), ACCOUNT MEMBERSHIP, connect_perm, safer_passwords
+  
 & ACCOUNT_LOGIN()
   Function: account_login(<player>, <attribute>, <port>, <password>)
             account_login(<player>, <attribute>, <port>)
@@ -14477,7 +14492,7 @@
   That would connect you as normal.
   
   See Also: file_object, account_owner(), account_su(), account_who(), 
-            ACCOUNT MEMBERSHIP, connect_perm, safer_passwords
+            account_boot(), ACCOUNT MEMBERSHIP, connect_perm, safer_passwords
 
 & ACCOUNT_OWNER()
   Function: account_owner(<player>, <attribute>, <port>, <password>)
@@ -14515,7 +14530,7 @@
       You say "111"
   
   See Also: account_login(), account_su(), file_object, account_who(),
-            ACCOUNT MEMBERSHIP, connect_perm
+            account_boot(), ACCOUNT MEMBERSHIP, connect_perm
 
 & ACCOUNT_SU()
   Function: account_su(<player>, <port>, <attribute>)
@@ -14551,7 +14566,7 @@
     You say "12 20 25"
   
   See Also: account_owner(), account_login(), file_object, account_su(),
-            ACCOUNT MEMBERSHIP, connect_perm
+            account_boot(), ACCOUNT MEMBERSHIP, connect_perm
 
 & AFLAGS()
   Function: aflags(<attribute>)
@@ -15957,6 +15972,7 @@
      account_owner() -- login or display the master account handler
      account_login() -- login to the mush with the account user
      account_who()   -- display ports using account handler
+     account_boot()  -- force logout or quit the account player
   
   Admin parameters you will find useful:
      file_object     -- main handler for wrapping features
@@ -15965,8 +15981,8 @@
                         set to 'accounts' to use the Mushcode supplied
                         subsystem.
   
-  See Also: account_su(), account_owner(), account_login(), file_object,
-            connect_methods, @conncheck, connect_perm
+  See Also: account_su(), account_owner(), account_login(), account_boot(),
+            file_object, connect_methods, @conncheck, connect_perm
 
 & @crc32obj
 & crc32obj()

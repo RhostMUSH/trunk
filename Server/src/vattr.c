@@ -24,12 +24,12 @@ static VATTR *vfreelist;
 static int vhash_index;
 
 static int vstats_count;
-static int vstats_hits;
+static double vstats_hits;
 static int vstats_name_cnt;
 static int vstats_freecnt;
-static int vstats_lookups;
+static double vstats_lookups;
 static int vstats_maxlookup;
-static int vstats_checks;
+static double vstats_checks;
 static int vstats_nulls;
 #ifdef GATHER_STATS
 static int page_faults = 0;
@@ -94,7 +94,7 @@ VATTR *vattr_find(char *name)
 		maxlooks++;
 		if (!strcmp(name, vp->name)) {
 			vstats_hits++;
-			vstats_checks += maxlooks;
+			vstats_checks += (double)maxlooks;
 			if ( maxlooks > vstats_maxlookup ) {
 				vstats_maxlookup = maxlooks;
 			}
@@ -292,33 +292,58 @@ int list_vcount()
 
 void list_vhashstats(dbref player)
 {
-char	*buff;
+   char  *buff, *s_format, *s_pt;
+   int i_max = 99999999;
 
-	buff = alloc_lbuf("vattr_hashstats");
+   buff = alloc_mbuf("vattr_hashstats");
+
+   s_pt = s_format = alloc_mbuf("hashformat");
+
+   /* name, VHASH_SIZE, vstats_count, vstats_freecnt, vstats_nulls */
+   safe_str((char *)"%-14.14s %6d %8d %5d %5d ", s_format, &s_pt);
+
+   /* Special padding for total hashes scanned */
+   if ( vstats_lookups > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* Special padding for total hashes hit */
+   if ( vstats_hits > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* Special padding for total hashes checked */
+   if ( vstats_checks > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* vstats_maxlookup */
+   safe_str((char *)"%8d", s_format, &s_pt);
 
 #ifdef GATHER_STATS
-//	sprintf(buff, "%-15.14s %6d%8d%8d%8d%8d%8d%8d%8d%8d",
-        sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d %8d",
-		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
-		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup, page_faults);
-//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest," 
-//                "%d page faults in lookups.\r\n", 
-//                vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup, page_faults);
+   /* page_faults */
+   safe_str((char *)"%8d", s_format, &s_pt);
+
+   //sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d %8d",
+   sprintf(buff, s_format,
+           (char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+           vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup, page_faults);
 #else
-//	sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
-        sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
-		(char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
-		vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
-//#ifdef BIT64
-//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest\r\n",
-//#else
-//	sprintf(buff, "Vattr stats: %d hash, %d alloc, %d free, %d lookups, %d longest\r\n",
-//#endif
-//		VHASH_SIZE, vstats_count, vstats_freecnt, vstats_lookups, vstats_maxlookup);
+   //sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
+   sprintf(buff, s_format,
+           (char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+           vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
 #endif
 
-	notify(player, buff);
-	free_lbuf(buff);
+   notify(player, buff);
+   free_mbuf(buff);
+   free_mbuf(s_format);
 }
 
 int sum_vhashstats(dbref player)

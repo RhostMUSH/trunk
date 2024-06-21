@@ -164,7 +164,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
 	      htab->hits++;
 	      if (numchecks > htab->max_scan)
 		htab->max_scan = numchecks;
-	      htab->checks += numchecks;
+	      htab->checks += (double)numchecks;
 	      htab->last_entry = hptr;
 	      return hptr->data;
 	    } 
@@ -172,7 +172,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
 	    htab->hits++;
 	    if (numchecks > htab->max_scan)
 	      htab->max_scan = numchecks;
-	    htab->checks += numchecks;
+	    htab->checks += (double)numchecks;
 	    htab->last_entry = hptr;	    
 	    return hptr->data;
 	  }
@@ -180,7 +180,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
     }
     if (numchecks > htab->max_scan)
 	htab->max_scan = numchecks;
-    htab->checks += numchecks;
+    htab->checks += (double)numchecks;
     return NULL;
 }
 
@@ -380,8 +380,9 @@ int real_hashrepl2(char *str, int *hashdata, HASHTAB * htab, int bOriginal, cons
 
 char * real_hashinfo(const char *tab_name, HASHTAB * htab, const char *fileName, int lineNo)
 {
-    char *buff;
+    char *buff, *s_format, *s_pt;
     const char *errstr="<\?\?\?>";
+    int i_max = 99999999;
 
     if (htab == NULL) {
       LOGTEXT("ERR", "hashinfo was passed a NULL htab.");
@@ -392,12 +393,42 @@ char * real_hashinfo(const char *tab_name, HASHTAB * htab, const char *fileName,
       tab_name = errstr;
     }
     buff = alloc_mbuf("hashinfo");
-//  Hash Stats       Size Entryes Deleted   Empty Lookups    Hits  Checks Longest
-//  sprintf(buff, "%-14.14s %6d%8d%8d%8d%8d%8d%8d%8d",
-    sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
+    s_pt = s_format = alloc_mbuf("hashformat");
+
+    /* name, hashsize, entries, deletes, nulls */
+    safe_str((char *)"%-14.14s %6d %8d %5d %5d ", s_format, &s_pt);
+
+    /* Special padding for total hashes scanned */
+    if ( htab->scans > i_max ) {
+       safe_str((char *)"%8.2e ", s_format, &s_pt);
+    } else {
+       safe_str((char *)"%8.0f ", s_format, &s_pt);
+    }
+
+    /* Special padding for total hashes hit */
+    if ( htab->hits > i_max ) {
+       safe_str((char *)"%8.2e ", s_format, &s_pt);
+    } else {
+       safe_str((char *)"%8.0f ", s_format, &s_pt);
+    }
+
+    /* Special padding for total hashes checked */
+    if ( htab->checks > i_max ) {
+       safe_str((char *)"%8.2e ", s_format, &s_pt);
+    } else {
+       safe_str((char *)"%8.0f ", s_format, &s_pt);
+    }
+
+    /* max_scan */
+    safe_str((char *)"%8d", s_format, &s_pt);
+    
+//  sprintf(buff, "%-14.14s %6d %8d %5d %5d %8.2g %8.2g %8.2g %8d",
+    sprintf(buff, s_format,
 	    tab_name, htab->hashsize, htab->entries, htab->deletes,
 	    htab->nulls, htab->scans, htab->hits, htab->checks,
 	    htab->max_scan);
+
+    free_mbuf(s_format);
     return buff;
 }
 
@@ -519,13 +550,13 @@ int * real_nhashfind(int val, NHSHTAB * htab, const char *fileName, int lineNo)
 	    htab->hits++;
 	    if (numchecks > htab->max_scan)
 		htab->max_scan = numchecks;
-	    htab->checks += numchecks;
+	    htab->checks += (double)numchecks;
 	    return hptr->data;
 	}
     }
     if (numchecks > htab->max_scan)
 	htab->max_scan = numchecks;
-    htab->checks += numchecks;
+    htab->checks += (double)numchecks;
     return NULL;
 }
 

@@ -24093,6 +24093,48 @@ FUNCTION(fun_account_su)
    safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
 }
 
+FUNCTION(fun_account_boot)
+{
+   DESC *d, *dnext;
+   int i_port, i_boottype, i_found;
+
+   i_found = 0;
+
+   if (!fn_range_check("ACCOUNT_BOOT", nfargs, 1, 2, buff, bufcx)) {
+      return;
+   }
+
+   if ( !*fargs[0] || ((nfargs > 1) && !*fargs[1]) ) {
+      ival(buff, bufcx, i_found);
+      return;
+   }
+
+   if ( !Immortal(player) ) {
+      ival(buff, bufcx, i_found);
+      return;
+   }
+
+   i_port = atoi(fargs[0]);
+   i_boottype = 0; /* logout */
+   if ( (nfargs > 1) && *fargs[1] ) {
+      if ( !stricmp(fargs[1], "quit") )
+         i_boottype = 1;
+   }
+
+   DESC_SAFEITER_ALL(d, dnext) {
+      if ( Good_obj(d->account_owner) && (i_port == d->descriptor) ) {
+         if ( i_boottype ) {
+            shutdownsock(d, R_QUIT);
+         } else {
+            shutdownsock(d, R_LOGOUT);
+         }
+         i_found = 1;
+         break;
+      }
+   }
+   ival(buff, bufcx, i_found);
+}
+
 FUNCTION(fun_account_login)
 {
    DESC *d, *dnext;
@@ -40921,6 +40963,7 @@ FUN flist[] =
     {"ABS", fun_abs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"ACCOUNt_BOOT", fun_account_boot, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_SU", fun_account_su, 3, 0, CA_IMMORTAL, CA_NO_CODE},

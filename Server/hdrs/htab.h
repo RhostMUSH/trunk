@@ -36,10 +36,10 @@ typedef struct hashtable HASHTAB;
 struct hashtable {
 	int		hashsize;
 	int		mask;
-	int		checks;
-	int		scans;
+	double		checks;
+	double		scans;
 	int		max_scan;
-	int		hits;
+	double		hits;
 	int		entries;
 	int		deletes;
 	int		nulls;
@@ -53,10 +53,10 @@ typedef struct num_hashtable NHSHTAB;
 struct num_hashtable {
 	int		hashsize;
 	int		mask;
-	int		checks;
-	int		scans;
+	double		checks;
+	double		scans;
 	int		max_scan;
-	int		hits;
+	double		hits;
 	int		entries;
 	int		deletes;
 	int		nulls;
