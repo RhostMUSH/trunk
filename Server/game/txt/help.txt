@@ -1202,7 +1202,8 @@
   zone master's ZoneToLock) may begin to add objects to your zone.
   To do this, use the @zone/add, @zone/del, and @zone/purge commands.
  
-  See Also: @zone, @lock, lzone(), ZONEMASTER, ZONECONTENTS, ZONEPARENT
+  See Also: @zone, @lock, lzone(), zonecmd(), ZONEMASTER, ZONECONTENTS, 
+            ZONEPARENT
   
 & @zone
   Command: @zone[/<switch>] <target> [=<zone string>]
@@ -12430,7 +12431,8 @@
   XDEC()         XINC()        XGET()          XNOR()          XOR()        
   XORCHR()       ZEMIT()       ZFUN()          ZFUN2()         ZFUNDEFAULT()
   ZFUN2DEFAULT() ZFUNEVAL()    ZFUNLDEFAULT()  ZFUNL2DEFAULT() ZFUNLOCAL()  
-  ZFUN2LOCAL()   ZONECMD()     ZSEARCH()       ZSEARCHOBJID()  ZWHO() 
+  ZFUN2LOCAL()   ZLCON()       ZONECMD()       ZSEARCH()       ZSEARCHOBJID()
+  ZWHO() 
   
 { 'help function aliases' for aliases on existing functions }
   
@@ -12538,7 +12540,7 @@
                       PARENT() PGREP() POSS() RACE() SHIFT() SUBJ() TYPE() U()
                       U2() UDEFAULT() UDEFAULT2() UEVAL() ULDEFAULT() 
                       U2LDEFAULT() ULOCAL() ULOCAL2() V() VATTRCNT() VISIBLE()
-                      VISIBLEMUX() WRITABLE() XGET()
+                      VISIBLEMUX() WRITABLE() XGET() ZLCON()
             See Also: help object information functions
   
   { 'help function classes4' for more }
@@ -13571,7 +13573,7 @@
     You say "Word is zfun, arg2 is Foobar."
   
   See Also: zfun2(), zfuneval(), zfundefault(), zfunldefault(), zfunlocal(),
-            zemit(), @pemit
+            zemit(), zlcon(), @pemit
   
 & ZFUN2()
   Function: zfun2([<zone>/]<attr>[,<arg>]...)
@@ -14632,7 +14634,7 @@
     > say inzone(here,#123)
     You say "0"
   
-  See Also: @zone, ZONES, lzone(), zwho(), zonecmd()
+  See Also: @zone, ZONES, lzone(), zwho(), zonecmd(), zlcon()
   
 & ZWHO()
   Function: zwho(<zone> [,<type>] [,<objid>])
@@ -14666,7 +14668,7 @@
     > say zwho(here,1,1)
     You say "#1:8258757272 #3:8572757272 #5:8572572727"
   
-  See Also: @zone, ZONES, lzone(), inzone(), zonecmd()
+  See Also: @zone, ZONES, lzone(), inzone(), zonecmd(), zlcon()
   
 & ZONECMD()
   Function: zonecmd(<command>, <target> [,<zone string>])
@@ -14742,7 +14744,7 @@
     > say zonecmd(list,me)
     You say "#12345"
   
-  See Also: @zone, ZONES, lzone(), inzone(), zwho()
+  See Also: @zone, ZONES, lzone(), inzone(), zwho(), zlcon()
   
 & LZONE()
   Function: lzone(<object> [,<key>] [,<objid>])
@@ -14775,7 +14777,7 @@
     > say lzone(here,l)
     You say "1 2"
  
-  See Also: @zone, ZONES, inzone(), zwho(), zonecmd()
+  See Also: @zone, ZONES, inzone(), zwho(), zonecmd(), zlcon()
  
 & OBJ()
   Function: obj(<object>)
@@ -19838,13 +19840,17 @@
   
   See Also: time(), secs(), secstz(), timefmt(, secstz())
   
+& ZLCON()
 & LCON()
   Function: lcon(<obj>[/swi] [[,<swi> [,<sep> [,<name> [,<objid> [,<count>]])
+           zlcon(<zonemaster> [[,<swi> [,<sep> [,<name> [,<objid> [,<count>]])
  
   If you specify <count> with any argument, it returns the total number of
   items instead of the list of items.  This option will work with all other
   options.
   
+  zlcon() takes a valid zonemaster and does it for every member of the zone.
+   
   Returns a space-separated list of the contents of <object>.
   It takes specific switches as an option:
       /PLAYER    -- lists all TYPE players in the contents.
@@ -32309,7 +32315,7 @@
   visiblemux()  - Returns true if object can examine victim.
   writable()    - Returns true if object can write attribute on target.
   xget()        - Like get(), but searches parents.
-
+  zlcon()       - Lists the contents of all members of a zonemaster.
 
 & player information functions
   Function Lists: Player Information Functions
@@ -32584,6 +32590,7 @@
   Function Lists: Zone Functions.
     
   inzone()       - Returns the room in the specified zone master.
+  lzone()        - Lists targets of a zone or zones of a target.
   zfun()         - Like u(), but from the perspective of a zone object.
   zfun2()        - Like u2(), but from the perspective of a zone object.
   zfundefault()  - Like udefault(), but from the perspective of a zone object. 
@@ -32593,9 +32600,9 @@
   zfunldefault2()- Like udefault2(), but from the perspective of a zone object.
   zfunlocal()    - Like ulocal(), but from the perspective of a zone object.
   zfun2local()   - Like u2local(), but from the perspective of a zone object.
+  zlcon()        - Like lcon() but works for all members of a zonemaster.
   zwho()         - Returns the players in a specified zone master.
   zonecmd()      - Adds/Deletes/Purges zones from targets.
-  lzone()        - Lists targets of a zone or zones of a target.
 
 & cluster functions
   cluster_add()        - Add new target into cluster.
@@ -35732,6 +35739,7 @@
  * setrm/setqm allow '>' seperator for register/labels [ASH]
  * /zone to @search, zsearch(), and zsearchobjid() [ASH]
  * account_boot() to boot via QUIT or LOGOUT account logins [ASH]
+ * zlcon() for all members of a zonemaster [ASH]
   
   Changes
   -------

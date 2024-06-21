@@ -7685,48 +7685,81 @@ FUNCTION(fun_charin)
 {
    DESC *d;
    dbref target, aowner;
-   int cmd, aflags, i_type, i_loop;
+   int cmd, aflags, i_type, i_loop, i_subval;
    char *buf, tmp_buff[LBUF_SIZE+1];
 
-   if (!fn_range_check("CHARIN", nfargs, 1, 2, buff, bufcx)) {
+   if (!fn_range_check("CHARIN", nfargs, 1, 3, buff, bufcx)) 
       return;
-   } else if (nfargs == 2) {
+
+   i_type = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
       i_type = atoi(fargs[1]);
-   } else {
-      i_type = 0;
    }
+
+   i_subval = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_subval = atoi(fargs[2]);
+   }
+
    cmd=0;
    target = lookup_player(player, fargs[0], 0);
    if ( !Good_obj(target) || target == NOTHING || target == AMBIGUOUS ) {
       safe_str("-1", buff, bufcx);
-   }
-   else {
+   } else {
       if (Connected(target) && (!Cloak(target) || Wizard(player)) &&
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
          i_loop = 0;
          DESC_ITER_CONN(d) {
             if (d->player == target) {
-               if ( i_type == 0 )
-                  cmd += d->input_tot;
-               else {
-                  if (i_loop)
+               if ( i_type == 0 ) {
+                  switch( i_subval ) {
+                     case 1: /* pending */
+                        cmd += d->input_size;
+                        break;
+                     case 2: /* lost */
+                        cmd += d->input_lost;
+                        break;
+                     default: /* total */
+                        cmd += d->input_tot;
+                        break;
+                  }
+               } else {
+                  if (i_loop) {
                      safe_chr(' ', buff, bufcx);
-                  sprintf(tmp_buff, "%d:%d", d->descriptor, d->input_tot);
+                  }
+                  switch ( i_subval ) {
+                     case 1: /* pending */
+                        cmd = d->input_size;
+                        break;
+                     case 2: /* lost */
+                        cmd = d->input_lost;
+                        break;
+                     default: /* total */
+                        cmd = d->input_tot;
+                        break;
+                  }
+                  sprintf(tmp_buff, "%d:%d", d->descriptor, cmd);
                   safe_str(tmp_buff, buff, bufcx);
                   i_loop=1;
                }
             }
          }
-      }
-      else if ( !Connected(target) && (!Cloak(target) || Wizard(player)) &&
+      } else if ( !Connected(target) && (!Cloak(target) || Wizard(player)) &&
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
-         buf = atr_get(target, A_TOTCHARIN, &aflags, &aowner);
-         if (*buf)
-            cmd = atoi(buf);
-         free_lbuf(buf);
+         switch ( i_subval ) {
+            case 1:
+            case 2:
+               cmd = 0;
+               break;
+            default:
+               buf = atr_get(target, A_TOTCHARIN, &aflags, &aowner);
+               if (*buf)
+                  cmd = atoi(buf);
+               free_lbuf(buf);
+               break;
+         }
          i_type = 0;
-      }
-      else {
+      } else {
          cmd = -1;
          i_type = 0;
       }
@@ -7740,16 +7773,22 @@ FUNCTION(fun_charout)
 {
    DESC *d;
    dbref target, aowner;
-   int cmd, aflags, i_type, i_loop;
+   int cmd, aflags, i_type, i_loop, i_subval;
    char *buf, tmp_buff[LBUF_SIZE + 1];
 
-   if (!fn_range_check("CHAROUT", nfargs, 1, 2, buff, bufcx)) {
+   if (!fn_range_check("CHAROUT", nfargs, 1, 3, buff, bufcx)) 
       return;
-   } else if (nfargs == 2) {
+
+   i_type = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
       i_type = atoi(fargs[1]);
-   } else {
-      i_type = 0;
    }
+
+   i_subval = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_subval = atoi(fargs[2]);
+   }
+
    cmd=0;
    target = lookup_player(player, fargs[0], 0);
    if ( !Good_obj(target) || target == NOTHING || target == AMBIGUOUS ) {
@@ -7761,27 +7800,55 @@ FUNCTION(fun_charout)
          i_loop = 0;
          DESC_ITER_CONN(d) {
             if (d->player == target) {
-               if ( i_type == 0 )
-                  cmd += d->output_tot;
-               else {
-                  if (i_loop)
+               if ( i_type == 0 ) {
+                  switch( i_subval ) {
+                     case 1: /* pending */
+                        cmd += d->output_size;
+                        break;
+                     case 2: /* lost */
+                        cmd += d->output_lost;
+                        break;
+                     default: /* total */
+                        cmd += d->output_tot;
+                        break;
+                  }
+               } else {
+                  if (i_loop) {
                      safe_chr(' ', buff, bufcx);
-                  sprintf(tmp_buff, "%d:%d", d->descriptor, d->output_tot);
+                  }
+                  switch ( i_subval ) {
+                     case 1: /* pending */
+                        cmd = d->output_size;
+                        break;
+                     case 2: /* lost */
+                        cmd = d->output_lost;
+                        break;
+                     default: /* total */
+                        cmd = d->output_tot;
+                        break;
+                  }
+                  sprintf(tmp_buff, "%d:%d", d->descriptor, cmd);
                   safe_str(tmp_buff, buff, bufcx);
                   i_loop=1;
                }
             }
          }
-      }
-      else if ( !Connected(target) && (!Cloak(target) || Wizard(player)) &&
+      } else if ( !Connected(target) && (!Cloak(target) || Wizard(player)) &&
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
-         buf = atr_get(target, A_TOTCHAROUT, &aflags, &aowner);
-         if (*buf)
-            cmd = atoi(buf);
-         free_lbuf(buf);
+         switch ( i_subval ) {
+            case 1:
+            case 2:
+               cmd = 0;
+               break;
+            default:
+               buf = atr_get(target, A_TOTCHAROUT, &aflags, &aowner);
+               if (*buf)
+                  cmd = atoi(buf);
+               free_lbuf(buf);
+               break;
+         }
          i_type = 0;
-      }
-      else {
+      } else {
          cmd = -1;
          i_type = 0;
       }
@@ -25316,6 +25383,71 @@ FUNCTION(fun_lcon)
     }
 }
 
+FUNCTION(fun_zlcon)
+{
+   char *s_buff, *s_buffptr, *s_array[7], *s_name;
+   int i_first, i_loop, i_mux;
+   time_t now1, now2;
+   dbref zmaster;
+   ZLISTNODE *zptr;
+
+   if (!fn_range_check("ZLCON", nfargs, 1, 6, buff, bufcx))
+      return;
+  
+   if ( !*fargs[0] ) {
+      safe_str((char *)"#-1 INVALID ZONEMASTER", buff, bufcx);
+      return;
+   }
+
+   zmaster = match_thing(player, fargs[0]);
+   if ( !Good_chk(zmaster) || !ZoneMaster(zmaster) ) {
+      safe_str((char *)"#-1 INVALID ZONEMASTER", buff, bufcx);
+      return;
+   }
+
+   s_buffptr = s_buff = alloc_lbuf("fun_zlcon");
+   i_first = 0;
+   
+   /* This should be 6 elements.  2-7 [fargs[1] to fargs[6]] */
+   s_array[6] = NULL;
+   for ( i_loop = 1; i_loop < nfargs; i_loop++ ) {
+     s_array[i_loop] = fargs[i_loop];
+   }
+   now1 = time(NULL);
+   s_name = alloc_sbuf("zlcon_name");
+   i_mux = mudconf.mux_lcon_compat;
+   mudconf.mux_lcon_compat = 1;
+   for ( zptr = db[zmaster].zonelist; zptr; zptr = zptr->next ) {
+      sprintf(s_name, "#%d", zptr->object);
+      s_array[0] = s_name;
+      now2 = time(NULL);
+      if ( now2 > (now1 + 10) ) {
+         i_first = 2;
+         break;
+      }
+      fun_lcon(s_buff, &s_buffptr, player, cause, cause, s_array, nfargs, (char **)NULL, 0);
+      if ( *s_buff ) {
+         if ( i_first ) {
+            if ( (nfargs > 2) && *fargs[2] ) {
+               safe_str(fargs[2], buff, bufcx);
+            } else {
+               safe_chr(' ',buff, bufcx);
+            }
+         }
+         safe_str(s_buff, buff, bufcx);
+         *s_buff = '\0';
+         s_buffptr = s_buff;
+         i_first = 1;
+      }
+   }
+   mudconf.mux_lcon_compat = i_mux;
+   free_sbuf(s_name);
+   if ( i_first == 2 ) {
+      safe_str((char *)"#-1 CPU LIMIT REACHED ", buff, bufcx);
+   }
+   free_lbuf(s_buff);
+}
+
 /* ---------------------------------------------------------------------------
  * fun_lexits: Return a list of exits.
  */
@@ -41711,6 +41843,7 @@ FUN flist[] =
     {"ZFUN2LDEFAULT", fun_zfun2ldefault, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"ZFUN2LOCAL", fun_zfun2local, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #endif
+    {"ZLCON", fun_zlcon, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ZONECMD", fun_zonecmd, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ZSEARCH", fun_zsearch, -1, 0, CA_PUBLIC, 0},
     {"ZSEARCHOBJID", fun_zsearchobjid, -1, 0, CA_PUBLIC, 0},
