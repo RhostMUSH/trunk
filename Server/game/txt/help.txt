@@ -35854,3 +35854,4 @@
  * off-by-one wrap for | option in printf [ASH]
  * potential fix for ansi handler for '|' in printf [ASH]
  * potential off by one in buffer for template() [ASH]
+ * totems were not cloned with a @clone [ASH]

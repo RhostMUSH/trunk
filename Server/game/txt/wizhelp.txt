@@ -8340,7 +8340,7 @@
   You may specify site ranges that are allowed to connect through this
   disabling with hardconn_site or hardconn_host.
   
-  See Also: ACCOUNT MANAGEMENT, hardconn_site, hardconn_host, connect_perm
+  See Also: ACCOUNT MEMBERSHIP, hardconn_site, hardconn_host, connect_perm
 
 & connect_perm
   Config parameter: connect_perm <value>.   Default: 0
@@ -15929,6 +15929,7 @@
   
   See Also: @admin
 
+& ACCOUNT MANAGEMENT
 & ACCOUNT MEMBERSHIP
   Topic: ACCOUNT MEMBERSHIP
   

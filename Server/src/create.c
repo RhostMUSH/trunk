@@ -1091,7 +1091,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 {
     dbref clone, thing, new_owner, loc;
     FLAG rmv_flags;
-    int cost, side_effect, i_ansi;
+    int cost, side_effect, i_ansi, i_totem;
     char *tpr_buff, *tprp_buff, *arg2_noansi;
     CMDENT *cmdp;
 
@@ -1263,6 +1263,12 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
     s_Toggles6(clone, Toggles3(thing));
     s_Toggles7(clone, Toggles4(thing));
     s_Toggles8(clone, Toggles5(thing));
+
+    /* Clone Totems */
+    for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+        dbtotem[clone].flags[i_totem] = dbtotem[thing].flags[i_totem];
+    }
+
 
     /* Tell creator about it */
 
