@@ -329,7 +329,7 @@ int main(int argc, char **argv) {
                                   sanitattr = (sanitattr | 0x00200000);
                                if ( origattr & 0x00200000 )
                                   sanitattr = (sanitattr | 0x04000000);
-                               printf("%d%s\n", sanitattr, strchr(q, ':'));
+                               printf("%d%s", sanitattr, strchr(q, ':'));
                             } else
 			       printf("%s",q);
 			    fflush(stdout);
