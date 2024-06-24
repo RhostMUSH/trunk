@@ -427,7 +427,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
    }
     
    custom = 0;
-   if ( (key & A_LUSER) && ((subname = strchr(name, ':')) != NULL) ) {
+   if ( (key & A_LUSER) && ((subname = strchr(name, '|')) != NULL) ) {
       *subname++ = '\0';
       ap = NULL;
       if ( *subname ) {
@@ -641,7 +641,7 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
    }
 
    custom = 0;
-   if ( (key & A_LUSER) && ((subname = strchr(name, ':')) != NULL) ) {
+   if ( (key & A_LUSER) && ((subname = strchr(name, '|')) != NULL) ) {
       *subname++ = '\0';
       thing = match_controlled(player, name);
       if ( !Good_chk(thing) ) {
@@ -1452,7 +1452,7 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
 
    s_buffptr = s_buff = alloc_lbuf("do_lset");
    custom = 0;
-   if ( (subname = strchr(name, ':')) ) {
+   if ( (subname = strchr(name, '|')) ) {
       *subname++='\0';
       custom = AF_IS_LOCK;
    }

@@ -4968,7 +4968,7 @@
 & locks
 & @lock
   Command: @lock[/<whichlock>] <object>=<key>
-           @lock/user <object>:<attribute>=<key>
+           @lock/user <object>|<attribute>=<key>
            @lock <object>/<attrib>
    
   The first form locks <object> to a specific key(s).  Type 'help @lock keys'
@@ -6424,7 +6424,7 @@
 
 & @lset
   Command: @lset[/<switches>] <object>[/<lock>] [=<permission>]
-           @lset[/<switches>] <object>[/<lock>:<attribute>] [=<permission>]
+           @lset[/<switches>] <object>[/<lock>|<attribute>] [=<permission>]
   
   The default <lock> if not specified will be the DefaultLock.  An alias
   for DefaultLock is BasicLock.
@@ -6794,7 +6794,7 @@
   
 & @unlock
   Command: @unlock[/<whichlock>] <object>
-           @unlock/user <object>:<attribute>
+           @unlock/user <object>|<attribute>
            @unlock <object>/<attrib>
   
   The first form removes the lock on <object>, so that anyone may pass
@@ -14079,7 +14079,7 @@
 
 & lock()
   Function: lock(<object>[/<whichlock>] [,<key>] [,<attribute>])
-            lock(<object>/user:<attribute> [,<key>])
+            lock(<object>/user|<attribute> [,<key>])
  
   Returns the named lock on <object>.  If you don't specify the lock to get,
   the default lock is returned.  You must control <object>.
@@ -14112,7 +14112,7 @@
   
 & elock()
   Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
-            elock(<object>/user:<attribute>, <victim> [,<type> [,<default>]])
+            elock(<object>/user|<attribute>, <victim> [,<type> [,<default>]])
   
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.

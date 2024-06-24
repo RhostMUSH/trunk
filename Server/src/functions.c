@@ -28294,10 +28294,10 @@ FUNCTION(fun_lock)
            if ( str && *str ) {
               anum = search_nametab(player, lock_sw, str);
            } else {
-              if ( *str && ( (subname = strchr(str,':')) != NULL ) ) {
+              if ( *str && ( (subname = strchr(str,'|')) != NULL ) ) {
                  *subname = '\0';
                  anum = search_nametab(player, lock_sw, str);
-                 *subname++ = ':';
+                 *subname++ = '|';
                  if ( anum == A_LUSER ) {
                     atr = mkattr(subname);
                     if (atr <= 0) {
@@ -28344,13 +28344,14 @@ FUNCTION(fun_lock)
            }
         }
     } else {
-       if ( *fargs[0] && ( (subname = strchr(fargs[0],':')) != NULL ) ) {
+       if ( *fargs[0] && ( (subname = strchr(fargs[0],'|')) != NULL ) ) {
           *subname = '\0';
           if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+             *subname = '|';
              return;
           }
           if ( attr->number == A_LUSER ) {
-             *subname++ = ':';
+             *subname++ = '|';
              atr = mkattr(subname);
              if (atr <= 0) {
                 notify(player, "Can't create attribute.");
@@ -28395,13 +28396,14 @@ FUNCTION(fun_lock)
        }
     }
 #else
-    if ( *fargs[0] && ( (subname = strchr(fargs[0],':')) != NULL ) ) {
+    if ( *fargs[0] && ( (subname = strchr(fargs[0],'|')) != NULL ) ) {
        *subname = '\0';
        if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+          *subname = '|';
           return;
        }
        if ( attr->number == A_LUSER ) {
-          *subname++ = ':';
+          *subname++ = '|';
           atr = mkattr(subname);
           if (atr <= 0) {
              notify(player, "Can't create attribute.");
@@ -28455,15 +28457,15 @@ FUNCTION(fun_elock)
     if (!fn_range_check("ELOCK", nfargs, 2, 4, buff, bufcx))
         return;
 
-    if ( (subname = strchr(fargs[0],':')) != NULL ) {
+    if ( (subname = strchr(fargs[0],'|')) != NULL ) {
        *subname = '\0';
        if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
-          *subname=':';
+          *subname='|';
           return;
        }
        i_def = 0;
        if ( attr->number & A_LUSER ) {
-          *subname++=':';
+          *subname++='|';
           if ( *subname ) {
              atr = mkattr(subname);
              if ( atr >= 0 ) {

@@ -4340,7 +4340,7 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
 			              (i_tf ? qualout : (char *)""), ap->name, tname, ltext));
         } else {
 	   noansi_notify(player,
-		         safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s:%s=%s",
+		         safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s|%s=%s",
 			              (i_tf ? qualout : (char *)""), tname, ap->name, ltext));
         }
       } else {
@@ -4604,7 +4604,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
 			            ((i_tf || i_db) ? qualout : (char *)""), attr->name, thingname, ltext));
                    } else {
-		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s:%s=%s",
+		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s|%s=%s",
 			            ((i_tf || i_db) ? qualout : (char *)""), thingname, attr->name, ltext));
                    }
 	       } else {
