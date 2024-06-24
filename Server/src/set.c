@@ -1867,7 +1867,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
       *astr = '\0';
     } else if (!con1 && twk1 && (in_attr->flags & (AF_IS_LOCK | AF_LOCK))) {
       *astr = '\0';
-    } else if (!con1 && twk1 && (aflags & AF_LOCK)) {
+    } else if (!con1 && twk1 && (aflags & (AF_LOCK | AF_IS_LOCK) )) {
       *astr = '\0';
     } else {
       in_anum = in_attr->number;

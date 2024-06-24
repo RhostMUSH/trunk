@@ -515,7 +515,7 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
                mudstate.store_passwd = 0;
                return;
             }
-            if (attr->flags & AF_IS_LOCK) {
+            if ( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
                free_lbuf(s_dbref);
                if ( !i_side ) {
                   notify(player, "Permission denied - Can't set locks.");

@@ -35833,6 +35833,7 @@
  * cleanup of @list hash to give more space for large vals [ASH]
  * improvements of @search/ansi to better handle exits [ASH]
  * cleaned up values in @list hash to avoid overflows [ASH]
+ * @decompile and various checks put in for new custom locks [ASH]
     
   Bug Fixes
   ------------

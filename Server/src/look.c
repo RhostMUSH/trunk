@@ -29,6 +29,7 @@ extern dbref    FDECL(match_thing, (dbref, char *));
 extern POWENT * FDECL(find_power, (dbref, char *));
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void examine_totemtab(dbref, dbref);
+extern NAMETAB lock_sw[];
 
 void
 look_inv_parse(dbref player, dbref cause, int i_attr) {
@@ -1298,7 +1299,7 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
     if (!Wizard(player) && ((ap->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 	return;
 
-    if (ap->flags & AF_IS_LOCK) {
+    if ( (ap->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
 	bool = parse_boolexp(player, text, 1);
 	text = unparse_boolexp(player, bool);
 	free_boolexp(bool);
@@ -4305,7 +4306,7 @@ extern NAMETAB indiv_attraccess_nametab[];
 static void
 decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname, char *qualout, int i_tf, int i_key)
 {
-  int atr, aflags;
+  int atr, aflags, anum;
   char *buf, *ltext, *buff2, *tname, *tpr_buff, *tprp_buff;
   dbref aowner;
   ATTR *ap;
@@ -4332,9 +4333,16 @@ decomp_wildattrs(dbref player, dbref thing, OBLOCKMASTER * master, char *newname
         ltext = unparse_boolexp_decompile(player, bool);
 	free_boolexp(bool);
         tprp_buff = tpr_buff;
-	noansi_notify(player,
-		      safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
-			           (i_tf ? qualout : (char *)""), ap->name, tname, ltext));
+        anum = search_nametab(player, lock_sw, (char *)ap->name);
+        if ( anum >= 0 ) {
+	   noansi_notify(player,
+		         safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
+			              (i_tf ? qualout : (char *)""), ap->name, tname, ltext));
+        } else {
+	   noansi_notify(player,
+		         safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s:%s=%s",
+			              (i_tf ? qualout : (char *)""), tname, ap->name, ltext));
+        }
       } else {
         strncpy(buff2, ap->name, (MBUF_SIZE - 1));
         tprp_buff = tpr_buff;
@@ -4378,7 +4386,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
     char *got, *thingname, *as, *ltext, *buff, *tpr_buff, *tprp_buff,
          *qual, *qualout;
     dbref aowner, thing;
-    int val, aflags, ca, key_buff, i_regexp, i_tree, i_tf, i_db;
+    int val, aflags, ca, key_buff, i_regexp, i_tree, i_tf, i_db, anum;
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
@@ -4585,14 +4593,20 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 	         free_lbuf(got);
 	         continue;
 	       }
-	       if (attr->flags & AF_IS_LOCK) {
+	       if ( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
 		   bool = parse_boolexp(player, got, 1);
 		   ltext = unparse_boolexp_decompile(player,
 						     bool);
 		   free_boolexp(bool);
 		   tprp_buff = tpr_buff;
-		   noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
-			         ((i_tf || i_db) ? qualout : (char *)""), attr->name, thingname, ltext));
+                   anum = search_nametab(player, lock_sw, (char *)attr->name);
+                   if ( anum >= 0 ) {
+		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/%s %s=%s",
+			            ((i_tf || i_db) ? qualout : (char *)""), attr->name, thingname, ltext));
+                   } else {
+		      noansi_notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%s@lock/user %s:%s=%s",
+			            ((i_tf || i_db) ? qualout : (char *)""), thingname, attr->name, ltext));
+                   }
 	       } else {
                    strncpy(buff, attr->name, (MBUF_SIZE - 1));
                    *(buff + MBUF_SIZE - 1) = '\0';
