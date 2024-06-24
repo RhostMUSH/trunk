@@ -15308,7 +15308,12 @@ FUNCTION(fun_attrpass)
        return;
     }
     i_alloc = 0;
-    if (attr->flags & AF_IS_LOCK) {
+
+    if ( !atr_pget_info(thing, attrib, &aowner, &aflags) ) {
+       safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+    if ( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
        safe_str("#-1 CAN'T CHECK LOCKS", buff, bufcx);
        return;
     } else {
@@ -28465,7 +28470,8 @@ FUNCTION(fun_elock)
                 /* Clobber attribute with custom one */
                 attr = atr_str(subname);
                 if ( attr ) {
-                   if ( !atr_get_info(it, attr->number, &aowner, &aflags) ) {
+                   if ( ( mudconf.parent_control && !atr_pget_info(it, attr->number, &aowner, &aflags)) ||
+                        (!mudconf.parent_control && !atr_get_info(it, attr->number, &aowner, &aflags)) ) {
                       notify(player, "Custom lock not on target.");
                       return;
                    }
