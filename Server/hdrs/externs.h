@@ -405,6 +405,7 @@ extern void	FDECL(list_buftrace, (dbref, int));
 
 /* From set.c */
 extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
+extern int	FDECL(parse_attriblock, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
 			int, int, OBLOCKMASTER *, int, int, int));

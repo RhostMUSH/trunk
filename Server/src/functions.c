@@ -13723,6 +13723,44 @@ check_read_perms2(dbref player, dbref thing, ATTR * attr,
     return 0;
 }
 
+static int
+check_readlock_perms(dbref player, dbref thing, ATTR * attr,
+                  int aowner, int aflags, int key)
+{
+    int see_it;
+
+    /* If we have explicit read permission to the attr, return it */
+
+    if (See_attr_explicit(player, thing, attr, aowner, aflags))
+       return 1;
+
+    /* If we are nearby or have examine privs to the attr and it is
+     * visible to us, return it.
+     */
+
+    if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
+        return 0;
+    if ( key ) {
+       see_it = Read_attr(player, thing, attr, aowner, aflags, 0);
+    } else {
+       see_it = See_attr(player, thing, attr, aowner, aflags, 0);
+    }
+    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
+       return 1;
+    /* For any object, we can read its visible attributes, EXCEPT
+     * for descs, which are only visible if read_rem_desc is on.
+     */
+
+    if (see_it) {
+       if (!mudconf.read_rem_desc && (attr->number == A_DESC)) {
+          return 0;
+       } else {
+          return 1;
+       }
+    }
+    return 0;
+}
+
 #ifdef USECRYPT
 static char *
 crunch_code(code)
@@ -14071,25 +14109,45 @@ FUNCTION(fun_chkreality)
 FUNCTION(fun_hasattr)
 {
     dbref thing, aowner;
-    int attrib, aflags;
+    int attrib, aflags, i_lock;
     ATTR *attr;
     char *atr_gotten, *tpr_buff, *tprp_buff;
 
-    if (!fn_range_check("HASATTR", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("HASATTR", nfargs, 1, 3, buff, bufcx))
         return;
 
-    if ( nfargs == 2 ) {
+    i_lock = 0;
+    if ( (nfargs >=3) && *fargs[2] ) {
+       i_lock = atoi(fargs[2]);
+    }
+
+    if ( (nfargs >= 2) && *fargs[1] ) {
        tprp_buff = tpr_buff = alloc_lbuf("fun_hasattr");
-       if (!parse_attrib(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
-          safe_str("#-1", buff, bufcx);
-          free_lbuf(tpr_buff);
-          return;
+       if ( i_lock ) {
+          if (!parse_attriblock(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             free_lbuf(tpr_buff);
+             return;
+          }
+       } else {
+          if (!parse_attrib(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             free_lbuf(tpr_buff);
+             return;
+          }
        }
        free_lbuf(tpr_buff);
     } else {
-       if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
-          safe_str("#-1", buff, bufcx);
-          return;
+       if ( i_lock ) {
+          if (!parse_attriblock(player, fargs[0], &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             return;
+          }
+       } else {
+          if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             return;
+          }
        }
     }
     if (Cloak(thing) && !Wizard(player)) {
@@ -14115,7 +14173,7 @@ FUNCTION(fun_hasattr)
      * if needed.
      */
 
-    if (check_read_perms2(player, thing, attr, aowner, aflags)) {
+    if (check_readlock_perms(player, thing, attr, aowner, aflags, i_lock)) {
        if (*atr_gotten)
           safe_str("1", buff, bufcx);
        else
@@ -14130,25 +14188,45 @@ FUNCTION(fun_hasattr)
 FUNCTION(fun_hasattrp)
 {
     dbref thing, aowner;
-    int attrib, aflags;
+    int attrib, aflags, i_lock;
     ATTR *attr;
     char *atr_gotten, *tpr_buff, *tprp_buff;
 
-    if (!fn_range_check("HASATTRP", nfargs, 1, 2, buff, bufcx))
+    if (!fn_range_check("HASATTRP", nfargs, 1, 3, buff, bufcx))
         return;
 
-    if ( nfargs == 2 ) {
+    i_lock = 0;
+    if ( (nfargs >=3) && *fargs[2] ) {
+       i_lock = atoi(fargs[2]);
+    }
+
+    if ( (nfargs >= 2) && *fargs[1] ) {
        tprp_buff = tpr_buff = alloc_lbuf("fun_hasattrp");
-       if (!parse_attrib(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
-          safe_str("#-1", buff, bufcx);
-          free_lbuf(tpr_buff);
-          return;
+       if ( i_lock ) {
+          if (!parse_attriblock(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             free_lbuf(tpr_buff);
+             return;
+          }
+       } else {
+          if (!parse_attrib(player, safe_tprintf(tpr_buff, &tprp_buff, "%s/%s", fargs[0], fargs[1]), &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             free_lbuf(tpr_buff);
+             return;
+          }
        }
        free_lbuf(tpr_buff);
     } else {
-       if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
-          safe_str("#-1", buff, bufcx);
-          return;
+       if ( i_lock ) {
+          if (!parse_attriblock(player, fargs[0], &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             return;
+          }
+       } else {
+          if (!parse_attrib(player, fargs[0], &thing, &attrib)) {
+             safe_str("#-1", buff, bufcx);
+             return;
+          }
        }
     }
     if (Cloak(thing) && !Wizard(player)) {
@@ -14183,7 +14261,7 @@ FUNCTION(fun_hasattrp)
      * if needed.
      */
 
-    if (check_read_perms2(player, thing, attr, aowner, aflags)) {
+    if (check_readlock_perms(player, thing, attr, aowner, aflags, i_lock)) {
        if (*atr_gotten)
           safe_str("1", buff, bufcx);
        else
@@ -28172,8 +28250,8 @@ FUNCTION(fun_msizetot)
 FUNCTION(fun_lock)
 {
     dbref it, aowner;
-    int aflags;
-    char *tbuf;
+    int aflags, atr;
+    char *tbuf, *subname;
     ATTR *attr;
     struct boolexp *okey;
 #ifdef USE_SIDEEFFECT
@@ -28211,7 +28289,24 @@ FUNCTION(fun_lock)
            if ( str && *str ) {
               anum = search_nametab(player, lock_sw, str);
            } else {
-              anum = -1;
+              if ( *str && ( (subname = strchr(str,':')) != NULL ) ) {
+                 *subname = '\0';
+                 anum = search_nametab(player, lock_sw, str);
+                 *subname++ = ':';
+                 if ( anum == A_LUSER ) {
+                    atr = mkattr(subname);
+                    if (atr <= 0) {
+                       notify(player, "Can't create attribute.");
+                       return;
+                    }
+                    attr = atr_str(subname);
+                    if ( attr ) {
+                       anum = attr->number;
+                    }
+                 }
+              } else {
+                 anum = -1;
+              }
            }
         } else if ( str == NULL && !Good_obj(it) ) {
            anum = A_LOCK;
@@ -28244,8 +28339,38 @@ FUNCTION(fun_lock)
            }
         }
     } else {
-       if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx))
-           return;
+       if ( *fargs[0] && ( (subname = strchr(fargs[0],':')) != NULL ) ) {
+          *subname = '\0';
+          if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+             return;
+          }
+          if ( attr->number == A_LUSER ) {
+             *subname++ = ':';
+             atr = mkattr(subname);
+             if (atr <= 0) {
+                notify(player, "Can't create attribute.");
+                return;
+             }
+             /* We override the attribute with the new one */
+             attr = atr_str(subname);
+             if ( attr ) {
+                if ( mudconf.parent_control ) {
+                   tbuf = atr_pget(it, attr->number, &aowner, &aflags);
+                } else {
+                   tbuf = atr_get(it, attr->number, &aowner, &aflags);
+                }
+                free_lbuf(tbuf);
+             }
+             if ( !attr || !( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) ) {
+                safe_str((char *)"#-1 LOCK NOT FOUND", buff, bufcx);
+                return;
+             }
+          } else {
+             return;
+          }
+       } else if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+          return;
+       }
 
        /* Get the attribute and decode it if we can read it */
 
@@ -28265,8 +28390,38 @@ FUNCTION(fun_lock)
        }
     }
 #else
-    if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx))
+    if ( *fargs[0] && ( (subname = strchr(fargs[0],':')) != NULL ) ) {
+       *subname = '\0';
+       if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+          return;
+       }
+       if ( attr->number == A_LUSER ) {
+          *subname++ = ':';
+          atr = mkattr(subname);
+          if (atr <= 0) {
+             notify(player, "Can't create attribute.");
+             return;
+          }
+          /* We override the attribute with the new one */
+          attr = atr_str(subname);
+          if ( attr ) {
+             if ( mudconf.parent_control ) {
+                tbuf = atr_pget(it, attr->number, &aowner, &aflags);
+             } else {
+                tbuf = atr_get(it, attr->number, &aowner, &aflags);
+             }
+             free_lbuf(tbuf);
+          }
+          if ( !attr || !( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) ) {
+             safe_str((char *)"#-1 LOCK NOT FOUND", buff, bufcx);
+             return;
+          }
+       } else {
+          return;
+       }
+    } else if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
         return;
+    }
 
     /* Get the attribute and decode it if we can read it */
 
@@ -28286,8 +28441,8 @@ FUNCTION(fun_lock)
 FUNCTION(fun_elock)
 {
     dbref it, victim, aowner;
-    int aflags, i_def, i_locktype;
-    char *tbuf;
+    int aflags, i_def, i_locktype, atr;
+    char *tbuf, *subname;
     ATTR *attr;
 
     /* Parse lock supplier into obj + lock */
@@ -28295,8 +28450,49 @@ FUNCTION(fun_elock)
     if (!fn_range_check("ELOCK", nfargs, 2, 4, buff, bufcx))
         return;
 
-    if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx))
-        return;
+    if ( (subname = strchr(fargs[0],':')) != NULL ) {
+       *subname = '\0';
+       if ( !get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+          *subname=':';
+          return;
+       }
+       i_def = 0;
+       if ( attr->number & A_LUSER ) {
+          *subname++=':';
+          if ( *subname ) {
+             atr = mkattr(subname);
+             if ( atr >= 0 ) {
+                /* Clobber attribute with custom one */
+                attr = atr_str(subname);
+                if ( attr ) {
+                   if ( !atr_get_info(it, attr->number, &aowner, &aflags) ) {
+                      notify(player, "Custom lock not on target.");
+                      return;
+                   }
+                   if (!Set_attr(player, it, attr, aflags) ) {
+                      notify_quiet(player, "Permission denied.");
+                      return;
+                   }
+       
+                   if ((aflags & AF_NOCMD) && !Immortal(player)) {
+                      notify_quiet(player, "No match.");
+                      return;
+                   }
+                   if ( (attr->number & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
+                      i_def = 1;
+                   }
+                }
+             } 
+          }
+       }
+       if ( !i_def ) {
+          safe_str((char *)"#-1 LOCK NOT FOUND", buff, bufcx);
+          return;
+       }
+    } else if (!get_obj_and_lock(player, fargs[0], &it, &attr, buff, bufcx)) {
+       return;
+    }
+
 
     if ((Recover(it) || Going(it)) && !(Immortal(player))) {
         notify(player, "I don't see that here.");
@@ -29605,7 +29801,8 @@ parse_lattr(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
                        if ( i_ntfnd )
                           continue;
                     }
-                    if ( (c_lookup == '+') && !(attr->flags & AF_IS_LOCK) )
+                    atr_get_info(thing, attr->number, &aowner, &aflags);
+                    if ( (c_lookup == '+') && !((aflags & AF_IS_LOCK) || (attr->flags & AF_IS_LOCK)) )
                        continue;
                     i_currcnt++;
                     if ( i_retpage )

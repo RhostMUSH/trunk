@@ -3258,6 +3258,8 @@
            &`<tree-attribute> <object>[=<value>]
   Synonym: @set <object> = <attribute>:[<value>]
    
+  Note: Attempting to set locks this way will fail.
+  
   Sets the attribute named <attribute> on <object> to <value>.  If
   <attribute> is not a predefined attribute (like ofail or va), then it is
   created.  Attributes so created are called user-named attributes.
@@ -4966,6 +4968,7 @@
 & locks
 & @lock
   Command: @lock[/<whichlock>] <object>=<key>
+           @lock/user <object>:<attribute>=<key>
            @lock <object>/<attrib>
    
   The first form locks <object> to a specific key(s).  Type 'help @lock keys'
@@ -4975,7 +4978,10 @@
   don't specify one, you set the Default lock. Type 'help @lock locks' for
   a list of the locks you may set and what they are used for.
    
-  The second form locks the indicated attribute of the named object, so that
+  The second form works like the first, but will turn <attribute> into a
+  custom lock that will behave like any other lock. 
+  
+  The third form locks the indicated attribute of the named object, so that
   when the object is @chowned, the attribute will remain owned by you.
   It may also be used when you own an attribute on an object that you do not
   own, in this case it prevents the object's owner from @chowning the
@@ -6418,10 +6424,13 @@
 
 & @lset
   Command: @lset[/<switches>] <object>[/<lock>] [=<permission>]
+           @lset[/<switches>] <object>[/<lock>:<attribute>] [=<permission>]
   
   The default <lock> if not specified will be the DefaultLock.  An alias
   for DefaultLock is BasicLock.
   
+  The second form allows you to set permissions on a custom defined lock.
+   
   This function will display or set/unset a <permission> on a lock.  The
   following permissions are available (depending on your permission to set):
     god         -- Only #1 is allowed to set/unset this lock
@@ -6458,6 +6467,8 @@
   Synonym: &<attribute> <obj>[=<value>]
            &`<tree`attribute> <obj>[=<value>] (for setting a tree variable)
  
+  Note: Attempting to set a lock this way will fail.
+  
   The available switches are:
         /QUIET  - sets/removes the target without the 'Set.' or 'Cleared.' 
         /NOISY  - sets/removes the target with a verbose SET message.
@@ -6783,12 +6794,15 @@
   
 & @unlock
   Command: @unlock[/<whichlock>] <object>
+           @unlock/user <object>:<attribute>
            @unlock <object>/<attrib>
   
   The first form removes the lock on <object>, so that anyone may pass
   through (if an exit) or pick it up (if a player or an object).
   
-  The second form clears the locked flag on the indicated attribute of the
+  The second form removes the custom lock <attribute> on <object>.
+  
+  The third form clears the locked flag on the indicated attribute of the
   named object.  This allows the attribute to change ownership to the new
   owner automatically when the object is @chowned, and allows the owner
   of the object to @chown the attribute to itself or to overwrite it.
@@ -14064,7 +14078,8 @@
             elock(), @lock
 
 & lock()
-  Function: lock(<object>[/<whichlock>][,<key>][,<attribute>])
+  Function: lock(<object>[/<whichlock>] [,<key>] [,<attribute>])
+            lock(<object>/user:<attribute> [,<key>])
  
   Returns the named lock on <object>.  If you don't specify the lock to get,
   the default lock is returned.  You must control <object>.
@@ -14078,7 +14093,10 @@
   If <attribute> is specified, then if <key> is non-null, the attribute 
   specified by <attribute> is 'locked'.  If <key> is empty, then the attribute
   specified by <attribute> is 'unlocked'.
-
+  
+  The second form will let you check (or set/unset) a custom lock based on any
+  <attribute> you wish to define.
+  
   Example:
     > say lock(me)
     You say "*TinyPlayer"
@@ -14094,10 +14112,14 @@
   
 & elock()
   Function: elock(<object>[/<whichlock>], <victim> [,<type> [,<default>]])
+            elock(<object>/user:<attribute>, <victim> [,<type> [,<default>]])
   
   Checks if <victim> would pass the named lock on <object>.  Only the object's
   owner may test locks other than the default lock.
   
+  The second form will let you pass the custom lock on <object>.  Only the
+  object's owner may test these custom locks.
+   
   Optional values are as follows:
     <type>    -- The argument (0-2) that you wish to pass as '%0' for 
                  customizable UseLock lock checks.  '0' is default, 1 is 
@@ -20378,7 +20400,7 @@
   trees. 
    
   You may specify a type to check against.  The following types exist:
-    + - List existing lock attributes on player.
+    + - List existing lock attributes on player. (shows custom locks as well)
     $ - list all attributes that are $commands.
     ^ - list all attributes that are ^listens.
     & - list all attributes that contain all attribute flags <flags>.
@@ -22677,8 +22699,8 @@
   See Also: wizhelp hastype_always_zero
   
 & hasattr()
-  Function: hasattr(<object>/<attribute name>)
-            hasattr(<object>,<attribute name>)
+  Function: hasattr(<object>/<attribute name> [,<key>])
+            hasattr(<object>,<attribute name> [,<key>])
    
   Returns 1 if the object has the named attribute, and 0 if it does
   not. If the object does not exist or the player does not have the
@@ -22686,6 +22708,8 @@
  
   Hasattr() doesn't check for attributes inherited from parent
   objects. Use hasattrp() for that.
+  
+  If <key> is specified it will also optionally check for lock attributes. 
   
   Examples:
     > say hasattr(me/sex)
@@ -22698,8 +22722,8 @@
   See Also: hasattrp(), hasflag()
   
 & hasattrp()
-  Function: hasattrp(<object>/<attribute name>)
-            hasattrp(<object>,<attribute name>)
+  Function: hasattrp(<object>/<attribute name> [,<key>])
+            hasattrp(<object>,<attribute name> [,<key>])
    
   Returns 1 if any of it's parents has the named attribute,
   and 0 if it does not. If the object does not exist or the player
@@ -22708,6 +22732,8 @@
   Use hasattr() to check for attributes without checking parents.
   If the config option hasattrp_compat is set, it will check the target
   object for the attribute as well.
+  
+  If <key> is specified it will also optionally check for lock attributes. 
   
   Examples:
     > say hasattrp(me/desc)
@@ -35740,6 +35766,8 @@
  * /zone to @search, zsearch(), and zsearchobjid() [ASH]
  * account_boot() to boot via QUIT or LOGOUT account logins [ASH]
  * zlcon() for all members of a zonemaster [ASH]
+ * @lset, @lock, @unlock, lock(), elock(), hasattr(), hasattrp() handle 
+   custom lock attrs [ASH]
   
   Changes
   -------
