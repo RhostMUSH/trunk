@@ -32700,7 +32700,7 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.2.2
+  *** Current Revision: 4.2.3
   ***************************************************************************
   
   Available Revisions:
@@ -32720,7 +32720,7 @@
     3.9.5: 3.9.5p0, 3.9.5p1, 3.9.5p2, 3.9.5p3, 3.9.5p4
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
     4.1.0: 4.1.0p0, 4.1.0p1, 4.1.0p2
-      4.2: 4.2.0, 4.2.1, 4.2.2
+      4.2: 4.2.0, 4.2.1, 4.2.2, 4.2.3
   
   See Also: historical, credits
 
@@ -35884,3 +35884,17 @@
  * potential fix for ansi handler for '|' in printf [ASH]
  * potential off by one in buffer for template() [ASH]
  * totems were not cloned with a @clone [ASH]
+
+& 4.2.3
+  Release Date: 06/24/24
+ 
+  New Features
+  ------------
+
+
+  Changes
+  -------
+
+
+  Bug Fixes
+  ---------
