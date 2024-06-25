@@ -771,7 +771,7 @@ struct statedata {
 	int 	vattr_reuse[MAXVATTRCACHE + 1];
 	int 	vattr_reuseptr;
 	int 	vattr_reusecnt;
-
+	int	account_subsys_inuse;	/* Set to 1 if account subsystem is in use */
 	int	no_space_compress;	/* State data to not allow space compress */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */

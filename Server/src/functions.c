@@ -8893,13 +8893,21 @@ FUNCTION(fun_children)
  * type is '0' for orflags '1' for andflags
  */
 
-static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, int type)
+// static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, int type)
+static int handle_flaglists(dbref player, dbref cause, char **fargs, int nfargs, int type)
 {
-    char *s;
+    char *s, *name, *fstr, *fstr2;
     char flag_low[MBUF_SIZE+1], flag_high[MBUF_SIZE+1];
     int high_bit, esc_chr, negate, temp, ret;
     dbref it;
 
+    name = fargs[0];
+    fstr = fargs[1];
+    if ( (nfargs > 2) ) {
+       fstr2 = fargs[2];
+    } else {
+       fstr2 = NULL;
+    }
     memset(flag_low, 0, sizeof(flag_low));
     memset(flag_high, 0, sizeof(flag_high));
     it  = match_thing(player, name);
@@ -8908,11 +8916,63 @@ static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, i
         (!(SCloak(it) && Cloak(it)) || (SCloak(it) && Cloak(it) && Immortal(player))) &&
         (mudconf.pub_flags || Examinable(player, it) || (it == cause))) {
         unparse_fun_flags(player, it, flag_low, flag_high);
-    } else
+    } else {
         return 0;
+    }
 
     ret = type;
     negate = esc_chr = temp = high_bit = 0;
+
+    if ( fstr2 ) {
+       /* Low bit */
+       for (s = fstr; *s; s++) {
+          if (!*s)
+             return 0;
+          if (*s == '\\' || *s == '%') {
+             esc_chr = 1;
+             continue;
+          }
+          if (*s == '!' && !esc_chr ) {
+             negate = 1;
+             continue;
+          }
+          if ( negate ) {
+             ret = !((pmath2)strchr(flag_low, *s));
+          } else {
+             ret = (pmath2)strchr(flag_low, *s);
+          }
+          if ( type && !ret )
+               return 0;
+          if ( !type && ret )
+               return 1;
+          esc_chr = negate = 0;
+       }
+
+       /* High bit */
+       for (s = fstr2; *s; s++) {
+          if (!*s)
+             return 0;
+          if (*s == '\\' || *s == '%') {
+             esc_chr = 1;
+             continue;
+          }
+          if (*s == '!' && !esc_chr ) {
+             negate = 1;
+             continue;
+          }
+          if ( negate ) {
+             ret = !((pmath2)strchr(flag_high, *s));
+          } else {
+             ret = (pmath2)strchr(flag_high, *s);
+          }
+          if ( type && !ret )
+               return 0;
+          if ( !type && ret )
+               return 1;
+          esc_chr = negate = 0;
+       }
+       return (ret ? 1 : 0);
+    }
 
     for (s = fstr; *s; s++) {
 
@@ -8969,24 +9029,30 @@ static int handle_flaglists(dbref player, dbref cause, char *name, char *fstr, i
             if ( ret )
                return 1;
         }
-  esc_chr = negate = 0;
+        esc_chr = negate = 0;
     }
     return (ret ? 1 : 0);
 }
 
 FUNCTION(fun_orflags)
 {
-    fval(buff, bufcx, handle_flaglists(player, cause, fargs[0], fargs[1], 0));
+    if (!fn_range_check("ORFLAGS", nfargs, 2, 5, buff, bufcx))
+       return;
+    fval(buff, bufcx, handle_flaglists(player, cause, fargs, nfargs, 0));
+    // fval(buff, bufcx, handle_flaglists(player, cause, fargs[0], fargs[1], 0));
 }
 
 FUNCTION(fun_andflags)
 {
-    fval(buff, bufcx, handle_flaglists(player, cause, fargs[0], fargs[1], 1));
+    if (!fn_range_check("ANDFLAGS", nfargs, 2, 5, buff, bufcx))
+       return;
+    fval(buff, bufcx, handle_flaglists(player, cause, fargs, nfargs, 1));
+    // fval(buff, bufcx, handle_flaglists(player, cause, fargs[0], fargs[1], 1));
 }
 
 FUNCTION(fun_keepflags)
 {
-   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return;
+   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return, *s_array[3];
    int first, i_type, obj, i_objid;
 
    if (!fn_range_check("KEEPFLAGS", nfargs, 2, 5, buff, bufcx))
@@ -9035,7 +9101,12 @@ FUNCTION(fun_keepflags)
            pt1 = strtok_r(NULL, sep_buf, &s_tok);
            continue;
         }
-        if ( handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
+//      if ( handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
+        sprintf(s_tprintf, "#%d", obj);
+        s_array[0] = s_tprintf;
+        s_array[1] = pt2;
+        s_array[2] = NULL;
+        if ( handle_flaglists(player, cause, s_array, 2, i_type) ) {
            if ( first && osep )
               safe_chr(osep, buff, bufcx);
            if ( i_objid ) {
@@ -9056,7 +9127,7 @@ FUNCTION(fun_keepflags)
 
 FUNCTION(fun_remflags)
 {
-   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return;
+   char *pt1, *pt2, *s_tok, *s_tprintf, *s_tprintfptr, sep, osep, sep_buf[2], *s_return, *s_array[3];
    int first, i_type, obj, i_objid;
 
    if (!fn_range_check("REMFLAGS", nfargs, 2, 5, buff, bufcx))
@@ -9105,7 +9176,12 @@ FUNCTION(fun_remflags)
            pt1 = strtok_r(NULL, sep_buf, &s_tok);
            continue;
         }
-        if ( !handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
+//      if ( !handle_flaglists(player, cause, safe_tprintf(s_tprintf, &s_tprintfptr, "#%d", obj), pt2, i_type) ) {
+        sprintf(s_tprintf, "#%d", obj);
+        s_array[0] = s_tprintf;
+        s_array[1] = pt2;
+        s_array[2] = NULL;
+        if ( !handle_flaglists(player, cause, s_array, 2, i_type) ) {
            if ( first && osep )
               safe_chr(osep, buff, bufcx);
            if ( i_objid ) {
@@ -41315,7 +41391,7 @@ FUN flist[] =
     {"AND", fun_and, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDCHR", fun_andchr, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDFLAG", fun_andflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"ANDFLAGS", fun_andflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ANDFLAGS", fun_andflags, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANDTOTEM", fun_andtotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ANDTOTEMS", fun_andtotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ANSI", fun_ansi, 0, FN_VARARGS, CA_PUBLIC, 0},
@@ -41733,7 +41809,7 @@ FUN flist[] =
     {"OR", fun_or, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ORCHR", fun_orchr, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ORFLAG", fun_orflag, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"ORFLAGS", fun_orflags, 2, 0, CA_PUBLIC, CA_NO_CODE},
+    {"ORFLAGS", fun_orflags, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"ORTOTEM", fun_ortotem, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"ORTOTEMS", fun_ortotems, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"OWNER", fun_owner, 1, 0, CA_PUBLIC, CA_NO_CODE},

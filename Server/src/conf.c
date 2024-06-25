@@ -416,6 +416,7 @@ NDECL(cf_init)
     for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
        mudstate.vattr_reuse[i] = 0;
     }
+    mudstate.account_subsys_inuse = 0;
     mudstate.recordconn = 0;
     mudstate.recordcurrconn = 0;
     mudstate.vattr_reuseptr = NOTHING;

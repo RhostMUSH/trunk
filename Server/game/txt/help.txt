@@ -21136,11 +21136,16 @@
   
 & ANDFLAGS()
   Function: andflags(<target>,<flag-list>)
+            andflags(<target>, <low-order flags>, <high order flags>)
   
   This function checks if the target has ALL the specified flags.  You
   may also specify !<letter> to check if it does not have the specified
   flag.  Since the GUEST flag is the '!' character as well, if you wish
   to match against the guest flag, you just escape it out like '\\!'.
+  
+  You may specify the second option and separately specify the low order
+  and high order of flags.  This removes the need to use the '1' and '2'
+  option to go up and down the order of flags.
   
   RhostMUSH also has a high-order of flags.  These show up between []'s
   when you do a flags().  To check against these flags, you must proceed
@@ -21159,6 +21164,7 @@
     You say "1"
     > say andflags(me,P2I1c)]
     You say "1"
+    > say andflags(me,Pc,I)]
   
   See Also: andflag(), orflag(), orflags(), hasflag(), flags(), lflags()
   
@@ -21288,7 +21294,8 @@
             hastotem(), @totem
 
 & ORFLAGS()
-  Function: orflags(<target>,<flag-list>)
+  Function: orflags(<target>, <flag-list>)
+            orflags(<target>, <low-order flags>, <high order flags>)
   
   This function checks if the target has ANY of the specified flags.  You
   may also specify !<letter> to check if it does not have the specified
@@ -21301,6 +21308,10 @@
   it with a '1' (default).  You must escape out the '1' and the '2' if
   you wish to specify the MARKER flags (1 and 2).  Ie: '\\1', '\\2'.
   
+  You may specify the second option and separately specify the low order
+  and high order of flags.  This removes the need to use the '1' and '2'
+  option to go up and down the order of flags.
+  
   Examples:
     > say flags(me)
     You say "PDc!W[I]"
@@ -21311,6 +21322,8 @@
     > say orflags(me,P2I)]
     You say "1"
     > say orflags(me,P2I1qZV)]
+    You say "1"
+    > say orflags(me,PqZV,I)]
     You say "1"
   
   See Also: andflag(), andflags(), orflag(), hasflag(), flags(), lflags()
@@ -35894,7 +35907,10 @@
 
   Changes
   -------
+  - orflags() handles third argument optionally for second word of flags [ASH]
+  - andflags() handles third argument optionally for second word of flags [ASH]
 
 
   Bug Fixes
   ---------
+  - connect_perm was too restrictive for the account subsystem [ASH]

@@ -4610,7 +4610,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
       /* Trying to connect to player below specified bitlevel */
       if ( Good_chk(player2) && (chkbit(player2) < i_chk) &&
-           !(Guest(player2) && (mudconf.connect_perm & 100)) ) {
+           !(Guest(player2) && (!mudstate.account_subsys_inuse && (mudconf.connect_perm & 100)) ) ) {
          queue_string(d, "Connections to that player are unable to use the standard connect command.\r\n");
          queue_string(d, "Try account management?\r\n");
          broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (CONNECT PERM RESTRICTED)", 
@@ -5167,9 +5167,13 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 int
 check_connect_ex(DESC * d, char *msg, int key, int i_attr)
 {
-   int i_return;
+   int i_return, i_override;
 
+   
+   i_override = mudstate.account_subsys_inuse;
+   mudstate.account_subsys_inuse = 1;
    i_return = check_connect(d, msg, key, i_attr);
+   mudstate.account_subsys_inuse = i_override;
    return(i_return);
 }
 
