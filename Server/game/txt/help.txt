@@ -32700,7 +32700,8 @@
   Developers who are MIA or retired are surrounded in []'s.
    
   ***************************************************************************
-  *** Current Revision: 4.2.3
+  *** Current Revision: None, replaced by Semantic Versioning.
+  *** See: 'help changelog'
   ***************************************************************************
   
   Available Revisions:
@@ -32721,6 +32722,8 @@
     4.0.0: 4.0.0p0, 4.0.0p1, 4.0.0p2, 4.0.0p3, 4.0.0p4
     4.1.0: 4.1.0p0, 4.1.0p1, 4.1.0p2
       4.2: 4.2.0, 4.2.1, 4.2.2, 4.2.3
+      4.3: Starting with 4.3.0, Semantic Versioning is being used.
+           See: 'help changelog'
   
   See Also: historical, credits
 
@@ -35885,16 +35888,47 @@
  * potential off by one in buffer for template() [ASH]
  * totems were not cloned with a @clone [ASH]
 
-& 4.2.3
-  Release Date: 06/24/24
- 
-  New Features
-  ------------
+& Changelog
+
+  This is a list of current RhostMUSH Changelogs.
+  Starting on 06/26/24, Rhost switched from a rather arbitrary way of
+  versioning to proper semantic versioning.
+  See https://semver.org/
+
+  The Changelog entries will be sequentially numbered, with 'Changelog 1'
+  always containing the most recent changes. Each changelog will be filled
+  til around 65 lines in height, before older entries get pushed back into
+  Changelog 2, Changelog 3, etc.
+
+  Each Changelog consists of released RhostMUSH versions, with changes
+  listed beneath each version.
+
+  Current Changelogs:
+  -------------------
+  1 - 4.3.0
 
 
-  Changes
-  -------
+& Changelog latest
+& Changelog newest
+& Changelog recent
+& Changelog 1
 
 
-  Bug Fixes
-  ---------
+  4.3.0 - 06/26/24
+  ----------------
+  * Changed to a new semantic versioning system. Version numbers will
+    continue from 4.3.0 onward and will follow the Semantic Versioning
+    concept of MAJOR.MINOR.RELEASE [AMB]
+
+  * Rewrite of the automatic patchlevel.h generation for changes pushed
+    to the master branch [AMB]
+
+  * Detailed versioning rules in patchlevel.template [AMB]
+
+  * New 'Changelog X' help entries. The newest version(s) will always
+    be in 'Changelog 1', older entries will get pushed to 2, 3 etc.
+    once the current Changelog length would go over roughly 65
+    lines in length. Doe to the more rapid version changes, the
+    separation into new features, bugfixes etc. probably will not
+    be needed anymore. [AMB]
+

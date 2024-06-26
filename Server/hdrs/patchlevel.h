@@ -4,26 +4,45 @@
 
 #include "copyright.h"
 
-#define MUSH_VERSION            "4.2.2-211"         /* Base version number*/
+/* PATCHLEVEL_CHANGED 0 */
 
-#if defined(ZENTY_ANSI) && defined(REALITY_LEVELS)
-#define EXT_MUSH_VER "RL(A)"
-#elif defined(ZENTY_ANSI)
-#define EXT_MUSH_VER "(A)"
-#elif defined(REALITY_LEVELS)
-#define EXT_MUSH_VER "RL"
-#else
-#define EXT_MUSH_VER ""
-#endif
+/* RHOST VERSIONING HOWTO:
+ * -----------------------
+ * -  When FIRST commiting new major rewrite code, change the Rhost version to
+ *    'NEWMAJOR.0.0' and specify a 'VERSION_EXT' of 'ALPHA'. Later move on to
+ *    'BETA' when thins mature, and finally the Release Candidate 'RC#' stage
+ *    once it is ready for general public testing.
+ *    Examples for this are major DB system rewrites, big overhauls of
+ *    internal structures, etc.
+ *    Read: You are changing Rhost's very heart.
+ *
+ * -  The final go-live commit once the major rewrite is mature and tested
+ *    should remain at 'NEWMAJOR.0.0', but without any 'VERSION_EXT' set.
+ *
+ * -  Normal new features and feature changes should increment 'MINOR' by one.
+ *
+ * -  Bugfixes and crashfixes should increment 'PATCH' by one.
+ *
+ * -  All these version changes should happen only when commiting on the
+ *    MASTER BRANCH.
+ * -  Commits to your own branches, feature branches, etc. MUST NOT change the
+ *    version number.
+ *
+ * -  In all cases, before commiting, set the 'PATCHLEVEL_CHECKED' comment
+ *    above to 1. The Git commit/push hooks will work off that value to
+ *    make sure to show up a reminder to check the version number in this file
+ *    in case that comment is left at 0. You need to set it to 1 in order to
+ *    push successfully. It will re-set it to 0 during a successful commit.
+ *
+ * -  The 'MUSH_RELEASE_DATE' gets automatically filled out in the patchlevel
+ *    file. 
+ */
 
-#define PATCHLEVEL		0		/* Patch sequence number     */
-#define PATCHLEVELEXT		""
-#define	MUSH_RELEASE_DATE	"06/24/2024"	/* Source release date       */
+#define MAJOR_VERSION           "4" /* Major rewrites, DB system changes..   */
+#define MINOR_VERSION           "3" /* Normal new features and changes       */
+#define PATCH_VERSION           "0" /* Bugfixes, crashfixes etc.             */
+#define VERSION_EXT             ""  /* "" OR "ALPHA", "BETA, "RC1", "RC2"... */
 
-/* Define if an ALPHA release */
-/* #define ALPHA 0 */
-
-/* Define if a BETA release   */
-/* #define BETA 1 */
+#define MUSH_RELEASE_DATE       "MM/DD/YYYY"          /* Source release date */
 
 #endif
