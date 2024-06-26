@@ -13,12 +13,12 @@ if [[ "${curr_branch}" == "master" ]]; then
         else
             PSTATE=$(grep -q "PATCHONLY" $(pwd)/tag.tmp && echo "1" || echo "0")
             if [[ "${PSTATE}" -eq "1" ]];then
-                OLDTAG=$(grep -P "^OLD \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2)
+                OLDTAG=$(grep -P "^OLD \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
                 git tag -d ${OLDTAG}
                 git push --delete origin ${OLDTAG}
                 git tag -a ${OLDTAG}
             else
-                NEWTAG=$(grep -P "^NEW \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2)
+                NEWTAG=$(grep -P "^NEW \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
                 git tag -a ${NEWTAG}
             fi
             rm $(pwd)/tag.tmp
