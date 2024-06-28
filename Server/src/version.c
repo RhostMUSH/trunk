@@ -51,13 +51,13 @@ char	*buff;
 void NDECL(init_version)
 {
     if(strcmp(VERSION_EXT,"")) {
-	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s-%.8s #%.10s [%.30s]",
-		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, VERSION_EXT, MUSH_BUILD_NUM, MUSH_RELEASE_DATE);
+	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s-%.8s [%.30s] #%.10s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, VERSION_EXT, MUSH_RELEASE_DATE, MUSH_BUILD_NUM);
 	sprintf(mudstate.short_ver, "RhostMUSH %.2s.%.2s.%.2s-%.8s",
 		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, VERSION_EXT);
     } else {
-	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s #%.10s [%.30s]",
-		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, MUSH_BUILD_NUM, MUSH_RELEASE_DATE);
+	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s [%.30s] #%.10s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, MUSH_RELEASE_DATE, MUSH_BUILD_NUM);
 	sprintf(mudstate.short_ver, "RhostMUSH %.2s.%.2s.%.2s",
 		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
     }
