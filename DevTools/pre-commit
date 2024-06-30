@@ -96,6 +96,8 @@ else
     fi
 
     cp $(pwd)/Server/hdrs/patchlevel.template $(pwd)/Server/hdrs/patchlevel.h
+    sed -i "s/PATCHLEVEL_CHANGED 1/PATCHLEVEL_CHANGED 0/g" $(pwd)/Server/hdrs/patchlevel.template
+    git add $(pwd)/Server/hdrs/patchlevel.template
     YEAR=$(date +%Y)
     MONTH=$(date +%m)
     DAY=$(date +%d)
