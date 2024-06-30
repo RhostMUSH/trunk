@@ -35888,10 +35888,10 @@
  * potential off by one in buffer for template() [ASH]
  * totems were not cloned with a @clone [ASH]
 
-& Changelog
+& changelog
 
   This is a list of current RhostMUSH Changelogs.
-  Starting on 06/26/24, Rhost switched from a rather arbitrary way of
+  Starting on 06/30/24, Rhost switched from a rather arbitrary way of
   versioning to proper semantic versioning.
   See https://semver.org/
 
@@ -35908,13 +35908,13 @@
   1 - 4.3.0
 
 
-& Changelog latest
-& Changelog newest
-& Changelog recent
-& Changelog 1
+& changelog latest
+& changelog newest
+& changelog recent
+& changelog 1
 
 
-  4.3.0 - 06/26/24
+  4.3.0 - 06/30/24
   ----------------
   * Changed to a new semantic versioning system. Version numbers will
     continue from 4.3.0 onward and will follow the Semantic Versioning

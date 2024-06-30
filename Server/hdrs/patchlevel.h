@@ -43,6 +43,6 @@
 #define PATCH_VERSION           "0" /* Bugfixes, crashfixes etc.             */
 #define VERSION_EXT             ""  /* "" OR "ALPHA", "BETA, "RC1", "RC2"... */
 
-#define MUSH_RELEASE_DATE       "06/26/2024"          /* Source release date */
+#define MUSH_RELEASE_DATE       "2024-06-30"          /* Source release date */
 
 #endif
