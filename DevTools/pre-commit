@@ -8,19 +8,105 @@
 # Place this file into your .git/hooks/ directory. This will automatically
 # generate a new patchlevel.h file before committing. --Ambrosia
 
-version_regex='v([0-9]+)\.([0-9]+)\.?([0-9]*)-([0-9]+)-g([0-9|a-z]+)'
-git_string=$(git describe --tags --long)
+# Enable automatic pushing of tags
+git config push.followTags true
 
-if [[ $git_string =~ $version_regex ]]; then
-    major_version="${BASH_REMATCH[1]}"
-    minor_version="${BASH_REMATCH[2]}"
-    patch_version="${BASH_REMATCH[3]}"
-    commits_ahead="${BASH_REMATCH[4]}"
+curr_branch=$(git branch | grep '*' | cut -d" " -f2)
+template_check=$(grep -q "PATCHLEVEL_CHANGED 1" $(pwd)/Server/hdrs/patchlevel.template && echo "1" || echo "0")
+template_commit=$(echo $(git diff --cached --name-only) | grep -q "Server/hdrs/patchlevel.template" && echo "1" || echo "0")
+
+if [[ "${curr_branch}" != "master" ]]; then
+    if [[ "${template_check}" -eq "1" ]] || [[ "${template_commit}" -eq "1" ]];then
+	echo " "
+        echo "WARNING: 'patchlevel.template' modified outside the master branch!" 
+        echo "         This is fine if you just merged master into the current branch." 
+	echo " "
+	echo "         Do not modify it when working in your own branch."
+	echo " "
+	echo "         Only modify it when merging into master."
+	sleep 7
+    fi
 else
-    echo "Error: git describe did not output a valid version string. Unable to update patchlevel.template" >&2
-    exit 1
-fi
+    if [[ "${template_check}" -eq "0" ]] || [[ "${template_commit}" -eq "0" ]];then
+	echo " "
+        echo "ERROR: You have not prepared patchlevel.template for a version update!" >&2
+        echo "       Please perform the following steps:" >&2
+        [[ "${template_check}"  -eq "0" ]] && echo "       Set the PATCHLEVEL_CHECKED comment in the file to 1" >&2
+        [[ "${template_commit}" -eq "0" ]] && echo "       Modify the version number(s) in the file and add it to the commit." >&2
+        exit 1
+    fi
 
-sed -e "s#ZZMAJOR#$major_version#g" -e "s#ZZMINOR#$minor_version#g" -e "s#ZZPATCH#$patch_version#g" -e "s#ZZCOMMITS#$commits_ahead#g" -e "s#ZZDATE#$(date +%m/%d/%Y)#g" "$(pwd)/Server/hdrs/patchlevel.template" > $(pwd)/Server/hdrs/patchlevel.h
-git add $(pwd)/Server/hdrs/patchlevel.h
-sleep 2
+    git fetch
+    if [[ $(git rev-parse HEAD) != $(git rev-parse @{u}) ]];then
+	echo " "
+	echo "ERROR: The remote master branch is more up to date!" >&2
+	echo "       New refs have been fetched. Please run 'git merge' before running" >&2
+	echo "       'git commit' again. Make sure your 'patchlevel.template' file changes" >&2
+	echo "       do not get overwritten!" >&2
+	exit 1
+    fi
+
+    version_regex='^([0-9]+)\.([0-9]+)\.([0-9]+)(\+.+)*$'
+    current_tag=$(git describe --tags --candidates=1)
+    current_tag=$(echo ${current_tag} | tr -d 'v')
+    if [[ ${current_tag} =~ ${version_regex} ]]; then
+        current_major="${BASH_REMATCH[1]}"
+        current_minor="${BASH_REMATCH[2]}"
+        current_patch="${BASH_REMATCH[3]}"
+    else
+	echo " "
+        echo "ERROR: 'git describe --tags --candidates=1' did not output a valid version" >&2
+        echo "        string for the current repo. Unable to use patchlevel.template." >&2
+        echo "        This requires manual fixing of the repository." >&2
+        exit 1
+    fi
+    pfile_major=$(grep "#define MAJOR_VERSION " $(pwd)/Server/hdrs/patchlevel.template | awk '{print $3}' |tr -d '"')
+    pfile_minor=$(grep "#define MINOR_VERSION " $(pwd)/Server/hdrs/patchlevel.template | awk '{print $3}' |tr -d '"')
+    pfile_patch=$(grep "#define PATCH_VERSION " $(pwd)/Server/hdrs/patchlevel.template | awk '{print $3}' |tr -d '"')
+    pfile_ext=$(grep "#define VERSION_EXT " $(pwd)/Server/hdrs/patchlevel.template | awk '{print $3}' |tr -d '"')
+    is_larger=0
+    major_changed=0
+    minor_changed=0
+    patch_changed=0
+    for i in major minor patch
+    do
+	tempvar=pfile_${i}
+	tempvar2=current_${i}
+        if [[ "${!tempvar}" -lt "${!tempvar2}" ]];then
+            if [[ "$(( $major_changed + $minor_changed + $patch_changed ))" -eq "0" ]];then
+                echo "ERROR: The new version number can not be lower than the current one!" >&2
+                exit 1
+            fi
+        elif [[ "${!tempvar}" -gt "${!tempvar2}" ]];then
+	   eval ${i}_changed=1
+        fi
+    done
+    if [[ "$(( ${major_changed} + ${minor_changed} + ${patch_changed} ))" -eq "0" ]];then
+        echo "ERROR: The new version number must be different from the old one!" >&2
+        exit 1
+    fi
+    echo "OLD ${current_tag}" > $(pwd)/tag.tmp
+    if [ -z "${pfile_ext}" ];then
+        echo "NEW ${pfile_major}.${pfile_minor}.${pfile_patch}" >> $(pwd)/tag.tmp
+    else
+        echo "NEW ${pfile_major}.${pfile_minor}.${pfile_patch}-${pfile_ext}" >> $(pwd)/tag.tmp
+    fi
+    if [[ "$(( ${major_changed} + ${minor_changed} ))" -eq "0" ]];then
+	    echo "PATCHONLY" >> $(pwd)/tag.tmp
+    fi
+
+    cp $(pwd)/Server/hdrs/patchlevel.template $(pwd)/Server/hdrs/patchlevel.h
+    sed -i "s/PATCHLEVEL_CHANGED 1/PATCHLEVEL_CHANGED 0/g" $(pwd)/Server/hdrs/patchlevel.template
+    git add $(pwd)/Server/hdrs/patchlevel.template
+    YEAR=$(date +%Y)
+    MONTH=$(date +%m)
+    DAY=$(date +%d)
+    sed -i "s/YYYY/${YEAR}/g" $(pwd)/Server/hdrs/patchlevel.h
+    sed -i "s/MM/${MONTH}/g" $(pwd)/Server/hdrs/patchlevel.h
+    sed -i "s/DD/${DAY}/g" $(pwd)/Server/hdrs/patchlevel.h
+    git add $(pwd)/Server/hdrs/patchlevel.h
+    echo " "
+    echo "NOTE: Please 'git push' your changes to the master branch"
+    echo "      ASAP to avoid versioning conflicts!"
+    sleep 3
+fi

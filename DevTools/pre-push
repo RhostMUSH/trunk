@@ -1,0 +1,36 @@
+#!/bin/bash
+curr_branch=$(git branch | grep '*' | cut -d" " -f2)
+if [[ "${curr_branch}" == "master" ]]; then
+    if [[ -s $(pwd)/tag.tmp ]];then
+        HASOLD=$(grep -qP "^OLD \d+\.\d+\.\d+$" $(pwd)/tag.tmp && echo "1" || echo "0")
+        HASNEW=$(grep -qP "^NEW \d+\.\d+\.\d+$" $(pwd)/tag.tmp && echo "1" || echo "0")
+        if [[ "$(( ${HASOLD} + ${HASNEW} ))" -eq "0" ]];then
+	    echo " "
+            echo "ERROR: Malformed tag.tmp file!" >&2
+            [[ "${HASOLD}" -eq "0" ]] && echo "       OLD version missing!" >&2
+            [[ "${HASNEW}" -eq "0" ]] && echo "       NEW version missing!" >&2
+            exit 1
+        else
+            PSTATE=$(grep -q "PATCHONLY" $(pwd)/tag.tmp && echo "1" || echo "0")
+            if [[ "${PSTATE}" -eq "1" ]];then
+                OLDTAG=$(grep -P "^OLD \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
+                git tag -d ${OLDTAG}
+                git push --delete origin ${OLDTAG}
+                git tag -a ${OLDTAG}
+            else
+                NEWTAG=$(grep -P "^NEW \d+\.\d+\.\d+$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
+                git tag -a ${NEWTAG}
+            fi
+            rm $(pwd)/tag.tmp
+        fi
+    else
+	echo " "
+        echo "ERROR: No tag.tmp file found!" >&2
+        echo "       Something went wrong with the automatic versioning!" >&2
+        echo "       To try and fix this, do:" >&2
+        echo "       *  git reset HEAD~" >&2
+        echo "       *  git checkout Server/hdrs/patchlevel.h" >&2
+        echo "       Then try to git commit and push again." >&2
+        exit 1
+    fi
+fi

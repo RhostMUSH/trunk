@@ -50,38 +50,17 @@ char	*buff;
 
 void NDECL(init_version)
 {
-#ifdef BETA
-#define INDEVEL_TAG "Beta"
-#endif
-#ifdef ALPHA
-#define INDEVEL_TAG "Alpha"
-#endif
-
-#ifdef INDEVEL_TAG
-#if PATCHLEVEL > 0
-	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s %.10s patchlevel %d%.10s #%.10s%.20s",
-		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, MUSH_BUILD_NUM, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s %.10s.p%d%.10s%.20s",
-		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, mudconf.vercustomstr);
-#else
-	sprintf(mudstate.version, "RhostMUSH %.10s version %.30s %.10s #%.10s%.20s",
-		INDEVEL_TAG, MUSH_VERSION, EXT_MUSH_VER, MUSH_BUILD_NUM, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.10s %.30s %.10s%.20s", INDEVEL_TAG,
-		MUSH_VERSION, EXT_MUSH_VER, mudconf.vercustomstr);
-#endif	/* PATCHLEVEL */
-#else	/* not BETA or ALPHA */
-#if PATCHLEVEL > 0
-	sprintf(mudstate.version, "RhostMUSH version %.30s %.10s patchlevel %d%.10s #%.10s [%.30s]%.20s",
-		MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, MUSH_BUILD_NUM, MUSH_RELEASE_DATE, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.30s %.10s.p%d%.10s%.20s",
-		MUSH_VERSION, EXT_MUSH_VER, PATCHLEVEL, PATCHLEVELEXT, mudconf.vercustomstr);
-#else
-	sprintf(mudstate.version, "RhostMUSH version %.30s %.10s #%.10s [%.30s]%.20s",
-		MUSH_VERSION, EXT_MUSH_VER, MUSH_BUILD_NUM, MUSH_RELEASE_DATE, mudconf.vercustomstr);
-	sprintf(mudstate.short_ver, "RhostMUSH %.30s%.10s%.20s",
-		MUSH_VERSION, EXT_MUSH_VER, mudconf.vercustomstr);
-#endif	/* PATCHLEVEL */
-#endif	/* BETA */
+    if(strcmp(VERSION_EXT,"")) {
+	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s-%.8s [%.30s] #%.10s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, VERSION_EXT, MUSH_RELEASE_DATE, MUSH_BUILD_NUM);
+	sprintf(mudstate.short_ver, "RhostMUSH %.2s.%.2s.%.2s-%.8s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, VERSION_EXT);
+    } else {
+	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s [%.30s] #%.10s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, MUSH_RELEASE_DATE, MUSH_BUILD_NUM);
+	sprintf(mudstate.short_ver, "RhostMUSH %.2s.%.2s.%.2s",
+		MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION);
+    }
 	STARTLOG(LOG_ALWAYS,"INI","START")
 		log_text((char *)"Starting: ");
 		log_text(mudstate.version);
