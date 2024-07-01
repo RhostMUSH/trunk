@@ -76,6 +76,7 @@ if [[ "${curr_branch}" == "master" ]]; then
                 git tag -d ${OLDTAG}
                 git push --delete --no-verify origin ${OLDTAG}
                 git tag -a ${OLDTAG} -m "${OLDTAG} tag move."
+		git push --no-verify --tag
             else
                 NEWTAG=$(grep -P "^NEW \d+\.\d+(\+.+)*$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
                 git tag -a ${NEWTAG} -m "${NEWTAG} release."
