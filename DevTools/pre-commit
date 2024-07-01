@@ -1,11 +1,4 @@
 #!/bin/bash
-
-# NOTE: Do NOT use this file if you are not working on the original RhostMUSH
-#       repository. Else the version(s) in your private repo will start to
-#       deviate, and you will get troubles with later merges.
-
-# Rhost-Devs:
-# Place this file into your .git/hooks/ directory. This will automatically
 # generate a new patchlevel.h file before committing. --Ambrosia
 
 # Enable automatic pushing of tags
@@ -17,18 +10,18 @@ template_commit=$(echo $(git diff --cached --name-only) | grep -q "Server/hdrs/p
 
 if [[ "${curr_branch}" != "master" ]]; then
     if [[ "${template_check}" -eq "1" ]] || [[ "${template_commit}" -eq "1" ]];then
-	echo " "
-        echo "WARNING: 'patchlevel.template' modified outside the master branch!" 
-        echo "         This is fine if you just merged master into the current branch." 
-	echo " "
-	echo "         Do not modify it when working in your own branch."
-	echo " "
-	echo "         Only modify it when merging into master."
-	sleep 7
+        echo " "
+        echo "WARNING: 'patchlevel.template' modified outside the master branch!"
+        echo "         This is fine if you just merged master into the current branch."
+        echo " "
+        echo "         Do not modify it when working in your own branch."
+        echo " "
+        echo "         Only modify it when merging into master."
+        sleep 7
     fi
 else
     if [[ "${template_check}" -eq "0" ]] || [[ "${template_commit}" -eq "0" ]];then
-	echo " "
+        echo " "
         echo "ERROR: You have not prepared patchlevel.template for a version update!" >&2
         echo "       Please perform the following steps:" >&2
         [[ "${template_check}"  -eq "0" ]] && echo "       Set the PATCHLEVEL_CHECKED comment in the file to 1" >&2
@@ -39,23 +32,23 @@ else
     git fetch
     ISBEHIND=$(git status -sb | grep -qi behind && echo "1" || echo "0")
         if [[ "${ISBEHIND}" -eq "1" ]];then
-	echo " "
-	echo "ERROR: The remote master branch is more up to date!" >&2
-	echo "       New refs have been fetched. Please run 'git merge' before running" >&2
-	echo "       'git commit' again. Make sure your 'patchlevel.template' file changes" >&2
-	echo "       do not get overwritten!" >&2
-	exit 1
+        echo " "
+        echo "ERROR: The remote master branch is more up to date!" >&2
+        echo "       New refs have been fetched. Please run 'git merge' before running" >&2
+        echo "       'git commit' again. Make sure your 'patchlevel.template' file changes" >&2
+        echo "       do not get overwritten!" >&2
+        exit 1
     fi
 
-    version_regex='^([0-9]+)\.([0-9]+)\.([0-9]+)(\+.+)*$'
+    version_regex='^([0-9]+)\.([0-9]+)(\+.+)*$'
     current_tag=$(git describe --tags --abbrev=0 --candidates=1)
     current_tag=$(echo ${current_tag} | tr -d 'v')
     if [[ ${current_tag} =~ ${version_regex} ]]; then
         current_major="${BASH_REMATCH[1]}"
         current_minor="${BASH_REMATCH[2]}"
-        current_patch="${BASH_REMATCH[3]}"
+        current_patch=$(git grep PATCH_VERSION $(git ls-remote . 'refs/remotes/*/HEAD' |cut -f 1) |grep 'patchlevel.h' | awk '{print $3}' |tr -d \")
     else
-	echo " "
+        echo " "
         echo "ERROR: 'git describe --tags --candidates=1' did not output a valid version" >&2
         echo "        string for the current repo. Unable to use patchlevel.template." >&2
         echo "        This requires manual fixing of the repository." >&2
@@ -71,29 +64,20 @@ else
     patch_changed=0
     for i in major minor patch
     do
-	tempvar=pfile_${i}
-	tempvar2=current_${i}
+        tempvar=pfile_${i}
+        tempvar2=current_${i}
         if [[ "${!tempvar}" -lt "${!tempvar2}" ]];then
             if [[ "$(( $major_changed + $minor_changed + $patch_changed ))" -eq "0" ]];then
                 echo "ERROR: The new version number can not be lower than the current one!" >&2
                 exit 1
             fi
         elif [[ "${!tempvar}" -gt "${!tempvar2}" ]];then
-	   eval ${i}_changed=1
+           eval ${i}_changed=1
         fi
     done
     if [[ "$(( ${major_changed} + ${minor_changed} + ${patch_changed} ))" -eq "0" ]];then
         echo "ERROR: The new version number must be different from the old one!" >&2
         exit 1
-    fi
-    echo "OLD ${current_tag}" > $(pwd)/tag.tmp
-    if [ -z "${pfile_ext}" ];then
-        echo "NEW ${pfile_major}.${pfile_minor}.${pfile_patch}" >> $(pwd)/tag.tmp
-    else
-        echo "NEW ${pfile_major}.${pfile_minor}.${pfile_patch}-${pfile_ext}" >> $(pwd)/tag.tmp
-    fi
-    if [[ "$(( ${major_changed} + ${minor_changed} ))" -eq "0" ]];then
-	    echo "PATCHONLY" >> $(pwd)/tag.tmp
     fi
 
     cp $(pwd)/Server/hdrs/patchlevel.template $(pwd)/Server/hdrs/patchlevel.h
@@ -111,3 +95,4 @@ else
     echo "      ASAP to avoid versioning conflicts!"
     sleep 3
 fi
+
