@@ -35953,7 +35953,7 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4
+  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6
 
 
 & changelog latest
@@ -35961,6 +35961,11 @@
 & changelog recent
 & changelog 1
 
+  4.3.6 - 07/01/24
+  -------------------------
+  * bug with reverse order on setunion() with output delimiter
+  
+  
   4.3.5 - 07/01/24
   -------------------------
   * added reverse sort order to sort(), setunion(), setdiff(), 
