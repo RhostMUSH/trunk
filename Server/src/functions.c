@@ -36351,45 +36351,48 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                     i2++;
              }
              /* Compare and copy */
-             if ((i1 < n1) && (i2 < n2)) {
-                if (!first)
-                   safe_chr(osep, buff, bufcx);
-                first = 0;
+             if ( (i1 < n1) && (i2 < n2) ) {
                 i_cmp = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type, i_reverse);
                 if (i_cmp < 0) {
-                    safe_str(ptrs1[i1], buff, bufcx);
                     oldp = ptrs1[i1];
+                    if (oldp && *oldp && !first)
+                       safe_chr(osep, buff, bufcx);
+                    first = 0;
+                    safe_str(ptrs1[i1], buff, bufcx);
                     i1++;
                 } else {
-                    safe_str(ptrs2[i2], buff, bufcx);
                     oldp = ptrs2[i2];
+                    if (oldp && *oldp && !first)
+                       safe_chr(osep, buff, bufcx);
+                    first = 0;
+                    safe_str(ptrs2[i2], buff, bufcx);
                     i2++;
                 }
-                if ( !*oldp || !oldp)
+                if ( !oldp || !*oldp )
                    first = 1;
              }
           }
           /* Copy rest of remaining list, stripping duplicates */
           for (; i1 < n1; i1++) {
              if (strcmp(oldp, ptrs1[i1])) {
-                if (!first)
+                oldp = ptrs1[i1];
+                if (oldp && *oldp && !first)
                    safe_chr(osep, buff, bufcx);
                 first = 0;
                 safe_str(ptrs1[i1], buff, bufcx);
-                oldp = ptrs1[i1];
              }
-             if ( !*oldp || !oldp )
+             if ( !oldp || !*oldp  )
                 first = 1;
           }
           for (; i2 < n2; i2++) {
               if (strcmp(oldp, ptrs2[i2])) {
-                 if (!first)
+                 oldp = ptrs2[i2];
+                 if (oldp && *oldp && !first)
                     safe_chr(osep, buff, bufcx);
                  first = 0;
                  safe_str(ptrs2[i2], buff, bufcx);
-                 oldp = ptrs2[i2];
               }
-              if ( !*oldp || !oldp )
+              if ( !oldp || !*oldp  )
                  first = 1;
           }
           break;
