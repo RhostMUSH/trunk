@@ -35943,7 +35943,7 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.3.0
+  1 - 4.3.0, 4.3.1, 4.3.2
 
 
 & changelog latest
@@ -35951,6 +35951,8 @@
 & changelog recent
 & changelog 1
 
+  4.3.2 - 06.30.24
+  * Fix for the pre-commit git script
 
   4.3.1 - 06/30/24
   ----------------
