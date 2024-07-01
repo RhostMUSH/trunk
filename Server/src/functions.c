@@ -28524,7 +28524,7 @@ FUNCTION(fun_lock)
 FUNCTION(fun_elock)
 {
     dbref it, victim, aowner;
-    int aflags, i_def, i_locktype, atr;
+    int aflags, i_def, i_locktype, atr, i_num;
     char *tbuf, *subname;
     ATTR *attr;
 
@@ -28577,6 +28577,8 @@ FUNCTION(fun_elock)
        return;
     }
 
+    /* attr->number has a chance to be clobbered, so store the value */
+    i_num = attr->number; 
 
     if ((Recover(it) || Going(it)) && !(Immortal(player))) {
         notify(player, "I don't see that here.");
@@ -28612,11 +28614,11 @@ FUNCTION(fun_elock)
         safe_str("#-1 TOO FAR AWAY", buff, bufcx);
     } else {
         if ( mudconf.parent_control ) {
-           tbuf = atr_pget(it, attr->number, &aowner, &aflags);
+           tbuf = atr_pget(it, i_num, &aowner, &aflags);
         } else {
-           tbuf = atr_get(it, attr->number, &aowner, &aflags);
+           tbuf = atr_get(it, i_num, &aowner, &aflags);
         }
-        if ((attr->number == A_LOCK) ||
+        if ((i_num == A_LOCK) ||
             Read_attr(player, it, attr, aowner, aflags, 0)) {
             ival(buff, bufcx, eval_boolexp_atr(victim, it, it, tbuf, i_def, i_locktype));
         } else {
@@ -32190,19 +32192,35 @@ static int count_words(char *s1, char sep)
   return rt;
 }
 
-static int count_words2(char *s1, char sep)
+static int count_words2(char *s1, char sep, int i_null)
 {
   int rt = 0;
   char *p1;
 
   p1 = s1;
-  while (*p1) {
-    while (*p1 && (*p1 != sep))
-      p1++;
-    if (p1 != s1)
-      rt++;
-    if (*p1)
-      p1++;
+  if ( i_null ) {
+     /* The null check here is only relevant for null checks */
+     if ( !s1 || !*s1 ) {
+           return 0;
+     }
+     /* We need to count nulls */
+     while (*p1) {
+        if ( *p1 == sep ) {
+           rt++;
+        }
+        p1++;
+     }
+     rt++; /* Counting nulls there's always a word */
+  } else {
+    /* Ignore nulls */
+     while (*p1) {
+       while (*p1 && (*p1 != sep))
+         p1++;
+       if (p1 != s1)
+         rt++;
+       if (*p1)
+         p1++;
+     }
   }
   return rt;
 }
@@ -32273,7 +32291,7 @@ static void get_word(char *source, int pos, char sep, char *buff)
   }
 }
 
-void indmast(char *source, char *replace, char *pos, char sep, char *bf, char **bfx, int tt)
+void indmast(char *source, char *replace, char *pos, char sep, char *bf, char **bfx, int tt, int i_null)
 {
   int num, num2, ipos, x;
   char *p1, *p2, c1;
@@ -32282,7 +32300,7 @@ void indmast(char *source, char *replace, char *pos, char sep, char *bf, char **
     safe_str(source, bf, bfx);
     return;
   }
-  num = count_words2(source,sep);
+  num = count_words2(source, sep, i_null);
   ipos = atoi(pos);
   if (!num || (ipos < 1) || (ipos > num)) {
     if ( !num && (ipos == 1) && (tt == 4) )
@@ -32305,7 +32323,7 @@ void indmast(char *source, char *replace, char *pos, char sep, char *bf, char **
   switch (tt) {
     case 1:
       safe_str(replace,bf,bfx);
-      num2 = count_words2(replace,sep);
+      num2 = count_words2(replace, sep, i_null);
       if (num2 > (num - ipos))
         *p1 = '\0';
       else {
@@ -32343,40 +32361,52 @@ void indmast(char *source, char *replace, char *pos, char sep, char *bf, char **
 
 FUNCTION(fun_rindex)
 {
-  indmast(fargs[0],fargs[1],fargs[2],*fargs[3],buff,bufcx,1);
+  /* 1 = rindex */
+  indmast(fargs[0], fargs[1], fargs[2], *fargs[3], buff, bufcx, 1, 0);
 }
 
 FUNCTION(fun_iindex)
 {
-  indmast(fargs[0],fargs[1],fargs[2],*fargs[3],buff,bufcx,2);
+  /* 2 = iindex */
+  indmast(fargs[0], fargs[1], fargs[2], *fargs[3], buff, bufcx, 2, 0);
 }
 
 FUNCTION(fun_aindex)
 {
-  indmast(fargs[0],fargs[1],fargs[2],*fargs[3],buff,bufcx,3);
+  /* 3 = aindex */
+  indmast(fargs[0], fargs[1], fargs[2], *fargs[3], buff, bufcx, 3, 0);
 }
 
 FUNCTION(fun_aiindex)
 {
-  indmast(fargs[0],fargs[1],fargs[2],*fargs[3],buff,bufcx,4);
+  /* 4 = aiindex */
+  indmast(fargs[0], fargs[1], fargs[2], *fargs[3], buff, bufcx, 4, 0);
 }
 
 FUNCTION(fun_lreplace)
 {
-  char sep;
+  char sep, i_null;
 
-  if (!fn_range_check("LREPLACE", nfargs, 3, 4, buff, bufcx)) {
+  if (!fn_range_check("LREPLACE", nfargs, 3, 5, buff, bufcx)) {
     return;
   }
-  if (nfargs == 4) {
+
+  if (nfargs >= 4) {
     if (*fargs[3])
       sep = *fargs[3];
     else
       sep = ' ';
-  }
-  else
+  } else {
     sep = ' ';
-  indmast(fargs[0],fargs[2],fargs[1],sep,buff,bufcx,1);
+  }
+
+  i_null = 0;
+  if ( (nfargs >= 5) && *fargs[4] ) {
+    i_null = atoi(fargs[4]);
+  }
+
+  /* 1 = modified rindex */
+  indmast(fargs[0], fargs[2], fargs[1], sep, buff, bufcx, 1, i_null);
 }
 
 FUNCTION(fun_munge)

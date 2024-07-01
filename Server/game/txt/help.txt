@@ -26614,7 +26614,7 @@
             rindex()
   
 & LREPLACE()
-  Function: lreplace(<list>, <pos>, <string>[, <delim>])
+  Function: lreplace(<list>, <pos>, <string>[, <delim> [,<key>]])
   
   This function replaces the words in the list <list> starting at the
   position <pos> and continuing to overwrite word for word till the
@@ -26623,11 +26623,17 @@
   <list>.  You may specify optional delimiters instead of the default
   space.  You may specify more than one position.
   
+  If you specify a <key> of 1, then null entries will be recognized in lists.
+  
   Examples:
     > say lreplace(this is a test,3,a spotted giraffe)
     You say "this is a spotted giraffe"
     > say lreplace(this@is@a@test,2,was@another,@)
     You say "this@was@another@test"
+    > say lreplace(a|b|c|d,2,|X,|)         -- null entries not recognized
+    You say "a||X|c|d"
+    > say lreplace(a|b|c|d,2,|X,|,1)       -- null entries recognized
+    You say "a||X|d"
   
   See Also: replace(), rindex(), ldelete(), ldelete(), delete()
   
@@ -35945,6 +35951,16 @@
 & changelog recent
 & changelog 1
 
+
+  4.3.1 - 06/30/24
+  ----------------
+  * Fix for elock() with regards to objid's as a target. objid's would
+    internally call a register that would cause a race condition on
+    the elock lookup changing the calling attribute index (ASH)
+  
+  * lreplace() now has an optional argument to recognize NULL entries
+    in delimited text (ASH)
+    
 
   4.3.0 - 06/30/24
   ----------------
