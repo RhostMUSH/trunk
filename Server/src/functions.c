@@ -35688,9 +35688,21 @@ a_comp(const void *s1, const void *s2)
 }
 
 static int
+rev_a_comp(const void *s1, const void *s2)
+{
+    return strcmp(*(char **) s2, *(char **) s1);
+}
+
+static int
 a_casecomp(const void *s1, const void *s2)
 {
     return strcasecmp(*(char **) s1, *(char **) s2);
+}
+
+static int
+rev_a_casecomp(const void *s1, const void *s2)
+{
+    return strcasecmp(*(char **) s2, *(char **) s1);
 }
 
 static int
@@ -35699,6 +35711,16 @@ f_comp(const void *s1, const void *s2)
     if (((f_rec *) s1)->data > ((f_rec *) s2)->data)
        return 1;
     if (((f_rec *) s1)->data < ((f_rec *) s2)->data)
+       return -1;
+    return 0;
+}
+
+static int
+rev_f_comp(const void *s1, const void *s2)
+{
+    if (((f_rec *) s1)->data < ((f_rec *) s2)->data)
+       return 1;
+    if (((f_rec *) s1)->data > ((f_rec *) s2)->data)
        return -1;
     return 0;
 }
@@ -35713,8 +35735,18 @@ i_comp(const void *s1, const void *s2)
     return 0;
 }
 
+static int
+rev_i_comp(const void *s1, const void *s2)
+{
+    if (((i_rec *) s1)->data < ((i_rec *) s2)->data)
+       return 1;
+    if (((i_rec *) s1)->data > ((i_rec *) s2)->data)
+       return -1;
+    return 0;
+}
+
 static void
-do_asort(char *s[], int n, int sort_type)
+do_asort(char *s[], int n, int sort_type, int i_reverse)
 {
     int i;
     f_rec *fp;
@@ -35722,10 +35754,10 @@ do_asort(char *s[], int n, int sort_type)
 
     switch (sort_type) {
          case ALPHANUM_LIST:
-            qsort((void *) s, n, sizeof(char *), a_comp);
+            qsort((void *) s, n, sizeof(char *), (i_reverse ? rev_a_comp : a_comp));
             break;
          case ALPHANUMCASE_LIST:
-            qsort((void *) s, n, sizeof(char *), a_casecomp);
+            qsort((void *) s, n, sizeof(char *), (i_reverse ? rev_a_casecomp : a_casecomp));
             break;
          case NUMERIC_LIST:
             ip = (i_rec *) malloc(n * sizeof(i_rec));
@@ -35733,7 +35765,7 @@ do_asort(char *s[], int n, int sort_type)
                ip[i].str = s[i];
                ip[i].data = atoi(s[i]);
             }
-            qsort((void *) ip, n, sizeof(i_rec), i_comp);
+            qsort((void *) ip, n, sizeof(i_rec), (i_reverse ? rev_i_comp : i_comp));
             for (i = 0; i < n; i++) {
                s[i] = ip[i].str;
             }
@@ -35745,7 +35777,7 @@ do_asort(char *s[], int n, int sort_type)
                ip[i].str = s[i];
                ip[i].data = dbnum(s[i]);
             }
-            qsort((void *) ip, n, sizeof(i_rec), i_comp);
+            qsort((void *) ip, n, sizeof(i_rec), (i_reverse ? rev_i_comp : i_comp));
             for (i = 0; i < n; i++) {
                s[i] = ip[i].str;
             }
@@ -35757,7 +35789,7 @@ do_asort(char *s[], int n, int sort_type)
                fp[i].str = s[i];
                fp[i].data = safe_atof(s[i]);
             }
-            qsort((void *) fp, n, sizeof(f_rec), f_comp);
+            qsort((void *) fp, n, sizeof(f_rec), (i_reverse ? rev_f_comp : f_comp));
             for (i = 0; i < n; i++) {
                s[i] = fp[i].str;
             }
@@ -35768,7 +35800,7 @@ do_asort(char *s[], int n, int sort_type)
 
 void
 ns_do_asort(char *s[], int n, int sort_type) {
-   do_asort(s, n, sort_type);
+   do_asort(s, n, sort_type, 0);
 }
 
 
@@ -35987,8 +36019,8 @@ FUNCTION(fun_sortlist)
 
 FUNCTION(fun_sort)
 {
-    int nitems, sort_type;
-    char *list, sep, osep;
+    int nitems, sort_type, i_reverse, i_array;
+    char *list, sep, osep, *s_sort, *s_array[2];
     char *ptrs[LBUF_SIZE / 2];
 
     /* If we are passed an empty arglist return a null string */
@@ -35999,6 +36031,8 @@ FUNCTION(fun_sort)
 /*  mvarargs_preamble("SORT", 1, 3); */
     if (!fn_range_check("SORT", nfargs, 1, 4, buff, bufcx))
         return;
+
+/*
     if (!delim_check(fargs, nfargs, 3, &sep, buff, bufcx, 0,
                      player, cause, caller, cargs, ncargs, 0))
         return;
@@ -36007,14 +36041,39 @@ FUNCTION(fun_sort)
     else if (!delim_check(fargs, nfargs, 4, &osep, buff, bufcx, 0,
                           player, cause, caller, cargs, ncargs, 1))
         return;
+*/
+    sep = ' ';
+    if ( (nfargs > 2) && *fargs[2] ) {
+       sep = *fargs[2];
+    }
+
+    osep = sep;
+    if ( (nfargs > 3) && *fargs[3] ) {
+       osep = *fargs[3];
+    }
+
+    i_reverse = 0;
+    if ( nfargs > 1 ) {
+       s_sort = fargs[1];
+       if ( *fargs[1] == '~' ) {
+          i_reverse = 1;
+          s_sort = fargs[1]+1;
+       }
+       i_array = 2;
+    } else {
+       s_sort = (char *)"";
+       i_array = 1;
+    }
 
     /* Convert the list to an array */
 
     list = alloc_lbuf("fun_sort");
     strcpy(list, fargs[0]);
     nitems = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
-    sort_type = get_list_type(fargs, nfargs, 2, ptrs, nitems);
-    do_asort(ptrs, nitems, sort_type);
+    s_array[0] = fargs[0];
+    s_array[1] = s_sort;
+    sort_type = get_list_type(s_array, i_array, 2, ptrs, nitems);
+    do_asort(ptrs, nitems, sort_type, i_reverse);
     arr2list(ptrs, nitems, buff, bufcx, osep);
     free_lbuf(list);
 }
@@ -36196,7 +36255,7 @@ FUNCTION(fun_sortby)
 #define SET_DIFF        3
 
 int
-handle_set_comp(char *str1, char *str2, int sort_type) {
+handle_set_comp(char *str1, char *str2, int sort_type, int i_reverse) {
    int i1, i2, result;
    double d1, d2;
 
@@ -36205,7 +36264,8 @@ handle_set_comp(char *str1, char *str2, int sort_type) {
       case FLOAT_LIST: /* Compare floats */
          d1 = safe_atof(str1);
          d2 = safe_atof(str2);
-         if ( d1 < d2 ) {
+         if ( (i_reverse && (d1 > d2) ) ||
+             (!i_reverse && (d1 < d2) )) {
             result = -1;
          } else if ( d1 == d2 ) {
             result = 0;
@@ -36216,7 +36276,8 @@ handle_set_comp(char *str1, char *str2, int sort_type) {
       case DBREF_LIST: /* Compare dbref */
          i1 = dbnum(str1);
          i2 = dbnum(str2);
-         if ( i1 < i2 ) {
+         if ( (i_reverse && (i1 > i2)) ||
+             (!i_reverse && (i1 < i2)) ) {
             result = -1;
          } else if ( i1 == i2 ) {
             result = 0;
@@ -36227,7 +36288,8 @@ handle_set_comp(char *str1, char *str2, int sort_type) {
       case NUMERIC_LIST: /* Compare numeric */
          i1 = atoi(str1);
          i2 = atoi(str2);
-         if ( i1 < i2 ) {
+         if ( (i_reverse && (i1 > i2)) ||
+             (!i_reverse && (i1 < i2)) ) {
             result = -1;
          } else if ( i1 == i2 ) {
             result = 0;
@@ -36237,14 +36299,18 @@ handle_set_comp(char *str1, char *str2, int sort_type) {
          break;
       case ALPHANUM_LIST: /* Alphanum list */
       default: /* Alphanum list -- default */
-         result = strcmp(str1, str2);
+         if ( i_reverse ) {
+            result = strcmp(str2, str1);
+         } else {
+            result = strcmp(str1, str2);
+         }
          break;
    }
    return(result);
 }
 
 static void
-handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type)
+handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type, int i_reverse)
 {
     char *list1, *list2, *oldp;
     char *ptrs1[LBUF_SIZE], *ptrs2[LBUF_SIZE];
@@ -36255,13 +36321,13 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
     memset(list1, '\0', LBUF_SIZE);
     strcpy(list1, fargs[0]);
     n1 = list2arr(ptrs1, LBUF_SIZE, list1, sep);
-    do_asort(ptrs1, n1, sort_type);
+    do_asort(ptrs1, n1, sort_type, i_reverse);
 
     list2 = alloc_lbuf("fun_setunion.2");
     memset(list2, '\0', LBUF_SIZE);
     strcpy(list2, fargs[1]);
     n2 = list2arr(ptrs2, LBUF_SIZE, list2, sep);
-    do_asort(ptrs2, n2, sort_type);
+    do_asort(ptrs2, n2, sort_type, i_reverse);
 
     i_cmp = i1 = i2 = 0;
     first = 1;
@@ -36289,7 +36355,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                 if (!first)
                    safe_chr(osep, buff, bufcx);
                 first = 0;
-                i_cmp = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
+                i_cmp = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type, i_reverse);
                 if (i_cmp < 0) {
                     safe_str(ptrs1[i1], buff, bufcx);
                     oldp = ptrs1[i1];
@@ -36329,7 +36395,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
           break;
        case SET_INTERSECT: /* Copy only elements in both lists */
           while ((i1 < n1) && (i2 < n2)) {
-              val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
+              val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type, i_reverse);
               if (!val) {
                  /* Got a match, copy it */
                  if (!first)
@@ -36352,7 +36418,7 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
            break;
        case SET_DIFF:    /* Copy elements unique to list1 */
           while ((i1 < n1) && (i2 < n2)) {
-             val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type);
+             val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type, i_reverse);
              if (!val) {
                 /* Got a match, increment pointers */
                 oldp = ptrs1[i1];
@@ -36520,7 +36586,7 @@ FUNCTION(fun_listinter)
 FUNCTION(fun_setunion)
 {
     char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
-    int sort_type, nitems;
+    int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
        return;
@@ -36537,15 +36603,26 @@ FUNCTION(fun_setunion)
           osep = *fargs[3];
     }
 
-    if ( (nfargs > 4) && *fargs[4] )
-       sort_type = get_list_type_basic(*fargs[4]);
-    else
+    i_reverse = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       if ( *fargs[4] == '~' ) {
+          i_reverse = 1;
+          if ( *(fargs[4]+1) ) {
+             sort_type = get_list_type_basic(*(fargs[4]+1));
+          } else {
+             sort_type = ALPHANUM_LIST;
+          }
+       } else {
+          sort_type = get_list_type_basic(*fargs[4]);
+       }
+    } else {
        sort_type = ALPHANUM_LIST;
+    }
 
     s_buffptr = s_buff = alloc_lbuf("fun_setunion");
-    handle_sets(fargs, s_buff, &s_buffptr, SET_UNION, sep, osep, sort_type);
+    handle_sets(fargs, s_buff, &s_buffptr, SET_UNION, sep, osep, sort_type, i_reverse);
     nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
-    do_asort(s_sorter, nitems, sort_type);
+    do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
     return;
@@ -36554,7 +36631,7 @@ FUNCTION(fun_setunion)
 FUNCTION(fun_setdiff)
 {
     char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
-    int sort_type, nitems;
+    int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
        return;
@@ -36571,15 +36648,26 @@ FUNCTION(fun_setdiff)
           osep = *fargs[3];
     }
 
-    if ( (nfargs > 4) && *fargs[4] )
-       sort_type = get_list_type_basic(*fargs[4]);
-    else
+    i_reverse = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       if ( *fargs[4] == '~' ) {
+          i_reverse = 1;
+          if ( *(fargs[4]+1) ) {
+             sort_type = get_list_type_basic(*(fargs[4]+1));
+          } else {
+             sort_type = ALPHANUM_LIST;
+          }
+       } else {
+          sort_type = get_list_type_basic(*fargs[4]);
+       }
+    } else {
        sort_type = ALPHANUM_LIST;
+    }
 
     s_buffptr = s_buff = alloc_lbuf("fun_setdiff");
-    handle_sets(fargs, s_buff, &s_buffptr, SET_DIFF, sep, osep, sort_type);
+    handle_sets(fargs, s_buff, &s_buffptr, SET_DIFF, sep, osep, sort_type, i_reverse);
     nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
-    do_asort(s_sorter, nitems, sort_type);
+    do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
     return;
@@ -36588,7 +36676,7 @@ FUNCTION(fun_setdiff)
 FUNCTION(fun_setinter)
 {
     char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
-    int sort_type, nitems;
+    int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
        return;
@@ -36605,15 +36693,26 @@ FUNCTION(fun_setinter)
           osep = *fargs[3];
     }
 
-    if ( (nfargs > 4) && *fargs[4] )
-       sort_type = get_list_type_basic(*fargs[4]);
-    else
+    i_reverse = 0;
+    if ( (nfargs > 4) && *fargs[4] ) {
+       if ( *fargs[4] == '~' ) {
+          i_reverse = 1;
+          if ( *(fargs[4]+1) ) {
+             sort_type = get_list_type_basic(*(fargs[4]+1));
+          } else {
+             sort_type = ALPHANUM_LIST;
+          }
+       } else {
+          sort_type = get_list_type_basic(*fargs[4]);
+       }
+    } else {
        sort_type = ALPHANUM_LIST;
+    }
 
     s_buffptr = s_buff = alloc_lbuf("fun_setinter");
-    handle_sets(fargs, s_buff, &s_buffptr, SET_INTERSECT, sep, osep, sort_type);
+    handle_sets(fargs, s_buff, &s_buffptr, SET_INTERSECT, sep, osep, sort_type, i_reverse);
     nitems = list2arr(s_sorter, LBUF_SIZE / 2, s_buff, sep);
-    do_asort(s_sorter, nitems, sort_type);
+    do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
     return;

@@ -24058,7 +24058,9 @@
     a sort type by passing a null <sort type> parameter.
   * If <sep> is specified, it (rather than a space) is used to separate items
     in the output.
-   
+  
+  If sort type starts with a ~ character, it does a reverse sort of the type.
+     
   Examples:
     > say sort(This is a test)
     You say "This a is test"
@@ -24068,6 +24070,8 @@
     You say "bar-bletch-foo"
     > say sort(foo-bar-bletch,,-,+)
     You say "bar+bletch+foo"
+    > say sort(foo-bar-bletch,~,-,+)
+    You say "foo+bletch+bar"
   
   See Also: sortby(), munge(), map(), setinter(), setunion(), setdiff(),
             sortlist()
@@ -24196,6 +24200,8 @@
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
+  If sort type starts with a ~ character, it does a reverse sort of the type.
+     
   Example:
     > say setdiff(foo baz gleep bar, bar moof gleep)
     You say, "baz foo"
@@ -24239,6 +24245,8 @@
   
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
+   
+  If sort type starts with a ~ character, it does a reverse sort of the type.
   
   Example:
     > say setinter(foo baz gleep bar, bar moof gleep)
@@ -24284,6 +24292,8 @@
   If <sorttype> is specified, you may have a different sort than the default
   alphanumerical sort.  (d)bref, (n)umeric, (f)loat, (a)lphanumeric.
    
+  If sort type starts with a ~ character, it does a reverse sort of the type.
+     
   Example:
     > say setunion(foo baz gleep bar, bar moof gleep)
     You say, "bar baz foo gleep moof"
@@ -35951,11 +35961,17 @@
 & changelog recent
 & changelog 1
 
+  4.3.5 - 07/01/24
+  -------------------------
+  * added reverse sort order to sort(), setunion(), setdiff(), 
+    and setinter() (ASH)
+  
+  
   4.3.2 to 4.3.4 - 06.30.24
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
-
-
+  
+  
   4.3.1 - 06/30/24
   ----------------
   * Fix for elock() with regards to objid's as a target. objid's would
@@ -35965,7 +35981,7 @@
   * lreplace() now has an optional argument to recognize NULL entries
     in delimited text (ASH)
     
-
+  
   4.3.0 - 06/30/24
   ----------------
   * Changed to a new semantic versioning system. Version numbers will
