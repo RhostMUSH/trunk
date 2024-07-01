@@ -46,7 +46,7 @@ else
     if [[ ${current_tag} =~ ${version_regex} ]]; then
         current_major="${BASH_REMATCH[1]}"
         current_minor="${BASH_REMATCH[2]}"
-        current_patch=$(git grep PATCH_VERSION $(git ls-remote . 'refs/remotes/*/HEAD' |cut -f 1) |grep 'patchlevel.h' | awk '{print $3}' |tr -d \")
+        current_patch=$(git grep PATCH_VERSION $(git ls-remote . 'refs/remotes/*/HEAD' |cut -f 1) | grep 'hdrs/patchlevel.h:' | awk '{print $3}' |tr -d '"')
     else
         echo " "
         echo "ERROR: 'git describe --tags --candidates=1' did not output a valid version" >&2

@@ -16,7 +16,7 @@ if [[ "${curr_branch}" == "master" ]]; then
     if [[ ${current_tag} =~ ${version_regex} ]]; then
         current_major="${BASH_REMATCH[1]}"
         current_minor="${BASH_REMATCH[2]}"
-        current_patch=$(git grep PATCH_VERSION $(git ls-remote . 'refs/remotes/*/HEAD' |cut -f 1) |grep 'patchlevel.h' | awk '{print $3}' |tr -d \")
+        current_patch=$(git grep PATCH_VERSION $(git ls-remote . 'refs/remotes/*/HEAD' |cut -f 1) | grep 'hdrs/patchlevel.h:' | awk '{print $3}' |tr -d '"')
     else
         echo " "
         echo "ERROR: 'git describe --tags --candidates=1' did not output a valid version" >&2
@@ -74,11 +74,11 @@ if [[ "${curr_branch}" == "master" ]]; then
             if [[ "${PSTATE}" -eq "1" ]];then
                 OLDTAG=$(grep -P "^OLD \d+\.\d+(\+.+)*$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
                 git tag -d ${OLDTAG}
-                git push --delete origin ${OLDTAG}
-                git tag -a ${OLDTAG}
+                git push --delete --no-verify origin ${OLDTAG}
+                git tag -a ${OLDTAG} -m "${OLDTAG} tag move."
             else
                 NEWTAG=$(grep -P "^NEW \d+\.\d+(\+.+)*$" $(pwd)/tag.tmp | cut -d" " -f2 | awk -F. '{print $1"."$2}')
-                git tag -a ${NEWTAG}
+                git tag -a ${NEWTAG} -m "${NEWTAG} release."
             fi
             rm $(pwd)/tag.tmp
         fi
