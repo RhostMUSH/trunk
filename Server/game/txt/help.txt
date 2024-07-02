@@ -35953,13 +35953,17 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8
+  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8, 4.3.9
 
 
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
+
+  4.3.9 - 07/02/24
+  ----------------
+  * Fix detection of non-BSD Linux systems as BSD if 'bsd.h' was present
 
   4.3.8 - 07/02/24
   ----------------
