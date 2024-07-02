@@ -2077,8 +2077,12 @@ setdefaults() {
   fi
   if [ -f /usr/include/bsd/bsd.h -o ! -f /usr/include/values.h ]
   then
-     echo "BSD identified.  Configuring..."
-     DEFS="-DBSD_LIKE ${DEFS}"
+     lc_tst="$(uname -a |grep -ic linux)"
+     if [ ${lc_tst} -eq 0 ]
+     then
+         echo "BSD identified.  Configuring..."
+         DEFS="-DBSD_LIKE ${DEFS}"
+     fi
   fi
   if [ "${XB[4]}" = "X" ]
   then
