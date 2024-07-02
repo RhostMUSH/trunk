@@ -35953,13 +35953,17 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7
+  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8
 
 
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
+
+  4.3.8 - 07/02/24
+  ----------------
+  * Another fix for the git hooks
 
   4.3.7 - 07/02/24
   ----------------
