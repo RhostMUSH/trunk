@@ -4841,6 +4841,8 @@
      
   You can only display information about yourself or people you control.
   
+  See Also: ipv4math()
+   
 & @link
   Command: @link <object>=#<number>/here/home
   When used on a player or a thing, this command sets the object's home
@@ -12356,15 +12358,15 @@
   HASTYPE()       HASQUOTA()      HASRXLEVEL(   HASTXLEVEL()   HOME()      
   IBREAK()        IDLE()          IFELSE()      IINDEX()       ILEV()      
   INC()           INDEX()         INF()         INPROGRAM()    INSERT()    
-  INUM()          INZONE()        ISALNUM()     ISALPHA()      ISCLUSTER() 
-  ISDBREF()       ISDIGIT()       ISHIDDEN()    ISNUM()        ISOBJID()   
-  ISPUNCT()       ISSPACE()       ISTAG()       ISUNICODE()    ISUTF8()
-  ISWORD()        ISXDIGIT()      ITER()        ITEXT()        KEEPFLAGS()  
-  KEEPTYPE()      LADD()          LAND()        LAST()         LASTCREATE() 
-  LATTR()         LAVG()          LCMDS()       LCON()         LCSTR()      
-  LDELETE()       LDIV()          LEMIT()       LEFT()         LEXITS()     
-  LFLAGS()        LINK()          LIST()        LISTCOMMANDS() LISTDIFF()   
-  LISTFUNCTIONS()
+  INUM()          INZONE()        IPV4MATH()    ISALNUM()      ISALPHA()    
+  ISCLUSTER()     ISDBREF()       ISDIGIT()     ISHIDDEN()     ISNUM()      
+  ISOBJID()       ISPUNCT()       ISSPACE()     ISTAG()        ISUNICODE()  
+  ISUTF8()        ISWORD()        ISXDIGIT()    ITER()         ITEXT()      
+  KEEPFLAGS()     KEEPTYPE()      LADD()        LAND()         LAST()       
+  LASTCREATE()    LATTR()         LAVG()        LCMDS()        LCON()       
+  LCSTR()         LDELETE()       LDIV()        LEMIT()        LEFT()       
+  LEXITS()        LFLAGS()        LINK()        LIST()         LISTCOMMANDS()
+  LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -12564,7 +12566,7 @@
                              
   Player Information:  BITTYPE() CHARIN() CHAROUT() CMDS() CONN() CONNLAST()
                        CONNLEFT() CONNMAX() CONNNUM() CONNRECORD() CONNTOTAL()
-                       HASQUOTA() IDLE() INPROGRAM() ISHIDDEN() 
+                       HASQUOTA() IDLE() INPROGRAM() IPV4MATH() ISHIDDEN() 
                        LISTPROTECTION() LWHO() MONEY() MONEYNAME() PORT() 
                        PROGRAMMER() QUOTA() TOTCMDS()
              See Also: help player information functions
@@ -26623,6 +26625,26 @@
   See Also: extract(), extractword(), ldelete(), replace(), iindex(), aindex(),
             rindex()
   
+& IPV4MATH()
+  Function: ipv4math(<site ip>)
+  
+  This function will convert the input into the expected output.  It
+  auto-recognizes the input to the type you specify.
+  
+  Invalid formats fed to ipv4math() will error out with a message.
+  
+  Formats allowed for <site ip>
+    1.  123456789     -- decimal format for an IPv4 address.
+    2.  8.8.8.8       -- IPv4 address format.
+  
+  Examples:
+    > say ipv4math(8.8.8.8)            (convert to decimal format)
+    You say "134744072"            
+    > say ipv4math(134744072)          (convert to IPv4 format)
+    You say "8.8.8.8"
+  
+  See Also: lastsite
+
 & LREPLACE()
   Function: lreplace(<list>, <pos>, <string>[, <delim> [,<key>]])
   
@@ -32389,6 +32411,7 @@
   hasquota()    - Returns true if the object can afford specified quota cost.
   idle()        - Returns the idle time of a player.
   inprogram()   - Returns true if the player is in a @program.
+  ipv4math()    - Returns ipv4/decimal conversion of value
   ishidden()    - Returns true if a player is hidden.
   limits()      - Display the current @dest/vattr limits of a player.
   lwho()        - Returns a list of dbrefs of connected players.
@@ -35953,41 +35976,44 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8, 4.3.9
+  1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8, 4.3.9,
+      4.4.0
 
 
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
-
+  
+  4.4.0 - 07/06/24
+  ----------------
+  * added ipv4math() function for conversion of IPv4 to decimal format and
+    decimal to ipv4 format. (ASH) 
+  
   4.3.9 - 07/02/24
   ----------------
   * Fix detection of non-BSD Linux systems as BSD if 'bsd.h' was present
-
+  
   4.3.8 - 07/02/24
   ----------------
   * Another fix for the git hooks
-
+  
   4.3.7 - 07/02/24
   ----------------
   * bug with determining 64-bitness of systems with newer GCC/ Clang versions
-
+  
   4.3.6 - 07/01/24
   -------------------------
   * bug with reverse order on setunion() with output delimiter
-  
   
   4.3.5 - 07/01/24
   -------------------------
   * added reverse sort order to sort(), setunion(), setdiff(), 
     and setinter() (ASH)
   
-  
   4.3.2 to 4.3.4 - 06.30.24
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
-  
   
   4.3.1 - 06/30/24
   ----------------
@@ -35998,7 +36024,6 @@
   * lreplace() now has an optional argument to recognize NULL entries
     in delimited text (ASH)
     
-  
   4.3.0 - 06/30/24
   ----------------
   * Changed to a new semantic versioning system. Version numbers will

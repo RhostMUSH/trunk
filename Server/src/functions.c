@@ -8752,6 +8752,70 @@ FUNCTION(fun_chkgarbage)
    ival(buff, bufcx, retval);
 }
 
+#ifndef UINT_MAX
+#define UINT_MAX 4294967295
+#endif
+
+FUNCTION(fun_ipv4math)
+{
+   int i_chk, bytes[4];
+   char *s_pt;
+   double i_ipint;
+   static char s_site[20];
+
+   if ( !fargs[0] || !*fargs[0] || *fargs[0] == '-' ) {
+     safe_str("#-1 NOT A VALID IP", buff, bufcx);
+     return;
+   }
+
+   if ( strlen(fargs[0]) > 16 ) {
+      safe_str("#-1 NOT A VALID IP", buff, bufcx);
+      return;
+   }
+
+   if ( strchr(fargs[0], '.') != NULL ) {
+      s_pt = fargs[0];
+      i_chk = 0;
+      while ( *s_pt ) {
+         if ( *s_pt == '.' )
+            i_chk++;
+         if ( i_chk > 3 ) {
+            safe_str("#-1 NOT A VALID IP", buff, bufcx);
+            return;
+         }
+         s_pt++;
+      }
+      if ( i_chk != 3 ) {
+         safe_str("#-1 NOT A VALID IP", buff, bufcx);
+         return;
+      }
+      sscanf(fargs[0], "%d.%d.%d.%d", &bytes[0], &bytes[1], &bytes[2], &bytes[3]);
+      if ( (bytes[0] > 255) || (bytes[0] < 0) ||
+           (bytes[1] > 255) || (bytes[1] < 0) ||
+           (bytes[2] > 255) || (bytes[2] < 0) ||
+           (bytes[3] > 255) || (bytes[3] < 0) ) {
+         safe_str("#-1 NOT A VALID IP", buff, bufcx);
+         return;
+      }
+      i_ipint = (double)bytes[0] + (double)(bytes[1] << 8) + (double)(bytes[2] << 16) + (double)(bytes[3] << 24);
+      memset(s_site, '\0', 20);
+      sprintf(s_site, "%u", (unsigned int)i_ipint);
+      safe_str(s_site, buff, bufcx);
+   } else if ( is_number(fargs[0]) && (safe_atof(fargs[0]) <= (double)UINT_MAX) ) {
+      i_ipint = safe_atof(fargs[0]);
+      bytes[0] = ((unsigned int)i_ipint >> 0) & 0xFF;
+      bytes[1] = ((unsigned int)i_ipint >> 8) & 0xFF;
+      bytes[2] = ((unsigned int)i_ipint >> 16) & 0xFF;
+      bytes[3] = ((unsigned int)i_ipint >> 24) & 0xFF;   
+      memset(s_site, '\0', 20);
+      sprintf(s_site, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
+      safe_str(s_site, buff, bufcx);
+   } else {
+      safe_str("#-1 NOT A VALID IP", buff, bufcx);
+      return;
+   }
+}
+
 FUNCTION(fun_lookup_site)
 {
    DESC *d;
@@ -41759,6 +41823,7 @@ FUN flist[] =
     {"INSERT", fun_insert, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INUM", fun_inum, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"INZONE", fun_inzone, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"IPV4MATH", fun_ipv4math, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALNUM", fun_isalnum, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISALPHA", fun_isalpha, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ISCLUSTER", fun_iscluster, 1, 0, CA_PUBLIC, CA_NO_CODE},
