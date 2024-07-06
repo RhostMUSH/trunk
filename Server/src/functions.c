@@ -8797,16 +8797,16 @@ FUNCTION(fun_ipv4math)
          safe_str("#-1 NOT A VALID IP", buff, bufcx);
          return;
       }
-      i_ipint = (double)bytes[0] + (double)(bytes[1] << 8) + (double)(bytes[2] << 16) + (double)(bytes[3] << 24);
+      i_ipint = (double)bytes[3] + (double)(bytes[2] << 8) + (double)(bytes[1] << 16) + (double)(bytes[0] << 24);
       memset(s_site, '\0', 20);
       sprintf(s_site, "%u", (unsigned int)i_ipint);
       safe_str(s_site, buff, bufcx);
    } else if ( is_number(fargs[0]) && (safe_atof(fargs[0]) <= (double)UINT_MAX) ) {
       i_ipint = safe_atof(fargs[0]);
-      bytes[0] = ((unsigned int)i_ipint >> 0) & 0xFF;
-      bytes[1] = ((unsigned int)i_ipint >> 8) & 0xFF;
-      bytes[2] = ((unsigned int)i_ipint >> 16) & 0xFF;
-      bytes[3] = ((unsigned int)i_ipint >> 24) & 0xFF;   
+      bytes[3] = ((unsigned int)i_ipint >> 0) & 0xFF;
+      bytes[2] = ((unsigned int)i_ipint >> 8) & 0xFF;
+      bytes[1] = ((unsigned int)i_ipint >> 16) & 0xFF;
+      bytes[0] = ((unsigned int)i_ipint >> 24) & 0xFF;   
       memset(s_site, '\0', 20);
       sprintf(s_site, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
       safe_str(s_site, buff, bufcx);

@@ -35977,7 +35977,7 @@
   Current Changelogs:
   -------------------
   1 - 4.3.0, 4.3.1, 4.3.2, 4.3.3, 4.3.4, 4.3.5, 4.3.6, 4.3.7, 4.3.8, 4.3.9,
-      4.4.0
+      4.4.0, 4.4.1
 
 
 & changelog latest
@@ -35985,6 +35985,10 @@
 & changelog recent
 & changelog 1
   
+  4.4.0 - 07/06/24
+  * Fix for the ipv4math() function. the Calculations for the IPv4 octets
+    was reversed. (AMB)
+
   4.4.0 - 07/06/24
   ----------------
   * added ipv4math() function for conversion of IPv4 to decimal format and
