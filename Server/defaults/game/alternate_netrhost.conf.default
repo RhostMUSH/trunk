@@ -35,11 +35,11 @@ uncompress_program /usr/ucb/zcat -c
 #signal_action
 signal_object            -1
 signal_object_type       0
-cache_depth              3
+cache_depth              128
 cache_names              1
 cache_steal_dirty        0
 cache_trim               1
-cache_width              10
+cache_width              1024
 internal_compress_string 0
 space_compress           1
 paranoid_allocate        0

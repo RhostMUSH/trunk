@@ -31,11 +31,11 @@ typedef	char	*mall_t;
 /* default (runtime-resettable) cache parameters */
 
 #ifdef CACHE_OBJS
-#define	CACHE_DEPTH	10
-#define	CACHE_WIDTH	129
+#define	CACHE_DEPTH	128
+#define	CACHE_WIDTH	1024
 #else
-#define	CACHE_DEPTH	15
-#define	CACHE_WIDTH	541
+#define	CACHE_DEPTH	128
+#define	CACHE_WIDTH	4096
 #endif
 
 /* Macros for calling the DB layer */
