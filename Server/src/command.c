@@ -1310,6 +1310,7 @@ NAMETAB warp_sw[] =
 NAMETAB whisper_sw[] =
 {
     {(char *) "port", 1, CA_WIZARD, 0, PEMIT_PORT},
+    {(char *) "list", 1, CA_PUBLIC, 0, PEMIT_LIST | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB log_sw[] =
@@ -4156,9 +4157,9 @@ process_command(dbref player, dbref cause, int interactive,
                          cval = !hk_retval;
                    } 
                    if ( mudstate.remotep != NOTHING ) {
-		      notify(player, "Permission denied.");
+                      process_error_control(player, goto_cmdp, lst_cmd, no_space);
 		   } else if ( ((Flags3(player) & NOMOVE) || cval || cval2) && !do_ignore_exit ) {
-		      notify(player, "Permission denied.");
+                      process_error_control(player, goto_cmdp, lst_cmd, no_space);
                    } else if ( !do_ignore_exit && !cval ) {
 		      if ( (goto_cmdp->hookmask & HOOK_BEFORE) && Good_obj(mudconf.hook_obj) &&
 			   !Recover(mudconf.hook_obj) && !Going(mudconf.hook_obj) ) {
@@ -4283,7 +4284,7 @@ process_command(dbref player, dbref cause, int interactive,
 		      free_sbuf(s_uselock);
 		    }
 		  } else if ( !do_ignore_exit ) {
-		      notify(player, "Permission denied.");
+                      process_error_control(player, goto_cmdp, lst_cmd, no_space);
                   }
                   if ( !do_ignore_exit ) {
 		     mudstate.debug_cmd = cmdsave;
@@ -4300,7 +4301,11 @@ process_command(dbref player, dbref cause, int interactive,
                   }
 	        }
 	     } else {
-	        notify_quiet(cause, "Permission denied.");
+                if ( Fubar(cause) || Fubar(player) ) {
+		   notify_quiet(cause, "Permission denied.");
+                } else {
+                   process_error_control(cause, goto_cmdp, lst_cmd, no_space);
+                }
 	        mudstate.debug_cmd = cmdsave;
 	        mudstate.exitcheck = 0;
                 DPOP; /* #29 */
