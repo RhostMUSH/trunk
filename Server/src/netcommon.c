@@ -4261,13 +4261,21 @@ softcode_trigger(DESC *d, const char *msg) {
  * reg - registration connect
  */
 
+/* This is perm restriction only for connection command only */
 int chkbit(dbref player)
 {
    int i_ret;
 
    i_ret = -1;
+
+   if ( !Good_chk(player) ) {
+      return i_ret;
+   }
+
    if ( Good_chk(player) ) {
-      if ( God(player) ) {
+      if ( mudstate.account_subsys_inuse ) {
+         i_ret = 777; /* Always work */
+      } else if ( God(player) ) {
          i_ret = 7;
       } else if (Immortal(player) ) {
          i_ret = 6;
@@ -4280,7 +4288,11 @@ int chkbit(dbref player)
       } else if (Guildmaster(player) ) {
          i_ret = 2;
       } else if (Wanderer(player) || Guest(player)) {
-         i_ret = 0;
+         if (Guest(player) && (mudconf.connect_perm & 100)) {
+            i_ret = 777; /* Always work */
+         } else {
+            i_ret = 0;
+         }
       } else {
          i_ret = 1;
       }
@@ -4609,8 +4621,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       }
 
       /* Trying to connect to player below specified bitlevel */
-      if ( Good_chk(player2) && (chkbit(player2) < i_chk) &&
-           !(Guest(player2) && (!mudstate.account_subsys_inuse && (mudconf.connect_perm & 100)) ) ) {
+      if (  Good_chk(player2) && (chkbit(player2) < i_chk) ) {
          queue_string(d, "Connections to that player are unable to use the standard connect command.\r\n");
          queue_string(d, "Try account management?\r\n");
          broadcast_monitor(player, MF_SITE | MF_FAIL, "FAIL (CONNECT PERM RESTRICTED)", 
