@@ -107,10 +107,6 @@
 #define EXTENDED_SOCKET_DCLS 1
 /* Define if sys/wait.h defines union wait. */
 /* #undef HAVE_UNION_WAIT */
-/* Define if we have system-supplied ndbm routines */
-#define HAVE_NDBM 1
-/* Define if we have system-supplied (old) dbm routines */
-/* #undef HAVE_DBM */
 /* Define if we may safely include both time.h and sys/time.h */
 #define TIME_WITH_SYS_TIME 1
 /* Define if sys/time.h exists */
