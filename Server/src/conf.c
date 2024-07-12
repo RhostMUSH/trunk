@@ -82,6 +82,7 @@ NDECL(cf_init)
 {
 #ifndef STANDALONE
     int i;
+    strcpy(mudconf.log_path, "logs");
     strcpy(mudconf.roomlog_path, "roomlogs");
     strcpy(mudconf.data_dir, "./data");
     strcpy(mudconf.txt_dir, "./txt");
@@ -89,7 +90,7 @@ NDECL(cf_init)
     strcpy(mudconf.indb, "netmush.db");
     strcpy(mudconf.outdb, "");
     strcpy(mudconf.crashdb, "");
-    strcpy(mudconf.gdbm, "");
+    strcpy(mudconf.qdbm, "");
     if ( getenv("GAMENAME") != NULL )
        sprintf(mudconf.logdb_name, "%.110s.gamelog", getenv("GAMENAME"));
     else
@@ -1306,18 +1307,8 @@ CF_HAND(cf_vint)
     char s_buf[20];
   
     sscanf(str, "%d", &vp_old);
-#ifdef QDBM
     i_ceil = 10000;
     sprintf(s_buf, (char *)"[QDBM Mode]");
-#else
-#ifdef BIT64
-    i_ceil = 400;
-    sprintf(s_buf, (char *)"[GDBM 64Bit Mode]");
-#else
-    sprintf(s_buf, (char *)"[GDBM 32Bit Mode]");
-    i_ceil = 750;
-#endif
-#endif
     if ((vp_old < 0) || (vp_old > i_ceil)) {
         if ( !mudstate.initializing) {
            notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));
@@ -4723,8 +4714,8 @@ CONF conftable[] =
      cf_string, CA_DISABLED, (int *) mudconf.gconf_file, 32, 0, CA_WIZARD,
      (char *) "File for guest from bad sites."},
     {(char *) "gdbm_database",
-     cf_string, CA_DISABLED, (int *) mudconf.gdbm, 128, 0, CA_WIZARD,
-     (char *) "Name of the gdbm database."},
+     cf_string, CA_DISABLED, (int *) mudconf.qdbm, 128, 0, CA_WIZARD,
+     (char *) "Name of the qdbm database."},
     {(char *) "global_aconnect",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.global_aconn, 0, 0, CA_PUBLIC,
      (char *) "Are aconnects enabled in master room?"},
@@ -6078,9 +6069,9 @@ cf_read(char *fn)
 	strcpy(mudconf.crashdb, mudconf.indb);
 	strcat(mudconf.crashdb, ".CRASH");
     }
-    if (!*mudconf.gdbm) {
-	strcpy(mudconf.gdbm, mudconf.indb);
-	strcat(mudconf.gdbm, ".gdbm");
+    if (!*mudconf.qdbm) {
+	strcpy(mudconf.qdbm, mudconf.indb);
+	strcat(mudconf.qdbm, ".gdbm");
     }
     return retval;
 }

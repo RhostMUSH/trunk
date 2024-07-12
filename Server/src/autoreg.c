@@ -1,13 +1,5 @@
 #include "autoconf.h"
-#ifdef HAVE_NDBM
-#include "redirect_ndbm.h"
-#else
-#ifdef HAVE_DBM
-#include <dbm.h>
-#else
 #include "myndbm.h"
-#endif
-#endif
 #include <time.h>
 #include <fcntl.h>
 #include <ctype.h>

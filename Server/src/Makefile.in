@@ -241,7 +241,7 @@ testrhost.debugmon: debugmon.o debug.o
 testrhost: $(OBJ) $(LIBOBJS)
 	$(CC) $(ALLCFLAGS) $(VER_FLG) -c $(VER_SRC)
 	-mv -f testrhost testrhost~
-	$(CC) $(ALLCFLAGS) -o testrhost $(OBJ) -lgdbm $(LIBOBJS) $(VER_OBJ) $(LIBS) $(MORELIBS)
+	$(CC) $(ALLCFLAGS) -o testrhost $(OBJ) -lqdbm $(LIBOBJS) $(VER_OBJ) $(LIBS) $(MORELIBS)
 
 dist.tar.Z: $(DIST)
 	-rm -f buildnum.data

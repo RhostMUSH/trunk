@@ -534,7 +534,7 @@ extern void	NDECL(atr_push);
 extern void	NDECL(atr_pop);
 extern int	FDECL(atr_head, (dbref, char **));
 extern int	FDECL(atr_next, (char **));
-extern int	FDECL(init_gdbm_db, (char *));
+extern int	FDECL(init_qdbm_db, (char *));
 extern void	FDECL(atr_cpy, (dbref, dbref, dbref));
 extern void	FDECL(atr_chown, (dbref));
 extern void	FDECL(atr_clr, (dbref, int));
@@ -743,7 +743,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define	DROP_QUIET	1	/* Don't do odrop/adrop if control */
 #define	DUMP_STRUCT	1	/* Dump flat structure file */
-#define	DUMP_TEXT	2	/* Dump text (gdbm) file */
+#define	DUMP_TEXT	2	/* Dump text (qdbm) file */
 #define	DUMP_FLAT	4	/* Dump db to flatfile   */
 
 #define	EXAM_DEFAULT	0	/* Default */

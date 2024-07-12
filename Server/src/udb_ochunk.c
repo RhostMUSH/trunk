@@ -38,15 +38,7 @@ void bzero(void *, int);
 #include	<sys/stat.h>
 #include	<sys/file.h>
 
-#ifdef HAVE_NDBM
-#include	"redirect_ndbm.h"
-#else
-#ifdef HAVE_DBM
-#include	<dbm.h>
-#else
 #include	"myndbm.h"
-#endif
-#endif
 
 #endif /* VMS */
 

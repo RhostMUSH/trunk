@@ -6621,15 +6621,7 @@ if ( !key ) {
 #else
     notify(player, "Bang notation [!/!!, !$/!!$, !^/!!^] --------------------------- DISABLED");
 #endif
-#ifdef QDBM
     notify(player, "Database Engine ------------------------------------------------ QDBM");
-#else
-#ifdef BIT64
-    notify(player, "Database Engine ------------------------------------------------ GDBM [64Bit]");
-#else
-    notify(player, "Database Engine ------------------------------------------------ GDBM [32Bit]");
-#endif
-#endif
 #ifdef SQLITE
     notify(player, "SQLite --------------------------------------------------------- ENABLED");
 #else

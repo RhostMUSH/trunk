@@ -130,7 +130,7 @@ struct boolexp {
 #define	V_MASK		0x000000ff	/* Database version */
 #define	V_ZONE		0x00000100	/* ZONE/DOMAIN field */
 #define	V_LINK		0x00000200	/* LINK field (exits from objs) */
-#define	V_GDBM		0x00000400	/* attrs are in a GDBM db, not here */
+#define	V_GDBM		0x00000400	/* attrs are in a QDBM db, not here */
 #define	V_ATRNAME	0x00000800	/* NAME is an attr, not in the hdr */
 #define	V_ATRKEY	0x00001000	/* KEY is an attr, not in the hdr */
 #define	V_PERNKEY	0x00001000	/* PERN: Extra locks in object hdr */

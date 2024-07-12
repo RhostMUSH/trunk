@@ -1,15 +1,7 @@
 /* news.c - Hardcoded version of MushNews by Thorin (Mike McDermott) 01/1997 */
 
 #include "autoconf.h"
-#ifdef HAVE_NDBM
-#include	"redirect_ndbm.h"
-#else
-#ifdef HAVE_DBM
-#include        <dbm.h>
-#else
-#include        "myndbm.h"
-#endif
-#endif
+#include "myndbm.h"
 #include <time.h>
 #include <fcntl.h>
 #include <sys/types.h>

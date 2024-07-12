@@ -37,11 +37,12 @@ struct confdata {
 	char	indb[128];	/* database file name */
 	char	outdb[128];	/* checkpoint the database to here */
 	char	crashdb[128];	/* write database here on crash */
-	char	gdbm[128];	/* use this GDBM file if we need one */
+	char	qdbm[128];	/* use this QDBM file if we need one */
 	int	compress_db;	/* should we use compress */
 	char	compress[128];	/* program to run to compress */
 	char	uncompress[128];/* program to run to uncompress */
 	char	status_file[128]; /* Where to write arg to @shutdown */
+	char	log_path[128]; /* Path where gamelogs are sent */
 	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
         char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */

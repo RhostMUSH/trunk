@@ -2642,7 +2642,7 @@ main(int argc, char *argv[])
 {
     DESC *d;
     int mindb;
-    char gdbmDbPath[300];
+    char qdbmDbPath[300];
     int argidx;
     int got_config = 0;
     int rebooting = 0;
@@ -2830,13 +2830,13 @@ main(int argc, char *argv[])
 
     DPUSH; /* #92 */
 
-    sprintf(gdbmDbPath, "%s/%s", mudconf.data_dir, mudconf.gdbm);
+    sprintf(qdbmDbPath, "%s/%s", mudconf.data_dir, mudconf.qdbm);
     if (mindb)
-	unlink(gdbmDbPath);
-    if (init_gdbm_db(gdbmDbPath) < 0) {
+	unlink(qdbmDbPath);
+    if (init_qdbm_db(qdbmDbPath) < 0) {
 	STARTLOG(LOG_ALWAYS, "INI", "LOAD")
 	    log_text((char *) "Couldn't load text database: ");
-	log_text(mudconf.gdbm);
+	log_text(mudconf.qdbm);
 	ENDLOG
         DPOP; /* #92 */
 	exit(2);

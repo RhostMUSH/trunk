@@ -43,7 +43,7 @@ info(int fmt, int flags, int ver)
     if (flags & V_LINK)
 	fprintf(stderr, " Link");
     if (flags & V_GDBM)
-	fprintf(stderr, " GDBM");
+	fprintf(stderr, " QDBM");
     if (flags & V_ATRNAME)
 	fprintf(stderr, " AtrName");
     if (flags & V_ATRKEY) {
@@ -66,17 +66,17 @@ info(int fmt, int flags, int ver)
 void 
 usage(char *prog)
 {
-    fprintf(stderr, "Usage: %s gdbm-file [flags] [<in-file] [>out-file]\n", prog);
+    fprintf(stderr, "Usage: %s qdbm-file [flags] [<in-file] [>out-file]\n", prog);
     fprintf(stderr, "   Available flags are:\n");
     fprintf(stderr, "      C - Perform consistency check\n");
-    fprintf(stderr, "      G - Write in gdbm format        g - Write in flat file format\n");
+    fprintf(stderr, "      G - Write in qdbm format        g - Write in flat file format\n");
     fprintf(stderr, "      K - Store key as an attribute   k - Store key in the header\n");
     fprintf(stderr, "      L - Include link information    l - Don't include link information\n");
-    fprintf(stderr, "      M - Store attr map if GDBM      m - Don't store attr map if GDBM\n");
+    fprintf(stderr, "      M - Store attr map if QDBM      m - Don't store attr map if QDBM\n");
     fprintf(stderr, "      N - Store name as an attribute  n - Store name in the header\n");
     fprintf(stderr, "      P - Include parent information  p - Don't include parent information\n");
     fprintf(stderr, "      W - Write the output file  b    w - Don't write the output file.\n");
-    fprintf(stderr, "      X - Create a default GDBM db    x - Create a default flat file db\n");
+    fprintf(stderr, "      X - Create a default QDBM db    x - Create a default flat file db\n");
     fprintf(stderr, "      Z - Include zone information    z - Don't include zone information\n");
     fprintf(stderr, "      <number> - Set output version number\n");
 }
@@ -103,19 +103,19 @@ main(int argc, char *argv[])
     if (!nochk) {
        sprintf(s_filename, "%.115s.db", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
-          fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
+          fprintf(stderr, "QDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);
           exit(1);
        }
        sprintf(s_filename, "%.115s.dir", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
-          fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
+          fprintf(stderr, "QDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);
           exit(1);
        }
        sprintf(s_filename, "%.115s.pag", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
-          fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
+          fprintf(stderr, "QDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);
           exit(1);
        }
@@ -217,10 +217,10 @@ main(int argc, char *argv[])
 	    }
 	}
     }
-    /* Open the gdbm file */
+    /* Open the qdbm file */
 
-    if (init_gdbm_db(argv[1]) < 0) {
-	fprintf(stderr, "Can't open GDBM file\n");
+    if (init_qdbm_db(argv[1]) < 0) {
+	fprintf(stderr, "Can't open QDBM file\n");
 	exit(1);
     }
     /* Go do it */

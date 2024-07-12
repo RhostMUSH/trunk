@@ -8,15 +8,7 @@ void bzero(void *, int);
 #include "autoconf.h"
 #include <stdio.h>
 #include <sys/file.h>
-#ifdef HAVE_NDBM
-#include	"redirect_ndbm.h"
-#else
-#ifdef HAVE_DBM
-#include        <dbm.h>
-#else
-#include        "myndbm.h"
-#endif
-#endif
+#include "myndbm.h"
 #include "config.h"
 #include "db.h"
 #include "externs.h"
@@ -2904,8 +2896,8 @@ main(int argc, char *argv[])
     dddb_var_init();
     cache_var_init();
     cf_init();
-    if (init_gdbm_db(argv[1]) < 0) {
-	fprintf(stderr,"Couldn't open gdbm file.\n");
+    if (init_qdbm_db(argv[1]) < 0) {
+	fprintf(stderr,"Couldn't open qdbm file.\n");
 	exit(2);
     }
     fp = fopen(argv[2], "r");
