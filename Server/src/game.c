@@ -26,6 +26,7 @@
 #include "rwho_clilib.h"
 #include "alloc.h"
 #include "local.h"
+#include "rhost_utf8.h"
 
 #ifdef REALITY_LEVELS
 #include "levels.h"
@@ -2642,7 +2643,7 @@ main(int argc, char *argv[])
 {
     DESC *d;
     int mindb;
-    char qdbmDbPath[300];
+    char qdbmDbPath[300], *s_a, *s_b, *s_c, *s_ap, *s_bp, *s_cp, *s_buff, *s_buffp;
     int argidx;
     int got_config = 0;
     int rebooting = 0;
@@ -2651,14 +2652,57 @@ main(int argc, char *argv[])
     int shmid;
 #endif
 
-    if ( (argc > 1) && 
-         (!stricmp(argv[1], "--version") ||
-          !stricmp(argv[1], "-version") ||
-          !stricmp(argv[1], "-v")) ) {
-        init_version();
-        printf("%s\n", mudstate.version);
-        printf("Build date: %.150s\n", MUSH_BUILD_DATE);
-        exit(0);
+    if ( (argc > 1) ) {
+       if (  !stricmp(argv[1], "--help") ||
+            !stricmp(argv[1], "-help") ||
+            !stricmp(argv[1], "-h") ) {
+          printf("Syntax: Following options are available:\n");
+          printf("        -h  -- show this help.\n");
+          printf("        -v  -- print version.\n");
+          printf("        -s <config file> -- Initialize new db.\n");
+          printf("        -p <string>  -- Parse markup to raw ansi.\n");
+          exit(0);
+       } else if ( !stricmp(argv[1], "--version") ||
+            !stricmp(argv[1], "-version") ||
+            !stricmp(argv[1], "-v") ) {
+          init_version();
+          printf("%s\n", mudstate.version);
+          printf("Build date: %.150s\n", MUSH_BUILD_DATE);
+          exit(0);
+       } else if ( (argc > 2) && 
+                   ( (!stricmp(argv[1], "--parse") ||
+                      !stricmp(argv[1], "-parse") ||
+                      !stricmp(argv[1], "-p"))
+                   )
+                ) {
+
+          if ( !*argv[2] ) {
+	     fprintf(stderr, "Usage: %s -p \"[string]\"\n", argv[0]);
+             exit(0);
+          }
+          /* We need to init all the pools */
+          pool_init(POOL_LBUF, LBUF_SIZE);
+          pool_init(POOL_MBUF, MBUF_SIZE);
+          pool_init(POOL_SBUF, SBUF_SIZE);
+
+          s_ap = s_a = alloc_lbuf("parse_ansia");
+          s_bp = s_b = alloc_lbuf("parse_ansib");
+          s_cp = s_c = alloc_lbuf("parse_ansic");
+          s_buffp = s_buff = alloc_lbuf("input_buffer");
+
+          safe_str(argv[2], s_buff, &s_buffp);
+
+          mudconf.global_ansimask = 0xFFFFFFFF;
+          parse_ansi((char *) s_buff, s_a, &s_ap, s_b, &s_bp, s_c, &s_cp);
+          fprintf(stdout, "%s\r\n", s_c);
+          fflush(stdout);
+          free_lbuf(s_a);
+          free_lbuf(s_b);
+          free_lbuf(s_c);
+          free_lbuf(s_buff);
+          exit(0);
+       }
+       /* Fall through here and continue on */
     }
  
     db = NULL;
