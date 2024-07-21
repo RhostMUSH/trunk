@@ -4352,21 +4352,21 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       tsite_buff = alloc_lbuf("hardconn_check");
       strcpy(tsite_buff, mudconf.hardconn_host);
       if ( (mudconf.connect_methods & 1) && 
-           (strncmp(cchk, mudconf.string_conn, i_size) ||
-            strncmp(cchk, mudconf.string_conndark, i_size) ||
-            strncmp(cchk, mudconf.string_connhide, i_size)) ) {
+           (!strncmp(cchk, mudconf.string_conn, i_size) ||
+            !strncmp(cchk, mudconf.string_conndark, i_size) ||
+            !strncmp(cchk, mudconf.string_connhide, i_size)) ) {
          if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
               !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
             i_allow = 0;
          }
       }
-      if ( i_allow && (mudconf.connect_methods & 2) && strncmp(cchk, mudconf.string_create, i_size) ) {
+      if ( i_allow && (mudconf.connect_methods & 2) && !strncmp(cchk, mudconf.string_create, i_size) ) {
          if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
               !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
             i_allow = 0;
          }
       }
-      if ( i_allow && (mudconf.connect_methods & 4) && strncmp(cchk, mudconf.string_register, i_size) ) {
+      if ( i_allow && (mudconf.connect_methods & 4) && !strncmp(cchk, mudconf.string_register, i_size) ) {
          if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
               !(site_check((d->address).sin_addr, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
             i_allow = 0;

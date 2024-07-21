@@ -35976,11 +35976,12 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5,
-      4.3.4, 4.3.3, 4.3.2
+  1 - 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 
+      4.3.5, 4.3.4, 4.3.3, 4.3.2
   2 - 4.3.1, 4.3.0
 
 
+& 4.5.1
 & 4.5.0
 & 4.4.3
 & 4.4.2
@@ -35999,6 +36000,9 @@
 & changelog recent
 & changelog 1
 
+  4.5.1 - 07/19/24
+  * connect_methods had reversed logic in the checks
+  
   4.5.0 - 07/16/24
   * netrhost binary handles -h and -p options for help and parsing markup
   
