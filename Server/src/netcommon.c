@@ -6640,8 +6640,10 @@ NDECL(process_commands)
 		    else {
                         for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
                            *mudstate.global_regs[i] = '\0';
-                           *mudstate.global_regs_backup[i] = '\0';
                            *mudstate.global_regsname[i] = '\0';
+#ifndef NO_GLOBAL_REGBACKUP
+                           *mudstate.global_regs_backup[i] = '\0';
+#endif
                         }
                         mudstate.global_regs_wipe = 0;
 			do_command(d, (d->flags & DS_HAS_DOOR) ? &t->cmd[1] : t->cmd);

@@ -372,6 +372,7 @@ NDECL(cf_init)
     mudconf.nobracket_locks = 0;	/* Are brackets required for locks */
     mudconf.robot_owns_create = 0;	/* Robots own things it creates */
     mudconf.enforce_added_pronouns = 0;	/* Enforce use of added_pronouns */
+    mudconf.time_paddzero = 0;		/* Padd zero on time() and convsecs() */
     memset(mudconf.vercustomstr, '\0', sizeof(mudconf.vercustomstr));
     memset(mudconf.sub_include, '\0', sizeof(mudconf.sub_include));
     memset(mudconf.cap_conjunctions, '\0', sizeof(mudconf.cap_conjunctions));
@@ -888,7 +889,9 @@ NDECL(cf_init)
     for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 	mudstate.global_regs[i] = NULL;
 	mudstate.global_regsname[i] = NULL;
+#ifndef NO_GLOBAL_REGBACKUP
 	mudstate.global_regs_backup[i] = NULL;
+#endif
     }
     mudstate.remote = NOTHING;
     mudstate.remotep = NOTHING;
@@ -5741,6 +5744,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.thing_quota, 0, 0, CA_WIZARD,
      (char *) "Quota that each thing takes up.\r\n"\
               "                             Default: 1   Value: %d"},
+    {(char *) "time_paddzero",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.time_paddzero, 0, 0, CA_PUBLIC,
+     (char *) "Does time/convsecs padd zero on day of month?"},
     {(char *) "timeslice",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.timeslice, 100000, 1, CA_WIZARD,
      (char *) "Timeslice for next player commands (must be >0)\r\n"\

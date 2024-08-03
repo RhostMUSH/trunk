@@ -15311,12 +15311,19 @@
   time and return '#-1' for instances that have invalid timezones.
   
   Otherwise, it will return a warning and default to UTC time.
+  
+  Note: the time_paddzero @admin config parameter allows padding zeros.
    
   Example:
     > say time()                       (assume localtime was GMT)
-    You say "Thu Dec 19 09:48:06 1991"
+    You say "Thu Dec  9 09:48:06 1991"
     > say time(GMT+1)
-    You say "Thu Dec 19 10:49:11 1991"
+    You say "Thu Dec  9 10:49:11 1991"
+  ------ with time_paddzero enabled as a config option
+    > say time()                       (assume localtime was GMT)
+    You say "Thu Dec 09 09:48:06 1991"
+    > say time(GMT+1)
+    You say "Thu Dec 09 10:49:11 1991"
   
   See Also: convsecs(), convtime(), secs(), msecs(), secstz(), msecstz(),
             listtzones(), secstz(), msecstz()
@@ -19258,6 +19265,8 @@
   Function: columns()  Syntax follows:
   columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
+  Note: if <del> is specified, it will allow the use of null entities.
+  
   This function has a huge number of uses, and all help will be given to show
   examples for what this function can do.  The arguments to this function are
   as follows.
@@ -22989,6 +22998,10 @@
     *  - apply multiplication
     /  - apply division
     %  - apply modulus (use two %'s)
+    |  - bitwise or mask (only works on values less than MAXUINT (4294967296)
+    &  - bitwise and mask (only works on values less than MAXUINT (4294967296)
+  
+  Note: & and | bitwise masks will return '0' if the values are over MAXUINT 
   
   Examples:
     > think pack(629126998,64)
@@ -24010,11 +24023,14 @@
   This function converts seconds to a time string, based on how many
   seconds the number is after Jan 1, 1970.
  
+  Note: the time_paddzero @admin config parameter allows padding zeros.
+   
   Example:
     > say secs()
     You say "709395750"
     > say convsecs(709395750)
     You say "Wed Jun 24 10:22:54 1992"
+  
   This function may also be called as secs2time().
   
   See Also: convtime(), secs(), secstz(), time(), timefmt()
@@ -35976,12 +35992,21 @@
 
   Current Changelogs:
   -------------------
+<<<<<<< HEAD
   1 - 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 
       4.3.5, 4.3.4, 4.3.3, 4.3.2
   2 - 4.3.1, 4.3.0
 
 
 & 4.5.2
+=======
+  1 - 4.6.0, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 
+      4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
+  2 - 4.3.1, 4.3.0
+
+
+& 4.6.0
+>>>>>>> ashen-shugar
 & 4.5.1
 & 4.5.0
 & 4.4.3
@@ -36001,9 +36026,18 @@
 & changelog recent
 & changelog 1
 
+<<<<<<< HEAD
   4.5.3 - 08/01/24
   * Added 'moniker' as a default alias for cname() in alias.conf
 
+=======
+  4.6.0 - 08/03/24
+  * time_paddzero if enabled padds the day of the month in time() and 
+    convsec() with a zero for MUX compatibility.
+  * added & and | options to packmath()
+  * columns() has better handling with an optional delimiter is specified.
+  
+>>>>>>> ashen-shugar
   4.5.1 - 07/19/24
   * connect_methods had reversed logic in the checks
   
