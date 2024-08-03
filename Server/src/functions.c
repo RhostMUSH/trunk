@@ -66,6 +66,9 @@ char *rindex(const char *, int);
 #ifndef INT_MAX
 #define INT_MAX 2147483647
 #endif
+#ifndef UINT_MAX
+#define UINT_MAX 4294967296
+#endif
 
 char *return_objid(dbref, dbref, char *);
 
@@ -4671,6 +4674,25 @@ FUNCTION(fun_columns)
   for( buffleft = strlen(string), leftstart = string, p_leftstart = outsplit; buffleft > 0; ) {
      pp = leftstart;
      p_sp = p_leftstart;
+     if ( delim ) {
+       if ( (pp == string) && (*pp == delim) ) {
+          wrap_out_ansi(leftstart, 0, &winfo, holdbuff, &hbpt, spacer_sep, 0,
+                        p_leftstart, outsplit2);
+       }
+       if ( (*pp == delim) && ((*(pp+1) == delim) || !*(pp+1)) ) {
+          count++;
+          wrap_out_ansi(leftstart, 0, &winfo, holdbuff, &hbpt, spacer_sep, 0,
+                        p_leftstart, outsplit2);
+          pp++;
+          p_sp++;
+          leftstart = pp;
+          p_leftstart = p_sp;
+          buffleft -= 1;
+          if (!*pp)
+             break;
+          continue;
+       }
+     }
      if (delim) {
         while (*pp && (*pp == delim)) {
            pp++;
@@ -7292,8 +7314,9 @@ convnum(char *source)
               }
           }
        }
-    } else
+    } else {
        sscanf(source, "%i", &rval);
+    }
     return rval;
 }
 
@@ -7510,7 +7533,7 @@ FUNCTION(fun_tohex)
 
 FUNCTION(fun_todec)
 {
-    ival(buff, bufcx, convnum(fargs[0]));
+    uival(buff, bufcx, convnum(fargs[0]));
 }
 
 FUNCTION(fun_tooct)
@@ -8168,6 +8191,7 @@ FUNCTION(fun_pack)
 FUNCTION(fun_packmath)
 {
    double i_val, i_num;
+   unsigned int i_dval, i_dnum;
    char *s_tmp[2], *s_str, *s_strptr, sep;
 
    if (!fn_range_check("PACKMATH", nfargs, 3, 5, buff, bufcx)) {
@@ -8206,6 +8230,8 @@ FUNCTION(fun_packmath)
                fval(buff, bufcx, 0);
             }
             break;
+         case '|': /* bitwise or */
+         case '&': /* bitwise and */
          case '*': /* Multiply */
             fval(buff, bufcx, 0);
             break;
@@ -8246,6 +8272,24 @@ FUNCTION(fun_packmath)
             break;
          case '*': /* Multiply */
             sprintf(s_str, "%.0f", i_num * i_val);
+            break;
+         case '|': /* bitwise or */
+            if ( (i_num <= UINT_MAX) && (i_val <= UINT_MAX) ) {
+               i_dnum = (int) i_num;
+               i_dval = (int) i_val;
+               sprintf(s_str, "%u", i_dnum | i_dval);
+            } else {
+               strcpy(s_str, (char *)"0");
+            }
+            break;
+         case '&': /* bitwise and */
+            if ( (i_num <= UINT_MAX) && (i_val <= UINT_MAX) ) {
+               i_dnum = (int) i_num;
+               i_dval = (int) i_val;
+               sprintf(s_str, "%u", i_dnum & i_dval);
+            } else {
+               strcpy(s_str, (char *)"0");
+            }
             break;
       }
       s_tmp[0] = alloc_lbuf("fun_packadd");
@@ -9797,8 +9841,9 @@ FUNCTION(fun_time)
 {
     char *temp, *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, i_enforce;
+    int i_tz, aflags, i_enforce, len;
     ATTR *ap;
+    struct tm *tms;
 
     if (!fn_range_check("TIME", nfargs, 1, 2, buff, bufcx))
        return;
@@ -9849,9 +9894,18 @@ FUNCTION(fun_time)
           free_lbuf(s_chratr);
        }
     }
-    temp = (char *) ctime(&mudstate.now);
-    temp[strlen(temp) - 1] = '\0';
-    safe_str(temp, buff, bufcx);
+    if ( mudconf.time_paddzero ) {
+       tms = localtime(&mudstate.now);
+       temp = alloc_mbuf("time_withzero");
+       memset(temp, '\0', MBUF_SIZE);
+       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %02d %T %Y", tms);
+       safe_str(temp, buff, bufcx);
+       free_mbuf(temp);
+    } else {
+       temp = (char *) ctime(&mudstate.now);
+       temp[strlen(temp) - 1] = '\0';
+       safe_str(temp, buff, bufcx);
+    }
     if ( i_tz ) {
        if ( *s_env ) {
           setenv("TZ", s_env, 1);
@@ -13587,8 +13641,13 @@ FUNCTION(fun_convsecs)
     mush_gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
     s_format = alloc_mbuf("convsecs");
-    sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
-                      ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    if ( mudconf.time_paddzero ) {
+       sprintf(s_format, "%s %s %02d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
+                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    } else {
+       sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
+                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    }
     safe_str(s_format, buff, bufcx);
     free_mbuf(s_format);
 }
@@ -37421,6 +37480,7 @@ FUNCTION(fun_inc)
 
 FUNCTION(fun_pushregs)
 {
+#ifndef NO_GLOBAL_REGBACKUP
     int regnum, cntr;
     char *strtok, *strtokptr;
 
@@ -37490,6 +37550,9 @@ FUNCTION(fun_pushregs)
           strtok = strtok_r(NULL, " \t", &strtokptr);
        }
     }
+#else
+   safe_str((char *)"#-1 FUNCTION HARD-DISABLED", buff, bufcx);
+#endif
 }
 
 void
