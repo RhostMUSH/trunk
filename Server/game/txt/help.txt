@@ -35992,21 +35992,14 @@
 
   Current Changelogs:
   -------------------
-<<<<<<< HEAD
-  1 - 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 
-      4.3.5, 4.3.4, 4.3.3, 4.3.2
-  2 - 4.3.1, 4.3.0
-
-
-& 4.5.2
-=======
-  1 - 4.6.0, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 
-      4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
+  1 - 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 
+      4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
   2 - 4.3.1, 4.3.0
 
 
 & 4.6.0
->>>>>>> ashen-shugar
+& 4.5.3
+& 4.5.2
 & 4.5.1
 & 4.5.0
 & 4.4.3
@@ -36026,18 +36019,15 @@
 & changelog recent
 & changelog 1
 
-<<<<<<< HEAD
-  4.5.3 - 08/01/24
-  * Added 'moniker' as a default alias for cname() in alias.conf
-
-=======
   4.6.0 - 08/03/24
   * time_paddzero if enabled padds the day of the month in time() and 
     convsec() with a zero for MUX compatibility.
   * added & and | options to packmath()
   * columns() has better handling with an optional delimiter is specified.
-  
->>>>>>> ashen-shugar
+
+  4.5.3 - 08/01/24
+  * Added 'moniker' as a default alias for cname() in alias.conf
+
   4.5.1 - 07/19/24
   * connect_methods had reversed logic in the checks
   
