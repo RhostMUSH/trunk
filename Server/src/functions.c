@@ -29081,6 +29081,11 @@ FUNCTION(fun_caplist)
        return;
     }
     
+    if((i_hyphen & 512 ) && (nfargs < 6)) {
+       safe_str("#-1 TYPE 512 REQUIRES LAST ARG", buff, bufcx);
+       return;
+    }
+
     t_str = alloc_lbuf("caplist");
 
     bFirst = i_lastchk = 1;
