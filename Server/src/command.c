@@ -919,6 +919,7 @@ NAMETAB flaglevel_sw[] =
 NAMETAB password_sw[] =
 {
     {(char *) "attribute", 1, CA_PUBLIC, 0, PASS_ATTRIB | SW_MULTIPLE},
+    {(char *) "generate", 1, CA_PUBLIC, 0, PASS_GEN | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB pcreate_sw[] =

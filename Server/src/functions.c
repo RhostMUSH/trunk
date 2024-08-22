@@ -1342,8 +1342,7 @@ extern char * totem_valid(dbref, char *, int);
 extern char * skip_mux_ansi(char *, char *, char **);
 extern int count_mux_ansi(char *);
 extern void build_sweep(dbref, dbref, dbref, int, char *, char *, char **, char *);
-
-
+extern char * gen_password(int, dbref, int);
 
 int
 down_ansi(int i_r, int i_g, int i_b) 
@@ -14227,6 +14226,19 @@ FUNCTION(fun_passwd)
 }
 #endif
 
+FUNCTION(fun_genpassword)
+{
+   char *s_buff;
+
+   if ( !fargs[0] || !*fargs[0] || !is_number(fargs[0]) ) {
+      safe_str((char *)"#-1 GENPASSWORD EXPECT A NUMBER", buff, bufcx);
+      return;
+   }
+   s_buff = gen_password(atoi(fargs[0]), player, 1);
+   safe_str(s_buff, buff, bufcx);
+   free_lbuf(s_buff);
+}
+
 FUNCTION(fun_get)
 {
     dbref thing, aowner;
@@ -14773,8 +14785,33 @@ FUNCTION(fun_listcommands)
   if ( (nfargs > 0) && *fargs[0] ) {
      i_cmdtype = atoi(fargs[0]);
   }
-  if ( (i_cmdtype < 0) || (i_cmdtype > 2) ) {
+  if ( (i_cmdtype < 0) || (i_cmdtype > 3) ) {
      i_cmdtype = 0;
+  }
+
+  if ( i_cmdtype == 3 ) {
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+
+        if ( (cmdp->cmdtype & CMD_ATTR_e) && 
+           check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+           if ( !(cmdp->perms & CF_DARK) ) {
+              ptrs[nptrs] = cmdp->cmdname;
+              nptrs++;
+           }
+           if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+              notify(player, "WARNING: Command [attribute] listing too large to display.");
+              break;
+           }
+        }
+     }
+     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+     safe_str((char *)ptrs[0], buff, bufcx);
+     for (i = 1; i < nptrs; i++) {
+        safe_chr(' ', buff, bufcx);
+        safe_str((char *)ptrs[i], buff, bufcx);
+     }
   }
 
   if ( !i_cmdtype || (i_cmdtype == 2) ) {
@@ -29055,7 +29092,7 @@ FUNCTION(fun_capstr)
 FUNCTION(fun_caplist)
 {
     char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr, *ap;
-    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen;
+    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen, i_loop, i_nolower;
     
     // We aren't allowed more than 4 args here.
     if( !fn_range_check( "CAPLIST", nfargs, 1, 6, buff, bufcx ) )
@@ -29081,14 +29118,10 @@ FUNCTION(fun_caplist)
        return;
     }
     
-    if((i_hyphen & 512 ) && (nfargs < 6)) {
-       safe_str("#-1 TYPE 512 REQUIRES LAST ARG", buff, bufcx);
-       return;
-    }
-
     t_str = alloc_lbuf("caplist");
 
     bFirst = i_lastchk = 1;
+    i_loop = i_nolower = 0;
     do {
        // Set the current word.
        curr = split_token( &wordlist, *sep );
@@ -29104,9 +29137,12 @@ FUNCTION(fun_caplist)
        switch( style ) {
           // Capitalize the first letter of every word
   	  // Lowercase the rest of each word.
+          case 'I': /* cap every word ignore lowercasing */
+             i_nolower = 1;
           case 'L': /* Enforce Lower Case */
              i_cap = i_hcap = 0;
              ap = curr;
+             i_loop = 0;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
                 if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR)  || (*(ap+1) == SAFE_UCHR))
@@ -29156,28 +29192,36 @@ FUNCTION(fun_caplist)
   	              safe_chr( ToUpper( *ap ), buff, bufcx );
                       i_cap = 1;
                    } else {
-                      if ( ((i_hyphen & 1  )   && (*(ap-1) == '-' )) || 
-                           ((i_hyphen & 2  )   && (*(ap-1) == '(' )) || 
-                           ((i_hyphen & 4  )   && (*(ap-1) == '[' )) ||
-                           ((i_hyphen & 8  )   && (*(ap-1) == '{' )) ||
-                           ((i_hyphen & 16 )   && (*(ap-1) == '"' )) ||
-                           ((i_hyphen & 32 )   && (*(ap-1) == '\'')) ||
-                           ((i_hyphen & 64 )   && (*(ap-1) == '.' )) ||
-                           ((i_hyphen & 128 )  && (*(ap-1) == '_' )) ||
-                           ((i_hyphen & 256 )  && (*(ap-1) == '`' )) ||
-                           ((i_hyphen & 512 )  && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
-                         ) {
+                      if ( i_loop && ap && *ap &&
+                           (((i_hyphen & 1  )   && (*(ap-1) == '-' )) || 
+                            ((i_hyphen & 2  )   && (*(ap-1) == '(' )) || 
+                            ((i_hyphen & 4  )   && (*(ap-1) == '[' )) ||
+                            ((i_hyphen & 8  )   && (*(ap-1) == '{' )) ||
+                            ((i_hyphen & 16 )   && (*(ap-1) == '"' )) ||
+                            ((i_hyphen & 32 )   && (*(ap-1) == '\'')) ||
+                            ((i_hyphen & 64 )   && (*(ap-1) == '.' )) ||
+                            ((i_hyphen & 128 )  && (*(ap-1) == '_' )) ||
+                            ((i_hyphen & 256 )  && (*(ap-1) == '`' )) ||
+                            ((i_hyphen & 512 )  && ((nfargs >= 5) && fargs[5] && *fargs[5] && index(fargs[5], *(ap-1))))
+                           )) {
   	                 safe_chr( ToUpper( *ap ), buff, bufcx );
                       } else {
-  	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                         if ( i_nolower ) {
+  	                    safe_chr( *ap, buff, bufcx );
+                         } else {
+  	                    safe_chr( ToLower( *ap ), buff, bufcx );
+                         }
                       }
                    }
+                   i_loop=1;
                    ap++;
                 }
 	    }
 	    break;
 
         // True capitalization -- Title NIVA standards
+        case 'C': /* Fall through but no lower case */
+           i_nolower = 1;
         case 'T': /* True capitalization */
            i_found = 0;
            if ( i_first && (i_last != i_lastchk) && *(mudconf.cap_conjunctions) ) {
@@ -29215,6 +29259,7 @@ FUNCTION(fun_caplist)
           }
           i_cap = i_hcap = 0;
           ap = curr;
+          i_loop = 0;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
              if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR) || (*(ap+1) == SAFE_UCHR))
@@ -29264,11 +29309,16 @@ FUNCTION(fun_caplist)
                    if ( !i_found || !i_first || (i_lastchk == i_last) ) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
-                      safe_chr( ToLower( *ap ), buff, bufcx );
+                      if ( i_nolower ) {
+                         safe_chr( *ap, buff, bufcx );
+                      } else {
+                         safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
                    }
                    i_first = i_cap = i_hcap = 1;
                 } else {
-                   if ( ((i_hyphen & 1  )  && (*(ap-1) == '-' )) || 
+                   if ( i_loop && ap && *ap &&
+                       (((i_hyphen & 1  )  && (*(ap-1) == '-' )) || 
                         ((i_hyphen & 2  )  && (*(ap-1) == '(' )) || 
                         ((i_hyphen & 4  )  && (*(ap-1) == '[' )) ||
                         ((i_hyphen & 8  )  && (*(ap-1) == '{' )) ||
@@ -29277,13 +29327,18 @@ FUNCTION(fun_caplist)
                         ((i_hyphen & 64 )  && (*(ap-1) == '.' )) ||
                         ((i_hyphen & 128 ) && (*(ap-1) == '_' )) ||
                         ((i_hyphen & 256 ) && (*(ap-1) == '`' )) ||
-                        ((i_hyphen & 512 ) && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
-                      ) {
+                        ((i_hyphen & 512 ) && ((nfargs >= 5) && fargs[5] && *fargs[5] && index(fargs[5], *(ap-1))))
+                      )) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
-	              safe_chr( ToLower( *ap ), buff, bufcx );
+                      if ( i_nolower ) {
+                         safe_chr( *ap, buff, bufcx );
+                      } else {
+	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
                    }
                 }
+                i_loop=1;
                 ap++;
              }
 	  }
@@ -41852,6 +41907,7 @@ FUN flist[] =
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GET", fun_get, 1, 0, CA_PUBLIC, 0},
     {"GET_EVAL", fun_get_eval, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GENPASSWORD", fun_genpassword, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

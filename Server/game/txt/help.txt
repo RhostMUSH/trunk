@@ -4242,6 +4242,10 @@
   mail signatures are done by storing a user-def attribute on your character.
   the attribute is called 'MAILSIG'.  To set this attribute, you would do:
   
+  If the MailSig attribute has the NO_PARSE attribute flag removed, then the
+  mail signature will be evaluated.  This needs to be removed locally as well
+  as globally to take effect.
+   
   Examples:
     @mailsig me=This is my signature.
     &mailsig me=This is my signature.
@@ -5974,6 +5978,8 @@
     /attribute -- Set the specified attribute into the attribute.
                   Note: <password> can't exceed 2048 characters.
                         This may change based on crypto settings.
+    /generate  -- generate a safer_password compliant password.
+                  If the length is too short it will warn you.
   
   If the system uses the old DES style of passwords, you are limited
   to 8 character passwords.
@@ -5997,6 +6003,8 @@
        -- entropy check for non repeating or incremental/decremental characters
        -- (optional) levenshtein distance check from 1-5 characters
   
+  @password/generate will follow the restrictions of safer_passwords.
+    
   Please see @list options system to see what method of password
   algo is currently in place.
   
@@ -6012,7 +6020,7 @@
     > say attrpass(me/va,test,chk)
     You say "1"
   
-  See Also: @name, attrpass(), PASSWORD LAYOUT
+  See Also: @name, attrpass(), PASSWORD LAYOUT, genpassword()
 
 & PASSWORD LAYOUT
   Topic: PASSWORD LAYOUT
@@ -12340,33 +12348,33 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()           COS()         CRC32()        CRC32OBJ()
-  CREATE()        CREATETIME()    CREPLACE()    CTU()          DEC()       
-  DECODE64()      DECRYPT()       DEFAULT()     DELETE()       DELEXTRACT()
-  DESTROY()       DICE()          DIG()         DIGEST()       DIST2D()    
-  DIST3D()        DIV()           E()           EDEFAULT()     EDIT()      
-  EDITANSI()      EE()            ELIST()       ELEMENTPOS()   ELEMENTS()  
-  ELEMENTSMUX()   ELOCK()         EMIT()        ENCODE64()     ENCRYPT()   
-  ENTRANCES()     EQ()            ERROR()       ESCAPE()       ESCAPEX()   
-  ESCLIST()       EVAL()          EXIT()        EXP()          EXTRACT()   
-  EXTRACTWORD()   FBETWEEN()      FBOUND()      FDIV()         FILTER()    
-  FINDABLE()      FIRST()         FLAGS()       FLOOR()        FLOORDIV()  
-  FOLD()          FOLDERCURRENT() FOLDERLIST()  FOREACH()      FULLNAME()  
-  GARBLE()        GET()           GET_EVAL()    GLOBALROOM()   GRAB()      
-  GRABALL()       GREP()          GT()          GTE()          GUILD()     
-  HASATTR()       HASATTRP()      HASFLAG()     HASTOGGLE()    HASTOTEM()  
-  HASTYPE()       HASQUOTA()      HASRXLEVEL(   HASTXLEVEL()   HOME()      
-  IBREAK()        IDLE()          IFELSE()      IINDEX()       ILEV()      
-  INC()           INDEX()         INF()         INPROGRAM()    INSERT()    
-  INUM()          INZONE()        IPV4MATH()    ISALNUM()      ISALPHA()    
-  ISCLUSTER()     ISDBREF()       ISDIGIT()     ISHIDDEN()     ISNUM()      
-  ISOBJID()       ISPUNCT()       ISSPACE()     ISTAG()        ISUNICODE()  
-  ISUTF8()        ISWORD()        ISXDIGIT()    ITER()         ITEXT()      
-  KEEPFLAGS()     KEEPTYPE()      LADD()        LAND()         LAST()       
-  LASTCREATE()    LATTR()         LAVG()        LCMDS()        LCON()       
-  LCSTR()         LDELETE()       LDIV()        LEMIT()        LEFT()       
-  LEXITS()        LFLAGS()        LINK()        LIST()         LISTCOMMANDS()
-  LISTDIFF()      LISTFUNCTIONS()
+  CONVTIME()      COR()           COS()           CRC32()      CRC32OBJ()
+  CREATE()        CREATETIME()    CREPLACE()      CTU()        DEC()       
+  DECODE64()      DECRYPT()       DEFAULT()       DELETE()     DELEXTRACT()
+  DESTROY()       DICE()          DIG()           DIGEST()     DIST2D()    
+  DIST3D()        DIV()           E()             EDEFAULT()   EDIT()      
+  EDITANSI()      EE()            ELIST()         ELEMENTPOS() ELEMENTS()  
+  ELEMENTSMUX()   ELOCK()         EMIT()          ENCODE64()   ENCRYPT()   
+  ENTRANCES()     EQ()            ERROR()         ESCAPE()     ESCAPEX()   
+  ESCLIST()       EVAL()          EXIT()          EXP()        EXTRACT()   
+  EXTRACTWORD()   FBETWEEN()      FBOUND()        FDIV()       FILTER()    
+  FINDABLE()      FIRST()         FLAGS()         FLOOR()      FLOORDIV()  
+  FOLD()          FOLDERCURRENT() FOLDERLIST()    FOREACH()    FULLNAME()  
+  GARBLE()        GENPASSWORD()   GET()           GET_EVAL()   GLOBALROOM() 
+  GRAB()          GRABALL()       GREP()          GT()         GTE()        
+  GUILD()         HASATTR()       HASATTRP()      HASFLAG()    HASTOGGLE()  
+  HASTOTEM()      HASTYPE()       HASQUOTA()      HASRXLEVEL(  HASTXLEVEL() 
+  HOME()          IBREAK()        IDLE()          IFELSE()     IINDEX()     
+  ILEV()          INC()           INDEX()         INF()        INPROGRAM()  
+  INSERT()        INUM()          INZONE()        IPV4MATH()   ISALNUM()    
+  ISALPHA()       ISCLUSTER()     ISDBREF()       ISDIGIT()    ISHIDDEN()   
+  ISNUM()         ISOBJID()       ISPUNCT()       ISSPACE()    ISTAG()      
+  ISUNICODE()     ISUTF8()        ISWORD()        ISXDIGIT()   ITER()       
+  ITEXT()         KEEPFLAGS()     KEEPTYPE()      LADD()       LAND()       
+  LAST()          LASTCREATE()    LATTR()         LAVG()       LCMDS()      
+  LCON()          LCSTR()         LDELETE()       LDIV()       LEMIT()      
+  LEFT()          LEXITS()        LFLAGS()        LINK()       LIST()       
+  LISTCOMMANDS()  LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -15210,6 +15218,25 @@
   
   See Also: @whereis, @whereall, loc(), room()
   
+& GENPASSWORD()
+  Function: genpassword(<length>)
+  
+  This function will generate a safer_password acceptable password sequence
+  that can be used for @passwords.  Be aware that it defaults to 5 character
+  minimum length and a maximum value of 140 character length.  The config
+  option safer_password requires a minimum of 14 character length and it will
+  warn you if the generated password is smaller than the requirement.
+  
+  This generator will add an extra character of lower case, upper case, and
+  special character (number/symbol) if the generated password in the 
+  specified length do not contain the characters required.
+   
+  Example:
+    > say genpassword(14)
+    You say "9RzIZX9$vuc"H/"
+  
+  See Also: @password
+ 
 & GET()
   Function: get(<object>/<attribute>)
  
@@ -20256,14 +20283,18 @@
   of the function slightly.  The key must be one of the following characters:
     - L:    Reduces the entire list to lower case before capitalization is
             performed.  Allows <type> value.
+    - I:    Works like 'L' above but does not reduce the list to lower case.
     - N:    Performs capitalization naturally, and does not affect any other
             characters in the list (default).
     - T:    Performs a 'true' capitalization based on currently English
             definition for titles.  Allows <type> value.
+    - C:    Works like 'T' above but does not reduce the list to lower case.
   
   Note: If you specify a <type> with 'T' the character override will not
   follow the 'true' capitalization.
     
+  Amusing note: no, the spelling out above of Lint C is not intentional.
+  
   The following <type> values exist for special handling with <key>
   'L' or 'T'.  These work as bitmasks so add the values to combine:
        1  - capitalize all words after a hyphon -
@@ -35992,11 +36023,12 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 
-      4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
+  1 - 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 
+      4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
   2 - 4.3.1, 4.3.0
 
 
+& 4.7.0
 & 4.6.0
 & 4.5.3
 & 4.5.2
@@ -36019,15 +36051,22 @@
 & changelog recent
 & changelog 1
 
+  4.7.0 - 08/22/24
+  * @password/generate to generate safer_password acceptable passwords
+  * genpassword() functionary to @password/generate
+  * fix potential crash bug in caplist() 
+  * new options to caplist() to keep string lower case
+  * MailSig optionally can be set to be evaluated
+  
   4.6.0 - 08/03/24
   * time_paddzero if enabled padds the day of the month in time() and 
     convsec() with a zero for MUX compatibility.
   * added & and | options to packmath()
   * columns() has better handling with an optional delimiter is specified.
-
+  
   4.5.3 - 08/01/24
   * Added 'moniker' as a default alias for cname() in alias.conf
-
+  
   4.5.1 - 07/19/24
   * connect_methods had reversed logic in the checks
   
@@ -36037,21 +36076,19 @@
   4.4.3 - 07/11/24
   * conn_perm did not honor the account subsystem for bypassing the
     restrive nature. (ASH)
-  
   * @hook /fail on 'goto' with and without expand_goto was not handled
     properly (ASH)
-  
   * goto was not fully vetted if it was disabled/ignored.
-
+  
   4.4.2 - 07/08/24
   * Pushed new cache_depth and cache_width defaults that much more match
     the attribute sizes of modern games. The netrhost.conf defaults were
     even lower than the internal defaults - fixed.
-  
+    
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
     was reversed. (AMB)
-
+  
   4.4.0 - 07/06/24
   ----------------
   * added ipv4math() function for conversion of IPv4 to decimal format and
@@ -36101,17 +36138,12 @@
   * Changed to a new semantic versioning system. Version numbers will
     continue from 4.3.0 onward and will follow the Semantic Versioning
     concept of MAJOR.MINOR.RELEASE [AMB]
-
   * Rewrite of the automatic patchlevel.h generation for changes pushed
     to the master branch [AMB]
-
   * Detailed versioning rules in patchlevel.template [AMB]
-
   * New 'Changelog X' help entries. The newest version(s) will always
     be in 'Changelog 1', older entries will get pushed to 2, 3 etc.
     once the current Changelog length would go over roughly 65
     lines in length. Doe to the more rapid version changes, the
     separation into new features, bugfixes etc. probably will not
     be needed anymore. [AMB]
-
-
