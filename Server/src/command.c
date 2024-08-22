@@ -5529,6 +5529,7 @@ NAMETAB attraccess_nametab[] =
     {(char *) "nonblocking", 3, CA_GOD, 0, AF_NONBLOCKING},
     {(char *) "pinvisible", 2, CA_WIZARD, 0, AF_PINVIS},
     {(char *) "no_clone", 4, CA_PUBLIC, 0, AF_NOCLONE},
+    {(char *) "no_parse", 4, CA_PUBLIC, 0, AF_NOPARSE},
 #ifdef ATTR_HACK
     {(char *) "uselock", 3, CA_PUBLIC, 0, AF_USELOCK},
 #endif

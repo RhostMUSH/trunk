@@ -36023,11 +36023,12 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 
-      4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2
-  2 - 4.3.1, 4.3.0
+  1 - 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 
+      4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
+  2 - 4.3.4, 4.3.3, 4.3.2, 4.3.1, 4.3.0
 
 
+& 4.7.1
 & 4.7.0
 & 4.6.0
 & 4.5.3
@@ -36043,22 +36044,19 @@
 & 4.3.7
 & 4.3.6
 & 4.3.5
-& 4.3.4
-& 4.3.3
-& 4.3.2
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
 
-  4.7.0 - 08/22/24
+  4.7.0-4.7.1 - 08/22/24
   * @password/generate to generate safer_password acceptable passwords
   * genpassword() functionary to @password/generate
   * fix potential crash bug in caplist() 
   * new options to caplist() to keep string lower case
   * MailSig optionally can be set to be evaluated
   
-  4.6.0 - 08/03/24
+  4.6.0-4.6.2 - 08/03/24
   * time_paddzero if enabled padds the day of the month in time() and 
     convsec() with a zero for MUX compatibility.
   * added & and | options to packmath()
@@ -36115,15 +36113,18 @@
   * added reverse sort order to sort(), setunion(), setdiff(), 
     and setinter() (ASH)
   
-  4.3.2 to 4.3.4 - 06.30.24
-  -------------------------
-  * Further fixes for pre-commit/pre-push scripts
-  
     
+& 4.3.4
+& 4.3.3
+& 4.3.2
 & 4.3.1
 & 4.3.0
 & changelog 2
 
+  4.3.2 to 4.3.4 - 06.30.24
+  -------------------------
+  * Further fixes for pre-commit/pre-push scripts
+  
   4.3.1 - 06/30/24
   ----------------
   * Fix for elock() with regards to objid's as a target. objid's would
