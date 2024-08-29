@@ -39,8 +39,8 @@
  */
 
 #define MAJOR_VERSION           "4" /* Major rewrites, DB system changes..   */
-#define MINOR_VERSION           "7" /* Normal new features and changes       */
-#define PATCH_VERSION           "1" /* Bugfixes, crashfixes etc.             */
+#define MINOR_VERSION           "8" /* Normal new features and changes       */
+#define PATCH_VERSION           "0" /* Bugfixes, crashfixes etc.             */
 #define VERSION_EXT             ""  /* "" OR "ALPHA", "BETA, "RC1", "RC2"... */
 
 #define MUSH_RELEASE_DATE       "YYYY-MM-DD"          /* Source release date */
