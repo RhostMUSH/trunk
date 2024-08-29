@@ -3478,7 +3478,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -3548,7 +3548,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -4035,7 +4035,7 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -4245,7 +4245,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              memset(buf, '\0', LBUF_SIZE);

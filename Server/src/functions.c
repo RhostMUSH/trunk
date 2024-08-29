@@ -31895,15 +31895,21 @@ FUNCTION(fun_sandbox)
 FUNCTION(fun_objeval)
 {
     dbref obj;
-    int prev_nocode, i_target;
+    int prev_nocode, i_target, i_enforce;
     char *result, *cp;
 
-    if (!fn_range_check("OBJEVAL", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("OBJEVAL", nfargs, 2, 4, buff, bufcx))
        return;
     mudstate.objevalst = 0;
     prev_nocode = mudstate.nocodeoverride;
 
-    i_target = 0;
+    i_target = i_enforce = 0;
+    /* Abort if target is invalid or you don't control it */
+    if ( (nfargs >= 4) && *fargs[3] ) {
+       i_enforce = atoi(fargs[3]);
+    }
+
+    /* Full execution based on target if you control it */
     if ( (nfargs >= 3) && *fargs[2] && Wizard(player) ) {
        cp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2],
                  cargs, ncargs, (char **)NULL, 0);
@@ -31922,6 +31928,12 @@ FUNCTION(fun_objeval)
     obj = noisy_match_result();
     if ((obj != NOTHING) && !Controls(player,Owner(obj)))
         obj = NOTHING;
+
+    if ( i_enforce && (obj == NOTHING) ) {
+       safe_str((char *)"#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+
     free_lbuf(cp);
     if (obj != NOTHING) {
         if ( !Wizard(obj) && (obj != player) )

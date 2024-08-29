@@ -4110,10 +4110,13 @@
   This is handy for saving your objects in a text file in case the MUSH dies
   a horrible death, or for moving your pride-and-joy creation from one MUSH
   to another.  @decompile works on all object types.
+  
   If you specify <newname>, then the commands emitted will set attributes,
   locks, and flags on an object named <newname> and will omit the command
   to create the object.  You may also specify an optional wild-carded
-  attribute.  The following switches exist:
+  attribute.  
+  
+  The following switches exist:
       /all     - Show everything (this is the default)
       /attrib  - Show just attributes
       /flags   - Show just flags
@@ -7591,6 +7594,9 @@
   Thus, this only has effects for rooms, and for objects only when you are
   inside them.  This is meaningless for exits and players.
   
+  Wizards will see through nameformatted different names to the real name
+  underneath.  This can be disabled if they set themselves myopic.
+   
   Examples:
     > look
     A big Room
@@ -11093,6 +11099,9 @@
   If you are set MYOPIC, then you are treated as if you did not own anything
   when you use the LOOK command or when you automatically look at a location
   when entering it.  Other commands (such as EXAMINE) are not affected.
+  
+  This flag will also disable seeing through @nameformats and other wizard
+  only options.
   
   See Also: DARK, look, TERSE
   
@@ -21653,15 +21662,22 @@
   See Also: str(), before(), after()
   
 & OBJEVAL()
-  Function: objeval(<thing>,<function> [,<permission override>])
+  Function: objeval(<thing>,<function> [,<override>, [<enforce>]])
   
   The objeval function evaluates the target function according to the 
-  permissions of the thing that is specified.  If you normally do not
-  have those permissions, it uses your permissions instead.  This is 
-  useful when you need to parse arguments under a different permission 
-  level than the one you currently at.
+  permissions of the thing that is specified.  
   
-  The following permission overrides are allowed as a bitmask.
+  If you do not have permission over the <thing> then it will default back 
+  to your own permissions instead.  This is done passively and silently.
+  
+  The above behavior can be enforced to error out if you specify the 
+  <enforce> value to 1, in which case if you do not have permission
+  over <thing> it will return an error.
+   
+  This function is useful when you need to parse arguments under a 
+  different permission level than the one you currently at.
+  
+  The following permission overrides <override> are allowed as a bitmask:
     1 - Wizard only, will override the NO_CODE flag on the target and still 
         execute any code of that person.  This is ignored for any enactor 
         not a wizard.
@@ -36023,11 +36039,12 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 
-      4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
+  1 - 4.8.0, 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 
+      4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
   2 - 4.3.4, 4.3.3, 4.3.2, 4.3.1, 4.3.0
 
 
+& 4.8.0
 & 4.7.1
 & 4.7.0
 & 4.6.0
@@ -36041,14 +36058,17 @@
 & 4.4.0
 & 4.3.9
 & 4.3.8
-& 4.3.7
-& 4.3.6
-& 4.3.5
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
 
+  4.8.0 - 08/28/24
+  * @decompile/db will now show dbref# of parents
+  * @decompile now includes zones
+  * objeval() has optional enforce option to fail if you don't control target
+  * myopic controls if wizards see through nameformats.
+  
   4.7.0-4.7.1 - 08/22/24
   * @password/generate to generate safer_password acceptable passwords
   * genpassword() functionary to @password/generate
@@ -36100,6 +36120,17 @@
   ----------------
   * Another fix for the git hooks
   
+    
+& 4.3.7
+& 4.3.6
+& 4.3.5
+& 4.3.4
+& 4.3.3
+& 4.3.2
+& 4.3.1
+& 4.3.0
+& changelog 2
+
   4.3.7 - 07/02/24
   ----------------
   * bug with determining 64-bitness of systems with newer GCC/ Clang versions
@@ -36113,14 +36144,6 @@
   * added reverse sort order to sort(), setunion(), setdiff(), 
     and setinter() (ASH)
   
-    
-& 4.3.4
-& 4.3.3
-& 4.3.2
-& 4.3.1
-& 4.3.0
-& changelog 2
-
   4.3.2 to 4.3.4 - 06.30.24
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
