@@ -448,12 +448,17 @@ gen_password(int i_value, dbref player, int key)
             break;
       }
    }
+
+   /* Overwrite the first 3 characters with required chars if needed
+    * This enforces the same length as what you specified 
+    */
+   s_passptr = s_pass;
    if ( i_type[0] == 0 )  /* Enforce lower case */
-      safe_chr((char) ('a'+(rand()%26)), s_pass, &s_passptr);
+      *s_passptr++ = 'a'+(rand()%26);
    if ( i_type[1] == 0 )  /* Enforce upper case */
-      safe_chr((char) ('A'+(rand()%26)), s_pass, &s_passptr);
+      *s_passptr++ = 'A'+(rand()%26);
    if ( i_type[2] == 0 )  /* Enforce symbol/number */
-      safe_chr((char) ('"'+(rand()%24)), s_pass, &s_passptr);
+      *s_passptr++ = '"'+(rand()%24);
 
    return(s_pass);
 }

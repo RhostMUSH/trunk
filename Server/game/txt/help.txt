@@ -12328,30 +12328,30 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANDTOTEM()         ANDTOTEMS()
- ANSI()               ANSIPOS()          APOSS()            ARGS()
- ARRAY()              ART()              ASC()              ASIN()           
- ATAN()               ATAN2()            ATRCACHE()         ATTRCNT()         
- ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
- BITTYPE()            BOUND()            BRACKETS()         CAND()            
- CAPSTR()             CASE()             CASEALL()          CAT()             
- CEIL()               CENTER()           CHARIN()           CHAROUT()          
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()          
- COLUMNS()            COMP()             CON()              CONFIG()           
- CONN()               CONNLAST()         CONNLEFT()         CONNMAX()
- CONNNUM()            CONNRECORD()       CONNTOTAL()        CONTROLS()       
- CONVSECS()    
+ @@()                ABS()                ACCENT()           ACOS()        
+ ADD()               AFTER()              AINDEX()           AIINDEX()         
+ ALPHAMAX()          ALPHAMIN()           AND()              ANDCHR()        
+ ANDFLAG()           ANDFLAGS()           ANDTOTEM()         ANDTOTEMS()
+ ANSI()              ANSIPOS()            APOSS()            ARGS()
+ ARRAY()             ART()                ASC()              ASIN()           
+ ATAN()              ATAN2()              ATRCACHE()         ATTRCNT()         
+ ATTRPASS()          AVG()                BEFORE()           BETWEEN()         
+ BITTYPE()           BOUND()              BRACKETS()         BUCKET()
+ CAND()              CAPSTR()             CASE()             CASEALL()        
+ CAT()               CEIL()               CENTER()           CHARIN()         
+ CHAROUT()           CHKREALITY()         CHKTRACE()         CHOMP()           
+ CHR()               CITER()              CLONE()            CLUSTER_ADD()     
+ CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()   
+ CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR() 
+ CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI() 
+ CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()      
+ CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT()
+ CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT()
+ CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()             CNAME()          
+ COLORS()            COLUMNS()            COMP()             CON()             
+ CONFIG()            CONN()               CONNLAST()         CONNLEFT()        
+ CONNMAX()           CONNNUM()            CONNRECORD()       CONNTOTAL()       
+ CONTROLS()          CONVSECS()    
   
 { 'help function list2' for more }
   
@@ -12511,9 +12511,9 @@
                         ZSEARCH(), ZSEARCHOBJID()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() MASK() 
-                        PACK() PACKMATH() ROMAN() ROUND() SPELLNUM() TOBIN() 
-                        TODEC() TOHEX() TOOCT() TRUNC() UNPACK()
+  Numerical Conversion: BUCKET() CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() 
+                        MASK() PACK() PACKMATH() ROMAN() ROUND() SPELLNUM() 
+                        TOBIN() TODEC() TOHEX() TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -15236,9 +15236,8 @@
   option safer_password requires a minimum of 14 character length and it will
   warn you if the generated password is smaller than the requirement.
   
-  This generator will add an extra character of lower case, upper case, and
-  special character (number/symbol) if the generated password in the 
-  specified length do not contain the characters required.
+  This generator will enforce characters of lower case, upper case, and
+  special character (number/symbol) in the generated password.
    
   Example:
     > say genpassword(14)
@@ -16396,7 +16395,7 @@
     > say decode64(dGVzdCAxIDIgMw==)
     You say "test 1 2 3"
   
-  See Also: encrypt(), decrypt(), pack(), digest()
+  See Also: encrypt(), decrypt(), pack(), digest(), bucket()
   
 & ENCRYPT()
   Function: encrypt(<string>,<seed>)
@@ -20542,6 +20541,26 @@
   
   See Also: reverse(), trreverse()
   
+& BUCKET()
+  Function: bucket(<string>, <bucket-mask>)
+  
+  This function will return the bucket location based on the <bucket-mask>
+  that you specify.  The  bucket mask you specify will be rounded to the 
+  2-factorial  of the number you enter.  Examples would be 5 rounded to 
+  8 (2^3), 10 rounded to 16 (2^4), 22 rounded to 32 (2^5) and so forth.
+  
+  A <bucket-mask> of 8 would have buckets 0-7.
+  A <bucket-mask> of 16 would have buckets 0-15.
+  A <bucket-mask> of 32 would have buckets 0-31.
+  
+  The maximum  bucket-mask allowed is 1 billion (1000000000). 
+  
+  Example:
+    > say iter(lnum(10),%i0:[bucket(%i0,16)])
+    You say "0:9 1:8 2:11 3:10 4:13 5:12 6:15 7:14 8:1 9:0"
+  
+  See Also: pack(), crc32(), encode64()
+  
 & BEFORE()
   Function: before(<string1>, <string2> [,<key>])
  
@@ -21167,7 +21186,7 @@
     You say "7"
   
   See Also: medit(), edit(), regedit(), pack(), unpack(), packmath(), shl(), 
-            shr(), crc32(), crc32obj()
+            shr(), crc32(), crc32obj(), bucket()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -23026,7 +23045,7 @@
     -bVxTM
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
-            roman(), packmath(), crc32obj()
+            roman(), packmath(), crc32obj(), bucket()
   
 & PACKMATH()
   Function: packmath(<number>, <radix>, <offset> [[,<math> ][,<offset-radix>])
@@ -23064,7 +23083,7 @@
     > think add(629126998,5555)
     629132553
   
-  See Also: pack(), unpack(), strmath()
+  See Also: pack(), unpack(), strmath(), bucket()
 
 & UNESCLIST()
   Function: unesclist(<list of characters to un-escape>|<string>)
@@ -23706,7 +23725,7 @@
     You say "3a589de6214fd40ae461313fd81dfd1edb7eae70"
    
   See also: crc32(), pack(), roman(), encrypt(), decrypt(), encode64(),
-            decode64(), crc32obj()
+            decode64(), crc32obj(), bucket()
 
 & DIG()
   Function: dig(<room>[[,<in exit>][,<out exit>][,<location>][,<type>]])
@@ -32190,6 +32209,7 @@
   Function Lists: Numerical Conversion Functions
   
   bound()       - Bounds a number between a min and max value.
+  bucket()      - Specify a hash bucket based on the string and bucket size.
   ceil()        - Returns the smallest integer greater or equal to <number>.
   crc32()       - Generates a CRC from a set of strings.
   crc32obj()    - Generates a CRC for an object.
@@ -36039,11 +36059,12 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.8.0, 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 
-      4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
+  1 - 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 
+      4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
   2 - 4.3.4, 4.3.3, 4.3.2, 4.3.1, 4.3.0
 
 
+& 4.9.0
 & 4.8.0
 & 4.7.1
 & 4.7.0
@@ -36063,6 +36084,12 @@
 & changelog recent
 & changelog 1
 
+  4.9.0 - 09/05/24
+  * bucket() function for bucket hashing
+  * aes.sh execscript for aes encryption and decryption
+    syntax: execscript(aes.sh,password,enc|dec,string)
+  * @password/generate (genpassword()) fix to enforce lengths
+  
   4.8.0 - 08/28/24
   * @decompile/db will now show dbref# of parents
   * @decompile now includes zones

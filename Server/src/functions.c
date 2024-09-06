@@ -31892,6 +31892,26 @@ FUNCTION(fun_sandbox)
     free_mbuf(s_pad);
 }
 
+FUNCTION(fun_bucket)
+{
+    int i_bucket, i_mask;
+
+    if ( !*fargs[0] || !*fargs[1] ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    i_bucket = atoi(fargs[1]);
+    if ( (i_bucket < 2) || (i_bucket > 1000000000) ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    for (i_mask = 1; i_mask < i_bucket; i_mask = i_mask << 1);
+    
+    ival(buff, bufcx, hashval(fargs[0], i_mask - 1));
+}
+
 FUNCTION(fun_objeval)
 {
     dbref obj;
@@ -41745,6 +41765,7 @@ FUN flist[] =
     {"BITTYPE", fun_bittype, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BOUND", fun_bound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BRACKETS", fun_brackets, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"BUCKET", fun_bucket, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"BYPASS", fun_bypass, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CAND", fun_cand, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef REALITY_LEVELS
