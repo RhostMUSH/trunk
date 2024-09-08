@@ -13628,27 +13628,52 @@ FUNCTION(fun_convsecs)
 {
     char *s_wday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", NULL };
     char *s_mon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL };
-    char *s_format;
-    double tt2;
-    long l_offset;
-    struct tm *ttm2;
+    char *s_format, *s_env, *s_tmp;
+    time_t tt;
+    struct tm *ttm;
+    int i_tz = 0;
 
-    tt2 = safe_atof(fargs[0]);
-    ttm2 = localtime(&mudstate.now);
-    l_offset = (long) mktime(ttm2) - (long) mush_mktime64(ttm2);
-    tt2 -= l_offset;
-    mush_gmtime64_r(&tt2, ttm2);
-    ttm2->tm_year += 1900;
+    if (!fn_range_check("CONVSECS", nfargs, 1, 2, buff, bufcx))
+        return;
+
+    tt = (time_t)safe_atof(fargs[0]);
+    s_env = alloc_sbuf("convsecs_tz");
+
+    if (nfargs > 1 && *fargs[1]) {
+        if (!validate_timezones(fargs[1])) {
+            free_sbuf(s_env);
+            safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+            return;
+        }
+        s_tmp = getenv("TZ");
+        if (s_tmp) { strcpy(s_env, s_tmp); }
+              else { *s_env = '\0'; }
+        i_tz = 1;
+        setenv("TZ", fargs[1], 1);
+        tzset();
+    }
+
+    ttm = localtime(&tt);
+
     s_format = alloc_mbuf("convsecs");
-    if ( mudconf.time_paddzero ) {
-       sprintf(s_format, "%s %s %02d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
-                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    if (mudconf.time_paddzero) {
+        sprintf(s_format, "%s %s %02d %02d:%02d:%02d %d",
+                s_wday[ttm->tm_wday], s_mon[ttm->tm_mon],
+                ttm->tm_mday, ttm->tm_hour, ttm->tm_min, ttm->tm_sec, ttm->tm_year + 1900);
     } else {
-       sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
-                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+        sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d",
+                s_wday[ttm->tm_wday], s_mon[ttm->tm_mon],
+                ttm->tm_mday, ttm->tm_hour, ttm->tm_min, ttm->tm_sec, ttm->tm_year + 1900);
     }
     safe_str(s_format, buff, bufcx);
     free_mbuf(s_format);
+
+    if (i_tz) {
+        if (*s_env) { setenv("TZ", s_env, 1); }
+               else { unsetenv("TZ"); }
+        tzset();
+    }
+    free_sbuf(s_env);
 }
 
 /* ---------------------------------------------------------------------------
@@ -41851,7 +41876,7 @@ FUN flist[] =
     {"CONNLEFT", fun_connleft, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONNLAST", fun_connlast, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONTROLS", fun_controls, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"CONVSECS", fun_convsecs, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONVSECS", fun_convsecs, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CONVTIME", fun_convtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"COR", fun_cor, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"COS", fun_cos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
