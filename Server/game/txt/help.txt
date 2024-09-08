@@ -24084,10 +24084,13 @@
   See Also: WHO, conn(), lwho(), CONNINFO
   
 & CONVSECS()
-  Function: convsecs(<seconds>)
+  Function: convsecs(<seconds> [,<timezone>])
  
   This function converts seconds to a time string, based on how many
   seconds the number is after Jan 1, 1970.
+ 
+  If the optional timezone argument is given, the time string will be
+  based on that timezone rather than the game's default timezone.
  
   Note: the time_paddzero @admin config parameter allows padding zeros.
    
@@ -24096,10 +24099,12 @@
     You say "709395750"
     > say convsecs(709395750)
     You say "Wed Jun 24 10:22:54 1992"
+    > say convsecs(709395750,US/Mountain)
+    You say "Wed Jun 24 08:22:54 1992"
   
   This function may also be called as secs2time().
   
-  See Also: convtime(), secs(), secstz(), time(), timefmt()
+  See Also: convtime(), listtzones(), secs(), secstz(), time(), timefmt()
   
 & CONVTIME()
   Function: convtime(<time string>)
