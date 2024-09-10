@@ -339,11 +339,19 @@ pool_stats_extra(int poolnum, const char *text)
        memset(format_str, '\0', sizeof(format_str));
        strcpy(format_str, "%-14s %5d %9d %9d %15s %6s %14.14g");
        if ( !strcmp(text, "Lbufs") ) {
+#ifndef NO_GLOBAL_REGBACKUP
           sprintf(buf, format_str, (char *)" \\Lbufs (Regs)", pools[poolnum].pool_size, 
                    ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
                    ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
                    (char *)"^", (char *)"^", 
                    pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2));
+#else
+          sprintf(buf, format_str, (char *)" \\Lbufs (Regs)", pools[poolnum].pool_size, 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1), 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1));
+#endif
        } else if ( !strcmp(text, "Mbufs") ) {
           sprintf(buf, format_str, (char *)" \\Mbufs (TZ)", pools[poolnum].pool_size, 
                    global_timezone_max, global_timezone_max,
@@ -394,7 +402,11 @@ pool_stats(int poolnum, const char *text, int i_color)
        strcat(format_str, " %14.14g");
 
     if ( strcmp(text, "Lbufs") == 0 ) {
+#ifndef NO_GLOBAL_REGBACKUP
        i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2); 
+#else
+       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1); 
+#endif
        if ( i_color ) {
           strcpy(s_norm, ANSI_GREEN);
           if ( i_check > 50 ) {
@@ -403,12 +415,21 @@ pool_stats(int poolnum, const char *text, int i_color)
              strcpy(s_warn, ANSI_YELLOW);
           }
        }
+#ifndef NO_GLOBAL_REGBACKUP
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
                s_warn, i_check, s_norm,
 	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
                pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
 	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
                (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
+#else
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)) * pools[poolnum].pool_size);
+#endif
     } else if ( strcmp(text, "Mbufs") == 0 ) {
        i_check = pools[poolnum].num_alloc - global_timezone_max; 
        if ( i_color ) {
@@ -791,7 +812,11 @@ list_bufstats(dbref player, char *s_key)
     }
     if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"stack") ) {
        i_found = 1;
+#ifndef NO_GLOBAL_REGBACKUP
        notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)));
+#else
+       notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)));
+#endif
        notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)));
 #ifndef NODEBUGMONITOR
        notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));

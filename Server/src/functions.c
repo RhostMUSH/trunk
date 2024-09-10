@@ -66,6 +66,9 @@ char *rindex(const char *, int);
 #ifndef INT_MAX
 #define INT_MAX 2147483647
 #endif
+#ifndef UINT_MAX
+#define UINT_MAX 4294967296
+#endif
 
 char *return_objid(dbref, dbref, char *);
 
@@ -1339,8 +1342,7 @@ extern char * totem_valid(dbref, char *, int);
 extern char * skip_mux_ansi(char *, char *, char **);
 extern int count_mux_ansi(char *);
 extern void build_sweep(dbref, dbref, dbref, int, char *, char *, char **, char *);
-
-
+extern char * gen_password(int, dbref, int);
 
 int
 down_ansi(int i_r, int i_g, int i_b) 
@@ -4671,6 +4673,25 @@ FUNCTION(fun_columns)
   for( buffleft = strlen(string), leftstart = string, p_leftstart = outsplit; buffleft > 0; ) {
      pp = leftstart;
      p_sp = p_leftstart;
+     if ( delim ) {
+       if ( (pp == string) && (*pp == delim) ) {
+          wrap_out_ansi(leftstart, 0, &winfo, holdbuff, &hbpt, spacer_sep, 0,
+                        p_leftstart, outsplit2);
+       }
+       if ( (*pp == delim) && ((*(pp+1) == delim) || !*(pp+1)) ) {
+          count++;
+          wrap_out_ansi(leftstart, 0, &winfo, holdbuff, &hbpt, spacer_sep, 0,
+                        p_leftstart, outsplit2);
+          pp++;
+          p_sp++;
+          leftstart = pp;
+          p_leftstart = p_sp;
+          buffleft -= 1;
+          if (!*pp)
+             break;
+          continue;
+       }
+     }
      if (delim) {
         while (*pp && (*pp == delim)) {
            pp++;
@@ -7292,8 +7313,9 @@ convnum(char *source)
               }
           }
        }
-    } else
+    } else {
        sscanf(source, "%i", &rval);
+    }
     return rval;
 }
 
@@ -7510,7 +7532,7 @@ FUNCTION(fun_tohex)
 
 FUNCTION(fun_todec)
 {
-    ival(buff, bufcx, convnum(fargs[0]));
+    uival(buff, bufcx, convnum(fargs[0]));
 }
 
 FUNCTION(fun_tooct)
@@ -8168,6 +8190,7 @@ FUNCTION(fun_pack)
 FUNCTION(fun_packmath)
 {
    double i_val, i_num;
+   unsigned int i_dval, i_dnum;
    char *s_tmp[2], *s_str, *s_strptr, sep;
 
    if (!fn_range_check("PACKMATH", nfargs, 3, 5, buff, bufcx)) {
@@ -8206,6 +8229,8 @@ FUNCTION(fun_packmath)
                fval(buff, bufcx, 0);
             }
             break;
+         case '|': /* bitwise or */
+         case '&': /* bitwise and */
          case '*': /* Multiply */
             fval(buff, bufcx, 0);
             break;
@@ -8246,6 +8271,24 @@ FUNCTION(fun_packmath)
             break;
          case '*': /* Multiply */
             sprintf(s_str, "%.0f", i_num * i_val);
+            break;
+         case '|': /* bitwise or */
+            if ( (i_num <= UINT_MAX) && (i_val <= UINT_MAX) ) {
+               i_dnum = (int) i_num;
+               i_dval = (int) i_val;
+               sprintf(s_str, "%u", i_dnum | i_dval);
+            } else {
+               strcpy(s_str, (char *)"0");
+            }
+            break;
+         case '&': /* bitwise and */
+            if ( (i_num <= UINT_MAX) && (i_val <= UINT_MAX) ) {
+               i_dnum = (int) i_num;
+               i_dval = (int) i_val;
+               sprintf(s_str, "%u", i_dnum & i_dval);
+            } else {
+               strcpy(s_str, (char *)"0");
+            }
             break;
       }
       s_tmp[0] = alloc_lbuf("fun_packadd");
@@ -9797,8 +9840,9 @@ FUNCTION(fun_time)
 {
     char *temp, *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, i_enforce;
+    int i_tz, aflags, i_enforce, len;
     ATTR *ap;
+    struct tm *tms;
 
     if (!fn_range_check("TIME", nfargs, 1, 2, buff, bufcx))
        return;
@@ -9849,9 +9893,18 @@ FUNCTION(fun_time)
           free_lbuf(s_chratr);
        }
     }
-    temp = (char *) ctime(&mudstate.now);
-    temp[strlen(temp) - 1] = '\0';
-    safe_str(temp, buff, bufcx);
+    if ( mudconf.time_paddzero ) {
+       tms = localtime(&mudstate.now);
+       temp = alloc_mbuf("time_withzero");
+       memset(temp, '\0', MBUF_SIZE);
+       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %02d %T %Y", tms);
+       safe_str(temp, buff, bufcx);
+       free_mbuf(temp);
+    } else {
+       temp = (char *) ctime(&mudstate.now);
+       temp[strlen(temp) - 1] = '\0';
+       safe_str(temp, buff, bufcx);
+    }
     if ( i_tz ) {
        if ( *s_env ) {
           setenv("TZ", s_env, 1);
@@ -13587,8 +13640,13 @@ FUNCTION(fun_convsecs)
     mush_gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
     s_format = alloc_mbuf("convsecs");
-    sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
-                      ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    if ( mudconf.time_paddzero ) {
+       sprintf(s_format, "%s %s %02d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
+                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    } else {
+       sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
+                         ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
+    }
     safe_str(s_format, buff, bufcx);
     free_mbuf(s_format);
 }
@@ -14168,6 +14226,19 @@ FUNCTION(fun_passwd)
 }
 #endif
 
+FUNCTION(fun_genpassword)
+{
+   char *s_buff;
+
+   if ( !fargs[0] || !*fargs[0] || !is_number(fargs[0]) ) {
+      safe_str((char *)"#-1 GENPASSWORD EXPECT A NUMBER", buff, bufcx);
+      return;
+   }
+   s_buff = gen_password(atoi(fargs[0]), player, 1);
+   safe_str(s_buff, buff, bufcx);
+   free_lbuf(s_buff);
+}
+
 FUNCTION(fun_get)
 {
     dbref thing, aowner;
@@ -14714,8 +14785,33 @@ FUNCTION(fun_listcommands)
   if ( (nfargs > 0) && *fargs[0] ) {
      i_cmdtype = atoi(fargs[0]);
   }
-  if ( (i_cmdtype < 0) || (i_cmdtype > 2) ) {
+  if ( (i_cmdtype < 0) || (i_cmdtype > 3) ) {
      i_cmdtype = 0;
+  }
+
+  if ( i_cmdtype == 3 ) {
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+          cmdp;
+          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+
+        if ( (cmdp->cmdtype & CMD_ATTR_e) && 
+           check_access(player, cmdp->perms, cmdp->perms2, 0)) {
+           if ( !(cmdp->perms & CF_DARK) ) {
+              ptrs[nptrs] = cmdp->cmdname;
+              nptrs++;
+           }
+           if ( nptrs > ((LBUF_SIZE / 2) - 1) ) {
+              notify(player, "WARNING: Command [attribute] listing too large to display.");
+              break;
+           }
+        }
+     }
+     qsort(ptrs, nptrs, sizeof(CMDENT *), s_comp);
+     safe_str((char *)ptrs[0], buff, bufcx);
+     for (i = 1; i < nptrs; i++) {
+        safe_chr(' ', buff, bufcx);
+        safe_str((char *)ptrs[i], buff, bufcx);
+     }
   }
 
   if ( !i_cmdtype || (i_cmdtype == 2) ) {
@@ -28996,7 +29092,7 @@ FUNCTION(fun_capstr)
 FUNCTION(fun_caplist)
 {
     char *curr, *osep, *sep, style, *wordlist, *t_str, *s_tok, *s_tokr, *ap;
-    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen;
+    int bFirst, i_found, i_last, i_first, i_lastchk, i_cap, i_hcap, i_hyphen, i_loop, i_nolower;
     
     // We aren't allowed more than 4 args here.
     if( !fn_range_check( "CAPLIST", nfargs, 1, 6, buff, bufcx ) )
@@ -29025,6 +29121,7 @@ FUNCTION(fun_caplist)
     t_str = alloc_lbuf("caplist");
 
     bFirst = i_lastchk = 1;
+    i_loop = i_nolower = 0;
     do {
        // Set the current word.
        curr = split_token( &wordlist, *sep );
@@ -29040,9 +29137,12 @@ FUNCTION(fun_caplist)
        switch( style ) {
           // Capitalize the first letter of every word
   	  // Lowercase the rest of each word.
+          case 'I': /* cap every word ignore lowercasing */
+             i_nolower = 1;
           case 'L': /* Enforce Lower Case */
              i_cap = i_hcap = 0;
              ap = curr;
+             i_loop = 0;
              while ( *ap ) {
 #ifdef ZENTY_ANSI
                 if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR)  || (*(ap+1) == SAFE_UCHR))
@@ -29092,28 +29192,36 @@ FUNCTION(fun_caplist)
   	              safe_chr( ToUpper( *ap ), buff, bufcx );
                       i_cap = 1;
                    } else {
-                      if ( ((i_hyphen & 1  )   && (*(ap-1) == '-' )) || 
-                           ((i_hyphen & 2  )   && (*(ap-1) == '(' )) || 
-                           ((i_hyphen & 4  )   && (*(ap-1) == '[' )) ||
-                           ((i_hyphen & 8  )   && (*(ap-1) == '{' )) ||
-                           ((i_hyphen & 16 )   && (*(ap-1) == '"' )) ||
-                           ((i_hyphen & 32 )   && (*(ap-1) == '\'')) ||
-                           ((i_hyphen & 64 )   && (*(ap-1) == '.' )) ||
-                           ((i_hyphen & 128 )  && (*(ap-1) == '_' )) ||
-                           ((i_hyphen & 256 )  && (*(ap-1) == '`' )) ||
-                           ((i_hyphen & 512 )  && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
-                         ) {
+                      if ( i_loop && ap && *ap &&
+                           (((i_hyphen & 1  )   && (*(ap-1) == '-' )) || 
+                            ((i_hyphen & 2  )   && (*(ap-1) == '(' )) || 
+                            ((i_hyphen & 4  )   && (*(ap-1) == '[' )) ||
+                            ((i_hyphen & 8  )   && (*(ap-1) == '{' )) ||
+                            ((i_hyphen & 16 )   && (*(ap-1) == '"' )) ||
+                            ((i_hyphen & 32 )   && (*(ap-1) == '\'')) ||
+                            ((i_hyphen & 64 )   && (*(ap-1) == '.' )) ||
+                            ((i_hyphen & 128 )  && (*(ap-1) == '_' )) ||
+                            ((i_hyphen & 256 )  && (*(ap-1) == '`' )) ||
+                            ((i_hyphen & 512 )  && ((nfargs >= 5) && fargs[5] && *fargs[5] && index(fargs[5], *(ap-1))))
+                           )) {
   	                 safe_chr( ToUpper( *ap ), buff, bufcx );
                       } else {
-  	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                         if ( i_nolower ) {
+  	                    safe_chr( *ap, buff, bufcx );
+                         } else {
+  	                    safe_chr( ToLower( *ap ), buff, bufcx );
+                         }
                       }
                    }
+                   i_loop=1;
                    ap++;
                 }
 	    }
 	    break;
 
         // True capitalization -- Title NIVA standards
+        case 'C': /* Fall through but no lower case */
+           i_nolower = 1;
         case 'T': /* True capitalization */
            i_found = 0;
            if ( i_first && (i_last != i_lastchk) && *(mudconf.cap_conjunctions) ) {
@@ -29151,6 +29259,7 @@ FUNCTION(fun_caplist)
           }
           i_cap = i_hcap = 0;
           ap = curr;
+          i_loop = 0;
 	  while( *ap ) {
 #ifdef ZENTY_ANSI
              if ( (*ap == '%') && ( ((*(ap+1) == SAFE_CHR) || (*(ap+1) == SAFE_UCHR))
@@ -29200,11 +29309,16 @@ FUNCTION(fun_caplist)
                    if ( !i_found || !i_first || (i_lastchk == i_last) ) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
-                      safe_chr( ToLower( *ap ), buff, bufcx );
+                      if ( i_nolower ) {
+                         safe_chr( *ap, buff, bufcx );
+                      } else {
+                         safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
                    }
                    i_first = i_cap = i_hcap = 1;
                 } else {
-                   if ( ((i_hyphen & 1  )  && (*(ap-1) == '-' )) || 
+                   if ( i_loop && ap && *ap &&
+                       (((i_hyphen & 1  )  && (*(ap-1) == '-' )) || 
                         ((i_hyphen & 2  )  && (*(ap-1) == '(' )) || 
                         ((i_hyphen & 4  )  && (*(ap-1) == '[' )) ||
                         ((i_hyphen & 8  )  && (*(ap-1) == '{' )) ||
@@ -29213,13 +29327,18 @@ FUNCTION(fun_caplist)
                         ((i_hyphen & 64 )  && (*(ap-1) == '.' )) ||
                         ((i_hyphen & 128 ) && (*(ap-1) == '_' )) ||
                         ((i_hyphen & 256 ) && (*(ap-1) == '`' )) ||
-                        ((i_hyphen & 512 ) && ((nfargs >= 5) && *fargs[5] && index(fargs[5], *(ap-1))))
-                      ) {
+                        ((i_hyphen & 512 ) && ((nfargs >= 5) && fargs[5] && *fargs[5] && index(fargs[5], *(ap-1))))
+                      )) {
                       safe_chr( ToUpper( *ap ), buff, bufcx );
                    } else {
-	              safe_chr( ToLower( *ap ), buff, bufcx );
+                      if ( i_nolower ) {
+                         safe_chr( *ap, buff, bufcx );
+                      } else {
+	                 safe_chr( ToLower( *ap ), buff, bufcx );
+                      }
                    }
                 }
+                i_loop=1;
                 ap++;
              }
 	  }
@@ -31773,18 +31892,44 @@ FUNCTION(fun_sandbox)
     free_mbuf(s_pad);
 }
 
+FUNCTION(fun_bucket)
+{
+    int i_bucket, i_mask;
+
+    if ( !*fargs[0] || !*fargs[1] ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    i_bucket = atoi(fargs[1]);
+    if ( (i_bucket < 2) || (i_bucket > 1000000000) ) {
+       ival(buff, bufcx, 0);
+       return;
+    }
+
+    for (i_mask = 1; i_mask < i_bucket; i_mask = i_mask << 1);
+    
+    ival(buff, bufcx, hashval(fargs[0], i_mask - 1));
+}
+
 FUNCTION(fun_objeval)
 {
     dbref obj;
-    int prev_nocode, i_target;
+    int prev_nocode, i_target, i_enforce;
     char *result, *cp;
 
-    if (!fn_range_check("OBJEVAL", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("OBJEVAL", nfargs, 2, 4, buff, bufcx))
        return;
     mudstate.objevalst = 0;
     prev_nocode = mudstate.nocodeoverride;
 
-    i_target = 0;
+    i_target = i_enforce = 0;
+    /* Abort if target is invalid or you don't control it */
+    if ( (nfargs >= 4) && *fargs[3] ) {
+       i_enforce = atoi(fargs[3]);
+    }
+
+    /* Full execution based on target if you control it */
     if ( (nfargs >= 3) && *fargs[2] && Wizard(player) ) {
        cp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[2],
                  cargs, ncargs, (char **)NULL, 0);
@@ -31803,6 +31948,12 @@ FUNCTION(fun_objeval)
     obj = noisy_match_result();
     if ((obj != NOTHING) && !Controls(player,Owner(obj)))
         obj = NOTHING;
+
+    if ( i_enforce && (obj == NOTHING) ) {
+       safe_str((char *)"#-1 PERMISSION DENIED", buff, bufcx);
+       return;
+    }
+
     free_lbuf(cp);
     if (obj != NOTHING) {
         if ( !Wizard(obj) && (obj != player) )
@@ -37421,6 +37572,7 @@ FUNCTION(fun_inc)
 
 FUNCTION(fun_pushregs)
 {
+#ifndef NO_GLOBAL_REGBACKUP
     int regnum, cntr;
     char *strtok, *strtokptr;
 
@@ -37490,6 +37642,9 @@ FUNCTION(fun_pushregs)
           strtok = strtok_r(NULL, " \t", &strtokptr);
        }
     }
+#else
+   safe_str((char *)"#-1 FUNCTION HARD-DISABLED", buff, bufcx);
+#endif
 }
 
 void
@@ -41610,6 +41765,7 @@ FUN flist[] =
     {"BITTYPE", fun_bittype, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BOUND", fun_bound, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"BRACKETS", fun_brackets, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"BUCKET", fun_bucket, 2, 0, CA_PUBLIC, CA_NO_CODE},
     {"BYPASS", fun_bypass, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CAND", fun_cand, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
 #ifdef REALITY_LEVELS
@@ -41784,6 +41940,7 @@ FUN flist[] =
     {"GARBLE", fun_garble, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GET", fun_get, 1, 0, CA_PUBLIC, 0},
     {"GET_EVAL", fun_get_eval, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"GENPASSWORD", fun_genpassword, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"GLOBALROOM", fun_globalroom, 0, 0, CA_PUBLIC, CA_NO_CODE},
     {"GRAB", fun_grab, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"GRABALL", fun_graball, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},

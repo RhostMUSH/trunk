@@ -4110,10 +4110,13 @@
   This is handy for saving your objects in a text file in case the MUSH dies
   a horrible death, or for moving your pride-and-joy creation from one MUSH
   to another.  @decompile works on all object types.
+  
   If you specify <newname>, then the commands emitted will set attributes,
   locks, and flags on an object named <newname> and will omit the command
   to create the object.  You may also specify an optional wild-carded
-  attribute.  The following switches exist:
+  attribute.  
+  
+  The following switches exist:
       /all     - Show everything (this is the default)
       /attrib  - Show just attributes
       /flags   - Show just flags
@@ -4242,6 +4245,10 @@
   mail signatures are done by storing a user-def attribute on your character.
   the attribute is called 'MAILSIG'.  To set this attribute, you would do:
   
+  If the MailSig attribute has the NO_PARSE attribute flag removed, then the
+  mail signature will be evaluated.  This needs to be removed locally as well
+  as globally to take effect.
+   
   Examples:
     @mailsig me=This is my signature.
     &mailsig me=This is my signature.
@@ -5974,6 +5981,8 @@
     /attribute -- Set the specified attribute into the attribute.
                   Note: <password> can't exceed 2048 characters.
                         This may change based on crypto settings.
+    /generate  -- generate a safer_password compliant password.
+                  If the length is too short it will warn you.
   
   If the system uses the old DES style of passwords, you are limited
   to 8 character passwords.
@@ -5997,6 +6006,8 @@
        -- entropy check for non repeating or incremental/decremental characters
        -- (optional) levenshtein distance check from 1-5 characters
   
+  @password/generate will follow the restrictions of safer_passwords.
+    
   Please see @list options system to see what method of password
   algo is currently in place.
   
@@ -6012,7 +6023,7 @@
     > say attrpass(me/va,test,chk)
     You say "1"
   
-  See Also: @name, attrpass(), PASSWORD LAYOUT
+  See Also: @name, attrpass(), PASSWORD LAYOUT, genpassword()
 
 & PASSWORD LAYOUT
   Topic: PASSWORD LAYOUT
@@ -7583,6 +7594,9 @@
   Thus, this only has effects for rooms, and for objects only when you are
   inside them.  This is meaningless for exits and players.
   
+  Wizards will see through nameformatted different names to the real name
+  underneath.  This can be disabled if they set themselves myopic.
+   
   Examples:
     > look
     A big Room
@@ -11086,6 +11100,9 @@
   when you use the LOOK command or when you automatically look at a location
   when entering it.  Other commands (such as EXAMINE) are not affected.
   
+  This flag will also disable seeing through @nameformats and other wizard
+  only options.
+  
   See Also: DARK, look, TERSE
   
 & TERSE
@@ -12311,62 +12328,62 @@
  
   Help is available for the following functions:
  
- @@()                 ABS()              ACCENT()           ACOS()        
- ADD()                AFTER()            AINDEX()           AIINDEX()         
- ALPHAMAX()           ALPHAMIN()         AND()              ANDCHR()        
- ANDFLAG()            ANDFLAGS()         ANDTOTEM()         ANDTOTEMS()
- ANSI()               ANSIPOS()          APOSS()            ARGS()
- ARRAY()              ART()              ASC()              ASIN()           
- ATAN()               ATAN2()            ATRCACHE()         ATTRCNT()         
- ATTRPASS()           AVG()              BEFORE()           BETWEEN()         
- BITTYPE()            BOUND()            BRACKETS()         CAND()            
- CAPSTR()             CASE()             CASEALL()          CAT()             
- CEIL()               CENTER()           CHARIN()           CHAROUT()          
- CHKREALITY()         CHKTRACE()         CHOMP()            CHR()              
- CITER()              CLONE()            CLUSTER_ADD()      CLUSTER_ATTRCNT()  
- CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()    CLUSTER_GET()      
- CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR()  CLUSTER_HASFLAG()  
- CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI()  CLUSTER_SET()      
- CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()       CLUSTER_U2DEFAULT()
- CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT() CLUSTER_UEVAL()    
- CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT() CLUSTER_WIPE()    
- CLUSTER_XGET()       CMDS()             CNAME()            COLORS()          
- COLUMNS()            COMP()             CON()              CONFIG()           
- CONN()               CONNLAST()         CONNLEFT()         CONNMAX()
- CONNNUM()            CONNRECORD()       CONNTOTAL()        CONTROLS()       
- CONVSECS()    
+ @@()                ABS()                ACCENT()           ACOS()        
+ ADD()               AFTER()              AINDEX()           AIINDEX()         
+ ALPHAMAX()          ALPHAMIN()           AND()              ANDCHR()        
+ ANDFLAG()           ANDFLAGS()           ANDTOTEM()         ANDTOTEMS()
+ ANSI()              ANSIPOS()            APOSS()            ARGS()
+ ARRAY()             ART()                ASC()              ASIN()           
+ ATAN()              ATAN2()              ATRCACHE()         ATTRCNT()         
+ ATTRPASS()          AVG()                BEFORE()           BETWEEN()         
+ BITTYPE()           BOUND()              BRACKETS()         BUCKET()
+ CAND()              CAPSTR()             CASE()             CASEALL()        
+ CAT()               CEIL()               CENTER()           CHARIN()         
+ CHAROUT()           CHKREALITY()         CHKTRACE()         CHOMP()           
+ CHR()               CITER()              CLONE()            CLUSTER_ADD()     
+ CLUSTER_ATTRCNT()   CLUSTER_DEFAULT()    CLUSTER_EDEFAULT() CLUSTER_FLAGS()   
+ CLUSTER_GET()       CLUSTER_GET_EVAL()   CLUSTER_GREP()     CLUSTER_HASATTR() 
+ CLUSTER_HASFLAG()   CLUSTER_LATTR()      CLUSTER_REGREP()   CLUSTER_REGREPI() 
+ CLUSTER_SET()       CLUSTER_STATS()      CLUSTER_U()        CLUSTER_U2()      
+ CLUSTER_U2DEFAULT() CLUSTER_U2LDEFAULT() CLUSTER_U2LOCAL()  CLUSTER_UDEFAULT()
+ CLUSTER_UEVAL()     CLUSTER_ULDEFAULT()  CLUSTER_ULOCAL()   CLUSTER_VATTRCNT()
+ CLUSTER_WIPE()      CLUSTER_XGET()       CMDS()             CNAME()          
+ COLORS()            COLUMNS()            COMP()             CON()             
+ CONFIG()            CONN()               CONNLAST()         CONNLEFT()        
+ CONNMAX()           CONNNUM()            CONNRECORD()       CONNTOTAL()       
+ CONTROLS()          CONVSECS()    
   
 { 'help function list2' for more }
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()           COS()         CRC32()        CRC32OBJ()
-  CREATE()        CREATETIME()    CREPLACE()    CTU()          DEC()       
-  DECODE64()      DECRYPT()       DEFAULT()     DELETE()       DELEXTRACT()
-  DESTROY()       DICE()          DIG()         DIGEST()       DIST2D()    
-  DIST3D()        DIV()           E()           EDEFAULT()     EDIT()      
-  EDITANSI()      EE()            ELIST()       ELEMENTPOS()   ELEMENTS()  
-  ELEMENTSMUX()   ELOCK()         EMIT()        ENCODE64()     ENCRYPT()   
-  ENTRANCES()     EQ()            ERROR()       ESCAPE()       ESCAPEX()   
-  ESCLIST()       EVAL()          EXIT()        EXP()          EXTRACT()   
-  EXTRACTWORD()   FBETWEEN()      FBOUND()      FDIV()         FILTER()    
-  FINDABLE()      FIRST()         FLAGS()       FLOOR()        FLOORDIV()  
-  FOLD()          FOLDERCURRENT() FOLDERLIST()  FOREACH()      FULLNAME()  
-  GARBLE()        GET()           GET_EVAL()    GLOBALROOM()   GRAB()      
-  GRABALL()       GREP()          GT()          GTE()          GUILD()     
-  HASATTR()       HASATTRP()      HASFLAG()     HASTOGGLE()    HASTOTEM()  
-  HASTYPE()       HASQUOTA()      HASRXLEVEL(   HASTXLEVEL()   HOME()      
-  IBREAK()        IDLE()          IFELSE()      IINDEX()       ILEV()      
-  INC()           INDEX()         INF()         INPROGRAM()    INSERT()    
-  INUM()          INZONE()        IPV4MATH()    ISALNUM()      ISALPHA()    
-  ISCLUSTER()     ISDBREF()       ISDIGIT()     ISHIDDEN()     ISNUM()      
-  ISOBJID()       ISPUNCT()       ISSPACE()     ISTAG()        ISUNICODE()  
-  ISUTF8()        ISWORD()        ISXDIGIT()    ITER()         ITEXT()      
-  KEEPFLAGS()     KEEPTYPE()      LADD()        LAND()         LAST()       
-  LASTCREATE()    LATTR()         LAVG()        LCMDS()        LCON()       
-  LCSTR()         LDELETE()       LDIV()        LEMIT()        LEFT()       
-  LEXITS()        LFLAGS()        LINK()        LIST()         LISTCOMMANDS()
-  LISTDIFF()      LISTFUNCTIONS()
+  CONVTIME()      COR()           COS()           CRC32()      CRC32OBJ()
+  CREATE()        CREATETIME()    CREPLACE()      CTU()        DEC()       
+  DECODE64()      DECRYPT()       DEFAULT()       DELETE()     DELEXTRACT()
+  DESTROY()       DICE()          DIG()           DIGEST()     DIST2D()    
+  DIST3D()        DIV()           E()             EDEFAULT()   EDIT()      
+  EDITANSI()      EE()            ELIST()         ELEMENTPOS() ELEMENTS()  
+  ELEMENTSMUX()   ELOCK()         EMIT()          ENCODE64()   ENCRYPT()   
+  ENTRANCES()     EQ()            ERROR()         ESCAPE()     ESCAPEX()   
+  ESCLIST()       EVAL()          EXIT()          EXP()        EXTRACT()   
+  EXTRACTWORD()   FBETWEEN()      FBOUND()        FDIV()       FILTER()    
+  FINDABLE()      FIRST()         FLAGS()         FLOOR()      FLOORDIV()  
+  FOLD()          FOLDERCURRENT() FOLDERLIST()    FOREACH()    FULLNAME()  
+  GARBLE()        GENPASSWORD()   GET()           GET_EVAL()   GLOBALROOM() 
+  GRAB()          GRABALL()       GREP()          GT()         GTE()        
+  GUILD()         HASATTR()       HASATTRP()      HASFLAG()    HASTOGGLE()  
+  HASTOTEM()      HASTYPE()       HASQUOTA()      HASRXLEVEL(  HASTXLEVEL() 
+  HOME()          IBREAK()        IDLE()          IFELSE()     IINDEX()     
+  ILEV()          INC()           INDEX()         INF()        INPROGRAM()  
+  INSERT()        INUM()          INZONE()        IPV4MATH()   ISALNUM()    
+  ISALPHA()       ISCLUSTER()     ISDBREF()       ISDIGIT()    ISHIDDEN()   
+  ISNUM()         ISOBJID()       ISPUNCT()       ISSPACE()    ISTAG()      
+  ISUNICODE()     ISUTF8()        ISWORD()        ISXDIGIT()   ITER()       
+  ITEXT()         KEEPFLAGS()     KEEPTYPE()      LADD()       LAND()       
+  LAST()          LASTCREATE()    LATTR()         LAVG()       LCMDS()      
+  LCON()          LCSTR()         LDELETE()       LDIV()       LEMIT()      
+  LEFT()          LEXITS()        LFLAGS()        LINK()       LIST()       
+  LISTCOMMANDS()  LISTDIFF()      LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -12494,9 +12511,9 @@
                         ZSEARCH(), ZSEARCHOBJID()
               See Also: help database information functions
   
-  Numerical Conversion: CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() MASK() 
-                        PACK() PACKMATH() ROMAN() ROUND() SPELLNUM() TOBIN() 
-                        TODEC() TOHEX() TOOCT() TRUNC() UNPACK()
+  Numerical Conversion: BUCKET() CEIL() CRC32() CRC32OBJ() DIGEST() FLOOR() 
+                        MASK() PACK() PACKMATH() ROMAN() ROUND() SPELLNUM() 
+                        TOBIN() TODEC() TOHEX() TOOCT() TRUNC() UNPACK()
               See Also: help numerical conversion functions
   
   { 'help function classes2' for more }    
@@ -15210,6 +15227,24 @@
   
   See Also: @whereis, @whereall, loc(), room()
   
+& GENPASSWORD()
+  Function: genpassword(<length>)
+  
+  This function will generate a safer_password acceptable password sequence
+  that can be used for @passwords.  Be aware that it defaults to 5 character
+  minimum length and a maximum value of 140 character length.  The config
+  option safer_password requires a minimum of 14 character length and it will
+  warn you if the generated password is smaller than the requirement.
+  
+  This generator will enforce characters of lower case, upper case, and
+  special character (number/symbol) in the generated password.
+   
+  Example:
+    > say genpassword(14)
+    You say "9RzIZX9$vuc"H/"
+  
+  See Also: @password
+ 
 & GET()
   Function: get(<object>/<attribute>)
  
@@ -15311,12 +15346,19 @@
   time and return '#-1' for instances that have invalid timezones.
   
   Otherwise, it will return a warning and default to UTC time.
+  
+  Note: the time_paddzero @admin config parameter allows padding zeros.
    
   Example:
     > say time()                       (assume localtime was GMT)
-    You say "Thu Dec 19 09:48:06 1991"
+    You say "Thu Dec  9 09:48:06 1991"
     > say time(GMT+1)
-    You say "Thu Dec 19 10:49:11 1991"
+    You say "Thu Dec  9 10:49:11 1991"
+  ------ with time_paddzero enabled as a config option
+    > say time()                       (assume localtime was GMT)
+    You say "Thu Dec 09 09:48:06 1991"
+    > say time(GMT+1)
+    You say "Thu Dec 09 10:49:11 1991"
   
   See Also: convsecs(), convtime(), secs(), msecs(), secstz(), msecstz(),
             listtzones(), secstz(), msecstz()
@@ -16353,7 +16395,7 @@
     > say decode64(dGVzdCAxIDIgMw==)
     You say "test 1 2 3"
   
-  See Also: encrypt(), decrypt(), pack(), digest()
+  See Also: encrypt(), decrypt(), pack(), digest(), bucket()
   
 & ENCRYPT()
   Function: encrypt(<string>,<seed>)
@@ -19258,6 +19300,8 @@
   Function: columns()  Syntax follows:
   columns(<tx>,<wd>,<co>,<js>,<crp>,<ct>,<lb>,<mb>,<rb>,<dsp>,<del>,<fil>,<ext>)
   
+  Note: if <del> is specified, it will allow the use of null entities.
+  
   This function has a huge number of uses, and all help will be given to show
   examples for what this function can do.  The arguments to this function are
   as follows.
@@ -20247,14 +20291,18 @@
   of the function slightly.  The key must be one of the following characters:
     - L:    Reduces the entire list to lower case before capitalization is
             performed.  Allows <type> value.
+    - I:    Works like 'L' above but does not reduce the list to lower case.
     - N:    Performs capitalization naturally, and does not affect any other
             characters in the list (default).
     - T:    Performs a 'true' capitalization based on currently English
             definition for titles.  Allows <type> value.
+    - C:    Works like 'T' above but does not reduce the list to lower case.
   
   Note: If you specify a <type> with 'T' the character override will not
   follow the 'true' capitalization.
     
+  Amusing note: no, the spelling out above of Lint C is not intentional.
+  
   The following <type> values exist for special handling with <key>
   'L' or 'T'.  These work as bitmasks so add the values to combine:
        1  - capitalize all words after a hyphon -
@@ -20492,6 +20540,26 @@
     You say "saw? I cat a it Was"
   
   See Also: reverse(), trreverse()
+  
+& BUCKET()
+  Function: bucket(<string>, <bucket-mask>)
+  
+  This function will return the bucket location based on the <bucket-mask>
+  that you specify.  The  bucket mask you specify will be rounded to the 
+  2-factorial  of the number you enter.  Examples would be 5 rounded to 
+  8 (2^3), 10 rounded to 16 (2^4), 22 rounded to 32 (2^5) and so forth.
+  
+  A <bucket-mask> of 8 would have buckets 0-7.
+  A <bucket-mask> of 16 would have buckets 0-15.
+  A <bucket-mask> of 32 would have buckets 0-31.
+  
+  The maximum  bucket-mask allowed is 1 billion (1000000000). 
+  
+  Example:
+    > say iter(lnum(10),%i0:[bucket(%i0,16)])
+    You say "0:9 1:8 2:11 3:10 4:13 5:12 6:15 7:14 8:1 9:0"
+  
+  See Also: pack(), crc32(), encode64()
   
 & BEFORE()
   Function: before(<string1>, <string2> [,<key>])
@@ -21118,7 +21186,7 @@
     You say "7"
   
   See Also: medit(), edit(), regedit(), pack(), unpack(), packmath(), shl(), 
-            shr(), crc32(), crc32obj()
+            shr(), crc32(), crc32obj(), bucket()
   
 & ANDFLAG()
   Function: andflag(<target>,<flag1>[,<flag2>,...,<flagN>])
@@ -21613,15 +21681,22 @@
   See Also: str(), before(), after()
   
 & OBJEVAL()
-  Function: objeval(<thing>,<function> [,<permission override>])
+  Function: objeval(<thing>,<function> [,<override>, [<enforce>]])
   
   The objeval function evaluates the target function according to the 
-  permissions of the thing that is specified.  If you normally do not
-  have those permissions, it uses your permissions instead.  This is 
-  useful when you need to parse arguments under a different permission 
-  level than the one you currently at.
+  permissions of the thing that is specified.  
   
-  The following permission overrides are allowed as a bitmask.
+  If you do not have permission over the <thing> then it will default back 
+  to your own permissions instead.  This is done passively and silently.
+  
+  The above behavior can be enforced to error out if you specify the 
+  <enforce> value to 1, in which case if you do not have permission
+  over <thing> it will return an error.
+   
+  This function is useful when you need to parse arguments under a 
+  different permission level than the one you currently at.
+  
+  The following permission overrides <override> are allowed as a bitmask:
     1 - Wizard only, will override the NO_CODE flag on the target and still 
         execute any code of that person.  This is ignored for any enactor 
         not a wizard.
@@ -22970,7 +23045,7 @@
     -bVxTM
    
   See Also: unpack(), crc32(), mask(), tobin(), tohex(), tooct(), todec(), 
-            roman(), packmath(), crc32obj()
+            roman(), packmath(), crc32obj(), bucket()
   
 & PACKMATH()
   Function: packmath(<number>, <radix>, <offset> [[,<math> ][,<offset-radix>])
@@ -22989,6 +23064,10 @@
     *  - apply multiplication
     /  - apply division
     %  - apply modulus (use two %'s)
+    |  - bitwise or mask (only works on values less than MAXUINT (4294967296)
+    &  - bitwise and mask (only works on values less than MAXUINT (4294967296)
+  
+  Note: & and | bitwise masks will return '0' if the values are over MAXUINT 
   
   Examples:
     > think pack(629126998,64)
@@ -23004,7 +23083,7 @@
     > think add(629126998,5555)
     629132553
   
-  See Also: pack(), unpack(), strmath()
+  See Also: pack(), unpack(), strmath(), bucket()
 
 & UNESCLIST()
   Function: unesclist(<list of characters to un-escape>|<string>)
@@ -23646,7 +23725,7 @@
     You say "3a589de6214fd40ae461313fd81dfd1edb7eae70"
    
   See also: crc32(), pack(), roman(), encrypt(), decrypt(), encode64(),
-            decode64(), crc32obj()
+            decode64(), crc32obj(), bucket()
 
 & DIG()
   Function: dig(<room>[[,<in exit>][,<out exit>][,<location>][,<type>]])
@@ -24010,11 +24089,14 @@
   This function converts seconds to a time string, based on how many
   seconds the number is after Jan 1, 1970.
  
+  Note: the time_paddzero @admin config parameter allows padding zeros.
+   
   Example:
     > say secs()
     You say "709395750"
     > say convsecs(709395750)
     You say "Wed Jun 24 10:22:54 1992"
+  
   This function may also be called as secs2time().
   
   See Also: convtime(), secs(), secstz(), time(), timefmt()
@@ -32127,6 +32209,7 @@
   Function Lists: Numerical Conversion Functions
   
   bound()       - Bounds a number between a min and max value.
+  bucket()      - Specify a hash bucket based on the string and bucket size.
   ceil()        - Returns the smallest integer greater or equal to <number>.
   crc32()       - Generates a CRC from a set of strings.
   crc32obj()    - Generates a CRC for an object.
@@ -35976,11 +36059,17 @@
 
   Current Changelogs:
   -------------------
-  1 - 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 
-      4.3.5, 4.3.4, 4.3.3, 4.3.2
-  2 - 4.3.1, 4.3.0
+  1 - 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 
+      4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
+  2 - 4.3.4, 4.3.3, 4.3.2, 4.3.1, 4.3.0
 
 
+& 4.9.0
+& 4.8.0
+& 4.7.1
+& 4.7.0
+& 4.6.0
+& 4.5.3
 & 4.5.2
 & 4.5.1
 & 4.5.0
@@ -35990,20 +36079,39 @@
 & 4.4.0
 & 4.3.9
 & 4.3.8
-& 4.3.7
-& 4.3.6
-& 4.3.5
-& 4.3.4
-& 4.3.3
-& 4.3.2
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
 
+  4.9.0 - 09/05/24
+  * bucket() function for bucket hashing
+  * aes.sh execscript for aes encryption and decryption
+    syntax: execscript(aes.sh,password,enc|dec,string)
+  * @password/generate (genpassword()) fix to enforce lengths
+  
+  4.8.0 - 08/28/24
+  * @decompile/db will now show dbref# of parents
+  * @decompile now includes zones
+  * objeval() has optional enforce option to fail if you don't control target
+  * myopic controls if wizards see through nameformats.
+  
+  4.7.0-4.7.1 - 08/22/24
+  * @password/generate to generate safer_password acceptable passwords
+  * genpassword() functionary to @password/generate
+  * fix potential crash bug in caplist() 
+  * new options to caplist() to keep string lower case
+  * MailSig optionally can be set to be evaluated
+  
+  4.6.0-4.6.2 - 08/03/24
+  * time_paddzero if enabled padds the day of the month in time() and 
+    convsec() with a zero for MUX compatibility.
+  * added & and | options to packmath()
+  * columns() has better handling with an optional delimiter is specified.
+  
   4.5.3 - 08/01/24
   * Added 'moniker' as a default alias for cname() in alias.conf
-
+  
   4.5.1 - 07/19/24
   * connect_methods had reversed logic in the checks
   
@@ -36013,21 +36121,19 @@
   4.4.3 - 07/11/24
   * conn_perm did not honor the account subsystem for bypassing the
     restrive nature. (ASH)
-  
   * @hook /fail on 'goto' with and without expand_goto was not handled
     properly (ASH)
-  
   * goto was not fully vetted if it was disabled/ignored.
-
+  
   4.4.2 - 07/08/24
   * Pushed new cache_depth and cache_width defaults that much more match
     the attribute sizes of modern games. The netrhost.conf defaults were
     even lower than the internal defaults - fixed.
-  
+    
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
     was reversed. (AMB)
-
+  
   4.4.0 - 07/06/24
   ----------------
   * added ipv4math() function for conversion of IPv4 to decimal format and
@@ -36041,6 +36147,17 @@
   ----------------
   * Another fix for the git hooks
   
+    
+& 4.3.7
+& 4.3.6
+& 4.3.5
+& 4.3.4
+& 4.3.3
+& 4.3.2
+& 4.3.1
+& 4.3.0
+& changelog 2
+
   4.3.7 - 07/02/24
   ----------------
   * bug with determining 64-bitness of systems with newer GCC/ Clang versions
@@ -36058,11 +36175,6 @@
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
   
-    
-& 4.3.1
-& 4.3.0
-& changelog 2
-
   4.3.1 - 06/30/24
   ----------------
   * Fix for elock() with regards to objid's as a target. objid's would
@@ -36077,17 +36189,12 @@
   * Changed to a new semantic versioning system. Version numbers will
     continue from 4.3.0 onward and will follow the Semantic Versioning
     concept of MAJOR.MINOR.RELEASE [AMB]
-
   * Rewrite of the automatic patchlevel.h generation for changes pushed
     to the master branch [AMB]
-
   * Detailed versioning rules in patchlevel.template [AMB]
-
   * New 'Changelog X' help entries. The newest version(s) will always
     be in 'Changelog 1', older entries will get pushed to 2, 3 etc.
     once the current Changelog length would go over roughly 65
     lines in length. Doe to the more rapid version changes, the
     separation into new features, bugfixes etc. probably will not
     be needed anymore. [AMB]
-
-

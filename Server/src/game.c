@@ -2904,7 +2904,9 @@ main(int argc, char *argv[])
     for (mindb = 0; mindb < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); mindb++) {
 	mudstate.global_regs[mindb] = alloc_lbuf("main.global_reg");
 	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_regname");
+#ifndef NO_GLOBAL_REGBACKUP
 	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");
+#endif
     }
 
     /* Do a consistency check and set up the freelist */

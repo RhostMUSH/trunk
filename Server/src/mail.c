@@ -1488,7 +1488,7 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
 int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 {
   dbref player, thing_tmp, plrdb, plrtrash;
-  char *spt, *mpt, *pt1, *pt2, *apt, *sigpt, sepchar, tp_chr, *apt_tmp;
+  char *spt, *mpt, *pt1, *pt2, *apt, *sigpt, *sigpteval, sepchar, tp_chr, *apt_tmp;
   char *tbuff_malias, *bccatr, *bcctmp, *bcctmpptr, *tpr_buff, *tprp_buff;
   int toplay, count, offct, term, dummy1, dummy2, repall, repaal, rmsg, x, atrash, i_nogood;
   short int index, isend;
@@ -1775,6 +1775,12 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   }
   sigpt = atr_get(p2,A_MAILSIG, &dummy1, &dummy2);
   if (*sigpt) {
+    attr = atr_num(A_MAILSIG);
+    if ( !((dummy2 & AF_NOPARSE) || (attr->flags & AF_NOPARSE)) ) {
+       sigpteval = exec(p2, p2, p2, EV_FCHECK | EV_EVAL, sigpt, (char **) NULL, 0, (char **)NULL, 0);
+       free_lbuf(sigpt);
+       sigpt = sigpteval;
+    }
     if ((strlen(mpt) + strlen(sigpt)) > LBUF_SIZE -2) 
       notify_quiet(p2,"Mail Warning: Signature not added due to insufficient space");
     else {

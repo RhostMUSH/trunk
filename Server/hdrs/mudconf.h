@@ -295,6 +295,7 @@ struct confdata {
         int     noregist_onwho; /* Axe the 'R' on the WHO for registration enabled */
         int     nospam_connect; /* Disable logging from forbid sites */
         int     lnum_compat;    /* PENN/MUX lwho() compatibility */
+	int	time_paddzero;	/* Have time padd zero on day of month */
         int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
         int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
@@ -808,7 +809,9 @@ struct statedata {
         int     ufunc_nest_lev; /* Current nesting of USER functions */
 	char	*global_regs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global registers */
 	char	*global_regsname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global register names */
+#ifndef NO_GLOBAL_REGBACKUP
         char    *global_regs_backup[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+#endif
         char    nameofqreg[37]; /* Buffer to hold qregs */
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
 	int	mail_state;

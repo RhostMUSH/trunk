@@ -410,6 +410,58 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
 /* ---------------------------------------------------------------------------
  * do_password: Change the password for a player
  */
+char * 
+gen_password(int i_value, dbref player, int key)
+{
+   char *s_pass, *s_passptr;
+   int i_type[3], i_size, i_side, i_loop;
+
+   s_passptr = s_pass = alloc_lbuf("gen_password");
+   i_type[0] = i_type[1] = i_type[2] = i_size = 0;
+   i_side = 14;
+
+   if ( i_value < 5 )
+      i_value = 5;
+   if ( i_value > 140 )
+      i_value = 140;
+   if ( (i_value < 14) && mudconf.safer_passwords && !key ) {
+      notify_quiet(player, "Warning: password is under 14 characters so not valid with safer_passwords enabled.");
+   }
+
+   for ( i_loop = 0; i_loop < i_value; i_loop++ ) {
+      i_size = rand() % 3;
+      switch( i_size ) {
+         case 0: /* lower case */
+            i_type[0]++;
+            safe_chr((char) ('a'+(rand()%26)), s_pass, &s_passptr);
+            break;
+         case 1: /* upper case */
+            i_type[1]++;
+            safe_chr((char) ('A'+(rand()%26)), s_pass, &s_passptr);
+            break;
+         case 2: /* number or symbol */
+            i_type[2]++;
+            i_size = rand()%24;
+            if ( i_size == 3 )
+               i_size++;
+            safe_chr((char) ('"'+i_size), s_pass, &s_passptr);
+            break;
+      }
+   }
+
+   /* Overwrite the first 3 characters with required chars if needed
+    * This enforces the same length as what you specified 
+    */
+   s_passptr = s_pass;
+   if ( i_type[0] == 0 )  /* Enforce lower case */
+      *s_passptr++ = 'a'+(rand()%26);
+   if ( i_type[1] == 0 )  /* Enforce upper case */
+      *s_passptr++ = 'A'+(rand()%26);
+   if ( i_type[2] == 0 )  /* Enforce symbol/number */
+      *s_passptr++ = '"'+(rand()%24);
+
+   return(s_pass);
+}
 
 void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpass)
 {
@@ -422,6 +474,13 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
    if ( key & SIDEEFFECT ) {
       key &= ~SIDEEFFECT;
       i_side = 1;
+   }
+
+   if ( key & PASS_GEN ) {
+      s_attr = gen_password(atoi(oldpass), player, i_side);
+      notify(player, s_attr);
+      free_lbuf(s_attr);
+      return;
    }
    newkey = (key & ~(PASS_ANY|PASS_MINE));
    switch(newkey) {

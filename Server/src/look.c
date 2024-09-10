@@ -4390,6 +4390,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
     ATTR *attr;
     NAMETAB *np;
     OBLOCKMASTER master;
+    ZLISTNODE *ptr;
 
     i_regexp = i_tree = i_db = i_tf = 0;
 
@@ -4660,9 +4661,23 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 
     /* If the object has a parent, report it */
 
-    if ( (!key_buff || (key_buff & DECOMP_ATTRS)) && (Parent(thing) != NOTHING) )
-	noansi_notify(player, unsafe_tprintf("%s@parent %s=%s", 
-                              ((i_tf | i_db) ? qualout : (char *)""), thingname, Name(Parent(thing))));
+    if ( (!key_buff || (key_buff & DECOMP_ATTRS)) && (Parent(thing) != NOTHING) ) {
+        if ( i_db ) {
+	   noansi_notify(player, unsafe_tprintf("%s@parent %s=#%d", 
+                                 ((i_tf | i_db) ? qualout : (char *)""), thingname, Parent(thing)));
+        } else {
+	   noansi_notify(player, unsafe_tprintf("%s@parent %s=%s", 
+                                 ((i_tf | i_db) ? qualout : (char *)""), thingname, Name(Parent(thing))));
+        }
+    }
+
+    /* If the object has zones, report it */
+    buff = alloc_lbuf("decompile_zones");
+    for( ptr = db[thing].zonelist; ptr; ptr = ptr->next ) {
+       sprintf(buff, "%s@zone/add %s=#%d", ((i_tf | i_db) ? qualout : (char *)""), thingname, ptr->object);
+       notify_quiet(player, buff);
+    }
+    free_lbuf(buff);
 
     if ( !key_buff || (key_buff & DECOMP_TAGS) ) {
       decompile_tags(player, thing, thingname, qualout, (i_tf|i_db));

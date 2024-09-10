@@ -7504,24 +7504,24 @@
   switch_search             switch_substitutions      terse_shows_contents    
   terse_shows_exits         terse_shows_move_messages thing_attr_default      
   thing_flags               thing_parent              thing_quota             
-  thing_toggles             timeslice                 timezone
-  toggle_access_see         toggle_access_set         toggle_access_type      
-  toggle_access_unset       totem_add                 totem_alias             
-  totem_access_see          totem_access_set          totem_access_type       
-  totem_access_unset        totem_letter              totem_name              
-  totem_rename              totem_types               tor_localhost           
-  tor_paranoid              trace_output_limit        trace_topdown           
-  tree_character            trust_site                uncompress_program      
-  unowned_safe              user_attr_flags           validate_host           
-  vattr_command             vattr_interval            vattr_limit_checkwiz    
-  vercustomstr              vlimit                    wait_cost               
-  wall_cost                 whereis_notify            wizmax_dest_limit       
-  wizmax_vattr_limit        who_default               who_unfindable          
-  who_showwiz               who_wizlevel              who_whowiztype          
-  whohost_size              wiz_override              wiz_uselock             
-  wizard_help_file          wizard_help_index         wizard_motd_file        
-  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max    
-  zone_parents
+  thing_toggles             time_paddzero             timeslice               
+  timezone                  toggle_access_see         toggle_access_set       
+  toggle_access_type        toggle_access_unset       totem_add               
+  totem_alias               totem_access_see          totem_access_set        
+  totem_access_type         totem_access_unset        totem_letter            
+  totem_name                totem_rename              totem_types             
+  tor_localhost             tor_paranoid              trace_output_limit      
+  trace_topdown             tree_character            trust_site              
+  uncompress_program        unowned_safe              user_attr_flags         
+  validate_host             vattr_command             vattr_interval          
+  vattr_limit_checkwiz      vercustomstr              vlimit                  
+  wait_cost                 wall_cost                 whereis_notify          
+  wizmax_dest_limit         wizmax_vattr_limit        who_default             
+  who_unfindable            who_showwiz               who_wizlevel            
+  who_whowiztype            whohost_size              wiz_override            
+  wiz_uselock               wizard_help_file          wizard_help_index       
+  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
+  wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -7684,7 +7684,10 @@
   For example:
       cow:moo:mooing:moos:moosmore sow:oink:oinking:oinker:oinkers
   
-  See Also: enforce_added_pronouns, (Normal help) @sex, GENDER 
+  If you were to replace the existing pronouns for male:
+      male:he:him:his:his  
+  
+  See Also: @list, enforce_added_pronouns, (Normal help) @sex, GENDER 
 
 & admin_object
   Config parameter: admin_object <dbref>   Default: -1
@@ -12748,6 +12751,13 @@
   
   See Also: @quota, exit_quota, player_quota, room_quota, QUOTAS.
 
+& time_paddzero
+  Config parameter: time_paddzero <boolean>.  Default: no(0)
+  
+  This paremter when specified will allow days that are displayed with 
+  time() and convsecs() to optionally output a padding zero for compatibility
+  with other codebases that do the same.
+  
 & timeslice
   Config parameter: timeslice <amount>.  Default: 1000
   
