@@ -9,9 +9,7 @@
 &CMD_FOLLOWLOCK FollowCode=$+flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
 &VERSION FollowCode=FollowCode 1.0.3 [Ashen-Shugar]
 @adisconnect FollowCode=@include/command/override me/cmd_desert=,,,
-@set FollowCode=INDESTRUCTABLE
-@set FollowCode=SAFE
-@set FollowCode=INHERIT
+@set FollowCode=INDESTRUCTIBLE SAFE INHERIT
 @@
 @@ Create the Follow function code
 @@
@@ -40,10 +38,7 @@
 &DESERTMSG1 FollowFunction=[ifelse(!match([get(%#/followers)] [get(%#/following)],setr(1,ifelse(isdbref(setr(9,locate(%#,%0,n))),%q9,pmatch(%0)))),Follow: <+desert> they arn't following you and you arn't following them.[setq(0,0)],[switchall(1,match(get(%#/followers),%q1),You desert your follower [name(%q1)].[setq(9,1)],match(get(%#/following),%q1),[ifelse(%q9,%r)]You desert from following [name(%q1)].)][setq(0,1)])]
 &DODESERT2 FollowFunction=[setq(9,get(%0/followers))][iter(get(%0/following),[set(itext(0),FOLLOWERS:[setdiff(get([itext(0)]/followers),%0)])][pemit(itext(0),[name(%#)] has deserted you and is no longer following.)])][iter(%q9,[set(itext(0),FOLLOWING:[setdiff(get([itext(0)]/following),%0)])][pemit(itext(0),[name(%#)] has deserted you and you can no longer follow [obj(%#)].)])][set(%0,following:)][set(%0,followers:)]
 &DODESERT1 FollowFunction=[setq(9,get(%0/followers))][ifelse(match(get(%0/following),%1),[set(%0,following:[setdiff(get(%0/following),%1)])][set(%1,followers:[setdiff(get(%1/followers),%#)])][pemit(%1,[name(%0)] has deserted you and is no longer following.)])][ifelse(match(%q9,%1),[set(%0,followers:[setdiff(Get(%0/followers),%1)])][set(%1,following:[setdiff(get(%1/following),%#)])][pemit(%1,[name(%0)] has deserted you and you can no longer follow [obj(%#)].)])]
-@set FollowFunction=INDESTRUCTABLE
-@set FollowFunction=SAFE
-@set FollowFunction=INHERIT
-@set FollowFunction=SIDEFX
+@set FollowFunction=INDESTRUCTIBLE SAFE INHERIT SIDEFX
 @parent FollowCode=FollowFunction
 @@
 @@ define these softfunctions on your @function object. Must be set PRIVALAGED
@@ -59,10 +54,7 @@
 @@ &A_GOTO HookObj=[setq(1,ifelse(and(gt(words(%m),1),wildmatch(go* mo*,%m)),rest(%m),%m))][iter(%qf,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow %n.)][move(itext(0),%q1)][u(parse_follow,%q1,itext(0))])]
 @@ &SETUP_FOLLOW HookObj=[setq(g,iter(get(%0/followers),ifelse(match(loc(itext(0)),loc(%0)),itext(0))))]
 @@ &PARSE_FOLLOW HookObj=[iter(%qg,[u(setup_follow,itext(0))][pemit(itext(0),You attempt to follow [name(%1)].)][move(itext(0),%0)][u(parse_follow,%0)])]
-@@ @set HookObj=INDESTRUCTABLE
-@@ @set HookObj=SAFE
-@@ @set HookObj=INHERIT
-@@ @set HookObj=SIDEFX
+@@ @set HookObj=INDESTRUCTIBLE SAFE INHERIT SIDEFX
 @@
 @@ @@ Make attributes wizard only (initialize variables in hash)
 &FOLLOWERS me
