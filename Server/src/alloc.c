@@ -752,6 +752,54 @@ showAttrStats(dbref player)
    notify(player, s_buff);
 }
 
+const char *
+tf_1(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+    int i_syear;
+
+    if (dt < 0)
+        dt = 0;
+
+    i_syear = ((int)dt / 31536000);
+    delta = gmtime(&dt);
+    if ( i_syear > 0 ) {
+        sprintf(buf, "%dy %02d:%02d",
+                i_syear, delta->tm_hour, delta->tm_min);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd %02d:%02d",
+                delta->tm_yday, delta->tm_hour, delta->tm_min);
+    } else {
+        sprintf(buf, "%02d:%02d",
+                delta->tm_hour, delta->tm_min);
+    }
+    return(buf);
+}
+
+void
+showCPUStats(dbref player)
+{
+   clock_t end;
+   time_t now;
+   double cpu_time;
+   char *s_buff, *buff;
+
+   end = clock();
+   time(&now);
+
+   buff = alloc_mbuf("showCPUStats_mbuf");
+   strcpy(buff, tf_1(now - mudstate.reboot_time));
+
+   s_buff = alloc_mbuf("showCPUStats");
+   cpu_time = (double)(end - mudstate.clock_mush) / CLOCKS_PER_SEC;
+   sprintf(s_buff, "\r\nTotal CPU Usage since last reboot: %.2f seconds, Reboot time: %s", cpu_time, buff);
+
+   notify(player, s_buff);
+   free_mbuf(buff);
+   free_mbuf(s_buff);
+}
+
 void 
 list_bufstats(dbref player, char *s_key)
 {
@@ -781,6 +829,10 @@ list_bufstats(dbref player, char *s_key)
 	   list_bufstat(player, i, poolnames[i], i_color);
     }
 
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"cpu")) ) {
+       i_found = 1;
+       showCPUStats(player);
+    }
     if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"quick") ||
                                !strcasecmp(s_key, (char *)"cquick")) ) {
        i_found = 1;
@@ -827,7 +879,7 @@ list_bufstats(dbref player, char *s_key)
     }
 
     if ( !i_found && s_key && *s_key ) {
-       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, stack, or cquick.");
+       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, stack, cpu, or cquick.");
     }
 }
 

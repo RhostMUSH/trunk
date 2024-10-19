@@ -12389,32 +12389,33 @@
   
 & FUNCTION LIST3
     
-  LISTFLAGS()    LISTINTER()  LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
-  LISTRLEVELS()  LISTTAGS()   LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
-  LISTTZONES()   LIT()        LJC()          LJUST()          LLOC()         
-  LMAX()         LMIN()       LMUL()         LN()             LNOR()         
-  LNUM()         LNUM2()      LOC()          LOCALFUNC()      LOCALIZE()     
-  LOCATE()       LOCK()       LOCKCHECK()    LOCKDECODE()     LOCKENCODE()   
-  LOG()          LOR()        LRAND()        LREPLACE()       LROOMS()       
-  LSET()         LSUB()       LT()           LTE()            LTOGGLES()     
-  LTOTEMS()      LWHO()       LXNOR()        LXOR()           LZONE()        
-  MAILQUICK()    MAP()        MATCH()        MASK()           MAX()          
-  MEDIT()        MEMBER()     MERGE()        MID()            MIN()          
-  MIX()          MOD()        MODULO()       MODIFYTIME()     MONEY()        
-  MONEYNAME()    MOON()       MSECS()        MSECSTZ()        MUDNAME()      
-  MUL()          MUNGE()      MWORDS()       NAME()           NAMEQ()
-  NAMEQM()       NAND()       NCOMP()        NEARBY()         NEQ()          
-  NEXT()         NOR()        NOSTR()        NOT()            NOTCHR()       
-  NPEMIT()       NSITER()     NUM()          NUMMATCH()       NULL()         
-  NUMMEMBER()    NUMPOS()     NUMWILDMATCH() OBJ()            OBJEVAL()      
-  OBJID()        OEMIT()      OPEN()         OR()             ORCHR()        
-  ORFLAG()       ORFLAGS()    ORTOTEM()      ORTOTEMS()       OWNER()        
-  PACK()         PACKMATH()   PARENMATCH()   PARENT()         PARSE()        
-  PARSESTR()     PEDIT()      PEMIT()        PFIND()          PGREP()        
-  PI()           PID()        PMATCH()       PORT()           POS()          
-  POSS()         POWER()      POWER10()      PRINTF()         PRIVATIZE()    
-  PROGRAMMER()   PTIMEFMT()   PUSHREGS()     QUOTA()          R()            
-  RACE()         RAND()       RANDPOS()      RANDMATCH()      RANDEXTRACT() 
+  LISTFLAGS()   LISTINTER()   LISTMATCH()    LISTNEWSGROUPS() LISTPROTECTION()
+  LISTRLEVELS() LISTTAGS()    LISTTOGGLES()  LISTTOTEMS()     LISTUNION()    
+  LISTTZONES()  LIT()         LJC()          LJUST()          LLOC()         
+  LMAX()        LMIN()        LMUL()         LN()             LNOR()         
+  LNUM()        LNUM2()       LOC()          LOCALFUNC()      LOCALIZE()     
+  LOCATE()      LOCK()        LOCKCHECK()    LOCKDECODE()     LOCKENCODE()   
+  LOG()         LOR()         LRAND()        LREPLACE()       LROOMS()       
+  LSET()        LSUB()        LT()           LTE()            LTOGGLES()     
+  LTOTEMS()     LWHO()        LXNOR()        LXOR()           LZONE()        
+  MAILQUICK()   MAP()         MATCH()        MASK()           MAX()          
+  MEDIT()       MEMBER()      MERGE()        MID()            MIN()          
+  MIX()         MOD()         MODULO()       MODIFYTIME()     MONEY()        
+  MONEYNAME()   MOON()        MSECS()        MSECSTZ()        MUDNAME()      
+  MUL()         MUNGE()       MWORDS()       NAME()           NAMEQ()
+  NAMEQM()      NAND()        NCOMP()        NEARBY()         NEQ()          
+  NEXT()        NOR()         NOSTR()        NOT()            NOTCHR()       
+  NPEMIT()      NSITER()      NUM()          NUMMATCH()       NULL()         
+  NUMMEMBER()   NUMPOS()      NUMWILDMATCH() OBJ()            OBJEVAL()      
+  OBJID()       OEMIT()       OPEN()         OR()             ORCHR()        
+  ORFLAG()      ORFLAGS()     ORTOTEM()      ORTOTEMS()       OWNER()        
+  PACK()        PACKMATH()    PARENMATCH()   PARENT()         PARSE()        
+  PARSESTR()    PASSTHROUGH() PEDIT()        PEMIT()          PFIND()        
+  PGREP()       PI()          PID()          PMATCH()         PORT()         
+  POS()         POSS()        POWER()        POWER10()        PRINTF()       
+  PRIVATIZE()   PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
+  R()           RACE()        RAND()         RANDPOS()        RANDMATCH()    
+  RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -12557,10 +12558,10 @@
   
   Miscellaneous:      ASC() CHR() CNAME() ERROR() LISTTAGS() LOCKCHECK()
                       LOCKDECODE() LOCKENCODE() LOCALIZE() MOON() NAMEQM()
-                      NAMEQ() NULL() PARENMATCH() PID() PRIVATIZE() PUSHREGS()
-                      R() SANDBOX() SETQ() SETQM() SETQ_OLD() SETQMATCH() 
-                      SETR() SETR_OLD() SETRM() SOUNDEX() SOUNDLIKE() STDERR()
-                      TAG() TAGMATCH() TRACE()
+                      NAMEQ() NULL() PARENMATCH() PASSTHROUGH() PID() 
+                      PRIVATIZE() PUSHREGS() R() SANDBOX() SETQ() SETQM() 
+                      SETQ_OLD() SETQMATCH() SETR() SETR_OLD() SETRM() 
+                      SOUNDEX() SOUNDLIKE() STDERR() TAG() TAGMATCH() TRACE()
             See Also: help miscellaneous functions
   
   Object Information: APOSS() ART() ATTRCNT() CNAME() CONTROLS() DEFAULT() 
@@ -17167,7 +17168,7 @@
     > say strfunc(switch,add(1,1) 2 match 1 nope 0 nope nope)
     You say "match"
   
-  See Also: strmath(), ladd(), lsub(), ldiv(), lmul()
+  See Also: strmath(), ladd(), lsub(), ldiv(), lmul(), passthrough()
   
 & wildmatch()
   Function: wildmatch(<string>, <pattern>[, <delim>])
@@ -20413,15 +20414,20 @@
   See Also: first(), extract(), extractword(), randextract(), elements()
   
 & LCMDS()
-  Function: lcmds(<object> [,<output delim> [,<type>]])
+  Function: lcmds(<object> [,<output delim> [,<type> [,<filter> [,<regex>]]]])
   
   This function returns the name of any command that exits on the
   object.  You may specify $-commands or ^-listens to search for.
   The output separator defaults at a space, but you may wish to
   specify a delimiter as commands may contain spaces.
-  The following types exist:
+  
+  The following <type>s exist:
     $ - list all commands on the target object.
     ^ - list all listens (of the ^ variety) on the target object.
+  
+  You may specify an optional >filter> for the output.  If you have the
+  <regex> value set to '1' it changes the filter from a wildcard globbing
+  to a regular expression pattern match.
   
   Examples:
     > @va thing=$test:@pemit %#=testing 1 2 3
@@ -24084,18 +24090,22 @@
   See Also: WHO, conn(), lwho(), CONNINFO
   
 & CONVSECS()
-  Function: convsecs(<seconds>)
+  Function: convsecs(<seconds> [,<timezone>])
  
   This function converts seconds to a time string, based on how many
   seconds the number is after Jan 1, 1970.
- 
-  Note: the time_paddzero @admin config parameter allows padding zeros.
+  
+  You may specify a seperate <timezone> for the convsecs to run against.
    
+  Note: the time_paddzero @admin config parameter allows padding zeros.
+  
   Example:
     > say secs()
     You say "709395750"
     > say convsecs(709395750)
     You say "Wed Jun 24 10:22:54 1992"
+    > say convsecs(709395750,US/Hawaii)
+    You say "Wed Jun 24 04:22:30 1992"
   
   This function may also be called as secs2time().
   
@@ -25798,6 +25808,45 @@
   
   See Also: garble(), parse(), iter(), strmath(), spellnum(), inf()
   
+& PASSTHROUGH()
+  Function: passthrough(<function> [,[+]<max> [,<args> [,<default>])
+  
+  This function will take a function call and pass the arguments that is 
+  currently cached (being passed) to that function.
+  
+  This is a bit of a complex function in idea.  To help break it down these
+  are the possible arguments and what they mean.
+  
+    <function>  -- the calling function that will accept the arguments.
+    <max>       -- the maximum number of arguments the function will take.
+                   If you prerfix with a + it enforces that number of args.
+    <args>      -- this allows you to substitute the arguments.  For example:
+                   1:3 3:1  -- substitute arg 1 with 3 and argument 3 with 1
+                   Note: Arguments start at '0'.  So if 3 args are passed 0,
+                         1, and 2 are the arguments
+    <default>   -- use the default value as a filler value for any args
+                   that are not being passed or are missing.
+  
+  Examples:
+    > &FUN_FOO me=[passthrough(add)]
+    > @lfunction add=me/fun_foo
+    > say foo(10,10,10)
+    You say "30"
+
+    > &FUN_FOO me=[passthrough(strcat,,1:0 0:1)]
+    > say foo(foo,bar)
+    You say "barfoo"
+
+    > &FUN_FOO me=[passthrough(strcat,,1:0)]
+    > say foo(foo,bar)
+    You say "foofoo"
+
+    > &FUN_FOO me-[passthrough(strcat,+10,1:0,xxY)]
+    > say foo(foo,bar)
+    You say "foofooxxYxxYxxYxxYxxYxxYxxYxxY"
+  
+  See Also: strfunc()
+
 & controls()
   Function: controls(<object>,<victim>)
  
@@ -32388,6 +32437,7 @@
   nameqm()      - (Re)names multiple setq variables with a new label.
   null()        - Eats all output from <string> (evaluates).
   parenmatch()  - Returns an ansified match of (), {} and []s.
+  passthrough() - passthroughg arguments to another function
   pid()         - Return a list of process id's
   privatize()   - All localized variables are initialized to null
   pushregs()    - Preserves, and restores setq() registers.
@@ -36084,6 +36134,14 @@
 & changelog recent
 & changelog 1
 
+  4.10.0 - 10/19/24
+  * @totem/free to show what bitmasks and slots are free
+  * convsecs() has optional timeformat as second argument
+  * @list alloc shows CPU processor time used since last reboot
+  * passthrough() function for argument passthrough in @functions/commands.
+  * lcmds() allows filtering based on globbing or regex
+  * ./Startmush -s will now show mush statistical information.
+  
   4.9.0 - 09/05/24
   * bucket() function for bucket hashing
   * aes.sh execscript for aes encryption and decryption
