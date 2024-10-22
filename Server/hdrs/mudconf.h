@@ -680,6 +680,7 @@ struct statedata {
 	int	dbloading;	/* are we reading config file at startup? */
 	int	panicking;	/* are we in the middle of dying horribly? */
 	int	logging;	/* Are we in the middle of logging? */
+	clock_t	clock_mush;	/* The CPU usage the mush has used since last restart */
 	int	epoch;		/* Generation number for dumps */
 	int	generation;	/* DB global generation number */
 	dbref	curr_enactor;	/* Who initiated the current command */

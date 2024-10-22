@@ -1237,6 +1237,100 @@ static int togent_comp(const void *s1, const void *s2)
   return strcmp((*(TOGENT **) s1)->togglename, (*(TOGENT **) s2)->togglename);
 }
 
+void
+display_totemfree(dbref player, int tagslot) 
+{
+   TOTEMENT *tp;
+   int totemfree[TOTEM_SLOTS], i_slots, i_cntr;
+   char *s_buff, *s_buffptr, *tbuff;
+
+
+   for ( i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+      totemfree[i_slots] = 0;
+   }
+
+   /* Populate the used totem spaces */
+   for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        tp;
+        tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+      totemfree[tp->flagpos] |= tp->flagvalue;
+   }
+
+   s_buff = alloc_lbuf("display_totemfree");
+   if ( tagslot == -1 ) {
+      sprintf(s_buff, "%5s: First row is 1-16, second is 17-32 for free bits [open/unassigned  0].", (char *)"Slot");
+      notify_quiet(player, s_buff);
+      for (i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+         sprintf(s_buff, "%5d: [ 1-16] %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d", i_slots,
+            totemfree[i_slots] & 0x00000001 ? 1 : 0,
+            totemfree[i_slots] & 0x00000002 ? 1 : 0,
+            totemfree[i_slots] & 0x00000004 ? 1 : 0,
+            totemfree[i_slots] & 0x00000008 ? 1 : 0,
+            totemfree[i_slots] & 0x00000010 ? 1 : 0,
+            totemfree[i_slots] & 0x00000020 ? 1 : 0,
+            totemfree[i_slots] & 0x00000040 ? 1 : 0,
+            totemfree[i_slots] & 0x00000080 ? 1 : 0,
+            totemfree[i_slots] & 0x00000100 ? 1 : 0,
+            totemfree[i_slots] & 0x00000200 ? 1 : 0,
+            totemfree[i_slots] & 0x00000400 ? 1 : 0,
+            totemfree[i_slots] & 0x00000800 ? 1 : 0,
+            totemfree[i_slots] & 0x00001000 ? 1 : 0,
+            totemfree[i_slots] & 0x00002000 ? 1 : 0,
+            totemfree[i_slots] & 0x00004000 ? 1 : 0,
+            totemfree[i_slots] & 0x00008000 ? 1 : 0);
+         notify_quiet(player, s_buff);
+         sprintf(s_buff, "%5s  [17-32] %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d", (char *)" ",
+            totemfree[i_slots] & 0x00010000 ? 1 : 0,
+            totemfree[i_slots] & 0x00020000 ? 1 : 0,
+            totemfree[i_slots] & 0x00040000 ? 1 : 0,
+            totemfree[i_slots] & 0x00080000 ? 1 : 0,
+            totemfree[i_slots] & 0x00100000 ? 1 : 0,
+            totemfree[i_slots] & 0x00200000 ? 1 : 0,
+            totemfree[i_slots] & 0x00400000 ? 1 : 0,
+            totemfree[i_slots] & 0x00800000 ? 1 : 0,
+            totemfree[i_slots] & 0x01000000 ? 1 : 0,
+            totemfree[i_slots] & 0x02000000 ? 1 : 0,
+            totemfree[i_slots] & 0x04000000 ? 1 : 0,
+            totemfree[i_slots] & 0x08000000 ? 1 : 0,
+            totemfree[i_slots] & 0x10000000 ? 1 : 0,
+            totemfree[i_slots] & 0x20000000 ? 1 : 0,
+            totemfree[i_slots] & 0x40000000 ? 1 : 0,
+            totemfree[i_slots] & 0x80000000 ? 1 : 0);
+         notify_quiet(player, s_buff);
+      }
+   } else {
+      if ( (tagslot >= TOTEM_SLOTS) || (tagslot < 0) ) {
+         notify_quiet(player, "Invalid slot specified.");
+         return;
+      } else {
+         s_buffptr = s_buff;
+         i_cntr = 0;
+         tbuff = alloc_sbuf("display_totemfree_tmp");
+         sprintf(tbuff, "Slot %d detail:", tagslot);
+         notify_quiet(player, tbuff);
+         for ( i_slots = 0; i_slots < 32; i_slots++ ) {
+            if ( !(totemfree[tagslot] & (1 << i_slots)) ) {
+               sprintf(tbuff, "0x%08X", 1 << i_slots);
+               if ( *s_buff ) {
+                  safe_chr(' ', s_buff, &s_buffptr);
+               }
+               if ( !(i_cntr % 6) ) {
+                  safe_str((char *)"\r\n", s_buff, &s_buffptr);
+               }
+               i_cntr++;
+               safe_str(tbuff, s_buff, &s_buffptr);
+            }
+         }
+         free_sbuf(tbuff);
+         notify_quiet(player, s_buff);
+      }
+   }
+   free_lbuf(s_buff);
+
+   return;
+}
+
 void 
 display_totemtab2(dbref player, char *buff, char **bufcx, int key, char *totem)
 {
@@ -7526,6 +7620,13 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
    char *s_buff, *s_buff2, *s_strtok, *s_strtokr;
 
    switch (key) {
+      case TOTEM_FREE: /* Show free slots and masks */
+         if ( flag1 && *flag1 ) {
+            display_totemfree(player, atoi(flag1));
+         } else {
+            display_totemfree(player, -1);
+         }
+         break;
       case TOTEM_ADD: /* Add totem */
          if ( !flag1 || !flag2 || !*flag1 || !*flag2 ) {
             if ( Good_chk(player) ) {

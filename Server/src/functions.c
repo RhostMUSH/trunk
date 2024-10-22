@@ -13628,10 +13628,34 @@ FUNCTION(fun_convsecs)
 {
     char *s_wday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", NULL };
     char *s_mon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL };
-    char *s_format;
+    char *s_format, *s_tmp, *s_env;
     double tt2;
     long l_offset;
     struct tm *ttm2;
+    int i_tz;
+
+    if (!fn_range_check("CONVSECS", nfargs, 1, 2, buff, bufcx))
+        return;
+
+    i_tz = 0;
+    if ( (nfargs > 1) && *fargs[1]) {
+        if (!validate_timezones(fargs[1])) {
+            safe_str("#-1 INVALID TIMEZONE", buff, bufcx);
+            return;
+        }
+
+        s_env = alloc_sbuf("convsecs_tz");       
+        s_tmp = getenv("TZ");
+        if ( s_tmp && *s_tmp ) { 
+           strcpy(s_env, s_tmp); }
+        else { 
+           *s_env = '\0';
+        }
+
+        i_tz = 1;
+        setenv("TZ", fargs[1], 1);
+        tzset();
+    }
 
     tt2 = safe_atof(fargs[0]);
     ttm2 = localtime(&mudstate.now);
@@ -13640,6 +13664,7 @@ FUNCTION(fun_convsecs)
     mush_gmtime64_r(&tt2, ttm2);
     ttm2->tm_year += 1900;
     s_format = alloc_mbuf("convsecs");
+
     if ( mudconf.time_paddzero ) {
        sprintf(s_format, "%s %s %02d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
                          ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
@@ -13647,6 +13672,17 @@ FUNCTION(fun_convsecs)
        sprintf(s_format, "%s %s %2d %02d:%02d:%02d %d", s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], 
                          ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year);
     }
+
+    if ( i_tz ) {
+        if ( s_env && *s_env ) { 
+           setenv("TZ", s_env, 1); }
+        else { 
+           setenv("TZ", (char *)"localtime", 1);
+        }
+        tzset();
+        free_sbuf(s_env);
+    }
+
     safe_str(s_format, buff, bufcx);
     free_mbuf(s_format);
 }
@@ -19653,6 +19689,93 @@ FUNCTION(fun_con)
     } else
         safe_str("#-1", buff, bufcx);
     return;
+}
+
+FUNCTION(fun_passthrough)
+{
+   FUN *fp;
+   int i_chk, i_force, i_max, i_loop, i_needle, i_haystack;
+   char *s_args[1000], *s_strtok, *s_strtokr, *s_buff, *s_ptr, *s_null;
+
+   if (!fn_range_check("PASSTHROUGH", nfargs, 1, 4, buff, bufcx)) {
+      return;
+   }
+
+   if ( !*fargs[0] ) {
+      return; 
+   }
+
+   i_max = ncargs;
+
+   s_null = alloc_lbuf("passthrough_empty");
+   if ( (nfargs > 3) && *fargs[3] ) {
+      strcpy(s_null, fargs[3]);
+   }
+
+   for ( i_loop = 0; i_loop < 999; i_loop++) {
+      s_args[i_loop] = s_null;
+   }
+
+   i_force = 0;
+   if ( (nfargs > 1) && *fargs[1] ) {
+      if ( *fargs[1] == '+' ) {
+         i_force = 1;
+         i_max = atoi(fargs[1]+1);
+      } else {
+         i_max = atoi(fargs[1]);
+      }
+      if ( i_max < 0 )
+         i_max = 0;
+      if ( !i_force && (i_max > ncargs) )
+         i_max = ncargs;
+   }
+
+   if ( i_max > 999 )
+     i_max = 999;
+
+   for ( i_chk = 0; i_chk < ncargs; i_chk++ ) {
+      if ( !cargs[i_chk] ) {
+         break;
+      }
+   }
+
+   for ( i_loop = 0; i_loop < i_chk; i_loop++ ) {
+      s_args[i_loop] = cargs[i_loop];
+   }
+
+   if ( (nfargs > 2) && *fargs[2] ) {
+      s_buff = alloc_lbuf("fun_passthrough");
+      strcpy(s_buff, fargs[2]);
+      s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      while ( s_strtok ) {
+         if ( (s_ptr = strchr(s_strtok, ':')) != NULL ) {
+            i_needle = atoi(s_strtok);
+            i_haystack = atoi(s_ptr+1);
+            /* We want ncargs for haystack to force values available */
+            if ( (i_needle >= 0) && (i_haystack >=0 ) &&
+                 ((!i_force && (i_needle < i_chk)) || (i_force && (i_needle < i_max))) && 
+                 ((i_haystack < ncargs) || (i_haystack < i_max)) ) {
+               if ( cargs[i_haystack] )
+                  s_args[i_needle] = cargs[i_haystack];
+               else
+                  s_args[i_needle] = s_null;
+            }
+         }
+         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+      }
+      free_lbuf(s_buff);
+   }
+   fp = (FUN *) hashfind(fargs[0], &mudstate.func_htab);
+   if ( fp ) {
+      if ( !stricmp((char *)fp->name, "passthrough") ) {
+         safe_str("#-1 RECURSIVE CALLING PASSTHROUGH", buff, bufcx);
+      } else {
+         fp->fun(buff, bufcx, player, cause, caller, s_args, (i_force ? i_max : i_chk), (char **)NULL, 0);
+      }
+   } else {
+      safe_str("#-1 INVALID FUNCTION", buff, bufcx);
+   }
+   free_lbuf(s_null);
 }
 
 FUNCTION(fun_strfunc)
@@ -30182,7 +30305,7 @@ FUNCTION(fun_cluster_lattr)
 FUNCTION(fun_lcmds)
 {
     dbref thing, aowner;
-    int ca, first, aflags, found, in_break;
+    int ca, first, aflags, found, in_break, i_regex, i_filter;
     char *s_shoveattr, c_lookup, sep, *c_ptr;
     ATTR *attr;
     OBLOCKMASTER master;
@@ -30192,10 +30315,10 @@ FUNCTION(fun_lcmds)
      * if it is missing.
      */
 
-    if (!fn_range_check("LCMDS", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("LCMDS", nfargs, 1, 5, buff, bufcx))
        return;
 
-    if (nfargs >= 2 && *fargs[1]) {
+    if ( (nfargs >= 2) && *fargs[1]) {
       if ( mudconf.delim_null && (strcmp(fargs[1], (char *)"@@") == 0) ) {
          sep = '\0';
       } else {
@@ -30204,13 +30327,24 @@ FUNCTION(fun_lcmds)
     } else {
       sep = ' ';
     }
+
+    i_regex = i_filter = 0;
+    if ( (nfargs >= 4) && *fargs[3] ) {
+       i_filter = 1;
+       if ( nfargs >= 5 ) {
+          i_regex = atoi(fargs[4]);
+       }
+    }
+
     c_lookup = '\0';
-    if ((nfargs == 3) && (*fargs[2])) {
+    if ((nfargs >= 3) && (*fargs[2])) {
        c_lookup = *fargs[2];
     }
+
     if ( (c_lookup != '$') && (c_lookup != '^') ) {
        c_lookup = '$';
     }
+
     first = 1;
     olist_init(&master);
     if (parse_attrib_wild(player, fargs[0], &thing, 0, 0, 1, &master, 0, 0, 0)) {
@@ -30248,10 +30382,14 @@ FUNCTION(fun_lcmds)
                              *c_ptr = ToLower((int)*c_ptr);
                              c_ptr++;
                           }
-                          if (!first && sep)
-                             safe_chr(sep, buff, bufcx);
-                          first = 0;
-                          safe_str(s_shoveattr+1, buff, bufcx);
+                          if ( !i_filter ||
+                               (i_filter && !i_regex && quick_wild(s_shoveattr+1, fargs[3])) ||
+                               (i_filter && i_regex && quick_regexp_match(s_shoveattr+1, fargs[3], 1))  ) { 
+                             if (!first && sep)
+                                safe_chr(sep, buff, bufcx);
+                             first = 0;
+                             safe_str(s_shoveattr+1, buff, bufcx);
+                          }
                        }
                     }
                 }
@@ -41851,7 +41989,7 @@ FUN flist[] =
     {"CONNLEFT", fun_connleft, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONNLAST", fun_connlast, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"CONTROLS", fun_controls, 2, 0, CA_PUBLIC, CA_NO_CODE},
-    {"CONVSECS", fun_convsecs, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"CONVSECS", fun_convsecs, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"CONVTIME", fun_convtime, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"COR", fun_cor, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"COS", fun_cos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
@@ -42179,6 +42317,7 @@ FUN flist[] =
     {"PARENTS", fun_parents, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PARSE", fun_parse, 0, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"PARSESTR", fun_parsestr, 2, FN_VARARGS | FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+    {"PASSTHROUGH", fun_passthrough, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
 #ifdef PASSWD_FUNC
     {"PASSWD", fun_passwd, 1, 0, CA_IMMORTAL, 0},
 #endif

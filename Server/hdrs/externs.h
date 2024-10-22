@@ -1313,6 +1313,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TOTEM_LETTER	16384	/* Totem Letter Handler */
 #define TOTEM_DISSLOT	32768	/* List totem slots and flags (you see) in them */
 #define TOTEM_UNALIAS	65536	/* Remove alias(es) */
+#define TOTEM_FREE      131072	/* List free totem masks and slots to assign */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */

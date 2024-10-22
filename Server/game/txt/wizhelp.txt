@@ -3673,12 +3673,14 @@
   For a breakdown of all the segments under the allocations, refer to:
   
   Following suboptions are available to @list alloc:
-       quick, blacklist, attrib, totem, cache, network, db, or stack
+       quick, blacklist, attrib, totem, cache, network, db, cpu, or stack
   
   { @list allocations2 }
   
 & @list allocations2
   Command: @list allocations (continued)
+  
+  Total processer based CPU usage used
   
   Information is given for current Tprintf dynamic allocation buffers:
     Current    - Current allocated dynamic (unsafe_tprintf) buffers
@@ -5881,6 +5883,8 @@
     /slot     - display all the slots and the number of totems assigned.
     /clean    - Will clean the dangling slot/values off all players
                 Syntax:  @totem/clean [[<target>] [=<args>]] ('all' is default)
+    /free     - Show free bitmasks and slots for new totems
+                Syntax:  @totem/free [<slot>]
    
   You may see individual help with 'help @totem/switchname' for any of the
   above switches for more detail on each sub-topic.
@@ -5888,6 +5892,26 @@
   See Also:  totem_add, totem_alias, totem_access_set, totem_access_unset,
              totem_access_see, totem_access_type, totem_letter, totem_rename,
              totem_name
+
+& @totem/free
+& totem free
+& @totem free
+  Command: @totem/free [<slot>]
+  
+  This command will show you all the free bitlevels of all the slots available
+  for @totem definitions.  
+  
+  You may specify a <slot> to do a finer listing of the exact bitmasks that
+  are available for that particular slot.
+  
+  These bitmasks and slots will be used for @totem/add and similar commands
+  for adding, deleting, and modifying totems.
+  
+  Examples: 
+    > @totem/free
+    > @totem/free 0
+  
+  See Also: @totem
 
 & @totem/add
 & totem add

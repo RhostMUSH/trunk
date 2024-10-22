@@ -6,6 +6,7 @@ lc_chk=`echo "$1"|tr '[:upper:]' '[:lower:]'`
 case "${lc_chk}" in
    -h|--help|-help) # help entry
       echo "Syntax: $0 [-h|-f|-i|-cyg]"
+      echo "        -s   -- show status of your RhostMUSH"
       echo "        -h   -- show this screen"
       echo "        -f   -- force Startmush to overwrite shared memory segment."
       echo "        -i   -- reindex all txt files then exit."
@@ -14,6 +15,91 @@ case "${lc_chk}" in
       echo "        -cyg -- force a CYGWIN/Win10-Bash run for Startmush"
       exit 0
       ;;
+   -s) # status
+       . ./mush.config
+       gl_shm=`echo ${DEBUG_ID}|awk '{printf("%x", $0)}'`
+       gl_shmchk=`ipcs -m 2>/dev/null|grep "${gl_shm}"`
+       lc_port=`grep ^port ${GAMENAME}.conf|awk '{print $2}'`
+       lc_apiport=`grep ^api_port ${GAMENAME}.conf|awk '{print $2}'`
+       lc_debugid=`grep ^debug_id ${GAMENAME}.conf|awk '{print $2}'`
+       if [ -f ../stunnel/stunnel.conf ]
+       then
+          lc_ssl=`grep "^accept = [0-9]" ../stunnel/stunnel.conf|cut -f3 -d' '`
+       fi
+
+       if [ -f ../bin/netrhost ]
+       then
+          echo "-- Version -------------------------------------------------------------------"
+         ./netrhost -v
+          echo "----- port: ${lc_port}"
+          if [ -n "${lc_apiport}" ]
+          then
+             echo "----- apiport: ${lc_apiport}"
+          fi
+          if [ -n "${lc_ssl}" ]
+          then
+             echo "----- SSL: ${lc_ssl}"
+          fi
+          echo "----- debugid: ${lc_debugid}"
+          echo "----- shared memory id: ${gl_shm} [${DEBUG_ID}]"
+          echo "------------------------------------------------------------------------------"
+       else
+          echo "Netrhost is either not compiled or improperly configured."
+          echo "Please type:  make clean; make source"
+          exit 1
+       fi
+
+       ps -p `cat netrhost.pid` >/dev/null 2>&1
+       if [ $? -ne 0 ]
+       then
+          echo "Your RhostMUSH is not currently running."
+          exit 1
+       else
+          echo "-- Process -------------------------------------------------------------------"
+          ps -lp `cat netrhost.pid`
+          echo "------------------------------------------------------------------------------"
+       fi
+
+       netstat -V >/dev/null 2>&1
+       if [ $? -eq 0 ]
+       then
+          echo "-- Ports/Processes -----------------------------------------------------------"
+          netstat -anp|grep `cat netrhost.pid`
+          echo "------------------------------------------------------------------------------"
+       else
+          ss -V > /dev/null 2>&1
+          if [ $? -eq 0 ]
+          then
+             echo "-- Ports/Processes -----------------------------------------------------------"
+             ss -nlpt `cat netrhost.pid`
+             echo "------------------------------------------------------------------------------"
+          fi
+       fi
+
+       ipcs -V >/dev/null 2>&1
+       if [ $? -eq 0 ]
+       then
+          echo "-- Shared Memory -------------------------------------------------------------"
+          echo "Shared Memory Segment ${DEBUG_ID} [${gl_shm}]"
+          ipcs -m|egrep "(key|${gl_shm})"
+          echo "------------------------------------------------------------------------------"
+       fi
+
+       echo "-- Last Database Backup ------------------------------------------------------"
+       if [ -f data/${GAMENAME}.db.flat ]
+       then
+          ls -l data/${GAMENAME}.db.flat
+       elif [ -f prevflat/${GAMENAME}.db.flat ]
+       then
+          ls -l prevflat/${GAMENAME}.db.flat
+       else
+          echo "*** NO BACKUPS DETECTED. ***"
+          echo "Run: @dump/flat from within your game.  Set a cron to run this daily." 
+       fi
+       echo "------------------------------------------------------------------------------"
+
+       exit 0
+       ;;
    -v) # version
        ./netrhost -v
        exit 0
