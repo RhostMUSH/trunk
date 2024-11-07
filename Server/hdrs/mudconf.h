@@ -471,6 +471,7 @@ struct confdata {
 	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
 	int	elements_compat;/* Enable elements() compatibility to other codebases */
 	int	null_is_idle;	/* Treat '@@@' like idle for, well, idle */
+	int	think_is_idle;	/* Treat 'think' like idle for, well, idle */
 	int idle_cmdcount; /* Treat commands used more than X times in _idlestamp as idle */
 	int	iter_loop_max;	/* Infinite iter loop counter */
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */

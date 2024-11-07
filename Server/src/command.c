@@ -6726,6 +6726,10 @@ if ( !key ) {
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- ENABLED");
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
+    if ( mudconf.think_is_idle )
+       notify(player, "Will THINK work like IDLE for ignoring updating idle times -------- ENABLED");
+    else
+       notify(player, "Will THINK work like IDLE for ignoring updating idle times -------- DISABLED");
     notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
     notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
     if ( mudconf.enforce_checksums ) {
