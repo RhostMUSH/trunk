@@ -354,6 +354,7 @@ NDECL(cf_init)
     mudconf.execscript_rawpush = 0;	/* Allow raw pushing of execscript */
     mudconf.crypt_rounds = 5000;	/* Number of crypt rounds for passwords */
     mudconf.null_is_idle = 0;		/* Treat @@ as idle for idle timer */
+    mudconf.think_is_idle = 0;		/* Treat think as idle for idle timer */
     mudconf.iter_loop_max = 100000;	/* Maximum loops for infinite loop iter */
     mudconf.vlimit = 400;		/* Runtime vlimit here */
     mudconf.mtimer = 10;
@@ -5736,6 +5737,9 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.thing_quota, 0, 0, CA_WIZARD,
      (char *) "Quota that each thing takes up.\r\n"\
               "                             Default: 1   Value: %d"},
+    {(char *) "think_is_idle",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.think_is_idle, 0, 0, CA_PUBLIC,
+     (char *) "Will 'think' be treated like 'idle' for updating idle time?"},
     {(char *) "time_paddzero",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.time_paddzero, 0, 0, CA_PUBLIC,
      (char *) "Does time/convsecs padd zero on day of month?"},

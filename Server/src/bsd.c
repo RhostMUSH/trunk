@@ -954,6 +954,10 @@ shovechars(int port,char* address)
                    if ( Good_obj(d->player) && 
                        (((Wizard(d->player) || HasPriv(d->player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && (stricmp(s_cutter, "idle ") == 0)) || 
                         ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
+                        ((stricmp(s_cutter, "th") == 0) && mudconf.think_is_idle) ||
+                        ((stricmp(s_cutter, "thi") == 0) && mudconf.think_is_idle) ||
+                        ((stricmp(s_cutter, "thin") == 0) && mudconf.think_is_idle) ||
+                        ((stricmp(s_cutter, "think") == 0) && mudconf.think_is_idle) ||
                         (stricmp(s_cutter, "idle") == 0) ||
                         (stricmp(s_cutter2, "idle @@") == 0)) ) {
                       cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);

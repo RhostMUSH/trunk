@@ -7528,24 +7528,24 @@
   switch_search             switch_substitutions      terse_shows_contents    
   terse_shows_exits         terse_shows_move_messages thing_attr_default      
   thing_flags               thing_parent              thing_quota             
-  thing_toggles             time_paddzero             timeslice               
-  timezone                  toggle_access_see         toggle_access_set       
-  toggle_access_type        toggle_access_unset       totem_add               
-  totem_alias               totem_access_see          totem_access_set        
-  totem_access_type         totem_access_unset        totem_letter            
-  totem_name                totem_rename              totem_types             
-  tor_localhost             tor_paranoid              trace_output_limit      
-  trace_topdown             tree_character            trust_site              
-  uncompress_program        unowned_safe              user_attr_flags         
-  validate_host             vattr_command             vattr_interval          
-  vattr_limit_checkwiz      vercustomstr              vlimit                  
-  wait_cost                 wall_cost                 whereis_notify          
-  wizmax_dest_limit         wizmax_vattr_limit        who_default             
-  who_unfindable            who_showwiz               who_wizlevel            
-  who_whowiztype            whohost_size              wiz_override            
-  wiz_uselock               wizard_help_file          wizard_help_index       
-  wizard_motd_file          wizard_motd_message       wizard_queue_limit      
-  wizcommand_quota_max      zone_parents
+  thing_toggles             think_is_idle             time_paddzero
+  timeslice                 timezone                  toggle_access_see
+  toggle_access_set         toggle_access_type        toggle_access_unset
+  totem_add                 totem_alias               totem_access_see
+  totem_access_set          totem_access_type         totem_access_unset
+  totem_letter              totem_name                totem_rename
+  totem_types               tor_localhost             tor_paranoid
+  trace_output_limit        trace_topdown             tree_character
+  trust_site                uncompress_program        unowned_safe
+  user_attr_flags           validate_host             vattr_command
+  vattr_interval            vattr_limit_checkwiz      vercustomstr
+  vlimit                    wait_cost                 wall_cost
+  whereis_notify            wizmax_dest_limit         wizmax_vattr_limit
+  who_default               who_unfindable            who_showwiz
+  who_wizlevel              who_whowiztype            whohost_size
+  wiz_override              wiz_uselock               wizard_help_file
+  wizard_help_index         wizard_motd_file          wizard_motd_message
+  wizard_queue_limit        wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -12775,6 +12775,18 @@
   
   See Also: @quota, exit_quota, player_quota, room_quota, QUOTAS.
 
+& think_is_idle
+  Config parameter: think_is_idle <boolean>.  Default: 0
+  
+  This parameter, if enabled, will treat 'think' like IDLE with regards to 
+  updating a player's idle time.  This is mostly because players can't
+  seem to be able to do a simple modification in their client to change
+  'think' to 'idle', so this will do it for them.  
+
+  NOTE: This should be primarily used on games, where players do not
+  have access to most communication/database related Sideffects like
+  pemit(), set(), emit() etc.
+ 
 & time_paddzero
   Config parameter: time_paddzero <boolean>.  Default: no(0)
   
