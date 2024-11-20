@@ -139,18 +139,17 @@
   @door      @drop        @ealias      @efail      @enter        @exitformat
   @fail      @filter      @forwardlist @gfail      @grep         @guild 
   @idesc     @idle        @infilter    @inprefix   @kill         @lalias    
-  @leave     @lfail       @listen      @move       @nameformat   @odescribe 
-  @odfail    @odrop       @oefail      @oenter     @ofail        @ogfail    
-  @okill     @oleave      @olfail      @omove      @opay         @orfail    
-  @osuccess  @otfail      @otofail     @otport     @oufail       @ouse
-  @oxenter   @oxleave     @oxtport     @pay        @prefix       @race      
-  @reject    @rfail       @runout      @salisten   @sasmell      @sataste
-  @satouch   @saystring   @selfboot    @sex        @sfail        @slisten     
-  @solisten  @sosmell     @sotaste     @sotouch    @ssmell       @startup   
-  @staste    @stouch      @success     @tfail      @titlecaption @tofail
-  @toggle    @tport       @ufail       +uptime     @use          @whereall  
-  @whereis   @zone        
-  
+  @leave     @lfail       @listen      @move       @mfail        @nameformat 
+  @odescribe @odfail      @odrop       @oefail     @oenter       @ofail      
+  @ogfail    @okill       @oleave      @olfail     @omove        @opay       
+  @orfail    @osuccess    @otfail      @otofail    @otport       @oufail     
+  @ouse      @oxenter     @oxleave     @oxtport    @pay          @prefix     
+  @race      @reject      @rfail       @runout     @salisten     @sasmell    
+  @sataste   @satouch     @saystring   @selfboot   @sex          @sfail       
+  @slisten   @solisten    @sosmell     @sotaste    @sotouch      @ssmell     
+  @startup   @staste      @stouch      @success    @tfail        @titlecaption
+  @tofail    @toggle      @tport       @ufail      +uptime       @use        
+  @whereall  @whereis     @zone        
   
   See Also: @list
   
@@ -4239,6 +4238,20 @@
   
   See Also: WHO, DOING
   
+& @mfail
+  Command: @mfail <target>=<string>
+  
+  This will set the reject message that will be sent to anyone who fails
+  the mail lock when sending mail to the target.
+  
+  This attribute overrides the mail/reject message.  If this attribute is not
+  set, then it falls back to whatever is in the  mail/reject message.
+  
+  Examples:
+    @mfail me=You can't mail me.
+  
+  See Also: @lock/mail
+
 & @mailsig
   Command: @mailsig <targetplayer>=<string>
   
@@ -5358,11 +5371,26 @@
                                    location.
      ChownLock:    All:            Specifies who may chown an item if set
                                    CHOWN_OK.  No lock means anyone can.
+     MailLock:     Players:        Lock your ability to receive m ail from
+                                   target(s).
   
      For mail locking, read the help on HELP MAIL LOCK
      For help on the types of locks, type 'help @lock type <type>'
   
   See Also: mail lock
+  
+& @lock/maillock
+& @lock type MailLock
+  Lock Type: MailLock
+  Syntax   : @lock/mail <target>=<key>
+             mail/lock <key>
+  
+  Players:
+     This controls who is allowed to mail you.  Failing the lock blocks the
+     mail.
+  
+  Objects, Rooms, Exits:
+     This lock is meaningless on these types.
   
 & @lock/givetolock
 & @lock type GiveToLock
@@ -36134,6 +36162,11 @@
 & changelog recent
 & changelog 1
 
+  4.11.0   11/26/24
+  * @mfail for reject message overrides
+  * mail/lock aliased to @lock/mail
+  * conversion of flatfiles recognizes @mfail
+  
   4.10.0 - 10/19/24
   * @totem/free to show what bitmasks and slots are free
   * convsecs() has optional timeformat as second argument

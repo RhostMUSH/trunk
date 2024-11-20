@@ -680,6 +680,7 @@ NAMETAB lock_sw[] =
     {(char *) "getfromlock", 3, CA_PUBLIC, 0, A_LGETFROM},
     {(char *) "chownlock", 3, CA_PUBLIC, 0, A_LCHOWN},
     {(char *) "basic", 2, CA_PUBLIC, 0, A_LOCK},
+    {(char *) "maillock", 2, CA_PUBLIC, 0, A_LMAIL},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB zone_sw[] = 

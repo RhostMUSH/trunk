@@ -1099,21 +1099,38 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
      chk_anon2 = 1;
   }
   if (!could_doit(player,*toplay,A_LMAIL,1,0)) {
-    *(int *)sbuf1 = MIND_REJM;
-    *(int *)(sbuf1+sizeof(int)) = *toplay;
-    keydata.dptr = sbuf1;
-    keydata.dsize = sizeof(int) << 1;
-    infodata = dbm_fetch(mailfile,keydata);
-    if (infodata.dptr) {
-      pt4 = exec(player, player, player, EV_FIGNORE | EV_EVAL, infodata.dptr, (char **) NULL, 0, (char **)NULL, 0);
-      notify_quiet(player,"Mail:");
-      notify_quiet(player,pt4);
-      free_lbuf(pt4);
+    s_mailfilter = atr_pget(*toplay, A_MFAIL, &s_aowner, &s_aflags);
+    pt4 = NULL;
+    if ( *s_mailfilter ) {
+       pt4 = exec(*toplay, player, player, EV_FIGNORE | EV_EVAL, s_mailfilter, (char **) NULL, 0, (char **)NULL, 0);
     }
-    else {
-      tprp_buff = tpr_buff = alloc_lbuf("insert_msg");
-      notify_quiet(player,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Your mail has been rejected by %s",Name(*toplay)));
-      free_lbuf(tpr_buff);
+    free_lbuf(s_mailfilter);
+    if ( pt4 && *pt4 ) {
+       tprp_buff = tpr_buff = alloc_lbuf("insert_msg_mfail");
+       safe_str((char *)"Mail: ", tpr_buff, &tprp_buff);
+       safe_str(pt4, tpr_buff, &tprp_buff);
+       notify_quiet(player, tpr_buff);
+       free_lbuf(tpr_buff);
+       free_lbuf(pt4);
+    } else {
+       if ( pt4 ) {
+          free_lbuf(pt4);
+       }
+       *(int *)sbuf1 = MIND_REJM;
+       *(int *)(sbuf1+sizeof(int)) = *toplay;
+       keydata.dptr = sbuf1;
+       keydata.dsize = sizeof(int) << 1;
+       infodata = dbm_fetch(mailfile,keydata);
+       if (infodata.dptr) {
+         pt4 = exec(player, player, player, EV_FIGNORE | EV_EVAL, infodata.dptr, (char **) NULL, 0, (char **)NULL, 0);
+         notify_quiet(player,"Mail:");
+         notify_quiet(player,pt4);
+         free_lbuf(pt4);
+       } else {
+         tprp_buff = tpr_buff = alloc_lbuf("insert_msg");
+         notify_quiet(player,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Your mail has been rejected by %s",Name(*toplay)));
+         free_lbuf(tpr_buff);
+       }
     }
     return 0;
   }

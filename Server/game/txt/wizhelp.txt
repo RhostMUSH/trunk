@@ -5758,6 +5758,8 @@
 & TOTEMS
   Topic: TOTEMS
   
+  Note: see 'wizhelp totem example' to see steps on defining totems.
+  
   Totems are a generic overset of flags and toggles.  Eventually this will
   be the functionality that will take over control of flags and toggles
   internally to the mush.
@@ -5842,6 +5844,7 @@
 & @totem
   Command: @totem[/<switches>] [<totemname> [=<args>]
   
+  See 'TOTEM EXAMPLE' for an end to end on setting up totems in the conf file.
   See 'TOTEMS' for a general overview of totems.
   
   The @totem command is the administrative tool for in-game adding and
@@ -14308,6 +14311,43 @@
   See Also: @dynhelp, dynhelp()
 
 
+& TOTEM EXAMPLE
+  The following example will define and set two totems called 'test1' and
+  'test2' in your netrhost.conf file.  
+  
+  Example setup:
+    > @totem/free 0
+      Slot 0 detail:
+
+      0x00000100 0x00000200 0x00000400 0x00000800 0x00001000 0x00002000 
+      0x00004000 0x00008000 0x00010000 0x00020000 0x00040000 0x00080000 
+      0x00100000 0x00200000 0x00400000 0x00800000 0x01000000 0x02000000 
+      0x04000000 0x08000000 0x10000000 0x20000000 0x40000000 0x80000000
+
+    ### define totems test1 and test2
+    > totem_add test1 0 0x00000100
+    > totem_add test2 0 0x00000200
+    
+    ### set the totems to be settable and unsettable to wizard 
+    > totem_access_set test1 wizard
+    > totem_access_set test2 wizard
+    > totem_access_unset test1 wizard
+    > totem_access_unset test2 wizard
+  
+    ### set the totems to be viewable to wizard
+    > totem_access_see test1 wizard
+    > totem_access_see test2 wizard
+  
+    ### -- '0' is normal word shown as t and T
+    ### -- '1' would be shown as [t] and [T]
+    ### -- '2' would be shown as {t} and {T}
+    ### assign letters to test1 and test2 of t and T (0 means first word)
+    > totem_letter test1 0 t
+    > totem_letter test2 0 T
+  
+  See Also: totem_add, totem_access_set, totem_access_unset, totem_access_see,
+            totem_letter, @totem
+  
 & TOTEM LIST
   Topic: TOTEM LIST
   
