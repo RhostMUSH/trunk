@@ -1026,7 +1026,8 @@
                                EMIT, OEMIT, CLONE, PARENT, LOCK, LEMIT, 
                                REMIT, WIPE, ZEMIT, NAME, and LSET
   OTHER sideeffects supported: DESTROY, TOGGLE, TXLEVEL, RXLEVEL, RSET, 
-                               and MOVE
+                               TRIGGER, and MOVE
+ 
 
   The following sideeffects are handled by the database portion as a
   separate entity.
@@ -12476,7 +12477,8 @@
   TEL()          TEMPLATE()      TIME()          TIMEFMT()      TOBIN()      
   TODEC()        TOGGLE()        TOHEX()         TOOCT()        TOTCMDS()    
   TOTEMS()       TOTEMSET()      TOTMATCH()      TOTMEMBER()    TOTPOS()     
-  TOTWILDMATCH() TR()            TRACE()         TRANSLATE()    TRIM()
+  TOTWILDMATCH() TR()            TRACE()         TRANSLATE()    TRIGGER()
+  TRIM()
   
 { 'help function list5' for more }
 
@@ -12680,8 +12682,8 @@
                        LIST() LOCK() NAME() NAMEQM() NAMEQ() NPEMIT() OEMIT()
                        OPEN() PARENT() PEMIT() R() REMIT() RSET() RULER() 
                        RXLEVEL() SET() SETQ() SETQM() SETQ_OLD() SETR() 
-                       SETR_OLD() SETRM() TEL() TOGGLE() TOTEMSET() TXLEVEL() 
-                       WIPE() ZEMIT()
+                       SETR_OLD() SETRM() TEL() TOGGLE() TOTEMSET() TRIGGER()
+                       TXLEVEL() WIPE() ZEMIT()
              See Also: help side effect functions  
   
   Dbase Side-Effects:  SQLITE_QUERY()
@@ -26677,6 +26679,32 @@
   See Also: setq(), setq_old(), setr_old(), r(), nameq(), inc(), dec(),
             nameqm(), setqm(), setrm(), setqmatch(), SETQ_TEMPLATE, REGISTERS
   
+& TRIGGER()
+  Function: trigger(<#obj/attr> [,<arg1>, <arg2>, ..., <argN>])
+  
+  This function requires the SIDEFX flag.  
+  
+  @list options to see if this function has been enabled and is allowed.
+  
+  This function is the functional sideeffect of the @trigger command.  This
+  function does not execute in-line.  This function, as a side-effect, will
+  cause the command(s) triggered to queue as if it was done via normal
+  @trigger.  This takes all normal permissions and executions.
+  
+  If you do not have access to <#obj/attr> it will fail to trigger.
+  If you do not have access to the trigger command it will fail to trigger.
+  If you do not have funds to queue commands it will fail to trigger.
+  
+  This follows the same guidelines as @trigger.
+  
+  Example:
+    > @va me=think boo to %0
+    Set.
+    > think trigger(me/va,bob)
+    boo to bob
+  
+  See Also: @trigger, u()
+  
 & TRIM()
   Function: trim(<string> [,<trim style> [,<trim character(s)>]])
  
@@ -32816,6 +32844,7 @@
   tel()           - Teleports an object to a location.
   toggle()        - Toggles a toggle on an object.
   totemset()      - Set/remove a @totem on a target.
+  trigger()       - @trigger in function mode.
   txlevel()       - Sets or unsets a reality transmit level for an object.
   wipe()          - Wipes attribute(s) from object.
   zemit()         - Emits a string to every room of a zone.
@@ -36162,7 +36191,11 @@
 & changelog recent
 & changelog 1
 
-  4.12.0   11/26/24
+  4.13.0   11/21/24
+  * trigger() added -- I feel so dirty onw.
+  * trigger() requires special addition via sideeffects config param
+  
+  4.12.0   11/20/24
   * @mfail for reject message overrides
   * mail/lock aliased to @lock/mail
   * conversion of flatfiles recognizes @mfail

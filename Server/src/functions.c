@@ -39999,6 +39999,36 @@ FUNCTION(fun_lemit)
    do_say(player, cause, (SAY_EMIT|SAY_ROOM), fargs[0]);
 }
 
+FUNCTION(fun_trigger)
+{
+   CMDENT *cmdp;
+
+   if ( !(mudconf.sideeffects & SIDE_TRIGGER) ) {
+      notify(player, "#-1 FUNCTION DISABLED");
+      return;
+   }
+
+   if ( nfargs < 1 ) {
+      safe_str("#-1 FUNCTION (TRIGGER) EXPECTS 1 OR MORE ARGUMENTS.", buff, bufcx);
+      return;
+   }
+
+   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+ 
+   mudstate.sidefx_currcalls++;
+   cmdp = (CMDENT *)hashfind((char *)"@trigger", &mudstate.command_htab);
+   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@trigger") ||
+         cmdtest(Owner(player), "@trigger") || zonecmdtest(player, "@trigger") ) {
+      notify(player, "Permission denied.");
+      return;
+   }
+
+   do_trigger(player, cause, (TRIG_QUIET), fargs[0], fargs+1, nfargs-1);
+}
+
 FUNCTION(fun_emit)
 {
    CMDENT *cmdp;
@@ -42509,6 +42539,9 @@ FUN flist[] =
     {"TR", fun_tr, 3, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"TRACE", fun_trace, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRANSLATE", fun_translate, 2, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
+#ifdef USE_SIDEEFFECT
+    {"TRIGGER", fun_trigger, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+#endif
     {"TRIM", fun_trim, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"TRREVERSE", fun_trreverse, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"TRUNC", fun_trunc, 1, 0, CA_PUBLIC, CA_NO_CODE},

@@ -1124,6 +1124,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_ZONE	 0x08000000 /* zone() sideeffect function */
 #define SIDE_LSET	 0x10000000 /* lset() sideeffect function */
 #define SIDE_TOTEMSET	 0x20000000 /* totemset() sideeffect function */
+#define SIDE_TRIGGER	 0x40000000 /* trigger() sideeffect function */
 
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
