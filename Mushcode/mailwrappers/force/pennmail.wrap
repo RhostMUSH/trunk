@@ -54,10 +54,4 @@
 &MAIL_FIELD_PENN PennMailer Object <PMO>=N--X- U---- -M-X- --SX- ---XE
 &MAIL_FWDRPLY PennMailer Object <PMO>=[switch(%0%1,00,-,01,F,10,R)]
 &MAIL_STATUS_PENN PennMailer Object <PMO>=%[[edit(ifelse(words(setr(0,grab(v(mail_field_penn),*[mid(v(0),1,1)]*))),r(0),---X-),X,u(mail_fwdrply,strmatch(v(0),*Bytes%) Reply*),strmatch(v(0),*Bytes%) Fwd*)))]%]%b%b-:[ljust(trim(before(after(v(0),%(),%))),5)][ljc(trim(after(before(v(0),<),:)),14)][ljc(ifelse(words(after(v(0),Subj:)),after(v(0),Subj:),%bNONE),31)]%cn[mid(before(after(v(0),<),>),0,16)]
-@set PennMailer Object <PMO>=SCLOAK
-@set PennMailer Object <PMO>=INDESTRUCTABLE
-@set PennMailer Object <PMO>=DARK
-@set PennMailer Object <PMO>=SAFE
-@set PennMailer Object <PMO>=INHERIT
-@set PennMailer Object <PMO>=UNFINDABLE
-@set PennMailer Object <PMO>=STOP
+@set PennMailer Object <PMO>=INDESTRUCTIBLE SAFE INHERIT STOP SCLOAK DARK UNFINDABLE
