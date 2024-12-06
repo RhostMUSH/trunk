@@ -4894,7 +4894,7 @@
   You may also @unlink players at your location IF the following conditions
   are met:
     1) You own the location
-    2) The player is at your location and that happens to be his home.
+    2) The player is at your location and that happens to be their home.
     3) there is a valid default home defined for the mush
   
   See Also: @dig, @open, @unlink, DROP-TOS, HOMES, LINKING
@@ -5528,7 +5528,7 @@
   less than may be used, for example: '@lock a-f=name:<g' will lock the exit
   a-f against any one whose name is higher than f.
  
-  Both the player testing the lock and every object in his inventory is
+  Both the player testing the lock and every object in their inventory is
   checked, the player passes the lock if any of those objects passes the lock.
   If the attribute name is prefixed by a = then only the player is checked.
   Similarly, if the attribute name is prefixed by a + then only objects in
@@ -5668,7 +5668,7 @@
     Only objects you own may use the mystuff exit.
  
     > @lock/page me = !$*TinyJerk
-    Neither TinyJerk nor any of his objects may page you.
+    Neither TinyJerk nor any of its objects may page you.
   
   See Also: @lock normal
   
@@ -6869,7 +6869,7 @@
   Everyone in the same room as <actor> sees the contents of
     <victim>'s <owhat> attribute, with <actor>'s name prepended.
   
-  <victim> then executes the contents of his <awhat>
+  <victim> then executes the contents of their <awhat>
     attribute.
   
   By supplying up to nine <args>, you may pass those values on
@@ -8124,7 +8124,7 @@
       and a connection established to the MCP server.
     - On the initialization of the door, new commands are also registered 
       within the MUSH command parser; @mcom, @mwho, @mcode. When a player 
-      invokes one of the MCP commands, his input it parsed by the MCP door 
+      invokes one of the MCP commands, their input it parsed by the MCP door 
       code and sent out across the ether, likewise if a message comes back 
       through the door it is parsed and passed on to the correct player(s).
   
@@ -8467,7 +8467,8 @@
 & @attach
 & @include
   Command: @include[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
-           @attach[/<switch>]  <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+           @include[/<switch>][/<oswitch>] <target> <object/attr> [=<args>]
+           @attach[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
   
   Note:  @attach is an alias to @include/override.
   
@@ -8482,6 +8483,9 @@
   the @included text, the %0-%9 variables will return to what it was prior
   to the @include.
   
+  The @include allows to use an ownership switch of /sudo, /become, or 
+  /possess to flip ownership of the target, the enactor, or both.
+  
   This behaves similar to @trigger, except it will insert the commands in
   order and not queue them up.
   
@@ -8489,6 +8493,14 @@
   can only nest to 3 levels deep.
   
   @admin params includecnt and includenest handle @include's flexibility.
+  
+  {see @include2 for available switches} 
+  
+& @include2
+  (CONTINUED)
+  Command: @include[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+           @include[/<switch>][/<oswitch>] <target> <object/attr> [=<args>]
+           @attach[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
   
   The following switches exist for @include:
     /command   - bypass the $command/^listen portion of the attribute.
@@ -8503,30 +8515,56 @@
                  default, this will disable all default arguments.
     /nobreak   - Treat @break/@assert inside an @include as local to
                  that @include only.  Not usable with /nobreak.
+   
+   The following switches allow change of ownership if you control target:
+    /become    - When passed the <target> prior to the <obj/attr> pair, 
+                 it will change the target that will own the include.  This
+                 is like /target but you can specify the owner.
+                 Note: This changes the TARGET 
+    /sudo      - This is meant to be used with /command to make it work as
+                 if the specified target issued the $command.
+                 Note: This changes the ENACTOR
+    /possess   - This is an absolute ownership and meant to be used as if
+                 the @iclude and target were owned by the target.  Be
+                 warned with the flip of ownership permissions may not
+                 work as expected.
+                 Note: This changes the ENACTOR and TARGET
     
   Note: the /ibreak executes the @assert/@breaks but ignores breaking out.
   
-  {see @include2 for examples}
+  {see @include3 for examples}
 
-& @include2 
+& @include3 
   (CONTINUED)
   Command: @include[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
+           @include[/<switch>][/<oswitch>] <target> <object/attr> [=<args>]
+           @attach[/<switch>] <object>/<attr> [=<arg1>,<arg2>,...,<argN>]
   
   Example:
-    > @va me=think inny1;think inny2: %0
+    > think num(me) [num(*bob)]
+    #123 #234
+    > @va me=think inny1;think inny2: %0 - %#
     Set.
     > @vb me=$fnord *:think test1;@include me/va;think test2
     Set.
     > @vc me=$fnord2 *:think test1;@include me/va=bah!;think test2
+    Set.
+    > @vd me=$fnord3 *:think test1;@include/sudo me/va=bah!;think test2
+    Set.
     > fnord boo!
     test1
     inny1
-    inny2: boo!
+    inny2: boo! #123
     test2
     > fnord2 boo!
     test1
     inny1
-    inny2: bah!
+    inny2: bah! #123
+    test2
+    > fnord3 boo!
+    test1
+    inny1
+    inny2: bah! #234
     test2
   
   See Also: @trigger, @force, @sudo, @skip, @jump, @rollback, @goto
@@ -10761,9 +10799,9 @@
   a problem in many cases, so that behavior has changed.  Now, only Wizard
   objects or Wizard-owned Inherit-set objects have wizard powers.  Only
   players can set the Inherit flag, and the Inherit flag is reset during
-  @chown.  If a player is set Inherit, all his stuff is assumed to be
-  inherit, so his objects can control him.  If a player is NOT Inherit,
-  his stuff does NOT control him.  (i.e. cannot @force him.)  This flag
+  @chown.  If a player is set Inherit, all their stuff is assumed to be
+  inherit, so their objects can control him.  If a player is NOT Inherit,
+  their stuff does NOT control him.  (i.e. cannot @force him.)  This flag
   is not especially useful for non-wizards.
   
   Objects set INHERIT also inherit any powers that you yourself may have.
@@ -11219,7 +11257,7 @@
 & SLAVE
   Flag: SLAVE(x)
  
-  If set on a player, neither the player nor any of his objects may perform
+  If set on a player, neither the player nor any of their objects may perform
   any commands that change the database.  Some sites may restrict additional
   commands.  This flag may only be set or cleared by wizards.
   
@@ -11819,6 +11857,9 @@
     %P/%p ...              - Possessive pronoun (his her its their)
     %S/%s ...              - Subjective pronoun (he she it they)
     %A/%a ...              - Absolute possessive pronoun (his hers its theirs)
+  
+  Note:  Additinal pronouns may be configured for your RhostMUSH.  Please type
+         @list pronoun for the list.
   
   See Also: SUBSTITUTION
   
@@ -12904,29 +12945,30 @@
   
   function calls:
   
-  TYPE      - Restricts to objects of the indicated type (OBJECTS, ROOMS,
-              EXITS, PLAYERS).  THINGS may be used as an alias for OBJECTS.
-  NAME      - Restricts to objects whose names start with <restriction>.
-  OBJECTS   - A combination of TYPE=OBJECT and NAME=<restriction>.
-  THINGS    - An alias for OBJECTS.
-  ROOMS     - A combination of TYPE=ROOM and NAME=<restriction>.
-  EXITS     - A combination of TYPE=EXIT and NAME=<restriction>.
-  PLAYERS   - A combination of TYPE=PLAYER and NAME=<restriction>.
-  FLAGS     - Restricts to objects which have the flags listed in
-              <restriction> set..
-  FLAGS2    - Restricts to objects which have the flags listed in
-              <restriction> set.. (uses next set of flags)
-  TOTEMS    - Restricts to objects which have the tier 0 totem letters.
-  TOTEMS2   - Restricts to objects which have the tier 1 totem letters.
-  TOTEMS3   - Restricts to objects which have the tier 2 totem letters.
-  EVAL      - Evaluates the restriction for each object, replacing ##
-              with the object's database number.  Evaluations that return
-              TRUE (IE, not 0 or #-1) are selected.
-  EOBJECT   - A combination of TYPE=OBJECT and EVAL=<restriction>.
-  ETHING    - An alias for OBJECTS.
-  EROOM     - A combination of TYPE=ROOM and EVAL=<restriction>.
-  EEXIT     - A combination of TYPE=EXIT and EVAL=<restriction>.
-  EPLAYER   - A combination of TYPE=PLAYER and EVAL=<restriction>.
+  TYPE       - Restricts to objects of the indicated type (OBJECTS, ROOMS,
+               EXITS, PLAYERS).  THINGS may be used as an alias for OBJECTS.
+  NAME       - Restricts to objects whose names start with <restriction>.
+  OBJECTS    - A combination of TYPE=OBJECT and NAME=<restriction>.
+  THINGS     - An alias for OBJECTS.
+  ROOMS      - A combination of TYPE=ROOM and NAME=<restriction>.
+  EXITS      - A combination of TYPE=EXIT and NAME=<restriction>.
+  PLAYERS    - A combination of TYPE=PLAYER and NAME=<restriction>.
+  FLAGS      - Restricts to objects which have the flags listed in
+               <restriction> set..
+  FLAGS2     - Restricts to objects which have the flags listed in
+               <restriction> set.. (uses next set of flags)
+  TOTEMS     - Restricts to objects which have the tier 0 totem letters.
+  TOTEMS2    - Restricts to objects which have the tier 1 totem letters.
+  TOTEMS3    - Restricts to objects which have the tier 2 totem letters.
+  TOTEMSLIST - Restricts to objects with have all the totem NAMES assigned.
+  EVAL       - Evaluates the restriction for each object, replacing ##
+               with the object's database number.  Evaluations that return
+               TRUE (IE, not 0 or #-1) are selected.
+  EOBJECT    - A combination of TYPE=OBJECT and EVAL=<restriction>.
+  ETHING     - An alias for OBJECTS.
+  EROOM      - A combination of TYPE=ROOM and EVAL=<restriction>.
+  EEXIT      - A combination of TYPE=EXIT and EVAL=<restriction>.
+  EPLAYER    - A combination of TYPE=PLAYER and EVAL=<restriction>.
   
 & SEMAPHORES
   Topic: SEMAPHORES
@@ -14015,12 +14057,14 @@
   string.
   
   You may specify a <key> of 1 to tell mid() to do ansi processing and
-  This will slow down the function.
+  This will slow down the function.  
   
   The default is '0' which does NOT do ansi processing.
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
+  
+  Note: If you specify a <key> of 2 it will always be ansi aware.
    
   Example:
     > say delete(abcdefgh, 3, 2)
@@ -15766,6 +15810,8 @@
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
   
+  Note: If you specify a <key> of 2 it will always be ansi aware.
+  
   Example:
     > say right(this is a test,5)
     You say " test"
@@ -15791,6 +15837,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
+  
+  Note: If you specify a <key> of 2 it will always be ansi aware.
    
   Example:
     > say left(this is a test,5)
@@ -16332,6 +16380,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
+  
+  Note: If you specify a <key> of 2 it will always be ansi aware.
    
   Example:
     > say mid(this is a test,3,6)
@@ -16809,6 +16859,8 @@
   If you specify a <key> of 1, it will enable utf8/ansi aware mode.
   
   Note: the config parameter ansi_default if enabled reverses this.
+  
+  Note: If you specify a <key> of 2 it will always be ansi aware.
    
   Example: 
     > say pos(man,superman)
@@ -16843,6 +16895,8 @@
   If <key> is set to '1', it will assume utf8/ansi mode for the function.
   
   Note: the config parameter ansi_default if enabled reverses this.
+  
+  Note: If you specify a <key> of 2 it will always be ansi aware.
     
   Example:
     > say totpos(t,this is a test)
@@ -16871,6 +16925,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'type' is reversed.
+  
+  Note: If you specify <ansi-aware> of 2 it will always be ansi aware.
    
   Example:
     > say numpos(t,this is a test)
@@ -20610,6 +20666,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
+  
+  Note: If you specify <key> of 2 it will always be ansi aware.
    
   Examples:
     > say before(This is a test,a)
@@ -20671,6 +20729,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'key' is reversed.
+  
+  Note: If you specify <key> of 2 it will always be ansi aware.
    
   Examples:
     > say after(This is a test,a)
@@ -24441,6 +24501,8 @@
   If you specify <key> it will optionally be utf8/ansi aware.
   
   Note: if ansi_default is enabled, <key> is reversed.
+  
+  Note: If you specify <key> of 2 it will always be ansi aware.
     
   Examples:
     > say merge(AB--EF,abcdef,-)
@@ -25414,6 +25476,8 @@
   
   Note: the config param 'ansi_default' handles if the ansi handling is 
         configured default or not.  In which case the 'type' is reversed.
+  
+  Note: If you specify <type> of 2 it will always be ansi aware.
    
   Examples:
     > say tr(hello,abcdefghijklmnopqrstuvwxyz,nopqrstuvwxyzabcdefghijklm)
@@ -29871,7 +29935,7 @@
   Command: mail/number <target>=# 
    
   This command is similar to the status command.  If someone has set up 
-  his mailbox to be shared with you, you can use this command to see the 
+  their mailbox to be shared with you, you can use this command to see the 
   status of the target's mailbox.
    
   As with the status command, the # here is optional.  If it is given
@@ -29888,7 +29952,7 @@
 & mail check
   Command: mail/check <target>=<#>
   
-  If someone has set up her mailbox to be shared with you, you can use this
+  If someone has set up their mailbox to be shared with you, you can use this
   command to read a particular message from the target's mailbox.
    
   Example:
@@ -36190,7 +36254,13 @@
 & changelog newest
 & changelog recent
 & changelog 1
-
+  Topic: CHANGELOG
+  
+  4.14.0 - 12/06/24
+  * @include has /become, /sudo, and /possess switches for ownership changes
+  * @search/search()/searchng() has TOTEMSLIST search key
+  * all functions handled by ansi_default config param handles option '2'
+  
   4.13.0   11/21/24
   * trigger() added -- I feel so dirty onw.
   * trigger() requires special addition via sideeffects config param
@@ -36244,7 +36314,22 @@
   
   4.5.0 - 07/16/24
   * netrhost binary handles -h and -p options for help and parsing markup
-  
+    
+& 4.4.3
+& 4.4.2
+& 4.4.1
+& 4.4.0
+& 4.3.9
+& 4.3.8
+& 4.3.7
+& 4.3.6
+& 4.3.5
+& 4.3.4
+& 4.3.3
+& 4.3.2
+& changelog 2
+  Topic: CHANGELOG
+
   4.4.3 - 07/11/24
   * conn_perm did not honor the account subsystem for bypassing the
     restrive nature. (ASH)
@@ -36273,18 +36358,7 @@
   4.3.8 - 07/02/24
   ----------------
   * Another fix for the git hooks
-  
-    
-& 4.3.7
-& 4.3.6
-& 4.3.5
-& 4.3.4
-& 4.3.3
-& 4.3.2
-& 4.3.1
-& 4.3.0
-& changelog 2
-
+   
   4.3.7 - 07/02/24
   ----------------
   * bug with determining 64-bitness of systems with newer GCC/ Clang versions
@@ -36302,6 +36376,11 @@
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
   
+& 4.3.1
+& 4.3.0
+& changelog 3
+  Topic: CHANGELOG
+
   4.3.1 - 06/30/24
   ----------------
   * Fix for elock() with regards to objid's as a target. objid's would

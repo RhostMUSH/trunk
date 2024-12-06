@@ -3139,18 +3139,27 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
 
 }
 
-void do_include(dbref player, dbref cause, int key, char *string,
+void do_include(dbref player, dbref cause, int key, char *main_string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
-   dbref thing, owner, target;
+   dbref thing, owner, target, targetcause, mything;
    int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline, i_hook;
    time_t  i_now;
    char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
-        *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback;
+        *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback, *string, *sub_string;
 
    /* Modified so if in @hook we can allow @includes */
    if ( (desc_in_use != NULL) && !mudstate.no_hook ) {
       notify_quiet(player, "You can not use @include at command line.");
+      return;
+   }
+   if ( ((key & INCLUDE_TARGET) && (key & INCLUDE_BECOME)) ||
+        ((key & INCLUDE_TARGET) && (key & INCLUDE_SUDO))   ||
+        ((key & INCLUDE_TARGET) && (key & INCLUDE_POSSESS))   ||
+        ((key & INCLUDE_BECOME) && (key & INCLUDE_SUDO)) ||
+        ((key & INCLUDE_BECOME) && (key & INCLUDE_POSSESS)) ||
+        ((key & INCLUDE_SUDO) && (key & INCLUDE_POSSESS)) ) {
+      notify_quiet(player, "You can not mix /target, /sudo, /possess, and/or /become together");
       return;
    }
    if ( (key & INCLUDE_IBREAK) && (key & INCLUDE_NOBREAK) ) {
@@ -3165,10 +3174,41 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "Exceeded total number of @includes allowed.");
       return;
    }
+   targetcause = cause;
+   string = main_string;
+   mything = NOTHING;
+   if ( (key & INCLUDE_BECOME) || (key & INCLUDE_SUDO) || (key & INCLUDE_POSSESS) ) {
+      sub_string = main_string;
+      while ( *sub_string ) {
+         if ( isspace(*sub_string) ) {
+            *(sub_string++) = '\0';
+            break;
+         } 
+         sub_string++;
+      }
+      if ( !*sub_string ) {
+         notify_quiet(player, "Target expected with @include/become");
+         return;
+      } else {
+         string = sub_string;
+         mything = match_thing(player, main_string);
+
+         if ( !Good_chk(mything) || !Controls(player, mything) ) {
+            notify_quiet(player, "Invalid target specified to @include/become");
+            return;
+         }
+
+         if ( (key & INCLUDE_SUDO) || (key & INCLUDE_POSSESS) ) {
+            targetcause = mything;
+         }
+      }
+   }
+
    if (!parse_attrib(player, string, &thing, &attrib) || (attrib == NOTHING) || (thing == NOTHING)) {
       notify_quiet(player, "No match.");
       return;
    }
+
    if (!Good_chk(thing) || (!controls(player, thing) &&
        !could_doit(player,thing,A_LTWINK,0,0)) ) {
        notify_quiet(player, "Permission denied.");
@@ -3176,6 +3216,14 @@ void do_include(dbref player, dbref cause, int key, char *string,
    }
    target = player;
    if ( (key & INCLUDE_TARGET) && controls(player, thing) ) {
+      target = thing;
+   }
+   /* This is mugning /target in @include and flipping executor ownership */
+   if ( ( (key & INCLUDE_BECOME) || (key & INCLUDE_POSSESS))  && Good_chk(mything) && controls(player, mything) ) {
+      target = mything;
+   }
+   /* This is munging @sudo and @include by flipping executor ownership */
+   if ( (key & INCLUDE_SUDO) && controls(player, thing) ) {
       target = thing;
    }
    mudstate.includecnt++;
@@ -3253,9 +3301,9 @@ void do_include(dbref player, dbref cause, int key, char *string,
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          if ( i_hook ) {
-            process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate.no_space_compress);
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate.no_space_compress);
          } else {
-            process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
          }
          if ( key & INCLUDE_IBREAK )
             mudstate.breakst = i_savebreak;

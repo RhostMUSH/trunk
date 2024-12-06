@@ -2023,7 +2023,7 @@
   modify objects. (ie: set/edit attributes, set flags, etc).
   When turned off, the player is restricted from modifying anything
   but their own objects.  If you wish to disable that player from
-  modifying his things in addition, use the NOMODIFY flag or set
+  modifying their things in addition, use the NOMODIFY flag or set
   the player GUEST.
 
 & DEPOWER PCREATE
@@ -2333,7 +2333,7 @@
   cloaked areas or #1.  This power again, follows restrictions of
   the @depower for teleport.  This only effects the players ability
   to teleport personally around, and does not impart abilities to
-  his objects nor impart his ability to teleport other things around.
+  their objects nor impart their ability to teleport other things around.
 
 & POWER EXAMINE_FULL
   Power argument: @power[/switch] <user>=[@g|@a|@c] examine_full
@@ -2744,7 +2744,7 @@
     - A nonzero Output Lost count usually means that the player performed
       a command that produced more output than the output buffer could hold.
       It may also indicate network problems or that the player is generating
-      output faster than the network or his client can process it.
+      output faster than the network or their client can process it.
   
   Example:  SESSION Nyc
      
@@ -4165,7 +4165,7 @@
                       attributes.
     priv_flags      - Player sees and may modify privileged flags.
     purge           - Player can use /purge switch to @nuke/@destroy.
-    rename_myself   - Player may change his name and password.
+    rename_myself   - Player may change their name and password.
     search_any      - Player can @search/@find based on level.
     security        - Player can use some wiz flags based on level.
     see_queue       - Player may see queue entries up to specified level.
@@ -4192,7 +4192,7 @@
   Note: @depowers have precedence over @power and bitlevel.
   
   Lists the access restrictions on the various depowers
-    abuse            - Player can't use any $commands but his own.
+    abuse            - Player can't use any $commands but their own.
     boot             - Player can not use @boot.
     chown_me         - Player can't chown things to himself.
     chown_other      - Player can't chown things to others.
@@ -4574,7 +4574,7 @@
   
   Gives <player> the new password <newpassword>.  If <newpassword> is not
   specified, the player is given a null password.  If logged in, the player
-  is notified that his password has been changed.
+  is notified that their password has been changed.
   
   DES passwords are limited to 8 characters or less in length.
   SHA512 passwords are limited to 160 characters or less in length.
@@ -6628,7 +6628,7 @@
   of the player by default will be 'A soft-shell turtle named <name>'.
   
   The following switches are available:
-    /no_chown - Don't change the ownership of the victim or his objects.
+    /no_chown - Don't change the ownership of the victim or their objects.
     /unique - Allow optional target owner as well as name.
   
   Examples:
@@ -6645,7 +6645,7 @@
   itself.  The name of the @toad'ee will be 'A slimy toad named <name>'.
  
   The following switches are available:
-    /no_chown - Don't change the ownership of the victim or his objects.
+    /no_chown - Don't change the ownership of the victim or their objects.
   
   Example:  @toad *deserving_toadie
   
@@ -6792,7 +6792,7 @@
   
   Only player #1 (and immortals) can set or clear this flag.  An object 
   owned by a Wizard has wizard privileges only if its ROYALTY or INHERIT 
-  flag is set, or if the owning Wizard has his INHERIT flag set.
+  flag is set, or if the owning Wizard has their INHERIT flag set.
   
   A breakdown of abilities is as follows:
         - This is your standard wizard.  They can do everything you're
@@ -7875,6 +7875,9 @@
     POS()     -- Key field reversed if DISABLED
     TOTPOS()  -- Key field reversed if DISABLED
     MERGE()   -- Key field reversed if DISABLED
+  
+  Note: these functions that use a <key> value of 2 will always be ansi
+        aware regardless of the configuration parameter set.
    
   See normal help on the functions for more information.
    
@@ -8422,7 +8425,7 @@
           offending item and set the offending item HALT.
       2 - Do what #1 shows, but also set the offending owner/target FUBAR.
       3 - Do what #2 shows, but also set the offending owner/target NOCONNECT
-          and drop his connection.
+          and drop their connection.
       4 - Do what #3 shows, and set site register only.
       5 - Do what #3 shows, and set site forbid.
   
@@ -10513,7 +10516,7 @@
   
   Specifies the room that is searched for exits if a command does not match
   an exit in the current room, and for $-command if a command does not match
-  any $-commands that are available to the player in his current location.
+  any $-commands that are available to the player in their current location.
   
   See Also: global_aconnect, global_adisconnect
 
@@ -15003,7 +15006,7 @@
   Command: wmail/override <player>
   
   Reset (remove) the password for <player>.  Useful if someone forgets
-  his password.
+  their password.
   
   Example:  wmail/override ForgetFul
 
