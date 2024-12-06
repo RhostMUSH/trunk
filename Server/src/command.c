@@ -882,6 +882,9 @@ NAMETAB include_sw[] =
     {(char *) "target", 2, CA_PUBLIC, 0, INCLUDE_TARGET | SW_MULTIPLE},
     {(char *) "override", 2, CA_PUBLIC, 0, INCLUDE_OVERRIDE | SW_MULTIPLE},
     {(char *) "nobreak", 2, CA_PUBLIC, 0, INCLUDE_NOBREAK | SW_MULTIPLE},
+    {(char *) "become", 2, CA_PUBLIC, 0, INCLUDE_BECOME | SW_MULTIPLE},
+    {(char *) "sudo", 2, CA_PUBLIC, 0, INCLUDE_SUDO | SW_MULTIPLE},
+    {(char *) "possess", 2, CA_PUBLIC, 0, INCLUDE_POSSESS | SW_MULTIPLE},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB notify_sw[] =

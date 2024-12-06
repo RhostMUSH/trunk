@@ -7408,11 +7408,12 @@ FUNCTION(fun_tr)
    if ( (nfargs > 3) && *fargs[3] )
       i_noansi = atoi(fargs[3]);
 
-   if ( i_noansi != 0 ) 
-      i_noansi = 1;
-
-   if ( !mudconf.ansi_default )
+   if ( !mudconf.ansi_default && (i_noansi != 2) ) {
       i_noansi = !i_noansi;
+   }
+
+   if ( i_noansi == 2 )
+      i_noansi = 0;
 
    if ( (!i_noansi && (strlen(s_instr1) != strlen(strip_all_special(s_instr2)))) ||
         ( i_noansi && (strlen(s_instr1) != strlen(s_instr2))) ) {
@@ -19071,10 +19072,14 @@ FUNCTION(fun_left)
     i_noansi = 0;
     len = atoi(fargs[1]);
     if ( (nfargs > 2) && *fargs[2] ) {
-       i_noansi = (atoi(fargs[2]) ? 1 : 0);
+       i_noansi = atoi(fargs[2]);
     }
-    if ( !mudconf.ansi_default )
+    if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+    }
+
+    if ( i_noansi == 2 )
+       i_noansi = 0;
 
     if (len < 1) {
         return;
@@ -19117,10 +19122,14 @@ FUNCTION(fun_right)
     len = atoi(fargs[1]);
     i_noansi = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
-       i_noansi = (atoi(fargs[2]) ? 1 : 0);
+       i_noansi = atoi(fargs[2]);
     }
-    if ( !mudconf.ansi_default )
+    if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+    }
+
+    if ( i_noansi == 2 )
+       i_noansi = 0;
 
     if (len < 1) {
         return;
@@ -19167,11 +19176,15 @@ FUNCTION(fun_mid)
 
     i_noansi = 0;
     if ( (nfargs > 3) && *fargs[3] ) {
-       i_noansi = (atoi(fargs[3]) ? 1 : 0);
+       i_noansi = atoi(fargs[3]);
     }
 
-    if ( !mudconf.ansi_default )
+    if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+    }
+
+    if ( i_noansi == 2 )
+       i_noansi = 0;
 
     l = atoi(fargs[1]);
     len = atoi(fargs[2]);
@@ -26334,8 +26347,12 @@ FUNCTION(fun_pos)
       i_noansi = atoi(fargs[3]);
    }
 
-   if ( !mudconf.ansi_default )
+   if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+   }
+
+   if ( i_noansi == 2 )
+      i_noansi = 0;
 
    if ( i_noansi ) {
       do_pos_noansi(buff, bufcx, fargs, nfargs, 1);
@@ -26356,8 +26373,12 @@ FUNCTION(fun_totpos)
       i_noansi = atoi(fargs[3]);
    }
 
-   if ( !mudconf.ansi_default )
+   if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+   }
+
+   if ( i_noansi == 2 )
+      i_noansi = 0;
 
    if ( i_noansi ) {
       do_pos_noansi(buff, bufcx, fargs, nfargs, 2);
@@ -26489,7 +26510,7 @@ FUNCTION(fun_numpos)
        i_type = atoi(fargs[3]);
     }
 
-    if ( !mudconf.ansi_default ) {
+    if ( !mudconf.ansi_default && (i_type != 2) ) { 
        i_type = (i_type ? 0 : 1);
     }
 
@@ -27937,10 +27958,14 @@ FUNCTION(fun_delete)
 
    i_noansi = 0;
    if ( (nfargs > 3) && *fargs[3] ) {
-      i_noansi = (atoi(fargs[3]) ? 1 : 0);
+      i_noansi = atoi(fargs[3]);
    }
-   if ( !mudconf.ansi_default )
+   if ( !mudconf.ansi_default && (i_noansi != 2) ) {
       i_noansi = !i_noansi;
+   }
+
+   if ( i_noansi == 2 )
+      i_noansi = 0;
 
    if (nchars > LBUF_SIZE)
       nchars = LBUF_SIZE;
@@ -30793,10 +30818,14 @@ FUNCTION(fun_after)
 
     i_noansi = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
-       i_noansi = ( atoi(fargs[2]) ? 1 : 0);
+       i_noansi = atoi(fargs[2]);
     }
-    if ( !mudconf.ansi_default )
+    if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+    }
+
+    if ( i_noansi == 2 )
+       i_noansi = 0;
 
     if (bp == NULL)
         bp = "";
@@ -30875,10 +30904,14 @@ FUNCTION(fun_before)
 
     i_noansi = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
-       i_noansi = ( atoi(fargs[2]) ? 1 : 0);
+       i_noansi = atoi(fargs[2]);
     }
-    if ( !mudconf.ansi_default )
+    if ( !mudconf.ansi_default && (i_noansi != 2) ) {
        i_noansi = !i_noansi;
+    }
+   
+    if ( i_noansi == 2 )
+       i_noansi = 0;
 
     if (bp == NULL)
        bp = "";
@@ -31337,7 +31370,7 @@ FUNCTION(fun_merge)
     if ( (nfargs > 3) && *fargs[3] ) {
        i_type = atoi(fargs[3]);
     }
-    if ( mudconf.ansi_default ) {
+    if ( mudconf.ansi_default && (i_type != 2) ) {
        i_type = (i_type ? 0 : 1);
     }
 
