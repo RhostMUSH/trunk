@@ -1124,6 +1124,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_ZONE	 0x08000000 /* zone() sideeffect function */
 #define SIDE_LSET	 0x10000000 /* lset() sideeffect function */
 #define SIDE_TOTEMSET	 0x20000000 /* totemset() sideeffect function */
+#define SIDE_TRIGGER	 0x40000000 /* trigger() sideeffect function */
 
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
@@ -1232,6 +1233,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
 #define INCLUDE_OVERRIDE 32	/* Trigger include like well trigger */
 #define INCLUDE_NOBREAK	64	/* Trigger @break/@assert internal to included file but not outside */
+#define INCLUDE_BECOME  128	/* Become the specified enactor (if you control it) */
+#define INCLUDE_SUDO    256	/* Become the specified cause (if you control it) */
+#define INCLUDE_POSSESS 512	/* Become the specified enactor and cause (if you control it) */
 
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */

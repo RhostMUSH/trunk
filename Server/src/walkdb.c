@@ -41,6 +41,58 @@ char	*command;		/* allocated by replace_string  */
  */
 
 int
+convert_totemslist(dbref player, char *flaglist, SEARCH **fset)
+{
+   TOTEMENT *tp;
+   char *s_strtok, *s_strtokr, *t_buff, *t_buff2, *t_buff2ptr;
+   int i_len, i_found, i_valid, i_cnt;
+
+   if (!flaglist || !*flaglist ) {
+      return 0;
+   }
+
+   t_buff = alloc_lbuf("convert_totemlist");
+   t_buff2ptr = t_buff2 = alloc_lbuf("convert_totemlist2");
+   strcpy(t_buff, flaglist);
+   s_strtok = strtok_r(t_buff, " \t", &s_strtokr);
+   i_found = i_valid = i_cnt = 0;
+   safe_str("WARNING - Totems unrecognized: ", t_buff2, &t_buff2ptr);
+   while ( s_strtok && *s_strtok) {
+      i_len = strlen(s_strtok);
+      for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+           tp;
+           tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+         /* Player can not see flag, continue */
+         if ( !totem_cansee_bit(player, player, tp->listperm) ) {
+            continue;
+         }
+
+         if ( !strncasecmp(s_strtok, tp->flagname, i_len) ) {
+            (*fset)->i_totems[tp->flagpos] |= tp->flagvalue;
+            i_found = i_valid = 1;
+            break;
+         }
+      }
+      if ( i_valid == 0 ) {
+         if ( i_cnt ) {
+            safe_str(", ", t_buff2, &t_buff2ptr);
+         }
+         safe_str(s_strtok, t_buff2, &t_buff2ptr);
+         i_cnt++;
+      }
+      i_valid = 0;
+      s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+   }
+   if ( i_cnt ) {
+      notify_quiet(player, t_buff2);
+   }
+   free_lbuf(t_buff);
+   free_lbuf(t_buff2);
+   return i_found;
+}
+
+int
 convert_totems(dbref player, char *flaglist, SEARCH **fset, int word)
 {
    TOTEMENT *tp;
@@ -807,7 +859,10 @@ int	err, i;
 		}
 		break;
 	case 't':
-		if (string_prefix ("totems", searchtype)) {
+                if ( string_prefix("totemlist", searchtype)) { 
+                        if ( !convert_totemslist(player, searchfor, &parm) )
+                           return 0;
+		} else if (string_prefix ("totems", searchtype)) {
 			if ( !convert_totems(player, searchfor, &parm, 0) )
                            return 0;
 		} else if (string_prefix ("totems2", searchtype)) {

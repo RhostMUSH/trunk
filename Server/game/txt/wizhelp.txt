@@ -2023,7 +2023,7 @@
   modify objects. (ie: set/edit attributes, set flags, etc).
   When turned off, the player is restricted from modifying anything
   but their own objects.  If you wish to disable that player from
-  modifying his things in addition, use the NOMODIFY flag or set
+  modifying their things in addition, use the NOMODIFY flag or set
   the player GUEST.
 
 & DEPOWER PCREATE
@@ -2333,7 +2333,7 @@
   cloaked areas or #1.  This power again, follows restrictions of
   the @depower for teleport.  This only effects the players ability
   to teleport personally around, and does not impart abilities to
-  his objects nor impart his ability to teleport other things around.
+  their objects nor impart their ability to teleport other things around.
 
 & POWER EXAMINE_FULL
   Power argument: @power[/switch] <user>=[@g|@a|@c] examine_full
@@ -2744,7 +2744,7 @@
     - A nonzero Output Lost count usually means that the player performed
       a command that produced more output than the output buffer could hold.
       It may also indicate network problems or that the player is generating
-      output faster than the network or his client can process it.
+      output faster than the network or their client can process it.
   
   Example:  SESSION Nyc
      
@@ -4165,7 +4165,7 @@
                       attributes.
     priv_flags      - Player sees and may modify privileged flags.
     purge           - Player can use /purge switch to @nuke/@destroy.
-    rename_myself   - Player may change his name and password.
+    rename_myself   - Player may change their name and password.
     search_any      - Player can @search/@find based on level.
     security        - Player can use some wiz flags based on level.
     see_queue       - Player may see queue entries up to specified level.
@@ -4192,7 +4192,7 @@
   Note: @depowers have precedence over @power and bitlevel.
   
   Lists the access restrictions on the various depowers
-    abuse            - Player can't use any $commands but his own.
+    abuse            - Player can't use any $commands but their own.
     boot             - Player can not use @boot.
     chown_me         - Player can't chown things to himself.
     chown_other      - Player can't chown things to others.
@@ -4574,7 +4574,7 @@
   
   Gives <player> the new password <newpassword>.  If <newpassword> is not
   specified, the player is given a null password.  If logged in, the player
-  is notified that his password has been changed.
+  is notified that their password has been changed.
   
   DES passwords are limited to 8 characters or less in length.
   SHA512 passwords are limited to 160 characters or less in length.
@@ -5758,6 +5758,8 @@
 & TOTEMS
   Topic: TOTEMS
   
+  Note: see 'wizhelp totem example' to see steps on defining totems.
+  
   Totems are a generic overset of flags and toggles.  Eventually this will
   be the functionality that will take over control of flags and toggles
   internally to the mush.
@@ -5842,6 +5844,7 @@
 & @totem
   Command: @totem[/<switches>] [<totemname> [=<args>]
   
+  See 'TOTEM EXAMPLE' for an end to end on setting up totems in the conf file.
   See 'TOTEMS' for a general overview of totems.
   
   The @totem command is the administrative tool for in-game adding and
@@ -6625,7 +6628,7 @@
   of the player by default will be 'A soft-shell turtle named <name>'.
   
   The following switches are available:
-    /no_chown - Don't change the ownership of the victim or his objects.
+    /no_chown - Don't change the ownership of the victim or their objects.
     /unique - Allow optional target owner as well as name.
   
   Examples:
@@ -6642,7 +6645,7 @@
   itself.  The name of the @toad'ee will be 'A slimy toad named <name>'.
  
   The following switches are available:
-    /no_chown - Don't change the ownership of the victim or his objects.
+    /no_chown - Don't change the ownership of the victim or their objects.
   
   Example:  @toad *deserving_toadie
   
@@ -6789,7 +6792,7 @@
   
   Only player #1 (and immortals) can set or clear this flag.  An object 
   owned by a Wizard has wizard privileges only if its ROYALTY or INHERIT 
-  flag is set, or if the owning Wizard has his INHERIT flag set.
+  flag is set, or if the owning Wizard has their INHERIT flag set.
   
   A breakdown of abilities is as follows:
         - This is your standard wizard.  They can do everything you're
@@ -7872,6 +7875,9 @@
     POS()     -- Key field reversed if DISABLED
     TOTPOS()  -- Key field reversed if DISABLED
     MERGE()   -- Key field reversed if DISABLED
+  
+  Note: these functions that use a <key> value of 2 will always be ansi
+        aware regardless of the configuration parameter set.
    
   See normal help on the functions for more information.
    
@@ -8419,7 +8425,7 @@
           offending item and set the offending item HALT.
       2 - Do what #1 shows, but also set the offending owner/target FUBAR.
       3 - Do what #2 shows, but also set the offending owner/target NOCONNECT
-          and drop his connection.
+          and drop their connection.
       4 - Do what #3 shows, and set site register only.
       5 - Do what #3 shows, and set site forbid.
   
@@ -10510,7 +10516,7 @@
   
   Specifies the room that is searched for exits if a command does not match
   an exit in the current room, and for $-command if a command does not match
-  any $-commands that are available to the player in his current location.
+  any $-commands that are available to the player in their current location.
   
   See Also: global_aconnect, global_adisconnect
 
@@ -12154,7 +12160,7 @@
   PEMIT   - 8    PARENT  - 2048   TOGGLE   - 524288   ZONE        - 134217728
   TEL     - 16   LOCK    - 4096   TXLEVEL  - 1048576  LSET        - 268435456
   LIST    - 32   LEMIT   - 8192   RXLEVEL  - 2097152  TOTEMSET    - 536870912
-  DIG     - 64   REMIT   - 16384  RSET     - 4194304
+  DIG     - 64   REMIT   - 16384  RSET     - 4194304  TRIGGER     - 1073741824
      
   To enable both SET and OPEN using a bitmask you would set the value
   to '129' (128 + 1).
@@ -12163,6 +12169,9 @@
   To enable all of PENN's side-effects: 458719     (or keyword PENN)
   To enable all side-effects:           1073741823 (or keyword ALL)
   To disable all side-effects:          0          (or keyword NONE)
+  
+  NOTE:  The trigger() function, being unique in modifying the queue must
+         be individually set.  The 'ALL' argument WILL NOT WORK for this.
   
   When specifying sideeffects using keywords, the '!' operand can be
   used to negate a given sideeffect (i.e. !OPEN)
@@ -14308,6 +14317,43 @@
   See Also: @dynhelp, dynhelp()
 
 
+& TOTEM EXAMPLE
+  The following example will define and set two totems called 'test1' and
+  'test2' in your netrhost.conf file.  
+  
+  Example setup:
+    > @totem/free 0
+      Slot 0 detail:
+
+      0x00000100 0x00000200 0x00000400 0x00000800 0x00001000 0x00002000 
+      0x00004000 0x00008000 0x00010000 0x00020000 0x00040000 0x00080000 
+      0x00100000 0x00200000 0x00400000 0x00800000 0x01000000 0x02000000 
+      0x04000000 0x08000000 0x10000000 0x20000000 0x40000000 0x80000000
+
+    ### define totems test1 and test2
+    > totem_add test1 0 0x00000100
+    > totem_add test2 0 0x00000200
+    
+    ### set the totems to be settable and unsettable to wizard 
+    > totem_access_set test1 wizard
+    > totem_access_set test2 wizard
+    > totem_access_unset test1 wizard
+    > totem_access_unset test2 wizard
+  
+    ### set the totems to be viewable to wizard
+    > totem_access_see test1 wizard
+    > totem_access_see test2 wizard
+  
+    ### -- '0' is normal word shown as t and T
+    ### -- '1' would be shown as [t] and [T]
+    ### -- '2' would be shown as {t} and {T}
+    ### assign letters to test1 and test2 of t and T (0 means first word)
+    > totem_letter test1 0 t
+    > totem_letter test2 0 T
+  
+  See Also: totem_add, totem_access_set, totem_access_unset, totem_access_see,
+            totem_letter, @totem
+  
 & TOTEM LIST
   Topic: TOTEM LIST
   
@@ -14960,7 +15006,7 @@
   Command: wmail/override <player>
   
   Reset (remove) the password for <player>.  Useful if someone forgets
-  his password.
+  their password.
   
   Example:  wmail/override ForgetFul
 

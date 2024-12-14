@@ -490,6 +490,14 @@ int main(void) {
                fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
             printf("%s",juggle_attrib(q));
             mush_gets(q);
+         } else if (val == 128) { /* Mail Fail/Reject */
+            printf(">%d\n",2100000002);
+            fflush(stdout);
+            mush_gets(q);
+            if ( strlen(q) > LBUF_SIZE )
+               fprintf(stderr, "Warning: Object #%d has attribute (%d) over LBUF.\n", obj, val);
+            printf("%s",juggle_attrib(q));
+            mush_gets(q);
          } else if ( (val == 96) || ((val > 199) && (val < 252)) ||
                      ((val >= 145) && (val <= 148)) ) { /* Eat Remaining and report */
             mush_gets(q);

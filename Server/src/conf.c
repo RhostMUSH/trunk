@@ -1440,7 +1440,7 @@ const char * sideEffects[] = {
   "SET" , "CREATE", "LINK", "PEMIT", "TEL", "LIST", "DIG", "OPEN", "EMIT",
   "OEMIT", "CLONE", "PARENT", "LOCK", "LEMIT", "REMIT", "WIPE", "DESTROY",
   "ZEMIT", "NAME", "TOGGLE", "TXLEVEL", "RXLEVEL", "RSET", "MOVE", "CLUSTER_ADD", 
-  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", "TOTEMSET", NULL
+  "MAILSEND", "EXECSCRIPT", "ZONE", "LSET", "TOTEMSET", "TRIGGER", NULL
 };
 
 /* This function takes an integer mask and converts it to a string list
