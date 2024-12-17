@@ -1442,45 +1442,55 @@ int ok_password(const char *password, const char *oldpassword, dbref player, int
 
 void handle_ears (dbref thing, int could_hear, int can_hear)
 {
-char	*buff, *bp, *tpr_buff, *tprp_buff;
-int	gender;
-static const char *poss[5] = {"", "its", "her", "his", "their"};
+   char *buff, *bp, *tpr_buff, *tprp_buff;
+   int gender;
+   static const char *poss[5] = {"", "its", "her", "his", "their"};
 
-	if (OCloak(thing)) return;
-	if (!could_hear && can_hear) {
-		buff = alloc_lbuf("handle_ears.grow");
-		strcpy(buff, Name(thing));
-		if (isExit(thing)) {
-			for (bp=buff; *bp && (*bp!=';'); bp++) ;
-			*bp = '\0';
-		}
+        
+   /* If Wizard/Immortal and inherit and dark and unfindable abort */
+   if (OCloak(thing)) 
+      return; 
 
-		gender = get_gender(thing);
-                tprp_buff = tpr_buff = alloc_lbuf("handle_ears");
-		notify_check(thing, thing, 
-			safe_tprintf(tpr_buff, &tprp_buff, "%s grow%s ears and can now hear.",
-				buff, (gender == 4) ? "" : "s"), 0,
-				(MSG_ME|MSG_NBR|MSG_LOC|MSG_INV), 0);
-                free_lbuf(tpr_buff);
-		free_lbuf(buff);
-	} else if (could_hear && !can_hear) {
-		buff = alloc_lbuf("handle_ears.lose");
-		strcpy(buff, Name(thing));
-		if (isExit(thing)) {
-			for (bp=buff; *bp && (*bp!=';'); bp++) ;
-			*bp = '\0';
-		}
+   /* If has the CLOAK flag abort -- this is intentionally non-inheritable */
+   if (NCloak(thing)) 
+      return;
+
+   if (!could_hear && can_hear) {
+      buff = alloc_lbuf("handle_ears.grow");
+      strcpy(buff, Name(thing));
+      if (isExit(thing)) {
+         for (bp=buff; *bp && (*bp!=';'); bp++)
+            ;
+         *bp = '\0';
+      }
+
+      gender = get_gender(thing);
+      tprp_buff = tpr_buff = alloc_lbuf("handle_ears");
+      notify_check(thing, thing, 
+                   safe_tprintf(tpr_buff, &tprp_buff, "%s grow%s ears and can now hear.",
+                                buff, (gender == 4) ? "" : "s"), 0,
+                                (MSG_ME|MSG_NBR|MSG_LOC|MSG_INV), 0);
+      free_lbuf(tpr_buff);
+      free_lbuf(buff);
+   } else if (could_hear && !can_hear) {
+      buff = alloc_lbuf("handle_ears.lose");
+      strcpy(buff, Name(thing));
+      if (isExit(thing)) {
+         for (bp=buff; *bp && (*bp!=';'); bp++)
+            ;
+         *bp = '\0';
+      }
 		
-		gender = get_gender(thing);
-                tprp_buff = tpr_buff = alloc_lbuf("handle_ears");
-		notify_check(thing, thing, 
-			safe_tprintf(tpr_buff, &tprp_buff, "%s lose%s %s ears and become%s deaf.",
-				buff, (gender == 4) ? "" : "s",
-				poss[gender], (gender == 4) ? "" : "s"), 0,
-				(MSG_ME|MSG_NBR|MSG_LOC|MSG_INV), 0);
-                free_lbuf(tpr_buff);
-		free_lbuf(buff);
-	}
+      gender = get_gender(thing);
+      tprp_buff = tpr_buff = alloc_lbuf("handle_ears");
+      notify_check(thing, thing, 
+                   safe_tprintf(tpr_buff, &tprp_buff, "%s lose%s %s ears and become%s deaf.",
+                                buff, (gender == 4) ? "" : "s",
+                                poss[gender], (gender == 4) ? "" : "s"), 0,
+                                (MSG_ME|MSG_NBR|MSG_LOC|MSG_INV), 0);
+      free_lbuf(tpr_buff);
+      free_lbuf(buff);
+   }
 }
 
 /* for lack of better place the @switch code is here */
