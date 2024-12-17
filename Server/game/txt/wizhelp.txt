@@ -6913,9 +6913,21 @@
   Flag: CLOAK(b) (players)
   
   A player set cloak does not trigger the 'has arrived', 'has left', 
-  'has connected' or 'has disconnected' messages.  They will arrive
-  in any room oblivious to anyone else.  However, they do still 
-  trigger any and all @aenters, @aleaves, and other action attributes.
+  'has connected' or 'has disconnected' messages.  
+  
+  Players will arrive in any room oblivious to anyone else.  However, 
+  they do still trigger any and all @aenters, @aleaves, and other 
+  action attributes.
+
+  For objects set PUPPET this will also snuff the grows ears and 
+  loses ears message notifications.
+  
+  See Also: PUPPET
+
+& PUPPET
+  Re-directing to normal help entry for PUPPET
+  
+!!help/puppet
 
 & SCLOAK
   Flag: SCLOAK(Z) (super-royalty (immortal) only)
