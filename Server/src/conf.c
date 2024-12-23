@@ -418,6 +418,7 @@ NDECL(cf_init)
     for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
        mudstate.vattr_reuse[i] = 0;
     }
+    mudstate.quiet_match = 0;
     mudstate.clock_mush = clock();
     mudstate.account_subsys_inuse = 0;
     mudstate.recordconn = 0;
