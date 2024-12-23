@@ -39183,6 +39183,18 @@ FUNCTION(fun_aflags)
   free_lbuf(abuff);
 }
 
+FUNCTION(fun_quietnomatch)
+{
+   char *tbuf;
+
+   mudstate.quiet_match = 1;
+   tbuf = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_FIGNORE | EV_EVAL, fargs[0],
+               cargs, ncargs, (char **)NULL, 0);
+   safe_str(tbuf, buff, bufcx);
+   free_lbuf(tbuf);
+   mudstate.quiet_match = 0;
+}
+
 FUNCTION(fun_quota)
 {
   dbref who;
@@ -42210,7 +42222,7 @@ FUN flist[] =
     {"LAST", fun_last, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LASTCREATE", fun_lastcreate, 2, 0, CA_PUBLIC, 0},
     {"LATTR", fun_lattr, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"LATTRP", fun_lattrp, 1, FN_VARARGS, CA_WIZARD, 0},
+    {"LATTRP", fun_lattrp, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LCMDS", fun_lcmds, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LCON", fun_lcon, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LCSTR", fun_lcstr, -1, 0, CA_PUBLIC, 0},
@@ -42408,6 +42420,7 @@ FUN flist[] =
     {"PTIMEFMT", fun_ptimefmt, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"PUSHREGS", fun_pushregs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"QUOTA", fun_quota, 1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"QUIETNOMATCH", fun_quietnomatch, 1, FN_NO_EVAL, CA_PUBLIC, CA_NO_CODE},
     {"R", fun_r, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"RACE", fun_race, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"RAND", fun_rand, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
