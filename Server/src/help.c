@@ -17,7 +17,7 @@
 
 extern void fun_strdistance(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
-extern int FDECL(parse_dynhelp, (dbref, dbref, int, char *, char *, char *, char *, int, int, char *));
+extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int, int, char *);
 
 int
 pstricmp(char *buf1, char *buf2, int len)
@@ -162,7 +162,7 @@ helpindex_load(dbref player)
 }
 
 void 
-NDECL(helpindex_init)
+helpindex_init(void)
 {
     hashinit(&mudstate.news_htab, 521);
     hashinit(&mudstate.help_htab, 5147);

@@ -18,12 +18,12 @@
 #include "command.h"
 #include "alloc.h"
 
-extern int FDECL(a_Queue, (dbref, int));
-extern void FDECL(s_Queue, (dbref, int));
-extern int FDECL(QueueMax, (dbref));
-extern double NDECL(next_timer);
-extern double FDECL(time_ng, (double*));
-extern int FDECL(alarm_msec, (double));
+extern int a_Queue(dbref, int);
+extern void s_Queue(dbref, int);
+extern int QueueMax(dbref);
+extern double next_timer(void);
+extern double time_ng(double*);
+extern int alarm_msec(double);
 
 #ifdef DYN_MAXPIDS
 #define MUMAXPID	DYN_MAXPIDS
@@ -2041,7 +2041,7 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
  */
 
 double 
-NDECL(que_next)
+que_next(void)
 {
     int min, this;
     BQUE *point;
@@ -2091,7 +2091,7 @@ NDECL(que_next)
  */
 
 void 
-NDECL(do_second)
+do_second(void)
 {
     BQUE *trail, *point, *next;
     DESC *d, *dnext;

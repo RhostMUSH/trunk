@@ -32,9 +32,9 @@
 
 #endif /* VMS */
 
-extern int	FDECL(attr_siz, (Attr *));
-extern void	VDECL(fatal, (char *, ...));
-extern void	FDECL(log_db_err, (int, int, const char *));
+extern int	attr_siz(Attr *);
+extern void	fatal(char *, ...);
+extern void	log_db_err(int, int, const char *);
 
 /*
 #define		DBMCHUNK_DEBUG

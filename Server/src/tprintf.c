@@ -57,7 +57,7 @@ static tprintf_stats_t bufferStats = { 0, 0 };
 char *getTrackedBuffer(void);
 
 #ifdef NEED_VSNPRINTF
-extern char *	FDECL(vsnprintf, (char *, char *, va_list));
+extern char *	vsnprintf(char *, char *, va_list);
 #endif
 
 #ifdef STDC_HEADERS

@@ -42,9 +42,9 @@ struct confparm {
 CONFDATA mudconf;
 STATEDATA mudstate;
 
-extern void NDECL(init_version);
+extern void init_version(void);
 #ifndef STANDALONE
-extern int FDECL(pstricmp, (char *, char *, int));
+extern int pstricmp(char *, char *, int);
 extern NAMETAB logdata_nametab[];
 extern NAMETAB logoptions_nametab[];
 extern NAMETAB access_nametab[];
@@ -53,7 +53,7 @@ extern NAMETAB attraccess_nametab[];
 extern NAMETAB list_names[];
 extern NAMETAB sigactions_nametab[];
 extern CONF conftable[];
-extern int	FDECL(flagstuff_internal, (char *, char *));
+extern int	flagstuff_internal(char *, char *);
 extern int totem_alias(char *, char *, dbref, int);
 extern int totem_letter(char *, char, int);
 extern int totem_add(char *, int, int, int);
@@ -66,19 +66,19 @@ extern int global_timezone_max;
 CF_HAND(cf_dynstring);
 #endif
 
-extern double FDECL(time_ng, (double*));
-extern int FDECL(do_flag_and_toggle_def_conf, (dbref, char *, char *, char *, int));
-extern double FDECL(safe_atof, (char *));
-extern int FDECL(list2arr, (char **, int, char *, char));
-extern void FDECL(ns_do_asort, (char **, int, int));
-extern void FDECL(ns_arr2list, (char **, int, char *, char **, char));
+extern double time_ng(double*);
+extern int do_flag_and_toggle_def_conf(dbref, char *, char *, char *, int);
+extern double safe_atof(char *);
+extern int list2arr(char **, int, char *, char);
+extern void ns_do_asort(char **, int, int);
+extern void ns_arr2list(char **, int, char *, char **, char);
 
 /* ---------------------------------------------------------------------------
  * cf_init: Initialize mudconf to default values.
  */
 
 void
-NDECL(cf_init)
+cf_init(void)
 {
 #ifndef STANDALONE
     int i;
@@ -4087,7 +4087,7 @@ CF_HAND(cf_include)
     FILE *fp;
     char *cp, *ap, *zp, *buf;
 
-    extern int FDECL(cf_set, (char *, char *, dbref));
+    extern int cf_set(char *, char *, dbref);
 
 
     if (!mudstate.initializing)

@@ -193,7 +193,7 @@ start_log(const char *primary, const char *secondary)
  */
 
 void 
-NDECL(end_log)
+end_log(void)
 {
     FILE *f_foo;
 

@@ -1507,7 +1507,7 @@ long count_player(dbref target, int i_val)
 
 /* olist_init: Clear and initialize the object list */
 
-void FDECL(olist_init,(OBLOCKMASTER *master))
+void olist_init(OBLOCKMASTER *master)
 {
   (*master).olist_head = NULL;
   (*master).olist_tail = NULL;
@@ -1522,7 +1522,7 @@ void file_olist_init(FILE** master, const char *filename)
 }
 
 /* olist_cleanup: cleanup an object list after use */
-void FDECL(olist_cleanup,(OBLOCKMASTER *master))
+void olist_cleanup(OBLOCKMASTER *master)
 {
   OBLOCK *op, *onext;
 
@@ -1576,7 +1576,7 @@ void file_olist_add(FILE** master, dbref item)
 
 /* olist_first: Return the first entry in the object list */
 
-dbref FDECL(olist_first,(OBLOCKMASTER *master))
+dbref olist_first(OBLOCKMASTER *master)
 {
 	if (!(*master).olist_head)
 		return NOTHING;
@@ -1603,7 +1603,7 @@ dbref file_olist_first(FILE** master)
   return temp;
 }
 
-dbref FDECL(olist_next, (OBLOCKMASTER *master))
+dbref olist_next(OBLOCKMASTER *master)
 {
 dbref	thing;
 	if (!(*master).olist_cblock)

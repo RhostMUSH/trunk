@@ -1,3 +1,8 @@
+# IDE Ignores
+.vscode/
+.idea/
+
+# Rhost Ignores
 *.bak
 *.bak2
 *.db.flat

@@ -49,7 +49,7 @@ char *index(const char *, int);
 #define FILENUM NETCOMMON_C
 
 extern int ndescriptors;
-extern int FDECL(alarm_msec, (double));
+extern int alarm_msec(double);
 
 
 /* Logged out command table definitions */
@@ -73,11 +73,11 @@ extern int FDECL(alarm_msec, (double));
 
 #define INFO_VERSION    "1"
 
-extern int FDECL(process_output, (DESC * d));
+extern int process_output(DESC * d);
 extern int decode_base64(const char *, int, char *, char **, int);
 extern CF_HAND(cf_site);
 static void desc_addhash(DESC * d);
-extern int FDECL(lookup, (char *, char *, int, int *));
+extern int lookup(char *, char *, int, int *);
 static void set_userstring(char **, const char *);
 extern const char *addrout(struct in_addr, int);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
@@ -91,7 +91,7 @@ extern int count_mux_ansi(char *);
 
 
 #ifdef LOCAL_RWHO_SERVER
-void FDECL(dump_rusers, (DESC * call_by));
+void dump_rusers(DESC * call_by);
 
 #endif
 
@@ -1709,7 +1709,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
  */
 
 #ifdef NEED_VSPRINTF_DCL
-extern char *FDECL(vsprintf, (char *, char *, va_list));
+extern char *vsprintf(char *, char *, va_list);
 
 #endif
 
@@ -1812,7 +1812,7 @@ raw_broadcast(va_alist)
  */
 
 #ifdef NEED_VSPRINTF_DCL
-extern char *FDECL(vsprintf, (char *, char *, va_list));
+extern char *vsprintf(char *, char *, va_list);
 
 #endif
 
@@ -3057,7 +3057,7 @@ fetch_connect(dbref target)
 }
 
 void 
-NDECL(check_idle)
+check_idle(void)
 {
     DESC *d, *dnext;
     time_t idletime;
@@ -4040,7 +4040,7 @@ NAMETAB logout_cmdtable[] =
     {NULL, 0, 0, 0, 0}};
 
 void 
-NDECL(init_logout_cmdtab)
+init_logout_cmdtab(void)
 {
     NAMETAB *cp;
 
@@ -6606,7 +6606,7 @@ do_command(DESC * d, char *command)
 }
 
 void 
-NDECL(process_commands)
+process_commands(void)
 {
     int nprocessed, aflags2, i;
     DESC *d, *dnext;
@@ -7121,7 +7121,7 @@ find_connected_name(dbref player, char *name)
 
 #ifdef RWHO_IN_USE
 void 
-NDECL(rwho_update)
+rwho_update(void)
 {
     DESC *d;
     char *buf;

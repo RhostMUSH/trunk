@@ -15,8 +15,8 @@
 #define AF_REGEXP 0x20000000
 
 extern const unsigned char *tables;
-extern int      FDECL(quick_regexp_match, (const char *RESTRICT, const char *RESTRICT, int));
-extern void	FDECL(load_regexp_functions,());
-extern int      FDECL(regexp_wild_match, (char *, char *, char *[], int, int));
+extern int      quick_regexp_match(const char *RESTRICT, const char *RESTRICT, int);
+extern void	load_regexp_functions();
+extern int      regexp_wild_match(char *, char *, char *[], int, int);
 /* end of regular expression foo */
 

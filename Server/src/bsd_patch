@@ -1083,7 +1083,7 @@
 ***************
 *** 1756,1764 ****
   void 
-  NDECL(emergency_shutdown)
+  emergency_shutdown(void)
   {
 !     DPUSH;
       close_sockets(1, (char *) "Going down - Bye");
@@ -1093,7 +1093,7 @@
   
 --- 1722,1730 ----
   void 
-  NDECL(emergency_shutdown)
+  emergency_shutdown(void)
   {
 !     DPUSH; /* #18 */
       close_sockets(1, (char *) "Going down - Bye");
@@ -1104,7 +1104,7 @@
 ***************
 *** 1782,1788 ****
   void 
-  NDECL(set_signals)
+  set_signals(void)
   {
 !     DPUSH;
       signal(SIGALRM, sighandler);
@@ -1112,7 +1112,7 @@
       signal(SIGHUP, sighandler);
 --- 1748,1754 ----
   void 
-  NDECL(set_signals)
+  set_signals(void)
   {
 !     DPUSH; /* #19 */
       signal(SIGALRM, sighandler);

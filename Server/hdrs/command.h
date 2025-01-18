@@ -8,25 +8,25 @@
 #include "db.h"
 
 #define CMD_NO_ARG(name) \
-    extern void FDECL(name, (dbref, dbref, int))
+    extern void name(dbref, dbref, int)
 #define CMD_ONE_ARG(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *))
+    extern void name(dbref, dbref, int, char *)
 #define CMD_ONE_ARG_CMDARG(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *, char *[], int))
+    extern void name(dbref, dbref, int, char *, char *[], int)
 #define CMD_TWO_ARG(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *, char *))
+    extern void name(dbref, dbref, int, char *, char *)
 #define CMD_TWO_ARG_SEP(name) \
-    extern void FDECL(name, (dbref, dbref, int, int, char *, char *))
+    extern void name(dbref, dbref, int, int, char *, char *)
 #define CMD_TWO_ARG_CMDARG(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *, char *, char*[], int))
+    extern void name(dbref, dbref, int, char *, char *, char*[], int)
 #define CMD_TWO_ARG_ARGV(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *, char *[], int))
+    extern void name(dbref, dbref, int, char *, char *[], int)
 // player, cause, key, expr, args[], nArgs, cargs[], nCargs
 #define CMD_TWO_ARG_ARGV_CMDARG(name) \
-    extern void FDECL(name, (dbref, dbref, int, char *, char *[], int, char*[], int))
+    extern void name(dbref, dbref, int, char *, char *[], int, char*[], int)
 // Like above, but passing switches
 #define CMD_TWO_ARG_ARGV_CMDARG_SWITCHES(name) \
-    extern void FDECL(name, (dbref, dbref, char *, char *, char *[], int, char*[], int))
+    extern void name(dbref, dbref, char *, char *, char *[], int, char*[], int)
 
 /* Command function handlers */
 CMD_ONE_ARG_CMDARG(do_apply_marked);	/* Apply command to marked objects */
@@ -332,7 +332,7 @@ typedef struct aliasentry {
 
 #define QUITPRG_QUIET	0x00000001	/* silently quitprogram target */
 
-extern int	FDECL(check_access, (dbref, int, int, int));
-extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int, int));
+extern int	check_access(dbref, int, int, int);
+extern void	process_command(dbref, dbref, int, char *, char *[], int, int, int, int);
 
 #endif

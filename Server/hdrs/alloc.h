@@ -54,13 +54,13 @@
 
 #ifndef STANDALONE
 
-extern void	FDECL(pool_init, (int, int));
-extern char *	FDECL(pool_alloc, (int, const char *, int, char *));
-extern void	FDECL(pool_free, (int, char **, int, char *));
-extern void	FDECL(list_bufstats, (dbref, char *));
-extern void	FDECL(list_buftrace, (dbref, int));
-extern void	FDECL(do_buff_free, (dbref, dbref, int));
-extern int      FDECL(getBufferSize, (char *));
+extern void	pool_init(int, int);
+extern char *	pool_alloc(int, const char *, int, char *);
+extern void	pool_free(int, char **, int, char *);
+extern void	list_bufstats(dbref, char *);
+extern void	list_buftrace(dbref, int);
+extern void	do_buff_free(dbref, dbref, int);
+extern int      getBufferSize(char *);
 
 #define alloc_atrcache(s)	pool_alloc(POOL_ATRCACHE,s,__LINE__,__FILE__)
 #define alloc_atrname(s)	pool_alloc(POOL_ATRNAME,s,__LINE__,__FILE__)

@@ -73,10 +73,10 @@ static int lastflag, lastwflag, lfoldflag;
 static dbref lastplayer, lfoldplayer, lastwplayer;
 static char override;
 static char recblock;
-extern int FDECL(do_convtime, (char *, struct tm *));
+extern int do_convtime(char *, struct tm *);
 extern char * ColorName(dbref player, int key);
 extern void fun_testlock(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
-extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern dbref match_thing_quiet(dbref, char *);
 
 
 void mail_read(dbref, char *, dbref, int);
@@ -157,13 +157,13 @@ static int toall;
 static int totcharinmail;
 static short int tomask;
 
-void FDECL(mail_wipe, (dbref, char *));
-void NDECL(mnuke_read);
-void FDECL(folder_current, (dbref, int, dbref, int));
-void FDECL(fname_conv, (char *, char *));
-int FDECL(fname_check, (dbref, char *, int));
-int FDECL(mail_md2, (dbref, dbref, int));
-extern void FDECL(do_mailfix, (dbref));
+void mail_wipe(dbref, char *);
+void mnuke_read(void);
+void folder_current(dbref, int, dbref, int);
+void fname_conv(char *, char *);
+int fname_check(dbref, char *, int);
+int mail_md2(dbref, dbref, int);
+extern void do_mailfix(dbref);
 
 static int
 mail_check_readlock_perms(dbref player, dbref thing, ATTR * attr,

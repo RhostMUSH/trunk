@@ -1306,15 +1306,14 @@ extern NAMETAB access_nametab[];
 extern NAMETAB access_nametab2[];
 
 extern char* news_function_group(dbref, dbref, int);
-extern void FDECL (quota_dis, (dbref, dbref, int *, int, char *, char **));
-extern POWENT * FDECL(find_power, (dbref, char *));
-extern POWENT * FDECL(find_depower, (dbref, char *));
-extern void FDECL(cf_log_notfound, (dbref player, char *cmd,
-            const char *thingname, char *thing));
-extern int FDECL(parse_dynhelp, (dbref, dbref, int, char *, char *, char *, char *, int, int, char *));
-extern int FDECL(pstricmp, (char *, char *, int));
+extern void quota_dis(dbref, dbref, int *, int, char *, char **);
+extern POWENT * find_power(dbref, char *);
+extern POWENT * find_depower(dbref, char *);
+extern void cf_log_notfound(dbref player, char *cmd, const char *thingname, char *thing);
+extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int, int, char *);
+extern int pstricmp(char *, char *, int);
 #ifdef REALITY_LEVELS
-extern RLEVEL FDECL(find_rlevel, (char *));
+extern RLEVEL find_rlevel(char *);
 #endif
 extern void local_function(char *, char *, char**, dbref, dbref, char **, int, char**, int);
 extern double mush_mktime64(struct tm *);
@@ -42706,7 +42705,7 @@ FUN flist[] =
 
 
 void
-NDECL(init_ansitab)
+init_ansitab(void)
 {
    PENNANSI *cm;
 
@@ -42717,7 +42716,7 @@ NDECL(init_ansitab)
 }
 
 void
-NDECL(init_functab)
+init_functab(void)
 {
     FUN *fp;
     char *buff, *cp, *dp;
