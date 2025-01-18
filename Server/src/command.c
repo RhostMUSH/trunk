@@ -40,24 +40,24 @@ extern void display_pronouns(dbref, char *);
 extern void del_perms(dbref, char *, char *, char **, int);
 extern void add_perms(dbref, char *, char *, char **, int);
 extern void mod_perms(dbref, char *, char *, char **, int);
-extern void FDECL(list_cf_access, (dbref, char *, int));
-extern void FDECL(list_siteinfo, (dbref));
+extern void list_cf_access(dbref, char *, int);
+extern void list_siteinfo(dbref);
 extern int news_system_active;
 extern int totem_player_list(char *, int, dbref, dbref);
 extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern int lookup(char *, char *, int, int *);
 extern CF_HAND(cf_site);
-extern dbref       FDECL(match_thing, (dbref, char *));
+extern dbref       match_thing(dbref, char *);
 extern void cf_log_syntax(dbref, char *, const char *, char *);
-extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern dbref match_thing_quiet(dbref, char *);
 extern ATRP *atrp_head;
 extern void fun_ruler(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void fun_crc32obj(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 
-extern double FDECL(time_ng, (double*));
-extern void FDECL(populate_tor_seed, (void));
-extern void FDECL(reset_atrcache_commandtrig, (void));
+extern double time_ng(double*);
+extern void populate_tor_seed(void);
+extern void reset_atrcache_commandtrig(void);
 
 
 #ifdef CACHE_OBJS
@@ -2026,7 +2026,7 @@ check_read_perms2(dbref player, dbref thing, ATTR * attr,
 }
 
 void 
-NDECL(init_cmdtab)
+init_cmdtab(void)
 {
     CMDENT *cp;
     ATTR *ap;
@@ -5608,7 +5608,7 @@ list_attraccess(dbref player, char *s_mask, int key)
  */
 
 extern CF_HDCL(cf_modify_bits);
-extern void FDECL(cf_log_notfound, (dbref, char *, const char *, char *));
+extern void cf_log_notfound(dbref, char *, const char *, char *);
 
 CF_HAND(cf_access)
 {

@@ -41,8 +41,8 @@ extern void mush_logf();
 extern PROTO_DB_DEL();
 extern PROTO_DB_PUT();
 
-extern void VDECL(fatal, (const char *,...));
-extern void FDECL(log_db_err, (int, int, const char *));
+extern void fatal(const char *,...);
+extern void log_db_err(int, int, const char *);
 
 /*
 This is by far the most complex and kinky code in UnterMUD. You should
@@ -110,7 +110,7 @@ static void cache_clean();
 static Attr *get_attrib();
 static void set_attrib();
 static void del_attrib();
-static void	FDECL(objfree, (Obj *));
+static void	objfree(Obj *);
 
 /* initial settings for cache sizes */
 static	int	cwidth;
@@ -753,7 +753,7 @@ static void cache_clean(CacheLst *sp)
         VOIDRETURN; /* #169 */
 }
 
-int NDECL(cache_sync)
+int cache_sync(void)
 {
 int	x;
 CacheLst *sp;

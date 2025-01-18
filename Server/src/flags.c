@@ -1016,7 +1016,7 @@ OBJENT object_types[8] =
 #ifndef STANDALONE
 
 void
-NDECL(init_totemtab)
+init_totemtab(void)
 {
    TOTEMENT *fp;
    char *nbuf, *np, *bp;
@@ -1087,7 +1087,7 @@ NDECL(init_totemtab)
  */
 
 void 
-NDECL(init_flagtab)
+init_flagtab(void)
 {
     FLAGENT *fp;
     char *nbuf, *np, *bp;
@@ -1106,7 +1106,7 @@ NDECL(init_flagtab)
 }
 
 void 
-NDECL(init_toggletab)
+init_toggletab(void)
 {
     TOGENT *tp;
     char *nbuf, *np, *bp;
@@ -1124,7 +1124,7 @@ NDECL(init_toggletab)
 }
 
 void 
-NDECL(init_powertab)
+init_powertab(void)
 {
     POWENT *tp;
     char *nbuf, *np, *bp;
@@ -1141,7 +1141,7 @@ NDECL(init_powertab)
 }
 
 void 
-NDECL(init_depowertab)
+init_depowertab(void)
 {
     POWENT *tp;
     char *nbuf, *np, *bp;

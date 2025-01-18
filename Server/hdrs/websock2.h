@@ -32,8 +32,8 @@ enum WebSocketOp {
 };
 
 /* Imported functions */
-// extern int FDECL(encode_base64, (const char *, int, char *, char **));
-extern int FDECL(process_output, (DESC * d));
+// extern int encode_base64(const char *, int, char *, char **);
+extern int process_output(DESC * d);
 
 /* Exported functions */
 extern int validate_websocket_key(char *);

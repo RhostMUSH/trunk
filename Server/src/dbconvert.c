@@ -8,8 +8,8 @@
 #include "externs.h"
 #include "debug.h"
 
-extern void NDECL(cf_init);
-extern void FDECL(do_dbck, (dbref, dbref, int));
+extern void cf_init(void);
+extern void do_dbck(dbref, dbref, int);
 
 /* ---------------------------------------------------------------------------
  * info: display info about the file being read or written.

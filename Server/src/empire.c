@@ -14,9 +14,9 @@
 #include <sys/socket.h>
 
 extern int do_command(DESC *, char *);
-extern double NDECL(next_timer);
+extern double next_timer(void);
 
-extern int FDECL(alarm_msec, (double));
+extern int alarm_msec(double);
 
 static struct fn fnlist[] = {
 	{ NULL,	"user",	USER,},

@@ -23,7 +23,7 @@ char *index(const char *, int);
 #define FILENUM EVAL_C
 #define LABEL_MAX 1000
 
-extern dbref FDECL(match_thing_quiet, (dbref, char *));
+extern dbref match_thing_quiet(dbref, char *);
 extern char * parse_ansi_name(dbref, char *);
 extern void fun_ansi(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
@@ -669,7 +669,7 @@ struct tcache_ent {
 int tcache_top, tcache_count;
 
 void 
-NDECL(tcache_init)
+tcache_init(void)
 {
     DPUSH; /* #63 */
     tcache_head = NULL;
@@ -679,7 +679,7 @@ NDECL(tcache_init)
 }
 
 int 
-NDECL(tcache_empty)
+tcache_empty(void)
 {
     DPUSH; /* #64 */
     if (tcache_top) {

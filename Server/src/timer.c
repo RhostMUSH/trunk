@@ -42,11 +42,11 @@ int clock_gettime(int clk_id, struct timespec* t) {
 
 /*#include <sys/resource.h>*/
 
-extern void		NDECL(do_second);
-extern void		FDECL(fork_and_dump, (int key, char *msg));
-extern void		FDECL(do_recache_vattrs, (dbref, int, char *, int));
-//extern unsigned int	FDECL(alarm, (unsigned int seconds));
-extern void		NDECL(pcache_trim);
+extern void		do_second(void);
+extern void		fork_and_dump(int key, char *msg);
+extern void		do_recache_vattrs(dbref, int, char *, int);
+//extern unsigned int	alarm(unsigned int seconds);
+extern void		pcache_trim(void);
 
 /* Version of alarm() that works with floating point numbers, and
  * values larger than one second, combining functionality of alarm()
@@ -122,7 +122,7 @@ double time_ng(double *t)
   return result;
 }
 
-double NDECL(next_timer)
+double next_timer(void)
 {
 double	result, i_rounder;
           
@@ -146,7 +146,7 @@ double	result, i_rounder;
 	return result;
 }
 
-void NDECL(init_timer)
+void init_timer(void)
 {
 	mudstate.nowmsec = time_ng(NULL);
 	mudstate.now = (time_t) floor(mudstate.nowmsec);
@@ -164,7 +164,7 @@ void NDECL(init_timer)
 	alarm_msec (next_timer());
 }
 
-void NDECL(dispatch)
+void dispatch(void)
 {
 char	*cmdsave;
 

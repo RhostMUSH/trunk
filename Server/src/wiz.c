@@ -26,7 +26,7 @@ char *strtok_r(char *, const char *, char **);
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*, int);
 extern int remote_read_sanitize(FILE *, dbref, int, int, int);
-extern dbref FDECL(match_thing, (dbref, char *));
+extern dbref match_thing(dbref, char *);
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern ATRCACHE *atrcache_head;
 

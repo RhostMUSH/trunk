@@ -51,7 +51,7 @@ static int table_initialized = 0;
 static char *compress_buf = NULL;
 
 static void 
-NDECL(init_compress)
+init_compress(void)
 {
     if (mudconf.intern_comp) {
 	int i;

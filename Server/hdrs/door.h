@@ -38,25 +38,25 @@ typedef struct _door {
 } door_t;
 
 /* Public prototypes */
-extern void FDECL(door_raw_input, (DESC *, char *));
-extern void FDECL(door_raw_output, (DESC *, char *));
-extern int FDECL(door_tcp_connect, (char *, char *, DESC *, int, int));
-extern int FDECL(door_connect, (char *, char *, DESC *, int));
-extern int FDECL(process_door_output, (DESC *));
-extern int FDECL(process_door_input, (DESC *));
-extern void FDECL(save_door, (DESC *, char *));
-extern void FDECL(initDoorSystem, (void));
-extern void FDECL(modifyDoorStatus, (dbref, char *, char *));
-extern void FDECL(openDoor, (dbref, dbref, char *, int, char *[], int));
-extern void FDECL(closeDoor, (DESC *, char *));
-extern void FDECL(closeDoorWithId, (DESC *, int));
-extern void FDECL(listDoors, (dbref, char *, int full));
-extern const char * FDECL(returnDoorName, (int d));
-extern void FDECL(queue_door_string, (DESC *, const char *, int));
-extern void FDECL(queue_door_write, (DESC *, const char *, int));
-extern void FDECL(door_registerInternalDoorDescriptors, (fd_set *, fd_set *, int *));
-extern void FDECL(door_checkInternalDoorDescriptors, (fd_set *, fd_set *));
-extern void FDECL(door_processInternalDoors, (void));
-extern int FDECL(process_output, (DESC * d));
+extern void door_raw_input(DESC *, char *);
+extern void door_raw_output(DESC *, char *);
+extern int door_tcp_connect(char *, char *, DESC *, int, int);
+extern int door_connect(char *, char *, DESC *, int);
+extern int process_door_output(DESC *);
+extern int process_door_input(DESC *);
+extern void save_door(DESC *, char *);
+extern void initDoorSystem(void);
+extern void modifyDoorStatus(dbref, char *, char *);
+extern void openDoor(dbref, dbref, char *, int, char *[], int);
+extern void closeDoor(DESC *, char *);
+extern void closeDoorWithId(DESC *, int);
+extern void listDoors(dbref, char *, int full);
+extern const char * returnDoorName(int d);
+extern void queue_door_string(DESC *, const char *, int);
+extern void queue_door_write(DESC *, const char *, int);
+extern void door_registerInternalDoorDescriptors(fd_set *, fd_set *, int *);
+extern void door_checkInternalDoorDescriptors(fd_set *, fd_set *);
+extern void door_processInternalDoors(void);
+extern int process_output(DESC * d);
 #endif
 

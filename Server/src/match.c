@@ -161,7 +161,7 @@ choose_thing(thing1, thing2)
 }
 
 void
-NDECL(match_player_absolute)
+match_player_absolute(void)
 {
     dbref match;
     char *p;
@@ -183,7 +183,7 @@ NDECL(match_player_absolute)
 }
 
 void
-NDECL(match_player)
+match_player(void)
 {
     dbref match;
     char *p;
@@ -234,7 +234,7 @@ absolute_name(need_pound)
 }
 
 void
-NDECL(match_absolute)
+match_absolute(void)
 {
     dbref match;
 
@@ -249,7 +249,7 @@ NDECL(match_absolute)
 }
 
 void
-NDECL(match_numeric)
+match_numeric(void)
 {
     dbref match;
 
@@ -264,7 +264,7 @@ NDECL(match_numeric)
 }
 
 void
-NDECL(match_controlled_absolute)
+match_controlled_absolute(void)
 {
     dbref match;
 
@@ -281,7 +281,7 @@ NDECL(match_controlled_absolute)
 }
 
 void
-NDECL(match_me)
+match_me(void)
 {
     if (have_exact)
 	return;
@@ -293,7 +293,7 @@ NDECL(match_me)
 }
 
 void
-NDECL(match_home)
+match_home(void)
 {
     if (have_exact)
 	return;
@@ -305,7 +305,7 @@ NDECL(match_home)
 }
 
 void
-NDECL(match_here)
+match_here(void)
 {
     if (have_exact)
 	return;
@@ -561,7 +561,7 @@ match_list(first)
 }
 
 void
-NDECL(match_possession_altname)
+match_possession_altname(void)
 {
     if (have_exact)
 	return;
@@ -570,7 +570,7 @@ NDECL(match_possession_altname)
 }
 
 void
-NDECL(match_possession)
+match_possession(void)
 {
     if (have_exact)
 	return;
@@ -579,7 +579,7 @@ NDECL(match_possession)
 }
 
 void
-NDECL(match_neighbor)
+match_neighbor(void)
 {
     dbref loc;
 
@@ -594,7 +594,7 @@ NDECL(match_neighbor)
 }
 
 void
-NDECL(match_altname)
+match_altname(void)
 {
     dbref loc;
 
@@ -684,7 +684,7 @@ match_exit_internal(dbref loc, int pcheck)
 }
 
 void
-NDECL(match_exit)
+match_exit(void)
 {
     if (have_exact)
 	return;
@@ -693,7 +693,7 @@ NDECL(match_exit)
 }
 
 void
-NDECL(match_exit_with_parents)
+match_exit_with_parents(void)
 {
     dbref parent, first;
     int lev;
@@ -716,7 +716,7 @@ NDECL(match_exit_with_parents)
 }
 
 void
-NDECL(match_carried_exit)
+match_carried_exit(void)
 {
     if (have_exact)
 	return;
@@ -725,7 +725,7 @@ NDECL(match_carried_exit)
 }
 
 void
-NDECL(match_carried_exit_with_parents)
+match_carried_exit_with_parents(void)
 {
     dbref parent, first;
     int lev;
@@ -746,7 +746,7 @@ NDECL(match_carried_exit_with_parents)
 }
 
 void
-NDECL(match_master_exit)
+match_master_exit(void)
 {
     if (exact_match != NOTHING)
 	return;
@@ -790,7 +790,7 @@ match_everything(key)
 }
 
 dbref
-NDECL(match_result)
+match_result(void)
 {
     if (exact_match != NOTHING)
 	return exact_match;
@@ -807,7 +807,7 @@ NDECL(match_result)
 /* use this if you don't care about ambiguity */
 
 dbref
-NDECL(last_match_result)
+last_match_result(void)
 {
     if (exact_match != NOTHING)
 	return exact_match;
@@ -836,7 +836,7 @@ match_status(player, match)
 }
 
 dbref
-NDECL(noisy_match_result)
+noisy_match_result(void)
 {
     return match_status(match_who, match_result());
 }
@@ -855,7 +855,7 @@ dispatched_match_result(player)
 }
 
 int
-NDECL(matched_locally)
+matched_locally(void)
 {
     return local_match;
 }

@@ -20,7 +20,7 @@ char *index(const char *, int);
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
-extern dbref	FDECL(match_thing, (dbref, char *));
+extern dbref	match_thing(dbref, char *);
 #ifndef STANDALONE
 extern int attrib_cansee(dbref, const char *, dbref, dbref);
 extern int attrib_canset(dbref, const char *, dbref, dbref);

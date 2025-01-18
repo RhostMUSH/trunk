@@ -17,8 +17,8 @@
 #include "lua/src/lualib.h"
 
 extern FUNCTION(fun_strfunc);
-extern int FDECL(alarm_msec, (double));
-extern int FDECL(next_timer, ());
+extern int alarm_msec(double);
+extern int next_timer();
 
 static const char *rhost_run_as_key = "rhost_run_as";
 
