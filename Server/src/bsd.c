@@ -80,29 +80,29 @@ extern char *t_errlist[];
 #endif
 #endif
 
-extern void NDECL(dispatch);
-void NDECL(pcache_sync);
-
 static int sock, sock2;
+static DESC *new_connection(int, int);
+static DESC *initializesock(int, struct sockaddr_in *, char *, int, int);
+int process_output(DESC *);
+static int process_input(DESC *);
+
 int ndescriptors = 0;
+int signal_depth;
 
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
-DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int, int));
-DESC *FDECL(new_connection, (int, int));
-int FDECL(process_output, (DESC *));
-int FDECL(process_input, (DESC *));
+extern void NDECL(dispatch);
+extern void NDECL(pcache_sync);
 extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, int, int, char *));
 extern int FDECL(lookup, (char *, char *, int, int *));
 extern CF_HAND(cf_site);
 extern double NDECL(next_timer);
-
 extern int FDECL(alarm_msec, (double));
 extern int NDECL(alarm_stop);
 extern unsigned int CRC32_ProcessBuffer(unsigned int, const void *, unsigned int);
 
-int signal_depth;
+
 
 void populate_tor_seed(void)
 {
@@ -254,7 +254,8 @@ int check_tor(struct in_addr a_remote, int i_port) {
    return i_found;
 }
 
-int make_socket(int port, char* address)
+static int
+make_socket(int port, char* address)
 {
     int s, opt, i_loop;
     FILE *f_fptr;
@@ -393,7 +394,9 @@ static int avail_descriptors, maxfds;
 #define CheckOutput(x)	FD_ISSET(x, &output_set)
 #endif
 
-static void recalc_max_descriptors(int silent, int found) {
+static void
+recalc_max_descriptors(int silent, int found)
+{
 	DESC *d;
 	int aflags2, temp1, temp2;
 	int sitecntr;
@@ -655,22 +658,136 @@ net_desc_handle_doors(DESC* d) {
 }
 
 static void
-net_desc_handle_input(DESC *d)
+net_desc_timestamp(DESC *d, int old_last_time)
 {
-    CMDENT *cmdp = NULL;
     ATTR *ap;
-    int i_oldlasttime, i_oldlastcnt = 0, flagkeep, i_len, i_cntr, aflags2 = 0;
-    int i_progatr, anum;
-    unsigned int ulCRC32;
-    dbref aowner2;
-    char *progatr, s_cutter[6], s_cutter2[8], *progatr_str, *progatr_strptr, *s_progatr, *b_progatr, *t_progatr,
-            *b_progatrptr;
+    unsigned int ulCRC32 = 0;
+    int i_len, anum, i_progatr, aowner2, aflags2, i_cntr;
+    char *progatr, *progatr_str, *s_progatr, *progatr_strptr, *b_progatrptr, *b_progatr, *t_progatr;
 
-    /* Undo autodark */
+    i_len = strlen(d->input_head->cmd);
+    ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
+    anum = mkattr("_IDLESTAMP");
+    if (anum > 0) {
+        ap = atr_num(anum);
+        if (ap) {
+            attr_wizhidden("_IDLESTAMP");
+            progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
+            if (progatr) {
+                progatr_str = progatr;
+                i_progatr = 0;
+                while (progatr_str && *progatr_str) {
+                    if (*progatr_str == ' ')
+                        i_progatr++;
+                    progatr_str++;
+                }
+                s_progatr = alloc_sbuf("idle_stamp");
+                sprintf(s_progatr, "%u", ulCRC32);
+                if ((i_progatr >= (mudconf.idle_stamp_max - 1)) && (strstr(progatr, s_progatr) == NULL)) {
+                    progatr_str = strtok_r(progatr, " ", &progatr_strptr);
+                    if (progatr_str)
+                        progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                    /* Let's catch up to the current value if i_progatr - 1 still >
+                     * mudconf.idle_stamp_max */
+                    if (((i_progatr - 1) >= (mudconf.idle_stamp_max - 1)) && progatr_str)
+                        progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                } else {
+                    progatr_str = strtok_r(progatr, " ", &progatr_strptr);
+                }
+                b_progatrptr = b_progatr = alloc_lbuf("idle_stamp");
+                i_progatr = 0;
+                anum = 0;
+                i_cntr = 0;
+                if (progatr_str) {
+                    t_progatr = alloc_lbuf("idle_stamp_movetoend");
+                    while (progatr_str) {
+                        if (strstr(progatr_str, s_progatr) != NULL) {
+                            anum = 1;
+                            if (strchr(progatr_str, ':') != NULL) {
+                                i_progatr = atoi(strchr(progatr_str, ':') + 1);
+                                i_progatr++;
+                                if (mudconf.idle_cmdcount > -1) {
+                                    if (i_progatr > mudconf.idle_cmdcount)
+                                        d->last_time = old_last_time;
+                                }
+                            } else {
+                                i_progatr = 1;
+                            }
+                            if (i_progatr > 1) {
+                                sprintf(t_progatr, "%u:%d", ulCRC32, i_progatr);
+                            } else {
+                                sprintf(s_progatr, "%u:%d", ulCRC32, i_progatr);
+                                if (i_cntr > 0)
+                                    safe_chr(' ', b_progatr, &b_progatrptr);
+                                safe_str(s_progatr, b_progatr, &b_progatrptr);
+                                i_cntr++;
+                            }
+                        } else {
+                            if (i_cntr > 0)
+                                safe_chr(' ', b_progatr, &b_progatrptr);
+                            safe_str(progatr_str, b_progatr, &b_progatrptr);
+                            i_progatr = 1;
+                            i_cntr++;
+                        }
+                        progatr_str = strtok_r(NULL, " ", &progatr_strptr);
+                    }
+                    /* Move the last command issued to end of the list if existed */
+                    if (*t_progatr) {
+                        if (i_cntr > 0) {
+                            safe_chr(' ', b_progatr, &b_progatrptr);
+                        }
+                        safe_str(t_progatr, b_progatr, &b_progatrptr);
+                    }
+                    free_lbuf(t_progatr);
+                }
+                if (!anum) {
+                    if (i_progatr)
+                        safe_chr(' ', b_progatr, &b_progatrptr);
+                    sprintf(s_progatr, "%u:1", ulCRC32);
+                    safe_str(s_progatr, b_progatr, &b_progatrptr);
+                }
+                atr_add_raw(d->player, ap->number, b_progatr);
+                free_sbuf(s_progatr);
+                free_lbuf(b_progatr);
+            }
+            free_lbuf(progatr);
+        }
+    }
+}
 
-    i_oldlasttime = d->last_time;
-    flagkeep = d->flags;
+static void net_desc_mark_idle(DESC *d, int old_last_time, int flag_keep) {
+    CMDENT *cmdp = NULL;
+    char s_cutter[6], s_cutter2[8];
 
+    memcpy(s_cutter, d->input_head->cmd, 5);
+    memcpy(s_cutter2, d->input_head->cmd, 7);
+    s_cutter[5] = '\0';
+    s_cutter2[7] = '\0';
+    if (Good_obj(d->player) && (((Wizard(d->player) || HasPriv(d->player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) &&
+                                 (stricmp(s_cutter, "idle ") == 0)) ||
+                                ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
+                                ((stricmp(s_cutter, "th") == 0) && mudconf.think_is_idle) ||
+                                ((stricmp(s_cutter, "thi") == 0) && mudconf.think_is_idle) ||
+                                ((stricmp(s_cutter, "thin") == 0) && mudconf.think_is_idle) ||
+                                ((stricmp(s_cutter, "think") == 0) && mudconf.think_is_idle) ||
+                                (stricmp(s_cutter, "idle") == 0) || (stricmp(s_cutter2, "idle @@") == 0))) {
+        cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
+        if (cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
+            if (!(CmdCheck(d->player) && cmdtest(d->player, "idle"))) {
+                d->last_time = old_last_time;
+                d->flags = d->flags | flag_keep;
+                if (d->flags & DS_AUTOUNF)
+                    s_Flags2(d->player, Flags2(d->player) | UNFINDABLE);
+                if (d->flags & DS_AUTODARK)
+                    s_Flags(d->player, Flags(d->player) | DARK);
+            }
+        }
+    }
+}
+
+static void
+net_desc_undo_autodark(DESC *d)
+{
     if (Good_obj(d->player) && !TogHideIdle(d->player)) {
         d->last_time = mudstate.now;
         if (d->flags & DS_AUTODARK) {
@@ -684,10 +801,19 @@ net_desc_handle_input(DESC *d)
     } else if (d->last_time == 0) {
         d->last_time = mudstate.now;
     }
+}
+
+static void
+net_desc_handle_input(DESC *d)
+{
+    int i_oldlastcnt = d->input_tot;
+    int i_oldlasttime = d->last_time;
+    int flagkeep = d->flags;
+
+    /* Undo autodark */
+    net_desc_undo_autodark(d);
 
     /* Process received data */
-
-    i_oldlastcnt = d->input_tot;
 
     if (!process_input(d)) {
         shutdownsock(d, R_SOCKDIED);
@@ -696,123 +822,11 @@ net_desc_handle_input(DESC *d)
 
     /* Idle stamp checking for command typed */
     if (mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && (char *) (d->input_head->cmd)) {
-        ulCRC32 = 0;
-        i_len = strlen(d->input_head->cmd);
-        ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
-        anum = mkattr("_IDLESTAMP");
-        if (anum > 0) {
-            ap = atr_num(anum);
-            if (ap) {
-                attr_wizhidden("_IDLESTAMP");
-                progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
-                if (progatr) {
-                    progatr_str = progatr;
-                    i_progatr = 0;
-                    while (progatr_str && *progatr_str) {
-                        if (*progatr_str == ' ')
-                            i_progatr++;
-                        progatr_str++;
-                    }
-                    s_progatr = alloc_sbuf("idle_stamp");
-                    sprintf(s_progatr, "%u", ulCRC32);
-                    if ((i_progatr >= (mudconf.idle_stamp_max - 1)) && (strstr(progatr, s_progatr) == NULL)) {
-                        progatr_str = strtok_r(progatr, " ", &progatr_strptr);
-                        if (progatr_str)
-                            progatr_str = strtok_r(NULL, " ", &progatr_strptr);
-                        /* Let's catch up to the current value if i_progatr - 1 still >
-                         * mudconf.idle_stamp_max */
-                        if (((i_progatr - 1) >= (mudconf.idle_stamp_max - 1)) && progatr_str)
-                            progatr_str = strtok_r(NULL, " ", &progatr_strptr);
-                    } else {
-                        progatr_str = strtok_r(progatr, " ", &progatr_strptr);
-                    }
-                    b_progatrptr = b_progatr = alloc_lbuf("idle_stamp");
-                    i_progatr = 0;
-                    anum = 0;
-                    i_cntr = 0;
-                    if (progatr_str) {
-                        t_progatr = alloc_lbuf("idle_stamp_movetoend");
-                        while (progatr_str) {
-                            if (strstr(progatr_str, s_progatr) != NULL) {
-                                anum = 1;
-                                if (strchr(progatr_str, ':') != NULL) {
-                                    i_progatr = atoi(strchr(progatr_str, ':') + 1);
-                                    i_progatr++;
-                                    if (mudconf.idle_cmdcount > -1) {
-                                        if (i_progatr > mudconf.idle_cmdcount)
-                                            d->last_time = i_oldlasttime;
-                                    }
-                                } else {
-                                    i_progatr = 1;
-                                }
-                                if (i_progatr > 1) {
-                                    sprintf(t_progatr, "%u:%d", ulCRC32, i_progatr);
-                                } else {
-                                    sprintf(s_progatr, "%u:%d", ulCRC32, i_progatr);
-                                    if (i_cntr > 0)
-                                        safe_chr(' ', b_progatr, &b_progatrptr);
-                                    safe_str(s_progatr, b_progatr, &b_progatrptr);
-                                    i_cntr++;
-                                }
-                            } else {
-                                if (i_cntr > 0)
-                                    safe_chr(' ', b_progatr, &b_progatrptr);
-                                safe_str(progatr_str, b_progatr, &b_progatrptr);
-                                i_progatr = 1;
-                                i_cntr++;
-                            }
-                            progatr_str = strtok_r(NULL, " ", &progatr_strptr);
-                        }
-                        /* Move the last command issued to end of the list if existed */
-                        if (*t_progatr) {
-                            if (i_cntr > 0) {
-                                safe_chr(' ', b_progatr, &b_progatrptr);
-                            }
-                            safe_str(t_progatr, b_progatr, &b_progatrptr);
-                        }
-                        free_lbuf(t_progatr);
-                    }
-                    if (!anum) {
-                        if (i_progatr)
-                            safe_chr(' ', b_progatr, &b_progatrptr);
-                        sprintf(s_progatr, "%u:1", ulCRC32);
-                        safe_str(s_progatr, b_progatr, &b_progatrptr);
-                    }
-                    atr_add_raw(d->player, ap->number, b_progatr);
-                    free_sbuf(s_progatr);
-                    free_lbuf(b_progatr);
-                }
-                free_lbuf(progatr);
-            }
-        }
+        net_desc_timestamp(d, i_oldlasttime);
     }
 
     if ((d->flags & DS_CONNECTED) && d->input_head && (char *) (d->input_head->cmd)) {
-        memcpy(s_cutter, d->input_head->cmd, 5);
-        memcpy(s_cutter2, d->input_head->cmd, 7);
-        s_cutter[5] = '\0';
-        s_cutter2[7] = '\0';
-        if (Good_obj(d->player) &&
-            (((Wizard(d->player) || HasPriv(d->player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) &&
-              (stricmp(s_cutter, "idle ") == 0)) ||
-             ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
-             ((stricmp(s_cutter, "th") == 0) && mudconf.think_is_idle) ||
-             ((stricmp(s_cutter, "thi") == 0) && mudconf.think_is_idle) ||
-             ((stricmp(s_cutter, "thin") == 0) && mudconf.think_is_idle) ||
-             ((stricmp(s_cutter, "think") == 0) && mudconf.think_is_idle) || (stricmp(s_cutter, "idle") == 0) ||
-             (stricmp(s_cutter2, "idle @@") == 0))) {
-            cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
-            if (cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
-                if (!(CmdCheck(d->player) && cmdtest(d->player, "idle"))) {
-                    d->last_time = i_oldlasttime;
-                    d->flags = d->flags | flagkeep;
-                    if (d->flags & DS_AUTOUNF)
-                        s_Flags2(d->player, Flags2(d->player) | UNFINDABLE);
-                    if (d->flags & DS_AUTODARK)
-                        s_Flags(d->player, Flags(d->player) | DARK);
-                }
-            }
-        }
+        net_desc_mark_idle(d, i_oldlasttime, flagkeep);
     }
 
     /* Ignore Null Input */
@@ -1098,7 +1112,7 @@ struct t_call *nc_call = (struct t_call *) NULL;
 
 #endif
 
-DESC *
+static DESC *
 new_connection(int sock, int key)
 {
     int newsock, maxsitecon, maxtsitecon, cur_port, i_retvar = -1;
@@ -2133,7 +2147,7 @@ check_auth(DESC * d)
 }
 
 
-DESC *
+static DESC *
 initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int keyval)
 {
     DESC *d, *dchk, *dchknext;
@@ -2284,8 +2298,8 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     RETURN(d); /* #11 */
 }
 
-int 
-process_output(DESC * d)
+int
+process_output(DESC *d)
 {
     TBLOCK *tb, *save;
     int cnt, retry_cnt, retry_success;
@@ -2297,69 +2311,69 @@ process_output(DESC * d)
     mudstate.debug_cmd = (char *) "< process_output >";
 
     tb = d->output_head;
+    /* Some firewalls and load balancers do screwy things with packets, so we retry WRITE calls. */
     retry_cnt = retry_success = 0;
-    while (tb != NULL) {
-	while (tb->hdr.nchars > 0) {
 
-	    cnt = WRITE(d->descriptor, tb->hdr.start,
-			tb->hdr.nchars);
-	    if (cnt < 0) {
-		mudstate.debug_cmd = cmdsave;
-                if ( (errno == EWOULDBLOCK) || (errno == EAGAIN) ) {
-                   while ( retry_cnt < 10 ) {
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
-                      if ( (cnt < 0) && !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
-                         retry_cnt = 20;
-                         retry_success = 1;
-                      } else if ( (cnt >= 0) ) {
-                         retry_cnt = 20;
-                         retry_success = 1;
-                      } else if ( !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
-                         retry_cnt = 20;
-                      }
-                      retry_cnt++;
-                   }
+    while (tb != NULL) {
+        while (tb->hdr.nchars > 0) {
+
+            cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+            if (cnt < 0) {
+                mudstate.debug_cmd = cmdsave;
+                if ((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
+                    while (retry_cnt < 10) {
+                        cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+                        if ((cnt < 0) && !((errno == EWOULDBLOCK) || (errno == EAGAIN))) {
+                            retry_cnt = 20;
+                            retry_success = 1;
+                        } else if ((cnt >= 0)) {
+                            retry_cnt = 20;
+                            retry_success = 1;
+                        } else if (!((errno == EWOULDBLOCK) || (errno == EAGAIN))) {
+                            retry_cnt = 20;
+                        }
+                        retry_cnt++;
+                    }
                 }
-                if ( !retry_success ) {
-                   if ( errno == 11 ) {
-                   /* It's a timeout, let's wait for a few milliseconds and try again */
-/*                    usleep(10); */
-                      nanosleep((struct timespec[]){{0, 100000000}}, NULL);
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
-                   }
-                   if ( cnt < 0 ) {
-                      if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != d->player) ) {
-                         STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
+                if (!retry_success) {
+                    if (errno == 11) {
+                        /* It's a timeout, let's wait for a few milliseconds and try again */
+                        /*                    usleep(10); */
+                        nanosleep((struct timespec[]) {{0, 100000000}}, NULL);
+                        cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+                    }
+                    if (cnt < 0) {
+                        if ((mudconf.log_network_errors > 0) && (mudstate.last_network_owner != d->player)) {
+                            STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
                             memset(s_savebuff, '\0', sizeof(s_savebuff));
                             log_text((char *) "WARNING: Failed socket write to descriptor past 10 times ");
-                            sprintf(s_savebuff, "[port %d/player #%d/error %d] ", d->descriptor, d->player,
-                                    errno);
+                            sprintf(s_savebuff, "[port %d/player #%d/error %d] ", d->descriptor, d->player, errno);
                             log_text(s_savebuff);
-                            log_text((char *)strerror(errno));
-                         ENDLOG
-                         mudstate.last_network_owner = d->player;
-                      }
-                      RETURN(1);
-                   }
+                            log_text((char *) strerror(errno));
+                            ENDLOG
+                            mudstate.last_network_owner = d->player;
+                        }
+                        RETURN(1);
+                    }
                 }
 #if 0 /* original code here */
   		if (errno == EWOULDBLOCK) {
   		    RETURN(1); /* #12 */
                 }
 #endif
-                if ( cnt < 0 )
-		   RETURN(0); /* #12 */
-	    }
-	    d->output_size -= cnt;
-	    tb->hdr.nchars -= cnt;
-	    tb->hdr.start += cnt;
-	}
-	save = tb;
-	tb = tb->hdr.nxt;
-	free_lbuf(save);
-	d->output_head = tb;
-	if (tb == NULL)
-	    d->output_tail = NULL;
+                if (cnt < 0)
+                    RETURN(0); /* #12 */
+            }
+            d->output_size -= cnt;
+            tb->hdr.nchars -= cnt;
+            tb->hdr.start += cnt;
+        }
+        save = tb;
+        tb = tb->hdr.nxt;
+        free_lbuf(save);
+        d->output_head = tb;
+        if (tb == NULL)
+            d->output_tail = NULL;
     }
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #12 */
@@ -2367,7 +2381,7 @@ process_output(DESC * d)
 
 
 /* The monster that's telnet negotiation -- for now we just eat it */
-int
+static int
 snarfle_the_garthok(char *input, char *output) 
 {
    int i_count;
@@ -2426,15 +2440,38 @@ snarfle_the_garthok(char *input, char *output)
    return(i_count);
 }
 
-int 
-process_input(DESC * d)
+static void
+record_more_bytes(int got)
+{
+    mudstate.total_bytesin += got;
+    if ((mudstate.reset_daily_bytes + 86400) < mudstate.now) {
+        if (mudstate.avg_bytesin == 0) {
+            mudstate.avg_bytesin = mudstate.daily_bytesin;
+        } else {
+            mudstate.avg_bytesin = (mudstate.avg_bytesin + mudstate.daily_bytesin) / 2;
+        }
+        if (mudstate.avg_bytesout == 0) {
+            mudstate.avg_bytesout = mudstate.daily_bytesout;
+        } else {
+            mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
+        }
+        mudstate.daily_bytesout = 0;
+        mudstate.daily_bytesin = got;
+        mudstate.reset_daily_bytes = time(NULL);
+    } else {
+        mudstate.daily_bytesin += got;
+    }
+}
+
+static int
+process_input(DESC *d)
 {
     static char buf[LBUF_SIZE];
     int got, in, lost, in_get;
     char *p, *pend, *q, *qend, qfind[SBUF_SIZE], *qf, *tmpptr = NULL, tmpbuf[SBUF_SIZE];
     char *cmdsave;
 #ifdef ENABLE_WEBSOCKETS
-///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
+    ///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
     int got2;
 ///// END NEW WEBSOCK #endif
 #endif
@@ -2447,11 +2484,11 @@ process_input(DESC * d)
     memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
-	mudstate.debug_cmd = cmdsave;
-	RETURN(0); /* #16 */
+        mudstate.debug_cmd = cmdsave;
+        RETURN(0); /* #16 */
     }
 #ifdef ENABLE_WEBSOCKETS
-///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
+    ///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
     if (d->flags & DS_WEBSOCKETS) {
         /* Process using WebSockets framing. */
         got2 = got;
@@ -2460,142 +2497,134 @@ process_input(DESC * d)
 ///// END NEW WEBSOCK #endif
 #endif
     if (!d->raw_input) {
-	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-	d->raw_input_at = d->raw_input->cmd;
+        d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+        d->raw_input_at = d->raw_input->cmd;
     }
     p = d->raw_input_at;
     pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
     lost = 0;
     in_get = 1;
-    if ( d->flags & DS_API ) {
-       in_get = 0;
+    if (d->flags & DS_API) {
+        in_get = 0;
     }
-//fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
+    // fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
+
+    // Iterates over received buf.
     for (q = buf, qend = buf + got; q < qend; q++) {
-	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
-  	      *p = '\0';
-		if (p > d->raw_input->cmd) {
-			save_command(d, d->raw_input);
-			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-			p = d->raw_input_at = d->raw_input->cmd;
-			pend = d->raw_input->cmd + LBUF_SIZE -
-			sizeof(CBLKHDR) - 1;
-		} else {
-			in -= 1;	/* for newline */
-		}
-	} else if ((*q == '\b') || (*q == 127)) {
-	    if (*q == 127)
-		queue_string(d, "\b \b");
-	    else
-		queue_string(d, " \b");
-	    in -= 2;
-	    if (p > d->raw_input->cmd)
-		p--;
-	    if (p < d->raw_input_at)
-		(d->raw_input_at)--;
+        /* newlines terminate MUSH commands. */
+        if ((*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q + 10) > qend) && (d->flags & DS_API)))) {
+            *p = '\0';
+            if (p > d->raw_input->cmd) {
+                save_command(d, d->raw_input);
+                /* We need a new buffer now. Let's allocate one and initialize our indexes. */
+                d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+                p = d->raw_input_at = d->raw_input->cmd;
+                pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
+            } else {
+                in -= 1; /* for newline */
+            }
+        /* handle the delete character for people using old-style terminal connections */
+        } else if ((*q == '\b') || (*q == 127)) {
+            /* Anything that sent in DEL probably needs to have it echoed back. */
+            queue_string(d, (*q == 127) ? "\b \b" : " \b");
+            in -= 2;
+            if (p > d->raw_input->cmd)
+                p--;
+            if (p < d->raw_input_at)
+                (d->raw_input_at)--;
         /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
-        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
-            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-            in+=5;
-            got+=5;
+        } else if ((((int) (unsigned char) *q) == 255) && *(q + 1) && (((int) (unsigned char) *(q + 1)) == 255)) {
+            sprintf(qfind, "%c<%3d>", '%', (int) (unsigned char) *q);
+            in += 5;
+            got += 5;
             qf = qfind;
-            while ( *qf ) {
-               *p++ = *qf++;
+            while (*qf) {
+                *p++ = *qf++;
             }
             q++;
-        /* This is telnet negotiation -- we eat telnet negotiation */
-        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) != 255) ) {
-           q++;
-        /* Else let's print printables -- This is ASCII-7 [0-128] */
-  	} else if (p < pend && ((*q == '\n') || (isascii((int)*q) && isprint((int)*q))) ) {
-	    *p++ = *q;
-        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && *(q+3) && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
-            sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
+            /* This is telnet negotiation -- we eat telnet negotiation */
+        } else if ((((int) (unsigned char) *q) == 255) && *(q + 1) && (((int) (unsigned char) *(q + 1)) != 255)) {
+            q++;
+            /* Else let's print printables -- This is ASCII-7 [0-128] */
+        } else if (p < pend && ((*q == '\n') || (isascii((int) *q) && isprint((int) *q)))) {
+            *p++ = *q;
+        } else if (((p + 13) < pend) && *q && *(q + 1) && *(q + 2) && *(q + 3) && IS_4BYTE((int) (unsigned char) *q) &&
+                   IS_CBYTE(*(q + 1)) && IS_CBYTE(*(q + 2)) && IS_CBYTE(*(q + 3))) {
+            sprintf(tmpbuf, "%02x%02x%02x%02x", (int) (unsigned char) *q, (int) (unsigned char) *(q + 1),
+                    (int) (unsigned char) *(q + 2), (int) (unsigned char) *(q + 3));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
             free_sbuf(tmpptr);
-            
-            q+=3;
-            in+=12;
-            got+=12;
-               qf = qfind;
-               while ( *qf ) {
-                  *p++ = *qf++;
-               }
-        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
-            sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
-            tmpptr = encode_utf8(tmpbuf);
-            sprintf(qfind, "%s", tmpptr);
-            free_sbuf(tmpptr);
-            
-            q+=2;
-            in+=10;
-            got+=10;
-            qf = qfind;
-            while (*qf) {
-                *p++ = *qf++;
-            }   
-        } else if ( ((p+13) < pend) && *q && *(q+1) && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
-            sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
-            tmpptr = encode_utf8(tmpbuf);
-            sprintf(qfind, "%s", tmpptr);
-            free_sbuf(tmpptr);
-            
-            q+=1;
-            in+=8;
-            got+=8;
+
+            q += 3;
+            in += 12;
+            got += 12;
             qf = qfind;
             while (*qf) {
                 *p++ = *qf++;
             }
-        /* Let's handle accents [129-255] -- no accent_extend here as it's handled in eval.c in parse_ansi */
-        } else if ( (((int)(unsigned char)*q) > 160) && (((int)(unsigned char)*q) < 256) && ((p+10) < pend) ) {
-            sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
-            in+=5;
-            got+=5;
+        } else if (((p + 13) < pend) && *q && *(q + 1) && *(q + 2) && IS_3BYTE((int) (unsigned char) *q) &&
+                   IS_CBYTE(*(q + 1)) && IS_CBYTE(*(q + 2))) {
+            sprintf(tmpbuf, "%02x%02x%02x", (int) (unsigned char) *q, (int) (unsigned char) *(q + 1),
+                    (int) (unsigned char) *(q + 2));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
+
+            q += 2;
+            in += 10;
+            got += 10;
             qf = qfind;
-            while ( *qf ) {
-               *p++ = *qf++;
+            while (*qf) {
+                *p++ = *qf++;
             }
-	} else {
-	    in--;
-	    if (p >= pend)
-		lost++;
-	}
+        } else if (((p + 13) < pend) && *q && *(q + 1) && IS_2BYTE((int) (unsigned char) *q) && IS_CBYTE(*(q + 1))) {
+            sprintf(tmpbuf, "%02x%02x", (int) (unsigned char) *q, (int) (unsigned char) *(q + 1));
+            tmpptr = encode_utf8(tmpbuf);
+            sprintf(qfind, "%s", tmpptr);
+            free_sbuf(tmpptr);
+
+            q += 1;
+            in += 8;
+            got += 8;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
+            }
+            /* Let's handle accents [129-255] -- no accent_extend here as it's handled in eval.c in parse_ansi */
+        } else if ((((int) (unsigned char) *q) > 160) && (((int) (unsigned char) *q) < 256) && ((p + 10) < pend)) {
+            sprintf(qfind, "%c<%3d>", '%', (int) (unsigned char) *q);
+            in += 5;
+            got += 5;
+            qf = qfind;
+            while (*qf) {
+                *p++ = *qf++;
+            }
+        } else {
+            in--;
+            if (p >= pend)
+                lost++;
+        }
     }
+
     if (p > d->raw_input->cmd) {
-	d->raw_input_at = p;
+        d->raw_input_at = p;
     } else {
-	free_lbuf(d->raw_input);
-	d->raw_input = NULL;
-	d->raw_input_at = NULL;
+        free_lbuf(d->raw_input);
+        d->raw_input = NULL;
+        d->raw_input_at = NULL;
     }
-    if ( got > 0 ) {
-       d->input_tot += got;
-       mudstate.total_bytesin += got;
-       if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
-          if ( mudstate.avg_bytesin == 0 ) {
-             mudstate.avg_bytesin = mudstate.daily_bytesin;
-          } else {
-             mudstate.avg_bytesin = (mudstate.avg_bytesin + mudstate.daily_bytesin) / 2;
-          }
-          if ( mudstate.avg_bytesout == 0 ) {
-             mudstate.avg_bytesout = mudstate.daily_bytesout;
-          } else {
-             mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
-          }
-          mudstate.daily_bytesout = 0;
-          mudstate.daily_bytesin = got;
-          mudstate.reset_daily_bytes = time(NULL);
-       } else {
-          mudstate.daily_bytesin += got;
-       }
+
+    if (got > 0) {
+        d->input_tot += got;
+        record_more_bytes(got);
     }
-    if ( in > 0 )
-       d->input_size += in;
-    if ( lost > 0 )
-       d->input_lost += lost;
-    
+
+    if (in > 0)
+        d->input_size += in;
+    if (lost > 0)
+        d->input_lost += lost;
+
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
 }
