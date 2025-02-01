@@ -820,13 +820,16 @@ match_status(player, match)
 {
     switch (match) {
     case NOTHING:
-	notify(player, NOMATCH_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, NOMATCH_MESSAGE);
 	return NOTHING;
     case AMBIGUOUS:
-	notify(player, AMBIGUOUS_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, AMBIGUOUS_MESSAGE);
 	return NOTHING;
     case NOPERM:
-	notify(player, NOPERM_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, NOPERM_MESSAGE);
 	return NOTHING;
     }
     return match;

@@ -995,6 +995,7 @@ FLAGENT gen_flags[] =
   {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
   {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, 0, fh_any},
   {"HAS_ATTRPIPE", HAS_ATTRPIPE, '|', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"COLORMAIL", COLORMAIL, '!', FLAG4, 0, 0, 0, 0, fh_any}, 
   {"", 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 

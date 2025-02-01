@@ -181,7 +181,7 @@
 #define XTERMCOLOR      0x00800000      /* Extended ANSI Xterm colors */
 #define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
 #define HAS_OBJECTTAG   0x02000000      /* Has ____ObjectTag attribute set */
-/* 0x04000000 free */
+#define COLORMAIL	0x04000000 	/* Colorize the mail names */
 /* 0x08000000 free */
 /* 0x10000000 free */
 /* 0x20000000 free */
@@ -1008,6 +1008,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ZoneParent(x)	((Flags4(x) & ZONEPARENT) != 0)
 #define NoSpam(x)	((Flags4(x) & SPAMMONITOR) != 0)
 #define Blind(x)        ((Flags4(x) & BLIND) != 0)
+#define ColorMail(x)	((Flags4(x) & COLORMAIL) != 0)
 
 #define H_Startup(x)    ((Flags(x) & HAS_STARTUP) != 0)
 #define H_Fwdlist(x)    ((Flags2(x) & HAS_FWDLIST) != 0)

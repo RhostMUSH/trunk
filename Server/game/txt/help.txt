@@ -2529,7 +2529,7 @@
     STDError: #-1 FUNCTION (LRAND) EXPECTS 3 OR 4 ARGUMENTS [RECEIVED 2]
     You say "1 3 5"
   
-  See Also: null(), @@()
+  See Also: null(), @@(), quitenomatch()
 
 & FIRSTOF()
 & ALLOF()
@@ -4253,6 +4253,8 @@
   
   See Also: @lock/mail
 
+& mail signature
+& &mailsig
 & @mailsig
   Command: @mailsig <targetplayer>=<string>
   
@@ -10238,6 +10240,15 @@
   
   See Also: @ufail, @fail
   
+& COLORMAIL
+  Flag: COLORMAIL([!])
+  
+  This flag, when set, enables the coloring of player/object names
+  in the various mail commands.  This can become a bit over-reaching
+  so it can be individual enabled or disabled with this flag.
+  
+  See Also: MAILVALIDATE
+  
 & BOUNCE
 & BOUNCEFORWARD
   Flag: BOUNCE([o])  
@@ -12059,7 +12070,7 @@
     I - IC             c - NO_COMMAND     y - ZONEPARENT  
     P - PRIVATE        f - SHOWFAILCMD    z - ZONECONTENTS
     T - TELOK          g - BLIND          t - XTERMCOLOR
-    X - COMBAT         o - BOUNCE
+    X - COMBAT         o - BOUNCE         ! - COLORMAIL
     Z - ZONEMASTER     u - NO_UNDERLINE
   
     0 - MARKER0        1 - MARKER1        2 - MARKER2        3 - MARKER3
@@ -12427,33 +12438,33 @@
   
 & FUNCTION LIST2
 
-  CONVTIME()      COR()           COS()           CRC32()      CRC32OBJ()
-  CREATE()        CREATETIME()    CREPLACE()      CTU()        DEC()       
-  DECODE64()      DECRYPT()       DEFAULT()       DELETE()     DELEXTRACT()
-  DESTROY()       DICE()          DIG()           DIGEST()     DIST2D()    
-  DIST3D()        DIV()           E()             EDEFAULT()   EDIT()      
-  EDITANSI()      EE()            ELIST()         ELEMENTPOS() ELEMENTS()  
-  ELEMENTSMUX()   ELOCK()         EMIT()          ENCODE64()   ENCRYPT()   
-  ENTRANCES()     EQ()            ERROR()         ESCAPE()     ESCAPEX()   
-  ESCLIST()       EVAL()          EXIT()          EXP()        EXTRACT()   
-  EXTRACTWORD()   FBETWEEN()      FBOUND()        FDIV()       FILTER()    
-  FINDABLE()      FIRST()         FLAGS()         FLOOR()      FLOORDIV()  
-  FOLD()          FOLDERCURRENT() FOLDERLIST()    FOREACH()    FULLNAME()  
-  GARBLE()        GENPASSWORD()   GET()           GET_EVAL()   GLOBALROOM() 
-  GRAB()          GRABALL()       GREP()          GT()         GTE()        
-  GUILD()         HASATTR()       HASATTRP()      HASFLAG()    HASTOGGLE()  
-  HASTOTEM()      HASTYPE()       HASQUOTA()      HASRXLEVEL(  HASTXLEVEL() 
-  HOME()          IBREAK()        IDLE()          IFELSE()     IINDEX()     
-  ILEV()          INC()           INDEX()         INF()        INPROGRAM()  
-  INSERT()        INUM()          INZONE()        IPV4MATH()   ISALNUM()    
-  ISALPHA()       ISCLUSTER()     ISDBREF()       ISDIGIT()    ISHIDDEN()   
-  ISNUM()         ISOBJID()       ISPUNCT()       ISSPACE()    ISTAG()      
-  ISUNICODE()     ISUTF8()        ISWORD()        ISXDIGIT()   ITER()       
-  ITEXT()         KEEPFLAGS()     KEEPTYPE()      LADD()       LAND()       
-  LAST()          LASTCREATE()    LATTR()         LAVG()       LCMDS()      
-  LCON()          LCSTR()         LDELETE()       LDIV()       LEMIT()      
-  LEFT()          LEXITS()        LFLAGS()        LINK()       LIST()       
-  LISTCOMMANDS()  LISTDIFF()      LISTFUNCTIONS()
+  CONVTIME()     COR()           COS()         CRC32()         CRC32OBJ()
+  CREATE()       CREATETIME()    CREPLACE()    CTU()           DEC()       
+  DECODE64()     DECRYPT()       DEFAULT()     DELETE()        DELEXTRACT()
+  DESTROY()      DICE()          DIG()         DIGEST()        DIST2D()    
+  DIST3D()       DIV()           E()           EDEFAULT()      EDIT()      
+  EDITANSI()     EE()            ELIST()       ELEMENTPOS()    ELEMENTS()  
+  ELEMENTSMUX()  ELOCK()         EMIT()        ENCODE64()      ENCRYPT()   
+  ENTRANCES()    EQ()            ERROR()       ESCAPE()        ESCAPEX()   
+  ESCLIST()      EVAL()          EXIT()        EXP()           EXTRACT()   
+  EXTRACTWORD()  FBETWEEN()      FBOUND()      FDIV()          FILTER()    
+  FINDABLE()     FIRST()         FLAGS()       FLOOR()         FLOORDIV()  
+  FOLD()         FOLDERCURRENT() FOLDERLIST()  FOREACH()       FULLNAME()  
+  GARBLE()       GENPASSWORD()   GET()         GET_EVAL()      GLOBALROOM() 
+  GRAB()         GRABALL()       GREP()        GT()            GTE()        
+  GUILD()        HASATTR()       HASATTRP()    HASFLAG()       HASTOGGLE()  
+  HASTOTEM()     HASTYPE()       HASQUOTA()    HASRXLEVEL(     HASTXLEVEL() 
+  HOME()         IBREAK()        IDLE()        IFELSE()        IINDEX()     
+  ILEV()         INC()           INDEX()       INF()           INPROGRAM()  
+  INSERT()       INUM()          INZONE()      IPV4MATH()      ISALNUM()    
+  ISALPHA()      ISCLUSTER()     ISDBREF()     ISDIGIT()       ISHIDDEN()   
+  ISNUM()        ISOBJID()       ISPUNCT()     ISSPACE()       ISTAG()      
+  ISUNICODE()    ISUTF8()        ISWORD()      ISXDIGIT()      ITER()       
+  ITEXT()        KEEPFLAGS()     KEEPTYPE()    LADD()          LAND()       
+  LAST()         LASTCREATE()    LATTR()       LATTRP()        LAVG()     
+  LCMDS()        LCON()          LCSTR()       LDELETE()       LDIV()     
+  LEMIT()        LEFT()          LEXITS()      LFLAGS()        LINK()     
+  LIST()         LISTCOMMANDS()  LISTDIFF()    LISTFUNCTIONS()
   
 { 'help function list3' for more }
   
@@ -12483,9 +12494,9 @@
   PARSESTR()    PASSTHROUGH() PEDIT()        PEMIT()          PFIND()        
   PGREP()       PI()          PID()          PMATCH()         PORT()         
   POS()         POSS()        POWER()        POWER10()        PRINTF()       
-  PRIVATIZE()   PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUOTA()        
-  R()           RACE()        RAND()         RANDPOS()        RANDMATCH()    
-  RANDEXTRACT() 
+  PRIVATIZE()   PROGRAMMER()  PTIMEFMT()     PUSHREGS()       QUIETNOMATCH()
+  QUOTA()       R()           RACE()         RAND()           RANDPOS()      
+  RANDMATCH()   RANDEXTRACT() 
     
 { 'help function list4' for more }
  
@@ -12639,8 +12650,8 @@
                       EDEFAULT() ELOCK() FULLNAME() GET() GET_EVAL() 
                       GRAB() GRABALL() GREP() GUILD() HASATTR() HASATTRP() 
                       HASFLAG() HASTOGGLE() HASTOTEM() HASTYPE() HOME() 
-                      LASTCREATE() LATTR() LCMDS() LCON() LEXITS() LFLAGS()
-                      LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ() 
+                      LASTCREATE() LATTR() LATTRP() LCMDS() LCON() LEXITS() 
+                      LFLAGS() LOCK() LTOGGLES() LTOTEMS() LZONE() NAME() OBJ()
                       OBJEVAL() ORFLAG() ORFLAGS() ORTOTEM() ORTOTEMS() 
                       PARENT() PGREP() POSS() RACE() SHIFT() SUBJ() TYPE() U()
                       U2() UDEFAULT() UDEFAULT2() UEVAL() ULDEFAULT() 
@@ -13957,6 +13968,23 @@
   
   See Also: randpos(), randmatch(), extract(), extractword(), index(), rand()
   
+& quietnomatch()
+  Function: quietnomatch(<string>)
+  
+  This function will evaluate <string> and will supress any match message
+  errors of 'I don't see that here' that may be generated.
+  
+  This is a simple way to help elminiate warning spam from functions.
+  
+  Example:
+    > say objeval(#-1,boo)
+    I don't see that here.
+    You say "boo"
+    > say quitenomatch(objeval(#-1,boo))
+    You say "boo"
+   
+  See Also: stderr()
+   
 & quota()
   Function: quota(<player>)
   
@@ -20530,9 +20558,13 @@
   
   See Also: lattr()
   
+& LATTRP()
 & LATTR()
   Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
+            lattrp(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
  
+  Note: lattrp() is the parent version of lattr()
+  
   Returns a list of the attributes set on <obj>.  If <wild> is given, only
   attributes matching it are returned.  If you specify <regexp> as true (1)
   then the wildcard pattern may be regular expressions.  You may specify the 
@@ -20555,6 +20587,7 @@
   
   { see 'help lattr2' to continue }
 
+& LATTRP2
 & LATTR2   
   CONTINUED
   Function: lattr(<obj>[/<wild>][,<targ> [,<type>][,<flg>][,<regexp>][,<tree>])
@@ -22537,7 +22570,7 @@
     You say "- "
   
   See Also: localize(), eval(), subeval(), null(), privatize(), sandbox(), 
-            stderr()
+            stderr(), quietnomatch()
   
 & NULL()
   Function: null(<string>)
@@ -22551,7 +22584,7 @@
     You say "- test"
   
   See Also: localize(), eval(), subeval(), @@(), privatize(), sandbox(),
-            stderr()
+            stderr(), quietnomatch()
   
 & STEP()
   Function: step([<obj>/]<attr>,<list>,<step size>[,<delim>[,<output delim>]])
@@ -28497,7 +28530,9 @@
            mail [@]<player-list>=[<subj>//]<body> (with no toggle)
            mail [<mesg#>|new|unread|nall|uall|ball|1-N]
   
-   ---- For the main mail help file please see:  HELP MAIL MAIN ----
+   NOTE: ***********************************************************
+         * For the main mail help file please see:  HELP MAIL MAIN *
+         ***********************************************************
   
    Note: For folder help please type 'help folder'
   
@@ -28533,15 +28568,67 @@
   See Also: mail main, mail topics, folder
   
 & mail topics
+  Topic: MAIL TOPICS
+  
     Available Mail Topics are:
   
     mail-writing           mail-reading            mail-deleting
     mail-folders           mail-admin              mail-reviewing
     mail-sharing           mail-examples           mail-other
     mail-aliases           mail-filtering          mail-attributes
+    mail-obfuscate         mail-flags
   
     A tutorial can be seen with:
     mail tutorial
+  
+& MAIL-FLAGS
+  Topic: MAIL-FLAGS
+  
+  The following flags and toggles help with the mail system.
+  
+  Toggles:
+    -- BRANDY_MAIL -- Enables a mail line editor like MUX/TM3
+    -- PENN_MAIL   -- Enables formatting to better match PennMUSH
+    -- MAIL-STRIPRETURN -- lines linked are done with spaces, not returns
+    -- MAILVALIDATE -- enforce valid send lists before sending mail
+                    -- This also expands message lists when you mail/proof
+
+  Flags:
+    -- COLORMAIL    -- Color player/object names on mail command output
+  
+  Attribute Flags:
+    -- NO_PARSE     -- requires removal from @mailsig to evaluate
+  
+  See Also: mail topics
+
+& MAIL-OBFUSCATE
+  Topic: MAIL-OBFUSCATE
+  
+  Wizards may obfuscate where it appears the mail comes from.  This is just
+  an obfuscation.  Mail can still be replied or fowarded to the original
+  writer and it will display their real name in this case.
+  
+  This is intended for system based mails so that players will have a better
+  understanding of where a given mail may have come from.  
+  
+  The underlying sender remains the same.  It is just obfuscated.
+  
+  For a wizard to obfsucate a sender, they need to set an attribute to the
+  target of where they want it to show it came from.  This can be any valid
+  dbref#, including non-players.  
+  
+  Please be aware that it assumes a 16 character name and formatting may
+  break if the name of the target exceeds this, but it's just a display issue.
+  
+  Examples:
+    > @create An Obfuscation
+    An Obfuscation created as dbref #12345
+    > &OBF me=#12345
+    Set.
+    > mail *player=<obf>My Subject//My Body
+    Mail: Message sent to -> Player
+  
+  See Also: mail send, mail topics
   
 & &MAILNOTIFY
 & @MAILNOTIFY
@@ -28611,6 +28698,8 @@
   See Also: @mailsig, &mailnotify
  
 & mail-filtering
+  Topic: MAIL FILTERING
+  
   You can specify mail filtering by using the MAILFILTER attribute.  This
   allows you filter incoming mail by either the target player or the subject.
   If the mail was sent anonymously, the player is returned as #-1, otherwise
@@ -28621,22 +28710,31 @@
   See Also: MAILFILTER
   
 & mail-aliases
-  There are multiple ways to have aliases in RhostMUSH.  The standard method
-  is for global mail aliases.  Only wizards may set, modify, or remove global
-  mail aliases.  You may see global mail aliases by typing:
+  Topic: MAIL-ALIASES
   
-                               mail/alias
+  RhostMUSH allows multiple ways to set and utilize aliases for mail.
+  Global aliases can be seen with 'mail/alias'.  Personal aliases are
+  just normal attributes you would set on yourself.
   
-  This command will show all the global mail aliases, if it's a static mail
+  Summation:
+       +alias  -- global STATIC mail alias shown with 'mail/alias'
+       $alias  -- global DYNAMIC mail alias shown with 'mail/alias'
+       &alias  -- personal STATIC alias with attribute named after '&'
+       ~alias  -- personal DYNAMIC alias with attribute named after '~'
+  
+  Usage Example:
+       mail/send +foo $bar &baz ~beep=My mail!
+  
+  mail/alias will show all the global mail aliases, if it's a static mail
   alias or a dynamic mail alias, or if there's any locks that make it so
   you can not use them.  To use a static mail alias, you would prepend a '+'
   before the alias.  Such as:
   
-                               mail +wizards=To all Wizards!
+     mail +wizards=To all Wizards!
   
   For dynamic mail aliases, you would prepend a '$' before the alias.
   
-                               mail $wizards=To all Wizards!
+     mail $wizards=To all Wizards!
   
   You will see with mail/alias if it's a static global (+) or a dynamic
   global ($) mail alias to help avoid confusion.
@@ -28644,94 +28742,126 @@
   {see 'help mail-aliases2' for personal mail aliases}
   
 & mail-aliases2
-  There is a third method for aliases.  These are considered personal mail
-  aliases, and anyone may set them.  To set them, you just store an attribute
-  on yourself containing a list of players.  This field can not be evaluated.
-  An example of a personal mail alias would be:
+  Topic: MAIL-ALIASES (continued)
   
-                               &myfriends me=Bob Sarah #456 Julie
-                               @set me=myfriends:Bob Sarah #456 Julie
+  Personal mail aliases are nothing more than attributes that you would 
+  set on yourself.  Please refer to 'help &' on setting attributes.
   
-  Either sets an alias for Bob, Sarah, player #456, and Julie.  Any non-players
-  will automatically be stripped in the sending of the mail (with appropriate
-  warning messages).  To use a personal alias, you would use the key field
-  '&' to identify to the mail system that it is a personal mail alias.
+  Static aliases are fetched with using a prefix of '&' for an alias.
+  This will take the contents of your attribute verbatum as the list.
   
-                               mail &myfriends=To all of my friends!
+  Examples: 
+     @@ set the attribute with the players you want to send to
+     > &myfriends me=Bob Sarah #456 Julie
+     @@ mail using the previously set personal alias
+     > mail/send &myfriends=Mail to my friends.
+
+  Note: Any non-players will automatically be stripped in the sending of 
+        the mail (with appropriate warning messages).  
+  
+  Dynamic aliases use the same attribute structure above.  However, 
+  instead of a prefix of '&' you would use '~'.  This tells the mail system
+  to evaluate the contents of your attribute for the send list.
+  
+    Exmaple: 
+      @@ set the attribute with an evaluation
+      > &list1 me=Sue
+      > &list2 me=Bob
+      > &morefriends me=[get(me/list1)] [get(me/list2)]
+      @@ mail using the previously set personal alias
+      > mail ~morefriends=To all of my friends!
   
   For help on setting attributes, please check help for '&' or '@set'.
   
-& mail-other
-  See 'help mail cmdlist', 'help mail quicklist', 'help mail write cmdlist', 
-      'help folder cmdlist'
-  
-& mail-admin
-  See 'wizhelp mail' and 'wizhelp wmail'.
+  See Also: mail topics  
   
 & mail-examples
-  See 'help mail write cmdlist', 'help mail cmdlist', 'help mail quicklist',
-      'help folder cmdlist'
+& mail-other
+  Topic: MAIL-OTHER
+  
+     help mail cmdlist       -- summary list of all mail commands
+     help mail quicklist     -- quick list of all mail commands
+     help mail write cmdlist -- syntax handling of line editing mail
+     help folder cmdlist     -- summary list of all folder commands
+  
+  See Also: mail topics
+  
+& mail-admin
+  Topic: MAIL-ADMIN
+  
+     wizhelp mail  -- show wizard help of basic mail commands
+     wizhelp wmail -- show wizard help of wizard mail maintenance commands
+  
+  See Also: mail topics 
   
 & mail-reviewing
+  Topic: MAIL-REVIEWING
+  
   The following is used for reviewing mail:
-  1) mail/status                              [help mail staus]
-     - List your mail
-  2) mail/quick                               [help mail quick]
-     - Gives status report of mailbox
-  3) mail/recall                              [help mail recall]
-     - Shows listing of all mail you sent that's not been read
-  4) mail/recall #                           
-     - Views the sent message
-  5) mail/recall #=[+all|player(s)]
-     - Yanks the specified player(s) (or all) from receiving the mail.
+     mail/status                              [help mail staus]
+        - List your mail
+     mail/quick                               [help mail quick]
+        - Gives status report of mailbox
+     mail/recall                              [help mail recall]
+        - Shows listing of all mail you sent that's not been read
+     mail/recall #                           
+        - Views the sent message
+     mail/recall #=[+all|player(s)]
+        - Yanks the specified player(s) (or all) from receiving the mail.
   
   See Also: mail recall, mail quick, mail status
   
 & mail-deleting
+  Topic: MAIL-DELETING
+  
   The following is used to delete mail:
-  1) mail/mark <range|message|*player>        [help mail mark]
-     - This marks the message(s) for deleting.
-  2) mail/mark/save <range|message|*player>   [help mail save]
-     - This marks the message(s) for saving from deleting.
-  3) mail/unmark <range|message|*player>      [help mail unmark]
-     - This removes the mark from the message
-  4) mail/unmark <range|message|*player>      [help mail save]
-     - This removes the saved mark from the message
-  5) mail/delete                              [help mail delete]
-     - This purges the mail that was marked.
-  6) mail/status
-     - This lists your mail (with the marks)
+     mail/mark <range|message|*player>        [help mail mark]
+        - This marks the message(s) for deleting.
+     mail/mark/save <range|message|*player>   [help mail save]
+        - This marks the message(s) for saving from deleting.
+     mail/unmark <range|message|*player>      [help mail unmark]
+        - This removes the mark from the message
+     mail/unmark <range|message|*player>      [help mail save]
+        - This removes the saved mark from the message
+     mail/delete                              [help mail delete]
+        - This purges the mail that was marked.
+     mail/status
+        - This lists your mail (with the marks)
   
   See Also: mail mark, mail save, mail unmark, mail delete, mail status
   
 & mail-reading
+  Topic: MAIL-READING
+  
   The following commands are used to read the mail:
-  1) mail new                    [help mail new]
-     - This reads the first new message
-  2) mail nall                   [help mail nall]
-     - This reads ALL new mail messages (can be spammy).
-  3) mail unread                 [help mail unread]
-     - This reads the first unread message
-  4) mail uall                   [help mail uall]
-     - This reads ALL unread mail messages (can be spammy).
-  5) mail both                   [help mail both]
-     - This reads the first new OR unread message
-  6) mail ball                   [help mail ball]
-     - This reads BOTH ALL unread AND new mail messages (can be spammy).
-  7) mail #                      [help mail read]
-     - This reads the specified message #.
-  8) mail/status                 [help mail status]
-     - This displays all the mail in your mailbox
-  9) mail/quick                  [help mail quick]
-     - This gives you a quick status of your mailbox.
- 10) mail +all
-     - This will read all your mail.
- 11) mail/read/save 
-     - This option will output mail in an MBOX format
+     mail new                    [help mail new]
+        - This reads the first new message
+     mail nall                   [help mail nall]
+        - This reads ALL new mail messages (can be spammy).
+     mail unread                 [help mail unread]
+        - This reads the first unread message
+     mail uall                   [help mail uall]
+        - This reads ALL unread mail messages (can be spammy).
+     mail both                   [help mail both]
+        - This reads the first new OR unread message
+     mail ball                   [help mail ball]
+        - This reads BOTH ALL unread AND new mail messages (can be spammy).
+     mail #                      [help mail read]
+        - This reads the specified message #.
+     mail/status                 [help mail status]
+        - This displays all the mail in your mailbox
+     mail/quick                  [help mail quick]
+        - This gives you a quick status of your mailbox.
+     mail +all
+        - This will read all your mail.
+     mail/read/save 
+        - This option will output mail in an MBOX format
   
   See Also: mail quick, mail status, mail read, mail topics, mail main
   
 & mail new
+  Command: mail new
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'new' at the end, it will read the FIRST new mail message in
   your mailbox.
@@ -28743,6 +28873,9 @@
   See Also: mail ball, mail uall, mail ball, mail unread, mail both
   
 & mail nall
+  Command: mail nall
+  
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'nall' at the end, it will read ALL the new mail messages
   you have in your mailbox.
@@ -28754,6 +28887,8 @@
   See Also: mail ball, mail uall, mail ball, mail new, mail both
   
 & mail unread
+  Command: mail unread
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'unread' at the end, it will read the FIRST unread mail message 
   in your mailbox.
@@ -28765,6 +28900,8 @@
   See Also: mail uall, mail nall, mail ball, mail new, mail both
   
 & mail uall
+  Command: mail uall
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'uall' at the end, it will read ALL the unread mail messages
   you have in your mailbox.
@@ -28776,6 +28913,8 @@
   See Also: mail ball, mail nall, mail new, mail unread, mail both
   
 & mail ball
+  Command: mail ball
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'nall' at the end, it will read ALL the new AND the unread
   mail messages you have in your mailbox.
@@ -28787,6 +28926,8 @@
   See Also: mail uall, mail nall, mail new, mail unread, mail both
   
 & mail both
+  Command: mail both
+  
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify 'both' at the end, it will read the first new OR unread
   mail message you have in your mailbox.
@@ -28798,6 +28939,7 @@
   See Also: mail uall, mail nall, mail new, mail unread, mail ball
   
 & mail +all
+  Command: mail +all
   This is a sub-option to 'mail/read' (short for just 'mail').  If you
   specify '+all' at the end, it will read every message that you have
   in your mailbox.  Warning:  This can be spammy.
@@ -28809,48 +28951,56 @@
   See Also: mail uall, mail nall, mail new, mail unread, mail ball
   
 & mail-sharing
+  Topic: MAIL-SHARING
+  
   The following commands are used to share a mailbox with a friend:
-  1) mail/share <key>              [help mail share]
-     - You may refer to 'help @lock keys' on how to set this.
-  2) folder/share <mailbox>        [help folder share]
-     - This identifies what folder(s) you wish to share.  Those who
-       pass the mail/share lock above, will be able to see the folders.
-  3) mail/number <player>          [help mail number]
-     - This lists the message(s) of the player you're sharing mail with.
-  4) mail/check <player>=<message> [help mail check]
-     - This reads the specified message in player's shared folders
-       Note: all folders are combined that you can share.
+     mail/share <key>              [help mail share]
+        - You may refer to 'help @lock keys' on how to set this.
+     folder/share <mailbox>        [help folder share]
+        - This identifies what folder(s) you wish to share.  Those who
+          pass the mail/share lock above, will be able to see the folders.
+     mail/number <player>          [help mail number]
+        - This lists the message(s) of the player you're sharing mail with.
+     mail/check <player>=<message> [help mail check]
+        - This reads the specified message in player's shared folders
+          Note: all folders are combined that you can share.
   
   See Also: mail share, folder share, mail topics, mail main
   
 & mail-writing
+  Topic: MAIL-WRITING
+  
   The following commands exist for writing new mail messages:
-  1) Brandy/@mail
-     A) @toggle me=brandy_mail mail_stripreturn       [set up interface]
-     B) mail[/forward|reply] <player(s)>=<subj>       [start message]
-     C) -<new line of text>                           [add new text]
-     D) mail/write +feditall=old,new                  [edit text]
-     E) mail/write +forget                            [toss message]
-     F) mail/write +subject=<text>                    [reset the subject]
-     G) mail/write +acc=<players>                     [append to players]
-     H) mail/write +cc=<players>                      [reset the players]
-     I-1) --                                          [send off mail] (or)
-     I-2) -~                                          [send mail anonymously]
-     J) mail/send <player(s)>=<subject>//<body>       [quick-send of mail]
-  2) PENN @mail
-     A) @toggle me=!brandy_mail penn_mail             [set up interface]
-     B) mail <player-list>=<subject>/<body>           [send message]
-  3) Seawolf(Rhost) Mail
-     A)  mail <player-list>=<subject>//<body>         [send mail - type 1]
-     B1) mail/write <start of text>                   [first line of text]
-     B2) -<new line of text>                          [add new text]
-     B3) mail/write +subject=<subject>                [set subject]
-     B4) mail/write [+send|+forward|+reply]=<players> [send message - type 2]
-     B5) mail/write/anon [+send|+forward|+reply]=<pl> [send anonymously -tp 3]
+     Brandy/@mail
+        @toggle me=brandy_mail mail_stripreturn       [set up interface]
+        mail[/forward|reply] <player(s)>=<subj>       [start message]
+           -<new line of text>                        [add new text]
+        mail/write +feditall=old,new                  [edit text]
+        mail/write +forget                            [toss message]
+        mail/write +subject=<text>                    [reset the subject]
+        mail/write +acc=<players>                     [append to players]
+        mail/write +cc=<players>                      [reset the players]
+           --                                         [send off mail] (or)
+           -~                                         [send mail anonymously]
+        mail/send <player(s)>=<subject>//<body>       [quick-send of mail]
+  
+     PENN @mail
+        @toggle me=!brandy_mail penn_mail             [set up interface]
+        mail <player-list>=<subject>/<body>           [send message]
+  
+     Seawolf(Rhost) Mail -- Base mail system
+         mail <player-list>=<subject>//<body>         [send mail - type 1]
+         mail/write <start of text>                   [first line of text]
+            -<new line of text>                       [add new text]
+         mail/write +subject=<subject>                [set subject]
+         mail/write [+send|+forward|+reply]=<players> [send message - type 2]
+         mail/write/anon [+send|+forward|+reply]=<pl> [send anonymously -tp 3]
   
   See Also: mail main, mail topics, mail cmdlist, mail write cmdlist
   
 & mail-folders
+  Topic: MAIL-FOLDERS
+  
   The folders command are controlled with the 'folder' command.
   
   Please refer to 'help folder cmdlist' for the listing.
@@ -28858,6 +29008,8 @@
   See Also: mail main, mail topics, mail cmdlist
   
 & mail main
+  Topic: MAIL MAIN
+  
   RhostMUSH has its own in-game mail system.  The mail command
   takes various switches to perform the various mail sub-commands, as in:
   
@@ -28908,10 +29060,8 @@
   See Also: @mailsig, &mailfilter, &mailnotify, mail lock, mail setup_aliases
   For wizards, wizhelp: @mailsmax, @mailtime
 
-& mail creating
-  Please see 'help mail send'
-  
 & mail writing
+& mail creating
   Please see 'help mail send'
   
 & mail technical
@@ -28958,6 +29108,7 @@
   mail/next                  - This automatically reads the next message.
   
   { see help mail cmdlist2 for more }
+
 & mail cmdlist2
   Topic: mail quicklist of commands (CONTINUED) [2/3]
   
@@ -29083,13 +29234,37 @@
   
   See Also: mail version, mail basics, mail signature
   
+& mail setup aliases
 & mail setup_aliases
-  Command:  1. mail/alias  
-            2. wmail/alias[</switches>] [<alias-name>=<list of players>]
-            3. &ATTRIB me=<list of players> 
-            4. &ATTRIB me=<eval returning list of players>
-            5. &ALIAS.NAME <mail_def_object>=<eval returning list of players>
-            6. &COMMENT.NAME <mail_def_object>=<label description for alias>
+  Topic: MAIL SETUP ALIASES
+  
+    1. mail/alias  
+       --- this shows the global aliases
+    2. wmail/alias[</switches>] [<alias-name>=<list of players>]
+       --- this sets a global STATIC alias
+       +++ use with: mail +aliasname=message
+    3. &ALIAS.NAME <mail_def_object>=<eval returning list of players>
+       --- this sets a global dynamic alias
+       +++ use with: mail $aliasname=message
+       === Set this attribute HIDDEN to make it wiz only
+       === Set this attribute PINVISIBLE to hide members from non-wizards
+    4. &COMMENT.NAME <mail_def_object>=<label description for alias>
+       --- this describes the global dynamic alias
+    5. &ATTRIB me=<list of players> 
+       --- this sets a personal alias for static use
+       +++ use with: mail &attributename=message
+    6. &ATTRIB me=<eval returning list of players>
+       --- this sets a personal alias for dynamic use (evaluates)
+       +++ use with: mail ~attributename=message
+   
+  The above commands above are a quick list on how to setup aliases for use
+  with the mail system.
+  
+  For a more detailed breakdown, see 'help mail setup alias2'
+  
+& mail setup_aliases2
+& mail setup aliases2
+  Topic: MAIL SETUP ALIASES
   
   There are various types of aliases you can set up.  Below will be described
   each alias and how to set up each kind and use them.
@@ -29097,11 +29272,39 @@
   * Global Aliases
     Global aliases can only be created by a wizard.  You can see what global
     aliases exist with 'mail/alias'.  To use a global alias, you would use
-    the '+' prefix.  To create global aliases as a wizard, 
-    you use the 'wmail/alias' command.
-    Example:  mail +wizards=Hi!
-    1.  Option '1' above is how you would see all the current global aliases.
-    2.  Option '2' above is how a wizard would set a STATIC global alias.
+    the '+' prefix.  To create global aliases as a wizard, you use the 
+    'wmail/alias' command.
+    
+    Examples:  
+      @@ to use alias   
+      > mail +wizards=Hi!
+      @@ to see alias                   
+      > mail/alias  (wizards can use wmail/alias as well)
+      @@ to set static aliases         
+      > wmail/alias alisname=player1 player2 ... playerN
+  
+  * Global Evaluated Aliases
+    Evaluated aliases are similiar to static aliases.  When a wizard sets
+    these up, they work by evaluation so can be used to set up global
+    dynamic aliases.  These are referenced with a '$' prefix.  This requires 
+    that the @admin config parameter 'mail_def_object' is defined.
+    
+    Examples:
+      @@ to use alias
+      > mail $wizards=Hi!
+      @@ to see alias
+      > mail/alias  (wizards can use wmail/alias as well)
+      @@ to set dynamic aliases
+      > @create MailAliases
+        MailAliases created as object #12345
+      > @admin mail_def_object=12345
+      @@ set the actual alias
+      > &ALIAS.WIZARDS #12345=[search(flags=W)] 
+      @@ describe the alias
+      > &COMMEND.WIZARDS #12345=All Wizards
+      @@ set optional permissions on the alias
+      > @set #12345/alias.wizards=hidden (this makes it wiz only)
+      > @set #12345/alias.wizards=pinvis (this hides the membership lists)
   
   * Personal Aliases
     Personal aliases are actually nothing more than attributes you store on
@@ -29109,40 +29312,20 @@
     set can set the alias like this:  &friends me=bob terry james
     To use the personal STATIC alias, you would use the '&' prefix.
     To use the personal DYNAMIC (eval) alias, you would use the '~' prefix.
-    3.  Option '3' above sets a static list of dbref#'s (or player names)
-        that will be used as a personal alias you can then use in sending 
-        mail with '&'.
-        Example: &FRIENDS me=Moe Larry Curley Shemp Joe
-                 mail &friends=Hi!
-    4.  Option '4' works similar to option 3, except it is a function
-        evaluation that then returns a list of player names or dbref#'s to
-        use in a mail.  You  may also specify another target other than
-        yourself.
-        Example: &EVAL_FRIENDS MyObject=[get(Stooges/player_list)]
-                 mail ~MyObject/eval_friends=Hi!
    
-  * Global Evaluated Aliases
-    Evaluated aliases are similiar to static aliases.  When a wizard sets
-    these up, they work by evaluation so can be used to set up global
-    dynamic aliases.  These are referenced with a '$' prefix.
-    This requires that the @admin config parameter 'mail_def_object' is
-    defined.
-    5.  Option '5' above sets the actual evaluated alias.
-    6.  Option '6' just sets a label/description that is shown when a player
-        lists the aliases.
-        Example:  mail $wizards=Hi!
+    Examples:
+      @@ to set the personal alias, just set any attribute on yourself
+      > &STATIC me=Bob Sue Henry
+      @@ dynamic aliases use attributes too, but are evaluated
+      > &LIST1 me=Bob
+      > &LIST2 me=Sue
+      > &DYNAMIC me=[v(list1)] [v(list2)]
+      @@ to use a static personal alias
+      > mail &static=Hi friends!
+      @@ to use a dyanamic personal alias (which evaluates the alias contents)
+      > mail ~dynamic=Hi friends!
     
-  See Also: help mail send 
-  
-& mail signature
-  Command: &MAILSIG me=<string>
-   
-  mail signatures are done by storing a user-defined attribute on yourself.
-  the attribute is called 'MAILSIG'.  To set this attribute, you would do:
-      &MAILSIG me=whatever you want as your signature.
-  
-  Please keep in mind that this attribute is *NOT* evaluated for functions and
-  is taken as-is.
+  See Also: mail send 
   
 & mail/version
 & mail version
@@ -29174,9 +29357,9 @@
     
   The mailsystem has a built-in line editor for sending all forms of mail.  
   This includes forwarded mail, replied-to mail, and standard mail and mass 
-  mail. To look at sending mail by using a line by line input, check the help 
-  for:
+  mail. 
   
+  For the subtopics of the mail line editor interface:
      mail write   (IE: help mail write)
   
   See Also: mail write, mail send, mail line
@@ -29222,34 +29405,42 @@
 & mail list_aliases
   Topic: mail aliases
   
-  There are two distinctive types of mail aliases.  The first is the
-  user defined alias.  To set this, you would set an attribute on
-  yourself with the names and/or numbers of the people in the list
-  you want to send to.
+  There are two distinctive types of mail aliases.  
   
-  Example: &FRIENDS me=Nyctasia Seawolf billie sappho
-           &EVAL_FRIENDS me=[v(myfriends_list)]
+  Form #1:
+    The first is the
+    user defined alias.  To set this, you would set an attribute on
+    yourself with the names and/or numbers of the people in the list
+    you want to send to.
   
-  You would use this by inputting on the 'send' option of mail
-  the following:
+    Examples: 
+      > &FRIENDS me=Nyctasia Seawolf billie sappho
+      > &EVAL_FRIENDS me=[v(myfriends_list)]
+      @@ use static personal alias
+      > mail[/send] &friends=Hello my friends!
+      @@ use dynamic personal alias
+      > mail[/send] ~me/eval_friends=Hello my friends! 
   
-  Example: mail[/send] &friends=Hello my friends!
-           mail[/send] ~me/eval_friends=Hello my friends! 
+    As shown, the /send parameter is optional for sending mail.
   
-  As shown, the /send parameter is optional for sending mail.
+  Form #2:
+    The second form of aliases are global aliases.  These are 
+    established by the administration for the use of everyone on the 
+    system.  You would use this by inputting on the 'send' option
+    of mail the following: 
   
-  The second form of aliases are global aliases.  These are 
-  established by the administration for the use of everyone on the 
-  system.  You would use this by inputting on the 'send' option
-  of mail the following: 
-  (Let's assume a global alias of 'members')
-  (Let's assume a dynamic eval list of 'wizards' for wizards)
+    (Let's assume a global alias of 'members')
+    (Let's assume a dynamic eval list of 'wizards' for wizards)
+     
+    Examples: 
+      @@ show global aliases
+      > mail/alias 
+      @@ use the global static alias
+      > mail[/send] +members=Welcome fellow guild members!
+      @@ use the global dynamic alias
+      > mail[/send] $wizards=Welcome eval-wizard list members!
   
-  
-  Example: mail[/send] +members=Welcome fellow guild members!
-           mail[/send] $wizards=Welcome eval-wizard list members!
-  
-  As above, the /send parameter is optional.
+    As above, the /send parameter is optional.
   
   See Also: mail send, mail, mail basics, mail alias
   
@@ -29282,21 +29473,25 @@
   
 & mail basics2
   Topic: mail basics (continued)
+  
   To mark a message for deletion:
      mail/mark #                        (help mail mark)
-     For example:   mail/mark 12
+     For example:   
+       > mail/mark 12
   
   To save a message (keep it from being purged):
      mail/mark/save #                   (help mail save)
-     For example:   mail/mark/save 12
+     For example:   
+       > mail/mark/save 12
  
   To delete marked messages:
      mail/delete                        (help mail delete)
   
   To get a quick summary of mail (how many new, unread, old, marked, 
   current folder):
+  Note: 'quick' is optional for this command (mail/quick).
      mail[/quick]                       (help mail quick)
-     Note that 'quick' is optional for this command (mail/quick).
+  
   
   To see all mail headers and status:
      mail/status                        (help mail status)
@@ -29330,8 +29525,9 @@
   Autoforwarding can only be forwarded on a one-time basis.  It is not
   recursive.  So in other words, you can not forward mail forwarded to you.
   
-  To remove an autoforwarding use the command:
-      mail/autofor +off
+  Examples:
+    > mail/autofor *otherplayer
+    > mail/autofor +off (to remove it)
   
   Mail that is autoforwarded will show up to the user sending you mail
   where it got autoforwarded to.
@@ -29346,12 +29542,19 @@
   
   The save switch is used in junction with the MARK switch.  When used,
   this will mark a mail message as SAVED and any autodeletion will
-  not remove the mail.  Please note that there is a maximum number of
-  saved messages available that you can use and once reached, you are
-  unable to save new ones w/o removing one of your prior ones.  To
-  unmark the message you may either use mail/mark (without a save)
+  not remove the mail.  
+  
+  Please note that there is a maximum number of saved messages available 
+  that you can use and once reached, you are unable to save new ones 
+  w/o removing one of your prior ones.  
+  
+  To unmark the message you may either use mail/mark (without a save)
   or mail/unmark.  Saved mail shows up with a 'S' by the flag.
   
+  Examples:
+    > mail/mark/save 7-9
+    > mail/unmark 9
+   
   See Also: mail mark
   
 & mail/alias
@@ -29364,8 +29567,14 @@
   administration of the mush.  If you have ideas of global aliases,
   suggest it to them and they will add them.
   
-  Syntax: mail/alias
-  Wizards: wizhelp wmail alias
+  See 'help mail-aliases' on all the ways to set and use aliases.
+   
+  Examples:: 
+    > mail/alias
+  
+  Wizards: 
+    > mail/alias
+    > wmail/alias
   
 & mail/anonymous
 & mail anonymous
@@ -29386,10 +29595,20 @@
   If you use the line editor, you can use -~ to send anonymously instead of
   -- which would normally send the mail.
    
+  As this can be abusive, it is possible to globally or individualy disable
+  anonymous mailing.
+  
+  Examples:
+    > mail/anon[/send] bob=This is anonymous!
+  
+  In the above example, /send is optional.
+  
   See Also: mail send, mail reply, mail forward
   
 & mail massmail
   Topic: mail mass mailing
+  
+  Note: use a comma if you are sending mail to multi-word players.
   
   Massmailing is done by using the optional /SEND feature of the mail
   system.  You may use commas as the delimiter.  The syntax is as follows:
@@ -29404,12 +29623,18 @@
   To display to all people in the mail who the message was sent to, add
   a @ before the first name.  For example:
   
-     mail @user1 user2 ... userx=message
+  > mail @user1 user2 ... userx=message
   
   The subject, which is optional can be added before the message and 
   separated with two /'s.  For example:
   
-     mail user=This is my subject//This is the mail I want to send you.
+  > mail user=This is my subject//This is the mail I want to send you.
+ 
+  Optional for wizards:
+  > &BOB me=#123
+  > mail user=<bob>This is my subject//This is the mail I want to send you.
+  
+  The above would obfuscate the sent message to the name of dbref #123 
   
   See Also: mail send forward, mail send reply, mail send
   
@@ -29448,7 +29673,7 @@
   Note:  If you add a '-' after next (i.e. mail/next -) it will read the
          previous message.
   
-  See Also: mail status, mail zap, mail read
+  See Also: mail status, mail zap, mail read, mail previous
   
 & mail/zap
 & mail zap
@@ -29469,7 +29694,8 @@
   Note:  If you add a '-' after zap (i.e. mail/zap -) it will read the
          previous message.
   
-  See Also: mail status, mail next, mail mark, mail delete, mail read
+  See Also: mail status, mail next, mail mark, mail delete, mail read,
+            mail previous
   
 & mail sending
   Topic: mail sending
@@ -29538,6 +29764,8 @@
 & mail/send
 & mail send quick
   Command:  mail/send [@]<address list>=[<subject>//]<message>
+  (Wizard)  mail/send [@]<address list>=[<obfuscate>subject//]<message>
+  
   The address list can contain any number of recipients (up to the mush
   buffer limit) and can be one of the following:
       A player name  
@@ -29603,6 +29831,7 @@
     > mail player=how are you?
     > mail myfriend myotherfriend +social &friendlist=Party!!
     > mail/send player=My Subject//My Text I want to send you.
+    > mail/send player=<bob>My Subject//My Text I want to send you.
     > mail/send myfriend=Hi.  Meet me tomorrow at the club.
     > mail/send tinypal #12345=Are you coming to the party?
     > mail/send &allfriends=Come to my club for a party tonight. 
@@ -29726,6 +29955,7 @@
 & mail/lock
 & mail lock
   Command: mail/lock <key>
+           @lock/mail me=<key>
   
   You can lock your mailbox so that only certain people can (or cannot)
   send you mail.  The key is the same as for any other lock.  Type:
@@ -29742,7 +29972,7 @@
    
   The attribute it sets on you is 'MailLock' and is set like a normal lock.
    
-  See Also: mail reject, mail recall
+  See Also: mail reject, mail recall, @lock
   
 & mail/status
 & mail status
@@ -29809,7 +30039,7 @@
   
   This command will delete all your marked messages in all your folders.
   
-  See Also: mark, unmark, recall, save
+  See Also: mail mark, mail unmark, mail recall, mail save
   
 & mail/recall
 & mail recall
@@ -29876,8 +30106,10 @@
   
   You may specify a search by player with the /recall switch with or without
   the /all switch.  Such would be like:
-    mail/recall *TinyPlayer
-    mail/recall/all *TinyPlayer
+  
+  Examples:
+    > mail/recall *TinyPlayer
+    > mail/recall/all *TinyPlayer
   
   The display will display all messages that you have sent.  The only 
   difference will be that some of the messages (probably most of them) you 
@@ -29945,17 +30177,23 @@
   Examples:
     > mail/number tinyspouse  (list all of tinyspouses mail [if you pass lock])
     > mail/number tinypal=2   (list just message 2 of tinyspouses mail)
+    > mail/check tinyfriend=4 (read tinyfriend's message #4)
    
+  You would use the mail/check command to see messages listed by this method.
+  
   See Also: mail status, mail check, mail page, mail share
   
 & mail/check
 & mail check
   Command: mail/check <target>=<#>
   
+  You would use the mail/number command to see the remote mail box.
+  
   If someone has set up their mailbox to be shared with you, you can use this
   command to read a particular message from the target's mailbox.
    
   Example:
+    > mail/number tinyfriend  (list all of tinyfriend's mail [if you pass lock])
     > mail/check tinyfriend=4    (read tinyfriend's message #4)
    
   See Also: mail read, mail number, mail share
@@ -30125,6 +30363,11 @@
   The '+subject' subcommand to mail/write is used to set a subject line for
   your mail message.  You may use this command to also re-set it to something
   else if you so desire.
+   
+  Note: Wizards may start a subject with <label> to specify an obfuscation
+        that will override who appears that the mail is sent from.  Be aware
+        that mail that is replied to or forwarded will show the real name.
+        This is meant as a display override only!
   
   Examples:
     > mail/write Start of message
@@ -30603,7 +30846,7 @@
   To send mail quickly, you can use the default behavior of mail.  The
   syntax for a quick message is as follows:
   
-    mail/send [@] <player-list> = [optional subject//] Message Body
+     > mail/send [@] <player-list> = [optional subject//] Message Body
   
   This fires off the mail without initiating the line editor.
   
@@ -30623,9 +30866,9 @@
   line (to initialize the mail message being written) you may use a '-'
   to continue writing lines of text.
   
-    mail/write (used to initialize mail writing and write first line)
-    -          (can be used instead of mail/write to write additional lines)
-    mail/write +subject=<text> (used to add the subject)
+  > mail/write (used to initialize mail writing and write first line)
+  > -          (can be used instead of mail/write to write additional lines)
+  > mail/write +subject=<text> (used to add the subject)
   
   Example:
     > mail/write My first line of the mail
@@ -30633,6 +30876,8 @@
     > -My second line of the mail
     Mail: Write line 2 added
     > mail/write +subject=My Subject
+    Mail: Write subject set
+    > mail/write +subject=<obfuscate from>My Subject (for wizzes only)
     Mail: Write subject set
     > mail/write +list
     Mail: Your write message is:
@@ -30685,7 +30930,8 @@
   mail/write +send=[@]<player list>              - Send mail to players
   mail/write +forward=<mail #> [@] <player list> - Forward mail to players
   mail/write +reply=<mail #>                     - Replys to sender (sends)
-  mail/write +subject=<text>                     - Add (change) subject
+  mail/write +subject=<obfuscate>text            - hide sender with subject
+  mail/write +subject=text                       - Add (change) subject
   mail/write +forget                             - Toss the mail in progress
   
   Topics with '*' only work with the BRANDY_MAIL interface. 
@@ -31248,6 +31494,11 @@
   The default is it will send mail to all valid players and
   alert you of invalid while continuing through the list.
   
+  This toggle when set also expands the message lists when you
+  do a proof of your mail messages.
+  
+  See Also: COLORMAIL
+     
 & MONITOR TOGGLE
   Toggle: MONITOR
  
@@ -32298,6 +32549,7 @@
   cluster_regrep()   -- Returns attrs in cluster that contain case regexp
   cluster_wipe()     -- Regexp capable attribute cluster wiper     
   lattr()            -- Regexp capable attribute listing
+  lattrp()           -- Regexp capable attribute listing on parents
   lattrp()           -- Regexp capable parent attribute listing
   wipe()             -- Regexp capable attribute wiper
 
@@ -32602,6 +32854,7 @@
   home()        - Returns the objects home.
   lastcreate()  - Returns the dbref of the object last created.
   lattr()       - Lists attributes on an object.
+  lattrp()      - Lists attributes on an object's parent(s).
   lcmds()       - List command or listen attributes on an object.
   lcon()        - Lists the contents of an object. 
   lexits()      - Lists the exits in an object.
@@ -32769,6 +33022,7 @@
   pedit()       - Like edit(), but with PennMUSH functionality. (non-ansi)
   pos()         - Returns the position of where a substring begins in a string.
   printf()      - Formats text left, center, right, or stretched justification.
+  quietnomatch()- Snuffs failed matching messages from functions.
   randpos()     - Like totpos(), but totally randomizes output.
   repeat()      - Repeats input X times.
   replace()     - Replaces a word in a list at a specified position.
@@ -36228,17 +36482,31 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
+  Current Version: 4.16.0
+  
   Current Changelogs:
   -------------------
-  1 - 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 
-      4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5 
-  2 - 4.3.4, 4.3.3, 4.3.2, 4.3.1, 4.3.0
+  1 - 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0, 4.11.2, 4.11.1, 4.11.0, 4.10.0,
+      4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0 
+  2 - 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2 
+  3 - 4.3.1, 4.3.0
 
 
+& 4.16.0
+& 4.15.0
+& 4.14.0
+& 4.13.0
+& 4.12.0
+& 4.11.2
+& 4.11.1
+& 4.11.0
+& 4.10.0
 & 4.9.0
 & 4.8.0
 & 4.7.1
 & 4.7.0
+& 4.6.2
+& 4.6.1
 & 4.6.0
 & 4.5.3
 & 4.5.2
@@ -36255,6 +36523,21 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+  
+  4.16.0 - 12/22/24
+  * COLORMAIL flag to colorize names with mail commands
+  * prefixing a subject with <attribute> will check &ATTRIBUTE on sender
+    for the dbref# that message is to have overridden as the appeared sender
+    Note #1: this just obfuscates the sender on display only!
+    Note #2: THIS IS WIZARD ONLY
+  * colorizing (optionally) mail senders in mail/status, mail/read, etc
+  * MAILVALIDATE if toggled on will expand sender lists in mail proofing
+  * lattrp() is moved to mortal use
+  * quietnomatch() snuffs any evaluation inside it from displaying any
+    of the 'I don't see that here' match errors.
+  
+  4.15.0 - 12/16/24
+  * CLOAK flag will snuff puppet's messages of growing and losing its ears.
   
   4.14.0 - 12/06/24
   * @include has /become, /sudo, and /possess switches for ownership changes

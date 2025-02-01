@@ -35,6 +35,7 @@ void bcopy(const void *, void *, int);
 #include "alloc.h"
 #include "mail.h"
 #include "command.h"
+#include "rhost_ansi.h"
 
 #define FLENGTH 20
 #define SUBJLIM 60
@@ -65,6 +66,11 @@ static dbref lastplayer, lfoldplayer, lastwplayer;
 static char override;
 static char recblock;
 extern int FDECL(do_convtime, (char *, struct tm *));
+extern char * ColorName(dbref player, int key);
+extern void fun_testlock(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern dbref FDECL(match_thing_quiet, (dbref, char *));
+
+
 void mail_read(dbref, char *, dbref, int);
 
 typedef struct mastruct {
@@ -151,6 +157,44 @@ int FDECL(fname_check, (dbref, char *, int));
 int FDECL(mail_md2, (dbref, dbref, int));
 extern void FDECL(do_mailfix, (dbref));
 
+static int
+mail_check_readlock_perms(dbref player, dbref thing, ATTR * attr,
+                  int aowner, int aflags, int key)
+{
+    int see_it;
+
+    /* If we have explicit read permission to the attr, return it */
+
+    if (See_attr_explicit(player, thing, attr, aowner, aflags))
+       return 1;
+
+    /* If we are nearby or have examine privs to the attr and it is
+     * visible to us, return it.
+     */
+
+    if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
+        return 0;
+    if ( key ) {
+       see_it = Read_attr(player, thing, attr, aowner, aflags, 0);
+    } else {
+       see_it = See_attr(player, thing, attr, aowner, aflags, 0);
+    }
+    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
+       return 1;
+    /* For any object, we can read its visible attributes, EXCEPT
+     * for descs, which are only visible if read_rem_desc is on.
+     */
+
+    if (see_it) {
+       if (!mudconf.read_rem_desc && (attr->number == A_DESC)) {
+          return 0;
+       } else {
+          return 1;
+       }
+    }
+    return 0;
+}
+
 /* As defined in functions.c */
 static int
 check_read_perms2(dbref player, dbref thing, ATTR * attr,
@@ -186,6 +230,49 @@ check_read_perms2(dbref player, dbref thing, ATTR * attr,
     return 0;
 }
  
+int
+subj_dbref(dbref player, char *subj) {
+   int target, aflags;
+   dbref aowner;
+   char *s_buff, *t_buff, *s_pos;
+   ATTR *atr;
+
+   if ( !Good_chk(player) )
+      return player;
+
+   target = NOTHING;
+   if ( Wizard(player) && (*subj == '<') && ((s_pos = strchr(subj, '>')) != NULL) ) {
+      t_buff = alloc_lbuf("subj_dbref");
+      strcpy(t_buff, subj);
+      *(t_buff + (s_pos - subj)) = '\0';
+      atr = atr_str(t_buff+1);
+      if ( atr ) {
+         s_buff = atr_get(player, atr->number, &aowner, &aflags);
+         if ( s_buff && *s_buff ) {
+            target = match_thing_quiet(player, s_buff);
+         }
+         free_lbuf(s_buff);
+      }
+      free_lbuf(t_buff);
+   }
+   if ( !Good_chk(target) ) {
+      target = player;
+   }
+   return target;
+}
+
+char *
+subj_string(dbref player, char *subj) {
+   char *s_pos, *s_return;
+
+   s_return = subj;
+   if ( (*subj == '<') && ((s_pos = strchr(subj, '>')) != NULL) ) {
+      s_return = s_pos+1;
+   }
+
+   return s_return;
+}
+
 void 
 mapurge()
 {
@@ -916,10 +1003,10 @@ void unparse_al_num(char *pass, int len, char *rtbuf, int number)
   free_sbuf(pt3);
 }
 
-void unparse_al(char *pass, int len, char *rtbuf, int number)
+void unparse_al(char *pass, int len, char *rtbuf, int number, int i_key, dbref player)
 {
   char *pt2, *pt3;
-  int *pt1, count, x;
+  int *pt1, count, x, i_first;
 
   *rtbuf = '\0';
   memcpy(lbuf12,pass,len);
@@ -928,16 +1015,28 @@ void unparse_al(char *pass, int len, char *rtbuf, int number)
   pt1++;
   pt3 = alloc_sbuf("unparse_al");
   *pt3 = '#';
+  i_first = 0;
   for (x = 0; x < count; x++) {
     if (number) {
       strcpy(pt3+1,myitoa(*pt1));
       pt2 = pt3;
+    } else {
+      if ( i_key & ColorMail(player) ) {
+         pt2 = ColorName(*pt1,1);
+      } else {
+         pt2 = Name(*pt1);
+      }
     }
-    else
-      pt2 = Name(*pt1);
     if ((strlen(rtbuf) + strlen(pt2)) < LBUF_SIZE -22) {
-      if (*rtbuf != '\0')
-	strcat(rtbuf," ");
+      if ( !i_key ) {
+         if (*rtbuf != '\0')
+  	   strcat(rtbuf," ");
+      } else {
+         if ( i_first ) {
+            strcat(rtbuf, ", ");
+         }
+      }
+      i_first = 1;
       strcat(rtbuf,pt2);
       pt1++;
     }
@@ -945,6 +1044,312 @@ void unparse_al(char *pass, int len, char *rtbuf, int number)
       break;
   }
   free_sbuf(pt3);
+}
+
+void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
+{
+   char *s_tbuff, *s_strtok, *s_strtokr, *s_t1, *s_t2, *s_t3, *s_b1, *s_b1p,
+        *s_strpl, *s_strplr, *x_buff, *s_array[2];
+   int i_allow, i_mail_inline, i_first, aflags;
+   dbref target, aowner;
+   ATTR *atr;
+
+   if ( !s_input || !s_out || !*s_outptr )  {
+      return;
+   }
+
+   s_tbuff = alloc_lbuf("parse_tolist");
+   strcpy(s_tbuff, s_input);
+
+   s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
+   s_b1p = s_b1 = alloc_lbuf("parse_tolist");
+   x_buff = alloc_lbuf("parse_tolist");
+   i_first = 0;
+   while ( s_strtok ) {
+      i_allow = 1;
+      switch(*s_strtok) {
+         case '+': /* Global static */
+            s_t1 = (char *)mail_alias_function(player, 0, s_strtok+1, NULL);
+            s_t2 = (char *)mail_alias_function(player, 1, s_strtok+1, NULL);
+            if ( s_t1 && *s_t1 ) {
+               if ( s_t2 && *s_t2 ) {
+                  memset(s_b1, '\0', LBUF_SIZE);
+                  sprintf(x_buff, "#%d", player);
+                  s_b1p = s_b1;
+                  s_array[0] = s_t1;
+                  s_array[1] = x_buff;
+                  fun_testlock(s_b1, &s_b1p, player, player, player, s_array, 2, (char **)NULL, 0);
+                  i_allow = atoi(s_b1);
+               }
+            } else {
+               /*  Nothing found - disallow */
+               i_allow = 0;
+            }
+            if ( i_allow ) {
+               strcpy(s_b1, s_t1);
+               /* Walk s_t1 and convert to player names, append to list */
+               s_strpl = strtok_r(s_b1, " \t", &s_strplr);
+               while ( s_strpl ) {
+                  target = lookup_player(player, s_strpl, 0);
+                  if ( Good_chk(target) && isPlayer(target) ) {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
+                     i_first = 1;
+                     if ( ColorMail(player) ) {
+                        safe_str(ColorName(target, 1), s_out, s_outptr);
+                     } else {
+                        safe_str(Name(target), s_out, s_outptr);
+                     }
+                  } else {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
+#ifdef ZENTY_ANSI
+                     sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                     sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
+#endif
+                     safe_str(x_buff, s_out, s_outptr);
+                  }
+                  s_strpl = strtok_r(NULL, " \t", &s_strplr);
+               }
+            } else {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+#ifdef ZENTY_ANSI
+               sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+               sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+               safe_str(x_buff, s_out, s_outptr);
+               /* Print alias in ansi-red in form !+alias! */
+            }
+            free_lbuf(s_t1);
+            free_lbuf(s_t2);
+            break;
+         case '$': /* Global dynamic */
+            if ( Good_chk(mudconf.mail_def_object) ) {
+               sprintf(x_buff, "alias.%s", s_strtok+1);
+               atr = atr_str(x_buff);
+               /* If attribute not hidden or wizard allow */
+               if ( atr && (!(atr->flags & AF_MDARK) || Wizard(player)) ) {
+                  s_t1 = atr_get(mudconf.mail_def_object, atr->number, &aowner, &aflags);
+                  /* If attribute not hidden or wizard allow */
+                  if ( s_t1 && *s_t1 && (!(aflags & AF_MDARK) || Wizard(player)) ) {
+                     if ( ((atr->flags & AF_PINVIS) || (aflags & AF_PINVIS)) && !Wizard(player) ) {
+                        i_mail_inline = mudstate.mail_inline;
+                        mudstate.mail_inline = 1;
+                        s_t3 = exec(mudconf.mail_def_object, player, player, EV_FCHECK | EV_EVAL, s_t1, (char **) NULL, 0, (char **)NULL, 0);
+                        mudstate.mail_inline = i_mail_inline;
+                        if ( *s_t3 ) {
+                           s_strpl = strtok_r(s_t3, " \t", &s_strplr);
+                           while ( s_strpl ) {
+                              target = lookup_player(player, s_strpl, 0);
+                              if ( Good_chk(target) && isPlayer(target) ) {
+                                 if ( i_first ) {
+                                    safe_str(", ", s_out, s_outptr);
+                                 }
+                                 i_first = 1;
+                                 if ( ColorMail(player) ) {
+                                    safe_str(ColorName(target, 1), s_out, s_outptr);
+                                 } else {
+                                    safe_str(Name(target), s_out, s_outptr);
+                                 }
+                              } else {
+                                 if ( i_first ) {
+                                    safe_str(", ", s_out, s_outptr);
+                              }
+#ifdef ZENTY_ANSI
+                                 sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                                 sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
+#endif
+                                 safe_str(x_buff, s_out, s_outptr);
+                              }
+                              s_strpl = strtok_r(NULL, " \t", &s_strplr);
+                           }
+                        }
+                        free_lbuf(s_t3);
+                     } else {
+#ifdef ZENTY_ANSI
+                        sprintf(x_buff, "<%s%s%s>", SAFE_ANSI_GREEN, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                        sprintf(x_buff, "<%s%s%s>", ANSI_GREEN, s_strpl, ANSI_NORMAL);
+#endif
+                        safe_str(x_buff, s_out, s_outptr);
+                     }
+                  } else {
+#ifdef ZENTY_ANSI
+                     sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+                     sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+                     safe_str(x_buff, s_out, s_outptr);
+                  }
+                  free_lbuf(s_t1);
+               } else {
+                  if ( i_first ) {
+                     safe_str(", ", s_out, s_outptr);
+                  }
+                  i_first = 1;
+#ifdef ZENTY_ANSI
+                  sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+                  sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+                  safe_str(x_buff, s_out, s_outptr);
+               }
+               /* If attribute unuseable or missing print in form !$alias! */
+            } else {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+#ifdef ZENTY_ANSI
+               sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+               sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+               safe_str(x_buff, s_out, s_outptr);
+            }
+            break;
+         case '&': /* Personal static */
+            atr = atr_str(s_strtok+1);
+            s_t1 = atr_get(player, atr->number, &aowner, &aflags);
+            if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
+               s_strpl = strtok_r(s_t1, " \t", &s_strplr);
+               while ( s_strpl ) {
+                  target = lookup_player(player, s_strpl, 0);
+                  if ( Good_chk(target) && isPlayer(target) ) {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
+                     i_first = 1;
+                     if ( ColorMail(player) ) {
+                        safe_str(ColorName(target, 1), s_out, s_outptr);
+                     } else {
+                        safe_str(Name(target), s_out, s_outptr);
+                     }
+                  } else {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
+#ifdef ZENTY_ANSI
+                     sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                     sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
+#endif
+                     safe_str(x_buff, s_out, s_outptr);
+                  }
+                  s_strpl = strtok_r(NULL, " \t", &s_strplr);
+               }
+            } else {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+#ifdef ZENTY_ANSI
+               sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+               sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+               safe_str(x_buff, s_out, s_outptr);
+            }
+            free_lbuf(s_t1);
+            break;
+         case '~': /* Personal dynamic */
+            atr = atr_str(s_strtok+1);
+            s_t1 = atr_get(player, atr->number, &aowner, &aflags);
+            if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
+               s_t3 = exec(player, player, player, EV_FCHECK | EV_EVAL, s_t1, (char **) NULL, 0, (char **)NULL, 0);
+               if ( *s_t3 ) {
+                  s_strpl = strtok_r(s_t3, " \t", &s_strplr);
+                  while ( s_strpl ) {
+                     target = lookup_player(player, s_strpl, 0);
+                     if ( Good_chk(target) && isPlayer(target) ) {
+                        if ( i_first ) {
+                           safe_str(", ", s_out, s_outptr);
+                        }
+                        i_first = 1;
+                        if ( ColorMail(player) ) {
+                           safe_str(ColorName(target, 1), s_out, s_outptr);
+                        } else {
+                           safe_str(Name(target), s_out, s_outptr);
+                        }
+                     } else {
+                        if ( i_first ) {
+                           safe_str(", ", s_out, s_outptr);
+                        }
+#ifdef ZENTY_ANSI
+                        sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                        sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
+#endif
+                        safe_str(x_buff, s_out, s_outptr);
+                     }
+                     s_strpl = strtok_r(NULL, " \t", &s_strplr);
+                  }
+               } else {
+                  if ( i_first ) {
+                     safe_str(", ", s_out, s_outptr);
+                  }
+                  i_first = 1;
+#ifdef ZENTY_ANSI
+                  sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+                  sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+                  safe_str(x_buff, s_out, s_outptr);
+               }
+               free_lbuf(s_t3);
+            } else {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+#ifdef ZENTY_ANSI
+               sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+               sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+               safe_str(x_buff, s_out, s_outptr);
+            }
+            free_lbuf(s_t1);
+            break;
+         default: /* Assume normal player name, number or alias */
+            target = lookup_player(player, s_strtok, 0);
+            if ( Good_chk(target) && isPlayer(target) ) {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+               if ( ColorMail(player) ) {
+                  safe_str(ColorName(target, 1), s_out, s_outptr);
+               } else {
+                  safe_str(Name(target), s_out, s_outptr);
+               }
+            } else {
+               if ( i_first ) {
+                  safe_str(", ", s_out, s_outptr);
+               }
+               i_first = 1;
+#ifdef ZENTY_ANSI
+               sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+               sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+               safe_str(x_buff, s_out, s_outptr);
+            }
+            break;
+      }
+      s_strtok = strtok_r(NULL, " \t,", &s_strtokr);
+   }
+   free_lbuf(s_tbuff);
+   free_lbuf(s_b1);
+   free_lbuf(x_buff);
 }
 
 void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb, int i_mushname)
@@ -990,7 +1395,11 @@ void unparse_to(dbref player, short int index, char *rtbuf, dbref *plrdb, int i_
          else
             pt2 = (char *)"*Anonymous*";
       } else {
-         pt2 = Name(*pt1);
+         if ( ColorMail(player) ) {
+            pt2 = ColorName(*pt1,1);
+         } else {
+            pt2 = Name(*pt1);
+         }
       }
       *plrdb = *pt1;
       if ((strlen(rtbuf) + strlen(s_mushname) + strlen(pt2)) < (LBUF_SIZE - 12)) {
@@ -1054,7 +1463,11 @@ void unparse_to_2(dbref player, short int index, char *rtbuf, dbref *plrdb)
          else
             pt2 = (char *)"*Anonymous*";
       } else {
-         pt2 = Name(*pt1);
+         if ( ColorMail(player) ) {
+            pt2 = ColorName(*pt1, 1);
+         } else {
+            pt2 = Name(*pt1);
+         }
       }
       *plrdb = *pt1;
       if ((strlen(rtbuf) + strlen(pt2)) < LBUF_SIZE -12) {
@@ -1242,7 +1655,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
         s_tmparry[3] = alloc_lbuf("s_tmparry_1");
         sprintf(s_tmparry[0], "#%d", ((chk_anon && !chk_anon2) ? -1 : player));
         if ( subj && *subj )
-           sprintf(s_tmparry[1], "%s", subj);
+           sprintf(s_tmparry[1], "%s", subj_string(*toplay, subj));
         strcpy(s_tmparry[2], msg);
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
@@ -1276,7 +1689,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
         s_tmparry[3] = alloc_lbuf("s_tmparry_1");
         sprintf(s_tmparry[0], "#%d", ((chk_anon && !chk_anon2) ? -1 : player));
         if ( subj && *subj )
-           sprintf(s_tmparry[1], "%s", subj);
+           sprintf(s_tmparry[1], "%s", subj_string(*toplay, subj));
         strcpy(s_tmparry[2], msg);
 	strcat(s_tmparry[3], ctime((time_t *)pt3));
  	*(s_tmparry[3] + strlen(s_tmparry[3]) - 1) = '\0';
@@ -1337,11 +1750,13 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
     tprp_buff = tpr_buff = alloc_lbuf("insert_msg");
     if ( mudconf.mail_verbosity && subj ) {
        notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s[Subj: %s]", 
-                    ((chk_anon && !chk_anon2) ? anon_player : Name(player)), 
-                    (chk_anon2 ? " (Anonymously) " : " "), subj));
+                    ((chk_anon && !chk_anon2) ? 
+                          anon_player : (ColorMail(*toplay) ? 
+                               ColorName(subj_dbref(player,subj), 1) : Name(subj_dbref(player,subj)))), 
+                    (chk_anon2 ? " (Anonymously) " : " "), subj_string(player, subj)));
     } else {
        notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s", 
-                    ((chk_anon && !chk_anon2) ? anon_player : Name(player)), 
+                    ((chk_anon && !chk_anon2) ? anon_player : (ColorMail(*toplay) ? ColorName(player, 1) : Name(player))), 
                     (chk_anon2 ? " (Anonymously) " : " ")));
     }
     if ( i_foundfolder ) {
@@ -1453,12 +1868,19 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
             } else {
                attr = NULL;
             }
+            if ( attr ) {
+               if ( (attr->flags & AF_MDARK) && !Wizard(player) )
+                  attr = NULL;
+            }
             free_mbuf(tbuff_malias);
          } else {
             attr = NULL;
          }
          if ( attr ) {
             s_plratr = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
+            if ( s_plratr && (dummy2 & AF_MDARK) && !Wizard(player) ) {
+               *s_plratr = '\0';
+            }
             if ( s_plratr && Good_obj(player) ) { 
                i_mail_inline = mudstate.mail_inline;
                mudstate.mail_inline = 1;
@@ -1890,7 +2312,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	      keydata.dsize = strlen(pt3->akey) + 1 + sizeof(int);
 	      infodata = dbm_fetch(mailfile,keydata);
 	      if (infodata.dptr) {
-		unparse_al(infodata.dptr,infodata.dsize,lbuf11,1);
+		unparse_al(infodata.dptr,infodata.dsize,lbuf11,1, 0, p2);
 	        if ((strlen(lbuf4) + strlen(lbuf11)) > NDBMBUFSZ - 4) {
 		  notify_quiet(p2,"MAIL ERROR: Alias expansion too long");
 	        }
@@ -1928,6 +2350,9 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
                 } else {
                    attr = NULL;
                 }
+                if ( attr && (attr->flags & AF_MDARK) && !Wizard(p2) ) {
+                   attr = NULL;
+                }
                 free_mbuf(tbuff_malias);
              } else {
                 attr = NULL;
@@ -1955,6 +2380,9 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
 	       apt = atr_get(p2,attr->number,&dummy1,&dummy2);
             } else if ( tp_chr == '$' ) {
                apt_tmp = atr_pget(thing_tmp, attr->number, &dummy1, &dummy2);
+               if ( apt_tmp && (dummy2 & AF_MDARK) && !Wizard(p2)) {
+                  *apt_tmp = '\0';
+               }
                if ( !apt_tmp || !*apt_tmp ) {
                   apt = NULL;
                   chk_lbuf_free = 0;
@@ -2128,19 +2556,19 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
              if ( mudconf.mail_hidden )
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s%s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay), 
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon ? "<HIDDEN> " : " "),
                              (chk_anon2 ? "(Anonymously)" : " ")));
              else
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay), 
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon2 ? "(Anonymously)" : " ")));
           } else {
              if ( mudconf.mail_hidden && Wizard(p2) )
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s(AutoFor)",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay),
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon ? "<HIDDEN> " : " ")));
              else
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor)",
@@ -2152,24 +2580,24 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
              if ( mudconf.mail_hidden )
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s%s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay), 
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon ? "<HIDDEN> " : " "),
                              (chk_anon2 ? "(Anonymously)" : " ")));
              else
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay), 
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon2 ? "(Anonymously)" : " ")));
           } else {
              if ( mudconf.mail_hidden && Wizard(p2) )
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             Name(toplay),
+                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
                              (chk_anon ? "<HIDDEN>" : " ")));
              else
 	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s",
                              (chk_anon ? "sent anonymously" : "sent"), 
-                             ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : Name(toplay))));
+                             ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)))));
           }
         }
 	if (count == absmaxrcp) term = 1;
@@ -2362,8 +2790,8 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
   short int msize, x, y, min, max;
   short int *pt1, *pt2, mlen, nmsg, bsize;
   int w1, len, i, j, page, ml_type, subjsearch, mint_current, 
-      itrash, chk_anon, chk_anon2, i_autodelete, mt_flags;
-  char *pt3, *mail_current, curr_mpos, *tpr_buff, *tprp_buff, *plr_pt1;
+      itrash, chk_anon, chk_anon2, i_autodelete, mt_flags, i_offset;
+  char *pt3, *mail_current, curr_mpos, *tpr_buff, *tprp_buff, *plr_pt1, *s_namebuf;
   dbref player2, pcheck, pcheck2, ptrash, mt_owner;
   double tmp_mval;
   static char anon_player[17];
@@ -2379,6 +2807,8 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
   subjsearch = 0;
   pcheck2 = NOTHING;
   msize = get_box_size(player);	
+
+  s_namebuf = alloc_lbuf("mail_status_namebuf");
 
   *quickfolder = '\0';
   if ( *buf == '@' ) {
@@ -2437,6 +2867,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
         *quickfolder = '\0';
+        free_lbuf(s_namebuf);
 	return;
       }
       page = atoi(buf+1);
@@ -2445,6 +2876,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
         *quickfolder = '\0';
+        free_lbuf(s_namebuf);
 	return;
       }
       *(int *)sbuf1 = MIND_PAGE;
@@ -2456,6 +2888,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
         *quickfolder = '\0';
+        free_lbuf(s_namebuf);
 	return;
       }
       memcpy(sbuf2,infodata.dptr,infodata.dsize);
@@ -2466,6 +2899,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
         if ( type )
 	   notify_quiet(player2,"MAIL ERROR: Bad paging value given");
         *quickfolder = '\0';
+        free_lbuf(s_namebuf);
 	return;
       }
       min = (short int)i;
@@ -2569,10 +3003,26 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	    strcpy(sbuf2,"Byte");
 	  else
 	    strcpy(sbuf2,"Bytes");
-	  if (Good_obj(pcheck))
-	    strncpy(sbuf3,Name(pcheck),22);
-	  else
-	    strcpy(sbuf3,"(NONE)");
+          i_offset = 0;
+	  if (Good_obj(pcheck)) {
+            if ( ColorMail(player2) ) {
+               if (len > hsuboff) {
+                  i_offset = strlen(ColorName(subj_dbref(pcheck, mbuf2+hsuboff), 1)) - strlen(Name(subj_dbref(pcheck, mbuf2+hsuboff)));
+	          strncpy(s_namebuf, ColorName(subj_dbref(pcheck, mbuf2+hsuboff), 1), 400);
+               } else {
+                  i_offset = strlen(ColorName(pcheck,1)) - strlen(Name(pcheck));
+	          strncpy(s_namebuf,ColorName(pcheck,1),400);
+               }
+            } else {
+               if ( len > hsuboff ) {
+	          strncpy(s_namebuf, Name(subj_dbref(pcheck, mbuf2+hsuboff)), 22);
+               } else {
+	          strncpy(s_namebuf,Name(pcheck),22);
+               }
+            }
+	  } else {
+	    strcpy(s_namebuf,"(NONE)");
+          }
           if ( ml_type < 31 ) {
              if ( toupper(*(mbuf2+hstoff)) == 'U' ) {
                 if ( !(ml_type & 1) )
@@ -2626,87 +3076,87 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	     if (toupper(*(mbuf2+2+hstoff)) == 'A') {
                 if ( type ) {
 	           notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) AutoFwd",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) AutoFwd",
 		      toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '), 
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2));
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2));
                 } else {
                       safe_str(safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) AutoFwd",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) AutoFwd",
                       toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
                 }
 	     }
 	     else if (toupper(*(mbuf2+2+hstoff)) == 'F') {
                 if ( type ) {
 	           notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) Fwd",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) Fwd",
 		      toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2));
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2));
                 } else {
                       safe_str(safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) Fwd",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) Fwd",
                       toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
                 }
 	     }
 	     else if (toupper(*(mbuf2+2+hstoff)) == 'R') {
                 if ( type ) {
 	           notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) Reply",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) Reply",
 		      toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2));
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2));
                 } else {
                       safe_str(safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s) Reply",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s) Reply",
                       toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
                 }
 	     }
 	     else {
                 if ( type ) {
 	           notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s)",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s)",
 		      toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon && 
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2));
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2));
                 } else {
                       safe_str(safe_tprintf(tpr_buff, &tprp_buff, 
-                      "[%c]%c(%*d)%c%cFrom: %-16s <%s> (%d %s)",
+                      "[%c]%c(%*d)%c%cFrom: %-*s <%s> (%d %s)",
                       toupper(*(mbuf2+hstoff)), curr_mpos, w1, x, 
                       (i_autodelete ? 'm' : (chk_anon2 ? 'A' : ' ')), 
                       ((Good_obj(pcheck) && !chk_anon &&
                       (Connected(pcheck) && Chk_Cloak(pcheck,player2) && !Chk_Dark(pcheck,player2))) ? '*':' '),
-                      (chk_anon ? anon_player : sbuf3), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
+                      16 + i_offset, (chk_anon ? anon_player : s_namebuf), sbuf1, mlen, sbuf2), out_buff, &out_buffptr);
                 }
 	     }
              tprp_buff = tpr_buff;
 	     if (len > hsuboff) {
                 if ( type ) {
 	           notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, 
-                        "%*s %s",w1+13,"Subj:",mbuf2+hsuboff));
+                        "%*s %s",w1+13,"Subj:",subj_string(player2, mbuf2+hsuboff)));
                 } else {
                    safe_str(safe_tprintf(tpr_buff, &tprp_buff, 
-                        "\n%*s %s", w1+13, "Subj:", mbuf2+hsuboff), out_buff, &out_buffptr);
+                        "\n%*s %s", w1+13, "Subj:", subj_string(player2, mbuf2+hsuboff)), out_buff, &out_buffptr);
                 }
              }
           }  else {
@@ -2746,6 +3196,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
     }
   }
   *quickfolder = '\0';
+  free_lbuf(s_namebuf);
 }
 
 void mail_readall(dbref player, char *buf, dbref wiz, int key, int i_type, int i_offload)
@@ -3096,9 +3547,9 @@ void mail_read_func(dbref player, char *buf, dbref wiz, char *s_type, int key, c
 
 void mail_read(dbref player, char *buf, dbref wiz, int key)
 {
-  int mesg, len, send, x, i_type, chk_anon, chk_anon2, i_version;
+  int mesg, len, send, x, i_type, chk_anon, chk_anon2, i_version, i_offset;
   short int index, size, *spt1, ind2;
-  char *pt1, test, *tpr_buff, *tprp_buff, *s_mail, *s_mailptr;
+  char *pt1, test, *tpr_buff, *tprp_buff, *s_mail, *s_mailptr, *s_namebuf;
   dbref player2, plrdb;
   static char anon_player[17], s_status[10];
 
@@ -3182,8 +3633,7 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
 	notify_quiet(player,"Mail: You have no new or unread mail");
       return;
     }
-  }
-  else {
+  } else {
     mesg = atoi(buf);
     if (mesg > 0)
       index = get_msg_index(player,mesg,1, NOTHING, 1);
@@ -3192,6 +3642,9 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
       return;
     }
   }
+
+  s_namebuf = alloc_lbuf("read_mail_namebuf");
+
   if ((len = get_hd_rcv_rec(player,index,mbuf1,wiz,key))) {
     ind2 = *(short int *)(mbuf1+hindoff);
     if (ind2 & tomask) {
@@ -3317,10 +3770,28 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
       if ( !i_version )
          notify_quiet(player2,mbuf2);
 
-      if (Good_obj(send) && !Recover(send) && !Going(send))
+      i_offset = 0;
+      if (Good_obj(send) && !Recover(send) && !Going(send)) {
 	strncpy(sbuf7,Name(send),22);
-      else
+        if ( ColorMail(player2) ) {
+           if (pt1 && *pt1 ) {
+              i_offset = strlen(ColorName(subj_dbref(send, pt1), 1)) - strlen(Name(subj_dbref(send, pt1)));
+	      strncpy(s_namebuf, ColorName(subj_dbref(send, pt1), 1), 400);
+           } else {
+              i_offset = strlen(ColorName(send, 1)) - strlen(Name(send));
+	      strncpy(s_namebuf, ColorName(send, 1), 400);
+           }
+        } else {
+           if (pt1 && *pt1) {
+	      strncpy(s_namebuf,Name(subj_dbref(send, pt1)),22);
+           } else {
+	      strncpy(s_namebuf,Name(send),22);
+           }
+        }
+      } else {
 	strcpy(sbuf7,"(NONE)");
+	strcpy(s_namebuf,"(NONE)");
+      }
       tprp_buff = tpr_buff = alloc_lbuf("mail_read");
       if ( i_version ) {
          s_mail = alloc_lbuf("read_mail_export");
@@ -3333,6 +3804,7 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
             s_mailptr++;
          }
 	 unparse_to(send, ind2, lbuf7, &plrdb, 1);
+         /* MBOX FORMAT */
          notify_quiet(player2, 
                       safe_tprintf(tpr_buff, &tprp_buff,
                                    "From %s@%s  %s\n%s\n%s\nDate: %s\nTo: %s\nSubject: %s\nUser-Agent: %s\n%s\n%s\n%s\nFrom: %s@%s\n%s\n\n%s\n\n", 
@@ -3349,22 +3821,22 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
 	   unparse_to(send,ind2,lbuf7, &plrdb, 0);
            notify_quiet(player2,
                         safe_tprintf(tpr_buff, &tprp_buff, 
-                                     "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nTo: %s\nDate/Time: %-31s Size: %d %s", mesg, 
+                                     "Message #: %d  %s\nStatus: %-11s From: %-*s%s%s\nTo: %s\nDate/Time: %-31s Size: %d %s", mesg, 
                                      ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""), 
-                                     s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "),
+                                     s_status, 16 + i_offset, (chk_anon ? anon_player : s_namebuf), (chk_anon2 ? " [Anonymous] " : " "),
                                      sbuf2, lbuf7, sbuf4, size, sbuf3));
          } else {
            notify_quiet(player2,
                         safe_tprintf(tpr_buff, &tprp_buff, 
-                                     "Message #: %d  %s\nStatus: %-11s From: %-16s%s%s\nDate/Time: %-31s Size: %d %s", mesg, 
+                                     "Message #: %d  %s\nStatus: %-11s From: %-*s%s%s\nDate/Time: %-31s Size: %d %s", mesg, 
                                      ((Good_obj(send) && !chk_anon && (Connected(send) && Chk_Cloak(send,player2) && !Chk_Dark(send,player2))) ? "      (Connected)" : ""),
-                                     s_status, (chk_anon ? anon_player : sbuf7), (chk_anon2 ? " [Anonymous] " : " "), 
+                                     s_status, 16 + i_offset, (chk_anon ? anon_player : s_namebuf), (chk_anon2 ? " [Anonymous] " : " "), 
                                      sbuf2, sbuf4, size, sbuf3));
          }
       }
       if (!i_version && pt1) {
         tprp_buff = tpr_buff;
-	notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, "Subject: %s",pt1));
+	notify_quiet(player2,safe_tprintf(tpr_buff, &tprp_buff, "Subject: %s",subj_string(player2, pt1)));
       }
       free_lbuf(tpr_buff);
       if ( !i_version ) {
@@ -3387,6 +3859,7 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
     else
       mail_error(player2,MERR_MSG);
   }
+  free_lbuf(s_namebuf);
 }
 
 int do_mark(dbref player, short int index, char *buf, int len, int key, int key2)
@@ -4038,6 +4511,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
     char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff, *tstrtokr;
+    char *s_to, *s_toptr, *s_bcc, *s_bccptr;
 //  char *savesend;
     short int line, count, index, min, max, gdcount;
     dbref aowner3, aowner2, owner;
@@ -4578,19 +5052,37 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
                } else {
                   notify_quiet(player, "Message In Progress");
                }
+               s_toptr = s_to = alloc_lbuf("mail_pretty1");
+               if ( MailValid(player) ) {
+                  if ( atrxxx && *atrxxx ) {
+                     parse_tolist(player, atrxxx, s_to, &s_toptr);
+                  } else {
+                     strcpy(s_to, atrtmp);
+                  }
+               } else {
+                  strcpy(s_to, atrtmp);
+               }
                if ( bccatr && *bccatr ) {
+                 s_bccptr = s_bcc = alloc_lbuf("mail_pretty2");
+                 if ( MailValid(player) ) {
+                    parse_tolist(player, bccatr, s_bcc, &s_bccptr);
+                 } else {
+                    strcpy(s_bcc, bccatr);
+                 }
 		 notify_quiet(player,unsafe_tprintf("Status: %-11s From: %-16s %s\r\n"\
 					     "To: %s\r\nBcc: %s\r\nDate/Time: %-31s Size: %d %s", 
 					     "EDITING", "You", 
 					     (i_type == 0 ? " " : (i_type == 1 ? "REPLY" : "FORWARD")),
-					     atrtmp, bccatr, time_tmp, type_two, "Bytes"));
+					     s_to, s_bcc, time_tmp, type_two, "Bytes"));
+                 free_lbuf(s_bcc);
 	       } else {
 		 notify_quiet(player,unsafe_tprintf("Status: %-11s From: %-16s %s\r\n"\
 					     "To: %s\r\nDate/Time: %-31s Size: %d %s",
 					     "EDITING", "You",
 					     (i_type == 0 ? " " : (i_type == 1 ? "REPLY" : "FORWARD")),
-					     atrtmp, time_tmp, type_two, "Bytes"));		 
+					     s_to, time_tmp, type_two, "Bytes"));		 
 	       }
+               free_lbuf(s_to);
                free_lbuf(atrtmp);
 	       free_lbuf(bccatr);
             } else {
@@ -5588,9 +6080,9 @@ mail_acheck(dbref player)
     MAMEM *pt1;
     ATTR *attr, *attr2;
     OBLOCKMASTER master;
-    int atest, cntr, ca, aflags;
+    int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk;
     dbref attrib, aowner, tmpdbnum;
-    char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff;
+    char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr;
 
     *(int *)sbuf1 = MIND_GA;
     *(int *)sbuf2 = MIND_GAL;
@@ -5619,9 +6111,27 @@ mail_acheck(dbref player)
 	    keydata.dsize = strlen(pt1->akey) + 1 + sizeof(int);
 	    infodata = dbm_fetch(mailfile, keydata);
 	    if (infodata.dptr) {
-		unparse_al(infodata.dptr,infodata.dsize,lbuf11,0);
+		unparse_al(infodata.dptr,infodata.dsize,lbuf11,0,1,player);
                 tprp_buff = tpr_buff;
-		notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--+Alias: %s", sbuf1 + sizeof(int)));
+                if ( ColorMail(player) ) {
+		   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--+Alias: %s%s%s", 
+#ifdef ZENTY_ANSI
+                                SAFE_ANSI_HILITE,
+                                SAFE_ANSI_BLUE,
+                                SAFE_ANSI_GREEN,
+                                sbuf1 + sizeof(int),
+                                SAFE_ANSI_NORMAL
+#else
+                                ANSI_HILITE,
+                                ANSI_BLUE,
+                                ANSI_GREEN,
+                                sbuf1 + sizeof(int),
+                                ANSI_NORMAL
+#endif
+                   ));
+                } else {
+		   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--+Alias: %s", sbuf1 + sizeof(int)));
+                }
                 tprp_buff = tpr_buff;
 		notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s",lbuf11));
                 cntr++;
@@ -5633,6 +6143,8 @@ mail_acheck(dbref player)
     if ( !cntr ) {
        notify_quiet(player, "No static aliases defined.");
     }
+    notify_quiet(player, "\r\n---------------------------------------"\
+                         "---------------------------------------");
     notify_quiet(player, "Listing all dynamic global mail aliases ($<alias>)");
     cntr = 0;
     if ( Good_obj(mudconf.mail_def_object) && !Going(mudconf.mail_def_object) &&
@@ -5646,10 +6158,64 @@ mail_acheck(dbref player)
           for (ca = olist_first(&master); ca != NOTHING; ca = olist_next(&master)) {
              attr = atr_num(ca);
              if (attr) {
+                if ( (attr->flags & AF_MDARK) && !Wizard(player) )
+                   continue;
+                atr_get_str(s_shoveattr, mudconf.mail_def_object, 
+                            attr->number, &aowner, &aflags);
+                if ( (aflags & AF_MDARK) && !Wizard(player) )
+                   continue;
+
+                i_dchk = i_hchk = i_hidden = 0;
+                if ( ((aflags & AF_MDARK) || (attr->flags & AF_MDARK)) ) { 
+                   i_dchk = 1;
+                }
+                if ( ((aflags & AF_PINVIS) || (attr->flags & AF_PINVIS)) ) { 
+                   if ( !Wizard(player) ) {
+                      i_hidden = 1;
+                   }
+                   i_hchk = 1;
+                }
                 if ( (atr_name_ptr = strchr(attr->name, '.')) != NULL ) {
                    cntr++;
                    tprp_buff = tpr_buff;
-                   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--$Alias: %s", atr_name_ptr+1));
+                   if ( ColorMail(player) ) {
+                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--$Alias:%s %s%s", 
+#ifdef ZENTY_ANSI
+                                   SAFE_ANSI_HILITE,
+                                   SAFE_ANSI_BLUE,
+                                   SAFE_ANSI_GREEN,
+                                   atr_name_ptr+1,
+                                   SAFE_ANSI_NORMAL
+#else
+                                   ANSI_HILITE,
+                                   ANSI_BLUE,
+                                   ANSI_GREEN,
+                                   atr_name_ptr+1,
+                                   ANSI_NORMAL
+#endif
+                      ));
+                   } else {
+                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--$Alias: %s", atr_name_ptr+1));
+                   }
+                   if ( !i_hidden ) {
+                      s_exec = exec(mudconf.mail_def_object, player, player, EV_FCHECK | EV_EVAL, s_shoveattr, (char **) NULL, 0, (char **)NULL, 0);
+                      tprp_buff = tpr_buff;
+                      if ( s_exec && *s_exec ) {
+                         s_toptr = s_to = alloc_lbuf("mail_alias");
+                         parse_tolist(player, s_exec, s_to, &s_toptr);
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", s_to));
+                         free_lbuf(s_to);
+                      } else {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", (char *)"(EMPTY)"));
+                      }
+                      free_lbuf(s_exec);
+                   } else {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", (char *)"[hidden]"));
+                   }
+                   if ( Wizard(player) ) {
+                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Flags:%s%s",
+                           (i_dchk ? " HIDDEN" : " "), (i_hchk ? " PINVISIBLE" : " ")));
+                   }
                    tprp_buff = tpr_buff;
                    if (parse_attrib(mudconf.mail_def_object, 
                                     safe_tprintf(tpr_buff, &tprp_buff, "#%d/%s%s", mudconf.mail_def_object,
@@ -5810,7 +6376,7 @@ mail_alias(dbref player, int key, char *buf1, char *buf2)
 		infodata = dbm_fetch(mailfile, keydata);
 		if (infodata.dptr) {
                     cntr++;
-		    unparse_al(infodata.dptr,infodata.dsize,lbuf11,0);
+		    unparse_al(infodata.dptr,infodata.dsize,lbuf11,0, 1, player);
                     tprp_buff = tpr_buff;
 		    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Alias: %s\r\nLock: %s", keydata.dptr + sizeof(int), lbuf1));
                     tprp_buff = tpr_buff;
@@ -5872,7 +6438,7 @@ mail_alias(dbref player, int key, char *buf1, char *buf2)
 	    }
 	    infodata = dbm_fetch(mailfile, keydata);
 	    if (infodata.dptr) {
-		unparse_al(infodata.dptr,infodata.dsize,lbuf11,0);
+		unparse_al(infodata.dptr,infodata.dsize,lbuf11,1,0,player);
 		notify_quiet(player, unsafe_tprintf("Alias: %s\r\nLock: %s", buf1, lbuf1));
 		notify_quiet(player, unsafe_tprintf("Contents: %s",lbuf11));
 	    }

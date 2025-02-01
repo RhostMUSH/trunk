@@ -6913,9 +6913,21 @@
   Flag: CLOAK(b) (players)
   
   A player set cloak does not trigger the 'has arrived', 'has left', 
-  'has connected' or 'has disconnected' messages.  They will arrive
-  in any room oblivious to anyone else.  However, they do still 
-  trigger any and all @aenters, @aleaves, and other action attributes.
+  'has connected' or 'has disconnected' messages.  
+  
+  Players will arrive in any room oblivious to anyone else.  However, 
+  they do still trigger any and all @aenters, @aleaves, and other 
+  action attributes.
+
+  For objects set PUPPET this will also snuff the grows ears and 
+  loses ears message notifications.
+  
+  See Also: PUPPET
+
+& PUPPET
+  Re-directing to normal help entry for PUPPET
+  
+!!help/puppet
 
 & SCLOAK
   Flag: SCLOAK(Z) (super-royalty (immortal) only)
@@ -14830,6 +14842,7 @@
   
   See Also: mail
 
+& wmail/smax
 & wmail smax
   Command:  wmail/smax <value> (default 10)
   
@@ -14841,6 +14854,7 @@
   
   See Also: @mailsmax
 
+& wmail/time
 & wmail time
   Command:  wmail/time <value> (default 14 days)
   
@@ -14851,6 +14865,7 @@
   
   Example:  wmail/time 20
 
+& wmail/dtime
 & wmail dtime
   Command:  wmail/dtime <player>=<value>
   
@@ -14861,6 +14876,7 @@
   
   Example:  wmail/dtime BloatedPlayer=2
 
+& mail/quota
 & mail quota
   Command:  mail/quota <player>
   
@@ -14872,6 +14888,7 @@
   
   Example:  mail/quota BloatedPlayer
 
+& mail/send
 & mail send
   Command:  mail/send <address list>=<message>
   
@@ -14885,6 +14902,7 @@
   NOTE:  All messages from objects you controlled will show up that
          they came from YOU and not your object.
 
+& mail/fsend
 & mail fsend
   Command: mail/fsend <address list>=<message>
   
@@ -14898,6 +14916,7 @@
   
   Example:  mail/fsend player1 player2 +global &personal=subject//My message
 
+& wmail/size
 & wmail size
   Command: wmail/size <user>=<[10 - 2000]>
   
@@ -14909,6 +14928,7 @@
   
   See Also: mail quota
 
+& mail/number
 & mail number
   Command: mail/number <target>=#
   
@@ -14920,6 +14940,7 @@
   
   See Also: mail check
 
+& mail/check
 & mail check
   Command: mail/check <target>=<#>
   
@@ -14932,6 +14953,7 @@
   
   See Also: mail number
 
+& wmail/wipe
 & wmail wipe
   Command: wmail/wipe <target> 
   
@@ -14940,6 +14962,7 @@
   
   Example: mail/wipe Jerk
 
+& wmail/load
 & wmail load
   Command: wmail/load
   
@@ -14956,17 +14979,20 @@
   database to a clean slate, thereby removing everything and effectively
   starting over for your mail system.
   
+& wmail/unload
 & wmail unload
   Command: wmail/unload 
   
   Will dump the mail db to a text file.
 
+& wmail/clean
 & wmail clean
   Command: wmail/clean
   
   Right now, basically does a unload followed by a load. In the future, 
   detailed mail db consistency checking is planned for this function.
 
+& wmail/on  
 & wmail on  
   Command: wmail/on
   
@@ -14983,11 +15009,13 @@
   to a clean slate and brings it back up.  You will, however, have lost
   all your mail, but the mail system will be working again.
 
+& wmail/off
 & wmail off
   Command: wmail/off
   
   Will turn the mail system off.  Corrupted mail systems are automatically off.
 
+& wmail/access
 & wmail access
   Command: wmail/access +list
            wmail/access +add=<player>
@@ -15002,6 +15030,7 @@
              wmail/access +add=twink1     (remove user twink1's mail privies)
              wmail/access +remove=twink2  (re-allow twink2 to use mail)
 
+& wmail/override
 & wmail override
   Command: wmail/override <player>
   
@@ -15010,12 +15039,14 @@
   
   Example:  wmail/override ForgetFul
 
+& wmail/restart
 & wmail restart
   Command: wmail/restart
   
   This unloads and reloads (basically restarts) the mail daemon for the 
   RhostMUSH.
 
+& wmail/fix
 & wmail fix
   Command: wmail/fix
   
@@ -15028,6 +15059,7 @@
   
   See Also: wmail lfix
 
+& wmail/lfix
 & wmail lfix
   Command: wmail/lfix
   
@@ -15040,6 +15072,7 @@
    
   See Also: wmail fix
 
+& wmail/alias
 & wmail alias
   Command: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
   
@@ -15066,7 +15099,12 @@
     
   See Also: wmail lock, wmail remove, mail_def_object
 
+& wmail/alias/remove
+& wmail/remove/alias
+& wmail/remove
 & wmail remove
+& wmail remove alias
+& wmail alias remove
   Command: wmail/alias/remove
            wmail/alias/lock/remove
   
@@ -15078,7 +15116,12 @@
   
   See Also: wmail alias, wmail lock
 
+& wmail/alias/lock
+& wmail/lock
+& wmail/lock/alias
 & wmail lock
+& wmail lock alias
+& wmail alias lock
   Command: wmail/alias/lock <alias-name>=<mush lock>
   
   This locks the given alias to the desired lock.  You would set the lock just
@@ -15174,8 +15217,18 @@
   the mail system (using the '$' prefix).  The comment is what is shown
   when the player issues a 'mail/alias'. 
   
-  To send mail using this alias, you would do: mail $wizards=blah
+  The following flags are useful for the alias.<name> attributes on 
+  the mail_def_object.
+    -- HIDDEN -- the attribute is set to be wizard only.
+    -- PINVIS -- the attribute obfuscates the player lists.
   
+  The names will be colored if you are set with the COLORMAIL flag.
+    
+  To send mail using this alias, you would do: 
+    > mail $wizards=blah  
+  
+  See Also: wmail/alias  
+
 & mail_hidden
   Config parameter: mail_hidden <on/off>.  Default: off
   
