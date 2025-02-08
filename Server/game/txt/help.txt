@@ -27349,9 +27349,10 @@
   
   See: 'XTERMCOLOR LIST' for the 256 color list.
   
-{ 'help ansi2' for more -- The 256 Color Support}
-{ 'help ansi quirks' for work arounds on weird ansi problems}
-{ 'help ansi usage' on how to use ansi}
+{ 'help ansi encoding' for encoding used in %c/%x substitutions }
+{ 'help ansi2' for more -- The 256 Color Support }
+{ 'help ansi quirks' for work arounds on weird ansi problems }
+{ 'help ansi usage' on how to use ansi }
 
 & ANSI2
   Function: ansi(<codes>,<string>)   -- CONTINUED
@@ -29977,6 +29978,9 @@
 & mail/status
 & mail status
   Command: mail/status [[p#] [*player] [#-#] [U/N/B/O/M/S] [/SUBJECT]]
+           mail/status/anon [[p#] [*player] [#-#] [U/N/B/O/M/S] [/SUBJECT]]
+  
+  Note: Wizards have access to the /anon switch to show obfuscated senders.
   
   This will print out a list of the message headers in the current
   folder for which the player has mail.  This will also show the current
@@ -36482,16 +36486,17 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.16.0
+  Current Version: 4.17.0
   
   Current Changelogs:
   -------------------
-  1 - 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0, 4.11.2, 4.11.1, 4.11.0, 4.10.0,
+  1 - 4.17.0, 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0, 4.11.2, 4.11.1, 4.11.0, 4.10.0,
       4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0 
   2 - 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2 
   3 - 4.3.1, 4.3.0
 
 
+& 4.17.0
 & 4.16.0
 & 4.15.0
 & 4.14.0
@@ -36523,6 +36528,12 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+  
+  4.17.0 - 02/08/25
+  * ansiterm permission to functions to force function to end in ansi normal
+  * force_ansinorm global to force ansi normal at the end of every evaluation
+    stack
+  * /anon switch for wizards with /status shows obfuscated senders
   
   4.16.0 - 12/22/24
   * COLORMAIL flag to colorize names with mail commands

@@ -239,13 +239,16 @@ check_read_perms2(dbref player, dbref thing, ATTR * attr,
 }
  
 int
-subj_dbref(dbref player, char *subj) {
+subj_dbref(dbref player, char *subj, int key) {
    int target, aflags;
    dbref aowner;
    char *s_buff, *t_buff, *s_pos;
    ATTR *atr;
 
    if ( !Good_chk(player) )
+      return player;
+
+   if ( key )
       return player;
 
    target = NOTHING;
@@ -1760,7 +1763,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
        notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s[Subj: %s]", 
                     ((chk_anon && !chk_anon2) ? 
                           anon_player : (ColorMail(*toplay) ? 
-                               ColorName(subj_dbref(player,subj), 1) : Name(subj_dbref(player,subj)))), 
+                               ColorName(subj_dbref(player,subj,0), 1) : Name(subj_dbref(player,subj,0)))), 
                     (chk_anon2 ? " (Anonymously) " : " "), subj_string(player, subj)));
     } else {
        notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s", 
@@ -2797,12 +2800,18 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 {
   short int msize, x, y, min, max;
   short int *pt1, *pt2, mlen, nmsg, bsize;
-  int w1, len, i, j, page, ml_type, subjsearch, mint_current, 
+  int w1, len, i, j, page, ml_type, subjsearch, mint_current, i_key,
       itrash, chk_anon, chk_anon2, i_autodelete, mt_flags, i_offset;
   char *pt3, *mail_current, curr_mpos, *tpr_buff, *tprp_buff, *plr_pt1, *s_namebuf;
   dbref player2, pcheck, pcheck2, ptrash, mt_owner;
   double tmp_mval;
   static char anon_player[17];
+
+  i_key = 0;
+  if ( (key & M_ANON) && Wizard(player) ) {
+     i_key = 1;
+     key &= ~M_ANON;
+  }
 
   tmp_mval = 0;
   i_autodelete = 0;
@@ -3015,15 +3024,15 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	  if (Good_obj(pcheck)) {
             if ( ColorMail(player2) ) {
                if (len > hsuboff) {
-                  i_offset = strlen(ColorName(subj_dbref(pcheck, mbuf2+hsuboff), 1)) - strlen(Name(subj_dbref(pcheck, mbuf2+hsuboff)));
-	          strncpy(s_namebuf, ColorName(subj_dbref(pcheck, mbuf2+hsuboff), 1), 400);
+                  i_offset = strlen(ColorName(subj_dbref(pcheck, mbuf2+hsuboff, i_key), 1)) - strlen(Name(subj_dbref(pcheck, mbuf2+hsuboff, i_key)));
+	          strncpy(s_namebuf, ColorName(subj_dbref(pcheck, mbuf2+hsuboff, i_key), 1), 400);
                } else {
                   i_offset = strlen(ColorName(pcheck,1)) - strlen(Name(pcheck));
 	          strncpy(s_namebuf,ColorName(pcheck,1),400);
                }
             } else {
                if ( len > hsuboff ) {
-	          strncpy(s_namebuf, Name(subj_dbref(pcheck, mbuf2+hsuboff)), 22);
+	          strncpy(s_namebuf, Name(subj_dbref(pcheck, mbuf2+hsuboff, i_key)), 22);
                } else {
 	          strncpy(s_namebuf,Name(pcheck),22);
                }
@@ -3783,15 +3792,15 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
 	strncpy(sbuf7,Name(send),22);
         if ( ColorMail(player2) ) {
            if (pt1 && *pt1 ) {
-              i_offset = strlen(ColorName(subj_dbref(send, pt1), 1)) - strlen(Name(subj_dbref(send, pt1)));
-	      strncpy(s_namebuf, ColorName(subj_dbref(send, pt1), 1), 400);
+              i_offset = strlen(ColorName(subj_dbref(send, pt1, 0), 1)) - strlen(Name(subj_dbref(send, pt1, 0)));
+	      strncpy(s_namebuf, ColorName(subj_dbref(send, pt1, 0), 1), 400);
            } else {
               i_offset = strlen(ColorName(send, 1)) - strlen(Name(send));
 	      strncpy(s_namebuf, ColorName(send, 1), 400);
            }
         } else {
            if (pt1 && *pt1) {
-	      strncpy(s_namebuf,Name(subj_dbref(send, pt1)),22);
+	      strncpy(s_namebuf,Name(subj_dbref(send, pt1, 0)),22);
            } else {
 	      strncpy(s_namebuf,Name(send),22);
            }
@@ -9214,7 +9223,11 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	if (*buf2 != '\0') {
 	    notify_quiet(player, "MAIL ERROR: Improper status format.");
 	} else {
-	    mail_status(player, buf1, NOTHING, 1, 1, (char *)NULL, (char *)NULL);
+            if ( (key & M_ANON) && Wizard(player) ) {
+	       mail_status(player, buf1, NOTHING, 1 | M_ANON, 1, (char *)NULL, (char *)NULL);
+            } else {
+	       mail_status(player, buf1, NOTHING, 1, 1, (char *)NULL, (char *)NULL);
+            }
 	}
 	break;
     case M_DELETE:
