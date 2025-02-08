@@ -398,6 +398,7 @@ NDECL(cf_init)
     mudconf.connect_methods = 0;	/* Disable optionally connect methods */
     mudconf.ssl_welcome = 0;		/* SSL enforcement of welcome message snuffing */
     mudconf.guest_displaylastsite = 1;	/* Display guest site on connect -- default yes (default behavior) */
+    mudconf.force_ansinorm = 0;
     strcpy(mudconf.string_conn, (char *)"connect");	/* String for the connect command */
     strcpy(mudconf.string_conndark, (char *)"cdark");	/* String for the dark connect */
     strcpy(mudconf.string_connhide, (char *)"chide");	/* String for the hide connect */
@@ -4696,6 +4697,9 @@ CONF conftable[] =
     {(char *) "formats_are_local",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.formats_are_local, 0, 0, CA_PUBLIC,
      (char *) "Are @nameformat/@conformat/@exitformat local?"},
+    {(char *) "force_ansinorm",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.force_ansinorm, 0, 0, CA_PUBLIC,
+     (char *) "Force ansi normal when ansi detected in use?"},
     {(char *) "full_file",
      cf_string, CA_DISABLED, (int *) mudconf.full_file, 32, 0, CA_WIZARD,
      (char *) "File used when site is full."},

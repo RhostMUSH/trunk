@@ -1707,7 +1707,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
-    int prefeval, preeval, inumext, i_capansi;
+    int prefeval, preeval, inumext, i_capansi, i_ansinorm;
 #ifdef EXPANDED_QREGS
     int w;
 #endif
@@ -1736,6 +1736,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     DPUSH; /* #67 */
 		
+    i_ansinorm = 0;
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
     inumext = prefeval = preeval = i_capansi = 0;
 #ifdef EXPANDED_QREGS
@@ -2015,6 +2016,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     c_last_chr = 'M';
 #endif
 #endif
+                i_ansinorm = 1;
+                if ( !*(dstr+1) || (*(dstr+1) == 'n') )
+                   i_ansinorm = 0;
+
                 i_capansi = 0;
                 if ( (*dstr == 'X') || (*dstr == 'M') || (*dstr == 'C') ) {
                    i_capansi = 1;
@@ -2088,6 +2093,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		    break;
 		case 'n':
 		    safe_str((char *) ANSI_NORMAL, buff, &bufc);
+                    i_ansinorm = 0;
 		    break;
 		case 'f':
                     if ( mudconf.global_ansimask & MASK_BLINK )
@@ -3580,6 +3586,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                     issue_bangs(bang_not, bang_yes, bang_string, bang_truebool, tbuf);
 #endif
 		    safe_str(tbuf, buff, &bufc);
+                    if ( ufp->perms2 & CA_ANSI_TERM ) {
+#ifdef ZENTY_ANSI
+                       safe_str(SAFE_ANSI_NORMAL, buff, &bufc);
+#else
+                       safe_str(ANSI_NORMAL, buff, &bufc);
+#endif
+                    }
 		    free_lbuf(tstr);
 		    free_lbuf(tbuf);
 		}
@@ -3642,6 +3655,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 			   mudconf.func_invk_lim) {
 		    fp->fun(buff, &bufc, player, cause, caller,
 			    fargs, nfargs, cargs, ncargs);
+                    if ( fp->perms2 & CA_ANSI_TERM ) {
+#ifdef ZENTY_ANSI
+                       safe_str(SAFE_ANSI_NORMAL, buff, &bufc);
+#else
+                       safe_str(ANSI_NORMAL, buff, &bufc);
+#endif
+                    }
                     mudstate.funccount++;
 #ifdef BANGS
 		    /* Standard function handling
@@ -3758,6 +3778,13 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     }
     mudstate.eval_rec--;
 
+    if ( mudconf.force_ansinorm && i_ansinorm ) {
+#ifdef ZENTY_ANSI
+       safe_str(SAFE_ANSI_NORMAL, buff, &bufc);
+#else
+       safe_str(ANSI_NORMAL, buff, &bufc);
+#endif
+    }
     RETURN(buff); /* #67 */
 }
 

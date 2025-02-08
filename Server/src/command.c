@@ -5131,6 +5131,7 @@ NAMETAB access_nametab2[] =
     {(char *) "eval", 5, CA_WIZARD, 0, CA_EVAL},
     {(char *) "bypass", 5, CA_WIZARD, 0, CA_SB_BYPASS},
     {(char *) "noparse", 5, CA_WIZARD, 0, CA_NO_PARSE},
+    {(char *) "ansiterm", 5, CA_WIZARD, 0, CA_ANSI_TERM},
     {NULL, 0, 0, 0, 0}};
 
 /* ---------------------------------------------------------------------------
@@ -6661,6 +6662,11 @@ if ( !key ) {
     } else {
        notify(player, "ANSI handler for functions() ----------------------------------- DISABLED");
     }
+    if ( mudconf.force_ansinorm ) {
+       notify(player, "ANSI is forced to normalize if ANSI detected in string --------- ENABLED");
+    } else {
+       notify(player, "ANSI is forced to normalize if ANSI detected in string --------- DISABLED");
+    }
     notify(player, unsafe_tprintf(
                    "Floating point precision --------------------------------------- %d DECIMALS",
                    mudconf.float_precision));
@@ -6731,9 +6737,9 @@ if ( !key ) {
     else
        notify(player, "Will @@ work like IDLE for ignoring updating idle times -------- DISABLED");
     if ( mudconf.think_is_idle )
-       notify(player, "Will THINK work like IDLE for ignoring updating idle times -------- ENABLED");
+       notify(player, "Will THINK work like IDLE for ignoring updating idle times ----- ENABLED");
     else
-       notify(player, "Will THINK work like IDLE for ignoring updating idle times -------- DISABLED");
+       notify(player, "Will THINK work like IDLE for ignoring updating idle times ----- DISABLED");
     notify(player, unsafe_tprintf("Current @totem slots defined ----------------------------------- %d", TOTEM_SLOTS));
     notify(player, unsafe_tprintf("Total @totems currently allowed to be defined ------------------ %d",  (TOTEM_SLOTS * 32)));
     if ( mudconf.enforce_checksums ) {
