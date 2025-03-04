@@ -35452,6 +35452,7 @@ FUNCTION(fun_ansi)
                  break;
               case 'U': ansi_omitter |= SPLIT_UNDERSCORE;
                  break;
+              case 'Z': ansi_omitter |= SPLIT_STRIP;
               case 'h': 
                  if ( !i_allow[1] && (mudconf.global_ansimask & MASK_HILITE) )
                     safe_str(SAFE_ANSI_HILITE, ansi_special, &ansi_specialptr);

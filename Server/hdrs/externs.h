@@ -47,6 +47,7 @@
 #define SPLIT_NOANSI		0x10
 #define SPLIT_FG		0x20
 #define SPLIT_BG		0x40
+#define SPLIT_STRIP		0x80
 
 typedef struct atrcache {
         char	*name;		/* Cache name */

@@ -7399,36 +7399,36 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
-  error_index               examine_flags          examine_public_attrs
-  examine_restrictive       exec_secure            execscripthome
-  execscriptpath            execscript_rawpush     exit_attr_default        
-  exit_flags                exit_parent            exit_quota               
-  exit_separator            exit_toggles           exits_connect_rooms      
-  expand_goto               fascist_teleport       file_object              
-  find_money_chance         flag_alias             flag_name                
-  flag_access_see           flag_access_set        flag_access_type         
-  flag_access_unset         float_precision        float_switches           
-  forbid_host               forbid_site            forbidapi_host           
-  forbidapi_site            fork_dump              format_compatibility     
-  fork_vfork                format_contents        format_exits             
-  format_name               formats_are_local      full_file                
-  full_motd_message         function_access        function_alias           
-  function_invocation_limit function_max           function_recursion_limit 
-  gdbm_cache_size           gdbm_database          global_aconnect          
-  global_adisconnect        global_ansimask        global_attrdefault       
-  global_clone_exit         global_clone_obj       global_clone_player      
-  global_clone_room         global_clone_thing     global_error_cmd         
-  global_error_obj          global_parent_exit     global_parent_obj        
-  global_parent_player      global_parent_room     global_parent_thing      
-  global_sideeffects        good_name              goodmail_host            
-  gconf_file                guest_char_num         guest_displaylastsite    
-  guest_file                guest_namelist         guest_randomize          
-  guild_attrname            guild_default          guild_hdr                
-  hackattr_nowiz            hackattr_see           hardconn_host            
-  hardconn_site             hasattrp_compat        hastype_always_zero      
-  heavy_cpu_max             help_file              help_index               
-  help_separator            hide_nospoof           hook_cmd                 
-  hook_obj                  hook_offline
+  error_index               examine_flags             examine_public_attrs
+  examine_restrictive       exec_secure               execscripthome
+  execscriptpath            execscript_rawpush        exit_attr_default        
+  exit_flags                exit_parent               exit_quota               
+  exit_separator            exit_toggles              exits_connect_rooms      
+  expand_goto               fascist_teleport          file_object              
+  find_money_chance         flag_alias                flag_name                
+  flag_access_see           flag_access_set           flag_access_type         
+  flag_access_unset         float_precision           float_switches           
+  forbid_host               forbid_site               forbidapi_host           
+  forbidapi_site            force_ansinorm            fork_dump            
+  format_compatibility      fork_vfork                format_contents      
+  format_exits              format_name               formats_are_local    
+  full_file                 full_motd_message         function_access      
+  function_alias            function_invocation_limit function_max         
+  function_recursion_limit  gdbm_cache_size           gdbm_database        
+  global_aconnect           global_adisconnect        global_ansimask      
+  global_attrdefault        global_clone_exit         global_clone_obj     
+  global_clone_player       global_clone_room         global_clone_thing   
+  global_error_cmd          global_error_obj          global_parent_exit   
+  global_parent_obj         global_parent_player      global_parent_room   
+  global_parent_thing       global_sideeffects        good_name            
+  goodmail_host             gconf_file                guest_char_num       
+  guest_displaylastsite     guest_file                guest_namelist       
+  guest_randomize           guild_attrname            guild_default        
+  guild_hdr                 hackattr_nowiz            hackattr_see         
+  hardconn_host             hardconn_site             hasattrp_compat      
+  hastype_always_zero       heavy_cpu_max             help_file            
+  help_index                help_separator            hide_nospoof         
+  hook_cmd                  hook_obj                  hook_offline
   
 { 'wizhelp config parameters3' for more }
 
@@ -9228,6 +9228,29 @@
 
   See Also: badsite_file, noguest_site, permit_site, register_site, 
             SITE LISTS.
+
+& force_ansinorm
+  Config parameter: force_ansinorm <boolean>   Default: 0
+  
+  This config parameter will enable a form of 'smart ansi normalization'
+  to the parser so if it detects ansi it will append an ansi-normal at the
+  end of the buffer for that evaluation stack.
+  
+  This can introduce other issues as if the last character in the buffer is
+  an escape character, the ansi normalization will, itself, be escaped out.
+  
+  On rare occurances this can also double up ansi normal at the end of the
+  string.
+  
+  This will double up ansi normalize on functions tagged ansiterm
+  
+  This can potentially be cut off if the buffer is full as well.
+  
+  This is an effort to mimic MUX's method of normalizing ansi automatically.
+  
+  This is not full proof, and just like MUX's will have its oqn quirks.
+  
+  See Also: permissions
 
 & fork_dump
   Config parameter: fork_dump <yes/no>.  Default: yes
@@ -13583,6 +13606,8 @@
     bypass        - The function is ignored for sandbox()
     noparse       - The function does not parse functions (but does subs)
                     This will only work on @functions/@lfunctions
+    ansiterm      - will force ansi normalization on functions tagged.
+                    This will double up ansi normal if globally enabled.
   
   Restrictions are normally additive (meaning that you must be a member of all
   required groups and not be a member of any excluded group).  The permissions
