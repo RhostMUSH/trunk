@@ -36496,6 +36496,7 @@
   3 - 4.3.1, 4.3.0
 
 
+& 4.17.1
 & 4.17.0
 & 4.16.0
 & 4.15.0
@@ -36529,6 +36530,10 @@
 & changelog 1
   Topic: CHANGELOG
   
+  4.17.1 - 03/04/25
+  * Fixed a bug in @link - now when paranoid_exit_linking is enabled, the
+    enactor does not require free quota to @link.
+
   4.17.0 - 02/08/25
   * ansiterm permission to functions to force function to end in ansi normal
   * force_ansinorm global to force ansi normal at the end of every evaluation

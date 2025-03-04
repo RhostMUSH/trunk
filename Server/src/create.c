@@ -280,7 +280,7 @@ link_exit(dbref player, dbref exit, dbref dest, int key)
 	cost += mudconf.opencost;
 	quot += mudconf.exit_quota;
     }
-    if (!canpayfees(player, player, cost, quot, TYPE_EXIT))
+    if (!(mudconf.paranoid_exit_linking) && !canpayfees(player, player, cost, quot, TYPE_EXIT))
 	return;
 
     /* Pay the owner for his loss */
