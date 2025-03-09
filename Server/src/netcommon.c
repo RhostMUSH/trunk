@@ -5811,7 +5811,18 @@ do_command(DESC * d, char *command)
 	mudstate.debug_cmd = cp->name;
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
-	    if (Good_chk(d->player) && !Fubar(d->player)) {
+            if ( !(d->flags & DS_CONNECTED) ) {
+               process_output(d);
+               if ( d && (d->flags & DS_API) ) {
+		  shutdownsock(d, R_API);
+               } else {
+		  shutdownsock(d, R_QUIT);
+               }
+		mudstate.debug_cmd = cmdsave;
+		if ( chk_perm && cp )
+		  cp->perm = store_perm;
+		RETURN(0); /* #147 */
+	    } else if (Good_chk(d->player) && !Fubar(d->player)) {
                 process_output(d);
                 if ( d && (d->flags & DS_API) ) {
 		   shutdownsock(d, R_API);
@@ -5827,7 +5838,15 @@ do_command(DESC * d, char *command)
 		break;
 	    }
 	case CMD_LOGOUT:
-	    if (!Fubar(d->player)) {
+            if ( !(d->flags & DS_CONNECTED) ) {
+               process_output(d);
+               if ( d && (d->flags & DS_API) ) {
+		  shutdownsock(d, R_API);
+               } else {
+		  shutdownsock(d, R_LOGOUT);
+               }
+		break;
+	    } else if (!Fubar(d->player)) {
                 process_output(d);
                 if ( d && (d->flags & DS_API) ) {
 		   shutdownsock(d, R_API);

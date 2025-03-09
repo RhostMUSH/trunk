@@ -20464,7 +20464,7 @@
   See Also: capstr(), lcstr()
   
 & LNUM()
-  Function: lnum(<number>[,<number>,<separator>,<stepping>])
+  Function: lnum(<number> [,<number> [,<separator> [,<stepping>]]])
  
   Returns a list of numbers from 0 to <number>-1.
   If a second number is specified it tells to use
@@ -20472,7 +20472,9 @@
   The order you put it in specifies if it increments
   or decrements the value.  You may specify a stepping
   value for the list.
- 
+  
+  This function is multi-character delimiter aware.
+   
   Example:
     > say lnum(5) 
     You say "0 1 2 3 4"
@@ -36529,6 +36531,10 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+  
+  4.18.0 - 03/09/25
+  * Potential bug in QUIT/LOGOUT not being recognized for connect screen
+  * lnum() allows multi-character delimiter.
   
   4.17.1 - 03/04/25
   * Fixed a bug in @link - now when paranoid_exit_linking is enabled, the

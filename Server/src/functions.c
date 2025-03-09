@@ -29940,7 +29940,7 @@ FUNCTION(fun_creplace)
 FUNCTION(fun_lnum)
 {
    int ctr, x, y, over, i_step;
-   char sep;
+   char *sep;
 
    ctr = x = y = over = i_step = 0;
    if ((nfargs < 1) || (nfargs > 4)) {
@@ -29951,7 +29951,7 @@ FUNCTION(fun_lnum)
       if ( (nfargs == 1) && (mudconf.lnum_compat == 1) && (x < 1) ) {
          return;
       }
-      sep = ' ';
+      sep = (char *)" ";
       if (nfargs == 1) {
           y = x-1;
           x = 0;
@@ -29961,9 +29961,9 @@ FUNCTION(fun_lnum)
               y = atoi(fargs[1]);
           if ((nfargs >= 3) && (*fargs[2])) {
               if ( mudconf.delim_null && (strcmp(fargs[2], (char *)"@@") == 0) ) {
-                 sep = '\0';
+                 sep = (char *)"";
               } else {
-                 sep = *fargs[2];
+                 sep = fargs[2];
               }
           }
           if ((nfargs == 4) && (*fargs[3])) {
@@ -29981,8 +29981,8 @@ FUNCTION(fun_lnum)
               else
                  x++;
               for (ctr = x; ctr <= y && !over; ((i_step > 0) ? ctr += (i_step + 1) : ctr++) ) {
-                 if ( sep )
-                    over = safe_chr(sep, buff, bufcx);
+                 if ( *sep )
+                    over = safe_str(sep, buff, bufcx);
                  ival(buff, bufcx, ctr);
               }
           } else {
@@ -29991,8 +29991,8 @@ FUNCTION(fun_lnum)
               else
                  x--;
               for (ctr = x; (ctr >= y && (ctr >= 0 || mudconf.lnum_compat == 1)) && !over; ((i_step > 0) ? ctr -= (i_step + 1) : ctr--) ) {
-                if ( sep )
-                   over = safe_chr(sep, buff, bufcx);
+                if ( *sep )
+                   over = safe_str(sep, buff, bufcx);
                 ival(buff, bufcx, ctr);
               }
           }
