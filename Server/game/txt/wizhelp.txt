@@ -514,15 +514,15 @@
   @doing          @dump           @dynhelp       @enable         @fixdb        
   @flag           @flagdef        @freeze        @function       @halt        
   @hide           @hook           @icmd          @kick           @limit        
-  @list           @list_file      @listmotd      @lock           @log          
-  @logrotate      @mark           @mark_all      @money          @motd         
-  @newpassword    @nuke           @pcreate       @poor           @power        
-  @progreset      @protect        @ps            @purge          @quota        
-  @readcache      @reboot         @recover       @reclist        @remote       
-  @rwho           @site           @shutdown      @snapshot       @snoop
-  @tag            @thaw           @timewarp      @toad           @toggledef
-  @tor            @totem          @totemdef      @turtle         @wall       
-  +players
+  @list           @list_file      @listmotd      @livewire       @lock      
+  @log            @logrotate      @mark          @mark_all       @money      
+  @motd           @newpassword    @nuke          @pcreate        @poor       
+  @power          @progreset      @protect       @ps             @purge      
+  @quota          @readcache      @reboot        @recover        @reclist    
+  @remote         @rwho           @site          @shutdown       @snapshot   
+  @snoop          @tag            @thaw          @timewarp       @toad       
+  @toggledef      @tor            @totem         @totemdef       @turtle     
+  @wall           +players
  
   @adesc2         @allowance      @altname       @badsite        @comment
   @createdstamp   @darkexitformat @goodsite      @invtype        @leveldefault
@@ -4442,6 +4442,32 @@
   
   Individual help is available with 'wizhelp @lock type <type>'
 
+& @livewire
+  Command: @livewire[/switch] [<target> [= <value>]]
+  
+  The @livewire command is a way to 'live-wire' config changes to specific
+  dbref# in a running game.  This will eventually be intended to inject
+  overrides and attach processes and other fun things to individual dbref#s.
+  
+  Non-players will inherit the parent values if not specified on the target. 
+  
+  All @livewire values are stored on the player and applies to reboots.
+   
+  The following switches exist for @livewire:
+    /list        -- list the current livewire values for the target
+    /funceval    -- set a function_invocation_limit on the target.
+                    The value can be 0 to turn off.
+                    The value can go as high as 1 billion.
+                    You need to specify an override to exceed globals maxes.
+    /funcover    -- toggle the override for function evaluation.
+                    this allows the target to exceed the global maximums.
+  
+  Examples:
+    > @livewire/list *player
+    > @livewire/funceval *player=10000
+  
+  See Also: @limit, livewire()
+
 & @lock/altname
 & @lock type altname
   Lock Type: Altname
@@ -6546,7 +6572,8 @@
   checked, and must be enabled with the param 'vattr_limit_checkwiz'
   
   See Also: limit(), max_vattr_limit, max_dest_limit, wizmax_vattr_limit, 
-            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max
+            wizmax_dest_limit, vattr_limit_checkwiz, lfunction_max,
+            @livewire
 
 & @dynhelp
   Command: @dynhelp[/<switch>] <helpfile>[/<topic>] [=<target player>]
@@ -13705,11 +13732,11 @@
   AFLAGS()        BEEP()           BYPASS()        CANSEE()     CHECKPASS() 
   CHKGARBAGE()    CLOAK()          CODEPOINT()     DOING()      DYNHELP()   
   EXECSCRIPT()    EXECSCRIPTNR()   FREELIST()      HASDEPOWER() HASPOWER()  
-  HASTOGGLE()     ISHIDDEN()       LATTRP()        LDEPOWERS()  LOGTOFILE() 
-  LOGSTATUS()     LOOKUP_SITE()    LPOWERS()       LTOGGLES()   MAILALIAS() 
-  MAILQUICK()     MAILQUOTA()      MAILREAD()      MAILSEND()   MAILSIZE()  
-  MAILSTATUS()    MSIZETOT()       NSLOOKUP()      QUOTA()      SIZE()      
-  SWEEP()         TEXTFILE()       TOTEMVALID()
+  HASTOGGLE()     ISHIDDEN()       LATTRP()        LDEPOWERS()  LIVEWIRE()
+  LOGTOFILE()     LOGSTATUS()      LOOKUP_SITE()   LPOWERS()    LTOGGLES() 
+  MAILALIAS()     MAILQUICK()      MAILQUOTA()     MAILREAD()   MAILSEND() 
+  MAILSIZE()      MAILSTATUS()     MSIZETOT()      NSLOOKUP()   QUOTA()    
+  SIZE()          SWEEP()          TEXTFILE()      TOTEMVALID()
 
 & FREELIST()
   Function: freelist([<boolean>])
@@ -14166,6 +14193,31 @@
 
   Checks to determine whether a password is valid for a player object.
   This function is only available to royalty and higher.
+
+& LIVEWIRE()
+  Function: livewire(<switch> [,<player> [,<key>]])
+  
+  The livewire() function is used to fetch and return values based
+  on what was set with @livewire.
+  
+  The following <switch> arguments exist:
+    funceval -- this will return the global function evals, the
+                target function evals, if the override was specified
+                and if <key> is specified the parent values for the
+                target.
+  
+  Examples:
+    > think livewire(funceval, *tester, 1)
+    25000 1000 1 1000 1
+   
+  The above example shows:
+      25000 for the function_invocation_limit
+      1000 for the target's @livewire funceval override
+      1 specifying that it's allowed to exceed global maximums
+      1000 for the parent (as it's its own parent)
+      1 for the override on parent (as it's its own parent)
+  
+  See Also: @livewire, @limit
 
 & LOGSTATUS()
   Function: logstatus()

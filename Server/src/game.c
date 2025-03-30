@@ -2497,7 +2497,7 @@ static void
 NDECL(process_preload)
 {
     dbref thing, parent, aowner;
-    int aflags, lev, i_matchint, i_totem;
+    int aflags, lev, i_matchint, i_totem, i_lwire, i_lwireovride;
     char *tstr, *tstr2, *s_strtok, *s_strtokr, *s_matchstr;
     FWDLIST *fp;
 
@@ -2563,6 +2563,21 @@ NDECL(process_preload)
                 s_strtok = strtok_r(NULL, "\t", &s_strtokr);
              }
           }
+       }
+
+       /* Set the live wire function evaluation */
+       (void) atr_get_str(tstr, thing, A_WIREFUNCEVAL, &aowner, &aflags);
+       if ( *tstr ) {
+          if ( sscanf(tstr, "%d %d", &i_lwire, &i_lwireovride) == 2 ) {
+             dblwire[thing].funceval = i_lwire;
+             dblwire[thing].funceval_override = i_lwireovride;
+          } else {
+             dblwire[thing].funceval = 0;
+             dblwire[thing].funceval_override = 0;
+          }
+       } else {
+          dblwire[thing].funceval = 0;
+          dblwire[thing].funceval_override = 0;
        }
 
        /* Look for an OBJECTTAG attribute */

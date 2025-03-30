@@ -100,6 +100,7 @@ CMD_TWO_ARG_CMDARG(do_jump);
 CMD_TWO_ARG(do_kill);			/* Kill something */
 CMD_TWO_ARG(do_label);			/* %_ label adding/removing of attribs */
 CMD_ONE_ARG(do_last);			/* Get recent login info */
+CMD_TWO_ARG(do_livewire);		/* Live Wire user-changes to low level functioning */
 CMD_TWO_ARG(do_log);			/* Get recent login info */
 CMD_NO_ARG(do_logrotate);		/* Rotate or find status of current logfile */
 CMD_NO_ARG(do_leave);			/* Leave the current object */

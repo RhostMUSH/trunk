@@ -828,6 +828,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define LSET_LIST       1       /* @lset/list */
 
+#define LWIRE_LIST	1	/* List all livewires on target */
+#define LWIRE_FUNCEVAL	2	/* Set individual function invocation */
+#define LWIRE_FUNCOVER	4	/* Set individual function override above max */
+
 #define NAME_ANSI       1	/* Combine @name and @extansi together */
 
 #define ICMD_DISABLE	0

@@ -2299,7 +2299,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
             }
             s_ptxt = NULL;
             if ( (i_p > 0) ) {
-               s_ptxt = atr_get(target, i_p, &pl_aowner, &pl_aflags);
+               s_ptxt = atr_pget(target, i_p, &pl_aowner, &pl_aflags);
             }
 	    if (!*p1) {
 	      if (Wizard(player))
@@ -2609,7 +2609,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 
           s_optxt = NULL;
           if ( (i_op > 0) ) {
-             s_optxt = atr_get(player, i_op, &pl_aowner, &pl_aflags);
+             s_optxt = atr_pget(player, i_op, &pl_aowner, &pl_aflags);
           }
 
 	  if (!*p1) {

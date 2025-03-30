@@ -3315,7 +3315,8 @@ void do_quota(dbref player, dbref cause, int key, char *name, char *cargs[], int
 
 void do_money(dbref player, dbref cause, int key, char *message)
 {
-int i_money = 0;
+   int i_money = 0, thing;
+   char *s_name, *s_strtok, *s_message;
 
    if ( !Good_obj(player) || !Good_obj(cause) )
       return;
@@ -3335,9 +3336,28 @@ int i_money = 0;
       return;
    }
 
-   i_money = atoi(message);
-   notify(player, unsafe_tprintf("Money value set from %d to %d.", Pennies(player), i_money));
-   s_Pennies(player, i_money);
+   /* target check */
+   if ( strchr(message, '=') != 0 ) {
+      s_message = alloc_lbuf("do_money");
+      strcpy(s_message, message);
+      s_name = strtok_r(s_message, "=", &s_strtok);
+      init_match(player, s_name, NOTYPE);
+      match_everything(0);
+      thing = match_result();
+      if ( !Good_chk(thing) ) {
+         notify(player, "Permission denied.");
+         free_lbuf(s_message);
+         return;
+      }
+      s_name = strtok_r(NULL, "=", &s_strtok);
+      i_money = atoi(s_name);
+      free_lbuf(s_message);
+   } else {
+      thing = player;
+      i_money = atoi(message);
+   }
+   notify(player, unsafe_tprintf("%s's money value set from %d to %d.", Name(thing), Pennies(thing), i_money));
+   s_Pennies(thing, i_money);
 }
 
 void do_motd (dbref player, dbref cause, int key, char *message)
@@ -4422,3 +4442,122 @@ void do_api(dbref player, dbref cause, int key, char *s_target, char *s_string)
    free_lbuf(s_tmp);
 }
 
+void
+do_livewire(dbref player, dbref cause, int key, char *s_target, char *s_value)
+{
+   dbref i_thing, i_player, aowner;
+   char *s_buff, *s_txt;
+   int i_eval, i_evalover, aflags, i_value;
+
+   if ( !s_target || !*s_target ) {
+      notify(player, "@livewiere:  I don't see that target.");
+      return;
+   }
+
+   init_match(player, s_target, NOTYPE);
+   match_everything(0);
+   i_thing = noisy_match_result();
+
+   if ( !Good_chk(i_thing) ) {
+      notify(player, "@livewiere:  I don't see that target.");
+      return;
+   }
+
+   i_player = Owner(i_thing);
+
+   /* Sanity check */
+   if ( !Good_chk(i_player) ) {
+      i_player = i_thing;
+   }
+
+   switch(key) {
+      case LWIRE_LIST: /* List live wires */
+         i_eval = dblwire[i_thing].funceval;
+         i_evalover = dblwire[i_thing].funceval_override;
+         s_buff = alloc_lbuf("do_livewire");
+         if ( i_player == i_thing ) {
+            sprintf(s_buff, "@livewiere: Target %s(#%d) -- FuncEval %d, FuncEvalOverride %d", 
+                            Name(i_thing), i_thing, i_eval, i_evalover); 
+         } else {
+            sprintf(s_buff, "@livewiere: Target %s(#%d) [Owner: %s(#%d)] -- FuncEval %d, FuncEvalOverride %d", 
+                            Name(i_thing), i_thing, Name(i_player), i_player, i_eval, i_evalover); 
+         }
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case LWIRE_FUNCEVAL: /* Set function evaluation override on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting func evaluation to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else if ( i_value > 1000000000 ) {
+               notify(player, "@livewire: Warning -- Value greater than 1,000,000,000.  Reset to max");
+               i_value = 1000000000;
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREFUNCEVAL, &aowner, &aflags);
+         if ( *s_txt ) {
+            if ( sscanf(s_txt, "%d %d", &i_eval, &i_evalover) != 2 ) {
+               i_eval = i_evalover = 0;
+            }
+         } else {
+            i_eval = i_evalover = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_eval ) {
+            notify(player, "@livewire: Evaluation value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) FuncEval changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_eval, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d %d", i_value, i_evalover);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].funceval  = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
+      case LWIRE_FUNCOVER: /* Toggle max evaluation override on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting func override to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else {
+               i_value = ( i_value != 0 ? 1 : 0);
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREFUNCEVAL, &aowner, &aflags);
+         if ( *s_txt ) {
+            if ( sscanf(s_txt, "%d %d", &i_eval, &i_evalover) != 2 ) {
+               i_eval = i_evalover = 0;
+            }
+         } else {
+            i_eval = i_evalover = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_evalover ) {
+            notify(player, "@livewire: Override value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) FuncOverride changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_evalover, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d %d", i_eval, i_value);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].funceval_override  = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
+      default:
+         notify(player, "@livewire: switch expected.");
+         break;
+   }
+}

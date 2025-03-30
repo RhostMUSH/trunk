@@ -647,6 +647,13 @@ NAMETAB limit_sw[] =
     {(char *) "lfunction", 2, CA_WIZARD, 0, LIMIT_LFUN},
     {NULL, 0, 0, 0, 0}};
 
+NAMETAB livewire_sw[] =
+{
+    {(char *) "list", 2, CA_WIZARD, 0, LWIRE_LIST},
+    {(char *) "funceval", 2, CA_WIZARD, 0, LWIRE_FUNCEVAL},
+    {(char *) "funcover", 2, CA_WIZARD, 0, LWIRE_FUNCOVER},
+    {NULL, 0, 0, 0, 0}};
+
 NAMETAB listmotd_sw[] =
 {
     {(char *) "brief", 1, CA_WIZARD, 0, MOTD_BRIEF},
@@ -1516,6 +1523,7 @@ CMDENT command_table[] =
      0, CS_ONE_ARG | CS_INTERP, 0, do_list_file},
     {(char *) "@listmotd", listmotd_sw, 0, 0,
      MOTD_LIST, CS_ONE_ARG, 0, do_motd},
+    {(char *) "@livewire", livewire_sw, CA_IMMORTAL | CA_GOD, 0, 0,  CS_TWO_ARG | CS_INTERP, 0, do_livewire},
 /* Removed CA_GBL_BUILD from @lock : ASH 08/23/98 */
     {(char *) "@lock", lock_sw, CA_NO_SLAVE, 0,
      0, CS_TWO_ARG | CS_INTERP, 0, do_lock},
@@ -6698,6 +6706,7 @@ if ( !key ) {
     } else {
        notify(player, "Player password requires safer passwords ----------------------- DISABLED");
     }
+    notify(player, unsafe_tprintf("Player name length is currently set to ------------------------- %d", PLAYER_NAME_LIMIT));
     notify(player, unsafe_tprintf("Current TREE character is defined as --------------------------- %s", mudconf.tree_character));
     if (mudconf.parent_control)
        notify(player, "Lock Control for all @lock processing -------------------------- PARENTS");

@@ -286,5 +286,6 @@ typedef struct afstruct {
 #define A_CONNINFO	2100000000
 #define A_CONNRECORD	2100000001
 #define A_MFAIL		2100000002
+#define A_WIREFUNCEVAL  2100000003
 
 #endif

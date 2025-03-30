@@ -29,7 +29,11 @@
 #define USE_GDBM			/* Store text in disk-based db */
 /* #define rcheck */			/* Gnu memory range checking */
 
-#define PLAYER_NAME_LIMIT	22	/* Max length for player names */
+#ifdef DYN_MAXPLAYERNAME		/* Override max length player names */
+#define PLAYER_NAME_LIMIT	DYN_MAXPLAYERNAME
+#else
+#define PLAYER_NAME_LIMIT	22 	/* Max length for player names */
+#endif
 #define NUM_ENV_VARS		10	/* Number of env vars (%0 et al.) */
 #define MAX_ARG			100	/* max # args from command processor */
 #ifdef EXPANDED_QREGS
