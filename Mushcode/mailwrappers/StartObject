@@ -10,13 +10,7 @@
 &VC_OLD StartObject=@pemit %0=%rYou are now going to be configured to join all the available bbs boards.;@progprompt me=Continue? (Y/N) :;&DID_START %0=WORKING2;@program %0=[v(DB)]/vd
 @VC StartObject=@pemit %0=%rDo you wish to use a TM3/MUX compatible page system. This means, that you can use 'p <message>' or 'page <message>' to page the last person you paged. If you choose not to, you may use 'lp <message>' to page the last person you paged. (the choice will not effect the lp command).;@progprompt me=Enable TM3/MUX page (Y/N) :;&DID_START %0=WORKING2;@program %0=[v(DB)]/ve
 @VE StartObject=@swi [match(y n,%0)]=0,{@pemit %#=%rI'm sorry, but that's not a valid choice. Please choose 'Y' or 'N'.;@program %#=[v(DB)]/ve},1,{@pemit %#=%rYou have chosen to use the TM3/MUX page interface. You can unset this latter by typing: @toggle me=!muxpage;@toggle %#=muxpage;@tr me/vd=%#},2,{@pemit %#=%rYou have chosen NOT to use the TM3/MUX page interface. You can set this latter by typing: @toggle me=muxpage;@tr me/vd=%#}
-@set StartObject=DARK
-@set StartObject=INHERIT
-@set StartObject=MONITOR
-@set StartObject=UNFINDABLE
-@set StartObject=SAFE
-@set StartObject=SCLOAK
-@set StartObject=INDESTRUCTABLE
+@set StartObject=INDESTRUCTIBLE SAFE INHERIT SCLOAK DARK UNFINDABLE MONITOR
 @toggle StartObject=prog
 @pemit %#=This can cause an error/permission denied if it's not configured.  Ignore it.
 @set StartObject=COMMAND
