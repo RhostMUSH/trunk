@@ -58,7 +58,7 @@ signed char qreg_indexes[256] = {
 };
 
 /* Mush built in functions needing externs */
-extern dbref       FDECL(match_thing, (dbref, char *));
+extern dbref       match_thing(dbref, char *);
 
 /* regexp foo */
 /** Regexp match, possibly case-sensitive, and with no memory.
@@ -1031,7 +1031,7 @@ load_regexp_functions()
  * regexp_match: Load a regular expression match and insert it into
  * registers.
  */
-/* extern int      FDECL(regexp_wild_match, (char *, char *, char *[], int, int)); */
+/* extern int      regexp_wild_match(char *, char *, char *[], int, int); */
 
 
 int

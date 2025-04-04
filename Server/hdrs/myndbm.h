@@ -57,13 +57,13 @@ typedef struct {
 #define DBM_INSERT	0
 #define DBM_REPLACE	1
 
-DBM *	FDECL(dbm_open, (char *, int, int));
-void	FDECL(dbm_close, (DBM *));
-datum	FDECL(dbm_fetch, (DBM *, datum));
-datum	FDECL(dbm_firstkey, (DBM *));
-datum	FDECL(dbm_nextkey, (DBM *));
-long	FDECL(dbm_forder, (DBM *, datum));
-int	FDECL(dbm_delete, (DBM *, datum));
-int	FDECL(dbm_store, (DBM *, datum, datum, int));
+DBM *	dbm_open(char *, int, int);
+void	dbm_close(DBM *);
+datum	dbm_fetch(DBM *, datum);
+datum	dbm_firstkey(DBM *);
+datum	dbm_nextkey(DBM *);
+long	dbm_forder(DBM *, datum);
+int	dbm_delete(DBM *, datum);
+int	dbm_store(DBM *, datum, datum, int);
 
 #endif

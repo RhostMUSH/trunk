@@ -38,8 +38,8 @@ struct logindata {
 	int	new_bad;
 };
 
-extern time_t	FDECL(time, (time_t *));
-extern const char *	FDECL(time_format_1, (time_t));
+extern time_t	time(time_t *);
+extern const char *	time_format_1(time_t);
 
 /* ---------------------------------------------------------------------------
  * decrypt_logindata, encrypt_logindata: Decode and encode login info.
@@ -813,7 +813,7 @@ dbref lookup_player (dbref doer, char *name, int check_who)
    return p;
 }
 
-void NDECL(load_player_names)
+void load_player_names(void)
 {
 dbref	i, j, aowner;
 int	aflags;

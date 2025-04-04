@@ -572,7 +572,7 @@ fcache_load(dbref player)
 }
 
 void 
-NDECL(fcache_init)
+fcache_init(void)
 {
     FCACHE *fp;
 

@@ -29,7 +29,7 @@ PCACHE	*pcache_head;
 #define	PF_MONEY_CH	0x0004
 #define	PF_QMAX_CH	0x0008
 
-void NDECL(pcache_init)
+void pcache_init(void)
 {
 	pool_init(POOL_PCACHE, sizeof(PCACHE));
 	nhashinit(&pcache_htab, 23);
@@ -105,7 +105,7 @@ IBUF	tbuf;
 	pp->cflags &= ~(PF_MONEY_CH|PF_QMAX_CH);
 }
 
-void NDECL(pcache_trim)
+void pcache_trim(void)
 {
 PCACHE	*pp, *pplast, *ppnext;
 
@@ -133,7 +133,7 @@ PCACHE	*pp, *pplast, *ppnext;
 	}
 }
 
-void NDECL(pcache_sync)
+void pcache_sync(void)
 {
 PCACHE	*pp;
 

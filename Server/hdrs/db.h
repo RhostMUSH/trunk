@@ -44,46 +44,46 @@ struct attr {
 	const char *name;	/* This has to be first.  braindeath. */
 	int	number;		/* attr number */
 	int	flags;
-	int	FDECL((*check),(int, dbref, dbref, int, char *));
+	int	(*check)(int, dbref, dbref, int, char *);
 };
 
-extern ATTR *	FDECL(atr_num, (int anum));
-extern ATTR *	FDECL(atr_num2, (int anum));
-extern ATTR *	FDECL(atr_num3, (int anum));
-extern ATTR *	FDECL(atr_num4, (int anum));
-extern ATTR *	FDECL(atr_num_ex, (int anum));
-extern ATTR *	FDECL(atr_num_pinfo, (int anum));
-extern ATTR *	FDECL(atr_num_aladd, (int anum));
-extern ATTR *	FDECL(atr_num_exec, (int anum));
-extern ATTR *	FDECL(atr_num_objid, (int anum));
-extern ATTR *	FDECL(atr_num_lattr, (int anum));
-extern ATTR *	FDECL(atr_num_vattr, (int anum));
-extern ATTR *	FDECL(atr_num_chkpass, (int anum));
-extern ATTR *	FDECL(atr_num_mtch, (int anum));
-extern ATTR *	FDECL(atr_str, (char *s));
-extern ATTR *	FDECL(atr_str2, (char *s));
-extern ATTR *	FDECL(atr_str3, (char *s));
-extern ATTR *	FDECL(atr_str4, (char *s));
-extern ATTR *	FDECL(atr_str_atrpeval, (char *s));
-extern ATTR *	FDECL(atr_str_notify, (char *s));
-extern ATTR *	FDECL(atr_str_parseatr, (char *s));
-extern ATTR *	FDECL(atr_str_exec, (char *s));
-extern ATTR *	FDECL(atr_str_objid, (char *s));
-extern ATTR *	FDECL(atr_num_bool, (int anum));
-extern ATTR *	FDECL(atr_str_bool, (char *s));
-extern ATTR *	FDECL(atr_str_cluster, (char *s));
-extern ATTR *	FDECL(atr_str_mtch, (char *s));
+extern ATTR *	atr_num(int anum);
+extern ATTR *	atr_num2(int anum);
+extern ATTR *	atr_num3(int anum);
+extern ATTR *	atr_num4(int anum);
+extern ATTR *	atr_num_ex(int anum);
+extern ATTR *	atr_num_pinfo(int anum);
+extern ATTR *	atr_num_aladd(int anum);
+extern ATTR *	atr_num_exec(int anum);
+extern ATTR *	atr_num_objid(int anum);
+extern ATTR *	atr_num_lattr(int anum);
+extern ATTR *	atr_num_vattr(int anum);
+extern ATTR *	atr_num_chkpass(int anum);
+extern ATTR *	atr_num_mtch(int anum);
+extern ATTR *	atr_str(char *s);
+extern ATTR *	atr_str2(char *s);
+extern ATTR *	atr_str3(char *s);
+extern ATTR *	atr_str4(char *s);
+extern ATTR *	atr_str_atrpeval(char *s);
+extern ATTR *	atr_str_notify(char *s);
+extern ATTR *	atr_str_parseatr(char *s);
+extern ATTR *	atr_str_exec(char *s);
+extern ATTR *	atr_str_objid(char *s);
+extern ATTR *	atr_num_bool(int anum);
+extern ATTR *	atr_str_bool(char *s);
+extern ATTR *	atr_str_cluster(char *s);
+extern ATTR *	atr_str_mtch(char *s);
 
 extern ATTR attr[];
 
 extern ATTR **anum_table;
 extern ATTR **anum_table_inline;
 
-extern ATTR *	FDECL(anum_get_f, (long x));
-extern void	FDECL(anum_set_f, (long x, ATTR *v));
+extern ATTR *	anum_get_f(long x);
+extern void	anum_set_f(long x, ATTR *v);
 #define anum_get(x) anum_get_f(x)
 #define anum_set(x,v) anum_set_f(x,v)
-extern void	FDECL(anum_extend,(int));
+extern void	anum_extend(int);
 
 #define	ATR_INFO_CHAR	'\1'	/* Leading char for attr control data */
 
@@ -257,41 +257,41 @@ extern LWIRE *dblwire;
 #define	s_Home(t,n)		s_Link(t,n)
 #define	s_Dropto(t,n)		s_Location(t,n)
 
-extern int	FDECL(Pennies, (dbref));
-extern void	FDECL(s_Pennies, (dbref, int));
+extern int	Pennies(dbref);
+extern void	s_Pennies(dbref, int);
 
-extern int 	FDECL(zlist_inlist, (dbref, dbref));
-extern void	FDECL(zlist_destroy, (dbref));
-extern void 	FDECL(zlist_del, (dbref,dbref));
-extern void 	FDECL(zlist_add, (dbref, dbref));
+extern int 	zlist_inlist(dbref, dbref);
+extern void	zlist_destroy(dbref);
+extern void 	zlist_del(dbref,dbref);
+extern void 	zlist_add(dbref, dbref);
 
-extern void	NDECL(tf_init);
-extern int	FDECL(tf_open, (char *, int));
-extern int	FDECL(tf_socket, (int, int));
-extern void	FDECL(tf_close, (int));
-extern FILE *	FDECL(tf_fopen, (char *, int));
-extern void	FDECL(tf_fclose, (FILE *));
-extern FILE *	FDECL(tf_popen, (char *, int));
+extern void	tf_init(void);
+extern int	tf_open(char *, int);
+extern int	tf_socket(int, int);
+extern void	tf_close(int);
+extern FILE *	tf_fopen(char *, int);
+extern void	tf_fclose(FILE *);
+extern FILE *	tf_popen(char *, int);
 #define tf_pclose(f)	tf_fclose(f)
 
-extern dbref	FDECL(getref, (FILE *));
-extern void	FDECL(putref, (FILE *, dbref));
-extern BOOLEXP *FDECL(dup_bool, (BOOLEXP *));
-extern void	FDECL(free_boolexp, (BOOLEXP *));
-extern dbref	FDECL(parse_dbref, (const char *));
-extern int	FDECL(mkattr, (char *));
-extern void	FDECL(al_add, (dbref, int));
-extern void	FDECL(al_delete, (dbref, int));
-extern void	FDECL(al_destroy, (dbref));
-extern void	NDECL(al_store);
-extern void	NDECL(val_count);
-extern int	FDECL(atrcint, (dbref, dbref, int, char *));
-extern void	FDECL(db_grow, (dbref));
-extern void	NDECL(db_free);
-extern void	NDECL(db_make_minimal);
-extern dbref	FDECL(db_read, (FILE *, int *, int *, int *));
-extern dbref	FDECL(db_write, (FILE *, int, int));
-extern void	FDECL(showdbstats, (dbref));
+extern dbref	getref(FILE *);
+extern void	putref(FILE *, dbref);
+extern BOOLEXP *dup_bool(BOOLEXP *);
+extern void	free_boolexp(BOOLEXP *);
+extern dbref	parse_dbref(const char *);
+extern int	mkattr(char *);
+extern void	al_add(dbref, int);
+extern void	al_delete(dbref, int);
+extern void	al_destroy(dbref);
+extern void	al_store(void);
+extern void	val_count(void);
+extern int	atrcint(dbref, dbref, int, char *);
+extern void	db_grow(dbref);
+extern void	db_free(void);
+extern void	db_make_minimal(void);
+extern dbref	db_read(FILE *, int *, int *, int *);
+extern dbref	db_write(FILE *, int, int);
+extern void	showdbstats(dbref);
 
 #define	DOLIST(thing,list) \
 	for ((thing)=(list); \
