@@ -31,8 +31,9 @@ struct confdata {
 	int	cache_width;	/* Number of cache cells */
 	int	cache_names;	/* Should object names be cached separately */
 #ifndef STANDALONE
-        char    data_dir[128];   /* Directory for database files */
-        char    txt_dir[128];    /* Directory for txt and help files */
+	char	data_dir[128];	/* Directory for database files */
+	char	txt_dir[128];	/* Directory for txt and help files */
+	char	log_dir[128];	/* Directory for log files */
 	char	image_dir[128];	/* Snapshot image directory */
 	char	indb[128];	/* database file name */
 	char	outdb[128];	/* checkpoint the database to here */
@@ -43,14 +44,14 @@ struct confdata {
 	char	uncompress[128];/* program to run to uncompress */
 	char	status_file[128]; /* Where to write arg to @shutdown */
 	char	roomlog_path[128]; /* Path where LOGROOM and LOGROOMENH is sent */
-        char	logdb_name[128];/* Name of log db */
+	char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
-	char ip_address[15];
+	char	ip_address[15];
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
 	int	api_port;	/* API port -- Ashen-Shugar 6/2017 */
 	int	api_nodns;	/* Disable DNS lookup on api */
-        int     debug_id;       /* shared memory key for debug monitor */
+	int	debug_id;	/* shared memory key for debug monitor */
 	int	authenticate;	/* Do we wish to use AUTH protocol? */
 	int	init_size;	/* initial db size */
 	int	have_guest;	/* Do we wish to allow a GUEST character? */

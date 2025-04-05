@@ -85,15 +85,16 @@ NDECL(cf_init)
     strcpy(mudconf.roomlog_path, "roomlogs");
     strcpy(mudconf.data_dir, "./data");
     strcpy(mudconf.txt_dir, "./txt");
+    strcpy(mudconf.log_dir, "./logs");
     strcpy(mudconf.image_dir, "./image");
     strcpy(mudconf.indb, "netmush.db");
     strcpy(mudconf.outdb, "");
     strcpy(mudconf.crashdb, "");
     strcpy(mudconf.gdbm, "");
     if ( getenv("GAMENAME") != NULL )
-       sprintf(mudconf.logdb_name, "%.110s.gamelog", getenv("GAMENAME"));
+       sprintf(mudconf.logdb_name, "%s/%.110s.gamelog", mudconf.log_dir, getenv("GAMENAME"));
     else
-       strcpy(mudconf.logdb_name, "netrhost.gamelog");
+       strcpy(mudconf.log_dir, "netrhost.gamelog");
     mudconf.compress_db = 0;
     strcpy(mudconf.compress, "/usr/ucb/compress");
     strcpy(mudconf.uncompress, "/usr/ucb/zcat -c");
@@ -4936,6 +4937,9 @@ CONF conftable[] =
      cf_int, CA_DISABLED, &mudconf.init_size, 0, 0, CA_WIZARD,
      (char *) "Initial database size.\r\n"\
               "                             Default: 20000   Value: %d"},
+    {(char *) "log_dir",
+     cf_string, CA_DISABLED, (int *) mudconf.log_dir, 128, 0, CA_WIZARD,
+     (char *) "Location of log files."},
     {(char *) "data_dir",
      cf_string, CA_DISABLED, (int *) mudconf.data_dir, 128, 0, CA_WIZARD,
      (char *) "Location of data files."},
