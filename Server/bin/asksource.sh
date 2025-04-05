@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source ./asksourceinfo.sh
+
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -565,17 +568,13 @@ info() {
    case $INFOARG in
       1) if [ $BETAOPT -eq 1 ]
          then
-            echo "This will enable the MUSH Doors portion of @door connectivity."
-            echo "This is used with the doors.txt/doors.indx files for sites."
+	    info::door
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
          elif [ $RUNBETA -eq 1 ]
          then
-            echo "This enables you to automatically include the MYSQL definitions"
-            echo "to the DEFs line in the Makefile.  This is to support if you have"
-            echo "this package installed and should only be used then.  Otherwise,"
-            echo "it's safe to leave it at the default."
+	    info::mysql
          else
             echo "Sideeffects are functions like set(), pemit(), create(), and the like."
             echo "This must be enabled to be able to use these functions.  In addition,"
