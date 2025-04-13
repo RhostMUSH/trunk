@@ -30332,6 +30332,8 @@
   
   Note: Wizards have access to the /anon switch to show obfuscated senders.
   
+  Note: see help on 'mail status2' for examples and options.
+  
   This will print out a list of the message headers in the current
   folder for which the player has mail.  This will also show the current
   folder.  The p# argument (where # is an integer) will print out the
@@ -30377,6 +30379,9 @@
     > mail/status          (shows all your mail in your current folder)
     > mail/status p2       (shows second page of your mail [if page is set])
     > mail/status 10-50    (shows messages 10-50 in your mailbox)
+    > mail/status +3       (shows messages from 4 on in your mailbox)
+    > mail/status -1       (shows the last message in your mailbox)
+    > mail/status -3       (shows the last 3 messages in your mailbox)
     > mail/status 5        (shows just message 5 in your mailbox)
     > mail/status *Seawolf (shows all mail from player Seawolf)
     > mail/status U        (shows all the unread mail in your mailbox)
@@ -31672,10 +31677,12 @@
     > mail/reply 1*=test reply
   
   You should see:
-    Mail: You have a new mail from -> <Your name>
+    Mail: You have a new mail (#2) from -> <Your name>
     Mail: Message sent to -> <Your name>
     Mail: Done
    
+  The (#2) is the message index in your unsorted mailbox.
+  
   Note: If you have the BRANDY_MAIL toggle enabled, this puts you in the editor
   
   Now, lets type mail/status to see your status: 
@@ -36836,17 +36843,17 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.17.0
+  Current Version: 4.20.0
   
   Current Changelogs:
   -------------------
-  1 - 4.19.0 4.18.0 4.17.0, 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0, 4.11.2, 
-      4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 4.6.1, 4.6.0,
-      4.5.3, 4.5.2, 4.5.1, 4.5.0 
-  2 - 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2 
-  3 - 4.3.1, 4.3.0
+  1 - 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0
+  2 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+      4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
+  3 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+      4.3.1, 4.3.0
 
-
+& 4.20.0
 & 4.19.0
 & 4.18.0
 & 4.17.1
@@ -36856,32 +36863,15 @@
 & 4.14.0
 & 4.13.0
 & 4.12.0
-& 4.11.2
-& 4.11.1
-& 4.11.0
-& 4.10.0
-& 4.9.0
-& 4.8.0
-& 4.7.1
-& 4.7.0
-& 4.6.2
-& 4.6.1
-& 4.6.0
-& 4.5.3
-& 4.5.2
-& 4.5.1
-& 4.5.0
-& 4.4.3
-& 4.4.2
-& 4.4.1
-& 4.4.0
-& 4.3.9
-& 4.3.8
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+  
+  4.20.0 - 04/12/25
+  * +<num> and -<num> options added to mail/status
+  * receiving mail now shows the 'all' folder message index
   
   4.19.0 - 03/29/25
   * added parent awareness for pageformats 
@@ -36933,7 +36923,27 @@
   * mail/lock aliased to @lock/mail
   * conversion of flatfiles recognizes @mfail
   
-  4.11.x
+& 4.11.2
+& 4.11.1
+& 4.11.0
+& 4.10.0
+& 4.9.0
+& 4.8.0
+& 4.7.1
+& 4.7.0
+& 4.6.2
+& 4.6.1
+& 4.6.0
+& 4.5.3
+& 4.5.2
+& 4.5.1
+& 4.5.0
+& 4.4.3
+& 4.4.2
+& changelog 2
+  Topic: CHANGELOG
+
+  4.11.0-4.11.2 
   * fix for git
   
   4.10.0 - 10/19/24
@@ -36950,26 +36960,6 @@
     syntax: execscript(aes.sh,password,enc|dec,string)
   * @password/generate (genpassword()) fix to enforce lengths
   
-& 4.8.0
-& 4.7.1
-& 4.7.0
-& 4.6.2
-& 4.6.1
-& 4.6.0
-& 4.5.3
-& 4.5.2
-& 4.5.1
-& 4.5.0
-& 4.4.3
-& 4.4.2
-& 4.4.1
-& 4.4.0
-& 4.3.9
-& 4.3.8
-& 4.3.7
-& changelog 2
-  Topic: CHANGELOG
-
   4.8.0 - 08/28/24
   * @decompile/db will now show dbref# of parents
   * @decompile now includes zones
@@ -37010,6 +37000,21 @@
     the attribute sizes of modern games. The netrhost.conf defaults were
     even lower than the internal defaults - fixed.
     
+& 4.4.1
+& 4.4.0
+& 4.3.9
+& 4.3.8
+& 4.3.7
+& 4.3.6
+& 4.3.5
+& 4.3.4
+& 4.3.3
+& 4.3.2
+& 4.3.1
+& 4.3.0
+& changelog 3
+  Topic: CHANGELOG
+  
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
     was reversed. (AMB)
@@ -37030,16 +37035,6 @@
   4.3.7 - 07/02/24
   ----------------
   * bug with determining 64-bitness of systems with newer GCC/ Clang versions
-  
-& 4.3.6
-& 4.3.5
-& 4.3.4
-& 4.3.3
-& 4.3.2
-& 4.3.1
-& 4.3.0
-& changelog 3
-  Topic: CHANGELOG
   
   4.3.6 - 07/01/24
   -------------------------

@@ -1760,13 +1760,16 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   if (Connected(*toplay) || mudconf.mail_verbosity) {
     tprp_buff = tpr_buff = alloc_lbuf("insert_msg");
     if ( mudconf.mail_verbosity && subj ) {
-       notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s[Subj: %s]", 
+       notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail (#%d) from -> %s%s[Subj: %s]", 
+                    index,
                     ((chk_anon && !chk_anon2) ? 
                           anon_player : (ColorMail(*toplay) ? 
                                ColorName(subj_dbref(player,subj,0), 1) : Name(subj_dbref(player,subj,0)))), 
-                    (chk_anon2 ? " (Anonymously) " : " "), subj_string(player, subj)));
+                    (chk_anon2 ? " (Anonymously) " : " "), 
+                    subj_string(player, subj)));
     } else {
-       notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail from -> %s%s", 
+       notify_quiet(*toplay, safe_tprintf(tpr_buff, &tprp_buff, "Mail: You have new mail (#%d) from -> %s%s", 
+                    index, 
                     ((chk_anon && !chk_anon2) ? anon_player : (ColorMail(*toplay) ? ColorName(player, 1) : Name(player))), 
                     (chk_anon2 ? " (Anonymously) " : " ")));
     }
@@ -2947,9 +2950,25 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
 	  x = (short int)atoi(pt3+1);
 	  if ((x < max) && (x >= min))
 	    max = x;
-	}
-      }
-      else if (is_number(buf)) {
+        } else if ( !*pt3 && is_number(buf) ) {
+	   x = (short int)atoi(buf);
+           if ( (x >= min) && (x <= max) ) {
+              min = x;
+           }
+	} else if ( !*buf && is_number(pt3+1) ) {
+	   x = max - (short int)atoi(pt3+1) + 1;
+           if ( (x >= min) && (x <= max) ) {
+              min = x;
+           }
+        }
+      } else if ( (*buf == '+') && is_number(buf+1) ) {
+	x = min + (short int)atoi(buf+1);
+        if ( (x >= min) && (x <= max) ) {
+           min = x;
+        } else if ( x >= max ) {
+           min = max;
+        }
+      } else if (is_number(buf)) {
 	x = (short int)atoi(buf);
 	if ((x >= min) && (x <= max))
 	  min = max = x;
