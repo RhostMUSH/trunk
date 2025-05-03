@@ -909,7 +909,7 @@ void real_listset_nametab(dbref player, NAMETAB *ntab, NAMETAB *ntab2, int flagw
  */
 
 extern CF_HDCL(cf_modify_bits);
-extern void FDECL(cf_log_notfound, (dbref, char *, const char *, char *));
+extern void cf_log_notfound(dbref, char *, const char *, char *);
 
 CF_HAND(cf_ntab_access)
 {

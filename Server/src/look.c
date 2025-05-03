@@ -25,8 +25,8 @@ char *index(const char *, int);
 #endif /* REALITY_LEVELS */
 
 extern int count_chars(const char *, const char c);
-extern dbref    FDECL(match_thing, (dbref, char *));
-extern POWENT * FDECL(find_power, (dbref, char *));
+extern dbref    match_thing(dbref, char *);
+extern POWENT * find_power(dbref, char *);
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
 extern void examine_totemtab(dbref, dbref);
 extern NAMETAB lock_sw[];

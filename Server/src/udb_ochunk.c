@@ -53,7 +53,7 @@ void bzero(void *, int);
 #include	"udb.h"
 
 extern int obj_siz(Obj *o);
-extern void VDECL(fatal, (const char *,...));
+extern void fatal(const char *,...);
 extern void mush_logf();
 
 /*

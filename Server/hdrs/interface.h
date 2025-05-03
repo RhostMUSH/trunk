@@ -243,14 +243,14 @@ extern DESC *desc_in_use;
 
 /* from the net interface */
 
-extern void	NDECL(emergency_shutdown);
-extern void	FDECL(shutdownsock, (DESC *, int));
-extern void	FDECL(shovechars, (int, char*));
-extern void	NDECL(set_signals);
-extern void	FDECL(start_auth, (DESC *));
-extern void 	FDECL(check_auth_connect, (DESC *));
-extern void 	FDECL(check_auth, (DESC *));
-extern void	FDECL(write_auth, (DESC *));
+extern void	emergency_shutdown(void);
+extern void	shutdownsock(DESC *, int);
+extern void	shovechars(int, char*);
+extern void	set_signals(void);
+extern void	start_auth(DESC *);
+extern void 	check_auth_connect(DESC *);
+extern void 	check_auth(DESC *);
+extern void	write_auth(DESC *);
 
 /* from utils.c */
 #define CONN_TIME       1       /* Total Connected Time in seconds */
@@ -264,28 +264,28 @@ extern int handle_conninfo_read(char *, dbref, int);
 
 /* from netcommon.c */
 
-extern struct timeval	FDECL(timeval_sub, (struct timeval, struct timeval));
-extern int	FDECL(msec_diff, (struct timeval now, struct timeval then));
-extern struct timeval	FDECL(msec_add, (struct timeval, int));
-extern struct timeval	FDECL(update_quotas, (struct timeval, struct timeval));
-extern void	FDECL(raw_notify, (dbref, const char *, int, int));
-extern void	FDECL(clearstrings, (DESC *));
-extern void	FDECL(queue_write, (DESC *, const char *, int));
-extern void	FDECL(queue_string, (DESC *, const char *));
-extern void	FDECL(freeqs, (DESC *, int));
-extern void	FDECL(welcome_user, (DESC *));
-extern void	FDECL(save_command, (DESC *, CBLK *));
-extern void	FDECL(announce_disconnect, (dbref, DESC *, const char *));
-extern int	FDECL(boot_off, (dbref, char *));
-extern int	FDECL(boot_by_port, (int, int, int, char *));
-extern int	FDECL(fetch_idle, (dbref));
-extern int	FDECL(fetch_connect, (dbref));
-extern void	NDECL(check_idle);
-extern void	NDECL(process_commands);
-extern int	FDECL(site_check, (struct in_addr, SITE *, int, int, int));
-extern int	FDECL(blacklist_check, (struct in_addr host, int));
-extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref, int));
-extern dbref	FDECL(find_connected_name, (dbref, char *));
+extern struct timeval	timeval_sub(struct timeval, struct timeval);
+extern int	msec_diff(struct timeval now, struct timeval then);
+extern struct timeval	msec_add(struct timeval, int);
+extern struct timeval	update_quotas(struct timeval, struct timeval);
+extern void	raw_notify(dbref, const char *, int, int);
+extern void	clearstrings(DESC *);
+extern void	queue_write(DESC *, const char *, int);
+extern void	queue_string(DESC *, const char *);
+extern void	freeqs(DESC *, int);
+extern void	welcome_user(DESC *);
+extern void	save_command(DESC *, CBLK *);
+extern void	announce_disconnect(dbref, DESC *, const char *);
+extern int	boot_off(dbref, char *);
+extern int	boot_by_port(int, int, int, char *);
+extern int	fetch_idle(dbref);
+extern int	fetch_connect(dbref);
+extern void	check_idle(void);
+extern void	process_commands(void);
+extern int	site_check(struct in_addr, SITE *, int, int, int);
+extern int	blacklist_check(struct in_addr host, int);
+extern void	make_ulist(dbref, char *, char **, int, dbref, int);
+extern dbref	find_connected_name(dbref, char *);
 
 /* From predicates.c */
 

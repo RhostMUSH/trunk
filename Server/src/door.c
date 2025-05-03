@@ -84,9 +84,9 @@ char *index(const char *, int);
 extern int ndescriptors;
 extern int maxd;
 
-extern int FDECL(alarm_msec, (double));
-extern double NDECL(next_timer);
-extern void FDECL(make_nonblocking, (int));
+extern int alarm_msec(double);
+extern double next_timer(void);
+extern void make_nonblocking(int);
 
 static door_t **gaDoors = NULL;
 static int gnDoors = 0;
