@@ -533,12 +533,8 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
            memset(buff2, '\0', sizeof(buff2));
            s2 = buff2;
            while ( *s3 ) {
-              if ( *s3 == '(' ) 
-                 i_inparen++;
-              if ( *s3 == ')' ) 
-                 i_inparen--;
-              if ( (*s3 == '\\') && (i_inparen > 0) ) {
-                 if ( *(s3+1) && (*(s3+1) != '.') && (*(s3+1) != '+') && (*(s3+1) != '*') )
+              if ( (*s3 == '\\') ) {
+                 if ( *(s3+1) && ((*(s3+1) == '\') || (*(s3+1) == ':')) )
                     s3++;
               } 
               *s2 = *s3;
