@@ -27,6 +27,8 @@ sqlite_db_path incorrectly defined in conf.c
 				- Thanks Hige
 off by one with '|' option in printf for wrapping
 				- Thanks Thenomain
+Bug with initializing buffers in lua() code.
+				- Thanks Volund
 
 
                          RhostMUSH 4.0 Update File
