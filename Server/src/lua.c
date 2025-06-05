@@ -138,6 +138,7 @@ rhost_get(lua_State *L)
 
     /* Second argument: attribute name */
     attr = alloc_lbuf("lua_rhost_get_attr");
+    memset(attr, '\0', LBUF_SIZE);
     lua_stack_to_lbuf(L, attr, -1);
     /* log_text("rhost_get : attr : "); log_text(attr); end_log(); */
     lua_pop(L, 1); /* pops attribute name */
@@ -199,6 +200,7 @@ rhost_strfunc(lua_State *L)
     /* Third argument: delimiter */
     if(argv > 2) {
         fargs[2] = alloc_lbuf("lua_rhost_strfunc_delim");
+        memset(fargs[2], '\0', LBUF_SIZE);
         lua_stack_to_lbuf(L, fargs[2], -1);
         /* log_text("rhost_strfunc : fargs[2] : "); log_text(fargs[2]); end_log(); */
         lua_pop(L, 1); /* pops args */
@@ -206,12 +208,14 @@ rhost_strfunc(lua_State *L)
 
     /* Second argument: args */
     fargs[1] = alloc_lbuf("lua_rhost_strfunc_args");
+    memset(fargs[1], '\0', LBUF_SIZE);
     lua_stack_to_lbuf(L, fargs[1], -1);
     /* log_text("rhost_strfunc : fargs[1] : "); log_text(fargs[1]); end_log(); */
     lua_pop(L, 1); /* pops args */
 
     /* First argument: func */
     fargs[0] = alloc_lbuf("lua_rhost_strfunc_func");
+    memset(fargs[0], '\0', LBUF_SIZE);
     lua_stack_to_lbuf(L, fargs[0], -1);
     /* log_text("rhost_strfunc : fargs[0] : "); log_text(fargs[0]); end_log(); */
     lua_pop(L, 1); /* pops func*/
@@ -257,6 +261,7 @@ rhost_parseansi(lua_State *L)
 
     /* First argument: str */
     fargs[0] = alloc_lbuf("lua_rhost_parseansi_str");
+    memset(fargs[0], '\0', LBUF_SIZE);
     lua_stack_to_lbuf(L, fargs[0], -1);
     /* log_text("rhost_parseansi : fargs[0] : "); log_text(fargs[0]); end_log(); */
     lua_pop(L, 1); /* pops str */
