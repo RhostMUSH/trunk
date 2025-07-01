@@ -36843,7 +36843,7 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.20.0
+  Current Version: 4.20.2
   
   Current Changelogs:
   -------------------
@@ -36854,6 +36854,7 @@
   3 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.20.2
 & 4.20.1
 & 4.20.0
 & 4.19.0
@@ -36871,6 +36872,9 @@
 & changelog 1
   Topic: CHANGELOG
   
+  4.20.2 - 07/01/25
+  * Fixed bug with time_paddzero not working and displaying "2d"
+
   4.20.1 - 06/05/25
   * lua() had an issue with improperly initializing a buffer.
   
