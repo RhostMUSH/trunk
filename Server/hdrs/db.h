@@ -147,16 +147,21 @@ struct boolexp {
 
 typedef struct zlistnode ZLISTNODE;
 struct zlistnode {
-  dbref object;
-  ZLISTNODE* next;
+   dbref object;
+   ZLISTNODE* next;
 };
 
 typedef struct objtotem OBJTOTEM;
 struct objtotem {
-	int	flags[TOTEM_SLOTS];
-	int	modified;
+   int flags[TOTEM_SLOTS];
+   int modified;
 };
 
+typedef struct livewire LWIRE;
+struct livewire {
+   int funceval;
+   int funceval_override;
+};
 
 typedef struct object OBJ;
 struct object {
@@ -197,6 +202,7 @@ typedef char *NAME;
 extern OBJTOTEM *dbtotem;
 extern OBJ *db;
 extern NAME *names;
+extern LWIRE *dblwire;
 
 #define Totem(t,x)		(((x >= 0) && (x < TOTEM_SLOTS)) ? dbtotem[t].flags[x] : 0)
 #define TotemChk(t)		dbtotem[t].modified;

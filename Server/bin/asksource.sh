@@ -87,7 +87,7 @@ BETAOPT=0
 DEFS="-Wall"
 DATE="$(date +"%m%d%y")"
 MORELIBS="\$(EXTLIBS)"
-OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
+OPTIONS="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32"
 C_OPTIONS=$(echo $OPTIONS|wc -w)
 BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
@@ -99,7 +99,7 @@ AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
 DBOPTIONS="1 2 3"
 C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
-DCONFIGS="29 30 31"
+DCONFIGS="29 30 31 32"
 REPEAT=1
 for i in ${OPTIONS}
 do
@@ -169,6 +169,8 @@ X[29]="#"
 X[30]="#"
 # default to MAXPIDS
 X[31]="#"
+# default to MAXUSERLEN
+X[32]="#"
 
 for i in ${DOPTIONS}
 do
@@ -228,6 +230,7 @@ DEF[28]="-DENABLE_LUA"
 DEF[29]=""
 DEF[30]=""
 DEF[31]=""
+DEF[32]=""
 
 # set config parameters if found in pre-existing file
 #---- Max global registers
@@ -254,6 +257,15 @@ if [ -n "${lc_value}" ]
 then
    DEFS[31]="-DDYN_MAXPIDS=${lc_value}"
 fi
+#--- Max UserLen
+lc_value="$(grep -ow "DDYN_MAXPLAYERNAME=[0-9]*" ../src/custom.defs|cut -f2 -d"=")"
+echo ${lc_value}
+lc_value=$(echo "${lc_value}"|tr -cd '[0-9]')
+if [ -n "${lc_value}" ]
+then
+   DEFS[32]="-DDYN_MAXPIDS=${lc_value}"
+fi
+
 
 if [ "${MYSQL_VER}" != "0" ]
 then
@@ -484,7 +496,7 @@ echo "[${X[19]}] 19. Disable DebugMon   [${X[20]}] 20. Disable SIGNALS    [${X[2
 echo "[${X[22]}] 22. Read Mux Passwds   [${X[23]}] 23. Low-Mem Compile    [${X[24]}] 24. Disable OpenSSL"
 echo "[${X[25]}] 25. Pcre System Libs   [${X[26]}] 26. SHA512 Passwords   [${X[27]}] 27. Websocket support"
 echo "[${X[28]}] 28. Enable LUA in API  [${X[29]}] 29. Boost Setq Regs    [${X[30]}] 30. AtrCache Maximum"
-echo "[${X[31]}] 31. Max PID Queues"
+echo "[${X[31]}] 31. Max PID Queues     [${X[32]}] 32. Max Player Length"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
 echo "[${XB[4]}] B4. SQLite Support     [#] B5. LBUF Settings (Menu)"
@@ -774,6 +786,12 @@ info() {
          echo "The default is 32k but can be anywhere between 2000-999000"
          echo ""
          echo "Note: This has a minimal hit on memory usage the larger the pids."
+         ;;
+     32) echo "This specifies the maximum player name length allowed in the mush."
+         echo "The default value for this is 22 characters.  Players who have"
+         echo "already set names can exceed any new values specified."
+         echo ""
+         echo "The range for this is 10-110.  Default is 22."
          ;;
      B*|b*) RUNBETA=1
          info $(echo $1|cut -c2-)
@@ -1352,6 +1370,67 @@ parse() {
                       read ANS
                    fi
                   ;;
+               32) # modify player name length here  
+                   clear
+                   # load the buffer for this make file option
+                   if [ -n "${lc_opt32}" ]
+                   then
+                      lc_value="${lc_opt32}"
+                   else
+                      # first let's query the current configs for the game
+                      lc_value="$(grep -ow "DDYN_MAXPLAYERNAME=[0-9]*" ../src/custom.defs|cut -f2 -d"=")"
+                      # sanitize the value just incase
+                      lc_value=$(echo "${lc_value}"|tr -cd '[0-9]')
+                      # if empty pull from the config file
+                      if [ -z "${lc_value}" ]
+                      then
+                         lc_value=$(grep "^#define PLAYER_NAME_LIMIT" ../hdrs/config.h|grep -v DYN|awk '{print $3}')
+                         if [ -z "${lc_value}" ]
+                         then
+                            # yo shit broke set to long standing value of 22
+                            lc_value=22
+                         fi
+                      fi
+                   fi
+                   echo "           RhostMUSH config.h Modification & Configuration Utility"
+                   echo "------------------------------------------------------------------------------"
+                   echo "The player name length defines how many characters a player name may be to be"
+                   echo "considered a valid name.  By default this value is 22 but we allow this to be"
+                   echo "changed between 10 to 110 characters in length."
+                   echo ""
+                   echo "Do be aware that any length over 22 will likely be cut off in avrious displays"
+                   echo "within the codebase.  This does no harm what so ever but is a limitation on"
+                   echo "the display."
+
+                   echo "The default value for this parameter is generally '22'"
+                   echo ""
+                   echo "The max Player Name Length is currently  [34;1m${lc_value}[0m."
+                   echo "------------------------------------------------------------------------------"
+                   echo ""
+                   echo "Enter value (RETURN TO ABORT): "|tr -d '\012'
+                   read ANS
+                   lc_conv=$(echo ${ANS}|tr -cd '0-9')
+                   if [ -z "${lc_conv}" ]
+                   then
+                      echo "Warning: number not given.  Defaulting back to '${lc_value}'"
+                      lc_conv=${lc_value}
+                   fi
+                   if [ ${lc_conv} -eq ${lc_value} ]
+                   then
+                      echo "Values are unchanged.  No changes will be applied.  Hit <RETURN> to continue."
+                      read ANS
+                   elif [ ${lc_conv} -lt 10 -o ${lc_conv} -gt 110 ]
+                   then
+                      echo "Value is invalid.  Must be > 10 or < 110  No changes will be applied.  Hit <RETURN> to continue."
+                      read ANS
+                   else
+                      lc_value=${lc_conv}
+                      echo "New value set to ${lc_conv}.  Hit <RETURN> to continue."
+                      DEFS[31]="-DDYN_MAXPLAYERNAME=${lc_conv}"
+                      lc_opt32="${lc_conv}"
+                      read ANS
+                   fi
+                   ;;
                 *) # handle all other conditions
                   if [ "${X[$1]}" = "X" ]
                   then

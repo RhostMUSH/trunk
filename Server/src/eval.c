@@ -1702,12 +1702,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char *buff, *bufc, *tstr, *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
-    char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr, *s_tmparray[3];
+    char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr, *s_tmparray[3], s_funclim[32];
     static char tfunbuff[33], tfunlocal[100], s_chr[10];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
-    int prefeval, preeval, inumext, i_capansi, i_ansinorm;
+    int prefeval, preeval, inumext, i_capansi, i_ansinorm, i_funinvlim;
 #ifdef EXPANDED_QREGS
     int w;
 #endif
@@ -1792,6 +1792,22 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if ( !Good_chk(player) || !Good_chk(caller) || !Good_chk(cause) ) {
         RETURN(buff); /* #67 */
     }
+
+    /* Set Function Invocation Limit overrides */
+    i_funinvlim = mudconf.func_invk_lim;
+    if ( dblwire[player].funceval != 0 ) {
+       if ( ((dblwire[player].funceval > mudconf.func_invk_lim) && dblwire[player].funceval_override) ||
+            (dblwire[player].funceval < mudconf.func_invk_lim) ) {
+          i_funinvlim = dblwire[player].funceval;
+       }
+    } else if ( Good_chk(Owner(player)) && (Owner(player) != player) && dblwire[Owner(player)].funceval != 0 ) {
+       if ( ((dblwire[Owner(player)].funceval > mudconf.func_invk_lim) && dblwire[Owner(player)].funceval_override) ||
+            (dblwire[Owner(player)].funceval < mudconf.func_invk_lim) ) {
+          i_funinvlim = dblwire[Owner(player)].funceval;
+       }
+    }
+    sprintf(s_funclim, "%d", i_funinvlim);
+
     // Requires strict ansi compliance, but it looks pretty.
     if ( mudstate.stack_val > mudconf.stack_limit 
 	 &&
@@ -3634,10 +3650,10 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                              buff, &bufc);
                 } else if ( Fubar(player) ) {
 		    safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else if (mudstate.func_invk_ctr >=
-			   mudconf.func_invk_lim) {
-		    safe_str("#-1 FUNCTION INVOCATION LIMIT EXCEEDED",
-                             buff, &bufc);
+		} else if (mudstate.func_invk_ctr >= i_funinvlim ) {
+		    safe_str("#-1 FUNCTION INVOCATION LIMIT EXCEEDED [", buff, &bufc);
+                    safe_str(s_funclim, buff, &bufc);
+                    safe_chr(']', buff, &bufc);
 		} else if ( !check_access(player, fp->perms, fp->perms2, 0) &&
                             !((fp->perms & 0x00007F00) && (mudstate.func_ignore && mudstate.func_bypass)) ) {
 		  if ( mudstate.func_ignore) {
@@ -3651,8 +3667,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		  }
 		  else
 		    safe_str("#-1 PERMISSION DENIED", buff, &bufc);
-		} else if (mudstate.func_invk_ctr <
-			   mudconf.func_invk_lim) {
+		} else if (mudstate.func_invk_ctr < i_funinvlim ) {
 		    fp->fun(buff, &bufc, player, cause, caller,
 			    fargs, nfargs, cargs, ncargs);
                     if ( fp->perms2 & CA_ANSI_TERM ) {

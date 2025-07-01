@@ -2712,6 +2712,8 @@
   %3 - will be a space-separated list of recipient dbrefs.
   %4 - will be set to the default message (based on pageformat/outpageformat).
   
+  This function is parent aware for attributes.
+  
   { See 'help &pageformat2' for examples. }
 
 & &pageformat2
@@ -4939,8 +4941,8 @@
     guest_names     - List the guest names (if defined)
     rlevels         - List all the reality levels enabled
     totems          - Lists the name of all the totems. (wildcard supported)
-  * pronouns        - Lists all the pronouns recognizes on the mush.
-                      (he/she/it/they/etc)
+  * pronouns        - Lists all the pronouns recognizes on the mush for
+                      gender/@sex (he/she/it/they/xer/zer/ver/etc).  
   
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
@@ -9712,28 +9714,35 @@
   
   See Also: @charges
   
+& GENDER
+& PRONOUNS
 & @sex
   Command: @sex[/<switch>] <object> = <gender>
   Attribute: Sex
  
-  Sets the gender for <object>, which is used to determine which pronouns to
+  Sets the gender pronouns for <object>, which is used to determine which pronouns to
   use when replacing %p, %o, %s, and %a parameters in messages that apply to
   <object>.  
   
-  Genders for the following substitutions are triggered if @sex starts with
-  the following letters:
-      m/M           -- male     (he/him/his)
-      f/F/w/W       -- female   (she/her/hers)
-      p/P           -- plural   (they/them/thirs)
-      Anything else -- neuter   (it/it/its)
+  Pronouns for the following substitutions are triggered if @sex starts with
+  the following letters (these are the uncustomized defaults):
+      @sex             gender   (%s/%o/%p/%a)
+      m/M           -- male     (he/him/his/his)
+      f/F/w/W       -- female   (she/her/her/hers)
+      p/P           -- plural   (they/them/their/theirs)
+      Anything else -- neuter   (it/it/its/its)
+  
+  Note: These can be overriden with the config param 'enforce_added_pronouns' 
   
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
 
   Note: Additional genders and pronouns may be added dynamically to your
-        game.  Please check config(added_pronouns) for additional genders.
-        The format of each gender will be:
-           > gender(@sex) subj(%s) obj(%o) poss(%p) aposs(%a)
+        game.  The format of each gender will be:
+     > gender(@sex) subj(%s) obj(%o) poss(%p) aposs(%a)
+  
+  To list all available pronouns allowed for genders/@sex please type:
+     > @list pronoun    
   
   Example: @sex me = female
            @sex me = No thank you (Silly, but possible.  Treated as neuter)
@@ -12765,33 +12774,6 @@
 
   See Also: FLAG LIST
   
-& GENDER
-  Topic: GENDER
-   
-  A player's (virtual) gender is specified in the Sex attribute.  This
-  attribute controls how gender-specific pronoun substitutions are evaluated
-  for the player.  A player's SEX attribute starts with the following
-  letters will trigger the special handling:
-  
-  'M' or an 'm' then the player is assumed to be male.
-  'F', 'f', 'W', and 'w' indicate female.
-  'P' or 'p' will indicated a plural sex.
-   anything else indicates neuter.
-  
-   Note: Additional genders and pronouns may be added dynamically to your
-         game.  Please check config(added_pronouns) for additional genders.
-         The format of each gender will be:
-           > gender(@sex) subj(%s) obj(%o) poss(%p) aposs(%a)
-  
-         Example: 
-           > think config(added_pronouns)
-             robot:what:what:whats:whats
-           > @sex me=robot
-           > think %s
-             what
-  
-  See Also: @sex, SUBSTITUTIONS
-  
 & GOALS
   Topic: GOALS
  
@@ -14324,6 +14306,7 @@
                         help printf penn      (for penn align-like examples)
                         help printf borders   (a quick example on borders)
                         help printf subs      (coding center/ljust/rjust)
+                        help printf codehelp  (examples for every printf code)
   
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             wrapcolumns(), array(), template()
@@ -14502,6 +14485,371 @@
   See Also: center(), just(), rjust(), rjc(), ljc(), wrap(), columns(), 
             template()
   
+& PRINTF CODEHELP
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The following special characters can be checked for syntax help
+    . - if used on every $s field, omit last line if all fields empty
+    ! - omit column if empty        
+    @ - omit if column or previous column empty
+    < - blank column if previous column empty
+    > - blank column if next column empty     
+    - - left justify (right is default)
+    ^ - center justify
+    _ - stretch justify
+    + - do not cut value if exceed value (default is cut off)
+    * - cut value from the right instead of the left.
+    & - process carriage returns and go to next line in same column
+    | - automatically wrap column once field length is reached
+    " - When used with '|' attempt to wrap column on word
+    ' - shift RIGHT If specified on a field, and that column is empty
+    ` - shift LEFT If specified on a field, and that column is empty
+    : - specify filler character (use :filler: for multichar filler)
+    / - specify input cutoff. /10/ cuts after 10 char, /w2/ cuts after 2 lines
+    # - Convert tabs to spaces.  4 default  #7# converts 7 spaces
+    ; - indent lines.  ;8; indent 8 spaces. ;8.3; indent 8 spaces after line 3
+  
+  For help on every option, please type:
+    help printf codehelp <character>
+  
+  Example:  help printf codehelp . 
+
+& PRINTF CODEHELP .
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '.' field will not print the last line if the field would result
+  in all empty values.
+  
+  Examples:
+    > think 1[printf($10&s $10&s, %r, %r)]2
+    1                     
+                         2
+    > think 1[printf($10&.s $10&.s, %r, %r)]2
+    1                    2
+  
+  See Also: printf codehelp
+
+& PRINTF CODEHELP !
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '!' argument will set the column as ignored (ergo skip it)
+  if the argument passed to it is empty.
+  
+  Examples:
+    > think 1[printf($10!s $10!s, one, two)]2
+    1       one        two2
+    > think 1[printf($10!s $10!s, , two)]2
+    1       two2
+    > think 1[printf($10!s $10!s, one, )]2
+    1       one2
+    > think 1[printf($10!s $10!s, , )]2
+    12
+ 
+  See Also: printf codehelp
+
+& PRINTF CODEHELP @
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '@' is a bit wacky but fits some nitch requirements.  This
+  will ignore the argument if it is the first argument in the list
+  or if the previous argument before it was empty.
+  
+  Examples: 
+    > think 1[printf($10@s $10@s, one, two)]2
+    1       one        two2
+    > think 1[printf($10@s $10@s, , two)]2
+    1       two2
+    > think 1[printf($10@s $10@s, one, )]2
+    1       one           2
+    > think 1[printf($10@s $10@s, , )]2
+    12
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP <
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '<' argument will set the value empty if the previous 
+  argument is empty.
+  
+  Examples:
+    > think 1[printf($10s $10<s, one, two)]2
+    1       one        two2
+    > think 1[printf($10s $10<s, , two)]2
+    1                     2
+    > think 1[printf($10s $10<s, one, )]2
+    1       one           2
+    > think 1[printf($10s $10<s, , )]2
+    1                     2
+   
+  See Also: printf codehelp
+& PRINTF CODEHELP >
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '>' argument will set the value empty if the next 
+  argument is empty.
+  
+  Examples:
+    > think 1[printf($10>s $10s, one, two)]2
+    1       one        two2
+    > think 1[printf($10>s $10s, , two)]2
+    1                  two2
+    > think 1[printf($10>s $10s, one, )]2
+    1                     2
+    > think 1[printf($10>s $10s, , )]2
+    1                     2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP -
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '-' argument will left justify the value passed.  Without
+  a justfication argument it defaults to right justified.
+  
+  Examples:
+    > think 1[printf($10s $10s, one, two)]2
+    1       one        two2
+    > think 1[printf($-10s $-10s, one, two)]2
+    1one        two       2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP ^
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '^' argument will center justify the value passed.  Without 
+  a justfication argument it defaults to right justified.
+  
+  Examples:
+    > think 1[printf($10s $10s, one, two)]2
+    1       one        two2
+    > think 1[printf($^10s $^10s, one, two)]2
+    1   one        two    2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP _
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '_' argument is a stretch formatting.  It will evenly format
+  the string passed evently throughout the column specified.  Without 
+  a justfication argument it defaults to right justified.
+  
+  Examples:
+    > think 1[printf($40s,this is a test)]2
+    1                          this is a test2
+    > think 1[printf($_40s,this is a test)]2
+    1this          is          a         test2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP +
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '+' argument will tell printf not to cut off the value which
+  will allow an argument to keep displaying outside the width value.
+  
+  Examples: 
+    > think 1[printf($10s,this is a test)]2
+    1this is a 2
+    > think 1[printf($10+s,this is a test)]2
+    1this is a test2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP *
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '*' argument will cut the argument off from the right side
+  instead of the left if the argument is too large for the field. 
+  
+  Examples:
+    > think 1[printf($10s,this is a test)]2
+    1this is a 2
+    > think 1[printf($10*s,this is a test)]2
+    1 is a test2
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP &
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '&' argument will process carriage returns in the column
+  and allow it to wrap in the column.  Without the '&' argument
+  (or the | argument) it will not align to the column on return.
+  
+  Examples:
+    >  [printf($10s $10s, one%rtwo, three%rfour)]
+      one
+    two three
+    fou
+    >  [printf($&10s $&10s, one%rtwo, three%rfour)]
+           one      three
+           two       four
+
+ 
+  See Also: printf codehelp
+& PRINTF CODEHELP "
+& PRINTF CODEHELP |
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  '|' and '"' are used together.  '"' use without '|' is ignored.
+   
+  The '|' will word-wrap a line on the character.  You need to
+  use the '"' option in addition to the '|' option if you want
+  to wrap on the word.  Without the '"' option it will wrap
+  on the character effectively wrapping in the middle of words.
+  
+  Examples:
+    > think [printf($|10s,this is wrapping the text)]
+    this is wr
+    apping the
+          text
+    > think [printf($-|10s,this is wrapping the text)]
+    this is wr
+    apping the
+     text  
+    > think [printf($-|"10s,this is wrapping the text)]
+    this is   
+    wrapping  
+    the text 
+   
+  See Also: printf codehelp
+  
+& PRINTF CODEHELP '
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '  argument will shift the right column to the left if the left
+  column is empty.
+  
+  Examples:
+    > think printf($&-10s$&-68s, 1%r2%r3%r4, A%rB%rC%rD%rE%rF)
+    1         A                                                                   
+    2         B                                                                   
+    3         C                                                                   
+    4         D                                                                   
+              E                                                                   
+              F 
+    > think printf($&-10's$&-68s, 1%r2%r3%r4, A%rB%rC%rD%rE%rF)
+    1         A                                                                   
+    2         B                                                                   
+    3         C                                                                   
+    4         D                                                                   
+    E
+    F
+  
+  See Also: printf codehelp
+
+& PRINTF CODEHELP `
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The ` argument will shift the left column to the right if the right
+  column is empty.
+  
+  Examples:
+    > think printf($&-10s$&-10s, 1%r2%r3%r4%r5%r6, A%rB%rC%rD)x
+    1         A         
+    2         B         
+    3         C         
+    4         D         
+    5                   
+    6           
+    > think printf($&-10s$&`-10s, 1%r2%r3%r4%r5%r6, A%rB%rC%rD)x
+    1         A         
+    2         B         
+    3         C         
+    4         D         
+              5         
+              6  
+  
+  See Also: printf codehelp
+
+& PRINTF CODEHELP :
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The ':' character specifies using filler.  It is ansi aware and
+  repeats the filler in the padding based on position.
+  
+  Examples:
+    > think [printf($-40:.:s,one char filler)]
+    one char filler.........................
+    > think [printf($-40:0123456789:s,ten char filler)]
+    ten char filler5678901234567890123456789
+    > think [printf($40:0123456789:s,ten char filler)]
+    0123456789012345678901234ten char filler
+    > think [printf($^40:0123456789:s,ten char filler)]
+    012345678901ten char filler7890123456789
+    > think [printf($_40:0123456789:s,ten char filler)]
+    ten34567890123456char1234567890123filler
+   
+  See Also: printf codehelp
+
+& PRINTF CODEHELP /
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '/' character will cut off the input string based on the
+  value.  You may prefix the value with a 'w' and it will take
+  the value to mean by line instead of by character.  So 'w2'
+  would mean first two lines only.
+  
+  Examples:
+    > think [printf($-40/100/"|s,repeat(a%b,200))]
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a 
+    > think [printf($-40/100/"|s,repeat(a%b,20000))]
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a 
+    > think [printf($-40"|s,repeat(a%b,50))]
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a 
+    > think [printf($.-40/w1/"|s,repeat(a%b,20000))]
+    a a a a a a a a a a a a a a a a a a a a 
+    > think [printf($-40/w2/"|s,repeat(a%b,20000))]
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+    > think [printf($-40/w3/"|s,repeat(a%b,20000))]
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+    a a a a a a a a a a a a a a a a a a a a 
+  
+  See Also: printf codehelp
+  
+& PRINTF CODEHELP #
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The '#' character specifies how many spaces to use to substitute
+  any tabs in the input.  It defaults to 4.  1 is the smallest
+  value that it allows.
+  
+  Examples:
+    > think [printf($-40#s, a%tb%tc%td%te)]  
+    a    b    c    d    e 
+    > think [printf($-40#2#s, a%tb%tc%td%te)]  
+    a  b  c  d  e 
+    > think [printf($-40#7#s, a%tb%tc%td%te)]  
+    a       b       c       d       e 
+  
+  See Also: printf codehelp
+& PRINTF CODEHELP ;
+  Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
+  
+  The ';' character specifies to indent the lines with the specifed
+  number of spaces.  This is used with |" for how it indents further
+  lines in that given column.  It will never indent the first line.
+  
+  The following arguments are allowed: (N is a number)
+    ;N;   - indent 'N' characters after the first line
+    ;N.n; - indent 'N' characters after additional 'n' lines.
+  
+  Examples:
+    > think [printf($-20"|;5;s,this is a test with wrapping some text)]
+    this is a test with 
+        wrapping some  
+        text   
+    > think [printf($-20"|;5.1;s,this is a test with wrapping some text)]
+    this is a test with 
+    wrapping some       
+         text 
+  
+  See Also: printf codehelp
+
 & PRINTF SYNTAX 
   Function: printf(<format string>,<arg1> [,<arg2>, ..., <argN>])
   
@@ -20464,7 +20812,7 @@
   See Also: capstr(), lcstr()
   
 & LNUM()
-  Function: lnum(<number>[,<number>,<separator>,<stepping>])
+  Function: lnum(<number> [,<number> [,<separator> [,<stepping>]]])
  
   Returns a list of numbers from 0 to <number>-1.
   If a second number is specified it tells to use
@@ -20472,7 +20820,9 @@
   The order you put it in specifies if it increments
   or decrements the value.  You may specify a stepping
   value for the list.
- 
+  
+  This function is multi-character delimiter aware.
+   
   Example:
     > say lnum(5) 
     You say "0 1 2 3 4"
@@ -29982,6 +30332,8 @@
   
   Note: Wizards have access to the /anon switch to show obfuscated senders.
   
+  Note: see help on 'mail status2' for examples and options.
+  
   This will print out a list of the message headers in the current
   folder for which the player has mail.  This will also show the current
   folder.  The p# argument (where # is an integer) will print out the
@@ -30027,6 +30379,9 @@
     > mail/status          (shows all your mail in your current folder)
     > mail/status p2       (shows second page of your mail [if page is set])
     > mail/status 10-50    (shows messages 10-50 in your mailbox)
+    > mail/status +3       (shows messages from 4 on in your mailbox)
+    > mail/status -1       (shows the last message in your mailbox)
+    > mail/status -3       (shows the last 3 messages in your mailbox)
     > mail/status 5        (shows just message 5 in your mailbox)
     > mail/status *Seawolf (shows all mail from player Seawolf)
     > mail/status U        (shows all the unread mail in your mailbox)
@@ -31322,10 +31677,12 @@
     > mail/reply 1*=test reply
   
   You should see:
-    Mail: You have a new mail from -> <Your name>
+    Mail: You have a new mail (#2) from -> <Your name>
     Mail: Message sent to -> <Your name>
     Mail: Done
    
+  The (#2) is the message index in your unsorted mailbox.
+  
   Note: If you have the BRANDY_MAIL toggle enabled, this puts you in the editor
   
   Now, lets type mail/status to see your status: 
@@ -36486,16 +36843,21 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.17.0
+  Current Version: 4.20.0
   
   Current Changelogs:
   -------------------
-  1 - 4.17.0, 4.16.0, 4.15.0, 4.14.0, 4.13.0, 4.12.0, 4.11.2, 4.11.1, 4.11.0, 4.10.0,
-      4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0 
-  2 - 4.4.3, 4.4.2, 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2 
-  3 - 4.3.1, 4.3.0
+  1 - 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 4.15.0, 4.14.0, 4.13.0, 
+      4.12.0
+  2 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+      4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
+  3 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+      4.3.1, 4.3.0
 
-
+& 4.20.1
+& 4.20.0
+& 4.19.0
+& 4.18.0
 & 4.17.1
 & 4.17.0
 & 4.16.0
@@ -36503,37 +36865,34 @@
 & 4.14.0
 & 4.13.0
 & 4.12.0
-& 4.11.2
-& 4.11.1
-& 4.11.0
-& 4.10.0
-& 4.9.0
-& 4.8.0
-& 4.7.1
-& 4.7.0
-& 4.6.2
-& 4.6.1
-& 4.6.0
-& 4.5.3
-& 4.5.2
-& 4.5.1
-& 4.5.0
-& 4.4.3
-& 4.4.2
-& 4.4.1
-& 4.4.0
-& 4.3.9
-& 4.3.8
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
   
+  4.20.1 - 06/05/25
+  * lua() had an issue with improperly initializing a buffer.
+  
+  4.20.0 - 04/12/25
+  * +<num> and -<num> options added to mail/status
+  * receiving mail now shows the 'all' folder message index
+  
+  4.19.0 - 03/29/25
+  * added parent awareness for pageformats 
+  * @livewire and livewire() for live alteration of per target engine configs
+  * cleanup of gender help
+  * improved printf examples
+  * config param to increase max player name length
+  
+  4.18.0 - 03/09/25
+  * Potential bug in QUIT/LOGOUT not being recognized for connect screen
+  * lnum() allows multi-character delimiter.
+  
   4.17.1 - 03/04/25
   * Fixed a bug in @link - now when paranoid_exit_linking is enabled, the
     enactor does not require free quota to @link.
-
+  
   4.17.0 - 02/08/25
   * ansiterm permission to functions to force function to end in ansi normal
   * force_ansinorm global to force ansi normal at the end of every evaluation
@@ -36569,7 +36928,27 @@
   * mail/lock aliased to @lock/mail
   * conversion of flatfiles recognizes @mfail
   
-  4.11.x
+& 4.11.2
+& 4.11.1
+& 4.11.0
+& 4.10.0
+& 4.9.0
+& 4.8.0
+& 4.7.1
+& 4.7.0
+& 4.6.2
+& 4.6.1
+& 4.6.0
+& 4.5.3
+& 4.5.2
+& 4.5.1
+& 4.5.0
+& 4.4.3
+& 4.4.2
+& changelog 2
+  Topic: CHANGELOG
+
+  4.11.0-4.11.2 
   * fix for git
   
   4.10.0 - 10/19/24
@@ -36608,27 +36987,12 @@
   4.5.3 - 08/01/24
   * Added 'moniker' as a default alias for cname() in alias.conf
   
-  4.5.1 - 07/19/24
+  4.5.2 - 4.5.1 - 07/19/24
   * connect_methods had reversed logic in the checks
   
   4.5.0 - 07/16/24
   * netrhost binary handles -h and -p options for help and parsing markup
     
-& 4.4.3
-& 4.4.2
-& 4.4.1
-& 4.4.0
-& 4.3.9
-& 4.3.8
-& 4.3.7
-& 4.3.6
-& 4.3.5
-& 4.3.4
-& 4.3.3
-& 4.3.2
-& changelog 2
-  Topic: CHANGELOG
-
   4.4.3 - 07/11/24
   * conn_perm did not honor the account subsystem for bypassing the
     restrive nature. (ASH)
@@ -36641,6 +37005,21 @@
     the attribute sizes of modern games. The netrhost.conf defaults were
     even lower than the internal defaults - fixed.
     
+& 4.4.1
+& 4.4.0
+& 4.3.9
+& 4.3.8
+& 4.3.7
+& 4.3.6
+& 4.3.5
+& 4.3.4
+& 4.3.3
+& 4.3.2
+& 4.3.1
+& 4.3.0
+& changelog 3
+  Topic: CHANGELOG
+  
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
     was reversed. (AMB)
@@ -36675,11 +37054,6 @@
   -------------------------
   * Further fixes for pre-commit/pre-push scripts
   
-& 4.3.1
-& 4.3.0
-& changelog 3
-  Topic: CHANGELOG
-
   4.3.1 - 06/30/24
   ----------------
   * Fix for elock() with regards to objid's as a target. objid's would

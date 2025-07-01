@@ -21529,6 +21529,74 @@ FUNCTION(fun_sees)
 }
 
 
+/* Show the function limits for target and it's owner */
+FUNCTION(fun_livewire)
+{
+   char *s_buff;
+   char *s_livewires = "funceval";
+   dbref i_target, i_owner;
+   int i_toggle, i_len;
+
+
+   if (!fn_range_check("LIVEWIRE", nfargs, 1, 3, buff, bufcx))
+      return;
+
+   if ( !fargs[0] || !*fargs[0] ) {
+      safe_str((char *)"Valid livewires: ", buff, bufcx);
+      safe_str(s_livewires, buff, bufcx); 
+      return;
+   }
+
+   if ( !fargs[1] || !*fargs[1] ) {
+      safe_str((char *)"#-1 TARGET NOT FOUND", buff, bufcx);
+      return;
+   }
+
+   i_toggle = 0;
+   if ( (nfargs > 2) && *fargs[2] ) {
+      i_toggle = atoi(fargs[2]);
+   }
+
+   i_target = match_thing_quiet(player, fargs[1]);
+
+   if ( !Good_chk(i_target) ) {
+      safe_str((char *)"#-1 NOT FOUND", buff, bufcx);
+      return;
+   }
+
+   if ( !Controls(player, i_target) ) {
+      safe_str((char *)"#-1 PERMISSION DENIED", buff, bufcx);
+      return;
+   }
+
+   i_len = strlen(fargs[0]);
+   if ( !strncasecmp(fargs[0], (char *)"funceval", i_len) ) {
+      s_buff = alloc_lbuf("fun_livewire");
+      if ( i_toggle ) {
+         i_owner = Owner(i_target);
+         if ( !Good_chk(i_owner) ) {
+            i_owner = i_target;
+         }
+         sprintf(s_buff, "%d %d %d %d %d", 
+                 mudconf.func_invk_lim, 
+                 dblwire[i_target].funceval,
+                 dblwire[i_target].funceval_override,
+                 dblwire[i_owner].funceval,
+                 dblwire[i_owner].funceval_override);
+         safe_str(s_buff, buff, bufcx);         
+      } else {
+         sprintf(s_buff, "%d %d %d", 
+                 mudconf.func_invk_lim, 
+                 dblwire[i_target].funceval,
+                 dblwire[i_target].funceval_override);
+         safe_str(s_buff, buff, bufcx);         
+      }
+      free_lbuf(s_buff);
+   } else {
+      safe_str((char *)"#-1 INVALID LIVEWIRE ARGUMENT", buff, bufcx);
+   }
+}
+
 /* ---------------------------------------------------------------------------
  * fun_fullname: Return the fullname of an object (good for exits)
  */
@@ -29940,7 +30008,7 @@ FUNCTION(fun_creplace)
 FUNCTION(fun_lnum)
 {
    int ctr, x, y, over, i_step;
-   char sep;
+   char *sep;
 
    ctr = x = y = over = i_step = 0;
    if ((nfargs < 1) || (nfargs > 4)) {
@@ -29951,7 +30019,7 @@ FUNCTION(fun_lnum)
       if ( (nfargs == 1) && (mudconf.lnum_compat == 1) && (x < 1) ) {
          return;
       }
-      sep = ' ';
+      sep = (char *)" ";
       if (nfargs == 1) {
           y = x-1;
           x = 0;
@@ -29961,9 +30029,9 @@ FUNCTION(fun_lnum)
               y = atoi(fargs[1]);
           if ((nfargs >= 3) && (*fargs[2])) {
               if ( mudconf.delim_null && (strcmp(fargs[2], (char *)"@@") == 0) ) {
-                 sep = '\0';
+                 sep = (char *)"";
               } else {
-                 sep = *fargs[2];
+                 sep = fargs[2];
               }
           }
           if ((nfargs == 4) && (*fargs[3])) {
@@ -29981,8 +30049,8 @@ FUNCTION(fun_lnum)
               else
                  x++;
               for (ctr = x; ctr <= y && !over; ((i_step > 0) ? ctr += (i_step + 1) : ctr++) ) {
-                 if ( sep )
-                    over = safe_chr(sep, buff, bufcx);
+                 if ( *sep )
+                    over = safe_str(sep, buff, bufcx);
                  ival(buff, bufcx, ctr);
               }
           } else {
@@ -29991,8 +30059,8 @@ FUNCTION(fun_lnum)
               else
                  x--;
               for (ctr = x; (ctr >= y && (ctr >= 0 || mudconf.lnum_compat == 1)) && !over; ((i_step > 0) ? ctr -= (i_step + 1) : ctr--) ) {
-                if ( sep )
-                   over = safe_chr(sep, buff, bufcx);
+                if ( *sep )
+                   over = safe_str(sep, buff, bufcx);
                 ival(buff, bufcx, ctr);
               }
           }
@@ -36479,9 +36547,24 @@ static int u_comp(const void *s1, const void *s2)
      * sane_qsort routine, NOT with the standard library qsort!
      */
     char *result, *tbuf, *elems[2], *str;
-    int n;
+    int n, i_funinvlim;
 
-    if ((mudstate.func_invk_ctr > mudconf.func_invk_lim) ||
+    i_funinvlim = mudconf.func_invk_lim;
+    if ( Good_chk(ucomp_caller) ) {
+       if ( dblwire[ucomp_caller].funceval != 0 ) {
+          if ( ((dblwire[ucomp_caller].funceval > mudconf.func_invk_lim) && dblwire[ucomp_caller].funceval_override) ||
+               (dblwire[ucomp_caller].funceval < mudconf.func_invk_lim) ) {
+             i_funinvlim = dblwire[ucomp_caller].funceval;
+          }
+       } else if ( Good_chk(Owner(ucomp_caller)) && (Owner(ucomp_caller) != ucomp_caller) && dblwire[Owner(ucomp_caller)].funceval != 0 ) {
+          if ( ((dblwire[Owner(ucomp_caller)].funceval > mudconf.func_invk_lim) && dblwire[Owner(ucomp_caller)].funceval_override) ||
+               (dblwire[Owner(ucomp_caller)].funceval < mudconf.func_invk_lim) ) {
+             i_funinvlim = dblwire[Owner(ucomp_caller)].funceval;
+          }
+       }
+    }
+
+    if ((mudstate.func_invk_ctr > i_funinvlim) ||
         (mudstate.func_nest_lev > mudconf.func_nest_lim))
         return 0;
 
@@ -42258,6 +42341,7 @@ FUN flist[] =
     {"LISTUNION", fun_listunion, 2, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LISTTZONES", fun_listtzones, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"LIT", fun_lit, -1, FN_NO_EVAL, CA_PUBLIC, 0},
+    {"LIVEWIRE", fun_livewire, 1, FN_VARARGS, CA_WIZARD, CA_NO_CODE},
 //  {"LJUST", fun_ljust, 0, FN_VARARGS, CA_PUBLIC, 0},
     {"LJUST", fun_ansiljust, 0, FN_VARARGS, CA_PUBLIC, 0},
 //  {"LJC", fun_ljc, 2, FN_VARARGS, CA_PUBLIC, 0},
