@@ -38,14 +38,14 @@ think <Initialization> -- Trend Object Version 1.0.5
 think <Generation> -- Creating SIDEFX Sandbox Object
 @create TrendSDFX=10
 &FN_SETSTEP TrendSDFX=[set([v(F-DB)],STEP:%0)]
-@set TrendSDFX=INDESTRUCTABLE SAFE INHERIT SIDEFX NO_COMMAND
+@set TrendSDFX=INDESTRUCTIBLE SAFE INHERIT SIDEFX NO_COMMAND
 
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the TrendDB that houses the yearly statistics (done daily)
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 think <Generation> -- Creating Trend Database Storage Object
 @create TrendDB=10
-@set TrendDB=INDESTRUCTABLE SAFE HALT
+@set TrendDB=INDESTRUCTIBLE SAFE HALT
 
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the main functionary object
@@ -119,7 +119,7 @@ think <Generation> -- Creating Main Functionary Object
 &FN_RUNHOUR_FOOT TrendFun=[setq(h,timefmt($h,secs()))][space(4)]+[repeat(-,72)]+%r[printf([space(5)]$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s$-3s,u(fn_colorhour_foot,00),u(fn_colorhour_foot,01),u(fn_colorhour_foot,02),u(fn_colorhour_foot,03),u(fn_colorhour_foot,04),u(fn_colorhour_foot,05),u(fn_colorhour_foot,06),u(fn_colorhour_foot,07),u(fn_colorhour_foot,08),u(fn_colorhour_foot,09),u(fn_colorhour_foot,10),u(fn_colorhour_foot,11),u(fn_colorhour_foot,12),u(fn_colorhour_foot,13),u(fn_colorhour_foot,14),u(fn_colorhour_foot,15),u(fn_colorhour_foot,16),u(fn_colorhour_foot,17),u(fn_colorhour_foot,18),u(fn_colorhour_foot,19),u(fn_colorhour_foot,20),u(fn_colorhour_foot,21),u(fn_colorhour_foot,22),u(fn_colorhour_foot,23))]%r[space(4)]%[Version: [v(version)]%] Key: [ansi(hy,AVG PLAYER)] [ansi(hc,MAX PLAYER)] [ansi(hm,MAX UNIQUE)] [ansi(hr,YESTERDAY HOURS)]
 &FN_COLORHOUR_FOOT TrendFun=%ch[switch([lt(%0,%qh)][eq(%0,%qh)],10,%cc,01,%cx%cC,%cr)]%0%cn
 @wait 0=&FN_STARTTIME TrendFun=[secs()]
-@set TrendFun=INDESTRUCTABLE SAFE INHERIT
+@set TrendFun=INDESTRUCTIBLE SAFE INHERIT
 
 @@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@ -- Create the master TrendOBJ with the commands
@@ -140,7 +140,7 @@ think <Generation> -- Creating Main Command Object
 &CMD_TRENDHOUR TrendObj=$+trend/hour:@pemit %#=[u([v(F-DB)]/fn_runhour)]
 @startup TrendObj=@wait 100=@tr/quiet me/do_keeper
 @Aconnect TrendObj=@tr/quiet me/do_time;@skip/ifelse [gt(words(lwho()),mul(get([v(F-DB)]/step),20))]={&STEP [v(F-DB)]=[add(get([v(F-DB)]/step),1)]};@skip/ifelse [u([v(F-DB)]/fn_monthhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@skip/ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@skip/ifelse [u([v(F-DB)]/fn_yearhigh)]%qa={&%qz [v(DB)]=%q5;&%qz_date [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())];@skip/ifelse %qb={&%qz_date_max [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,secs())]}};@skip/ifelse [u([v(F-DB)]/fn_hourhigh)]%qa={&H_[setr(x,timefmt($h,setr(y,secs())))] [v(DB)]=%q9;&H_%qx_SECS [v(DB)]=[secs()];@switch/all 1=%qb,{&H_%qx_AVG [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qc,{&H_%qx_MAX [v(db)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]},%qd,{&H_%qx_UNIQUE [v(DB)]=[timefmt($02M-$02D-$Y $02h:$02T:$02S,%qy)]}}
-@set TrendObj=INDESTRUCTABLE SAFE INHERIT !NO_COMMAND !HALT
+@set TrendObj=INDESTRUCTIBLE SAFE INHERIT !NO_COMMAND !HALT
 think Applying the COMMANDS flag.  Ignore if you see a PERMISSION DENIED
 @set TrendObj=COMMANDS
 @tr/quiet trendobj/startup

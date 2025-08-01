@@ -31,4 +31,4 @@
 &HELP_LIST_LIST Descer=[ljust(+desc/list,30)] - List all descriptions by <label>.
 &CMD_HELPDESC Descer=$+desc/help:@pemit %#=[repeat(-,78)]%r[ansi(g,Multi Descer)]: [iter(v(help_list),%r[u(help_list_##)])]%r[repeat(-,78)]
 &CREDITS Descer=Kitai, modified by Ashen-Shugar
-@set Descer=INDESTRUCTABLE SAFE INHERIT
+@set Descer=INDESTRUCTIBLE SAFE INHERIT
