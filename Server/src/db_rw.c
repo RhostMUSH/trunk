@@ -20,9 +20,9 @@ char *index(const char *, int);
 #include "rhost_ansi.h"
 #include <signal.h>
 
-extern const char *FDECL(getstring_noalloc, (FILE *));
-extern void FDECL(putstring, (FILE *, const char *));
-extern void FDECL(db_grow, (dbref));
+extern const char *getstring_noalloc(FILE *);
+extern void putstring(FILE *, const char *);
+extern void db_grow(dbref);
 
 extern struct object *db;
 
@@ -835,7 +835,7 @@ upgrade_flags(FLAG * flags1, FLAG * flags2, dbref thing,
  */
 
 void 
-NDECL(efo_convert)
+efo_convert(void)
 {
     int i;
     dbref link;

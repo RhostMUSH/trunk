@@ -98,32 +98,32 @@ struct bque {
 };
 
 
-extern void	FDECL(real_hashinit, (HASHTAB *, int, const char *, int));
-extern void	FDECL(real_hashreset, (HASHTAB *, const char *, int));
-extern int	FDECL(real_hashval, (char *, int, const char *, int));
-extern int	FDECL(real_get_hashmask, (int *, const char *, int));
-extern int *	FDECL(real_hashfind, (char *, HASHTAB *, const char *, int));
-extern int *	FDECL(real_hashfind2, (char *, HASHTAB *, int, const char *, int));
-extern int	FDECL(real_hashadd, (char *, int *, HASHTAB *, const char *, int));
-extern int	FDECL(real_hashadd2, (char *, int *, HASHTAB *, int, const char *, int));
-extern void	FDECL(real_hashdelete, (char *, HASHTAB *, const char *, int));
-extern void	FDECL(real_hashflush, (HASHTAB *, int, const char *, int));
-extern int	FDECL(real_hashrepl, (char *, int *, HASHTAB *, const char *, int));
-extern int	FDECL(real_hashrepl2, (char *, int *, HASHTAB *, int, const char *, int));
-extern char *	FDECL(real_hashinfo, (const char *, HASHTAB *, const char *, int));
-extern int *	FDECL(real_nhashfind, (int, NHSHTAB *, const char *, int));
-extern int	FDECL(real_nhashadd, (int, int *, NHSHTAB *, const char *, int));
-extern void	FDECL(real_nhashdelete, (int, NHSHTAB *, const char *, int));
-extern void	FDECL(real_nhashflush, (NHSHTAB *, int, const char *, int));
-extern int	FDECL(real_nhashrepl, (int, int *, NHSHTAB *, const char *, int));
-extern int	FDECL(real_search_nametab, (dbref, NAMETAB *, char *, const char *, int));
-extern NAMETAB * FDECL(real_find_nametab_ent, (dbref, NAMETAB *, char *, const char *, int));
-extern void	FDECL(real_display_nametab, (dbref, NAMETAB *, char *, int, const char *, int));
-extern void	FDECL(real_interp_nametab, (dbref, NAMETAB *, int, char *, char *, char *, const char *, int));
-extern void	FDECL(real_listset_nametab, (dbref, NAMETAB *, NAMETAB *, int, int, char *, int, const char *, int));
-extern int *	FDECL(real_hash_nextentry, (HASHTAB *htab, const char *, int));
-extern int *	FDECL(real_hash_firstentry, (HASHTAB *htab, const char *, int));
-extern int *	FDECL(real_hash_firstentry2, (HASHTAB *htab, int, const char *, int));
+extern void	real_hashinit(HASHTAB *, int, const char *, int);
+extern void	real_hashreset(HASHTAB *, const char *, int);
+extern int	real_hashval(char *, int, const char *, int);
+extern int	real_get_hashmask(int *, const char *, int);
+extern int *	real_hashfind(char *, HASHTAB *, const char *, int);
+extern int *	real_hashfind2(char *, HASHTAB *, int, const char *, int);
+extern int	real_hashadd(char *, int *, HASHTAB *, const char *, int);
+extern int	real_hashadd2(char *, int *, HASHTAB *, int, const char *, int);
+extern void	real_hashdelete(char *, HASHTAB *, const char *, int);
+extern void	real_hashflush(HASHTAB *, int, const char *, int);
+extern int	real_hashrepl(char *, int *, HASHTAB *, const char *, int);
+extern int	real_hashrepl2(char *, int *, HASHTAB *, int, const char *, int);
+extern char *	real_hashinfo(const char *, HASHTAB *, const char *, int);
+extern int *	real_nhashfind(int, NHSHTAB *, const char *, int);
+extern int	real_nhashadd(int, int *, NHSHTAB *, const char *, int);
+extern void	real_nhashdelete(int, NHSHTAB *, const char *, int);
+extern void	real_nhashflush(NHSHTAB *, int, const char *, int);
+extern int	real_nhashrepl(int, int *, NHSHTAB *, const char *, int);
+extern int	real_search_nametab(dbref, NAMETAB *, char *, const char *, int);
+extern NAMETAB * real_find_nametab_ent(dbref, NAMETAB *, char *, const char *, int);
+extern void	real_display_nametab(dbref, NAMETAB *, char *, int, const char *, int);
+extern void	real_interp_nametab(dbref, NAMETAB *, int, char *, char *, char *, const char *, int);
+extern void	real_listset_nametab(dbref, NAMETAB *, NAMETAB *, int, int, char *, int, const char *, int);
+extern int *	real_hash_nextentry(HASHTAB *htab, const char *, int);
+extern int *	real_hash_firstentry(HASHTAB *htab, const char *, int);
+extern int *	real_hash_firstentry2(HASHTAB *htab, int, const char *, int);
 
 #define hashinit(a,b)                    real_hashinit(a, b ,__FILE__, __LINE__)
 #define hashreset(a)                     real_hashreset(a ,__FILE__, __LINE__)

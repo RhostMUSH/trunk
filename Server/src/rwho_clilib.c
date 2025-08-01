@@ -40,7 +40,7 @@ void bzero(void *, int);
 
 #ifndef	NO_HUGE_RESOLVER_CODE
 #ifndef EXTENDED_SOCKET_DCLS
-extern	struct	hostent	*	FDECL(gethostbyname, (const char *));
+extern	struct	hostent	*	gethostbyname(const char *);
 #endif
 #endif
 
@@ -139,7 +139,7 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 }
 
 /* disable RWHO */
-int NDECL(rwhocli_shutdown)
+int rwhocli_shutdown(void)
 {
 #ifndef TLI
 	char	pbuf[512];
@@ -166,7 +166,7 @@ int NDECL(rwhocli_shutdown)
 }
 
 /* send an update ping that we're alive */
-int NDECL(rwhocli_pingalive)
+int rwhocli_pingalive(void)
 {
 #ifndef TLI
 	char	pbuf[512];

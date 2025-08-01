@@ -24,11 +24,11 @@
 
 #define ZAP_LOC(i)	{ s_Location(i, NOTHING); s_Next(i, NOTHING); }
 
-extern double NDECL(next_timer);
-extern int FDECL(alarm_msec, (double));
-extern void FDECL(show_desc_redir, (dbref, dbref, int));
-extern void FDECL(look_atrs_redir, (dbref, dbref, int, int, dbref, int));
-extern void FDECL(totem_clear, (dbref));
+extern double next_timer(void);
+extern int alarm_msec(double);
+extern void show_desc_redir(dbref, dbref, int);
+extern void look_atrs_redir(dbref, dbref, int, int, dbref, int);
+extern void totem_clear(dbref);
 
 static int check_type;
 
@@ -149,7 +149,7 @@ Log_simple_err(dbref obj, dbref loc, const char *errtype)
  */
 
 dbref 
-NDECL(start_home)
+start_home(void)
 {
     if (mudconf.start_home != NOTHING)
 	return mudconf.start_home;
@@ -157,7 +157,7 @@ NDECL(start_home)
 }
 
 dbref 
-NDECL(default_home)
+default_home(void)
 {
     if (mudconf.default_home != NOTHING)
 	return mudconf.default_home;
@@ -1438,7 +1438,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
  */
 
 static void 
-NDECL(make_freelist)
+make_freelist(void)
 {
     dbref i;
 
@@ -1526,7 +1526,7 @@ empty_obj(dbref obj)
 }
 
 static void 
-NDECL(purge_going)
+purge_going(void)
 {
     dbref i;
 
@@ -1583,7 +1583,7 @@ check_pennies(dbref thing, int limit, const char *qual)
 }
 
 static 
-NDECL(void check_dead_refs)
+void check_dead_refs(void)
 {
     dbref targ, owner, i, j, loc;
     int aflags, dirty;
@@ -2049,7 +2049,7 @@ check_loc_exits(dbref loc)
 }
 
 static void 
-NDECL(check_exit_chains)
+check_exit_chains(void)
 {
     dbref i;
 
@@ -2081,7 +2081,7 @@ NDECL(check_exit_chains)
  *      Location of member is not specified location    - reset it.
  */
 
-static void FDECL(check_loc_contents, (dbref));
+static void check_loc_contents(dbref);
 
 static void 
 check_misplaced_obj(dbref * obj, dbref back, dbref loc)
@@ -2230,7 +2230,7 @@ check_loc_contents(dbref loc)
 }
 
 static void 
-NDECL(check_contents_chains)
+check_contents_chains(void)
 {
     dbref i;
 
@@ -2272,7 +2272,7 @@ mark_place(dbref loc)
 }
 
 static 
-NDECL(void check_floating)
+void check_floating(void)
 {
     dbref owner, i;
 #ifndef STANDALONE

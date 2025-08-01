@@ -19,14 +19,14 @@
 #include	<sys/types.h>
 #endif
 
-extern unsigned int	FDECL(attr_hash, (Aname *, int));
-extern int		FDECL(attrfree, (Attr *));
-extern int		FDECL(dddb_check, (Aname *));
-extern int		FDECL(dddb_del, (Aname *, int));
-extern Attr *		FDECL(dddb_get, (Aname *));
-extern int		FDECL(dddb_put, (Attr *, Aname *));
-extern void		VDECL(fatal, (const char *,...));
-extern void		VDECL(mush_logf, (const char *,...));
+extern unsigned int	attr_hash(Aname *, int);
+extern int		attrfree(Attr *);
+extern int		dddb_check(Aname *);
+extern int		dddb_del(Aname *, int);
+extern Attr *		dddb_get(Aname *);
+extern int		dddb_put(Attr *, Aname *);
+extern void		fatal(const char *,...);
+extern void		mush_logf(const char *,...);
 
 /*
 This is by far the most complex and kinky code in UnterMUD. You should
@@ -85,7 +85,7 @@ typedef	struct	{
 			q.tail = e; \
 			e->nxt = CNULL;
 
-static Cache *	FDECL(get_free_entry, (CacheLst *));
+static Cache *	get_free_entry(CacheLst *);
 
 /* initial settings for cache sizes */
 static	int	cwidth = CACHE_WIDTH;
@@ -632,7 +632,7 @@ cache_clean(CacheLst *sp)
 	}
 }
 
-int NDECL(cache_sync)
+int cache_sync(void)
 {
 int	x;
 CacheLst *sp;

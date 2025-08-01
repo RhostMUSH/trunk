@@ -34,18 +34,18 @@ struct user_attribute {
 	struct user_attribute *next;	/* name hash chain. */
 };
 
-extern void	NDECL(vattr_init);
-extern VATTR *	FDECL(vattr_rename, (char *, char *));
-extern VATTR *	FDECL(vattr_find, (char *));
-extern VATTR *	FDECL(vattr_nfind, (int));
-extern VATTR *	FDECL(vattr_alloc, (char *, int));
-extern VATTR *	FDECL(vattr_define, (char *, int, int));
-extern void	FDECL(vattr_delete, (char *));
-extern VATTR *	FDECL(attr_rename, (char *, char *));
-extern VATTR *	NDECL(vattr_first);
-extern VATTR *	FDECL(vattr_next, (VATTR *));
-extern void	FDECL(list_vhashstats, (dbref));
-extern int	FDECL(sum_vhashstats, (dbref));
+extern void	vattr_init(void);
+extern VATTR *	vattr_rename(char *, char *);
+extern VATTR *	vattr_find(char *);
+extern VATTR *	vattr_nfind(int);
+extern VATTR *	vattr_alloc(char *, int);
+extern VATTR *	vattr_define(char *, int, int);
+extern void	vattr_delete(char *);
+extern VATTR *	attr_rename(char *, char *);
+extern VATTR *	vattr_first(void);
+extern VATTR *	vattr_next(VATTR *);
+extern void	list_vhashstats(dbref);
+extern int	sum_vhashstats(dbref);
 
 #endif
 

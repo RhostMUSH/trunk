@@ -21,7 +21,7 @@ char *strtok_r(char *, const char *, char **);
 #include "levels.h"
 #endif /* REALITY_LEVELS */
 
-extern void FDECL(do_page_one, (dbref, dbref, int, char *));
+extern void do_page_one(dbref, dbref, int, char *);
 extern char * parse_ansi_name(dbref, char *);
 
 int sp_ok(dbref player)

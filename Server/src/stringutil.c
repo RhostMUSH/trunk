@@ -15,7 +15,7 @@
 #include "vattr.h"
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
-extern dbref FDECL(match_thing, (dbref, char *));
+extern dbref match_thing(dbref, char *);
 extern NAMETAB attraccess_nametab[];
 extern int down_ansi(int, int, int);
 

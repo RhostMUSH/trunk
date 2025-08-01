@@ -955,7 +955,7 @@ extern STATEDATA mudstate;
  			          dbref player, char *cmd)
 #define CF_HAND2(proc)	int proc (pmath2 *vp, char *str, long extra, long extra2, \
  			          dbref player, char *cmd)
-#define CF_HDCL(proc)	int FDECL(proc, (int *, char *, long, long, dbref, char *))
+#define CF_HDCL(proc)	int proc(int *, char *, long, long, dbref, char *)
 
 /* Global flags */
 

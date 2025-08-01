@@ -40,7 +40,7 @@
 #define WEBSOCKET_ESCAPE_NUL 'n' /* \0 not allowed within a string */
 #define WEBSOCKET_ESCAPE_END 't' /* TAG_END not allowed within a tag */
 
-extern int FDECL(process_output, (DESC * d));
+extern int process_output(DESC * d);
 
 /* WebSocket opcodes. */
 enum WebSocketOp {

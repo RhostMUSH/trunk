@@ -38,7 +38,7 @@
 #endif
 
 /* Any thoughts on where this should live? */
-extern void FDECL(putstring, (FILE *, const char *));
+extern void putstring(FILE *, const char *);
 
 /* ==================== Module Scope Macros ============================ */
 

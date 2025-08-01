@@ -39,7 +39,7 @@ int malloc_count = 0;
 
 extern double mush_mktime64(struct tm *);
 extern double safe_atof(char *);
-extern int FDECL(do_convtime, (char *, struct tm *));
+extern int do_convtime(char *, struct tm *);
 
 /* -------
  * Zone list management
@@ -212,7 +212,7 @@ mode_txt(int mode)
 }
 
 void 
-NDECL(tf_init)
+tf_init(void)
 {
     fclose(stdin); 
     tf_xopen(DEV_NULL, O_RDONLY);
@@ -291,17 +291,17 @@ extern unsigned int malloc_sbrk_used;	/* amount of data space used now */
 #endif
 
 /* Check routine forward declaration. */
-extern int FDECL(fwdlist_ck, (int, dbref, dbref, int, char *));
+extern int fwdlist_ck(int, dbref, dbref, int, char *);
 
 /* Other declarations */
-extern int FDECL(ansiname_ck, (int, dbref, dbref, int, char *));
-extern int FDECL(progprompt_ck, (int, dbref, dbref, int, char *));
+extern int ansiname_ck(int, dbref, dbref, int, char *);
+extern int progprompt_ck(int, dbref, dbref, int, char *);
 
-extern void FDECL(pcache_reload, (dbref));
-extern void FDECL(desc_reload, (dbref));
-extern void FDECL(do_reboot, (dbref, dbref, int));
-extern int FDECL(process_output, (DESC * d));
-extern int FDECL(list_vcount, ());
+extern void pcache_reload(dbref);
+extern void desc_reload(dbref);
+extern void do_reboot(dbref, dbref, int);
+extern int process_output(DESC * d);
+extern int list_vcount();
 
 
 AFLAGENT attrflag[] =
@@ -1458,7 +1458,7 @@ do_fixdb(dbref player, dbref cause, int key, char *arg1, char *arg2)
  */
 
 void 
-NDECL(init_attrtab)
+init_attrtab(void)
 {
     ATTR *a;
     char *buff, *p, *q;
@@ -2762,7 +2762,7 @@ al_size(char *astr)
 /* al_store: Write modified attribute list */
 
 void 
-NDECL(al_store)
+al_store(void)
 {
     if (mudstate.mod_al_id != NOTHING) {
 	if (mudstate.mod_alist && *mudstate.mod_alist) {
@@ -3860,7 +3860,7 @@ atr_next(char **attrp)
  */
 
 void 
-NDECL(atr_push)
+atr_push(void)
 {
     ALIST *new_alist;
 
@@ -3876,7 +3876,7 @@ NDECL(atr_push)
 }
 
 void 
-NDECL(atr_pop)
+atr_pop(void)
 {
     ALIST *old_alist;
     char *cp;
@@ -4327,7 +4327,7 @@ void showdbstats(dbref player)
 
 
 void 
-NDECL(db_free)
+db_free(void)
 {
     dbref i;
     
@@ -4350,7 +4350,7 @@ NDECL(db_free)
 
 #ifndef STANDALONE
 void 
-NDECL(db_make_minimal)
+db_make_minimal(void)
 {
     dbref obj;
     int safepwd_chk = 0;

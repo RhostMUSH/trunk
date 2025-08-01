@@ -46,46 +46,46 @@
 
 #include <math.h>
 
-extern void NDECL(init_attrtab);
-extern void NDECL(init_cmdtab);
-extern void NDECL(cf_init);
-extern void NDECL(pcache_init);
-extern int FDECL(cf_read, (char *fn));
-extern void NDECL(init_functab);
-extern void NDECL(init_ansitab);
-extern void FDECL(close_sockets, (int emergency, char *message));
-extern void NDECL(close_main_socket);
-extern void NDECL(init_version);
-extern void NDECL(init_logout_cmdtab);
-extern void NDECL(init_timer);
-extern void FDECL(raw_notify, (dbref, const char *, int, int));
-extern void NDECL(do_second);
-extern void FDECL(do_dbck, (dbref, dbref, int));
-extern void NDECL(init_pid_table);
-extern void NDECL(init_depowertab);
-extern int NDECL(load_reboot_db);
-extern int NDECL(dump_reboot_db);
-extern void FDECL(do_log, (dbref, dbref, int, char *, char *));
-extern void FDECL(ignore_signals, ());
-extern void FDECL(reset_signals, ());
-extern dbref FDECL(match_thing, (dbref, char *));
-extern dbref FDECL(match_thing_quiet, (dbref, char *));
-extern void FDECL(init_logfile, ());
-extern void FDECL(close_logfile, ());
-extern void FDECL(totem_write_to_disk, ());
-extern unsigned int FDECL(CRC32_ProcessBuffer, (unsigned int, const void *, unsigned int));
-extern double FDECL(safe_atof, (char *));
-extern char FDECL(*ColorName, (dbref, int));
+extern void init_attrtab(void);
+extern void init_cmdtab(void);
+extern void cf_init(void);
+extern void pcache_init(void);
+extern int cf_read(char *fn);
+extern void init_functab(void);
+extern void init_ansitab(void);
+extern void close_sockets(int emergency, char *message);
+extern void close_main_socket(void);
+extern void init_version(void);
+extern void init_logout_cmdtab(void);
+extern void init_timer(void);
+extern void raw_notify(dbref, const char *, int, int);
+extern void do_second(void);
+extern void do_dbck(dbref, dbref, int);
+extern void init_pid_table(void);
+extern void init_depowertab(void);
+extern int load_reboot_db(void);
+extern int dump_reboot_db(void);
+extern void do_log(dbref, dbref, int, char *, char *);
+extern void ignore_signals();
+extern void reset_signals();
+extern dbref match_thing(dbref, char *);
+extern dbref match_thing_quiet(dbref, char *);
+extern void init_logfile();
+extern void close_logfile();
+extern void totem_write_to_disk();
+extern unsigned int CRC32_ProcessBuffer(unsigned int, const void *, unsigned int);
+extern double safe_atof(char *);
+extern char *ColorName(dbref, int);
 
-void FDECL(fork_and_dump, (int, char *));
-void NDECL(dump_database);
-void NDECL(pcache_sync);
-static void FDECL(dump_database_internal, (int));
-static void NDECL(init_rlimit);
+void fork_and_dump(int, char *);
+void dump_database(void);
+void pcache_sync(void);
+static void dump_database_internal(int);
+static void init_rlimit(void);
 
-extern double FDECL(time_ng, (double*));
-extern int FDECL(alarm_msec, (double));
-extern int NDECL(alarm_stop);
+extern double time_ng(double*);
+extern int alarm_msec(double);
+extern int alarm_stop(void);
 
 int reserved;
 
@@ -398,7 +398,7 @@ do_dump(dbref player, dbref cause, int key, char *msg)
 /* print out stuff into error file */
 
 void 
-NDECL(report)
+report(void)
 {
     DPUSH; /* #69 */
     STARTLOG(LOG_BUGS, "BUG", "INFO")
@@ -2060,7 +2060,7 @@ dump_database_internal(int panic_dump)
 }
 
 void 
-NDECL(dump_database)
+dump_database(void)
 {
     char *buff;
 
@@ -2213,7 +2213,7 @@ fork_and_dump(int key, char *msg)
 
 
 static int 
-FDECL(load_game, (int rebooting))
+load_game(int rebooting)
 {
     FILE *f;
     int compressed;
@@ -2494,7 +2494,7 @@ do_readcache(dbref player, dbref cause, int key)
 }
 
 static void 
-NDECL(process_preload)
+process_preload(void)
 {
     dbref thing, parent, aowner;
     int aflags, lev, i_matchint, i_totem, i_lwire, i_lwireovride;
@@ -3065,7 +3065,7 @@ main(int argc, char *argv[])
 }
 
 static void 
-NDECL(init_rlimit)
+init_rlimit(void)
 {
 #ifdef HAVE_SETRLIMIT
 #ifdef RLIMIT_NOFILE

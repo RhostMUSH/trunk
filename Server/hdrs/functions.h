@@ -50,9 +50,9 @@ typedef struct ufun {
 #define FN_NOTRACE   2048	/* Do not trace @function */
 #define FN_LOCAL     4096       /* @function is a local user function */
 
-extern void	NDECL(init_functab);
-extern void	FDECL(list_functable, (dbref, char *));
-extern void	FDECL(list_functable2, (dbref, char*, char**, int));
+extern void	init_functab(void);
+extern void	list_functable(dbref, char *);
+extern void	list_functable2(dbref, char*, char**, int);
 
 /* (Moved from functions.c by Lensman)
  * This is for functions that take an optional delimiter character */

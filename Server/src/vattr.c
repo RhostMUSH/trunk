@@ -36,8 +36,8 @@ static int page_faults = 0;
 #endif
 
 #define vattr_hash(n)		hashval((n), VHASH_MASK)
-static void 	FDECL(fixcase, (char *));
-static char	FDECL(*store_string, (char *));
+static void 	fixcase(char *);
+static char	*store_string(char *);
 
 /* Allocate space for strings in lumps this big. */
 
@@ -51,7 +51,7 @@ static char	*stringblock = (char *)0;
 
 static int	stringblock_hwm = 0;
 
-void NDECL(vattr_init)
+void vattr_init(void)
 {
 	VATTR **vpp;
 	int i;
@@ -259,7 +259,7 @@ VATTR *vattr_rename(char *name, char *newname)
 	return(vp);
 }
 
-VATTR *NDECL(vattr_first)
+VATTR *vattr_first(void)
 {
 	for (vhash_index=0; vhash_index < VHASH_SIZE; vhash_index++) {
 		if (vhash[vhash_index])

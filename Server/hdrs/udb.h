@@ -75,11 +75,11 @@ extern int cache_sync();
 extern void cache_del();
 
 #ifdef CACHE_OBJS
-extern Obj *	FDECL(objfromFILE, (FILE *));
-extern int	FDECL(objtoFILE, (Obj *, FILE *));
+extern Obj *	objfromFILE(FILE *);
+extern int	objtoFILE(Obj *, FILE *);
 #else
-extern Attr *	FDECL(attrfromFILE, (FILE *, int));
-extern int	FDECL(attrtoFILE, (Attr *, FILE *, int));
+extern Attr *	attrfromFILE(FILE *, int);
+extern int	attrtoFILE(Attr *, FILE *, int);
 #endif
 
 #endif

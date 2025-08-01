@@ -80,8 +80,8 @@ extern char *t_errlist[];
 #endif
 #endif
 
-extern void NDECL(dispatch);
-void NDECL(pcache_sync);
+extern void dispatch(void);
+void pcache_sync(void);
 
 static int sock, sock2;
 int ndescriptors = 0;
@@ -89,17 +89,17 @@ int ndescriptors = 0;
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
-DESC *FDECL(initializesock, (int, struct sockaddr_in *, char *, int, int));
-DESC *FDECL(new_connection, (int, int));
-int FDECL(process_output, (DESC *));
-int FDECL(process_input, (DESC *));
-extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, int, int, char *));
-extern int FDECL(lookup, (char *, char *, int, int *));
+DESC *initializesock(int, struct sockaddr_in *, char *, int, int);
+DESC *new_connection(int, int);
+int process_output(DESC *);
+int process_input(DESC *);
+extern void broadcast_monitor(dbref, int, char *, char *, char *, int, int, int, char *);
+extern int lookup(char *, char *, int, int *);
 extern CF_HAND(cf_site);
-extern double NDECL(next_timer);
+extern double next_timer(void);
 
-extern int FDECL(alarm_msec, (double));
-extern int NDECL(alarm_stop);
+extern int alarm_msec(double);
+extern int alarm_stop(void);
 extern unsigned int CRC32_ProcessBuffer(unsigned int, const void *, unsigned int);
 
 int signal_depth;
@@ -2624,7 +2624,7 @@ void close_main_socket( void )
 }
 
 void 
-NDECL(emergency_shutdown)
+emergency_shutdown(void)
 {
     DPUSH; /* #18 */
     close_sockets(1, (char *) "Going down - Bye");
@@ -2650,7 +2650,7 @@ NAMETAB sigactions_nametab[] =
     {NULL, 0, 0, 0, 0}};
 
 void 
-NDECL(set_signals)
+set_signals(void)
 {
     sigset_t sigs;
 

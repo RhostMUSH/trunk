@@ -48,7 +48,7 @@ char	*buff;
 	free_mbuf(buff);
 }
 
-void NDECL(init_version)
+void init_version(void)
 {
     if(strcmp(VERSION_EXT,"")) {
 	sprintf(mudstate.version, "RhostMUSH %.2s.%.2s.%.2s-%.8s [%.30s] #%.10s",

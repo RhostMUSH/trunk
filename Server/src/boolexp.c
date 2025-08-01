@@ -244,13 +244,13 @@ static char parsestore[LBUF_SIZE];
 static dbref parse_player;
 
 static void 
-NDECL(skip_whitespace)
+skip_whitespace(void)
 {
     while (*parsebuf && isspace((int)*parsebuf))
 	parsebuf++;
 }
 
-static BOOLEXP *NDECL(parse_boolexp_E);		/* defined below */
+static BOOLEXP *parse_boolexp_E(void);		/* defined below */
 
 static BOOLEXP *
 test_atr(char *s)
@@ -308,7 +308,7 @@ test_atr(char *s)
 /* L -> (E); L -> object identifier */
 
 static BOOLEXP *
-NDECL(parse_boolexp_L)
+parse_boolexp_L(void)
 {
     BOOLEXP *b;
     char *p, *buf;
@@ -429,7 +429,7 @@ NDECL(parse_boolexp_L)
 /* The argument L must be type BOOLEXP_CONST */
 
 static BOOLEXP *
-NDECL(parse_boolexp_F)
+parse_boolexp_F(void)
 {
     BOOLEXP *b2;
 
@@ -516,7 +516,7 @@ NDECL(parse_boolexp_F)
 /* T -> F; T -> F & T */
 
 static BOOLEXP *
-NDECL(parse_boolexp_T)
+parse_boolexp_T(void)
 {
     BOOLEXP *b, *b2;
 
@@ -541,7 +541,7 @@ NDECL(parse_boolexp_T)
 /* E -> T; E -> T | E */
 
 static BOOLEXP *
-NDECL(parse_boolexp_E)
+parse_boolexp_E(void)
 {
     BOOLEXP *b, *b2;
 
