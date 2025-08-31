@@ -1109,13 +1109,13 @@ void
 split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #ifdef ZENTY_ANSI
 
-   ANSISPLIT *s_ptr;
+   ANSISPLIT *s_ptr, *s_ptr2, s_tmp[1];
    char *s_inptr, *s_inptrtmp, *s_outptr;
    int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt, 
-       i_tohex, i_upper, i_r, i_g, i_b;
+       i_tohex, i_upper, i_r, i_g, i_b, i_escaped;
    char buf_utf8[17], c1, c2;
 
-   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
+   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = i_escaped = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
       *s_output = '\0';
       return;
@@ -1124,6 +1124,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_inptr = s_input;
    s_outptr = s_output;
    s_ptr = s_split;
+   s_ptr2 = s_tmp;
    s_inptrtmp = NULL;
    i_tohex = i_upper = 0;
 
@@ -1137,6 +1138,45 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->i_ascii8 = 0;
    s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
+      if ( !i_escaped && ((*s_inptr == '%') || (*s_inptr == '\\')) && (*(s_inptr+1) == '%') ) {
+         strcpy(s_ptr2->s_fghex, s_ptr->s_fghex);
+         strcpy(s_ptr2->s_bghex, s_ptr->s_bghex);
+         s_ptr2->c_fgansi = s_ptr->c_fgansi;
+         s_ptr2->c_bgansi = s_ptr->c_bgansi;
+         s_ptr2->c_accent = s_ptr->c_accent;
+         s_ptr2->i_special = s_ptr->i_special;
+         s_ptr2->i_ascii8 = s_ptr->i_ascii8;
+         s_ptr2->i_utf8 = s_ptr->i_utf8;
+         i_escaped = 1;
+         *s_outptr++ = *s_inptr++;
+         *s_outptr++ = *s_inptr++;
+
+         strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
+         strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
+         s_ptr->c_fgansi = s_ptr2->c_fgansi;
+         s_ptr->c_bgansi = s_ptr2->c_bgansi;
+         s_ptr->c_accent = s_ptr2->c_accent;
+         s_ptr->i_special = s_ptr2->i_special;
+         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+         s_ptr->i_utf8 = s_ptr2->i_utf8;
+         s_ptr++;
+
+         strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
+         strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
+         s_ptr->c_fgansi = s_ptr2->c_fgansi;
+         s_ptr->c_bgansi = s_ptr2->c_bgansi;
+         s_ptr->c_accent = s_ptr2->c_accent;
+         s_ptr->i_special = s_ptr2->i_special;
+         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+         s_ptr->i_utf8 = s_ptr2->i_utf8;
+         s_ptr++;
+         
+         continue;
+      }
+      if ( i_escaped ) {
+         i_escaped = 0;
+         continue;
+      }
       if ( (*s_inptr == '%') && ((ToLower(*(s_inptr+1)) == SAFE_CHR)
 #ifdef SAFE_CHR2
                         || (ToLower(*(s_inptr+1)) == SAFE_CHR2)

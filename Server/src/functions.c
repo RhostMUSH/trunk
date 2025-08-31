@@ -9898,7 +9898,7 @@ FUNCTION(fun_time)
        tms = localtime(&mudstate.now);
        temp = alloc_mbuf("time_withzero");
        memset(temp, '\0', MBUF_SIZE);
-       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %02d %T %Y", tms);
+       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
        safe_str(temp, buff, bufcx);
        free_mbuf(temp);
     } else {
