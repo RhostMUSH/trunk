@@ -57,8 +57,11 @@ convert_totemslist(dbref player, char *flaglist, SEARCH **fset)
    s_strtok = strtok_r(t_buff, " \t", &s_strtokr);
    i_found = i_valid = i_cnt = 0;
    safe_str("WARNING - Totems unrecognized: ", t_buff2, &t_buff2ptr);
+
    while ( s_strtok && *s_strtok) {
       i_len = strlen(s_strtok);
+
+      /* Check exact match first */
       for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
            tp;
            tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
@@ -68,10 +71,29 @@ convert_totemslist(dbref player, char *flaglist, SEARCH **fset)
             continue;
          }
 
-         if ( !strncasecmp(s_strtok, tp->flagname, i_len) ) {
+         if ( !strcasecmp(s_strtok, tp->flagname) ) {
             (*fset)->i_totems[tp->flagpos] |= tp->flagvalue;
             i_found = i_valid = 1;
             break;
+         }
+      }
+
+      /* Check all other matches if first not found */
+      if ( !i_found ) {
+         for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+              tp;
+              tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+   
+            /* Player can not see flag, continue */
+            if ( !totem_cansee_bit(player, player, tp->listperm) ) {
+               continue;
+            }
+   
+            if ( !strncasecmp(s_strtok, tp->flagname, i_len) ) {
+               (*fset)->i_totems[tp->flagpos] |= tp->flagvalue;
+               i_found = i_valid = 1;
+               break;
+            }
          }
       }
       if ( i_valid == 0 ) {
