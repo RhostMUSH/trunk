@@ -634,6 +634,7 @@ ATTR attr[] =
     {"____ObjectTag", A_OBJECTTAG, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
     {"MFail", A_MFAIL, AF_ODARK | AF_NOPROG, NULL},
     {"*WireFuncEval", A_WIREFUNCEVAL, AF_DARK | AF_ODARK | AF_NOPROG | AF_GOD | AF_INTERNAL, NULL},
+    {"AMail", A_AMAIL, AF_ODARK, NULL},
     {NULL, 0, 0, NULL}};
 
 #ifndef STANDALONE
@@ -4103,6 +4104,7 @@ db_grow(dbref newtop)
 	    db[i].nvattr = 0;
             dblwire[i].funceval = 0;
             dblwire[i].funceval_override = 0;
+            dblwire[i].queuemax = 0;
             for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
                dbtotem[i].flags[i_totem] = 0;
             }
@@ -4226,6 +4228,7 @@ db_grow(dbref newtop)
 	    db[i].nvattr = 0;
             dblwire[i].funceval = 0;
             dblwire[i].funceval_override = 0;
+            dblwire[i].queuemax = 0;
             for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
                dbtotem[i].flags[i_totem] = 0;
             }
@@ -4265,6 +4268,7 @@ db_grow(dbref newtop)
 	db[i].nvattr = 0;
         dblwire[i].funceval = 0;
         dblwire[i].funceval_override = 0;
+        dblwire[i].queuemax = 0;
         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
            dbtotem[i].flags[i_totem] = 0;
         }

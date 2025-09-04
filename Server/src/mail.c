@@ -251,6 +251,9 @@ subj_dbref(dbref player, char *subj, int key) {
    if ( key )
       return player;
 
+   if ( !subj || !*subj )
+      return player;
+
    target = NOTHING;
    if ( Wizard(player) && (*subj == '<') && ((s_pos = strchr(subj, '>')) != NULL) ) {
       t_buff = alloc_lbuf("subj_dbref");
@@ -1499,11 +1502,12 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
                         int lcount, int chk_anon, char *anon_player, int chk_anon3,
                         char *plr_list)
 {
-  int *pt1, dest, save, loop, chk_anon2, i_foundfolder, s_aflags, i_mail_inline;
+  int *pt1, dest, save, loop, chk_anon2, i_foundfolder, s_aflags, i_mail_inline, cmd_bitmask;
   dbref s_aowner;
   short int index, *pt2;
   time_t *pt3;
-  char fc, *pt4, *tprp_buff, *tpr_buff, *s_tmparry[5], *s_mailfilter, *s_returnfilter;
+  char fc, *pt4, *tprp_buff, *tpr_buff, *s_tmparry[5], *s_mailfilter, *s_returnfilter, 
+       *s_mail, *s_mailarr[5];
   static char s_plrbuff[35];
   ATTR *s_atr;
 
@@ -1778,6 +1782,41 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
     }
     free_lbuf(tpr_buff);
   }
+  s_mail = atr_pget(*toplay, A_AMAIL, &s_aowner, &s_aflags);
+  if ( *s_mail ) {
+     s_mailarr[0] = alloc_lbuf("amail_array_0");
+     s_mailarr[1] = alloc_lbuf("amail_array_1");
+     s_mailarr[2] = alloc_lbuf("amail_array_2");
+     s_mailarr[3] = alloc_lbuf("amail_array_2");
+     s_mailarr[4] = alloc_lbuf("amail_array_2");
+     sprintf(s_mailarr[0], "%d", index);
+     if ( Wizard(*toplay) ) {
+        sprintf(s_mailarr[1], "#%d", player);
+        sprintf(s_mailarr[2], "%s", (ColorMail(*toplay) ? ColorName(player, 1) : Name(player)));
+        sprintf(s_mailarr[3], "#%d", subj_dbref(player, subj, 0));
+        sprintf(s_mailarr[4], "%s", 
+                 (ColorMail(*toplay) ? ColorName(subj_dbref(player, subj, 0), 1) : Name(subj_dbref(player, subj, 0))));
+     } else {
+        if ( chk_anon ) {
+           sprintf(s_mailarr[1], "#-1");
+           sprintf(s_mailarr[2], "%s", anon_player);
+        } else {
+           sprintf(s_mailarr[1], "#%d", subj_dbref(player, subj, 0));
+           sprintf(s_mailarr[2], "%s", 
+                 (ColorMail(*toplay) ? ColorName(subj_dbref(player, subj, 0), 1) : Name(subj_dbref(player, subj, 0))));
+        }
+     }
+     cmd_bitmask = mudstate.cmd_bitmask;
+     mudstate.cmd_bitmask |= NOMAIL;
+     wait_que(*toplay, *toplay, 0, NOTHING, s_mail, s_mailarr, 5, NULL, NULL);
+     free_lbuf(s_mailarr[0]);
+     free_lbuf(s_mailarr[1]);
+     free_lbuf(s_mailarr[2]);
+     free_lbuf(s_mailarr[3]);
+     free_lbuf(s_mailarr[4]);
+     mudstate.cmd_bitmask = cmd_bitmask;
+  }
+  free_lbuf(s_mail);
   return (index);
 }
 
@@ -9046,6 +9085,11 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
         i_fill4, i_fill5, i_fill6, i_version, acheck, i_pass, i_forced;
     char *p1, *p2, *atrxxx;
     dbref owner, owner2;
+
+    if ( (!key || (key & (M_SEND|M_FORWARD|M_REPLY|M_FSEND|M_ANON))) && (mudstate.cmd_bitmask & NOMAIL) ) {
+      notify(player, "MAIL ERROR: Unable to send mail through this method.");
+      return;
+    }
 
     recblock = i_version = i_forced = 0;
     i_fill1 = i_fill2 = i_fill3 = 0;

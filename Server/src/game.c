@@ -2579,6 +2579,14 @@ NDECL(process_preload)
           dblwire[thing].funceval = 0;
           dblwire[thing].funceval_override = 0;
        }
+       /* Set the live wire queuemax */
+       (void) atr_get_str(tstr, thing, A_WIREQUEUEMAX, &aowner, &aflags);
+       if ( *tstr ) {
+          i_lwire = atoi(tstr);
+          dblwire[thing].queuemax = i_lwire;
+       } else {
+          dblwire[thing].queuemax = 0;
+       }
 
        /* Look for an OBJECTTAG attribute */
        if (H_ObjectTag(thing)) {

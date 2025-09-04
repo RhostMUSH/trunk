@@ -1422,6 +1422,33 @@ safe_sha0(const char *text, size_t len, char *buff, char **bufcx)
 }
 #endif
 
+int
+mushstrlen(char *instr) {
+   char *s_ptr;
+   int i_cntr = 0, i_break = 0;
+
+   if ( !*instr ) {
+      return 0;
+   }
+
+   s_ptr = instr;
+   while ( *s_ptr ) {
+      if ( !i_break && ((*s_ptr == '%') || (*s_ptr == '\\')) && ((*(s_ptr+1) == '%') || *(s_ptr+1) == '\\') ) {
+         i_break = 1;
+         s_ptr++;
+         continue;
+      }
+      if ( i_break ) {
+         i_break = 0;
+         i_cntr++;
+         s_ptr++;
+         continue;
+      }
+      i_cntr++;
+      s_ptr++;
+   }
+   return i_cntr;
+}
 
 void
 do_date_conv(char *instr, char *outstr)
@@ -3502,6 +3529,11 @@ int string_count(char* src, int numchars)
     int idx, ichr, i;
     for( idx = 0, ichr = 0; idx < numchars && src[idx]; idx++ )
     {
+        if ( ((src[idx] == '%') || (src[idx] == '\\')) && ((src[idx+1] == '%') || src[idx+1] == '\\') ) {
+           ichr+=2;
+           idx+=2;
+           continue;
+        }
         if(((src[idx] == '%') || (src[idx] == '\\')) &&
            ((src[idx+1] == '%') || (src[idx+1] == '\\')))
             idx++;
@@ -3840,7 +3872,8 @@ void wrap_out( char* src, int numchars, struct wrapinfo *wp,
   prntchrs = string_count(src, numchars);
 #else
   if ( keyval )
-     prntchrs = strlen(src);
+     prntchrs = mushstrlen(src);
+//   prntchrs = strlen(src);
   else
      prntchrs = numchars;
 #endif
@@ -4394,7 +4427,6 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   tab_expand( expandbuff, fargs[0] );
 
   buffleft = strlen(expandbuff);
-
   if( (buffleft <= winfo.width) && !strchr(expandbuff, '\r') ) {
       if ( i_justifylast && (winfo.just == JUST_JUST) )
          winfo.just = JUST_LEFT;
@@ -22901,6 +22933,7 @@ FUNCTION(fun_version)
   }
 }
 
+
 FUNCTION(fun_strlenvis)
 {
    char *s_buff;
@@ -37223,7 +37256,8 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
    split_ansi(strip_ansi(fargs[0]), s_outbuff, outsplit);
   
    width = atoi(fargs[1]);
-   len = strlen(s_outbuff);
+// len = strlen(s_outbuff);
+   len = mushstrlen(s_outbuff);
 
    if ( i_just == ANSICENTER ) {
       if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {

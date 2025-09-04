@@ -4485,6 +4485,40 @@ do_livewire(dbref player, dbref cause, int key, char *s_target, char *s_value)
          notify(player, s_buff);
          free_lbuf(s_buff);
          break;
+      case LWIRE_QUEUEMAX: /* Set the new queue max on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting queuemax to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else if ( i_value > 1000000000 ) {
+               notify(player, "@livewire: Warning -- Value greater than 1,000,000,000.  Reset to max");
+               i_value = 1000000000;
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREQUEUEMAX, &aowner, &aflags);
+         if ( *s_txt ) {
+            i_eval = atoi(s_txt);
+         } else {
+            i_eval = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_eval ) {
+            notify(player, "@livewire: Queuemax value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) QueueMax changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_eval, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d", i_value);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].queuemax = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
       case LWIRE_FUNCEVAL: /* Set function evaluation override on target */
          if ( !s_value || !*s_value ) {
             notify(player, "@livewire: No value specified, resetting func evaluation to default value (0)");

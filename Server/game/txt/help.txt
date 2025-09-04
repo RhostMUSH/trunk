@@ -130,26 +130,26 @@
 & commands2
   Help available for RhostMUSH Commands (continued):
  
-  @aahear    @aclone      @aconnect    @adescribe  @adfail       @adisconnect
-  @adrop     @aefail      @aenter      @afail      @agfail       @ahear
-  @akill     @aleave      @alfail      @alias      @amhear       @amove
-  @ansiname  @apay        @arfail      @asfail     @asuccess     @atfail    
-  @atofail   @atport      @aufail      @ause       @away         @caption 
-  @charges   @conformat   @cost        @cpattr     @describe     @dfail
-  @door      @drop        @ealias      @efail      @enter        @exitformat
-  @fail      @filter      @forwardlist @gfail      @grep         @guild 
-  @idesc     @idle        @infilter    @inprefix   @kill         @lalias    
-  @leave     @lfail       @listen      @move       @mfail        @nameformat 
-  @odescribe @odfail      @odrop       @oefail     @oenter       @ofail      
-  @ogfail    @okill       @oleave      @olfail     @omove        @opay       
-  @orfail    @osuccess    @otfail      @otofail    @otport       @oufail     
-  @ouse      @oxenter     @oxleave     @oxtport    @pay          @prefix     
-  @race      @reject      @rfail       @runout     @salisten     @sasmell    
-  @sataste   @satouch     @saystring   @selfboot   @sex          @sfail       
-  @slisten   @solisten    @sosmell     @sotaste    @sotouch      @ssmell     
-  @startup   @staste      @stouch      @success    @tfail        @titlecaption
-  @tofail    @toggle      @tport       @ufail      +uptime       @use        
-  @whereall  @whereis     @zone        
+  @aahear       @aclone    @aconnect  @adescribe   @adfail   @adisconnect
+  @adrop        @aefail    @aenter    @afail       @agfail   @ahear
+  @akill        @aleave    @alfail    @alias       @amail    @amhear     
+  @amove        @ansiname  @apay      @arfail      @asfail   @asuccess   
+  @atfail       @atofail   @atport    @aufail      @ause     @away       
+  @caption      @charges   @conformat @cost        @cpattr   @describe   
+  @dfail        @door      @drop      @ealias      @efail    @enter      
+  @exitformat   @fail      @filter    @forwardlist @gfail    @grep       
+  @guild        @idesc     @idle      @infilter    @inprefix @kill       
+  @lalias       @leave     @lfail     @listen      @move     @mfail      
+  @nameformat   @odescribe @odfail    @odrop       @oefail   @oenter     
+  @ofail        @ogfail    @okill     @oleave      @olfail   @omove      
+  @opay         @orfail    @osuccess  @otfail      @otofail  @otport     
+  @oufail       @ouse      @oxenter   @oxleave     @oxtport  @pay        
+  @prefix       @race      @reject    @rfail       @runout   @salisten   
+  @sasmell      @sataste   @satouch   @saystring   @selfboot @sex        
+  @sfail        @slisten   @solisten  @sosmell     @sotaste  @sotouch    
+  @ssmell       @startup   @staste    @stouch      @success  @tfail      
+  @titlecaption @tofail    @toggle    @tport       @ufail    +uptime     
+  @use          @whereall  @whereis   @zone        
   
   See Also: @list
   
@@ -4253,7 +4253,7 @@
   Examples:
     @mfail me=You can't mail me.
   
-  See Also: @lock/mail
+  See Also: @amail, @lock/mail
 
 & mail signature
 & &mailsig
@@ -7348,6 +7348,24 @@
    
   See Also: @name, @protect, listprotection()
   
+& @amail
+  Command: @mail[/<switch>] <object> = <command-list>
+  Attribute: AMail 
+   
+  Sets the actions to be taken after the target receives mail.  This attribute
+  will *never* send mail, even if the command queues other commands via @wait,
+  @dolist or other methods.  This is to avoid infinite loops.
+  
+  The following argumnts are passed to the mail attribute:
+    %0 - The message number that is received
+    %1 - The dbref# of the target that sends you mail (or #-1 if anonymous)
+    %2 - The name of the player that sends you mail (or the Anonymous name)
+    %3 - The true dbref# of target if obfuscated (wizard only)
+    %4 - The true name of target if obfuscated (wizard only)
+  
+  Example:
+    > @amail me=@pemit me=Message %0 from %2(%1) 
+
 & @amhear
   Command: @amhear[/<switch>] <object> = <command-list>
   Attribute: Amhear
@@ -7361,7 +7379,8 @@
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
  
-  Example: @amhear listener = "Wait a minute.  I said the trigger word!
+  Example: 
+    > @amhear listener = "Wait a minute.  I said the trigger word!
   
   See Also: @aahear, @ahear, @listen
   
@@ -29014,7 +29033,7 @@
     Mail: Message sent to -> Bob
     Mail: Done
   
-  See Also: @mailsig, &mailfilter
+  See Also: @mailsig, &mailfilter, @amail
 
 & &MAILFILTER
 & @MAILFILTER
@@ -29046,7 +29065,7 @@
       Mail: You have new mail from -> Tony [Subj: You smell]
       Mail: Auto-Moved to folder -> Junk
   
-  See Also: @mailsig, &mailnotify
+  See Also: @mailsig, &mailnotify, @amail
  
 & mail-filtering
   Topic: MAIL FILTERING
@@ -29058,7 +29077,7 @@
   
   For detailed help, see help for MAILFILTER
   
-  See Also: MAILFILTER
+  See Also: MAILFILTER, @amail
   
 & mail-aliases
   Topic: MAIL-ALIASES
@@ -29393,6 +29412,7 @@
   Topic: MAIL ATTRIBUTES
   
   The following attributes have special meaning in the mail system.
+    @amail       -- triggers amail attribute anytime you receive mail
     @mailsig     -- The signature that is assigned to any mail sent.
     &mailfilter  -- This is evaluated to auto-filter what folder mail goes to.
     &mailnotify  -- This is evaluated to auto-send notification to senders.
@@ -29408,7 +29428,8 @@
                          the player list you want to send to.
                          This is evaluated.
   
-  See Also: @mailsig, &mailfilter, &mailnotify, mail lock, mail setup_aliases
+  See Also: @amail, @mailsig, &mailfilter, &mailnotify, mail lock, 
+            mail setup_aliases
   For wizards, wizhelp: @mailsmax, @mailtime
 
 & mail writing
@@ -30085,7 +30106,7 @@
   Please check @list options to see what current global settings are enabled
   for the mail system.  Start a sendlist with a , for player's with spaces.
   
-  See Also: PENN_MAIL, BRANDY_MAIL, mail write, mail send quick, 
+  See Also: PENN_MAIL, BRANDY_MAIL, mail write, mail send quick, @amail,
               mail send brandy
   
 & mail send brandy
@@ -30175,6 +30196,8 @@
   
   For examples, see: mail send examples
   
+  See Also: @amail
+  
 & mail send examples
   Command: mail/send
   
@@ -30197,7 +30220,7 @@
   read the help files for 'mail write'.  The /SEND switch for mail is
   optional.
   
-  See Also: mail write, mail forward, mail reply, mail recall
+  See Also: @amail, mail write, mail forward, mail reply, mail recall
   
 & mail/reply
 & mail/reply/quick
@@ -30230,7 +30253,7 @@
   Note:  If you are @toggled BRANDY_MAIL, instead of <message> it would be your
          subject.  Then you'd use '-' for additional text and '--' to send.
   
-  See Also: mail forward, mail send
+  See Also: @amail, mail forward, mail send
   
 & mail/forward
 & mail/forward/quick
@@ -30258,7 +30281,7 @@
   
   You'd then use '-' for additional text and '--' to send the mail.
   
-  See Also: mail reply, mail send
+  See Also: @amail, mail reply, mail send
   
 & mail/save/read
 & mail/read/save
@@ -36843,7 +36866,7 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.20.4
+  Current Version: 4.21.0
   
   Current Changelogs:
   -------------------
@@ -36873,7 +36896,15 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+ 
+  4.21.0 - 09/04/25
+  * @amail added -- will not execute any mail send commands from it.  This
+    will include anything queued from the @amail attribute.
+  * Fix for ljust/ljc/rjc/rjust/center/wrap/columns for escaped escape chars 
   
+& changelog 2
+  Topic: CHANGELOG
+    
   4.20.4 - 09/02/25
   * Search was too passive for totemlist and found first match and not exact
   

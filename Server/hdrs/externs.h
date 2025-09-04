@@ -831,6 +831,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define LWIRE_LIST	1	/* List all livewires on target */
 #define LWIRE_FUNCEVAL	2	/* Set individual function invocation */
 #define LWIRE_FUNCOVER	4	/* Set individual function override above max */
+#define LWIRE_QUEUEMAX	8	/* Set individual queuemax per target */
 
 #define NAME_ANSI       1	/* Combine @name and @extansi together */
 
@@ -1260,6 +1261,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 /* This will be a bitwise mask for any mask handling for raw parsing */
 #define PREPARSE_RAW	0x00000001	/* PreParse handler for raw */
+#define NOMAIL      	0x00000002	/* Sending mail not allowed */
 
 #define LOGROTATE_STATUS 1	/* Status of current log */
 

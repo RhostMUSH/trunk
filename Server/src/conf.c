@@ -429,6 +429,7 @@ NDECL(cf_init)
     mudstate.execscript_noreg = 0;	/* execscript has no registers processed */
     mudstate.help_shell = 0;		/* help redirection */
     mudstate.no_space_compress = 0;	/* Override space compression */
+    mudstate.cmd_bitmask = 0;		/* cmd bitwise mask */
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */

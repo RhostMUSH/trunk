@@ -651,7 +651,8 @@ NAMETAB livewire_sw[] =
 {
     {(char *) "list", 2, CA_WIZARD, 0, LWIRE_LIST},
     {(char *) "funceval", 2, CA_WIZARD, 0, LWIRE_FUNCEVAL},
-    {(char *) "funcover", 2, CA_WIZARD, 0, LWIRE_FUNCOVER},
+    {(char *) "funcover", 5, CA_WIZARD, 0, LWIRE_FUNCOVER},
+    {(char *) "queuemax", 2, CA_WIZARD, 0, LWIRE_QUEUEMAX},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB listmotd_sw[] =

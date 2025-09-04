@@ -161,6 +161,7 @@ typedef struct livewire LWIRE;
 struct livewire {
    int funceval;
    int funceval_override;
+   int queuemax;
 };
 
 typedef struct object OBJ;

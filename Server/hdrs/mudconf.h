@@ -778,6 +778,7 @@ struct statedata {
 	int 	vattr_reusecnt;
 	int	account_subsys_inuse;	/* Set to 1 if account subsystem is in use */
 	int	no_space_compress;	/* State data to not allow space compress */
+	int	cmd_bitmask;	/* bitmask states for command handlers */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */
 	BQUE	*qlfirst;	/* Head of object queue */
