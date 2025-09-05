@@ -8887,6 +8887,7 @@ NAMETAB list_names[] =
     {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
     {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {(char *) "pronouns", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
+    {(char *) "gender", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
