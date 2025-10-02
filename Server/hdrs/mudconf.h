@@ -678,6 +678,7 @@ struct statedata {
 	int	func_ignore;
         int     func_bypass;
 	int	initializing;	/* are we reading config file at startup? */
+	int	adminexec;	/* issuing @admin/exec in-game */
 	int	dbloading;	/* are we reading config file at startup? */
 	int	panicking;	/* are we in the middle of dying horribly? */
 	int	logging;	/* Are we in the middle of logging? */

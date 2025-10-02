@@ -1153,14 +1153,14 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                   s_t1 = atr_get(mudconf.mail_def_object, atr->number, &aowner, &aflags);
                   /* If attribute not hidden or wizard allow */
                   if ( s_t1 && *s_t1 && (!(aflags & AF_MDARK) || Wizard(player)) ) {
-                     if ( ((atr->flags & AF_PINVIS) || (aflags & AF_PINVIS)) && !Wizard(player) ) {
+                     if ( !((atr->flags & AF_PINVIS) || (aflags & AF_PINVIS)) || Wizard(player) ) {
                         i_mail_inline = mudstate.mail_inline;
                         mudstate.mail_inline = 1;
                         s_t3 = exec(mudconf.mail_def_object, player, player, EV_FCHECK | EV_EVAL, s_t1, (char **) NULL, 0, (char **)NULL, 0);
                         mudstate.mail_inline = i_mail_inline;
                         if ( *s_t3 ) {
                            s_strpl = strtok_r(s_t3, " \t", &s_strplr);
-                           while ( s_strpl ) {
+                           while ( s_strpl && *s_strpl) {
                               target = lookup_player(player, s_strpl, 0);
                               if ( Good_chk(target) && isPlayer(target) ) {
                                  if ( i_first ) {
@@ -1188,14 +1188,16 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                         }
                         free_lbuf(s_t3);
                      } else {
+                     /* Hidden player lists from players */
 #ifdef ZENTY_ANSI
-                        sprintf(x_buff, "<%s%s%s>", SAFE_ANSI_GREEN, s_strpl, SAFE_ANSI_NORMAL);
+                        sprintf(x_buff, "<%s%s%s>", SAFE_ANSI_GREEN, s_strtok, SAFE_ANSI_NORMAL);
 #else
-                        sprintf(x_buff, "<%s%s%s>", ANSI_GREEN, s_strpl, ANSI_NORMAL);
+                        sprintf(x_buff, "<%s%s%s>", ANSI_GREEN, s_strtok, ANSI_NORMAL);
 #endif
                         safe_str(x_buff, s_out, s_outptr);
                      }
                   } else {
+                  /* Cloaked mail lists from players */
 #ifdef ZENTY_ANSI
                      sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
 #else
@@ -1205,6 +1207,7 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                   }
                   free_lbuf(s_t1);
                } else {
+               /* Cloaked mail lists from players */
                   if ( i_first ) {
                      safe_str(", ", s_out, s_outptr);
                   }
@@ -1216,8 +1219,8 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
 #endif
                   safe_str(x_buff, s_out, s_outptr);
                }
-               /* If attribute unuseable or missing print in form !$alias! */
             } else {
+            /* If attribute unuseable or missing print in form !$alias! */
                if ( i_first ) {
                   safe_str(", ", s_out, s_outptr);
                }

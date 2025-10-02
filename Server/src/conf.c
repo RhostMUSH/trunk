@@ -828,6 +828,7 @@ NDECL(cf_init)
     mudstate.force_halt = 0;
     mudstate.autoreg = 0;
     mudstate.initializing = 0;
+    mudstate.adminexec = 0;
     mudstate.dbloading = 0;
     mudstate.panicking = 0;
     mudstate.logging = 0;
@@ -6272,7 +6273,9 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
                 }
                 free_lbuf(tbuf);
                 fclose(fp);
+                mudstate.adminexec = 1;
                 cf_read("rhost_ingame.conf");
+                mudstate.adminexec = 0;
                 notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: executed %d lines from rhost_ingame.conf", i_cntr));
              } else {
                 notify_quiet(player, "@admin: unable to open 'rhost_ingame.conf' file in your game directory.");

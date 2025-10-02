@@ -5788,8 +5788,10 @@ CF_HAND(cf_cmd_vattr)
         fprintf(fp, "vattr_command %s %s\n", alias, orig);
         fclose(fp);
      }
-     DPOP; /* #40A */
-     return 0;
+     if ( !mudstate.adminexec ) {
+        DPOP; /* #40A */
+        return 0;
+     }
   }
 
   /* Delete entry */
