@@ -1075,7 +1075,11 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
    s_tbuff = alloc_lbuf("parse_tolist");
    strcpy(s_tbuff, s_input);
 
-   s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
+   if ( *s_tbuff == '@' ) {
+      s_strtok = strtok_r(s_tbuff+1, " \t,", &s_strtokr);
+   } else {
+      s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
+   }
    s_b1p = s_b1 = alloc_lbuf("parse_tolist");
    x_buff = alloc_lbuf("parse_tolist");
    i_first = 0;
@@ -1175,7 +1179,7 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                               } else {
                                  if ( i_first ) {
                                     safe_str(", ", s_out, s_outptr);
-                              }
+                                 }
 #ifdef ZENTY_ANSI
                                  sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
 #else
@@ -1188,6 +1192,9 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                         }
                         free_lbuf(s_t3);
                      } else {
+                        if ( i_first ) {
+                           safe_str(", ", s_out, s_outptr);
+                        }
                      /* Hidden player lists from players */
 #ifdef ZENTY_ANSI
                         sprintf(x_buff, "<%s%s%s>", SAFE_ANSI_GREEN, s_strtok, SAFE_ANSI_NORMAL);
@@ -1197,6 +1204,9 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                         safe_str(x_buff, s_out, s_outptr);
                      }
                   } else {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
                   /* Cloaked mail lists from players */
 #ifdef ZENTY_ANSI
                      sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
@@ -1235,55 +1245,20 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
             break;
          case '&': /* Personal static */
             atr = atr_str(s_strtok+1);
-            s_t1 = atr_get(player, atr->number, &aowner, &aflags);
-            if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
-               s_strpl = strtok_r(s_t1, " \t", &s_strplr);
-               while ( s_strpl ) {
-                  target = lookup_player(player, s_strpl, 0);
-                  if ( Good_chk(target) && isPlayer(target) ) {
-                     if ( i_first ) {
-                        safe_str(", ", s_out, s_outptr);
-                     }
-                     i_first = 1;
-                     if ( ColorMail(player) ) {
-                        safe_str(ColorName(target, 1), s_out, s_outptr);
-                     } else {
-                        safe_str(Name(target), s_out, s_outptr);
-                     }
-                  } else {
-                     if ( i_first ) {
-                        safe_str(", ", s_out, s_outptr);
-                     }
-#ifdef ZENTY_ANSI
-                     sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
-#else
-                     sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
-#endif
-                     safe_str(x_buff, s_out, s_outptr);
-                  }
-                  s_strpl = strtok_r(NULL, " \t", &s_strplr);
-               }
-            } else {
+            if ( !atr ) {
                if ( i_first ) {
                   safe_str(", ", s_out, s_outptr);
                }
-               i_first = 1;
 #ifdef ZENTY_ANSI
                sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
 #else
                sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
 #endif
                safe_str(x_buff, s_out, s_outptr);
-            }
-            free_lbuf(s_t1);
-            break;
-         case '~': /* Personal dynamic */
-            atr = atr_str(s_strtok+1);
-            s_t1 = atr_get(player, atr->number, &aowner, &aflags);
-            if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
-               s_t3 = exec(player, player, player, EV_FCHECK | EV_EVAL, s_t1, (char **) NULL, 0, (char **)NULL, 0);
-               if ( *s_t3 ) {
-                  s_strpl = strtok_r(s_t3, " \t", &s_strplr);
+            } else {
+               s_t1 = atr_get(player, atr->number, &aowner, &aflags);
+               if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
+                  s_strpl = strtok_r(s_t1, " \t", &s_strplr);
                   while ( s_strpl ) {
                      target = lookup_player(player, s_strpl, 0);
                      if ( Good_chk(target) && isPlayer(target) ) {
@@ -1321,8 +1296,12 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
 #endif
                   safe_str(x_buff, s_out, s_outptr);
                }
-               free_lbuf(s_t3);
-            } else {
+               free_lbuf(s_t1);
+            }
+            break;
+         case '~': /* Personal dynamic */
+            atr = atr_str(s_strtok+1);
+            if ( !atr ) {
                if ( i_first ) {
                   safe_str(", ", s_out, s_outptr);
                }
@@ -1333,8 +1312,64 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
                sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
 #endif
                safe_str(x_buff, s_out, s_outptr);
+            } else {
+               s_t1 = atr_get(player, atr->number, &aowner, &aflags);
+               if (mail_check_readlock_perms(player, player, atr, aowner, aflags, 0)) {
+                  s_t3 = exec(player, player, player, EV_FCHECK | EV_EVAL, s_t1, (char **) NULL, 0, (char **)NULL, 0);
+                  if ( *s_t3 ) {
+                     s_strpl = strtok_r(s_t3, " \t", &s_strplr);
+                     while ( s_strpl ) {
+                        target = lookup_player(player, s_strpl, 0);
+                        if ( Good_chk(target) && isPlayer(target) ) {
+                           if ( i_first ) {
+                              safe_str(", ", s_out, s_outptr);
+                           }
+                           i_first = 1;
+                           if ( ColorMail(player) ) {
+                              safe_str(ColorName(target, 1), s_out, s_outptr);
+                           } else {
+                              safe_str(Name(target), s_out, s_outptr);
+                           }
+                        } else {
+                           if ( i_first ) {
+                              safe_str(", ", s_out, s_outptr);
+                           }
+#ifdef ZENTY_ANSI
+                           sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strpl, SAFE_ANSI_NORMAL);
+#else
+                           sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strpl, ANSI_NORMAL);
+#endif
+                           safe_str(x_buff, s_out, s_outptr);
+                        }
+                        s_strpl = strtok_r(NULL, " \t", &s_strplr);
+                     }
+                  } else {
+                     if ( i_first ) {
+                        safe_str(", ", s_out, s_outptr);
+                     }
+                     i_first = 1;
+#ifdef ZENTY_ANSI
+                     sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+                     sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+                     safe_str(x_buff, s_out, s_outptr);
+                  }
+                  free_lbuf(s_t3);
+               } else {
+                  if ( i_first ) {
+                     safe_str(", ", s_out, s_outptr);
+                  }
+                  i_first = 1;
+#ifdef ZENTY_ANSI
+                  sprintf(x_buff, "[%s!%s!%s]", SAFE_ANSI_RED, s_strtok, SAFE_ANSI_NORMAL);
+#else
+                  sprintf(x_buff, "[%s!%s!%s]", ANSI_RED, s_strtok, ANSI_NORMAL);
+#endif
+                  safe_str(x_buff, s_out, s_outptr);
+               }
+               free_lbuf(s_t1);
             }
-            free_lbuf(s_t1);
             break;
          default: /* Assume normal player name, number or alias */
             target = lookup_player(player, s_strtok, 0);
