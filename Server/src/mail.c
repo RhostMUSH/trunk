@@ -1992,7 +1992,9 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   MAMEM *pt3;
   ATTR *attr = NULL;
   static char anon_player[17];
+  time_t now1, now2;
 
+  now1 = time(NULL);
   i_mail_inline = comma_exists = 0;
   spt = mpt = NULL;
   memset(anon_player, 0, sizeof(anon_player));
@@ -2330,6 +2332,16 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
         term = 0;
       else
         term = 1;
+      now2 = time(NULL);
+      if ( now2 > (now1 + mudconf.cputimechk) ) {
+	  notify_quiet(p2,"MAIL WARNING: Alias recursion exceeded.");
+          if ( pt1 && *pt1 ) {
+             broadcast_monitor(p2, MF_CPU, "MAIL ALIAS RECURSION REACHED", pt1, NULL, p2, 0, 0, NULL);
+          } else {
+             broadcast_monitor(p2, MF_CPU, "MAIL ALIAS RECURSION REACHED", (char *)"<aliases>", NULL, p2, 0, 0, NULL);
+          }
+	  break;
+      }
       if ((*pt1 != '+') && (*pt1 != '&') && (*pt1 != '~') && (*pt1 != '$')) {
 	if ((strlen(lbuf4) + (pt2-pt1) + 2) > NDBMBUFSZ - 4) {
 	  notify_quiet(p2,"MAIL WARNING: Alias expansion truncated");
