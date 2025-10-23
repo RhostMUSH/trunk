@@ -29929,9 +29929,13 @@
    
   See Also: mail mark
   
+& mail/alias/quick
+& mail/quick/alias
 & mail/alias
+& mail alias quick
 & mail alias
   Command: mail/alias
+           mail/alias/quick
   
   The alias switch is used to display any global alias you have 
   permission to access and will list all players that are attached
@@ -29939,15 +29943,24 @@
   administration of the mush.  If you have ideas of global aliases,
   suggest it to them and they will add them.
   
+  If you use the /quick switch with the /alias switch it will give
+  a long summary list of every global alias that you have access to.
+  
+  Note: This command will not show local/personal aliases.
+  
   See 'help mail-aliases' on all the ways to set and use aliases.
    
   Examples:: 
     > mail/alias
+    > mail/alias/quick
   
   Wizards: 
     > mail/alias
+    > mail/alias/quick  (they will see 'D'ark and 'H'idden flags)
     > wmail/alias
   
+  See Also: mail attributes
+ 
 & mail/anonymous
 & mail anonymous
   Command: mail/anon player=message
@@ -36869,11 +36882,11 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.23.2
+  Current Version: 4.24.0
   
   Current Changelogs:
   -------------------
-  1 - 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
+  1 - 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
   2 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
   3 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
@@ -36881,6 +36894,8 @@
   4 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.24.0
+& 4.23.2
 & 4.23.1
 & 4.23.0
 & 4.22.0
@@ -36891,6 +36906,9 @@
 & changelog 1
   Topic: CHANGELOG
    
+  4.24.0 - 10/23/25
+  * Addition of /quick to mail/alias for summary view of aliases.
+  
   4.23.2 - 10/02/25
   * Additional fixes for potential crash with mail alias displaying
   

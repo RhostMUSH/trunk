@@ -1060,6 +1060,115 @@ void unparse_al(char *pass, int len, char *rtbuf, int number, int i_key, dbref p
   free_sbuf(pt3);
 }
 
+int mail_precheck(dbref player, char *s_input)
+{
+   char *s_retbuff, *s_strtok, *s_strtokr, *s_tbuff, *s_t1;
+   int aflags, i_return, i_chk;
+   dbref aowner, target;
+   ATTR *atr;
+
+   if ( !s_input || !*s_input ) {
+      notify(player, "MAIL: Empty send list.");
+      return 1;
+   }
+
+   s_tbuff = alloc_lbuf("mail_precheck");
+   strcpy(s_tbuff, s_input);
+
+   if ( *s_tbuff == '@' ) {
+      s_strtok = strtok_r(s_tbuff+1, " \t,", &s_strtokr);
+   } else {
+      s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
+   }
+
+   i_return = i_chk = 0;
+   s_retbuff = alloc_lbuf("mail_precheck2");
+   while ( s_strtok && *s_strtok ) {
+      switch(*s_strtok) {
+         case '+': /* Global static */
+            s_t1 = (char *)mail_alias_function(player, 0, s_strtok+1, NULL);
+            if ( !s_t1 || !*s_t1 ) {
+               sprintf(s_retbuff, "MAIL: Invalid static global alias '%s'.", s_t1);
+               notify(player, s_retbuff);
+               i_return = 1;
+            }
+            free_lbuf(s_t1);
+            break;
+         case '$': /* Global dynamic */
+            if ( Good_chk(mudconf.mail_def_object) ) {
+               sprintf(s_retbuff, "alias.%s", s_strtok+1);
+               atr = atr_str(s_retbuff);
+               if ( atr && (!(atr->flags & AF_MDARK) || Wizard(player)) ) {
+                  s_t1 = atr_get(mudconf.mail_def_object, atr->number, &aowner, &aflags);
+                  if ( !s_t1 || !*s_t1 ) {
+                     sprintf(s_retbuff, "MAIL: Invalid dynamic global alias '%s'.", s_strtok+1);
+                     notify(player, s_retbuff);
+                     i_return = 1;
+                  }
+                  free_lbuf(s_t1);
+               } else {
+                  sprintf(s_retbuff, "MAIL: Invalid dynamic global alias '%s'.", s_strtok+1);
+                  notify(player, s_retbuff);
+                  i_return = 1;
+               }
+            } else {
+               if ( !i_chk )
+                  notify(player, "MAIL: No dynamic global aliases configured.");
+               i_return = 1;
+               i_chk = 1;
+            }
+            break;
+         case '&': /* Personal static */
+            sprintf(s_retbuff, "%s", s_strtok+1);
+            atr = atr_str(s_retbuff);
+            if ( atr ) {
+               s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
+               if ( !s_t1 || !*s_t1 ) {
+                  sprintf(s_retbuff, "MAIL: Invalid static personal alias '%s'.", s_strtok+1);
+                  notify(player, s_retbuff);
+                  i_return = 1;
+               }
+               free_lbuf(s_t1);
+            } else {
+               sprintf(s_retbuff, "MAIL: Invalid static personal alias '%s'.", s_strtok+1);
+               notify(player, s_retbuff);
+               i_return = 1;
+            }
+            break;
+         case '~': /* Personal dynamic */
+            sprintf(s_retbuff, "%s", s_strtok+1);
+            atr = atr_str(s_retbuff);
+            if ( atr ) {
+               s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
+               if ( !s_t1 || !*s_t1 ) {
+                  sprintf(s_retbuff, "MAIL: Invalid dynamic personal alias '%s'.", s_strtok+1);
+                  notify(player, s_retbuff);
+                  i_return = 1;
+               }
+               free_lbuf(s_t1);
+            } else {
+               sprintf(s_retbuff, "MAIL: Invalid dynamic personal alias '%s'.", s_strtok+1);
+               notify(player, s_retbuff);
+               i_return = 1;
+            }
+            break;
+         default: /* Assume normal player name, number or alias */
+            target = lookup_player(player, s_strtok, 0);
+            if ( !(Good_chk(target) && isPlayer(target)) ) {
+               sprintf(s_retbuff, "MAIL: Invalid player '%s'.", s_strtok);
+               notify(player, s_retbuff);
+               i_return = 1;
+            }
+            break;
+      }
+      s_strtok = strtok_r(NULL, " \t,", &s_strtokr);
+   }
+
+   free_lbuf(s_tbuff);
+   free_lbuf(s_retbuff);
+   return i_return;
+}
+
 void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
 {
    char *s_tbuff, *s_strtok, *s_strtokr, *s_t1, *s_t2, *s_t3, *s_b1, *s_b1p,
@@ -6200,21 +6309,30 @@ void mail_verify(dbref player)
 }
 
 void 
-mail_acheck(dbref player)
+mail_acheck(dbref player, int key)
 {
     MAMEM *pt1;
     ATTR *attr, *attr2;
     OBLOCKMASTER master;
-    int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk;
+    int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk, i_quick;
     dbref attrib, aowner, tmpdbnum;
     char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr;
+
+    cntr = i_quick = 0;
+
+    if ( key & M_QUICK ) {
+       i_quick = 1;
+       key &= ~M_QUICK;
+    }
 
     *(int *)sbuf1 = MIND_GA;
     *(int *)sbuf2 = MIND_GAL;
     pt1 = mapt;
-    cntr = 0;
-    notify_quiet(player, "---------------------------------------"\
-                         "---------------------------------------");
+
+    if ( i_quick == 0 ) {
+       notify_quiet(player, "---------------------------------------"\
+                            "---------------------------------------");
+    }
     notify_quiet(player, "Listing all static global mail aliases (+<alias>)");
     tprp_buff = tpr_buff = alloc_lbuf("mail_acheck");
     while (pt1) {
@@ -6236,29 +6354,48 @@ mail_acheck(dbref player)
 	    keydata.dsize = strlen(pt1->akey) + 1 + sizeof(int);
 	    infodata = dbm_fetch(mailfile, keydata);
 	    if (infodata.dptr) {
-		unparse_al(infodata.dptr,infodata.dsize,lbuf11,0,1,player);
-                tprp_buff = tpr_buff;
-                if ( ColorMail(player) ) {
-		   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--+Alias: %s%s%s", 
-#ifdef ZENTY_ANSI
-                                SAFE_ANSI_HILITE,
-                                SAFE_ANSI_BLUE,
-                                SAFE_ANSI_GREEN,
-                                sbuf1 + sizeof(int),
-                                SAFE_ANSI_NORMAL
-#else
-                                ANSI_HILITE,
-                                ANSI_BLUE,
-                                ANSI_GREEN,
-                                sbuf1 + sizeof(int),
-                                ANSI_NORMAL
-#endif
-                   ));
+                if ( i_quick ) {
+                /* Do quick listing of mail aliases -- mux compatibility */
+                   if ( cntr == 0 ) {
+                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                            "%-5s %-15.15s    %-40s %s", 
+                            (char *)"Num",
+                            (char *)"Name",
+                            (char *)"Description",
+                            (char *)"Owner"));
+                   }
+                   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                            "%-5d %-15.15s    %-40s %s", 
+                            cntr, 
+                            sbuf1 + sizeof(int),          
+                            (char *)"N/A",
+                            (char *)"System"));
+
                 } else {
-		   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--+Alias: %s", sbuf1 + sizeof(int)));
+		   unparse_al(infodata.dptr,infodata.dsize,lbuf11,0,1,player);
+                   tprp_buff = tpr_buff;
+                   if ( ColorMail(player) ) {
+		      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--+Alias: %s%s%s", 
+#ifdef ZENTY_ANSI
+                                   SAFE_ANSI_HILITE,
+                                   SAFE_ANSI_BLUE,
+                                   SAFE_ANSI_GREEN,
+                                   sbuf1 + sizeof(int),
+                                   SAFE_ANSI_NORMAL
+#else
+                                   ANSI_HILITE,
+                                   ANSI_BLUE,
+                                   ANSI_GREEN,
+                                   sbuf1 + sizeof(int),
+                                   ANSI_NORMAL
+#endif
+                      ));
+                   } else {
+		      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--+Alias: %s", sbuf1 + sizeof(int)));
+                   }
+                   tprp_buff = tpr_buff;
+		   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s",lbuf11));
                 }
-                tprp_buff = tpr_buff;
-		notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s",lbuf11));
                 cntr++;
 	    }
 	}
@@ -6268,8 +6405,10 @@ mail_acheck(dbref player)
     if ( !cntr ) {
        notify_quiet(player, "No static aliases defined.");
     }
-    notify_quiet(player, "\r\n---------------------------------------"\
-                         "---------------------------------------");
+    if ( i_quick == 0 ) {
+       notify_quiet(player, "\r\n---------------------------------------"\
+                            "---------------------------------------");
+    }
     notify_quiet(player, "Listing all dynamic global mail aliases ($<alias>)");
     cntr = 0;
     if ( Good_obj(mudconf.mail_def_object) && !Going(mudconf.mail_def_object) &&
@@ -6301,72 +6440,113 @@ mail_acheck(dbref player)
                    i_hchk = 1;
                 }
                 if ( (atr_name_ptr = strchr(attr->name, '.')) != NULL ) {
-                   cntr++;
                    tprp_buff = tpr_buff;
-                   if ( ColorMail(player) ) {
-                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--$Alias:%s %s%s", 
-#ifdef ZENTY_ANSI
-                                   SAFE_ANSI_HILITE,
-                                   SAFE_ANSI_BLUE,
-                                   SAFE_ANSI_GREEN,
-                                   atr_name_ptr+1,
-                                   SAFE_ANSI_NORMAL
-#else
-                                   ANSI_HILITE,
-                                   ANSI_BLUE,
-                                   ANSI_GREEN,
-                                   atr_name_ptr+1,
-                                   ANSI_NORMAL
-#endif
-                      ));
-                   } else {
-                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--$Alias: %s", atr_name_ptr+1));
-                   }
-                   if ( !i_hidden ) {
-                      s_exec = exec(mudconf.mail_def_object, player, player, EV_FCHECK | EV_EVAL, s_shoveattr, (char **) NULL, 0, (char **)NULL, 0);
-                      tprp_buff = tpr_buff;
-                      if ( s_exec && *s_exec ) {
-                         s_toptr = s_to = alloc_lbuf("mail_alias");
-                         parse_tolist(player, s_exec, s_to, &s_toptr);
-                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", s_to));
-                         free_lbuf(s_to);
-                      } else {
-                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", (char *)"(EMPTY)"));
+                   if ( i_quick ) {
+                   /* Do quick listing of mail aliases -- mux compatibility */
+                      if ( cntr == 0 ) {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                               "%-5s %-15.15s    %-40s %s", 
+                               (char *)"Num",
+                               (char *)"Name",
+                               (char *)"Description",
+                               (char *)"Owner"));
                       }
-                      free_lbuf(s_exec);
+                      sprintf(s_shoveattr, "%s", (char *)"N/A");
+                      if (parse_attrib(mudconf.mail_def_object, safe_tprintf(tpr_buff, &tprp_buff, "#%d/%s%s", 
+                                       mudconf.mail_def_object, "comment", atr_name_ptr), &tmpdbnum, &attrib)) {
+                         if ( attrib != NOTHING ) {
+                            attr2 = atr_num(attrib);
+                            if ( attr2 ) {
+                               atr_get_str(s_shoveattr, mudconf.mail_def_object, 
+                                           attr2->number, &aowner, &aflags);
+                            }
+                         }
+                      }
+                      if ( Wizard(player) ) {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                  "%-5d %-15.15s %c%c %-40s %s", 
+                                  cntr, 
+                                  atr_name_ptr+1,
+                                  ( i_dchk ? 'D' : ' '),
+                                  ( i_hchk ? 'H' : ' '),
+                                  s_shoveattr,
+                                  ( Good_chk(Owner(mudconf.mail_def_object)) ?  Name(Owner(mudconf.mail_def_object)) : "N/A")));
+                      } else {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
+                                  "%-5d %-15.15s    %-40s %s", 
+                                  cntr, 
+                                  atr_name_ptr+1,
+                                  s_shoveattr,
+                                  ( Good_chk(Owner(mudconf.mail_def_object)) ?  Name(Owner(mudconf.mail_def_object)) : "N/A")));
+                      }
                    } else {
+                      if ( ColorMail(player) ) {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--$Alias:%s %s%s", 
+#ifdef ZENTY_ANSI
+                                      SAFE_ANSI_HILITE,
+                                      SAFE_ANSI_BLUE,
+                                      SAFE_ANSI_GREEN,
+                                      atr_name_ptr+1,
+                                      SAFE_ANSI_NORMAL
+#else
+                                      ANSI_HILITE,
+                                      ANSI_BLUE,
+                                      ANSI_GREEN,
+                                      atr_name_ptr+1,
+                                      ANSI_NORMAL
+#endif
+                         ));
+                      } else {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "--$Alias: %s", atr_name_ptr+1));
+                      }
+                      if ( !i_hidden ) {
+                         s_exec = exec(mudconf.mail_def_object, player, player, 
+                                       EV_FCHECK | EV_EVAL, s_shoveattr, (char **) NULL, 0, (char **)NULL, 0);
+                         tprp_buff = tpr_buff;
+                         if ( s_exec && *s_exec ) {
+                            s_toptr = s_to = alloc_lbuf("mail_alias");
+                            parse_tolist(player, s_exec, s_to, &s_toptr);
+                            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", s_to));
+                            free_lbuf(s_to);
+                         } else {
+                            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", (char *)"(EMPTY)"));
+                         }
+                         free_lbuf(s_exec);
+                      } else {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Contents: %s", (char *)"[hidden]"));
-                   }
-                   if ( Wizard(player) ) {
-                      notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Flags:%s%s",
-                           (i_dchk ? " HIDDEN" : " "), (i_hchk ? " PINVISIBLE" : " ")));
-                   }
-                   tprp_buff = tpr_buff;
-                   if (parse_attrib(mudconf.mail_def_object, 
-                                    safe_tprintf(tpr_buff, &tprp_buff, "#%d/%s%s", mudconf.mail_def_object,
-                                                        "comment", atr_name_ptr), 
-                                                        &tmpdbnum, &attrib)) {
-                      if ( attrib != NOTHING ) {
-                         attr2 = atr_num(attrib);
-                         if ( attr2 ) {
-                            atr_get_str(s_shoveattr, mudconf.mail_def_object, 
-                                        attr2->number, &aowner, &aflags);
-                            if ( *s_shoveattr == '\0' )
+                      }
+                      if ( Wizard(player) ) {
+                         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Flags:%s%s",
+                              (i_dchk ? " HIDDEN" : " "), (i_hchk ? " PINVISIBLE" : " ")));
+                      }
+                      tprp_buff = tpr_buff;
+                      if (parse_attrib(mudconf.mail_def_object, 
+                                       safe_tprintf(tpr_buff, &tprp_buff, "#%d/%s%s", mudconf.mail_def_object,
+                                                           "comment", atr_name_ptr), 
+                                                           &tmpdbnum, &attrib)) {
+                         if ( attrib != NOTHING ) {
+                            attr2 = atr_num(attrib);
+                            if ( attr2 ) {
+                               atr_get_str(s_shoveattr, mudconf.mail_def_object, 
+                                           attr2->number, &aowner, &aflags);
+                               if ( *s_shoveattr == '\0' ) {
+                                  notify_quiet(player, "   Comment: (none)");
+                               } else {
+                                  tprp_buff = tpr_buff;
+                                  notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Comment: %.50s", 
+                                               strip_returntab(strip_ansi(s_shoveattr),3)));
+                               }
+                            } else {
                                notify_quiet(player, "   Comment: (none)");
-                            else {
-                               tprp_buff = tpr_buff;
-                               notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "   Comment: %.50s", 
-                                            strip_returntab(strip_ansi(s_shoveattr),3)));
                             }
                          } else {
                             notify_quiet(player, "   Comment: (none)");
                          }
                       } else {
-                            notify_quiet(player, "   Comment: (none)");
+                         notify_quiet(player, "   Comment: (none)");
                       }
-                   } else {
-                      notify_quiet(player, "   Comment: (none)");
-                   }
+                   } /* i_quick */
+                   cntr++;
                 }
              }
           }
@@ -6381,8 +6561,10 @@ mail_acheck(dbref player)
     } else {
        notify_quiet(player, "No dynamic aliases defined.");
     }
-    notify_quiet(player, "---------------------------------------"\
-                         "---------------------------------------");
+    if ( i_quick == 0 ) {
+       notify_quiet(player, "---------------------------------------"\
+                            "---------------------------------------");
+    }
     notify_quiet(player, "Mail: Done.");
 }
 char *
@@ -9175,7 +9357,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	}
     }
 
-    if ( (key & M_QUICK) && (key & ~M_QUICK) ) {
+    if ( (key & M_QUICK) && (key & ~M_QUICK) && !(key & M_ALIAS) ) {
        notify_quiet(player, "Illegal combination of switches.");
        return;
     }
@@ -9440,11 +9622,12 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	    mail_sread(player, key2);
 	}
 	break;
+    case (M_ALIAS|M_QUICK):
     case M_ALIAS:
 	if ((*buf1) || (*buf2)) {
 	    notify_quiet(player, "MAIL ERROR: Improper alias format.");
 	} else {
-	    mail_acheck(player);
+	    mail_acheck(player, key2);
 	}
 	break;
     case M_AUTOFOR:
