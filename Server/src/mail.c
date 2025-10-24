@@ -6316,11 +6316,12 @@ mail_acheck(dbref player, int key)
     OBLOCKMASTER master;
     int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk, i_quick, i_len, i_truelen;
     dbref attrib, aowner, tmpdbnum;
-    char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr;
-    char *s_fmt="%-4d %-25.25s    %-*.*s %s%s";
-    char *s_fmthdr="%-4s %-25.25s    %-*.*s %s%s";
-    char *s_dynfmtwiz="%-4d %-25.25s %c%c %-*.*s %s%s";
-    char *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
+    ANSISPLIT outsplit[LBUF_SIZE];
+    char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr, *s_outbuff, *s_finalbuf,
+         *s_fmt="%-4d %-25.25s    %-*.*s %s%s",
+         *s_fmthdr="%-4s %-25.25s    %-*.*s %s%s",
+         *s_dynfmtwiz="%-4d %-25.25s %c%c %-*.*s %s%s",
+         *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
 
     cntr = i_quick = 0;
 
@@ -6433,6 +6434,7 @@ mail_acheck(dbref player, int key)
                              &tmpdbnum, 0, 0, 1, &master, 0, 0, 0)) {
           s_shoveattr = alloc_lbuf("mail_alias_lbuf");
           tprp_buff = tpr_buff = alloc_lbuf("mail_acheck");
+          s_outbuff = alloc_lbuf("fun_ljustfill");
           for (ca = olist_first(&master); ca != NOTHING; ca = olist_next(&master)) {
              attr = atr_num(ca);
              if (attr) {
@@ -6478,8 +6480,13 @@ mail_acheck(dbref player, int key)
                             }
                          }
                       }
-                      i_truelen = strlen(s_shoveattr);
-                      i_len = strlen(strip_all_special(s_shoveattr));
+                      memset(s_outbuff, '\0', LBUF_SIZE);
+                      initialize_ansisplitter(outsplit, LBUF_SIZE);
+                      split_ansi(strip_ansi(s_shoveattr), s_outbuff, outsplit);
+                      *(s_outbuff+35) = '\0';
+                      s_finalbuf = rebuild_ansi(s_outbuff, outsplit, 0);
+                      i_truelen = strlen(s_finalbuf);
+                      i_len = strlen(s_outbuff);
                       if ( Wizard(player) ) {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                   s_dynfmtwiz,
@@ -6489,7 +6496,7 @@ mail_acheck(dbref player, int key)
                                   ( i_hchk ? 'H' : ' '),
                                   35 + (i_truelen - i_len),
                                   35 + (i_truelen - i_len),
-                                  s_shoveattr,
+                                  s_finalbuf,
 #ifdef ZENTY_ANSI
                                   SAFE_ANSI_NORMAL,
 #else
@@ -6503,7 +6510,7 @@ mail_acheck(dbref player, int key)
                                   atr_name_ptr+1,
                                   35 + (i_truelen - i_len),
                                   35 + (i_truelen - i_len),
-                                  s_shoveattr,
+                                  s_finalbuf,
 #ifdef ZENTY_ANSI
                                   SAFE_ANSI_NORMAL,
 #else
@@ -6511,6 +6518,7 @@ mail_acheck(dbref player, int key)
 #endif
                                   ( Good_chk(Owner(mudconf.mail_def_object)) ?  Name(Owner(mudconf.mail_def_object)) : "N/A")));
                       }
+                      free_lbuf(s_finalbuf);
                    } else {
                       if ( ColorMail(player) ) {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s%s--$Alias:%s %s%s", 
@@ -6582,10 +6590,11 @@ mail_acheck(dbref player, int key)
                 }
              }
           }
-          free_lbuf(tpr_buff);
           if ( !cntr )
              notify_quiet(player, "No dynamic aliases defined.");
+          free_lbuf(tpr_buff);
           free_lbuf(s_shoveattr);
+          free_lbuf(s_outbuff);
        } else {
           notify_quiet(player, "No dynamic aliases defined.");
        }
