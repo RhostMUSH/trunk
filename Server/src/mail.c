@@ -6314,9 +6314,13 @@ mail_acheck(dbref player, int key)
     MAMEM *pt1;
     ATTR *attr, *attr2;
     OBLOCKMASTER master;
-    int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk, i_quick;
+    int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk, i_quick, i_len, i_truelen;
     dbref attrib, aowner, tmpdbnum;
     char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr;
+    char *s_fmt="%-4d %-25.25s    %-*.*s %s%s";
+    char *s_fmthdr="%-4s %-25.25s    %-*.*s %s%s";
+    char *s_dynfmtwiz="%-4d %-25.25s %c%c %-*.*s %s%s";
+    char *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
 
     cntr = i_quick = 0;
 
@@ -6358,17 +6362,21 @@ mail_acheck(dbref player, int key)
                 /* Do quick listing of mail aliases -- mux compatibility */
                    if ( cntr == 0 ) {
                       notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                            "%-5s %-15.15s    %-40s %s", 
+                            s_fmthdr,
                             (char *)"Num",
                             (char *)"Name",
+                            35,35,
                             (char *)"Description",
+                            (char *)"",
                             (char *)"Owner"));
                    }
                    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                            "%-5d %-15.15s    %-40s %s", 
+                            s_fmt,
                             cntr, 
                             sbuf1 + sizeof(int),          
+                            35,35,
                             (char *)"N/A",
+                            (char *)"",
                             (char *)"System"));
 
                 } else {
@@ -6401,7 +6409,6 @@ mail_acheck(dbref player, int key)
 	}
 	pt1 = pt1->next;
     }
-    free_lbuf(tpr_buff);
     if ( !cntr ) {
        notify_quiet(player, "No static aliases defined.");
     }
@@ -6409,7 +6416,14 @@ mail_acheck(dbref player, int key)
        notify_quiet(player, "\r\n---------------------------------------"\
                             "---------------------------------------");
     }
-    notify_quiet(player, "Listing all dynamic global mail aliases ($<alias>)");
+    if ( Wizard(player) ) {
+       sprintf(tpr_buff, "Listing all dynamic global mail aliases ($<alias>) [#%d]", mudconf.mail_def_object);
+       notify_quiet(player, tpr_buff);
+    } else {
+       notify_quiet(player, "Listing all dynamic global mail aliases ($<alias>)");
+    }
+    free_lbuf(tpr_buff);
+
     cntr = 0;
     if ( Good_obj(mudconf.mail_def_object) && !Going(mudconf.mail_def_object) &&
           !Recover(mudconf.mail_def_object) ) {
@@ -6445,10 +6459,12 @@ mail_acheck(dbref player, int key)
                    /* Do quick listing of mail aliases -- mux compatibility */
                       if ( cntr == 0 ) {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                               "%-5s %-15.15s    %-40s %s", 
+                               s_fmthdr,
                                (char *)"Num",
                                (char *)"Name",
+                               35,35,
                                (char *)"Description",
+                               (char *)"",
                                (char *)"Owner"));
                       }
                       sprintf(s_shoveattr, "%s", (char *)"N/A");
@@ -6462,21 +6478,37 @@ mail_acheck(dbref player, int key)
                             }
                          }
                       }
+                      i_truelen = strlen(s_shoveattr);
+                      i_len = strlen(strip_all_special(s_shoveattr));
                       if ( Wizard(player) ) {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                  "%-5d %-15.15s %c%c %-40s %s", 
+                                  s_dynfmtwiz,
                                   cntr, 
                                   atr_name_ptr+1,
                                   ( i_dchk ? 'D' : ' '),
                                   ( i_hchk ? 'H' : ' '),
+                                  35 + (i_truelen - i_len),
+                                  35 + (i_truelen - i_len),
                                   s_shoveattr,
+#ifdef ZENTY_ANSI
+                                  SAFE_ANSI_NORMAL,
+#else
+                                  ANSI_NORMAL,
+#endif
                                   ( Good_chk(Owner(mudconf.mail_def_object)) ?  Name(Owner(mudconf.mail_def_object)) : "N/A")));
                       } else {
                          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
-                                  "%-5d %-15.15s    %-40s %s", 
+                                  s_dynfmt,
                                   cntr, 
                                   atr_name_ptr+1,
+                                  35 + (i_truelen - i_len),
+                                  35 + (i_truelen - i_len),
                                   s_shoveattr,
+#ifdef ZENTY_ANSI
+                                  SAFE_ANSI_NORMAL,
+#else
+                                  ANSI_NORMAL,
+#endif
                                   ( Good_chk(Owner(mudconf.mail_def_object)) ?  Name(Owner(mudconf.mail_def_object)) : "N/A")));
                       }
                    } else {
