@@ -651,7 +651,8 @@ NAMETAB livewire_sw[] =
 {
     {(char *) "list", 2, CA_WIZARD, 0, LWIRE_LIST},
     {(char *) "funceval", 2, CA_WIZARD, 0, LWIRE_FUNCEVAL},
-    {(char *) "funcover", 2, CA_WIZARD, 0, LWIRE_FUNCOVER},
+    {(char *) "funcover", 5, CA_WIZARD, 0, LWIRE_FUNCOVER},
+    {(char *) "queuemax", 2, CA_WIZARD, 0, LWIRE_QUEUEMAX},
     {NULL, 0, 0, 0, 0}};
 
 NAMETAB listmotd_sw[] =
@@ -5787,8 +5788,10 @@ CF_HAND(cf_cmd_vattr)
         fprintf(fp, "vattr_command %s %s\n", alias, orig);
         fclose(fp);
      }
-     DPOP; /* #40A */
-     return 0;
+     if ( !mudstate.adminexec ) {
+        DPOP; /* #40A */
+        return 0;
+     }
   }
 
   /* Delete entry */
@@ -8878,6 +8881,7 @@ NAMETAB list_names[] =
     {(char *) "vattrcmds", 4, CA_WIZARD, 0, LIST_VATTRCMDS},
     {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {(char *) "pronouns", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
+    {(char *) "gender", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];

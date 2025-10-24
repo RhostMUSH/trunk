@@ -74,7 +74,7 @@ void init_pid_table()
 void execute_entry(BQUE *queue)
 {
   dbref player;
-  int i, i_nospace;
+  int i, i_nospace, cmd_bitmask;
   char *command, *cp;
 
 	player = queue->player;
@@ -127,6 +127,8 @@ void execute_entry(BQUE *queue)
 		if ( (queue->bitwise_flags & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
 			mudstate.no_space_compress = 1;
 		} 
+                cmd_bitmask = mudstate.cmd_bitmask;
+                mudstate.cmd_bitmask |= queue->bitwise_flags;
 		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
@@ -140,6 +142,7 @@ void execute_entry(BQUE *queue)
 		    }
 		}
 		mudstate.no_space_compress = i_nospace;
+                mudstate.cmd_bitmask = cmd_bitmask;
                 mudstate.shell_program = 0;
 	    }
 	}
@@ -1757,6 +1760,7 @@ setup_que(dbref player, dbref cause, char *command,
     tmp->bitwise_flags = 0;
     if ( mudstate.no_space_compress )
        tmp->bitwise_flags |= PREPARSE_RAW;
+    tmp->bitwise_flags |= mudstate.cmd_bitmask;
     tmp->player = player;
     tmp->waittime = 0;
     tmp->next = NULL;

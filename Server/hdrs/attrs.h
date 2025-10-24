@@ -287,5 +287,7 @@ typedef struct afstruct {
 #define A_CONNRECORD	2100000001
 #define A_MFAIL		2100000002
 #define A_WIREFUNCEVAL  2100000003
+#define A_WIREQUEUEMAX  2100000004
+#define A_AMAIL		2100000005
 
 #endif

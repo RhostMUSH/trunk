@@ -15153,6 +15153,9 @@
 & wmail alias
   Command: wmail/alias[[/lock][/remove]] [<alias-name>=<list of players>]
   
+  Note:
+    To see how to create dynamic global aliases, check 'mail_def_object'.
+    
   This establishes global mail aliases for the given group of users.  A user 
   can then access this by using a '+alias-name' in their address list when 
   mailing.  You may also lock aliases to given things.  This works just like 
@@ -15172,8 +15175,9 @@
              wmail/alias/lock wiz=!*user     (establishes a lock for alias wiz)
              wmail/alias/remove wiz          (removes alias wiz)
  
-  To see how to create dynamic global aliases, check 'mail_def_object'.
-    
+  
+  Expanding aliases requires the MAILVALIDATE @toggle.
+  
   See Also: wmail lock, wmail remove, mail_def_object
 
 & wmail/alias/remove
@@ -15297,8 +15301,13 @@
   The following flags are useful for the alias.<name> attributes on 
   the mail_def_object.
     -- HIDDEN -- the attribute is set to be wizard only.
+                 .. this makes it so only wizards can use the alias.
     -- PINVIS -- the attribute obfuscates the player lists.
+                 .. this makes it so only wizards can expand the 
+                    player list.
   
+  Expanding aliases requires the MAILVALIDATE @toggle to be set.
+   
   The names will be colored if you are set with the COLORMAIL flag.
     
   To send mail using this alias, you would do: 
@@ -15986,6 +15995,10 @@
   mail/alias will show you (and the normal player) the aliases.  Both dynamic,
   and static.  It will list the player list with static, but _NOT_ with the
   dynamic ones.  That is why there's a comment to describe it.
+  
+  Expanding aliases requires the MAILVALIDATE @toggle to be set.
+  
+  See Also: wmail alias, mail_def_object
 
 & MAIL_LOCKDOWN TOGGLE
   Toggle: MAIL_LOCKDOWN (Immortal only)

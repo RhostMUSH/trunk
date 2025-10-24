@@ -130,26 +130,26 @@
 & commands2
   Help available for RhostMUSH Commands (continued):
  
-  @aahear    @aclone      @aconnect    @adescribe  @adfail       @adisconnect
-  @adrop     @aefail      @aenter      @afail      @agfail       @ahear
-  @akill     @aleave      @alfail      @alias      @amhear       @amove
-  @ansiname  @apay        @arfail      @asfail     @asuccess     @atfail    
-  @atofail   @atport      @aufail      @ause       @away         @caption 
-  @charges   @conformat   @cost        @cpattr     @describe     @dfail
-  @door      @drop        @ealias      @efail      @enter        @exitformat
-  @fail      @filter      @forwardlist @gfail      @grep         @guild 
-  @idesc     @idle        @infilter    @inprefix   @kill         @lalias    
-  @leave     @lfail       @listen      @move       @mfail        @nameformat 
-  @odescribe @odfail      @odrop       @oefail     @oenter       @ofail      
-  @ogfail    @okill       @oleave      @olfail     @omove        @opay       
-  @orfail    @osuccess    @otfail      @otofail    @otport       @oufail     
-  @ouse      @oxenter     @oxleave     @oxtport    @pay          @prefix     
-  @race      @reject      @rfail       @runout     @salisten     @sasmell    
-  @sataste   @satouch     @saystring   @selfboot   @sex          @sfail       
-  @slisten   @solisten    @sosmell     @sotaste    @sotouch      @ssmell     
-  @startup   @staste      @stouch      @success    @tfail        @titlecaption
-  @tofail    @toggle      @tport       @ufail      +uptime       @use        
-  @whereall  @whereis     @zone        
+  @aahear       @aclone    @aconnect  @adescribe   @adfail   @adisconnect
+  @adrop        @aefail    @aenter    @afail       @agfail   @ahear
+  @akill        @aleave    @alfail    @alias       @amail    @amhear     
+  @amove        @ansiname  @apay      @arfail      @asfail   @asuccess   
+  @atfail       @atofail   @atport    @aufail      @ause     @away       
+  @caption      @charges   @conformat @cost        @cpattr   @describe   
+  @dfail        @door      @drop      @ealias      @efail    @enter      
+  @exitformat   @fail      @filter    @forwardlist @gfail    @grep       
+  @guild        @idesc     @idle      @infilter    @inprefix @kill       
+  @lalias       @leave     @lfail     @listen      @move     @mfail      
+  @nameformat   @odescribe @odfail    @odrop       @oefail   @oenter     
+  @ofail        @ogfail    @okill     @oleave      @olfail   @omove      
+  @opay         @orfail    @osuccess  @otfail      @otofail  @otport     
+  @oufail       @ouse      @oxenter   @oxleave     @oxtport  @pay        
+  @prefix       @race      @reject    @rfail       @runout   @salisten   
+  @sasmell      @sataste   @satouch   @saystring   @selfboot @sex        
+  @sfail        @slisten   @solisten  @sosmell     @sotaste  @sotouch    
+  @ssmell       @startup   @staste    @stouch      @success  @tfail      
+  @titlecaption @tofail    @toggle    @tport       @ufail    +uptime     
+  @use          @whereall  @whereis   @zone        
   
   See Also: @list
   
@@ -4253,7 +4253,7 @@
   Examples:
     @mfail me=You can't mail me.
   
-  See Also: @lock/mail
+  See Also: @amail, @lock/mail
 
 & mail signature
 & &mailsig
@@ -7348,6 +7348,24 @@
    
   See Also: @name, @protect, listprotection()
   
+& @amail
+  Command: @mail[/<switch>] <object> = <command-list>
+  Attribute: AMail 
+   
+  Sets the actions to be taken after the target receives mail.  This attribute
+  will *never* send mail, even if the command queues other commands via @wait,
+  @dolist or other methods.  This is to avoid infinite loops.
+  
+  The following argumnts are passed to the mail attribute:
+    %0 - The message number that is received
+    %1 - The dbref# of the target that sends you mail (or #-1 if anonymous)
+    %2 - The name of the player that sends you mail (or the Anonymous name)
+    %3 - The true dbref# of target if obfuscated (wizard only)
+    %4 - The true name of target if obfuscated (wizard only)
+  
+  Example:
+    > @amail me=@pemit me=Message %0 from %2(%1) 
+
 & @amhear
   Command: @amhear[/<switch>] <object> = <command-list>
   Attribute: Amhear
@@ -7361,7 +7379,8 @@
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
  
-  Example: @amhear listener = "Wait a minute.  I said the trigger word!
+  Example: 
+    > @amhear listener = "Wait a minute.  I said the trigger word!
   
   See Also: @aahear, @ahear, @listen
   
@@ -12708,16 +12727,16 @@
                        ISALPHA() ISDBREF() ISDIGIT() ISNUM() ISOBJID() 
                        ISPUNCT() ISSPACE() ISTAG() ISUNICODE() ISUTF8() 
                        ISWORD() ISXDIGIT() LCSTR() LEFT() LIT() LJC() LJUST() 
-                       MEDIT() MERGE() MID() NOSTR() NOTCHR() NUMPOS() ORCHR()
-                       PARSESTR() PEDIT() POS() PRINTF() RANDPOS() REPEAT() 
-                       REPLACE() RIGHT() RJC() RJUST() ROTL() ROTR() S() 
-                       SCRAMBLE() SECURE() SECUREX() SHL() SHR() SHUFFLE() 
-                       SPACE() SPLICE() SQUISH() STR() STRDISTANCE() STREQ() 
-                       STREVAL() STRIP() STRIPACCENTS() STRLEN() STRMATCH() 
-                       STRIPUNICODE() SUBEVAL() SUBNETMATCH() SWITCH() 
-                       SWITCHALL() T() TEMPLATE() TOTPOS() TR() TRANSLATE() 
-                       TRIM() UCSTR() UNESCLIST() WORDPOS() WORDS() WRAP() 
-                       WRAPCOLUMNS() XORCHR()
+                       MEDIT() MERGE() MID() NOSTR() NOTCHR() NUMPOS() 
+                       OFPARSE() ORCHR() PARSESTR() PEDIT() POS() PRINTF() 
+                       RANDPOS() REPEAT() REPLACE() RIGHT() RJC() RJUST() 
+                       ROTL() ROTR() S() SCRAMBLE() SECURE() SECUREX() SHL() 
+                       SHR() SHUFFLE() SPACE() SPLICE() SQUISH() STR() 
+                       STRDISTANCE() STREQ() STREVAL() STRIP() STRIPACCENTS() 
+                       STRLEN() STRMATCH() STRIPUNICODE() SUBEVAL() 
+                       SUBNETMATCH() SWITCH() SWITCHALL() T() TEMPLATE() 
+                       TOTPOS() TR() TRANSLATE() TRIM() UCSTR() UNESCLIST() 
+                       WORDPOS() WORDS() WRAP() WRAPCOLUMNS() XORCHR()
              See Also: help string functions
   
   Time:                CONVSECS() CONVTIME() LISTTZONES() MSECS() MSECSTZ() 
@@ -29014,7 +29033,7 @@
     Mail: Message sent to -> Bob
     Mail: Done
   
-  See Also: @mailsig, &mailfilter
+  See Also: @mailsig, &mailfilter, @amail
 
 & &MAILFILTER
 & @MAILFILTER
@@ -29046,7 +29065,7 @@
       Mail: You have new mail from -> Tony [Subj: You smell]
       Mail: Auto-Moved to folder -> Junk
   
-  See Also: @mailsig, &mailnotify
+  See Also: @mailsig, &mailnotify, @amail
  
 & mail-filtering
   Topic: MAIL FILTERING
@@ -29058,7 +29077,7 @@
   
   For detailed help, see help for MAILFILTER
   
-  See Also: MAILFILTER
+  See Also: MAILFILTER, @amail
   
 & mail-aliases
   Topic: MAIL-ALIASES
@@ -29393,6 +29412,7 @@
   Topic: MAIL ATTRIBUTES
   
   The following attributes have special meaning in the mail system.
+    @amail       -- triggers amail attribute anytime you receive mail
     @mailsig     -- The signature that is assigned to any mail sent.
     &mailfilter  -- This is evaluated to auto-filter what folder mail goes to.
     &mailnotify  -- This is evaluated to auto-send notification to senders.
@@ -29408,7 +29428,8 @@
                          the player list you want to send to.
                          This is evaluated.
   
-  See Also: @mailsig, &mailfilter, &mailnotify, mail lock, mail setup_aliases
+  See Also: @amail, @mailsig, &mailfilter, &mailnotify, mail lock, 
+            mail setup_aliases
   For wizards, wizhelp: @mailsmax, @mailtime
 
 & mail writing
@@ -29908,9 +29929,13 @@
    
   See Also: mail mark
   
+& mail/alias/quick
+& mail/quick/alias
 & mail/alias
+& mail alias quick
 & mail alias
   Command: mail/alias
+           mail/alias/quick
   
   The alias switch is used to display any global alias you have 
   permission to access and will list all players that are attached
@@ -29918,15 +29943,24 @@
   administration of the mush.  If you have ideas of global aliases,
   suggest it to them and they will add them.
   
+  If you use the /quick switch with the /alias switch it will give
+  a long summary list of every global alias that you have access to.
+  
+  Note: This command will not show local/personal aliases.
+  
   See 'help mail-aliases' on all the ways to set and use aliases.
    
   Examples:: 
     > mail/alias
+    > mail/alias/quick
   
   Wizards: 
     > mail/alias
+    > mail/alias/quick  (they will see 'D'ark and 'H'idden flags)
     > wmail/alias
   
+  See Also: mail attributes
+ 
 & mail/anonymous
 & mail anonymous
   Command: mail/anon player=message
@@ -30085,7 +30119,7 @@
   Please check @list options to see what current global settings are enabled
   for the mail system.  Start a sendlist with a , for player's with spaces.
   
-  See Also: PENN_MAIL, BRANDY_MAIL, mail write, mail send quick, 
+  See Also: PENN_MAIL, BRANDY_MAIL, mail write, mail send quick, @amail,
               mail send brandy
   
 & mail send brandy
@@ -30175,6 +30209,8 @@
   
   For examples, see: mail send examples
   
+  See Also: @amail
+  
 & mail send examples
   Command: mail/send
   
@@ -30197,7 +30233,7 @@
   read the help files for 'mail write'.  The /SEND switch for mail is
   optional.
   
-  See Also: mail write, mail forward, mail reply, mail recall
+  See Also: @amail, mail write, mail forward, mail reply, mail recall
   
 & mail/reply
 & mail/reply/quick
@@ -30230,7 +30266,7 @@
   Note:  If you are @toggled BRANDY_MAIL, instead of <message> it would be your
          subject.  Then you'd use '-' for additional text and '--' to send.
   
-  See Also: mail forward, mail send
+  See Also: @amail, mail forward, mail send
   
 & mail/forward
 & mail/forward/quick
@@ -30258,7 +30294,7 @@
   
   You'd then use '-' for additional text and '--' to send the mail.
   
-  See Also: mail reply, mail send
+  See Also: @amail, mail reply, mail send
   
 & mail/save/read
 & mail/read/save
@@ -30653,6 +30689,9 @@
   not show any text that will be included in forwarded or replied to mail
   if you chose the options to include original text.
   
+  If you have @toggled yourself MAILVALIDATE, the mail sender list will be
+  expanded from any aliases you have used.  This includes global and personal.
+  
   Examples:
     > mail/write This is some text
     Mail: Write message started.
@@ -30667,7 +30706,7 @@
     This is some text
     ---------------------------------------------------------------------------
   
-  See Also: mail write +list, mail write
+  See Also: mail write +list, mail write, mail/alias
   
 & mail/write +send
 & mail write +send
@@ -36843,17 +36882,61 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.20.3
+  Current Version: 4.24.2
   
   Current Changelogs:
   -------------------
-  1 - 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 4.15.0, 
-      4.14.0, 4.13.0, 4.12.0
-  2 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+  1 - 4.24.2, 4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
+  2 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
+      4.15.0, 4.14.0, 4.13.0, 4.12.0
+  3 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
-  3 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+  4 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.24.2
+& 4.24.1
+& 4.24.0
+& 4.23.2
+& 4.23.1
+& 4.23.0
+& 4.22.0
+& 4.21.0
+& changelog latest
+& changelog newest
+& changelog recent
+& changelog 1
+  Topic: CHANGELOG
+   
+  4.24.1 - 4.24.2 - 10/23/25
+  * Fix for mail/alias/quick for spacing with ansi/special chars
+  * Format improvements for larger alias names
+  * Format issues fixed for ansi handler for comments
+  
+  4.24.0 - 10/23/25
+  * Addition of /quick to mail/alias for summary view of aliases.
+  
+  4.23.2 - 10/02/25
+  * Additional fixes for potential crash with mail alias displaying
+  
+  4.23.1 - 10/02/25
+  * Remove potential attack vector (non infinite loop) on recursive mail alias
+  
+  4.23.0 - 10/02/25
+  * Relaxed restriction on vattr_command to be more useful in @admin/exec
+  * bug in dynamic mail aliases for expanding out
+  
+  4.22.0 - 09/04/25
+  * added_pronouns if it detects a '|' delimiter allows multi-word
+    sexes/genders.
+    i.e:  |trans female:she:her:her:hers
+  
+  4.21.0 - 09/04/25
+  * @amail added -- will not execute any mail send commands from it.  This
+    will include anything queued from the @amail attribute.
+  * Fix for ljust/ljc/rjc/rjust/center/wrap/columns for escaped escape chars 
+  
+& 4.20.4
 & 4.20.3
 & 4.20.2
 & 4.20.1
@@ -36867,11 +36950,11 @@
 & 4.14.0
 & 4.13.0
 & 4.12.0
-& changelog latest
-& changelog newest
-& changelog recent
-& changelog 1
+& changelog 2
   Topic: CHANGELOG
+    
+  4.20.4 - 09/02/25
+  * Search was too passive for totemlist and found first match and not exact
   
   4.20.3 - 08/30/25
   * Fixed bug with ansi pre/post processor for ansisplitter
@@ -36953,7 +37036,7 @@
 & 4.5.0
 & 4.4.3
 & 4.4.2
-& changelog 2
+& changelog 3
   Topic: CHANGELOG
 
   4.11.0-4.11.2 
@@ -37025,7 +37108,7 @@
 & 4.3.2
 & 4.3.1
 & 4.3.0
-& changelog 3
+& changelog 4
   Topic: CHANGELOG
   
   4.4.0 to 4.4.1 - 07/06/24

@@ -679,6 +679,7 @@ struct statedata {
 	int	func_ignore;
         int     func_bypass;
 	int	initializing;	/* are we reading config file at startup? */
+	int	adminexec;	/* issuing @admin/exec in-game */
 	int	dbloading;	/* are we reading config file at startup? */
 	int	panicking;	/* are we in the middle of dying horribly? */
 	int	logging;	/* Are we in the middle of logging? */
@@ -779,6 +780,7 @@ struct statedata {
 	int 	vattr_reusecnt;
 	int	account_subsys_inuse;	/* Set to 1 if account subsystem is in use */
 	int	no_space_compress;	/* State data to not allow space compress */
+	int	cmd_bitmask;	/* bitmask states for command handlers */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */
 	BQUE	*qlfirst;	/* Head of object queue */

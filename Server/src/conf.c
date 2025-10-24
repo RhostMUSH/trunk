@@ -430,6 +430,7 @@ NDECL(cf_init)
     mudstate.execscript_noreg = 0;	/* execscript has no registers processed */
     mudstate.help_shell = 0;		/* help redirection */
     mudstate.no_space_compress = 0;	/* Override space compression */
+    mudstate.cmd_bitmask = 0;		/* cmd bitwise mask */
     mudstate.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
@@ -828,6 +829,7 @@ NDECL(cf_init)
     mudstate.force_halt = 0;
     mudstate.autoreg = 0;
     mudstate.initializing = 0;
+    mudstate.adminexec = 0;
     mudstate.dbloading = 0;
     mudstate.panicking = 0;
     mudstate.logging = 0;
@@ -2921,15 +2923,22 @@ CF_HAND(cf_string_chr)
 /* Format:  sex:%s-subj:%o-obj:%p-poss:%a-aposs  */
 CF_HAND(cf_pronstring)
 {
-    int retval, i_cnt;
+    int retval, i_cnt, i_pipe;
     char *s_buff, *s_strtok, *s_strtokr, *s_pt;
 
-    retval = 0;
+    retval = i_pipe = 0;
     if ( strlen(str) ) {
        s_buff = alloc_lbuf("cf_pronstring");
        memset(s_buff, '\0', LBUF_SIZE);
        strncpy(s_buff, str, LBUF_SIZE - 1);
-       s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+       if ( strchr(s_buff, '|') != NULL ) {
+          i_pipe = 1;
+       }
+       if ( i_pipe ) {
+          s_strtok = strtok_r(s_buff, "|", &s_strtokr);
+       } else {
+          s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+       }
        if ( s_strtok && *s_strtok ) {
           retval = 1;
           while ( s_strtok && *s_strtok ) {
@@ -2942,7 +2951,11 @@ CF_HAND(cf_pronstring)
                 retval = 0;
                 break;
              }
-             s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+             if ( i_pipe ) {
+                s_strtok = strtok_r(NULL, "|", &s_strtokr);
+             } else {
+                s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+             }
           }
           if ( retval ) {
              strcpy((char *) vp, str);
@@ -2967,7 +2980,11 @@ CF_HAND(cf_pronstring)
        free_lbuf(s_buff);
     }
     if ( str && *str && !retval && !mudstate.initializing ) {
-       notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1 sexname2:subj2:obj2:poss2:aposs2 ...");
+       if ( i_pipe ) {
+          notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1|sexname2:subj2:obj2:poss2:aposs2|...");
+       } else {
+          notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1 sexname2:subj2:obj2:poss2:aposs2 ...");
+       }
     } else if (!retval) {
        strcpy((char *) vp, str);
        // Clearing the value
@@ -6247,7 +6264,9 @@ do_admin(dbref player, dbref cause, int extra, char *kw, char *value)
                 }
                 free_lbuf(tbuf);
                 fclose(fp);
+                mudstate.adminexec = 1;
                 cf_read("rhost_ingame.conf");
+                mudstate.adminexec = 0;
                 notify_quiet(player, safe_tprintf(tprbuff, &tprpbuff, "@admin: executed %d lines from rhost_ingame.conf", i_cntr));
              } else {
                 notify_quiet(player, "@admin: unable to open 'rhost_ingame.conf' file in your game directory.");

@@ -184,6 +184,13 @@ PATH=/usr/local/bin:/usr/ucb:/bin:/usr/bin:.; export PATH
 # enable core dumps
 ulimit -c unlimited
 
+# set up libsegfault if it exists
+lc_libchk=`ldconfig -N -v 2>/dev/null|grep -ci libsegfault`
+if [ ${lc_libchk} -gt 0 ]
+then
+   export LD_PRELOAD=libSegFault.so
+fi
+
 if [ ! -h netrhost ];
 then
   echo "nethrost link is missing! Did you run 'make links' after compile?"

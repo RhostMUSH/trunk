@@ -440,7 +440,7 @@ char *
 fetch_gender(dbref player, int i_type) {
    static char pronbuff[PRONLEN];
    char *s_buff, *s_buff2, *s_tok, *s_tokr, *s_tok2, *s_tokr2, *s_token;
-   int i_len, i_ret, i_ltype, i_cnt, aflags;
+   int i_len, i_ret, i_ltype, i_cnt, aflags, i_pipe;
    dbref aowner;
 
    memset(pronbuff, '\0', PRONLEN);
@@ -451,11 +451,19 @@ fetch_gender(dbref player, int i_type) {
    if ( (i_type < 1) || (i_type > 4) ) {
       i_ltype = 0;
    }
+   i_pipe = 0;
    if ( i_ltype && s_token && *s_token ) {
       s_buff = alloc_lbuf("fetch_gender");
       s_buff2 = alloc_lbuf("fetch_gender2");
       sprintf(s_buff, "%.*s", LBUF_SIZE - 1, mudconf.added_pronouns);
-      s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      if ( strchr(s_buff, '|') != NULL ) {
+         i_pipe = 1;
+      } 
+      if ( i_pipe ) {
+         s_tok = strtok_r(s_buff, "|", &s_tokr);
+      } else {
+         s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      }
       i_len = strlen(s_token);
       while ( s_tok && *s_tok ) {
          if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
@@ -471,7 +479,11 @@ fetch_gender(dbref player, int i_type) {
             }
             break;
          }
-         s_tok = strtok_r(NULL, " \t", &s_tokr);
+         if ( i_pipe ) {
+            s_tok = strtok_r(NULL, "|", &s_tokr);
+         } else {
+            s_tok = strtok_r(NULL, " \t", &s_tokr);
+         }
       }
       free_lbuf(s_buff);
       free_lbuf(s_buff2);
@@ -484,19 +496,31 @@ fetch_gender(dbref player, int i_type) {
 int
 lookup_gender(char *s_token) {
    char *s_buff, *s_tok, *s_tokr;
-   int i_len, i_ret = 1;
+   int i_len, i_ret = 1, i_pipe;
 
+   i_pipe = 0;
    if ( s_token && *s_token ) {
       s_buff = alloc_lbuf("lookup_gender");
       sprintf(s_buff, "%.*s", LBUF_SIZE - 1, mudconf.added_pronouns);
-      s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      if ( strchr(s_buff, '|') != NULL ) {
+         i_pipe = 1;
+      }
+      if ( i_pipe ) {
+         s_tok = strtok_r(s_buff, "|", &s_tokr);
+      } else {
+         s_tok = strtok_r(s_buff, " \t", &s_tokr);
+      }
       i_len = strlen(s_token);
       while ( s_tok && *s_tok ) {
          if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
             i_ret = 5;
             break;
          }
-         s_tok = strtok_r(NULL, " \t", &s_tokr);
+         if ( i_pipe ) {
+            s_tok = strtok_r(NULL, "|", &s_tokr);
+         } else {
+            s_tok = strtok_r(NULL, " \t", &s_tokr);
+         }
       }
       free_lbuf(s_buff);
    }
@@ -560,7 +584,7 @@ void
 display_pronouns(dbref player, char *s_filter)
 {
    char *s_strtok, *s_strtokr, *s_buff, *s_buff2, *s_buff3, *s_gender, *s_subj, *s_obj, *s_poss, *s_abs, *s_ptr;
-   int i_count;
+   int i_count, i_pipe;
    static const char *subj[5] = {"", "it", "she", "he", "they"};
    static const char *poss[5] = {"", "its", "her", "his", "their"};
    static const char *obj[5] = {"", "it", "her", "him", "them"};
@@ -605,8 +629,16 @@ display_pronouns(dbref player, char *s_filter)
 
    /* Loop through the extra pronounts if they exist */
    if ( *mudconf.added_pronouns ) {
+      i_pipe = 0;
       strcpy(s_buff, mudconf.added_pronouns);
-      s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      if ( strchr(s_buff, '|') != NULL ) {
+         i_pipe = 1;
+      }
+      if ( i_pipe ) {
+         s_strtok = strtok_r(s_buff, "|", &s_strtokr);
+      } else {
+         s_strtok = strtok_r(s_buff, " \t", &s_strtokr);
+      }
       s_buff2 = alloc_lbuf("display_pronouns_buff2");
       s_buff3 = alloc_lbuf("display_pronouns_buff3");
       while ( s_strtok ) {
@@ -620,7 +652,11 @@ display_pronouns(dbref player, char *s_filter)
           
          /* If the string is invalid, skip it */
          if ( i_count != 4 ) {
-            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            if ( i_pipe ) {
+               s_strtok = strtok_r(NULL, "|", &s_strtokr);
+            } else {
+               s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+            }
             continue;
          }
 
@@ -644,7 +680,11 @@ display_pronouns(dbref player, char *s_filter)
             notify_quiet(player, s_buff3);
          }
 
-         s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+         if ( i_pipe ) {
+            s_strtok = strtok_r(NULL, "|", &s_strtokr);
+         } else {
+            s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+         }
       }
       free_lbuf(s_buff2);
       free_lbuf(s_buff3);
