@@ -83,6 +83,9 @@ void execute_entry(BQUE *queue)
 	      giveto(player, mudconf.waitcost, NOTHING);
 	    mudstate.curr_enactor = queue->cause;
 	    mudstate.curr_player = player;
+            mudstate.curr_pid = queue->pid;
+            strncpy(mudstate.curr_pidcmd, queue->comm, LBUF_SIZE - 1);
+            mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
 	    a_Queue(Owner(player), -1);
 	    queue->player = 0;
 	    pid_table[queue->pid] = 0;
@@ -2378,6 +2381,21 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    int first, i_pid, i_count;
 
    i_pid = -1;
+
+   /* Show pid of current running process then exit */
+   if ( key & 64 ) {
+      s_tmp = alloc_sbuf("func_pid_count_pid");
+      sprintf(s_tmp, "%d", mudstate.curr_pid);
+      safe_str(s_tmp, buff, bufcx);
+      free_sbuf(s_tmp);
+      return;
+   }
+
+   if ( key & 128 ) {
+      safe_str(mudstate.curr_pidcmd, buff, bufcx);
+      return;
+   }
+
    if ( target && *target ) {
       if ( is_integer(target) ) {
          player_targ = obj_targ = NOTHING;

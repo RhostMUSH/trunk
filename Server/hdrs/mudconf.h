@@ -688,7 +688,9 @@ struct statedata {
 	int	generation;	/* DB global generation number */
 	dbref	curr_enactor;	/* Who initiated the current command */
 	dbref	curr_player;	/* Who is running the current command */
+	int	curr_pid;	/* Current PID of the process running */
         char    *curr_cmd;      /* The current command */
+        char    curr_pidcmd[LBUF_SIZE];    /* Current command on the pid */
         char    *curr_plrcmd;      /* The current player's command */
         char    curr_cmd_hook[LBUF_SIZE]; /* The current command - for hooking */
         char    *iter_arr[50];   /* Iter recursive memory - text*/
