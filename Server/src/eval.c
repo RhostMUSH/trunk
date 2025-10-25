@@ -30,6 +30,7 @@ extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char *
 extern void do_regedit(char *, char **, dbref, dbref, dbref, char **, int, char **, int, int);
 extern void do_atrcache_fetch(dbref, char *, char *, char **, char **, int);
 extern int down_ansi(int, int, int);
+extern char * ColorName(dbref, int);
 
 /* ---------------------------------------------------------------------------
  * parse_to: Split a line at a character, obeying nesting.  The line is
@@ -464,9 +465,9 @@ fetch_gender(dbref player, int i_type) {
       } else {
          s_tok = strtok_r(s_buff, " \t", &s_tokr);
       }
-      i_len = strlen(s_token);
+      i_len = strlen(strip_all_special(s_token));
       while ( s_tok && *s_tok ) {
-         if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
+         if ( strncasecmp(strip_all_special(s_tok), strip_all_special2(s_token), i_len) == 0 ) {
             sprintf(s_buff2, "%.*s", LBUF_SIZE - 1, s_tok);
             i_cnt = 0;
             s_tok2 = strtok_r(s_buff2, ":", &s_tokr2);
@@ -494,7 +495,7 @@ fetch_gender(dbref player, int i_type) {
 
 /* Format:  sex:%s-subj:%o-obj:%p-poss:%a-aposs  */
 int
-lookup_gender(char *s_token) {
+lookup_gender(char *s_token, dbref player) {
    char *s_buff, *s_tok, *s_tokr;
    int i_len, i_ret = 1, i_pipe;
 
@@ -510,9 +511,9 @@ lookup_gender(char *s_token) {
       } else {
          s_tok = strtok_r(s_buff, " \t", &s_tokr);
       }
-      i_len = strlen(s_token);
+      i_len = strlen(strip_all_special(s_token));
       while ( s_tok && *s_tok ) {
-         if ( strncasecmp(s_tok, s_token, i_len) == 0 ) {
+         if ( strncasecmp(strip_all_special(s_tok), strip_all_special2(s_token), i_len) == 0 ) {
             i_ret = 5;
             break;
          }
@@ -537,9 +538,9 @@ get_gender(dbref player)
     DPUSH; /* #62 */
     i_ret = 0;
     atr_gotten = atr_pget(player, A_SEX, &aowner, &aflags);
-    first = *atr_gotten;
+    first = *(strip_all_special(atr_gotten));
     if ( mudconf.enforce_added_pronouns ) {
-       i_ret = lookup_gender(atr_gotten);
+       i_ret = lookup_gender(atr_gotten, player);
        if ( !i_ret ) {
           i_ret = 1;
        }
@@ -566,7 +567,7 @@ get_gender(dbref player)
 	      // return 2;
               break;
           default:
-              i_ret = lookup_gender(atr_gotten);
+              i_ret = lookup_gender(atr_gotten, player);
               if ( !i_ret ) {
                  i_ret = 1;
               }
@@ -584,7 +585,7 @@ void
 display_pronouns(dbref player, char *s_filter)
 {
    char *s_strtok, *s_strtokr, *s_buff, *s_buff2, *s_buff3, *s_gender, *s_subj, *s_obj, *s_poss, *s_abs, *s_ptr;
-   int i_count, i_pipe;
+   int i_count, i_pipe, i_gender, i_subj, i_obj, i_poss, i_abs;
    static const char *subj[5] = {"", "it", "she", "he", "they"};
    static const char *poss[5] = {"", "its", "her", "his", "their"};
    static const char *obj[5] = {"", "it", "her", "him", "them"};
@@ -593,7 +594,7 @@ display_pronouns(dbref player, char *s_filter)
    s_buff = alloc_lbuf("display_pronouns");
 
    /* Handle header */
-   sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", 
+   sprintf(s_buff, "%-16s %-15s %-15s %-15s %s", 
            (char *)"@sex/Gender", (char *)"Subjective[%s]", 
            (char *)"Objective[%o]", (char *)"Possessive[%p]",
            (char *)"Absolute[%a]");
@@ -603,25 +604,25 @@ display_pronouns(dbref player, char *s_filter)
    /* If config param to override not enabled, show defaults */
    if ( !mudconf.enforce_added_pronouns ) {
       // Female -- index 2
-      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Female/Woman", subj[2], obj[2], poss[2], absp[2]);
+      sprintf(s_buff, "%-16s %-15s %-15s %-15s %s", (char *)"[F]emale/[W]oman", subj[2], obj[2], poss[2], absp[2]);
       if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
          notify_quiet(player, s_buff);
       }
 
       // Male -- index 3
-      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Male", subj[3], obj[3], poss[3], absp[3]);
+      sprintf(s_buff, "%-16s %-15s %-15s %-15s %s", (char *)"[M]ale", subj[3], obj[3], poss[3], absp[3]);
       if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
          notify_quiet(player, s_buff);
       }
 
       // Plural -- index 4
-      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Plural", subj[4], obj[4], poss[4], absp[4]);
+      sprintf(s_buff, "%-16s %-15s %-15s %-15s %s", (char *)"[P]lural", subj[4], obj[4], poss[4], absp[4]);
       if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
          notify_quiet(player, s_buff);
       }
 
       // Neuter -- index 1
-      sprintf(s_buff, "%-15s %-15s %-15s %-15s %-15s", (char *)"Neuter", subj[1], obj[1], poss[1], absp[1]);
+      sprintf(s_buff, "%-16s %-15s %-15s %-15s %s", (char *)"[N]euter", subj[1], obj[1], poss[1], absp[1]);
       if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff)) {
          notify_quiet(player, s_buff);
       }
@@ -675,7 +676,17 @@ display_pronouns(dbref player, char *s_filter)
          s_abs = strchr(s_poss, ':');
          *s_abs++ = '\0';
 
-         sprintf(s_buff3, "%-15s %-15s %-15s %-15s %-15s", s_gender, s_subj, s_obj, s_poss, s_abs);
+         i_gender = strlen(s_gender) - strlen(strip_all_special(s_gender));
+         i_subj = strlen(s_subj) - strlen(strip_all_special(s_subj));
+         i_obj = strlen(s_obj) - strlen(strip_all_special(s_obj));
+         i_poss = strlen(s_poss) - strlen(strip_all_special(s_poss));
+         i_abs = strlen(s_abs) - strlen(strip_all_special(s_abs));
+         sprintf(s_buff3, "%-*s %-*s %-*s %-*s %-*s", 
+                 16+i_gender, s_gender, 
+                 15+i_subj, s_subj, 
+                 15+i_obj, s_obj, 
+                 15+i_poss, s_poss, 
+                 14+i_abs, s_abs);
          if ( !s_filter || !*s_filter || quick_wild(s_filter, s_buff3)) {
             notify_quiet(player, s_buff3);
          }
@@ -2287,7 +2298,27 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
 #endif
                 /* Ignore bangs for this */
-                if ( *(dstr+1) == 'm' ) {
+                if ( (*(dstr+1) == 'n') || (*(dstr+1) == 'N') ) {
+                   if ( Good_obj(mudstate.curr_player) ) {
+                      safe_str(Name(mudstate.curr_player), buff, &bufc);
+                   } else {
+                      safe_str((char *)"**NOTHING**", buff, &bufc);
+                   }
+                   dstr++;
+                } else if ( (*(dstr+1) == 'k') || (*(dstr+1) == 'K') ) {
+                   if ( Good_obj(mudstate.curr_player) ) {
+                      safe_str(ColorName(mudstate.curr_player,1), buff, &bufc);
+                   } else {
+                      safe_str((char *)"**NOTHING**", buff, &bufc);
+                   }
+                   dstr++;
+                } else if ( *(dstr+1) == '#' ) {
+		   tbuf = alloc_sbuf("exec.absolute_invoker");
+		   sprintf(tbuf, "#%d", mudstate.curr_player);
+                   safe_str(tbuf, buff, &bufc);
+                   free_sbuf(tbuf);
+                   dstr++;
+                } else if ( *(dstr+1) == 'm' ) {
                    if ( *(mudstate.curr_cmd_hook) ) {
                       safe_str(mudstate.curr_cmd_hook, buff, &bufc);
                    }
