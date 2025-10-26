@@ -13085,6 +13085,9 @@
 & %t
 & %b
 & %-
+& %-#
+& %-n
+& %-k
 & %-m
 & %-p
 & %-h
@@ -13128,6 +13131,9 @@
                  the positional stack location 0 through 999.  BANGS supported.
     %-m        = The last command executed that issued @hook.  
     %-p        = The last direct-player command executed that issued @hook.  
+    %-#        = Absolute executor dbref of a process
+    %-n        = Absolute executor name of a process
+    %-k        = Absolute executor colored name of a process
     %-h<cache> = Show the specified cache value ( works like atrcache() )
                  Example: %-h<mynewcache>
     %i0-%i99   = Equivalent to itext(0) through itext(99). [%il for outer]
@@ -25351,6 +25357,12 @@
     8    -  Show the wait times of all the processes (semaphores have '0')
     16   -  Show the STOP/RUNNING status of all the processes
     32   -  Show the commands queued for all the processes.
+    64   -  Show pid of currently running process (non-combinable)
+   128   -  Show command(s) of currently running process (non-combinable)
+  
+  Note: Options 64 and 128 are unique as they have to be specified without
+        additional arguments and can not be combined with other <display>
+        values.  They will display values of *it's own current process only*
   
   Adding the <display> values will return a combination of the values separated
   by the pipe (|) character.
@@ -36882,11 +36894,11 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.24.2
+  Current Version: 4.25.0
   
   Current Changelogs:
   -------------------
-  1 - 4.24.2, 4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
+  1 - 4.25.0, 4.24.2, 4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
   2 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
   3 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
@@ -36894,6 +36906,7 @@
   4 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.25.0
 & 4.24.2
 & 4.24.1
 & 4.24.0
@@ -36908,6 +36921,11 @@
 & changelog 1
   Topic: CHANGELOG
    
+  4.25.0
+  * color handler for pronouns/genders
+  * %-k, %-#, %-n for absolute executor
+  * pid() option 64 and 128 for current process pid/command list
+  
   4.24.1 - 4.24.2 - 10/23/25
   * Fix for mail/alias/quick for spacing with ansi/special chars
   * Format improvements for larger alias names

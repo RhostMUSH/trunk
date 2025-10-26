@@ -836,6 +836,8 @@ NDECL(cf_init)
     mudstate.epoch = 0;
     mudstate.generation = 0;
     mudstate.curr_player = NOTHING;
+    mudstate.curr_pid = -1;
+    memset(mudstate.curr_pidcmd, '\0', LBUF_SIZE);
     mudstate.curr_enactor = NOTHING;
     mudstate.curr_cmd = (char *) "< none >";
     mudstate.curr_plrcmd = (char *) "< none >";

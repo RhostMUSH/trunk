@@ -5754,6 +5754,8 @@ do_command(DESC * d, char *command)
 	       }
 	       mudstate.curr_player = d->player;
 	       mudstate.curr_enactor = d->player;
+               mudstate.curr_pid = -1;
+               memset(mudstate.curr_pidcmd, '\0', LBUF_SIZE);
 	       desc_in_use = d;
                s_rollback = alloc_lbuf("s_rollback_docommand");
                strcpy(s_rollback, mudstate.rollback);
