@@ -1617,7 +1617,7 @@ shutdownsock(DESC * d, int reason)
 	    mudstate.guest_num--;
 	}
 	if (mudconf.maildelete)
-	    mail_md1(d->player, d->player, 1, -1);
+	    mail_md1(d->player, d->player, 1, -1, 0);
 	strcpy(all, "all");
 	mail_mark(d->player, M_READM, all, NOTHING, 1);
 	atr_clr(d->player, A_MPSET);
