@@ -4355,7 +4355,7 @@ void folder_ind_del(dbref player, short int index)
   }
 }
 
-void mail_delete(dbref player, int later1, int later2, dbref wiz, int key, int adel)
+void mail_delete(dbref player, int later1, int later2, dbref wiz, int key, int adel, int i_verbose)
 {
   short int *pt1, *pt3, nmsg, nfree, top, icheck, sind;
   short int sndtop, sndfree, sndmsg, *spt1, *spt2, ind2;
@@ -4525,10 +4525,19 @@ void mail_delete(dbref player, int later1, int later2, dbref wiz, int key, int a
     else if ((!adel) && key)
       notify_quiet(player,"MAIL ERROR: You have no mail marked for deletion");
     if (change)  {
-      if (key)
-        notify_quiet(player,unsafe_tprintf("Mail: %d message(s) deleted\r\nMail: Done",change));
-      else
-        notify_quiet(wiz,unsafe_tprintf("Mail: %d message(s) deleted\r\nMail: Done",change));
+      if (key) {
+        if ( i_verbose && Good_chk(player) ) {
+           notify_quiet(player,unsafe_tprintf("Mail: %d message(s) deleted [%s]", change, Name(player)));
+        } else {
+           notify_quiet(player,unsafe_tprintf("Mail: %d message(s) deleted\r\nMail: Done",change));
+        }
+      } else {
+        if ( i_verbose && Good_chk(player) ) {
+           notify_quiet(wiz,unsafe_tprintf("Mail: %d message(s) deleted [%s]", change, Name(player)));
+        } else {
+           notify_quiet(wiz,unsafe_tprintf("Mail: %d message(s) deleted\r\nMail: Done",change));
+        }
+      }
     }
   }
   else if ((!adel) && key)
@@ -6105,7 +6114,7 @@ mail_time(dbref player, char *buff)
 }
 
 void 
-mail_md1(dbref player, dbref wiz, int key, int val)
+mail_md1(dbref player, dbref wiz, int key, int val, int i_all)
 {
     char *pt1;
     dbref owner;
@@ -6138,7 +6147,9 @@ mail_md1(dbref player, dbref wiz, int key, int val)
 	spt1 += 3 + *(spt1+1);
 	for (y = 0; y < x; y++, spt1++) {
 	  if ((len = get_hd_rcv_rec(player,*spt1,mbuf1,NOTHING,1))) {
-	    if ((*(mbuf1+hstoff) == 'O') || (*(mbuf1+hstoff) == 'M')) {
+	    if ( (i_all && ((*(mbuf1+hstoff) == 'N') || (*(mbuf1+hstoff) == 'U'))) || 
+                 (*(mbuf1+hstoff) == 'O') || 
+                 (*(mbuf1+hstoff) == 'M')) {
 	      if (difftime(mudstate.now,*(time_t *)(mbuf1+htimeoff)) >= mval) {
 		*(mbuf1+hstoff) = 'P';
 		*(int *)sbuf1 = MIND_HRCV;
@@ -6155,7 +6166,7 @@ mail_md1(dbref player, dbref wiz, int key, int val)
 	}
       }
     }
-    mail_delete(player, NOTHING, 1, wiz, key, 1);
+    mail_delete(player, NOTHING, 1, wiz, key, 1, 1);
 }
 
 int 
@@ -6205,25 +6216,57 @@ void
 mail_dtime(dbref player, char *buf1, char *buf2)
 {
     dbref pl2;
-    int val;
+    char *s_split;
+    int val, i_all, i_wall, i_err;
 
+    i_all = i_err = i_wall = 0;
+    if ( *buf2 && ((s_split = strchr(buf2, ',')) != NULL) ) {
+       *s_split = '\0';
+       s_split++;
+       if ( !stricmp(s_split, "all") ) {
+          i_all = 1;
+       } 
+    } 
     if (*buf2) {
-	*(buf2 + 5) = '\0';
-	val = atoi(buf2);
-    } else
+       *(buf2 + 5) = '\0';
+       val = atoi(buf2);
+    } else {
 	val = -1;
-    if (!stricmp(buf1, "all")) {
+    }
+    if ( !stricmp(buf1, "all") || !stricmp(buf1, "wall") ) {
+        if ( i_all ) {
+           notify_quiet(player, "Mail: Auto-Deleting ALL mail on all players.");
+        } else {
+           notify_quiet(player, "Mail: Auto-Deleting mail on all players.");
+        }
+        if ( !stricmp(buf1, "wall") ) {
+           i_wall = 1;
+        }
 	DO_WHOLE_DB(pl2) {
 	    if ((pl2 % 25) == 0)
 		cache_reset(0);
-	    if (!isPlayer(pl2) || Recover(pl2) || Wizard(pl2))
+	    if (!isPlayer(pl2) || Recover(pl2) || 
+                (i_wall && Wizard(pl2) && !Immortal(player)) ||
+                (!i_wall && Wizard(pl2)) )
 		continue;
-	    mail_md1(pl2, player, 0, val);
+	    mail_md1(pl2, player, 0, val, i_all);
 	}
     } else {
 	pl2 = lookup_player(player, buf1, 0);
-	if ((pl2 != NOTHING) && (!Wizard(pl2) || (Wizard(pl2) && Immortal(player))))
-	    mail_md1(pl2, player, 0, val);
+	if ((pl2 != NOTHING) && (!Wizard(pl2) || (Wizard(pl2) && Immortal(player)))) {
+            if ( i_all ) {
+               notify_quiet(player, "Mail: Auto-Deleting ALL mail on target player.");
+            } else {
+               notify_quiet(player, "Mail: Auto-Deleting mail on target player.");
+            }
+	    mail_md1(pl2, player, 0, val, i_all);
+        } else {
+           if ( pl2 == NOTHING ) {
+              notify_quiet(player, "Mail: Invalid player for Auto-Deletion.");
+           } else {
+              notify_quiet(player, "Mail: No permission for Auto-Deletion on target player.");
+           }
+        }
     }
     notify_quiet(player, "Mail: Done.");
 }
@@ -7854,7 +7897,7 @@ void mail_wipe(dbref player, char *buf)
     }
   }
   mail_mark(dest,M_MARK,"all",player,0);
-  mail_delete(dest,NOTHING,1,player,0, 0);
+  mail_delete(dest,NOTHING,1,player,0, 0, 0);
   *(int *)sbuf1 = MIND_BSIZE;
   *(int *)(sbuf1+sizeof(int)) = dest;
   keydata.dptr = sbuf1;
@@ -8003,7 +8046,7 @@ void mail_wipe(dbref player, char *buf)
 	      t2 = 0;
 	      *(mbuf2+hstoff) = 'P';
 	      dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
-	      mail_delete(*(int *)pt1,NOTHING,1,player,0,1);
+	      mail_delete(*(int *)pt1,NOTHING,1,player,0,1,0);
 	    }
 	  }
 	  pt1 += term;
@@ -8295,7 +8338,7 @@ void mail_recall(dbref player, char *buf1, char *buf2, int key, int later1, int 
 	  }
 	}
 	if (y) 
-	  mail_delete(dest,NOTHING,1,player,0,1);
+	  mail_delete(dest,NOTHING,1,player,0,1,0);
 	notify_quiet(player,unsafe_tprintf("Mail: %d message(s) were able to be recalled",y));
       }
     }
@@ -8321,7 +8364,7 @@ void mail_recall(dbref player, char *buf1, char *buf2, int key, int later1, int 
 		infodata.dptr = mbuf1;
 		infodata.dsize = len;
 		dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
-		mail_delete(*ipt1,NOTHING,1,player,0,1);
+		mail_delete(*ipt1,NOTHING,1,player,0,1,0);
 		z++;
 	      }
 	    }
@@ -9562,7 +9605,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
 	if ((*buf1 != '\0') || (*buf2 != '\0')) {
 	    notify_quiet(player, "MAIL ERROR: Improper delete format.");
 	} else {
-	    mail_delete(player, NOTHING, 1, NOTHING, 1, 0);
+	    mail_delete(player, NOTHING, 1, NOTHING, 1, 0, 0);
 	}
 	break;
     case M_RECALL:
