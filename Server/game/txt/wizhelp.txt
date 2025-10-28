@@ -14944,14 +14944,38 @@
 
 & wmail/dtime
 & wmail dtime
-  Command:  wmail/dtime <player>=<value>
+  Command:  wmail/dtime <player>=<value>[,all]
+         :  wmail/dtime all=<value>[,all]
+         :  wmail/dtime wall=<value>[,all]
+  
+  The <player> target of 'all' will specify all non-wizard players.
+  The <player> target of 'wall' will specify all players including wiz/imm.
+  
+  You may append ',all' at the end of any value and it will optionally include
+  [N]ew and [U]nread messages to target for messages past the <value>.
   
   This is a one time deal and will force a purging of mail of the
-  given user from the 'value' number of days.  If you specify '0' then
-  all mail is purged.  This is settable only by SUPER-ROYALTY.  NEW
-  and UNREAD mail is not purged.  This value is not stored.
+  given user(s) from the 'value' number of days.  
   
-  Example:  wmail/dtime BloatedPlayer=2
+  If you specify '0' then all mail is purged.  This is settable 
+  only by SUPER-ROYALTY.  NEW and UNREAD mail is not purged.  
+  This value is not stored.
+  
+  Examples:  
+    > wmail/dtime BloatedPlayer=2
+    (Delete read messages on BloatedPlayer older than 2 days)
+    > wmail/dtime BloatedPlayer=2,all
+    (Delete ALL messages on BloatedPlayer older than 2 days)
+    > wmail/dtime all=2
+    (Delete read messages on all non-wizard players older than 2 days)
+    > wmail/dtime all=2,all
+    (Delete ALL messages on all non-wizard players older than 2 days)
+    > wmail/dtime wall=2
+    (Delete read messages on ALL players older than 2 days)
+    > wmail/dtime wall=2,all
+    (Delete ALL messages on ALL players older than 2 days)
+  
+  See Also: mail_autodeltime            
 
 & mail/quota
 & mail quota
@@ -15284,6 +15308,8 @@
   This does effect councilors and lower.
   
   If the value is '0' or lower, it assumes 'unlimited' time.
+  
+  See Also: wmail/dtime
 
 & mail_def_object
   Config parameter: mail_def_object <dbref>.  Default: -1

@@ -282,7 +282,7 @@ extern void	NDECL(mail_rem_dump);
 extern int	NDECL(mail_init);
 extern void	NDECL(mail_close);
 extern void	FDECL(mail_mark, (dbref,int,char *,dbref,int));
-extern void	FDECL(mail_md1, (dbref, dbref, int, int));
+extern void	FDECL(mail_md1, (dbref, dbref, int, int, int));
 extern int	FDECL(stricmp, (char *, char*));
 extern long	FDECL(mcount_size, (dbref, char *));
 extern long	NDECL(mcount_size_tot);
