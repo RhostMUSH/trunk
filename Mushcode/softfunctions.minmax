@@ -41,6 +41,8 @@
 &MINMAX_LPARENT SoftFunctions=1 1
 &FUN_EXPTIME SoftFunctions=[timefmt($!Zy $!EM $!Cd $!Xh $!Fm $Gs,%0)]
 &MINMAX_EXPTIME SoftFunctions=1 1
+&FUN_WRAP2 SoftFunctions=[printf(%3$%1[switch(left(%2,1),r,,c,^,-)][if(t(%5),;%5;)]|"s%4,%0)]
+&MINMAX_WRAP2=2 5
 &FUN_WRITETIME SoftFunctions=[timefmt($!Z years $!e months $!C days $!X hours $!F minutes $!G seconds,%0)]
 &MINMAX_WRITETIME SoftFunctions=1 1
 &FUN_DIGITTIME SoftFunctions=[timefmt($!cd $02X:$02F,v(0))]
