@@ -14495,9 +14495,11 @@
              will be width - 1.  It will shorten to this if too large.
              The maximum indent is 70 characters.  A period followed by
              a number will specify the line it should start indenting.
-               examples: ;     -- indent default 4 (or width - 1) spaces
-                         ;8;   -- indent 8 spaces (or width -1) spaces
-                         ;8.3; -- indent 8 spaces after line 3.
+             A + and a number at the end tells it to padd the width.
+               examples: ;       -- indent default 4 (or width - 1) spaces
+                         ;8;     -- indent 8 spaces (or width -1) spaces
+                         ;8.3;   -- indent 8 spaces after line 3.
+                         ;8.3+8; -- indent 8 spaces after line 3, padd 8 more.
       Value fields:
          1-(LBUF-100) - format value to padd.  Current LBUF size - 100.
                         See: @list options system for current LBUF size.
@@ -36894,12 +36896,12 @@
   Each Changelog consists of released RhostMUSH versions, with changes
   listed beneath each version.
 
-  Current Version: 4.26.0
+  Current Version: 4.27.0
   
   Current Changelogs:
   -------------------
-  1 - 4.26.0, 4.25.0, 4.24.2, 4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 
-      4.21.0
+  1 - 4.27.0, 4.26.0, 4.25.0, 4.24.2, 4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 
+      4.22.0, 4.21.0
   2 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
   3 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
@@ -36907,6 +36909,7 @@
   4 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.27.0
 & 4.26.0
 & 4.25.0
 & 4.24.2
@@ -36923,6 +36926,9 @@
 & changelog 1
   Topic: CHANGELOG
    
+  4.27.0
+  * added +value option to printf ';' for extending padding
+  
   4.26.0
   * add wall option to wmail/dtime to target wizards with game-wide checks
   * added append of 'all' to dtime target to specify 'all' messages
