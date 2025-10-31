@@ -10053,6 +10053,7 @@ struct timefmt_format {
   int tabtospace;
   int doindent;
   int doindentline;
+  int doindentpadd;
 };
 
 void safe_chr_fm( char ch, char* buff, char** bufcx,
@@ -10396,9 +10397,9 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           if ( (fm->cutatlength_line == 0) && (fm->cutatlength != 0) && (idy >= fm->cutatlength) )
              break;
           if ( ((!*start_line || (i_linecnt < *start_line)) && 
-                 (((i_chk+1) > (fm->fieldwidth +  morepadd)) && (i_stripansi > (fm->fieldwidth +  morepadd)))) ||
+                 (((i_chk+1) > (fm->fieldwidth + morepadd)) && (i_stripansi > (fm->fieldwidth + morepadd)))) ||
                ((*start_line && (i_linecnt >= *start_line )) && 
-                 (((i_chk+1) > (fm->fieldwidth +  morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth +  morepadd + *adjust_padd)))) ) {
+                 (((i_chk+1) > (fm->fieldwidth + morepadd + *adjust_padd)) && (i_stripansi > (fm->fieldwidth +  morepadd + *adjust_padd + fm->doindentpadd)))) ) {
              if ( i_lastspace > 0 ) { 
                 t = s_padstring + i_lastspace;
                 if ( (fm->cutatlength_line != 0) && (fm->cutatlength != 0) && (fm->morepadd & 4) && ((i_linecnt + 1) >= fm->cutatlength) ) {
@@ -10407,7 +10408,12 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                 }
                 if ( *t ) 
                    t++;
-                i_chk = strlen(strip_all_special(t)) + fm->doindent;
+//              if ( fm->doindent && (i_linecnt >= fm->doindentline) ) {
+                if ( fm->doindent && (i_linecnt >= 0) ) {
+                   i_chk = strlen(strip_all_special(t)) + fm->doindent - fm->doindentpadd;
+                } else {
+                   i_chk = strlen(strip_all_special(t)) + fm->doindent;
+                }
                 memcpy(s_padstring2, t, LBUF_SIZE-10);
                 if ( printf_lookahead(s) ) {
                    *t++ = '\r';
@@ -12185,6 +12191,14 @@ FUNCTION(fun_printf)
                                     }
                                  }
                               }
+                              if ( strchr(pp+1, '+') != NULL ) {
+                                 if ( strchr(pp+1, '+') < strchr(pp+1, ';') ) {
+                                    fm.doindentpadd = atoi(strchr(pp+1, '+')+1);
+                                    if ( fm.doindentpadd < 0 ) {
+                                       fm.doindentpadd = 0;
+                                    }
+                                 }
+                              }
                               pp = strchr(pp+1,';');
                            } else {
                               if ( fm.fieldwidth > 4 ) {
@@ -12278,6 +12292,9 @@ FUNCTION(fun_printf)
                               i_widtharray[i_arrayval] = fm.fieldwidth;
                               i_totwidth = 0;
                               showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, s_strarray[i_arrayval], &s_strptr, morepadd, &adjust_padd, &start_line);
+                              if ( !i_loopydo ) {
+                                 fm.fieldwidth += fm.doindentpadd;
+                              }
                               fm.forcebreakonreturn = 0;
                               fm_array[i_arrayval] = fm;
                               i_arrayval++;
@@ -12300,8 +12317,9 @@ FUNCTION(fun_printf)
                         fm.morepadd = 0;
                         fm.nolaster = 0;
                         fm.tabtospace = 0;
-			fm.doindent = 0;
-			fm.doindentline = 0;
+                        fm.doindent = 0;
+                        fm.doindentline = 0;
+                        fm.doindentpadd = 0;
                         break;
                      default: /* Do nothing */
                         formatpass = 1;
@@ -12325,6 +12343,7 @@ FUNCTION(fun_printf)
                      fm.tabtospace = 0;
                      fm.doindent = 0;
                      fm.doindentline = 0;
+                     fm.doindentpadd = 0;
                   }
                } /* For */
                pp--;
