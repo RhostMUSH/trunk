@@ -37253,7 +37253,7 @@ FUNCTION(fun_setinter)
 void
 handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, char **fargs, int nfargs, int cut, int i_just)
 {
-   int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store;
+   int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store, i_escape;
    char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
    ANSISPLIT outsplit[LBUF_SIZE], fillersplit[LBUF_SIZE], retbuff[LBUF_SIZE], *p_in, *p_out;
 
@@ -37339,10 +37339,18 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
       i = LBUF_SIZE;
    }
 
+   i_escape = 0;
    while ( *s_in ) {
       if ( i <= 0 )
          break;
-      i--;
+      if ( !i_escape && 
+           ((*s_in == '%') || (*s_in == '\\')) &&
+           ((*(s_in+1) == '%') || (*(s_in+1) == '\\')) ) {
+         i_escape = 1;
+      } else {
+         i_escape = 0;
+         i--;
+      }
       *s_out++ = *s_in++;
       clone_ansisplitter(p_out, p_in);
       p_in++;
