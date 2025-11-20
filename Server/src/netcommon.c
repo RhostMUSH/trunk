@@ -2176,11 +2176,11 @@ void
 welcome_user(DESC * d)
 {
     DPUSH; /* #124 */
-    if (mudconf.offline_reg && (d->host_info & H_REGISTRATION))
+    if (mudconf.offline_reg && !(d->host_info & H_PERMIT) && (d->host_info & H_REGISTRATION))
 	fcache_dump(d, FC_CONN_AUTO_H, (char *)NULL);
     else if (mudconf.offline_reg)
 	fcache_dump(d, FC_CONN_AUTO, (char *)NULL);
-    else if (d->host_info & H_REGISTRATION)
+    else if (!(d->host_info & H_PERMIT) && (d->host_info & H_REGISTRATION))
 	fcache_dump(d, FC_CONN_REG, (char *)NULL);
     else
 	fcache_dump(d, FC_CONN, (char *)NULL);
@@ -3515,6 +3515,8 @@ dump_users(DESC * e, char *match, int key)
 		    *fp++ = '+';
 		if ((d->host_info & H_FORBIDDEN) && Wizard(e->player) && (e->flags & DS_CONNECTED))
 		    *fp++ = 'F';
+		if ((d->host_info & H_PERMIT) && Wizard(e->player) && (e->flags & DS_CONNECTED))
+		    *fp++ = 'P';
 		if (d->host_info & H_REGISTRATION && (e->flags & DS_CONNECTED) && 
                     !mudconf.noregist_onwho)
 		    *fp++ = 'R';
@@ -3615,6 +3617,8 @@ dump_users(DESC * e, char *match, int key)
 			*fp++ = '+';
 		    if ((d->host_info & H_FORBIDDEN) && Wizard(e->player) && (e->flags & DS_CONNECTED))
 			*fp++ = 'F';
+		    if ((d->host_info & H_PERMIT) && Wizard(e->player) && (e->flags & DS_CONNECTED))
+			*fp++ = 'P';
 		    if (d->host_info & H_REGISTRATION && (e->flags & DS_CONNECTED) &&
                         !mudconf.noregist_onwho)
 			*fp++ = 'R';
@@ -4938,14 +4942,16 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             if ( mudconf.pcreate_paranoia > 0 ) {
                sprintf(buff, "%.100s 255.255.255.255", inet_ntoa(d->address.sin_addr));
                if ( (mudconf.pcreate_paranoia == 1) && 
-                    !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
+                    ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
+                    ( !site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) ) &&
                     !(d->host_info & H_REGISTRATION) ) {
                   cf_site((int *)&mudstate.access_list, buff, 
                           H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
                   sprintf(buff, "(PCREATE) [%.100s] marked for autoregistration.  (Remote port %d)",
                           inet_ntoa(d->address.sin_addr), ntohs(d->address.sin_port));
                } else if ( (mudconf.pcreate_paranoia == 2) &&
-                           !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                           ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) &&
+                             !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) ) ) {
                   cf_site((int *)&mudstate.access_list, buff, 
                            H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
                   sprintf(buff, "(PCREATE) [%.100s] marked for autoforbid.  (Remote port %d)",
@@ -5008,7 +5014,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   cmdsave);
          RETURN(0); /* #146 */
       }
-      if (d->host_info & H_REGISTRATION) {
+      if ((d->host_info & H_REGISTRATION) && !(d->host_info & H_PERMIT)) {
          i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
          if ( i_sitemax == -1 ) {
             tsite_buff = alloc_lbuf("register_check");
@@ -5440,37 +5446,38 @@ do_command(DESC * d, char *command)
 
              /* Do forbid site checks */
              strcpy(s_sitebuff, mudconf.forbid_host);
-             if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
-                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
-                if ( mudconf.ssl_welcome ) {
-                   d->host_info |= H_FORBIDDEN;
-                   fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
-                }
-                queue_string(d, "SSL Connections are not allowed from your site.\r\n");
-                process_output(d);
-                sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
-                broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
-                                  d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-                STARTLOG(LOG_ALWAYS, "NET", "SSL");
-                   log_text("[FORBIDDEN] ");
-                   log_text(s_rollback);
-                ENDLOG
-                free_lbuf(s_rollback);
-                free_lbuf(s_sitebuff);
-                free_lbuf(s_sitetmp);
-                shutdownsock(d, R_BOOT);
-                free_mbuf(addrsav);
-                RETURN(0); /* #147 */
+             if ( ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
+                   (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) ||
+                    (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                  if ( mudconf.ssl_welcome ) {
+                     d->host_info |= H_FORBIDDEN;
+                     fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
+                  }
+                  queue_string(d, "SSL Connections are not allowed from your site.\r\n");
+                  process_output(d);
+                  sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
+                  broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
+                                    d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                  STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                     log_text("[FORBIDDEN] ");
+                     log_text(s_rollback);
+                  ENDLOG
+                  free_lbuf(s_rollback);
+                  free_lbuf(s_sitebuff);
+                  free_lbuf(s_sitetmp);
+                  shutdownsock(d, R_BOOT);
+                  free_mbuf(addrsav);
+                  RETURN(0); /* #147 */
              }
 
              /* Do register site checks -- flag register, log, continue on */
              strcpy(s_sitebuff, mudconf.register_host);
-             if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ||
-                  (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ||
-                   blacklist_check(p_addr, 2) ) {
-                i_valid = 2;
+             if ( ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
+                   (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) ||
+                    (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ||
+                     blacklist_check(p_addr, 2) ) {
+                  i_valid = 2;
              }
-
              /* Do noguest site checks -- flag noguest, log, continue on */
              strcpy(s_sitebuff, mudconf.noguest_host);
              if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_NOGUEST) == H_NOGUEST) ||
@@ -6855,7 +6862,7 @@ stat_string(int strtype, int flag, int key)
 	case H_NOGUEST:
 	    str = "Noguest";
 	    break;
-	case 0:
+	case H_PERMIT:
 	    str = "Unrestricted";
 	    break;
 	default:

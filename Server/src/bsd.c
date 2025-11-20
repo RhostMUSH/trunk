@@ -1319,59 +1319,61 @@ new_connection(int sock, int key)
        mudstate.api_lastsite = (int)addr.sin_addr.s_addr;
     }
     /* Only do this for non-API */
-    if ( !(i_addflags & MF_API) && (mudconf.lastsite_paranoia > 0) ) { 
-     if ( ((mudconf.lastsite_paranoia > 1) && 
-           !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) ||
-          ((mudconf.lastsite_paranoia == 1) &&
-           !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION)) ) {
-       if ( (mudstate.cmp_lastsite_cnt >= mudconf.max_lastsite_cnt) &&
-            (mudstate.cmp_lastsite == (int)addr.sin_addr.s_addr) &&
-            (mudstate.last_con_attempt >= (mudstate.now - mudconf.min_con_attempt)) ) {
-          sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(addr.sin_addr));
-          if (mudconf.lastsite_paranoia == 1) {
-             cf_site((int *)&mudstate.access_list, tchbuff,
-                     H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
-  	     broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
-                               mudstate.cmp_lastsite_cnt, 
-                               (mudstate.now - mudstate.last_con_attempt)),
-                               NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
-	     buff = alloc_lbuf("new_connection.LOG.autoregister");
-	     sprintf(buff, "[%d/%s] marked for autoregistration.  (Remote port %d)",
-		     newsock, inet_ntoa(addr.sin_addr), cur_port);
-	     log_text(buff);
-	     free_lbuf(buff);
-	     ENDLOG
-          } else {
-             cf_site((int *)&mudstate.access_list, tchbuff,
-                     H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
-  	     broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
-                               mudstate.cmp_lastsite_cnt, 
-                               (mudstate.now - mudstate.last_con_attempt)),
-                               NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
-	     STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
-	     buff = alloc_lbuf("new_connection.LOG.autoregister");
-	     sprintf(buff, "[%d/%s] marked for autoforbidding.  (Remote port %d)",
-		     newsock, inet_ntoa(addr.sin_addr), cur_port);
-	     log_text(buff);
-	     free_lbuf(buff);
-	     ENDLOG
-           }
-           mudstate.cmp_lastsite_cnt = 0;
-       } else if ( (mudconf.lastsite_paranoia > 0) &&
-                   ((mudstate.cmp_lastsite != (int)addr.sin_addr.s_addr) || 
-                    (mudstate.last_con_attempt < (mudstate.now - mudconf.min_con_attempt))) ) {
-          mudstate.cmp_lastsite = (int)addr.sin_addr.s_addr;
-          mudstate.cmp_lastsite_cnt = 0;
-       }
-       if ( ((mudstate.last_con_attempt + mudconf.min_con_attempt) < mudstate.now) ||
-             (mudstate.last_con_attempt == 0) ) {
-          mudstate.last_con_attempt = mudstate.now;
-          mudstate.cmp_lastsite_cnt = 0;
-       }
-       mudstate.cmp_lastsite_cnt++;
-       memset(tchbuff, 0, sizeof(tchbuff));
-     }
+    if ( !(i_addflags & MF_API) &&  (mudconf.lastsite_paranoia > 0) ) { 
+      if ( !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) ) {
+        if ( ((mudconf.lastsite_paranoia > 1) && 
+              !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) ||
+             ((mudconf.lastsite_paranoia == 1) &&
+              !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION)) ) {
+          if ( (mudstate.cmp_lastsite_cnt >= mudconf.max_lastsite_cnt) &&
+               (mudstate.cmp_lastsite == (int)addr.sin_addr.s_addr) &&
+               (mudstate.last_con_attempt >= (mudstate.now - mudconf.min_con_attempt)) ) {
+             sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(addr.sin_addr));
+             if (mudconf.lastsite_paranoia == 1) {
+                cf_site((int *)&mudstate.access_list, tchbuff,
+                        H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
+  	        broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
+                                  mudstate.cmp_lastsite_cnt, 
+                                  (mudstate.now - mudstate.last_con_attempt)),
+                                  NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+	        STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
+	        buff = alloc_lbuf("new_connection.LOG.autoregister");
+	        sprintf(buff, "[%d/%s] marked for autoregistration.  (Remote port %d)",
+		        newsock, inet_ntoa(addr.sin_addr), cur_port);
+	        log_text(buff);
+	        free_lbuf(buff);
+	        ENDLOG
+             } else {
+                cf_site((int *)&mudstate.access_list, tchbuff,
+                        H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
+  	        broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
+                                  mudstate.cmp_lastsite_cnt, 
+                                  (mudstate.now - mudstate.last_con_attempt)),
+                                  NULL, inet_ntoa(addr.sin_addr), newsock, 0, cur_port, NULL);
+	        STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
+	        buff = alloc_lbuf("new_connection.LOG.autoregister");
+	        sprintf(buff, "[%d/%s] marked for autoforbidding.  (Remote port %d)",
+		        newsock, inet_ntoa(addr.sin_addr), cur_port);
+	        log_text(buff);
+	        free_lbuf(buff);
+	        ENDLOG
+              }
+              mudstate.cmp_lastsite_cnt = 0;
+          } else if ( (mudconf.lastsite_paranoia > 0) &&
+                      ((mudstate.cmp_lastsite != (int)addr.sin_addr.s_addr) || 
+                       (mudstate.last_con_attempt < (mudstate.now - mudconf.min_con_attempt))) ) {
+             mudstate.cmp_lastsite = (int)addr.sin_addr.s_addr;
+             mudstate.cmp_lastsite_cnt = 0;
+          }
+          if ( ((mudstate.last_con_attempt + mudconf.min_con_attempt) < mudstate.now) ||
+                (mudstate.last_con_attempt == 0) ) {
+             mudstate.last_con_attempt = mudstate.now;
+             mudstate.cmp_lastsite_cnt = 0;
+          }
+          mudstate.cmp_lastsite_cnt++;
+          memset(tchbuff, 0, sizeof(tchbuff));
+        }
+      }
     }
 /*  strcpy(tsite_buff, addrout(addr.sin_addr)); */
     addroutbuf = (char *) addrout(addr.sin_addr, (i_addflags & MF_API));
@@ -1387,17 +1389,19 @@ new_connection(int sock, int key)
 /* They're the same size... 1000 bytes */
     strcpy(tchbuff, mudconf.forbid_host);
     strcpy(tsite_buff, addroutbuf);
-    if ((site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
-        (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
-        ((char *)mudconf.forbid_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
-
-       i_chksite = site_check(addr.sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
-       i_forbid = 1;
-       if ( i_chksite != -1 ) {  
-          if ( maxsitecon < i_chksite ) {
-             i_forbid = 0;
-          }
-       }
+    if (!(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT)) {
+      if ((site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
+          (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
+          ((char *)mudconf.forbid_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
+  
+         i_chksite = site_check(addr.sin_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
+         i_forbid = 1;
+         if ( i_chksite != -1 ) {  
+            if ( maxsitecon < i_chksite ) {
+               i_forbid = 0;
+            }
+         }
+      }
     }
     if ( !i_forbid && (i_addflags & MF_API) ) {
        strcpy(tchbuff, mudconf.forbidapi_host);
@@ -1736,9 +1740,6 @@ shutdownsock(DESC * d, int reason)
         i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_NOGUEST);
         if ( (i_sitemax != -1) && (i_guestcnt < (i_sitemax + 1)) )
            d->host_info &= ~H_NOGUEST;
-        i_sitemax = site_check((d->address).sin_addr, mudstate.access_list, 1, 1, H_HARDCONN);
-        if ( i_sitemax != -1 ) 
-           d->host_info &= ~H_HARDCONN;
 
         memset(tchbuff, 0, sizeof(tchbuff));
         strcpy(tchbuff, mudconf.forbid_host);

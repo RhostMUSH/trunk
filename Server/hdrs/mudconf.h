@@ -991,6 +991,7 @@ extern STATEDATA mudstate;
 #define H_PASSPROXY	0x0200  /* Linked to suspect_list for bypassing proxies */
 #define H_PASSAPI	0x0400	/* Pass any API site restrictions (minus forbid) */
 #define H_HARDCONN	0x0800	/* Allow hardconnect from site */
+#define H_PERMIT	0x1000	/* Override Register/Connect Restrictions */
 
 /* Logging options */
 

@@ -3714,8 +3714,8 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt1 = mudstate.access_list;
     while (pt1) {
       if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
-	( (key & SITE_ALL) || (!(pt1->flag) && (key & SITE_PER)) ||
-          (!(pt1->flag) && (key & SITE_HARD)) || (key == pt1->flag))) {
+	( (key & SITE_ALL) || ((pt1->flag == H_PERMIT) && (key & SITE_PER)) ||
+          (key == pt1->flag))) {
         count = 1;
         if (!pt2) {
           pt2 = pt1->next;
