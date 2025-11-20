@@ -3903,17 +3903,21 @@ process_command(dbref player, dbref cause, int interactive,
                     s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
                     if ( isPlayer(boot_plr) ) {
                        tchbuff = alloc_mbuf("cpu_regsite");
-                       DESC_ITER_CONN(d) {  
+                       DESC_ITER_CONN(d) {
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) { 
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-                               if ( mudconf.cpu_secure_lvl == 4 )
-                                  cf_site((int *)&mudstate.access_list, tchbuff,
-                                          (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
-                               else
-                                  cf_site((int *)&mudstate.access_list, tchbuff,
-                                          (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
-                            }
+                               if ( mudconf.cpu_secure_lvl == 4 ) {
+                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                   cf_site((int *)&mudstate.access_list, tchbuff,
+                                           (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
+                                 }
+                               }
+                               else {
+                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                   cf_site((int *)&mudstate.access_list, tchbuff,
+                                           (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
+                                 }
+                               }
                           }
                        }
                        boot_off(boot_plr, NULL);
@@ -4632,15 +4636,19 @@ process_command(dbref player, dbref cause, int interactive,
                        tchbuff = alloc_mbuf("cpu_regsite");
                        DESC_ITER_CONN(d) {
                           if ( d->player == boot_plr ) {
-                            if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-                               if ( mudconf.cpu_secure_lvl == 4 )
-                                  cf_site((int *)&mudstate.access_list, tchbuff,
-                                          (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
-                               else
-                                  cf_site((int *)&mudstate.access_list, tchbuff,
-                                          (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
-                            }
+                               if ( mudconf.cpu_secure_lvl == 4 ) {
+                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                   cf_site((int *)&mudstate.access_list, tchbuff,
+                                           (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
+                                 }
+                               }
+                               else {
+                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                   cf_site((int *)&mudstate.access_list, tchbuff,
+                                           (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
+                                 }
+                               }
                           }
                        }
                        boot_off(boot_plr, NULL);
