@@ -319,6 +319,7 @@ struct confdata {
 	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */
 	char	sconnect_host[LBUF_SIZE]; /* sites for allowable sconnect re-iper */
 	char	hardconn_host[LBUF_SIZE]; /* sites for allowable for hardconnects */
+	char	permit_host[LBUF_SIZE]; /* sites for unrestricted register/connect */
 	int	sconnect_reip;	/* Toggle for sconnect re-iper */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
         int	tor_paranoid;	/* Paranoid option for TOR enable Checking */

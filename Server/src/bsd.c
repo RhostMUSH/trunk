@@ -1387,9 +1387,11 @@ new_connection(int sock, int key)
     }
 
 /* They're the same size... 1000 bytes */
-    strcpy(tchbuff, mudconf.forbid_host);
+    strcpy(tchbuff, mudconf.permit_host);
     strcpy(tsite_buff, addroutbuf);
-    if (!(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT)) {
+    if ( !(site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
+        !((char *)mudconf.permit_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) {
+      strcpy(tchbuff, mudconf.forbid_host);
       if ((site_check(addr.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
           (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
           ((char *)mudconf.forbid_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
@@ -1769,6 +1771,9 @@ shutdownsock(DESC * d, int reason)
         strcpy(tchbuff, mudconf.hardconn_host);
         if ((char *)mudconf.hardconn_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
            d->host_info = d->host_info | H_HARDCONN;
+        strcpy(tchbuff, mudconf.permit_host);
+        if ((char *)mudconf.permit_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->host_info = d->host_info | H_PERMIT;
 	d->input_tot = d->input_size;
 	d->output_tot = 0;
          
@@ -2194,6 +2199,9 @@ initializesock(int s, struct sockaddr_in * a, char *addr, int i_keyflag, int key
     strcpy(tchbuff, mudconf.hardconn_host);
     if ((char *)mudconf.hardconn_host && lookup(addr, tchbuff, i_guestcnt, &i_retvar))
        d->host_info = d->host_info | H_HARDCONN;
+    strcpy(tchbuff, mudconf.permit_host);
+    if ((char *)mudconf.permit_host && lookup(addr, tchbuff, i_guestcnt, &i_retvar))
+       d->host_info = d->host_info | H_PERMIT;
     d->host_info = d->host_info | i_keyflag;
     d->player = 0;		/* be sure #0 isn't wizard.  Shouldn't be. */
     d->addr[0] = '\0';

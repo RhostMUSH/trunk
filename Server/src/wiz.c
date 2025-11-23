@@ -3657,6 +3657,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
      do_site_buff(player, mudconf.passproxy_host, (char *)"passproxy_host");
      do_site_buff(player, mudconf.passapi_host, (char *)"passapi_host");
      do_site_buff(player, mudconf.hardconn_host, (char *)"hardconn_host");
+     do_site_buff(player, mudconf.permit_host, (char *)"permit_host");
      return;
   }
 

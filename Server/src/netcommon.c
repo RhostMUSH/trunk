@@ -5445,38 +5445,44 @@ do_command(DESC * d, char *command)
              s_sitebuff = alloc_lbuf("SSL_site_buff");
 
              /* Do forbid site checks */
-             strcpy(s_sitebuff, mudconf.forbid_host);
-             if ( ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
-                   (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) ||
-                    (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
-                  if ( mudconf.ssl_welcome ) {
-                     d->host_info |= H_FORBIDDEN;
-                     fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
-                  }
-                  queue_string(d, "SSL Connections are not allowed from your site.\r\n");
-                  process_output(d);
-                  sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
-                  broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
-                                    d->descriptor, 0, ntohs(d->address.sin_port), NULL);
-                  STARTLOG(LOG_ALWAYS, "NET", "SSL");
-                     log_text("[FORBIDDEN] ");
-                     log_text(s_rollback);
-                  ENDLOG
-                  free_lbuf(s_rollback);
-                  free_lbuf(s_sitebuff);
-                  free_lbuf(s_sitetmp);
-                  shutdownsock(d, R_BOOT);
-                  free_mbuf(addrsav);
-                  RETURN(0); /* #147 */
+             strcpy(s_sitebuff, mudconf.permit_host);
+             if ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
+                  !(lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                    strcpy(s_sitebuff, mudconf.forbid_host);
+                    if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
+                      lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) {
+                      if ( mudconf.ssl_welcome ) {
+                         d->host_info |= H_FORBIDDEN;
+                         fcache_rawdump(d->descriptor, FC_CONN_SITE, p_addr, (char *)NULL);
+                      }
+                      queue_string(d, "SSL Connections are not allowed from your site.\r\n");
+                      process_output(d);
+                      sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
+                      broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
+                                        d->descriptor, 0, ntohs(d->address.sin_port), NULL);
+                      STARTLOG(LOG_ALWAYS, "NET", "SSL");
+                         log_text("[FORBIDDEN] ");
+                         log_text(s_rollback);
+                      ENDLOG
+                      free_lbuf(s_rollback);
+                      free_lbuf(s_sitebuff);
+                      free_lbuf(s_sitetmp);
+                      shutdownsock(d, R_BOOT);
+                      free_mbuf(addrsav);
+                      RETURN(0); /* #147 */
+                   }
              }
 
              /* Do register site checks -- flag register, log, continue on */
-             strcpy(s_sitebuff, mudconf.register_host);
-             if ( ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
-                   (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) ||
-                    (lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ||
-                     blacklist_check(p_addr, 2) ) {
-                  i_valid = 2;
+             strcpy(s_sitebuff, mudconf.permit_host);
+             if ( !(site_check(p_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
+                  !(lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) ) {
+                    strcpy(s_sitebuff, mudconf.register_host);
+                    if ( (site_check(p_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ||
+                       lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar) ||
+                       blacklist_check(p_addr, 2) ) {
+                         i_valid = 2;
+                   }
              }
              /* Do noguest site checks -- flag noguest, log, continue on */
              strcpy(s_sitebuff, mudconf.noguest_host);
@@ -7020,6 +7026,7 @@ list_siteinfo(dbref player)
     list_hosts(player, mudconf.passproxy_host, "Proxy Bypass");
     list_hosts(player, mudconf.passapi_host, "API Bypass");
     list_hosts(player, mudconf.hardconn_host, "Hard Connect");
+    list_hosts(player, mudconf.permit_host, "Allowed");
 
     VOIDRETURN; /* #152 */
 }

@@ -4311,7 +4311,7 @@
             suspect_site, trust_site, noguest_site, noautoreg_site, 
             forbid_host, suspect_host, register_host, noguest_host, 
             noautoreg_host, validate_host, hardconn_host, nobroadcast_host, 
-            passproxy_host, passapi_site, passapi_host
+            passproxy_host, passapi_site, passapi_host, permit_host
 
 & @list switches
   Command: @list switches
@@ -7517,11 +7517,11 @@
   passproxy_site           passwd_distance           paycheck                
   pcreate_paranoia         pcreate_paranoia_fail     pemit_any_object        
   pemit_far_players        penn_playercmds           penn_setq               
-  penn_switches            permit_site               player_absolute         
-  player_attr_default      player_dark               player_flags            
-  player_listen            player_match_commands     player_match_own_command
-  player_name_spaces       player_parent             player_queue_limit      
-  player_quota           
+  penn_switches            permit_host               permit_site
+  player_absolute          player_attr_default       player_dark
+  player_flags             player_listen             player_match_commands
+  player_match_own_command player_name_spaces        player_parent  
+  player_queue_limit       player_quota           
   
 { 'wizhelp config parameters5' for more }
 
@@ -9218,8 +9218,43 @@
          the raw site information that you can use to remove the site.
    
   See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
-            validate_host, @site
+            validate_host, permit_host, @site
 
+& permit_host
+  Config parameter: permit_host <!host> <host> ... <host>
+  
+  The permiot_host works like permit_site, except it allows checking
+  against wildcarded DNS names instead of IP networks and single IPs.
+  
+  Connections matching the wildcard match of the specified sites in their DNS
+  HOST will be allowed to connect, register and create players, even if
+  they would otherwise fall under existing register_site or forbid_site (or
+  host) entries.
+  You can use wildcards, i.e. *.someprovider.com for example. You can pre-
+  pend the entry with a '!' ( !*.someprovider.com ) in order to remove an
+  existing entry again.
+  You may use '!ALL' to clear the permit host table.
+  
+  Each host can have an optional |<maxconns> directly attached to its
+  name, i.e. <hostname>|<maxconns>.
+  If the optional <maxconns> parameter is specified, this limitation will
+  only engage as long as amount of simultaneous connections from the
+  specified host exceeds this threshold.
+  
+  Example:  @admin permit_host=*.aol.com !*.compuserve.com *ego.com|3
+            (permiots any site matching *.aol.com and removes *.compuserve.com)
+            (will permit *ego.com if more than 3 connections are seen)
+            @admin permit_host=!ALL
+            (this clears the permit_host list)
+  
+  Note:  If you used a ceiling, you must specify the ceiling in removing
+         the site or it will not match it.  You may use @site/list to see
+         the raw site information that you can use to remove the site.
+   
+  See Also: register_host, suspect_host, noguest_host, noautoreg_host, 
+            validate_host, permit_host, @site
+
+&
 & passapi_site
   Config parameter: passapi_site <addr> <mask> [<maxconns>]
   
@@ -9729,7 +9764,7 @@
             (this clears the goodmail_host list)
  
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             suspect_host, validate_host, @site
+             suspect_host, validate_host, permit_host, @site
 
 
 & guest_char_num
@@ -10936,7 +10971,7 @@
             (this clears the noautoreg_host list)
   
   See Also:  forbid_host, noguest_host, register_host, suspect_host, 
-             validate_host, forbidapi_host, @site
+             validate_host, forbidapi_host, permit_host, @site
 
 & noautoreg_site
   Config parameter: noautoreg_site <site> <mask>
@@ -10974,7 +11009,7 @@
          the raw site information that you can use to remove the site.
    
   See Also:  forbid_host, suspect_host, register_host, noautoreg_host, 
-             validate_host, forbidapi_host, @site
+             validate_host, forbidapi_host, permit_host, @site
 
 & noguest_site
   Config parameter: noguest_site <site> <mask> [<maxconns>]
@@ -11680,7 +11715,7 @@
          the raw site information that you can use to remove the site.
   
   See Also:  forbid_host, suspect_host, noguest_host, noautoreg_host, 
-             validate_host, forbidapi_host, @site
+             validate_host, forbidapi_host, permit_host, @site
 
 & register_site
   Config parameter: register_site <addr> <mask> [<maxconns>]
@@ -12703,7 +12738,7 @@
             (this clears the passproxy_host list)
   
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             validate_host, forbidapi_host, suspect_host, @site
+             validate_host, forbidapi_host, suspect_host, permit_host, @site
   
   
 & passproxy_site
@@ -12731,7 +12766,7 @@
             (this clears the suspect_host list)
   
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             validate_host, forbidapi_host, @site
+             validate_host, forbidapi_host, permit_host, @site
   
 & suspect_site
   Config parameter: suspect_site <addr> <mask>
@@ -13138,7 +13173,7 @@
             (this clears the validate_host list)
  
   See Also:  forbid_host, register_host, noguest_host, noautoreg_host, 
-             suspect_host, goodmail_host, forbidapi_host, @site
+             suspect_host, goodmail_host, forbidapi_host, permit_host, @site
 
 & vattr_command
   Config parameter: vattr_command <alias> <user-attribute>
