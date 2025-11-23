@@ -162,6 +162,7 @@ NDECL(cf_init)
     memset(mudconf.validate_host, 0, sizeof(mudconf.validate_host));
     memset(mudconf.goodmail_host, 0, sizeof(mudconf.goodmail_host));
     memset(mudconf.nobroadcast_host, 0, sizeof(mudconf.nobroadcast_host));
+    memset(mudconf.permit_host, 0, sizeof(mudconf.permit_host));
     memset(mudconf.guest_namelist, 0, sizeof(mudconf.guest_namelist));
     memset(mudconf.log_command_list, 0, sizeof(mudconf.log_command_list));
     mudconf.mailmutt = 0;
@@ -4686,6 +4687,9 @@ CONF conftable[] =
     {(char *) "forbid_host",
      cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.forbid_host, LBUF_SIZE-1, 1, CA_WIZARD,
      (char *) "This specifies sites by NAME to forbid."},
+    {(char *) "permit_host",
+     cf_dynstring, CA_GOD | CA_IMMORTAL, (int *) mudconf.permit_host, LBUF_SIZE-1, 1, CA_WIZARD,
+     (char *) "This specifies sites by NAME to always allow."},
     {(char *) "fork_dump",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.fork_dump, 0, 0, CA_PUBLIC,
      (char *) "Are dumps done in the background?"},
