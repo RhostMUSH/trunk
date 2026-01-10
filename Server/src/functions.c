@@ -34,6 +34,7 @@ char *rindex(const char *, int);
 #include <assert.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <string.h>
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
@@ -5787,6 +5788,13 @@ FUNCTION(fun_digest)
   unsigned int n, len = 0;
   const char *digits = "0123456789abcdef";
   int len2;
+
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+  if ( quick_wild((char *)"*md4*", fargs[0]) || quick_wild((char *)"*rmd160*", fargs[0]) ) {
+     safe_str("#-1 OPENSSL3 INCORRECTLY HANDLES THESE DIGESTS", buff, bufcx);
+     return;
+  }
+#endif
 
   len2 = strlen(fargs[1]);
   if ( !fargs[0] || !*fargs[0] || ((mp = EVP_get_digestbyname(fargs[0])) == NULL) ) {
