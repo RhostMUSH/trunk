@@ -6009,6 +6009,9 @@ do_command(DESC * d, char *command)
                      if ( !stricmp(s_snarfvalue, (char *)"Upgrade" ) ) {
                         i_socksnarf++;
                      }
+		     else if ( !stricmp(s_snarfvalue, (char *)"keep-alive, Upgrade" ) ) {
+                        i_socksnarf++;
+                     }
                   }
 
                   if ( !stricmp(s_snarfheader, (char *)"Host" ) ) {
