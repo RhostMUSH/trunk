@@ -465,6 +465,7 @@ cap_articles              a an the this that these those each every either neith
 cap_preposition           aboard about above absent across after against along alongside amid amidst among amongst around as aslant astride at atop barring before behind below beneath beside besides between beyond but by despite down during except failing following for from in inside into like merry mid minus near next notwithstanding of off on onto opposite outside over past plus regarding round save since than through throughout till times to toward towards under underneath unlike until up upon via with within without anti betwixt circa cum per qua sans unto versus vis-a-vis ago apart aside away hence
 descs_are_local           0
 global_ansimask           2097151
+force_ansinorm            0
 player_name_spaces        1
 format_contents           0
 format_exits              0
@@ -494,6 +495,7 @@ exit_separator            %b%b
 help_separator            %b%b
 enforce_added_pronouns    0
 #added_pronouns
+time_paddzero             0
 
 # who/where
 
