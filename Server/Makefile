@@ -101,8 +101,15 @@ source: defaultfiles
 qdbm:
 	@(cd $(qdbmdir) ; $() clean ; ./configure; $(MAKE); rm libqdbm*.so*)
 mdbx:
-	@(cd $(mdbxdir) ; $(MAKE) clean ; $(MAKE) CFLAGS="$(MDBX_CFLAGS)" libmdbx.a)
-MDBX_CFLAGS = -O2 -g -Wall -Werror -Wextra -Wpedantic -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error=attributes -Wno-error=array-bounds
+	@cd $(mdbxdir) && \
+	  (echo '#define MDBX_BUILD_TIMESTAMP "$(shell date +%Y-%m-%dT%H:%M:%S)"' && \
+	   echo '#define MDBX_BUILD_FLAGS "$(MDBX_CFLAGS)"' && \
+	   echo '#define MDBX_BUILD_COMPILER "$(shell $(CC) --version 2>/dev/null | head -1)"' && \
+	   echo '#define MDBX_BUILD_TARGET "$(shell uname -m)-$(shell uname -s | tr A-Z a-z)"' \
+	  ) > config.h && \
+	  $(CC) $(MDBX_CFLAGS) -DNDEBUG=1 '-DMDBX_CONFIG_H="config.h"' -ULIBMDBX_EXPORTS -c mdbx.c -o mdbx-static.o && \
+	  $(AR) rs libmdbx.a mdbx-static.o
+MDBX_CFLAGS = -O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error
 gdbm:
 	@(cd $(gdbmdir) ; $() clean ; ./configure --enable-static --disable-shared; $(MAKE); rm libqdbm*.so*)
 create_oldsrc:
@@ -123,7 +130,7 @@ gdbmclean:
 qdbmclean:
 	@(cd $(qdbmdir) ; $(MAKE) clean)
 mdbxclean:
-	@(cd $(mdbxdir) ; $(MAKE) clean)
+	@rm -f $(mdbxdir)/libmdbx.a $(mdbxdir)/mdbx-static.o $(mdbxdir)/config.h $(mdbxdir)/probe4*.err $(mdbxdir)/@buildflags.tag
 gdbmrclean:
 	@(cd $(gdbmdir) ; $(MAKE) realclean)
 customize:

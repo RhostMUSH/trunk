@@ -123,12 +123,20 @@ OPTIM = -g
 #OPTIM = -O
 
 # UnterMUD database layer.
+# When MDBX is selected, use the MDBX chunk files instead of the
+# legacy bitmap/flat-file chunk files.
+ifneq (,$(findstring -DMDBX,$(CUSTDEFS)))
+UDBA_SRC = udb_acache.c udb_mdbx_achunk.c udb_attr.c
+UDBA_OBJ = udb_acache.o udb_mdbx_achunk.o udb_attr.o
+UDBO_SRC = udb_ocache.c udb_mdbx_ochunk.c udb_obj.c
+UDBO_OBJ = udb_ocache.o udb_mdbx_ochunk.o udb_obj.o
+else
 UDBA_SRC = udb_acache.c udb_achunk.c udb_attr.c
 UDBA_OBJ = udb_acache.o udb_achunk.o udb_attr.o
-UDBA_FLG = -DCACHE_ATTRS
-
 UDBO_SRC = udb_ocache.c udb_ochunk.c udb_obj.c
 UDBO_OBJ = udb_ocache.o udb_ochunk.o udb_obj.o
+endif
+UDBA_FLG = -DCACHE_ATTRS
 UDBO_FLG = -DCACHE_OBJS
 
 UDB_SRC = udb_misc.c
