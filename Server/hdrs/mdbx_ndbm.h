@@ -4,9 +4,6 @@
  * Provides the standard NDBM API (dbm_open, dbm_fetch, dbm_store, etc.)
  * backed by libmdbx. This header is included via redirect_ndbm.h when
  * MDBX is selected as the database backend.
- *
- * Phase 1: stub declarations only (enough to compile).
- * Phase 2: full implementation in mdbx_ndbm.c.
  */
 
 #ifndef MDBX_NDBM_H
@@ -25,8 +22,14 @@ typedef struct {
 typedef struct {
     MDBX_env    *env;
     MDBX_dbi     dbi;
+    /* Iteration state (held open between firstkey/nextkey calls) */
     MDBX_cursor *iter_cursor;
     MDBX_txn    *iter_txn;
+    char        *iter_buf;      /* copied key for current iteration step */
+    size_t       iter_len;
+    /* Fetch buffer (valid until next fetch or close) */
+    char        *fetch_buf;
+    size_t       fetch_len;
 } DBM;
 
 /* Store flags */
