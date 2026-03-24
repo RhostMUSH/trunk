@@ -93,6 +93,8 @@ BOPTIONS="1 2 3 4 5 6"
 C_BOPTIONS=$(echo $BOPTIONS|wc -w)
 DOPTIONS="1 2 3"
 C_DOPTIONS=$(echo $DOPTIONS|wc -w)
+EOPTIONS="1 2 3"
+C_EOPTIONS=$(echo $EOPTIONS|wc -w)
 LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
@@ -163,8 +165,6 @@ do
 done
 # default SBUF to 64 chars
 XB[3]="X"
-# default to QDBM database
-XB[5]="X"
 # default to MAX_GLOBAL_BOOST
 X[29]="#"
 # default to ATRCACHE_MAX
@@ -179,7 +179,15 @@ do
    XD[${i}]=" "
 done
 
+for i in ${EOPTIONS}
+do
+   XE[${i}]=" "
+done
+# default to QDBM database
+XE[2]="X"
+
 for i in ${LOPTIONS}
+
 do
    XL[${i}]=" "
 done
@@ -281,11 +289,15 @@ DEFB[1]=""
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
-DEFB[5]="-DQDBM"
 
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
 DEFD[3]="-DPOP3_DOORS"
+
+DEFE[1]="-DGDBM"
+DEFE[2]="-DQDBM"
+DEFE[3]="-DMDBX"
+
 DEFL[1]=""
 DEFL[2]="-DLBUF8"
 DEFL[3]="-DLBUF16"
@@ -441,6 +453,38 @@ echo "      Or, you may select a number to toggle"
 echo ""
 echo "Please Enter selection: "|tr -d '\012'
 }
+dbmmenu() {
+clear
+echo "                       RhostMUSH Main Database Choice"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "           This allows you to pick a database backend for RhostMUSH"
+echo ""
+echo "       GDBM - Outdated GNU DBM. Should not be used anymorre, as it has"
+echo "              multiple drawbacks and shortcomings, including limiting"
+echo "              string lengths to 4k, and attributes per object to 750."
+echo ""
+echo "       QDBM - More modern, but no longer maintained database. Fixes many"
+echo "              of GDBM's shortcomings, including allowing allowing for"
+echo "              configurable string lengths, and attribute amounts."
+echo ""
+echo "       MDBX - A modern, ACID compliant Key - Value database with many"
+echo "              modern features. BETA!"
+echo ""
+echo "       YOU WILL HAVE TO @DUMP/FLAT YOUR GAME DATABASE then db_load the"
+echo "       flatfile into the game when changing the database types!!"
+
+echo "          [${XE[1]}]   1. GDBM         [${XE[2]}]  2. QDBM         [${XE[3]}]  3. MDBX"
+echo ""
+echo "------------------------------------------------------------------------------"
+echo "[Q]   Go Back to Previous Menu"
+echo "------------------------------------------------------------------------------"
+echo ""
+echo "Keys: [h]elp [i]nfo"
+echo "      Or, you may select a number to toggle"
+echo ""
+echo "Please Enter selection: "|tr -d '\012'
+}
 lbufmenu() {
 lc_st1="$(ulimit -s)"
 lc_st2="${lc_st1}"
@@ -502,7 +546,7 @@ echo "[${X[28]}] 28. Enable LUA in API  [${X[29]}] 29. Boost Setq Regs    [${X[3
 echo "[${X[31]}] 31. Max PID Queues     [${X[32]}] 32. Max Player Length"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
-echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
+echo "[${XB[4]}] B4. SQLite Support     [#] B5. Database Choice    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -640,14 +684,20 @@ info() {
          ;;
       5) if [ $RUNBETA -eq 1 ]
          then
-            echo "This enables the QDBM database manager instead of the default GDBM"
-            echo "database manager.  This may be the preferred database eventhough"
-            echo "it is considered 'beta' as this is not hampered by the attribute"
-            echo "cap per dbref# (750 default) and is generally a faster and more"
-            echo "robust database engine.  Be warned, however, that QDBM is NOT"
-            echo "binary compatible with GDBM, so any existing databases"
-            echo "WILL NOT LOAD.  You have to flatfile dump the database then"
-            echo "db_load the flatfile into the database once qdbm is compiled."
+            echo "This allows you to pick a database backend for RhostMUSH"
+            echo "GDBM - Outdated GNU DBM. Should not be used anymorre, as it has"
+            echo "       multiple drawbacks and shortcomings, including limiting"
+            echo "       string lengths to 4k, and attributes per object to 750."
+            echo " "
+            echo "QDBM - More modern, but no longer maintained database. Fixes many"
+            echo "       of GDBM's shortcomings, including allowing allowing for"
+            echo "       configurable string lengths, and attribute amounts."
+            echo " "
+            echo "MDBX - A modern, ACID compliant Key - Value database with many"
+            echo "       modern features. BETA!"
+            echo " "
+            echo "YOU WILL HAVE TO @DUMP/FLAT YOUR GAME DATABASE then db_load the"
+            echo "flatfile into the game when changing the database types!!"
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
@@ -950,6 +1000,9 @@ parse() {
             if [ $TST -eq 2 ]
             then
                BETAOPT=1
+            elif [ $TST -eq 5 ]
+            then
+               BETAOPT=5
             elif [ $TST -eq 6 ]
             then
                BETAOPT=2
@@ -959,15 +1012,7 @@ parse() {
             else
                if [ "${XB[${TST}]}" = "X" ]
                then
-                  if [ "${TST}" -eq 5 ]
-                  then
-                    if [ "${XL[1]}" = "X" ]
-                    then
-                      XB[${TST}]=" "
-                    fi
-                  else
-                    XB[${TST}]=" "
-                  fi
+                  XB[${TST}]=" "
                else
                   XB[${TST}]="X"
                fi
@@ -1002,9 +1047,13 @@ parse() {
               XL[${i}]=" "
             done
             XL[$1]="X"
-            if [ ${i} -ne 1 ]
+            if [ $1 -ne 1 ]
             then
-              XB[5]="X"
+              if [ "${XE[1]}" = "X" ]
+              then
+                XE[1]=" "
+                XE[2]="X"
+              fi
             fi
          elif [ ${BETAOPT} -eq 3 -a "$TST" -gt 0 -a "$TST" -le ${C_AOPTIONS} ]
          then
@@ -1029,6 +1078,21 @@ parse() {
             if [ "$TST" -eq 2 ]
             then
                mysql_set_args
+            fi
+         elif [ ${BETAOPT} -eq 5 -a "$TST" -gt 0 -a "$TST" -le ${C_EOPTIONS} ]
+         then
+            for i in ${EOPTIONS}
+            do
+              XE[${i}]=" "
+            done
+            XE[$1]="X"
+            if [ $1 = 1 ]
+            then
+              XL[1]="X"
+              XL[2]=" "
+              XL[3]=" "
+              XL[4]=" "
+              XL[5]=" "
             fi
          elif [ ${BETAOPT} -eq 0 -a "$TST" -gt 0 -a "$TST" -le ${C_OPTIONS} ]
          then  
@@ -1488,6 +1552,10 @@ clearopts() {
    do
       XD[${i}]=" "
    done
+   for i in ${EOPTIONS}
+   do
+      XE[${i}]=" "
+   done
    for i in ${LOPTIONS}
    do
       XL[${i}]=" "
@@ -1915,6 +1983,10 @@ saveopts() {
       do
          echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
       done
+      for i in ${EOPTIONS}
+      do
+         echo "XE[$i]=\"${XE[$i]}\"" >> ${DUMPFILE}
+      done
       for i in ${LOPTIONS}
       do
          echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
@@ -1979,6 +2051,10 @@ savelaststate() {
    do
       echo "XD[$i]=\"${XD[$i]}\"" >> ${DUMPFILE}
    done
+   for i in ${EOPTIONS}
+   do
+      echo "XE[$i]=\"${XE[$i]}\"" >> ${DUMPFILE}
+   done
    for i in ${LOPTIONS}
    do
       echo "XL[$i]=\"${XL[$i]}\"" >> ${DUMPFILE}
@@ -2023,6 +2099,13 @@ setopts() {
       if [ "${XD[$i]}" = "X" ]
       then
          DEFS="${DEFD[$i]} ${DEFS}"
+      fi
+   done
+   for i in ${EOPTIONS}
+   do
+      if [ "${XE[$i]}" = "X" ]
+      then
+         DEFS="${DEFE[$i]} ${DEFS}"
       fi
    done
    for i in ${LOPTIONS}
@@ -2541,10 +2624,14 @@ updatemakefile() {
    fi
    echo "Generating DB link library for the Makefile now.  Please wait..."
    echo "# DB used for Mush Engine" >> ../src/custom.defs
-   if [ "${XB[5]}" = "X" ]
+   if [ "${XE[2]}" = "X" ]
    then
       echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
       echo "COMP=qdbm" > ../src/do_compile.var
+   elif [ "${XE[3]}" = "X" ]
+   then
+      echo "CUSTLIBS = -L../src/mdbx/ -lmdbx" >> ../src/custom.defs
+      echo "COMP=mdbx" > ../src/do_compile.var
    else
       echo "CUSTLIBS = -L../src/gdbm/.libs/ -lgdbm_compat -L../src/gdbm/ -lgdbm" >> ../src/custom.defs
       echo "COMP=gdbm" > ../src/do_compile.var
@@ -2721,6 +2808,23 @@ main() {
           done
           BETAOPT=0
       fi
+      if [ ${BETAOPT} -eq 5 ]
+      then
+          BETACONTINUE=5
+          while [ $BETACONTINUE -eq 5 ]
+          do
+             dbmmenu
+             if [ $? -ne 200 ]
+             then
+                read ANS
+                parse $ANS
+             else
+                BETACONTINUE=0
+             fi
+          done
+          BETAOPT=0
+      fi
+
 
    done
    setopts
