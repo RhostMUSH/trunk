@@ -26,6 +26,4 @@
 &CMD_ROSTER_SETLIST Roster Object <RO>=$+roster/set:@pemit %#=[header(+roster)]%rFollowing attributes are settable:%r[wrap(trim(iter(v(list_order),ifelse(pos(@,itext(0)),,before(itext(0),|)))),78)]%r[footer()]
 &CMD_ROSTER_SET_ALT Roster Object <RO>=$+set *=*:@include/command me/CMD_ROSTER_SET
 &CMD_ROSTER_SETLIST_ALT Roster Object <RO>=$+set:@include/command me/CMD_ROSTER_SETLIST
-@set Roster Object <RO>=INDESTRUCTABLE
-@set Roster Object <RO>=SAFE
-@set Roster Object <RO>=INHERIT
+@set Roster Object <RO>=INDESTRUCTIBLE SAFE INHERIT
