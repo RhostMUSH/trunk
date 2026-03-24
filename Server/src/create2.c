@@ -732,7 +732,7 @@ destroy_exit(dbref player, dbref exit)
 
     loc = Exits(exit);
     if ((loc != Location(player)) && (loc != player)
-	&& !Admin(player)) {
+	&& !Admin(player) && !HasPriv(player, NOTHING, POWER_LONG_FINGERS, POWER3, NOTHING)) {
 	notify_quiet(player, "You can not destroy exits in another room.");
 	return;
     }
@@ -861,7 +861,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 	return;
     }
     if (Indestructable(thing)) {
-	notify_quiet(player, "Sorry, that's indestructable.");
+	notify_quiet(player, "Sorry, that's indestructible.");
 	return;
     }
     if (Going(thing) || Recover(thing)) {
@@ -913,7 +913,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
     if (thing != NOTHING) {
 	if (Typeof(thing) == TYPE_PLAYER) {
 	    if (Indestructable(thing)) {
-		notify_quiet(player, "Sorry, that player is indestructable.");
+		notify_quiet(player, "Sorry, that player is indestructible.");
 		return;
 	    }
 	    if (DePriv(player, thing, DP_NUKE, POWER6, NOTHING)) {

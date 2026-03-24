@@ -29,6 +29,7 @@ void bzero(void *, int);
 
 OBJ *db;
 OBJTOTEM *dbtotem;
+LWIRE *dblwire;
 NAME *names = NULL;
 
 #ifdef TEST_MALLOC
@@ -390,6 +391,8 @@ ATTR attr[] =
     {"Cmdcheck", A_CMDCHECK, AF_IMMORTAL | AF_MDARK | AF_NOPROG, NULL},
     {"Comment", A_COMMENT, AF_MDARK | AF_WIZARD | AF_NOPROG, NULL},
     {"ConFormat", A_LCON_FMT, AF_ODARK | AF_NOPROG, NULL},
+    {"ConnInfo", A_CONNINFO, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
+    {"ConnRecord", A_CONNRECORD, AF_DARK | AF_NOPROG | AF_INTERNAL | AF_NOCMD, NULL},
     {"ControlLock", A_LCONTROL, AF_ODARK | AF_NOPROG | AF_NOCMD | AF_IS_LOCK,
      NULL},
     {"Cost", A_COST, AF_ODARK, NULL},
@@ -454,7 +457,7 @@ ATTR attr[] =
      NULL},
     {"MailLock", A_LMAIL, AF_ODARK | AF_NOPROG | AF_NOCMD | AF_IS_LOCK,
      NULL},
-    {"MailSig", A_MAILSIG, AF_ODARK | AF_NOPROG, NULL},
+    {"MailSig", A_MAILSIG, AF_ODARK | AF_NOPROG | AF_NOPARSE, NULL},
     {"MailSMax", A_MSAVEMAX, AF_ODARK | AF_NOPROG | AF_IMMORTAL, NULL},
     {"MailSCur", A_MSAVECUR, AF_ODARK | AF_NOPROG | AF_IMMORTAL, NULL},
     {"MailTime", A_MTIME, AF_ODARK | AF_NOPROG | AF_IMMORTAL, NULL},
@@ -464,6 +467,8 @@ ATTR attr[] =
     {"Name", A_NAME, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL,
      NULL},
     {"NameFormat", A_NAME_FMT, AF_ODARK | AF_NOPROG, NULL},
+    {"FlagLevel", A_FLAGLEVEL, AF_DARK | AF_NOPROG | AF_WIZARD | AF_NOCMD,
+     NULL},
     {"Odesc", A_ODESC, AF_ODARK | AF_NOPROG, NULL},
     {"Odfail", A_ODFAIL, AF_ODARK | AF_NOPROG, NULL},
     {"Odrop", A_ODROP, AF_ODARK | AF_NOPROG, NULL},
@@ -627,6 +632,9 @@ ATTR attr[] =
     {"*Pfail", A_PFAIL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_INTERNAL, NULL},
     {"RLevel", A_RLEVEL, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
     {"____ObjectTag", A_OBJECTTAG, AF_DARK | AF_NOPROG | AF_NOCMD | AF_PRIVATE | AF_INTERNAL, NULL},
+    {"MFail", A_MFAIL, AF_ODARK | AF_NOPROG, NULL},
+    {"*WireFuncEval", A_WIREFUNCEVAL, AF_DARK | AF_ODARK | AF_NOPROG | AF_GOD | AF_INTERNAL, NULL},
+    {"AMail", A_AMAIL, AF_ODARK, NULL},
     {NULL, 0, 0, NULL}};
 
 #ifndef STANDALONE
@@ -1037,6 +1045,125 @@ s_MPass(dbref thing, const char *s)
 
 #ifndef STANDALONE
 
+/* First 100k attributes only -- allow overhead buffering */
+void
+do_recache_vattrs( dbref player, int key, char *s_type, int i_internal )
+{
+   int i, i_min, i_max, i_repeat, i_pass;
+   char *s_buff, *s_ptr, *s_tmp;
+   ATTR *va;
+
+   i_min = 513; /* Let's skip past 512 just to be safe and give some buffer */
+   i_pass = i_repeat = 1;
+   i_max = ((mudstate.attr_next - 1) < (MAXVATTRCACHE - 1) ? (mudstate.attr_next - 1) : (MAXVATTRCACHE - 1));
+   switch(key) {
+      case 0: /* load cache */
+         /* Clear the current cache for reloading */
+         for ( i = 0; i < MAXVATTRCACHE + 1; i++ ) {
+            mudstate.vattr_reuse[i] = 0;
+         }
+         mudstate.vattr_reuseptr = NOTHING;
+         mudstate.vattr_reusecnt = 0;
+         /* Start at 512 to be 'safe' */
+         if ( !i_internal ) 
+            notify(player, "Loading free attribute cache.  Please wait...");
+         while ( i_repeat ) {
+            if ( !i_internal ) 
+               notify(player, unsafe_tprintf("...pass %d", i_pass));
+            i_pass++;
+            for ( i = i_min; i < i_max; i++ ) {
+               if ( i >= mudstate.attr_next || mudstate.vattr_reusecnt > (MAXVATTRCACHE - 1) )
+                  break;
+               va = atr_num_vattr(i);
+               if ( !va ) {
+                  mudstate.vattr_reuse[mudstate.vattr_reusecnt] = i;
+                  if ( mudstate.vattr_reuseptr == NOTHING ) {
+                     mudstate.vattr_reuseptr = mudstate.vattr_reusecnt;
+                  }
+                  mudstate.vattr_reusecnt++;
+               }
+               va = NULL;
+               if ( mudstate.vattr_reusecnt >= (MAXVATTRCACHE - 1) ) {
+                  i_repeat = 0;
+                  break;
+               }
+            }
+            if ( i_repeat && (mudstate.vattr_reusecnt < (MAXVATTRCACHE - 1)) ) {
+               i_min += (MAXVATTRCACHE - 1);
+               i_max += (MAXVATTRCACHE - 1);
+               if ( i_min >= mudstate.attr_next ) {
+                  i_repeat = 0;
+               }
+               if ( i_max >= mudstate.attr_next ) {
+                  i_max = (mudstate.attr_next - 1);
+               }
+            }
+            if ( mudstate.vattr_reusecnt >= (MAXVATTRCACHE - 1)) {
+               i_repeat = 0;
+            }
+         }
+         if ( !i_internal ) {
+            notify(player, "Completed.");
+            if ( mudstate.vattr_reusecnt == 0 ) {
+               notify(player, "There are no attributes to be re-used.");
+            } else {
+               notify(player, unsafe_tprintf("Total re-useable attributes cached: %d, Next to be used: %d", 
+                      mudstate.vattr_reusecnt, mudstate.vattr_reuse[mudstate.vattr_reuseptr]));
+            }
+         }
+         break;
+      case 1: /* list cache */
+         if ( !i_internal && !mudstate.vattr_reusecnt ) {
+            notify(player, "Free attribute-number cache has not been populated.");
+         } else if ( !i_internal ) {
+            notify(player, "Showing free attrib-numbers.");
+            notify(player, "------------------------------------------------------------------------------");
+            i_max=(mudstate.vattr_reusecnt / 180) + 1;
+            i_min = atoi(s_type);
+            if ( i_min < 1 )
+               i_min = 1;
+            if ( i_min > i_max )
+               i_min = i_max;
+            s_tmp = alloc_sbuf("attribute_cachesb");
+            s_ptr = s_buff = alloc_mbuf("attribute_cachemb");
+            i_repeat = 0;
+            i_pass = (i_min - 1) * 180;
+            for ( i = i_pass; i < i_pass + 180; i++ ) {
+               if ( (i >= (MAXVATTRCACHE - 1)) || (i >= mudstate.vattr_reusecnt) ) {
+                  break;
+               }
+               if ( mudstate.vattr_reuse[i] ) {
+                  sprintf(s_tmp, "%12d", mudstate.vattr_reuse[i]);
+               } else {
+                  sprintf(s_tmp, "%12s", (char *)" ");
+               }
+               if ( i_repeat % 6 ) {
+                  safe_str(s_tmp, s_buff, &s_ptr);
+               } else if ( i_repeat != 0 ) {
+                  if ( i_repeat != 6 )
+                     safe_str(s_tmp, s_buff, &s_ptr);
+                  notify(player, s_buff);
+                  memset(s_buff, '\0', MBUF_SIZE);
+                  s_ptr = s_buff;
+               } else {
+                  safe_str(s_tmp, s_buff, &s_ptr);
+               }
+               i_repeat++;
+            }
+            if ( *s_buff ) {
+               notify(player, s_buff);
+            }
+            free_sbuf(s_tmp);
+            free_mbuf(s_buff);
+            notify(player, "------------------------------------------------------------------------------");
+            notify(player, unsafe_tprintf("Page %d out of %d", i_min, i_max));
+            notify(player, unsafe_tprintf("Total re-useable attributes cached: %d, Next to be used: %d", 
+                   mudstate.vattr_reusecnt, mudstate.vattr_reuse[mudstate.vattr_reuseptr]));
+         }
+         break;
+   }
+}
+
 /* ---------------------------------------------------------------------------
  * do_attrib: Manage user-named attributes.
  */
@@ -1052,7 +1179,17 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
     VATTR *va;
     ATTR *va2;
 
+    /* If cache is specified, cache the attribute reuse cache */
     /* Look up the user-named attribute we want to play with */
+    if ( key == ATTRIB_CACHELD ) {
+       do_recache_vattrs(player, 0, aname, 0);
+       return;
+    }
+   
+    if ( key == ATTRIB_CACHESH ) {
+       do_recache_vattrs(player, 1, aname, 0);
+       return;
+    }
 
     i = delcnt = 0;
     buff = alloc_sbuf("do_attribute");
@@ -1150,7 +1287,7 @@ do_attribute(dbref player, dbref cause, int key, char *aname, char *value)
 	   vattr_delete(buff);
 	   notify(player, "Attribute deleted.");
         } else {
-           if ( va->number < 255 ) {
+           if ( (va->number < (A_USER_START - 1)) || (va->number >= A_INLINE_START) ) {
               notify(player, unsafe_tprintf("Attribute %s in use by %d dbref#'s, but is listed internal.  Deleting.", va->name, delcnt));
 	      vattr_delete(buff);
 	      notify(player, "Attribute deleted.");
@@ -1330,7 +1467,11 @@ NDECL(init_attrtab)
     hashinit(&mudstate.attr_name_htab, 521);
     buff = alloc_sbuf("init_attrtab");
     for (a = attr; a->number; a++) {
+        /* Anum extend handles outside ranges but won't abort */
 	anum_extend(a->number);
+        if ( (a->number < 0) || (a->number > A_INLINE_END) ) {
+           continue;
+        }
 	anum_set(a->number, a);
 	for (p = buff, q = (char *) a->name; *q; p++, q++)
 	    *p = ToLower((int)*q);
@@ -1575,6 +1716,50 @@ atr_str_notify(char *s)
     /* Convert the buffer name to lowercase */
 
     buff = alloc_mbuf("atr_str_notify");
+    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
+	*p = ToLower((int)*q);
+    *p = '\0';
+
+    /* Look for a predefined attribute */
+
+    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    if (a != NULL) {
+	free_mbuf(buff);
+	return a;
+    }
+    /* Nope, look for a user attribute */
+
+    if ( mudstate.nolookie )
+       va = NULL;
+    else
+       va = (VATTR *) vattr_find(buff);
+    free_mbuf(buff);
+
+    /* If we got one, load tattr and return a pointer to it. */
+
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_str_mtch(char *s)
+{
+    char *buff, *p, *q;
+    ATTR *a;
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Convert the buffer name to lowercase */
+
+    buff = alloc_mbuf("atr_str4");
     for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
 	*p = ToLower((int)*q);
     *p = '\0';
@@ -1889,7 +2074,9 @@ atr_str_bool(char *s)
  */
 
 ATTR **anum_table = NULL;
+ATTR **anum_table_inline = NULL;
 int anum_alc_top = 0;
+int anum_alc_inline_top = 0;
 
 void 
 anum_extend(int newtop)
@@ -1902,29 +2089,99 @@ anum_extend(int newtop)
 #else
     delta = 1000;
 #endif
-    if (newtop <= anum_alc_top)
-	return;
-    if (newtop < anum_alc_top + delta)
-	newtop = anum_alc_top + delta;
-    if (anum_table == NULL) {
-	anum_table = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
-	for (i = 0; i <= newtop; i++)
-	    anum_table[i] = NULL;
+    if ( newtop >= A_INLINE_START ) {
+       if ( newtop <= anum_alc_inline_top )
+          return;
+
+       /* This shouldn't happen but if the src is modified for this abort it */
+       if ( newtop >= A_INLINE_END) {
+	  STARTLOG(LOG_ALWAYS, "ATTR", "INLINE")
+             log_text("Built-in attribute number ");
+             log_unsigned(newtop);
+             log_text(" outside of range.");
+          ENDLOG
+          return;
+       }
+       if (anum_table_inline == NULL) {
+	   anum_table_inline = (ATTR **) malloc(((newtop - A_INLINE_START) + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= (newtop - A_INLINE_START); i++)
+	       anum_table_inline[i] = NULL;
+       } else {
+	   anum_table2 = (ATTR **) malloc(((newtop - A_INLINE_START) + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= (anum_alc_inline_top - A_INLINE_START); i++)
+	       anum_table2[i] = anum_table_inline[i];
+	   for (i = anum_alc_inline_top + 1; i <= (newtop - A_INLINE_START); i++)
+	       anum_table2[i] = NULL;
+	   free((char *) anum_table_inline);
+	   anum_table_inline = anum_table2;
+       }
+       anum_alc_inline_top = newtop;
+    } else if ( newtop < 0 ) {
+       /* This shouldn't happen but if the src is modified for this abort it */
+       STARTLOG(LOG_ALWAYS, "ATTR", "INLINE")
+          log_text("Built-in attribute number ");
+          log_unsigned(newtop);
+          log_text(" outside of range.");
+       ENDLOG
+       return;
     } else {
-	anum_table2 = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
-	for (i = 0; i <= anum_alc_top; i++)
-	    anum_table2[i] = anum_table[i];
-	for (i = anum_alc_top + 1; i <= newtop; i++)
-	    anum_table2[i] = NULL;
-	free((char *) anum_table);
-	anum_table = anum_table2;
+       if (newtop <= anum_alc_top)
+	   return;
+       if (newtop < anum_alc_top + delta)
+	   newtop = anum_alc_top + delta;
+       if (anum_table == NULL) {
+	   anum_table = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= newtop; i++)
+	       anum_table[i] = NULL;
+       } else {
+	   anum_table2 = (ATTR **) malloc((newtop + 1) * sizeof(ATTR *));
+	   for (i = 0; i <= anum_alc_top; i++)
+	       anum_table2[i] = anum_table[i];
+	   for (i = anum_alc_top + 1; i <= newtop; i++)
+	       anum_table2[i] = NULL;
+	   free((char *) anum_table);
+	   anum_table = anum_table2;
+       }
+       anum_alc_top = newtop;
     }
-    anum_alc_top = newtop;
 }
 
 /* ---------------------------------------------------------------------------
  * atr_num: Look up an attribute by number.
  */
+ATTR *
+atr_num_mtch(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
 ATTR *
 atr_num_chkpass(int anum)
 {
@@ -1932,8 +2189,12 @@ atr_num_chkpass(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -1961,8 +2222,12 @@ atr_num_objid(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -1990,8 +2255,12 @@ atr_num_exec(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2019,8 +2288,12 @@ atr_num_aladd(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2048,8 +2321,12 @@ atr_num_pinfo(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2077,8 +2354,12 @@ atr_num_ex(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2106,8 +2387,12 @@ atr_num4(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2135,8 +2420,12 @@ atr_num3(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2164,8 +2453,12 @@ atr_num2(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2193,8 +2486,45 @@ atr_num_lattr(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
+	return anum_get(anum);
+
+    if (anum > anum_alc_top)
+	return NULL;
+
+    /* It's a user-defined attribute, we need to copy data */
+
+    va = (VATTR *) anum_get(anum);
+    if (va != NULL) {
+	tattr.name = va->name;
+	tattr.number = va->number;
+	tattr.flags = va->flags;
+	tattr.check = NULL;
+	return &tattr;
+    }
+    /* All failed, return NULL */
+
+    return NULL;
+}
+
+ATTR *
+atr_num_vattr(int anum)
+{
+    VATTR *va;
+    static ATTR tattr;
+
+    /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
+
+    if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2222,8 +2552,12 @@ atr_num(int anum)
     static ATTR tattr;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2251,8 +2585,12 @@ atr_num_bool(int anum)
     static ATTR tattr2;
 
     /* Look for a predefined attribute */
+    if ((anum < 0) || (anum >= A_INLINE_END))
+	return NULL;
 
     if (anum < A_USER_START)
+	return anum_get(anum);
+    if (anum >= A_INLINE_START)
 	return anum_get(anum);
 
     if (anum > anum_alc_top)
@@ -2499,8 +2837,12 @@ al_add(dbref thing, int attrnum)
 	if (anum == attrnum)
 	    return;
     }
-    if ((attrnum >= A_USER_START) && (db[thing].nvattr >= mudconf.vlimit)) {
-      if (mudstate.vlplay != NOTHING) {
+    if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (db[thing].nvattr >= mudconf.vlimit)) {
+      if ( 
+#ifndef STANDALONE
+          !mudstate.dbloading &&
+#endif
+          (mudstate.vlplay != NOTHING) ) {
 #ifndef STANDALONE
 	attr = atr_num_aladd(attrnum);
         notify_quiet(mudstate.vlplay,"Variable attribute limit reached.");
@@ -2533,7 +2875,11 @@ al_add(dbref thing, int attrnum)
       return;
     }
     do_limit_add = 0;
-    if ( (attrnum > A_USER_START) && mudstate.new_vattr && 
+    if ( 
+#ifndef STANDALONE
+         !mudstate.dbloading && 
+#endif
+         (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
          !((mudstate.vlplay != NOTHING) && 
           ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
@@ -2602,7 +2948,7 @@ al_add(dbref thing, int attrnum)
           free_lbuf(s_chkattr);
        }
     }
-    if ( attrnum > 2000000000 ) {
+    if ( !mudstate.dbloading && (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
        attr = atr_num_aladd(attrnum);
        broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
                          NULL, NULL, thing, 0, 0, NULL);
@@ -2641,7 +2987,7 @@ al_add(dbref thing, int attrnum)
 
     al_code(&cp, attrnum);
     *cp = '\0';
-    if (attrnum >= A_USER_START)
+    if ( (attrnum >= A_USER_START) && (attrnum < A_INLINE_START) )
       (db[thing].nvattr)++;
     if ( do_limit_add ) {
        atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
@@ -2677,7 +3023,7 @@ al_delete(dbref thing, int attrnum)
 	dp = cp;
 	anum = al_decode(&cp);
 	if (anum == attrnum) {
-	    if (anum >= A_USER_START)
+	    if ( (anum >= A_USER_START) && (anum < A_INLINE_START) )
 	      (db[thing].nvattr)--;
 	    while (*cp) {
 		anum = al_decode(&cp);
@@ -2688,7 +3034,7 @@ al_delete(dbref thing, int attrnum)
 	}
     }
 
-    if ( (attrnum > A_USER_START) && mudstate.new_vattr && 
+    if ( (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
          !((mudstate.vlplay != NOTHING) && 
           ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
@@ -2799,7 +3145,7 @@ static char *
 atr_encode(char *iattr, dbref thing, dbref owner, int flags,
 	   int atr)
 {
-    /* Compress the sttribute string */
+    /* Compress the attribute string */
 
     iattr = (char *) compress(iattr, atr);
 
@@ -3109,20 +3455,25 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
 {
     char *buff;
     dbref parent;
-    int lev, i_player, i_chk;
+    int lev, i_player, i_chk, i_wiz=0, i_lev=-1;
     ATTR *ap;
     ZLISTNODE *z_ptr;
 
     i_chk = 0;
     if ( *retobj != -1 ) {
        i_player = *retobj;
-       if ( Good_obj(i_player) && Wizard(i_player) )
+       if ( Good_obj(i_player))
+       {
+          if(Wizard(i_player))
+             i_wiz=1;
+          i_lev = obj_bitlevel(i_player);
           i_chk = 1;
+       }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && (parent != thing) )
+        if ( i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
@@ -3163,20 +3514,25 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 {
     char *buff;
     dbref parent, gbl_parent;
-    int lev, i_player, i_chk;
+    int lev, i_player, i_chk, i_wiz=0, i_lev=-1;
     ATTR *ap;
     ZLISTNODE *z_ptr;
 
     i_chk = 0;
     if ( *retobj != -1 ) {
        i_player = *retobj;
-       if ( Good_obj(i_player) && Wizard(i_player) )
+       if ( Good_obj(i_player))
+       {
+          if(Wizard(i_player))
+             i_wiz=1;
+          i_lev = obj_bitlevel(i_player);
           i_chk = 1;
+       }
        *retobj = -1;
     }
 
     ITER_PARENTS(thing, parent, lev) {
-        if ( !i_chk && NoEx(parent) && (parent != thing) )
+        if ( i_chk && NoEx(parent) && !i_wiz && (obj_noexlevel(parent) > i_lev)  && (parent != thing) )
             break;
 	buff = atr_get_raw(parent, atr);
 	if (buff && *buff) {
@@ -3590,13 +3946,13 @@ void val_count()
       cache_reset(0);
     count = 0;
     for (anum = atr_head(d, &cp); anum; anum = atr_next(&cp)) {
-      if (anum >= A_USER_START) count++;
+      if ((anum >= A_USER_START) && (anum < A_INLINE_START)) count++;
     }
     db[d].nvattr = count; 
   }
 }
 
-int atrcint(dbref player, dbref thing, int key)
+int atrcint(dbref player, dbref thing, int key, char *s_wild)
 {
    char *cp, *newatr, *s_tprintf, *s_tprintfptr;
    int anum, aflags, count;
@@ -3617,7 +3973,7 @@ int atrcint(dbref player, dbref thing, int key)
                s_tprintfptr = s_tprintf;
                if (attr && attr->name)
                   log_text((char *)safe_tprintf(s_tprintf, &s_tprintfptr, "Attribute Name is: %s\n",attr->name));
-               if ( (key == 1) && (anum > 255) ) {
+               if ( (key == 1) && (anum > (A_USER_START - 1)) && (anum < A_INLINE_START) ) {
                   newatr = alloc_sbuf("atrcint");
 #ifndef STANDALONE
                   sprintf(newatr, "XYZZY_%d_%d", (int)(mudstate.now), anum);
@@ -3663,8 +4019,19 @@ int atrcint(dbref player, dbref thing, int key)
 #endif
            }
         }
-        if (Read_attr(player, thing, attr, aowner, aflags, 0)) {
+        if ( Read_attr(player, thing, attr, aowner, aflags, 0) ) {
+#ifndef STANDALONE
+           if ( !s_wild || !*s_wild ) {
+              count++;
+           } else if (s_wild && *s_wild ) {
+              if ( ((*s_wild == '^' ) && quick_regexp_match(s_wild, (char *)attr->name, 0)) ||
+                   ((*s_wild != '^' ) && quick_wild(s_wild, (char *)attr->name)) ) {
+                 count++;
+              }
+           }
+#else
            count++;
+#endif
         }
      }
    }
@@ -3686,6 +4053,7 @@ db_grow(dbref newtop)
     OBJ *newdb;
     OBJTOTEM *newtotem;
     NAME *newnames;
+    LWIRE *newlwire;
     char *cp;
 
 #ifndef STANDALONE
@@ -3734,6 +4102,9 @@ db_grow(dbref newtop)
 		i_Name(i);
             db[i].zonelist = NULL;
 	    db[i].nvattr = 0;
+            dblwire[i].funceval = 0;
+            dblwire[i].funceval_override = 0;
+            dblwire[i].queuemax = 0;
             for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
                dbtotem[i].flags[i_totem] = 0;
             }
@@ -3796,8 +4167,8 @@ db_grow(dbref newtop)
 
     newdb = (OBJ *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ), "db_grow.db");
     newtotem = (OBJTOTEM *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJTOTEM), "db_grow.db");
-    if (!newdb || !newtotem) {
-
+    newlwire = (LWIRE *) XMALLOC((newsize + SIZE_HACK) * sizeof(LWIRE), "db_grow.db");
+    if (!newdb || !newtotem || !newlwire) {
 	LOG_SIMPLE(LOG_ALWAYS, "ALC", "DB",
 	    unsafe_tprintf("Could not allocate space for %d item struct database.",
 		    newsize));
@@ -3809,13 +4180,17 @@ db_grow(dbref newtop)
 
 	db -= SIZE_HACK;
 	dbtotem -= SIZE_HACK;
+        dblwire -= SIZE_HACK;
 /*	bcopy((char *) db, (char *) newdb,
 	      (mudstate.db_top + SIZE_HACK) * sizeof(OBJ)); */
         memcpy((char *) newdb, (char *) db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ));
         memcpy((char *) newtotem, (char *) dbtotem, (mudstate.db_top + SIZE_HACK) * sizeof(OBJTOTEM));
+        memcpy((char *) newlwire, (char *) dblwire, (mudstate.db_top + SIZE_HACK) * sizeof(LWIRE));
 	cp = (char *) db;
 	XFREE(cp, "db_grow.db");
-        cp = (char *) dbtotem;
+	cp = (char *) dbtotem;
+	XFREE(cp, "db_grow.db");
+	cp = (char *) dblwire;;
 	XFREE(cp, "db_grow.db");
     } else {
 
@@ -3825,6 +4200,7 @@ db_grow(dbref newtop)
 
 	db = newdb;
         dbtotem = newtotem;
+        dblwire = newlwire;
 	for (i = 0; i < SIZE_HACK; i++) {
 	    s_Owner(i, GOD);
 	    s_Flags(i, (TYPE_THING | GOING));
@@ -3850,6 +4226,9 @@ db_grow(dbref newtop)
 	    s_Pennies(i, 0);
             db[i].zonelist = NULL;
 	    db[i].nvattr = 0;
+            dblwire[i].funceval = 0;
+            dblwire[i].funceval_override = 0;
+            dblwire[i].queuemax = 0;
             for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
                dbtotem[i].flags[i_totem] = 0;
             }
@@ -3858,8 +4237,10 @@ db_grow(dbref newtop)
     }
     db = newdb + SIZE_HACK;
     dbtotem = newtotem + SIZE_HACK;
+    dblwire = newlwire + SIZE_HACK;
     newdb = NULL;
     newtotem = NULL;
+    newlwire = NULL;
 
     for (i = mudstate.db_top; i < newtop; i++) {
 	if (mudconf.cache_names)
@@ -3885,6 +4266,9 @@ db_grow(dbref newtop)
 	s_Parent(i, NOTHING);
         db[i].zonelist = NULL;
 	db[i].nvattr = 0;
+        dblwire[i].funceval = 0;
+        dblwire[i].funceval_override = 0;
+        dblwire[i].queuemax = 0;
         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
            dbtotem[i].flags[i_totem] = 0;
         }
@@ -4296,9 +4680,9 @@ void do_dbclean(dbref player, dbref cause, int key)
    DESC_ITER_CONN(d) {
       if ( d->player == player ) {
          if ( key & DBCLEAN_CHECK )
-            queue_string(d,"Checking dabase of empty attributes.  Please wait...");
+            queue_string(d,"Checking database of empty attributes.  Please wait...");
          else
-            queue_string(d,"Purging dabase of empty attributes.  Please wait...");
+            queue_string(d,"Purging database of empty attributes.  Please wait...");
          queue_write(d, "\r\n", 2);
          process_output(d);
       }
@@ -4315,7 +4699,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    }
    DO_WHOLE_DB(i) {
       for (ca=atr_head(i, &cs); ca; ca=atr_next(&cs)) {
-         if ( ca > A_USER_START ) {
+         if ( (ca > A_USER_START) && (ca < A_INLINE_START) ) {
             atr = atr_num2(ca);
             if ( atr ) {
                va = (VATTR *) vattr_find((char *)atr->name);

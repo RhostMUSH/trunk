@@ -1,16 +1,152 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "$#" -ne "1" ]
 then
-   echo "One(1) argument is expected.  Allowed arguments:"
+   echo "One(1)argument is expected.  Allowed arguments:"
    echo "   patch     -- patch the source."
    echo "   status    -- status of the source (compiling or completed)."
    echo "   rollback  -- roll back to the previous combined binary."
    echo "   recompile -- recompile the source."
    echo "   force     -- if a previous compile hung, try again."
+   echo "   update    -- update the patch.sh."
+   echo "   makefile  -- update Makefiles."
    exit 0
 fi
 arg=$(echo $1)
 case "${arg}" in
+   makefile) # Makefile updater
+      lc_src="https://raw.githubusercontent.com/RhostMUSH/trunk/master/Server/scripts.sh"
+      lc_pull=0
+      # verify we even have the script updater.
+      if [ ! -f ../scripts.sh ]
+      then
+         echo "Script updater was not found.  We'll pull it down for you."
+         wget --version > /dev/null 2>&1
+         if [ $? -eq 0 ]
+         then
+            wget -O ../scripts.sh "${lc_src}"
+            lc_pull=1
+         else
+            echo "Wget not found.  Falling back to curl..."
+            curl --version > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+               cd ..
+               curl -o ../scripts.sh "${lc_src}"
+               lc_pull=1
+            else
+               echo "Curl not found.  falling back to lynx..."
+               lynx --version > /dev/null 2>&1
+               if [ $? -eq 0 ]
+               then
+                  lynx --dump "${lc_src}" > ../scripts.sh 2>/dev/null
+               else
+                  echo "Could not find wget, curl, or lynx to download."
+                  echo "please manually download scripts.sh from the git hub site and place it in Server."
+                  exit 1
+               fi
+            fi
+         fi
+      fi
+      chmod 755 ../scripts.sh
+      # verify the -m option exists
+      lc_chk="$(cd .. && ./scripts.sh -h|grep -c "update main Makefile")"
+      if [ ${lc_chk} -eq 0 ]
+      then
+         echo "patcher is an old patcher.  Please update patch.sh first."
+         exit 1
+      fi
+      if [ -f ../src/x2 ]
+      then
+         lc_chk="$(grep -c "#EXIT" ../src/x2)"
+         if [ ${lc_chk} -eq 0 ]
+         then
+            echo "Still updating patcher and/or Makefile."
+            exit 1
+         else
+            echo "Old makefile update log file seen.  Cleaning up..."
+            rm -f ../src/x2
+         fi
+      fi
+      if [ -f ../src/x ]
+      then
+         echo "Verifying active compile is not occuring."
+         lc_activecompile="$(find ../src/x -type f -cmin -10)"
+         if [ -n "${lc_activecompile}" ]
+         then
+            echo "You can not update the patcher or Makefile during an active compile."
+            exit 1
+         fi
+         echo "Cleaning up old compile marker..."
+         rm -f ../src/x
+      fi
+      lc_pth=$(pwd)
+      cd ..
+      ./scripts.sh -m > ./src/x2 2>&1 &
+      cd ${lc_pth}
+      ;;
+   update) # update patcher
+      lc_src="https://raw.githubusercontent.com/RhostMUSH/trunk/master/Server/scripts.sh"
+      lc_pull=0
+      # verify we even have the script updater.
+      if [ ! -f ../scripts.sh ]
+      then
+         echo "Script updater was not found.  We'll pull it down for you."
+         wget --version > /dev/null 2>&1
+         if [ $? -eq 0 ]
+         then
+            wget -O ../scripts.sh "${lc_src}"
+            lc_pull=1
+         else
+            echo "Wget not found.  Falling back to curl..."
+            curl --version > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+               curl -o ../scripts.sh "${lc_src}"
+               lc_pull=1
+            else
+               echo "Curl not found.  falling back to lynx..."
+               lynx --version > /dev/null 2>&1
+               if [ $? -eq 0 ]
+               then
+                  lynx --dump "${lc_src}" > ../scripts.sh 2>/dev/null
+               else
+                  echo "Could not find wget, curl, or lynx to download."
+                  echo "please manually download scripts.sh from the git hub site and place it in Server."
+                  exit 1
+               fi
+            fi
+         fi
+      fi
+      chmod 755 ../scripts.sh
+      if [ -f ../src/x2 ]
+      then
+         lc_chk="$(grep -c "#EXIT" ../src/x2)"
+         if [ ${lc_chk} -eq 0 ]
+         then
+            echo "Still updating patcher and/or Makefile."
+            exit 1
+         else
+            echo "Old patch update log file seen.  Cleaning up..."
+            rm -f ../src/x2
+         fi
+      fi
+      if [ -f ../src/x ]
+      then
+         echo "Verifying active compile is not occuring."
+         lc_activecompile="$(find ../src/x -type f -cmin -10)"
+         if [ -n "${lc_activecompile}" ]
+         then
+            echo "You can not update the patcher or Makefile during an active compile."
+            exit 1
+         fi
+         echo "Cleaning up old compile marker..."
+         rm -f ../src/x
+      fi
+      lc_pth=$(pwd)
+      cd ..
+      ./scripts.sh -p > ./src/x2 2>&1 &
+      cd ${lc_pth}
+      ;;
    force) # force recompile
       if [ -d ../rhost_tmp ]
       then
@@ -22,6 +158,7 @@ case "${arg}" in
          echo "Cleaning up old compile marker..."
          rm -f ../src/x
       fi
+      cd ..
       echo "Y"|./patch.sh > ./src/x 2>&1 &
       echo "Compiling..."
       ;;
@@ -57,8 +194,23 @@ case "${arg}" in
          echo ""
          echo "Still compiling.  Be patient..."
       else
-         echo "Completed."
-         rm -f ../src/x
+         if [ -f ../src/x2 ]
+         then
+            echo "..."
+            tail -2 ../src/x2
+            echo ""
+            lc_chk=$(grep -c "#EXIT" ../src/x2)
+            if [ ${lc_chk} -eq 0 ]
+            then
+               echo "Still updating..."
+            else
+               echo "Completed."
+               rm -f ../src/x2
+            fi
+         else
+            echo "Completed."
+            rm -f ../src/x
+         fi
       fi
       ;;
    rollback) # rollback the source

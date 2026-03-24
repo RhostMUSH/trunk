@@ -8,12 +8,13 @@ if 'cc' is not defined, try the following:
 
                  gcc portmsg.c -o portmsg
 
-Once compiled, you would then modify the file 'file' to describe
-the mush, what was done, where it's moved to, then specify the
-IP address and the PORT where specified.
-
 To launch the application, you would then type:
 
-                 ./portmsg file <port>
+                 ./portmsg <file> <port>
 
-Where <port> is the port where the mush used to run at.              
+Where <port> is the port where the mush used to run at.
+
+Where <file> is the file displayed to those connecting.
+
+'moved.txt' is provided as an example for <file>, but will still
+need to be edited to contain the new location.              

@@ -71,7 +71,11 @@ do_list_file(dbref player, dbref cause, int extra, char *arg)
 {
     int flagvalue;
 
-    flagvalue = search_nametab(player, list_files, arg);
+    if ( arg && *arg ) {
+       flagvalue = search_nametab(player, list_files, arg);
+    } else {
+       flagvalue = -1;
+    }
     if (flagvalue < 0) {
 	display_nametab(player, list_files,
 			(char *) "Unknown file.  Use one of:", 1);
@@ -434,7 +438,7 @@ fcache_dump(DESC * d, int num, char *s_site)
              sarray[3] = alloc_lbuf("fcache_dump2");
              sarray[4] = NULL;
              strcpy(sarray[0], inet_ntoa(d->address.sin_addr));
-             strcpy(sarray[1], d->addr);
+             strcpy(sarray[1], d->longaddr);
              sprintf(sarray[2], "%d", d->descriptor);
              if ( d->player <= 0 )
                 sprintf(sarray[3], "#%d", NOTHING);
@@ -472,7 +476,9 @@ fcache_dump(DESC * d, int num, char *s_site)
 #endif
                 i_length = strlen(lbuf1);
                 queue_write(d, lbuf1, i_length);
+/*
                 queue_write(d, "\r\n", 2);
+*/
                 free_lbuf(lbuf1);
                 free_lbuf(lbuf2);
                 free_lbuf(lbuf3);
@@ -491,7 +497,9 @@ fcache_dump(DESC * d, int num, char *s_site)
              sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
              i_length = strlen(lbuf1);
              queue_write(d, lbuf1, i_length);
+/*
              queue_write(d, "\r\n", 2);
+*/
              free_lbuf(lbuf1);
           } else {
              fp = fcache[num].fileblock;
@@ -507,7 +515,9 @@ fcache_dump(DESC * d, int num, char *s_site)
           sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
           i_length = strlen(lbuf1);
           queue_write(d, lbuf1, i_length);
+/*
           queue_write(d, "\r\n", 2);
+*/
           free_lbuf(lbuf1);
        } else {
           fp = fcache[num].fileblock;

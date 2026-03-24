@@ -125,7 +125,7 @@ struct NewsGroupArticleInfoRec {
   time_t expire_time;
   int next_seq;
 };
-  
+
 typedef struct NewsGroupArticleTextRec NewsGroupArticleTextRec;
 struct NewsGroupArticleTextRec {
   char group_name[GROUP_NAME_LEN];

@@ -8,7 +8,7 @@
 #include <rms.h>
 
 /*
-	VMS deals poorly with variable length keys, so we use fixed length ones 
+	VMS deals poorly with variable length keys, so we use fixed length ones
 made by padding the small variable length ones out. KEY_SIZE should, therefore,
 be large enough to hold the largest key you plan to use. Add that to
 the size of the largest datum you will associate with a key to compute

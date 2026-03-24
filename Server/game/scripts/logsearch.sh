@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 export GREP_COLORS="ms=31:mc=31:sl=:cx=:fn=35:ln=32:bn=32:se=36" 
 export gl_black="\o33\[30m"
 export gl_red="\o33\[31m"

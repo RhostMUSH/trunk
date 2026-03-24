@@ -47,8 +47,7 @@ expect(int s, int match, char *buf)
 	ptr = buf;
 	n = recv(s, ptr, size, MSG_PEEK);
 	if (n <= 0) {
-		mudstate.alarm_triggered = 0;
-		alarm_msec(next_timer());
+		mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	size -= n;
@@ -57,16 +56,16 @@ expect(int s, int match, char *buf)
 		do {
 			cc = read(s, ptr, n);
 			if (cc < 0) {
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			if (cc != n) {
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			ptr += n;
 			if ((n = recv(s, ptr, size, MSG_PEEK)) <= 0) {
-				alarm_msec(next_timer());
+                                mudstate.alarm_triggered = 2;
 				return 0;
 			}
 			size -= n;
@@ -78,16 +77,15 @@ expect(int s, int match, char *buf)
 		newline = 1 + p - ptr;
 	cc = read(s, buf, newline);
 	if (cc < 0) {
-		alarm_msec(next_timer());
+                mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	if (cc != newline) {
-		alarm_msec(next_timer());
+                mudstate.alarm_triggered = 2;
 		return 0;
 	}
 	buf[newline] = '\0';
-	mudstate.alarm_triggered = 0;
-	alarm_msec(next_timer());
+	mudstate.alarm_triggered = 2;
 	if (!isxdigit((int)*buf)) {
 		return 0;
 	}
@@ -177,7 +175,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Posible bad country name. (stage 5).\r\n");
+    queue_string(desc_in_use, "Login to empire server failed. Possible bad country name. (stage 5).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PASS, password)) {
@@ -185,7 +183,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Posible bad password. (stage 7).\r\n");
+    queue_string(desc_in_use, "Login to empire server failed. Possible bad password. (stage 7).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PLAY, (char *)0)) {

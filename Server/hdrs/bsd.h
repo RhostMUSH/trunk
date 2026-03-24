@@ -22,7 +22,7 @@
 
 /* BSD has slight non-POSIX names (and meanings :-) for some things */
 
-#define FAPPEND		O_APPEND 
+#define FAPPEND		O_APPEND
 
 #include <limits.h>
 
@@ -34,8 +34,8 @@
 
 #define NBBY		CHAR_BIT
 
-/* gloss over slight differences between BSD direct and POSIX dirent */
-  
+/* gloss over slight differences between BSD dirent and POSIX dirent */
+
 #define d_namlen	d_reclen
 
 #if 0

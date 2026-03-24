@@ -34,7 +34,7 @@
 #define MF_STATS	0x0002
 #define MF_FAIL		0x0004
 #define MF_CONN		0x0008
-#define MF_GFAIL	0x0010 
+#define MF_GFAIL	0x0010
 #define MF_VLIMIT	0x0020
 #define MF_TRIM		0x0040
 #define MF_AREG		0x0080
@@ -72,7 +72,7 @@
 #define MYOPIC          0x00010000      /* See things as nonowner/nonwizard */
 #define PUPPET          0x00020000      /* Relays ALL messages to owner */
 #define CHOWN_OK        0x00040000      /* Object may be @chowned freely */
-#define ENTER_OK        0x00080000      /* Object may be ENTERed */
+#define ENTER_OK        0x00080000      /* Object may be ENTER'd */
 #define VISUAL          0x00100000      /* Everyone can see properties */
 #define IMMORTAL        0x00200000      /* Object can't be killed */
 #define HAS_STARTUP     0x00400000      /* Load some attrs at startup */
@@ -82,7 +82,7 @@
 #define NOSPOOF         0x04000000      /* Report originator of all actions. */
 #define ROBOT           0x08000000      /* Player is a ROBOT */
 #define SAFE            0x10000000      /* Need /override to @destroy */
-#define CONTROL_OK      0x20000000      /* ControlLk specifies who ctrls me */
+#define CONTROL_OK      0x20000000      /* Control_OK specifies who ctrls me */
 #define HEARTHRU        0x40000000      /* Can hear out of this obj or exit */
 #define TERSE           0x80000000      /* Only show room name on look */
 
@@ -96,7 +96,7 @@
 #define HAS_LISTEN      0x00000040      /* Internal: LISTEN attr set */
 #define HAS_FWDLIST     0x00000080      /* Internal: FORWARDLIST attr set */
 #define ADMIN           0x00000100      /* Player has admin privs */
-#define GUILDOBJ        0x00000200      
+#define GUILDOBJ        0x00000200
 #define GUILDMASTER     0x00000400      /* Player has gm privs */
 #define NO_WALLS        0x00000800      /* So to stop normal walls */
 #define REQUIRE_TREES 	0x00001000	/* Trees are required on this target for attrib sets */
@@ -169,8 +169,8 @@
 #define MARKER7         0x00000800
 #define MARKER8         0x00001000
 #define MARKER9         0x00002000
-#define BOUNCE		0x00004000	/* That lovly TM 3.0 Bouncey thingy */
-#define SHOWFAILCMD     0x00008000      /* Show failed $commands defauilt error */
+#define BOUNCE		0x00004000	/* That lovely TM 3.0 Bouncy thingy */
+#define SHOWFAILCMD     0x00008000      /* Show failed $commands default error */
 #define NOUNDERLINE     0x00010000      /* Strip UNDERLINE character from ANSI */
 #define NONAME		0x00020000	/* Target does not display name with look */
 #define ZONEPARENT	0x00040000	/* Target zone allows inheritance of attribs */
@@ -178,10 +178,10 @@
 #define BLIND           0x00100000      /* Exits and locations snuff arrived/left */
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
-#define XTERMCOLOR      0x00800000      /* Extended AnSI Xterm colors */
+#define XTERMCOLOR      0x00800000      /* Extended ANSI Xterm colors */
 #define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
 #define HAS_OBJECTTAG   0x02000000      /* Has ____ObjectTag attribute set */
-/* 0x04000000 free */
+#define COLORMAIL	0x04000000 	/* Colorize the mail names */
 /* 0x08000000 free */
 /* 0x10000000 free */
 /* 0x20000000 free */
@@ -197,8 +197,8 @@
 #define TOG_MONITOR_FAIL	0x00000010	/* show fails */
 #define TOG_MONITOR_CONN	0x00000020
 #define TOG_VANILLA_ERRORS      0x00000040      /* show normal error msg */
-#define TOG_NO_ANSI_EX          0x00000080      /* supress ansi stuff in ex */
-#define TOG_CPUTIME		0x00000100	/* show cpu time for cmds */
+#define TOG_NO_ANSI_EX          0x00000080      /* suppress ansi stuff in ex */
+#define TOG_CPUTIME		0x00000100	/* show CPU time for cmds */
 #define TOG_MONITOR_DISREASON	0x00000200
 #define TOG_MONITOR_VLIMIT	0x00000400
 #define TOG_NOTIFY_LINK		0x00000800
@@ -217,7 +217,7 @@
 #define TOG_WIELDABLE           0x01000000      /* Marker to specify if object is wieldable */
 #define TOG_WEARABLE            0x02000000      /* Marker to specify if object is wearable */
 #define TOG_SEE_SUSPECT         0x04000000      /* Specify who sees suspect in WHO/MONITOR */
-#define TOG_MONITOR_CPU         0x08000000      /* Specify who sees CPU overflow allerts */
+#define TOG_MONITOR_CPU         0x08000000      /* Specify who sees CPU overflow alerts */
 #define TOG_BRANDY_MAIL         0x10000000      /* Define brandy like mail interface */
 #define TOG_FORCEHALTED         0x20000000      /* The item toggled can @force halted things */
 #define TOG_PROG                0x40000000      /* Can use @program on other people/things */
@@ -229,7 +229,7 @@
 #define TOG_IMMPROG             0x00000002      /* Only an immortal can @quitprogram them */
 #define TOG_MONITOR_BFAIL       0x00000004      /* Monitor if a failed connect on bad character */
 #define TOG_PROG_ON_CONNECT	0x00000008	/* Reverse logic of program on connect */
-#define TOG_MAIL_STRIPRETURN    0x00000010      /* Strip carrage return in mail combining */
+#define TOG_MAIL_STRIPRETURN    0x00000010      /* Strip carriage return in mail combining */
 #define TOG_PENN_MAIL           0x00000020      /* Use PENN style syntax */
 #define TOG_SILENTEFFECTS       0x00000040	/* Silents did_it() functionality on target */
 #define TOG_IGNOREZONE          0x00000080      /* Target is set to @icmd zones */
@@ -313,7 +313,7 @@
 
 /* Third word of power positions. */
 #define POWER_OPURGE		0
-#define POWER_HIDEBIT           2 
+#define POWER_HIDEBIT           2
 #define POWER_NOWHO             4
 #define POWER_FULLTEL_ANYWHERE  6
 #define POWER_EX_FULL           8
@@ -321,7 +321,7 @@
 #define POWER_MONITORAPI	12
 #define POWER_WIZ_IDLE		14
 #define POWER_WIZ_SPOOF		16
-/* 18 free */
+#define POWER_USE_FREELIST	18
 /* 20 free */
 /* 22 free */
 /* 24 free */
@@ -370,7 +370,7 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
-/* 6  free */
+/* 06 free */
 #define DP_DARK			8
 /* 10 free */
 /* 12 free */
@@ -442,6 +442,129 @@
 #define ANSI_THING      2
 #define ANSI_ROOM	4
 #define ANSI_EXIT	8
+
+/* ---------- First word of totems */
+#define	TOTEM_MARKER0	0x00000001 /* slot 9 */
+#define TOTEM_MARKER0_SLOT	9
+#define	TOTEM_MARKER1	0x00000002 /* slot 9 */
+#define TOTEM_MARKER1_SLOT	9
+#define	TOTEM_MARKER2	0x00000004 /* slot 9 */
+#define TOTEM_MARKER2_SLOT	9
+#define	TOTEM_MARKER3	0x00000008 /* slot 9 */
+#define TOTEM_MARKER3_SLOT	9
+#define	TOTEM_MARKER4	0x00000010 /* slot 9 */
+#define TOTEM_MARKER4_SLOT	9
+#define	TOTEM_MARKER5	0x00000020 /* slot 9 */
+#define TOTEM_MARKER5_SLOT	9
+#define	TOTEM_MARKER6	0x00000040 /* slot 9 */
+#define TOTEM_MARKER6_SLOT	9
+#define	TOTEM_MARKER7	0x00000080 /* slot 9 */
+#define TOTEM_MARKER7_SLOT	9
+#define	TOTEM_MARKER8	0x00000100 /* slot 9 */
+#define TOTEM_MARKER8_SLOT	9
+#define	TOTEM_MARKER9	0x00000200 /* slot 9 */
+#define TOTEM_MARKER9_SLOT	9
+#define TOTEM_API_LUA	0x00000400 /* slot 9 */
+#define TOTEM_API_LUA_SLOT	9
+#define TOTEM_PROMPT 	0x00000800 /* slot 9 */
+#define TOTEM_PROMPT_SLOT 	9
+/* 0x00001000 free */
+/* 0x00002000 free */
+/* 0x00004000 free */
+/* 0x00008000 free */
+/* 0x00010000 free */
+/* 0x00020000 free */
+/* 0x00040000 free */
+/* 0x00080000 free */
+/* 0x00100000 free */
+/* 0x00200000 free */
+/* 0x00400000 free */
+/* 0x00800000 free */
+/* 0x01000000 free */
+/* 0x02000000 free */
+/* 0x04000000 free */
+/* 0x08000000 free */
+/* 0x10000000 free */
+/* 0x20000000 free */
+/* 0x40000000 free */
+/* 0x80000000 free */
+
+/* ---------- Second word of totems */
+/* 0x00000001 free */
+/* 0x00000002 free */
+/* 0x00000004 free */
+/* 0x00000008 free */
+/* 0x00000010 free */
+/* 0x00000020 free */
+/* 0x00000040 free */
+/* 0x00000080 free */
+/* 0x00000100 free */
+/* 0x00000200 free */
+/* 0x00000400 free */
+/* 0x00000800 free */
+/* 0x00001000 free */
+/* 0x00002000 free */
+/* 0x00004000 free */
+/* 0x00008000 free */
+/* 0x00010000 free */
+/* 0x00020000 free */
+/* 0x00040000 free */
+/* 0x00080000 free */
+/* 0x00100000 free */
+/* 0x00200000 free */
+/* 0x00400000 free */
+/* 0x00800000 free */
+/* 0x01000000 free */
+/* 0x02000000 free */
+/* 0x04000000 free */
+/* 0x08000000 free */
+/* 0x10000000 free */
+/* 0x20000000 free */
+/* 0x40000000 free */
+/* 0x80000000 free */
+
+/* ---------- Third word of totems */
+/* 0x00000001 free */
+/* 0x00000002 free */
+/* 0x00000004 free */
+/* 0x00000008 free */
+/* 0x00000010 free */
+/* 0x00000020 free */
+/* 0x00000040 free */
+/* 0x00000080 free */
+/* 0x00000100 free */
+/* 0x00000200 free */
+/* 0x00000400 free */
+/* 0x00000800 free */
+/* 0x00001000 free */
+/* 0x00002000 free */
+/* 0x00004000 free */
+/* 0x00008000 free */
+/* 0x00010000 free */
+/* 0x00020000 free */
+/* 0x00040000 free */
+/* 0x00080000 free */
+/* 0x00100000 free */
+/* 0x00200000 free */
+/* 0x00400000 free */
+/* 0x00800000 free */
+/* 0x01000000 free */
+/* 0x02000000 free */
+/* 0x04000000 free */
+/* 0x08000000 free */
+/* 0x10000000 free */
+/* 0x20000000 free */
+/* 0x40000000 free */
+#define TOTEM_SETQLABEL	0x80000000 /* slot 9 */
+#define TOTEM_SETQLABEL_SLOT	9
+
+/* Undeclared words of totems (outside of reserved 3 slots)
+ * 
+ * Undeclared words are outside the 'three' word levels of totems
+ * These will have the default of '?' as the flag letter
+ * and can only be referenced by name
+ */
+
 
 /* ---------------------------------------------------------------------------
  * TOTEMENT: Information about object totem flags.
@@ -555,12 +678,14 @@ extern char *   FDECL(power_description, (dbref, dbref, int, int));
 extern char *   FDECL(depower_description, (dbref, dbref, int, int));
 extern FLAGENT *FDECL(find_flag, (dbref, char *));
 extern TOGENT *FDECL(find_toggle, (dbref, char *));
+extern TOTEMENT *FDECL(find_totem, (dbref, char *));
+extern int	FDECL(check_totem, (dbref, dbref, char *));
 extern char *   FDECL(decode_flags, (dbref, dbref, FLAG, FLAG, FLAG, FLAG));
 extern void     FDECL(decode_flags_func, (dbref, dbref, FLAG, FLAG, FLAG, FLAG, char *, char *));
 extern int      FDECL(has_flag, (dbref, dbref, char *));
 extern char *   FDECL(unparse_object, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_altname, (dbref, dbref, int));
-extern char *   FDECL(unparse_object_ansi, (dbref, dbref, int));
+extern char *   FDECL(unparse_object_ansi, (dbref, dbref, int, int));
 extern char *   FDECL(unparse_object_ansi_altname, (dbref, dbref, int));
 extern char *   FDECL(unparse_object2, (dbref, dbref, int));
 extern char *   FDECL(unparse_object_numonly, (dbref));
@@ -593,7 +718,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* WHODark(X)           - Should X be hidden from the WHO report */
 /* Builder(X)           - Is X allowed to add on to the db */
 /* Floating(X)          - Prevent 'disconnected room' msgs for room X */
-/* Quiet(X)             - Should 'Set.' messages et al from X be disabled */
+/* Quiet(X)             - Should 'Set.' messages et al. from X be disabled */
 /* Verbose(X)           - Should owner receive all commands executed? */
 /* Trace(X)             - Should owner receive eval trace output? */
 /* Player_haven(X)      - Is the owner of X no-page */
@@ -602,7 +727,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Suspect(X)           - Is X someone the wizzes should keep an eye on */
 /* Slave(X)             - Should X be prevented from db-changing commands */
 /* Safe(X,P)            - Does P need the /OVERRIDE switch to @destroy X? */
-/* Monnitor(X)          - Should we check for ^xxx:xxx listens on player? */
+/* Monitor(X)          - Should we check for ^xxx:xxx listens on player? */
 /* Terse(X)             - Should we only show the room name on a look? */
 /* Myopic(X)            - Should things as if we were nonowner/nonwiz */
 /* Audible(X)           - Should X forward messages? */
@@ -611,9 +736,9 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Findable(X)          - Can @whereis find X */
 /* Unfindable(X)        - Is @whereis blocked for X */
 /* No_robots(X)         - Does X disallow robot players from using */
-/* Has_location(X)      - Is X something with a location (ie plyr or obj) */
-/* Has_home(X)          - Is X something with a home (ie plyr or obj) */
-/* Has_contents(X)      - Is X something with contents (ie plyr/obj/room) */
+/* Has_location(X)      - Is X something with a location (i.e. plyr or obj) */
+/* Has_home(X)          - Is X something with a home (i.e. plyr or obj) */
+/* Has_contents(X)      - Is X something with contents (i.e. plyr/obj/room) */
 /* Good_obj(X)          - Is X inside the DB and have a valid type? */
 /* Good_owner(X)        - Is X a good owner value? */
 /* Going(X)             - Is X marked GOING? */
@@ -633,6 +758,12 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 /* Read_attr(P,X,A,O,F,Z) - Can P see attr A on X if attr has owner O */
 /* Write_attr(P,X,A,F)  - Can P set/change attr A (with flags F) on X */
 
+/* Define totem functionaries for totem flags */
+#define SetqLabel(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_SETQLABEL_SLOT] & TOTEM_SETQLABEL)))
+#define LuaAPI(x)	(mudconf.setqlabel || (Good_obj(x) && (dbtotem[x].flags[TOTEM_API_LUA_SLOT] & TOTEM_API_LUA)))
+#define Prompt(x)	((Good_obj(x) && (dbtotem[x].flags[TOTEM_PROMPT_SLOT] & TOTEM_PROMPT)))
+
+/* Flag and Toggle definitions */
 #define InProgram(x)    ((Flags4(x) & INPROGRAM) != 0)
 #define Login(x)	((Flags4(x) & LOGIN) != 0)
 #define Bouncer(x)	((Flags4(x) & BOUNCE) != 0)
@@ -657,7 +788,9 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define NoUselock(x)    ((Flags3(x) & NO_USELOCK) != 0)
 #define NoAnsiName(x)   ((Flags3(x) & NO_ANSINAME) != 0)
 #define Spoof(x)        ((Flags3(x) & SPOOF) != 0)
-#define SideFX(x)	((Flags3(x) & SIDEFX) != 0)
+// #define SideFX(x)	((Flags3(x) & SIDEFX) != 0)
+#define SideFX(x)	( (((Flags3(x) & SIDEFX) != 0) && !mudconf.global_sideeffects) || \
+                          (((Flags3(x) & SIDEFX) == 0) && mudconf.global_sideeffects) )
 #define VanillaErrors(x) ((Toggles(x) & TOG_VANILLA_ERRORS) != 0)
 #define No_Ansi_Ex(x)	((Toggles(x) & TOG_NO_ANSI_EX) != 0)
 #define CpuTime(x)	((Toggles(x) & TOG_CPUTIME) != 0)
@@ -835,11 +968,11 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Builder(x)      (evlevchk(x,2) ? mudstate.evalresult : \
 			((Flags2(x) & BUILDER) || \
 			 Admin(x) || \
-			 ((Flags2(Owner(x)) & BUILDER) && Inherits(x)))) 
+			 ((Flags2(Owner(x)) & BUILDER) && Inherits(x))))
 #else
 #define Builder(x)	((Flags2(x) & BUILDER) || \
 			 Admin(x) || \
-			 ((Flags2(Owner(x)) & BUILDER) && Inherits(x))) 
+			 ((Flags2(Owner(x)) & BUILDER) && Inherits(x)))
 #endif
 #define Connected(x)    (((Flags2(x) & CONNECTED) != 0) && \
 			 (Typeof(x) == TYPE_PLAYER))
@@ -875,6 +1008,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ZoneParent(x)	((Flags4(x) & ZONEPARENT) != 0)
 #define NoSpam(x)	((Flags4(x) & SPAMMONITOR) != 0)
 #define Blind(x)        ((Flags4(x) & BLIND) != 0)
+#define ColorMail(x)	((Flags4(x) & COLORMAIL) != 0)
 
 #define H_Startup(x)    ((Flags(x) & HAS_STARTUP) != 0)
 #define H_Fwdlist(x)    ((Flags2(x) & HAS_FWDLIST) != 0)
@@ -939,6 +1073,11 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			   !(Flags2(Owner(x)) & BUILDER) && \
 			   !(((a)->flags & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER)) || \
                              (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN|AF_BUILDER))))
+#define CANSEE(player, target) \
+   ((!Cloak(target) || Wizard(player)) && \
+   (!(Dark(target) && mudconf.player_dark) || Wizard(player)) && \
+   (!SCloak(target) || Immortal(player)))
+
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
@@ -997,8 +1136,8 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
                                              AF_ADMIN|AF_BUILDER| \
                                              AF_GUILDMASTER)) || \
                                (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD| \
-                                     AF_ADMIN|AF_BUILDER|AF_GUILDMASTER)))))) 
-#endif 
+                                     AF_ADMIN|AF_BUILDER|AF_GUILDMASTER))))))
+#endif
 #ifndef STANDALONE
 #define ControlsforattrZoneWizard(p,x,a,f) \
                         (ZoneWizard(p,x) && \
@@ -1030,7 +1169,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
                                            AF_ADMIN|AF_BUILDER| \
                                            AF_GUILDMASTER)) || \
                              (f & (AF_GOD|AF_IMMORTAL|AF_WIZARD|AF_ADMIN| \
-                                   AF_BUILDER|AF_GUILDMASTER)))))) 
+                                   AF_BUILDER|AF_GUILDMASTER))))))
 #else
 #define ControlsforattrZoneWizard(p,x,a,f) (0)
 #endif
@@ -1056,7 +1195,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
                          ( (God(p) || !(((a)->flags & AF_GOD) || (f & AF_GOD))) && \
                            (Immortal(p) || !(((a)->flags & AF_IMMORTAL) || (f & AF_IMMORTAL))) \
                          ) \
-			) 
+			)
 #define Write_attr(p,x,a,f) \
                         ((God(p) && !((a)->flags & AF_INTERNAL)) || \
                          (!God(x) && Controlsforattr(p,x,a,f) && \
@@ -1070,5 +1209,6 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Has_power(p,x)  (check_access((p),powers_nametab[x].flag, 0, 0))
 
 #define WizMod(x) (Immortal(x) || (Wizard(x) && !mudconf.imm_nomod))
+
 
 #endif

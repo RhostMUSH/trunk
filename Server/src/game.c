@@ -7,6 +7,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+
+#include <dirent.h>
+
 #ifdef HAS_OPENSSL
 #include <openssl/sha.h>
 #include <openssl/evp.h>
@@ -23,6 +26,7 @@
 #include "rwho_clilib.h"
 #include "alloc.h"
 #include "local.h"
+#include "rhost_utf8.h"
 
 #ifdef REALITY_LEVELS
 #include "levels.h"
@@ -69,6 +73,9 @@ extern dbref FDECL(match_thing_quiet, (dbref, char *));
 extern void FDECL(init_logfile, ());
 extern void FDECL(close_logfile, ());
 extern void FDECL(totem_write_to_disk, ());
+extern unsigned int FDECL(CRC32_ProcessBuffer, (unsigned int, const void *, unsigned int));
+extern double FDECL(safe_atof, (char *));
+extern char FDECL(*ColorName, (dbref, int));
 
 void FDECL(fork_and_dump, (int, char *));
 void NDECL(dump_database);
@@ -86,6 +93,208 @@ int reserved;
  * used to allocate storage for temporary stuff, cleared before command
  * execution
  */
+
+ATRCACHE *atrcache_head;
+
+/* Set totem reservation values */
+void
+set_totem_reserved( int i_slot, int i_val ) {
+   if ( (i_slot >= 0) && (i_slot < TOTEM_SLOTS) )
+      mudconf.totem_reserved[i_slot] = (i_val ? 1 : 0);
+}
+
+/* Initialize totem reservation slots */
+void
+init_totemreservations( void ) {
+   int i_slots;
+
+   for ( i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+      mudconf.totem_reserved[i_slots] = 0;
+   }
+
+   /* Add hardcode reservations here */
+   set_totem_reserved(9, 1);
+}
+
+#define MAXTZONES 1000
+char *global_timezones[MAXTZONES] = {'\0'};
+int global_timezone_max = 0;
+
+/* Initialize timezone data for the server */
+int
+walk_subdirs( char *s_dir, char *s_dir2, char *prefix, int *i_cnt)
+{
+   DIR *dir;
+   FILE *fp;
+   char *t_buff, *t_buff2, *s_dirt; 
+   static char s_tst[3];
+   struct dirent *files;
+   struct stat st_buf;
+
+   dir = opendir(s_dir);
+   s_dirt = s_dir;
+   memset(s_tst, '\0', sizeof(s_tst));
+
+   if ( dir == NULL ) {
+      if ( s_dir2 && *s_dir2 ) {
+         dir = opendir(s_dir2);
+      }
+      if ( dir == NULL ) {
+         STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+            log_text((char *) "File path not found.");
+         ENDLOG
+         return 1;
+      }
+      s_dirt = s_dir2;
+   }
+
+   t_buff = alloc_mbuf("walk_subdirs");
+   t_buff2 = alloc_mbuf("walk_subdirs");
+   while ( (files = readdir(dir)) != NULL ) {
+      if ( *i_cnt >= (MAXTZONES - 1) ) {
+         STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+            log_text((char *) "More than maximum zones found.");
+         ENDLOG
+         break;
+      }
+      if ( (strcmp(files->d_name, ".") != 0) && (strcmp(files->d_name, "..") != 0) ) {
+         sprintf(t_buff2, "%s/%s", s_dirt, files->d_name);
+         stat(t_buff2, &st_buf);
+         if ( st_buf.st_mode & S_IFDIR ) {
+            sprintf(t_buff, "%s/", files->d_name);
+            walk_subdirs(t_buff2, (char *)NULL, t_buff, i_cnt);
+         }
+         /* Abort on recursion check for cnt > value -- alert handled in recursion call */
+         if ( *i_cnt >= (MAXTZONES - 1) ) {
+            break;
+         }
+
+         /* Let's validate the file as a TZ file */
+         fp = fopen(t_buff2, "r");
+         if ( fp ) {
+            fread( &s_tst, 2, 1, fp );
+            fclose(fp);
+            if ( strcmp(s_tst, "TZ") ) {
+               continue;
+            }
+         } else {
+            continue;
+         }
+                 
+         global_timezones[*i_cnt] = alloc_mbuf("init_timezones");
+         if ( *prefix ) {
+            sprintf(global_timezones[*i_cnt], "%s%.*s", prefix, MBUF_SIZE - 1, files->d_name);
+         } else {
+            sprintf(global_timezones[*i_cnt], "%.*s", MBUF_SIZE - 1, files->d_name);
+         }
+         (*i_cnt)++;
+      }
+   }
+   free_mbuf(t_buff);
+   free_mbuf(t_buff2);
+
+   if ( dir ) {
+      closedir(dir);
+   }
+
+   return 0;
+}
+
+/* Validate timezones -- this ovewrites inbuffer with case-sensitive version */
+int
+validate_timezones( char *s_timezone ) {
+   char **s_ptr, *s_inptr;
+   static char s_tmp[SBUF_SIZE+1];
+   int i_found;
+
+   i_found = 0;
+   memset(s_tmp, '\0', SBUF_SIZE + 1);
+   if ( s_timezone && *s_timezone ) {
+      strncpy(s_tmp, s_timezone, SBUF_SIZE - 1);
+   }
+
+   if ( s_tmp && *s_tmp ) {
+      s_inptr = s_tmp;
+      while ( *s_inptr ) {
+         if ( (*s_inptr == '+') || (*s_inptr == '-') ) {
+            *s_inptr = '\0';
+            break;
+         }
+         s_inptr++;
+      }
+      for ( s_ptr = global_timezones; s_ptr && *s_ptr; s_ptr++ ) {
+         if ( !stricmp(*s_ptr, s_tmp) ) {
+            /* This is a compare -- the buffer will never be exceeded */
+            strncpy(s_timezone, *s_ptr, strlen(*s_ptr));
+            i_found = 1;
+            break;
+         }
+      }
+   }
+   return(i_found);
+}
+
+void
+init_timezones( void ) {
+   int i_cnt, i_err;
+
+   i_cnt = 0;
+   i_err = walk_subdirs((char *)"/usr/share/zoneinfo/posix", (char *)"/usr/share/zoneinfo", (char *)"", &i_cnt);
+
+   if ( !i_err ) {
+      STARTLOG(LOG_ALWAYS, "TZ", "INFO")
+         log_text((char *) "A total of ");
+         log_number(i_cnt);
+         log_text((char *) " timezones have been loaded.");
+      ENDLOG
+   }
+   global_timezone_max = i_cnt;
+}
+
+void
+init_atrcache( void ) {
+   int i_cnt;
+   ATRCACHE *cp, *cpnext;
+
+   cpnext = NULL;
+   for ( i_cnt = 0; i_cnt < mudconf.atrcachemax; i_cnt++ ) {
+      cp = (ATRCACHE *) malloc(sizeof(ATRCACHE));
+      cp->name = NULL;
+      cp->s_cache = NULL;
+      cp->s_cachebuild = NULL;
+      cp->i_interval=3600;
+      cp->i_lastrun=0;
+      cp->owner = 1;
+      cp->visible = 0;
+      cp->lock = 1;
+      cp->enabled=0;
+      cp->next = NULL;
+      cp->commandtrig = 0;
+      if ( !atrcache_head ) {
+           atrcache_head = cp;
+      } else {
+         for (cpnext = atrcache_head; cpnext->next; cpnext = cpnext->next);
+         cpnext->next = cp;
+      }
+   }
+   STARTLOG(LOG_ALWAYS, "ATC", "INFO")
+      log_text((char *) "AtrCache: Initialized with ");
+      log_number(mudconf.atrcachemax);
+      log_text((char *) " total caches.");
+   ENDLOG
+}
+
+void
+reset_atrcache_commandtrig( void ) {
+   ATRCACHE *cp;
+
+   for (cp = atrcache_head; cp->next; cp = cp->next) {
+      if ( cp->enabled )
+         cp->commandtrig = 1;
+      else
+         cp->commandtrig = 0;
+   }
+}
 
 void
 setq_templates(dbref thing)
@@ -112,6 +321,7 @@ setq_templates(dbref thing)
             if ( s_intok2 && *s_intok2 ) {
 #ifdef EXPANDED_QREGS
                if ( isalpha(*c_field) ) {
+                  /* MAX_GLOBAL_REGS only */
                   for ( i = 0; i < MAX_GLOBAL_REGS; i++ ) {
                      if ( mudstate.nameofqreg[i] == tolower(*c_field) )
                         break;
@@ -126,6 +336,9 @@ setq_templates(dbref thing)
                   regnum = atoi(c_field);
                }
 #endif
+               if ( (regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) )
+                  regnum = -1;
+
                if ( regnum != -1 ) {
                   strncpy(mudstate.global_regsname[regnum], s_intok2, (SBUF_SIZE - 1));
                }
@@ -220,8 +433,8 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
         do_brk, aflags_set, oldchk, chkwild, i_inparen;
     char *buff, *s, *s2, *s3, *as, *s_uselock, *atext, *result, buff2[LBUF_SIZE+1];
-    char *args[10], *savereg[MAX_GLOBAL_REGS], *pt, *cpuslam, *cputext, *cpulbuf,
-         *saveregname[MAX_GLOBAL_REGS], *npt;
+    char *args[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *cpuslam, *cputext, *cpulbuf,
+         *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
     ATTR *ap, *ap2;
 
     DPUSH; /* #70 */
@@ -314,7 +527,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 	if (!*s)
 	    continue;
 	*s++ = 0;
-        /* Allow attributes set NO_PARSE to pass in what player types verbatum */
+        /* Allow attributes set NO_PARSE to pass in what player types verbatim */
         if ( PCRE_EXEC && ((aflags & AF_REGEXP) || (ap->flags & AF_REGEXP)) ) {
            s3 = buff + 1;
            memset(buff2, '\0', sizeof(buff2));
@@ -361,7 +574,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                         aflags_set = ap2->number;
                         if ( atext ) {
                            if ( !(attrib2 & AF_NOPROG) ) {
-                              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                              for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                                  savereg[x] = alloc_lbuf("ulocal_reg");
                                  saveregname[x] = alloc_sbuf("ulocal_regname");
                                  pt = savereg[x];
@@ -391,7 +604,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                                  atr_set_flags(parent, aflags_set, (attrib2 | AF_NOPROG) );
                               }
                               free_lbuf(cputext);
-                              for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+                              for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                                  pt = mudstate.global_regs[x];
                                  npt = mudstate.global_regsname[x];
                                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -473,6 +686,139 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     RETURN(0); /* #70 */
 }
 
+int
+verify_checksum(dbref thing) 
+{
+   ATTR *ap, *ap2;
+   unsigned int ulCRC32;
+   char *s_str, *s_buff, *as, *s_chksum, *s_tok;
+   int anum, anumsave, anumignore1, anumignore2, aflags, i_len;
+   time_t t_tme;
+   dbref aowner;
+
+
+   /* If CPU time hit or time exceeded just bypass checksum checks */
+   t_tme = time(NULL);
+   if ( mudstate.chkcpu_toggle || ((mudstate.now + 5) <= t_tme )) {
+      return 1;
+   }
+
+   /* CRC attribute doesn't exist in hash, ignore entirely */
+   ap2 = atr_str_mtch("__CRC32");
+   if ( !ap2 ) {
+      return 1;
+   }
+   anumsave = ap2->number;
+
+   /* Object has no CRC attribute, ignore entirely */
+   s_str = atr_get(thing, anumsave, &aowner, &aflags);
+   if ( !s_str ) {
+      return 1;
+   }
+
+   /* Object's CRC attribute is empty, ignore entirely */
+   if ( !*s_str ) {
+      free_lbuf(s_str);
+      return 1;
+   }
+
+   s_chksum = strtok_r(s_str, " ", &s_tok);
+   if ( s_chksum ) {
+      s_chksum = strtok_r(NULL, " ", &s_tok);
+   }
+
+   /* Object's CRC is corrupt, ignore entirely */
+   if ( !s_chksum || !*s_chksum ) {
+      free_lbuf(s_str);
+      return 1;
+   }
+
+   ulCRC32 = 0;
+   s_buff = alloc_lbuf("verify_checksum");
+
+   anumignore1 = anumignore2 = -1;
+   ap2 = atr_str_mtch("__ATTRPIPE");
+   if ( ap2 ) {
+      anumignore1 = ap2->number;
+   }
+
+   ap2 = atr_str_mtch("_IDLESTAMP");
+   if ( ap2 ) {
+      anumignore2 = ap2->number;
+   }
+
+   for (anum = atr_head(thing, &as); anum; anum = atr_next(&as)) {
+      ap = atr_num_mtch(anum);
+      if ( !ap ) {
+         continue;
+      }
+
+      if ( (ap->flags & AF_INTERNAL) ||
+           (ap->number == anumsave) || 
+           (ap->number == anumignore1) ||
+           (ap->number == anumignore2) ||
+           (ap->number == A_CHARGES) ||
+           (ap->number == A_MONEY) ||
+           (ap->number == A_LAST) ||
+           (ap->number == A_QUEUEMAX) ||
+           (ap->number == A_RQUOTA) ||
+           (ap->number == A_NAME) ||
+           (ap->number == A_SEMAPHORE) ||
+           (ap->number == A_QUOTA) ||
+           (ap->number == A_PRIVS) ||
+           (ap->number == A_LOGINDATA) ||
+           (ap->number == A_LASTSITE) ||
+           (ap->number == A_LAMBDA) ||
+           (ap->number == A_BCCMAIL) ||
+           (ap->number == A_MPSET) ||
+           (ap->number == A_MPASS) || 
+           (ap->number == A_LASTPAGE) ||
+           (ap->number == A_RETPAGE) ||
+           (ap->number == A_MCURR) ||
+           (ap->number == A_MQUOTA) ||
+           (ap->number == A_LQUOTA) ||
+           (ap->number == A_TQUOTA) ||
+           (ap->number == A_MTIME) || 
+           (ap->number == A_MSAVEMAX) ||
+           (ap->number == A_MSAVECUR) ||
+           (ap->number == A_IDENT) ||
+           (ap->number == A_TOTCMDS) ||
+           (ap->number == A_LSTCMDS) ||
+           (ap->number == A_MODIFY_TIME) ||
+           (ap->number == A_TOTCHARIN) ||
+           (ap->number == A_TOTCHAROUT) ||
+           (ap->number == A_LASTCREATE) ||
+           (ap->number == A_SAVESENDMAIL) ||
+           (ap->number == A_PROGBUFFER) ||
+           (ap->number == A_PROGPROMPT) || 
+           (ap->number == A_PROGPROMPTBUF) ||
+           (ap->number == A_TEMPBUFFER) ||
+           (ap->number == A_DESTVATTRMAX) ||
+           (ap->number == A_LASTIP) || 
+           (ap->number == A_OBJECTTAG) || 
+           (ap->number == A_CREATED_TIME) ||
+           (ap->number == A_MODIFY_TIME) ||
+           ((ap->number >= 252) && (ap->number <= 255)) ) {
+         continue;
+      }
+      (void) atr_get_str(s_buff, thing, ap->number, &aowner, &aflags);
+      i_len = strlen(s_buff);
+      ulCRC32 = CRC32_ProcessBuffer(ulCRC32, s_buff, i_len);
+   }
+
+   /* Stored checksum matches calculated checksum */
+   if ( (unsigned int)safe_atof(s_chksum) == ulCRC32 ) {
+      free_lbuf(s_str);
+      free_lbuf(s_buff);
+      return 1;
+   }
+
+   /* Fell through with a bad checksum */
+   free_lbuf(s_str);
+   free_lbuf(s_buff);
+   return 0;
+}
+
 int 
 atr_match(dbref thing, dbref player, char type, char *str, int check_parents, int dpcheck)
 {
@@ -481,6 +827,11 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
     dbref parent;
 
     DPUSH; /* #71 */
+
+    /* Abort if enforced CRC */
+    if ( mudconf.enforce_checksums && !verify_checksum(thing) ) {
+       RETURN(0); /* #71 */
+    }
 
     /* If COMMANDS is defined, check if exists, if not, don't even bother */
 #ifdef ENABLE_COMMAND_FLAG
@@ -615,7 +966,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *mp2, *msg_utf, *mp_utf, *pvap[4];
 #endif
     char *msg_ns, *mp, *msg_ns2, *tbuff, *tp, *buff, *s_tstr, *s_tbuff, *vap[4];
-    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr;
+    char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr, *s_tb1, *s_tb2;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0, i_chkcpu;
     int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
@@ -796,11 +1147,31 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
-	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
-                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
+	                  CANSEE(target,mudstate.posesay_dbref) && !HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
+                        !Spoof(mudstate.posesay_dbref) && !Spoof(Owner(mudstate.posesay_dbref)) ) {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                   
+                    /* Replace @N/@n and @K/@k with name and colorname */
+                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  } else {
                     sprintf(vap[3], "#%d", -1);
+
+                    /* Replace @N/@n and @K/@k with invalid name (since it's undefined here) */
+                    s_tb1 = replace_string("@N", (char *)"#-1", s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", (char *)"#-1", s_tb2, 0);
+                    s_pipeattr = replace_string("@k", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
@@ -835,7 +1206,14 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
-                    raw_notify(target, vap[0], port, 1);
+                    
+                    if ( UTF8(target) ) {
+                       raw_notify(target, vap[2], port, 1);
+                    } else if ( Accents(target) ) {
+                       raw_notify(target, vap[1], port, 1);
+                    } else {
+                       raw_notify(target, vap[0], port, 1);
+                    }
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
@@ -873,11 +1251,31 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
                  if ( Good_chk(mudstate.posesay_dbref) && 
-	              ( !(Wizard(mudstate.posesay_dbref) || HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
-                        Immortal(target) || Spoof(mudstate.posesay_dbref) || Spoof(Owner(mudstate.posesay_dbref)) ) ) {
+	                 CANSEE(target,mudstate.posesay_dbref) && !HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
+                        !Spoof(mudstate.posesay_dbref) && !Spoof(Owner(mudstate.posesay_dbref)) )  {
                     sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+
+                    /* Replace @N/@n and @K/@k with name and colorname */
+                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  } else {
                     sprintf(vap[3], "#%d", -1);
+
+                    /* Replace @N/@n and @K/@k with invalid name (since it's undefined here) */
+                    s_tb1 = replace_string("@N", (char *)"#-1", s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_pipeattr);
+                    free_lbuf(s_tb1);
+                    s_tb1 = replace_string("@K", (char *)"#-1", s_tb2, 0);
+                    s_pipeattr = replace_string("@k", (char *)"#-1", s_tb1, 0);
+                    free_lbuf(s_tb1);
+                    free_lbuf(s_tb2);
                  }
                  ttm2 = localtime(&mudstate.now);
                  ttm2->tm_year += 1900;
@@ -912,7 +1310,14 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     pvap[1] = vap[1] = alloc_lbuf("vap1");
                     pvap[2] = vap[2] = alloc_lbuf("vap2");
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
-                    raw_notify(target, vap[0], port, 1);
+
+                    if ( UTF8(target) ) {
+                       raw_notify(target, vap[2], port, 1);
+                    } else if ( Accents(target) ) {
+                       raw_notify(target, vap[1], port, 1);
+                    } else {
+                       raw_notify(target, vap[0], port, 1);
+                    }
                     free_lbuf(vap[0]);
                     free_lbuf(vap[1]);
                     free_lbuf(vap[2]);
@@ -2092,7 +2497,7 @@ static void
 NDECL(process_preload)
 {
     dbref thing, parent, aowner;
-    int aflags, lev, i_matchint, i_totem;
+    int aflags, lev, i_matchint, i_totem, i_lwire, i_lwireovride;
     char *tstr, *tstr2, *s_strtok, *s_strtokr, *s_matchstr;
     FWDLIST *fp;
 
@@ -2101,32 +2506,25 @@ NDECL(process_preload)
     fp = (FWDLIST *) alloc_lbuf("process_preload.fwdlist");
     tstr = alloc_lbuf("process_preload.string");
     tstr2 = alloc_lbuf("process_preload.string");
-    DO_WHOLE_DB(thing) {
 
-       /* Ignore GOING objects */
+    /* We need to walk once through to set up all attribute tags and other things
+     * we do not need need to execute queue for this, it's just setting up attribs/cache
+     * we can *not* do any evaluation in this loop.  This just sets cache/attributes ONLY
+     */
+    STARTLOG(LOG_ALWAYS, "INI", "DB-P1")
+       log_text((char*) "First Pass - Loading totems, protectnames, and tags.");
+    ENDLOG
+    DO_WHOLE_DB(thing) {
        if (Going(thing))
           continue;
 
-       do_top(10);
-
-
-       /* Clear semaphores on objects */
-       /* atr_clr(thing, A_SEMAPHORE); */
-
-       /* Look for a STARTUP attribute in parents */
-       if ( !mudconf.no_startup ) {
-          ITER_PARENTS(thing, parent, lev) {
-             if (Flags(thing) & HAS_STARTUP) {
-                did_it(Owner(thing), thing, 0, NULL, 0, NULL, A_STARTUP, (char **) NULL, 0);
-                /* Process queue entries as we add them */
-                do_second();
-                do_top(10);
-                cache_reset(0);
-                break;
-             }
+       if ( God(thing) ) {
+          (void) atr_get_str(tstr, thing, A_CONNRECORD, &aowner, &aflags);
+          if ( *tstr ) {
+             mudstate.recordconn = atoi(tstr);
           }
+          
        }
-
        /* Load the memory based structure data for Totems A_PRIVS is *Totems */
        (void) atr_get_str(tstr, thing, A_PRIVS, &aowner, &aflags);
        for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
@@ -2167,15 +2565,27 @@ NDECL(process_preload)
           }
        }
 
-       /* Look for a FORWARDLIST attribute */
-       if (H_Fwdlist(thing)) {
-          (void) atr_get_str(tstr, thing, A_FORWARDLIST, &aowner, &aflags);
-          if (*tstr) {
-             fwdlist_load(fp, GOD, tstr);
-             if (fp->count > 0)
-                fwdlist_set(thing, fp);
+       /* Set the live wire function evaluation */
+       (void) atr_get_str(tstr, thing, A_WIREFUNCEVAL, &aowner, &aflags);
+       if ( *tstr ) {
+          if ( sscanf(tstr, "%d %d", &i_lwire, &i_lwireovride) == 2 ) {
+             dblwire[thing].funceval = i_lwire;
+             dblwire[thing].funceval_override = i_lwireovride;
+          } else {
+             dblwire[thing].funceval = 0;
+             dblwire[thing].funceval_override = 0;
           }
-          cache_reset(0);
+       } else {
+          dblwire[thing].funceval = 0;
+          dblwire[thing].funceval_override = 0;
+       }
+       /* Set the live wire queuemax */
+       (void) atr_get_str(tstr, thing, A_WIREQUEUEMAX, &aowner, &aflags);
+       if ( *tstr ) {
+          i_lwire = atoi(tstr);
+          dblwire[thing].queuemax = i_lwire;
+       } else {
+          dblwire[thing].queuemax = 0;
        }
 
        /* Look for an OBJECTTAG attribute */
@@ -2197,6 +2607,52 @@ NDECL(process_preload)
        }
     }
 
+    STARTLOG(LOG_ALWAYS, "INI", "DB-P2")
+       log_text((char*) "Second Pass - Loading startup and forwardlists.");
+    ENDLOG
+    /* This runs the startups and other baseline */
+    DO_WHOLE_DB(thing) {
+       /* Ignore GOING objects */
+       if (Going(thing))
+          continue;
+
+       do_top(10);
+
+
+       /* Clear semaphores on objects */
+       /* atr_clr(thing, A_SEMAPHORE); */
+
+       /* Look for a STARTUP attribute in parents */
+       if ( !mudconf.no_startup ) {
+          ITER_PARENTS(thing, parent, lev) {
+             if (Flags(thing) & HAS_STARTUP) {
+                did_it(Owner(thing), thing, 0, NULL, 0, NULL, A_STARTUP, (char **) NULL, 0);
+                /* Process queue entries as we add them */
+                do_second();
+                do_top(10);
+                cache_reset(0);
+                break;
+             }
+          }
+       }
+
+       /* Look for a FORWARDLIST attribute */
+       if (H_Fwdlist(thing)) {
+          (void) atr_get_str(tstr, thing, A_FORWARDLIST, &aowner, &aflags);
+          if (*tstr) {
+             fwdlist_load(fp, GOD, tstr);
+             if (fp->count > 0)
+                fwdlist_set(thing, fp);
+          }
+          cache_reset(0);
+       }
+
+    }
+
+    STARTLOG(LOG_ALWAYS, "INI", "DB-CX")
+       log_text((char*) "Completed - Parsing startup of database.");
+    ENDLOG
+
     free_lbuf(fp);
     free_lbuf(tstr);
     free_lbuf(tstr2);
@@ -2210,7 +2666,7 @@ main(int argc, char *argv[])
 {
     DESC *d;
     int mindb;
-    char gdbmDbPath[300];
+    char gdbmDbPath[300], *s_a, *s_b, *s_c, *s_ap, *s_bp, *s_cp, *s_buff, *s_buffp;
     int argidx;
     int got_config = 0;
     int rebooting = 0;
@@ -2219,14 +2675,57 @@ main(int argc, char *argv[])
     int shmid;
 #endif
 
-    if ( (argc > 1) && 
-         (!stricmp(argv[1], "--version") ||
-          !stricmp(argv[1], "-version") ||
-          !stricmp(argv[1], "-v")) ) {
-        init_version();
-        printf("%s\n", mudstate.version);
-        printf("Build date: %.150s\n", MUSH_BUILD_DATE);
-        exit(0);
+    if ( (argc > 1) ) {
+       if (  !stricmp(argv[1], "--help") ||
+            !stricmp(argv[1], "-help") ||
+            !stricmp(argv[1], "-h") ) {
+          printf("Syntax: Following options are available:\n");
+          printf("        -h  -- show this help.\n");
+          printf("        -v  -- print version.\n");
+          printf("        -s <config file> -- Initialize new db.\n");
+          printf("        -p <string>  -- Parse markup to raw ansi.\n");
+          exit(0);
+       } else if ( !stricmp(argv[1], "--version") ||
+            !stricmp(argv[1], "-version") ||
+            !stricmp(argv[1], "-v") ) {
+          init_version();
+          printf("%s\n", mudstate.version);
+          printf("Build date: %.150s\n", MUSH_BUILD_DATE);
+          exit(0);
+       } else if ( (argc > 2) && 
+                   ( (!stricmp(argv[1], "--parse") ||
+                      !stricmp(argv[1], "-parse") ||
+                      !stricmp(argv[1], "-p"))
+                   )
+                ) {
+
+          if ( !*argv[2] ) {
+	     fprintf(stderr, "Usage: %s -p \"[string]\"\n", argv[0]);
+             exit(0);
+          }
+          /* We need to init all the pools */
+          pool_init(POOL_LBUF, LBUF_SIZE);
+          pool_init(POOL_MBUF, MBUF_SIZE);
+          pool_init(POOL_SBUF, SBUF_SIZE);
+
+          s_ap = s_a = alloc_lbuf("parse_ansia");
+          s_bp = s_b = alloc_lbuf("parse_ansib");
+          s_cp = s_c = alloc_lbuf("parse_ansic");
+          s_buffp = s_buff = alloc_lbuf("input_buffer");
+
+          safe_str(argv[2], s_buff, &s_buffp);
+
+          mudconf.global_ansimask = 0xFFFFFFFF;
+          parse_ansi((char *) s_buff, s_a, &s_ap, s_b, &s_bp, s_c, &s_cp);
+          fprintf(stdout, "%s\r\n", s_c);
+          fflush(stdout);
+          free_lbuf(s_a);
+          free_lbuf(s_b);
+          free_lbuf(s_c);
+          free_lbuf(s_buff);
+          exit(0);
+       }
+       /* Fall through here and continue on */
     }
  
     db = NULL;
@@ -2262,6 +2761,9 @@ main(int argc, char *argv[])
     pool_init(POOL_QENTRY, sizeof(BQUE));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
 
+    pool_init(POOL_ATRCACHE, LBUF_SIZE);
+    pool_init(POOL_ATRNAME, SBUF_SIZE);
+
     init_pid_table();
     tcache_init();
     pcache_init();
@@ -2285,6 +2787,7 @@ main(int argc, char *argv[])
 #ifdef ENABLE_DOORS
     initDoorSystem();
 #endif
+    init_totemreservations();
     hashinit(&mudstate.player_htab, 521);
     hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);
@@ -2293,8 +2796,22 @@ main(int argc, char *argv[])
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
-    /* Clean the conf to avoid naughtyness */
+    /* Read in timezone data before the config files */
+    init_timezones();
+    /* Clean the conf to avoid naughtiness */
     unlink("rhost_vattr.conf");
+
+    if ( TOTEM_SLOTS > LBUF_TOTEM ) {
+        STARTLOG(LOG_ALWAYS, "INI", "TOTEM")
+          log_text((char*) "Fatal: Total defined totems above maximum allowed [");
+          log_number(TOTEM_SLOTS);
+          log_text((char*) " defined, ");
+          log_number(LBUF_TOTEM);
+          log_text((char*) " allowed].  Shutting down RhostMUSH.");
+        ENDLOG
+        fprintf(stderr, "FATAL: Totem slots defined too large.  %d defined, %d max allowed.\n", TOTEM_SLOTS, LBUF_TOTEM);
+        exit(1);
+    }
 
     for( argidx = 1; argidx < argc; argidx++ ) {
       if( !strcmp(argv[argidx], "-s") ) {
@@ -2326,6 +2843,8 @@ main(int argc, char *argv[])
 
     fcache_init();
     helpindex_init();
+
+    init_atrcache();
 
 #ifndef NODEBUGMONITOR
     debugmem = shmConnect(mudconf.debug_id, 0, &shmid);   
@@ -2389,6 +2908,7 @@ main(int argc, char *argv[])
         DPOP; /* #92 */
 	exit(2);
     }
+    mudstate.dbloading = 1; /* fast-load attributes without additional checks */
     if (mindb)
 	db_make_minimal();
     else if (load_game(rebooting) < 0) {
@@ -2399,14 +2919,17 @@ main(int argc, char *argv[])
 	DPOP; /* #92 */
 	exit(2);
     }
+    mudstate.dbloading = 0;
     srandom(getpid());
     set_signals();
 
     /* initialize the buffers and variables */
-    for (mindb = 0; mindb < MAX_GLOBAL_REGS; mindb++) {
+    for (mindb = 0; mindb < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); mindb++) {
 	mudstate.global_regs[mindb] = alloc_lbuf("main.global_reg");
 	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_regname");
+#ifndef NO_GLOBAL_REGBACKUP
 	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");
+#endif
     }
 
     /* Do a consistency check and set up the freelist */

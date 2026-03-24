@@ -1,5 +1,5 @@
 #!/bin/sh
-for i in `ls . | grep -v -e bin -e src -e hdrs -e readme -e convert -e autoshutdown -e minimal-DBs -e portredirector `
+for i in `ls . | grep -v -e bin -e src -e hdrs -e readme -e convert -e autoshutdown -e minimal-DBs -e portredirector -e stunnel -e defaults`
 do
    if [ -d $i ]; then
       cd $i

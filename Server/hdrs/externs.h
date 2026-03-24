@@ -47,6 +47,21 @@
 #define SPLIT_NOANSI		0x10
 #define SPLIT_FG		0x20
 #define SPLIT_BG		0x40
+#define SPLIT_STRIP		0x80
+
+typedef struct atrcache {
+        char	*name;		/* Cache name */
+	char	*s_cache;	/* Holder of the cached data */
+	char	*s_cachebuild;	/* Code that is executed to cache data */
+	time_t	i_interval;	/* interval (in seconds) to re-run s_cachebuild */
+	time_t	i_lastrun;	/* time it was last checked against */
+	dbref	owner;		/* Owner of the cache (who's allowed to make changes) */
+	int	enabled;	/* Is cache initialized and enabled */
+	int	visible;	/* Is cache executable/visible to everyone? */
+	int	lock;		/* Is cache only executable by owner/controller? */
+	int	commandtrig;	/* Check if new command then force recache -- if interval is '0' command refresh */
+        struct atrcache *next;	/* Next item in list */
+} ATRCACHE;
 
 typedef struct ansisplit {
 	char	s_fghex[5];	/* Hex representation - foreground */
@@ -55,8 +70,8 @@ typedef struct ansisplit {
 	char	c_bgansi;	/* Normal background ansi */
 	int	i_special;	/* Special ansi characters */
 	char	c_accent;	/* Various accent characters */
-        int	i_ascii8;	/* ASCII-8 encoding */
-    int i_utf8; /* UTF-8 encoding */
+	int	i_ascii8;	/* ASCII-8 encoding */
+	int 	i_utf8; 	/* UTF-8 encoding */
 } ANSISPLIT;
 
 typedef struct atrp {
@@ -64,7 +79,7 @@ typedef struct atrp {
         int     flag_set;       /* who can set/clear attrib */
         int     flag_see;       /* who can see attrib */
         dbref	owner;		/* Owner of who set it (if not global which is -1) */
-        dbref   controller;	/* Who controlls the attribute setting */
+        dbref   controller;	/* Who controls the attribute setting */
         dbref   target;		/* The actual target object */
 	dbref	enactor;	/* The actual enactor of the command itself */
         struct atrp *next;      /* Next ufun in chain */
@@ -125,7 +140,7 @@ extern void	FDECL(areg_add, (char *, dbref));
 extern int	FDECL(areg_del_player, (dbref));
 
 /* From cque.c */
-extern void     FDECL(show_que_func, (dbref, char *, int, char, char *, char *[], char));
+extern void     FDECL(show_que_func, (dbref, char *, int, char, char *, char *[], char, int));
 
 extern int	FDECL(nfy_que, (dbref, int, int, int));
 extern int	FDECL(halt_que, (dbref, dbref));
@@ -141,16 +156,16 @@ extern void	NDECL(recover_queue_deposits);
 extern void	NDECL(tcache_init);
 extern char *	FDECL(parse_to, (char **, char, int));
 extern char *	FDECL(parse_arglist, (dbref, dbref, dbref, char *, char, int,
-			char *[], int, char*[], int, int, char *[], int));
+			char *[], int, char*[], int, int, char *[], int, char *));
 extern int	FDECL(get_gender, (dbref));
 #ifdef ZENTY_ANSI
 extern void     FDECL(parse_ansi, (char *, char *, char **, char *, char **, char*, char **));
 extern int      FDECL(parse_comments, (char *, char *, char **));
 #endif
 extern char *	FDECL(mushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
-#define exec(a, b, c, d, e, f, g, h, i) mushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
+#define exec(a, b, c, d, e, f, g, h, i) mushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__)
 extern char *	FDECL(cpumushexec, (dbref, dbref, dbref, int, char *, char *[], int, char *[], int, int, char *));
-#define cpuexec(a, b, c, d, e, f, g, h, i) cpumushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__) 
+#define cpuexec(a, b, c, d, e, f, g, h, i) cpumushexec(a, b, c, d, e, f, g, h, i, __LINE__, __FILE__)
 
 /* From flags.c */
 extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
@@ -214,7 +229,7 @@ extern int      FDECL(DePriv, (dbref, dbref, int, int, int));
 #define	notify_all_from_inside_quiet(p,c,m)	notify_check(p,c,m,0, \
 						MSG_ME|MSG_F_CONTENTS|MSG_SILENT, 0)
 #define noansi_notify_except(p,c,m,x)	notify_except(p,c,m,x,MSG_NO_ANSI)
-extern void	FDECL(notify_except_str, (dbref, dbref, dbref [LBUF_SIZE/2], int, 
+extern void	FDECL(notify_except_str, (dbref, dbref, dbref [LBUF_SIZE/2], int,
 			const char *, int));
 extern void	FDECL(notify_except, (dbref, dbref, dbref,
 			const char *, int));
@@ -232,7 +247,7 @@ extern void	NDECL(report);
 extern void	FDECL(do_rwho, (dbref, dbref, int));
 extern int	FDECL(atr_match, (dbref, dbref, char, char *, int, int));
 extern int	FDECL(list_check, (dbref, dbref, char, char *, int, int, int));
-	
+
 /* From help.c */
 extern int	FDECL(helpindex_read, (HASHTAB *, char *));
 extern void	FDECL(helpindex_load, (dbref));
@@ -250,6 +265,7 @@ extern void	FDECL(log_perror, (const char *, const char *,const char *,
 			const char *));
 extern void	FDECL(log_text, (char *));
 extern void	FDECL(log_number, (int));
+extern void	FDECL(log_unsigned, (int));
 extern void	FDECL(log_name, (dbref));
 extern void	FDECL(log_name_and_loc, (dbref));
 extern char *	FDECL(OBJTYP, (dbref));
@@ -266,7 +282,7 @@ extern void	NDECL(mail_rem_dump);
 extern int	NDECL(mail_init);
 extern void	NDECL(mail_close);
 extern void	FDECL(mail_mark, (dbref,int,char *,dbref,int));
-extern void	FDECL(mail_md1, (dbref, dbref, int, int));
+extern void	FDECL(mail_md1, (dbref, dbref, int, int, int));
 extern int	FDECL(stricmp, (char *, char*));
 extern long	FDECL(mcount_size, (dbref, char *));
 extern long	NDECL(mcount_size_tot);
@@ -308,6 +324,9 @@ extern int FDECL(objecttag_add, (char*, dbref, int, int));
 extern dbref FDECL(objecttag_get, (char*, dbref, int));
 extern int FDECL(objecttag_remove, (char*));
 extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
+extern int FDECL(obj_bitlevel, (dbref));
+extern int FDECL(obj_nomodlevel, (dbref));
+extern int FDECL(obj_noexlevel, (dbref));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));
@@ -348,6 +367,7 @@ extern int	FDECL(member, (dbref, dbref));
 extern int	FDECL(is_integer, (char *));
 extern int	FDECL(is_number, (char *));
 extern int	FDECL(is_rhointeger, (char *));
+extern int	FDECL(is_rhonumber, (char *));
 extern int	FDECL(is_float, (char *));
 extern int	FDECL(is_float2, (char *));
 extern int	FDECL(could_doit, (dbref, dbref, int, int, int));
@@ -366,7 +386,7 @@ extern int	FDECL(ok_name, (const char *));
 extern int	FDECL(ok_player_name, (const char *));
 extern int	FDECL(ok_attr_name, (const char *));
 extern int	FDECL(ok_totem_name, (const char *));
-extern int	FDECL(ok_password, (const char *, dbref, int));
+extern int	FDECL(ok_password, (const char *, const char *, dbref, int));
 extern void	FDECL(handle_ears, (dbref, int, int));
 extern dbref	FDECL(match_possessed, (dbref, dbref, char *, dbref, int));
 extern void	FDECL(parse_range, (char **, dbref *, dbref *));
@@ -381,11 +401,12 @@ extern int	FDECL(exit_visible, (dbref, dbref, int));
 extern int	FDECL(exit_displayable, (dbref, dbref, int));
 extern void	FDECL(did_it, (dbref, dbref, int, const char *, int,
 			const char *, int, char *[], int));
-extern void	FDECL(list_bufstats, (dbref));
+extern void	FDECL(list_bufstats, (dbref, char *));
 extern void	FDECL(list_buftrace, (dbref, int));
 
 /* From set.c */
 extern int	FDECL(parse_attrib, (dbref, char *, dbref *, int *));
+extern int	FDECL(parse_attriblock, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_zone, (dbref, char *, dbref *, int *));
 extern int	FDECL(parse_attrib_wild, (dbref, char *, dbref *, int,
 			int, int, OBLOCKMASTER *, int, int, int));
@@ -432,6 +453,7 @@ extern void  	FDECL(trigger_cluster_action, (dbref, dbref));
 extern char *   FDECL(encode_utf8, (char *));
 extern char * 	FDECL(utf8toucp, (char *));
 extern char * 	FDECL(ucptoutf8, (char *));
+extern char     FDECL(ucs32toascii, (long));
 
 /* From boolexp.c */
 extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));
@@ -489,7 +511,9 @@ extern char *	FDECL(uncompress_str, (char *, const char *, int));
 /* From command.c */
 extern int	FDECL(check_access, (dbref, int, int, int));
 extern int	FDECL(flagcheck, (char *, char*));
-extern int      FDECL(cmdtest, (dbref, char *));
+extern int      FDECL(real_cmdtest, (dbref, char *, dbref, int));
+#define		cmdtest(x,y)  real_cmdtest(x, y, x, 0)
+#define		roomcmdtest(x, y, z)  real_cmdtest(x, y, z, 1)
 extern int      FDECL(zonecmdtest, (dbref, char *));
 
 
@@ -573,6 +597,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 /* Command handler keys */
 
+#define OBJECT_STRICT	0x10000000	/* Used in @create, @dig, @open, @pcreate for enforcing valid */
+
 #define AFLAGS_FULL	0x00000001
 #define AFLAGS_PERM	0x00000002
 #define AFLAGS_ADD	0x00000004
@@ -602,6 +628,23 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	ATTRIB_ACCESS	0x00000001	/* Change access to attribute */
 #define	ATTRIB_RENAME	0x00000002	/* Rename attribute */
 #define	ATTRIB_DELETE	0x00000004	/* Delete attribute */
+#define ATTRIB_CACHELD  0x00000008	/* Load attribute cache */
+#define ATTRIB_CACHESH  0x00000010	/* Show attribute cache */
+
+#define ATRCACHE_INIT	0x00000001	/* initialize cache by slot */
+#define ATRCACHE_NAME	0x00000002	/* Rename cache by name (or slot) */
+#define ATRCACHE_DELETE	0x00000004	/* Remove a cache by name (or slot) */
+#define ATRCACHE_FETCH	0x00000008	/* Fetch the value of the cache */
+#define ATRCACHE_IVAL	0x00000010	/* Change interval of checking for specific name or slot */
+#define ATRCACHE_CACHE	0x00000020	/* Force a cache update on the cache */
+#define ATRCACHE_LIST	0x00000040	/* list all the caches currently in use */
+#define ATRCACHE_INFO	0x00000080	/* Get information on the specific cache */
+#define ATRCACHE_OWNER	0x00000100	/* Change owner of the specific cache */
+#define ATRCACHE_SET    0x00000200	/* Set the cache information */
+#define ATRCACHE_VIS	0x00000400	/* Is the fetch and cache visible to everyone */
+#define ATRCACHE_LOCK	0x00000800	/* Does recaching require owner or control? */
+#define ATRCACHE_NOANSI	0x00001000	/* Don't ansi parenmatch INFO */
+#define ATRCACHE_INUSE	0x00002000	/* Don't ansi parenmatch INFO */
 
 #define	BOOT_QUIET	0x00000001	/* Inhibit boot message to victim */
 #define	BOOT_PORT	0x00000002	/* Boot by port number */
@@ -622,9 +665,9 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	CLONE_SET_LOC	0x00000010	/* ARG2 is location of cloned object */
 #define	CLONE_SET_NAME	0x00000020	/* ARG2 is alternate name of cloned object */
 #define	CLONE_PARENT	0x00000040	/* Set parent on obj instd of cloning attrs */
-#define CLONE_ANSI	0x00000080	/* Ansify the name */
+#define CLONE_ANSI	0x00000080	/* ANSIfy the name */
 
-#define CMDQUOTA_PORT   0x00000001	/* port optiom to @cmdquota */
+#define CMDQUOTA_PORT   0x00000001	/* port option to @cmdquota */
 
 #define CONNCHECK_QUOTA 0x00000001	/* Check command quotas of connected ports */
 #define CONNCHECK_ACCT  0x00000002	/* Account handler */
@@ -635,7 +678,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define CPATTR_CLEAR	0x00000001
 #define CPATTR_VERB	0x00000002
-#define CPATTR_VERIFY	0x00000004	/* Force verification on destionation attributes */
+#define CPATTR_VERIFY	0x00000004	/* Force verification on destination attributes */
 
 #define	CRE_INVENTORY	0x00000000	/* Create object in my inventory */
 #define	CRE_LOCATION	0x00000001	/* Create object in my location */
@@ -651,6 +694,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define DECOMP_TF	0x00000010	/* Stupid /tf compatibility to @decompile for PennMUSH */
 #define DECOMP_NOEXTRA	0x00000020	/* no extra fluff in @decompile/tf */
 #define DECOMP_TAGS	0x00000040	/* Decompile tags */
+#define DECOMP_DB	0x00000080	/* Use DB instead of name */
 
 #define	DBCK_DEFAULT	0x00000001	/* Get default tests too */
 #define	DBCK_REPORT	0x00000002	/* Report info to invoker */
@@ -713,6 +757,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define EXAM_REGEXP	64	/* Examine by Regexp */
 #define EXAM_CLUSTER    128     /* Examine by Cluster */
 #define EXAM_DISPLAY	256	/* Do  ansified display of examine */
+#define EXAM_SNAPSHOT	512	/* Do a @snapshot image */
 
 #define	FIXDB_OWNER	1	/* Fix OWNER field */
 #define	FIXDB_LOC	2	/* Fix LOCATION field */
@@ -728,6 +773,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	FIXDB_NAME	2048	/* Set NAME attribute */
 #define FIXDB_TYPE	4096	/* Fix type of object - DANGEROUS */
 
+#define FORCE_INLINE	1
+
 #define FLAGSW_REMOVE	1
 
 #define FLAGDEF_SET     1       /* Set flag 'set' permissions */
@@ -737,6 +784,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define FLAGDEF_CHAR  	16	/* Redefine the character for the flag */
 #define FLAGDEF_INDEX	32	/* Show the permission index allowed */
 #define FLAGDEF_TYPE	64	/* Define type restrictions */
+#define FLAGDEF_SLOT	128	/* Show slot permissions */
 
 #define	FRC_PREFIX	0	/* #num command */
 #define	FRC_COMMAND	1	/* what=command */
@@ -769,6 +817,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	HELP_WIZHELP	3	/* get data from wizard help file */
 #define HELP_PLUSHELP   4       /* get data from plus help file */
 
+#define LEVEL_LIST	1	/* Do a list for @leveldefault */
+
 #define LIMIT_MAX	5	/* Max arguments in @limit variable */
 #define LIMIT_LIST	1	/* Set global @limits */
 #define LIMIT_VADD	2	/* VAttr limit */
@@ -777,6 +827,11 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define LIMIT_LFUN	16	/* Maximum @lfunctions per player */
 
 #define LSET_LIST       1       /* @lset/list */
+
+#define LWIRE_LIST	1	/* List all livewires on target */
+#define LWIRE_FUNCEVAL	2	/* Set individual function invocation */
+#define LWIRE_FUNCOVER	4	/* Set individual function override above max */
+#define LWIRE_QUEUEMAX	8	/* Set individual queuemax per target */
 
 #define NAME_ANSI       1	/* Combine @name and @extansi together */
 
@@ -814,7 +869,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	MOTD_LIST	8	/* Display current login messages */
 #define	MOTD_BRIEF	16	/* Suppress motd file display for wizards */
 
-#define	MOVE_QUIET	1	/* Dont do osucc/ofail/asucc/afail if ctrl */
+#define	MOVE_QUIET	1	/* Don't do osucc/ofail/asucc/afail if ctrl */
 
 #define NEWS_DEFAULT      0x00000000
 #define NEWS_POST         0x00000001
@@ -825,7 +880,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define NEWS_CHECK        0x00000020
 #define NEWS_VERBOSE      0x00000040
 #define NEWS_LOGIN        0x00000080
-#define NEWS_YANK         0x00000100 
+#define NEWS_YANK         0x00000100
 #define NEWS_EXTEND       0x00000200
 #define NEWS_SUBSCRIBE    0x00000400
 #define NEWS_UNSUBSCRIBE  0x00000800
@@ -874,6 +929,11 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define NEWPASSWORD_DES 2	/* Force @newpassword to use DES */
 
+#define FLAGLEVEL_CLEAR 1 /* Clear FlagLevel setting */
+#define FLAGLEVEL_NOMOD 2 /* FlagLevel NO_MODIFY setting */
+#define FLAGLEVEL_NOEX 4 /* FlagLevel NO_EXAMINE setting */
+
+
 #define	OPEN_LOCATION	0	/* Open exit in my location */
 #define	OPEN_INVENTORY	1	/* Open exit in me */
 #define OPEN_ANSI	2	/* Open with ansi */
@@ -884,11 +944,12 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PAGE_RETMULTI	8	/* Respond but to multi players */
 #define PAGE_LOC        16      /* (muxpage) page/loc notifies a plyr of your loc */
 #define PAGE_NOEVAL     32      /* Don't evaluate text prior to sending */
-#define PAGE_NOANSI	64	/* Don't ansifi the page */
+#define PAGE_NOANSI	64	/* Don't ANSIfy the page */
 
 #define	PASS_ANY	1	/* name=newpass */
 #define	PASS_MINE	2	/* oldpass=newpass */
 #define PASS_ATTRIB	4	/* Password attribute */
+#define PASS_GEN	8	/* Generate safer_password */
 
 #define	PCRE_PLAYER	1	/* create new player */
 #define PCRE_REG     	2	/* Register on @pcreate */
@@ -925,7 +986,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define PEMIT_NOSUB	131072	/* Don't substitute '##' for @pemit/list */
 #define PEMIT_NOANSI    262144  /* Don't print ANSI */
 #define PEMIT_REALITY   524288  /* Follow Reality Level Permissions */
-#define PEMIT_TOREALITY 1048576 /* Pemit to specic realities */
+#define PEMIT_TOREALITY 1048576 /* Pemit to specific realities */
 #define PEMIT_ONEEVAL	2097152 /* One eval for @pemit/list */
 #define PEMIT_OSTR	4194304 /* @oemit uses multi-parameters */
 
@@ -1005,7 +1066,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SAY_NOSPACE	1	/* OR with xx_EMIT to get nospace form */
 #define	SAY_POSE	2	/* pose in current room */
 #define	SAY_POSE_NOSPC	3	/* pose w/o space in current room */
-#define	SAY_PREFIX	4	/* first char indicates foratting */
+#define	SAY_PREFIX	4	/* first char indicates formatting */
 #define	SAY_EMIT	5	/* emit in current room */
 #define	SAY_SHOUT	8	/* shout to all logged-in players */
 #define	SAY_WALLPOSE	9	/* Pose to all logged-in players */
@@ -1062,12 +1123,14 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SIDE_TXLEVEL	 0x00100000 /* Side-effect txlevel() */
 #define SIDE_RXLEVEL	 0x00200000 /* Side-effect rxlevel() */
 #define SIDE_RSET	 0x00400000 /* Side-effect rset() */
-#define SIDE_MOVE	 0x00800000 /* Side-effect move() */       
+#define SIDE_MOVE	 0x00800000 /* Side-effect move() */
 #define SIDE_CLUSTER_ADD 0x01000000 /* Side-effect cluster_add() */
 #define SIDE_MAIL	 0x02000000 /* mail send side effect */
 #define SIDE_EXECSCRIPT	 0x04000000 /* execscript() sideeffect */
 #define SIDE_ZONE	 0x08000000 /* zone() sideeffect function */
 #define SIDE_LSET	 0x10000000 /* lset() sideeffect function */
+#define SIDE_TOTEMSET	 0x20000000 /* totemset() sideeffect function */
+#define SIDE_TRIGGER	 0x40000000 /* trigger() sideeffect function */
 
 #define	SNAPSHOT_NOOPT	0	/* No option specified */
 #define SNAPSHOT_LIST	1	/* Show files in snapshot directory */
@@ -1098,9 +1161,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define SITE_HARD	2048
 #define SITE_TRU	4096
 #define SITE_LIST	8192	/* List @site/list information */
-#define SITE_PER 	16384	
+#define SITE_PER 	16384
 
 #define SKIP_IFELSE	1	/* @ifelse conversion for @skip */
+#define SKIP_NOBREAK	2	/* @ifelse break local only */
 
 #define SNOOP_ON	1	/* Start snooping */
 #define SNOOP_OFF	2	/* Stop snooping */
@@ -1112,10 +1176,13 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	SRCH_UNMARK	3	/* Clear mark bit for matches */
 
 #define SEARCH_NOGARBAGE 256	/* Garbage collector */
+#define SEARCH_ANSI	512	/* Enable ansi in output */
+#define SEARCH_ZONE	1024	/* Search against zones instead */
 
 #define	STAT_PLAYER	0	/* Display stats for one player or tot objs */
 #define	STAT_ALL	1	/* Display global stats */
 #define	STAT_ME		2	/* Display stats for me */
+#define STAT_FREE	4	/* Display free dbref#'s */
 
 #define SELFBOOT_LIST   1	/* List all ports you have for selfboot */
 #define SELFBOOT_PORT	2	/* boot the specified port for your self */
@@ -1163,16 +1230,22 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define	TRIG_QUIET	1	/* Don't display 'Triggered.' message. */
 #define TRIG_PROGRAM    2       /* Trigger is actually a @program */
 #define TRIG_COMMAND    4       /* Can Trigger $commands */
+#define TRIG_INLINE	8	/* Trigger is actually @include */
 
 #define INCLUDE_COMMAND	1	/* Can @insert trigger $commands */
 #define INCLUDE_LOCAL	2	/* Localize all the @included foo */
 #define INCLUDE_CLEAR	4	/* Clear the attributes locally */
-#define INCLUDE_NOBREAK 8	/* Do not @break other than inside @include */
+#define INCLUDE_IBREAK	8	/* Ignore @breaks inside the called @include */
 #define INCLUDE_TARGET	16	/* Allow the target item (if you control it) to be executor */
 #define INCLUDE_OVERRIDE 32	/* Trigger include like well trigger */
+#define INCLUDE_NOBREAK	64	/* Trigger @break/@assert internal to included file but not outside */
+#define INCLUDE_BECOME  128	/* Become the specified enactor (if you control it) */
+#define INCLUDE_SUDO    256	/* Become the specified cause (if you control it) */
+#define INCLUDE_POSSESS 512	/* Become the specified enactor and cause (if you control it) */
 
 #define SUDO_GLOBAL	1	/* Reverse of localized */
 #define SUDO_CLEAR	2	/* Clear registers */
+#define SUDO_NOBREAK	4	/* Breaks inside @sudo is local only */
 
 #define	TWARP_QUEUE	1	/* Warp the wait and sem queues */
 #define	TWARP_DUMP	2	/* Warp the dump interval */
@@ -1186,6 +1259,10 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define MLOG_FILE	8	/* Specify file name for manual log (128 chars max) */
 #define MLOG_ROOM	16	/* Log Room's output */
 
+/* This will be a bitwise mask for any mask handling for raw parsing */
+#define PREPARSE_RAW	0x00000001	/* PreParse handler for raw */
+#define NOMAIL      	0x00000002	/* Sending mail not allowed */
+
 #define LOGROTATE_STATUS 1	/* Status of current log */
 
 #define BLACKLIST_LIST	1	/* List blacklist */
@@ -1196,6 +1273,8 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define BLACKLIST_ADD	32	/* Hot-Add an entry to @blacklist (with matching mask) */
 #define BLACKLIST_DEL	64	/* Hot-Delete an entry to @blacklist (with matching mask) */
 #define BLACKLIST_SRCH	128	/* Search by wildcard IP address */
+#define BLACKLIST_NOGST 256	/* NoGUEST toggle for @blacklist */
+#define BLACKLIST_REG   512	/* Register toggle for @blacklist */
 
 #define WAIT_PID        1       /* Re-wait a PID process */
 #define WAIT_UNTIL	2	/* Wait until specified time */
@@ -1203,17 +1282,25 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 
 #define THAW_DEL	1	/* Drop the frozen FTIME pid process */
 
+#define CRC32_SHOW	1	/* Show crc32 */
+#define CRC32_CALC	2	/* Calc crc32 */
+#define CRC32_CHECK	4	/* Check crc32 */
+#define CRC32_SET	8	/* Set crc32 */
+#define CRC32_UPDATE	16	/* Update crc32 */
+#define CRC32_FSET  	32	/* Force set crc32 */
+
 #define DYN_PARSE       1	/* Parse the help */
 #define DYN_SEARCH	2	/* Issue a contextual search of help */
 #define DYN_NOLABEL	4	/* Remove the label from a normal help lookup -- should work with parse */
 #define DYN_SUGGEST	8	/* Allow suggestions in dynhelp -- multi-option */
 #define DYN_QUERY	16	/* Do a line by line 'comparison' of the code */
-#define DYN_SUBEVAL	32	/* Just do percent substitution replacments */
+#define DYN_SUBEVAL	32	/* Just do percent substitution replacements */
 
 #define EDIT_CHECK	1	/* Just check @edit, don't set */
 #define EDIT_SINGLE	2	/* Just do a single @edit, not multiple */
 #define EDIT_STRICT	4	/* MUX/PENN ANSI Editing compatibility */
 #define EDIT_RAW	8	/* Raw ANSI editor for strings (old edit method) */
+#define EDIT_BRACES	16	/* Edit braces in the string */
 
 #define TAG_ADD		1	/* Set new object tag */
 #define TAG_REMOVE	2 	/* Remove existing tag */
@@ -1233,17 +1320,18 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 #define TOTEM_PERMSUSET	1024	/* Remove unused bitmasks from target */
 #define TOTEM_PERMSSEE 	2048	/* Remove unused bitmasks from target */
 #define TOTEM_PERMSTYPE	4096	/* Remove unused bitmasks from target */
-#define TOTEM_DISPLAY	8192	/* Totem Dispay for slots */
+#define TOTEM_DISPLAY	8192	/* Totem Display for slots */
 #define TOTEM_LETTER	16384	/* Totem Letter Handler */
 #define TOTEM_DISSLOT	32768	/* List totem slots and flags (you see) in them */
 #define TOTEM_UNALIAS	65536	/* Remove alias(es) */
+#define TOTEM_FREE      131072	/* List free totem masks and slots to assign */
 
 #define CLUSTER_NEW	1	/* create a new cluster */
 #define CLUSTER_ADD	2	/* add a dbref to a cluster */
 #define CLUSTER_DEL	4	/* delete a dbref from a cluster */
 #define CLUSTER_CLEAR	8	/* Purge the cluster */
 #define CLUSTER_LIST	16	/* List out the specifics of the cluster */
-#define CLUSTER_THRESHOLD 32	/* Set the treshold for the cluster */
+#define CLUSTER_THRESHOLD 32	/* Set the threshold for the cluster */
 #define CLUSTER_ACTION	64	/* Specify the action for the cluster */
 #define CLUSTER_EDIT	128	/* Edit the cluster's action */
 #define CLUSTER_REPAIR  256	/* Fix the cluster smartly */

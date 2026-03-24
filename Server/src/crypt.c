@@ -22,8 +22,8 @@ crypt_code(code, text, type)
     p = text;
     q = codebuff;
     r = textbuff;
-    /* Encryption: Simply go through each character of the text, get its ascii
-       value, subtract start, add the ascii value (less start) of the
+    /* Encryption: Simply go through each character of the text, get its ASCII
+       value, subtract start, add the ASCII value (less start) of the
        code, mod the result, add start. Continue  */
     while (*p) {
 	if ((*p < start) || (*p > end)) {

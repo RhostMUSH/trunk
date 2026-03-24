@@ -5,6 +5,10 @@
 #Made by Odin, May 4 2007
 #
 #Standard defines
+#
+# it is highly recommended you use the ansible playbook to do installation
+# or just git pull the latest code
+#
 
 if [ -d ./Server/game ]
 then
@@ -87,17 +91,25 @@ then
 fi
 
 TEMP=/tmp/answer$$
-RHOST_USER=member
-RHOST_SITE=ftp.rhostmush.org
-RHOSTDIST=rhostdistro4.tar.gz
+#### this is cruft -- ignore it
+# RHOST_USER=member
+# RHOST_SITE=ftp.rhostmush.org
+# RHOSTDIST=rhostdistro4.tar.gz
+####
 if [ "$EDITOR" = "" ]; then
 	EDITOR=/usr/bin/vi
 fi
 #Cleanup procedure
 cleanup() {
 	clear
-	rm -f $TEMP
-	rm -f $RHOSTDIST
+	if [ -n "$TEMP" -a -f "$TEMP" ]
+	then
+		rm -f $TEMP
+	fi
+	if [ -n "$RHOSTDIST" -a -f "$RHOSTDIST" ]
+	then
+		rm -f $RHOSTDIST
+	fi
         if [ "$1" != "noexit" ]
         then
 	   exit

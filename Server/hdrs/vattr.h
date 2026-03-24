@@ -5,10 +5,18 @@
  *  Definitions for user-defined attributes
  */
 
-#define VHASH_SIZE	256		/* Must be a power of 2 */
-#define VNHASH_SIZE	256
-#define VHASH_MASK	0xff		/* AND mask to get 0..hsize-1 */
-#define VNHASH_MASK	0xff
+// #define VHASH_SIZE	256		/* Must be a power of 2 */
+// #define VNHASH_SIZE	256
+// #define VHASH_MASK	0xff		/* AND mask to get 0..hsize-1 */
+// #define VNHASH_MASK	0xff
+
+/* Set to 4096 as 256 was too damn low */
+#define VHASH_SIZE	16384		/* Must be a power of 2 */
+#define VNHASH_SIZE	16384
+/* This is HASH_SIZE - 1 */
+#define VHASH_MASK	0x3fff		/* AND mask to get 0..hsize-1 */
+#define VNHASH_MASK	0x3FFF
+
 /* This number will allocate entries 32k bytes at a time. */
 #define VALLOC_SIZE	630
 #ifdef SBUF64

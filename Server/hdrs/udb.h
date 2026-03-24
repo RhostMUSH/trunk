@@ -12,7 +12,7 @@
  * Redistribution and use in source and binary forms are permitted provided
  * that: (1) source distributions retain this entire copyright notice and
  * comment, and (2) distributions including binaries display the following
- * acknowledgement:  ``This product includes software developed by the
+ * acknowledgment:  ``This product includes software developed by the
  * University of California, Berkeley and its contributors'' in the
  * documentation or other materials provided with the distribution and in
  * all advertising materials mentioning features or use of this software.
@@ -41,7 +41,7 @@ typedef struct Aname {
 	unsigned int	attrnum;
 } Aname;
 
-#ifdef CACHE_OBJS  
+#ifdef CACHE_OBJS
 /* In general, we want binary attributes, so we do this. */
 
 typedef struct Attrib {

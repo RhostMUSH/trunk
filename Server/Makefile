@@ -79,7 +79,7 @@ instructions:
 	@echo
 config:
 	@(cd $(bindir) ; ./asksource.sh)
-default:
+default: defaultfiles
 	@(cd $(bindir) ; ./asksource.sh default)
 	@(cd $(srcdir) ; ./do_compile.sh)
 	(cd $(srcdir) ; $(MAKE))

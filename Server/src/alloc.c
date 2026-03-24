@@ -7,10 +7,14 @@
 #include "alloc.h"
 #include "mudconf.h"
 #include "externs.h"
+#include "debug.h"
+#include "ansi.h"
 
-/* ensure quad byte divisable length to avoid bus error on some machines */
+/* ensure quad byte divisible length to avoid bus error on some machines */
 #define QUADALIGN(x) ((pmath1)(x) % ALLIGN1 ? \
                       (x) + ALLIGN1 - ((pmath1)(x) % ALLIGN1) : (x))
+
+extern int global_timezone_max;
 
 /* this structure size must be x % 4 = 0 */
 typedef struct pool_header {
@@ -39,7 +43,7 @@ typedef struct pooldata {
 
 POOL pools[NUM_POOLS];
 const char *poolnames[] =
-{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes"};
+{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "AtrName"};
 
 #define POOL_MAGICNUM 0xdeadbeef
 
@@ -82,9 +86,9 @@ pool_err(const char *logsys, int logflag, int poolnum,
     } else if (logflag != LOG_ALLOCATE) {
 	sprintf(mudstate.buffer,
 #ifdef BIT64
-		"\n***< %.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s). >***",
+		"\r\n***< %.10s[%d] (tag %.40s) %.50s at %lx (line %d of %.20s). >***",
 #else
-		"\n***< %.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s). >***",
+		"\r\n***< %.10s[%d] (tag %.40s) %.50s at %x (line %d of %.20s). >***",
 #endif
 		action, pools[poolnum].pool_size, tag, reason,
 		(pmath1) ph, line_num, file_name);
@@ -147,6 +151,8 @@ pool_check(const char *tag, int line_num, char *file_name)
     pool_vfy(POOL_DESC, tag, line_num, file_name);
     pool_vfy(POOL_QENTRY, tag, line_num, file_name);
     pool_vfy(POOL_ZLISTNODE, tag, line_num, file_name);
+    pool_vfy(POOL_ATRCACHE, tag, line_num, file_name);
+    pool_vfy(POOL_ATRNAME, tag, line_num, file_name);
 }
 
 char *
@@ -323,18 +329,61 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 }
 
 static char *
-pool_stats(int poolnum, const char *text)
+pool_stats_extra(int poolnum, const char *text)
 {
     char *buf;
     char format_str[80];
 
+    buf = alloc_mbuf("pool_stats_extra");
+    if ( !strcmp(text, "Lbufs") || !strcmp(text, "Sbufs") || !strcmp(text, "Mbufs") ) {
+       memset(format_str, '\0', sizeof(format_str));
+       strcpy(format_str, "%-14s %5d %9d %9d %15s %6s %14.14g");
+       if ( !strcmp(text, "Lbufs") ) {
+#ifndef NO_GLOBAL_REGBACKUP
+          sprintf(buf, format_str, (char *)" \\Lbufs (Regs)", pools[poolnum].pool_size, 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2));
+#else
+          sprintf(buf, format_str, (char *)" \\Lbufs (Regs)", pools[poolnum].pool_size, 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1), 
+                   ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1));
+#endif
+       } else if ( !strcmp(text, "Mbufs") ) {
+          sprintf(buf, format_str, (char *)" \\Mbufs (TZ)", pools[poolnum].pool_size, 
+                   global_timezone_max, global_timezone_max,
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)global_timezone_max);
+       } else {
+          sprintf(buf, format_str, (char *)" \\Sbufs (Regs)", pools[poolnum].pool_size,
+                   (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+                   (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+                   (char *)"^", (char *)"^", 
+                   pools[poolnum].pool_size * (double)(MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST));
+       }
+    } 
+    return buf;
+}
+
+static char *
+pool_stats(int poolnum, const char *text, int i_color)
+{
+    char *buf;
+    char format_str[80], s_warn[20], s_norm[20];
+    double i_check = 0;
+
     buf = alloc_mbuf("pool_stats");
     memset(format_str, '\0', sizeof(format_str));
+    memset(s_warn, '\0', sizeof(s_warn));
+    memset(s_norm, '\0', sizeof(s_norm));
     strcpy(format_str, "%-14.14s %5d");
     if ( pools[poolnum].num_alloc > 999999999 )
-       strcat(format_str, " %9.4g");
+       strcat(format_str, " %s%9.4g%s");
     else
-       strcat(format_str, " %9.9g");
+       strcat(format_str, " %s%9.9g%s");
     if ( pools[poolnum].max_alloc > 999999999 )
        strcat(format_str, " %9.4g");
     else
@@ -351,10 +400,74 @@ pool_stats(int poolnum, const char *text)
        strcat(format_str, " %14.9g");
     else
        strcat(format_str, " %14.14g");
-    sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	    pools[poolnum].num_alloc, pools[poolnum].max_alloc,
-	    pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-            pools[poolnum].max_alloc * pools[poolnum].pool_size);
+
+    if ( strcmp(text, "Lbufs") == 0 ) {
+#ifndef NO_GLOBAL_REGBACKUP
+       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2); 
+#else
+       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1); 
+#endif
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 50 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 20 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
+#ifndef NO_GLOBAL_REGBACKUP
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
+#else
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
+               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)) * pools[poolnum].pool_size);
+#endif
+    } else if ( strcmp(text, "Mbufs") == 0 ) {
+       i_check = pools[poolnum].num_alloc - global_timezone_max; 
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 150 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 100 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - global_timezone_max, 
+               pools[poolnum].max_alloc - global_timezone_max,
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - global_timezone_max) * pools[poolnum].pool_size);
+    } else if ( strcmp(text, "Sbufs") == 0 ) {
+       i_check = pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); 
+       if ( i_color ) {
+          strcpy(s_norm, ANSI_GREEN);
+          if ( i_check > 50 ) {
+             strcpy(s_warn, ANSI_RED);
+          } else if ( i_check > 20 ) {
+             strcpy(s_warn, ANSI_YELLOW);
+          }
+       }
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+               s_warn, i_check, s_norm,
+	       // pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
+               pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST),
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               (pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) * pools[poolnum].pool_size);
+    } else {
+       sprintf(buf, format_str, text, pools[poolnum].pool_size,
+	       s_warn, pools[poolnum].num_alloc, s_norm, pools[poolnum].max_alloc,
+	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
+               pools[poolnum].max_alloc * pools[poolnum].pool_size);
+    }
     return buf;
 }
 
@@ -439,12 +552,40 @@ pool_trace(dbref player, int poolnum, const char *text, int key)
 }
 
 static void 
-list_bufstat(dbref player, int poolnum, const char *pool_name)
+list_bufstat(dbref player, int poolnum, const char *pool_name, int i_color)
 {
-    char *buff;
+    char *buff, *colorbuff;
 
-    buff = pool_stats(poolnum, poolnames[poolnum]);
+    buff = pool_stats(poolnum, poolnames[poolnum], i_color);
+#ifdef ZENTY_ANSI
+    if ( i_color ) {
+       colorbuff = alloc_lbuf("list_bufstat");
+       sprintf(colorbuff, "%s%s%s%s", ANSI_HILITE, ANSI_GREEN, buff, ANSI_NORMAL);
+       notify(player, colorbuff);
+       free_lbuf(colorbuff);
+    } else {
+       notify(player, buff);
+    }
+#else
     notify(player, buff);
+#endif
+    free_mbuf(buff);
+    buff = pool_stats_extra(poolnum, poolnames[poolnum]);
+    /* buff is always allocated */
+    if ( *buff ) {
+#ifdef ZENTY_ANSI
+       if ( i_color ) {
+          colorbuff = alloc_lbuf("list_bufstat");
+          sprintf(colorbuff, "%s%s%s%s", ANSI_HILITE, ANSI_CYAN, buff, ANSI_NORMAL);
+          notify(player, colorbuff);
+          free_lbuf(colorbuff);
+       } else {
+          notify(player, buff);
+       }
+#else
+       notify(player, buff);
+#endif
+    }
     free_mbuf(buff);
 }
 
@@ -453,9 +594,9 @@ showTrackedPacketStats(dbref player)
 {
     char *buff;
 
-    buff = unsafe_tprintf("\nNetwork Stats (Bytes)   Daily-In:     Average-In:   Total-In:\n"
+    buff = unsafe_tprintf("\r\nNetwork Stats (Bytes)   Daily-In:     Average-In:   Total-In:\r\n"
                           "                        %-13.0f %-13.0f %-16.0f"
-                          "\n\n                        Daily-Out:    Average-Out:  Total-Out:\n"
+                          "\r\n\r\n                        Daily-Out:    Average-Out:  Total-Out:\r\n"
                           "                        %-13.0f %-13.0f %-16.0f",
                           mudstate.daily_bytesin, 
                          ((mudstate.avg_bytesin == 0) ? mudstate.daily_bytesin : mudstate.avg_bytesin), 
@@ -466,19 +607,280 @@ showTrackedPacketStats(dbref player)
    notify(player, buff);
 }
 
-void 
-list_bufstats(dbref player)
+double
+statsizer(int i_size, char *c_chr) {
+   double i_diver = 0.0;
+
+   if ( i_size > 1000000000 ) {
+      i_diver = (double) i_size / 1000000000.0;
+      *c_chr = 'G';
+   } else if ( i_size > 1000000 ) {
+      i_diver = (double) i_size / 1000000.0;
+      *c_chr = 'M';
+   } else if ( i_size > 1000 ) {
+      i_diver = (double) i_size / 1000.0;
+      *c_chr = 'K';
+   } else {
+      i_diver = (double) i_size;
+      *c_chr = ' ';
+   }
+   
+   return i_diver; 
+}
+
+void
+showBlacklistStats(dbref player)
 {
-    int i;
+   int i_blsize, i_ndsize, i_ngsize, i_rgsize;
+   double i_diver;
+   char *s_buff, c_chr[2];
+   
+   i_blsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_cnt;
+   i_ndsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
+   i_rgsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_reg_cnt;
+   i_ngsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nogst_cnt;
 
-    notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
-    for (i = 0; i < NUM_POOLS; i++)
-	list_bufstat(player, i, poolnames[i]);
+   s_buff = alloc_mbuf("blacklist_stats");
+   strcpy(c_chr, (char *)" ");
+   
+   notify(player, "\r\nBlacklist Stats    Size   Inuse     Total Mem (Bytes)");
 
-    showTrackedBufferStats(player);
-    showTrackedPacketStats(player);
-    showdbstats(player);
+   /* Black list */
+   i_diver = statsizer(i_blsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"Black List", (int)sizeof(BLACKLIST), mudstate.blacklist_cnt, i_blsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
 
+   /* NoDNS list */
+   i_diver = statsizer(i_ndsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"NoDNS List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
+
+   /* Register list */
+   i_diver = statsizer(i_rgsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"Regis List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
+
+   /* NoGuest list */
+   i_diver = statsizer(i_ndsize, c_chr);
+   sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
+           (char *)"NoGst List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+   notify(player, s_buff);
+
+   free_mbuf(s_buff); 
+}
+
+void
+showTotemStats(dbref player)
+{
+  double i_tot;
+  double i_show;
+  char c_let;
+
+  i_tot = (double)sizeof(OBJTOTEM) * (double)mudstate.db_top;
+  if ( i_tot > 1000000000.0 ) {
+     i_show = i_tot / 1000000000.0;
+     c_let = 'G';
+  } else if ( i_tot > 1000000.0 ) {
+     i_show = i_tot / 1000000.0;
+     c_let = 'M';
+  } else  {
+     i_show = i_tot / 1000.0;
+     c_let = 'K';
+  }
+  notify(player, unsafe_tprintf("\r\nTotal overhead of @totems per dbref# -- %d", sizeof(OBJTOTEM)));
+  notify(player, "    Size   Slots    Objects   Total Memory");
+  notify(player, unsafe_tprintf("    %4d  %6d   %8d   %.0f (%.2f%c)", (sizeof(OBJTOTEM) / TOTEM_SLOTS), TOTEM_SLOTS, mudstate.db_top, i_tot, i_show, c_let));
+}
+
+void
+showAtrCacheStats(dbref player)
+{
+  double i_tot;
+  double i_show;
+  char c_let;
+
+  i_tot = (double)sizeof(ATRCACHE) * mudconf.atrcachemax;
+  if ( i_tot > 1000000000.0 ) {
+     i_show = i_tot / 1000000000.0;
+     c_let = 'G';
+  } else if ( i_tot > 1000000.0 ) {
+     i_show = i_tot / 1000000.0;
+     c_let = 'M';
+  } else  {
+     i_show = i_tot / 1000.0;
+     c_let = 'K';
+  }
+  notify(player, "\r\nTotal overhead of Atr Caches: (Not Including AtrCache/AtrNames above)");
+  notify(player, "    Size   Slots    Total Memory");
+  notify(player, unsafe_tprintf("    %4d  %6d     %.0f (%.2f%c)", sizeof(ATRCACHE), mudconf.atrcachemax, i_tot, i_show, c_let));
+}
+
+
+extern int anum_alc_top;
+extern int anum_alc_inline_top;
+
+void
+showAttrStats(dbref player)
+{
+   static char s_buff[80];
+   int i_attr;
+   double i_tot, i_show;
+   char c_let;
+
+   memset(s_buff, '\0', 80);
+   if ( anum_alc_inline_top == 0 ) {
+      i_attr = 255;
+   } else {
+      i_attr = 255 + anum_alc_inline_top - A_INLINE_START + 1;
+   }
+   i_tot = (double)i_attr * (double)sizeof(ATTR *);
+   if ( i_tot > 1000000000.0 ) {
+      i_show = i_tot / 1000000000.0;
+      c_let = 'G';
+   } else if ( i_tot > 1000000.0 ) {
+      i_show = i_tot / 1000000.0;
+      c_let = 'M';
+   } else  {
+      i_show = i_tot / 1000.0;
+      c_let = 'K';
+   }
+   notify(player, "\r\nInline Attributes    Size     Total Memory");
+   sprintf(s_buff,"%-10d           %-8d %.0f (%.2f%c)", i_attr, sizeof(ATTR *), i_tot, i_show, c_let);
+   notify(player, s_buff);
+}
+
+const char *
+tf_1(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+    int i_syear;
+
+    if (dt < 0)
+        dt = 0;
+
+    i_syear = ((int)dt / 31536000);
+    delta = gmtime(&dt);
+    if ( i_syear > 0 ) {
+        sprintf(buf, "%dy %02d:%02d",
+                i_syear, delta->tm_hour, delta->tm_min);
+    } else if (delta->tm_yday > 0) {
+        sprintf(buf, "%dd %02d:%02d",
+                delta->tm_yday, delta->tm_hour, delta->tm_min);
+    } else {
+        sprintf(buf, "%02d:%02d",
+                delta->tm_hour, delta->tm_min);
+    }
+    return(buf);
+}
+
+void
+showCPUStats(dbref player)
+{
+   clock_t end;
+   time_t now;
+   double cpu_time;
+   char *s_buff, *buff;
+
+   end = clock();
+   time(&now);
+
+   buff = alloc_mbuf("showCPUStats_mbuf");
+   strcpy(buff, tf_1(now - mudstate.reboot_time));
+
+   s_buff = alloc_mbuf("showCPUStats");
+   cpu_time = (double)(end - mudstate.clock_mush) / CLOCKS_PER_SEC;
+   sprintf(s_buff, "\r\nTotal CPU Usage since last reboot: %.2f seconds, Reboot time: %s", cpu_time, buff);
+
+   notify(player, s_buff);
+   free_mbuf(buff);
+   free_mbuf(s_buff);
+}
+
+void 
+list_bufstats(dbref player, char *s_key)
+{
+    int i, i_found, i_color;
+
+    i_found = 0; 
+    i_color = 0;
+
+    if ( s_key && *s_key && !strcasecmp(s_key, (char *)"cquick")) {
+       i_color = 1;
+    }
+
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"quick") || 
+                               !strcasecmp(s_key, (char *)"cquick")) ) {
+       i_found = 1;
+#ifdef ZENTY_ANSI
+       if ( i_color ) {
+          notify(player, unsafe_tprintf("%s%sBuffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem%s",
+                         ANSI_HILITE, ANSI_BLUE, ANSI_NORMAL));
+       } else {
+          notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
+       }
+#else
+       notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
+#endif
+       for (i = 0; i < NUM_POOLS; i++)
+	   list_bufstat(player, i, poolnames[i], i_color);
+    }
+
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"cpu")) ) {
+       i_found = 1;
+       showCPUStats(player);
+    }
+    if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"quick") ||
+                               !strcasecmp(s_key, (char *)"cquick")) ) {
+       i_found = 1;
+       showTrackedBufferStats(player, i_color);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"blacklist") ) {
+       i_found = 1;
+       showBlacklistStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"attrib") ) {
+       i_found = 1;
+       showAttrStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"totem") ) {
+       i_found = 1;
+       showTotemStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"cache") ) {
+       i_found = 1;
+       showAtrCacheStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"network") ) {
+       i_found = 1;
+       showTrackedPacketStats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"db") ) {
+       i_found = 1;
+       showdbstats(player);
+    }
+    if ( !s_key || !*s_key || !strcasecmp(s_key, (char *)"stack") ) {
+       i_found = 1;
+#ifndef NO_GLOBAL_REGBACKUP
+       notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)));
+#else
+       notify(player, unsafe_tprintf("\r\nTotal Lbufs used in Q-Regs: %d", ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)));
+#endif
+       notify(player, unsafe_tprintf("Total Sbufs used in Q-Regs: %d", (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)));
+#ifndef NODEBUGMONITOR
+       notify(player, unsafe_tprintf("Highest debugmon stack depth was: %d", debugmem->stackval));
+       notify(player, unsafe_tprintf("Current debugmon stack depth is: %d", debugmem->stacktop));
+#else
+       notify(player, "Debug Monitor is disabled.");
+#endif
+    }
+
+    if ( !i_found && s_key && *s_key ) {
+       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, stack, cpu, or cquick.");
+    }
 }
 
 void 

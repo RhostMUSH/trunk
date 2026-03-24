@@ -4,7 +4,7 @@
 
 /* UTF-8 related constants for identifying
  * valid UTF-8 byte sequences and converting
- * between UTF-8 and a unicode code point value
+ * between UTF-8 and a Unicode code point value
  */
 #define BYTE4_MASK      0xF8    // Byte mask for testing for 4byte character
 #define BYTE3_MASK      0xF0    // Byte mask for testing for 3byte character
@@ -23,7 +23,7 @@
 #define IS_2BYTE(a)		((a & BYTE2_MASK) == UTF8_2BYTE)
 #define IS_CBYTE(a)		((a & UTF8_CBYTE_MASK) == UTF8_CBYTE)
 
-// Fancy quote to ascii quote conversion
+// Fancy quote to ASCII quote conversion
 #define ASCII_DOUBLE_QUOTE      0x0022
 #define DOUBLE_QUOTE_LEFT       0x201C
 #define DOUBLE_QUOTE_RIGHT      0x201D
@@ -31,7 +31,7 @@
 
 // Full width colon to standard colon conversion
 #define ASCII_COLON     0x003A
-#define FULLWIDTH_COLON 0xFF1A 
+#define FULLWIDTH_COLON 0xFF1A
 
 // Standard space
 #define ASCII_SPACE     0x0020

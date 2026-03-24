@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [ -f /usr/bin/wn ]
 then
    /usr/bin/wn "$@" -over 2>&1

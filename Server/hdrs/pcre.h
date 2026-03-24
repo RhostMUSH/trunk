@@ -17,7 +17,7 @@
 #define PCRE_DATE           14-Apr-2003
 
 #ifndef PCRE_DATA_SCOPE
-#  define PCRE_DATA_SCOPE     extern
+#define PCRE_DATA_SCOPE     extern
 #endif
 
 /* Have to include stdlib.h in order to ensure that size_t is defined;

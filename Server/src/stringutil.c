@@ -17,7 +17,7 @@
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref FDECL(match_thing, (dbref, char *));
 extern NAMETAB attraccess_nametab[];
-
+extern int down_ansi(int, int, int);
 
 /*
  * set attribs hidden
@@ -79,7 +79,11 @@ void attr_generic(char *str, char *flags)
          i_not = 0;
          if ( *s_strtok == '!' ) {
             i_not = 1;
-            i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+            if ( *(s_strtok+1) ) {
+               i_flag = search_nametab(GOD, attraccess_nametab, s_strtok+1);
+            } else {
+               i_flag = -1;
+            }
          } else {
             i_flag = search_nametab(GOD, attraccess_nametab, s_strtok);
          }
@@ -138,7 +142,7 @@ char *munge_space(char *string)
    p = string;
    q = buffer;
    while (p && *p && isspace((int)*p)) {
-      p++;		/* remove inital spaces */
+      p++;		/* remove initial spaces */
    }
    while (p && *p) {
       while (*p && !isspace((int)*p)) {
@@ -166,7 +170,7 @@ char	*buffer, *p, *q;
 	buffer = alloc_lbuf("trim_spaces");
 	p = string;
 	q = buffer;
-	while (p && *p && isspace((int)*p))		/* remove inital spaces */
+	while (p && *p && isspace((int)*p))		/* remove initial spaces */
 		p++;
 	while (p && *p) {
 		while (*p && !isspace((int)*p))	/* copy nonspace chars */
@@ -203,7 +207,7 @@ char	*savec, *cp;
 int string_compare(const char *s1, const char *s2)
 {
 #ifndef STANDALONE
-  if(!mudconf.space_compress) {
+  if( !mudconf.space_compress || mudstate.no_space_compress ) {
     while (*s1 && *s2 && ToLower((int)*s1) == ToLower((int)*s2))
       s1++, s2++;
 
@@ -277,7 +281,7 @@ const char *string_match(const char *src, const char *sub)
 }
 
 /* ---------------------------------------------------------------------------
- * replace_string: Returns an lbuf containing string STRING with all occurances
+ * replace_string: Returns an lbuf containing string STRING with all occurrences
  * of OLD replaced by NEW. OLD and NEW may be different lengths.
  * (mitch 1 feb 91)
  */
@@ -505,7 +509,7 @@ replace_tokens(const char *s, const char *pBound, const char *pListPlace, const 
 }
 
 /*
- * Returns string STRING with all occurances * of OLD replaced by NEW. OLD
+ * Returns string STRING with all occurrences * of OLD replaced by NEW. OLD
  * and NEW may be different lengths. Modifies string, so: Note - STRING must
  * already be allocated large enough to handle the new size. (mitch 1 feb 91)
  */
@@ -520,7 +524,7 @@ char	*s;
 	return string;
 }
 
-/* Counts occurances of C in STR. - mnp 7 feb 91 */
+/* Counts occurrences of C in STR. - mnp 7 feb 91 */
 /**************************************************************************** 
  * This is for reference only                                               * 
  ****************************************************************************
@@ -545,7 +549,7 @@ char	*s;
  ****************************************************************************/
 
  /* What we want:
-  * EXACT match replacment
+  * EXACT match replacement
   * JUST ansi replacement
   * JUST accent replacement
   * JUST special replacement
@@ -898,6 +902,8 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       i_ansi = 0;
       if ( !s_ptr )
          break;
+
+      /* Ansi changed and we should look to normalize it */
       if ( i_normalize && ((s_ptr->c_bgansi != s_last.c_bgansi) ||
                            (s_ptr->c_fgansi != s_last.c_fgansi) ||
                            strcmp(s_ptr->s_fghex, s_last.s_fghex) ||
@@ -909,6 +915,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
          safe_chr('n', s_buffer, &s_buffptr);
          i_normalize = 0;
       }
+
       if ( i_normalize2 && (s_ptr->c_accent != s_last.c_accent) ) {
          safe_chr('%', s_buffer, &s_buffptr);
          safe_str("fn", s_buffer, &s_buffptr);
@@ -941,13 +948,14 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
             i_normalize = 1;
          }
       }
+
       if ( (s_ptr->s_fghex[0] == '0') && (ToUpper(s_ptr->s_fghex[1]) == 'X') && 
            isxdigit(s_ptr->s_fghex[2]) && isxdigit(s_ptr->s_fghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_fghex, s_last.s_fghex)) ) {
          if ( i_ansi < 0 )
-            i_ansi |= 1;
-         else
             i_ansi = 1;
+         else
+            i_ansi |= 1;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
@@ -957,9 +965,9 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
            isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
          if ( i_ansi < 0 )
-            i_ansi |= 2;
-         else
             i_ansi = 2;
+         else
+            i_ansi |= 2;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
          safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
@@ -996,6 +1004,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
          safe_str("fn", s_buffer, &s_buffptr);
          i_normalize2 = 0;
       }
+
       strcpy(s_last.s_bghex, s_ptr->s_bghex);
       strcpy(s_last.s_fghex, s_ptr->s_fghex);
       s_last.c_fgansi = s_ptr->c_fgansi;
@@ -1003,10 +1012,20 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       s_last.c_accent = s_ptr->c_accent;
       s_last.i_special = s_ptr->i_special;
       /* no need for s_last duplicating i_ascii8 */
-      /* i_ascii8 handler.  Unicode/UTF8 will work similarilly -- nudge nudge */
+      /* i_ascii8 handler.  Unicode/UTF8 will work similarly -- nudge nudge */
       if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
         safe_chr('%', s_buffer, &s_buffptr);
-        sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        if ( s_ptr->i_utf8 > 0xfffffff ) {
+           sprintf(s_format, "<u%08x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xffffff ) {
+           sprintf(s_format, "<u%07x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xfffff ) {
+           sprintf(s_format, "<u%06x>", s_ptr->i_utf8);
+        } else if ( s_ptr->i_utf8 > 0xffff ) {
+           sprintf(s_format, "<u%05x>", s_ptr->i_utf8);
+        } else {
+           sprintf(s_format, "<u%04x>", s_ptr->i_utf8);
+        }
         safe_str(s_format, s_buffer, &s_buffptr);
       } else if ( (*s_inptr == '?') && (s_ptr->i_ascii8 > 0) ) {
          safe_chr('%', s_buffer, &s_buffptr);
@@ -1036,16 +1055,67 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
    return s_buffer;
 }
 
+int
+count_mux_ansi(char *s_input)
+{
+   char *s_ptr, *s_tmp;
+   int r, g, b, i_good, i_cnt;
+
+   s_ptr = s_input;
+   i_good = i_cnt = 0;
+   if ( *s_input == '<' ) {
+      if ( (s_tmp = strchr(s_input, '>')) != NULL) {
+         if ( sscanf(s_input, "<#%02x%02x%02x>", &r, &g, &b ) == 3 )
+            i_good = 1;
+         if ( !i_good && (sscanf(s_input, "<%d %d %d>", &r, &g, &b) == 3) )
+            i_good = 1;
+         if ( i_good ) {
+            i_cnt = (s_tmp + 1) - s_ptr;
+         }
+      }
+   }
+   return i_cnt;
+}
+
+char *
+skip_mux_ansi(char *s_input, char *buff, char **bufcx) 
+{
+   char *s_ptr, *s_tmp;
+   int r, g, b, i_good;
+
+   s_ptr = s_input;
+   i_good = 0;
+   if ( *s_input == '<' ) {
+      if ( (s_tmp = strchr(s_input, '>')) != NULL ) {
+         if ( sscanf(s_input, "<#%02x%02x%02x>", &r, &g, &b ) == 3 )
+            i_good = 1;
+         if ( !i_good && (sscanf(s_input, "<%d %d %d>", &r, &g, &b) == 3) )
+            i_good = 1;
+         if ( i_good ) {
+            if ( buff ) {
+               *s_tmp = '\0';
+               safe_str(s_ptr, buff, bufcx);
+               safe_chr('>', buff, bufcx);
+               *s_tmp = '>';
+            }
+            s_ptr = s_tmp+1;
+         }
+      }
+   }
+   return s_ptr;
+}
+
 void
 split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #ifdef ZENTY_ANSI
 
-   ANSISPLIT *s_ptr;
-   char *s_inptr, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt;
-   char buf_utf8[10];
+   ANSISPLIT *s_ptr, *s_ptr2, s_tmp[1];
+   char *s_inptr, *s_inptrtmp, *s_outptr;
+   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt, 
+       i_tohex, i_upper, i_r, i_g, i_b, i_escaped;
+   char buf_utf8[17], c1, c2;
 
-   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = 0;
+   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = i_escaped = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
       *s_output = '\0';
       return;
@@ -1054,8 +1124,11 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_inptr = s_input;
    s_outptr = s_output;
    s_ptr = s_split;
+   s_ptr2 = s_tmp;
+   s_inptrtmp = NULL;
+   i_tohex = i_upper = 0;
 
-   memset(buf_utf8, '\0', 10);
+   memset(buf_utf8, '\0', sizeof(buf_utf8));
    memset(s_ptr->s_fghex, '\0', 5);
    memset(s_ptr->s_bghex, '\0', 5);
    s_ptr->c_fgansi = '\0';
@@ -1065,14 +1138,54 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr->i_ascii8 = 0;
    s_ptr->i_utf8 = 0;
    while ( s_inptr && *s_inptr ) {
-      if ( (*s_inptr == '%') && ((*(s_inptr+1) == SAFE_CHR)
+      if ( !i_escaped && ((*s_inptr == '%') || (*s_inptr == '\\')) && (*(s_inptr+1) == '%') ) {
+         strcpy(s_ptr2->s_fghex, s_ptr->s_fghex);
+         strcpy(s_ptr2->s_bghex, s_ptr->s_bghex);
+         s_ptr2->c_fgansi = s_ptr->c_fgansi;
+         s_ptr2->c_bgansi = s_ptr->c_bgansi;
+         s_ptr2->c_accent = s_ptr->c_accent;
+         s_ptr2->i_special = s_ptr->i_special;
+         s_ptr2->i_ascii8 = s_ptr->i_ascii8;
+         s_ptr2->i_utf8 = s_ptr->i_utf8;
+         i_escaped = 1;
+         *s_outptr++ = *s_inptr++;
+         *s_outptr++ = *s_inptr++;
+
+         strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
+         strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
+         s_ptr->c_fgansi = s_ptr2->c_fgansi;
+         s_ptr->c_bgansi = s_ptr2->c_bgansi;
+         s_ptr->c_accent = s_ptr2->c_accent;
+         s_ptr->i_special = s_ptr2->i_special;
+         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+         s_ptr->i_utf8 = s_ptr2->i_utf8;
+         s_ptr++;
+
+         strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
+         strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
+         s_ptr->c_fgansi = s_ptr2->c_fgansi;
+         s_ptr->c_bgansi = s_ptr2->c_bgansi;
+         s_ptr->c_accent = s_ptr2->c_accent;
+         s_ptr->i_special = s_ptr2->i_special;
+         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+         s_ptr->i_utf8 = s_ptr2->i_utf8;
+         s_ptr++;
+         
+         continue;
+      }
+      if ( i_escaped ) {
+         i_escaped = 0;
+         continue;
+      }
+      if ( (*s_inptr == '%') && ((ToLower(*(s_inptr+1)) == SAFE_CHR)
 #ifdef SAFE_CHR2
-                        || (*(s_inptr+1) == SAFE_CHR2)
+                        || (ToLower(*(s_inptr+1)) == SAFE_CHR2)
 #endif
 #ifdef SAFE_CHR3
-                        || (*(s_inptr+1) == SAFE_CHR3)
+                        || (ToLower(*(s_inptr+1)) == SAFE_CHR3)
 #endif
 )) {
+         /* 8 bit color */
          if ( isAnsi[(int) *(s_inptr+2)] ) {
             switch (*(s_inptr+2)) {
                case 'f':
@@ -1104,26 +1217,85 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
                default:  if ( ToUpper(*(s_inptr+2)) == *(s_inptr+2) ) {
                             i_ansi2 = 1;
                             s_ptr->c_bgansi = *(s_inptr+2);
+                            memset(s_ptr->s_bghex, '\0', 5);
+                            i_hex2 = 0;
                          } else {
                             i_ansi1 = 1;
                             s_ptr->c_fgansi = *(s_inptr+2);
+                            memset(s_ptr->s_fghex, '\0', 5);
+                            i_hex1 = 0;
                          }
                          break;
             }
             s_inptr+=3;
             continue;
          }
+         /* XTERM colors */
          if ( (*(s_inptr+2) == '0') && ((*(s_inptr+3) == 'x') || (*(s_inptr+3) == 'X')) &&
               *(s_inptr+4) && *(s_inptr+5) && isxdigit(*(s_inptr+4)) && isxdigit(*(s_inptr+5)) ) {
             if ( *(s_inptr+3) == 'X' ) {
                i_hex2 = 1;
+               i_ansi2 = 0;
                sprintf(s_ptr->s_bghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+               s_ptr->c_bgansi ='\0';
             } else {
                i_hex1 = 1;
+               i_ansi1 = 0;
                sprintf(s_ptr->s_fghex, "0%c%c%c", *(s_inptr+3), *(s_inptr+4), *(s_inptr+5));
+               s_ptr->c_fgansi ='\0';
             }
             s_inptr+=6;
             continue;
+         }
+         /* 24 Bit colors */
+         if ( (*(s_inptr+2) == '<') && ((s_inptrtmp = strchr(s_inptr+2, '>')) != NULL) ) {
+            i_upper = 0;
+            if ( isupper(*(s_inptr+1)) )
+               i_upper = 1;
+            if ( sscanf(s_inptr+2, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+               if ( (c1 != '<') || (c2 != '>') ) {
+                  s_inptr = s_inptrtmp+1;
+               } else {
+#ifdef STANDALONE
+                  i_tohex = 0;
+#else
+                  i_tohex = down_ansi(i_r, i_g, i_b);
+#endif
+                  if ( i_upper ) {
+                     i_hex2 = 1;
+                     i_ansi2 = 0;
+                     s_ptr->c_bgansi ='\0';
+                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
+                  } else {
+                     i_hex1 = 1;
+                     i_ansi1 = 0;
+                     s_ptr->c_fgansi ='\0';
+                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
+                  }
+               }
+            } else if ( sscanf(s_inptr+2, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+               if ( (c1 != '<') || (c2 != '>') ) {
+                  s_inptr = s_inptrtmp+1;
+               } else {
+#ifdef STANDALONE
+                  i_tohex = 0;
+#else
+                  i_tohex = down_ansi(i_r, i_g, i_b);
+#endif
+                  if ( i_upper ) {
+                     i_hex2 = 1;
+                     i_ansi2 = 0;
+                     s_ptr->c_bgansi ='\0';
+                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
+                  } else {
+                     i_hex1 = 1;
+                     i_ansi1 = 0;
+                     s_ptr->c_fgansi ='\0';
+                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
+                  }    
+               }  
+            }
+            s_inptr = s_inptrtmp+1;
          }
       }
       if ( (*s_inptr == '%') && (*(s_inptr+1) == 'f') ) {
@@ -1143,13 +1315,16 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
       }
       if ( (*s_inptr == '%') && (*(s_inptr+1) == '<') && (*(s_inptr+2) == 'u') &&
             *(s_inptr+3) && *(s_inptr+4) && 
-            ((*(s_inptr+5) == '>') || (*(s_inptr+5) && *(s_inptr+6) && (*(s_inptr+7) == '>'))) ) {
+           ((*(s_inptr+5) == '>') || 
+            (*(s_inptr+5) && *(s_inptr+6) && (*(s_inptr+7) == '>')) ||
+            (*(s_inptr+5) && *(s_inptr+6) && *(s_inptr+7) && (*(s_inptr+8) == '>'))
+         ) ) {
         *s_outptr = '?';
         s_inptr+=3;
-        memset(buf_utf8, '\0', 10);
-        utfcnt = 0;
+        memset(buf_utf8, '\0', sizeof(buf_utf8));
 
-        while (utfcnt < 6 && *s_inptr != '>') {
+        utfcnt = 0;
+        while (utfcnt < 16 && *s_inptr != '>') {
             buf_utf8[utfcnt] = *s_inptr;
             utfcnt++;
             s_inptr++;
@@ -1883,7 +2058,7 @@ trigger_cluster_action(dbref thing, dbref player)
 /***
  * Convert the UTF-8 bytes represented as a string
  * of hex values to a string of hex values representing
- * the unicode code point.
+ * the Unicode code point.
  ***/
 char *
 encode_utf8(char *myutf) 
@@ -1983,7 +2158,7 @@ utf8toucp(char *myutf)
 }
 
 /***
- * Convert string representation of unicode code point hex values
+ * Convert string representation of Unicode code point hex values
  * to string representation of UTF8 byte hex values
  */
 char *
@@ -2021,4 +2196,77 @@ ucptoutf8(char *ucp)
     return myutf;
 }
 
+char ucs32toascii(long ucs)
+{
+   // Original code by Polk
+   // Modified to a linear array search for a speedy lookup --Amb
+   int i;
+   long utfcodes[] = { 0x2012, '-', 0x2013, '-', 0x2014, '-',
+                       0x2500, '-', 0x2501, '-', 0x2502, '|', 0x2503, '|' 
+                     , 0x2504, '-', 0x2505, '-', 0x2506, '|', 0x2507, '|'
+                     , 0x2508, '-', 0x2509, '-', 0x250A, '|', 0x250B, '|'
+                     , 0x250C, '+', 0x250D, '+', 0x250E, '+', 0x250F, '+'
+                     , 0x2510, '+', 0x2511, '+', 0x2512, '+', 0x2513, '+'
+                     , 0x2514, '+', 0x2515, '+', 0x2516, '+', 0x2517, '+'
+                     , 0x2518, '+', 0x2519, '+', 0x251A, '+', 0x251B, '+'
+                     , 0x251C, '+', 0x251D, '+', 0x251E, '+', 0x251F, '+'
+                     , 0x2520, '+', 0x2521, '+', 0x2522, '+', 0x2523, '+'
+                     , 0x2524, '+', 0x2525, '+', 0x2526, '+', 0x2527, '+'
+                     , 0x2528, '+', 0x2529, '+', 0x252A, '+', 0x252B, '+'
+                     , 0x252C, '+', 0x252D, '+', 0x252E, '+', 0x252F, '+'
+                     , 0x2530, '+', 0x2531, '+', 0x2532, '+', 0x2533, '+'
+                     , 0x2534, '+', 0x2535, '+', 0x2536, '+', 0x2537, '+'
+                     , 0x2538, '+', 0x2539, '+', 0x253A, '+', 0x253B, '+'
+                     , 0x253C, '+', 0x253D, '+', 0x253E, '+', 0x253F, '+'
+                     , 0x2540, '+', 0x2541, '+', 0x2542, '+', 0x2543, '+'
+                     , 0x2544, '+', 0x2545, '+', 0x2546, '+', 0x2547, '+'
+                     , 0x2548, '+', 0x2549, '+', 0x254A, '+', 0x254B, '+'
+                     , 0x254C, '-', 0x254D, '-', 0x254E, '|', 0x254F, '|'
+                     , 0x2550, '=', 0x2551, '|', 0x2552, '+', 0x2553, '+'
+                     , 0x2554, '+', 0x2555, '+', 0x2556, '+', 0x2557, '+'
+                     , 0x2558, '+', 0x2559, '+', 0x255A, '+', 0x255B, '+'
+                     , 0x255C, '+', 0x255D, '+', 0x255E, '+', 0x255F, '+'
+                     , 0x2560, '+', 0x2561, '+', 0x2562, '+', 0x2563, '+'
+                     , 0x2564, '+', 0x2565, '+', 0x2566, '+', 0x2567, '+'
+                     , 0x2568, '+', 0x2569, '+', 0x256A, '+', 0x256B, '+'
+                     , 0x256C, '+', 0x256D, '+', 0x256E, '+', 0x256F, '+'
+                     , 0x2570, '+', 0x2571, '/', 0x2572, '\\', 0x2573, 'X'
+                     , 0x2574, '-', 0x2575, '|', 0x2576, '-', 0x2577, '|'
+                     , 0x2578, '-', 0x2579, '|', 0x257A, '-', 0x257B, '|'
+                     , 0x257C, '-', 0x257D, '|', 0x257E, '-', 0x257F, '|'
+                     , 0x25CF, '*', 0x25CC, 'o', 0x25CB, 'o'
+                     , 0x0060, '`', 0x201c, '"', 0x2019, '\'', 0x00a1, '!'
+                     , 0x2022, '.', 0x2039, '<', 0x203a, '>', 0x00b0, 'o'
+                     , 0x00ba, 'o', 0x00b7, '.', 0x201a, ',', 0x2550, '='
+                     , 0x00ab, '<', 0x00bb, '>', 0x00c0, 'A', 0x00c1, 'A'
+                     , 0x00c2, 'A', 0x00c3, 'A', 0x00c4, 'A', 0x00c5, 'A'
+                     , 0x00c7, 'C', 0x00c8, 'E', 0x00c9, 'E', 0x00ca, 'E'
+                     , 0x00cb, 'E', 0x00cc, 'I', 0x00cd, 'I', 0x00ce, 'I'
+                     , 0x00cf, 'I', 0x00d0, 'D', 0x00d1, 'N', 0x00d2, 'O'
+                     , 0x00d3, 'O', 0x00d4, 'O', 0x00d5, 'O', 0x00d6, 'O'
+                     , 0x00d8, 'O', 0x00d7, 'x', 0x00d9, 'U', 0x00da, 'U'
+                     , 0x00db, 'U', 0x00dc, 'U', 0x00dd, 'Y', 0x00e0, 'a'
+                     , 0x00e1, 'a', 0x00e2, 'a', 0x00e3, 'a', 0x00e4, 'a'
+                     , 0x00e5, 'a', 0x00e7, 'c', 0x00e8, 'e', 0x00e9, 'e'
+                     , 0x00ea, 'e', 0x00eb, 'e', 0x00ec, 'i', 0x00ed, 'i'
+                     , 0x00ee, 'i', 0x00ef, 'i', 0x00f0, 'd', 0x00f1, 'n'
+                     , 0x00f2, 'o', 0x00f3, 'o', 0x00f4, 'o', 0x00f5, 'o'
+                     , 0x00f6, 'o', 0x00f8, 'o', 0x00f7, '-', 0x00f9, 'u'
+                     , 0x00fa, 'u', 0x00fb, 'u', 0x00fc, 'u', 0x00fd, 'y'
+                     , 0x00bf, '?', 0x00a6, '|', 0x2030, '%', 0x0160, 'S'
+                     , 0x0161, 's', 0x00df, 's' /* Sorry Ambrosia */
+                     };
+
+   /* ASCII is as ASCII does */
+   if(ucs < 128)
+       return ucs;
+
+   /* Walk the substitutes array */
+   for(i=0;i<sizeof(utfcodes)/sizeof(long);i+=2)
+      if(utfcodes[i] == ucs)
+         return utfcodes[i+1];
+
+   /* Fallback */
+   return '?';
+}
 #endif

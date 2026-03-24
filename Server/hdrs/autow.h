@@ -13,13 +13,13 @@
  * Change them if need be
  */
 
-/* Define if we have stdlib.h et al */
+/* Define if we have stdlib.h et al. */
 #define STDC_HEADERS 1
 /* Define if we have string.h instead of strings.h */
 #define USG 1
 /* Define if we have unistd.h */
 #define HAVE_UNISTD_H 1
-/* Define if we have memory.h and need it to get memcmp et al */
+/* Define if we have memory.h and need it to get memcmp et al. */
 /* #undef NEED_MEMORY_H */
 /* Decl for pid_t */
 /* #undef pid_t */
@@ -75,9 +75,9 @@
 /* #undef __CHAR_UNSIGNED__ */
 /* Define if inline keyword is broken or nonstandard */
 /* #undef inline */
-/* Define if we need to redef index/bcopy et al to their SYSV counterparts */
+/* Define if we need to redef index/bcopy et al. to their SYSV counterparts */
 #define NEED_INDEX_DCL 1
-/* Define if we need to declare malloc et al */
+/* Define if we need to declare malloc et al. */
 /* #undef NEED_MALLOC_DCL */
 /* Define if we need to declare vsprintf yourself */
 /* #undef NEED_VSPRINTF_DCL */

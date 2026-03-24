@@ -8,7 +8,7 @@
 /* Attribute flags */
 #define	AF_ODARK	0x00000001	/* players other than owner can't see it */
 #define	AF_DARK		0x00000002	/* No one can see it */
-#define	AF_WIZARD	0x00000004	/* wizard and above modifyable */
+#define	AF_WIZARD	0x00000004	/* wizard and above modifiable */
 #define	AF_MDARK	0x00000008	/* Only wizards can see it. Dark to mortals */
 #define	AF_INTERNAL	0x00000010	/* Don't show even to #1 */
 #define	AF_NOCMD	0x00000020	/* Don't create a @ command for it */
@@ -16,14 +16,14 @@
 #define	AF_DELETED	0x00000080	/* Attribute should be ignored */
 #define	AF_NOPROG	0x00000100	/* Don't process $-commands from this attr */
 #define	AF_GOD		0x00000200	/* Only #1 can change it */
-#define	AF_ADMIN	0x00000400	/* counc and above modifyable */
-#define	AF_BUILDER	0x00000800	/* arch and above modifyable */
+#define	AF_ADMIN	0x00000400	/* counc and above modifiable */
+#define	AF_BUILDER	0x00000800	/* arch and above modifiable */
 #define AF_IS_LOCK  	0x00001000
 #define AF_GUILDMASTER	0x00002000	/* guildmaster can modify it */
-#define AF_IMMORTAL 	0x00004000	/* immortal modifyable */
+#define AF_IMMORTAL 	0x00004000	/* immortal modifiable */
 #define	AF_PRIVATE	0x00008000	/* Not inherited by children */
 #define AF_NONBLOCKING	0x00010000	/* command doesn't keep parent and
-					   globals from being checked if matched 
+					   globals from being checked if matched
                                            NOT USED -- Used now for @dbclean marking */
 #define AF_VISUAL	0x00020000
 #define AF_NOANSI	0x00040000
@@ -86,11 +86,11 @@ typedef struct afstruct {
 #define	A_ODESC		37	/* Others describe message */
 #define	A_RQUOTA	38	/* Relative object quota */
 #define	A_ACONNECT	39	/* Actions run when player connects */
-#define	A_ADISCONNECT	40	/* Actions run when player disconnectes */
+#define	A_ADISCONNECT	40	/* Actions run when player disconnects */
 #define	A_ALLOWANCE	41	/* Daily allowance, if diff from default */
 #define	A_LOCK		42	/* Object lock */
 #define	A_NAME		43	/* Object name */
-#define	A_COMMENT	44	/* Wizard-accessable comments */
+#define	A_COMMENT	44	/* Wizard-accessible comments */
 #define	A_USE		45	/* Invoker use message */
 #define	A_OUSE		46	/* Others use message */
 #define	A_SEMAPHORE	47	/* Semaphore control info */
@@ -134,7 +134,7 @@ typedef struct afstruct {
 #define	A_LTPORT	85	/* Teleport lock (can others @tel to me?) */
 #define	A_LDROP		86	/* Drop lock (can I be dropped or @tel'ed) */
 #define	A_LRECEIVE	87	/* Receive lock (who may give me things?) */
-#define	A_LASTSITE	88	/* Last site logged in from, in cleartext */
+#define	A_LASTSITE	88	/* Last site logged in from, in clear text */
 #define	A_INPREFIX	89	/* Prefix on incoming messages into objects */
 #define	A_PREFIX	90	/* Prefix used by exits/objects when audible */
 #define	A_INFILTER	91	/* Filter to zap incoming text into objects */
@@ -150,6 +150,7 @@ typedef struct afstruct {
 
 #define A_CHANNEL       126     /* +com channels */
 #define A_GUILD         127     /* player's guild */
+#define A_FLAGLEVEL    128     /* Custom bitlevels thresholdsfor flags */
 #define A_ZA		129	/* ZA attribute (ZB-ZZ follow) [Thorin]*/
 
 #define A_BCCMAIL       155     /* Blind Carbon Copy Mail */
@@ -221,7 +222,7 @@ typedef struct afstruct {
 #define A_ANSINAME      220     /* Ansi colors to names of anything */
 #define A_TOTCMDS       221     /* Total commands player has done */
 #define A_LSTCMDS       222     /* Commands since last on */
-#define A_RECEIVELIM    223     /* Receive limit on money a player recieves (max upper/lower) */
+#define A_RECEIVELIM    223     /* Receive limit on money a player receives (max upper/lower) */
 #define A_LCON_FMT	224     /* @conformat specifications */
 #define A_LEXIT_FMT	225	/* @exitformat specifications */
 #define A_LDEXIT_FMT	226	/* @darkexitformat specifications */
@@ -260,7 +261,33 @@ typedef struct afstruct {
 #define	A_TEMP		255
 
 #define	A_USER_START	256	/* Start of user-named attributes */
+#define A_USER_MAXIMUM	2000000000 /* Absolute ceiling on maximum user attribs in database */
+#define A_INLINE_START	2100000000 /* Start of highend user named attributes */
+#define A_INLINE_END    2140000000 /* End of highend user named attributes -- DO NOT EXCEED MAXINT (2^32)*/
 #define	ATR_BUF_CHUNK	100	/* Min size to allocate for attribute buffer */
 #define	ATR_BUF_INCR	6	/* Max size of one attribute */
+
+/* Define all attributes > 21000000000 here 
+ * 
+ * Note: You can go out of order, however, it's strongly suggested that
+ *       you do not.  It does no harm, but every entry skipped does take
+ *       up extra memory.  While small, it can add up.
+ *       
+ * You have 40 million built-in attributes you may assign.  Have fun.
+ * That being between 2100000000 - 2140000000.
+ */
+
+/* Examples
+ * #define A_HIGHATTRTEST	2100000000
+ * #define A_HIGHATTRTEST2	2100000001
+ * #define A_HIGHATTRTEST3	2100000002
+ * #define A_HIGHATTRTEST4	2100000003
+ */
+#define A_CONNINFO	2100000000
+#define A_CONNRECORD	2100000001
+#define A_MFAIL		2100000002
+#define A_WIREFUNCEVAL  2100000003
+#define A_WIREQUEUEMAX  2100000004
+#define A_AMAIL		2100000005
 
 #endif

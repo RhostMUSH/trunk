@@ -22,7 +22,7 @@ void local_load_reboot(void);
 void local_dump(int bPanicDump);
 void local_dbck(void);
 void local_tick(void);
-void local_tick(void);		
+void local_tick(void);
 void local_player_connect(dbref player, int bNew);
 void local_player_disconnect(dbref player);
 void local_second(void);

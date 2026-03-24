@@ -16,6 +16,7 @@ function update_git
    if [ $? -ne 0 ]
    then
       echo "Oopse!  You do not have git installed.  You need that to use $0.  Sorry!"
+      echo "#EXIT 1"
       exit 1
    fi
    gl_branch="trunk"
@@ -42,6 +43,7 @@ function update_git
          then
             echo "error."
             echo "Can't pull latest sources.  Try again later."
+            echo "#EXIT 1"
             exit 1
          fi
       fi
@@ -66,6 +68,8 @@ function help
    echo "   -r -- update all readmes."
    echo "   -p -- update patcher and this script."
    echo "   -c -- convert old makefile with new makefile."
+   echo "   -m -- update main Makefile and src/Makefile to latest."
+   echo "   -f -- update all bin scripts including asksource scripts."
 }
 
 function update_execscripts
@@ -104,9 +108,23 @@ function update_bins
    for i in $(ls ${lc_bin}/asksource.save_template ${lc_bin}/mysql.blank ${lc_bin}/mysql_config ${lc_bin}/*.sh)
    do
       lc_file="$(echo "${i##*/}")"
-      if [ "${lc_file}" = "asksource.sh" ]
+      if [ -z "${asksource}" -a "${lc_file}" = "asksource.sh" ]
       then
          continue
+      else
+         diff $i ./bin/${lc_file} > /dev/null 2>&1
+         if [ $? -ne 0 ]
+         then
+            mv -f ./bin/${lc_file} ./bin/${lc_file}.${lc_date} 2>/dev/null
+            cp -pf ${lc_bin}/${lc_file} ./bin/${lc_file}
+            tail -n +2 ./bin/asksource.sh > ./bin/asksource.blank
+            if [ -z "${lc_update}" ]
+            then
+               lc_update="${lc_file}"
+            else
+               lc_update="${lc_update} ${lc_file}"
+            fi
+         fi
       fi
       diff $i ./bin/${lc_file} > /dev/null 2>&1
       if [ $? -ne 0 ]
@@ -121,6 +139,53 @@ function update_bins
          fi
       fi 
    done
+   if [ -n "${lc_update}" ]
+   then
+      echo "Updated scripts: ${lc_update}"
+   else
+      echo "Nothing updated."
+   fi
+   cleanup_git
+}
+
+function update_makefiles
+{
+   update_git
+   lc_update=""
+   for i in $(ls ${lc_main}/Makefile)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i "${lc_file}" > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "${lc_file}" "${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_main}/${lc_file}" "${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="(main)${lc_file}"
+         else
+            lc_update="${lc_update} (main)${lc_file}"
+         fi
+      fi
+   done
+
+   for i in $(ls ${lc_src}/Makefile)
+   do
+      lc_file="$(echo "${i##*/}")"
+      diff $i ./src/${lc_file} > /dev/null 2>&1
+      if [ $? -ne 0 ]
+      then
+         mv -f "./src/${lc_file}" "./src/${lc_file}.${lc_date}" 2>/dev/null
+         cp -pf "${lc_src}/${lc_file}" "./src/${lc_file}"
+         if [ -z "${lc_update}" ]
+         then
+            lc_update="(src)${lc_file}"
+         else
+            lc_update="${lc_update} (src)${lc_file}"
+         fi
+      fi
+   done
+
    if [ -n "${lc_update}" ]
    then
       echo "Updated scripts: ${lc_update}"
@@ -322,6 +387,7 @@ lc_path="${lc_path##*/}"
 if [ "${lc_path}" != "Server" -o ! -d "game" ]
 then
    echo "$0: error -- must execute from 'Server' subdirectory"
+   echo "#EXIT 1"
    exit 1
 fi
 case "$@" in
@@ -329,6 +395,10 @@ case "$@" in
       update_execscripts
       ;;
    -b|-B|--bin) # bins
+      update_bins
+      ;;
+   -f|-F|--fullbin) # bins
+      asksource=1
       update_bins
       ;;
    -c|-C|--convert) # do convert
@@ -340,7 +410,11 @@ case "$@" in
    -p|-P|--patch|--patcher) # update patcher
       update_patcher
       ;;
+   -m|-M|--makefile|--make) # update makefiles
+      update_makefiles
+      ;;
    *) # help only
       help
       ;;
 esac
+echo "#EXIT 0"

@@ -15,6 +15,22 @@
 /* MMMail Addition for hardcoded mailer. */
 #include "mail.h"
 
+int 
+validate_freematch(dbref target) 
+{
+   dbref obj = mudstate.freelist;
+   int i_return = 0;
+
+   while ( Good_obj(obj) ) {
+      if ( obj == target ) {
+         i_return = 1;
+         break;
+      }
+      obj = Link(obj);
+   }
+   return i_return;
+}
+
 /* ---------------------------------------------------------------------------
  * parse_linkable_room: Get a location to link to.
  */
@@ -54,7 +70,7 @@ static void
 open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char *ansiname, int isansi)
 {
     dbref exit;
-    char *tpr_buff, *tprp_buff;
+    char *tpr_buff, *tprp_buff, *s_tbuff;
 
     if (!Good_obj(loc)) {
 	return;
@@ -80,13 +96,18 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
 
     /* and we're done */
 
-    if ( !(key & SIDEEFFECT ) )
-       notify_quiet(player, "Opened.");
+    s_tbuff = alloc_sbuf("exit_etails");
+    if ( !(key & SIDEEFFECT ) ) {
+       sprintf(s_tbuff, "Opened (#%d)", exit);
+       notify_quiet(player, s_tbuff);
+    }
 
     /* See if we should do a link */
 
-    if (!linkto || !*linkto)
+    if (!linkto || !*linkto) {
+        free_sbuf(s_tbuff);
 	return;
+    }
 
     loc = parse_linkable_room(player, linkto);
     if (loc != NOTHING) {
@@ -95,6 +116,7 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
 
 	if ((loc != HOME) && !could_doit(player, loc, A_LLINK, 1, 0)) {
 	    notify_quiet(player, "You can't link to there.");
+            free_sbuf(s_tbuff);
 	    return;
 	}
 	/* Link it if the player can pay for it */
@@ -107,10 +129,13 @@ open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char 
             free_lbuf(tpr_buff);
 	} else {
 	    s_Location(exit, loc);
-	    if ( !(key & SIDEEFFECT ) )
-	       notify_quiet(player, "Linked.");
+	    if ( !(key & SIDEEFFECT ) ) {
+               sprintf(s_tbuff, "Linked (#%d)", loc);
+	       notify_quiet(player, s_tbuff);
+            }
 	}
     }
+    free_sbuf(s_tbuff);
 }
 
 char *
@@ -171,8 +196,12 @@ do_open(dbref player, dbref cause, int key, char *direction,
        key &= ~OPEN_ANSI;
     }
 
-    if (Immortal(player) && (*direction == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*direction == '#')) {
 	dir2 = get_free_num(player, direction);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	dir2 = direction;
     }
@@ -251,7 +280,7 @@ link_exit(dbref player, dbref exit, dbref dest, int key)
 	cost += mudconf.opencost;
 	quot += mudconf.exit_quota;
     }
-    if (!canpayfees(player, player, cost, quot, TYPE_EXIT))
+    if (!(mudconf.paranoid_exit_linking) && !canpayfees(player, player, cost, quot, TYPE_EXIT))
 	return;
 
     /* Pay the owner for his loss */
@@ -292,7 +321,7 @@ do_link(dbref player, dbref cause, int key, char *what, char *where)
     if (thing == NOTHING)
 	return;
 
-    nomtest = ((NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(thing) != Owner(player))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
+    nomtest = ((NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(thing) != Owner(player))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
     /* Allow unlink if where is not specified */
 
     if (!where || !*where) {
@@ -464,7 +493,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
 
       /* Make sure we can do it */
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -592,7 +621,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         return;
       }
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -713,7 +742,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
          return;
       }
 
-      if ( (NoMod(thing) && !WizMod(player)) ||
+      if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
            (Backstage(player) && NoBackstage(thing)) ) {
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
@@ -762,7 +791,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           }
           return;
         }
-        if ( (NoMod(thing) && !WizMod(player)) ||
+        if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
              (Backstage(player) && NoBackstage(thing)) ) {
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
@@ -787,7 +816,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           }
           return;
         }
-        if ( (NoMod(thing) && !WizMod(player)) ||
+        if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ||
              (Backstage(player) && NoBackstage(thing)) ) {
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
@@ -833,7 +862,7 @@ do_parent(dbref player, dbref cause, int key, char *tname, char *pname)
 
     /* Make sure we can do it */
 
-    if ( NoMod(thing) && !WizMod(player) ) {
+    if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
 	notify_quiet(player, "Permission denied.");
 	return;
     }
@@ -894,8 +923,8 @@ do_dig(dbref player, dbref cause, int key, char *name,
        char *args[], int nargs)
 {
     dbref room, location;
-    char *buff, *name2, *buff2;
-    int old_lastobj, i_ansi;
+    char *buff, *name2, *buff2, *exit_tmp;
+    int old_lastobj, i_ansi, i_noexit;
     CMDENT *cmdp;
 
     if ( (key & SIDEEFFECT) && !SideFX(player) ) {
@@ -924,8 +953,12 @@ do_dig(dbref player, dbref cause, int key, char *name,
 	notify_quiet(player, "Dig what?");
 	return;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name2 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# (of room) specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name2 = name;
     }
@@ -943,16 +976,43 @@ do_dig(dbref player, dbref cause, int key, char *name,
 
     buff = alloc_sbuf("do_dig");
     if ((nargs >= 1) && args[0] && *args[0]) {
-        buff2 = strip_all_special(args[0]);
 	sprintf(buff, "%d", room);
-	open_exit(player, location, buff2, buff, key, args[0], i_ansi);
-        mudstate.store_lastx1 = mudstate.store_lastcr;
+        i_noexit = 0;
+        if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*args[0] == '#')) {
+           exit_tmp = get_free_num(player, args[0]);
+           if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+              if ( !(key & SIDEEFFECT) ) {
+                 notify_quiet(player, "Dbref# (of outbound exit) specified is not a valid free dbref#.");
+              }
+              i_noexit = 1;
+           }
+       } else {
+           exit_tmp = args[0];
+       }
+       buff2 = strip_all_special(exit_tmp);
+       if ( !i_noexit ) {
+          open_exit(player, location, buff2, buff, key, exit_tmp, i_ansi);
+          mudstate.store_lastx1 = mudstate.store_lastcr;
+       }
     }
     if ((nargs >= 2) && args[1] && *args[1]) {
-        buff2 = strip_all_special(args[1]);
 	sprintf(buff, "%d", location);
-	open_exit(player, room, buff2, buff, key, args[1], i_ansi);
-        mudstate.store_lastx2 = mudstate.store_lastcr;
+        i_noexit = 0;
+        if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*args[1] == '#')) {
+           exit_tmp = get_free_num(player, args[1]);
+           if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+              if ( !(key & SIDEEFFECT) ) {
+                 notify_quiet(player, "Dbref# (of inbound exit) specified is not a valid free dbref#.");
+              }
+           }
+       } else {
+           exit_tmp = args[1];
+       }
+       buff2 = strip_all_special(exit_tmp);
+       if ( !i_noexit ) {
+          open_exit(player, room, buff2, buff, key, exit_tmp, i_ansi);
+          mudstate.store_lastx2 = mudstate.store_lastcr;
+       }
     }
     free_sbuf(buff);
     if (key == DIG_TELEPORT ) {
@@ -989,8 +1049,12 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 	notify_quiet(player, "You can't create an object for less than nothing!");
 	return;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name2 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name2 = name;
     }
@@ -1027,7 +1091,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 {
     dbref clone, thing, new_owner, loc;
     FLAG rmv_flags;
-    int cost, side_effect, i_ansi;
+    int cost, side_effect, i_ansi, i_totem;
     char *tpr_buff, *tprp_buff, *arg2_noansi;
     CMDENT *cmdp;
 
@@ -1200,6 +1264,12 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
     s_Toggles7(clone, Toggles4(thing));
     s_Toggles8(clone, Toggles5(thing));
 
+    /* Clone Totems */
+    for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+        dbtotem[clone].flags[i_totem] = dbtotem[thing].flags[i_totem];
+    }
+
+
     /* Tell creator about it */
 
     if (!(Quiet(player) || side_effect) ) {
@@ -1296,8 +1366,12 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
        }
        i_ansi = 1;
     }
-    if (Immortal(player) && (*name == '#')) {
+    if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {
 	name3 = get_free_num(player, name);
+        if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
+           notify_quiet(player, "Dbref# specified is not a valid free dbref#.");
+           return;
+        }
     } else {
 	name3 = name;
     }
@@ -1472,7 +1546,7 @@ destroy_exit(dbref player, dbref exit, int purge)
 	return;
     }
     if ((loc != Location(player)) && (loc != player)
-	&& !Admin(player)) {
+	&& !Admin(player) && !HasPriv(player, NOTHING, POWER_LONG_FINGERS, POWER3, NOTHING)) {
 	notify_quiet(player, "You can not destroy exits in another room.");
 	return;
     }
@@ -1640,7 +1714,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 	return;
     }
     if (Indestructable(thing)) {
-	notify_quiet(player, "Sorry, that's indestructable.");
+	notify_quiet(player, "Sorry, that's indestructible.");
 	return;
     }
     if ( Cluster(thing)) {
@@ -1673,16 +1747,16 @@ do_destroy(dbref player, dbref cause, int key, char *what)
                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
-                if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                   notify_quiet(player,"@destruction limit maximum reached.");
+             if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
+                if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                   notify_quiet(newplayer,"@destruction limit maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "DESTROY")
                      log_text("@destruction limit maximum reached -> Player: ");
-                     log_name(player);
+                     log_name(newplayer);
                      log_text(" Object: ");
                      log_name(thing);
                    ENDLOG
-                   broadcast_monitor(player,MF_VLIMIT,"DESTROY MAXIMUM",
+                   broadcast_monitor(newplayer,MF_VLIMIT,"DESTROY MAXIMUM",
                            NULL, NULL, thing, 0, 0, NULL);
                    free_lbuf(s_chkattr);
                    return;
@@ -1691,12 +1765,12 @@ do_destroy(dbref player, dbref cause, int key, char *what)
              s_mbuf = alloc_mbuf("vattr_check");
              sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1], 
                                             i_array[2]+1, i_array[3], i_array[4]);
-             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           } else {
              s_mbuf = alloc_mbuf("vattr_check");
              sprintf(s_mbuf, "0 -2 1 -2 %d", -2);
-             atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+             atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
              free_mbuf(s_mbuf);
           }
           free_lbuf(s_chkattr);
@@ -1782,7 +1856,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
     if (thing != NOTHING) {
 	if (Typeof(thing) == TYPE_PLAYER) {
 	    if (Indestructable(thing)) {
-		notify_quiet(player, "Sorry, that player is indestructable.");
+		notify_quiet(player, "Sorry, that player is indestructible.");
 		return;
 	    }
 	    if (DePriv(player, thing, DP_NUKE, POWER6, NOTHING)) {
@@ -1802,7 +1876,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
                      newplayer = NOTHING;
                }
                if ( Good_chk(newplayer) ) {
-                  s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+                  s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
                   if ( *s_chkattr ) {
                      i_array[0] = i_array[2] = 0;
                      i_array[4] = i_array[1] = i_array[3] = -2;
@@ -1812,15 +1886,15 @@ do_nuke(dbref player, dbref cause, int key, char *name)
                          i_array[i] = atoi(s_buffptr);
                      }
                      if ( i_array[3] != -1 ) {
-                        if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                           notify_quiet(player,"@destruction limit maximum reached.");
+                        if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                           notify_quiet(newplayer,"@destruction limit maximum reached.");
                            STARTLOG(LOG_SECURITY, "SEC", "NUKE")
                              log_text("@destruction limit maximum reached -> Player: ");
-                             log_name(player);
+                             log_name(newplayer);
                              log_text(" Object: ");
                              log_name(thing);
                            ENDLOG
-                           broadcast_monitor(player,MF_VLIMIT,"[NUKE] DESTROY MAXIMUM",
+                           broadcast_monitor(newplayer,MF_VLIMIT,"[NUKE] DESTROY MAXIMUM",
                                    NULL, NULL, thing, 0, 0, NULL);
                            free_lbuf(s_chkattr);
                            return;
@@ -1829,12 +1903,12 @@ do_nuke(dbref player, dbref cause, int key, char *name)
                      s_mbuf = alloc_mbuf("vattr_check");
                      sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
                                                     i_array[2]+1, i_array[3], i_array[4]);
-                     atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+                     atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
                      free_mbuf(s_mbuf);
                   } else {
                      s_mbuf = alloc_mbuf("vattr_check");
                      sprintf(s_mbuf, "0 -2 1 -2 %d", -2);
-                     atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+                     atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
                      free_mbuf(s_mbuf);
                   }
                   free_lbuf(s_chkattr);

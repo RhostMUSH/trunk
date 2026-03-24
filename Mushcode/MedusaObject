@@ -7,9 +7,11 @@
 @@ object annoys the hell out of them.  So I came up with this tool.
 @@
 @@ Essentially add their wildcarded DNS site to &SITES.  If you have IP only
-@@ then use the IP, it's fine.  If you have a 'good' player, add them to 
-@@ the excempt list (their dbref#) and it'll bypass them from being medusa'd.
+@@ then use the IP, it's fine.  If you have a 'good' player, add their 
+@@ dbref# to &EXEMPT and it'll bypass them from being medusa'd.
 @@
+@@ &EXEMPT and &SITES are both space seaprated lists.
+@@ 
 @@ The existing SITES is ones from a known troll, provied for your pleasure.
 @@
 @@ Versioning:

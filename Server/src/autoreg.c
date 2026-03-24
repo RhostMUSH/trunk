@@ -226,12 +226,12 @@ int mush_getline(char *buf, FILE *fpt)
 
   pt1 = buf;
   in = fgetc(fpt);
-  while ((in != EOF) && in && (in != '\n')) {
+  while (!feof(fpt) && in && (in != '\n')) {
     *pt1++ = in;
     in = fgetc(fpt);
   }
   *pt1 = '\0';
-  if (in == EOF)
+  if (feof(fpt))
     return 0;
   else
     return 1;

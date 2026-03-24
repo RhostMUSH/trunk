@@ -24,9 +24,13 @@ static VATTR *vfreelist;
 static int vhash_index;
 
 static int vstats_count;
+static double vstats_hits;
 static int vstats_name_cnt;
 static int vstats_freecnt;
-static int vstats_lookups;
+static double vstats_lookups;
+static int vstats_maxlookup;
+static double vstats_checks;
+static int vstats_nulls;
 #ifdef GATHER_STATS
 static int page_faults = 0;
 #endif
@@ -61,12 +65,16 @@ void NDECL(vattr_init)
 	vstats_count = 0;
 	vstats_name_cnt = 0;
 	vstats_lookups = 0;
+	vstats_hits = 0;
+	vstats_checks = 0;
+	vstats_maxlookup = 0;
+	vstats_nulls = VHASH_SIZE;
 }
 
 VATTR *vattr_find(char *name)
 {
 	register VATTR *vp,*vprev;
-	int hash;
+	int hash, maxlooks;
 #if defined(GATHER_STATS) && defined(HAVE_GETRUSAGE)
 	struct rusage foo;
 	int	old_majflt;
@@ -81,9 +89,17 @@ VATTR *vattr_find(char *name)
 	vstats_lookups++;
 
 	vprev = NULL;
+        maxlooks = 0;
 	for (vp = vhash[hash]; vp != NULL;vprev = vp, vp = vp->next) {
-		if (!strcmp(name, vp->name))
+		maxlooks++;
+		if (!strcmp(name, vp->name)) {
+			vstats_hits++;
+			vstats_checks += (double)maxlooks;
+			if ( maxlooks > vstats_maxlookup ) {
+				vstats_maxlookup = maxlooks;
+			}
 			break;
+                }
 	}
 	if(vp && vprev){ /* Rechain */
 		vprev->next = vp->next;
@@ -103,8 +119,23 @@ VATTR *vattr_alloc(char *name, int flags)
 {
 	int number;
 
-	if (((number = mudstate.attr_next++) & 0x7f) == 0)
-		number = mudstate.attr_next++;
+#ifndef STANDALONE
+        if ( (mudconf.control_flags & CF_VATTRCHECK) &&
+#else
+        if (
+#endif
+           (mudstate.vattr_reuseptr >= 0) && mudstate.vattr_reusecnt && (mudstate.vattr_reuse[mudstate.vattr_reuseptr] > 0) ) {
+           number = mudstate.vattr_reuse[mudstate.vattr_reuseptr];
+           mudstate.vattr_reuse[mudstate.vattr_reuseptr] = 0;
+           if ( mudstate.vattr_reuseptr >= mudstate.vattr_reusecnt ) {
+              mudstate.vattr_reuseptr = NOTHING;
+           } else {
+              mudstate.vattr_reuseptr++;
+           }
+        } else {
+	   if (((number = mudstate.attr_next++) & 0x7f) == 0)
+		   number = mudstate.attr_next++;
+        }
 	anum_extend(number);
 	return(vattr_define(name, number, flags));
 }
@@ -146,6 +177,9 @@ VATTR *vattr_define(char *name, int number, int flags)
 
 	hash = vattr_hash(name);
 	vp->next = vhash[hash];
+        if ( vhash[hash] == NULL ) {
+           vstats_nulls--;
+        }
 	vhash[hash] = vp;
 
 	anum_extend(vp->number);
@@ -258,24 +292,58 @@ int list_vcount()
 
 void list_vhashstats(dbref player)
 {
-char	*buff;
+   char  *buff, *s_format, *s_pt;
+   int i_max = 99999999;
 
-	buff = alloc_lbuf("vattr_hashstats");
+   buff = alloc_mbuf("vattr_hashstats");
+
+   s_pt = s_format = alloc_mbuf("hashformat");
+
+   /* name, VHASH_SIZE, vstats_count, vstats_freecnt, vstats_nulls */
+   safe_str((char *)"%-14.14s %6d %8d %5d %5d ", s_format, &s_pt);
+
+   /* Special padding for total hashes scanned */
+   if ( vstats_lookups > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* Special padding for total hashes hit */
+   if ( vstats_hits > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* Special padding for total hashes checked */
+   if ( vstats_checks > i_max ) {
+      safe_str((char *)"%8.2e ", s_format, &s_pt);
+   } else {
+      safe_str((char *)"%8.0f ", s_format, &s_pt);
+   }
+
+   /* vstats_maxlookup */
+   safe_str((char *)"%8d", s_format, &s_pt);
+
 #ifdef GATHER_STATS
-	sprintf(buff, "Vattr stats:  %d size, %d alloc, %d free, %d name lookups," 
-                "%d page faults in lookups.\r\n", sizeof(VATTR),
-                vstats_count, vstats_freecnt, vstats_lookups, page_faults);
+   /* page_faults */
+   safe_str((char *)"%8d", s_format, &s_pt);
+
+   //sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d %8d",
+   sprintf(buff, s_format,
+           (char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+           vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup, page_faults);
 #else
-#ifdef BIT64
-	sprintf(buff, "Vattr stats:  %lu size, %d alloc, %d free, %d name lookups\r\n",
-#else
-	sprintf(buff, "Vattr stats:  %u size, %d alloc, %d free, %d name lookups\r\n",
-#endif
-		sizeof(VATTR), vstats_count, vstats_freecnt, vstats_lookups);
+   //sprintf(buff, "%-14.14s %6d %8d %5d %5d %8d %8d %8d %8d",
+   sprintf(buff, s_format,
+           (char *)"Vattr Stats:", VHASH_SIZE, vstats_count, vstats_freecnt, 
+           vstats_nulls, vstats_lookups, vstats_hits, vstats_checks, vstats_maxlookup);
 #endif
 
-	notify(player, buff);
-	free_lbuf(buff);
+   notify(player, buff);
+   free_mbuf(buff);
+   free_mbuf(s_format);
 }
 
 int sum_vhashstats(dbref player)

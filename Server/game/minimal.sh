@@ -1,7 +1,18 @@
 #!/bin/sh
-echo "This will copy in the minimal_db and prep for your mush."
-echo "Do you wish to continue? (Y/N): "|tr -d '\012'
-read ans
+if [ "$1" != "--noprompt" ]
+then
+   echo "This will copy in the minimal_db and prep for your mush."
+   echo "Do you wish to continue? (Y/N): "|tr -d '\012'
+   read ans
+else
+   ps -p `cat netrhost.pid`> /dev/null 2>&1
+   if [ $? -eq 0 ]
+   then
+      echo "You have a mush running.  Can't run non-interactively."
+      exit 1
+   fi
+   ans="Y"
+fi
 if [ "$ans" != "Y" -a "$ans" != "y" ]
 then
    echo "Aborted by user."
@@ -44,9 +55,14 @@ fi
 ls ./data/netrhost.gdbm* > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
-   echo "You currently have an active game and database."
-   echo "Do you wish to overwrite this? (Y/N): "|tr -d '\012'
-   read ans
+   if [ "$1" != "--noprompt" ]
+   then
+      echo "You currently have an active game and database."
+      echo "Do you wish to overwrite this? (Y/N): "|tr -d '\012'
+      read ans
+   else
+      ans="Y"
+   fi
    if [ "$ans" != "Y" -a "$ans" != "y" ]
    then
       echo "Aborted by user."

@@ -17,13 +17,13 @@
 //        ICQ, or mail, or whatever!
 // 10) Move bittype out                                           .. DONE
 // 11) Fix wiz.c                                                  .. DONE
-// 12) Tidy door calls, rename input/outout to readfrom/writeto   
+// 12) Tidy door calls, rename input/output to readfrom/writeto   
 // 13) Check doorparm (help.c)
 // 14) **BUG** Adds first door at 1                               .. DONE
 // 15) **BUG** Why need -1 on the strings in the lookup func      .. DONE
 // 16) **BUG** At current players can only belong to 1 door
 // 17) **BUG** When QUIT'ing from a mush, the quit msg is missing 
-// 18) **BUG** Can't @Reboot and mantain DOORS ... ifdef in netcommon
+// 18) **BUG** Can't @Reboot and maintain DOORS ... ifdef in netcommon
 // 19) **FEAT* Need the 'DOOR' connect command, plus DESC support
 // 20) **FEAT* Need to disallowed door'd players from opening doors
 
@@ -39,6 +39,7 @@ char *index(const char *, int);
 #endif
 #include "copyright.h"
 #include "autoconf.h"
+#include <strings.h>
 
 #ifdef VMS
 #include "multinet_root:[multinet.include.sys]file.h"
@@ -408,6 +409,7 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonbloc
 	sin.sin_family = AF_INET;
         alarm_msec(3);
 	if (connect(new_port, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+           mudstate.alarm_triggered = 2;
            if( errno != EINPROGRESS ) {
 	      close(new_port);
 	      new_port = -1;
@@ -423,8 +425,6 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonbloc
 	    maxd = new_port + 1;
 	  new_port = setup_player(d, new_port, doorIdx);
 	}
-        mudstate.alarm_triggered = 0;
-        alarm_msec(next_timer());
       }
     }
   }
@@ -614,7 +614,7 @@ void queue_door_write(DESC * d, const char *b, int n)
             buf = alloc_lbuf("queue_door_write.LOG");
 	    sprintf(buf,
 		    "[%d/%s] Output buffer overflow, %d chars discarded by ",
-		    d->door_desc, d->addr, tp->hdr.nchars);
+		    d->door_desc, d->longaddr, tp->hdr.nchars);
 	    log_text(buf);
 	    free_lbuf(buf);
 	    log_name(d->player);

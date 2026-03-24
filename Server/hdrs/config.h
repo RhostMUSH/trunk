@@ -9,7 +9,7 @@
  *		of blocks allocated.  Good for testing for Memory leaks.
  * MSTATS:	Defining the following allows you to get stats and usage info
  *		if you use the gnu-malloc package.  It can be used in
- *		conjuction with the above, but why?
+ *		conjunction with the above, but why?
  * ATR_NAME:	Define if you want name to be stored as an attribute on the
  *		object rather than in the object structure.
  * USE_GDBM:	Define if you plan on using the disk based database scheme.
@@ -29,13 +29,59 @@
 #define USE_GDBM			/* Store text in disk-based db */
 /* #define rcheck */			/* Gnu memory range checking */
 
-#define PLAYER_NAME_LIMIT	22	/* Max length for player names */
-#define NUM_ENV_VARS		10	/* Number of env vars (%0 et al) */
+#ifdef DYN_MAXPLAYERNAME		/* Override max length player names */
+#define PLAYER_NAME_LIMIT	DYN_MAXPLAYERNAME
+#else
+#define PLAYER_NAME_LIMIT	22 	/* Max length for player names */
+#endif
+#define NUM_ENV_VARS		10	/* Number of env vars (%0 et al.) */
 #define MAX_ARG			100	/* max # args from command processor */
 #ifdef EXPANDED_QREGS
 #define MAX_GLOBAL_REGS		36	/* r() registers */
 #else
 #define MAX_GLOBAL_REGS		10	/* r() registers */
+#endif
+
+/* 
+ * This option will requiure either penn_setq enabled or by using the
+ * +/! options to setq to specify 'next in line' for setting labels.
+ *
+ * The only way to access these additional registers is with labels
+ * Default behavior is '0' for no additional registers
+ *
+ * The expected overhead for each addition register is:
+ *    (LBUF_SIZE * 2) + SBUF_SIZE
+ *
+ * This has been tested vigeriously with upwards to 10k extra.
+ * The overhead in setting all 10k registers took 3-5 seconds.
+ * After that, using them was as fast as normal.
+ *
+ * I would suggest keeping the value under a few hundred due to overhead.
+ *
+ * Keep in mind extra overhead in the stack with queued processing.
+ *
+ * The default value for this is 0
+ */
+#ifdef DYN_MAX_GLOBAL_BOOST
+#define MAX_GLOBAL_BOOST	DYN_MAX_GLOBAL_BOOST
+#else
+#define MAX_GLOBAL_BOOST	0    	/* Boost the q-regs */
+#endif
+
+/* 
+ * ATRCACHE_MAX is the global buffers that can be assigned for
+ * function evaluation.  Generally 200 is more than enough but
+ * on games that you may want more, you are welcome to use this.
+ *
+ * Keep in mind that expected overhead for atrcaches are:
+ *    (LBUF_SIZE * 2) + SBUF_SIZE
+ *
+ * The default value for this is 200
+ */
+#ifdef DYN_ATRCACHE_MAX
+#define ATRCACHE_MAX		DYN_ATRCACHE_MAX
+#else
+#define ATRCACHE_MAX		200 	/* @atrcache max possible */
 #endif
 
 /* ---------------------------------------------------------------------------
@@ -50,7 +96,7 @@
 #define OUTPUT_VERSION	7			/* Version 6 */
 #define OUTPUT_FLAGS	(MANDFLAGS|OFLAGS1|OFLAGS2)
 						/* format for dumps */
-#define UNLOAD_VERSION	7			/* verison for export */
+#define UNLOAD_VERSION	7			/* version for export */
 #define UNLOAD_OUTFLAGS	(MANDFLAGS)		/* format for export */
 
 /* magic lock cookies */

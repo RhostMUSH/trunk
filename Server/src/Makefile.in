@@ -186,7 +186,7 @@ INSTALL_PROG	= testrhost testrhost.debugmon murboot dbconvert mkhtml mkindx db_l
 INSTALL_TARG	= $(INSTALL_PROG) *.txt *.conf
 REINSTALL_TARG	= $(INSTALL_PROG) help.txt wizhelp.txt alias.conf compat.conf
 
-#compiliation source files
+#compilation source files
 ALLSRC	= $(D_SRC) $(UDB_SRC) $(UDBA_SRC) $(UDBO_SRC) $(VER_SRC) \
 	  $(WHO_SRC) $(COM_SRC) $(SA_SRC) $(AUX_SRC) $(LIB_SRC)
 ALLINC	= $(D_INC) $(UDB_INC) $(VER_INC) $(NET_INC) $(LIB_INC)
@@ -255,7 +255,7 @@ depend: $(ALLSRC) unsplit
 
 index: help.indx news.indx wizhelp.indx error.indx
 
-# Note Uncomment these ONLY if you wish to impliment ALPHA code.
+# Note Uncomment these ONLY if you wish to implement ALPHA code.
 # The door functionality is considered ALPHA code and can and will
 # bring down the server until officially released.   It crashes
 # the server once every 100 or so attempts on an average but

@@ -58,3 +58,4 @@ login_to_prog 1
 notonerr_return 1
 expand_goto 1
 mux_child_compat 1
+attr_access desc default

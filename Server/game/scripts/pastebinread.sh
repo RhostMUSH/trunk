@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 tst=$(lynx --version 2>&1|grep -c "not found")
 if [ $tst -eq 0 ]
 then

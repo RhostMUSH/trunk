@@ -67,7 +67,7 @@ else
 fi
 echo "Making a backup of all your files, please wait..."|tr -d '\012'
 lc_date=$(date +%m%d%y%H%M%S)
-tar -czf src_backup_${lc_date}.tgz src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
+tar -czf src_backup_${lc_date}.tgz src/Makefile src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
 echo "... completed.  Filename is src_backup_${lc_date}.tgz"
 echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate (or bin/netrhost.automate)"
 if [ -f src/netrhost ] 
@@ -85,13 +85,38 @@ then
    cp -f src/local.c.backup src/local.c
 else
    mv -f src/local.c src/local.c.backup
+   diff rhost_tmp/Server/patch.sh patch.sh
+   if [ $? -ne 0 ]
+   then
+      mv -f patch.sh patch.sh.backup
+      cp -f rhost_tmp/Server/patch.sh patch.sh
+      rm -rf ./rhost_tmp
+      echo "Old patch.sh detected and upgraded.  Please re-run patch.sh"
+      exit 0
+   fi
+   diff rhost_tmp/Server/src/Makefile src/Makefile
+   if [ $? -ne 0 ]
+   then
+      echo "Updeating Makefile."
+      mv -f src/Makefile src/Makefile.backup
+      cp -f rhost_tmp/Server/src/Makefile src
+   fi
    cp -f rhost_tmp/Server/src/*.c src
    cp -f src/local.c.backup src/local.c
    cp -f rhost_tmp/Server/hdrs/*.h hdrs
    cp -f rhost_tmp/Server/bin/asksource* bin
    cp -f rhost_tmp/Server/game/txt/help.txt game/txt/help.txt
    cp -f rhost_tmp/Server/game/txt/wizhelp.txt game/txt/wizhelp.txt
+   cp -f rhost_tmp/Server/game/txt/*.lua game/txt/
    cp -f rhost_tmp/Server/readme/RHOST.CHANGES readme/RHOST.CHANGES
+   # copy directories missing
+   for i in $(find rhost_tmp/Server/src/ -type d -maxdepth 1)
+   do
+      if [ ! -d "src/${i##*/}" ]
+      then
+         cp -fr $i src/
+      fi
+   done
    rm -rf ./rhost_tmp
 fi
 cd src

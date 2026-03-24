@@ -1,0 +1,34 @@
+@@ the main handler -- Ths object will be defined with @admin file_object
+&RUN_ACCOUNTSHARE FileObject=[localize([setq(9,u(accountshare_broadcast))][setq(0,pmatch(first(%1)))][ifelse(and(isdbref(%q0),lte(secs(),setr(1,add(v(delay),get(%q0/__PWDSECS_%2))))),ifelse(account_login(%q0,__PWDLOGIN_%2,%4,rest(%1)),Connected.[pemit(%q9,u(accountshare_consucc,%q0,%2,%3))][logtofile(log,u(accountshare_logsucc,[name(%q0)]%(%q0%),%2,%3))],[v(accountshare_fail)][logtofile(log,u(accountshare_logfail,[name(%q0)]%(%q0%),%2,%3))][pemit(%q9,u(accountshare_confail,%q0,%2,%3))]),[v(accountshare_fail)][logtofile(log,u(accountshare_logfail,ifelse(isdbref(%q0),[name(%q0)]%(%q0%),first(%1)),%2,%3))][pemit(%q9,ifelse(isdbref(%q0),u(accountshare_confail,%q0,%2,%3),u(accountshare_coninvd,first(%1),%2,%3)))])])]
+@@ Set up the fake command
+&FAKECOMMANDS FileObject=accountshare
+@@ User will have a limit of 60 seconds from the time specified to connect to the player
+&ACCOUNTSHARE_DELAY FileObject=60
+@@ list of online players to send broadcast of connect to -- currently Wizard and higher who has MONITOR toggle
+&ACCOUNTSHARE_BROADCAST FileObject=[iter(lwho(),ifelse(and(hastoggle(%i0,monitor),gte(bittype(%i0),5)),%i0))]
+@@ Broadcast messages to wizards
+&ACCOUNTSHARE_CONFAIL FileObject=%ch%[MONITOR%]%cn SHAREDCONNECT | FAIL [name(%0)] | %2 %(%1%)
+&ACCOUNTSHARE_CONINVD FileObject=%ch%[MONITOR%]%cn SHAREDCONNECT | NOPLAYER %0 | %2 %(%1%)
+&ACCOUNTSHARE_CONSUCC FileObject=%ch%[MONITOR%]%cn SHAREDCONNECT | SUCC [name(%0)] | %2 %(%1%)
+@@ Log messages sent to system log (netrhost.gamelog)
+&ACCOUNTSHARE_LOGFAIL FileObject=ACCOUNTSHARE: FAIL connect to %0 from %2 %(%1%)
+&ACCOUNTSHARE_LOGSUCC FileObject=ACCOUNTSHARE: Connect to %0 from %2 %(%1%)
+@@ the fail message displayed if you can't connect to the player
+&ACCOUNTSHARE_FAIL FileObject=Failed to connect.  Invalid user or password.
+@@
+@@ Note
+@@ __PWDLOGIN_<IP> is the password.  Set the attribute based on the IP address
+@@ that the player will be coming from to connect to the shared account.
+@@ Example:
+@@         @password/attribute *player/__PWDLOGIN_12.12.12.12=passwordgoeshere
+@@
+@@ __PWDSECS_<IP> is the time, in secs(), that is allowed for the time limit on
+@@ when the player will be able to connect.  It takes the tme set here, adds the
+@@ DELAY, and if the current time, in secs() is greater than that value, it will
+@@ fail to authenticate the user.
+@@ Example:  (account delay is set to 60 seconds above)
+@@        > think secs()
+@@          1680180477
+@@        &__PWDSECS_12.12.12.12 *player=1680180477
+@@
+@@ Make sure to set the file object SIDEFX as it uses pemit()

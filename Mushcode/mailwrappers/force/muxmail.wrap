@@ -43,7 +43,7 @@
 &CMD_@MAIL_VIEW @mail RhostAliases <MRA>=$@mail/review *=*:@fo %#={mail/recall/all %1}
 &CMD_@MAIL_RECALL @mail RhostAliases <MRA>=$@mail/retract *=*:@fo %#={mail/recall %1=%0}
 &CMD_@MAIL_REVIEW @mail RhostAliases <MRA>=$@mail/review *:@fo %#={mail/recall *%0}
-&CMD_@MAIL_REVIEWALL @mail=$@mail/reviewall *:@fo %#={mail/recall/all *%0}
+&CMD_@MAIL_REVIEWALL @mail RhostAliases <MRA>=$@mail/reviewall *:@fo %#={mail/recall/all *%0}
 &CMD_@MAIL_CLEAR @mail RhostAliases <MRA>=$@mail/clear *:@fo %#={mail/mark %0}
 &CMD_@MAIL_UNCLEAR @mail RhostAliases <MRA>=$@mail/unclear *:@fo %#={mail/unmark %0}
 &CMD_@MAIL_PURGE @mail RhostAliases <MRA>=$@mail/purge:@fo %#={mail/delete}

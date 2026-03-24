@@ -21,10 +21,31 @@ bubble="${current}/warpbubble.pl"
 configfile="warpbubble.conf"
 configtmp="$current/$configfile"
 timeoutdef=12
+noprompt=0
 
+##############################################################################
+# automate if argument is --noprompt
+##############################################################################
+if [ "$1" = "--noprompt" ]
+then
+   noprompt=1
+   myport="$2"
+else
+   noprompt=0
+fi
 ##############################################################################
 # validate we have stunnel in our path, if not build it
 ##############################################################################
+
+##############################################################################
+# if no netrhost conf, abort
+##############################################################################
+if [ ! -f "${game}/netrhost.conf" ]
+then
+   echo "No netrhost.conf.  Please compile your game first."
+   exit 1
+fi
+
 stunnel -version > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
@@ -32,7 +53,10 @@ then
    if [ $? -ne 0 ]
    then
       echo "You do not have a OS built stunnel installed.  We'll install local."
-      echo "Pulling down latest stunnel and compiling.  Please wait..."|tr -d '\012'
+      if [ ${noprompt} -eq 0 ]
+      then
+         echo "Pulling down latest stunnel and compiling.  Please wait..."|tr -d '\012'
+      fi
       cd ./stunnel_src
       ./compile.sh > /dev/null 2>&1
       echo "...completed"
@@ -121,6 +145,8 @@ sconnect_command="${gl_arg_cmd}"
 # Here we go
 #
 ##############################################################################
+if [ ${noprompt} -eq 0 ]
+then
 echo "
 This will generate a self-signed certificate and key that can be used
 in your stunnel config to provide security for your game.
@@ -141,6 +167,12 @@ echo -n "What idle timeout in hours do you want for SSL sessions? [default: $tim
 read timeoutnew
 echo -n "What is the name of your MUSH? [default: $name]: "
 read newname
+fi
+
+if [ -n "${myport}" ]
+then
+   sslport="${myport}"
+fi
 
 if [ -z "$newname" ]; then
    newname=$name
@@ -208,16 +240,21 @@ subjectAltName=DNS:example.com,DNS:example.net,IP:10.0.0.1
 
 if [ -f $key -o -f $cert ]
 then
-   echo "It appears you already have your key and cert files:"
-   ls -l $key
-   ls -l $cert
-   echo -n "Do you really wish to overwrite these with new keys? [Default: no]: "
-   read ans
-   if [ -z "$ans" ]
+   if [ ${noprompt} -eq 0 ]
    then
-      ans="no"
+      echo "It appears you already have your key and cert files:"
+      ls -l $key
+      ls -l $cert
+      echo -n "Do you really wish to overwrite these with new keys? [Default: no]: "
+      read ans
+      if [ -z "$ans" ]
+      then
+         ans="no"
+      fi
+      ans=`echo $ans|tr 'a-z' 'A-Z'`
+   else
+      ans="yes"
    fi
-   ans=`echo $ans|tr 'a-z' 'A-Z'`
    if [ "$ans" != "NO" ]
    then
       openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout $key -out $cert -extensions san -subj '/CN=example.com' -config /tmp/mconf.$$
@@ -248,8 +285,11 @@ sed -e "s~CERT_FILE~${ecert}~g" -e "s~KEY_FILE~${ekey}~g" -e "s~LOG_FILE~${logfi
 # and name and such.
 #
 ##############################################################################
-echo -n "Enter full config file path or NONE to just pass as arguments [default: $configtmp]: "
-read configpath
+if [ ${noprompt} -eq 0 ]
+then
+   echo -n "Enter full config file path or NONE to just pass as arguments [default: $configtmp]: "
+   read configpath
+fi
 if [ -z $configpath ]; then
     configpath=$configtmp
 fi

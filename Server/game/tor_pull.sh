@@ -1,10 +1,6 @@
 #!/bin/sh
 #
-wget http://torstatus.blutmagie.de/ip_list_exit.php/Tor_ip_list_EXIT.csv
-if [ $? -ne 0 ]
-then
-   wget http://torstatus.rueckgr.at/ip_list_exit.php/Tor_ip_list_EXIT.csv
-fi
+wget -O Tor_ip_list_EXIT.csv http://torstatus.rueckgr.at/ip_list_exit.php/Tor_ip_list_EXIT.csv
 if [ -f Tor_ip_list_EXIT.csv ]
 then
   mv -f blacklist.txt blacklist.tor

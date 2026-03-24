@@ -11,7 +11,7 @@
 #include <setjmp.h>
 #include "mudconf.h"
 #include "config.h"
-#ifdef PCRE_BUILTIN
+#if defined PCRE_SYSLIB || defined PCRE_BUILTIN
 #include <pcre.h>
 #else
 #include "pcre.h"
@@ -123,8 +123,8 @@ void
 do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller, 
            char *fargs[], int nfargs, char *cargs[], int ncargs, int key, char *name)
 {
-  int i, nqregs, curq, erroffset, offsets[99], subpatterns, qindex, flags, len;
-  char *qregs[MAX_GLOBAL_REGS];
+  int i, nqregs, curq, erroffset, offsets[99], subpatterns, qindex, flags, len, i_qregs;
+  char *qregs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
   pcre *re;
   const char *errptr;
 
@@ -158,14 +158,31 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
    */
   if (subpatterns == 0)
     subpatterns = 33;
-  nqregs = list2arr(qregs, MAX_GLOBAL_REGS, fargs[2], ' ');
+  nqregs = list2arr(qregs, MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST, fargs[2], ' ');
   for (i = 0; i < nqregs; i++) {
+    curq = -1;
     if (qregs[i] && qregs[i][0] && !qregs[i][1] &&
-        ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1))
+        ((qindex = qreg_indexes[(unsigned char) qregs[i][0]]) != -1)) {
       curq = qindex;
-    else
-      curq = -1;
-    if (curq < 0 || curq >= MAX_GLOBAL_REGS)
+    } else {
+      if ( mudconf.setq_nums && is_number(qregs[i]) ) {
+         i_qregs = atoi(qregs[i]);
+         if ( (i_qregs >=0) && (i_qregs < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
+            curq = i_qregs;
+         }
+      }
+      if ( curq == -1 ) {
+         for ( qindex = 0; qindex < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); qindex++ ) {
+           if ( mudstate.global_regsname[qindex] && 
+                *(mudstate.global_regsname[qindex]) &&
+                !stricmp(mudstate.global_regsname[qindex], qregs[i]) ) {
+               curq = qindex;
+               break;
+            }
+         }
+      }
+    }
+    if (curq < 0 || curq >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))
       continue;
     if (subpatterns < 0)
       mudstate.global_regs[curq][0] = '\0';
@@ -312,7 +329,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
          str++;
          mybuffptr++;
       }
-      /* Do '$##' substitions before parsing the string */
+      /* Do '$##' substitutions before parsing the string */
       if ( *str == '$' ) {
          loop = 1;
          while (*str) {

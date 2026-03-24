@@ -1,7 +1,7 @@
 /* Program to rebuild mail and folder databases offline. */
 
 #ifdef SOLARIS
-/* Solaris requires these to be delcared because it's stupid. */
+/* Solaris requires these to be declared because it's stupid. */
 void bcopy(const void *, void *dest, int);
 void bzero(void *, int);
 #endif
@@ -235,7 +235,7 @@ static char *err_msg[]={"Corrupted key in mail database",
 			"Index in send index record out of range",
 /* 70 */		"Duplicate index in send index record",
 			"Extra index in send index record",
-			"No valid indecies in send index record",
+			"No valid indices in send index record",
 			"Index not in send index record",
 			"Incorrect top index in send index record",
 /* 75 */		"Free index in send index record out of range",
@@ -244,7 +244,7 @@ static char *err_msg[]={"Corrupted key in mail database",
 			"Index in receive index record out of range",
 			"Duplicate index in receive index record",
 /* 80 */		"Extra index in receive index record",
-			"No valid indecies in receive index record",
+			"No valid indices in receive index record",
 			"Index not in receive index record",
 			"Incorrect top index in receive index record",
 			"Free index in receive index record out of range",

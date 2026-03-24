@@ -9,7 +9,7 @@
 
 #include <sys/file.h>
 
-/* Eliminate link error on linux - Thorin 3/99 */
+/* Eliminate link error on Linux - Thorin 3/99 */
 #ifndef dbm_error
 #define dbm_error(x) (0)
 #endif
@@ -57,7 +57,9 @@ extern ATTR *	FDECL(atr_num_aladd, (int anum));
 extern ATTR *	FDECL(atr_num_exec, (int anum));
 extern ATTR *	FDECL(atr_num_objid, (int anum));
 extern ATTR *	FDECL(atr_num_lattr, (int anum));
+extern ATTR *	FDECL(atr_num_vattr, (int anum));
 extern ATTR *	FDECL(atr_num_chkpass, (int anum));
+extern ATTR *	FDECL(atr_num_mtch, (int anum));
 extern ATTR *	FDECL(atr_str, (char *s));
 extern ATTR *	FDECL(atr_str2, (char *s));
 extern ATTR *	FDECL(atr_str3, (char *s));
@@ -70,15 +72,20 @@ extern ATTR *	FDECL(atr_str_objid, (char *s));
 extern ATTR *	FDECL(atr_num_bool, (int anum));
 extern ATTR *	FDECL(atr_str_bool, (char *s));
 extern ATTR *	FDECL(atr_str_cluster, (char *s));
+extern ATTR *	FDECL(atr_str_mtch, (char *s));
 
 extern ATTR attr[];
 
 extern ATTR **anum_table;
-#define anum_get(x)	(anum_table[(x)])
-#define anum_set(x,v)	anum_table[(x)] = v
+extern ATTR **anum_table_inline;
+
+extern ATTR *	FDECL(anum_get_f, (long x));
+extern void	FDECL(anum_set_f, (long x, ATTR *v));
+#define anum_get(x) anum_get_f(x)
+#define anum_set(x,v) anum_set_f(x,v)
 extern void	FDECL(anum_extend,(int));
 
-#define	ATR_INFO_CHAR	'\1'	/* Leadin char for attr control data */
+#define	ATR_INFO_CHAR	'\1'	/* Leading char for attr control data */
 
 /* Attribute handler keys */
 #define	AH_READ		0	/* Read the attribute from the hash db */
@@ -123,7 +130,7 @@ struct boolexp {
 #define	V_MASK		0x000000ff	/* Database version */
 #define	V_ZONE		0x00000100	/* ZONE/DOMAIN field */
 #define	V_LINK		0x00000200	/* LINK field (exits from objs) */
-#define	V_GDBM		0x00000400	/* attrs are in a gdbm db, not here */
+#define	V_GDBM		0x00000400	/* attrs are in a GDBM db, not here */
 #define	V_ATRNAME	0x00000800	/* NAME is an attr, not in the hdr */
 #define	V_ATRKEY	0x00001000	/* KEY is an attr, not in the hdr */
 #define	V_PERNKEY	0x00001000	/* PERN: Extra locks in object hdr */
@@ -134,22 +141,28 @@ struct boolexp {
 
 /* special dbref's */
 #define	NOTHING		(-1)	/* null dbref */
-#define	AMBIGUOUS	(-2)	/* multiple possibilities, for matchers */
+#define	AMBIGUOUS	(-2)	/* multiple possibilities, for matches */
 #define	HOME		(-3)	/* virtual room, represents mover's home */
 #define	NOPERM		(-4)	/* Error status, no permission */
 
 typedef struct zlistnode ZLISTNODE;
 struct zlistnode {
-  dbref object;
-  ZLISTNODE* next;
+   dbref object;
+   ZLISTNODE* next;
 };
 
 typedef struct objtotem OBJTOTEM;
 struct objtotem {
-	int	flags[TOTEM_SLOTS];
-	int	modified;
+   int flags[TOTEM_SLOTS];
+   int modified;
 };
 
+typedef struct livewire LWIRE;
+struct livewire {
+   int funceval;
+   int funceval_override;
+   int queuemax;
+};
 
 typedef struct object OBJ;
 struct object {
@@ -190,6 +203,7 @@ typedef char *NAME;
 extern OBJTOTEM *dbtotem;
 extern OBJ *db;
 extern NAME *names;
+extern LWIRE *dblwire;
 
 #define Totem(t,x)		(((x >= 0) && (x < TOTEM_SLOTS)) ? dbtotem[t].flags[x] : 0)
 #define TotemChk(t)		dbtotem[t].modified;
@@ -272,7 +286,7 @@ extern void	FDECL(al_delete, (dbref, int));
 extern void	FDECL(al_destroy, (dbref));
 extern void	NDECL(al_store);
 extern void	NDECL(val_count);
-extern int	FDECL(atrcint, (dbref, dbref, int));
+extern int	FDECL(atrcint, (dbref, dbref, int, char *));
 extern void	FDECL(db_grow, (dbref));
 extern void	NDECL(db_free);
 extern void	NDECL(db_make_minimal);

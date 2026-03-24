@@ -23,7 +23,7 @@ static int reality_valuechk = 0;        /* Reality level check */
 
 /*
  * This function removes repeated spaces from the template to which object
- * names are being matched.  It also removes inital and terminal spaces.
+ * names are being matched.  It also removes initial and terminal spaces.
  */
 
 static char *
@@ -36,7 +36,7 @@ munge_space_for_match(name)
     p = name;
     q = buffer;
     while (isspace((int)*p))
-	p++;			/* remove inital spaces */
+	p++;			/* remove initial spaces */
     while (*p) {
 	while (*p && !isspace((int)*p))
 	    *q++ = *p++;
@@ -158,6 +158,28 @@ choose_thing(thing1, thing2)
 	/* else fall through */
     }
     return (random() % 2 ? thing1 : thing2);
+}
+
+void
+NDECL(match_player_absolute)
+{
+    dbref match;
+    char *p;
+
+    if (have_exact)
+	return;
+
+    if (!mudconf.player_absolute)
+	return;
+
+    for (p = (char *) match_name; isspace((int)*p); p++);
+    if ((match = lookup_player(NOTHING, p, 1)) != NOTHING) {
+       if ( Good_chk(match) && Good_chk(match_who) && (Location(match_who) == Location(match)) ) {
+          exact_match = match;
+          have_exact = 1;
+          local_match = 0;
+       }
+    }
 }
 
 void
@@ -750,6 +772,7 @@ match_everything(key)
     if (key & MAT_HOME)
 	match_home();
     match_player();
+    match_player_absolute();
     if (have_exact)
 	return;
 
@@ -797,13 +820,16 @@ match_status(player, match)
 {
     switch (match) {
     case NOTHING:
-	notify(player, NOMATCH_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, NOMATCH_MESSAGE);
 	return NOTHING;
     case AMBIGUOUS:
-	notify(player, AMBIGUOUS_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, AMBIGUOUS_MESSAGE);
 	return NOTHING;
     case NOPERM:
-	notify(player, NOPERM_MESSAGE);
+        if ( !mudstate.quiet_match)
+	   notify(player, NOPERM_MESSAGE);
 	return NOTHING;
     }
     return match;

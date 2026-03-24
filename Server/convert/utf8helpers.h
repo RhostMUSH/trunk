@@ -46,7 +46,7 @@
 #define ANSI_ADJ      6
 
 // Maximum buffer size
-#define BUFFER_SIZE 32768
+#define BUFFER_SIZE 65535
 
 // EXTANSI attr num
 #define EXTANSI_ATTR 220

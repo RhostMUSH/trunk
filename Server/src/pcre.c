@@ -28,7 +28,7 @@ restrictions:
    misrepresented as being the original software.
 
 4. If PCRE is embedded in any software that is released under the GNU
-   General Purpose Licence (GPL), then the terms of that licence shall
+   General Purpose License (GPL), then the terms of that license shall
    supersede any condition above with which it is incompatible.
 -----------------------------------------------------------------------------
 */
@@ -362,7 +362,7 @@ regex. The lengths are used when searching for specific things, and also in the
 debugging printing of a compiled regex. We use a macro so that it can be
 incorporated both into pcre.c and pcretest.c without being publicly exposed.
 
-As things have been extended, some of these are no longer fixed lenths, but are
+As things have been extended, some of these are no longer fixed lengths, but are
 minima instead. For example, the length of a single-character repeat may vary
 in UTF-8 mode. The code that uses this table must know about such things. */
 
@@ -408,7 +408,7 @@ in UTF-8 mode. The code that uses this table must know about such things. */
 
 
 /* The highest extraction number before we have to start using additional
-bytes. (Originally PCRE didn't have support for extraction counts highter than
+bytes. (Originally PCRE didn't have support for extraction counts higher than
 this number.) The value is limited by the number of opcodes left after OP_BRA,
 i.e. 255 - OP_BRA. We actually set it a bit lower to leave room for additional
 opcodes. */
@@ -483,7 +483,7 @@ code vector run on as long as necessary after the end. */
 
 typedef struct real_pcre {
   unsigned long int magic_number;
-  size_t size;			/* Total that was malloced */
+  size_t size;			/* Total that was malloc'd */
   const unsigned char *tables;	/* Pointer to tables */
   unsigned long int options;
   unsigned short int top_bracket;
@@ -497,7 +497,7 @@ typedef struct real_pcre {
 /* The format of the block used to store data from pcre_study(). */
 
 typedef struct pcre_study_data {
-  size_t size;			/* Total that was malloced */
+  size_t size;			/* Total that was malloc'd */
   uschar options;
   uschar start_bits[32];
 } pcre_study_data;
@@ -585,7 +585,7 @@ typedef struct match_data {
 #define ctype_letter  0x02
 #define ctype_digit   0x04
 #define ctype_xdigit  0x08
-#define ctype_word    0x10	/* alphameric or '_' */
+#define ctype_word    0x10	/* alphanumeric or '_' */
 #define ctype_meta    0x80	/* regexp meta char or zero (end pattern) */
 
 /* Offsets for the bitmap tables in pcre_cbits. Each table contains a set
@@ -1635,12 +1635,12 @@ check_escape(const uschar ** ptrptr, const char **errorptr, int bracount,
   if (c == 0)
     *errorptr = ERR1;
 
-/* Non-alphamerics are literals. For digits or letters, do an initial lookup in
+/* Non-alphanumeric are literals. For digits or letters, do an initial lookup in
 a table. A non-zero result is something that can be returned immediately.
 Otherwise further processing may be required. */
 
   else if (c < '0' || c > 'z') {
-  } /* Not alphameric */
+  } /* Not alphanumeric */
   else if ((i = escapes[c - '0']) != 0)
     c = i;
 
@@ -1754,7 +1754,7 @@ Otherwise further processing may be required. */
       break;
 
       /* PCRE_EXTRA enables extensions to Perl in the matter of escapes. Any
-         other alphameric following \ is an error if PCRE_EXTRA was set; otherwise,
+         other alphanumeric following \ is an error if PCRE_EXTRA was set; otherwise,
          for Perl compatibility, it is a literal. This code looks a bit odd, but
          there used to be some cases other than the default, and there may be again
          in future, so I haven't "optimized" it. */
@@ -3015,14 +3015,14 @@ case status of the value. */
 
       /* If previous was a string of characters, chop off the last one and use it
          as the subject of the repeat. If there was only one character, we can
-         abolish the previous item altogether. If a one-char item has a minumum of
+         abolish the previous item altogether. If a one-char item has a minimum of
          more than one, ensure that it is set in reqbyte - it might not be if a
          sequence such as x{3} is the first thing in a branch because the x will
          have gone into firstbyte instead.  */
 
       if (*previous == OP_CHARS) {
 	/* Deal with UTF-8 characters that take up more than one byte. It's
-	   easier to write this out separately than try to macrify it. Use c to
+	   easier to write this out separately than try to macrofy it. Use c to
 	   hold the length of the character in bytes, plus 0x80 to flag that it's a
 	   length rather than a small character. */
 
@@ -3106,8 +3106,8 @@ case status of the value. */
 	    PUT2INC(code, 0, repeat_min);
 	  }
 
-	  /* If the mininum is 1 and the previous item was a character string,
-	     we either have to put back the item that got cancelled if the string
+	  /* If the minimum is 1 and the previous item was a character string,
+	     we either have to put back the item that got canceled if the string
 	     length was 1, or add the character back onto the end of a longer
 	     string. For a character type nothing need be done; it will just get
 	     put back naturally. Note that the final character is always going to
@@ -3124,7 +3124,7 @@ case status of the value. */
 	  }
 
 	  /*  For a single negated character we also have to put back the
-	     item that got cancelled. At present this applies only to single byte
+	     item that got canceled. At present this applies only to single byte
 	     characters in any mode. */
 
 	  else if (*previous == OP_NOT)
@@ -5055,7 +5055,7 @@ pattern. We can't be so clever for #-comments. */
          Perlish way. If the number exceeds EXTRACT_BASIC_MAX we are going to
          need an additional 3 bytes of store per extracting bracket. However, if
          PCRE_NO_AUTO)CAPTURE is set, unadorned brackets become non-capturing, so we
-         must leave the count alone (it will aways be zero). */
+         must leave the count alone (it will always be zero). */
 
       else if ((options & PCRE_NO_AUTO_CAPTURE) == 0) {
 	bracount++;
@@ -5392,7 +5392,7 @@ match_ref(int offset, register const uschar * eptr, int length, match_data * md,
   if (length > md->end_subject - eptr)
     return FALSE;
 
-/* Separate the caselesss case for speed */
+/* Separate the caseless case for speed */
 
   if ((ims & PCRE_CASELESS) != 0) {
     while (length-- > 0)
@@ -5679,7 +5679,7 @@ i, and fc and c, can be the same variables. */
 #define fi i
 #define fc c
 
-  const uschar *callpat;	/* Many of these variables are used ony */
+  const uschar *callpat;	/* Many of these variables are used in  */
   const uschar *charptr;	/* small blocks of the code. My normal  */
   const uschar *data;		/* style of coding would have declared  */
   const uschar *lastptr;	/* them within each of those blocks.    */

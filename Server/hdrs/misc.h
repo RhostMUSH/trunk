@@ -38,8 +38,8 @@ struct stats_type {
 	int	s_garbage;
 };
 
-extern int	FDECL(search_setup, (dbref, char *, SEARCH *, int));
-extern void	FDECL(search_perform, (dbref, dbref, SEARCH *,FILE **));
+extern int	FDECL(search_setup, (dbref, char *, SEARCH *, int, int));
+extern void	FDECL(search_perform, (dbref, dbref, SEARCH *,FILE **, int));
 extern int	FDECL(get_stats, (dbref, dbref, STATS *));
 
 #endif

@@ -29,6 +29,7 @@ int	cost;
 	if (Wizard(player)) {
 		match_player();
 		match_absolute();
+                match_player_absolute();
 	}
 	victim = match_result();
 
@@ -493,6 +494,7 @@ void do_give(dbref player, dbref cause, int key, char *who, char *amnt)
 	if (Privilaged(player) || HasPriv(player,NOTHING,POWER_LONG_FINGERS,POWER3,NOTHING)) {
 		match_player();
 		match_absolute();
+                match_player_absolute();
 	}
 
 	recipient = match_result();

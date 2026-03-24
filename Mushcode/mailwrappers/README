@@ -1,7 +1,8 @@
 Make sure to mkindx the files first, then you can read them with @dynhelp
 The files here are:
-old .................... Subdirectory that holds the older versions
 README ................. This is the file you are reading.
+force .................. Versions of the wrappers that are based on @forcing
+                         the player(s), instead of @sudo.
 StartObject ............ This is an object that configures the mail system
                          when the user first connects.  You place this at the
                          starting location of new players.

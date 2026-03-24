@@ -7,7 +7,7 @@
 &CMD_DESERT FollowCode=$+desert*:@pemit %#=[u([parent(me)]/DESERTMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODESERT%q0,%#,%q1)]
 &CMD_DISMISS FollowCode=$+dismiss*:@pemit %#=[u([parent(me)]/DISMISSMSG[!!$v(0)],%0)];@break [!r(0)];@eval [u([parent(me)]/DODISMISSFOLLOWING%q0,%q1,%#)];&FOLLOWERS %#=[u([parent(me)]/DODISMISSFOLLOW%q0,%#,%q1)]
 &CMD_FOLLOWLOCK FollowCode=$+flock/*:@pemit %#=[u([parent(me)]/FOLLOWLOCKMSG[match(allow deny list,first(%0))],rest(%0))];@break [!r(0)];@eval [u([parent(me)]/DOFOLLOWLOCK,rest(%0))]
-&VERSION FollowCode=FollowCode 1.0.2 [Ashen-Shugar]
+&VERSION FollowCode=FollowCode 1.0.3 [Ashen-Shugar]
 @adisconnect FollowCode=@include/command/override me/cmd_desert=,,,
 @set FollowCode=INDESTRUCTABLE
 @set FollowCode=SAFE
@@ -21,7 +21,7 @@
 &FOLLOWFUNC FollowFunction=[and(or(!hasattr(%1,follow_allow),match(get(%1/follow_allow),%0)),!match(get(%1/follow_deny),%0))]
 &UNFOLLOWMSG1 FollowFunction=[ifelse(!match(get(%#/following),setr(1,locate(%#,%0,n))),Follow: <+unfollow> You arn't following that.[setq(0,0)],You stop following [name(%q1)].[pemit(%q1,[name(%#)] stops following you.)][setq(0,1)])]
 &UNFOLLOWMSG0 FollowFunction=You stop following everyone.[setq(0,2)]
-&DOUNFOLLOW1 FollowFunction=[set(%1,setdiff(get(%1/followers),%0))]
+&DOUNFOLLOW1 FollowFunction=[set(%1,followers:[setdiff(get(%1/followers),%0)])]
 &DOUNFOLLOW2 FollowFunction=[iter(get(%0/following),[set(itext(0),FOLLOWERS:[setdiff(get([itext(0)]/FOLLOWERS),%0)])][pemit([itext(0)],[name(%0)] stops following you.)])]
 &DOUNFOLLOWING1 FollowFunction=[setdiff(get(%1/following),%0)]
 &DOUNFOLLOWING2 FollowFunction=[null()]
@@ -63,6 +63,16 @@
 @@ @set HookObj=SAFE
 @@ @set HookObj=INHERIT
 @@ @set HookObj=SIDEFX
+@@
+@@ @@ Make attributes wizard only (initialize variables in hash)
+&FOLLOWERS me
+&FOLLOWING me
+&FOLLOW_ALLOW me
+&FOLLOW_DENY me
+@attribute/access followers=wizard
+@attribute/access following=wizard
+@attribute/access follow_allow=wizard
+@attribute/access follow_deny=wizard
 @@
 @@ At this stage, you will need to @hook/before goto and @hook/after goto [@rebooting after the hook_cmd does this]
 @@

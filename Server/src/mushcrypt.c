@@ -3,7 +3,7 @@
  * flexibility is good, right?!                                      *
  * By compiling with the right -D flag you can disable SHS or DES    *
  *                                                                   *
- * File based on the Pennmush 1.7.2 mycrypt.c                        */
+ * File based on the PennMUSH 1.7.2 mycrypt.c                        */
 
 
 #include <stdio.h>
@@ -254,7 +254,7 @@ const char szBlowfishPrefix[BLOWFISH_PREFIX_LENGTH+1] = "$2a$";
 #define CRYPT_CLEARTEXT   6
 #define CRYPT_OTHER       7
 
-/* saved is the enrypted password, password is what is entered */
+/* saved is the encrypted password, password is what is entered */
 #ifdef HAS_OPENSSL
 
 
@@ -424,14 +424,14 @@ check_mux_password(const char *saved, const char *password)
 int
 encode_base64(const char *input, int len, char *buff, char **bp)
 {
-   safe_str((char *)"#-1 BASE64 disabled without openssl support.", buff, bp);
+   safe_str((char *)"#-1 BASE64 disabled without OpenSSL support.", buff, bp);
    return 0;
 }
 
 int
 decode_base64(const char *input, int len, char *buff, char **bp, int key)
 {
-   safe_str((char *)"#-1 BASE64 disabled without openssl support.", buff, bp);
+   safe_str((char *)"#-1 BASE64 disabled without OpenSSL support.", buff, bp);
    return 0;
 }
 

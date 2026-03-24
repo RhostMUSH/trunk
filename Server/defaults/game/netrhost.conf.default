@@ -50,8 +50,8 @@ postdump_message <DB> Database save completed.
 queue_active_chunk 1
 #
 # yea, leave these alone as well
-cache_width 10
-cache_depth 3
+cache_width 1024
+cache_depth 128
 cache_trim yes
 dump_offset 1811
 dump_interval 3622

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "$#" -ne "1" ]
 then
    echo "One(1) argument is expected.  Allowed arguments:"

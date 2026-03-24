@@ -17,6 +17,10 @@
 /* CONFDATA:	runtime configurable parameters */
 
 #define MAXEVLEVEL	10
+
+/* Define max attribute caches for recycling */
+#define MAXVATTRCACHE 100000
+
 typedef unsigned char Uchar;
 
 typedef struct confdata CONFDATA;
@@ -33,7 +37,7 @@ struct confdata {
 	char	indb[128];	/* database file name */
 	char	outdb[128];	/* checkpoint the database to here */
 	char	crashdb[128];	/* write database here on crash */
-	char	gdbm[128];	/* use this gdbm file if we need one */
+	char	gdbm[128];	/* use this GDBM file if we need one */
 	int	compress_db;	/* should we use compress */
 	char	compress[128];	/* program to run to compress */
 	char	uncompress[128];/* program to run to uncompress */
@@ -97,9 +101,11 @@ struct confdata {
 	char	postdump_msg[128];  /* Message displayed after @dump-ing */
         char  spam_msg[128];    /* Message displayed when spammonitor kicks in */
         char  spam_objmsg[128]; /* Message displayed when object spammonitor kicks in */
-	int	mailmutt;	/* Is MUTT the mail prorgram of choice */
+	int	max_api_timeout;	/* Maximum API timeout value -- default 1 */
+	int	mailmutt;	/* Is MUTT the mail program of choice */
 	int	whereis_notify;
 	int	max_size;
+	int	totem_reserved[TOTEM_SLOTS];	/* Reservations of totems */
 	int	name_spaces;	/* allow player names to have spaces */
 	int	fork_dump;	/* perform dump in a forked process */
 	int	fork_vfork;	/* use vfork to fork */
@@ -113,6 +119,7 @@ struct confdata {
 	int	idle_timeout;	/* Boot off players idle this long in secs */
 	int	conn_timeout;	/* Allow this long to connect before booting */
 	int	idle_interval;	/* when to check for idle users */
+	int	vattr_interval;	/* when to check for idle users */
 	int	retry_limit;	/* close conn after this many bad logins */
 	int	regtry_limit;
 	int	output_limit;	/* Max # chars queued for output */
@@ -180,7 +187,7 @@ struct confdata {
 	int	space_compress;	/* Convert multiple spaces into one space */
 	int	start_room;	/* initial location and home for players */
 	int	start_home;	/* initial HOME for players */
-	int	default_home;	/* HOME when home is inaccessable */
+	int	default_home;	/* HOME when home is inaccessible */
 	int	master_room;	/* Room containing default cmds/exits/etc */
 	int	intern_comp;	/* compress internal strings */
 	FLAGSET	player_flags;	/* Flags players start with */
@@ -203,8 +210,8 @@ struct confdata {
 	int	rwho_info_port;	/* Port to which we dump WHO information */
 	int	rwho_data_port;	/* Port to which remote RWHO dumps data */
 	int	rwho_interval;	/* seconds between RWHO dumps to remote */
-	char	one_coin[32];	/* name of one coin (ie. "penny") */
-	char	many_coins[32];	/* name of many coins (ie. "pennies") */
+	char	one_coin[32];	/* name of one coin (i.e. "penny") */
+	char	many_coins[32];	/* name of many coins (i.e. "pennies") */
 	int	timeslice;	/* How often do we bump people's cmd quotas? */
 	int	cmd_quota_max;	/* Max commands at one time */
 	int	wizcmd_quota_max;	/* Max wizard commands at one time */
@@ -248,8 +255,9 @@ struct confdata {
         int     allow_whodark;  /* Allows players set DARK from not showing on WHO */
         int     allow_ansinames;/* Allows names of all dbtypes to be ansified */
                                 /* 0:none/1:player/2:thing/4:room/8:exit/15:everything */
+	int	player_absolute;/* Allow absolute player name matches at location */
         int     who_comment;    /* Allows the (Bummer) and other messages in WHO */
-        int     safe_wipe;      /* Anything set SAFE or INDESTRUCTABLE can't be @wiped */
+        int     safe_wipe;      /* Anything set SAFE or INDESTRUCTIBLE can't be @wiped */
         int     secure_jumpok;  /* Sorry, only arch and higher can set jump_ok on non-rooms */
 	int	fmt_contents;	/* Check for content formats @conformat */
 	int	fmt_exits;	/* Check for exit formats @exitformat and @darkexitformat */
@@ -270,7 +278,12 @@ struct confdata {
         int     restrict_home;  /* Define level of restriction */
         int     restrict_home2; /* Define level of restriction (2nd word) */
 	char    invname[80];    /* Define name of inventory type - default 'backpack' */
+	int	force_ansinorm;	/* Force ansi normal if ansi identified */
 	int     sideeffects;	/* Define sideeffects (set-1,create-2,link-4,pemit-8,tel-16) */
+	char	timezone[32]; 	/* Define timezone for the mush */
+	int     setqlabel;	/* Enforce only using labels for setq if label present */
+	int	raw_formatting; /* Allow raw input formatting */
+	int	enforce_checksums; /* Enforce checksums on command matching */
 	int     restrict_sidefx; /* Restrict setting side-effects to bitlevel (0 default/any) */
         int     cpuintervalchk; /* CPU level to check for overflowing CPU processes */
         int     cputimechk;     /* Time notification of time elapses from start of command */
@@ -282,9 +295,14 @@ struct confdata {
         int     noregist_onwho; /* Axe the 'R' on the WHO for registration enabled */
         int     nospam_connect; /* Disable logging from forbid sites */
         int     lnum_compat;    /* PENN/MUX lwho() compatibility */
+	int	time_paddzero;	/* Have time padd zero on day of month */
         int     nand_compat;    /* Old (BROKEN) pre-p15 Rhost nand compatibility */
         int     hasattrp_compat; /* Boolean: does hasattrp only check parents */
         int     must_unlquota;  /* Forces you to @quota/unlock before you give @quota */
+	int	enforce_added_pronouns;	/* Always use added pronounts and not built ins */
+	int	execscript_rawpush;	/* Allow raw (evaluated) pushing of vars to environments */
+	int	ssl_welcome;	/* enable ssl snuffing of welcome messages */
+	int	setq_pickend;	/* Pick setq labels from end of list instead of start */
         char    forbid_host[LBUF_SIZE]; /* forbid host names */
         char    suspect_host[LBUF_SIZE]; /* suspect host names */
         char    register_host[LBUF_SIZE]; /* register host names */
@@ -295,18 +313,21 @@ struct confdata {
         char    forbidapi_host[LBUF_SIZE]; /* Forbid API host names */
         char    passapi_host[LBUF_SIZE]; /* Allow API unrestricted (minus forbid) host names */
         char    passproxy_host[LBUF_SIZE]; /* Bypass Proxy host names */
+	char	added_pronouns[LBUF_SIZE]; /* Added pronouns for %s/%o/%p/%a */
         char    log_command_list[1000]; /* List of commands to log */
         char    nobroadcast_host[LBUF_SIZE]; /* Don't broadcast to sites in this host */
 	char	sconnect_cmd[SBUF_SIZE]; /* command for the sconnect re-ip handler */
 	char	sconnect_host[LBUF_SIZE]; /* sites for allowable sconnect re-iper */
 	char	hardconn_host[LBUF_SIZE]; /* sites for allowable for hardconnects */
+	char	permit_host[LBUF_SIZE]; /* sites for unrestricted register/connect */
 	int	sconnect_reip;	/* Toggle for sconnect re-iper */
         char    tor_localhost[1000];	/* Localhost name for TOR lookup */
-        int	tor_paranoid;	/* Paranoid option for TOR enable Checkig */
+        int	tor_paranoid;	/* Paranoid option for TOR enable Checking */
         int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
         int     paranoid_exit_linking; /* unlinked exits can't be linked unless controlled */
         int     notonerr_return; /* If function returns '#-1' not() returns '0' if disabled */
         int     safer_passwords; /* Taken from TinyMUSH - requires harder passwords */
+	int	passwd_distance;	/* strdistance password length checks */
         int     max_sitecons;	/* Define maximum number of connects from a site */
 	int	mail_def_object;	/* Default object to use global mail eval aliases */
 	int	mail_autodeltime;	/* Autodelete on mail - time in days */
@@ -316,11 +337,11 @@ struct confdata {
         int     hackattr_nowiz;	/* _attributes are not wiz only by default */
 	int     hackattr_see;   /* _attributes can be viewable by nonwizzes */
         int	penn_playercmds; /* Do $commands on players like PENN */
-	int	format_compatibility;	/* Mush/mux compatibility */
-	int	brace_compatibility;	/* Mux compatibility */
+	int	format_compatibility;	/* MUSH/MUX compatibility */
+	int	brace_compatibility;	/* MUX compatibility */
 	int	objid_localtime;	/* Does objid use localtime */
 	int	objid_offset;		/* offset in seconds objid should use */
-	int	ifelse_compat; /* ifelse() / @ifelse Mux string boolean compatibility */
+	int	ifelse_compat; /* ifelse() / @ifelse MUX string boolean compatibility */
 	int	max_cpu_cycles;  /* Maximum allowed CPU slams allowed in a row */
 	int	cpu_secure_lvl;	/* Action to take when max_cpu_cycles reached */
 	int	expand_goto;	/* Toggle on/off expanding exit names to use 'goto' */
@@ -335,12 +356,14 @@ struct confdata {
         int	partial_deconn;	/* Trigger @adisconnects on partial disconnect */
 	int	secure_functions; /* Fix functions to be safer on evaluation - mask */
         int     penn_switches; /* PENN like switch()/switchall() */
+	int	float_switches;	/* Do switches handle floating point comparisons? */
 	int	heavy_cpu_max; /* Specify maximum for heavy cpu function-usage */
 	int	lastsite_paranoia;	/* Enable paranoia level on connections */
 	int	pcreate_paranoia;	/* Enable paranoia level on creations */
+	int	pcreate_paranoia_fail;	/* Be paranoid even about failed creations */
 	int	max_lastsite_cnt;	/* Count of maximum lastsite information */
 	int	max_lastsite_api;	/* API Count of maximum lastsite information */
-	int	min_con_attempt;	/* Minimum ammount of time between connections */
+	int	min_con_attempt;	/* Minimum amount of time between connections */
         int	lattr_default_oldstyle;	/* lattr's output is snuffed? */
 	int	formats_are_local;	/* A_*_FMT's are local to self */
 	int	descs_are_local;	/* All did_it() stuff is localized */
@@ -371,6 +394,9 @@ struct confdata {
         int     always_blind;           /* Does movement through exits always work by default? */
         char    mail_anonymous[32];     /* Anonymous player mail is sent to */
         int     sidefx_maxcalls;        /* Maximum sideeffects allowed in a command */
+	int	nobracket_locks;	/* Evaluation locks won't require []'s around it */
+	int	robot_owns_create;	/* Robots own things they create */
+	int	global_sideeffects;	/* Are sideeffects enabled globally by default */
         char    oattr_uses_altname[32]; /* o-attribs use this name optionally */
         int     oattr_enable_altname;   /* Enable/disable alternate names through exits */
         int     empower_fulltel;        /* FULLTEL power handles more than 'self' */
@@ -399,40 +425,45 @@ struct confdata {
 	int	old_elist;		/* old elist processing */
 	int	cluster_cap;		/* Cluster cap for processing */
 	int	clusterfunc_cap;	/* Cluster cap for processing (function) */
-	int	mux_child_compat;	/* Is it MUX/TM3 compatable for children() */
-	int	mux_lcon_compat;	/* Is it MUX/TM3 compatable for children() */
+	int	mux_child_compat;	/* Is it MUX/TM3 compatible for children() */
+	int	mux_lcon_compat;	/* Is it MUX/TM3 compatible for children() */
 	int	ansi_default;		/* Allow functions to be ansi-default aware that can do so */
 	int	accent_extend;		/* Expand accents from 251-255 */
 	int	switch_search;		/* Switch search() and searchng() */
 	int	signal_crontab;		/* Signal the crontab via USR1 */
         int 	max_name_protect;	/* Maximum name protects allowed */
-	int	map_delim_space;	/* map() delimitats space if specified null */
+	int	map_delim_space;	/* map() delimits space if specified null */
 	char	cap_conjunctions[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_articles[LBUF_SIZE];	/* caplist exceptions */
 	char	cap_preposition[LBUF_SIZE];	/* caplist exceptions */
 	char	execscriptpath[LBUF_SIZE];	/* execscript path overrides */
+	char	execscripthome[LBUF_SIZE];	/* execscript home override */
         char    atrperms[LBUF_SIZE];
         int	atrperms_max;
+	int 	strfunc_softfuncs;	/* Allow soft functgions for strfunc -- 1 @function, 2 @function + @lfunction */
         int	atrperms_checkall;	/* Go through and check all @aflag perms -- can be expensive if enabled */
         int	safer_ufun;
 	int	includenest;	/* Max number of nesting of @include */
 	int	includecnt;	/* Total number of @includes in the command caller */
+	int	atrcachemax;	/* Maximum atrcaches allowed -- 200 hard cap */
 	int	lfunction_max;	/* Maximum lfunctions allowed */
 	int	function_max;	/* Maximum functions allowed */
         int	blind_snuffs_cons;	/* Does the BLIND flag snuff aconnect/adisconnect */
 	int	listen_parents;	/* ^listens handle parents */
 	int     icmd_obj;        /* The object for the icmd evaluation */
-	int	ansi_txtfiles;	/* Do allthe various connect files parse %-ansi subs */
+	int	ansi_txtfiles;	/* Do all the various connect files parse %-ansi subs */
 	int	list_max_chars;	/* Maximum characters allowed to be shoved in a list */
-	int	float_precision;	/* Float percision for math functions() -- default 6 */
+	int	float_precision;	/* Float precision for math functions() -- default 6 */
 	int	admin_object;	/* The admin object */
 	int	enhanced_convtime;	/* Enhanced convtime format */
-	int	mysql_delay;	/* MySql Retry Delay Value (in seconds) */
+	int	mysql_delay;	/* MySQL Retry Delay Value (in seconds) */
 	char	tree_character[2];	/* The Tree Character */
 	int	proxy_checker;	/* Proxy Checker -- Not very reliable */
 	int	idle_stamp;	/* Idle stamp to use for comparing 10 past commands */
 	int	idle_stamp_max;	/* Idle stamp count max to use for comparing X past commands */
-	int	penn_setq;	/* Do penn setq formatting */
+	int	penn_setq;	/* Do Penn setq formatting */
+	int	setq_nums;	/* Allow numbers > 9 in setq register declarations */
+	int pagelock_notify ; /* Show login message if PAGE LOCK is set */
 	int	delim_null;	/* Allow @@ for delimiters */
 	int	hook_offline;	/* Hook offline commands */
 	int	protect_addenh; /* Enhanced how @Protect/add works by allowing arguments */
@@ -440,7 +471,10 @@ struct confdata {
 	int	rollbackmax;	/* Maximum rollback with @retry option */
 	int	exec_secure;	/* Execscript is overly secure -- this is default */
 	int	crypt_rounds;	/* Number of rounds to encrypt -- default 5000 */
+	int	elements_compat;/* Enable elements() compatibility to other codebases */
 	int	null_is_idle;	/* Treat '@@@' like idle for, well, idle */
+	int	think_is_idle;	/* Treat 'think' like idle for, well, idle */
+	int idle_cmdcount; /* Treat commands used more than X times in _idlestamp as idle */
 	int	iter_loop_max;	/* Infinite iter loop counter */
 	char	exit_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
 	char	help_separator[SBUF_SIZE];	/* Character(s) used to separate exit names */
@@ -448,7 +482,11 @@ struct confdata {
 	char	vercustomstr[SBUF_SIZE];	/* Customized string for @version */
         int	totem_types;	/* Enable flag compatible types for totems */
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
+	int	guest_displaylastsite;
 	int	connect_methods;		/* Disable optionally connect methods */
+	int	blacklist_max;	/* Maximum blacklists allowed */
+	int	connect_perm;	/* Connect permissions */
+	int	saystring_eval;	/* Does @saystring evaluate */
 	char	string_conn[SBUF_SIZE];		/* String for the connect command */
 	char	string_create[SBUF_SIZE];	/* String for the connect command */
 	char	string_conndark[SBUF_SIZE];	/* String for the dark connect */
@@ -461,6 +499,7 @@ struct confdata {
             char name[17];	/* name of level */
             RLEVEL value;	/* bitmask for level */
             char attr[33];	/* RLevel desc attribute */
+            int has_adesc;	/* Does reality level have an associated adesc */
         } reality_level[32];	/* Reality levels */
         int wiz_always_real;	/* Wizards are always real */
 	int reality_locks;	/* Allow user-lock to be reality lock */
@@ -487,11 +526,13 @@ struct confdata {
 	int	mysql_port;
 #endif
 	int	name_with_desc;	/* Toggle to enable names with descs when looking (if not-examinable) */
-	int 	allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ascii quotes */
-	int 	allow_fullwidth_colon; /* Allow unicode fullwidth colon or replace it with ascii colon */
-	int	posesay_funct;	/* Enable function evaluaton to pose/say fluffing */
-	int	mtimer;		/* The milisecond timer offset range (default 10) */
+	int 	allow_fancy_quotes; /* Allow Unicode 'fancy' quotes or replace them with standard ASCII quotes */
+	int 	allow_fullwidth_colon; /* Allow Unicode fullwidth colon or replace it with ASCII colon */
+	int	posesay_funct;	/* Enable function evaluation to pose/say fluffing */
+	int	mtimer;		/* The millisecond timer offset range (default 10) */
+	int hastype_always_zero; /* Make hastype() return zero on invalid objects */
 #else
+  int     imm_nomod;	/* Change NOMODIFY to immortal only perm */
 	int	paylimit;	/* getting money gets hard over this much */
 	int	digcost;	/* cost of @dig command */
 	int	opencost;	/* cost of @open command */
@@ -507,7 +548,7 @@ struct confdata {
 	int	quotas;		/* TRUE = have building quotas */
 	int	start_room;	/* initial location and home for players */
 	int	start_home;	/* initial HOME for players */
-	int	default_home;	/* HOME when home is inaccessable */
+	int	default_home;	/* HOME when home is inaccessible */
 	int	vattr_flags;	/* Attr flags for all user-defined attrs */
 	int	log_options;	/* What gets logged */
 	int	log_info;	/* Info that goes into log entries */
@@ -529,6 +570,7 @@ struct confdata {
 	char	vercustomstr[SBUF_SIZE];
         int	totem_types;	/* Enable flag compatible types for totems */
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
+	int	guest_displaylastsite;
 #endif	/* STANDALONE */
 };
 
@@ -584,7 +626,7 @@ struct blacklist_list {
 	struct	blacklist_list	*next;
 };
 
-/* For a future mod to split up HIGH cpu based on function 
+/* For a future mod to split up HIGH cpu based on function
  * This will be smarter as we'll compare it to last time
  * executed as well, or at least some wiggy logic. */
 struct struct_cpu_recurse {
@@ -637,13 +679,20 @@ struct statedata {
 	int	func_ignore;
         int     func_bypass;
 	int	initializing;	/* are we reading config file at startup? */
+	int	adminexec;	/* issuing @admin/exec in-game */
+	int	dbloading;	/* are we reading config file at startup? */
 	int	panicking;	/* are we in the middle of dying horribly? */
 	int	logging;	/* Are we in the middle of logging? */
+	int	quiet_match;	/* Snuff noisy match results */
+	clock_t	clock_mush;	/* The CPU usage the mush has used since last restart */
 	int	epoch;		/* Generation number for dumps */
 	int	generation;	/* DB global generation number */
 	dbref	curr_enactor;	/* Who initiated the current command */
 	dbref	curr_player;	/* Who is running the current command */
+	int	curr_pid;	/* Current PID of the process running */
         char    *curr_cmd;      /* The current command */
+        char    curr_pidcmd[LBUF_SIZE];    /* Current command on the pid */
+        char    *curr_plrcmd;      /* The current player's command */
         char    curr_cmd_hook[LBUF_SIZE]; /* The current command - for hooking */
         char    *iter_arr[50];   /* Iter recursive memory - text*/
         int     iter_inumarr[50];/* Iter recursive memory - number*/
@@ -661,6 +710,7 @@ struct statedata {
 	double	dump_counter;	/* Countdown to next db dump */
 	double	check_counter;	/* Countdown to next db check */
 	double	idle_counter;	/* Countdown to next idle check */
+	double	vattr_counter;	/* Countdown to next vattr check */
 	double	rwho_counter;	/* Countdown to next RWHO dump */
 	double	mstats_counter;	/* Countdown to next mstats snapshot */
 	time_t  chkcpu_stopper; /* What time was it when command started */
@@ -691,6 +741,9 @@ struct statedata {
 	char	guild_hdr[12];
         char    last_command[LBUF_SIZE]; /* Easy buffer of last command */
 	int	global_error_inside;	/* Are we inside the global error obj */
+	int	execscript_noreg;	/* Do not cache any setq regs to execscript */
+	int	recordconn;	/* Record number of connections (max) */
+	int	recordcurrconn;	/* Record number of connections (current) */
 	SITE	*access_list;	/* Access states for sites */
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */
@@ -700,7 +753,7 @@ struct statedata {
 	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
 	HASHTAB func_htab;	/* Functions hashtable */
 	HASHTAB ufunc_htab;	/* Local functions hashtable */
-	HASHTAB ulfunc_htab;	/* User-Defiend Local functions hashtable */
+	HASHTAB ulfunc_htab;	/* User-Defined Local functions hashtable */
 	HASHTAB flags_htab;	/* Flags hashtable */
 	HASHTAB toggles_htab;	/* Toggles hashtable */
 	HASHTAB powers_htab;
@@ -708,7 +761,7 @@ struct statedata {
 	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
 	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
 	HASHTAB player_htab;	/* Player name->number hashtable */
-	HASHTAB objecttag_htab;	/* Tag->number hastable */
+	HASHTAB objecttag_htab;	/* Tag->number hashtable */
 	NHSHTAB	desc_htab;	/* Socket descriptor hashtable */
 	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
 	NHSHTAB	parent_htab;	/* Parent $-command exclusion */
@@ -724,6 +777,12 @@ struct statedata {
         int	totem_slots[TOTEM_SLOTS];/* totem slots */
 	int	errornum;
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	int 	vattr_reuse[MAXVATTRCACHE + 1];
+	int 	vattr_reuseptr;
+	int 	vattr_reusecnt;
+	int	account_subsys_inuse;	/* Set to 1 if account subsystem is in use */
+	int	no_space_compress;	/* State data to not allow space compress */
+	int	cmd_bitmask;	/* bitmask states for command handlers */
 	BQUE	*qfirst;	/* Head of player queue */
 	BQUE	*qlast;		/* Tail of player queue */
 	BQUE	*qlfirst;	/* Head of object queue */
@@ -756,9 +815,11 @@ struct statedata {
 	int	ntfy_nest_lev;	/* Current nesting of notifys */
 	int	lock_nest_lev;	/* Current nesting of lock evals */
         int     ufunc_nest_lev; /* Current nesting of USER functions */
-	char	*global_regs[MAX_GLOBAL_REGS];	/* Global registers */
-	char	*global_regsname[MAX_GLOBAL_REGS];	/* Global register names */
-        char    *global_regs_backup[MAX_GLOBAL_REGS];
+	char	*global_regs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global registers */
+	char	*global_regsname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global register names */
+#ifndef NO_GLOBAL_REGBACKUP
+        char    *global_regs_backup[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+#endif
         char    nameofqreg[37]; /* Buffer to hold qregs */
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
 	int	mail_state;
@@ -790,7 +851,7 @@ struct statedata {
 	int	heavy_cpu_recurse;	/* functions with heavy CPU usage */
         time_t	heavy_cpu_tmark1;	/* Time maker */
         time_t	heavy_cpu_tmark2;	/* Time maker */
-        int	heavy_cpu_lockdown;	/* Lock down a function if heavilly abused */
+        int	heavy_cpu_lockdown;	/* Lock down a function if heavily abused */
 	int	cmp_lastsite;    	/* Last site that connected */
 	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
 	int	api_lastsite;    	/* API Last site that connected */
@@ -825,14 +886,18 @@ struct statedata {
 	int     allowbypass;	/* Is bypass() allowed?  Ergo, in @function? */
 	int	shifted;	/* Is 0-9 registers shifted? */
 	int	clust_time;	/* Time for cluster */
-	dbref	last_network_owner;	/* The last network owner who had network issues */	
+	dbref	last_network_owner;	/* The last network owner who had network issues */
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
+	int	help_shell;	/* Shell to the next help index */
 	int	blacklist_cnt;
 	int	blacklist_nodns_cnt;
+	int	blacklist_nogst_cnt;
+	int	blacklist_reg_cnt;
 	int	wipe_state;	/* do_wipe state counter */
 	int	includecnt;	/* @include count */
 	int	includenest;	/* @include nest count */
+	int	atrcachemax;	/* Maximum atrcaches allowed -- 200 hard cap */
 	int	nocodeoverride;	/* Override NO_CODE flag for objeval() */
 	int	notrace;	/* Do not trace */
 	int	start_of_cmds;	/* Start of command -- hack around zenty ansi */
@@ -841,10 +906,12 @@ struct statedata {
 	int	forceusr2;	/* Dump state check */
         BLACKLIST *bl_list; 	/* The black list */
         BLACKLIST *nd_list; 	/* The nodns list */
+        BLACKLIST *rg_list; 	/* The register list */
+        BLACKLIST *ng_list; 	/* The noguest list */
 	char	tor_localcache[1000]; /* Cache for the tor local host */
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
-	time_t	mysql_last;	/* Last mysql hang time */
+	time_t	mysql_last;	/* Last MySQL hang time */
 	int	argtwo_fix;	/* Arg 2 fix test for '=' */
         int     zone_return;	/* Return value of zonecmd() function */
 	int	posesay_fluff;	/* Allow pose/say fluffing */
@@ -863,6 +930,9 @@ struct statedata {
 	char	buffer[256];	/* A buffer for holding temp stuff */
         char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
+	int 	vattr_reuse[MAXVATTRCACHE + 1];
+	int 	vattr_reuseptr;
+	int 	vattr_reusecnt;
 	ALIST	iter_alist;	/* Attribute list for iterations */
 	char	*mod_alist;	/* Attribute list for modifying */
 	int	mod_size;	/* Length of modified buffer */
@@ -877,6 +947,7 @@ struct statedata {
 	dbref	vlplay;
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
+	int	help_shell;	/* Shell to the next help index */
 	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
 #endif	/* STANDALONE */
 };
@@ -904,6 +975,7 @@ extern STATEDATA mudstate;
 #define CF_RWHO_XMIT	0x0040		/* Update remote RWHO data */
 #define CF_ALLOW_RWHO	0x0080		/* Allow the RWHO command */
 #define CF_DEQUEUE	0x0100		/* Remove entries from the queue */
+#define CF_VATTRCHECK	0x0200		/* Vattr Cache Check */
 
 /* Host information codes */
 
@@ -919,6 +991,7 @@ extern STATEDATA mudstate;
 #define H_PASSPROXY	0x0200  /* Linked to suspect_list for bypassing proxies */
 #define H_PASSAPI	0x0400	/* Pass any API site restrictions (minus forbid) */
 #define H_HARDCONN	0x0800	/* Allow hardconnect from site */
+#define H_PERMIT	0x1000	/* Override Register/Connect Restrictions */
 
 /* Logging options */
 

@@ -3,10 +3,13 @@ rhost_installer.sh      -- Only used if you need to pull RhostMUSH for the first
                            If you see the directories below, ignore it.  Trust me.
 DevTools/  		-- currently unused
 Plugins/  		-- currently unused 
-rhost_installer.sh*	-- The installsetup script.  Not needed
+rhostinstall.yml        -- The Ansible playbook to set up your RhostMUSH
+rhost_installer.sh*	-- The optional installsetup script.  Not needed
                            if you have actually grabbed the tarball or if
                            you downloaded the latest git repository.
                            Use patch.sh to update the source tree once received.
+                           Note:  This is intended as a tool to pull down Rhost
+                                  if you don't already have the source.
 Contrib/  		-- currently unused
 Mushcode/  		-- Various MUSH softcode that is useful for RhostMUSH
 Server/			-- the main RhostMUSH directory.  To configure you

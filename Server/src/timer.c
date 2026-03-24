@@ -19,7 +19,7 @@
 
 /******************************************************************************
  * Mac OSX does not have clock_gettime, so this is their method of reproducing
- * it.  This will likely have to occur for any oth3er systems also missing this
+ * it.  This will likely have to occur for any other systems also missing this
  * functionality, so define below when required for each arch-type
  ******************************************************************************/
 #ifdef __MACH__
@@ -44,6 +44,7 @@ int clock_gettime(int clk_id, struct timespec* t) {
 
 extern void		NDECL(do_second);
 extern void		FDECL(fork_and_dump, (int key, char *msg));
+extern void		FDECL(do_recache_vattrs, (dbref, int, char *, int));
 //extern unsigned int	FDECL(alarm, (unsigned int seconds));
 extern void		NDECL(pcache_trim);
 
@@ -55,12 +56,18 @@ extern void		NDECL(pcache_trim);
 int alarm_msec(double time)
 {
 struct itimerval it_val;
-double time_rounded;
+double time_remainder, time_usec, time_sec;
 double i_rounder;
   // This function will _never_ stop the timer; use alarm_stop() for that.
   i_rounder = 0.1;
   if ( mudconf.mtimer != 0 )
      i_rounder = 1.0 / (double)mudconf.mtimer;
+
+  time_remainder = fmod(time,1);
+  time_sec = time - time_remainder;
+  time_usec = roundf(1000000 * time_remainder * mudconf.mtimer) / mudconf.mtimer;
+
+/*
   time = (time <= 0 ? i_rounder : time );
   time_rounded = roundf(time * (double)mudconf.mtimer) / (double)mudconf.mtimer; // Round to specified decimal place
   it_val.it_value.tv_sec = floor(time_rounded); // Second
@@ -69,12 +76,16 @@ double i_rounder;
   } else {
      it_val.it_value.tv_usec = floor(1000000 * fmod(time_rounded,((double)mudconf.mtimer / 10.0))); // Decimal
   }
+*/
+
+  it_val.it_value.tv_sec = (time_t) time_sec;
+  it_val.it_value.tv_usec = (suseconds_t) time_usec;
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
 /* Debugging
-  fprintf(stderr, "Timer Triggered");
+  fprintf(stderr, "Time Triggered -- Value: %ld/%ld      Value2: %f/%f/%f\n", it_val.it_value.tv_sec, it_val.it_value.tv_usec, time_sec, time_usec, time);
  */
-  mudstate.alarm_triggered = 0;
+  mudstate.alarm_triggered = 1;  /* Force timer to 1 here */
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -91,7 +102,7 @@ struct itimerval it_val;
 }
 
 /* Version of time() that returns the timestamp
- * as a double, with millseconds after the decimal,
+ * as a double, with milliseconds after the decimal,
  * floor'd down to a single decimal. Do not use for timers shorter than 0.1s!
  * --Ambrosia
  */
@@ -146,8 +157,10 @@ void NDECL(init_timer)
 	mudstate.check_counter = ((mudconf.check_offset == 0) ?
 		mudconf.check_interval : mudconf.check_offset) + mudstate.nowmsec;
 	mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
+	mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
 	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
 	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
+        mudstate.alarm_triggered = 0;
 	alarm_msec (next_timer());
 }
 
@@ -160,8 +173,19 @@ char	*cmdsave;
 
 	/* this routine can be used to poll from interface.c */
 
-	if (!mudstate.alarm_triggered) return;	
-	mudstate.alarm_triggered = 0;
+        if ( mudstate.alarm_triggered == 2 ) {
+           STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
+              log_text("ALARM Timer trigger event -- forcing alarm reset.");
+           ENDLOG
+           /* Reset alarm and retrigger next timer with alarm state */
+           mudstate.alarm_triggered = 1;  /* Force timer from 2 to 1 here */
+           alarm_msec(next_timer());
+           return;
+        }
+
+        /* If there is no alarm_msec state abort from dispatch and move on */
+	if (!mudstate.alarm_triggered) return;
+
 	mudstate.lastnowmsec = mudstate.nowmsec;
 	mudstate.lastnow = mudstate.now;
 	mudstate.nowmsec = time_ng(NULL);
@@ -202,6 +226,13 @@ char	*cmdsave;
 
 	}
 
+	if ((mudconf.control_flags & CF_VATTRCHECK) &&
+	    (mudstate.vattr_counter <= mudstate.nowmsec)) {
+		mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
+		mudstate.debug_cmd = (char *)"< vattrcheck >";
+                do_recache_vattrs( GOD, 0, (char *)NULL, 1);
+	}
+
 #ifdef HAVE_GETRUSAGE
 	/* Memory use stats */
 
@@ -236,7 +267,7 @@ char	*cmdsave;
 #endif
 
 	/* reset alarm */
-
+        mudstate.alarm_triggered = 0;
 	alarm_msec (next_timer());
 	mudstate.debug_cmd = cmdsave;
 }

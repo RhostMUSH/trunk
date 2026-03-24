@@ -25,7 +25,11 @@ extern double NDECL(next_timer);
 extern double FDECL(time_ng, (double*));
 extern int FDECL(alarm_msec, (double));
 
+#ifdef DYN_MAXPIDS
+#define MUMAXPID	DYN_MAXPIDS
+#else
 #define MUMAXPID	32767
+#endif
 #ifdef MAXINT
 #define MYMAXINT	MAXINT
 #else
@@ -70,7 +74,7 @@ void init_pid_table()
 void execute_entry(BQUE *queue)
 {
   dbref player;
-  int i;
+  int i, i_nospace, cmd_bitmask;
   char *command, *cp;
 
 	player = queue->player;
@@ -79,6 +83,9 @@ void execute_entry(BQUE *queue)
 	      giveto(player, mudconf.waitcost, NOTHING);
 	    mudstate.curr_enactor = queue->cause;
 	    mudstate.curr_player = player;
+            mudstate.curr_pid = queue->pid;
+            strncpy(mudstate.curr_pidcmd, queue->comm, LBUF_SIZE - 1);
+            mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
 	    a_Queue(Owner(player), -1);
 	    queue->player = 0;
 	    pid_table[queue->pid] = 0;
@@ -86,7 +93,7 @@ void execute_entry(BQUE *queue)
 
 		/* Load scratch args */
 
-		for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+		for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 		    if (queue->scr[i]) {
 			strcpy(mudstate.global_regs[i],
 			       queue->scr[i]);
@@ -119,17 +126,26 @@ void execute_entry(BQUE *queue)
 		      memset(mudstate.rollback, '\0', LBUF_SIZE);
        		   }
     		}
+		i_nospace = mudstate.no_space_compress;
+		if ( (queue->bitwise_flags & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
+			mudstate.no_space_compress = 1;
+		} 
+                cmd_bitmask = mudstate.cmd_bitmask;
+                mudstate.cmd_bitmask |= queue->bitwise_flags;
 		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
 			desc_in_use = NULL;
+			queue->bitwise_flags = 0;
 			process_command(player,
 					queue->cause,
 					0, cp,
 					queue->env,
-					queue->nargs, queue->shellprg, queue->hooked_command);
+					queue->nargs, queue->shellprg, queue->hooked_command, mudstate.no_space_compress);
 		    }
 		}
+		mudstate.no_space_compress = i_nospace;
+                mudstate.cmd_bitmask = cmd_bitmask;
                 mudstate.shell_program = 0;
 	    }
 	}
@@ -430,18 +446,19 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->env[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scr[a] )
                    freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                 else
                    freezepid->scr[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scrname[a] )
                    freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                 else
                    freezepid->scrname[a] = NULL;
             }
+            freezepid->bitwise_flags = point->bitwise_flags;
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
@@ -507,18 +524,19 @@ freeze_pid(dbref player, int pid, int key)
                 else
                    freezepid->env[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scr[a] )
                    freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                 else
                    freezepid->scr[a] = NULL;
             }
-            for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+            for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                 if ( point->scrname[a] )
                    freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                 else
                    freezepid->scrname[a] = NULL;
             }
+            freezepid->bitwise_flags = point->bitwise_flags;
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
@@ -635,18 +653,19 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->env[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scr[a] )
                       freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                    else
                       freezepid->scr[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scrname[a] )
                       freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                    else
                       freezepid->scrname[a] = NULL;
                }
+               freezepid->bitwise_flags = point->bitwise_flags;
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
@@ -715,18 +734,19 @@ thaw_pid(dbref player, int pid, int key)
                    else
                       freezepid->env[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scr[a] )
                       freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
                    else
                       freezepid->scr[a] = NULL;
                }
-               for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+               for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
                    if ( point->scrname[a] )
                       freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
                    else
                       freezepid->scrname[a] = NULL;
                }
+               freezepid->bitwise_flags = point->bitwise_flags;
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
@@ -959,6 +979,7 @@ wait_que_pid(dbref player, int pid, int newwait)
                 else
                    rewait->scrname[a] = NULL;
             }
+            rewait->bitwise_flags = point->bitwise_flags;
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
@@ -1031,6 +1052,7 @@ wait_que_pid(dbref player, int pid, int newwait)
                 else
                    rewait->scrname[a] = NULL;
             }
+            rewait->bitwise_flags = point->bitwise_flags;
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
@@ -1114,6 +1136,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
+            point->bitwise_flags = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1134,6 +1157,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
+            point->bitwise_flags = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1271,6 +1295,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
+        point->bitwise_flags = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qlast = NULL;
@@ -1287,6 +1312,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
+        point->bitwise_flags = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qllast = NULL;
@@ -1399,7 +1425,7 @@ do_halt(dbref player, dbref cause, int key, char *target)
         return;
       }
       else if (!numhalted)
-	notify(player,"PID not found/Permisison denied.");
+	notify(player,"PID not found/Permission denied.");
       if ( numhalted && (i_keytype > 0) ) {
          if ( !(Quiet(player) || i_quiet) ) {
             if ( i_keytype == 1 )
@@ -1669,18 +1695,18 @@ setup_que(dbref player, dbref cause, char *command,
 	    tlen += (strlen(args[a]) + 1);
     }
     if (sargs) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a])
 		tlen += (strlen(sargs[a]) + 1);
 	}
     }
     if ( sargsname ) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a])
 		tlen += (strlen(sargsname[a]) + 1);
 	}
     }
-    /* Create the qeue entry and load the save string */
+    /* Create the queue entry and load the save string */
 
     tmp = alloc_qentry("setup_que.qblock");
     pid_table[tpid] = 1;
@@ -1690,10 +1716,10 @@ setup_que(dbref player, dbref cause, char *command,
     for (a = 0; a < NUM_ENV_VARS; a++) {
 	tmp->env[a] = NULL;
     }
-    for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+    for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	tmp->scr[a] = NULL;
     }
-    for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+    for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	tmp->scrname[a] = NULL;
     }
 
@@ -1715,7 +1741,7 @@ setup_que(dbref player, dbref cause, char *command,
 	}
     }
     if (sargs) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a]) {
 		strcpy(tptr, sargs[a]);
 		tmp->scr[a] = tptr;
@@ -1724,7 +1750,7 @@ setup_que(dbref player, dbref cause, char *command,
 	}
     }
     if ( sargsname ) {
-	for (a = 0; a < MAX_GLOBAL_REGS; a++) {
+	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a]) {
 		strcpy(tptr, sargsname[a]);
 		tmp->scrname[a] = tptr;
@@ -1734,6 +1760,10 @@ setup_que(dbref player, dbref cause, char *command,
     }
     /* Load the rest of the queue block */
 
+    tmp->bitwise_flags = 0;
+    if ( mudstate.no_space_compress )
+       tmp->bitwise_flags |= PREPARSE_RAW;
+    tmp->bitwise_flags |= mudstate.cmd_bitmask;
     tmp->player = player;
     tmp->waittime = 0;
     tmp->next = NULL;
@@ -1890,7 +1920,7 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
              return;
           }
           recpidval = atoi(eventorig);
-          if ( (recpidval < 0) || (recpidval > MAX_GLOBAL_REGS) ) {
+          if ( (recpidval < 0) || (recpidval > (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
              notify(player, "Invalid register defined with /RECPID switch.");
              return;
           }
@@ -2116,7 +2146,8 @@ NDECL(do_second)
     i_offset = 0;
     d_timediff = (int)mudstate.nowmsec - (int)mudstate.lastnowmsec;
     for (point = mudstate.qwait, trail = NULL; point ; point = next) {
-        if ( (d_timediff > 120) || (d_timediff < -120) ) {
+        /* We'll raise offsets to 5 minutes now before it wigs out */
+        if ( (d_timediff > 300) || (d_timediff < -300) ) {
            point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         } 
@@ -2140,7 +2171,8 @@ NDECL(do_second)
 	    next = (trail = point)->next;
 	    continue;		/* Skip if not timed-wait */
 	}
-        if ( (d_timediff > 120) || (d_timediff < -120) ) {
+        /* We'll raise offsets to 5 minutes now before it wigs out */
+        if ( (d_timediff > 300) || (d_timediff < -300) ) {
            point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         }
@@ -2215,10 +2247,12 @@ do_top(int ncmds)
     for (count = 0; count < ncmds; count++) {
 	if (!test_top()) {
 	    mudstate.debug_cmd = cmdsave;
-	    for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+	    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 		*mudstate.global_regs[i] = '\0';
 		*mudstate.global_regsname[i] = '\0';
+#ifndef NO_GLOBAL_REGBACKUP
    	        *mudstate.global_regs_backup[i] = '\0';
+#endif
             }
 	    return count;
 	}
@@ -2233,10 +2267,12 @@ do_top(int ncmds)
         mudstate.curr_cmd = (char *) "";
     }
 
-    for (i = 0; i < MAX_GLOBAL_REGS; i++) {
+    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 	*mudstate.global_regs[i] = '\0';
 	*mudstate.global_regsname[i] = '\0';
+#ifndef NO_GLOBAL_REGBACKUP
   	*mudstate.global_regs_backup[i] = '\0';
+#endif
     }
     mudstate.debug_cmd = cmdsave;
     return count;
@@ -2337,13 +2373,29 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
 }
 
 void
-show_que_func(dbref player, char *target, int key, char s_type, char *buff, char **bufcx, char sep)
+show_que_func(dbref player, char *target, int key, char s_type, char *buff, char **bufcx, char sep, int i_player)
 {
    BQUE *tmp;
    dbref player_targ, obj_targ;
-   int first, i_pid;
+   char *s_tmp;
+   int first, i_pid, i_count;
 
    i_pid = -1;
+
+   /* Show pid of current running process then exit */
+   if ( key & 64 ) {
+      s_tmp = alloc_sbuf("func_pid_count_pid");
+      sprintf(s_tmp, "%d", mudstate.curr_pid);
+      safe_str(s_tmp, buff, bufcx);
+      free_sbuf(s_tmp);
+      return;
+   }
+
+   if ( key & 128 ) {
+      safe_str(mudstate.curr_pidcmd, buff, bufcx);
+      return;
+   }
+
    if ( target && *target ) {
       if ( is_integer(target) ) {
          player_targ = obj_targ = NOTHING;
@@ -2359,11 +2411,17 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
               !HasPriv(player, obj_targ, POWER_SEE_QUEUE, POWER3, NOTHING))) {
             return;
          }
+         /* flip to check all ownership by player specified */
+         if ( i_player && isPlayer(obj_targ)) {
+            player_targ = obj_targ;
+            obj_targ = NOTHING;
+         }
       }
    } else {
       player_targ = obj_targ = NOTHING;
    }
-   first = 0;
+   first = i_count = 0;
+   /* Player running queue */
    if ( s_type == 'p' ) {
       for ( tmp = mudstate.qfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
@@ -2374,6 +2432,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          first = 1;
       }
    } 
+   /* Object running queue */
    if ( s_type == 'o' ) {
       for ( tmp = mudstate.qlfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
@@ -2384,25 +2443,41 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
          first = 1;
       }
    }
-   if ( (s_type == 'q') || (s_type == 'w') ) {
+   /* Wait queue */
+   if ( (s_type == 'q') || (s_type == 'w') || (s_type == 'c') ) {
       for ( tmp = mudstate.qwait; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
             continue;
-         fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         if ( s_type == 'c' ) {
+            i_count++;
+         } else {
+            fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         }
          first = 1;
       }
    }
-   if ( (s_type == 'q') || (s_type == 's') ) {
+   /* Semaphore queue */
+   if ( (s_type == 'q') || (s_type == 's') || (s_type == 'c') ) {
       for ( tmp = mudstate.qsemfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
             continue;
-         fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         if ( s_type == 'c' ) {
+            i_count++;
+         } else {
+            fun_do_display(tmp, player, player_targ, obj_targ, key, first, buff, bufcx, sep);
+         }
          first = 1;
       }
+   }
+   if ( s_type == 'c' ) {
+      s_tmp = alloc_sbuf("func_pid_count");
+      sprintf(s_tmp, "%d", i_count);
+      safe_str(s_tmp, buff, bufcx);
+      free_sbuf(s_tmp);
    }
 }
 
@@ -2464,7 +2539,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                stop_chr = ' ';
 	    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
 			       tmp->sem,
@@ -2473,7 +2548,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       bufp, tmp->comm));
 	    else if (tmp->waittime > 0)
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid,
                                stop_chr,
                                mtimerlen,
@@ -2481,12 +2556,12 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       bufp, tmp->comm));
 	    else if (Good_obj(tmp->sem))
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, tmp->sem,
 			       bufp, tmp->comm));
 	    else
 		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-5d) %c %s:%s", sw_type ? "FTIME" : "PID",
+		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, bufp, tmp->comm));
 	    bp = bufp;
 	    if (key == PS_LONG) {
@@ -2505,7 +2580,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 		*bp = '\0';
 		bp = unparse_object2(player, tmp->cause, 0);
                 tprp_buff = tpr_buff;
-		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   Enactor: %s%s", bp, bufp));
+		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", tmp->bitwise_flags, bp, bufp));
 		free_lbuf(bp);
 	    }
 	    free_lbuf(bufp);
@@ -2547,7 +2622,7 @@ do_ps(dbref player, dbref cause, int key, char *target)
 	obj_targ = noisy_match_result();
 	if (!Good_obj(obj_targ) || (!Controls(player, obj_targ) &&
 	    !HasPriv(player, obj_targ, POWER_SEE_QUEUE, POWER3, NOTHING))) {
-	    notify(player, "Permisson denied.");
+	    notify(player, "Permission denied.");
 	    return;
 	}
 	if (key & PS_ALL) {
@@ -2597,6 +2672,8 @@ do_ps(dbref player, dbref cause, int key, char *target)
 	   sprintf(bufp, "Totals: Player...%d/%d  Object...%d/%d  Wait...%d/%d  Semaphore...%d/%d",
 		   pqent, pqtot, oqent, oqtot, wqent, wqtot, sqent, sqtot);
        notify(player, bufp);
+       sprintf(bufp, "Queue TimerInterval: [%d max pids] %d times a second (1/%d second)", MUMAXPID, mudconf.mtimer, mudconf.mtimer);
+/*
        switch (mudconf.mtimer) {
           case 1: strcpy(bufp, "Queue TimerInterval: every second (1/1 second)");
                   break;
@@ -2609,6 +2686,7 @@ do_ps(dbref player, dbref cause, int key, char *target)
           default: strcpy(bufp, "Queue TimerInterval: Unknown -- Contact staff)");
                   break;
        }
+*/
        notify(player, bufp);
        free_mbuf(bufp);
     } else {

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-main()
+int main()
 {
    printf("%d\n", sizeof(long));
 }

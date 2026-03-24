@@ -25,7 +25,7 @@ extern POWENT pow_table[];
 extern POWENT depow_table[];
 extern void depower_set(dbref, dbref, char *, int);
 extern dbref    FDECL(match_thing, (dbref, char *));
-extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int));
+extern void	FDECL(process_command, (dbref, dbref, int, char *, char *[], int, int, int, int));
 extern int count_chars(const char *, const char c);
 static void set_attr_internal (dbref, dbref, int, char *, int, dbref, int *, int);
 extern double safe_atof(char *);
@@ -158,15 +158,20 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
       return;
    }
 
-   /* check for bad name */
-   if (*newname == '\0') {
-      notify_quiet(player, "Give it what new name?");
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
+        (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
+      notify(player, "Permission denied.");
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) &&
-        (Owner(player) != Owner(thing))) || (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
-      notify(player, "Permission denied.");
+   /* check for bad name */
+   if (*newname == '\0') {
+      if ( key & NAME_ANSI ) {
+         atr_clr(thing, A_ANSINAME);
+         notify_quiet(player, "ANSI in name (@extansi) has been cleared.");
+      } else {
+         notify_quiet(player, "Give it what new name?");
+      }
       return;
    }
 
@@ -234,7 +239,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 
       if ( i_ansi ) {
          s_Toggles2(thing, (Toggles2(thing) | TOG_EXTANSI));
-         do_extansi(player, player, 0, s_tmp, buff2);
+         do_extansi(player, player, (key & SIDEEFFECT), s_tmp, buff2);
       }
 
       if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
@@ -267,7 +272,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
              buff2++;
            }
         }
-        do_extansi(player, player, 0, s_tmp, newname);
+        do_extansi(player, player, (key & SIDEEFFECT), s_tmp, newname);
      }
      if (!Quiet(player) && !Quiet(thing) && !(key & SIDEEFFECT)) {
         notify_quiet(player, "Name set.");
@@ -301,7 +306,7 @@ char	*oldalias, *trimalias;
 		oldalias = atr_pget(thing, A_ALIAS, &aowner, &aflags);
 		trimalias = trim_spaces(alias);
 
-                if ( NoMod(thing) && !WizMod(player) ) {
+                if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!Controls(player, thing) &&
                     !could_doit(player,thing,A_LTWINK,0,0)) {
@@ -371,11 +376,11 @@ char	*oldalias, *trimalias;
 void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
 {
    dbref thing, aowner;
-   int atr, aflags, nomtest;
+   int atr, aflags, nomtest, custom;
    ATTR *ap;
    struct boolexp *okey;
    time_t tt;
-   char *bufr;
+   char *bufr, *subname, *custname;
    NAMETAB *nt;
 
    if (parse_attrib(player, name, &thing, &atr)) {
@@ -395,7 +400,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
           * you are not #1 and are trying to do something to #1.
           */
 
-         nomtest = ((NoMod(thing) && !WizMod(player)) || 
+         nomtest = ((NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
                     (Backstage(player) && NoBackstage(thing) && !Immortal(player)));
          if (ap && !nomtest && (God(player) ||
@@ -421,33 +426,89 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       }
    }
     
+   custom = 0;
+   if ( (key & A_LUSER) && ((subname = strchr(name, '|')) != NULL) ) {
+      *subname++ = '\0';
+      ap = NULL;
+      if ( *subname ) {
+         atr = mkattr(subname);
+         if (atr <= 0) {
+            notify_quiet(player, "@lock: Couldn't create user-attribute lock.");
+            return;
+         }
+         ap = atr_str(subname);
+         if ( ap ) {
+            custom = AF_IS_LOCK;
+            custname = alloc_sbuf("lock_custname");
+            strcpy(custname, ap->name);
+            key = ap->number;
+         } else {
+            notify_quiet(player, "@lock: Couldn't set user-attribute lock.");
+            return;
+         }
+      }
+   }
    init_match(player, name, NOTYPE);
    match_everything(MAT_EXIT_PARENTS);
    thing = match_result();
 
+   if ( custom ) {
+      if ( !Good_chk(thing) ) {
+         notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+
+      atr_get_info(thing, key, &aowner, &aflags);
+      if (!Set_attr(player, thing, ap, aflags) ) {
+         notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+
+      if ((aflags & AF_NOCMD) && !Immortal(player)) {
+         notify_quiet(player, "No match.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+   }
+
    switch (thing) {
       case NOTHING:
          notify_quiet(player, "I don't see what you want to lock!");
+         if ( custom )
+            free_sbuf(custname);
          return;
       case AMBIGUOUS:
          notify_quiet(player, "I don't know which one you want to lock!");
+         if ( custom )
+            free_sbuf(custname);
          return;
       default:
          if (!controls(player, thing)) {
             notify_quiet(player, "You can't lock that!");
+            if ( custom )
+               free_sbuf(custname);
             return;
          }
    }
 
    if( (key == A_LZONETO || key == A_LZONEWIZ) && !ZoneMaster(thing) ) {
       notify_quiet(player, "That object isn't a Zone Master.");
+      if ( custom )
+         free_sbuf(custname);
       return;
    }
 
-   if ( (NoMod(thing) && !WizMod(player)) || 
+   if ( (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) || 
         (DePriv(player,Owner(thing),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(thing))) || 
         (Backstage(player) && NoBackstage(thing) && !Immortal(player))) {
       notify_quiet(player, "Permission denied.");
+      if ( custom )
+         free_sbuf(custname);
       return;
    }
 
@@ -459,11 +520,15 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
    if ( atr_get_info(thing, key, &aowner, &aflags) ) {
       if ( !allowed_to_lock(player, aflags, key) ) {
          notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
          return;
       }
    } else {
       if ( !allowed_to_lock(player, 0, key) ) {
          notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
          return;
       }
    }
@@ -485,7 +550,7 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
       }
 
       atr_add_raw(thing, key, unparse_boolexp_quiet(player, okey));
-      atr_set_flags(thing, key, aflags);
+      atr_set_flags(thing, key, aflags | custom);
 
       if (!Quiet(player) && !Quiet(thing)) {
          if ( TogNoisy(player) ) { 
@@ -497,7 +562,10 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
             if ( nt && nt->name ) {
                sprintf(bufr, "Locked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Locked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
+               if ( custom )
+                  sprintf(bufr, "Locked - %s/%s (user-defined)", Name(thing), custname);
+               else
+                  sprintf(bufr, "Locked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -506,6 +574,8 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
          }
       }
    }
+   if ( custom )
+      free_sbuf(custname);
    free_boolexp(okey);
 }
 
@@ -516,13 +586,13 @@ void do_lock(dbref player, dbref cause, int key, char *name, char *keytext)
 void do_unlock(dbref player, dbref cause, int key, char *name)
 {
    dbref thing, aowner;
-   int atr, aflags;
-   char *bufr;
+   int atr, aflags, custom;
+   char *bufr, *subname, *custname;
    ATTR *ap;
    NAMETAB *nt;
 
    if (parse_attrib(player, name, &thing, &atr)) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
          notify_quiet(player, "Permission denied.");
          return;
       }
@@ -570,20 +640,85 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
       key = A_LOCK;
    }
 
-   if ((thing = match_controlled(player, name)) != NOTHING) {
-      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+   custom = 0;
+   if ( (key & A_LUSER) && ((subname = strchr(name, '|')) != NULL) ) {
+      *subname++ = '\0';
+      thing = match_controlled(player, name);
+      if ( !Good_chk(thing) ) {
          notify_quiet(player, "Permission denied.");
+         return;
+      }
+      ap = NULL;
+      if ( *subname ) {
+         atr = mkattr(subname);
+         if (atr <= 0) {
+            notify_quiet(player, "@unlock: Couldn't define user-attribute lock.");
+            return;
+         }
+         ap = atr_str(subname);
+         if ( ap ) {
+            if (!atr_get_info(thing, ap->number, &aowner, &aflags)) {
+               notify_quiet(player, "Attribute not present on object.");
+               return;
+            }
+            if ( !((ap->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK)) ) {
+               notify_quiet(player, "Attribute on object is not a lock.");
+               return;
+            }
+            custom = AF_IS_LOCK;
+            custname = alloc_sbuf("lock_custname");
+            strcpy(custname, ap->name);
+            key = ap->number;
+         } else {
+            notify_quiet(player, "@lock: Couldn't define user-attribute lock.");
+            return;
+         }
+      }
+   }
+   if ( custom ) {
+      if ( !Good_chk(thing) ) {
+         notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+
+      atr_get_info(thing, key, &aowner, &aflags);
+      if (!Set_attr(player, thing, ap, aflags) ) {
+         notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+
+      if ((aflags & AF_NOCMD) && !Immortal(player)) {
+         notify_quiet(player, "No match.");
+         if ( custom )
+            free_sbuf(custname);
+         return;
+      }
+   }
+
+   if ((thing = match_controlled(player, name)) != NOTHING) {
+      if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
+         notify_quiet(player, "Permission denied.");
+         if ( custom )
+            free_sbuf(subname);
          return;
       }
       /* Check flags of lock to flags of enactor */
       if ( atr_get_info(thing, key, &aowner, &aflags) ) {
          if ( !allowed_to_lock(player, aflags, key) ) {
             notify_quiet(player, "Permission denied.");
+            if ( custom )
+               free_sbuf(subname);
             return;
          }
       } else {
          if ( !allowed_to_lock(player, 0, key) ) {
             notify_quiet(player, "Permission denied.");
+            if ( custom )
+               free_sbuf(subname);
             return;
          }
       }
@@ -599,7 +734,11 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
             if ( nt && nt->name ) {
                sprintf(bufr, "Unlocked - %s/%s", Name(thing), nt->name);
             } else {
-               sprintf(bufr, "Unlocked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
+               if ( custom ) {
+                  sprintf(bufr, "UnLocked - %s/%s (user-defined)", Name(thing), custname);
+               } else {
+                  sprintf(bufr, "Unlocked - %s/%s", Name(thing), (char*)"(UNKNOWN)");
+               }
             }
             notify_quiet(player, bufr);
             free_lbuf(bufr);
@@ -630,7 +769,7 @@ dbref	exit;
 		notify_quiet(player, "I don't know which one you mean!");
 		break;
 	default:
-                if ( NoMod(exit) && !WizMod(player) ) {
+                if ( NoMod(exit) && !WizMod(player) && (obj_nomodlevel(exit) > obj_bitlevel(player))) {
 			notify_quiet(player, "Permission denied.");
                 } else if (!controls(player, exit) &&
                     !could_doit(player,exit,A_LTWINK,0,0)) {
@@ -681,7 +820,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
   bLeaveFlags = (key & CHOWN_PRESERVE) && Wizard(player);
   
   if (parse_attrib(player, name, &thing, &atr)) {
-    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+    if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
       notify_quiet(player, "Permission Denied.");
       return;
     }
@@ -697,7 +836,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
       /* You may chown an attr to yourself if you own the
        * object and the attr is not locked.
        * You may chown an attr to the owner of the object if
-       * you own the attribute. (not anymore/zones -thorin)
+       * you own the attribute. (not anymore/zones -Thorin)
        * To do anything else you must be a wizard.
        * Only #1 can chown attributes on #1.
        */
@@ -764,6 +903,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
   if(Privilaged(player) || HasPriv(player,NOTHING,POWER_CHOWN_ANYWHERE,POWER3,POWER_LEVEL_NA)) {
     match_player();
     match_absolute();
+    match_player_absolute();
   }
   
   thing = match_result();
@@ -826,7 +966,7 @@ void do_chown(dbref player, dbref cause, int key, char *name, char *newown)
 	     (DePriv(player,Owner(thing),DP_CHOWN_OTHER,POWER7,NOTHING) && (player != Owner(thing))) ||
 	     (DePriv(player,owner,DP_CHOWN_OTHER,POWER7,NOTHING) && (player != owner))) {
     notify_quiet(player, "Permission denied.");
-  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player)) ) {
+  } else if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
     notify_quiet(player, "Permission Denied.");
   } else if (canpayfees(player, owner, cost, quota, Typeof(thing))) {
     giveto(Owner(thing), cost, NOTHING);
@@ -879,7 +1019,7 @@ int set_trees(dbref thing, char *attr_name, dbref owner, int flags)
       s_ptr2++;
    }
 
-   i_attrcnts = atrcint(GOD, thing, 0);
+   i_attrcnts = atrcint(GOD, thing, 0, (char *)NULL);
    if ( ((i_attrcnts + 1) >= mudconf.vlimit) || (i_attrcnts < 0) ) 
       return 1;
 
@@ -975,7 +1115,7 @@ static void set_attr_internal (dbref player, dbref thing, int attrnum,
 {
 dbref	aowner, aowner2;
 int	aflags, could_hear, aflags2;
-char    *buff2, *buff2ret, *tpr_buff, *tprp_buff;
+char    *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2];
 ATTR	*attr;
 
    if ( i_chk )
@@ -984,13 +1124,18 @@ ATTR	*attr;
       attr = atr_num2(attrnum);
    if ( !attr || ((attr->flags) & AF_IS_LOCK) ) {
       if ( !(key & SET_TREECHK) )
-         notify_quiet(player,"Permission denied.");
+         notify_quiet(player,"Permission denied (can't set lock).");
       *val = 1;
       return;
    }
 
    atr_pget_info(thing, attrnum, &aowner, &aflags);
    if (attr && Set_attr(player, thing, attr, aflags)) { 
+      if ( aflags & AF_IS_LOCK ) {
+         notify_quiet(player,"Permission denied (can't set lock).");
+         *val = 1;
+         return;
+      }
       if ( (attr->check != NULL) &&
            (!(*attr->check)(0, player, thing, attrnum, attrtext))) {
          *val = 1;
@@ -1004,8 +1149,12 @@ ATTR	*attr;
          buff2 = alloc_lbuf("global_attr_chk");
          atr_get_str(buff2, mudconf.global_attrdefault, attrnum, &aowner2, &aflags2);
          if ( *buff2 ) {
+            tcont[0] = attrtext;
+            tcont[1] = alloc_sbuf("see_attr_internal_thingy");
+            sprintf(tcont[1], "#%d", thing);
             buff2ret = cpuexec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &attrtext, 1, (char **)NULL, 0);
+                               EV_STRIP | EV_FCHECK | EV_EVAL, buff2, tcont, 2, (char **)NULL, 0);
+            free_sbuf(tcont[1]);
             if ( atoi(buff2ret) == 0 ) {
                free_lbuf(buff2);
                free_lbuf(buff2ret);
@@ -1120,7 +1269,7 @@ void do_toggle(dbref player, dbref cause, int key, char *name, char *toggle)
 	  notify(player,pt1);
 	  free_lbuf(pt1);
 	} else {
-          if ( NoMod(thing) && !WizMod(player) ) {
+          if ( NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) {
              notify_quiet(player, "Permission denied.");
           } else { 
              if (key == TOGGLE_CLEAR) {
@@ -1274,8 +1423,8 @@ void
 do_lset(dbref player, dbref cause, int key, char *name, char *flag)
 {
    dbref it, aowner;
-   int nomtest, flagvalue, aflags, i_clear, i_again;
-   char *s_buff, *s_buffptr;
+   int nomtest, flagvalue, aflags, i_clear, i_again, custom;
+   char *s_buff, *s_buffptr, *subname;
    ATTR *attr;
 
    /* @lset, @lset/list, */
@@ -1302,19 +1451,57 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
    }
 
    s_buffptr = s_buff = alloc_lbuf("do_lset");
+   custom = 0;
+   if ( (subname = strchr(name, '|')) ) {
+      *subname++='\0';
+      custom = AF_IS_LOCK;
+   }
    if ( !get_obj_and_lock(player, name, &it, &attr, s_buff, &s_buffptr) ) {
       notify(player, s_buff);
       free_lbuf(s_buff);
       return;
    }
    free_lbuf(s_buff);
+   if ( custom ) {
+      if ( !*subname ) {
+         notify(player, "@lset with custom attribs expects valid attribute.");
+         return;
+      } else if ( !(attr->number & A_LUSER) ) {
+         notify(player, "@lset with custom attribs expects /user switch.");
+         return;
+      } else {
+         attr = atr_str(subname);
+         if ( attr ) {
+            if ( !atr_get_info(it, attr->number, &aowner, &aflags) ) {
+               notify(player, "Custom lock not on target.");
+               return;
+            }
+            if ( !((attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK)) ) {
+               notify(player, "Attribute is not a custom lock.");
+               return;
+            }
+            if (!Set_attr(player, it, attr, aflags) ) {
+               notify_quiet(player, "Permission denied.");
+               return;
+            }
+   
+            if ((aflags & AF_NOCMD) && !Immortal(player)) {
+               notify_quiet(player, "No match.");
+               return;
+            }
+         } else {
+            notify(player, "@lset with custom attribs expects valid attribute.");
+            return;
+         }
+      }
+   }
 
    if ( !atr_get_info(it, attr->number, &aowner, &aflags)) {
       notify(player, "Lock not on target.");
       return;
    }
 
-   nomtest = ( (NoMod(it) && !WizMod(player)) ||
+   nomtest = ( (NoMod(it) && !WizMod(player) && (obj_nomodlevel(it) > obj_bitlevel(player))) ||
                (DePriv(player,Owner(it),DP_MODIFY,POWER7,NOTHING) && (Owner(player) != Owner(it))) ||
                (Backstage(player) && NoBackstage(it) && !Immortal(player)));
 
@@ -1368,7 +1555,11 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
          free_lbuf(s_buff);
          free_lbuf(s_buffptr);
       } else {
-         flagvalue = search_nametab(player, indiv_attraccess_nametab, flag);
+         if ( flag && *flag ) {
+            flagvalue = search_nametab(player, indiv_attraccess_nametab, flag);
+         } else {
+            flagvalue = -1;
+         }
          if ( (flagvalue == -1) || !(LSET_FLAGS & flagvalue) ) {
             notify_quiet(player, "You can't set that!");
          } else {
@@ -1399,207 +1590,226 @@ do_lset(dbref player, dbref cause, int key, char *name, char *flag)
 void 
 do_set(dbref player, dbref cause, int key, char *name, char *flag) 
 {
-dbref	thing, thing2, aowner;
-char	*p, *buff, *tpr_buff, *tprp_buff, *buff2ret;
-int	atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
-ATTR	*attr, *attr2;
-int     ibf = -1;
+   dbref thing, thing2, aowner;
+   char *p, *buff, *tpr_buff, *tprp_buff, *buff2ret, *s_tset, *s_tsetr, *s_tsetbuf, *s_bufit;
+   int atr, atr2, aflags, curraflags, clear, flagvalue, could_hear, i_flagchk, val;
+   ATTR *attr, *attr2;
+   int ibf = -1;
 
-	/* See if we have the <obj>/<attr> form, which is how you set attribute
-	 * flags.
-	 */
-        i_flagchk = val = 0;
-	if (parse_attrib (player, name, &thing, &atr)) {
-		if (atr != NOTHING) {
+   /* See if we have the <obj>/<attr> form, which is how you set attribute flags.  */
+   i_flagchk = val = 0;
+   if (parse_attrib (player, name, &thing, &atr)) {
+      if (atr != NOTHING) {
+         /* You must specify a flag name */
+         if (!flag || !*flag) {
+            notify_quiet(player, "I don't know what you want to set!");
+            return;
+         }
+         s_tsetbuf = alloc_lbuf("do_set_attrib_flags");
+         strcpy(s_tsetbuf, flag);
+         s_tset = strtok_r(s_tsetbuf, " \t", &s_tsetr);
+         while ( s_tset ) {
+            /* Check for clearing */
+            clear = 0;
+            if (*s_tset == NOT_TOKEN) {
+               s_tset++;
+               clear = 1;
+            }
 
-			/* You must specify a flag name */
+            /* Make sure player specified a valid attribute flag */
+            if ( s_tset && *s_tset ) {
+               flagvalue = search_nametab (player, indiv_attraccess_nametab, s_tset);
+            } else {
+               flagvalue = -1;
+            }
+            if (flagvalue == -1) {
+               notify_quiet(player, "You can't set that!");
+               s_tset = strtok_r(NULL, " \t", &s_tsetr);
+               continue;
+            }
+            if ( mudconf.secure_atruselock && (flagvalue == AF_USELOCK) && !AtrUse(player) ) {
+               notify_quiet(player, "You can't set that!");
+               s_tset = strtok_r(NULL, " \t", &s_tsetr);
+               continue;
+            }
+   
+            /* Make sure the object has the attribute present */
+            if (!atr_get_info(thing, atr, &aowner, &aflags)) {
+               notify_quiet(player, "Attribute not present on object.");
+               free_lbuf(s_tsetbuf);
+               return;
+            }
 
-			if (!flag || !*flag) {
-				notify_quiet(player,
-					"I don't know what you want to set!");
-				return;
-			}
+            curraflags = aflags;
+   
+            /* Make sure we can write to the attribute */
+            attr = atr_num(atr);
+            if (!attr || !Set_attr(player, thing, attr, (aflags|0x80000000))) {
+               notify_quiet(player, "Permission denied.");
+               free_lbuf(s_tsetbuf);
+               return;
+            }
+   
+            /* Go do it */
+            i_flagchk = ((aflags & flagvalue) ? 1 : 0);
+            if (clear) {
+               aflags &= ~flagvalue;
+            } else {
+               aflags |= flagvalue;
+            }
+   
+            could_hear = Hearer(thing);
+            atr_set_flags(thing, atr, aflags);
+            if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+               if ( *(mudstate.lbuf_buffer) ) {
+                  safe_chr(' ', mudstate.lbuf_buffer, &s_bufit);
+                  safe_str(s_tset, mudstate.lbuf_buffer, &s_bufit);
+               } else {
+                  s_bufit = mudstate.lbuf_buffer;
+                  safe_str(s_tset, mudstate.lbuf_buffer, &s_bufit);
+               }
+            }
+   
+           /* Tell the player about it. */
+           handle_ears(thing, could_hear, Hearer(thing));
+           if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
+              tprp_buff = tpr_buff = alloc_lbuf("do_set");
+              if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
+                 STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
+                    log_name_and_loc(player);
+                    buff2ret = alloc_lbuf("log_attribute_set");
+                    sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
+                            cause, attr->name, thing, (clear ? "cleared" : "set"), 
+                            give_name_aflags(player, cause, flagvalue));
+                   log_text(buff2ret);
+   #ifndef NODEBUGMONITOR
+                   sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
+                   log_text(buff2ret);
+   #endif
+                   free_lbuf(buff2ret);
+                 ENDLOG
+              }
+   
+               if (clear) {
+                  if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                     if ( give_name_aflags(player, cause, flagvalue) ) {
+                        notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared flag%s%s).", 
+                                             Name(thing), attr->name,
+                                             (i_flagchk ? " " : " [again] "),
+                                             give_name_aflags(player, cause, flagvalue)));
+                     } else {
+                        notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared %s).", 
+                                             Name(thing), attr->name,
+                                             (i_flagchk ? "flag" : "[again] flag")));
+                     }
+                  } else {
+                     notify_quiet(player, "Cleared.");
+                  }
+               } else {
+                  if ( (key & SET_NOISY) || TogNoisy(player) ) {
+                     if ( give_name_aflags(player, cause, flagvalue) ) {
+                        notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set flag%s%s).", 
+                                             Name(thing), attr->name,
+                                             (i_flagchk ? " [again] " : " "),
+                                             give_name_aflags(player, cause, flagvalue)));
+                     } else {
+                        notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set %s).", 
+                                             Name(thing), attr->name,
+                                             (i_flagchk ? "[again] flag" : "flag")));
+                     }
+                  } else {
+                     notify_quiet(player, "Set.");
+                  }
+               }
+               free_lbuf(tpr_buff);
+            }
+            s_tset = strtok_r(NULL, " \t", &s_tsetr);
+         }
+         free_lbuf(s_tsetbuf);
+         return;
+      }
+   }
 
-			/* Check for clearing */
+   /* check for attribute set first */
+   for (p = flag; *p && (*p != ':'); p++);
 
-			clear = 0;
-			if (*flag == NOT_TOKEN) {
-				flag++;
-				clear = 1;
-			}
+   if (*p) {
+      *p++ = 0;
+      if ((thing = match_controlled_or_twinked(player, name)) == NOTHING) {
+         return;
+      }
+      /* always make SBUF_SIZE by enforcing a null */
+      if ( strlen(flag) >= SBUF_SIZE ) {
+         *(flag+SBUF_SIZE-1) = '\0';
+      }
 
-			/* Make sure player specified a valid attribute flag */
+      atr = mkattr(flag);
+      if (atr <= 0) {
+         notify_quiet(player, "Couldn't create attribute.");
+         return;
+      }
 
-			flagvalue = search_nametab (player,
-				indiv_attraccess_nametab, flag);
-			if (flagvalue == -1) {
-				notify_quiet(player, "You can't set that!");
-				return;
-			}
-                        if ( mudconf.secure_atruselock && (flagvalue == AF_USELOCK) && !AtrUse(player) ) {
-				notify_quiet(player, "You can't set that!");
-				return;
-                        }
+      attr = atr_num(atr);
+      if (!attr) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
 
-			/* Make sure the object has the attribute present */
+      atr_get_info(thing, atr, &aowner, &aflags);
+      if (!Set_attr(player, thing, attr, aflags) ) {
+         notify_quiet(player, "Permission denied.");
+         return;
+      }
 
-			if (!atr_get_info(thing, atr, &aowner, &aflags)) {
-				notify_quiet(player,
-					"Attribute not present on object.");
-				return;
-			}
-			curraflags = aflags;
-			/* Make sure we can write to the attribute */
+      if ((aflags & AF_NOCMD) && !Immortal(player)) {
+         notify_quiet(player, "No match.");
+         return;
+      }
 
-			attr = atr_num(atr);
-			if (!attr || !Set_attr(player, thing, attr, (aflags|0x80000000))) {
-				notify_quiet(player, "Permission denied.");
-				return;
-			}
+      buff=alloc_lbuf("do_set");
+      /* check for _ */
+      if (*p == '_' && !(key & SET_STRICT)) {
+         strcpy(buff, p + 1);
+         if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
+              (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
+              (!Wizard(player) && Cloak(thing2))) {
 
-			/* Go do it */
+            notify_quiet(player, "No match.");
+            free_lbuf(buff);
+            return;
+         }
 
-                        i_flagchk = ((aflags & flagvalue) ? 1 : 0);
-			if (clear)
-				aflags &= ~flagvalue;
-			else
-				aflags |= flagvalue;
-			could_hear = Hearer(thing);
-			atr_set_flags(thing, atr, aflags);
-                        if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-                           strcpy(mudstate.lbuf_buffer, flag);
+         attr2 = atr_num(atr2);
+         p = buff;
+         atr_pget_str(buff, thing2, atr2, &aowner, &aflags, &ibf);
+         if (!attr2 || !See_attr(player, thing2, attr2, aowner, aflags, 0)) {
+            notify_quiet(player, "Permission denied.");
+            free_lbuf(buff);
+            return;
+         }
+      }
 
-			/* Tell the player about it. */
+      /* Go set it */
+      set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
+      if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+         strcpy(mudstate.lbuf_buffer, p);
+      }
+      free_lbuf(buff);
+      return;
+   }
 
-			handle_ears(thing, could_hear, Hearer(thing));
-			if (!(key & SET_QUIET) &&
-			    !Quiet(player) && !Quiet(thing)) {
-                                tprp_buff = tpr_buff = alloc_lbuf("do_set");
-				if ( (attr->flags & AF_LOGGED) || (curraflags & AF_LOGGED) ) {
-					STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
-					log_name_and_loc(player);
-					buff2ret = alloc_lbuf("log_attribute_set");
-					sprintf(buff2ret, " <cause: #%d> Attribute '%s' on #%d %s attribute flag '%s'",
-						cause, attr->name, thing, (clear ? "cleared" : "set"), give_name_aflags(player, cause, flagvalue));
-					log_text(buff2ret);
-#ifndef NODEBUGMONITOR
-					sprintf(buff2ret, " Command: %.*s", (LBUF_SIZE - 100), debugmem->last_command);
-					log_text(buff2ret);
-#endif
-					free_lbuf(buff2ret);
-					ENDLOG
-				}
-				if (clear) {
-				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                                        if ( give_name_aflags(player, cause, flagvalue) )
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared flag%s%s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? " " : " [again] "),
-                                                                give_name_aflags(player, cause, flagvalue)));
-                                        else
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (cleared %s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? "flag" : "[again] flag")));
-				  } else
-					notify_quiet(player, "Cleared.");
-				}
-				else {
-				  if ( (key & SET_NOISY) || TogNoisy(player) ) {
-                                        if ( give_name_aflags(player, cause, flagvalue) )
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set flag%s%s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? " [again] " : " "),
-                                                                give_name_aflags(player, cause, flagvalue)));
-                                        else
-					   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s/%s (set %s).", 
-                                                                Name(thing), attr->name,
-                                                                (i_flagchk ? "[again] flag" : "flag")));
-				  } else
-					notify_quiet(player, "Set.");
-				}
-                                free_lbuf(tpr_buff);
-			}
-			return;
-		}
-	}
+   init_match(player, name, NOTYPE);
+   match_everything(MAT_EXIT_PARENTS);
+   thing = noisy_match_result();
+   if (!Good_obj(thing)) {
+      return;
+   }
 
-	/* check for attribute set first */
-	for (p = flag; *p && (*p != ':'); p++) ;
-
-	if (*p) {
-		*p++ = 0;
-		if ((thing = match_controlled_or_twinked(player, name)) == NOTHING)
-			return;
-                /* always make SBUF_SIZE a null */
-                if ( strlen(flag) >= SBUF_SIZE )
-                   *(flag+SBUF_SIZE-1) = '\0';
-
-		atr = mkattr(flag);
-
-		if (atr <= 0) {
-			notify_quiet(player, "Couldn't create attribute.");
-			return;
-		}
-		attr = atr_num(atr);
-		if (!attr) {
-			notify_quiet(player, "Permission denied.");
-			return;
-		}
-		atr_get_info(thing, atr, &aowner, &aflags);
-		if (!Set_attr(player, thing, attr, aflags) ) {
-			notify_quiet(player, "Permission denied.");
-			return;
-		}
-		if ((aflags & AF_NOCMD) && !Immortal(player)) {
-			notify_quiet(player, "No match.");
-			return;
-		}
-
-		buff=alloc_lbuf("do_set");
-
-		/* check for _ */
-		if (*p == '_' && !(key & SET_STRICT)) {
-			strcpy(buff, p + 1);
-			if (!parse_attrib(player, p + 1, &thing2, &atr2) ||
-			    (atr2 == NOTHING) || (!Immortal(player) && Cloak(thing2) && SCloak(thing2)) ||
-                            (!Wizard(player) && Cloak(thing2))) {
-				notify_quiet(player, "No match.");
-				free_lbuf(buff);
-				return;
-			}
-
-			attr2 = atr_num(atr2);
-			p = buff;
-		        atr_pget_str(buff, thing2, atr2, &aowner, &aflags, &ibf);
-
-			if (!attr2 ||
-			    !See_attr(player, thing2, attr2, aowner, aflags, 0)) {
-				notify_quiet(player, "Permission denied.");
-				free_lbuf(buff);
-				return;
-			}
-		}
-
-		/* Go set it */
-
-		set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
-                if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-                   strcpy(mudstate.lbuf_buffer, p);
-		free_lbuf(buff);
-		return;
-	}
-
-	init_match(player, name, NOTYPE);
-	match_everything(MAT_EXIT_PARENTS);
-	thing = noisy_match_result();
-	if (!Good_obj(thing)) 
-	  return;
-
-	/* Set or clear a flag...control checked in flag set */  
-
-        if ( (key & SET_RSET) && (mudstate.lbuf_buffer) )
-           strcpy(mudstate.lbuf_buffer, flag);
-	flag_set(thing, player, flag, key);
+   /* Set or clear a flag...control checked in flag set */  
+   if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
+      strcpy(mudstate.lbuf_buffer, flag);
+   }
+   flag_set(thing, player, flag, key);
 }
 
 void do_setattr(dbref player, dbref cause, int attrnum, int key,
@@ -1624,7 +1834,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
   dbref	thing, aowner, axowner, aowner2;
   ATTR	*in_attr, *out_attr;
   int	i, anum, in_anum, aflags, axflags, did_one, con1, twk1, no_wipe, aflags2, stop_set;
-  char	*astr, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
+  char	*astr, *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2];
   
   /* Make sure we have something to do. */
   
@@ -1633,7 +1843,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
     return;
   }
   
-  /* FInd and make sure we control the target object. */
+  /* Find and make sure we control the target object. */
   
   thing = match_controlled_or_twinked(player, what);
   if (thing == NOTHING)
@@ -1657,7 +1867,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
       *astr = '\0';
     } else if (!con1 && twk1 && (in_attr->flags & (AF_IS_LOCK | AF_LOCK))) {
       *astr = '\0';
-    } else if (!con1 && twk1 && (aflags & AF_LOCK)) {
+    } else if (!con1 && twk1 && (aflags & (AF_LOCK | AF_IS_LOCK) )) {
       *astr = '\0';
     } else {
       in_anum = in_attr->number;
@@ -1669,6 +1879,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
   did_one = 0;
   buff2 = alloc_lbuf("global_attr_chk");
   tprp_buff = tpr_buff = alloc_lbuf("do_mvattr");
+  tcont[1] = alloc_sbuf("do_mvattr_thingy");
   for (i=1; i<nargs; i++) {
     stop_set = 0;
     if ( strlen(args[i]) >= SBUF_SIZE ) 
@@ -1723,8 +1934,10 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
                   (thing != mudconf.global_attrdefault) ) {
          atr_get_str(buff2, mudconf.global_attrdefault, out_attr->number, &aowner2, &aflags2);
          if ( *buff2 ) {
+            tcont[0] = astr;
+            sprintf(tcont[1], "#%d", thing);
             buff2ret = exec(player, mudconf.global_attrdefault, mudconf.global_attrdefault,
-                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &astr, 1, (char **)NULL, 0);
+                            EV_STRIP | EV_FCHECK | EV_EVAL, buff2, tcont, 2, (char **)NULL, 0);
             if ( atoi(buff2ret) == 0 ) {
                notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                     "%s: Permission denied: String does not match unique attribute lock.", args[i]));
@@ -1765,6 +1978,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
   }
   free_lbuf(tpr_buff);
   free_lbuf(buff2);
+  free_sbuf(tcont[1]);
   
   /* Remove the source attribute if we can. */
   
@@ -1846,10 +2060,10 @@ int	aflags;
 	return 1;
 }
 
-int parse_attrib(dbref player, char *str, dbref *thing, int *atr)
+int parse_attriblock(dbref player, char *str, dbref *thing, int *atr)
 {
 ATTR	*attr;
-char    *buff, *str_tmp, *stok, *tbuf;
+char    *buff, *str_tmp, *stok, *tbuf, *stbuf, *stbufp;
 dbref	aowner;
 int	aflags;
 
@@ -1861,7 +2075,13 @@ int	aflags;
 	buff=alloc_lbuf("parse_attrib");
         str_tmp = alloc_lbuf("parse_attrib_other");
         strcpy(str_tmp, str);
-        if ( strstr(str, "#lambda/") != NULL ) {
+        stbufp = stbuf = alloc_lbuf("lambda_buff");
+        tbuf = str;
+        while ( tbuf && *tbuf ) {
+           safe_chr(ToLower((int)*tbuf), stbuf, &stbufp);
+           tbuf++;
+        }
+        if ( strstr(stbuf, "#lambda/") != NULL ) {
            tbuf = alloc_lbuf("parse_attrib_lambda");
            strcpy(tbuf, str);
            stok = strchr(tbuf, '/')+1;
@@ -1872,6 +2092,64 @@ int	aflags;
         } else {
            strcpy(str_tmp, str);
         }
+        free_lbuf(stbuf);
+        strcpy(str, str_tmp);
+        strcpy(buff, str);
+        free_lbuf(str_tmp);
+        if (!parse_thing_slash(player, buff, &str, thing)) {
+                free_lbuf(buff);
+                return 0;
+        }
+
+	/* Get the named attribute from the object if we can */
+
+	attr = atr_str_parseatr(str);
+	free_lbuf(buff);
+	if (!attr) {
+		*atr = NOTHING;
+	} else {
+		*atr = attr->number;
+  		atr_pget_info(*thing, attr->number, &aowner, &aflags);
+  		if (!Read_attr(player, *thing, attr, aowner, aflags, 1)) {
+  			*atr = NOTHING;
+  		}
+	}
+	return 1;
+}
+
+int parse_attrib(dbref player, char *str, dbref *thing, int *atr)
+{
+ATTR	*attr;
+char    *buff, *str_tmp, *stok, *tbuf, *stbuf, *stbufp;
+dbref	aowner;
+int	aflags;
+
+	if (!str)
+		return 0;
+
+	/* Break apart string into obj and attr.  Return on failure */
+
+	buff=alloc_lbuf("parse_attrib");
+        str_tmp = alloc_lbuf("parse_attrib_other");
+        strcpy(str_tmp, str);
+        stbufp = stbuf = alloc_lbuf("lambda_buff");
+        tbuf = str;
+        while ( tbuf && *tbuf ) {
+           safe_chr(ToLower((int)*tbuf), stbuf, &stbufp);
+           tbuf++;
+        }
+        if ( strstr(stbuf, "#lambda/") != NULL ) {
+           tbuf = alloc_lbuf("parse_attrib_lambda");
+           strcpy(tbuf, str);
+           stok = strchr(tbuf, '/')+1;
+           memset(str_tmp, '\0', LBUF_SIZE);
+           sprintf(str_tmp, "#%d/%s", player, (char *)"Lambda_internal_foo");
+           atr_add_raw(player, A_LAMBDA, (char *)stok);
+           free_lbuf(tbuf);
+        } else {
+           strcpy(str_tmp, str);
+        }
+        free_lbuf(stbuf);
         strcpy(str, str_tmp);
         strcpy(buff, str);
         free_lbuf(str_tmp);
@@ -2125,7 +2403,7 @@ char	*cp, *rcp, *tpr_buff, *tprp_buff;
                 }
 		*cp = '\0';
 	} else {
-		/* replace all occurances of 'from' with 'to'.  Handle the
+		/* replace all occurrences of 'from' with 'to'.  Handle the
 		 * special cases of from = \$ and \^.
 		 */
 
@@ -2170,8 +2448,8 @@ void do_edit(dbref player, dbref cause, int key, char *it,
 		char *args[], int nargs)
 {
 dbref	thing, aowner, aowner2;
-int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog;
-char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff;
+int	attr, got_one, aflags, doit, aflags2, editchk, editsingle, i_compat, i_tog, i_braces, i_bracetog;
+char	*from, *to, *result, *retresult, *atext, *buff2, *buff2ret, *tpr_buff, *tprp_buff, *tcont[2], *s_buff, *s_arg0, *s_buffptr;
 ATTR	*ap;
 OBLOCKMASTER master;
 
@@ -2203,7 +2481,44 @@ OBLOCKMASTER master;
 	   key = key & ~EDIT_RAW;
         }
         
-	from = args[0];
+        i_braces = 0;
+        if ( key & EDIT_BRACES ) {
+           i_braces = 1;
+           i_bracetog = 0;
+           s_buff = alloc_lbuf("@edit_braces");
+           memset(s_buff, '\0', LBUF_SIZE);
+           s_buffptr = s_buff;
+           s_arg0 = args[0];
+           while ( *s_arg0 ) {
+              switch ( *s_arg0 ) {
+                 case '\\': /* Check next char */
+                 case '%': /* Check next char */
+                    if ( (i_bracetog == 0 ) &&
+                         ( (*(s_arg0+1) == '{') || (*(s_arg0+1) == '}') ||
+                           (*(s_arg0+1) == '(') || (*(s_arg0+1) == ')') ||
+                           (*(s_arg0+1) == '[') || (*(s_arg0+1) == ']')
+                         )
+                       ) {
+                       s_arg0++;
+                       continue;
+                    }
+                    *s_buffptr = *s_arg0;
+                    if ( i_bracetog )
+                       i_bracetog = 0;
+                    else
+                       i_bracetog = 1;
+                    break;
+                 default:
+                    *s_buffptr = *s_arg0;
+                    break;
+              }
+              s_buffptr++;
+              s_arg0++;
+           } 
+           from = s_buff;
+        } else {
+  	   from = args[0];
+        }
 	to = (nargs >= 2) ? args[1] : (char *)"";
 
 	/* Look for the object and get the attribute (possibly wildcarded) */
@@ -2212,6 +2527,9 @@ OBLOCKMASTER master;
 	if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 0, &master, 0, 0, 0)) {
 	        olist_cleanup(&master);
 		notify_quiet(player, "No match.");
+                if ( i_braces ) {
+                   free_lbuf(s_buff);
+                }
 		return;
 	}
 
@@ -2221,6 +2539,7 @@ OBLOCKMASTER master;
 	atext = alloc_lbuf("do_edit.atext");
 
         tprp_buff = tpr_buff = alloc_lbuf("do_edit");
+        tcont[1] = alloc_sbuf("do_edit_thingy");
 	for (attr=olist_first(&master); attr!=NOTHING; attr=olist_next(&master)) {
 		ap = atr_num(attr);
 		if (ap) {
@@ -2262,9 +2581,11 @@ OBLOCKMASTER master;
                                    buff2 = alloc_lbuf("global_attr_chk");
                                    atr_get_str(buff2, mudconf.global_attrdefault, ap->number, &aowner2, &aflags2);
                                    if ( buff2 && *buff2 ) {
+                                      tcont[0] = result;
+                                      sprintf(tcont[1], "#%d", thing);
                                       buff2ret = exec(player, 
                                                       mudconf.global_attrdefault, mudconf.global_attrdefault,
-                                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, &result, 1, (char **)NULL, 0);
+                                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff2, tcont, 2, (char **)NULL, 0);
                                       if ( buff2ret && *buff2ret && atoi(buff2ret) == 0 ) {
                                          tprp_buff = tpr_buff;
                                          notify_quiet(player,
@@ -2339,12 +2660,16 @@ OBLOCKMASTER master;
 
 		}
 	}
-        free_lbuf(tpr_buff);
 
 	/* Clean up */
 
+        free_lbuf(tpr_buff);
+        free_sbuf(tcont[1]);
 	free_lbuf(atext);
 	olist_cleanup(&master);
+        if ( i_braces ) {
+           free_lbuf(s_buff);
+        }
 
 	if (!got_one) {
 		notify_quiet(player, "No matching attributes.");
@@ -2481,7 +2806,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    char *s_buff, *s_buffptr, *s_tmp, *s_eval[10], *s_teval[10], *s_store[10], *t_string, 
         *cp, *cp2, *s_waitbuff, *s_waitbuffptr, *s_tmp2, *string,
         labelorig[16], labelbak[16];
-   int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, 
+   int i_rollbackcnt, i_step, i_count, i_loop, i, i_jump, i_rollbackstate, i_hook,
        i_waitcnt, i_waitfirst, i_dolabel, i_gotostate, i_orig, i_chkinline;
    double i_wait;
    time_t  i_now;
@@ -2711,6 +3036,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
       if ( i_dolabel ) {
          mudstate.gotostate = 1;
       }
+      i_hook = mudstate.no_hook;
       while (s_buffptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
          i_loop++;
          cp = parse_to(&s_buffptr, ';', 0);
@@ -2721,7 +3047,11 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
          if ( i_loop >= i_rollbackcnt )
             break;
          if (cp && *cp) {
-            process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook);
+            if ( i_hook ) {
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), 1, mudstate.no_space_compress);
+            } else {
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+            }
          }
          if ( time(NULL) > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
             notify(player, "@rollback:  Aborted for high utilization.");
@@ -2730,6 +3060,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             break;
          }
       }
+      mudstate.no_hook = i_hook;
       mudstate.jumpst = i_jump;
       if ( mudstate.chkcpu_toggle )
          break;
@@ -2808,17 +3139,31 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
 
 }
 
-void do_include(dbref player, dbref cause, int key, char *string,
+void do_include(dbref player, dbref cause, int key, char *main_string,
                 char *argv[], int nargs, char *cargs[], int ncargs)
 {
-   dbref thing, owner, target;
-   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline;
+   dbref thing, owner, target, targetcause, mything;
+   int attrib, flags, i, x, i_savebreak, i_rollback, i_jump, chk_tog, i_chkinline, i_hook;
    time_t  i_now;
-   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS],
-        *npt, *saveregname[MAX_GLOBAL_REGS], *s_rollback;
+   char *buff1, *buff1ptr, *cp, *pt, *s_buff[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST],
+        *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback, *string, *sub_string;
 
-   if ( desc_in_use != NULL ) {
+   /* Modified so if in @hook we can allow @includes */
+   if ( (desc_in_use != NULL) && !mudstate.no_hook ) {
       notify_quiet(player, "You can not use @include at command line.");
+      return;
+   }
+   if ( ((key & INCLUDE_TARGET) && (key & INCLUDE_BECOME)) ||
+        ((key & INCLUDE_TARGET) && (key & INCLUDE_SUDO))   ||
+        ((key & INCLUDE_TARGET) && (key & INCLUDE_POSSESS))   ||
+        ((key & INCLUDE_BECOME) && (key & INCLUDE_SUDO)) ||
+        ((key & INCLUDE_BECOME) && (key & INCLUDE_POSSESS)) ||
+        ((key & INCLUDE_SUDO) && (key & INCLUDE_POSSESS)) ) {
+      notify_quiet(player, "You can not mix /target, /sudo, /possess, and/or /become together");
+      return;
+   }
+   if ( (key & INCLUDE_IBREAK) && (key & INCLUDE_NOBREAK) ) {
+      notify_quiet(player, "You can not mix /break and /nobreak together");
       return;
    }
    if ( mudstate.includenest >= mudconf.includenest ) {
@@ -2829,10 +3174,41 @@ void do_include(dbref player, dbref cause, int key, char *string,
       notify_quiet(player, "Exceeded total number of @includes allowed.");
       return;
    }
+   targetcause = cause;
+   string = main_string;
+   mything = NOTHING;
+   if ( (key & INCLUDE_BECOME) || (key & INCLUDE_SUDO) || (key & INCLUDE_POSSESS) ) {
+      sub_string = main_string;
+      while ( *sub_string ) {
+         if ( isspace(*sub_string) ) {
+            *(sub_string++) = '\0';
+            break;
+         } 
+         sub_string++;
+      }
+      if ( !*sub_string ) {
+         notify_quiet(player, "Target expected with @include/become");
+         return;
+      } else {
+         string = sub_string;
+         mything = match_thing(player, main_string);
+
+         if ( !Good_chk(mything) || !Controls(player, mything) ) {
+            notify_quiet(player, "Invalid target specified to @include/become");
+            return;
+         }
+
+         if ( (key & INCLUDE_SUDO) || (key & INCLUDE_POSSESS) ) {
+            targetcause = mything;
+         }
+      }
+   }
+
    if (!parse_attrib(player, string, &thing, &attrib) || (attrib == NOTHING) || (thing == NOTHING)) {
       notify_quiet(player, "No match.");
       return;
    }
+
    if (!Good_chk(thing) || (!controls(player, thing) &&
        !could_doit(player,thing,A_LTWINK,0,0)) ) {
        notify_quiet(player, "Permission denied.");
@@ -2840,6 +3216,14 @@ void do_include(dbref player, dbref cause, int key, char *string,
    }
    target = player;
    if ( (key & INCLUDE_TARGET) && controls(player, thing) ) {
+      target = thing;
+   }
+   /* This is mugning /target in @include and flipping executor ownership */
+   if ( ( (key & INCLUDE_BECOME) || (key & INCLUDE_POSSESS))  && Good_chk(mything) && controls(player, mything) ) {
+      target = mything;
+   }
+   /* This is munging @sudo and @include by flipping executor ownership */
+   if ( (key & INCLUDE_SUDO) && controls(player, thing) ) {
       target = thing;
    }
    mudstate.includecnt++;
@@ -2880,7 +3264,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
       }
    }
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
          saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
@@ -2910,11 +3294,18 @@ void do_include(dbref player, dbref cause, int key, char *string,
    chk_tog = mudstate.chkcpu_toggle;
    i_chkinline = mudstate.chkcpu_inline;
    mudstate.chkcpu_inline = 1;
+
+   /* If @include is called inside a hook, we keep the state */
+   i_hook = mudstate.no_hook;
    while (buff1ptr && !mudstate.breakst && !mudstate.chkcpu_toggle) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
-         process_command(target, cause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook);
-         if ( key & INCLUDE_NOBREAK )
+         if ( i_hook ) {
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate.no_space_compress);
+         } else {
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
+         }
+         if ( key & INCLUDE_IBREAK )
             mudstate.breakst = i_savebreak;
       }
       if ( time(NULL) > (i_now + 5) ) {
@@ -2923,6 +3314,11 @@ void do_include(dbref player, dbref cause, int key, char *string,
          break;
       }
    }
+   mudstate.no_hook = i_hook;
+
+   if ( key & INCLUDE_NOBREAK ) {
+      mudstate.breakst = i_savebreak;
+   }
    mudstate.chkcpu_toggle = chk_tog;
    mudstate.chkcpu_inline = i_chkinline;
    mudstate.jumpst = i_jump;
@@ -2930,7 +3326,7 @@ void do_include(dbref player, dbref cause, int key, char *string,
    strcpy(mudstate.rollback, s_rollback);
    free_lbuf(s_rollback);
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
-      for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+      for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          pt = mudstate.global_regs[x];
          npt = mudstate.global_regsname[x];
          safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -2956,6 +3352,12 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
   char *buff1, *buff1ptr, *buff2, *charges, *buf, *myplayer, *tpr_buff, *tprp_buff;
 
   didtrig = it = 0;
+  if ( key & TRIG_INLINE ) {
+     /* no keys passed to /inline for trigger -- want switches, use @include */
+     do_include(player, cause, 0, object, argv, nargs, (char **)NULL, 0);
+     return;
+  }
+
   if ( key & TRIG_PROGRAM ) {
      buf = object;
      myplayer = parse_to(&buf, ':', 1);
@@ -3049,6 +3451,7 @@ int	ibf = -1;
 	if (Wizard(player)) {
 		match_absolute();
 		match_player();
+		match_player_absolute();
 	}
 	match_me();
 	match_here();

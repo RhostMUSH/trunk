@@ -1,7 +1,7 @@
 This is a file container for what exists here
 
 README                         -- This file you're reading
-+help                          -- Softcoded +help incase you wanted one
+plushelp                       -- Softcoded +help incase you wanted one
 RhostSPACE                     -- Rhost specific Dynamic Space
 comsys                         -- The main comsystem for RhostMUSH -- MUX with Penn compat.
 daily                          -- Reproduction of MUX's @daily feature

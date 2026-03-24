@@ -1,4 +1,4 @@
-/* inerface.h */
+/* interface.h */
 
 #include "copyright.h"
 
@@ -19,7 +19,7 @@
 #include <sys/select.h>
 #endif
 
-/* Define websocket handler checksum length -- IF YOU CHANGE YOU MUST @shutdown then Startmush */
+/* Define WebSocket handler checksum length -- IF YOU CHANGE YOU MUST @shutdown then Startmush */
 #define WEBSOCKETS_CHECKSUM_LEN 40
 
 /* these symbols must be defined by the interface */
@@ -41,7 +41,7 @@ extern int shutdown_flag; /* if non-zero, interface should shut down */
 #define R_HACKER        11      /* User tried to hack connect screen */
 #define R_NODESCRIPTOR  12      /* No 'free' descriptors - actually buffer zone */
 #define R_API		13	/* API Connection */
-#define R_WEBSOCKETS	14	/* Websocket connection */
+#define R_WEBSOCKETS	14	/* WebSocket connection */
 #define R_SU            15      /* Account was SU'd */
 
 extern NAMETAB logout_cmdtable[];
@@ -86,7 +86,7 @@ struct SNOOPLISTNODE {
  * then an @reboot will write out the old records to a file, then read
  * them in with the new structure and everything will be hosed!
  *    - Thorin 01/1997
- * 
+ *
  * This has been modified.  Going forward from Rhost 4.0.0p4 any changes
  * to this file is allowed but ONLY FOR ADDING NEW DATA AT THE END.
  * You can not:
@@ -147,7 +147,7 @@ struct descriptor_data_orig {
   struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
   int logged;
   int authdescriptor;		    /* added 2/95 Thorin */
-  char userid[MBUF_SIZE];	    /* added 2/95 thorin */
+  char userid[MBUF_SIZE];	    /* added 2/95 Thorin */
   int door_desc;		/* added 11/15/97 Seawolf */
   int door_num;			/* added 11/15/97 Seawolf */
   TBLOCK *door_output_head;
@@ -199,7 +199,7 @@ struct descriptor_data {
   struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
   int logged;
   int authdescriptor;		    /* added 2/95 Thorin */
-  char userid[MBUF_SIZE];	    /* added 2/95 thorin */
+  char userid[MBUF_SIZE];	    /* added 2/95 Thorin */
   int door_desc;		/* added 11/15/97 Seawolf */
   int door_num;			/* added 11/15/97 Seawolf */
   TBLOCK *door_output_head;
@@ -217,6 +217,8 @@ struct descriptor_data {
   long ws_frame_len;
   dbref account_owner;		/* For softcoded account systems */
   char account_rawpass[100];		/* For raw account password */
+  char longaddr[256]; /* Because DNS hostnames go huge these days */
+  int longaddrcheck; /* To ensure proper Descriptor upgrades */
 };
 
 /* flags in the flag field */
@@ -232,8 +234,8 @@ struct descriptor_data {
 #define DS_API			0x0200		/* Target is an API handler */
 #define DS_CMDQUOTA		0x0400		/* Target is an CMDQUOTA handler */
 #define DS_SSL      		0x0800		/* Target is on an SSL handler */
-#define DS_WEBSOCKETS_REQUEST   0x1000          /* Target is negotiating websockets */
-#define DS_WEBSOCKETS           0x2000          /* Target is a websocket */
+#define DS_WEBSOCKETS_REQUEST   0x1000          /* Target is negotiating WebSockets */
+#define DS_WEBSOCKETS           0x2000          /* Target is a WebSocket */
 
 
 extern DESC *descriptor_list;
@@ -249,6 +251,16 @@ extern void	FDECL(start_auth, (DESC *));
 extern void 	FDECL(check_auth_connect, (DESC *));
 extern void 	FDECL(check_auth, (DESC *));
 extern void	FDECL(write_auth, (DESC *));
+
+/* from utils.c */
+#define CONN_TIME       1       /* Total Connected Time in seconds */
+#define CONN_LONGEST    2       /* Longest Connection in seconds */
+#define CONN_LAST       4       /* Duration of Last Connection */
+#define CONN_TOTAL      8       /* Total number of connections */
+#define CONN_LOGOUT     16      /* EPOCH (time_t) of last logout */
+#define CONN_ALL        32      /* Do everything */
+extern void handle_conninfo_write(DESC *, dbref, int);
+extern int handle_conninfo_read(char *, dbref, int);
 
 /* from netcommon.c */
 

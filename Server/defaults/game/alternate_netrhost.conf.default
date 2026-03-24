@@ -35,11 +35,11 @@ uncompress_program /usr/ucb/zcat -c
 #signal_action
 signal_object            -1
 signal_object_type       0
-cache_depth              3
+cache_depth              128
 cache_names              1
 cache_steal_dirty        0
 cache_trim               1
-cache_width              10
+cache_width              1024
 internal_compress_string 0
 space_compress           1
 paranoid_allocate        0
@@ -86,7 +86,7 @@ icmd_obj             -1
 file_object          -1
 admin_object         -1
 
-# hosts/sites/names
+# hosts/sites/names/login
 
 #forbid_host
 #forbid_site
@@ -111,6 +111,8 @@ admin_object         -1
 #good_name
 tor_paranoid      0
 #tor_localhost
+blacklist_max     100000
+connect_perm      0
 
 # rwho
 
@@ -222,7 +224,7 @@ examine_flags   1
 look_moreflags  0
 public_flags    1
 
-# totem
+# totems
 #totem_add
 #totem_alias
 #totem_access_set
@@ -230,6 +232,9 @@ public_flags    1
 #totem_access_see
 #totem_access_type
 #totem_letter
+#totem_name
+totem_types         0
+totem_rename        0
 
 # reality levels
 
@@ -279,6 +284,7 @@ max_sitecons              50
 max_pcreate_lim           -1
 max_pcreate_time          60
 pcreate_paranoia          0
+pcreate_paranoia_fail     1
 spam_limit                60
 spam_msg                  Spam: Spam security initiated. Command aborted.
 spam_objmsg               Spam: Spam security initiated. Your object's command aborted.
@@ -298,6 +304,7 @@ empower_fulltel           0
 secure_jumpok             0
 restrict_sidefx           0
 sideeffects               32
+global_sideeffects        0
 sidefx_maxcalls           1000
 sidefx_returnval          0
 pemit_far_players         0
@@ -318,6 +325,7 @@ max_percentsubs           1000000
 max_dest_limit            1000
 wizmax_dest_limit         100000
 safer_passwords           0
+passwd_distance           0
 sha2rounds                5000
 secure_atruselock         0
 wiz_override              1
@@ -326,6 +334,7 @@ hide_nospoof              0
 newpass_god               0
 nospam_connect            0
 robot_speech              1
+robot_owns_create         0
 examine_restrictive       0
 player_listen             0
 ahear_maxtime             0
@@ -344,8 +353,12 @@ iter_loop_max             100000
 mtimer                    10
 wizcommand_quota_max      100
 protect_addenh            0
+pagelock_notify           1
 posesay_funct             0
 global_error_cmd          0
+enforce_checksums         0
+saystring_eval            0
+strfunc_softfuncs         0
 
 # money and costs
 
@@ -419,7 +432,6 @@ mailmutt         0
 
 # idling
 
-delim_null     0
 idle_interval  60
 idle_timeout   3600
 idle_message   1
@@ -428,12 +440,14 @@ idle_wiz_dark  0
 idle_stamp     0
 idle_stamp_max 10
 null_is_idle   0
+idle_cmdcount  -1
 
 # guests
 
 guest_namelist
-num_guests      0
-guest_randomize 0
+num_guests            0
+guest_randomize       0
+guest_displaylastsite 1
 
 # inventories
 
@@ -451,6 +465,7 @@ cap_articles              a an the this that these those each every either neith
 cap_preposition           aboard about above absent across after against along alongside amid amidst among amongst around as aslant astride at atop barring before behind below beneath beside besides between beyond but by despite down during except failing following for from in inside into like merry mid minus near next notwithstanding of off on onto opposite outside over past plus regarding round save since than through throughout till times to toward towards under underneath unlike until up upon via with within without anti betwixt circa cum per qua sans unto versus vis-a-vis ago apart aside away hence
 descs_are_local           0
 global_ansimask           2097151
+force_ansinorm            0
 player_name_spaces        1
 format_contents           0
 format_exits              0
@@ -478,6 +493,9 @@ name_with_desc            1
 enhanced_convtime         0
 exit_separator            %b%b
 help_separator            %b%b
+enforce_added_pronouns    0
+#added_pronouns
+time_paddzero             0
 
 # who/where
 
@@ -542,17 +560,24 @@ hasattrp_compat        0
 lattr_default_oldstyle 0
 penn_playercmds        0
 penn_switches          0
+float_switches         0
 power_objects          0
 round_kludge           0
 shs_reverse            0
 mux_child_compat       0
 mux_lcon_compat        0
+delim_null             0
+nobracket_locks        0
 old_elist              0
 rooms_can_open         0
 switch_search          0
 #tree_character
 penn_setq              0
 parent_follow          1
+elements_compat        0
+raw_formatting         1
+setqlabel              0
+player_absolute        0
 
 # ObjIDs
 objid_localtime 0
@@ -571,6 +596,8 @@ zones_like_parents      0
 
 
 # misc
+
+timezone localtime
 
 #hook_cmd
 enable_tstamps  0
@@ -602,8 +629,10 @@ max_lastsite_api 60
 #forbidapi_site
 api_nodns       0
 api_port        -1
+max_api_timeout 20
 
 # Execscript
+#execscripthome
 #execscriptpath
 
 # Account system
@@ -613,6 +642,13 @@ string_conndark cdark
 string_connhide chide
 string_create create
 string_register register
+
+# Snapshots
+#image_dir
+
+# Attribute cache
+atrcachemax    10
+vattr_interval 3600
 
 # unknown
 #listen_parents

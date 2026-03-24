@@ -13,28 +13,37 @@
 #define	POOL_QENTRY	5
 #define POOL_PCACHE	6
 #define POOL_ZLISTNODE  7
-#define	NUM_POOLS       8
+#define POOL_ATRCACHE   8
+#define POOL_ATRNAME    9
+#define	NUM_POOLS       10 
+
 
 #ifdef QDBM
   #ifdef LBUF64
     #define LBUF_SIZE 65536
+    #define LBUF_TOTEM 5000
   #else
     #ifdef LBUF32
       #define LBUF_SIZE 32768
+      #define LBUF_TOTEM 2500
     #else
       #ifdef LBUF16
         #define LBUF_SIZE 16384
+      #define LBUF_TOTEM 1200
       #else
         #ifdef LBUF8
           #define LBUF_SIZE 8192
+          #define LBUF_TOTEM 600
         #else
           #define LBUF_SIZE 4000
+          #define LBUF_TOTEM 300
         #endif
       #endif
     #endif
   #endif
 #else
   #define LBUF_SIZE 4000
+  #define LBUF_TOTEM 300
 #endif
 #define MBUF_SIZE	200
 #ifdef SBUF64
@@ -48,11 +57,15 @@
 extern void	FDECL(pool_init, (int, int));
 extern char *	FDECL(pool_alloc, (int, const char *, int, char *));
 extern void	FDECL(pool_free, (int, char **, int, char *));
-extern void	FDECL(list_bufstats, (dbref));
+extern void	FDECL(list_bufstats, (dbref, char *));
 extern void	FDECL(list_buftrace, (dbref, int));
 extern void	FDECL(do_buff_free, (dbref, dbref, int));
 extern int      FDECL(getBufferSize, (char *));
 
+#define alloc_atrcache(s)	pool_alloc(POOL_ATRCACHE,s,__LINE__,__FILE__)
+#define alloc_atrname(s)	pool_alloc(POOL_ATRNAME,s,__LINE__,__FILE__)
+#define free_atrcache(b)	pool_free(POOL_ATRCACHE,((char **)&(b)),__LINE__,__FILE__)
+#define free_atrname(b)		pool_free(POOL_ATRNAME,((char **)&(b)),__LINE__,__FILE__)
 #define	alloc_lbuf(s)	pool_alloc(POOL_LBUF,s,__LINE__,__FILE__)
 #define	alloc_lbuf_new(s,t,u)	pool_alloc(POOL_LBUF,s,t,u)
 #define	free_lbuf(b)	pool_free(POOL_LBUF,((char **)&(b)),__LINE__,__FILE__)
@@ -71,6 +84,10 @@ extern int      FDECL(getBufferSize, (char *));
 
 #else
 
+#define alloc_atrcache(s)	pool_alloc(POOL_ATRCACHE,s,__LINE__,__FILE__)
+#define alloc_atrname(s)	pool_alloc(POOL_ATRNAME,s,__LINE__,__FILE__)
+#define free_atrcache(b)	pool_free(POOL_ATRCACHE,((char **)&(b)),__LINE__,__FILE__)
+#define free_atrname(b)		pool_free(POOL_ATRNAME,((char **)&(b)),__LINE__,__FILE__)
 #define	alloc_lbuf(s)	(char *)malloc(LBUF_SIZE)
 #define	alloc_lbuf_new(s,t,u)	(char *)malloc(LBUF_SIZE)
 #define	free_lbuf(b)	if (b) free(b)

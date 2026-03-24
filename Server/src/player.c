@@ -134,33 +134,36 @@ int	aflags, i;
 			raw_notify(player, (char *)"Notice: You are piping output to an attribute.", 0, 1);
 		}
 		if (login_info.new_bad > 0) {
-			notify(player, " ");
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "**** %d failed connect%s since your last successful connect. ****",
-					login_info.new_bad,
-					(login_info.new_bad == 1 ? "" : "s")));
-                        free_lbuf(tpr_buff);
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "Most recent attempt was from %s on %s.",
-					login_info.bad[0].host,
-					login_info.bad[0].dtm));
-                        free_lbuf(tpr_buff);
-			notify(player, " ");
+                        if ( !Guest(player) || (Guest(player) && mudconf.guest_displaylastsite) ) {
+			   notify(player, " ");
+                           tprp_buff = tpr_buff = alloc_lbuf("record_login");
+			   notify(player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "**** %d failed connect%s since your last successful connect. ****",
+					   login_info.new_bad,
+					   (login_info.new_bad == 1 ? "" : "s")));
+                           tprp_buff = tpr_buff;
+			   notify(player,
+			   	   safe_tprintf(tpr_buff, &tprp_buff, "Most recent attempt was from %s on %s.",
+					   login_info.bad[0].host,
+					   login_info.bad[0].dtm));
+                           free_lbuf(tpr_buff);
+			   notify(player, " ");
+                        }
 			*newfail = login_info.new_bad;
 			login_info.new_bad = 0;
-		}
-		else
+		} else {
 			*newfail = login_info.new_bad;
+                }
 		if (login_info.good[0].host && *login_info.good[0].host &&
 		    login_info.good[0].dtm && *login_info.good[0].dtm) {
-                        tprp_buff = tpr_buff = alloc_lbuf("record_login");
-			notify(player,
-				safe_tprintf(tpr_buff, &tprp_buff, "Last connect was from %s on %s.",
-					login_info.good[0].host,
-					login_info.good[0].dtm));
-                        free_lbuf(tpr_buff);
+                        if ( !Guest(player) || (Guest(player) && mudconf.guest_displaylastsite) ) {
+                           tprp_buff = tpr_buff = alloc_lbuf("record_login");
+			   notify(player,
+				   safe_tprintf(tpr_buff, &tprp_buff, "Last connect was from %s on %s.",
+					   login_info.good[0].host,
+					   login_info.good[0].dtm));
+                          free_lbuf(tpr_buff);
+                       }
 		}
 		for (i=NUM_GOOD-1; i>0; i--) {
 			login_info.good[i].dtm = login_info.good[i-1].dtm;
@@ -303,7 +306,7 @@ DESC	*d;
 int totfail, newfail, totsucc;
 
 	d = (DESC *)d2;
-	host = d->addr;
+	host = d->longaddr;
 	userid = d->userid;
 	time(&tt);
 	time_str = ctime(&tt);
@@ -362,7 +365,7 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
    /* Make sure the password is OK.  Name is checked in create_obj */
 
    pbuf = trim_spaces(password);
-   if (!ok_password(pbuf, creator, 0)) {
+   if (!ok_password(pbuf, (char *)NULL, creator, 0)) {
       free_lbuf(pbuf);
       return NOTHING;
    }
@@ -407,6 +410,58 @@ dbref create_player(char *name, char *password, dbref creator, int isrobot, char
 /* ---------------------------------------------------------------------------
  * do_password: Change the password for a player
  */
+char * 
+gen_password(int i_value, dbref player, int key)
+{
+   char *s_pass, *s_passptr;
+   int i_type[3], i_size, i_side, i_loop;
+
+   s_passptr = s_pass = alloc_lbuf("gen_password");
+   i_type[0] = i_type[1] = i_type[2] = i_size = 0;
+   i_side = 14;
+
+   if ( i_value < 5 )
+      i_value = 5;
+   if ( i_value > 140 )
+      i_value = 140;
+   if ( (i_value < 14) && mudconf.safer_passwords && !key ) {
+      notify_quiet(player, "Warning: password is under 14 characters so not valid with safer_passwords enabled.");
+   }
+
+   for ( i_loop = 0; i_loop < i_value; i_loop++ ) {
+      i_size = rand() % 3;
+      switch( i_size ) {
+         case 0: /* lower case */
+            i_type[0]++;
+            safe_chr((char) ('a'+(rand()%26)), s_pass, &s_passptr);
+            break;
+         case 1: /* upper case */
+            i_type[1]++;
+            safe_chr((char) ('A'+(rand()%26)), s_pass, &s_passptr);
+            break;
+         case 2: /* number or symbol */
+            i_type[2]++;
+            i_size = rand()%24;
+            if ( i_size == 3 )
+               i_size++;
+            safe_chr((char) ('"'+i_size), s_pass, &s_passptr);
+            break;
+      }
+   }
+
+   /* Overwrite the first 3 characters with required chars if needed
+    * This enforces the same length as what you specified 
+    */
+   s_passptr = s_pass;
+   if ( i_type[0] == 0 )  /* Enforce lower case */
+      *s_passptr++ = 'a'+(rand()%26);
+   if ( i_type[1] == 0 )  /* Enforce upper case */
+      *s_passptr++ = 'A'+(rand()%26);
+   if ( i_type[2] == 0 )  /* Enforce symbol/number */
+      *s_passptr++ = '"'+(rand()%24);
+
+   return(s_pass);
+}
 
 void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpass)
 {
@@ -419,6 +474,13 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
    if ( key & SIDEEFFECT ) {
       key &= ~SIDEEFFECT;
       i_side = 1;
+   }
+
+   if ( key & PASS_GEN ) {
+      s_attr = gen_password(atoi(oldpass), player, i_side);
+      notify(player, s_attr);
+      free_lbuf(s_attr);
+      return;
    }
    newkey = (key & ~(PASS_ANY|PASS_MINE));
    switch(newkey) {
@@ -512,7 +574,7 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
                mudstate.store_passwd = 0;
                return;
             }
-            if (attr->flags & AF_IS_LOCK) {
+            if ( (attr->flags & AF_IS_LOCK) || (aflags & AF_IS_LOCK) ) {
                free_lbuf(s_dbref);
                if ( !i_side ) {
                   notify(player, "Permission denied - Can't set locks.");
@@ -546,7 +608,7 @@ void do_password(dbref player, dbref cause, int key, char *oldpass, char *newpas
          target = atr_get(player, A_PASS, &aowner, &aflags);
          if ( !*target || !check_pass(player, oldpass, 0, 0, NOTHING) ) {
             notify(player, "Sorry.");
-         } else if (!ok_password(newpass, player, 0)) {
+         } else if ( !ok_password(newpass, oldpass, player, 0) ) {
             notify(player, "Bad new password.");
          } else if (!Immortal(player) && DePriv(player,NOTHING,DP_PASSWORD,POWER8,POWER_LEVEL_NA)) {
             notify(player, "Sorry.");
@@ -787,7 +849,7 @@ int	ibf = -1;
 
 /* ---------------------------------------------------------------------------
  * badname_add, badname_check, badname_list: Add/look for/display bad names.
- * protectname has similiar matches
+ * protectname has similar matches
  */
 
 int protectname_add (char *protect_name, dbref player)
@@ -1204,7 +1266,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
          log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                   "Autoregistration create of '%s' failed, bad email (special character detected).  Email: %s, Site: %s, Id: %s",
-		  name,email,d->addr,d->userid));
+		  name,email,d->longaddr,d->userid));
          free_lbuf(tpr_buff);
        ENDLOG
     }
@@ -1213,7 +1275,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     safe_chr('/', buff, &pt1);
     safe_str(email, buff, &pt1);
     if ( !key )
-       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, BAD EMAIL (INVCHAR)", d->userid, d->addr, d->descriptor, 0, 0, buff);
+       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, BAD EMAIL (INVCHAR)", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
     free_lbuf(buff);
     return (*pt1 ? 5 : 7);
   }
@@ -1224,7 +1286,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
          log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                   "Autoregistration create of '%s' failed, bad email.  Email: %s, Site: %s, Id: %s",
-                   name,email,d->addr,d->userid));
+                   name,email,d->longaddr,d->userid));
          free_lbuf(tpr_buff);
        ENDLOG
     }
@@ -1233,7 +1295,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     safe_chr('/', buff, &pt1);
     safe_str(email, buff, &pt1);
     if ( !key )
-       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, BAD EMAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
+       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, BAD EMAIL", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
     free_lbuf(buff);
     return ((strchr(email, '@') == NULL) ? 5 : 3);
   }
@@ -1256,7 +1318,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
          log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                   "Autoregistration create of '%s' failed, invalid email.  Email: %s, Site: %s, Id: %s",
-                  name,email,d->addr,d->userid));
+                  name,email,d->longaddr,d->userid));
          free_lbuf(tpr_buff);
        ENDLOG
     }
@@ -1265,7 +1327,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     safe_chr('/', buff, &pt1);
     safe_str(email, buff, &pt1);
     if ( !key )
-       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, INVALID EMAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
+       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, INVALID EMAIL", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
     free_lbuf(buff);
     free_mbuf(tmp_email);
     return 6;
@@ -1277,7 +1339,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
          log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                   "Autoregistration create of '%s' failed, email limit.  Email: %s, Site: %s, Id: %s",
-                  name,email,d->addr,d->userid));
+                  name,email,d->longaddr,d->userid));
          free_lbuf(tpr_buff);
        ENDLOG
     }
@@ -1286,7 +1348,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     safe_chr('/', buff, &pt1);
     safe_str(email, buff, &pt1);
     if ( !key )
-       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, EMAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
+       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL, EMAIL", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
     free_lbuf(buff);
     return 4;
   }
@@ -1311,7 +1373,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
          log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                   "Autoregistration create of '%s' failed.  Email: %s, Site: %s, Id: %s",
-                  name,email,d->addr,d->userid));
+                  name,email,d->longaddr,d->userid));
          free_lbuf(tpr_buff);
        ENDLOG
     }
@@ -1320,12 +1382,12 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     safe_chr('/', buff, &pt1);
     safe_str(email, buff, &pt1);
     if ( !key )
-       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
+       broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE FAIL", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
     code = 1;
   } else {
     move_object(player, mudconf.start_room);
     time(&now);
-    sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->addr,d->userid,ctime(&now));
+    sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->longaddr,d->userid,ctime(&now));
     *(buff + strlen(buff) -1) = '\0';
     atr_add_raw(player, A_AUTOREG, buff);
     areg_add(email,player);
@@ -1366,7 +1428,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
          fprintf(fpt,"Your autoregistration password for '%s' is: %s\n",name,rpass);
          fclose(fpt);
          if ( !key )
-            broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE WARNING", d->userid, d->addr, 
+            broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE WARNING", d->userid, d->longaddr, 
                               d->descriptor, 0, 0, "There is an error in the autoreg_include file!");
       }
       if (mudconf.mailsub)
@@ -1382,7 +1444,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
            tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
 	   log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                     "Autoregistration character '%s', Email: %s, Site: %s, Id: %s",
-                    name,email,d->addr,d->userid));
+                    name,email,d->longaddr,d->userid));
            free_lbuf(tpr_buff);
          ENDLOG
       }
@@ -1391,7 +1453,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
       safe_chr('/', buff, &pt1);
       safe_str(email, buff, &pt1);
       if ( !key )
-         broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE", d->userid, d->addr, d->descriptor, 0, 0, buff);
+         broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
       code = 0;
     }
     else {
@@ -1400,7 +1462,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
            tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
 	   log_text(safe_tprintf(tpr_buff, &tprp_buff, 
                     "Temporary file creation/mail for '%s' failed.  Email: %s, Site: %s, Id: %s",
-                    name,email,d->addr,d->userid));
+                    name,email,d->longaddr,d->userid));
            free_lbuf(tpr_buff);
          ENDLOG
       }
@@ -1409,7 +1471,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
       safe_chr('/', buff, &pt1);
       safe_str(email, buff, &pt1);
       if ( !key )
-         broadcast_monitor(NOTHING, MF_AREG, "AUTOREG FILE FAIL", d->userid, d->addr, d->descriptor, 0, 0, buff);
+         broadcast_monitor(NOTHING, MF_AREG, "AUTOREG FILE FAIL", d->userid, d->longaddr, d->descriptor, 0, 0, buff);
       code = 2;
     }
   }

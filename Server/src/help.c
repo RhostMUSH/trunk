@@ -178,13 +178,15 @@ void
 help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 {
     FILE *fp;
-    char *p, *line;
+    char *p, *line, *sh_key1, *sh_key2, *sh_tmp;
     int offset, i_first, i_found, matched, i, i_tier0, i_tier1, i_tier2, i_tier3, i_header,
-        i_cntr, i_tier0chk;
+        i_cntr, i_tier0chk, i_shkey, i_shcnt, i_shflag, i_magic;
     struct help_entry *htab_entry;
     char *topic_list, *buffp, *mybuff, *myp, *help_array[4], *s_buff2, *s_buff2ptr;
     char realFilename[129 + 32], *s_tmpbuff, *s_ptr, *s_hbuff, *s_hbuff2;
     char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_buff, *s_buffptr, *s_nbuff[2];
+
+    i_magic = 0;
 
     if (*topic == '\0')
 	topic = (char *) "help";
@@ -284,11 +286,18 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
                    s_buffptr = topic;
                    memset(s_buff2, '\0', LBUF_SIZE);
                    s_buff2ptr = s_buff2;
+                   i_magic = 0;
                    while ( *s_buffptr ) {
                       if ( *s_buffptr == '*' ) {
+                         if ( isprint(*(s_buffptr+1)) ) {
+                            if ( i_magic ) {
+                               safe_str((char *)".*", s_buff2, &s_buff2ptr);
+                            }
+                         }
                          s_buffptr++;
                          continue;
                       }
+                      i_magic = 1;
                       if ( *s_buffptr == '?' ) {
                          safe_chr('.', s_buff2, &s_buff2ptr);
                       } else {
@@ -530,18 +539,83 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
     notify(player, mybuff);
     free_lbuf(mybuff);
     line = alloc_lbuf("help_write");
+    i_shkey = 0;
     for (;;) {
 	if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
 	    break;
 	if (line[0] == '&')
 	    break;
+        i_shkey++;
+        if ( (line[0] == '!') && (line[1] == '!') && (strchr(line, '/') != NULL) ) {
+           i_shflag = 0;
+           mudstate.help_shell++;
+           sh_key1 = alloc_lbuf("help_shell1");
+           sh_key2 = alloc_lbuf("help_shell1");
+           sh_tmp = strchr(line, '/');           
+           *sh_tmp = '\0';
+           switch (line[2]) {
+              case '~': /* Parse */
+                 i_shflag = DYN_PARSE;
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+3);
+                 break;
+              case '-': /* No-Eval */
+                 i_shflag = DYN_SUBEVAL;
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+3);
+                 break;
+              default: /* Handle as normal */
+                 sprintf(sh_key1, "%.*s", LBUF_SIZE - 10, line+2);
+                 break;
+           }
+           *sh_tmp = '/';
+           sprintf(sh_key2, "%.*s", LBUF_SIZE - 10, sh_tmp+1);
+	   for (p = sh_key2; *p != '\0'; p++) {
+	      if ( (*p == '\n') || (*p == '\r') ) {
+		 *p = '\0';
+              }
+           }
+           /* Warning: parse_dynhelp will close existing file pointer -- it will handle empty args to sh_key1 and sh_key2 */
+           parse_dynhelp(player, player, (DYN_NOLABEL|i_shflag), sh_key1, sh_key2, (char *)NULL, (char *)NULL, 0, 0, (char *)NULL);
+           free_lbuf(sh_key1);
+           free_lbuf(sh_key2);
+
+           /* We must reopen the file here and re-seek + offset since parse_dynhelp and help_write
+            * share a common file pointer which is closed than opened per call 
+            */
+
+           /* Re-open original file */
+           if ( (fp = tf_fopen(realFilename, O_RDONLY)) == NULL) {
+              /* This shouldn't happen but we need to cover a falied re-open for paranoia */
+              notify(player, "#-1 FAILURE TO RE-READ HELP FILE.");
+              i_shkey = -1;  /* Set bypass since file pointer is not open at this point */
+              mudstate.help_shell--;
+              break;
+           }
+
+           /* This is fine as we seeked this before */
+           if (fseek(fp, offset, 0) < 0L) {
+              /* This shouldn't happen but we need to cover a falied re-open for paranoia */
+              notify(player, "#-1 FAILURE TO RE-SEEK HELP FILE.");
+              mudstate.help_shell--;
+              break;
+           }
+           for ( i_shcnt = 0; i_shcnt < i_shkey; i_shcnt++ ) {
+              /* Insurance we don't reach the end of the list */
+              if (fgets(line, LBUF_SIZE - 1, fp) == NULL)
+                 break;
+           } 
+           mudstate.help_shell--;
+           continue;
+        } 
 	for (p = line; *p != '\0'; p++)
 	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
 	noansi_notify(player, line);
     }
     free_lbuf(line);
-    tf_fclose(fp);
+    /* Only close the file if it's opened */
+    if ( i_shkey != -1 ) {
+       tf_fclose(fp);
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -557,14 +631,27 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    char filename[129 + 40], *mybuff, *myp;
    char *s_tier0[3], *s_tier1[3], *s_tier2[3], *s_tier3[3], *s_tmpbuff, *s_buff2,
         *s_buff, *s_buffptr, *s_nbuff[2], *s_hbuff, *s_hbuff2, *help_array[4], *s_buff2ptr; 
-   int first, found, matched, one_through, space_compress, i_noindex, i_header;
-   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk;
+   int first, found, matched, one_through, space_compress, i_noindex, i_header, i_magic;
+   int i_tier0, i_tier1, i_tier2, i_tier3, i_suggest, i, i_cntr, i_tier0chk, i_bufffilled;
    FILE *fp_indx, *fp_help;
 
-   if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
-      notify_quiet(player, "Illegal combination of switches.");
+   /* Recursion isn't possible right now, but when it is we want this */
+   if ( mudstate.help_shell > 10 ) {
+      notify(player, "#-1 TOO MUCH RECURSION IN HELP ENTRY");
       return(1);
    }
+
+   if ( ((key & DYN_SEARCH) || (key & DYN_QUERY)) && (key & DYN_NOLABEL) ) {
+      if ( t_val ) {
+         safe_str("Illegal combination of switches.", t_buff, &t_bufptr);
+      } else {
+         notify_quiet(player, "Illegal combination of switches.");
+      }
+      return(1);
+   }
+
+   i_magic = i_bufffilled = 0;
+
    i_noindex = i_suggest = 0;
    if ( key & DYN_NOLABEL ) {
       key &= ~DYN_NOLABEL;
@@ -652,11 +739,17 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             tf_fclose(fp_indx);
             return 1;
          }
+         if ( i_bufffilled ) {
+            break;
+         }
          if ( i_cntr > 2000 ) {
-            continue;
+            break;
          }
          i_header = 0;
          for (;;) {
+            if ( i_bufffilled ) {
+               break;
+            }
             if ( fgets(line, (LBUF_SIZE - 1), fp_help) == NULL ) 
                break;
             if (line[0] == '&')
@@ -674,7 +767,17 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
 #else
                      sprintf(s_buff, "%s%s%s:", ANSI_HILITE, entry.topic, ANSI_NORMAL);
 #endif
-                     notify(player, s_buff);
+                     if ( t_val ) {
+                        safe_str(s_buff, t_buff, &t_bufptr);
+                        safe_str((char *)"\r\n", t_buff, &t_bufptr);
+                        if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                           safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                           i_bufffilled = 1;
+                           break;
+                        }
+                     } else {
+                        notify(player, s_buff);
+                     }
                      i_header = 1;
                   }
 #ifdef ZENTY_ANSI
@@ -685,11 +788,18 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                   s_buffptr = msg;
                   memset(s_buff2, '\0', LBUF_SIZE);
                   s_buff2ptr = s_buff2;
+                  i_magic = 0;
                   while ( *s_buffptr ) {
                     if ( *s_buffptr == '*' ) {
+                       if ( isprint(*(s_buffptr+1)) ) {
+                          if ( i_magic ) {
+                             safe_str((char *)".*", s_buff2, &s_buff2ptr);
+                          }
+                       }
                        s_buffptr++;
                        continue;
                     }
+                    i_magic = 1;
                     if ( *s_buffptr == '?' ) {
                        safe_chr('.', s_buff2, &s_buff2ptr);
                     } else {
@@ -704,13 +814,27 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
                   p_tmp = tmp;
                   do_regedit(tmp, &p_tmp, GOD, GOD, GOD, help_array, 3, (char **)NULL, 0, 8);
                   sprintf(s_buff, "   ...%.*s", (LBUF_SIZE - 20), tmp);
-                  notify(player, s_buff);
+                  if ( t_val ) {
+                     safe_str(s_buff, t_buff, &t_bufptr);
+                     safe_str((char *)"\r\n", t_buff, &t_bufptr);
+                     if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                        safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                        i_bufffilled = 1;
+                        break;
+                     }
+                  } else {
+                     notify(player, s_buff);
+                  }
                   first = 1;
                   i_cntr++;
                } else {
                   if ( first ) {
                      if ( i_type ) {
                         safe_str(sep, tmp, &p_tmp);
+                        if ( strlen(t_buff) > (LBUF_SIZE - (LBUF_SIZE/8)) ) {
+                           safe_str((char *)"\r\nWarning: /query matches discarded with buffer limit.", t_buff, &t_bufptr);
+                           i_bufffilled = 1;
+                        }
                      } else {
                         safe_str(s_hbuff2, tmp, &p_tmp);
                      }
@@ -724,7 +848,11 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
       }
       free_lbuf(s_hbuff2);
       if ( i_cntr > 2000 ) {
-         notify(player, "Warning: /query matches discarded after 2000 matches.");
+         if ( t_val ) {
+            safe_str((char *)"Warning: /query matches discarded after 2000 matches.", t_buff, &t_bufptr);
+         } else {
+            notify(player, "Warning: /query matches discarded after 2000 matches.");
+         }
       }
       free_lbuf(s_buff);
       free_lbuf(s_buff2);
@@ -749,7 +877,11 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
             }
          }
       } else if ( !first ) {
-         notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+         if ( t_val ) {
+            safe_str(unsafe_tprintf("There are no entries which match content '%s'.", msg), t_buff, &t_bufptr);
+         } else {
+            notify(player, unsafe_tprintf("There are no entries which match content '%s'.", msg));
+         }
       }
       free_lbuf(msg);
       free_lbuf(tmp);
@@ -1021,7 +1153,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
          }
          STARTLOG(LOG_PROBLEMS, "DYN", "INDX")
          line = alloc_lbuf("help_write.LOG.seek");
-         sprintf(line, "Missmatched index for %.3900s[.indx/.txt].", fhelp);
+         sprintf(line, "Mismatched index for %.3900s[.indx/.txt].", fhelp);
          log_text(line);
          free_lbuf(line);
          ENDLOG

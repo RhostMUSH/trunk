@@ -242,7 +242,7 @@ void main(argc, argv)
     fprintf(stderr,"Could not open new file: %s\n",buff);
     exit(3);
   }
-  printf("Initializng.\n");
+  printf("Initializing.\n");
   setup();
   printf("Starting pass 1.\n");
   pass1();

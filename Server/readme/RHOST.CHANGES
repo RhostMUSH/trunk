@@ -1,3 +1,36 @@
+                         RhostMUSH 4.2 Update File
+SPEECH_PREFIX/SPEECH_SUFFIX didn't handle unicode properly.
+				- Thanks Pres
+UTF8 -> ASCII fallback for selecct characters.
+        - Thanks WStarter for the idea, and Pres for the POC
+/quick switch to mail/reply and mail/forward to bypass BRANDY toggle.
+				- Thanks HarukaWatanabeLA
+player_absolute lookup for aliases in location to match PennMUSH
+				- Thanks Myrddin
+@saystring optionally evaluates with @admin param saystring_eval.
+				- Thanks Ophelia@Liberation
+@rxlevel/@txlevel did not honor QUIET flag.
+				- Thanks Myrddin
+Added '8' option to escapex for enbedded UTF8 support
+				- Thanks Thenomain
+A crapton of testing and finding functions needing UTF8
+				- Thanks Thenomain
+BSD not compliant with timezone variable as non-POSIX
+				- Thanks Oleo
+@decompile finally has /db switch with some arm-twisting by Hope :)
+				- Thanks Hope
+wrap() didn't default to LEFT justification
+				- Thanks Hope
+home did not honor the BLIND flag
+				- Thanks Hope
+sqlite_db_path incorrectly defined in conf.c
+				- Thanks Hige
+off by one with '|' option in printf for wrapping
+				- Thanks Thenomain
+Bug with initializing buffers in lua() code.
+				- Thanks Volund
+
+
                          RhostMUSH 4.0 Update File
 MUX passwords didn't work properly because of a memcmp() bug.
 				- Thanks Locke
@@ -62,6 +95,24 @@ Mysql would abort on sub-results if one of the results were NULL
 				- Thanks Myrddin
 libxcrypt broke SHA512 passwords. (Ubuntu 20+)
 				- Thanks Darren
+Typo in speech.c with a variable.
+				- Thanks Oleo
+SIDEFX permissions were borked for normal players.
+				- Thanks jan6
+#lambda wasn't case insensitive
+				- Thanks Alley
+@name/name() if given empty/null arg for new name and ansi mode clears ansi.
+				- Thanks Thenomain
+rxdesc() now will optionally return desc of target reality.
+				- Thanks Casei Magnus
+mail/reply and mail/forward with BRANDY_MAIL has better error handling.
+				- Thanks Thenomain
+guest_displaylastsite to control guest site info on connect.
+				- Thanks asymmetricia
+@rxlevel/@txlevel borked empty lists in several ways.
+				- Thanks Thenomain
+mail/reply didn't strip spaces properly
+				- Thanks Myrddin
 
 
                          RhostMUSH 3.9.5 Update File
@@ -165,6 +216,8 @@ All locatization with CLEAR didn't wipe and reset register names.
 				- Thanks MuSoapBox (Auspice, Sparks, Seamus, faraday, Thenomain, and others)
 ] for @hook/ignore and @hook/permit was broken.
 				- Thanks Ixokai
+Ansi splitter had a hierarchy issue with ansi.
+				- Thanks MadamButterfly
 
 
 

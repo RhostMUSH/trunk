@@ -38,7 +38,7 @@ process_leave_loc(dbref thing, dbref dest, dbref cause,
      * following criteria:
      * - The current room has wizard privs.
      * - Neither the current room nor the moving object are dark.
-     * - The moving object can hear and does not hav wizard privs.
+     * - The moving object can hear and does not have wizard privs.
      * EXCEPT if we were called with the HUSH_LEAVE key.
      */
 
@@ -192,7 +192,7 @@ process_enter_loc(dbref thing, dbref src, dbref cause,
      * following criteria:
      * - The current room has wizard privs.
      * - Neither the current room nor the moving object are dark.
-     * - The moving object can hear and does not hav wizard privs.
+     * - The moving object can hear and does not have wizard privs.
      * EXCEPT if we were called with the HUSH_ENTER key.
      */
 
@@ -628,7 +628,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
     dbref loc, aowner;
     int oattr, aattr, x, aflags, chk_tog;
     time_t chk_stop;
-    char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS], *pt, *saveregname[MAX_GLOBAL_REGS], *npt;
+    char *retbuff, *atext, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
 
     if ( mudstate.remotep != NOTHING ) {
        notify(player, "You can't go that way by remote.");
@@ -645,7 +645,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
           chk_tog = mudstate.chkcpu_toggle;
           mudstate.chkcpu_stopper = time(NULL);
           mudstate.chkcpu_toggle = 0;
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              savereg[x] = alloc_lbuf("ulocal_reg_moveexit");
              saveregname[x] = alloc_sbuf("ulocal_regname_moveexit");
              pt = savereg[x];
@@ -674,7 +674,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
              }
           }
           free_lbuf(retbuff);
-          for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              pt = mudstate.global_regs[x];
              npt = mudstate.global_regsname[x];
              safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -755,7 +755,7 @@ void
 do_move(dbref player, dbref cause, int key, char *direction)
 {
     dbref exit, loc;
-    int i, quiet;
+    int i, quiet, i_blind;
     char *tpr_buff, *tprp_buff;
 
     if ((!Fubar(player) && !(Flags3(player) & NOMOVE)) || (Wizard(cause))) {
@@ -772,7 +772,16 @@ do_move(dbref player, dbref cause, int key, char *direction)
                notify(player, "Bad location.");
                return;
             }
-	    if (Good_obj(loc) && !Recover(loc) && !Going(loc) &&
+            if ( loc == Home(player) ) {
+               notify(player, "You're already safe and snuggled back at home.");
+               return;
+            }
+            if ( Good_obj(loc) && ((Blind(loc) && !mudconf.always_blind) || (!Blind(loc) && mudconf.always_blind)) ) {
+               i_blind = 1;
+            } else {
+               i_blind = 0;
+            }
+	    if ( !i_blind && Good_obj(loc) && !Recover(loc) && !Going(loc) &&
 		!Dark(player) && !Dark(loc)) {
 
 		/* tell all */

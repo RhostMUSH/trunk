@@ -85,7 +85,7 @@ main(argc, argv)
     struct sockaddr_in their_addr;
 
     if (argc != 3) {
-	fprintf(stderr, "Usage: portmsg file port\n");
+	fprintf(stderr, "usage: portmsg file port\n");
 	exit(1);
     }
 
@@ -101,7 +101,7 @@ main(argc, argv)
     /* read the message */
     fstat(msgfd, &statBuf);
     if (statBuf.st_size <= 0) {
-	fprintf(stderr, "error: message file [%s] is empty\n", argv[1]);
+	fprintf(stderr, "error: empty message file [%s]\n", argv[1]);
 	exit(1);
     }
     msg = (char *)malloc(statBuf.st_size);
@@ -136,7 +136,7 @@ main(argc, argv)
     tcp_srv_addr.sin_port = htons(port);
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	fprintf(stderr, "can't create stream socket\n");
+	fprintf(stderr, "error: can't create stream socket\n");
 	exit(-1);
     }
     opt = 1;
@@ -147,7 +147,7 @@ main(argc, argv)
     }
     if (bind(sockfd, (struct sockaddr *)&tcp_srv_addr,
 	     sizeof(tcp_srv_addr)) < 0) {
-	fprintf(stderr, "can't bind local address\n");
+	fprintf(stderr, "error: can't bind local address\n");
 	exit(-1);
     }
     listen(sockfd, 5);
@@ -158,13 +158,13 @@ main_again:
     if (newsockfd < 0) {
 	if (errno == EINTR)
 	    goto main_again;
-	fprintf(stderr, "accept error\n");
+	fprintf(stderr, "error: accept error\n");
 	exit(-1);
     }
 
     switch(fork()) {
     case -1:
-	fprintf(stderr, "server can't fork\n");
+	fprintf(stderr, "error: server can't fork\n");
 	exit(-1);
     case 0:
 	dup2(newsockfd, 0);
@@ -186,6 +186,3 @@ main_again:
     sleep(5);
     exit(0);
 }
-
-
-

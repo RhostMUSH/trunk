@@ -25,8 +25,10 @@ char *strtok_r(char *, const char *, char **);
 
 extern void remote_write_obj(FILE *, dbref, int, int);
 extern int remote_read_obj(FILE *, dbref, int, int, int*, int);
-extern int remote_read_sanitize(FILE *, dbref, int, int);
+extern int remote_read_sanitize(FILE *, dbref, int, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
+extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
+extern ATRCACHE *atrcache_head;
 
 static const char *
 time_format_1(time_t dt)
@@ -89,326 +91,1578 @@ wiz_time_format_2(time_t dt)
 void do_teleport(dbref player, dbref cause, int key, char *slist, 
 		 char *dlist[], int nargs)
 {
-  dbref	victim, destination, loc;
-  char	*to, *arg1, *arg2, separgs[3], *tstrtokr;
-  int	con, dcount, quiet, side_effect=0, tel_bool_chk;
+   dbref victim, destination, loc;
+   char *to, *arg1, *arg2, separgs[3], *tstrtokr, *cpulbuf;
+   int con, dcount, quiet, side_effect=0, tel_bool_chk, i_abort;
+   time_t i_time, i_timechk;
 
-	/* get victim */
-      if ( mudstate.remotep != NOTHING) {
-         notify(player, "You can't teleport.");
-         return;
-      }
+   /* get victim */
+   if ( mudstate.remotep != NOTHING) {
+      notify(player, "You can't teleport.");
+      return;
+   }
 
-      if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
-         notify(player, "No valid destination to teleport to.");
-         return;
-      }
-      tel_bool_chk = 0;
-      if (key & TEL_QUIET) {
-	key &= ~TEL_QUIET;
-	quiet = 1;
-      }
+   if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
+      notify(player, "No valid destination to teleport to.");
+      return;
+   }
+
+   tel_bool_chk = 0;
+   if (key & TEL_QUIET) {
+      key &= ~TEL_QUIET;
+      quiet = 1;
+   } else {
+      quiet =0;
+   }
+
+   if ( key & SIDEEFFECT ) {
+      key &= ~SIDEEFFECT;
+      side_effect=1;
+   }
+   if (nargs < 1) {
+      notify(player,"No destination given.");
+      return;
+   }
+   memset(separgs, '\0', sizeof(separgs));
+
+   if ((key != TEL_LIST) && (nargs > 1)) {
+      notify(player,"Extra destinations ignored."); 
+   }
+
+   dcount = 0;
+   con = 1;
+   if (key == TEL_LIST) {
+      if ( strchr(slist, ',') != NULL )
+         *separgs = ',';
       else
-	quiet =0;
-      if ( key & SIDEEFFECT ) {
-        key &= ~SIDEEFFECT;
-	side_effect=1;
+         *separgs = ' ';
+      arg1 = strtok_r(slist, separgs, &tstrtokr);
+      if (!arg1) {
+         notify(player,"No match.");
       }
-      if (nargs < 1) {
-	notify(player,"No destination given.");
-	return;
-      }
-      memset(separgs, '\0', sizeof(separgs));
+   } else {
+      arg1 = slist;
+   }
 
-      if ((key != TEL_LIST) && (nargs > 1))
-	notify(player,"Extra destinations ignored."); 
-      dcount = 0;
-      con = 1;
-      if (key == TEL_LIST) {
-        if ( strchr(slist, ',') != NULL )
-           *separgs = ',';
-        else
-           *separgs = ' ';
-	arg1 = strtok_r(slist, separgs, &tstrtokr);
-	if (!arg1) {
-	  notify(player,"No match.");
-	}
+   i_time = time(NULL);
+   i_abort = 0;
+   while (con && arg1 && ((dcount < nargs) || (nargs == 1))) {
+      i_timechk = time(NULL);
+      /* We allow twice the time check on this */
+      if ( (key & TEL_LIST) && (i_timechk > (i_time + (mudconf.cputimechk * 2))) ) {
+         notify(player, "@tel/list exceeded the timeout limit");
+         i_abort = 1;
       }
-      else {
-	arg1 = slist;
+      if ( (key & TEL_LIST) && (mudstate.chkcpu_toggle || i_abort) ) {
+         broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (@tel/list)",
+                           (char *)"(@tel list processing)", NULL, player, 0, 0, NULL);
+         STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
+            log_name_and_loc(player);
+            cpulbuf = alloc_lbuf("log_@tel_cpuslam");
+            sprintf(cpulbuf, " CPU/@tel-list overload: #%d (Loc: %d) - UseLock Eval", player, Location(player));
+            log_text(cpulbuf);
+            free_lbuf(cpulbuf);
+         ENDLOG
+         break;
       }
-      while (con && arg1 && ((dcount < nargs) || (nargs == 1))) {
 
-      if (key != TEL_LIST) con = 0;
+      if (key != TEL_LIST) {
+         con = 0;
+      }
       arg2 = dlist[dcount];
-      if (nargs != 1)
-	dcount++;
+      if (nargs != 1) {
+         dcount++;
+      }
       if (key == TEL_JOIN) {
-	loc = lookup_player(player,arg1,0);
-	if (loc == NOTHING) {
-	  notify(player,"Player not found.");
-	  return;
-	}
-	if ((!HasPriv(player,loc,POWER_JOIN_PLAYER,POWER3,NOTHING)) && !Controls(player,loc)) {
-	  notify(player,"Permission denied.");
-	  return;
-	}
-	sprintf(arg1,"#%d",Location(loc));
-	victim = player;
-	to = arg1;
-      }
-      else if (key == TEL_GRAB) {
-	victim = lookup_player(player,arg1,0);
-	if (victim == NOTHING) {
-	  notify(player,"Player not found.");
-	  return;
-	}
-	sprintf(arg1,"#%d",Location(player));
-	to = arg1;
-      }
-      else {
-	if (*arg2 == '\0') {
-		victim = player;
-		to = arg1;
-	} else {
-		init_match(player, arg1, NOTYPE);
-		match_everything(0);
-		victim = noisy_match_result();
+         loc = lookup_player(player,arg1,0);
+         if (loc == NOTHING) {
+            notify(player,"Player not found.");
+            return;
+         }
+         if ((!HasPriv(player,loc,POWER_JOIN_PLAYER,POWER3,NOTHING)) && !Controls(player,loc)) {
+            notify(player,"Permission denied.");
+            return;
+         }
+         sprintf(arg1,"#%d",Location(loc));
+         victim = player;
+         to = arg1;
+      } else if (key == TEL_GRAB) {
+         victim = lookup_player(player,arg1,0);
+         if (victim == NOTHING) {
+            notify(player,"Player not found.");
+            return;
+         }
+         sprintf(arg1,"#%d",Location(player));
+         to = arg1;
+      } else {
+         if (*arg2 == '\0') {
+            victim = player;
+            to = arg1;
+         } else {
+            init_match(player, arg1, NOTYPE);
+            match_everything(0);
+            victim = noisy_match_result();
 
-		if (victim == NOTHING) {
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-		to = arg2;
-	}
+            if (victim == NOTHING) {
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+            to = arg2;
+         }
       }
 
-	/* Validate type of victim */
+      /* Validate type of victim */
+      if (!Has_location(victim) && !isExit(victim)) {
+         notify_quiet(player, "You can't teleport that.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
 
-	if (!Has_location(victim) && !isExit(victim)) {
-		notify_quiet(player, "You can't teleport that.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+      /* Fail if we don't control the victim or the victim's location */
+      if ((!Controls(player, victim) && !HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER) &&
+           !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
+           !Controls(player, Location(victim)) && !TelOK(victim)) || Fubar(player) ||
+          (Fubar(victim) && !Wizard(player)) || DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
 
-	/* Fail if we don't control the victim or the victim's location */
-	if ((!Controls(player, victim) && !HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER) &&
-		!((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
-		!Controls(player, Location(victim)) && !TelOK(victim)) || Fubar(player) ||
-		(Fubar(victim) && !Wizard(player)) || DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
+         notify_quiet(player, "Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if ((Immortal(victim) && SCloak(victim) && (!Immortal(player) || !Controls(player,victim))) ||
+          (Wizard(victim) && Cloak(victim) && !Wizard(player))) {
 
-		notify_quiet(player, "Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if ((Immortal(victim) && SCloak(victim) && (!Immortal(player) || !Controls(player,victim))) ||
-	   (Wizard(victim) && Cloak(victim) && !Wizard(player))) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if (Wizard(victim) && !Controls(player,victim) && !TelOK(victim)) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-	if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
-		if( victim == player )
-			notify_quiet(player,"You aren't allowed to @tel.");
-		else
-			notify_quiet(player,"That can't be @tel'd.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if (Wizard(victim) && !Controls(player,victim) && !TelOK(victim)) {
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+      if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
+         if ( victim == player ) {
+            notify_quiet(player,"You aren't allowed to @tel.");
+         } else {
+            notify_quiet(player,"That can't be @tel'd.");
+         }
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
 
-	/* Check for teleporting home */
+      /* Check for teleporting home */
+      if (!string_compare(to, "home") && !isExit(victim)) {
+         (void)move_via_teleport(victim, HOME, player, 0, quiet);
+         if ( !((side_effect) || Quiet(player)) ) {
+            notify_quiet(player,"Teleported.");
+         }
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+ 
+      if ((Privilaged(victim) && !Controls(player,victim) && !TelOK(victim) &&
+          !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
+          !(HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER))) ||
+          DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
+ 
+         notify_quiet(player,"Permission denied.");
+         if (key != TEL_LIST) {
+            continue;
+         } else {
+            arg1 = strtok_r(NULL, separgs, &tstrtokr);
+            continue;
+         }
+      }
+ 
+      /* Find out where to send the victim */
+      init_match(player, to, NOTYPE);
+      match_everything(0);
+      destination = match_result();
+ 
+      switch (destination) {
+         case NOTHING:
+            notify_quiet(player, "No match.");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         case AMBIGUOUS:
+            notify_quiet(player, "I don't know which destination you mean!");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         default:
+            if (Recover(destination) && !Immortal(player)) {
+               notify_quiet(player, "No match.");
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+            if (victim == destination) {
+               notify_quiet(player, "Bad destination.");
+               if (key != TEL_LIST) {
+                  continue;
+               } else {
+                  arg1 = strtok_r(NULL, separgs, &tstrtokr);
+                  continue;
+               }
+            }
+      }
 
-	if (!string_compare(to, "home") && !isExit(victim)) {
-		(void)move_via_teleport(victim, HOME, player, 0, quiet);
-		if ( !((side_effect) || Quiet(player)) )
-		   notify_quiet(player,"Teleported.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
+      /* If fascist teleport is on, you must control the victim's ultimate
+       * location (after LEAVEing any objects) or it must be JUMP_OK.
+       */
 
-	if ((Privilaged(victim) && !Controls(player,victim) && !TelOK(victim) &&
-	    !((key == TEL_GRAB) && HasPriv(player,victim,POWER_GRAB_PLAYER,POWER3,NOTHING)) &&
-	    !(HasPriv(player,victim,POWER_TEL_ANYTHING,POWER4,POWER_CHECK_OWNER))) ||
-	     DePriv(player,victim,DP_TEL_ANYTHING,POWER7,NOTHING)) {
-		notify_quiet(player,"Permission denied.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	}
-
-	/* Find out where to send the victim */
-
-	init_match(player, to, NOTYPE);
-        match_everything(0);
-	destination = match_result();
-
-	switch (destination) {
-	case NOTHING:
-		notify_quiet(player, "No match.");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	case AMBIGUOUS:
-		notify_quiet(player,
-			"I don't know which destination you mean!");
-		if (key != TEL_LIST)
-		  continue;
-		else {
-		  arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		  continue;
-		}
-	default:
-		if (Recover(destination) && !Immortal(player)) {
-		  notify_quiet(player, "No match.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-		if (victim == destination) {
-			notify_quiet(player, "Bad destination.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-	}
-
-	/* If fascist teleport is on, you must control the victim's ultimate
-	 * location (after LEAVEing any objects) or it must be JUMP_OK.
-	 */
-
-	if (mudconf.fascist_tport) {
-		loc = where_room(victim);
-		if (!Good_obj(loc) || !isRoom(loc) ||
-		    (!Controls(player, loc) && !Jump_ok(loc))) {
-			notify_quiet(player, "Permission denied.");
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-	}
+      if (mudconf.fascist_tport) {
+         loc = where_room(victim);
+         if ( !Good_obj(loc) || !isRoom(loc) ||
+              (!Controls(player, loc) && !Jump_ok(loc))) {
+            notify_quiet(player, "Permission denied.");
+            if (key != TEL_LIST) {
+               continue;
+            } else {
+               arg1 = strtok_r(NULL, separgs, &tstrtokr);
+               continue;
+            }
+         }
+      }
 			
-	if (Has_contents(destination)) {	
+      /* You must control the destination, or it must be a JUMP_OK
+       * room where you pass its TELEPORT lock.
+       */
+      if (Has_contents(destination)) {	
+         if ( mudconf.empower_fulltel ) {
+            tel_bool_chk = (!Good_obj(victim) || !Good_obj(destination) ||
+                            Cloak(victim) || Cloak(destination) || (victim == 1) || (destination == 1));
+         } else {
+            tel_bool_chk = (victim != player);
+         }
 
-		/* You must control the destination, or it must be a JUMP_OK
-		 * room where you pass its TELEPORT lock.
-		 */
+         if ( ((!Controls(player, destination) && 
+              !HasPriv(player,destination,POWER_TEL_ANYWHERE,POWER4,POWER_CHECK_OWNER) &&
+                (!HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) ||
+                 (HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) &&
+                  (God(destination) || Cloak(destination) || Going(destination) || 
+                   Recover(destination) || !isPlayer(victim) || tel_bool_chk)))) ||
+              DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
+              DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
+              (!Jump_ok(destination) || !could_doit(player, destination, A_LTPORT,1,0))) {
 
-                if ( mudconf.empower_fulltel )
-                   tel_bool_chk = (!Good_obj(victim) || !Good_obj(destination) ||
-                                    Cloak(victim) || Cloak(destination) || (victim == 1) || (destination == 1));
-                else
-                   tel_bool_chk = (victim != player);
+           /* Nope, report failure */
+           if (player != victim) {
+              notify_quiet(player, "Permission denied.");
+           }
+           if ( !isExit(victim) && !((Owner(victim) != Owner(cause)) && TelOK(victim)) ) {
+              did_it(victim, destination, A_TFAIL, "You can't teleport there!", A_OTFAIL, 0, A_ATFAIL, (char **)NULL, 0);
+           }
+           if (key != TEL_LIST) {
+              continue;
+           } else {
+              arg1 = strtok_r(NULL, separgs, &tstrtokr);
+              continue;
+           }
+        }
 
-		if (((!Controls(player, destination) && 
-		     !HasPriv(player,destination,POWER_TEL_ANYWHERE,POWER4,POWER_CHECK_OWNER) &&
-                     (!HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) ||
-                      (HasPriv(player,NOTHING,POWER_FULLTEL_ANYWHERE,POWER5,POWER_LEVEL_NA) &&
-                       (God(destination) || Cloak(destination) || Going(destination) || 
-                        Recover(destination) || !isPlayer(victim) || tel_bool_chk)))) ||
-			DePriv(player,Owner(destination),DP_TEL_ANYWHERE,POWER7,NOTHING) ||
-			DePriv(player,Owner(destination),DP_LOCKS,POWER6,NOTHING)) &&
-		    (!Jump_ok(destination) ||
-		     !could_doit(player, destination, A_LTPORT,1,0))) {
+        /* We're OK, do the teleport */
+        if (move_via_teleport(victim, destination, player, 0, quiet)) {
+           if (player != victim) {
+              if (! (Quiet(player) || (side_effect)) ) {
+                 notify_quiet(player, "Teleported.");
+              }
+           }
+        }
+     } else if (isExit(destination) && !isExit(victim)) {
+        if (Exits(destination) == Location(victim)) {
+           move_exit(victim, destination, 0, "You can't go that way.", 0);
+        } else {
+           notify_quiet(player, "I can't find that exit.");
+        }
+     }
 
-			/* Nope, report failure */
-
-			if (player != victim)
-				notify_quiet(player, "Permission denied.");
-			if (!isExit(victim) && !((Owner(victim) != Owner(cause)) && TelOK(victim))  )
-			  did_it(victim, destination,
-				A_TFAIL, "You can't teleport there!",
-				A_OTFAIL, 0, A_ATFAIL, (char **)NULL, 0);
-		  if (key != TEL_LIST)
-		    continue;
-		  else {
-		    arg1 = strtok_r(NULL, separgs, &tstrtokr);
-		    continue;
-		  }
-		}
-
-		/* We're OK, do the teleport */
-
-		if (move_via_teleport(victim, destination, player, 0, quiet)) {
-			if (player != victim) {
-				if (! (Quiet(player) || (side_effect)) )
-					notify_quiet(player, "Teleported.");
-			}
-		}
-	} else if (isExit(destination) && !isExit(victim)) {
-		if (Exits(destination) == Location(victim)) {
-			move_exit(victim, destination, 0,
-				"You can't go that way.", 0);
-		} else {
-			notify_quiet(player, "I can't find that exit.");
-		}
-	}
-	if (key == TEL_LIST)
-          arg1 = strtok_r(NULL, separgs, &tstrtokr);
-      }
+     if (key == TEL_LIST) {
+        arg1 = strtok_r(NULL, separgs, &tstrtokr);
+     }
+  } /* While */
 }
 
 /* ---------------------------------------------------------------------------
  * do_force_prefixed: Interlude to do_force for the # command
  */
 
-void do_force_prefixed (dbref player, dbref cause, int key, 
-		char *command, char *args[], int nargs)
-{
-char	*cp;
+void do_force_prefixed(dbref player, dbref cause, int key, 
+                       char *command, char *args[], int nargs) {
+   char *cp;
 
-	cp=parse_to(&command, ' ', 0);
-	if (!command) return;
-	while (*command && isspace((int)*command)) command++;
-	if (*command)
-		do_force(player, cause, key, cp, command, args, nargs);
+   cp = parse_to(&command, ' ', 0);
+
+   if (!command) {
+       return;
+   }
+
+   while (*command && isspace((int)*command)) {
+      command++;
+   }
+
+   if (*command) {
+      if ( (*cp == '#') && *(cp+1) == '#' ) {
+         do_force(player, cause, key | FORCE_INLINE, cp+1, command, args, nargs);
+      } else {
+         do_force(player, cause, key, cp, command, args, nargs);
+      }
+   }
+}
+
+void
+do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx, char **cargs, int ncargs)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff, *retbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         /* Past interval, re-cache the data from executor */
+         if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+              ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
+         /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
+            if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
+               s_tbuff = alloc_lbuf("atrcache_fetch");
+               strcpy(s_tbuff, cp->s_cachebuild);
+               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, cargs, ncargs, (char **)NULL, 0);
+               strcpy(cp->s_cache, retbuff);
+               free_lbuf(retbuff);
+               free_lbuf(s_tbuff);
+               cp->i_lastrun = mudstate.now;
+               cp->commandtrig = 0;
+            }
+         } 
+         safe_str(cp->s_cache, buff, bufcx);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int key, char **cargs, int ncargs)
+{
+   int i_slot, i_found, i_cnt, i_noshow;
+   char *s_tbuff, *retbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   i_noshow = 0;
+   if ( key & 2 ) {
+      key &= ~2;
+      i_noshow = 1;
+   }
+   if ( !s_slot || !*s_slot ) {
+      if ( !i_noshow ) 
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         if ( !i_noshow ) 
+            safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           ((cp->visible && !cp->lock) || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         /* Past interval, re-cache the data from executor */
+         s_tbuff = alloc_lbuf("atrcache_recache");
+         if ( key || 
+              ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+              ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
+         /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
+            if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
+               strcpy(s_tbuff, cp->s_cachebuild);
+               retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, cargs, ncargs, (char **)NULL, 0);
+               strcpy(cp->s_cache, retbuff);
+               free_lbuf(retbuff);
+               cp->i_lastrun = mudstate.now;
+               cp->commandtrig = 0;
+            }
+         } 
+         if ( !i_noshow ) {
+            sprintf(s_tbuff, "%ld", cp->i_lastrun);
+            safe_str(s_tbuff, buff, bufcx);
+         }
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found && !i_noshow ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_interval(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_interval");
+         sprintf(s_tbuff, "%ld", cp->i_interval);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_visible(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_visible");
+         sprintf(s_tbuff, "%d", cp->visible);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_lock(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_lock");
+         sprintf(s_tbuff, "%d", cp->lock);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_lastrun(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_lastrun");
+         sprintf(s_tbuff, "%ld", cp->i_lastrun);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_owner(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_owner");
+         sprintf(s_tbuff, "#%d", cp->owner);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_execval(dbref player, char *s_slot, char *buff, char **bufcx)
+{
+   int i_slot, i_found, i_cnt;
+   char *s_tbuff;
+   ATRCACHE *cp;
+
+   if ( !buff ) {
+      return;
+   }
+   
+   if ( !s_slot || !*s_slot ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+      return;
+   }
+
+   i_slot = -1;
+   if ( isdigit(*s_slot) ) {
+      i_slot = atoi(s_slot);
+      if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+         safe_str("#-1 INVALID CACHE", buff, bufcx);
+         return;
+      }
+   }
+
+   i_cnt = i_found = 0;
+   for ( cp = atrcache_head; cp; cp = cp->next ) {
+      if ( !cp->enabled ) {
+         i_cnt++;
+         continue;
+      }
+      if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+            ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+           (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+         i_found = 1;
+         s_tbuff = alloc_lbuf("atrcache_execval");
+         sprintf(s_tbuff, "%s", cp->s_cachebuild);
+         safe_str(s_tbuff, buff, bufcx);
+         free_lbuf(s_tbuff);
+         break;
+      }
+   }
+   if ( !i_found ) {
+      safe_str("#-1 INVALID CACHE", buff, bufcx);
+   }
+}
+
+void
+do_atrcache_handler(dbref player, char *s_slot, int key, char *buff, char **bufcx, char **cargs, int ncargs)
+{
+   switch ( key ) {
+      case 0: /* cache */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 0, cargs, ncargs);
+         break;
+      case 1: /* interval */
+         do_atrcache_interval(player, s_slot, buff, bufcx);
+         break;
+      case 2: /* visible */
+         do_atrcache_visible(player, s_slot, buff, bufcx);
+         break;
+      case 3: /* lock */
+         do_atrcache_lock(player, s_slot, buff, bufcx);
+         break;
+      case 4: /* last */
+         do_atrcache_lastrun(player, s_slot, buff, bufcx);
+         break;
+      case 5: /* owner */
+         do_atrcache_owner(player, s_slot, buff, bufcx);
+         break;
+      case 6: /* fetch */
+         do_atrcache_fetch(player, s_slot, buff, bufcx, cargs, ncargs);
+         break;
+      case 7: /* forced recache */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 1, cargs, ncargs);
+         break;
+      case 8: /* exec cache to build */
+         do_atrcache_execval(player, s_slot, buff, bufcx);
+      case 9: /* grab -- force recache then grab */
+         /* passing '3' is a bitmask to snuff output */
+         do_atrcache_recache(player, s_slot, buff, bufcx, 3, cargs, ncargs);
+         do_atrcache_fetch(player, s_slot, buff, bufcx, cargs, ncargs);
+         break;
+      default: /* Error */
+         safe_str("#-1 UNRECOGNIZED SWITCH", buff, bufcx);
+         break;
+   }
+}
+
+/* ---------------------------------------------------------------------------
+ * do_atrcache: Set up an object cache
+ */
+void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
+                    char *command, char *args[], int nargs)
+{
+   ATRCACHE *cp;
+   char *s_tbuff, *retbuff, *tbuf, *tbufptr, *tbuf2;
+   char *s_wday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", NULL };
+   char *s_mon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL };
+   int i_slot, i_cnt, i_found, i_setval, i_cur, i_vis, i_control, i_enabled, i_page, i_noansi;
+   struct tm *ttm2;
+
+
+   
+   i_noansi = 0;
+   if ( key & ATRCACHE_NOANSI ) {
+      i_noansi = 1;
+      key &= ~ATRCACHE_NOANSI;
+   }
+   if ( !key ) {
+      key = ATRCACHE_LIST;
+   }
+   switch (key) {
+      case ATRCACHE_INIT: /* initialize cache by slot */
+         if ( !s_slot || !*s_slot || !isdigit(*s_slot) ) {
+            notify(player, "@atrcache/init: expecting valid slot (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/init: expecting valid name (empty/null).");
+            return;
+         }
+         if ( isdigit(*command) ) {
+            notify(player, "@atrcache/init: expecting valid name (can't start with a number).");
+            return;
+         }
+         if ( strlen(command) > 30 ) {
+            notify(player, "@atrcache/init: expecting valid name (can't be over 30 characters long).");
+            return;
+         }
+         s_tbuff = command;
+         while ( *s_tbuff ) {
+            if ( isspace(*s_tbuff) ) {
+               notify(player, "@atrcache/init: expecting valid name (whitespace not allowed).");
+               return;
+            }
+            *s_tbuff = ToLower(*s_tbuff);
+            s_tbuff++;
+         }
+         if ( stricmp(command, strip_all_special(command)) ) {
+            notify(player, "@atrcache/init: expecting valid name (no special characters allowed).");
+            return;
+         }
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if (cp->name) {
+               if ( !stricmp(cp->name, command) ) {
+                  notify(player, "@atrcache/init: expecting valid name (name matches existing cache).");
+                  return;
+               }
+            }
+         }
+         i_slot = atoi(s_slot);
+         if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+            notify(player, "@atrcache/init: expecting valid slot (outside of range).");
+            return;
+         }
+         i_cnt = 0;
+         s_tbuff = alloc_lbuf("atrcache_init");
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( i_slot == i_cnt ) {
+               if ( cp->enabled == 1 ) {
+                  sprintf(s_tbuff, "@atrcache/init: Slot %d [%s] is already enabled and initialized.", i_slot, cp->name);
+                  notify(player, s_tbuff);
+                  break;
+               } else {
+                  cp->name = alloc_atrname("atrcache_name");
+                  sprintf(cp->name, "%.30s", strip_all_special(command)); 
+                  cp->s_cache = alloc_atrcache("atrcache_cache");
+                  cp->s_cachebuild = alloc_atrcache("atrcache_exec");
+                  cp->owner = player;
+                  cp->enabled = 1;
+                  cp->commandtrig = 1;
+                  sprintf(s_tbuff, "@atrcache/init: Slot %d [%s] has been enabled and initialized.", i_slot, cp->name);
+                  notify(player, s_tbuff);
+                  break;
+               }
+            }
+            i_cnt++;
+         } 
+         free_lbuf(s_tbuff);
+         break;
+      case ATRCACHE_NAME: /* Rename cache by name (or slot) */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/name: Expecting name or slot as target (empty/null).");
+            break;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/name: Expecting value for new name (empty/null).");
+            break;
+         }
+         if ( isdigit(*command) ) {
+            notify(player, "@atrcache/name: expecting value for new name (can't start with a number).");
+            return;
+         }
+         if ( strlen(command) > 30 ) {
+            notify(player, "@atrcache/name: expecting value for new name (> 30 chars long).");
+            return;
+         }
+         s_tbuff = command;
+         while ( *s_tbuff ) {
+            if ( isspace(*s_tbuff) ) {
+               notify(player, "@atrcache/name: expecting value for new name (whitespace not allowed).");
+               return;
+            }
+            *s_tbuff = ToLower(*s_tbuff);
+            s_tbuff++;
+         }
+         if ( stricmp(command, strip_all_special(command)) ) {
+            notify(player, "@atrcache/name: expecting value for new name (no special chars allowed).");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/name: expecting valid slot (outside of range).");
+               break;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         if ( i_slot != -1 ) {
+            for ( cp = atrcache_head; cp; cp = cp->next ) {
+               if ( cp->name && !stricmp(cp->name, command) ) {
+                  i_found = 1;
+                  break;
+               }
+            }
+            if ( i_found ) {
+               notify(player, "@atrcache/name: That name is already in use");
+               break;
+            }
+         }
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner)) ) {
+               if ( ((i_slot != -1) && (i_cnt == i_slot)) ||
+                    ((i_slot == -1) && cp->name && !stricmp(cp->name, s_slot)) ) {
+                  retbuff = s_tbuff = alloc_lbuf("atrcache_name");
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/name: Slot %d [%s] renamed to '%s'.", i_cnt, cp->name, strip_all_special(command)));
+                  sprintf(cp->name, "%.30s", strip_all_special(command)); 
+                  free_lbuf(s_tbuff);
+                  i_found = 1;
+                  break;
+               }
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/name: Can not find matching name or slot to rename.");
+         }
+         break;
+      case ATRCACHE_DELETE: /* Remove a cache by name (or slot) */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/delete: Expecting valid name or slot as target (empty/null).");
+            return;
+         }
+         if ( command && *command ) {
+            notify(player, "@atrcache/delete: Command/Target argument not expected.");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/delete: Expecting valid name or slot as target (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( ((i_slot != -1) && (i_cnt == i_slot)) ||
+                 ((i_slot == -1) && !stricmp(cp->name, s_slot)) ) {
+               i_found = 1;
+               if ( Immortal(player) || (Good_chk(cp->owner) && ((player == cp->owner) || Controls(player, cp->owner))) ) {
+                  s_tbuff = alloc_lbuf("atrcache_delete");
+                  sprintf(s_tbuff, "@atrcache/delete: Cache slot %d [%s] has been de-allocated and uninitialized.", i_cnt, cp->name);
+                  notify(player, s_tbuff);
+                  free_lbuf(s_tbuff);
+                  free_atrcache(cp->s_cachebuild);
+                  free_atrcache(cp->s_cache);
+                  free_atrname(cp->name);
+                  cp->s_cachebuild = NULL;
+                  cp->s_cache = NULL;
+                  cp->name = NULL;
+                  cp->owner = 1;
+                  cp->enabled = 0;
+                  cp->i_lastrun = 0;
+                  cp->commandtrig = 0;
+                  break;
+               } else {
+                  notify(player, "@atrcache/delete: You have no permission on that cache slot.");
+                  break;
+               }
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/delete: That cache slot is not found or already uninitialized.");
+         }
+         break;
+      case ATRCACHE_FETCH: /* Fetch the value of the cache */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/fetch: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( command && *command ) {
+            notify(player, "@atrcache/fetch: Command/Target argument not expected.");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/fetch: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               i_found = 1;
+               /* Past interval, re-cache the data from executor */
+               if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+                    ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
+                  /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
+                  /* Logic:
+                   *   Immortal -- always recache 
+                   *   invalid owner -- don't recache
+                   *   Cache is in locked (protected) mode and enactor doesn't control cache owner -- don't recache
+                   *   All other conditions, if interval is lapsed, recache before fetch
+                   */
+                  if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
+                     /* As exec is destructive, copy the buffer */
+                     s_tbuff = alloc_lbuf("atrcache_fetch");
+                     strcpy(s_tbuff, cp->s_cachebuild);
+                     retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+                     strcpy(cp->s_cache, retbuff);
+                     free_lbuf(retbuff);
+                     free_lbuf(s_tbuff);
+                     cp->i_lastrun = mudstate.now;
+                     cp->commandtrig = 0;
+                  }
+               } 
+               notify(player, cp->s_cache);
+               break;
+            }
+         }
+         if ( !i_found ) {
+            notify(player, "#-1 NO CACHE FOUND OR NO ACCESS ALLOWED");
+         }
+         break;
+      case ATRCACHE_IVAL: /* Change interval of checking for specific name or slot */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/interval: Expecting name or slot as target (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/interval: Expecting valid interval (empty/null).");
+            return;
+         }
+         i_setval = atoi(command);
+         if ( (i_setval < 60) && (i_setval != 0) ) {
+            notify(player, "@atrcache/interval: Expecting valid interval (> 60 seconds or 0).");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/interval: Expecting name or slot as target (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               i_found = 1;
+               retbuff = s_tbuff = alloc_lbuf("atrcache_interval");
+               if ( i_setval == 0 ) {
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d (per commmand triggered).", 
+                          i_cnt, cp->name, cp->i_interval, i_setval));
+                  cp->commandtrig = 1;
+               } else {
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d.", 
+                          i_cnt, cp->name, cp->i_interval, i_setval));
+               }
+               cp->i_interval = i_setval;
+               free_lbuf(s_tbuff);
+               break;
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/interval: Slot not found or permission denied.");
+         }
+         break;
+      case ATRCACHE_CACHE: /* Force a cache update on the cache */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/cache: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( command && *command ) {
+            notify(player, "@atrcache/cache: Command/Target argument not expected.");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/cache: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               /* Do not recache if bad user */
+               if ( Good_chk(cp->owner) ) {
+                  s_tbuff = alloc_lbuf("atrcache_cache");
+                  strcpy(s_tbuff, cp->s_cachebuild);
+                  retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, (char **)NULL, 0, (char **)NULL, 0);
+                  strcpy(cp->s_cache, retbuff);
+                  free_lbuf(retbuff);
+                  sprintf(s_tbuff, "@atrcache/cache: Cache on slot %d [%s] has been forcefully refreshed.", i_cnt, cp->name);
+                  notify(player, s_tbuff);
+                  free_lbuf(s_tbuff);
+                  cp->i_lastrun = mudstate.now;
+                  cp->commandtrig = 0;
+                  i_found = 1;
+                  break;
+               }
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/cache: Slot not found, bad owner, or permission denied.");
+         }
+         break;
+      case ATRCACHE_LIST: /* list all the caches currently in use */
+      case ATRCACHE_INUSE: /* list all the caches currently in use */
+         i_cnt = i_cur = i_vis = i_control = i_enabled = 0;
+         s_tbuff = alloc_lbuf("atrcache_list");
+         if ( Wizard(player) ) {
+            sprintf(s_tbuff, "Slot %-30s %-10s %-10s %-4s %-4s %-8s", (char *)"Name", (char *)"Interval", (char *)"Fetched", 
+                     (char *)"Lock", (char *)"vis", (char *)"State");
+         } else {
+            sprintf(s_tbuff, "Slot %-30s %-10s %-22s %-10s", (char *)"Name", (char *)"Interval", (char *)"Fetched", (char *)"Control");
+         }
+         notify(player, s_tbuff);
+         notify(player, (char *)"------------------------------------------------------------------------------");
+
+         /* Let's count up the values */
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( cp->enabled ) {
+               i_enabled++;
+               if ( Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner)) ) {
+                  i_vis++;
+                  i_control++;
+               } else if ( cp->visible ) {
+                  i_vis++;
+               }
+            } else {
+               if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
+                  i_vis++;
+                  i_control++;
+               }
+            }
+         }
+ 
+         /* Immortals see all */
+         if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
+            i_vis = mudconf.atrcachemax;
+         }
+
+         /* Find page value on what is visible */
+         i_found = 0;
+         i_page = (i_vis / 20 + 1);
+         if ( (i_page != 0) && ((i_vis % 20) == 0) ) {
+            i_page--;
+         }
+         if ( s_slot && *s_slot ) {
+            i_found = atoi(s_slot);
+            if ( i_found <= 0 )
+               i_found = 0;
+            if ( i_found >= ((i_vis / 20) + 1) ) {
+                i_found = i_page;
+            }
+         }
+
+         /* We need i_cur to keep track of what is visible to the player */
+         i_cur = i_cnt = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( i_vis == 0 ) {
+               break;
+            }
+            if ( cp->enabled ) {
+               if ( Wizard(player) ) {
+                  if ( (i_found != 0) && ((i_cur < ((i_found - 1) * 20)) || (i_cur >= (i_found * 20))) ) {
+                     i_cnt++;
+                     i_cur++;
+                     continue;
+                  }
+                  sprintf(s_tbuff, "%03d  %-30s %-10d %-10d %-4d %-4d %s%-8s%s", i_cnt, (cp ? cp->name : (char *)"(NULL)"), 
+                          (int)cp->i_interval, (int)cp->i_lastrun, cp->lock, cp->visible, 
+#ifdef ZENTY_ANSI
+                          (Good_chk(cp->owner) ? SAFE_ANSI_GREEN : SAFE_ANSI_RED),
+                          (Good_chk(cp->owner) ? (char *)"Enabled" : (char *)"BadUser"), ANSI_NORMAL);
+#else
+                          (Good_chk(cp->owner) ? ANSI_GREEN : ANSI_RED),
+                          (Good_chk(cp->owner) ? (char *)"Enabled" : (char *)"BadUser"), ANSI_NORMAL);
+#endif
+                  notify(player, s_tbuff);
+                  i_cur++;
+               } else if ( cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner)) ) {
+                  if ( (i_found != 0) && ((i_cur < ((i_found - 1) * 20)) || (i_cur >= (i_found * 20))) ) {
+                     i_cnt++;
+                     i_cur++;
+                     continue;
+                  }
+                  sprintf(s_tbuff, "%03d  %-30s %-10d %-10d%-12s %-10s", i_cnt, (cp ? cp->name : (char *)"(NULL)"), 
+                          (int)cp->i_interval, (int)cp->i_lastrun,
+                           (cp->i_lastrun ? (char *)" " : (char *)" (UnFetchd)"), 
+                           (Controls(player, cp->owner) ? (char *)"Yes" : (char *)"No"));
+                  notify(player, s_tbuff);
+                  i_cur++;
+               }   
+            } else {
+               if ( !(key & ATRCACHE_INUSE) && Immortal(player) ) {
+                  if ( (i_found != 0) && ((i_cur < ((i_found - 1) * 20)) || (i_cur >= (i_found * 20))) ) {
+                     i_cnt++;
+                     i_cur++;
+                     continue;
+                  }
+                  sprintf(s_tbuff, "%03d  %-30s %-10d %-10s %-4d %-4d %-8s", i_cnt, (char *)"(NULL)", 
+                            (int)cp->i_interval, (char *)"N/A", 0, 1, (char *)"Disabled");
+                  notify(player, s_tbuff);
+                  i_cur++;
+               }
+            }
+            i_cnt++;
+         }
+         sprintf(s_tbuff, "-- Page: %2d/%2d --------------------- %3d Visible, %3d Controlled, %3d Total --", 
+                          i_found, i_page, i_vis, i_control, mudconf.atrcachemax);
+         notify(player, s_tbuff);
+         free_lbuf(s_tbuff);
+         break;
+      case ATRCACHE_INFO: /* Get information on the specific cache */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/info: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( command && *command ) {
+            notify(player, "@atrcache/info: Command/Target not expected.");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/info: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) &&  
+                  (((i_slot != -1) && (i_cnt == i_slot)) ||
+                   ((i_slot == -1) && cp->name && !stricmp(cp->name, s_slot))) ) {
+               i_found = 1;
+               retbuff = s_tbuff = alloc_lbuf("atrcache_info");
+               if ( cp->enabled ) {
+                  notify(player, "------------------------------------------------------------------------------");
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Slot: %-3d Name: %-30s   \r\nVisible: %d  Locked: %d  Enabled: True", 
+                                 i_cnt, cp->name, cp->visible, cp->lock));
+                  if ( Good_chk(cp->owner) ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Owner: #%d [%s]", cp->owner, Name(cp->owner)));
+                  } else {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Owner: #%d [Invalid Owner -- Will not Re-Cache]", cp->owner));
+                  }
+                  if ( cp->i_interval == 0 ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d (command triggered)", cp->i_interval));
+                  } else {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d", cp->i_interval));
+                  }
+                  if ( cp->i_lastrun == 0 ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [Never Fetched]", cp->i_lastrun));
+                  } else {
+                     ttm2 = localtime(&cp->i_lastrun);
+                     ttm2->tm_year += 1900;
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [%s %s %2d %02d:%02d:%02d %d]", cp->i_lastrun,
+                            s_wday[ttm2->tm_wday % 7], s_mon[ttm2->tm_mon % 12], ttm2->tm_mday, ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec, ttm2->tm_year));
+                  }
+                  notify(player, "------------------------------------------------------------------------------");
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Cache: %s", (*(cp->s_cache) ? cp->s_cache : (char *)"(EMPTY)")));
+                  notify(player, "------------------------------------------------------------------------------");
+                  if ( i_noansi ) {
+                     noansi_notify(player, safe_tprintf(s_tbuff, &retbuff, "Exec-: %s", (*(cp->s_cachebuild) ? cp->s_cachebuild : (char *)"(EMPTY)")));
+                  } else {
+                     tbuf = tbufptr = alloc_lbuf("atrcache_ansi");
+                     tbuf2 = alloc_lbuf("atrcache_ansi_scratch");
+                     if ( *(cp->s_cachebuild) ) {
+                        strcpy(tbuf2, cp->s_cachebuild);
+                     } else {
+                        strcpy(tbuf2, (char *)"(EMPTY)");
+                     }
+                     fun_parenstr(tbuf, &tbufptr, player, player, player, &tbuf2, 1, (char **)NULL, 0);
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Exec-: %s", tbuf));
+                     free_lbuf(tbuf);
+                     free_lbuf(tbuf2);
+                  }
+                  notify(player, "------------------------------------------------------------------------------");
+               } else {
+                  notify(player, "------------------------------------------------------------------------------");
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Slot: %-3d Name: %-30s   \r\nVisible: %d  Locked: %d  Enabled: False", 
+                                 i_cnt, (char *)"N/A", cp->visible, cp->lock));
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Owner: #%d [Default owner always 1]", cp->owner));
+                  if ( cp->i_interval == 0 ) {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d [Default interval -- command triggered]", cp->i_interval));
+                  } else {
+                     notify(player, safe_tprintf(s_tbuff, &retbuff, "Interval: %d [Default interval]", cp->i_interval));
+                  }
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [Never Fetched]", cp->i_lastrun));
+                  notify(player, "------------------------------------------------------------------------------");
+                  notify(player, "Cache: N/A [unitialized]");
+                  notify(player, "------------------------------------------------------------------------------");
+                  notify(player, "Exec-: N/A [unitialized]");
+                  notify(player, "------------------------------------------------------------------------------");
+               }
+              free_lbuf(s_tbuff);
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "#-1 NO PERMISSION TO VIEW CACHE SLOT");
+         }
+         break;
+      case ATRCACHE_OWNER: /* Change owner of the specific cache */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/owner: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/owner: Expecting target owner (empty/null).");
+            return;
+         }
+	 init_match(player,command,NOTYPE);
+	 match_everything(MAT_EXIT_PARENTS);
+	 i_setval = (int)noisy_match_result();
+         if ( !Good_chk((dbref)i_setval) || !Controls(player, (dbref)i_setval) ) {
+            notify(player, "@atrcache/owner: Expecting target owner (invalid owner/no permission).");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/owner: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               i_found = 1;
+               retbuff = s_tbuff = alloc_lbuf("atrcache_owner");
+               notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/owner: Slot %d [%s] owner changed from #%d [%s] to #%d [%s].", i_cnt, 
+                  cp->name, cp->owner, (Good_chk(cp->owner) ? Name(cp->owner) : (char *)"#-1 Bad Owner"), 
+                  i_setval, (Good_chk((dbref)i_setval) ? Name((dbref)i_setval) : (char *)"#-1 Bad Owner")));
+               free_lbuf(s_tbuff);
+               cp->owner = i_setval;
+               break;
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/owner: Slot not found or permission denied.");
+         }
+         break;
+      case ATRCACHE_SET: /* Set the value that will cache */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/set: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/set: Expecting EXEC string for cache (empty/null).");
+            return;
+         }
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/set: Expecting nmae or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( ((i_slot != -1) && (i_cnt == i_slot)) ||
+                 ((i_slot == -1) && !stricmp(cp->name, s_slot)) ) {
+               i_found = 1;
+               if ( Immortal(player) || (Good_chk(cp->owner) && ((player == cp->owner) || Controls(player, cp->owner))) ) {
+                  s_tbuff = alloc_lbuf("atrcache_set");
+                  sprintf(s_tbuff, "@atrcache/set: Cache value set to slot %d [%s].", i_cnt, cp->name);
+                  notify(player, s_tbuff);
+                  sprintf(cp->s_cachebuild, "%.*s", (LBUF_SIZE - 10), command);
+                  /* We need to reset the timer on caching since it's new values */
+                  cp->i_lastrun = 0;
+                  free_lbuf(s_tbuff);
+                  break;
+               } else {
+                  notify(player, "@atrcache/set: You have no permission on that cache slot.");
+                  break;
+               }
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/set: That cache slot is not enabled.");
+            break;
+         }
+         break;
+      case ATRCACHE_VIS: /* Is cache visible and executable to everyone? */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/visible: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/visible: Expecting visual toggle of 1 or 0 (empty/null).");
+            return;
+         }
+         i_setval = (atoi(command) ? 1 : 0);
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/visible: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               i_found = 1;
+               retbuff = s_tbuff = alloc_lbuf("atrcache_visible");
+               notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/visible: Slot %d [%s] visibility changed from %d to %d.", i_cnt, 
+                       cp->name, cp->visible, i_setval));
+               free_lbuf(s_tbuff);
+               cp->visible = i_setval;
+               break;
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/visible: Slot not found or permission denied.");
+         }
+          break;
+      case ATRCACHE_LOCK: /* Is cache locked to enforce update cache only on control/owner? */
+         if ( !s_slot || !*s_slot ) {
+            notify(player, "@atrcache/lock: Expecting name or slot (empty/null).");
+            return;
+         }
+         if ( !command || !*command ) {
+            notify(player, "@atrcache/lock: Expecting lock toggle of 1 or 0 (empty/null).");
+            return;
+         }
+         i_setval = (atoi(command) ? 1 : 0);
+         i_slot = -1;
+         if ( isdigit(*s_slot) ) {
+            i_slot = atoi(s_slot);
+            if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
+               notify(player, "@atrcache/lock: Expecting name or slot (outside range).");
+               return;
+            }
+         }
+
+         i_cnt = i_found = 0;
+         for ( cp = atrcache_head; cp; cp = cp->next ) {
+            if ( !cp->enabled ) {
+               i_cnt++;
+               continue;
+            }
+            if ( (((i_slot != -1) && (i_cnt == i_slot)) ||
+                  ((i_slot == -1) && !stricmp(cp->name, s_slot))) &&
+                  (Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
+               i_found = 1;
+               retbuff = s_tbuff = alloc_lbuf("atrcache_lock");
+               notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/lock: Slot %d [%s] lock changed from %d to %d.", i_cnt, 
+                        cp->name, cp->lock, i_setval));
+               free_lbuf(s_tbuff);
+               cp->lock = i_setval;
+               break;
+            }
+            i_cnt++;
+         }
+         if ( !i_found ) {
+            notify(player, "@atrcache/lock: Slot not found or permission denied.");
+         }
+          break;
+      default: /* Shouldn't get here but do unhandled exception */
+         notify(player, "@atrcache: Unhandled switch.  Get a hardcode dev involved.");
+         break;
+   }
 }
 
 /* ---------------------------------------------------------------------------
@@ -434,9 +1688,15 @@ dbref	victim;
            mudstate.force_halt = 1;
         } else
            mudstate.force_halt = 0;
-	/* force victim to do command */
-	wait_que(victim, player, 0, NOTHING, command, args, nargs,
-		mudstate.global_regs, mudstate.global_regsname);
+        /* If /inline call sudo */
+        if ( key & FORCE_INLINE ) {
+           /* If you want additional keys to @force/inline, use @sudo */
+           do_sudo(player, cause, 0, what, command, args, nargs);
+        } else {
+	   /* force victim to do command */
+	   wait_que(victim, player, 0, NOTHING, command, args, nargs,
+		   mudstate.global_regs, mudstate.global_regsname);
+        }
 }
 
 /* ---------------------------------------------------------------------------
@@ -448,7 +1708,7 @@ void do_remote(dbref player, dbref cause, int key, char *loc,
 {
 dbref target;
 char *retbuff, *s_rollback;
-int i_jump, i_rollback;
+int i_jump, i_rollback, i_hook;
 
    if ( mudstate.remote != -1 ) {
       notify(player, "You can not nest @remote.");
@@ -476,7 +1736,13 @@ int i_jump, i_rollback;
   i_rollback = mudstate.rollbackcnt;
   mudstate.jumpst = mudstate.rollbackcnt = 0;
   strcpy(mudstate.rollback, command);
-  process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook);
+  i_hook = mudstate.no_hook;
+  if ( i_hook ) {
+     process_command(player, player, 0, command, args, nargs, 0, 1, mudstate.no_space_compress);
+  } else {
+     process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+  }
+  mudstate.no_hook = i_hook;
   mudstate.jumpst = i_jump;
   mudstate.rollbackcnt = i_rollback;
   strcpy(mudstate.rollback, s_rollback);
@@ -499,6 +1765,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 	match_neighbor();
 	match_absolute();
 	match_player();
+        match_player_absolute();
 	if ((victim = noisy_match_result()) == NOTHING) return;
 
 	if (!isPlayer(victim)) {
@@ -522,7 +1789,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
               newplayer = NOTHING;
         }
         if ( Good_chk(newplayer) ) {
-           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+           s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
@@ -532,15 +1799,15 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {
-                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                    notify_quiet(player,"@destruction limit maximum reached.");
+                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                    notify_quiet(newplayer,"@destruction limit maximum reached.");
                     STARTLOG(LOG_SECURITY, "SEC", "TURTLE")
                       log_text("@destruction limit maximum reached -> Player: ");
-                      log_name(player);
+                      log_name(newplayer);
                       log_text(" Object: ");
                       log_name(victim);
                     ENDLOG
-                    broadcast_monitor(player,MF_VLIMIT,"[TURTLE] DESTROY MAXIMUM",
+                    broadcast_monitor(newplayer,MF_VLIMIT,"[TURTLE] DESTROY MAXIMUM",
                             NULL, NULL, victim, 0, 0, NULL);
                     free_lbuf(s_chkattr);
                     return;
@@ -549,10 +1816,10 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
               s_mbuf = alloc_mbuf("vattr_check");
               sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
                                              i_array[2]+1, i_array[3], i_array[4]);
-              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+              atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
+              atr_add_raw(newplayer, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -579,6 +1846,7 @@ int	count, aflags, aflags2, i, i_array[LIMIT_MAX];
 		match_neighbor ();
 		match_absolute ();
 		match_player ();
+		match_player_absolute ();
 		if ((recipient = noisy_match_result ()) == NOTHING)
 			return;
 	} else {
@@ -674,6 +1942,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 	match_neighbor();
 	match_absolute();
 	match_player();
+	match_player_absolute();
 	if ((victim = noisy_match_result()) == NOTHING) return;
 
 	if (!isPlayer(victim)) {
@@ -693,6 +1962,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
 		match_neighbor ();
 		match_absolute ();
 		match_player ();
+		match_player_absolute ();
 		if ((recipient = noisy_match_result ()) == NOTHING)
 			return;
 	} else {
@@ -708,7 +1978,7 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
               newplayer = NOTHING;
         }
         if ( Good_chk(newplayer) ) {
-           s_chkattr = atr_get(player, A_DESTVATTRMAX, &aowner2, &aflags2);
+           s_chkattr = atr_get(newplayer, A_DESTVATTRMAX, &aowner2, &aflags2);
            if ( *s_chkattr ) {
               i_array[0] = i_array[2] = 0;
               i_array[4] = i_array[1] = i_array[3] = -2;
@@ -718,15 +1988,15 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
                   i_array[i] = atoi(s_buffptr);
               }
               if ( i_array[3] != -1 ) {
-                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(player) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                    notify_quiet(player,"@destruction limit maximum reached.");
+                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
+                    notify_quiet(newplayer,"@destruction limit maximum reached.");
                     STARTLOG(LOG_SECURITY, "SEC", "TOAD")
                       log_text("@destruction limit maximum reached -> Player: ");
-                      log_name(player);
+                      log_name(newplayer);
                       log_text(" Object: ");
                       log_name(victim);
                     ENDLOG
-                    broadcast_monitor(player,MF_VLIMIT,"[TOAD] DESTROY MAXIMUM",
+                    broadcast_monitor(newplayer,MF_VLIMIT,"[TOAD] DESTROY MAXIMUM",
                             NULL, NULL, victim, 0, 0, NULL);
                     free_lbuf(s_chkattr);
                     return;
@@ -735,10 +2005,10 @@ int	count, aflags, i, i_array[LIMIT_MAX], aflags2;
               s_mbuf = alloc_mbuf("vattr_check");
               sprintf(s_mbuf, "%d %d %d %d %d", i_array[0], i_array[1],
                                              i_array[2]+1, i_array[3], i_array[4]);
-              atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
+              atr_add_raw(newplayer, A_DESTVATTRMAX, s_mbuf);
               free_mbuf(s_mbuf);
            } else {
-              atr_add_raw(player, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
+              atr_add_raw(newplayer, A_DESTVATTRMAX, (char *)"0 -2 1 -2 -2");
            }
            free_lbuf(s_chkattr);
         }
@@ -819,7 +2089,7 @@ void do_newpassword(dbref player, dbref cause, int key, char *name,
       return;
    }
 
-   if (*password != '\0' && !ok_password(password, player, 0)) {
+   if (*password != '\0' && !ok_password(password, (char *)NULL, player, 0)) {
       /* Can set null passwords, but not bad passwords */
       notify_quiet(player, "Bad password");
       return;
@@ -913,10 +2183,10 @@ void do_conncheck(dbref player, dbref cause, int key)
     tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
     if (*(d->userid)) {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->addr));
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->longaddr));
     } else {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->addr));
+             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->longaddr));
     }
     free_lbuf(tpr_buff);
   }
@@ -1025,6 +2295,7 @@ int	count, lcomp;
 		match_neighbor();
 		match_absolute();
 		match_player();
+		match_player_absolute();
 		if ((victim = noisy_match_result()) == NOTHING) return;
 
 		if (God(victim)) {
@@ -1884,7 +3155,7 @@ void quota_xfer(dbref player, dbref who, char *amount, char *src, char *dest)
     else rval = q_check(player, who, num, *src, *dest, 0, 1);
   }
   if (rval)
-    notify(player,"Quota transfered.");
+    notify(player,"Quota transferred.");
   else
     notify(player,"Transfer failed.");
 }
@@ -2044,7 +3315,8 @@ void do_quota(dbref player, dbref cause, int key, char *name, char *cargs[], int
 
 void do_money(dbref player, dbref cause, int key, char *message)
 {
-int i_money = 0;
+   int i_money = 0, thing;
+   char *s_name, *s_strtok, *s_message;
 
    if ( !Good_obj(player) || !Good_obj(cause) )
       return;
@@ -2064,9 +3336,28 @@ int i_money = 0;
       return;
    }
 
-   i_money = atoi(message);
-   notify(player, unsafe_tprintf("Money value set from %d to %d.", Pennies(player), i_money));
-   s_Pennies(player, i_money);
+   /* target check */
+   if ( strchr(message, '=') != 0 ) {
+      s_message = alloc_lbuf("do_money");
+      strcpy(s_message, message);
+      s_name = strtok_r(s_message, "=", &s_strtok);
+      init_match(player, s_name, NOTYPE);
+      match_everything(0);
+      thing = match_result();
+      if ( !Good_chk(thing) ) {
+         notify(player, "Permission denied.");
+         free_lbuf(s_message);
+         return;
+      }
+      s_name = strtok_r(NULL, "=", &s_strtok);
+      i_money = atoi(s_name);
+      free_lbuf(s_message);
+   } else {
+      thing = player;
+      i_money = atoi(message);
+   }
+   notify(player, unsafe_tprintf("%s's money value set from %d to %d.", Name(thing), Pennies(thing), i_money));
+   s_Pennies(thing, i_money);
 }
 
 void do_motd (dbref player, dbref cause, int key, char *message)
@@ -2151,26 +3442,36 @@ NAMETAB enable_names[] = {
 {(char *)"local_rwho",		3,	CA_PUBLIC,	0, CF_ALLOW_RWHO},
 {(char *)"logins",		3,	CA_PUBLIC,	0, CF_LOGIN},
 {(char *)"transmit_rwho",	1,	CA_PUBLIC,	0, CF_RWHO_XMIT},
+{(char *)"vattrchecking",	1,	CA_PUBLIC,	0, CF_VATTRCHECK},
 { NULL,				0,	0,		0, 0}};
 
 void do_global (dbref player, dbref cause, int key, char *flag)
 {
-int	flagvalue;
+   int flagvalue;
 
-	/* Set or clear the indicated flag */
+   /* Set or clear the indicated flag */
 
-	flagvalue = search_nametab(player, enable_names, flag);
-	if (flagvalue == -1) {
-		notify_quiet(player, "I don't know about that flag.");
-	} else if (key == GLOB_ENABLE) {
-		mudconf.control_flags |= flagvalue;
-		if (!Quiet(player)) notify_quiet(player, "Enabled.");
-	} else if (key == GLOB_DISABLE) {
-		mudconf.control_flags &= ~flagvalue;
-		if (!Quiet(player)) notify_quiet(player, "Disabled.");
-	} else {
-		notify_quiet(player, "Illegal combination of switches.");
-	}
+   if ( flag && *flag ) {
+      flagvalue = search_nametab(player, enable_names, flag);
+   } else {
+      flagvalue = -1;
+   }
+
+   if (flagvalue == -1) {
+      notify_quiet(player, "I don't know about that flag.");
+   } else if (key == GLOB_ENABLE) {
+      mudconf.control_flags |= flagvalue;
+      if (!Quiet(player)) { 
+         notify_quiet(player, "Enabled.");
+      }
+   } else if (key == GLOB_DISABLE) {
+      mudconf.control_flags &= ~flagvalue;
+      if (!Quiet(player)) {
+         notify_quiet(player, "Disabled.");
+      }
+   } else {
+      notify_quiet(player, "Illegal combination of switches.");
+   }
 }
 
 void convtonorm(dbref who, int addval)
@@ -2356,6 +3657,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
      do_site_buff(player, mudconf.passproxy_host, (char *)"passproxy_host");
      do_site_buff(player, mudconf.passapi_host, (char *)"passapi_host");
      do_site_buff(player, mudconf.hardconn_host, (char *)"hardconn_host");
+     do_site_buff(player, mudconf.permit_host, (char *)"permit_host");
      return;
   }
 
@@ -2413,8 +3715,8 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt1 = mudstate.access_list;
     while (pt1) {
       if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
-	( (key & SITE_ALL) || (!(pt1->flag) && (key & SITE_PER)) ||
-          (!(pt1->flag) && (key & SITE_HARD)) || (key == pt1->flag))) {
+	( (key & SITE_ALL) || ((pt1->flag == H_PERMIT) && (key & SITE_PER)) ||
+          (key == pt1->flag))) {
         count = 1;
         if (!pt2) {
           pt2 = pt1->next;
@@ -2478,7 +3780,7 @@ static int file_select(const struct dirent *entry)
 }
 
 #ifdef NEED_SCANDIR
-/* Some unix systems do not handle scandir -- so we build one for them */
+/* Some UNIX systems do not handle scandir -- so we build one for them */
 int
 scandir(const char *directory_name,
             struct dirent ***array_pointer,
@@ -2902,10 +4204,10 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                return;
                break;
          }
-         /* Fix up the ol object - it's probably corrupted if missmatched attributes */
+         /* Fix up the ol object - it's probably corrupted if mismatched attributes */
          i_dirnums = -1;
          while ( i_dirnums == -1 ) {
-            i_dirnums = atrcint(player, thing, 1);
+            i_dirnums = atrcint(player, thing, 1, (char *)NULL);
             if ( i_dirnums == -1 )
                i_flag++;
          }
@@ -2940,7 +4242,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             return;
          }
          tprp_buff = tpr_buff = alloc_lbuf("do_snapshot_verify");
-         if ( remote_read_sanitize(f_snap, NOTHING, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS) != 0 ) {
+         if ( remote_read_sanitize(f_snap, NOTHING, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS, i_tkey) != 0 ) {
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Filename %s is a corrupt image file.", s_mbname));
          } else {
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Filename %s has been verified clean.", s_mbname));
@@ -3036,7 +4338,7 @@ void do_api(dbref player, dbref cause, int key, char *s_target, char *s_string)
          break;
 
       case API_PASSWORD:
-         if ( *s_string && !ok_password(s_string, player, 0) ) {
+         if ( *s_string && !ok_password(s_string, (char *)NULL, player, 0) ) {
             notify(player, safe_tprintf(s_tmp, &s_tmpptr, "@api: Invalid password specified: %s", s_string));
          } else {
             sprintf(s_buff, "%s", (char *)"_APIPASSWD");
@@ -3141,3 +4443,156 @@ void do_api(dbref player, dbref cause, int key, char *s_target, char *s_string)
    free_lbuf(s_tmp);
 }
 
+void
+do_livewire(dbref player, dbref cause, int key, char *s_target, char *s_value)
+{
+   dbref i_thing, i_player, aowner;
+   char *s_buff, *s_txt;
+   int i_eval, i_evalover, aflags, i_value;
+
+   if ( !s_target || !*s_target ) {
+      notify(player, "@livewiere:  I don't see that target.");
+      return;
+   }
+
+   init_match(player, s_target, NOTYPE);
+   match_everything(0);
+   i_thing = noisy_match_result();
+
+   if ( !Good_chk(i_thing) ) {
+      notify(player, "@livewiere:  I don't see that target.");
+      return;
+   }
+
+   i_player = Owner(i_thing);
+
+   /* Sanity check */
+   if ( !Good_chk(i_player) ) {
+      i_player = i_thing;
+   }
+
+   switch(key) {
+      case LWIRE_LIST: /* List live wires */
+         i_eval = dblwire[i_thing].funceval;
+         i_evalover = dblwire[i_thing].funceval_override;
+         s_buff = alloc_lbuf("do_livewire");
+         if ( i_player == i_thing ) {
+            sprintf(s_buff, "@livewiere: Target %s(#%d) -- FuncEval %d, FuncEvalOverride %d", 
+                            Name(i_thing), i_thing, i_eval, i_evalover); 
+         } else {
+            sprintf(s_buff, "@livewiere: Target %s(#%d) [Owner: %s(#%d)] -- FuncEval %d, FuncEvalOverride %d", 
+                            Name(i_thing), i_thing, Name(i_player), i_player, i_eval, i_evalover); 
+         }
+         notify(player, s_buff);
+         free_lbuf(s_buff);
+         break;
+      case LWIRE_QUEUEMAX: /* Set the new queue max on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting queuemax to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else if ( i_value > 1000000000 ) {
+               notify(player, "@livewire: Warning -- Value greater than 1,000,000,000.  Reset to max");
+               i_value = 1000000000;
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREQUEUEMAX, &aowner, &aflags);
+         if ( *s_txt ) {
+            i_eval = atoi(s_txt);
+         } else {
+            i_eval = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_eval ) {
+            notify(player, "@livewire: Queuemax value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) QueueMax changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_eval, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d", i_value);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].queuemax = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
+      case LWIRE_FUNCEVAL: /* Set function evaluation override on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting func evaluation to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else if ( i_value > 1000000000 ) {
+               notify(player, "@livewire: Warning -- Value greater than 1,000,000,000.  Reset to max");
+               i_value = 1000000000;
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREFUNCEVAL, &aowner, &aflags);
+         if ( *s_txt ) {
+            if ( sscanf(s_txt, "%d %d", &i_eval, &i_evalover) != 2 ) {
+               i_eval = i_evalover = 0;
+            }
+         } else {
+            i_eval = i_evalover = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_eval ) {
+            notify(player, "@livewire: Evaluation value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) FuncEval changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_eval, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d %d", i_value, i_evalover);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].funceval  = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
+      case LWIRE_FUNCOVER: /* Toggle max evaluation override on target */
+         if ( !s_value || !*s_value ) {
+            notify(player, "@livewire: No value specified, resetting func override to default value (0)");
+            i_value = 0;
+         } else {
+            i_value = atoi(s_value);
+            if ( i_value < 0 ) {
+               notify(player, "@livewire: Warning -- Negative values not allowed.  value reset to 0");
+               i_value = 0;
+            } else {
+               i_value = ( i_value != 0 ? 1 : 0);
+            }
+         }
+         s_txt = atr_get(i_thing, A_WIREFUNCEVAL, &aowner, &aflags);
+         if ( *s_txt ) {
+            if ( sscanf(s_txt, "%d %d", &i_eval, &i_evalover) != 2 ) {
+               i_eval = i_evalover = 0;
+            }
+         } else {
+            i_eval = i_evalover = 0;
+         }
+         free_lbuf(s_txt);
+         if ( i_value == i_evalover ) {
+            notify(player, "@livewire: Override value is same as previous value.  Ignoring.");
+         } else {
+            s_buff = alloc_lbuf("do_livewire");
+            sprintf(s_buff, "@livewire: Target %s(#%d) FuncOverride changed [%d -> %d]", 
+                    Name(i_thing), i_thing, i_evalover, i_value);
+            notify(player, s_buff);
+            sprintf(s_buff, "%d %d", i_eval, i_value);
+            atr_add_raw(i_thing, A_WIREFUNCEVAL, s_buff);
+            dblwire[i_thing].funceval_override  = i_value;
+            free_lbuf(s_buff);
+         }
+         break;
+      default:
+         notify(player, "@livewire: switch expected.");
+         break;
+   }
+}

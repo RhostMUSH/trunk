@@ -267,7 +267,7 @@ void decompile_rlevels(dbref player, dbref thing, char *thingname, char *qualout
 void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
-    int negate, i;
+    int negate, i, i_found;
     RLEVEL result, ormask, andmask, i_rlevel;
     char lname[17], *buff, *buff2, *buff3;
 
@@ -275,19 +275,22 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
+    i_found = 0;
     if (!arg || !*arg) {
         if ( key & REALITY_RESET ) {
            buff = alloc_lbuf("do_rxlevel");
            result = 0xffffffff;
            andmask = 0;
            ormask = 0;
-           buff3 = name_rlevel(result, RxLevel(thing), 2);
-           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-           notify_quiet(player, buff);
+           if ( !Quiet(player) ) {
+              buff3 = name_rlevel(result, RxLevel(thing), 2);
+              sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+              notify_quiet(player, buff);
+              free_lbuf(buff3);
+           }
            sprintf(buff, "%08X %08X", ((RxLevel(thing) & andmask) | ormask), TxLevel(thing));
            atr_add_raw(thing, A_RLEVEL, buff);
            free_lbuf(buff);
-           free_lbuf(buff3);
         } else {
            notify_quiet(player, "I don't know what you want to set!");
         }
@@ -298,10 +301,12 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ( key & REALITY_RESET ) {
        andmask = 0;
        result = 0xffffffff;
-       buff3 = name_rlevel(result, RxLevel(thing), 2);
-       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-       free_lbuf(buff3);
-       notify_quiet(player, buff2);
+       if ( !Quiet(player) ) {
+          buff3 = name_rlevel(result, RxLevel(thing), 2);
+          sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+          free_lbuf(buff3);
+          notify_quiet(player, buff2);
+       }
     } else {
        andmask = ~ormask;
     }
@@ -316,6 +321,10 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
             negate = 1;
             ++arg;
         }
+        if ( i_found && !*arg ) 
+           break;
+
+        i_found = 1;
         for(i=0; *arg && !isspace((int)*arg); ++arg)
             if(i < 16)
                 lname[i++] = *arg;
@@ -326,36 +335,42 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
                 notify_quiet(player, "You must specify a reality level to clear.");
             else
                 notify_quiet(player, "You must specify a reality level to set.");
+            free_lbuf(buff2);
             return;
         }
         result = find_rlevel(lname);
         if(!result)
         {
-            notify_quiet(player, "No such reality level.");
+            sprintf(buff2, "No such reality level '%s'", lname);
+            notify_quiet(player,  buff2);
             continue;
         }
         if(negate)
         {
             andmask &= ~result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_rlevel, 2);
-               sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Cleared.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_rlevel, 2);
+                  sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Cleared.");
+               }
             }
         }
         else
         {
             ormask |= result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_rlevel, 1);
-               sprintf(buff2, "Set - %s (set RxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Set.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_rlevel, 1);
+                  sprintf(buff2, "Set - %s (set RxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Set.");
+               }
             }
         }
     }
@@ -370,7 +385,7 @@ void do_rxlevel(dbref player, dbref cause, int key, char *object, char *arg)
 void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
 {
     dbref thing;
-    int negate, i;
+    int negate, i, i_found;
     RLEVEL result, ormask, andmask, i_tlevel;
     char lname[17], *buff, *buff2, *buff3;
 
@@ -378,33 +393,38 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     if ((thing = match_controlled(player, object)) == NOTHING)
         return;
     
+    i_found = 0;
     if (!arg || !*arg) {
         if ( key & REALITY_RESET ) {
-           buff = alloc_lbuf("do_rxlevel");
+           buff = alloc_lbuf("do_txlevel");
            result = 0xffffffff;
            andmask = 0;
            ormask = 0;
-           buff3 = name_rlevel(result, TxLevel(thing), 2);
-           sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-           notify_quiet(player, buff);
+           if ( !Quiet(player) ) {
+              buff3 = name_rlevel(result, TxLevel(thing), 2);
+              sprintf(buff, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+              free_lbuf(buff3);
+              notify_quiet(player, buff);
+           }
            sprintf(buff, "%08X %08X", RxLevel(thing), ((TxLevel(thing) & andmask) | ormask));
            atr_add_raw(thing, A_RLEVEL, buff);
            free_lbuf(buff);
-           free_lbuf(buff3);
         } else {
            notify_quiet(player, "I don't know what you want to set!");
         }
         return;
     }
     ormask = 0;
-    buff2 = alloc_lbuf("do_rxlevel_display_set");
+    buff2 = alloc_lbuf("do_txlevel_display_set");
     if ( key & REALITY_RESET ) {
        andmask = 0;
        result = 0xffffffff;
-       buff3 = name_rlevel(result, TxLevel(thing), 2);
-       sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
-       free_lbuf(buff3);
-       notify_quiet(player, buff2);
+       if ( !Quiet(player) ) {
+          buff3 = name_rlevel(result, TxLevel(thing), 2);
+          sprintf(buff2, "Set - %s (cleared RxLevel %s)", Name(thing), buff3);
+          free_lbuf(buff3);
+          notify_quiet(player, buff2);
+       }
     } else {
        andmask = ~ormask;
     }
@@ -419,6 +439,12 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
             negate = 1;
             ++arg;
         }
+
+        if ( i_found && !*arg ) 
+           break;
+
+        i_found = 1;
+
         for(i=0; *arg && !isspace((int)*arg); ++arg)
             if(i < 16)
                 lname[i++] = *arg;
@@ -429,36 +455,42 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
                 notify_quiet(player, "You must specify a reality level to clear.");
             else
                 notify_quiet(player, "You must specify a reality level to set.");
+            free_lbuf(buff2);
             return;
         }
         result = find_rlevel(lname);
         if(!result)
         {
-            notify_quiet(player, "No such reality level.");
+            sprintf(buff2, "No such reality level '%s'", lname);
+            notify_quiet(player,  buff2);
             continue;
         }
         if(negate)
         {
             andmask &= ~result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_tlevel, 2);
-               sprintf(buff2, "Set - %s (cleared TxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Cleared.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_tlevel, 2);
+                  sprintf(buff2, "Set - %s (cleared TxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Cleared.");
+               }
             }
         }
         else
         {
             ormask |= result;
-            if ( TogNoisy(player) ) {
-               buff3 = name_rlevel(result, i_tlevel, 1);
-               sprintf(buff2, "Set - %s (set TxLevel %s)", Name(thing), buff3);
-               free_lbuf(buff3);
-               notify_quiet(player, buff2);
-            } else {
-               notify_quiet(player, "Set.");
+            if ( !Quiet(player) ) {
+               if ( TogNoisy(player) ) {
+                  buff3 = name_rlevel(result, i_tlevel, 1);
+                  sprintf(buff2, "Set - %s (set TxLevel %s)", Name(thing), buff3);
+                  free_lbuf(buff3);
+                  notify_quiet(player, buff2);
+               } else {
+                  notify_quiet(player, "Set.");
+               }
             }
         }
     }
@@ -470,11 +502,60 @@ void do_txlevel(dbref player, dbref cause, int key, char *object, char *arg)
     free_lbuf(buff);
 }
 
-int *desclist_match(dbref player, dbref thing)
+void do_leveldefault(dbref player, dbref cause, int key, char *object)
+{
+    dbref thing;
+    char *buff, *s_strtok, *s_strtokr;
+    int i_list;
+
+    if ( !*object ) {
+       if ( key & LEVEL_LIST ) {
+          notify_quiet(player, "@leveldefault/list requires one or more targets.");
+       } else {
+          notify_quiet(player, "@leveldefault requires a target.");
+       }
+       return;
+    }
+
+    if ( key & LEVEL_LIST ) {
+       s_strtok = strtok_r(object, " \t", &s_strtokr);
+       buff = alloc_lbuf("do_leveldefault");
+       i_list = 0;
+       while ( s_strtok && *s_strtok ) {
+          /* find thing */
+          if ((thing = match_controlled_quiet(player, s_strtok)) != NOTHING) {
+             sprintf(buff, "Set - %s reality levels returned to defaults.", Name(thing));
+             notify_quiet(player, buff);
+             atr_clr(thing, A_RLEVEL);
+          } else {
+             sprintf(buff, "Warning - %s is not accessible or not a valid target.", s_strtok);
+             notify_quiet(player, buff);
+          }
+          s_strtok = strtok_r(NULL, " \t", &s_strtokr);
+       }
+       free_lbuf(buff);
+       if ( !i_list ) {
+          notify_quiet(player, "@leveldefault/list requires one or more targets.");
+       }
+    } else {
+       /* find thing */
+       if ((thing = match_controlled(player, object)) == NOTHING)
+           return;
+
+       buff = alloc_lbuf("do_leveldefault");
+       sprintf(buff, "Set - %s reality levels returned to defaults.", Name(thing));
+       notify_quiet(player, buff);
+       atr_clr(thing, A_RLEVEL);
+       free_lbuf(buff);
+    }
+}
+
+int *desclist_match(dbref player, dbref thing, int i_type)
 {
     RLEVEL match;
     int i, j;
     char *tpr_buff, *tprp_buff;
+    static char tbuff[SBUF_SIZE];
     ATTR *at;
     static int descbuffer[33];
     int chk_x, chk_y, chk_z;
@@ -499,7 +580,26 @@ int *desclist_match(dbref player, dbref thing)
        for(i = 0; i < mudconf.no_levels; ++i) {
            if((match & mudconf.reality_level[i].value) == mudconf.reality_level[i].value)
            {
-               at = atr_str(mudconf.reality_level[i].attr);
+               switch (i_type) {
+                  case 1: /* @adesc */
+                     at = atr_str(mudconf.reality_level[i].attr);
+                     if ( at && (at->number == A_DESC) ) {
+                        /* Desc's @adesc is always triggered */
+                        sprintf(tbuff, "%s", (char *)"adesc");
+                        at = atr_str(tbuff);
+                     } else {
+                        if ( mudconf.reality_level[i].has_adesc ) {
+                           sprintf(tbuff, "%.*s_adesc", (SBUF_SIZE - 7), mudconf.reality_level[i].attr);
+                           at = atr_str(tbuff);
+                        } else {
+                           at = NULL;
+                        }
+                     }
+                     break;
+                  case 0: /* normal desc */
+                     at = atr_str(mudconf.reality_level[i].attr);
+                     break;
+               }
                if(at)
                {
                    for(j = 1; j < descbuffer[0]; ++j)
@@ -523,8 +623,8 @@ int *desclist_match(dbref player, dbref thing)
 void did_it_rlevel(dbref player, dbref thing, int what, const char *def, int owhat, 
 	const char *odef, int awhat, char *args[], int nargs)
 {
-char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS], *pt,
-        *saveregname[MAX_GLOBAL_REGS], *npt;
+char	*d, *buff, *act, *charges, *lcbuf, *master_str, *master_ret, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt,
+        *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
 char	*tmpformat_buff, *tpr_buff, *tprp_buff;
 dbref	loc, aowner, aowner3, master;
 int	num, aflags, cpustopper, nocandoforyou, aflags3, tst_attr, chkoldstate;
@@ -565,11 +665,11 @@ ATTR 	*tst_glb, *format_atr;
 
 	if (what > 0) {
 	  /* Get description list */
-	  desclist = desclist_match(player, thing);
+	  desclist = desclist_match(player, thing, 0);
 	  found_a_desc = 0;
           if ( mudconf.descs_are_local ) {
              i_didsave = 1;
-             for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+             for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                 savereg[x] = alloc_lbuf("ulocal_reg");
                 saveregname[x] = alloc_sbuf("ulocal_regname");
                 pt = savereg[x];
@@ -617,7 +717,8 @@ ATTR 	*tst_glb, *format_atr;
                    if ( !master_str )
                       master_str = alloc_lbuf("master_filler");
                 }
-		if ( *d || (tst_attr && *master_str) ) {
+		/*if ( *d || (tst_attr && *master_str) ) {*/
+		if ( *d ) {
 			found_a_desc = 1;		/* We don't need the 'def' message */
 			if(nocandoforyou) {
 			   notify(player, "Message has been nullified.");
@@ -649,8 +750,8 @@ ATTR 	*tst_glb, *format_atr;
                  * 1 - reverse display of descs
                  * 2 - behave normally but stop after first reality desc seen
                  * 3 - reverse display but stop after first reality desc seen
-                 * 4 - behave normally but stop after first reality regardless of desc existance
-                 * 5 - reverse display but stop after first reality regarldess of desc existance
+                 * 4 - behave normally but stop after first reality regardless of desc existence
+                 * 5 - reverse display but stop after first reality regardless of desc existence
                  */
                 if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
                       (mudconf.reality_compare > 3)  ) {
@@ -856,7 +957,7 @@ ATTR 	*tst_glb, *format_atr;
 	}		
         if ( i_didsave && mudconf.descs_are_local ) {
            i_didsave = 0;
-           for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
               pt = mudstate.global_regs[x];
               npt = mudstate.global_regsname[x];
               safe_str(savereg[x],mudstate.global_regs[x],&pt);
@@ -869,7 +970,16 @@ ATTR 	*tst_glb, *format_atr;
 	/* do the action attribute */
     /* only if thing can see player in turn */
 	if (awhat > 0 && !nocandoforyou && IsReal(thing, player)) {
-		if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
+	   desclist = desclist_match(player, thing, 1);
+	   found_a_desc = 0;
+/* XXXXX */
+	   for(i = 1; i < desclist[0]; ++i) {
+                i_rlvl = i;
+                if ( (mudconf.reality_compare == 1) || (mudconf.reality_compare == 3) || (mudconf.reality_compare == 5) )
+                   i_rlvl = desclist[0] - i;
+
+		if (*(act = atr_pget(thing, desclist[i_rlvl], &aowner, &aflags))) {
+			found_a_desc = 1;
 			charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
 			if (*charges && !mudstate.chkcpu_toggle) {
 				num = atoi(charges);
@@ -904,6 +1014,54 @@ ATTR 	*tst_glb, *format_atr;
                              mudstate.global_regs, mudstate.global_regsname);
 		  free_lbuf(act);
 		}
+                if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
+                      (mudconf.reality_compare > 3)  ) {
+                   found_a_desc = 1;
+                   break;
+                }
+                if ( mudstate.chkcpu_toggle ) {
+                   found_a_desc = 1;
+                   break;
+                }
+           }
+           if ( !found_a_desc && !mudstate.chkcpu_toggle ) {
+                if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
+                        charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
+                        if (*charges && !mudstate.chkcpu_toggle) {
+                                num = atoi(charges);
+                                if (num > 0) {
+                                        buff = alloc_sbuf("did_it.charges");
+                                        sprintf(buff, "%d", num - 1);
+                                        atr_add_raw(thing, A_CHARGES, buff);
+                                        free_sbuf(buff);
+                                } else if (*(buff = atr_pget(thing, A_RUNOUT, &aowner, &aflags))) {
+                                        free_lbuf(act);
+                                        act = buff;
+                                } else {
+                                        free_lbuf(act);
+                                        free_lbuf(buff);
+                                        free_lbuf(charges);
+                                        mudstate.chkcpu_toggle = chkoldstate;
+                                        mudstate.chkcpu_stopper = chk_stop;
+                                        return;
+                                }
+                        }
+                        free_lbuf(charges);
+                        if ( !mudstate.chkcpu_toggle ) {
+                           wait_que(thing, player, 0, NOTHING, act, args, nargs,
+                                   mudstate.global_regs, mudstate.global_regsname);
+                        }
+                }
+                free_lbuf(act);
+                if (awhat == A_ADESC) {
+                  act = atr_pget(thing, A_ADESC2, &aowner, &aflags);
+                  if (*act && !mudstate.chkcpu_toggle)
+                    wait_que(thing, player, 0, NOTHING, act, args, nargs,
+                             mudstate.global_regs, mudstate.global_regsname);
+                  free_lbuf(act);
+                }
+
+           }
 	}
       }
       cpustopper += mudstate.chkcpu_toggle;
@@ -938,7 +1096,7 @@ ATTR 	*tst_glb, *format_atr;
       }
       if ( i_didsave && mudconf.descs_are_local ) {
          i_didsave = 0;
-         for (x = 0; x < MAX_GLOBAL_REGS; x++) {
+         for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             pt = mudstate.global_regs[x];
             npt = mudstate.global_regsname[x];
             safe_str(savereg[x],mudstate.global_regs[x],&pt);

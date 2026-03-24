@@ -686,17 +686,20 @@ int fh_none(dbref target, dbref player, int flag, int fflags, int reset)
 TOTEMENT totem_table[] =
 {
 /* NAME, BITVALUE, LETTER, LETTER-TIER, SLOT, BASE-PERMS, SEE-PERMS, SET-PERMS, UNSET-PERMS, TYPE-PERMS, PERM?, ALIASED?, FUNC-HANDLE */
-  {"MARKER0", 0x00000001, '0', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER1", 0x00000002, '1', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER2", 0x00000004, '2', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER3", 0x00000008, '3', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER4", 0x00000010, '4', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER5", 0x00000020, '5', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER6", 0x00000040, '6', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER7", 0x00000080, '7', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER8", 0x00000100, '8', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {"MARKER9", 0x00000200, '9', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 0, 2, 0, totem_any},
-  {NULL, 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
+  {"MARKER0", 	0x00000001, '0', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER1", 	0x00000002, '1', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER2", 	0x00000004, '2', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER3", 	0x00000008, '3', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER4", 	0x00000010, '4', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER5", 	0x00000020, '5', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER6", 	0x00000040, '6', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER7", 	0x00000080, '7', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER8", 	0x00000100, '8', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"MARKER9", 	0x00000200, '9', 0, 9, 0, 0, CA_WIZARD,	CA_WIZARD, 	0, 2, 0, totem_any},
+  {"API_LUA", 	0x00000400, 'u', 0, 9, 0, 0, CA_WIZARD, CA_WIZARD, 	0, 2, 0, totem_any},
+  {"PROMPT", 	0x00000800, 'p', 2, 9, 0, 0, CA_WIZARD, CA_WIZARD, 	0, 2, 0, totem_any},
+  {"SETQLABEL",	0x80000000, 's', 2, 9, 0, 0, 0,		0, 		0, 2, 0, totem_any},
+  { NULL,	0x00000000, ' ', 0, 0, 0, 0, 0, 	0, 		0, 0, 0, NULL}
 };
 
 /* Toggle table, 4th item tells which toggle word, 0 for 1st word, TOGGLE2, TOGGLE3, or TOGGLE4 */
@@ -775,88 +778,89 @@ TOGENT tog_table[] =
 
 POWENT pow_table[] =
 {
+  {"API", POWER_API, 'z', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"BOOT", POWER_BOOT, 'N', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
   {"CHANGE_QUOTAS", POWER_CHANGE_QUOTAS, 'A', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
   {"CHOWN_ANYWHERE", POWER_CHOWN_ANYWHERE, 'B', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
   {"CHOWN_ME", POWER_CHOWN_ME, 'C', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
   {"CHOWN_OTHER", POWER_CHOWN_OTHER, 'D', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"WIZ_WHO", POWER_WIZ_WHO, 'E', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
   {"EXAMINE_ALL", POWER_EX_ALL, 'F', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"NOFORCE", POWER_NOFORCE, 'G', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"SEE_QUEUE_ALL", POWER_SEE_QUEUE_ALL, 'H', POWER3, 0, POWER_LEVEL_NA, pw_imm},
-  {"FREE_QUOTA", POWER_FREE_QUOTA, 'I', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
-  {"GRAB_PLAYER", POWER_GRAB_PLAYER, 'J', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"JOIN_PLAYER", POWER_JOIN_PLAYER, 'K', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"LONG_FINGERS", POWER_LONG_FINGERS, 'L', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
-  {"NO_BOOT", POWER_NO_BOOT, 'M', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"BOOT", POWER_BOOT, 'N', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"STEAL", POWER_STEAL, 'O', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"SEE_QUEUE", POWER_SEE_QUEUE, 'P', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"TEL_ANYWHERE", POWER_TEL_ANYWHERE, 'R', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"TEL_ANYTHING", POWER_TEL_ANYTHING, 'S', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"STAT_ANY", POWER_STAT_ANY, 'T', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"PCREATE", POWER_PCREATE, 'U', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
-  {"FREE_WALL", POWER_FREE_WALL, 'V', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
-  {"NOWHO", POWER_NOWHO, 'W', POWER5, 0, POWER_LEVEL_NA, pw_wiz},
-  {"FREE_PAGE", POWER_FREE_PAGE, 'X', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
-  {"HALT_QUEUE", POWER_HALT_QUEUE, 'Y', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"HALT_QUEUE_ALL", POWER_HALT_QUEUE_ALL, 'Z', POWER4, 0, POWER_LEVEL_NA, pw_imm},
-  {"NOKILL", POWER_NOKILL, 'b', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"SEARCH_ANY", POWER_SEARCH_ANY, 'c', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"SECURITY", POWER_SECURITY, 'd', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"WHO_UNFIND", POWER_WHO_UNFIND, 'e', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"WRAITH", POWER_WRAITH, 'f', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
-  {"SHUTDOWN", POWER_SHUTDOWN, 'g', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
-  {"HIDEBIT", POWER_HIDEBIT, 'h', POWER5, 0, POWER_LEVEL_COUNC, pw_imm},
-  {"PURGE", POWER_OPURGE, 'p', POWER5, 0, POWER_LEVEL_NA, pw_imm},
-  {"FULLTEL", POWER_FULLTEL_ANYWHERE, 't', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"EXAMINE_FULL", POWER_EX_FULL, 'x', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"EXECSCRIPT", POWER_EXECSCRIPT, '$', POWER4, 0, POWER_LEVEL_COUNC, pw_imm},
   {"FORMATTING", POWER_FORMATTING, '^', POWER4, 0, POWER_LEVEL_NA, pw_imm},
-  {"API", POWER_API, 'z', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"FREE_PAGE", POWER_FREE_PAGE, 'X', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
+  {"FREE_QUOTA", POWER_FREE_QUOTA, 'I', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
+  {"FREE_WALL", POWER_FREE_WALL, 'V', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
+  {"FULLTEL", POWER_FULLTEL_ANYWHERE, 't', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"GRAB_PLAYER", POWER_GRAB_PLAYER, 'J', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"HALT_QUEUE", POWER_HALT_QUEUE, 'Y', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"HALT_QUEUE_ALL", POWER_HALT_QUEUE_ALL, 'Z', POWER4, 0, POWER_LEVEL_NA, pw_imm},
+  {"HIDEBIT", POWER_HIDEBIT, 'h', POWER5, 0, POWER_LEVEL_COUNC, pw_imm},
+  {"JOIN_PLAYER", POWER_JOIN_PLAYER, 'K', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"LONG_FINGERS", POWER_LONG_FINGERS, 'L', POWER3, 0, POWER_LEVEL_NA, pw_wiz},
   {"MONITORAPI", POWER_MONITORAPI, '8', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"NO_BOOT", POWER_NO_BOOT, 'M', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"NOFORCE", POWER_NOFORCE, 'G', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"NOKILL", POWER_NOKILL, 'b', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"NOWHO", POWER_NOWHO, 'W', POWER5, 0, POWER_LEVEL_NA, pw_wiz},
+  {"PCREATE", POWER_PCREATE, 'U', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
+  {"PURGE", POWER_OPURGE, 'p', POWER5, 0, POWER_LEVEL_NA, pw_imm},
+  {"SEARCH_ANY", POWER_SEARCH_ANY, 'c', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"SECURITY", POWER_SECURITY, 'd', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"SEE_QUEUE", POWER_SEE_QUEUE, 'P', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"SEE_QUEUE_ALL", POWER_SEE_QUEUE_ALL, 'H', POWER3, 0, POWER_LEVEL_NA, pw_imm},
+  {"SHUTDOWN", POWER_SHUTDOWN, 'g', POWER4, 0, POWER_LEVEL_NA, pw_wiz},
+  {"STAT_ANY", POWER_STAT_ANY, 'T', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"STEAL", POWER_STEAL, 'O', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"TEL_ANYTHING", POWER_TEL_ANYTHING, 'S', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"TEL_ANYWHERE", POWER_TEL_ANYWHERE, 'R', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"USE_FREELIST", POWER_USE_FREELIST, 'u', POWER5, 0, POWER_LEVEL_NA, pw_wiz},
   {"WIZ_IDLE", POWER_WIZ_IDLE, '@', POWER5, 0, POWER_LEVEL_NA, pw_imm},
   {"WIZ_SPOOF", POWER_WIZ_SPOOF, '~', POWER5, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"WHO_UNFIND", POWER_WHO_UNFIND, 'e', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"WIZ_WHO", POWER_WIZ_WHO, 'E', POWER3, 0, POWER_LEVEL_COUNC, pw_wiz},
+  {"WRAITH", POWER_WRAITH, 'f', POWER4, 0, POWER_LEVEL_COUNC, pw_wiz},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 
 POWENT depow_table[] =
 {
-  {"WALL", DP_WALL, 'A', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"LONG_FINGERS", DP_LONG_FINGERS, 'B', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"STEAL", DP_STEAL, 'C', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"CREATE", DP_CREATE, 'D', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"WIZ_WHO", DP_WIZ_WHO, 'E', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"CLOAK", DP_CLOAK, 'F', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"ABUSE", DP_ABUSE, 'Z', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
   {"BOOT", DP_BOOT, 'G', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"PAGE", DP_PAGE, 'H', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"FORCE", DP_FORCE, 'I', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"LOCKS", DP_LOCKS, 'J', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"COM", DP_COM, 'K', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"COMMAND", DP_COMMAND, 'L', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"MASTER", DP_MASTER, 'M', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"EXAMINE", DP_EXAMINE, 'N', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"NUKE", DP_NUKE, 'O', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"FREE", DP_FREE, 'P', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"OVERRIDE", DP_OVERRIDE, 'Q', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"TEL_ANYWHERE", DP_TEL_ANYWHERE, 'R', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"TEL_ANYTHING", DP_TEL_ANYTHING, 'S', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
-  {"PCREATE", DP_PCREATE, 'T', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"POWER", DP_POWER, 'U', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"QUOTA", DP_QUOTA, 'V', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"MODIFY", DP_MODIFY, 'W', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
   {"CHOWN_ME", DP_CHOWN_ME, 'X', POWER7, 0, POWER_LEVEL_OFF, pw_im2},
   {"CHOWN_OTHER", DP_CHOWN_OTHER, 'Y', POWER7, 0, POWER_LEVEL_OFF, pw_im2},
-  {"ABUSE", DP_ABUSE, 'Z', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"UNL_QUOTA", DP_UNL_QUOTA, 'a', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"SEARCH_ANY", DP_SEARCH_ANY, 'b', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"COM", DP_COM, 'K', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"COMMAND", DP_COMMAND, 'L', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"CREATE", DP_CREATE, 'D', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"CLOAK", DP_CLOAK, 'F', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"DARK", DP_DARK, '-', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"EXAMINE", DP_EXAMINE, 'N', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"FORCE", DP_FORCE, 'I', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"FREE", DP_FREE, 'P', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
   {"GIVE", DP_GIVE, 'c', POWER7, 0, POWER_LEVEL_OFF, pw_wiz3},
-  {"RECEIVE",  DP_RECEIVE, 'd', POWER7, 0, POWER_LEVEL_OFF, pw_wiz3},
+  {"LOCKS", DP_LOCKS, 'J', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"LONG_FINGERS", DP_LONG_FINGERS, 'B', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"MASTER", DP_MASTER, 'M', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"MODIFY", DP_MODIFY, 'W', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"MORTAL_EXAMINE", DP_MORTAL_EXAMINE, 'h', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
   {"NOGOLD", DP_NOGOLD, 'e', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
   {"NOSTEAL", DP_NOSTEAL, 'f', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"NUKE", DP_NUKE, 'O', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"OVERRIDE", DP_OVERRIDE, 'Q', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"PAGE", DP_PAGE, 'H', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
   {"PASSWORD", DP_PASSWORD, 'g', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"MORTAL_EXAMINE", DP_MORTAL_EXAMINE, 'h', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"PCREATE", DP_PCREATE, 'T', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
   {"PERSONAL_COMMAND", DP_PERSONAL_COMMANDS, 'i', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
-  {"DARK", DP_DARK, '-', POWER8, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"POWER", DP_POWER, 'U', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"QUOTA", DP_QUOTA, 'V', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"RECEIVE",  DP_RECEIVE, 'd', POWER7, 0, POWER_LEVEL_OFF, pw_wiz3},
+  {"SEARCH_ANY", DP_SEARCH_ANY, 'b', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"STEAL", DP_STEAL, 'C', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"TEL_ANYTHING", DP_TEL_ANYTHING, 'S', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"TEL_ANYWHERE", DP_TEL_ANYWHERE, 'R', POWER7, 0, POWER_LEVEL_OFF, pw_wiz2},
+  {"UNL_QUOTA", DP_UNL_QUOTA, 'a', POWER7, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"WALL", DP_WALL, 'A', POWER6, 0, POWER_LEVEL_NA, pw_wiz2},
+  {"WIZ_WHO", DP_WIZ_WHO, 'E', POWER6, 0, POWER_LEVEL_OFF, pw_wiz2},
   {NULL, 0, 0, 0, 0, 0, NULL}
 };
 
@@ -991,6 +995,7 @@ FLAGENT gen_flags[] =
   {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
   {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, 0, fh_any},
   {"HAS_ATTRPIPE", HAS_ATTRPIPE, '|', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
+  {"COLORMAIL", COLORMAIL, '!', FLAG4, 0, 0, 0, 0, fh_any}, 
   {"", 0, ' ', 0, 0, 0, 0, 0, NULL}
 };
 
@@ -1015,13 +1020,28 @@ NDECL(init_totemtab)
 {
    TOTEMENT *fp;
    char *nbuf, *np, *bp;
-   int i_rettype, i_cnt;
+   int i_rettype, i_cnt, i_tab;
 
    hashinit(&mudstate.totem_htab, 521);
 
    /* load table */
    nbuf = alloc_sbuf("init_totemtab");
+   i_tab=0;
    for (fp = totem_table; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+
+      /* If the flag slot is already in use, skip it */
+      i_tab++;
+      if ( (mudstate.totem_slots[fp->flagpos] & fp->flagvalue) == fp->flagvalue ) {
+        STARTLOG(LOG_ALWAYS, "TTM", "ERROR")
+           sprintf(nbuf, "Duplicate table entry %d: ", i_tab);
+           log_text(nbuf);
+           log_text(fp->flagname);
+           sprintf(nbuf, " [%d] 0x%08x", fp->flagpos, fp->flagvalue);
+           log_text(nbuf);
+        ENDLOG
+        continue;
+      }
+
       memset(nbuf, '\0', SBUF_SIZE);
       for (np = nbuf, i_cnt = 0, bp = (char *) fp->flagname; *bp; np++, bp++) {
          *np = ToLower((int)*bp);
@@ -1033,6 +1053,10 @@ NDECL(init_totemtab)
       /* We need to XMALLOC this value for future potential rename/delete */
       fp->flagname = (char *) strsavetotem(fp->flagname);
       hashadd2(nbuf, (int *) fp, &mudstate.totem_htab, 1);
+
+      /* Update mudstate with slot information for in use */
+      mudstate.totem_slots[fp->flagpos] |= fp->flagvalue;
+      
    }
    free_sbuf(nbuf);
 
@@ -1212,6 +1236,100 @@ display_flagtab(dbref player)
 static int togent_comp(const void *s1, const void *s2)
 {
   return strcmp((*(TOGENT **) s1)->togglename, (*(TOGENT **) s2)->togglename);
+}
+
+void
+display_totemfree(dbref player, int tagslot) 
+{
+   TOTEMENT *tp;
+   int totemfree[TOTEM_SLOTS], i_slots, i_cntr;
+   char *s_buff, *s_buffptr, *tbuff;
+
+
+   for ( i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+      totemfree[i_slots] = 0;
+   }
+
+   /* Populate the used totem spaces */
+   for (tp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+        tp;
+        tp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+
+      totemfree[tp->flagpos] |= tp->flagvalue;
+   }
+
+   s_buff = alloc_lbuf("display_totemfree");
+   if ( tagslot == -1 ) {
+      sprintf(s_buff, "%5s: First row is 1-16, second is 17-32 for free bits [open/unassigned  0].", (char *)"Slot");
+      notify_quiet(player, s_buff);
+      for (i_slots = 0; i_slots < TOTEM_SLOTS; i_slots++ ) {
+         sprintf(s_buff, "%5d: [ 1-16] %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d", i_slots,
+            totemfree[i_slots] & 0x00000001 ? 1 : 0,
+            totemfree[i_slots] & 0x00000002 ? 1 : 0,
+            totemfree[i_slots] & 0x00000004 ? 1 : 0,
+            totemfree[i_slots] & 0x00000008 ? 1 : 0,
+            totemfree[i_slots] & 0x00000010 ? 1 : 0,
+            totemfree[i_slots] & 0x00000020 ? 1 : 0,
+            totemfree[i_slots] & 0x00000040 ? 1 : 0,
+            totemfree[i_slots] & 0x00000080 ? 1 : 0,
+            totemfree[i_slots] & 0x00000100 ? 1 : 0,
+            totemfree[i_slots] & 0x00000200 ? 1 : 0,
+            totemfree[i_slots] & 0x00000400 ? 1 : 0,
+            totemfree[i_slots] & 0x00000800 ? 1 : 0,
+            totemfree[i_slots] & 0x00001000 ? 1 : 0,
+            totemfree[i_slots] & 0x00002000 ? 1 : 0,
+            totemfree[i_slots] & 0x00004000 ? 1 : 0,
+            totemfree[i_slots] & 0x00008000 ? 1 : 0);
+         notify_quiet(player, s_buff);
+         sprintf(s_buff, "%5s  [17-32] %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d", (char *)" ",
+            totemfree[i_slots] & 0x00010000 ? 1 : 0,
+            totemfree[i_slots] & 0x00020000 ? 1 : 0,
+            totemfree[i_slots] & 0x00040000 ? 1 : 0,
+            totemfree[i_slots] & 0x00080000 ? 1 : 0,
+            totemfree[i_slots] & 0x00100000 ? 1 : 0,
+            totemfree[i_slots] & 0x00200000 ? 1 : 0,
+            totemfree[i_slots] & 0x00400000 ? 1 : 0,
+            totemfree[i_slots] & 0x00800000 ? 1 : 0,
+            totemfree[i_slots] & 0x01000000 ? 1 : 0,
+            totemfree[i_slots] & 0x02000000 ? 1 : 0,
+            totemfree[i_slots] & 0x04000000 ? 1 : 0,
+            totemfree[i_slots] & 0x08000000 ? 1 : 0,
+            totemfree[i_slots] & 0x10000000 ? 1 : 0,
+            totemfree[i_slots] & 0x20000000 ? 1 : 0,
+            totemfree[i_slots] & 0x40000000 ? 1 : 0,
+            totemfree[i_slots] & 0x80000000 ? 1 : 0);
+         notify_quiet(player, s_buff);
+      }
+   } else {
+      if ( (tagslot >= TOTEM_SLOTS) || (tagslot < 0) ) {
+         notify_quiet(player, "Invalid slot specified.");
+         return;
+      } else {
+         s_buffptr = s_buff;
+         i_cntr = 0;
+         tbuff = alloc_sbuf("display_totemfree_tmp");
+         sprintf(tbuff, "Slot %d detail:", tagslot);
+         notify_quiet(player, tbuff);
+         for ( i_slots = 0; i_slots < 32; i_slots++ ) {
+            if ( !(totemfree[tagslot] & (1 << i_slots)) ) {
+               sprintf(tbuff, "0x%08X", 1 << i_slots);
+               if ( *s_buff ) {
+                  safe_chr(' ', s_buff, &s_buffptr);
+               }
+               if ( !(i_cntr % 6) ) {
+                  safe_str((char *)"\r\n", s_buff, &s_buffptr);
+               }
+               i_cntr++;
+               safe_str(tbuff, s_buff, &s_buffptr);
+            }
+         }
+         free_sbuf(tbuff);
+         notify_quiet(player, s_buff);
+      }
+   }
+   free_lbuf(s_buff);
+
+   return;
 }
 
 void 
@@ -1457,7 +1575,7 @@ find_toggle_perm(dbref thing, char *togglename, dbref player)
     char *cp;
     TOGENT *tp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the name is valid */
 
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
@@ -1487,11 +1605,30 @@ find_totem(dbref thing, char *totemname)
 {
     char *cp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the totem name is valid */
 
     for (cp = totemname; *cp; cp++)
 	*cp = ToLower((int)*cp);
     return (TOTEMENT *) hashfind(totemname, &mudstate.totem_htab);
+}
+
+int
+check_totem(dbref thing, dbref player, char *totemname) {
+   TOTEMENT *hashp;
+   int i_ret;
+
+   i_ret = 0;
+   if ( Good_obj(thing) && Good_obj(player) && totemname && *totemname ) {
+      hashp = find_totem(thing, totemname);
+      if ( hashp ) {
+         if ( (dbtotem[thing].flags[hashp->flagpos] & hashp->flagvalue) == hashp->flagvalue ) {
+            if ( totem_cansee_bit(player, thing, hashp->listperm) ) {
+               i_ret = 1;
+             }
+          } 
+      }
+   }
+   return i_ret;
 }
 
 TOGENT *
@@ -1499,7 +1636,7 @@ find_toggle(dbref thing, char *togglename)
 {
     char *cp;
 
-    /* Make sure the flag name is valid */
+    /* Make sure the toggle name is valid */
 
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
@@ -1535,6 +1672,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
 {
     FLAGENT *fp;
     TOGENT *tp;
+    TOTEMENT *tmp;
     int negate, result, perm, i_ovperm, i_uovperm, i_chkflags, i_setmuffle;
     char *pt1, *pt2, st, *tbuff, *tpr_buff, *tprp_buff, *tpr_buff2, *tprp_buff2;
 
@@ -1584,14 +1722,20 @@ flag_set(dbref target, dbref player, char *flag, int key)
                 tp = find_toggle_perm(target, pt1, player);
                 if ( !i_setmuffle) {
                    if ( tp == NULL ) {
-		      notify(player, "I don't understand that flag.");
+                      tmp = find_totem_perm(target, pt1, player);
+                      if ( tmp == NULL ) {
+		         notify(player, "I don't understand that flag.");
+                      } else {
+                         notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @totem me=%s?]", pt1));
+                         tprp_buff = tpr_buff;
+                      }
                    } else {
                       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that flag [Did you mean @toggle me=%s?]", pt1));
                       tprp_buff = tpr_buff;
                    }
                }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player))) {
                   if ( !i_setmuffle )
@@ -1695,15 +1839,15 @@ flag_set(dbref target, dbref player, char *flag, int key)
                      perm = 0;
                   }
 		  if ( perm && (fp->flagvalue & SIDEFX) && (fp->flagflag & FLAG3) &&
-                             !((God(player) && (mudconf.restrict_sidefx <= 7)) ||
-                               (Immortal(player) && (mudconf.restrict_sidefx <= 6 )) ||
-                               (Wizard(player) && (mudconf.restrict_sidefx <= 5 )) ||
-                               (Admin(player) && (mudconf.restrict_sidefx <= 4 )) ||
-                               (Builder(player) && (mudconf.restrict_sidefx <= 3 )) ||
-                               (Guildmaster(player) && (mudconf.restrict_sidefx <= 2 )) ||
-			       ((Wanderer(player) || Guest(player)) && (mudconf.restrict_sidefx <=  1)) ||
-                               (mudconf.restrict_sidefx == 0 )) ) {
-                     if ( !i_setmuffle )
+                        !((God(player) && (mudconf.restrict_sidefx <= 7)) ||
+                          (Immortal(player) && (mudconf.restrict_sidefx <= 6 )) ||
+                          (Wizard(player) && (mudconf.restrict_sidefx <= 5 )) ||
+                          (Admin(player) && (mudconf.restrict_sidefx <= 4 )) ||
+                          (Builder(player) && (mudconf.restrict_sidefx <= 3 )) ||
+                          (Guildmaster(player) && (mudconf.restrict_sidefx <= 2 )) ||
+                          (!(Wanderer(player) || Guest(player)) && (mudconf.restrict_sidefx <= 1)) ||
+                          (mudconf.restrict_sidefx == 0)) ) {
+                     if ( !i_setmuffle ) 
 		        notify(player, "Permission denied.");
                      perm = 0;
                   }
@@ -1828,17 +1972,216 @@ flag_set(dbref target, dbref player, char *flag, int key)
     free_lbuf(tbuff);
 }
 
+int
+totem_clean(char *s_target, char *s_totems, dbref player)
+{
+   int i_count, i_totem, i_change, i_first, i_retval, i_slot, i_mask,
+       i_playertotems[TOTEM_SLOTS], totems[TOTEM_SLOTS], totemmask[TOTEM_SLOTS];
+   dbref target, thing;
+   char *s_buff, *s_buffptr, *s_tottok, *s_tottokr, *s_ptr;
+   TOTEMENT *storedtag;
+
+   i_retval = -777;
+   i_slot = 0;
+
+   /* Initialize totem slots */
+   for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+      totems[i_totem] = 0;
+      totemmask[i_totem] = 0x0;
+   }
+
+   /* we specified exact masks we want to clear here */
+   if ( *s_totems ) {
+      if ( strchr(s_totems, '/') == NULL ) {
+         notify_quiet(player, "@totem/clean: masks require form <slot>/<bitmask>.  Example: 2/0x00400000");
+         return -777;
+      }
+      s_buff = alloc_lbuf("totem_clean_bymask");
+      s_buffptr = alloc_lbuf("totem_clean_message");
+      strcpy(s_buff, s_totems);
+      s_tottok = strtok_r(s_buff, " \t", &s_tottokr);
+      if ( strchr(s_tottok, '/') != NULL ) {
+         while ( s_tottok ) {
+            i_slot = atoi(s_tottok);
+            if ( (i_slot >= 0) && (i_slot < TOTEM_SLOTS) ) {
+               s_ptr = strchr(s_tottok, '/') + 1;
+               /* Validate bitmask */
+               if ( (strlen(s_ptr) == 10) && 
+                    (*s_ptr == '0') &&
+                    (ToLower(*(s_ptr+1)) == 'x') &&
+                     isxdigit(*(s_ptr+2)) &&
+                     isxdigit(*(s_ptr+3)) &&
+                     isxdigit(*(s_ptr+4)) &&
+                     isxdigit(*(s_ptr+5)) &&
+                     isxdigit(*(s_ptr+6)) &&
+                     isxdigit(*(s_ptr+7)) &&
+                     isxdigit(*(s_ptr+8)) &&
+                     isxdigit(*(s_ptr+9)) ) {
+                  i_mask = (int)atof(s_ptr);
+               } else {
+                  sprintf(s_buffptr, "@totem/clean: mask for '%s' not valid format of 0xFFFFFFFF", s_tottok);
+                  notify_quiet(player, s_buffptr);
+                  i_slot = -1;
+                  break;
+               }
+               totemmask[i_slot] |= i_mask;
+            } else {
+               sprintf(s_buffptr, "@totem/clean: slot for '%s' outside range of 0-%d", s_tottok, TOTEM_SLOTS);
+               notify_quiet(player, s_buffptr);
+               i_slot = -1;
+               break;
+            }
+            s_tottok = strtok_r(NULL, " \t", &s_tottokr);
+            if ( s_tottok && strchr(s_tottok, '/') == NULL ) {
+               sprintf(s_buffptr, "@totem/clean: slot & mask '%s' requires form <slot>/<bitmask>.  Example: 2/0x00400000", s_tottok);
+               notify_quiet(player, s_buffptr);
+               i_slot = -1;
+               break;
+            }
+         }
+      } else {
+         sprintf(s_buffptr, "@totem/clean: slot & mask '%s' require form <slot>/<bitmask>.  Example: 2/0x00400000", s_tottok);
+         i_slot = -1;
+         notify_quiet(player, s_buffptr);
+      }
+      free_lbuf(s_buff);
+      free_lbuf(s_buffptr);
+
+      /* If bad slot/mask combo, return silently */
+      if ( i_slot == -1 ) {
+         return -777;
+      } else {
+         i_slot = 1;
+      }
+   }
+   /* Mark what totems are valid */
+   for ( storedtag = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1);
+         storedtag;
+         storedtag = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)) {
+      if ( storedtag ) {
+         totems[storedtag->flagpos] |= storedtag->flagvalue;
+      }
+   }
+
+   /* Apply bitmask stripper */
+   if ( i_slot ) {
+      for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+         if ( totemmask[i_totem] != 0 ) {
+            totems[i_totem] = 0xFFFFFFFF & ~totemmask[i_totem];
+         } else {
+            totems[i_totem] = 0xFFFFFFFF;
+         }
+      }
+   }
+
+   s_buffptr = s_buff = alloc_lbuf("totem_clean");
+   if ( !*s_target || (stricmp(s_target, (char *)"all") == 0) ) {
+      /* target everyone -- only immortals can do this */
+      if ( !Immortal(player ) ) {
+         notify(player, "@totem/clean: only immortals can run this against the entire database.");
+         return i_retval;
+      }
+      if ( i_slot ) {
+         notify_quiet(player, "@totem/clean: Cleaning all objects of invalid totem slots (bitmasks applied).");
+      } else {
+         notify_quiet(player, "@totem/clean: Cleaning all objects of invalid totem slots.");
+      }
+      i_count = 0;
+      DO_WHOLE_DB(thing) {
+         /* If it's an invalid objects, we don't f'n care */
+         if ( !Good_chk(thing) ) {
+            continue;
+         }
+
+         /* Check and sanitize players, if changes mark db for update
+          * Backup player totems then compare on changes
+          */
+    
+         i_first = i_change = 0;
+         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+            i_playertotems[i_totem] = dbtotem[thing].flags[i_totem];
+            i_mask = dbtotem[thing].flags[i_totem];
+            dbtotem[thing].flags[i_totem] &= totems[i_totem];
+            /* Flag to dump to database */
+            if ( i_playertotems[i_totem] != dbtotem[thing].flags[i_totem] ) {
+               i_change = dbtotem[thing].modified = 1;
+               if ( !i_first && (i_change == 1) ) {
+                  i_first = 1;
+                  i_count++;
+                  if ( i_slot ) {
+                     notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, 
+                                      "   -> Player %s(#%d) cleaned of invalid totems slots (bitmasks applied).", 
+                                      Name(thing), thing));
+                  } else {
+                     notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, 
+                                      "   -> Player %s(#%d) cleaned of invalid totems slots.", 
+                                      Name(thing), thing));
+                  }
+               }
+               notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "      ----> Slot %d: Fixed [0x%08x -> 0x%08x].", 
+                            i_totem, i_mask, dbtotem[thing].flags[i_totem]));
+            }
+         }
+      }
+      if ( i_slot ) {
+         notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: %d total dbref#'s cleaned (bitmasks applied).", i_count));
+      } else {
+         notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: %d total dbref#'s cleaned.", i_count));
+      }
+   } else {
+      /* target player only -- check if valid or controls */
+      init_match(player, s_target, NOTYPE);
+      match_everything(MAT_EXIT_PARENTS);
+      target = match_result();
+      if ( !Good_chk(target) || !Controls(player, target) ) {
+         i_retval = -12;
+      } else {
+         i_first = i_change = 0;
+         for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+            i_playertotems[i_totem] = dbtotem[target].flags[i_totem];
+            i_mask = dbtotem[target].flags[i_totem];
+            dbtotem[target].flags[i_totem] &= totems[i_totem];
+            /* Flag to dump to database */
+            if ( i_playertotems[i_totem] != dbtotem[target].flags[i_totem] ) {
+               i_change = dbtotem[target].modified = 1;
+               if ( !i_first && (i_change == 1) ) {
+                  i_first = 1;
+                  if ( i_slot ) {
+                     notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, 
+                                      "@totem/clean: Player %s(#%d) cleaned of invalid totems slots (bitmasks applied).", 
+                                      Name(target), target));
+                  } else {
+                     notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, 
+                                      "@totem/clean: Player %s(#%d) cleaned of invalid totems slots.", 
+                                      Name(target), target));
+                  }
+               }
+               notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "      ----> Slot %d: Fixed [0x%08x -> 0x%08x].", 
+                            i_totem, i_mask, dbtotem[target].flags[i_totem]));
+            }
+         }
+         if ( i_change == 0 ) {
+            notify_quiet(player, safe_tprintf(s_buff, &s_buffptr, "@totem/clean: Player %s(#%d) had no invalid slots to clean.", Name(target), target));
+         }
+      }
+   }
+   free_lbuf(s_buff);
+   return i_retval;
+}
+
 void 
 totem_set(dbref target, dbref player, char *totem, int key)
 {
-    TOTEMENT *fp, *tp;
+    TOTEMENT *tmp;
+    TOGENT *tp;
+    FLAGENT *fp;
     FLAG i_flag;
     int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
 
     /* Trim spaces, and handle the negation character */
 
-    fp = (TOTEMENT*)NULL;
+    fp = (FLAGENT*)NULL;
     pt1 = totem;
     st = 1;
     while (st) {
@@ -1871,12 +2214,19 @@ totem_set(dbref target, dbref player, char *totem, int key)
 		notify(player, "You must specify a totem or totem to set.");
             }
 	} else {
-	    tp = find_totem(target, pt1);
-	    if (tp == NULL) {
+	    tmp = find_totem(target, pt1);
+	    if (tmp == NULL) {
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
-                fp = find_totem_perm(target, pt1, player);
+                fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
-		   notify(player, "I don't understand that totem.");
+                   tp = find_toggle_perm(target, pt1, player);
+                   if ( tp == NULL ) {
+		      notify(player, "I don't understand that totem.");
+                   } else {
+                      tprp_buff = tpr_buff = alloc_lbuf("totem_message");
+                      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that totem [Did you mean @toggle me=%s?]", pt1));
+                      free_lbuf(tpr_buff);
+                   }
                 } else {
                    tprp_buff = tpr_buff = alloc_lbuf("totem_message");
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that totem [Did you mean @set me=%s?]", pt1));
@@ -1884,31 +2234,31 @@ totem_set(dbref target, dbref player, char *totem, int key)
                 }
               }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || 
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
 		     notify(player, "Permission denied.");
                     perm = 0;
                 } 
-                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tp->typeperm & DEF_ROOM)) || 
-                             ((Typeof(target) == TYPE_PLAYER) && (tp->typeperm & DEF_PLAYER)) ||
-                             ((Typeof(target) == TYPE_THING) && (tp->typeperm & DEF_THING)) ||
-                             ((Typeof(target) == TYPE_EXIT) && (tp->typeperm & DEF_EXIT)) ) ) {
-                    if ( !(tp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
+                if ( perm && (((Typeof(target) == TYPE_ROOM) && (tmp->typeperm & DEF_ROOM)) || 
+                             ((Typeof(target) == TYPE_PLAYER) && (tmp->typeperm & DEF_PLAYER)) ||
+                             ((Typeof(target) == TYPE_THING) && (tmp->typeperm & DEF_THING)) ||
+                             ((Typeof(target) == TYPE_EXIT) && (tmp->typeperm & DEF_EXIT)) ) ) {
+                    if ( !(tmp->typeperm & (DEF_REGISTERED|DEF_GUILDMASTER|DEF_ARCHITECT|
                                             DEF_COUNCILOR|DEF_WIZARD|DEF_IMMORTAL)) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
+                     } else if ( (tmp->typeperm & DEF_REGISTERED) && (Guest(player) || Wanderer(player)) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
+                     } else if ( (tmp->typeperm & DEF_GUILDMASTER) && !Guild(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
+                     } else if ( (tmp->typeperm & DEF_ARCHITECT) && !Builder(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
+                     } else if ( (tmp->typeperm & DEF_COUNCILOR) && !Admin(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
+                     } else if ( (tmp->typeperm & DEF_WIZARD) && !Wizard(player) ) {
                         perm = 0;
-                     } else if ( (tp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
+                     } else if ( (tmp->typeperm & DEF_IMMORTAL) && !Immortal(player) ) {
                         perm = 0;
                      }
                      if ( !perm )
@@ -1917,10 +2267,10 @@ totem_set(dbref target, dbref player, char *totem, int key)
 		if ( perm ) {
 		/* Invoke the totem handler, and print feedback */
 
-                  i_flag = dbtotem[target].flags[tp->flagpos];
-                  i_flagchk = !(tp->flagvalue & i_flag);
-                  i_ovperm = (tp->setovperm &~ CA_LOGFLAG);
-                  i_uovperm = (tp->usetovperm &~ CA_LOGFLAG);
+                  i_flag = dbtotem[target].flags[tmp->flagpos];
+                  i_flagchk = !(tmp->flagvalue & i_flag);
+                  i_ovperm = (tmp->setovperm &~ CA_LOGFLAG);
+                  i_uovperm = (tmp->usetovperm &~ CA_LOGFLAG);
                   if (((i_ovperm > 0) && !negate) || 
                       ((i_uovperm > 0) && negate)) {
                      if ((i_ovperm > 0) && !negate) 
@@ -1929,12 +2279,12 @@ totem_set(dbref target, dbref player, char *totem, int key)
                         result = check_access(player, i_uovperm, 0, 0);
                        /* Some things you just can *not* override */
                      if ( result ) {
-		          result = tp->handler(target, player, tp->flagvalue,
-				               tp->flagpos, negate);
+		          result = tmp->handler(target, player, tmp->flagvalue,
+				               tmp->flagpos, negate);
                      }
                   } else {
-		     result = tp->handler(target, player, tp->flagvalue,
-		   		     tp->flagpos, negate);
+		     result = tmp->handler(target, player, tmp->flagvalue,
+		   		     tmp->flagpos, negate);
                   }
                   if ( result ) {
                      dbtotem[target].modified = 1;
@@ -1947,11 +2297,11 @@ totem_set(dbref target, dbref player, char *totem, int key)
                        if ( negate ) {
                           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (cleared totem%s%s).",
                                        Name(target), (!i_flagchk ? " " : " [again] "),
-                                       tp->flagname) );
+                                       tmp->flagname) );
                        } else {
                           notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Set - %s (set totem%s%s).",
                                        Name(target), (i_flagchk ? " " : " [again] "),
-                                       tp->flagname) );
+                                       tmp->flagname) );
                        }
                        free_lbuf(tpr_buff);
                     } else {
@@ -1971,6 +2321,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
 {
     FLAGENT *fp;
     TOGENT *tp;
+    TOTEMENT *tmp;
     FLAG i_flag;
     int negate, result, i_flagchk, i_ovperm, i_uovperm, perm;
     char *pt1, *pt2, st, *tpr_buff, *tprp_buff;
@@ -2015,7 +2366,14 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
               if ( !(key & SIDEEFFECT) || ((*pt1 != '\0') && (key & SIDEEFFECT) && !(key & SET_QUIET)) ) {
                 fp = find_flag_perm(target, pt1, player);
                 if ( fp == NULL ) {
-		   notify(player, "I don't understand that toggle.");
+                   tmp = find_totem_perm(target, pt1, player);
+                   if ( tmp == NULL ) {
+		      notify(player, "I don't understand that toggle.");
+                   } else {
+                      tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
+                      notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @totem me=%s?]", pt1));
+                      free_lbuf(tpr_buff);
+                   }
                 } else {
                    tprp_buff = tpr_buff = alloc_lbuf("toggle_message");
                    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "I don't understand that toggle [Did you mean @set me=%s?]", pt1));
@@ -2023,7 +2381,7 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                 }
               }
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || 
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || 
                     (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 		    (Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) && 
                     !Immortal(player))) {
@@ -2181,7 +2539,7 @@ power_set(dbref target, dbref player, char *power, int key)
 	    if (tp == NULL) {
 		notify(player, "I don't understand that power.");
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player)))
 		  notify(player, "Permission denied.");
@@ -2284,7 +2642,7 @@ depower_set(dbref target, dbref player, char *power, int key)
 	    if (tp == NULL) {
 		notify(player, "I don't understand that depower.");
 	    } else {
-		if ((NoMod(target) && !WizMod(player)) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
+		if ((NoMod(target) && !WizMod(player) && (obj_nomodlevel(target) > obj_bitlevel(player))) || (DePriv(player,Owner(target),DP_MODIFY,POWER7,NOTHING) &&
 			(Owner(player) != Owner(target))) || (Backstage(player) && NoBackstage(target) &&
                         !Immortal(player)))
 		  notify(player, "Permission denied.");
@@ -2376,7 +2734,7 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
                  !Controls(player, target) ) {
                continue;
             }
-            /* If DARK to be tinymush compatible, don't show connect flag */
+            /* If DARK to be TinyMUSH compatible, don't show connect flag */
             if ( (!(mudconf.who_unfindable) && !(mudconf.player_dark) && mudconf.allow_whodark) &&
                  !Admin(player) && Wizard(target) && Dark(target) && (player != target) && 
                  ((fp->flagflag & FLAG2) && (fp->flagvalue == CONNECTED)) )
@@ -2485,7 +2843,7 @@ decode_flags_func(dbref player, dbref target, FLAG flagword, FLAG flag2word,
                continue;
             }
 
-            /* If DARK to be tinymush compatible, don't show connect flag */
+            /* If DARK to be TinyMUSH compatible, don't show connect flag */
             if ( (!(mudconf.who_unfindable) && !(mudconf.player_dark) && mudconf.allow_whodark) &&
                  !Admin(player) && Wizard(target) && Dark(target) && (player != target) && 
                  ((fp->flagflag & FLAG2) && (fp->flagvalue == CONNECTED)) )
@@ -2643,7 +3001,7 @@ totem_bitstostring(dbref player, dbref it, int perms)
       if ( i_first ) {
          safe_chr(' ', s_showbits, &s_ptr);
       }
-      safe_str("IGNORE_ARCHITECH", s_showbits, &s_ptr);
+      safe_str("IGNORE_ARCHITECT", s_showbits, &s_ptr);
       i_first = 1;
    }
    if (perms & CA_IGNORE_COUNC) {
@@ -2791,7 +3149,7 @@ has_flag(dbref player, dbref it, char *flagname)
              !Controls(player, it) ) {
            return 0;
         }
-        /* If DARK to be tinymush compatible, don't show connect flag */
+        /* If DARK to be TinyMUSH compatible, don't show connect flag */
         if ( (!(mudconf.who_unfindable) && !(mudconf.player_dark) && mudconf.allow_whodark) &&
              !Admin(player) && Wizard(it) && Dark(it) && (player != it) && 
              ((fp->flagflag & FLAG2) && (fp->flagvalue == CONNECTED)) )
@@ -2904,7 +3262,7 @@ flag_description(dbref player, dbref target, int test, int *vp, int i_type)
                  !Controls(player, target) ) {
                continue;
             }
-            /* If DARK to be tinymush compatible, don't show connect flag */
+            /* If DARK to be TinyMUSH compatible, don't show connect flag */
             if ( (!(mudconf.who_unfindable) && !(mudconf.player_dark) && mudconf.allow_whodark) &&
                  !Admin(player) && Wizard(target) && Dark(target) && (player != target) && 
                  ((fp->flagflag & FLAG2) && (fp->flagvalue == CONNECTED)) )
@@ -3215,7 +3573,7 @@ unparse_object(dbref player, dbref target, int obey_myopic)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {   
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **)NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -3285,7 +3643,7 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -3302,9 +3660,9 @@ unparse_object_altname(dbref player, dbref target, int obey_myopic)
 char *
 parse_ansi_name(dbref target, char *ansibuf)
 {
-   char *buf2, *s, ansitmp[30], ansitmp2[30];
+   char *buf2, *buf2ptr, *s, ansitmp[30], ansitmp2[30];
 
-       buf2 = alloc_lbuf("ansi_exitname");
+       buf2ptr = buf2 = alloc_lbuf("ansi_exitname");
        memset(ansitmp, 0, sizeof(ansitmp));
        strncpy(ansitmp, ansibuf, 20);
        s = ansitmp;
@@ -3314,88 +3672,109 @@ parse_ansi_name(dbref target, char *ansibuf)
                  if ( (*(s+1) == 'x') || (*(s+1) == 'X') ) {
                     if ( isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
                        sprintf(ansitmp2, "%s0%c%c%c", (char *)SAFE_CHRST, *(s+1), *(s+2), *(s+3));
-                       strcat(buf2, ansitmp2);
+                       safe_str(ansitmp2, buf2, &buf2ptr);
+                       // strcat(buf2, ansitmp2);
                        s+=3;
                     }
                  }
              case 'h':		/* hilite */
                  if ( mudconf.global_ansimask & MASK_HILITE )
-	            strcat(buf2, SAFE_ANSI_HILITE);
+                    safe_str(SAFE_ANSI_HILITE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_HILITE);
 	         break;
              case 'i':		/* inverse */
                  if ( mudconf.global_ansimask & MASK_INVERSE )
-	            strcat(buf2, SAFE_ANSI_INVERSE);
+                    safe_str(SAFE_ANSI_INVERSE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_INVERSE);
 	         break;
              case 'f':		/* flash */
                  if ( mudconf.global_ansimask & MASK_BLINK )
-	            strcat(buf2, SAFE_ANSI_BLINK);
+                    safe_str(SAFE_ANSI_BLINK, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BLINK);
 	         break;
              case 'n':		/* normal */
-	         strcat(buf2, SAFE_ANSI_NORMAL);
+                 safe_str(SAFE_ANSI_NORMAL, buf2, &buf2ptr);
+	         // strcat(buf2, SAFE_ANSI_NORMAL);
 	         break;
              case 'x':		/* black fg */
                  if ( mudconf.global_ansimask & MASK_BLACK )
-	            strcat(buf2, SAFE_ANSI_BLACK);
+                    safe_str(SAFE_ANSI_BLACK, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BLACK);
 	         break;
              case 'r':		/* red fg */
                  if ( mudconf.global_ansimask & MASK_RED )
-	            strcat(buf2, SAFE_ANSI_RED);
+                    safe_str(SAFE_ANSI_RED, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_RED);
 	         break;
              case 'g':		/* green fg */
                  if ( mudconf.global_ansimask & MASK_GREEN )
-	            strcat(buf2, SAFE_ANSI_GREEN);
+                    safe_str(SAFE_ANSI_GREEN, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_GREEN);
 	         break;
              case 'y':		/* yellow fg */
                  if ( mudconf.global_ansimask & MASK_YELLOW )
-	            strcat(buf2, SAFE_ANSI_YELLOW);
+                    safe_str(SAFE_ANSI_YELLOW, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_YELLOW);
 	         break;
              case 'b':		/* blue fg */
                  if ( mudconf.global_ansimask & MASK_BLUE )
-	            strcat(buf2, SAFE_ANSI_BLUE);
+                    safe_str(SAFE_ANSI_BLUE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BLUE);
 	         break;
              case 'm':		/* magenta fg */
                  if ( mudconf.global_ansimask & MASK_MAGENTA )
-	            strcat(buf2, SAFE_ANSI_MAGENTA);
+                    safe_str(SAFE_ANSI_MAGENTA, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_MAGENTA);
 	         break;
              case 'c':		/* cyan fg */
                  if ( mudconf.global_ansimask & MASK_CYAN )
-	            strcat(buf2, SAFE_ANSI_CYAN);
+                    safe_str(SAFE_ANSI_CYAN, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_CYAN);
 	         break;
              case 'w':		/* white fg */
                  if ( mudconf.global_ansimask & MASK_WHITE )
-	            strcat(buf2, SAFE_ANSI_WHITE);
+                    safe_str(SAFE_ANSI_WHITE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_WHITE);
 	         break;
              case 'X':		/* black bg */
                  if ( mudconf.global_ansimask & MASK_BBLACK )
-	            strcat(buf2, SAFE_ANSI_BBLACK);
+                    safe_str(SAFE_ANSI_BBLACK, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BBLACK);
 	         break;
              case 'R':		/* red bg */
                  if ( mudconf.global_ansimask & MASK_BRED )
-	            strcat(buf2, SAFE_ANSI_BRED);
+                    safe_str(SAFE_ANSI_BRED, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BRED);
 	         break;
              case 'G':		/* green bg */
                  if ( mudconf.global_ansimask & MASK_BGREEN )
-	            strcat(buf2, SAFE_ANSI_BGREEN);
+                    safe_str(SAFE_ANSI_BGREEN, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BGREEN);
 	         break;
              case 'Y':		/* yellow bg */
                  if ( mudconf.global_ansimask & MASK_BYELLOW )
-	            strcat(buf2, SAFE_ANSI_BYELLOW);
+                    safe_str(SAFE_ANSI_BYELLOW, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BYELLOW);
 	         break;
              case 'B':		/* blue bg */
                  if ( mudconf.global_ansimask & MASK_BBLUE )
-	            strcat(buf2, SAFE_ANSI_BBLUE);
+                    safe_str(SAFE_ANSI_BBLUE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BBLUE);
 	         break;
              case 'M':		/* magenta bg */
                  if ( mudconf.global_ansimask & MASK_BMAGENTA )
-	            strcat(buf2, SAFE_ANSI_BMAGENTA);
+                    safe_str(SAFE_ANSI_BMAGENTA, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BMAGENTA);
 	         break;
              case 'C':		/* cyan bg */
                  if ( mudconf.global_ansimask & MASK_BCYAN )
-	            strcat(buf2, SAFE_ANSI_BCYAN);
+                    safe_str(SAFE_ANSI_BCYAN, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BCYAN);
 	         break;
              case 'W':		/* white bg */
                  if ( mudconf.global_ansimask & MASK_BWHITE )
-	            strcat(buf2, SAFE_ANSI_BWHITE);
+                    safe_str(SAFE_ANSI_BWHITE, buf2, &buf2ptr);
+	            // strcat(buf2, SAFE_ANSI_BWHITE);
 	         break;
           }
           s++;
@@ -3554,195 +3933,204 @@ parse_ansi_name(dbref target, char *ansibuf)
 char *
 unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 {
-    char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[101], *nfmt;
-    int exam, aowner, ansi_ok;
-    dbref aflags;
+   char *buf, *buf2, *buf3, *fp, *ansibuf, ansitmp[30], name_str[101], *nfmt;
+   int exam, aowner, ansi_ok;
+   dbref aflags;
 #ifndef ZENTY_ANSI
-    char *s;
+   char *s;
 #endif
 
-    ansi_ok = 0;
-    buf = alloc_lbuf("unparse_object_ansi_a");
-    memset(ansitmp, 0, sizeof(ansitmp));
+   ansi_ok = 0;
+   buf = alloc_lbuf("unparse_object_ansi_a");
+   memset(ansitmp, 0, sizeof(ansitmp));
 
-    if (target == NOTHING) {
-	strcpy(buf, "*NOTHING*");
-    } else if (target == HOME) {
-	strcpy(buf, "*HOME*");
-    } else if (target == AMBIGUOUS) {
-	strcpy(buf, "*AMBIGUOUS*");
-    } else if (!Good_obj(target)) {
-	sprintf(buf, "*ILLEGAL*(#%d)", target);
-    } else {
+   if (target == NOTHING) {
+      strcpy(buf, "*NOTHING*");
+   } else if (target == HOME) {
+      strcpy(buf, "*HOME*");
+   } else if (target == AMBIGUOUS) {
+      strcpy(buf, "*AMBIGUOUS*");
+   } else if (!Good_obj(target)) {
+      sprintf(buf, "*ILLEGAL*(#%d)", target);
+   } else {
 #ifdef ZENTY_ANSI
-        ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
-        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_all_special(ansibuf))) == 0)) )
-            buf2 = parse_ansi_name(target, ansibuf);
-        else
-            buf2=alloc_lbuf("unparse_object_ansi_b");
+      ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
+      if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_all_special(ansibuf))) == 0)) ) {
+         buf2 = parse_ansi_name(target, ansibuf);
+      } else {
+         buf2=alloc_lbuf("unparse_object_ansi_b");
+      }
 #else
-        buf2=alloc_lbuf("unparse_object_ansi_b");
-           ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
-       if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_ansi(ansibuf))) == 0)) ) {
-          strncpy(ansitmp, ansibuf, 20);
-          s = ansitmp;
-          while (*s) {
-             switch (*s) {
-             case 'h':		/* hilite */
-                 if ( mudconf.global_ansimask & MASK_HILITE )
-	            strcat(buf2, CF_ANSI_HILITE);
-	         break;
-             case 'i':		/* inverse */
-                 if ( mudconf.global_ansimask & MASK_INVERSE )
-	            strcat(buf2, CF_ANSI_INVERSE);
-	         break;
-             case 'f':		/* flash */
-                 if ( mudconf.global_ansimask & MASK_BLINK )
-	            strcat(buf2, CF_ANSI_BLINK);
-	         break;
-             case 'n':		/* normal */
-	         strcat(buf2, CF_ANSI_NORMAL);
-	         break;
-             case 'x':		/* black fg */
-                 if ( mudconf.global_ansimask & MASK_BLACK )
-	            strcat(buf2, CF_ANSI_BLACK);
-	         break;
-             case 'r':		/* red fg */
-                 if ( mudconf.global_ansimask & MASK_RED )
-	            strcat(buf2, CF_ANSI_RED);
-	         break;
-             case 'g':		/* green fg */
-                 if ( mudconf.global_ansimask & MASK_GREEN )
-	            strcat(buf2, CF_ANSI_GREEN);
-	         break;
-             case 'y':		/* yellow fg */
-                 if ( mudconf.global_ansimask & MASK_YELLOW )
-	            strcat(buf2, CF_ANSI_YELLOW);
-	         break;
-             case 'b':		/* blue fg */
-                 if ( mudconf.global_ansimask & MASK_BLUE )
-	            strcat(buf2, CF_ANSI_BLUE);
-	         break;
-             case 'm':		/* magenta fg */
-                 if ( mudconf.global_ansimask & MASK_MAGENTA )
-	            strcat(buf2, CF_ANSI_MAGENTA);
-	         break;
-             case 'c':		/* cyan fg */
-                 if ( mudconf.global_ansimask & MASK_CYAN )
-	            strcat(buf2, CF_ANSI_CYAN);
-	         break;
-             case 'w':		/* white fg */
-                 if ( mudconf.global_ansimask & MASK_WHITE )
-	            strcat(buf2, CF_ANSI_WHITE);
-	         break;
-             case 'X':		/* black bg */
-                 if ( mudconf.global_ansimask & MASK_BBLACK )
-	            strcat(buf2, CF_ANSI_BBLACK);
-	         break;
-             case 'R':		/* red bg */
-                 if ( mudconf.global_ansimask & MASK_BRED )
-	            strcat(buf2, CF_ANSI_BRED);
-	         break;
-             case 'G':		/* green bg */
-                 if ( mudconf.global_ansimask & MASK_BGREEN )
-	            strcat(buf2, CF_ANSI_BGREEN);
-	         break;
-             case 'Y':		/* yellow bg */
-                 if ( mudconf.global_ansimask & MASK_BYELLOW )
-	            strcat(buf2, CF_ANSI_BYELLOW);
-	         break;
-             case 'B':		/* blue bg */
-                 if ( mudconf.global_ansimask & MASK_BBLUE )
-	            strcat(buf2, CF_ANSI_BBLUE);
-	         break;
-             case 'M':		/* magenta bg */
-                 if ( mudconf.global_ansimask & MASK_BMAGENTA )
-	            strcat(buf2, CF_ANSI_BMAGENTA);
-	         break;
-             case 'C':		/* cyan bg */
-                 if ( mudconf.global_ansimask & MASK_BCYAN )
-	            strcat(buf2, CF_ANSI_BCYAN);
-	         break;
-             case 'W':		/* white bg */
-                 if ( mudconf.global_ansimask & MASK_BWHITE )
-	            strcat(buf2, CF_ANSI_BWHITE);
-	         break;
-             }
-             s++;
-           }
-        }
+      buf2=alloc_lbuf("unparse_object_ansi_b");
+      ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
+      if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_ansi(ansibuf))) == 0)) ) {
+         strncpy(ansitmp, ansibuf, 20);
+         s = ansitmp;
+         while (*s) {
+            switch (*s) {
+               case 'h': /* hilite */
+                  if ( mudconf.global_ansimask & MASK_HILITE )
+                     strcat(buf2, CF_ANSI_HILITE);
+                  break;
+               case 'i': /* inverse */
+                  if ( mudconf.global_ansimask & MASK_INVERSE )
+                     strcat(buf2, CF_ANSI_INVERSE);
+                  break;
+               case 'f': /* flash */
+                  if ( mudconf.global_ansimask & MASK_BLINK )
+                     strcat(buf2, CF_ANSI_BLINK);
+                  break;
+               case 'n': /* normal */
+                  strcat(buf2, CF_ANSI_NORMAL);
+                  break;
+               case 'x': /* black fg */
+                  if ( mudconf.global_ansimask & MASK_BLACK )
+                     strcat(buf2, CF_ANSI_BLACK);
+                  break;
+               case 'r': /* red fg */
+                  if ( mudconf.global_ansimask & MASK_RED )
+                     strcat(buf2, CF_ANSI_RED);
+                  break;
+               case 'g': /* green fg */
+                  if ( mudconf.global_ansimask & MASK_GREEN )
+                     strcat(buf2, CF_ANSI_GREEN);
+                  break;
+               case 'y': /* yellow fg */
+                  if ( mudconf.global_ansimask & MASK_YELLOW )
+                     strcat(buf2, CF_ANSI_YELLOW);
+                  break;
+               case 'b': /* blue fg */
+                  if ( mudconf.global_ansimask & MASK_BLUE )
+                     strcat(buf2, CF_ANSI_BLUE);
+                  break;
+               case 'm': /* magenta fg */
+                  if ( mudconf.global_ansimask & MASK_MAGENTA )
+                     strcat(buf2, CF_ANSI_MAGENTA);
+                  break;
+               case 'c': /* cyan fg */
+                  if ( mudconf.global_ansimask & MASK_CYAN )
+                     strcat(buf2, CF_ANSI_CYAN);
+                  break;
+               case 'w': /* white fg */
+                  if ( mudconf.global_ansimask & MASK_WHITE )
+                     strcat(buf2, CF_ANSI_WHITE);
+                  break;
+               case 'X': /* black bg */
+                  if ( mudconf.global_ansimask & MASK_BBLACK )
+                     strcat(buf2, CF_ANSI_BBLACK);
+                  break;
+               case 'R': /* red bg */
+                  if ( mudconf.global_ansimask & MASK_BRED )
+                     strcat(buf2, CF_ANSI_BRED);
+                  break;
+               case 'G': /* green bg */
+                  if ( mudconf.global_ansimask & MASK_BGREEN )
+                     strcat(buf2, CF_ANSI_BGREEN);
+                  break;
+               case 'Y': /* yellow bg */
+                  if ( mudconf.global_ansimask & MASK_BYELLOW )
+                     strcat(buf2, CF_ANSI_BYELLOW);
+                  break;
+               case 'B': /* blue bg */
+                  if ( mudconf.global_ansimask & MASK_BBLUE )
+                     strcat(buf2, CF_ANSI_BBLUE);
+                  break;
+               case 'M': /* magenta bg */
+                  if ( mudconf.global_ansimask & MASK_BMAGENTA )
+                     strcat(buf2, CF_ANSI_BMAGENTA);
+                  break;
+               case 'C': /* cyan bg */
+                  if ( mudconf.global_ansimask & MASK_BCYAN )
+                     strcat(buf2, CF_ANSI_BCYAN);
+                  break;
+               case 'W': /* white bg */
+                  if ( mudconf.global_ansimask & MASK_BWHITE )
+                     strcat(buf2, CF_ANSI_BWHITE);
+                  break;
+            }
+            s++;
+         }
+      }
 #endif       
-        buf3 = atr_get(target, A_ALTNAME, &aowner, &aflags);
-        memset(name_str, 0, sizeof(name_str));
-        strncpy(name_str, buf3, 100);
-        free_lbuf(buf3);
-	if (obey_myopic)
-	    exam = MyopicExam(player, target);
-	else
-	    exam = Examinable(player, target);
-	if (exam || (!NoEx(target) &&
-	    ((Flags2(target) & ABODE) ||
-	     (Flags(target) & CHOWN_OK && (!Guildmaster(target))) ||
-	     (Flags(target) & (JUMP_OK | LINK_OK | DESTROY_OK)))) ) {
+      buf3 = atr_get(target, A_ALTNAME, &aowner, &aflags);
+      memset(name_str, 0, sizeof(name_str));
+      strncpy(name_str, buf3, 100);
+      free_lbuf(buf3);
+      if (obey_myopic) {
+         exam = MyopicExam(player, target);
+      } else {
+         exam = Examinable(player, target);
+      }
+      if ( exam || (!NoEx(target) && ((Flags2(target) & ABODE) ||
+           (Flags(target) & CHOWN_OK && (!Guildmaster(target))) ||
+           (Flags(target) & (JUMP_OK | LINK_OK | DESTROY_OK)))) ) {
 
-	    /* show everything */
-	    fp = unparse_flags(player, target);
-            if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0,0) )
-	       sprintf(buf, "%.100s%s%s(#%d%s)", buf2, name_str,  CF_ANSI_NORMAL, target, fp);
-            else if ( name_str[0] == '\0' ) {
-               if ( ExtAnsi(target) ) {
-                  if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3400s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
-                  else
-	             sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp);
-               } else
-	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+         /* show everything */
+         fp = unparse_flags(player, target);
+         if ( !Wizard(player) && name_str[0] != '\0' &&
+              !could_doit(player,target,A_LALTNAME,0,0) ) {
+            sprintf(buf, "%.100s%s%s(#%d%s)", buf2, name_str,  CF_ANSI_NORMAL, target, fp);
+         } else if ( name_str[0] == '\0' ) {
+            if ( ExtAnsi(target) ) {
+               if ( ansi_ok == 0 ) {
+                  sprintf(buf, "%.3400s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
+               } else {
+                  sprintf(buf, "%.3400s(#%d%.400s)", Name(target), target, fp);
+               }
             } else {
-               if ( ExtAnsi(target) ) {
-                  if ( ansi_ok == 0 )
-	             sprintf(buf, "%.3400s%s(#%d%.400s) {%.100s}", ansibuf, CF_ANSI_NORMAL, target, fp, name_str);
-                  else
-	             sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str);
-               } else
-	          sprintf(buf, "%.100s%.3400s%s(#%d%.300s) {%.100s}", buf2, Name(target), 
-                          CF_ANSI_NORMAL, target, fp, name_str);
+                  sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
             }
-	    free_mbuf(fp);
-	} else {
-	    /* show only the name. */
-            if ( !Wizard(player) && name_str[0] != '\0' &&
-                 !could_doit(player,target,A_LALTNAME,0,0) )
-               sprintf(buf, "%.100s%.3800s%s", buf2, name_str,  CF_ANSI_NORMAL);
-            else if ( name_str[0] == '\0' ) {
-               if ( ExtAnsi(target) ) {
-                  if ( ansi_ok == 0 )
-                     sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
-                  else
-                     sprintf(buf, "%.3900s", Name(target));
-               } else
-                  sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+         } else {
+            if ( ExtAnsi(target) ) {
+               if ( ansi_ok == 0 ) {
+                  sprintf(buf, "%.3400s%s(#%d%.400s) {%.100s}", ansibuf, CF_ANSI_NORMAL, target, fp, name_str);
+               } else {
+                  sprintf(buf, "%.3400s(#%d%.400s) {%.100s}", Name(target), target, fp, name_str);
+               }
             } else {
-               if ( ExtAnsi(target) ) {
-                  if ( ansi_ok == 0 )
-                     sprintf(buf, "%.3800s%s {%.100s}", ansibuf, CF_ANSI_NORMAL, name_str);
-                  else
-                     sprintf(buf, "%.3800s {%.100s}", Name(target), name_str);
-               } else
-                  sprintf(buf, "%.100s%.3700s%s {%.100s}", buf2, Name(target), CF_ANSI_NORMAL, name_str);
+               sprintf(buf, "%.100s%.3400s%s(#%d%.300s) {%.100s}", buf2, Name(target), 
+                       CF_ANSI_NORMAL, target, fp, name_str);
             }
-	}
-    free_lbuf(ansibuf);
-    }
+         }
+         free_mbuf(fp);
+      } else {
+         /* show only the name. */
+         if ( !Wizard(player) && name_str[0] != '\0' &&
+              !could_doit(player,target,A_LALTNAME,0,0) ) {
+            sprintf(buf, "%.100s%.3800s%s", buf2, name_str,  CF_ANSI_NORMAL);
+         } else if ( name_str[0] == '\0' ) {
+            if ( ExtAnsi(target) ) {
+               if ( ansi_ok == 0 ) {
+                  sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
+               } else {
+                  sprintf(buf, "%.3900s", Name(target));
+               }
+            } else {
+               sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+            }
+         } else {
+            if ( ExtAnsi(target) ) {
+               if ( ansi_ok == 0 ) {
+                  sprintf(buf, "%.3800s%s {%.100s}", ansibuf, CF_ANSI_NORMAL, name_str);
+               } else {
+                  sprintf(buf, "%.3800s {%.100s}", Name(target), name_str);
+               }
+            } else {
+               sprintf(buf, "%.100s%.3700s%s {%.100s}", buf2, Name(target), CF_ANSI_NORMAL, name_str);
+            }
+        }
+     }
+     free_lbuf(ansibuf);
+     free_lbuf(buf2);    
+  }
     if ( Good_obj(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    free_lbuf(buf2);    
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
              strcpy(buf, buf2);
@@ -3755,9 +4143,9 @@ unparse_object_ansi_altname(dbref player, dbref target, int obey_myopic)
 }
 
 char *
-unparse_object_ansi(dbref player, dbref target, int obey_myopic)
+unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
 {
-    char *buf, *buf2, *fp, *ansibuf, ansitmp[30], *nfmt;
+    char *buf, *buf2, *sname, *sname_ptr, *fp, *ansibuf, ansitmp[30], *nfmt;
     int exam, aowner, ansi_ok;
     dbref aflags;
 #ifndef ZENTY_ANSI
@@ -3779,7 +4167,15 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
     } else {
 #ifdef ZENTY_ANSI
         ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
-        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(Name(target), strip_all_special(ansibuf))) == 0)) ) {
+        sname = alloc_lbuf("unparse_object_ansi_name");
+        strcpy(sname, Name(target));
+        sname_ptr = NULL;
+        if ( is_walkdb && isExit(target) ) {
+           if ( (sname_ptr = strchr(sname, ';')) != NULL ) {
+              *sname_ptr++ = '\0';
+           }
+        }
+        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(sname, strip_all_special(ansibuf))) == 0)) ) {
            if ( !Accents(player) )
               buf2 = parse_ansi_name(target, strip_safe_accents(ansibuf));
            else
@@ -3891,37 +4287,64 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic)
 	       /* show everything */
 	    fp = unparse_flags(player, target);
             if ( ExtAnsi(target) ) {
-               if ( ansi_ok == 0 )
-	          sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
-               else
+               if ( ansi_ok == 0 ) {
+                  if ( is_walkdb && isExit(target) ) {
+                     if ( sname_ptr && *sname_ptr ) {
+	                sprintf(buf, "%.2500s;%.1000s%s(#%d%.400s)", ansibuf, sname_ptr, CF_ANSI_NORMAL, target, fp);
+                     } else {
+	                sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
+                     }
+                  } else {
+	             sprintf(buf, "%.3500s%s(#%d%.400s)", ansibuf, CF_ANSI_NORMAL, target, fp);
+                  }
+               } else
 	          sprintf(buf, "%.3500s(#%d%.400s)", Name(target), target, fp);
-            } else
-	       sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+            } else {
+               if ( is_walkdb && isExit(target) ) {
+	          sprintf(buf, "%.100s%.2400s%s;%.100s(#%d%.400s)", buf2, sname, CF_ANSI_NORMAL, sname_ptr, target, fp);
+               } else {
+	          sprintf(buf, "%.100s%.3400s%s(#%d%.400s)", buf2, Name(target), CF_ANSI_NORMAL, target, fp);
+               }
+            }
 	    free_mbuf(fp);
 	} else {
 	       /* show only the name. */
             if ( ExtAnsi(target) ) {
-               if ( ansi_ok == 0 )
-                  sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
-               else
+               if ( ansi_ok == 0 ) {
+                  if ( is_walkdb && isExit(target) ) {
+                     if ( sname_ptr && *sname_ptr ) {
+                        sprintf(buf, "%.2900s;%.1000s%s", buf2, sname_ptr, CF_ANSI_NORMAL);
+                     } else {
+                        sprintf(buf, "%.3900s%s", buf2, CF_ANSI_NORMAL);
+                     }
+                  } else {
+                     sprintf(buf, "%.3900s%s", ansibuf, CF_ANSI_NORMAL);
+                  }
+               } else
                   sprintf(buf, "%.3900s", Name(target));
             } else
-               sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+               if ( is_walkdb && isExit(target) ) {
+                  sprintf(buf, "%.100s%.2800s%s;%.1000s", buf2, sname, CF_ANSI_NORMAL, sname_ptr);
+               } else {
+                  sprintf(buf, "%.100s%.3800s%s", buf2, Name(target), CF_ANSI_NORMAL);
+               }
 	}
-    free_lbuf(ansibuf);
+       free_lbuf(ansibuf);
+       free_lbuf(buf2);    
+       free_lbuf(sname);
     }
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);
 
-    free_lbuf(buf2);    
     if ( Good_obj(target) && NoName(target) && (Typeof(target) == TYPE_THING) ) {
        nfmt = atr_pget(target, A_NAME_FMT, &aowner, &aflags);
        if ( *nfmt ) {
           buf2 = cpuexec(target, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
-          if ( Wizard(player) ) {
+          if ( Wizard(player) && !Myopic(player) ) {
              sprintf(buf, "%.*s {%.100s}", LBUF_SIZE-150, buf2, Name(target));
           } else {
-             strcpy(buf, buf2);
+             memset(buf, '\0', LBUF_SIZE);
+             strncpy(buf, buf2, LBUF_SIZE - 1);
           }
           free_lbuf(buf2);
        }
@@ -4626,6 +5049,11 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                           0x00008000, 0x00000000 };
    int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
 
+   if ( (key & FLAGDEF_SLOT) ) {
+      notify_quiet(player, "@toggledef: switch is not functional for @toggledef");
+      return;
+   }
+
    /* Copy 32 characters */
    /* Note: 'M' (0x40000000) is not a valid flag - tagged for MORTAL use */
    /* G - Ghod, W - Wizard, A - Architect, I - Immortal, C - Councilor, S - Guildmaster 
@@ -4781,12 +5209,12 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
          }
          if ( !mask_add && !mask_del ) {
-            notify_quiet(player, "Nothing for @flagdef to do.");
+            notify_quiet(player, "Nothing for @toggledef to do.");
             return;
          }
          tp->typeperm &= ~mask_del;
          tp->typeperm |= mask_add;
-         tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+         tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
          notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for toggle %s",
                                            tp->togglename));
          sprintf(tpr_buff, "   ->   %s", (char *)"Set:");
@@ -5129,8 +5557,39 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
    else
       wild_mtch = 0;
 
+   if ( (key & FLAGDEF_SLOT) ) {
+      tmp_ptr = alloc_lbuf("do_totemdef");
+      notify_quiet(player, "+---------------------------------------------------------------------------+");
+      sprintf(tmp_ptr, "+ %-6s %-6s --+-- %-6s %-6s --+-- %-6s %-6s --+-- %-6s %-6s +", 
+             (char *)"Slot", (char *)"Lock", (char *)"Slot", (char *)"Lock", 
+             (char *)"Slot", (char *)"Lock", (char *)"Slot", (char *)"Lock");
+      notify_quiet(player, tmp_ptr);
+      notify_quiet(player, "+---------------------------------------------------------------------------+");
+      usop_ptr = sop_ptr = alloc_lbuf("totemdef_slots");
+      for ( cntr = 0; cntr < TOTEM_SLOTS; cntr++ ) {
+         if ( (cntr % 4) == 0 ) {
+            if ( cntr != 0 ) {
+               safe_str("\r\n", sop_ptr, &usop_ptr);
+            } 
+            sprintf(tmp_ptr, "| %04d   %-6s --|", cntr, (mudconf.totem_reserved[cntr] ? (char *)"Yes" : (char *)"No"));
+            safe_str(tmp_ptr, sop_ptr, &usop_ptr);
+         } else if ( (cntr % 4) == 3 ) {
+            sprintf(tmp_ptr, "-- %04d   %-6s |", cntr, (mudconf.totem_reserved[cntr] ? (char *)"Yes" : (char *)"No"));
+            safe_str(tmp_ptr, sop_ptr, &usop_ptr);
+         } else {
+            sprintf(tmp_ptr, "-- %04d   %-6s --|", cntr, (mudconf.totem_reserved[cntr] ? (char *)"Yes" : (char *)"No"));
+            safe_str(tmp_ptr, sop_ptr, &usop_ptr);
+         }
+      } 
+      notify_quiet(player, sop_ptr);
+      notify_quiet(player, "+---------------------------------------------------------------------------+");
+      free_lbuf(sop_ptr);
+      free_lbuf(tmp_ptr);
+      return;
+   }
+
    if ( (key & FLAGDEF_INDEX) ) {
-      tmp_ptr = alloc_lbuf("do_flagdef");
+      tmp_ptr = alloc_lbuf("do_totemdef");
       sprintf(tmp_ptr, "%-20s %-3s %-10s    %-20s %-3s %-10s", 
                        (char *)"Flag Permission", "Flg", (char *)"Hex Value",
                        (char *)"Type Permission", "Flg", (char *)"Hex Value");
@@ -5157,7 +5616,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, "+--------------------+---+-+----+----------+" \
                            "----------+----------+-------+---+");
       fnd = 0;
-      tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+      tprp_buff = tpr_buff = alloc_lbuf("do_totemdef");
       for (fp = (TOTEMENT *) hash_firstentry2(&mudstate.totem_htab, 1); 
 	   fp;
 	   fp = (TOTEMENT *) hash_nextentry(&mudstate.totem_htab)){
@@ -5213,7 +5672,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                c_bef = '[';
                c_aft = ']';
                break;
-            default: /* Normal flag letter */
+            default: /* Normal totem letter */
                c_bef = ' ';
                c_aft = ' ';
                break;
@@ -5244,21 +5703,21 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             break;
       }
       if ( !fp || !((char *)(fp->flagname))) {
-         notify_quiet(player, "Bad flag given to @flagdef");
+         notify_quiet(player, "Bad totem given to @totemdef");
          return;
       }
       if ( (fp->listperm & CA_NO_DECOMP) | 
                   ((fp->flagvalue & IMMORTAL) &&
                    (fp->totemflag == 0)) ) {
-         notify_quiet(player, "Sorry, you can not modify that flag.");
+         notify_quiet(player, "Sorry, you can not modify that totem.");
          return;
       }
       if ( key & FLAGDEF_CHAR ) {
          if ( (strlen(flag2) != 1) || !*flag2 || isspace(*flag2) || !isprint(*flag2)) {
             notify_quiet(player, "Flag letter must be a single character.");
          } else {
-            tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
-            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'flagletter' for flag %s.  Old letter '%c', new letter '%c'",
+            tprp_buff = tpr_buff = alloc_lbuf("do_totemdef");
+            notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'flagletter' for totem %s.  Old letter '%c', new letter '%c'",
                                            fp->flagname, fp->flaglett, *flag2));
             fp->flaglett = *flag2;
             free_lbuf(tpr_buff);
@@ -5286,13 +5745,13 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
             tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
          }
          if ( !mask_add && !mask_del ) {
-            notify_quiet(player, "Nothing for @flagdef to do.");
+            notify_quiet(player, "Nothing for @totemdef to do.");
             return;
          }
          fp->typeperm &= ~mask_del;
          fp->typeperm |= mask_add;
-         tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for flag %s",
+         tprp_buff = tpr_buff = alloc_lbuf("do_totemdef");
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'type' restrictions for totem %s",
                                            fp->flagname));
          sprintf(tpr_buff, "   ->   %s", (char *)"Set:");
          listset_nametab(player, flagdef_type, 0, fp->typeperm, 0, tpr_buff, 1);
@@ -5326,33 +5785,33 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          tmp_ptr = strtok_r(NULL, " \t", &tstrtokr);
       }
       if ( !(mask_add & ~stripmask) && !(mask_del & ~stripmask) ) {
-         notify_quiet(player, "Nothing for @flagdef to do.");
+         notify_quiet(player, "Nothing for @totemdef to do.");
          return;
       }
-      tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
+      tprp_buff = tpr_buff = alloc_lbuf("do_totemdef");
       if ( key & FLAGDEF_SET ) {
          fp->setovperm &= ~mask_del;
          fp->setovperm |= mask_add;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'set' permissions for flag %s",
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'set' permissions for totem %s",
                                            fp->flagname));
          sprintf(tpr_buff, "   ->   Set: %s", (char *)((fp->setovperm & 0x40000000) ? "mortal" : ""));
          listset_nametab(player, access_nametab, 0, fp->setovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else if ( key & FLAGDEF_UNSET ) {
          fp->usetovperm &= ~mask_del;
          fp->usetovperm |= mask_add;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'unset' permissions for flag %s",
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'unset' permissions for totem %s",
                                            fp->flagname));
          sprintf(tpr_buff, "   -> UnSet: %s", (char *)((fp->usetovperm & 0x40000000) ? "mortal" : ""));
          listset_nametab(player, access_nametab, 0, fp->usetovperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else if ( key & FLAGDEF_SEE ) {
          fp->listperm &= ~mask_del;
          fp->listperm |= mask_add;
-         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'see' permissions for flag %s",
+         notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "Modified 'see' permissions for totem %s",
                                            fp->flagname));
          sprintf(tpr_buff, "   ->   See: %s", (char *)((fp->listperm & 0x40000000) ? "mortal" : ""));
          listset_nametab(player, access_nametab, 0, fp->listperm & ~(stripmask|0x40000000), 0, tpr_buff, 1);
       } else {
-         notify_quiet(player, "Invalid switch/argument to @flagdef");
+         notify_quiet(player, "Invalid switch/argument to @totemdef");
       }
       free_lbuf(tpr_buff);
    }
@@ -5378,6 +5837,11 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                           0x00002000, 0x00001000, 0x00000800, 0x00000400, 0x00000200, 
                           0x00008000, 0x00000000 };
    int  cntr, nodecomp, stripmask, srch_return, mask_add, mask_del, wild_mtch, fnd;
+
+   if ( (key & FLAGDEF_SLOT) ) {
+      notify_quiet(player, "@flagdef: switch is not functional for @flagdef");
+      return;
+   }
 
    /* Copy 32 characters */
    /* Note: 'M' (0x40000000) is not a valid flag - tagged for MORTAL use */
@@ -5708,14 +6172,14 @@ totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
       case -6: /* Totem bitwise value in use */
          safe_str((char *)"Totem bitwise mask specified already exists", s_inbuff, &s_buffptr);
          break;
-      case -7: /* Totem is unmodifyable */
+      case -7: /* Totem is unmodifiable */
          safe_str((char *)"Totem can not be modified", s_inbuff, &s_buffptr);
          break;
       case -8: /* Totem was not found */
          safe_str((char *)"Totem was not found", s_inbuff, &s_buffptr);
          break;
       case -9: /* Too many aliases */
-         safe_str((char *)"Limit reached for alises on Totem specified (10 Max)", s_inbuff, &s_buffptr);
+         safe_str((char *)"Limit reached for aliases on Totem specified (10 Max)", s_inbuff, &s_buffptr);
          break;
       case -10: /* Invalid letter */
          safe_str((char *)"Invalid totem letter specified.", s_inbuff, &s_buffptr);
@@ -5728,6 +6192,9 @@ totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
          break;
       case -13: /* Invalid target */
          safe_str((char *)"Totem with aliases can not be altered.", s_inbuff, &s_buffptr);
+         break;
+      case -14: /* Reserved slot */
+         safe_str((char *)"Totem slot is reserved for hardcode mods only.", s_inbuff, &s_buffptr);
          break;
       case -777: /* snuff messages */
          break;
@@ -5772,7 +6239,7 @@ int
 totem_player_list(char *buff, int i_type, dbref target, dbref player)
 {
   char *s_hashstr, *s_buffp, *t_ptr;
-/* Enable for permanet of totems
+/* Enable for permanent of totems
  * char c_ch;
  */
   int i_first, totems[TOTEM_SLOTS];
@@ -5821,11 +6288,11 @@ totem_player_list(char *buff, int i_type, dbref target, dbref player)
            case 2: /* Third flag position for letters */
               sprintf(s_hashstr, "%s({%c})", storedtag->flagname, storedtag->flaglett);
               break;
-           default: /* If it does't exist, drop in first tier */
+           default: /* If it doesn't exist, drop in first tier */
               sprintf(s_hashstr, "%s(%c)", storedtag->flagname, storedtag->flaglett);
               break;
         }
-/* This shows the permanance of the totems */
+/* This shows the permanence of the totems */
 //      switch (storedtag->permanent) {
 //         case 2: /* Permanent */
 //            c_ch = 'P';
@@ -6241,7 +6708,7 @@ totem_info(char *totem, char *s_buff)
   if ( hashp->permanent == 2 ) {
      safe_str((char *)"Totem Type: Hard Code (Permanent/locked) [2]\r\nApplied To: ", s_buff, &s_buffptr);  
   } else if ( hashp->permanent == 1 ) {
-     safe_str((char *)"Totem Type: Config Parmeter (Static) [1]\r\nApplied To: ", s_buff, &s_buffptr);  
+     safe_str((char *)"Totem Type: Config Parameter (Static) [1]\r\nApplied To: ", s_buff, &s_buffptr);  
   } else {
      safe_str((char *)"Totem Type: @totem in-line (temporary) [0]\r\nApplied To: ", s_buff, &s_buffptr);  
   }
@@ -6347,6 +6814,23 @@ totem_rename(char *totem, char *totemren)
   free_lbuf(lcname);
   free_lbuf(ucname);
   return stat;
+}
+
+void
+totem_clear(dbref player) {
+   int i_totem;
+
+   /* We want good_obj here and not good_chk */
+   if ( Good_obj(player) ) {
+      /* clear out all the totems */
+      for ( i_totem = 0; i_totem < TOTEM_SLOTS; i_totem++ ) {
+         dbtotem[player].flags[i_totem] = 0;
+      }
+
+      /* Flag the item to be modifiable */
+      dbtotem[player].modified = 1;
+
+   }
 }
 
 int 
@@ -6484,6 +6968,12 @@ totem_letter(char *totem, char totem_lett, int totem_tier)
   return 1;
 }
 
+
+/* Totem_perms:
+   0 - dynamic
+   1 - static (through config)
+   2 - permanent 
+*/
 int 
 totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
 {
@@ -6505,6 +6995,11 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   /* Deny if totem_slot not between 0-(TOTEM_SLOTS-1) */
   if ( (totem_slot < 0) || (totem_slot > (TOTEM_SLOTS - 1)) ) {
     return -2;
+  }
+
+  /* Totem is hardcoded reserved only -- disable if not a hardcode definition */
+  if ( (mudconf.totem_reserved[totem_slot] == 1) && (totem_perm != 2) ) {
+    return -14;
   }
 
   /* Deny if totem_value is not a valid singular bitwise mask */
@@ -6548,7 +7043,7 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
     return -5;
   }
 
-  /* If the flag slot is already inuse, abort */
+  /* If the flag slot is already in use, abort */
   if ( (mudstate.totem_slots[totem_slot] & totem_value) == totem_value ) {
     free_lbuf(lcname);
     return -6;
@@ -6591,11 +7086,102 @@ totem_add(char *totem, int totem_value, int totem_slot, int totem_perm)
   return stat;
 }
 
+/* validate lists and return values
+ * totemvalid([all])    --- list all dbref#'s with invalid totems
+ * totemvalid(playername) --- list slots that have invalid masks
+ * totemvalid(playername,<slot>) --- list bitmask invalid of slot
+ *
+ * Make sure to free_lbuf when using this function
+ */
+char *
+totem_valid(dbref player, char *s_target, int i_keyslot)
+{
+   char *s_buff, *s_buffptr, *t_buff;
+   int i_slot, i_found, i_broke[TOTEM_SLOTS];
+   dbref target, thing;
+
+   s_buffptr = s_buff = alloc_lbuf("totem_valid_function");
+
+   for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+      i_broke[i_slot] = 0;
+   }
+
+   if ( s_target && *s_target && (stricmp(s_target, (char *)"all") != 0) ) {
+      if ( (i_keyslot >= -2) && (i_keyslot < TOTEM_SLOTS) ) {
+         init_match(player, s_target, NOTYPE);
+         match_everything(MAT_EXIT_PARENTS);
+         target = match_result();
+         if ( Good_chk(target) && Controls(player, target) ) {
+            t_buff = alloc_lbuf("totem_valid_function2");
+            for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+               if ( (dbtotem[target].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
+                  if ( i_keyslot == -1 ) {
+                     if ( i_found ) {
+                        safe_chr(' ', s_buff, &s_buffptr);
+                     }
+                     ival(s_buff, &s_buffptr, i_slot);
+                  } else {
+                     i_broke[i_slot] |= (dbtotem[target].flags[i_slot] & ~(mudstate.totem_slots[i_slot]));
+                  }
+                  i_found = 1;
+               }
+            }
+            if ( i_keyslot >= 0 ) {
+               sprintf(t_buff, "0x%08x", i_broke[i_keyslot]);
+               safe_str(t_buff, s_buff, &s_buffptr);
+            } else if ( i_keyslot == -2 ) {
+               i_found = 0;
+               for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+                  if ( !i_broke[i_slot] ) {
+                     continue;
+                  }
+                  if ( i_found ) {
+                     safe_chr(' ', s_buff, &s_buffptr);
+                  }
+                  i_found = 1;
+                  sprintf(t_buff, "%d/0x%08x", i_slot, i_broke[i_slot]);
+                  safe_str(t_buff, s_buff, &s_buffptr);
+               }
+            }
+            free_lbuf(t_buff);
+         } else {
+            safe_str((char *)"#-1 INVALID PLAYER", s_buff, &s_buffptr);
+         }
+      } else {
+            safe_str((char *)"#-1 INVALID SLOT", s_buff, &s_buffptr);
+      }
+   } else {
+      t_buff = alloc_lbuf("totem_valid_all");
+      DO_WHOLE_DB(thing) {
+         if ( !Good_chk(thing) ) {
+            continue;
+         }
+         i_found = 0;
+         for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+            if ( (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
+               if ( *s_buff ) {
+                  safe_chr(' ', s_buff, &s_buffptr);
+               }
+               i_found = 1;
+               break;
+            }
+         }
+         if ( i_found ) {
+            sprintf(t_buff, "#%d", thing);
+            safe_str(t_buff, s_buff, &s_buffptr);
+         } 
+      }
+      free_lbuf(t_buff);
+   }
+   
+   return s_buff;
+}
+
 int 
-totem_verify(char *s_buff, char *s_buff2) {
+totem_validate(char *s_buff, char *s_buff2, char *s_target, dbref player) {
    char *s_buffptr, *s_buffptr2, *t_buff; 
    int i_slot, i_broke[TOTEM_SLOTS], i_retval, i_found;
-   dbref thing;
+   dbref thing, target;
 
    s_buffptr = s_buff;
    s_buffptr2 = s_buff2;
@@ -6605,38 +7191,82 @@ totem_verify(char *s_buff, char *s_buff2) {
       i_broke[i_slot] = 0;
    }
 
-   t_buff = alloc_lbuf("totem_validate");
-   DO_WHOLE_DB(thing) {
-      i_found = 0;
-      for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
-         if ( (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
-            i_found = 1;
-            i_broke[i_slot] |= (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot]));
+   target = NOTHING;
+
+   if ( *s_target ) {
+      init_match(player, s_target, NOTYPE);
+      match_everything(MAT_EXIT_PARENTS);
+      target = match_result();
+      if ( !Good_chk(target) || !Controls(player, target) ) {
+         safe_str((char *)"@totem/validate: Invalid target.", s_buff, &s_buffptr);
+      } else {
+         t_buff = alloc_lbuf("totem_validate");
+         for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+            if ( (dbtotem[target].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
+               i_found = 1;
+               i_broke[i_slot] |= (dbtotem[target].flags[i_slot] & ~(mudstate.totem_slots[i_slot]));
+            }
          }
-      }
-      if ( i_found ) {
-         if ( *s_buff2 ) {
-            safe_chr(' ', s_buff2, &s_buffptr2);
+         if ( i_found ) {
+            if ( *s_buff2 ) {
+               safe_chr(' ', s_buff2, &s_buffptr2);
+            } else {
+               sprintf(t_buff, "Target %s(#%d) has invalid totem masks.", Name(target), target);
+               safe_str(t_buff, s_buff2, &s_buffptr2);
+            }
          } else {
-            safe_str((char *)"Affected Targets: ", s_buff2, &s_buffptr2);
+            sprintf(t_buff, "Target %s(#%d) has a clean totem list.", Name(target), target);
+            safe_str(t_buff, s_buff2, &s_buffptr2);
          }
-         sprintf(t_buff, "#%d", thing);
-         safe_str(t_buff, s_buff2, &s_buffptr2);
-      }
-   }
-   for (i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
-      if ( i_broke[i_slot] != 0 ) {
-         if ( i_retval ) {
-            safe_chr(' ', s_buff, &s_buffptr);
-         } else {
-            safe_str((char *)"Unreferenced Totem Flags: ", s_buff, &s_buffptr);
+         for (i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+            if ( i_broke[i_slot] != 0 ) {
+               if ( i_retval ) {
+                  safe_chr(' ', s_buff, &s_buffptr);
+               } else {
+                  safe_str((char *)"@totem/validate: Unreferenced Totem Flags: ", s_buff, &s_buffptr);
+               }
+               sprintf(t_buff, "[Slot %d, Value 0x%08x]", i_slot, i_broke[i_slot]);
+               safe_str(t_buff, s_buff, &s_buffptr);
+               i_retval = 1;
+            }
          }
-         sprintf(t_buff, "[Slot %d, Value 0x%08x]", i_slot, i_broke[i_slot]);
-         safe_str(t_buff, s_buff, &s_buffptr);
-         i_retval = 1;
+         free_lbuf(t_buff);
       }
+      i_retval = -777;
+   } else {
+      t_buff = alloc_lbuf("totem_validate");
+      DO_WHOLE_DB(thing) {
+         i_found = 0;
+         for ( i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+            if ( (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot])) != 0 ) {
+               i_found = 1;
+               i_broke[i_slot] |= (dbtotem[thing].flags[i_slot] & ~(mudstate.totem_slots[i_slot]));
+            }
+         }
+         if ( i_found ) {
+            if ( *s_buff2 ) {
+               safe_chr(' ', s_buff2, &s_buffptr2);
+            } else {
+               safe_str((char *)"Affected Targets: ", s_buff2, &s_buffptr2);
+            }
+            sprintf(t_buff, "#%d", thing);
+            safe_str(t_buff, s_buff2, &s_buffptr2);
+         }
+      }
+      for (i_slot = 0; i_slot < TOTEM_SLOTS; i_slot++ ) {
+         if ( i_broke[i_slot] != 0 ) {
+            if ( i_retval ) {
+               safe_chr(' ', s_buff, &s_buffptr);
+            } else {
+               safe_str((char *)"@totem/validate: Unreferenced Totem Flags: ", s_buff, &s_buffptr);
+            }
+            sprintf(t_buff, "[Slot %d, Value 0x%08x]", i_slot, i_broke[i_slot]);
+            safe_str(t_buff, s_buff, &s_buffptr);
+            i_retval = 1;
+         }
+      }
+      free_lbuf(t_buff);
    }
-   free_lbuf(t_buff);
    return i_retval;
 }
 
@@ -6991,6 +7621,13 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
    char *s_buff, *s_buff2, *s_strtok, *s_strtokr;
 
    switch (key) {
+      case TOTEM_FREE: /* Show free slots and masks */
+         if ( flag1 && *flag1 ) {
+            display_totemfree(player, atoi(flag1));
+         } else {
+            display_totemfree(player, -1);
+         }
+         break;
       case TOTEM_ADD: /* Add totem */
          if ( !flag1 || !flag2 || !*flag1 || !*flag2 ) {
             if ( Good_chk(player) ) {
@@ -7051,9 +7688,9 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_VALIDATE: /* Totem Verify */
-         s_buff = alloc_lbuf("totem_verify");
-         s_buff2 = alloc_lbuf("totem_verify2");
-         retvalue = totem_verify(s_buff, s_buff2);
+         s_buff = alloc_lbuf("totem_validate");
+         s_buff2 = alloc_lbuf("totem_validate");
+         retvalue = totem_validate(s_buff, s_buff2, flag1, player);
          if ( retvalue == 0 ) { /* Validated -- all good */
             notify(player, "@totem has validated all Totem flags as valid.");
          } else {
@@ -7084,7 +7721,11 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
          free_lbuf(s_buff);
          break;
       case TOTEM_CLEAN: /* Totem clean -- clear old bits from target */
-         notify(player, "Sorry, this option is not yet implimented.");
+         s_buff = alloc_lbuf("totem_clean");
+         retvalue = totem_clean(flag1, flag2, player);
+         totem_handle_error(retvalue, player, (char *)"clean", s_buff);
+         notify(player, s_buff);
+         free_lbuf(s_buff);
          break;
       case TOTEM_DISPLAY: /* Totem display -- display all 32 flags for specified slot.  Format: @totem/display slotnumber */
          s_buff = alloc_lbuf("totem_display");
@@ -7133,7 +7774,7 @@ do_totem(dbref player, dbref cause, int key, char *flag1, char *flag2)
             break;
          }
          if ( !flag2 || !*flag2 ) {
-            s_buff = alloc_lbuf("totem_alias");
+            s_buff = alloc_lbuf("totem_list");
             retvalue = totem_list(s_buff, 1, target, player, (char *)NULL);
             notify(player, s_buff);
             free_lbuf(s_buff);
