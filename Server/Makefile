@@ -101,7 +101,8 @@ source: defaultfiles
 qdbm:
 	@(cd $(qdbmdir) ; $() clean ; ./configure; $(MAKE); rm libqdbm*.so*)
 mdbx:
-	@(cd $(mdbxdir) ; $() clean ; $(MAKE) libmdbx.a)
+	@(cd $(mdbxdir) ; $(MAKE) clean ; $(MAKE) CFLAGS="$(MDBX_CFLAGS)" libmdbx.a)
+MDBX_CFLAGS = -O2 -g -Wall -Werror -Wextra -Wpedantic -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error=attributes -Wno-error=array-bounds
 gdbm:
 	@(cd $(gdbmdir) ; $() clean ; ./configure --enable-static --disable-shared; $(MAKE); rm libqdbm*.so*)
 create_oldsrc:

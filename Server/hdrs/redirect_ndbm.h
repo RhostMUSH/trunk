@@ -1,4 +1,6 @@
-#ifdef BROKEN_NDBM
+#ifdef MDBX
+  #include "mdbx_ndbm.h"
+#elif defined(BROKEN_NDBM)
   #ifndef QDBM
     #include "../src/gdbm/ndbm.h"
   #else

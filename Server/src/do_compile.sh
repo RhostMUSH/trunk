@@ -9,32 +9,36 @@ case ${COMP:=gdbm} in
    mdbx) gdbmdir=./mdbx
          ;;
 esac
+
+# MDBX needs extra CFLAGS to suppress warnings-as-errors on newer GCC
+MDBX_CFLAGS="-O2 -g -Wall -Werror -Wextra -Wpedantic -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error=attributes -Wno-error=array-bounds"
+
 #
 cd $gdbmdir
 if [ -f ./Makefile ]
 then
-   if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
+   if [ "$(uname -s)" = "Darwin" -a "${gdbmdir}" = "./qdbm" ]
    then
       make mac
    elif [ $(gmake --version 2>&1|grep -ic GNU) -gt 0 ]
    then
-      if [ "${qdbmdir}" = "./mdbx" ]
+      if [ "${gdbmdir}" = "./mdbx" ]
       then
-        gmake libmdbx.a
+        gmake CFLAGS="${MDBX_CFLAGS}" libmdbx.a
       else
         gmake
       fi
    else
-      if [ "${qdbmdir}" = "./lmdb" ]
+      if [ "${gdbmdir}" = "./mdbx" ]
       then
-        make libmdbx.a
+        make CFLAGS="${MDBX_CFLAGS}" libmdbx.a
       else
         make
       fi
    fi
 else
    ./configure
-   if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
+   if [ "$(uname -s)" = "Darwin" -a "${gdbmdir}" = "./qdbm" ]
    then
       make mac
    elif [ $(gmake --version 2>&1|grep -ic GNU) -gt 0 ]
