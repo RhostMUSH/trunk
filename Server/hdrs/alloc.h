@@ -18,7 +18,7 @@
 #define	NUM_POOLS       10 
 
 
-#ifdef QDBM
+#ifndef GDBM
   #ifdef LBUF64
     #define LBUF_SIZE 65536
     #define LBUF_TOTEM 5000

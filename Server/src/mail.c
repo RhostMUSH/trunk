@@ -96,7 +96,7 @@ static char *err_verb[]={"Header Receive Record",
 			 "Mail Database"};
 
 /* 4 less to be safe */
-#ifdef QDBM
+#ifndef GDBM
   #ifdef LBUF64
     #define NDBMBUFSZ 65532
   #else
@@ -7162,7 +7162,7 @@ void mail_load(dbref player)
   int *ipt1;
 /* needed due to possibly large input lines */
 #if 0
-#ifdef QDBM
+#ifndef GDBM
   #ifdef LBUF64
     char hbuf1[192000];
   #else
