@@ -3781,7 +3781,7 @@ atr_free(dbref thing)
 void 
 atr_collect(dbref thing)
 {
-    /* Nada.  qdbm takes care of us.  I hope ;-) */
+    /* Nada.  gdbm takes care of us.  I hope ;-) */
 }
 
 /* ---------------------------------------------------------------------------
@@ -4646,20 +4646,20 @@ clone_object(dbref a, dbref b)
 }
 
 int 
-init_qdbm_db(char *qdbmfile)
+init_gdbm_db(char *gdbmfile)
 {
 #ifdef STANDALONE
-    fprintf(stderr, "Opening %s\n", qdbmfile);
+    fprintf(stderr, "Opening %s\n", gdbmfile);
 #endif
     cache_init(mudconf.cache_width, mudconf.cache_depth);
-    dddb_setfile(qdbmfile);
+    dddb_setfile(gdbmfile);
     dddb_init();
 #ifdef STANDALONE
-    fprintf(stderr, "Done opening %s.\n", qdbmfile);
+    fprintf(stderr, "Done opening %s.\n", gdbmfile);
 #else
     STARTLOG(LOG_ALWAYS, "INI", "LOAD")
-	log_text((char *) "Using qdbm file: ");
-    log_text(qdbmfile);
+	log_text((char *) "Using gdbm file: ");
+    log_text(gdbmfile);
     ENDLOG
 #endif
 	db_free();

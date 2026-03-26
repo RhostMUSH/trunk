@@ -12,7 +12,7 @@
  *		conjunction with the above, but why?
  * ATR_NAME:	Define if you want name to be stored as an attribute on the
  *		object rather than in the object structure.
- * USE_QDBM:	Define if you plan on using the disk based database scheme.
+ * USE_GDBM:	Define if you plan on using the disk based database scheme.
  *		The code will not work if this is not #defined.
  * rcheck:	Define if you are a) using the gnu_malloc package, and b)
  *		want to enable it's memory range checking features.  Useful for
@@ -26,7 +26,7 @@
 
 /* #define TEST_MALLOC */		/* Keep track of block allocs */
 /* #define MSTATS */			/* Gnu-malloc stats */
-#define USE_QDBM			/* Store text in disk-based db */
+#define USE_GDBM			/* Store text in disk-based db */
 /* #define rcheck */			/* Gnu memory range checking */
 
 #ifdef DYN_MAXPLAYERNAME		/* Override max length player names */
@@ -89,7 +89,7 @@
  */
 
 #define MANDFLAGS	(V_LINK|V_PARENT|V_XFLAGS)	/* Everyone has these */
-#define OFLAGS1		(V_GDBM|V_ATRKEY)	/* QDBM has these */
+#define OFLAGS1		(V_GDBM|V_ATRKEY)	/* GDBM has these */
 
 #define OFLAGS2		(V_ATRNAME|V_ATRMONEY)
 

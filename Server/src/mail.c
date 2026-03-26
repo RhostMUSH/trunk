@@ -24,7 +24,15 @@ char *strtok_r(char *, const char *, char **);
 void bcopy(const void *, void *, int);
 #endif
 #include "autoconf.h"
-#include "myndbm.h"
+#ifdef HAVE_NDBM
+#include	"redirect_ndbm.h"
+#else
+#ifdef HAVE_DBM
+#include        <dbm.h>
+#else
+#include        "myndbm.h"
+#endif
+#endif
 #include <fcntl.h>
 #include <ctype.h>
 #include <time.h>

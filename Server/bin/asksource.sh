@@ -163,6 +163,8 @@ do
 done
 # default SBUF to 64 chars
 XB[3]="X"
+# default to QDBM database
+XB[5]="X"
 # default to MAX_GLOBAL_BOOST
 X[29]="#"
 # default to ATRCACHE_MAX
@@ -279,6 +281,7 @@ DEFB[1]=""
 DEFB[2]="\$(DR_DEF)"
 DEFB[3]="-DSBUF64"
 DEFB[4]="-DSQLITE"
+DEFB[5]="-DQDBM"
 
 DEFD[1]="-DMUSH_DOORS"
 DEFD[2]="-DEMPIRE_DOORS"
@@ -499,7 +502,7 @@ echo "[${X[28]}] 28. Enable LUA in API  [${X[29]}] 29. Boost Setq Regs    [${X[3
 echo "[${X[31]}] 31. Max PID Queues     [${X[32]}] 32. Max Player Length"
 echo "--------------------------- Extended Support Additions -----------------------"
 echo "[#] B1. MySQL Support      [${XB[2]}] B2. Door Support(Menu) [${XB[3]}] B3. 64 Char attribs"
-echo "[${XB[4]}] B4. SQLite Support     [#] B5. LBUF Settings (Menu)"
+echo "[${XB[4]}] B4. SQLite Support     [${XB[5]}] B5. QDBM DB Support    [#] B6. LBUF Settings (Menu)"
 echo "------------------------------------------------------------------------------"
 echo ""
 echo "Keys: [h]elp [i]nfo [s]ave [l]oad [d]elete [c]lear [m]ark [b]rowse [r]un [q]uit"
@@ -637,17 +640,14 @@ info() {
          ;;
       5) if [ $RUNBETA -eq 1 ]
          then
-            echo "This selection displays the menu allowing you to change the default"
-            echo "size of Rhost's text buffers. The default is traditionally 4000 for"
-            echo "Rhost, and 8192 for PennMUSH, TinyMUSH and MUX."
-            echo "Now you can select your favorite length yourself, with the options "
-            echo "of clasic 4k, 8K like other codebases, or even 16, 32 and 64K!     "
-            echo "This increases both, the max length of attribute contents as well  "
-            echo "as output length going to the client.                              "
-            echo "IMPORTANT: the config parameter output_length should always be     "
-            echo "4 times this setting. Rhost has a default output_limit config      "
-            echo "setting of '16384' with the 4K LBUFs. Increase accordingly before  "
-            echo "starting your game."
+            echo "This enables the QDBM database manager instead of the default GDBM"
+            echo "database manager.  This may be the preferred database eventhough"
+            echo "it is considered 'beta' as this is not hampered by the attribute"
+            echo "cap per dbref# (750 default) and is generally a faster and more"
+            echo "robust database engine.  Be warned, however, that QDBM is NOT"
+            echo "binary compatible with GDBM, so any existing databases"
+            echo "WILL NOT LOAD.  You have to flatfile dump the database then"
+            echo "db_load the flatfile into the database once qdbm is compiled."
          elif [ $BETAOPT -eq 2 ]
          then
             echo ""
@@ -659,8 +659,23 @@ info() {
             echo "TinyMUSH 3: %x is ANSI sub, %m is last command. %x depends on config."
          fi
          ;;
-      6) echo "RhostMUSH supports crypt() and decrypt() functions.  Toggle this"
-         echo "if you wish to use them."
+      6) if [ $RUNBETA -eq 1 ]
+         then
+            echo "This selection displays the menu allowing you to change the default"
+            echo "size of Rhost's text buffers. The default is traditionally 4000 for"
+            echo "Rhost, and 8192 for PennMUSH, TinyMUSH and MUX."
+            echo "Now you can select your favorite length yourself, with the options "
+            echo "of clasic 4k, 8K like other codebases, or even 16, 32 and 64K!     "
+            echo "This increases both, the max length of attribute contents as well  "
+            echo "as output length going to the client.                              "
+            echo "IMPORTANT: the config parameter output_length should always be     "
+            echo "4 times this setting. Rhost has a default output_limit config      "
+            echo "setting of '16384' with the 4K LBUFs. Increase accordingly before  "
+            echo "starting your game."
+         else
+            echo "RhostMUSH supports crypt() and decrypt() functions.  Toggle this"
+            echo "if you wish to use them."
+         fi
          ;;
       7) echo "RhostMUSH allows you to use a plushelp.txt file for +help.  This"
          echo "supports MUX/TinyMUSH3 in how +help is hardcoded to a text file."
@@ -935,7 +950,7 @@ parse() {
             if [ $TST -eq 2 ]
             then
                BETAOPT=1
-            elif [ $TST -eq 5 ]
+            elif [ $TST -eq 6 ]
             then
                BETAOPT=2
             elif [ $TST -eq 1 ]
@@ -944,7 +959,15 @@ parse() {
             else
                if [ "${XB[${TST}]}" = "X" ]
                then
+                  if [ "${TST}" -eq 5 ]
+                  then
+                    if [ "${XL[1]}" = "X" ]
+                    then
+                      XB[${TST}]=" "
+                    fi
+                  else
                     XB[${TST}]=" "
+                  fi
                else
                   XB[${TST}]="X"
                fi
@@ -2120,6 +2143,7 @@ setdefaults() {
      echo "Tossing in Malloc for stdlib definition for MAC..."
      DEFS="-DMALLOC_IN_STDLIB_H ${DEFS}"
   fi
+  DEFS="-DBROKEN_NDBM ${DEFS}"
   if [ ! -f /usr/include/wait.h ]
   then
      echo "Patching for wait.h <sys>..."
@@ -2517,8 +2541,14 @@ updatemakefile() {
    fi
    echo "Generating DB link library for the Makefile now.  Please wait..."
    echo "# DB used for Mush Engine" >> ../src/custom.defs
-    echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
-   echo "COMP=qdbm" > ../src/do_compile.var
+   if [ "${XB[5]}" = "X" ]
+   then
+      echo "CUSTLIBS = -L../src/qdbm/ -lqdbm" >> ../src/custom.defs
+      echo "COMP=qdbm" > ../src/do_compile.var
+   else
+      echo "CUSTLIBS = -L../src/gdbm/.libs/ -lgdbm_compat -L../src/gdbm/ -lgdbm" >> ../src/custom.defs
+      echo "COMP=gdbm" > ../src/do_compile.var
+   fi
    chmod 755 ../src/do_compile.var
    if [ "${X[23]}" = "X" ]
    then

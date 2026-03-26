@@ -1,8 +1,16 @@
 #!/bin/sh
 #
 . ../src/do_compile.var
-qdbmdir=./qdbm
-cd $qdbmdir
+case ${COMP:=gdbm} in
+   gdbm) gdbmdir=./gdbm
+         ;;
+   qdbm) gdbmdir=./qdbm
+         ;;
+  tokyo) gdbmdir=./tokyocabinet-1.4.21
+         ;;
+esac
+#
+cd $gdbmdir
 if [ -f ./Makefile ]
 then
    if [ "$(uname -s)" = "Darwin" -a "${qdbmdir}" = "./qdbm" ]
