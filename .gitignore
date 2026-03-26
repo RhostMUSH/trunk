@@ -89,6 +89,8 @@ timeout
 /Server/src/qdbm/vlmgr
 /Server/src/qdbm/vltest
 /Server/src/qdbm/vltsv
+/Server/src/mdbx/config.h
+/Server/src/mdbx/libmdbx.a
 /Server/src/sockopts_test
 /Server/src/scantst
 /Server/src/time
