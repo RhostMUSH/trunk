@@ -189,26 +189,22 @@ NDECL(cf_init)
     mudconf.vattr_interval = 86400;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
-#ifndef GDBM
-  #ifdef LBUF64
+#ifdef LBUF64
     mudconf.output_limit = 262144;
+#else
+  #ifdef LBUF32
+      mudconf.output_limit = 131072;
   #else
-    #ifdef LBUF32
-    mudconf.output_limit = 131072;
+    #ifdef LBUF16
+        mudconf.output_limit = 65536;
     #else
-      #ifdef LBUF16
-    mudconf.output_limit = 65536;
+      #ifdef LBUF8
+          mudconf.output_limit = 32768;
       #else
-        #ifdef LBUF8
-    mudconf.output_limit = 32768;
-        #else
-    mudconf.output_limit = 16384;
-        #endif
+          mudconf.output_limit = 16384;
       #endif
     #endif
   #endif
-#else
-    mudconf.output_limit = 16384;
 #endif
     mudconf.paycheck = 0;
     mudconf.paystart = 0;
@@ -1318,18 +1314,8 @@ CF_HAND(cf_vint)
     char s_buf[20];
   
     sscanf(str, "%d", &vp_old);
-#ifndef GDBM
     i_ceil = 10000;
     sprintf(s_buf, (char *)"[QDBM/MDBX Mode]");
-#else
-#ifdef BIT64
-    i_ceil = 400;
-    sprintf(s_buf, (char *)"[GDBM 64Bit Mode]");
-#else
-    sprintf(s_buf, (char *)"[GDBM 32Bit Mode]");
-    i_ceil = 750;
-#endif
-#endif
     if ((vp_old < 0) || (vp_old > i_ceil)) {
         if ( !mudstate.initializing) {
            notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));

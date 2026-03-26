@@ -96,26 +96,22 @@ static char *err_verb[]={"Header Receive Record",
 			 "Mail Database"};
 
 /* 4 less to be safe */
-#ifndef GDBM
-  #ifdef LBUF64
-    #define NDBMBUFSZ 65532
+#ifdef LBUF64
+  #define NDBMBUFSZ 65532
+#else
+  #ifdef LBUF32
+    #define NDBMBUFSZ 32764
   #else
-    #ifdef LBUF32
-      #define NDBMBUFSZ 32764
+    #ifdef LBUF16
+      #define NDBMBUFSZ 16380
     #else
-      #ifdef LBUF16
-        #define NDBMBUFSZ 16380
+      #ifdef LBUF8
+        #define NDBMBUFSZ 8188
       #else
-        #ifdef LBUF8
-          #define NDBMBUFSZ 8188
-        #else
-          #define NDBMBUFSZ 4092
-        #endif
+        #define NDBMBUFSZ 4092
       #endif
     #endif
   #endif
-#else
-#define NDBMBUFSZ 4092
 #endif
 static char *bufmaster;
 static char *sbuf1;
@@ -7162,7 +7158,6 @@ void mail_load(dbref player)
   int *ipt1;
 /* needed due to possibly large input lines */
 #if 0
-#ifndef GDBM
   #ifdef LBUF64
     char hbuf1[192000];
   #else
@@ -7173,16 +7168,13 @@ void mail_load(dbref player)
         char hbuf1[48000];
       #else
         #ifdef LBUF8
-        	char hbuf1[24000];
+          char hbuf1[24000];
         #else
-	        char hbuf1[12000];
+          char hbuf1[12000];
         #endif
       #endif
     #endif
   #endif
-#else
-  char hbuf1[12000];
-#endif
 #endif
   char hbuf1[192000];
   dump1 = fopen(dumpname, "r");

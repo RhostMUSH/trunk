@@ -19,26 +19,22 @@
 
 
 /* 4 less to be safe */
-#ifndef GDBM
-  #ifdef LBUF64
-    #define NDBMBUFSZ 65532
+#ifdef LBUF64
+  #define NDBMBUFSZ 65532
+#else
+  #ifdef LBUF32
+    #define NDBMBUFSZ 32764
   #else
-    #ifdef LBUF32
-      #define NDBMBUFSZ 32764
+    #ifdef LBUF16
+      #define NDBMBUFSZ 16380
     #else
-      #ifdef LBUF16
-        #define NDBMBUFSZ 16380
+      #ifdef LBUF8
+        #define NDBMBUFSZ 8188
       #else
-        #ifdef LBUF8
-          #define NDBMBUFSZ 8188
-        #else
-          #define NDBMBUFSZ 4092
-        #endif
+        #define NDBMBUFSZ 4092
       #endif
     #endif
   #endif
-#else
-#define NDBMBUFSZ 4092
 #endif
 
 static char aregname[129 + 64];

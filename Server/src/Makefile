@@ -253,10 +253,8 @@ VER_FLG	= -DMUSH_BUILD_DATE="\"`cat date.txt`\"" \
 # BROKEN_ERRNO_SYS - use if BROKEN_ERRNO returns an error.
 #                calls <sys/errno.h>.
 # SYSWAIT - use if wait.h undefined.
-# BROKEN_NDBM -  ndbm.h file loaded in weird location? This fixes it.
-# SYSWAIT - use if wait.h undefined.
 # BSD_LIKE   - BSD, Cygwin and Max OSX uses probably want to try setting this.
-#              They probably also need to define: -DBROKEN_ERRNO_SYS -DBROKEN_NDBM -DSYSWAIT
+#              They probably also need to define: -DBROKEN_ERRNO_SYS -DSYSWAIT
 # SYS_MALLOC - Used if malloc.h is in a borked spot.
 ###########################################################################################################
 
@@ -315,7 +313,7 @@ DEFS = $(CUSTDEFS) -Wall
 #
 # IMPORTANT: Make sure you've read CYGWIN.readme before trying this!
 #
-#CYGWIN = -I/usr/local/include -DCYGWIN -DBROKEN_ERRNO_SYS -DBROKEN_NDBM -DSYSWAIT -DNODEBUGMONITOR -g 
+#CYGWIN = -I/usr/local/include -DCYGWIN -DBROKEN_ERRNO_SYS -DSYSWAIT -DNODEBUGMONITOR -g 
  
 # Libraries.  
 # The following extra libraries are required based on what system you have.

@@ -29,7 +29,8 @@ else
    done
 
    ln -s ../src/Makefile csrc/Makefile
-   ln -s ../src/gdbm-1.7.3 csrc/gdbm-1.7.3
+   ln -s ../src/qdbm csrc/qdbm
+   ln -s ../src/mdbx csrc/mdbx
    echo "" > csrc/.depend
    echo SUCCESS: The directory csrc has been created and can now be used.
 fi

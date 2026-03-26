@@ -5,7 +5,6 @@
 
 SHELL  = /bin/sh
 srcdir = ./src
-gdbmdir= ./src/gdbm/
 qdbmdir= ./src/qdbm/
 mdbxdir= ./src/mdbx/
 bindir = ./bin
@@ -34,7 +33,7 @@ instructions:
 	@echo "make source"
 	@echo "   If you have a source code included distribution, then this"
 	@echo "   will cause rhost to get compiled"
-	@echo "   This also will configure and/or compile gdbm if required."
+	@echo "   This also will configure and/or compile *dbm if required."
 	@echo "   --- MAKE SURE YOU HAVE SETTINGS IN ./src/Makefile RIGHT --"
 	@echo "make create_oldsrc"
 	@echo "   Creates a directory 'csrc' which contains both hdrs and src"
@@ -45,8 +44,6 @@ instructions:
 	@echo "   exist yet."
 	@echo "make links"
 	@echo "   Causes the symlinks to be created within the game dirs"
-	@echo "make gdbm"
-	@echo "   This compiles just the gdbm libraries."
 	@echo "make qdbm"
 	@echo "   This compiles just the qdbm libraries."
 	@echo "make mdbx"
@@ -56,18 +53,14 @@ instructions:
 	@echo "   Removes any old object files and binaries"
 	@echo "make realclean"
 	@echo "   Removes old object files, temporary files, backup files"
-	@echo "   This also removes the gdbm support libraries."
+	@echo "   This also removes the *dbm support libraries."
 	@echo "make superclean"
 	@echo "   Removes old object files, temporary files, backup files"
-	@echo "   This also puts gdbm into a 'clean' state."
-	@echo "make gdbmclean"
-	@echo "   This removes the gdbm libs requiring a fresh compile."
+	@echo "   This also puts *dbm into a 'clean' state."
 	@echo "make qdbmclean"
 	@echo "   This removes the qdbm libs requiring a fresh compile."
 	@echo "make mdbxclean"
 	@echo "   This removes the mdbx libs requiring a fresh compile."
-	@echo "make gdbmrclean"
-	@echo "   This puts gdbm into a 'clean' state as if just downloaded."
 #	@echo "make distrib"
 #	@echo "   Creates a tar archive of the rhost directory hierachy"
 	@echo
@@ -110,8 +103,6 @@ mdbx:
 	  $(CC) $(MDBX_CFLAGS) -DNDEBUG=1 '-DMDBX_CONFIG_H="config.h"' -ULIBMDBX_EXPORTS -c mdbx.c -o mdbx-static.o && \
 	  $(AR) rs libmdbx.a mdbx-static.o
 MDBX_CFLAGS = -O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error
-gdbm:
-	@(cd $(gdbmdir) ; $() clean ; ./configure --enable-static --disable-shared; $(MAKE); rm libqdbm*.so*)
 create_oldsrc:
 	@(./bin/make_csrc.sh)
 	@echo ... Done
@@ -121,18 +112,14 @@ links:
 	@./bin/make_links.sh
 clean:
 	@(cd $(srcdir) ; $(MAKE) clean)
-realclean: clean gdbmclean qdbmclean mdbxclean
+realclean: clean qdbmclean mdbxclean
 	@(rm src/*~ hdrs/*~)
-superclean: clean gdbmrclean
+superclean: clean qdbmrclean mdbxclean
 	@(rm src/*~ hdrs/*~ bin/*~)
-gdbmclean:
-	@(cd $(gdbmdir) ; $(MAKE) clean)
 qdbmclean:
 	@(cd $(qdbmdir) ; $(MAKE) clean)
 mdbxclean:
 	@rm -f $(mdbxdir)/libmdbx.a $(mdbxdir)/mdbx-static.o $(mdbxdir)/config.h $(mdbxdir)/probe4*.err $(mdbxdir)/@buildflags.tag
-gdbmrclean:
-	@(cd $(gdbmdir) ; $(MAKE) realclean)
 customize:
 	@./bin/customize.pl
 bugreport: 

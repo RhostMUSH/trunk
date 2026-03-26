@@ -1,9 +1,7 @@
 #!/bin/sh
 #
 . ../src/do_compile.var
-case ${COMP:=gdbm} in
-   gdbm) gdbmdir=./gdbm
-         ;;
+case ${COMP:=qdbm} in
    qdbm) gdbmdir=./qdbm
          ;;
    mdbx) gdbmdir=./mdbx

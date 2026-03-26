@@ -6659,11 +6659,7 @@ if ( !key ) {
 #ifdef MDBX
     notify(player, "Database Engine ------------------------------------------------ MDBX");
 #else
-#ifdef BIT64
-    notify(player, "Database Engine ------------------------------------------------ GDBM [64Bit]");
-#else
-    notify(player, "Database Engine ------------------------------------------------ GDBM [32Bit]");
-#endif
+    notify(player, "Database Engine -------------------------------------------- UNKNOWN?");
 #endif
 #endif
 #ifdef SQLITE

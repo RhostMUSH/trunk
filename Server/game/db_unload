@@ -1,8 +1,5 @@
 #!/bin/sh
 PATH=/bin:/usr/bin:
-# You need this library path for the new gdbm
-# LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/gdbm:../src/gdbm/.libs
-# export LD_LIBRARY_PATH
 #
 #	Convert from arbitrary format to MUSH V2 flat file format.
 #
