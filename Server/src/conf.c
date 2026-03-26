@@ -189,7 +189,7 @@ NDECL(cf_init)
     mudconf.vattr_interval = 86400;
     mudconf.retry_limit = 3;
     mudconf.regtry_limit = 1;
-#ifdef QDBM
+#ifndef GDBM
   #ifdef LBUF64
     mudconf.output_limit = 262144;
   #else
@@ -1318,9 +1318,9 @@ CF_HAND(cf_vint)
     char s_buf[20];
   
     sscanf(str, "%d", &vp_old);
-#ifdef QDBM
+#ifndef GDBM
     i_ceil = 10000;
-    sprintf(s_buf, (char *)"[QDBM Mode]");
+    sprintf(s_buf, (char *)"[QDBM/MDBX Mode]");
 #else
 #ifdef BIT64
     i_ceil = 400;

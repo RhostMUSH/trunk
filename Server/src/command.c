@@ -6656,10 +6656,14 @@ if ( !key ) {
 #ifdef QDBM
     notify(player, "Database Engine ------------------------------------------------ QDBM");
 #else
+#ifdef MDBX
+    notify(player, "Database Engine ------------------------------------------------ MDBX");
+#else
 #ifdef BIT64
     notify(player, "Database Engine ------------------------------------------------ GDBM [64Bit]");
 #else
     notify(player, "Database Engine ------------------------------------------------ GDBM [32Bit]");
+#endif
 #endif
 #endif
 #ifdef SQLITE

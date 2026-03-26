@@ -123,12 +123,20 @@ OPTIM = -g
 #OPTIM = -O
 
 # UnterMUD database layer.
+# When MDBX is selected, use the MDBX chunk files instead of the
+# legacy bitmap/flat-file chunk files.
+ifneq (,$(findstring -DMDBX,$(CUSTDEFS)))
+UDBA_SRC = udb_acache.c udb_mdbx_achunk.c udb_attr.c
+UDBA_OBJ = udb_acache.o udb_mdbx_achunk.o udb_attr.o
+UDBO_SRC = udb_ocache.c udb_mdbx_ochunk.c udb_obj.c
+UDBO_OBJ = udb_ocache.o udb_mdbx_ochunk.o udb_obj.o
+else
 UDBA_SRC = udb_acache.c udb_achunk.c udb_attr.c
 UDBA_OBJ = udb_acache.o udb_achunk.o udb_attr.o
-UDBA_FLG = -DCACHE_ATTRS
-
 UDBO_SRC = udb_ocache.c udb_ochunk.c udb_obj.c
 UDBO_OBJ = udb_ocache.o udb_ochunk.o udb_obj.o
+endif
+UDBA_FLG = -DCACHE_ATTRS
 UDBO_FLG = -DCACHE_OBJS
 
 UDB_SRC = udb_misc.c
@@ -173,7 +181,7 @@ D_SRC	= door.c shs.c mushcrypt.c news.c mail.c mailfix.c debug.c senses.c \
 	  db.c db_rw.c compress.c stringutil.c bst.c object.c conf.c flags.c htab.c \
 	  compat.c file_c.c player_c.c bsd.c alloc.c autoreg.c levels.c \
           local.c utils.c pcre.c pcre_extensions.c tprintf.c sha1.c 64btime.c \
-          sqlite.c websock2.c $(DR_SRC) $(MYSQL_C)
+          sqlite.c websock2.c mdbx_ndbm.c $(DR_SRC) $(MYSQL_C)
 
 D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  create.o game.o help.o look.o match.o move.o player.o predicates.o \
@@ -182,7 +190,7 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 	  db.o db_rw.o compress.o stringutil.o bst.o object.o conf.o flags.o htab.o \
           compat.o file_c.o player_c.o bsd.o alloc.o autoreg.o levels.o \
           local.o utils.o pcre.o pcre_extensions.o tprintf.o sha1.o 64btime.o \
-          sqlite.o websock2.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
+          sqlite.o websock2.o mdbx_ndbm.o $(DR_OBJ) $(MYSQL_O) $(HSPACE_O)
 
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
@@ -467,8 +475,8 @@ $(bindir)/mkindx: mkindx.o
 $(bindir)/unsplit: unsplit.o
 	$(CC) $(ALLCFLAGS) -o $(bindir)/unsplit unsplit.o
 
-$(bindir)/dbconvert: dbconvert.o $(SA_OBJ) $(UDB_O) $(ALLOC_O)$(LIBOBJS)
-	$(CC) $(ALLCFLAGS) -o $(bindir)/dbconvert dbconvert.o $(SA_OBJ) $(COM_OBJ) $(UDB_O) $(ALLOC_O) $(LIBS) $(MORELIBS) $(LIBOBJS)
+$(bindir)/dbconvert: dbconvert.o $(SA_OBJ) $(UDB_O) mdbx_ndbm.o $(ALLOC_O)$(LIBOBJS)
+	$(CC) $(ALLCFLAGS) -o $(bindir)/dbconvert dbconvert.o $(SA_OBJ) $(COM_OBJ) $(UDB_O) mdbx_ndbm.o $(ALLOC_O) $(LIBS) $(MORELIBS) $(LIBOBJS)
 
 saber:	$(SRC)
 	#load $(SRC)

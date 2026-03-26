@@ -19,7 +19,7 @@
 
 
 /* 4 less to be safe */
-#ifdef QDBM
+#ifndef GDBM
   #ifdef LBUF64
     #define NDBMBUFSZ 65532
   #else
