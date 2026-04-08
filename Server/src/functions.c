@@ -5669,9 +5669,9 @@ FUNCTION(fun_dice)
     else
        i_crit = 0;
 
-    if ((i > 100) || (i < 1) || (j > 100) || (j < 2) ||
-        (i_save > 100) || (i_save < 0) ||
-        (i_crit > 100) || (i_crit < 0)) {
+    if ((i > 100) || (i < 1) || (j > 100000) || (j < 2) ||
+        (i_save > 100000) || (i_save < 0) ||
+        (i_crit > 100000) || (i_crit < 0)) {
        safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
        return;
     }
