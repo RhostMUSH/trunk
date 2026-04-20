@@ -245,7 +245,7 @@ extern DESC *desc_in_use;
 
 extern void	NDECL(emergency_shutdown);
 extern void	FDECL(shutdownsock, (DESC *, int));
-extern void	FDECL(shovechars, (int, char*));
+extern void	NDECL(shovechars);
 extern void	NDECL(set_signals);
 extern void	FDECL(start_auth, (DESC *));
 extern void 	FDECL(check_auth_connect, (DESC *));
