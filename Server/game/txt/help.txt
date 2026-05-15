@@ -36910,6 +36910,7 @@
   5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.27.8
 & 4.27.7
 & 4.27.6
 & changelog latest
@@ -36917,6 +36918,13 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.27.8
+  * Used OpenCode/Qwen3.6 Plus to harden the Lua API:
+    - Removed the os library entirely
+    - Removed the coroutine library
+    - string.dump removed after string library load
+    - _G, setmetatable, rawset, rawget removed.
 
   4.27.7
   * made dice()/die() accept up to 100000-sided dice
