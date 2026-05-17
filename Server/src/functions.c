@@ -5934,7 +5934,7 @@ FUNCTION(fun_shuffle)
 
 FUNCTION(fun_ansipos)
 {
-    char *outbuff, *returnbuff, *ptr;
+    char *outbuff, *returnbuff, *ptr, *rp, *wp;
     ANSISPLIT outsplit[LBUF_SIZE];
     int i_pos, i_cur; 
     
@@ -5957,10 +5957,53 @@ FUNCTION(fun_ansipos)
        if ( i_cur == i_pos ) {
           *returnbuff = ' ';
           ptr = rebuild_ansi(returnbuff, outsplit + i_cur -1, 0);
-          if ( (strlen(ptr) > 4) && (strchr(ptr, ' ') != NULL) ) {
-             *(strchr(ptr, ' ')) = '\0';
-             safe_str(ptr, buff, bufcx);
+          /* Extract ANSI codes only, stopping at first non-ANSI character.
+             Handles TrueColor %x<R G B> which contains spaces internally. */
+          rp = ptr;
+          wp = returnbuff;
+          while (*rp) {
+             if (*rp == '%') {
+                /* Start of an ANSI code — copy the entire code */
+                if (*(rp+1) == SAFE_CHR || *(rp+1) == SAFE_UCHR
+#ifdef SAFE_CHR2
+                   || *(rp+1) == SAFE_CHR2 || *(rp+1) == SAFE_UCHR2
+#endif
+#ifdef SAFE_CHR3
+                   || *(rp+1) == SAFE_CHR3 || *(rp+1) == SAFE_UCHR3
+#endif
+                ) {
+                   /* %x... or %X... — could be 16-color, 256-color, or TrueColor */
+                   *wp++ = *rp++;
+                   *wp++ = *rp++; /* copy the SAFE_CHR */
+                   if (*rp == '0' && (*(rp+1) == 'x' || *(rp+1) == 'X')) {
+                      /* 256-color: %x0xRR (6 chars total) */
+                      *wp++ = *rp++; *wp++ = *rp++;
+                      *wp++ = *rp++; *wp++ = *rp++;
+                   } else if (*rp == '<') {
+                      /* TrueColor: %x<R G B> or %x<#RRGGBB> — find closing > */
+                      *wp++ = *rp++;
+                      while (*rp && *rp != '>')
+                         *wp++ = *rp++;
+                      if (*rp == '>')
+                         *wp++ = *rp++;
+                   } else if (isAnsi[(int)*rp]) {
+                      /* 16-color: %xn, %xr, etc. (3 chars total) */
+                      *wp++ = *rp++;
+                   }
+                } else if (*(rp+1) == 'f' && isprint(*(rp+2))) {
+                   /* Accent: %fX (3 chars) */
+                   *wp++ = *rp++; *wp++ = *rp++; *wp++ = *rp++;
+                } else {
+                   /* Unknown % code — skip */
+                   rp++;
+                }
+             } else {
+                /* Non-ANSI character (the trailing space) — stop */
+                break;
+             }
           }
+          *wp = '\0';
+          safe_str(returnbuff, buff, bufcx);
           free_lbuf(ptr);
           break;
        }

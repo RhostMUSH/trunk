@@ -1442,6 +1442,12 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
           s_ptr->i_truecolor |= (s_ptr-1)->i_truecolor & TC_BG_SET;
        else
           (s_ptr-1)->i_truecolor &= ~TC_BG_SET;
+       s_ptr->i_fgr = (s_ptr-1)->i_fgr;
+       s_ptr->i_fgg = (s_ptr-1)->i_fgg;
+       s_ptr->i_fgb = (s_ptr-1)->i_fgb;
+       s_ptr->i_bgr = (s_ptr-1)->i_bgr;
+       s_ptr->i_bgg = (s_ptr-1)->i_bgg;
+       s_ptr->i_bgb = (s_ptr-1)->i_bgb;
        s_inptr++;
       s_outptr++;
    }
