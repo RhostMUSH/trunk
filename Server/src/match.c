@@ -27,8 +27,7 @@ static int reality_valuechk = 0;        /* Reality level check */
  */
 
 static char *
-munge_space_for_match(name)
-    char *name;
+munge_space_for_match(char *name)
 {
     static char buffer[LBUF_SIZE];
     char *p, *q;
@@ -55,9 +54,7 @@ munge_space_for_match(name)
  */
 
 dbref
-pref_match(player, list, string)
-    dbref player, list;
-    const char *string;
+pref_match(dbref player, dbref list, const char *string)
 {
     dbref lmatch;
     int mlen;
@@ -79,10 +76,7 @@ pref_match(player, list, string)
 }
 
 void
-init_match(player, name, type)
-    dbref player;
-    const char *name;
-    int type;
+init_match(dbref player, const char *name, int type)
 {
     reality_valuechk = 0;
     exact_match = last_match = NOTHING;
@@ -110,18 +104,14 @@ init_match_real(dbref player, const char *name, int type, int real_bitvalue)
 }
 
 void
-init_match_check_keys(player, name, type)
-    dbref player;
-    const char *name;
-    int type;
+init_match_check_keys(dbref player, const char *name, int type)
 {
     init_match(player, name, type);
     check_keys = 1;
 }
 
 static dbref
-choose_thing(thing1, thing2)
-    dbref thing1, thing2;
+choose_thing(dbref thing1, dbref thing2)
 {
     int has1;
     int has2;
@@ -202,8 +192,7 @@ NDECL(match_player)
 /* returns nnn if name = #nnn, else NOTHING */
 
 static dbref
-absolute_name(need_pound)
-    int need_pound;
+absolute_name(int need_pound)
 {
     dbref match;
     char *mname;
@@ -320,8 +309,7 @@ NDECL(match_here)
 }
 
 static void
-match_list_altname(first)
-    dbref first;
+match_list_altname(dbref first)
 {
     dbref absolute, aowner;
     char *namebuf, *namebuf2, *namebuf3;
@@ -468,8 +456,7 @@ match_list_altname(first)
 }
 
 static void
-match_list(first)
-    dbref first;
+match_list(dbref first)
 {
     dbref absolute;
     char *namebuf;
@@ -755,8 +742,7 @@ NDECL(match_master_exit)
 }
 
 void
-match_everything(key)
-    int key;
+match_everything(int key)
 {
     /*
      * Try matching me, then here, then absolute, then player FIRST, since
@@ -815,8 +801,7 @@ NDECL(last_match_result)
 }
 
 dbref
-match_status(player, match)
-    dbref player, match;
+match_status(dbref player, dbref match)
 {
     switch (match) {
     case NOTHING:
@@ -842,8 +827,7 @@ NDECL(noisy_match_result)
 }
 
 dbref
-dispatched_match_result(player)
-    dbref player;
+dispatched_match_result(dbref player)
 {
     dbref match, save_player;
 
@@ -861,8 +845,7 @@ NDECL(matched_locally)
 }
 
 void
-save_match_state(mstate)
-    MSTATE *mstate;
+save_match_state(MSTATE *mstate)
 {
     mstate->exact_match = exact_match;
     mstate->have_exact = have_exact;
@@ -877,8 +860,7 @@ save_match_state(mstate)
 }
 
 void
-restore_match_state(mstate)
-    MSTATE *mstate;
+restore_match_state(MSTATE *mstate)
 {
     exact_match = mstate->exact_match;
     have_exact = mstate->have_exact;
@@ -893,9 +875,7 @@ restore_match_state(mstate)
 }
 
 dbref
-match_controlled_quiet(player, name)
-    dbref player;
-    const char *name;
+match_controlled_quiet(dbref player, const char *name)
 {
     dbref mat;
 

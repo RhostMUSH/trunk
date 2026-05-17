@@ -584,7 +584,7 @@ typedef struct totem_entry {
 	int	typeperm;	/* Type permission */
 	int	permanent;	/* Perm handle: 0 - dyn, 1 - perm, 2 - builtin */
 	int	aliased;	/* Is this entry aliased?  0 - no, 1 - yes */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int flag, int fflags, int reset);   /* Handler for setting/clearing this flag */
 } TOTEMENT;
 
 /* ---------------------------------------------------------------------------
@@ -600,7 +600,7 @@ typedef struct flag_entry {
         int     setovperm;      /* Override who can set the flag */
         int     usetovperm;     /* Override who can unset the flag */
 	int	typeperm;	/* Type permission */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int flag, int fflags, int reset);   /* Handler for setting/clearing this flag */
 } FLAGENT;
 
 typedef struct toggle_entry {
@@ -612,7 +612,7 @@ typedef struct toggle_entry {
 	int	setovperm;	/* Override who can set the toggle */
 	int	usetovperm;	/* Override who can unset the toggle */
 	int	typeperm;	/* Type permission */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int toggle, int tflags, int reset);   /* Handler for setting/clearing this flag */
 } TOGENT;
 
 typedef struct power_entry {
@@ -622,7 +622,7 @@ typedef struct power_entry {
 	int	powerflag;
 	int	powerperm;
 	int	powerlev;
-	int	(*handler)();
+	int	(*handler)(dbref target, dbref player, int powerpos, int pflags, int level, int slevel);
 } POWENT;
 
 /* ---------------------------------------------------------------------------

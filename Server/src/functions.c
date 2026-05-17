@@ -14106,8 +14106,7 @@ check_readlock_perms(dbref player, dbref thing, ATTR * attr,
 
 #ifdef USECRYPT
 static char *
-crunch_code(code)
-    char *code;
+crunch_code(char *code)
 {
     char *in;
     char *out;

@@ -54,7 +54,7 @@ void bzero(void *, int);
 
 extern int obj_siz(Obj *o);
 extern void VDECL(fatal, (const char *,...));
-extern void mush_logf();
+extern void mush_logf(const char *fmt, ...);
 
 /*
 #define		DBMCHUNK_DEBUG
@@ -84,7 +84,7 @@ struct	hrec	{
 	int	siz;
 };
 
-static	void dddb_mark();
+static	void dddb_mark(off_t lbn, int siz, int taken);
 
 #define DEFAULT_DBMCHUNKFILE "mudDB"
 
@@ -107,7 +107,7 @@ static	int	bm_top;
 static	datum	dat;
 static	datum	key;
 
-static	void	growbit();
+static	void	growbit(int maxblok);
 
 void
 dddb_var_init()
