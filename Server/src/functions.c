@@ -10937,17 +10937,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                memset(s_t, '\0', LBUF_SIZE);
                s_tp = s_t;
                s_tp2 = fmtbuff;
-               fmtbuff = skip_mux_ansi(fmtbuff+2, s_t, &s_tp);
-               safe_chr( *s_tp2, buff, bufcx );
-               safe_chr( *(s_tp2+1), buff, bufcx );
-               safe_chr( *s_tp2, s_padbuf, &s_padbufptr );
-               safe_chr( *(s_tp2+1), s_padbuf, &s_padbufptr );
-               safe_str(s_t, s_padbuf, &s_padbufptr);
-               if ( fm->breakonreturn && shold ) {
-                  safe_chr( *s_tp2, shold, sholdptr );
-                  safe_chr( *(s_tp2+1), shold, sholdptr );
-                  safe_str(s_t, shold, sholdptr);
-               }
+                fmtbuff = skip_mux_ansi(fmtbuff+2, s_t, &s_tp);
+                safe_chr( *s_tp2, buff, bufcx );
+                safe_chr( *(s_tp2+1), buff, bufcx );
+                safe_str(s_t, buff, bufcx);
+                safe_chr( *s_tp2, s_padbuf, &s_padbufptr );
+                safe_chr( *(s_tp2+1), s_padbuf, &s_padbufptr );
+                safe_str(s_t, s_padbuf, &s_padbufptr);
+                if ( fm->breakonreturn && shold ) {
+                   safe_chr( *s_tp2, shold, sholdptr );
+                   safe_chr( *(s_tp2+1), shold, sholdptr );
+                   safe_str(s_t, shold, sholdptr);
+                }
                if ( *s_t ) {
                   i_inansi=1;
                }
@@ -12415,11 +12416,17 @@ FUNCTION(fun_printf)
                                     ((*(pp+1) == 'f') && isprint(*(pp+2)))) ) {
                   i_totwidth-=3;
                }
-               if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && 
-                    (*(pp+1) == '0') && ((*(pp+2) == 'x') || (*(pp+2) == 'X')) && 
-                    (*(pp+3) && isxdigit(*(pp+3))) && (*(pp+4) && isxdigit(*(pp+4))) ) {
-                  i_totwidth-=6;
-               }
+                if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && 
+                     (*(pp+1) == '0') && ((*(pp+2) == 'x') || (*(pp+2) == 'X')) && 
+                     (*(pp+3) && isxdigit(*(pp+3))) && (*(pp+4) && isxdigit(*(pp+4))) ) {
+                   i_totwidth-=6;
+                }
+                if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && *(pp+2) == '<' ) {
+                   char *tc_end = strchr(pp+3, '>');
+                   if ( tc_end ) {
+                      i_totwidth -= (tc_end - pp);
+                   }
+                }
 #endif
             } else if( fm.insup2 || fm.insup4 ) {
                safe_chr(' ', buff, bufcx);
