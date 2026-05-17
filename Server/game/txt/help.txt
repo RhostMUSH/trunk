@@ -1156,7 +1156,7 @@
   
   For more help on the %c substitution, look at SUBSTITUTIONS
   
-  See Also: SUBSTITUTIONS, ANSI, ANSICOLOR, XTERMCOLOR, ANSI()
+  See Also: SUBSTITUTIONS, ANSI, ANSICOLOR, XTERMCOLOR, ANSI(), TRUECOLOR
   
 & zones
   The RhostMUSH zone system works as follows:
@@ -10578,7 +10578,7 @@
    
   This will effectively strip out the ansi sequence for the underline routine.
   
-  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, ansi()
+  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, ansi(), TRUECOLOR
   
 & NOFLASH
 & NO_FLASH
@@ -10592,7 +10592,7 @@
   
   This is aliased to 'NOFLASH' for compatibility.
    
-  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_UNDERLINE, ansi()
+  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_UNDERLINE, ansi(), TRUECOLOR
   
 & OPAQUE
   Flag: OPAQUE(O)   
@@ -10901,7 +10901,8 @@
 { 'help ansi usage' on how to use ansi}
 { 'help ansi encoding' on the syntax for ansi substitutions}
   
-  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
+  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
   
 & ANSI ENCODING
   Topic: ANSI ENCODING
@@ -10980,6 +10981,18 @@
   the XTERM color pallet to be sent to the player's terminal.
   
   You need all three flags:  ANSI, ANSICOLOR, and XTERMCOLOR to see extended.
+  
+  See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
+
+& TRUECOLOR
+  Flag: TRUECOLOR([c])
+  
+  This flag is only meaningful for players.  When set in conjunction with
+  the ANSI and ANSICOLOR flags, this will allow full 16-million truecolor ansi
+  support using the <R G B> and #RRGGBB ANSI formats.
+  
+  You need all three flags:  ANSI, ANSICOLOR, and TRUECOLOR.
   
   See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
@@ -11102,7 +11115,7 @@
                                                       254 [0xFE] Grey89    
   Please see 'help xtermcolor syntax' for color test  255 [0xFF] Grey93   
   
-  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI()
+  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI(), TRUECOLOR
 
 & XTERMCOLOR SYNTAX
   @emit the following code (append the lines)
@@ -11116,7 +11129,7 @@
   
   This will return a 256 color map for you.
   
-  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI()
+  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI(), TRUECOLOR
 
 & ANSICOLOR
   Flag: ANSICOLOR(>)
@@ -11127,7 +11140,8 @@
   
   You need both the ANSI and ANSICOLOR flags to see ansi color.
   
-  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
+  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
   
 & ANSINAMES
   An addition to the code allows you to have ansi colors on ALL data types.
@@ -19796,7 +19810,7 @@
     > say [colors(pink)] [colors(pink,h)] [colors(pink,c)]
     You say "218 0xda wh"
   
-  See Also: XTERMCOLOR, XTERMCOLOR LIST, ANSI()
+  See Also: XTERMCOLOR, XTERMCOLOR LIST, ANSI(), TRUECOLOR
   
 & COLUMNS()
   Function: columns()  Syntax follows:
@@ -27848,7 +27862,7 @@
   been reversed or not.
   
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
-            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS(), TRUECOLOR
 
 { 'help ansi quirks' for work arounds on weird ansi problems}
 { 'help ansi usage' on how to use ansi}
@@ -27890,7 +27904,7 @@
 { 'help ansi usage' on how to use ansi}
     
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
-            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS(), TRUECOLOR
 
 & ANSIPOS()
   Function: ansipos(<string>, <position>)
