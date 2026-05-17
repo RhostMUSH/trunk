@@ -36028,10 +36028,11 @@ FUNCTION(fun_stripansi)
               cp+=6;
               continue;
            }
-           if ( *(cp+2) == '<' ) {
-              cp = skip_mux_ansi(cp+2, (char *)NULL, (char **)NULL);
-           }
-           safe_chr(*cp++, buff, bufcx);
+            if ( *(cp+2) == '<' ) {
+               cp = skip_mux_ansi(cp+2, (char *)NULL, (char **)NULL);
+               continue;
+            }
+            safe_chr(*cp++, buff, bufcx);
         } else {
            safe_chr(*cp++, buff, bufcx);
         }
