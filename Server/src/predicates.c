@@ -1333,7 +1333,9 @@ int pass_entropy(char *password)
 int ok_password(const char *password, const char *oldpassword, dbref player, int key)
 {
   const char *scan;
+#ifndef STANDALONE
   int num_upper, num_lower, num_special;
+#endif
 #ifndef STANDALONE
   char *s_tmp, *s_tmpptr, *s_array[2];
   int i_sha512, i_strdist;
@@ -1359,17 +1361,21 @@ int ok_password(const char *password, const char *oldpassword, dbref player, int
 #endif
 #endif
 
+#ifndef STANDALONE
   num_upper = num_lower = num_special = 0;
+#endif
   for (scan = password; *scan; scan++) {
     if (!isprint((int)*scan) || isspace((int)*scan)) {
       return 0;
     }
+#ifndef STANDALONE
     if (isupper((int)*scan))
        num_upper++;
     else if (islower((int)*scan))
        num_lower++;
     else if ((*scan != '\'') && (*scan != '-'))
        num_special++;
+#endif
   }
 
   /* Needed.  Change it if you like, but be sure yours is the same. */

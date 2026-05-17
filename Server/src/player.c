@@ -414,11 +414,10 @@ char *
 gen_password(int i_value, dbref player, int key)
 {
    char *s_pass, *s_passptr;
-   int i_type[3], i_size, i_side, i_loop;
+   int i_type[3], i_size, i_loop;
 
    s_passptr = s_pass = alloc_lbuf("gen_password");
    i_type[0] = i_type[1] = i_type[2] = i_size = 0;
-   i_side = 14;
 
    if ( i_value < 5 )
       i_value = 5;

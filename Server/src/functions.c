@@ -2903,7 +2903,7 @@ void
 process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx, 
               char *fargs[], int nfargs, char *cargs[], int ncargs, char *s_funcname, int i_type, int i_alloc)
 {
-   int regnum, i, i_namefnd, i_penntog, i_chk;
+   int regnum, i, i_namefnd, i_penntog;
    char *s_arg0, *s_arg1, *s_arg2;
 
    if (!fn_range_check(s_funcname, nfargs, 2, 3, buff, bufcx))
@@ -3031,7 +3031,6 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 
    regnum = -1;
    i_namefnd = 0;
-   i_chk = 0;
    /* three argument with first arg being '+' or '!' */
    if ( (i_penntog || (strcmp(s_arg0, "!") == 0) || (strcmp(s_arg0, "+") == 0)) && 
         (i_penntog || ((nfargs > 2) && *s_arg2)) ) {
@@ -3040,10 +3039,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
          if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
               (stricmp(mudstate.global_regsname[i], (i_penntog ? s_arg0 : s_arg2)) == 0) ) {
-            regnum = i;
-            i_namefnd = 1;
-            i_chk = 0;
-            break;
+             regnum = i;
+             i_namefnd = 1;
+             break;
          }
       }
 
@@ -3056,23 +3054,21 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                        mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
                      continue;
                   }
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 1;
-                  break;
-               }
-            }
-         } else {
-            for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-               if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
-                  if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
-                       mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
-                     continue;
-                  }
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 1;
-                  break;
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
+                }
+             }
+          } else {
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+                   if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
+                        mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                      continue;
+                   }
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
                }
             }
          }
@@ -3087,13 +3083,12 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                if ( mudstate.global_regsname[i] && 
                     *(mudstate.global_regsname[i]) &&
                     !stricmp(mudstate.global_regsname[i], s_arg0) ) {
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 0;
-                  break;
-               }
-            }
-            /* Backward compatibility to pull first char on register */
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
+                }
+             }
+             /* Backward compatibility to pull first char on register */
 #ifdef EXPANDED_QREGS
             if ( (regnum == -1) && !mudconf.penn_setq ) {
                for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
@@ -9928,7 +9923,7 @@ FUNCTION(fun_time)
 {
     char *temp, *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, i_enforce, len;
+    int i_tz, aflags, i_enforce;
     ATTR *ap;
     struct tm *tms;
 
@@ -9985,7 +9980,7 @@ FUNCTION(fun_time)
        tms = localtime(&mudstate.now);
        temp = alloc_mbuf("time_withzero");
        memset(temp, '\0', MBUF_SIZE);
-       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
+        (void)strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
        safe_str(temp, buff, bufcx);
        free_mbuf(temp);
     } else {
@@ -12542,7 +12537,7 @@ FUNCTION(fun_timefmt)
   char *pp, *fmtbuff, *s_aptz, *s_aptztmp;
   time_t secs, i_frell;
   double secs2;
-  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags, len;
+  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags;
   dbref aowner;
   long l_offset = 0, l_timezone = 0;
   TZONE_MUSH *tzmush;
@@ -12581,9 +12576,9 @@ FUNCTION(fun_timefmt)
 #else /* All hail the hackjob from hell */
   memset(h, '\0', sizeof(h));
   memset(m, '\0', sizeof(m));
-  memset(s_bsdtz, '\0', sizeof(s_bsdtz));
-  len = strftime(s_bsdtz, 9, (char *)"%z", tms2);
-  if ( len >= 4 ) {
+   memset(s_bsdtz, '\0', sizeof(s_bsdtz));
+   (void)strftime(s_bsdtz, 9, (char *)"%z", tms2);
+   if ( strlen(s_bsdtz) >= 4 ) {
     if ( *s_bsdtz == '-' ) {
        h[0] = s_bsdtz[1];
        h[1] = s_bsdtz[2];
@@ -12913,7 +12908,7 @@ FUNCTION(fun_timefmt)
               case 'j': /* The Time Zone tzset() based Itself */
                 tms3 = localtime(&mudstate.now);
                 s_aptz = alloc_lbuf("j_timefmt");
-                len = strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
+                (void)strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
                 sprintf(fmtbuff, "%s", s_aptz);
                 free_lbuf(s_aptz);
                 showfield(fmtbuff, buff, bufcx, &fm, 0);
@@ -19910,7 +19905,7 @@ FUNCTION(fun_strfunc)
    UFUN *ufp;
    char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, *retval, *s_attr,
         *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *ptsavereg, *nptsavereg;
-   int nitems, tst, i, i_soft, i_found, aflags, feval, z, is_trace_bkup;
+   int nitems, tst, i, i_found, aflags, feval, z, is_trace_bkup;
    dbref aowner, i_player;
 
    varargs_preamble("STRFUNC", 3);
@@ -19929,7 +19924,7 @@ FUNCTION(fun_strfunc)
       p++;
    }
 
-   i_soft = i_found = 0;
+    i_found = 0;
    fp = (FUN *) hashfind(list, &mudstate.func_htab);
    if ( !fp ) {
       if ( mudconf.strfunc_softfuncs >= 1 ) {
@@ -20223,8 +20218,8 @@ FUNCTION(fun_execscript)
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2, *s_combine2,
         *s_bf1, *s_bf1ptr, *s_bf2, *s_bf2ptr, *s_bf3, *s_bf3ptr;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
-       i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return, i_rawpush;
+    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
+        i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -20585,7 +20580,7 @@ FUNCTION(fun_execscript)
    } 
    free_mbuf(s_varset);
 
-   i_rawpush = i_noex = 0;
+   i_noex = 0;
 // sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
    sprintf(s_combine, "%.1000s.set", s_combine2);
    if ( stat(s_combine, &st_buf) == 0 ) {
@@ -20601,7 +20596,6 @@ FUNCTION(fun_execscript)
       s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
 
       if ( mudconf.execscript_rawpush ) {
-         i_rawpush = 1;
          s_varset = alloc_mbuf("fun_execscript_mbuff"); 
          s_bf1 = alloc_lbuf("execscript_bf1");
          s_bf2 = alloc_lbuf("execscript_bf2");
@@ -20988,7 +20982,7 @@ FUNCTION(fun_execscript)
 
 FUNCTION(fun_listtzones)
 {
-   char **s_ptr, *s_env, *s_tmp;
+   char **s_ptr, *s_env;
    int i_first;
    time_t i_now;
    struct tm lt;
@@ -21002,9 +20996,8 @@ FUNCTION(fun_listtzones)
    if ( (nfargs > 1) && *fargs[0] && (atoi(fargs[1]) == 1) ) {
       while ( s_ptr && *s_ptr ) {
          if ( quick_wild(fargs[0], *s_ptr) ) {
-            s_env = alloc_sbuf("fun_listtzones_sbuf");
-            s_tmp = getenv("TZ");
-            i_first = 1;
+             s_env = alloc_sbuf("fun_listtzones_sbuf");
+             i_first = 1;
             setenv("TZ", *s_ptr, 1);
             tzset();
             if ( *s_env ) {
@@ -26324,7 +26317,7 @@ void
 do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
 {
     int i = 1, i_key;
-    char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob1, *ob2, *ob3;
+    char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob2, *ob3;
     int gotone = 0;
     ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], 
               *sp1, *sp2, *sp3, *sp2b;
@@ -26338,7 +26331,6 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
     outbuff1 = alloc_lbuf("do_pos_ansi1");
     memset(outbuff1, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff1, outsplit1);
-    ob1 = outbuff1;
     sp1 = outsplit1;
 
     initialize_ansisplitter(outsplit2, LBUF_SIZE);
@@ -26675,7 +26667,7 @@ FUNCTION(fun_totpos)
 
 FUNCTION(fun_numpos)
 {
-    int i = 1, count, i_key, i_type;
+     int count, i_key, i_type;
     char *s, *t, *u, *s_in1, *s_in2;
     ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], *p1, *p2, *p2b;
 
@@ -26719,7 +26711,6 @@ FUNCTION(fun_numpos)
        p1 = insplit1;
        p2 = insplit2;
 
-       i = 1;
        count = 0;
        s = s_in2;
 
@@ -26740,7 +26731,6 @@ FUNCTION(fun_numpos)
                 count++;
              }
              ++s;
-             ++i;
              ++p2;
           }
        } else {
@@ -26757,13 +26747,12 @@ FUNCTION(fun_numpos)
              if ( *t == '\0' ) {
                 count++;
              }
-             ++i, ++s, ++p2;
+             ++s, ++p2;
           }
        }
        free_lbuf(s_in1);
        free_lbuf(s_in2);
     } else {
-       i = 1;
        count = 0;
        s = strip_all_special(fargs[1]);
        if ( i_key ) {
@@ -26774,7 +26763,6 @@ FUNCTION(fun_numpos)
                 count++;
              }
              ++s;
-             ++i;
           }
        } else {
           while (*s) {
@@ -26785,7 +26773,7 @@ FUNCTION(fun_numpos)
              if (*t == '\0') {
                  count++;
              }
-             ++i, ++s;
+             ++s;
           }
        }
     }
@@ -27656,7 +27644,6 @@ FUNCTION(fun_secure)
 FUNCTION(fun_esclist)
 {
     char *s_index, *s, *s2, *s_buff, *s_buffptr, *s_split0, *s_pos, *s_output;
-    int i_escape;
     ANSISPLIT split0[LBUF_SIZE], split_index[LBUF_SIZE], *p_0, *p_split;
 
     if ( !*fargs[0] || !strchr(fargs[0], '|') ) {
@@ -27666,8 +27653,6 @@ FUNCTION(fun_esclist)
     s_index = alloc_lbuf("fun_esclist");
     memset(s_index, '\0', LBUF_SIZE);
     s2 = s_index;
-
-    i_escape = 0;
 
     initialize_ansisplitter(split0, LBUF_SIZE);
     initialize_ansisplitter(split_index, LBUF_SIZE);
@@ -38523,9 +38508,8 @@ FUNCTION(fun_args)
 
 FUNCTION(fun_r)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i;
 
-    i_namefnd = 0;
     regnum = -1;
     if ( strlen(fargs[0]) > 1 ) {
        if ( mudconf.setq_nums && is_number(fargs[0]) ) {
@@ -38535,7 +38519,6 @@ FUNCTION(fun_r)
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
-                i_namefnd = 1;
                 break;
              }
           }
@@ -43152,9 +43135,9 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        for (ufp2 = (i_local ? ulfun_head : ufun_head); ufp2; ufp2 = ufp2->next) {
           if ( i_local && ((ufp2->owner != Owner(player)) && !controls(player, ufp2->owner)) ) 
              continue;
-          ap = atr_num(ufp2->atr);
-          if (ap || !ap) {
-             if ( ufp2->owner == Owner(player) )
+           ap = atr_num(ufp2->atr);
+           {
+              if ( ufp2->owner == Owner(player) )
                 count_owner++;
 
              i_tcount++;

@@ -441,12 +441,11 @@ char *
 fetch_gender(dbref player, int i_type) {
    static char pronbuff[PRONLEN];
    char *s_buff, *s_buff2, *s_tok, *s_tokr, *s_tok2, *s_tokr2, *s_token;
-   int i_len, i_ret, i_ltype, i_cnt, aflags, i_pipe;
+   int i_len, i_ltype, i_cnt, aflags, i_pipe;
    dbref aowner;
 
    memset(pronbuff, '\0', PRONLEN);
    i_ltype = i_type;
-   i_ret = 1;
    s_token = atr_pget(player, A_SEX, &aowner, &aflags);
 
    if ( (i_type < 1) || (i_type > 4) ) {

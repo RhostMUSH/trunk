@@ -631,14 +631,13 @@ statsizer(int i_size, char *c_chr) {
 void
 showBlacklistStats(dbref player)
 {
-   int i_blsize, i_ndsize, i_ngsize, i_rgsize;
+   int i_blsize, i_ndsize, i_rgsize;
    double i_diver;
    char *s_buff, c_chr[2];
    
    i_blsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_cnt;
    i_ndsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
    i_rgsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_reg_cnt;
-   i_ngsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nogst_cnt;
 
    s_buff = alloc_mbuf("blacklist_stats");
    strcpy(c_chr, (char *)" ");

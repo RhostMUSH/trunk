@@ -5284,7 +5284,7 @@ do_command(DESC * d, char *command)
     int i_lualength;
     lua_t *lua;
 #endif
-    char *arg, *cmdsave, *time_str, *s_rollback, *s_dtime, *addroutbuf, *addrsav,
+    char *arg, *cmdsave, *time_str, *s_rollback, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
         maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout, i_do_proxy;
@@ -5806,7 +5806,6 @@ do_command(DESC * d, char *command)
     }
 
     if ( (d->flags & DS_API) && (cp == NULL) ) {
-       s_dtime = (char *) ctime(&mudstate.now);
        handle_html(d, 400, (char *) "Exec: Error - Invalid Headers Supplied\r\n\r\n", NULL, NULL, NULL);
        process_output(d);
        shutdownsock(d, R_API);
@@ -5988,11 +5987,10 @@ do_command(DESC * d, char *command)
                   queue_string(d, "Not on API port.\r\n");
                   process_output(d);
                }
-               break;
-            }
-            s_dtime = (char *) ctime(&mudstate.now);
+                break;
+             }
 #ifndef HAS_OPENSSL
-            handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n", 
+             handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n",
                        (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
@@ -6193,8 +6191,7 @@ do_command(DESC * d, char *command)
                 ENDLOG;
                 complete_handshake(d, s_sockkey);
 #else
-                s_dtime = (char *) ctime(&mudstate.now);
-                handle_html(d, 501, (char *)"Return: Error - Websockets not enabled\r\n\r\n", NULL, NULL, NULL);
+                 handle_html(d, 501, (char *)"Return: Error - Websockets not enabled\r\n\r\n", NULL, NULL, NULL);
 #endif
             } else
             ///// END NEW WEBSOCK
@@ -6440,12 +6437,11 @@ do_command(DESC * d, char *command)
                   queue_string(d, "Not on API port.\r\n");
                   process_output(d);
                }
-               break;
-            }
-            s_dtime = (char *) ctime(&mudstate.now);
+                break;
+             }
 #ifndef HAS_OPENSSL
-            handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n",
-                       (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
+             handle_html(d, 501, (char *)"Exec: Error - SSL not compiled in RhostMUSH\r\n",
+                        (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
@@ -6681,7 +6677,6 @@ do_command(DESC * d, char *command)
     }
     /* Any API foo should just drop here as we have nothing for them to do */
     if ( d->flags & DS_API ) {
-       s_dtime = (char *) ctime(&mudstate.now);
        handle_html(d, 400, (char *)"Exec: Error - Unrecognized Input\r\n", NULL, NULL,  NULL);
        if ( cp ) {
           queue_string(d, unsafe_tprintf("Return: Bad command -> %s\r\n\r\n", cp->name));
