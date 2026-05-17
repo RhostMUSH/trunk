@@ -441,12 +441,11 @@ char *
 fetch_gender(dbref player, int i_type) {
    static char pronbuff[PRONLEN];
    char *s_buff, *s_buff2, *s_tok, *s_tokr, *s_tok2, *s_tokr2, *s_token;
-   int i_len, i_ret, i_ltype, i_cnt, aflags, i_pipe;
+   int i_len, i_ltype, i_cnt, aflags, i_pipe;
    dbref aowner;
 
    memset(pronbuff, '\0', PRONLEN);
    i_ltype = i_type;
-   i_ret = 1;
    s_token = atr_pget(player, A_SEX, &aowner, &aflags);
 
    if ( (i_type < 1) || (i_type > 4) ) {
@@ -1121,7 +1120,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
     char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp, ucssubstitute, c1, c2;
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi, 
+     int i_tohex, accent_toggle, i_extendnum, i_utfnum, i_utfcnt, i_inansi,
         i_r, i_g, i_b, i_upper;
 
 /* Debugging only
@@ -1135,9 +1134,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     bufc = *bufptr;
     bufc2 = *buf2ptr;
     bufc_utf = *bufuptr;
-    accent_toggle = 0;
-    i_extendcnt = 0;
-    i_utfnum = 0;
+     accent_toggle = 0;
+     i_utfnum = 0;
     i_utfcnt = 0;
     s_intbuf[3] = '\0';
     c1 = c2 = ch = ch1 = ch2 = '\0';
@@ -1289,9 +1287,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    i_extendnum = atoi(s_intbuf);
                    safe_chr((char) i_extendnum, buff2, &bufc2);
                    safe_chr((char) i_extendnum, buff, &bufc);
-                   safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
-                   i_extendcnt+=4;
-                   string+=4;
+                    safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
+                    string+=4;
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
@@ -1324,9 +1321,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                                    safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                       }
-                   }
-                   i_extendcnt+=3;
-                   string+=3;
+                    }
+                    string+=3;
                 } else {
                    safe_chr(*string, buff, &bufc);
                    safe_chr(*string, buff2, &bufc2);
@@ -1369,44 +1365,42 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     safe_chr(*string, buff2, &bufc2);
                     safe_chr(*string, buff_utf, &bufc_utf);
                     break;
-                case '<': /* MUX compatible ansi sequences */
-                    if ( (tmp = strchr(string, '>')) != NULL ) {
-                       i_tohex = 0;
-                       if ( sscanf(string, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-                          if ( (c1 != '<') || (c2 != '>') ) {
-                             string = tmp;
-                          } else {
-                             i_tohex = down_ansi(i_r, i_g, i_b);
-                             if ( i_upper ) 
-                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
-                             else
-                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
-                             safe_str(s_final, buff, &bufc);
-                             safe_str(s_final, buff2, &bufc2);
-                             safe_str(s_final, buff_utf, &bufc_utf);
-                             sprintf(s_final, "%dm", i_tohex);
-                          }
-                       } else if ( sscanf(string, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-                          if ( (c1 != '<') || (c2 != '>') ) {
-                             string = tmp;
-                          } else {
-                             i_tohex = down_ansi(i_r, i_g, i_b);
-                             if ( i_upper ) 
-                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
-                             else
-                                sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
-                             safe_str(s_final, buff, &bufc);
-                             safe_str(s_final, buff2, &bufc2);
-                             safe_str(s_final, buff_utf, &bufc_utf);
-                             sprintf(s_final, "%dm", i_tohex);
-                          }
-                       }
-                       string = tmp;
+                 case '<': /* MUX compatible ansi sequences */
+                     if ( (tmp = strchr(string, '>')) != NULL ) {
+                          if ( sscanf(string, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                              if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
+                              if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
+                              if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+                              if ( (c1 != '<') || (c2 != '>') ) {
+                                 string = tmp;
+                             } else {
+                                 if ( i_upper )
+                                     sprintf(s_final, "%s%d;%d;%dm", (char *)ANSI_TRUECOLOR_BG, i_r, i_g, i_b);
+                                 else
+                                     sprintf(s_final, "%s%d;%d;%dm", (char *)ANSI_TRUECOLOR_FG, i_r, i_g, i_b);
+                                 safe_str(s_final, buff, &bufc);
+                                 safe_str(s_final, buff2, &bufc2);
+                                 safe_str(s_final, buff_utf, &bufc_utf);
+                             }
+                         } else if ( sscanf(string, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                             if ( (c1 != '<') || (c2 != '>') ) {
+                                 string = tmp;
+                             } else {
+                                 if ( i_upper )
+                                     sprintf(s_final, "%s%d;%d;%dm", (char *)ANSI_TRUECOLOR_BG, i_r, i_g, i_b);
+                                 else
+                                     sprintf(s_final, "%s%d;%d;%dm", (char *)ANSI_TRUECOLOR_FG, i_r, i_g, i_b);
+                                 safe_str(s_final, buff, &bufc);
+                                 safe_str(s_final, buff2, &bufc2);
+                                 safe_str(s_final, buff_utf, &bufc_utf);
+                             }
+                         }
+                         string = tmp;
                     } else {
-                       safe_chr(*string, buff, &bufc);
-                       safe_chr(*string, buff2, &bufc2);
-                       safe_chr(*string, buff_utf, &bufc_utf);
-                    } 
+                        safe_chr(*string, buff, &bufc);
+                        safe_chr(*string, buff2, &bufc2);
+                        safe_chr(*string, buff_utf, &bufc_utf);
+                    }
                     break;
                 case '0': /* Do XTERM color here */
                     switch ( *(string+1) ) {
@@ -1416,70 +1410,68 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                              s_twochar[1]=*(string+3);
                              sscanf(s_twochar, "%x", &i_tohex);
                              string+=3;
-                             sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
-                             safe_str(s_final, buff, &bufc);
-                             safe_str(s_final, buff2, &bufc2);
-                             safe_str(s_final, buff_utf, &bufc_utf);
-                             sprintf(s_final, "%dm", i_tohex);
-                          }
+                              sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_BG, i_tohex);
+                              safe_str(s_final, buff, &bufc);
+                              safe_str(s_final, buff2, &bufc2);
+                              safe_str(s_final, buff_utf, &bufc_utf);
+                           }
                           i_inansi = 1;
                           break;
-                       case 'x': /* Foreground color */
-                          if ( (*(string+2) && isxdigit(*(string+2))) && (*(string+3) && isxdigit(*(string+3))) ) {
-                             s_twochar[0]=*(string+2);
-                             s_twochar[1]=*(string+3);
-                             sscanf(s_twochar, "%x", &i_tohex);
-                             sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
-                             string+=3;
-                             safe_str(s_final, buff, &bufc);
-                             safe_str(s_final, buff2, &bufc2);
-                             safe_str(s_final, buff_utf, &bufc_utf);
-                             sprintf(s_final, "%dm", i_tohex);
-                          }
-                          i_inansi = 1;
-                          break;
-                       default:
-                          if( (*(string-1) == SAFE_CHR) || (*(string-1) == SAFE_UCHR) ) {
-                            safe_str((char *)SAFE_CHRST, buff, &bufc);
-                            safe_chr(*string, buff, &bufc);
-                            safe_str((char *)SAFE_CHRST, buff2, &bufc2);
-                            safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);
-                          }
+                        case 'x': /* Foreground color */
+                           if ( (*(string+2) && isxdigit(*(string+2))) && (*(string+3) && isxdigit(*(string+3))) ) {
+                              s_twochar[0]=*(string+2);
+                              s_twochar[1]=*(string+3);
+                              sscanf(s_twochar, "%x", &i_tohex);
+                               sprintf(s_final, "%s%dm", (char *)ANSI_XTERM_FG, i_tohex);
+                               string+=3;
+                               safe_str(s_final, buff, &bufc);
+                               safe_str(s_final, buff2, &bufc2);
+                               safe_str(s_final, buff_utf, &bufc_utf);
+                            }
+                           i_inansi = 1;
+                           break;
+                         default:
+                           if( (*(string-1) == SAFE_CHR) || (*(string-1) == SAFE_UCHR) ) {
+                             safe_str((char *)SAFE_CHRST, buff, &bufc);
+                             safe_chr(*string, buff, &bufc);
+                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                             safe_chr(*string, buff2, &bufc2);
+                             safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                             safe_chr(*string, buff_utf, &bufc_utf);
+                           }
 #ifdef SAFE_CHR2
-                          else if( (*(string-1) == SAFE_CHR2) || (*(string-1) == SAFE_UCHR2) ) {
-                            safe_str((char *)SAFE_CHRST2, buff, &bufc);
-                            safe_chr(*string, buff, &bufc);
-                            safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
-                            safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);
-                          }
+                           else if( (*(string-1) == SAFE_CHR2) || (*(string-1) == SAFE_UCHR2) ) {
+                             safe_str((char *)SAFE_CHRST2, buff, &bufc);
+                             safe_chr(*string, buff, &bufc);
+                             safe_str((char *)SAFE_CHRST2, buff2, &bufc2);
+                             safe_chr(*string, buff2, &bufc2);
+                             safe_str((char *)SAFE_CHRST2, buff_utf, &bufc_utf);
+                             safe_chr(*string, buff_utf, &bufc_utf);
+                           }
 #endif
 #ifdef SAFE_CHR3
-                          else if( (*(string-1) == SAFE_CHR3) || (*(string-1) == SAFE_UCHR3) ) {
-                            safe_str((char *)SAFE_CHRST3, buff, &bufc);
-                            safe_chr(*string, buff, &bufc);
-                            safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
-                            safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);
-                          }
+                           else if( (*(string-1) == SAFE_CHR3) || (*(string-1) == SAFE_UCHR3) ) {
+                             safe_str((char *)SAFE_CHRST3, buff, &bufc);
+                             safe_chr(*string, buff, &bufc);
+                             safe_str((char *)SAFE_CHRST3, buff2, &bufc2);
+                             safe_chr(*string, buff2, &bufc2);
+                             safe_str((char *)SAFE_CHRST3, buff_utf, &bufc_utf);
+                             safe_chr(*string, buff_utf, &bufc_utf);
+                           }
 #endif
-                          else {
-                            safe_str((char *)SAFE_CHRST, buff, &bufc);
-                            safe_chr(*string, buff, &bufc);
-                            safe_str((char *)SAFE_CHRST, buff2, &bufc2);
-                            safe_chr(*string, buff2, &bufc2);
-                            safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
-                            safe_chr(*string, buff_utf, &bufc_utf);
-                          }
-                          i_inansi = 1;
-                          break;
-                    }  
-                    break;
-                case 'n':
+                           else {
+                             safe_str((char *)SAFE_CHRST, buff, &bufc);
+                             safe_chr(*string, buff, &bufc);
+                             safe_str((char *)SAFE_CHRST, buff2, &bufc2);
+                             safe_chr(*string, buff2, &bufc2);
+                             safe_str((char *)SAFE_CHRST, buff_utf, &bufc_utf);
+                             safe_chr(*string, buff_utf, &bufc_utf);
+                           }
+                           i_inansi = 1;
+                           break;
+                     }
+                      break;
+                  case 'n':
                     safe_str((char *) ANSI_NORMAL, buff, &bufc);
                     safe_str((char *) ANSI_NORMAL, buff2, &bufc2);
                     safe_str((char *) ANSI_NORMAL, buff_utf, &bufc_utf);

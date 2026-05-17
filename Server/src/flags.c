@@ -994,6 +994,7 @@ FLAGENT gen_flags[] =
   {"ZONEPARENT", ZONEPARENT, 'y', FLAG4, 0, 0, 0, 0, fh_any},
   {"HAS_PROTECT", HAS_PROTECT, '+', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
   {"XTERMCOLOR", XTERMCOLOR, 't', FLAG4, 0, 0, 0, 0, fh_any},
+   {"TRUECOLOR", TRUECOLOR, 'c', FLAG4, 0, 0, 0, 0, fh_any},
   {"HAS_ATTRPIPE", HAS_ATTRPIPE, '|', FLAG4, CA_GOD | CA_NO_DECOMP, 0, 0, 0, fh_god},
   {"COLORMAIL", COLORMAIL, '!', FLAG4, 0, 0, 0, 0, fh_any}, 
   {"", 0, ' ', 0, 0, 0, 0, 0, NULL}
@@ -1909,7 +1910,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
                                        (fp->handler == fh_unfind_bit) ||
                                        (fp->handler == fh_hear_bit) ||
                                        (fp->handler == fh_inherit)) ) {
-                          result = fp->handler(target, player, fp->flagvalue,
+                           result = ((int (*)(dbref, dbref, int, int, int))fp->handler)(target, player, fp->flagvalue,
 				               fp->flagflag, negate);
                        /* Some things have to check against powers */
                        } else if ( (fp->handler == fh_builder_sec) ||
@@ -1925,7 +1926,7 @@ flag_set(dbref target, dbref player, char *flag, int key)
                                  fp->flagflag, negate);
                        }
                     } else
-		       result = fp->handler(target, player, fp->flagvalue,
+		       result = ((int (*)(dbref, dbref, int, int, int))fp->handler)(target, player, fp->flagvalue,
 				        fp->flagflag, negate);
 		    if (!result) {
                       if ( !i_setmuffle )
@@ -2279,11 +2280,11 @@ totem_set(dbref target, dbref player, char *totem, int key)
                         result = check_access(player, i_uovperm, 0, 0);
                        /* Some things you just can *not* override */
                      if ( result ) {
-		          result = tmp->handler(target, player, tmp->flagvalue,
+		          result = ((int (*)(dbref, dbref, int, int, int))tmp->handler)(target, player, tmp->flagvalue,
 				               tmp->flagpos, negate);
-                     }
-                  } else {
-		     result = tmp->handler(target, player, tmp->flagvalue,
+                      }
+                   } else {
+ 		     result = ((int (*)(dbref, dbref, int, int, int))tmp->handler)(target, player, tmp->flagvalue,
 		   		     tmp->flagpos, negate);
                   }
                   if ( result ) {
@@ -2432,11 +2433,11 @@ toggle_set(dbref target, dbref player, char *toggle, int key)
                      if ( result && ((tp->handler == th_player) ||
                                      (tp->handler == th_noset) ||
                                      (tp->handler == th_extansi)) ) {
-		          result = tp->handler(target, player, tp->togglevalue,
+		          result = ((int (*)(dbref, dbref, int, int, int))tp->handler)(target, player, tp->togglevalue,
 				               tp->toggleflag, negate);
-                     }
-                  } else {
-		     result = tp->handler(target, player, tp->togglevalue,
+                      }
+                   } else {
+ 		     result = ((int (*)(dbref, dbref, int, int, int))tp->handler)(target, player, tp->togglevalue,
 		   		     tp->toggleflag, negate);
                   }
 		  if (!result)
@@ -2547,7 +2548,7 @@ power_set(dbref target, dbref player, char *power, int key)
 
 		/* Invoke the power handler, and print feedback */
 
-		  result = tp->handler(target, player, tp->powerpos,
+		  result = ((int (*)(dbref, dbref, int, int, int, int))tp->handler)(target, player, tp->powerpos,
 				     tp->powerflag, tp->powerlev, slevel);
 		  if (!result)
 		    notify(player, "Permission denied.");
@@ -2650,7 +2651,7 @@ depower_set(dbref target, dbref player, char *power, int key)
 
 		/* Invoke the power handler, and print feedback */
 
-		  result = tp->handler(target, player, tp->powerpos,
+		  result = ((int (*)(dbref, dbref, int, int, int, int))tp->handler)(target, player, tp->powerpos,
 				     tp->powerflag, tp->powerlev, slevel);
 		  if (!result)
 		    notify(player, "Permission denied.");

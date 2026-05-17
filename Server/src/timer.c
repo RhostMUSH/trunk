@@ -57,11 +57,7 @@ int alarm_msec(double time)
 {
 struct itimerval it_val;
 double time_remainder, time_usec, time_sec;
-double i_rounder;
   // This function will _never_ stop the timer; use alarm_stop() for that.
-  i_rounder = 0.1;
-  if ( mudconf.mtimer != 0 )
-     i_rounder = 1.0 / (double)mudconf.mtimer;
 
   time_remainder = fmod(time,1);
   time_sec = time - time_remainder;

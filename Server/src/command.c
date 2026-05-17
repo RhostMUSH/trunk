@@ -2747,13 +2747,13 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 
     switch (cmdp->callseq & CS_NARG_MASK) {
     case CS_NO_ARGS:		/* <cmd>   (no args) */
-	(*(cmdp->handler)) (player, cause, key);
+	((void (*)(dbref, dbref, int))cmdp->handler)(player, cause, key);
 	break;
     case CS_ONE_ARG:		/* <cmd> <arg> */
 	/* If an unparsed command, just give it to the handler */
 
 	if (cmdp->callseq & CS_UNPARSE) {
-	    (*(cmdp->handler)) (player, unp_command);
+	    ((void (*)(dbref, char *))cmdp->handler)(player, unp_command);
 	    break;
 	}
 	/* Interpret if necessary */
@@ -2772,14 +2772,14 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	/* Call the correct handler */
 
 	if (cmdp->callseq & CS_CMDARG) {
-	    (*(cmdp->handler)) (player, cause, key, buf1,
+	    ((void (*)(dbref, dbref, int, char *, char *[], int))cmdp->handler)(player, cause, key, buf1,
 				cargs, ncargs);
 	} 
 	else if(cmdp->callseq & CS_PASS_SWITCHES) {
-	  (*(cmdp->handler)) (player, cause, switchp, buf1);
+	  ((void (*)(dbref, dbref, char *, char *))cmdp->handler)(player, cause, switchp, buf1);
 	}
 	else {
-	  (*(cmdp->handler)) (player, cause, key, buf1);
+	  ((void (*)(dbref, dbref, int, char *))cmdp->handler)(player, cause, key, buf1);
 	}
 
 	/* Free the buffer if one was allocated */
@@ -2832,10 +2832,10 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    /* Call the correct command handler */
 
 	    if (cmdp->callseq & CS_CMDARG) {
-		(*(cmdp->handler)) (player, cause, key,
+		((void (*)(dbref, dbref, int, char *, char *[], int, char *[], int))cmdp->handler)(player, cause, key,
 				    buf1, args, nargs, cargs, ncargs);
 	    } else {
-		(*(cmdp->handler)) (player, cause, key,
+		((void (*)(dbref, dbref, int, char *, char *[], int))cmdp->handler)(player, cause, key,
 				    buf1, args, nargs);
 	    }
 
@@ -2859,16 +2859,16 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
 	    /* Call the correct command handler */
 
 	    if (cmdp->callseq & CS_CMDARG) {
-		(*(cmdp->handler)) (player, cause, key,
+		((void (*)(dbref, dbref, int, char *, char *, char *[], int))cmdp->handler)(player, cause, key,
 				    buf1, buf2, cargs, ncargs);
 	    } else {
 	      if (cmdp->callseq & CS_SEP) {
-		(*(cmdp->handler)) (player, cause, key, xkey,
+		((void (*)(dbref, dbref, int, int, char *, char *))cmdp->handler)(player, cause, key, xkey,
 				    buf1, buf2);
 	      } else if(cmdp->callseq & CS_PASS_SWITCHES) {
-		(*(cmdp->handler)) (player, cause, switchp, buf1, buf2);
+		((void (*)(dbref, dbref, char *, char *, char *))cmdp->handler)(player, cause, switchp, buf1, buf2);
 	      } else {
-		(*(cmdp->handler)) (player, cause, key,
+		((void (*)(dbref, dbref, int, char *, char *))cmdp->handler)(player, cause, key,
 				    buf1, buf2);
               }
 	    }

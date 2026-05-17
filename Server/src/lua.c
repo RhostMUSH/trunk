@@ -24,9 +24,18 @@ static const char *rhost_run_as_key = "rhost_run_as";
 
 static void lua_timer_hook(lua_State *L, lua_Debug *ar)
 {
+    static int mem_check_counter = 0;
+
     if(mudstate.alarm_triggered) {
         luaL_error(L, "Alarm triggered");
         mudstate.alarm_triggered = 2;
+    }
+    /* Check memory every 1000 instructions to reduce overhead */
+    if(++mem_check_counter >= 1000) {
+        mem_check_counter = 0;
+        if(lua_gc(L, LUA_GCCOUNT) > 8192) {
+            luaL_error(L, "Memory limit exceeded");
+        }
     }
 }
 
@@ -304,16 +313,17 @@ open_lua_interpreter(dbref run_as)
     luaL_requiref(lua->state, "base", luaopen_base, 1);
     lua_pop(lua->state, 1);
     luaL_requiref(lua->state, "string", luaopen_string, 1);
+    /* Remove string.dump — can leak bytecode/pointer info */
+    lua_getglobal(lua->state, "string");
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "dump");
+    lua_pop(lua->state, 1);
     lua_pop(lua->state, 1);
     luaL_requiref(lua->state, "utf8", luaopen_utf8, 1);
     lua_pop(lua->state, 1);
     luaL_requiref(lua->state, "table", luaopen_table, 1);
     lua_pop(lua->state, 1);
     luaL_requiref(lua->state, "math", luaopen_math, 1);
-    lua_pop(lua->state, 1);
-    luaL_requiref(lua->state, "coroutine", luaopen_coroutine, 1);
-    lua_pop(lua->state, 1);
-    luaL_requiref(lua->state, "os", luaopen_os, 1);
     lua_pop(lua->state, 1);
 
     /* We're going to make changes to the global table */
@@ -339,8 +349,6 @@ open_lua_interpreter(dbref run_as)
     lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "dofile");
     lua_pushnil(lua->state);
-    lua_setfield(lua->state, -2, "getfenv");
-    lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "load");
     lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "loadfile");
@@ -348,12 +356,15 @@ open_lua_interpreter(dbref run_as)
     lua_setfield(lua->state, -2, "print");
     lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "warn");
-
-    /* Remove naughty functions from os */
-    lua_getglobal(lua->state, "os");
+    /* Remove sandbox escape vectors */
     lua_pushnil(lua->state);
-    lua_setfield(lua->state, -2, "getenv");
-    lua_pop(lua->state, 1); /* pops os */
+    lua_setfield(lua->state, -2, "_G");
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "setmetatable");
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "rawset");
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "rawget");
 
     /* Bring in rhost table */
     snprintf(filename, LBUF_SIZE - 1, "%s/%s", mudconf.txt_dir, "rhost.lua");

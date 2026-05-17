@@ -1351,6 +1351,10 @@ down_ansi(int i_r, int i_g, int i_b)
    int i_tohex, i_r2, i_g2, i_b2, rgb_diff, rgb_diff2;
    MUXANSI  *cx;
 
+   if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
+   if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
+   if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+
    rgb_diff = rgb_diff2 = 1000;
    for (cx = mux_namecolors; cx->s_hex; cx++) {
       if(cx->i_dec < 16)
@@ -2899,7 +2903,7 @@ void
 process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx, 
               char *fargs[], int nfargs, char *cargs[], int ncargs, char *s_funcname, int i_type, int i_alloc)
 {
-   int regnum, i, i_namefnd, i_penntog, i_chk;
+   int regnum, i, i_namefnd, i_penntog;
    char *s_arg0, *s_arg1, *s_arg2;
 
    if (!fn_range_check(s_funcname, nfargs, 2, 3, buff, bufcx))
@@ -3027,7 +3031,6 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 
    regnum = -1;
    i_namefnd = 0;
-   i_chk = 0;
    /* three argument with first arg being '+' or '!' */
    if ( (i_penntog || (strcmp(s_arg0, "!") == 0) || (strcmp(s_arg0, "+") == 0)) && 
         (i_penntog || ((nfargs > 2) && *s_arg2)) ) {
@@ -3036,10 +3039,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
          if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
               (stricmp(mudstate.global_regsname[i], (i_penntog ? s_arg0 : s_arg2)) == 0) ) {
-            regnum = i;
-            i_namefnd = 1;
-            i_chk = 0;
-            break;
+             regnum = i;
+             i_namefnd = 1;
+             break;
          }
       }
 
@@ -3052,23 +3054,21 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                        mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
                      continue;
                   }
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 1;
-                  break;
-               }
-            }
-         } else {
-            for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-               if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
-                  if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
-                       mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
-                     continue;
-                  }
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 1;
-                  break;
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
+                }
+             }
+          } else {
+             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
+                if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+                   if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
+                        mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                      continue;
+                   }
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
                }
             }
          }
@@ -3083,13 +3083,12 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
                if ( mudstate.global_regsname[i] && 
                     *(mudstate.global_regsname[i]) &&
                     !stricmp(mudstate.global_regsname[i], s_arg0) ) {
-                  regnum = i;
-                  i_namefnd = 1;
-                  i_chk = 0;
-                  break;
-               }
-            }
-            /* Backward compatibility to pull first char on register */
+                   regnum = i;
+                   i_namefnd = 1;
+                   break;
+                }
+             }
+             /* Backward compatibility to pull first char on register */
 #ifdef EXPANDED_QREGS
             if ( (regnum == -1) && !mudconf.penn_setq ) {
                for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
@@ -3551,11 +3550,11 @@ int string_count(char* src, int numchars)
                                ||   ((src[idx+1] == SAFE_CHR3) || (src[idx+1] == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) src[idx+2]] ) {
-              idx+=2;
-              continue;
-           }
-           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
+            if ( isAnsi[(int) src[idx+2]] ) {
+               idx+=2;
+               continue;
+            }
+              if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
               if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+5]) ) {
                  idx+=5;
                  continue;
@@ -4325,16 +4324,16 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
                return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
             }
          }
-         if ( *(pp+2) == '<' ) {
-            i = count_mux_ansi(pp+2);
-            if ( i ) {
-               i+=2; // need to include the '%' and the '<'
-               return i + seek_next_real_char(leftstart + i, i_haveansi, i_inansi);
-            }
-         }
-      }
+          if ( *(pp+2) == '<' ) {
+             i = count_mux_ansi(pp+2);
+             if ( i ) {
+                i+=2; // need to include the '%' and the '<'
+                return i + seek_next_real_char(leftstart + i, i_haveansi, i_inansi);
+             }
+           }
+        }
 
-      // Unicode can chain
+       // Unicode can chain
       if ( (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
             isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
             (*(pp+5) == '>') ) {
@@ -5669,9 +5668,9 @@ FUNCTION(fun_dice)
     else
        i_crit = 0;
 
-    if ((i > 100) || (i < 1) || (j > 100) || (j < 2) ||
-        (i_save > 100) || (i_save < 0) ||
-        (i_crit > 100) || (i_crit < 0)) {
+    if ((i > 100) || (i < 1) || (j > 100000) || (j < 2) ||
+        (i_save > 100000) || (i_save < 0) ||
+        (i_crit > 100000) || (i_crit < 0)) {
        safe_str("#-1 ARGUMENT OUT OF RANGE", buff, bufcx);
        return;
     }
@@ -5930,7 +5929,7 @@ FUNCTION(fun_shuffle)
 
 FUNCTION(fun_ansipos)
 {
-    char *outbuff, *returnbuff, *ptr;
+    char *outbuff, *returnbuff, *ptr, *rp, *wp;
     ANSISPLIT outsplit[LBUF_SIZE];
     int i_pos, i_cur; 
     
@@ -5953,10 +5952,53 @@ FUNCTION(fun_ansipos)
        if ( i_cur == i_pos ) {
           *returnbuff = ' ';
           ptr = rebuild_ansi(returnbuff, outsplit + i_cur -1, 0);
-          if ( (strlen(ptr) > 4) && (strchr(ptr, ' ') != NULL) ) {
-             *(strchr(ptr, ' ')) = '\0';
-             safe_str(ptr, buff, bufcx);
+          /* Extract ANSI codes only, stopping at first non-ANSI character.
+             Handles TrueColor %x<R G B> which contains spaces internally. */
+          rp = ptr;
+          wp = returnbuff;
+          while (*rp) {
+             if (*rp == '%') {
+                /* Start of an ANSI code — copy the entire code */
+                if (*(rp+1) == SAFE_CHR || *(rp+1) == SAFE_UCHR
+#ifdef SAFE_CHR2
+                   || *(rp+1) == SAFE_CHR2 || *(rp+1) == SAFE_UCHR2
+#endif
+#ifdef SAFE_CHR3
+                   || *(rp+1) == SAFE_CHR3 || *(rp+1) == SAFE_UCHR3
+#endif
+                ) {
+                   /* %x... or %X... — could be 16-color, 256-color, or TrueColor */
+                   *wp++ = *rp++;
+                   *wp++ = *rp++; /* copy the SAFE_CHR */
+                   if (*rp == '0' && (*(rp+1) == 'x' || *(rp+1) == 'X')) {
+                      /* 256-color: %x0xRR (6 chars total) */
+                      *wp++ = *rp++; *wp++ = *rp++;
+                      *wp++ = *rp++; *wp++ = *rp++;
+                   } else if (*rp == '<') {
+                      /* TrueColor: %x<R G B> or %x<#RRGGBB> — find closing > */
+                      *wp++ = *rp++;
+                      while (*rp && *rp != '>')
+                         *wp++ = *rp++;
+                      if (*rp == '>')
+                         *wp++ = *rp++;
+                   } else if (isAnsi[(int)*rp]) {
+                      /* 16-color: %xn, %xr, etc. (3 chars total) */
+                      *wp++ = *rp++;
+                   }
+                } else if (*(rp+1) == 'f' && isprint(*(rp+2))) {
+                   /* Accent: %fX (3 chars) */
+                   *wp++ = *rp++; *wp++ = *rp++; *wp++ = *rp++;
+                } else {
+                   /* Unknown % code — skip */
+                   rp++;
+                }
+             } else {
+                /* Non-ANSI character (the trailing space) — stop */
+                break;
+             }
           }
+          *wp = '\0';
+          safe_str(returnbuff, buff, bufcx);
           free_lbuf(ptr);
           break;
        }
@@ -9881,7 +9923,7 @@ FUNCTION(fun_time)
 {
     char *temp, *s_env, *s_tmp, *s_chratr;
     dbref aowner;
-    int i_tz, aflags, i_enforce, len;
+    int i_tz, aflags, i_enforce;
     ATTR *ap;
     struct tm *tms;
 
@@ -9938,7 +9980,7 @@ FUNCTION(fun_time)
        tms = localtime(&mudstate.now);
        temp = alloc_mbuf("time_withzero");
        memset(temp, '\0', MBUF_SIZE);
-       len = strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
+        (void)strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
        safe_str(temp, buff, bufcx);
        free_mbuf(temp);
     } else {
@@ -10303,9 +10345,10 @@ int printf_lookahead(char *s_string)
          }
          if ( *(s+2) == '<' ) {
             i_mux = count_mux_ansi(s+2);
-            if ( i_mux )
-               s+= i_mux+2;
-               continue;
+             if ( i_mux ) {
+                s+= i_mux+2;
+                continue;
+             }
             }
          }
       if ( *s )
@@ -10890,17 +10933,18 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                memset(s_t, '\0', LBUF_SIZE);
                s_tp = s_t;
                s_tp2 = fmtbuff;
-               fmtbuff = skip_mux_ansi(fmtbuff+2, s_t, &s_tp);
-               safe_chr( *s_tp2, buff, bufcx );
-               safe_chr( *(s_tp2+1), buff, bufcx );
-               safe_chr( *s_tp2, s_padbuf, &s_padbufptr );
-               safe_chr( *(s_tp2+1), s_padbuf, &s_padbufptr );
-               safe_str(s_t, s_padbuf, &s_padbufptr);
-               if ( fm->breakonreturn && shold ) {
-                  safe_chr( *s_tp2, shold, sholdptr );
-                  safe_chr( *(s_tp2+1), shold, sholdptr );
-                  safe_str(s_t, shold, sholdptr);
-               }
+                fmtbuff = skip_mux_ansi(fmtbuff+2, s_t, &s_tp);
+                safe_chr( *s_tp2, buff, bufcx );
+                safe_chr( *(s_tp2+1), buff, bufcx );
+                safe_str(s_t, buff, bufcx);
+                safe_chr( *s_tp2, s_padbuf, &s_padbufptr );
+                safe_chr( *(s_tp2+1), s_padbuf, &s_padbufptr );
+                safe_str(s_t, s_padbuf, &s_padbufptr);
+                if ( fm->breakonreturn && shold ) {
+                   safe_chr( *s_tp2, shold, sholdptr );
+                   safe_chr( *(s_tp2+1), shold, sholdptr );
+                   safe_str(s_t, shold, sholdptr);
+                }
                if ( *s_t ) {
                   i_inansi=1;
                }
@@ -12368,11 +12412,17 @@ FUNCTION(fun_printf)
                                     ((*(pp+1) == 'f') && isprint(*(pp+2)))) ) {
                   i_totwidth-=3;
                }
-               if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && 
-                    (*(pp+1) == '0') && ((*(pp+2) == 'x') || (*(pp+2) == 'X')) && 
-                    (*(pp+3) && isxdigit(*(pp+3))) && (*(pp+4) && isxdigit(*(pp+4))) ) {
-                  i_totwidth-=6;
-               }
+                if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && 
+                     (*(pp+1) == '0') && ((*(pp+2) == 'x') || (*(pp+2) == 'X')) && 
+                     (*(pp+3) && isxdigit(*(pp+3))) && (*(pp+4) && isxdigit(*(pp+4))) ) {
+                   i_totwidth-=6;
+                }
+                if ( *pp == '%' && ((*(pp+1) == 'c') || (*(pp+1) == 'x')) && *(pp+2) == '<' ) {
+                   char *tc_end = strchr(pp+3, '>');
+                   if ( tc_end ) {
+                      i_totwidth -= (tc_end - pp);
+                   }
+                }
 #endif
             } else if( fm.insup2 || fm.insup4 ) {
                safe_chr(' ', buff, bufcx);
@@ -12488,7 +12538,7 @@ FUNCTION(fun_timefmt)
   char *pp, *fmtbuff, *s_aptz, *s_aptztmp;
   time_t secs, i_frell;
   double secs2;
-  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags, len;
+  int formatpass = 0, fmterror = 0, fmtdone = 0, i_aptz, aflags;
   dbref aowner;
   long l_offset = 0, l_timezone = 0;
   TZONE_MUSH *tzmush;
@@ -12527,9 +12577,9 @@ FUNCTION(fun_timefmt)
 #else /* All hail the hackjob from hell */
   memset(h, '\0', sizeof(h));
   memset(m, '\0', sizeof(m));
-  memset(s_bsdtz, '\0', sizeof(s_bsdtz));
-  len = strftime(s_bsdtz, 9, (char *)"%z", tms2);
-  if ( len >= 4 ) {
+   memset(s_bsdtz, '\0', sizeof(s_bsdtz));
+   (void)strftime(s_bsdtz, 9, (char *)"%z", tms2);
+   if ( strlen(s_bsdtz) >= 4 ) {
     if ( *s_bsdtz == '-' ) {
        h[0] = s_bsdtz[1];
        h[1] = s_bsdtz[2];
@@ -12859,7 +12909,7 @@ FUNCTION(fun_timefmt)
               case 'j': /* The Time Zone tzset() based Itself */
                 tms3 = localtime(&mudstate.now);
                 s_aptz = alloc_lbuf("j_timefmt");
-                len = strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
+                (void)strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
                 sprintf(fmtbuff, "%s", s_aptz);
                 free_lbuf(s_aptz);
                 showfield(fmtbuff, buff, bufcx, &fm, 0);
@@ -14057,8 +14107,7 @@ check_readlock_perms(dbref player, dbref thing, ATTR * attr,
 
 #ifdef USECRYPT
 static char *
-crunch_code(code)
-    char *code;
+crunch_code(char *code)
 {
     char *in;
     char *out;
@@ -19856,7 +19905,7 @@ FUNCTION(fun_strfunc)
    UFUN *ufp;
    char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, *retval, *s_attr,
         *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *ptsavereg, *nptsavereg;
-   int nitems, tst, i, i_soft, i_found, aflags, feval, z, is_trace_bkup;
+   int nitems, tst, i, i_found, aflags, feval, z, is_trace_bkup;
    dbref aowner, i_player;
 
    varargs_preamble("STRFUNC", 3);
@@ -19875,7 +19924,7 @@ FUNCTION(fun_strfunc)
       p++;
    }
 
-   i_soft = i_found = 0;
+    i_found = 0;
    fp = (FUN *) hashfind(list, &mudstate.func_htab);
    if ( !fp ) {
       if ( mudconf.strfunc_softfuncs >= 1 ) {
@@ -20169,8 +20218,8 @@ FUNCTION(fun_execscript)
         *s_vars, *s_varsbak, *s_varstok, *s_varstokptr, *s_varset, *s_vars2, *s_buff, *s_nregs, *s_t1, *s_t2, *s_t3, *s_t4,
         *s_nregsptr, *s_varupper, *s_variable, *s_dbref, *s_string, *s_append, *s_appendptr, *s_inread2, *s_combine2,
         *s_bf1, *s_bf1ptr, *s_bf2, *s_bf2ptr, *s_bf3, *s_bf3ptr;
-   int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
-       i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return, i_rawpush;
+    int i_count, i_buff, i_power, i_level, i_alttimeout, aflags, i_varset, i_id, i_noex, i_comments, i_execor, 
+        i_flags[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_flagtype, i_return;
    dbref aowner, d_atrname;
    time_t i_now;
    struct stat st_buf;
@@ -20531,7 +20580,7 @@ FUNCTION(fun_execscript)
    } 
    free_mbuf(s_varset);
 
-   i_rawpush = i_noex = 0;
+   i_noex = 0;
 // sprintf(s_combine, "./scripts/%.100s.set", fargs[0]);
    sprintf(s_combine, "%.1000s.set", s_combine2);
    if ( stat(s_combine, &st_buf) == 0 ) {
@@ -20547,7 +20596,6 @@ FUNCTION(fun_execscript)
       s_inbufptr = s_inbuf = alloc_lbuf("fun_execscript_buffer");
 
       if ( mudconf.execscript_rawpush ) {
-         i_rawpush = 1;
          s_varset = alloc_mbuf("fun_execscript_mbuff"); 
          s_bf1 = alloc_lbuf("execscript_bf1");
          s_bf2 = alloc_lbuf("execscript_bf2");
@@ -20934,7 +20982,7 @@ FUNCTION(fun_execscript)
 
 FUNCTION(fun_listtzones)
 {
-   char **s_ptr, *s_env, *s_tmp;
+   char **s_ptr, *s_env;
    int i_first;
    time_t i_now;
    struct tm lt;
@@ -20948,9 +20996,8 @@ FUNCTION(fun_listtzones)
    if ( (nfargs > 1) && *fargs[0] && (atoi(fargs[1]) == 1) ) {
       while ( s_ptr && *s_ptr ) {
          if ( quick_wild(fargs[0], *s_ptr) ) {
-            s_env = alloc_sbuf("fun_listtzones_sbuf");
-            s_tmp = getenv("TZ");
-            i_first = 1;
+             s_env = alloc_sbuf("fun_listtzones_sbuf");
+             i_first = 1;
             setenv("TZ", *s_ptr, 1);
             tzset();
             if ( *s_env ) {
@@ -26270,7 +26317,7 @@ void
 do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
 {
     int i = 1, i_key;
-    char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob1, *ob2, *ob3;
+    char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob2, *ob3;
     int gotone = 0;
     ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], 
               *sp1, *sp2, *sp3, *sp2b;
@@ -26284,7 +26331,6 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
     outbuff1 = alloc_lbuf("do_pos_ansi1");
     memset(outbuff1, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff1, outsplit1);
-    ob1 = outbuff1;
     sp1 = outsplit1;
 
     initialize_ansisplitter(outsplit2, LBUF_SIZE);
@@ -26621,7 +26667,7 @@ FUNCTION(fun_totpos)
 
 FUNCTION(fun_numpos)
 {
-    int i = 1, count, i_key, i_type;
+     int count, i_key, i_type;
     char *s, *t, *u, *s_in1, *s_in2;
     ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], *p1, *p2, *p2b;
 
@@ -26665,7 +26711,6 @@ FUNCTION(fun_numpos)
        p1 = insplit1;
        p2 = insplit2;
 
-       i = 1;
        count = 0;
        s = s_in2;
 
@@ -26686,7 +26731,6 @@ FUNCTION(fun_numpos)
                 count++;
              }
              ++s;
-             ++i;
              ++p2;
           }
        } else {
@@ -26703,13 +26747,12 @@ FUNCTION(fun_numpos)
              if ( *t == '\0' ) {
                 count++;
              }
-             ++i, ++s, ++p2;
+             ++s, ++p2;
           }
        }
        free_lbuf(s_in1);
        free_lbuf(s_in2);
     } else {
-       i = 1;
        count = 0;
        s = strip_all_special(fargs[1]);
        if ( i_key ) {
@@ -26720,7 +26763,6 @@ FUNCTION(fun_numpos)
                 count++;
              }
              ++s;
-             ++i;
           }
        } else {
           while (*s) {
@@ -26731,7 +26773,7 @@ FUNCTION(fun_numpos)
              if (*t == '\0') {
                  count++;
              }
-             ++i, ++s;
+             ++s;
           }
        }
     }
@@ -27602,7 +27644,6 @@ FUNCTION(fun_secure)
 FUNCTION(fun_esclist)
 {
     char *s_index, *s, *s2, *s_buff, *s_buffptr, *s_split0, *s_pos, *s_output;
-    int i_escape;
     ANSISPLIT split0[LBUF_SIZE], split_index[LBUF_SIZE], *p_0, *p_split;
 
     if ( !*fargs[0] || !strchr(fargs[0], '|') ) {
@@ -27612,8 +27653,6 @@ FUNCTION(fun_esclist)
     s_index = alloc_lbuf("fun_esclist");
     memset(s_index, '\0', LBUF_SIZE);
     s2 = s_index;
-
-    i_escape = 0;
 
     initialize_ansisplitter(split0, LBUF_SIZE);
     initialize_ansisplitter(split_index, LBUF_SIZE);
@@ -35164,8 +35203,11 @@ deansi(char *string, char *buff, char **bufcx)
                    if ( strchr(s+1, ' ') != NULL ) {
                       g1 = atoi(strchr(s+1, ' ')+1);
                       if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
-                         b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                         rgb_diff = rgb_diff2 = 1000;
+                               b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
+                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
+                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
+                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                               rgb_diff = rgb_diff2 = 1000;
                          for (cx = mux_namecolors; cx->s_hex; cx++) {
                             if(cx->i_dec < 16) 
                                continue;
@@ -35382,6 +35424,7 @@ FUNCTION(fun_ansi)
     MUXANSI  *cx;
     char *q, *s, t_buff[60], *t_buff2, t_buff3[61], *ansi_special, *ansi_specialptr, *ansi_normalfg, *ansi_normalbg;
     int i, j, k, i_haveslash, i_xterm_ansi, i_fgcolor, i_bgcolor, r1, r2, g1, g2, b1, b2, rgb_diff, rgb_diff2, i_allow[5], i_trgbackground, i_tmp;
+    int tc_fg_r, tc_fg_g, tc_fg_b, tc_fg_set, tc_bg_r, tc_bg_g, tc_bg_b, tc_bg_set;
 
     if ( nfargs < 2 ) {
        safe_str("#-1 FUNCTION (ANSI) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -35394,6 +35437,9 @@ FUNCTION(fun_ansi)
     r1 = r2 = g1 = g2 = b1 = b2 = 0;
     rgb_diff = rgb_diff2 = 1000;
     i_fgcolor = i_bgcolor = -1;
+    tc_fg_set = tc_bg_set = 0;
+    tc_fg_r = tc_fg_g = tc_fg_b = 0;
+    tc_bg_r = tc_bg_g = tc_bg_b = 0;
     for ( i = 0;i < 5; i++ ) 
        i_allow[i] = 0;
 
@@ -35487,88 +35533,106 @@ FUNCTION(fun_ansi)
                        s--;
                  }
                  break;
-              case '#':
-                 if ( isxdigit(*(s+1)) && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
-                      isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) ) {
-                    sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
-                    rgb_diff = rgb_diff2 = 1000;
-                    for (cx = mux_namecolors; cx->s_hex; cx++) {
-                       if(cx->i_dec < 16) 
-                          continue;
-                       sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                       rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                       if ( rgb_diff < rgb_diff2 ) {
-                          rgb_diff2 = rgb_diff;
-                          if ( i_trgbackground )
-                             i_bgcolor = cx->i_dec;
-                          else
-                             i_fgcolor = cx->i_dec;
-                          /* Exact match -- break out */
-                          if ( rgb_diff2 == 0 )
-                             break;
-                       }
-                    }
-                    s+=6;
-                    i_xterm_ansi = 1;
-                 }
-                 break;
-              case '<':
-                 if ( (*(s+1) == '#') && isxdigit(*(s+2)) && isxdigit(*(s+3)) && 
-                      isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) && 
-                      isxdigit(*(s+7)) && *(s+8) == '>' ) {
-                    sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
-                    rgb_diff = rgb_diff2 = 1000;
-                    for (cx = mux_namecolors; cx->s_hex; cx++) {
-                       if(cx->i_dec < 16) 
-                          continue;
-                       sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                       rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                       if ( rgb_diff < rgb_diff2 ) {
-                          rgb_diff2 = rgb_diff;
-                          if ( i_trgbackground )
-                             i_bgcolor = cx->i_dec;
-                          else
-                             i_fgcolor = cx->i_dec;
-                          /* Exact match -- break out */
-                          if ( rgb_diff2 == 0 )
-                             break;
-                       }
-                    }
-                    while ( s && *s && (*s != '>') )
-                       s++;
-                    i_xterm_ansi = 1;
-                 } else {
-                    if ( (strchr(s, '>') != NULL) && ((strchr(s, '/') == NULL) || ((long)strchr(s, '>') < (long)strchr(s, '/'))) ) {
-                       r1 = atoi(s+1);
-                       if ( strchr(s+1, ' ') != NULL ) {
-                          g1 = atoi(strchr(s+1, ' ')+1);
-                          if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
-                             b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                             rgb_diff = rgb_diff2 = 1000;
-                             for (cx = mux_namecolors; cx->s_hex; cx++) {
-                                if(cx->i_dec < 16) 
-                                   continue;
-                                sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                                rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                                if ( rgb_diff < rgb_diff2 ) {
-                                   rgb_diff2 = rgb_diff;
-                                   if ( i_trgbackground )
-                                      i_bgcolor = cx->i_dec;
-                                   else
-                                      i_fgcolor = cx->i_dec;
-                                   /* Exact match -- break out */
-                                   if ( rgb_diff2 == 0 )
-                                      break;
-                                }
-                             }
-                          }
-                       }
-                       while ( s && *s && (*s != '>') )
-                          s++;
-                       i_xterm_ansi = 1;
-                    }
-                 }
-                 break;
+               case '#':
+                  if ( isxdigit(*(s+1)) && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
+                       isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) ) {
+                     sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
+                     rgb_diff = rgb_diff2 = 1000;
+                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                        if(cx->i_dec < 16)
+                           continue;
+                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                        if ( rgb_diff < rgb_diff2 ) {
+                           rgb_diff2 = rgb_diff;
+                           if ( i_trgbackground )
+                              i_bgcolor = cx->i_dec;
+                           else
+                              i_fgcolor = cx->i_dec;
+                           /* Exact match -- break out */
+                           if ( rgb_diff2 == 0 )
+                              break;
+                        }
+                     }
+                     if ( i_trgbackground ) {
+                        tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                     } else {
+                        tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                     }
+                     s+=6;
+                     i_xterm_ansi = 1;
+                  }
+                  break;
+               case '<':
+                  if ( (*(s+1) == '#') && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
+                       isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) &&
+                       isxdigit(*(s+7)) && *(s+8) == '>' ) {
+                     sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
+                     rgb_diff = rgb_diff2 = 1000;
+                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                        if(cx->i_dec < 16)
+                           continue;
+                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                        if ( rgb_diff < rgb_diff2 ) {
+                           rgb_diff2 = rgb_diff;
+                           if ( i_trgbackground )
+                              i_bgcolor = cx->i_dec;
+                           else
+                              i_fgcolor = cx->i_dec;
+                           /* Exact match -- break out */
+                           if ( rgb_diff2 == 0 )
+                              break;
+                        }
+                     }
+                     if ( i_trgbackground ) {
+                        tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                     } else {
+                        tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                     }
+                     while ( s && *s && (*s != '>') )
+                        s++;
+                     i_xterm_ansi = 1;
+                  } else {
+                     if ( (strchr(s, '>') != NULL) && ((strchr(s, '/') == NULL) || ((long)strchr(s, '>') < (long)strchr(s, '/'))) ) {
+                        r1 = atoi(s+1);
+                        if ( strchr(s+1, ' ') != NULL ) {
+                           g1 = atoi(strchr(s+1, ' ')+1);
+                           if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
+                               b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
+                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
+                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
+                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                               rgb_diff = rgb_diff2 = 1000;
+                              for (cx = mux_namecolors; cx->s_hex; cx++) {
+                                 if(cx->i_dec < 16)
+                                    continue;
+                                 sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                                 rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                                 if ( rgb_diff < rgb_diff2 ) {
+                                    rgb_diff2 = rgb_diff;
+                                    if ( i_trgbackground )
+                                       i_bgcolor = cx->i_dec;
+                                    else
+                                       i_fgcolor = cx->i_dec;
+                                    /* Exact match -- break out */
+                                    if ( rgb_diff2 == 0 )
+                                       break;
+                                 }
+                              }
+                              if ( i_trgbackground ) {
+                                 tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                              } else {
+                                 tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                              }
+                           }
+                        }
+                        while ( s && *s && (*s != '>') )
+                           s++;
+                        i_xterm_ansi = 1;
+                     }
+                  }
+                  break;
               case 'u': 
                  if ( !i_allow[0] && (mudconf.global_ansimask & MASK_UNDERSCORE) )
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
@@ -35676,32 +35740,46 @@ FUNCTION(fun_ansi)
          }
          s++;
       }
-      if ( i_xterm_ansi ) {
-         if ( i_fgcolor >= 0 && i_fgcolor <= 255 ) {
-            t_buff2 = alloc_lbuf("fun_ansi");
-#ifdef TINY_SUB
-            sprintf(t_buff2, "%%x0x%02x", i_fgcolor);
-#else
-            sprintf(t_buff2, "%%c0x%02x", i_fgcolor);
-#endif
-            safe_str(t_buff2, buff, bufcx);
-            free_lbuf(t_buff2);
-         } else {
-            safe_str(ansi_normalfg, buff, bufcx);
-         }
-         if ( i_bgcolor >= 0 && i_bgcolor <= 255) {
-            t_buff2 = alloc_lbuf("fun_ansi");
-#ifdef TINY_SUB
-            sprintf(t_buff2, "%%x0X%02x", i_bgcolor);
-#else
-            sprintf(t_buff2, "%%c0X%02x", i_bgcolor);
-#endif
-            safe_str(t_buff2, buff, bufcx);
-            free_lbuf(t_buff2);
-         } else {
-            safe_str(ansi_normalbg, buff, bufcx);
-         }
-      } else {
+        if ( i_xterm_ansi ) {
+            if ( tc_fg_set ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+                sprintf(t_buff2, "%s<%d %d %d>", SAFE_CHRST, tc_fg_r, tc_fg_g, tc_fg_b);
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else if ( i_fgcolor >= 0 && i_fgcolor <= 255 ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+               for (cx = mux_namecolors; cx->s_hex; cx++) {
+                  if (cx->i_dec == i_fgcolor) {
+                     sscanf(cx->s_hex, "%2x%2x%2x", &r1, &g1, &b1);
+                      sprintf(t_buff2, "%s<%d %d %d>", SAFE_CHRST, r1, g1, b1);
+                     break;
+                  }
+               }
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else {
+               safe_str(ansi_normalfg, buff, bufcx);
+            }
+            if ( tc_bg_set ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+                sprintf(t_buff2, "%s<%d %d %d>", SAFE_UCHRST, tc_bg_r, tc_bg_g, tc_bg_b);
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else if ( i_bgcolor >= 0 && i_bgcolor <= 255) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+               for (cx = mux_namecolors; cx->s_hex; cx++) {
+                  if (cx->i_dec == i_bgcolor) {
+                     sscanf(cx->s_hex, "%2x%2x%2x", &r1, &g1, &b1);
+                      sprintf(t_buff2, "%s<%d %d %d>", SAFE_UCHRST, r1, g1, b1);
+                     break;
+                  }
+               }
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else {
+             safe_str(ansi_normalbg, buff, bufcx);
+          }
+       } else {
          safe_str(ansi_normalfg, buff, bufcx);
          safe_str(ansi_normalbg, buff, bufcx);
       }
@@ -35712,8 +35790,9 @@ FUNCTION(fun_ansi)
       memset(ansi_normalbg, '\0', MBUF_SIZE);
       memset(ansi_special, '\0', MBUF_SIZE);
       ansi_specialptr = ansi_special;
-      i_fgcolor = i_bgcolor = -1;
-      for ( k = 0;k < 5; k++ ) 
+       i_fgcolor = i_bgcolor = -1;
+       tc_fg_set = tc_bg_set = 0;
+       for ( k = 0;k < 5; k++ )
          i_allow[k] = 0;
    }
    free_mbuf(ansi_normalfg);
@@ -35925,19 +36004,20 @@ FUNCTION(fun_stripansi)
                           ||   ((*(cp+1) == SAFE_CHR3) || (*(cp+1) == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) *(cp+2)] ) {
-              cp+=3;
-              continue;
-           }
-           if ( (*(cp+2) == '0') && ((*(cp+3) == 'x') || (*(cp+3) == 'X')) &&
+            if ( isAnsi[(int) *(cp+2)] ) {
+               cp+=3;
+               continue;
+            }
+              if ( (*(cp+2) == '0') && ((*(cp+3) == 'x') || (*(cp+3) == 'X')) &&
                 *(cp+4) && *(cp+5) && isxdigit(*(cp+4)) && isxdigit(*(cp+5)) ) {
               cp+=6;
               continue;
            }
-           if ( *(cp+2) == '<' ) {
-              cp = skip_mux_ansi(cp+2, (char *)NULL, (char **)NULL);
-           }
-           safe_chr(*cp++, buff, bufcx);
+            if ( *(cp+2) == '<' ) {
+               cp = skip_mux_ansi(cp+2, (char *)NULL, (char **)NULL);
+               continue;
+            }
+            safe_chr(*cp++, buff, bufcx);
         } else {
            safe_chr(*cp++, buff, bufcx);
         }
@@ -38428,9 +38508,8 @@ FUNCTION(fun_args)
 
 FUNCTION(fun_r)
 {
-    int regnum, i, i_namefnd;
+    int regnum, i;
 
-    i_namefnd = 0;
     regnum = -1;
     if ( strlen(fargs[0]) > 1 ) {
        if ( mudconf.setq_nums && is_number(fargs[0]) ) {
@@ -38440,7 +38519,6 @@ FUNCTION(fun_r)
              if ( *(mudstate.global_regsname[i]) &&
                   !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
                 regnum = i;
-                i_namefnd = 1;
                 break;
              }
           }
@@ -43057,9 +43135,9 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
        for (ufp2 = (i_local ? ulfun_head : ufun_head); ufp2; ufp2 = ufp2->next) {
           if ( i_local && ((ufp2->owner != Owner(player)) && !controls(player, ufp2->owner)) ) 
              continue;
-          ap = atr_num(ufp2->atr);
-          if (ap || !ap) {
-             if ( ufp2->owner == Owner(player) )
+           ap = atr_num(ufp2->atr);
+           {
+              if ( ufp2->owner == Owner(player) )
                 count_owner++;
 
              i_tcount++;

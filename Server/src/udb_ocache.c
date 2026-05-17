@@ -32,8 +32,8 @@
 #include	<sys/types.h>
 #endif
 
-extern struct Obj *dddb_get();
-extern void mush_logf();
+extern struct Obj *dddb_get(Objname *nam);
+extern void mush_logf(const char *fmt, ...);
 
 /* Lensy: Hacktastic fix to avoid warnings.
  *        whoever forced me to do this needs their balls removed
@@ -103,13 +103,13 @@ typedef	struct	{
 			q.tail = e; \
 			e->nxt = (Cache *)0;
 
-static Cache *get_free_entry();
-static int cache_write();
-static void cache_clean();
+static Cache *get_free_entry(CacheLst *sp);
+static int cache_write(Cache *cp);
+static void cache_clean(CacheLst *sp);
 
-static Attr *get_attrib();
-static void set_attrib();
-static void del_attrib();
+static Attr *get_attrib(Aname *anam, Obj *obj);
+static void set_attrib(Aname *anam, Obj *obj, Attr *value);
+static void del_attrib(Aname *anam, Obj *obj);
 static void	FDECL(objfree, (Obj *));
 
 /* initial settings for cache sizes */

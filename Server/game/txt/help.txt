@@ -1156,7 +1156,7 @@
   
   For more help on the %c substitution, look at SUBSTITUTIONS
   
-  See Also: SUBSTITUTIONS, ANSI, ANSICOLOR, XTERMCOLOR, ANSI()
+  See Also: SUBSTITUTIONS, ANSI, ANSICOLOR, XTERMCOLOR, ANSI(), TRUECOLOR
   
 & zones
   The RhostMUSH zone system works as follows:
@@ -10578,7 +10578,7 @@
    
   This will effectively strip out the ansi sequence for the underline routine.
   
-  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, ansi()
+  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, ansi(), TRUECOLOR
   
 & NOFLASH
 & NO_FLASH
@@ -10592,7 +10592,7 @@
   
   This is aliased to 'NOFLASH' for compatibility.
    
-  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_UNDERLINE, ansi()
+  See Also: ANSI, ANSICOLOR, XTERMCOLOR, NO_UNDERLINE, ansi(), TRUECOLOR
   
 & OPAQUE
   Flag: OPAQUE(O)   
@@ -10894,18 +10894,22 @@
   
   For 256 color you need the XTERMCOLOR flag in addition to ANSI and 
   ANSICOLOR.
+
+  For truecolor you need the TRUECOLOR flag in addition to ANSI and
+  ANSICOLOR.
   
 { 'help ansi usage' on how to use ansi}
 { 'help ansi encoding' on the syntax for ansi substitutions}
   
-  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
+  See Also: ANSICOLOR, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
   
 & ANSI ENCODING
   Topic: ANSI ENCODING
   
   The following percent substitutions work for ansi.  The ansi substitution
-  can be either %x, %c, or enabled to use both.  Please check your RhostMUSH
-  configuration on what options for ansi are available.
+  can be either %x, %c, %m, or enabled to use any combination. Please check
+  your RhostMUSH configuration on what options for ansi are available.
   To see system settings:  
     > @list options system
   
@@ -10929,6 +10933,9 @@
       255 175 215
       + %c<255 175 215> foo %cn --- 24color foreground(RGB) 255 175 215 (pink)
       + %C<255 175 215> foo %cn --- 24color background(RGB) 255 175 215 (pink)
+
+  The last two formats also support the full TRUECOLOR range of ANSI, if
+  enabled on a player.
     
   See Also: ANSI USAGE
 
@@ -10948,6 +10955,8 @@
                  of ansicodes.  This is the base 16 color set.
     XTERMCOLOR - This, with the addition of ANSI and ANSICOLOR, allows
                  the extended 256 color set.
+    TRUECOLOR  - This, with the addition of ANSI and ANSICOLOR, allows
+                 the full Truecolor (16 million colors) set.
   
   To use the ANSI function you would use:
     16 color mode:
@@ -10972,6 +10981,18 @@
   the XTERM color pallet to be sent to the player's terminal.
   
   You need all three flags:  ANSI, ANSICOLOR, and XTERMCOLOR to see extended.
+  
+  See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
+
+& TRUECOLOR
+  Flag: TRUECOLOR([c])
+  
+  This flag is only meaningful for players.  When set in conjunction with
+  the ANSI and ANSICOLOR flags, this will allow full 16-million truecolor ansi
+  support using the <R G B> and #RRGGBB ANSI formats.
+  
+  You need all three flags:  ANSI, ANSICOLOR, and TRUECOLOR.
   
   See Also: ANSI, ANSICOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
 
@@ -11094,7 +11115,7 @@
                                                       254 [0xFE] Grey89    
   Please see 'help xtermcolor syntax' for color test  255 [0xFF] Grey93   
   
-  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI()
+  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI(), TRUECOLOR
 
 & XTERMCOLOR SYNTAX
   @emit the following code (append the lines)
@@ -11108,7 +11129,7 @@
   
   This will return a 256 color map for you.
   
-  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI()
+  See Also: XTERMCOLOR, ANSI, ANSICOLOR, ANSI(), TRUECOLOR
 
 & ANSICOLOR
   Flag: ANSICOLOR(>)
@@ -11119,7 +11140,8 @@
   
   You need both the ANSI and ANSICOLOR flags to see ansi color.
   
-  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS()
+  See Also: ANSI, XTERMCOLOR, SUBSTITUTIONS, ANSI(), NOFLASH, COLORS(),
+            TRUECOLOR
   
 & ANSINAMES
   An addition to the code allows you to have ansi colors on ALL data types.
@@ -12099,7 +12121,7 @@
     P - PRIVATE        f - SHOWFAILCMD    z - ZONECONTENTS
     T - TELOK          g - BLIND          t - XTERMCOLOR
     X - COMBAT         o - BOUNCE         ! - COLORMAIL
-    Z - ZONEMASTER     u - NO_UNDERLINE
+    Z - ZONEMASTER     u - NO_UNDERLINE   c - TRUECOLOR
   
     0 - MARKER0        1 - MARKER1        2 - MARKER2        3 - MARKER3
     4 - MARKER4        5 - MARKER5        6 - MARKER6        7 - MARKER7
@@ -13192,7 +13214,8 @@
             * ANSI substitution: It takes the next character as the ansi
               sequence and continues with that sequence till the next one
               or end of the line.  You may also specify 0x## (ie: 0x20)
-              to use extended 256 colors.
+              to use extended 256 colors, or <R G B> to use 256-color or
+              actual Truecolor support.
 
             * Last Command Executed: The substitution contains the whole,
               unevaluated code of the last command executed.
@@ -16766,6 +16789,9 @@
   any 'markup' codes that are generally used for accents and raw ansi.  This
   is mostly intended when you need to see the absolute length of a string
   for length checks or the like.
+
+  These functions are fully ANSI aware and work with all internally supported
+  ANSI colors (16-color, 256-color, Truecolor)
     
   See Also: words(), wordpos()
   
@@ -19784,7 +19810,7 @@
     > say [colors(pink)] [colors(pink,h)] [colors(pink,c)]
     You say "218 0xda wh"
   
-  See Also: XTERMCOLOR, XTERMCOLOR LIST, ANSI()
+  See Also: XTERMCOLOR, XTERMCOLOR LIST, ANSI(), TRUECOLOR
   
 & COLUMNS()
   Function: columns()  Syntax follows:
@@ -22073,6 +22099,9 @@
     You say "abcdef"    (abc is hilight yellow, def is non-ansified)
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
     You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
+
+  This function also supports replacements of 256-color and Truecolor ansi
+  by using the '<R G B>' format.
   
   See Also: ansipos(), accents(), medit(), edit(), regedit(), pemit(), @edit
 
@@ -27833,7 +27862,7 @@
   been reversed or not.
   
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
-            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS(), TRUECOLOR
 
 { 'help ansi quirks' for work arounds on weird ansi problems}
 { 'help ansi usage' on how to use ansi}
@@ -27875,7 +27904,7 @@
 { 'help ansi usage' on how to use ansi}
     
   See Also: ansi(), stripansi(), ANSI, ANSICOLOR, XTERMCOLOR, NO_FLASH, 
-            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS()
+            SUBSTITUTIONS, XTERMCOLOR LIST, COLORS(), TRUECOLOR
 
 & ANSIPOS()
   Function: ansipos(<string>, <position>)
@@ -27886,6 +27915,8 @@
   
   Examples:
     > think [ansipos([ansi(+orange,orange)],5)]This string is orange%cn
+
+  It also supports proper Truecolor codes when using the <R G B> format.
   
   See Also: editansi(), pos(), ansi(), stripansi()
   
@@ -36900,7 +36931,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 4.27.6
+  1 - 4.27.7, 4.27.6
   2 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
   3 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
@@ -36910,12 +36941,34 @@
   5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.27.8
+& 4.27.7
 & 4.27.6
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.27.9
+  * Support for Truecolor ANSI:
+    - Uses the <R G B> and #RRGGBB ANSI formats
+    - strlen/strlenvis() supported
+    - editansi() supported
+    - ansipos() supported
+    - The internal ansi_splitter was updated, so
+      all functions with ansi-aware keys ( left()'s
+      third arguments for example ) should work fine.
+
+  4.27.8
+  * Used OpenCode/Qwen3.6 Plus to harden the Lua API:
+    - Removed the os library entirely
+    - Removed the coroutine library
+    - string.dump removed after string library load
+    - _G, setmetatable, rawset, rawget removed.
+
+  4.27.7
+  * made dice()/die() accept up to 100000-sided dice
 
   4.27.6
   * Added missing force_ansinorm and time_paddzero to the

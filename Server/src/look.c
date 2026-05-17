@@ -4057,7 +4057,6 @@ build_sweep(dbref player, dbref cause, dbref caller, int key, char *where, char 
 {
    dbref here, sweeploc, start;
    int where_key, what_key, first;
-   char *mysep;
 
 // do_sweep(player, cause, key, where);
 // return;
@@ -4072,12 +4071,6 @@ build_sweep(dbref player, dbref cause, dbref caller, int key, char *where, char 
       }
    } else {
       sweeploc = player;
-   }
-
-   if ( !sep || !*sep ) {
-      mysep = (char *)" ";
-   } else {
-      mysep = sep;
    }
    first = 0;
 

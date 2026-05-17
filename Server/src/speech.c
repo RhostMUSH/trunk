@@ -3485,7 +3485,7 @@ ZLISTNODE *z_ptr, *y_ptr;
       free_lbuf(pt1);
 }
 
-void com_who(),com_send();
+void com_who(char *chan, dbref who), com_send(char *chan, char *mess);
 int getword(char*,char*);
 
 void do_channel(dbref player, dbref cause, int key, char *arg1)

@@ -24,6 +24,12 @@
 
 #define ANSI_XTERM_BG	"\x1B[48;5;"
 #define ANSI_XTERM_FG	"\x1B[38;5;"
+#define ANSI_TRUECOLOR_FG	"\x1B[38;2;"
+#define ANSI_TRUECOLOR_BG	"\x1B[48;2;"
+
+/* TrueColor ANSISPLIT flags */
+#define TC_FG_SET	0x01
+#define TC_BG_SET	0x02
 
 #define ANSI_NORMAL   "\x1B[0m"
 #define ANSI_NORMAL2	"0"
@@ -121,6 +127,8 @@
 
 #define ANSI_XTERM_BG	"\033[48;5;"
 #define ANSI_XTERM_FG	"\033[38;5;"
+#define ANSI_TRUECOLOR_FG	"\033[38;2;"
+#define ANSI_TRUECOLOR_BG	"\033[48;2;"
 
 #define ANSI_NORMAL   "\033[0m"
 
