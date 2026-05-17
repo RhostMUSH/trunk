@@ -92,3 +92,4 @@ timeout
 /Server/src/sockopts_test
 /Server/src/scantst
 /Server/src/time
+/.opencode
