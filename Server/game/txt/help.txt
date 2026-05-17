@@ -10894,6 +10894,9 @@
   
   For 256 color you need the XTERMCOLOR flag in addition to ANSI and 
   ANSICOLOR.
+
+  For truecolor you need the TRUECOLOR flag in addition to ANSI and
+  ANSICOLOR.
   
 { 'help ansi usage' on how to use ansi}
 { 'help ansi encoding' on the syntax for ansi substitutions}
@@ -10904,8 +10907,8 @@
   Topic: ANSI ENCODING
   
   The following percent substitutions work for ansi.  The ansi substitution
-  can be either %x, %c, or enabled to use both.  Please check your RhostMUSH
-  configuration on what options for ansi are available.
+  can be either %x, %c, %m, or enabled to use any combination. Please check
+  your RhostMUSH configuration on what options for ansi are available.
   To see system settings:  
     > @list options system
   
@@ -10929,6 +10932,9 @@
       255 175 215
       + %c<255 175 215> foo %cn --- 24color foreground(RGB) 255 175 215 (pink)
       + %C<255 175 215> foo %cn --- 24color background(RGB) 255 175 215 (pink)
+
+  The last two formats also support the full TRUECOLOR range of ANSI, if
+  enabled on a player.
     
   See Also: ANSI USAGE
 
@@ -10948,6 +10954,8 @@
                  of ansicodes.  This is the base 16 color set.
     XTERMCOLOR - This, with the addition of ANSI and ANSICOLOR, allows
                  the extended 256 color set.
+    TRUECOLOR  - This, with the addition of ANSI and ANSICOLOR, allows
+                 the full Truecolor (16 million colors) set.
   
   To use the ANSI function you would use:
     16 color mode:
@@ -12099,7 +12107,7 @@
     P - PRIVATE        f - SHOWFAILCMD    z - ZONECONTENTS
     T - TELOK          g - BLIND          t - XTERMCOLOR
     X - COMBAT         o - BOUNCE         ! - COLORMAIL
-    Z - ZONEMASTER     u - NO_UNDERLINE
+    Z - ZONEMASTER     u - NO_UNDERLINE   c - TRUECOLOR
   
     0 - MARKER0        1 - MARKER1        2 - MARKER2        3 - MARKER3
     4 - MARKER4        5 - MARKER5        6 - MARKER6        7 - MARKER7
@@ -13192,7 +13200,8 @@
             * ANSI substitution: It takes the next character as the ansi
               sequence and continues with that sequence till the next one
               or end of the line.  You may also specify 0x## (ie: 0x20)
-              to use extended 256 colors.
+              to use extended 256 colors, or <R G B> to use 256-color or
+              actual Truecolor support.
 
             * Last Command Executed: The substitution contains the whole,
               unevaluated code of the last command executed.
@@ -16766,6 +16775,9 @@
   any 'markup' codes that are generally used for accents and raw ansi.  This
   is mostly intended when you need to see the absolute length of a string
   for length checks or the like.
+
+  These functions are fully ANSI aware and work with all internally supported
+  ANSI colors (16-color, 256-color, Truecolor)
     
   See Also: words(), wordpos()
   
@@ -22073,6 +22085,9 @@
     You say "abcdef"    (abc is hilight yellow, def is non-ansified)
     > say editansi([ansi(hb,abc,hg,xyz,n,def)],hb,y,hg,b)
     You say "abcxyzdef" (abc is yellow, xyz is blue, def is non-ansi)
+
+  This function also supports replacements of 256-color and Truecolor ansi
+  by using the '<R G B>' format.
   
   See Also: ansipos(), accents(), medit(), edit(), regedit(), pemit(), @edit
 
@@ -27886,6 +27901,8 @@
   
   Examples:
     > think [ansipos([ansi(+orange,orange)],5)]This string is orange%cn
+
+  It also supports proper Truecolor codes when using the <R G B> format.
   
   See Also: editansi(), pos(), ansi(), stripansi()
   
@@ -36918,6 +36935,16 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.27.9
+  * Support for Truecolor ANSI:
+    - Uses the <R G B> and #RRGGBB ANSI formats
+    - strlen/strlenvis() supported
+    - editansi() supported
+    - ansipos() supported
+    - The internal ansi_splitter was updated, so
+      all functions with ansi-aware keys ( left()'s
+      third arguments for example ) should work fine.
 
   4.27.8
   * Used OpenCode/Qwen3.6 Plus to harden the Lua API:
