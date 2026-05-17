@@ -1245,9 +1245,12 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
          s_ptr2->c_bgansi = s_ptr->c_bgansi;
          s_ptr2->c_accent = s_ptr->c_accent;
          s_ptr2->i_special = s_ptr->i_special;
-         s_ptr2->i_ascii8 = s_ptr->i_ascii8;
-         s_ptr2->i_utf8 = s_ptr->i_utf8;
-         i_escaped = 1;
+          s_ptr2->i_ascii8 = s_ptr->i_ascii8;
+          s_ptr2->i_utf8 = s_ptr->i_utf8;
+          s_ptr2->i_truecolor = s_ptr->i_truecolor;
+          s_ptr2->i_fgr = s_ptr->i_fgr; s_ptr2->i_fgg = s_ptr->i_fgg; s_ptr2->i_fgb = s_ptr->i_fgb;
+          s_ptr2->i_bgr = s_ptr->i_bgr; s_ptr2->i_bgg = s_ptr->i_bgg; s_ptr2->i_bgb = s_ptr->i_bgb;
+          i_escaped = 1;
          *s_outptr++ = *s_inptr++;
          *s_outptr++ = *s_inptr++;
 
@@ -1257,19 +1260,25 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
          s_ptr->c_bgansi = s_ptr2->c_bgansi;
          s_ptr->c_accent = s_ptr2->c_accent;
          s_ptr->i_special = s_ptr2->i_special;
-         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
-         s_ptr->i_utf8 = s_ptr2->i_utf8;
-         s_ptr++;
+          s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+          s_ptr->i_utf8 = s_ptr2->i_utf8;
+          s_ptr->i_truecolor = s_ptr2->i_truecolor;
+          s_ptr->i_fgr = s_ptr2->i_fgr; s_ptr->i_fgg = s_ptr2->i_fgg; s_ptr->i_fgb = s_ptr2->i_fgb;
+          s_ptr->i_bgr = s_ptr2->i_bgr; s_ptr->i_bgg = s_ptr2->i_bgg; s_ptr->i_bgb = s_ptr2->i_bgb;
+          s_ptr++;
 
-         strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
-         strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
-         s_ptr->c_fgansi = s_ptr2->c_fgansi;
-         s_ptr->c_bgansi = s_ptr2->c_bgansi;
-         s_ptr->c_accent = s_ptr2->c_accent;
-         s_ptr->i_special = s_ptr2->i_special;
-         s_ptr->i_ascii8 = s_ptr2->i_ascii8;
-         s_ptr->i_utf8 = s_ptr2->i_utf8;
-         s_ptr++;
+          strcpy(s_ptr->s_fghex, s_ptr2->s_fghex);
+          strcpy(s_ptr->s_bghex, s_ptr2->s_bghex);
+          s_ptr->c_fgansi = s_ptr2->c_fgansi;
+          s_ptr->c_bgansi = s_ptr2->c_bgansi;
+          s_ptr->c_accent = s_ptr2->c_accent;
+          s_ptr->i_special = s_ptr2->i_special;
+          s_ptr->i_ascii8 = s_ptr2->i_ascii8;
+          s_ptr->i_utf8 = s_ptr2->i_utf8;
+          s_ptr->i_truecolor = s_ptr2->i_truecolor;
+          s_ptr->i_fgr = s_ptr2->i_fgr; s_ptr->i_fgg = s_ptr2->i_fgg; s_ptr->i_fgb = s_ptr2->i_fgb;
+          s_ptr->i_bgr = s_ptr2->i_bgr; s_ptr->i_bgg = s_ptr2->i_bgg; s_ptr->i_bgb = s_ptr2->i_bgb;
+          s_ptr++;
          
          continue;
       }
