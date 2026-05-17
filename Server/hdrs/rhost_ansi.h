@@ -393,12 +393,3 @@ static char isAnsi[256] =
 #endif
 #endif
 #endif
-
-/* Helper macro: check if a character matches any configured ANSI_SUB */
-#ifdef SAFE_CHR3
-#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR||(c)==SAFE_CHR2||(c)==SAFE_UCHR2||(c)==SAFE_CHR3||(c)==SAFE_UCHR3)
-#elif defined(SAFE_CHR2)
-#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR||(c)==SAFE_CHR2||(c)==SAFE_UCHR2)
-#else
-#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR)
-#endif

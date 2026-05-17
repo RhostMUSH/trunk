@@ -1121,7 +1121,7 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     char *bufc, *bufc2, *bufc_utf, s_twochar[3], s_final[80], s_intbuf[4], *ptr;
     char s_utfbuf[3], s_ucpbuf[10], *tmpptr = NULL, *tmp, ucssubstitute, c1, c2;
     unsigned char ch1, ch2, ch;
-    int i_tohex, accent_toggle, i_extendcnt, i_extendnum, i_utfnum, i_utfcnt, i_inansi, 
+     int i_tohex, accent_toggle, i_extendnum, i_utfnum, i_utfcnt, i_inansi,
         i_r, i_g, i_b, i_upper;
 
 /* Debugging only
@@ -1135,9 +1135,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
     bufc = *bufptr;
     bufc2 = *buf2ptr;
     bufc_utf = *bufuptr;
-    accent_toggle = 0;
-    i_extendcnt = 0;
-    i_utfnum = 0;
+     accent_toggle = 0;
+     i_utfnum = 0;
     i_utfcnt = 0;
     s_intbuf[3] = '\0';
     c1 = c2 = ch = ch1 = ch2 = '\0';
@@ -1289,9 +1288,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                    i_extendnum = atoi(s_intbuf);
                    safe_chr((char) i_extendnum, buff2, &bufc2);
                    safe_chr((char) i_extendnum, buff, &bufc);
-                   safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
-                   i_extendcnt+=4;
-                   string+=4;
+                    safe_chr((char) i_extendnum, buff_utf, &bufc_utf);
+                    string+=4;
                 } else if ( isdigit(*(string)) && isdigit(*(string+1)) && isdigit(*(string+2)) && (*(string+3) == '>') ) {
                    s_intbuf[0] = *(string);
                    s_intbuf[1] = *(string+1);
@@ -1324,9 +1322,8 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                                    safe_chr('u', buff_utf, &bufc_utf);
                                    break;
                       }
-                   }
-                   i_extendcnt+=3;
-                   string+=3;
+                    }
+                    string+=3;
                 } else {
                    safe_chr(*string, buff, &bufc);
                    safe_chr(*string, buff2, &bufc2);
