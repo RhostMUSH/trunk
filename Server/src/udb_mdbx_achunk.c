@@ -39,6 +39,7 @@ static int         db_initted = 0;
 
 static MDBX_env   *env = NULL;
 static MDBX_dbi    dbi;
+static MDBX_txn   *active_txn = NULL;
 
 int
 dddb_init()
@@ -107,6 +108,59 @@ dddb_init()
 }
 
 
+int
+dddb_txn_begin()
+{
+    int rc;
+
+    if (!db_initted)
+        return 1;
+
+    if (active_txn)
+        return 1;
+
+    rc = mdbx_txn_begin(env, NULL, 0, &active_txn);
+    if (rc != MDBX_SUCCESS) {
+        mush_logf("db_txn_begin: mdbx_txn_begin failed\n", NULL);
+        active_txn = NULL;
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int
+dddb_txn_commit()
+{
+    int rc;
+
+    if (!active_txn)
+        return 0;
+
+    rc = mdbx_txn_commit(active_txn);
+    active_txn = NULL;
+    if (rc != MDBX_SUCCESS) {
+        mush_logf("db_txn_commit: mdbx_txn_commit failed\n", NULL);
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int
+dddb_txn_abort()
+{
+    if (!active_txn)
+        return 0;
+
+    mdbx_txn_abort(active_txn);
+    active_txn = NULL;
+    return 0;
+}
+
+
 int dddb_initted()
 {
     return db_initted;
@@ -139,6 +193,10 @@ int dddb_setfile(char *fil)
 int
 dddb_close()
 {
+    if (active_txn) {
+        mdbx_txn_abort(active_txn);
+        active_txn = NULL;
+    }
     if (env != NULL) {
         mdbx_env_close(env);
         env = NULL;
@@ -193,16 +251,22 @@ dddb_put(Attr *obj, Aname *nam)
     MDBX_val mkey, mval;
     int nsiz;
     int rc;
+    int need_commit = 0;
 
     if (!db_initted)
         return 1;
 
     nsiz = strlen(obj);
 
-    rc = mdbx_txn_begin(env, NULL, 0, &txn);
-    if (rc != MDBX_SUCCESS) {
-        log_db_err(nam->object, nam->attrnum, "(Put) mdbx_txn_begin");
-        return 1;
+    if (active_txn) {
+        txn = active_txn;
+    } else {
+        rc = mdbx_txn_begin(env, NULL, 0, &txn);
+        if (rc != MDBX_SUCCESS) {
+            log_db_err(nam->object, nam->attrnum, "(Put) mdbx_txn_begin");
+            return 1;
+        }
+        need_commit = 1;
     }
 
     mkey.iov_base = (void *)nam;
@@ -213,14 +277,17 @@ dddb_put(Attr *obj, Aname *nam)
     rc = mdbx_put(txn, dbi, &mkey, &mval, 0);
     if (rc != MDBX_SUCCESS) {
         log_db_err(nam->object, nam->attrnum, "(Put) mdbx_put");
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         return 1;
     }
 
-    rc = mdbx_txn_commit(txn);
-    if (rc != MDBX_SUCCESS) {
-        log_db_err(nam->object, nam->attrnum, "(Put) mdbx_txn_commit");
-        return 1;
+    if (need_commit) {
+        rc = mdbx_txn_commit(txn);
+        if (rc != MDBX_SUCCESS) {
+            log_db_err(nam->object, nam->attrnum, "(Put) mdbx_txn_commit");
+            return 1;
+        }
     }
 
     return 0;
@@ -257,32 +324,42 @@ dddb_del(Aname *nam, int flg)
     MDBX_txn *txn;
     MDBX_val mkey;
     int rc;
+    int need_commit = 0;
 
     if (!db_initted)
         return -1;
 
-    rc = mdbx_txn_begin(env, NULL, 0, &txn);
-    if (rc != MDBX_SUCCESS)
-        return -1;
+    if (active_txn) {
+        txn = active_txn;
+    } else {
+        rc = mdbx_txn_begin(env, NULL, 0, &txn);
+        if (rc != MDBX_SUCCESS)
+            return -1;
+        need_commit = 1;
+    }
 
     mkey.iov_base = (void *)nam;
     mkey.iov_len  = sizeof(Aname);
 
     rc = mdbx_del(txn, dbi, &mkey, NULL);
     if (rc == MDBX_NOTFOUND) {
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         return 0;
     }
     if (rc != MDBX_SUCCESS) {
         log_db_err(nam->object, nam->attrnum, "(Del) mdbx_del");
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         return 1;
     }
 
-    rc = mdbx_txn_commit(txn);
-    if (rc != MDBX_SUCCESS) {
-        log_db_err(nam->object, nam->attrnum, "(Del) mdbx_txn_commit");
-        return 1;
+    if (need_commit) {
+        rc = mdbx_txn_commit(txn);
+        if (rc != MDBX_SUCCESS) {
+            log_db_err(nam->object, nam->attrnum, "(Del) mdbx_txn_commit");
+            return 1;
+        }
     }
 
     return 0;

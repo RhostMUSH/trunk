@@ -44,6 +44,7 @@ static int         db_initted = 0;
 
 static MDBX_env   *env = NULL;
 static MDBX_dbi    dbi;
+static MDBX_txn   *active_txn = NULL;
 
 /* ------------------------------------------------------------------ */
 /* Buffer-based serialization (equivalent to objtoFILE/objfromFILE)    */
@@ -173,7 +174,62 @@ dddb_var_init()
     dbfile = NULL;
     bsiz = 256;
     db_initted = 0;
+    active_txn = NULL;
 }
+
+
+int
+dddb_txn_begin()
+{
+    int rc;
+
+    if (!db_initted)
+        return 1;
+
+    if (active_txn)
+        return 1;
+
+    rc = mdbx_txn_begin(env, NULL, 0, &active_txn);
+    if (rc != MDBX_SUCCESS) {
+        mush_logf("db_txn_begin: mdbx_txn_begin failed\n", (char *)0);
+        active_txn = NULL;
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int
+dddb_txn_commit()
+{
+    int rc;
+
+    if (!active_txn)
+        return 0;
+
+    rc = mdbx_txn_commit(active_txn);
+    active_txn = NULL;
+    if (rc != MDBX_SUCCESS) {
+        mush_logf("db_txn_commit: mdbx_txn_commit failed\n", (char *)0);
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int
+dddb_txn_abort()
+{
+    if (!active_txn)
+        return 0;
+
+    mdbx_txn_abort(active_txn);
+    active_txn = NULL;
+    return 0;
+}
+
 
 int
 dddb_init()
@@ -271,6 +327,10 @@ int dddb_setfile(char *fil)
 int
 dddb_close()
 {
+    if (active_txn) {
+        mdbx_txn_abort(active_txn);
+        active_txn = NULL;
+    }
     if (env != NULL) {
         mdbx_env_close(env);
         env = NULL;
@@ -324,6 +384,7 @@ dddb_put(Obj *obj, Objname *nam)
     MDBX_val mkey, mval;
     char *buf;
     int bufsiz, rc;
+    int need_commit = 0;
 
     if (!db_initted)
         return 1;
@@ -334,11 +395,16 @@ dddb_put(Obj *obj, Objname *nam)
         return 1;
     }
 
-    rc = mdbx_txn_begin(env, NULL, 0, &txn);
-    if (rc != MDBX_SUCCESS) {
-        free(buf);
-        mush_logf("db_put: mdbx_txn_begin failed\n", (char *)0);
-        return 1;
+    if (active_txn) {
+        txn = active_txn;
+    } else {
+        rc = mdbx_txn_begin(env, NULL, 0, &txn);
+        if (rc != MDBX_SUCCESS) {
+            free(buf);
+            mush_logf("db_put: mdbx_txn_begin failed\n", (char *)0);
+            return 1;
+        }
+        need_commit = 1;
     }
 
     mkey.iov_base = (void *)nam;
@@ -349,18 +415,22 @@ dddb_put(Obj *obj, Objname *nam)
     rc = mdbx_put(txn, dbi, &mkey, &mval, 0);
     if (rc != MDBX_SUCCESS) {
         mush_logf("db_put: mdbx_put failed\n", (char *)0);
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         free(buf);
         return 1;
     }
 
-    rc = mdbx_txn_commit(txn);
-    free(buf);
-    if (rc != MDBX_SUCCESS) {
-        mush_logf("db_put: mdbx_txn_commit failed\n", (char *)0);
-        return 1;
+    if (need_commit) {
+        rc = mdbx_txn_commit(txn);
+        if (rc != MDBX_SUCCESS) {
+            mush_logf("db_put: mdbx_txn_commit failed\n", (char *)0);
+            free(buf);
+            return 1;
+        }
     }
 
+    free(buf);
     return 0;
 }
 
@@ -402,32 +472,42 @@ dddb_del(Objname *nam)
     MDBX_txn *txn;
     MDBX_val mkey;
     int rc;
+    int need_commit = 0;
 
     if (!db_initted)
         return -1;
 
-    rc = mdbx_txn_begin(env, NULL, 0, &txn);
-    if (rc != MDBX_SUCCESS)
-        return -1;
+    if (active_txn) {
+        txn = active_txn;
+    } else {
+        rc = mdbx_txn_begin(env, NULL, 0, &txn);
+        if (rc != MDBX_SUCCESS)
+            return -1;
+        need_commit = 1;
+    }
 
     mkey.iov_base = (void *)nam;
     mkey.iov_len  = sizeof(Objname);
 
     rc = mdbx_del(txn, dbi, &mkey, NULL);
     if (rc == MDBX_NOTFOUND) {
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         return 0;
     }
     if (rc != MDBX_SUCCESS) {
         mush_logf("db_del: mdbx_del failed\n", (char *)0);
-        mdbx_txn_abort(txn);
+        if (need_commit)
+            mdbx_txn_abort(txn);
         return 1;
     }
 
-    rc = mdbx_txn_commit(txn);
-    if (rc != MDBX_SUCCESS) {
-        mush_logf("db_del: mdbx_txn_commit failed\n", (char *)0);
-        return 1;
+    if (need_commit) {
+        rc = mdbx_txn_commit(txn);
+        if (rc != MDBX_SUCCESS) {
+            mush_logf("db_del: mdbx_txn_commit failed\n", (char *)0);
+            return 1;
+        }
     }
 
     return 0;

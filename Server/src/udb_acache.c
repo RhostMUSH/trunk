@@ -25,6 +25,9 @@ extern int		FDECL(dddb_check, (Aname *));
 extern int		FDECL(dddb_del, (Aname *, int));
 extern Attr *		FDECL(dddb_get, (Aname *));
 extern int		FDECL(dddb_put, (Attr *, Aname *));
+extern int		dddb_txn_begin(void);
+extern int		dddb_txn_commit(void);
+extern int		dddb_txn_abort(void);
 extern void		VDECL(fatal, (const char *,...));
 extern void		VDECL(mush_logf, (const char *,...));
 
@@ -647,15 +650,26 @@ CacheLst *sp;
 
 	cache_reset(0);
 
+	if (dddb_txn_begin())
+		return(1);
+
 	for(x = 0, sp = sys_c; x < cwidth; x++, sp++) {
-		if (cache_write(sp->mold.head))
+		if (cache_write(sp->mold.head)) {
+			dddb_txn_abort();
 			return(1);
-		if (cache_write(sp->mactive.head))
+		}
+		if (cache_write(sp->mactive.head)) {
+			dddb_txn_abort();
 			return(1);
+		}
 		cache_clean(sp);
 		if (mudconf.cache_trim)
 			cache_trim(sp);
 	}
+
+	if (dddb_txn_commit())
+		return(1);
+
 	return(0);
 }
 

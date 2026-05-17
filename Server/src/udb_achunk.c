@@ -244,6 +244,11 @@ dddb_close()
 	return(0);
 }
 
+/* Transaction management stubs — QDBM has no transaction concept. */
+int dddb_txn_begin() { return 0; }
+int dddb_txn_commit() { return 0; }
+int dddb_txn_abort() { return 0; }
+
 
 
 /* grow the bitmap to given size */

@@ -40,6 +40,9 @@ extern void mush_logf(const char *fmt, ...);
  */
 extern PROTO_DB_DEL();
 extern PROTO_DB_PUT();
+extern int dddb_txn_begin(void);
+extern int dddb_txn_commit(void);
+extern int dddb_txn_abort(void);
 
 extern void VDECL(fatal, (const char *,...));
 extern void FDECL(log_db_err, (int, int, const char *));
@@ -772,17 +775,26 @@ CacheLst *sp;
 
 	cache_reset(0);
 
+	if (dddb_txn_begin())
+		RETURN(1);
+
 	for(x = 0, sp = sys_c; x < cwidth; x++, sp++) {
 		if (cache_write(sp->mold.head)) {
+			dddb_txn_abort();
 			RETURN(1); /* #170 */
                 }
 		if (cache_write(sp->mactive.head)) {
+			dddb_txn_abort();
 			RETURN(1); /* #170 */
                 }
 		cache_clean(sp);
 		if (mudconf.cache_trim)
 			cache_trim(sp);
 	}
+
+	if (dddb_txn_commit())
+		RETURN(1);
+
 	RETURN(0); /* #170 */
 }
 
