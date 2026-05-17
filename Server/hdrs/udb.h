@@ -66,13 +66,13 @@ typedef struct Obj {
 #define NNULL	((Aname *)0)
 #define CNULL	((Cache *)0)
 
-extern Attr *cache_get();
-extern int cache_put();
-extern int cache_check();
-extern int cache_init();
-extern void cache_reset();
-extern int cache_sync();
-extern void cache_del();
+extern Attr *	cache_get(Aname *nam);
+extern int	cache_put(Aname *nam, Attr *obj);
+extern int	cache_check(void);
+extern int	cache_init(int width, int depth);
+extern void	cache_reset(int trim);
+extern int	cache_sync(void);
+extern void	cache_del(Aname *nam);
 
 #ifdef CACHE_OBJS
 extern Obj *	FDECL(objfromFILE, (FILE *));

@@ -6032,7 +6032,7 @@ cf_set(char *cp, char *ap, dbref player)
 		buff = alloc_lbuf("cf_set");
 		strcpy(buff, ap);
 	    }
-	    i = tp->interpreter(tp->loc, ap, tp->extra, tp->extra2, player, cp);
+	    i = ((int (*)(int *, char *, long, long, dbref, char *))tp->interpreter)(tp->loc, ap, tp->extra, tp->extra2, player, cp);
             if ( i != 777) {
 	       if (!mudstate.initializing) {
 		   STARTLOG(LOG_CONFIGMODS, "CFG", "UPDAT")

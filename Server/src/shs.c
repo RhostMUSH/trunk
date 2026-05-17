@@ -106,8 +106,7 @@ LONG A, B, C, D, E;
 /* Initialize the SHS values */
 
 void
-shsInit(shsInfo)
-    SHS_INFO *shsInfo;
+shsInit(SHS_INFO *shsInfo)
 {
   DPUSH; /* #156 */
   /* Set the h-vars to their initial values */
@@ -129,8 +128,7 @@ shsInit(shsInfo)
 /* based on the four subrounds */
 
 static void
-shsTransform(shsInfo)
-    SHS_INFO *shsInfo;
+shsTransform(SHS_INFO *shsInfo)
 {
   LONG W[80], temp;
   int i;
@@ -311,9 +309,7 @@ shsTransform(shsInfo)
 }				/* end of shsTransform */
 
 static void
-byteReverse(buffer, byteCount)
-    LONG *buffer;
-    int byteCount;
+byteReverse(LONG *buffer, int byteCount)
 {
   LONG value;
   int count;
@@ -334,10 +330,7 @@ byteReverse(buffer, byteCount)
 /* away with the need to handle partial blocks between calls to shsUpdate () */
 
 void
-shsUpdate(shsInfo, buffer, count)
-    SHS_INFO *shsInfo;
-    BYTE *buffer;
-    int count;
+shsUpdate(SHS_INFO *shsInfo, BYTE *buffer, int count)
 {
   /* Update bitcount */
   DPUSH; /* #159 */
@@ -366,8 +359,7 @@ shsUpdate(shsInfo, buffer, count)
 }				/* end of shsUpdate */
 
 void
-shsFinal(shsInfo)
-    SHS_INFO *shsInfo;
+shsFinal(SHS_INFO *shsInfo)
 {
   int count;
   LONG lowBitcount = shsInfo->countLo, highBitcount = shsInfo->countHi;

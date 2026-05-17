@@ -72,6 +72,9 @@ typedef struct ansisplit {
 	char	c_accent;	/* Various accent characters */
 	int	i_ascii8;	/* ASCII-8 encoding */
 	int 	i_utf8; 	/* UTF-8 encoding */
+	int	i_truecolor;	/* TrueColor flags: bit 0 = fg set, bit 1 = bg set */
+	unsigned char i_fgr, i_fgg, i_fgb;  /* TrueColor FG RGB */
+	unsigned char i_bgr, i_bgg, i_bgb;  /* TrueColor BG RGB */
 } ANSISPLIT;
 
 typedef struct atrp {

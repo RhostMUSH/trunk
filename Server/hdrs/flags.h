@@ -179,6 +179,7 @@
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
 #define XTERMCOLOR      0x00800000      /* Extended ANSI Xterm colors */
+#define TRUECOLOR       0x08000000      /* TrueColor 24-bit RGB ANSI */
 #define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
 #define HAS_OBJECTTAG   0x02000000      /* Has ____ObjectTag attribute set */
 #define COLORMAIL	0x04000000 	/* Colorize the mail names */
@@ -583,7 +584,7 @@ typedef struct totem_entry {
 	int	typeperm;	/* Type permission */
 	int	permanent;	/* Perm handle: 0 - dyn, 1 - perm, 2 - builtin */
 	int	aliased;	/* Is this entry aliased?  0 - no, 1 - yes */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int flag, int fflags, int reset);   /* Handler for setting/clearing this flag */
 } TOTEMENT;
 
 /* ---------------------------------------------------------------------------
@@ -599,7 +600,7 @@ typedef struct flag_entry {
         int     setovperm;      /* Override who can set the flag */
         int     usetovperm;     /* Override who can unset the flag */
 	int	typeperm;	/* Type permission */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int flag, int fflags, int reset);   /* Handler for setting/clearing this flag */
 } FLAGENT;
 
 typedef struct toggle_entry {
@@ -611,7 +612,7 @@ typedef struct toggle_entry {
 	int	setovperm;	/* Override who can set the toggle */
 	int	usetovperm;	/* Override who can unset the toggle */
 	int	typeperm;	/* Type permission */
-	int     (*handler)();   /* Handler for setting/clearing this flag */
+	int     (*handler)(dbref target, dbref player, int toggle, int tflags, int reset);   /* Handler for setting/clearing this flag */
 } TOGENT;
 
 typedef struct power_entry {
@@ -621,7 +622,7 @@ typedef struct power_entry {
 	int	powerflag;
 	int	powerperm;
 	int	powerlev;
-	int	(*handler)();
+	int	(*handler)(dbref target, dbref player, int powerpos, int pflags, int level, int slevel);
 } POWENT;
 
 /* ---------------------------------------------------------------------------
@@ -1002,6 +1003,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ShowAnsi(x)	((Flags2(x) & ANSI) != 0)
 #define ShowAnsiColor(x)	((Flags2(x) & ANSICOLOR) != 0)
 #define ShowAnsiXterm(x)	((Flags4(x) & XTERMCOLOR) != 0)
+#define ShowAnsiTrueColor(x)  ((Flags4(x) & TRUECOLOR) != 0)
 #define NoFlash(x)	((Flags2(x) & NOFLASH) != 0)
 #define NoUnderline(x)	((Flags4(x) & NOUNDERLINE) != 0)
 #define NoName(x)	((Flags4(x) & NONAME) != 0)

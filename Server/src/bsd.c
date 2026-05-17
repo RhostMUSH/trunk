@@ -28,6 +28,7 @@ void bzero(void *, int);
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 
 
 /*hack*/
@@ -1010,7 +1011,6 @@ shovechars(int port,char* address)
 const char *
 addrout(struct in_addr a, int i_key)
 {
-    extern char *inet_ntoa();
     char *retval;
     char *logbuff;
 
@@ -2649,7 +2649,11 @@ NDECL(emergency_shutdown)
 #define SIGCHLD SIGCLD
 #endif
 
-static RETSIGTYPE sighandler();
+#ifdef HAVE_STRUCT_SIGCONTEXT
+static RETSIGTYPE sighandler(int sig, int code, struct sigcontext *scp);
+#else
+static RETSIGTYPE sighandler(int sig);
+#endif
 
 NAMETAB sigactions_nametab[] =
 {

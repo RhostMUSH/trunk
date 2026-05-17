@@ -934,7 +934,11 @@ void
 do_reclist(dbref player, dbref cause, int key, char *buff)
 {
     dbref i, comp;
+#ifndef STANDALONE
     int count, typecomp;
+#else
+    int typecomp;
+#endif
     char buff2[10], buff3[14], *buffp1, *buffp2;
     double timecomp;
 #ifndef STANDALONE
@@ -953,8 +957,8 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	cstat = 0;
 #endif
     }
-    count = 0;
 #ifndef STANDALONE
+    count = 0;
     wildcount = 0;
 #endif
     typecomp = -1;
@@ -1089,7 +1093,9 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	   }
 	}
 #endif
+#ifndef STANDALONE
 	count++;
+#endif
 	i = Link(i);
     }
 #ifndef STANDALONE
@@ -1108,7 +1114,9 @@ void
 do_purge(dbref player, dbref cause, int key, char *buff)
 {
     dbref owner, obj, place, dummy1;
+#ifndef STANDALONE
     int count;
+#endif
     char *tname, *mybreak;
     double timecomp;
 #ifndef STANDALONE
@@ -1159,7 +1167,9 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	} else {
 	    s_Link(place, Link(obj));
 	}
+#ifndef STANDALONE
 	count = 1;
+#endif
 	atr_free(obj);
 	s_Name(obj, NULL);
 	s_Flags3(obj, 0);
@@ -1324,7 +1334,9 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	}
 	obj = mudstate.recoverlist;
 	place = NOTHING;
+#ifndef STANDALONE
 	count = 0;
+#endif
 	while (obj != NOTHING) {
 #ifndef STANDALONE
             if (key == PURGE_TIMEOWNER) {
@@ -1378,7 +1390,9 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 		}
 	    }
 #endif
+#ifndef STANDALONE
 	    count++;
+#endif
 	    if (place == NOTHING)
 		mudstate.recoverlist = Link(obj);
 	    else
@@ -2910,9 +2924,9 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                          }
                      }
 
-                     sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
-                             t_warn,
-                             (31 + strlen(t_distag) - strlen(s_buff)),
+                      sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
+                              t_warn,
+                              (int)(31 + strlen(t_distag) - strlen(s_buff)),
                              t_distag,
                              (i_personal ? "- Yes -" : " "), storedtag->tagref);
 

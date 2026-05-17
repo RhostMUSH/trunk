@@ -154,7 +154,7 @@ static int addDoor(const char *doorName,
 		   doorOutput_t pFnWrite,
 		   doorInput_t  pFnRead,
 		   int bitLvl, int loc) {
-  int door, deAlloc = 0;
+  int door;
   DPUSH; /* 3 */
   door = findDoor(doorName);
   if (door > 0) {
@@ -188,11 +188,10 @@ static int addDoor(const char *doorName,
   gaDoors[gnDoors]->pName = alloc_mbuf("door_name");
   if (!gaDoors[gnDoors]->pName) {
     LOGTEXT("ERR", -1, "Could not allocate door_name mbuf");
-    goto error;
-  }
-  deAlloc++;
+     goto error;
+   }
 
-  strcpy(gaDoors[gnDoors]->pName, doorName);
+   strcpy(gaDoors[gnDoors]->pName, doorName);
   gaDoors[gnDoors]->switchNum = 0;
   if (pFnOpen == NULL) {
     LOGTEXT("ERR", -1, unsafe_tprintf("%s has a NULL open functions", doorName));
