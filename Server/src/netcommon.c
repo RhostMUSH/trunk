@@ -5007,9 +5007,9 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             buff = alloc_mbuf("check_conn.LOG.badcrea");
             if ( mudconf.pcreate_paranoia > 0 ) {
                sprintf(buff, "%.100s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-               if ( (mudconf.pcreate_paranoia == 1) && 
-                    ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
-                    ( !site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) ) &&
+                if ( (mudconf.pcreate_paranoia == 1) && 
+                     ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
+                     ( site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_PERMIT) != H_PERMIT) ) &&
                     !(d->host_info & H_REGISTRATION) ) {
                   cf_site((int *)&mudstate.access_list, buff, 
                           H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");

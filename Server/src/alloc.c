@@ -747,7 +747,7 @@ showAttrStats(dbref player)
       c_let = 'K';
    }
    notify(player, "\r\nInline Attributes    Size     Total Memory");
-   sprintf(s_buff,"%-10d           %-8d %.0f (%.2f%c)", i_attr, sizeof(ATTR *), i_tot, i_show, c_let);
+    sprintf(s_buff,"%-10d           %-8d %.0f (%.2f%c)", i_attr, (int)sizeof(ATTR *), i_tot, i_show, c_let);
    notify(player, s_buff);
 }
 

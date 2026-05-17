@@ -117,7 +117,7 @@ init_totemreservations( void ) {
 }
 
 #define MAXTZONES 1000
-char *global_timezones[MAXTZONES] = {'\0'};
+char *global_timezones[MAXTZONES] = {NULL};
 int global_timezone_max = 0;
 
 /* Initialize timezone data for the server */
@@ -213,7 +213,7 @@ validate_timezones( char *s_timezone ) {
       strncpy(s_tmp, s_timezone, SBUF_SIZE - 1);
    }
 
-   if ( s_tmp && *s_tmp ) {
+   if ( *s_tmp ) {
       s_inptr = s_tmp;
       while ( *s_inptr ) {
          if ( (*s_inptr == '+') || (*s_inptr == '-') ) {
@@ -2671,7 +2671,7 @@ main(int argc, char *argv[])
     int got_config = 0;
     int rebooting = 0;
 #ifndef NODEBUGMONITOR
-    const int shmaddr;
+    int shmaddr = 0;
     int shmid;
 #endif
 

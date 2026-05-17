@@ -10345,9 +10345,10 @@ int printf_lookahead(char *s_string)
          }
          if ( *(s+2) == '<' ) {
             i_mux = count_mux_ansi(s+2);
-            if ( i_mux )
-               s+= i_mux+2;
-               continue;
+             if ( i_mux ) {
+                s+= i_mux+2;
+                continue;
+             }
             }
          }
       if ( *s )

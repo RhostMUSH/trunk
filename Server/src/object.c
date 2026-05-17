@@ -2924,9 +2924,9 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                          }
                      }
 
-                     sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
-                             t_warn,
-                             (31 + strlen(t_distag) - strlen(s_buff)),
+                      sprintf(s_hashstr, "%c %-*s | %-8s | #%d",
+                              t_warn,
+                              (int)(31 + strlen(t_distag) - strlen(s_buff)),
                              t_distag,
                              (i_personal ? "- Yes -" : " "), storedtag->tagref);
 
