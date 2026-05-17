@@ -1351,6 +1351,10 @@ down_ansi(int i_r, int i_g, int i_b)
    int i_tohex, i_r2, i_g2, i_b2, rgb_diff, rgb_diff2;
    MUXANSI  *cx;
 
+   if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
+   if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
+   if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+
    rgb_diff = rgb_diff2 = 1000;
    for (cx = mux_namecolors; cx->s_hex; cx++) {
       if(cx->i_dec < 16)
@@ -3551,11 +3555,11 @@ int string_count(char* src, int numchars)
                                ||   ((src[idx+1] == SAFE_CHR3) || (src[idx+1] == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) src[idx+2]] ) {
-              idx+=2;
-              continue;
-           }
-           if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
+            if ( isAnsi[(int) src[idx+2]] ) {
+               idx+=2;
+               continue;
+            }
+              if ( (src[idx+2] == '0') && (src[idx+3] && ((src[idx+3] == 'X') || (src[idx+3] == 'x'))) ) {
               if ( src[idx+4] && src[idx+5] && isxdigit(src[idx+4]) && isxdigit(src[idx+5]) ) {
                  idx+=5;
                  continue;
@@ -4325,16 +4329,16 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
                return 6 + seek_next_real_char(leftstart + 6, i_haveansi, i_inansi);
             }
          }
-         if ( *(pp+2) == '<' ) {
-            i = count_mux_ansi(pp+2);
-            if ( i ) {
-               i+=2; // need to include the '%' and the '<'
-               return i + seek_next_real_char(leftstart + i, i_haveansi, i_inansi);
-            }
-         }
-      }
+          if ( *(pp+2) == '<' ) {
+             i = count_mux_ansi(pp+2);
+             if ( i ) {
+                i+=2; // need to include the '%' and the '<'
+                return i + seek_next_real_char(leftstart + i, i_haveansi, i_inansi);
+             }
+           }
+        }
 
-      // Unicode can chain
+       // Unicode can chain
       if ( (*(pp+1) == '<') && *(pp+2) && *(pp+3) && *(pp+4) &&
             isdigit(*(pp+2)) && isdigit(*(pp+3)) && isdigit(*(pp+4)) &&
             (*(pp+5) == '>') ) {
@@ -35164,8 +35168,11 @@ deansi(char *string, char *buff, char **bufcx)
                    if ( strchr(s+1, ' ') != NULL ) {
                       g1 = atoi(strchr(s+1, ' ')+1);
                       if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
-                         b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                         rgb_diff = rgb_diff2 = 1000;
+                               b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
+                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
+                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
+                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                               rgb_diff = rgb_diff2 = 1000;
                          for (cx = mux_namecolors; cx->s_hex; cx++) {
                             if(cx->i_dec < 16) 
                                continue;
@@ -35382,6 +35389,7 @@ FUNCTION(fun_ansi)
     MUXANSI  *cx;
     char *q, *s, t_buff[60], *t_buff2, t_buff3[61], *ansi_special, *ansi_specialptr, *ansi_normalfg, *ansi_normalbg;
     int i, j, k, i_haveslash, i_xterm_ansi, i_fgcolor, i_bgcolor, r1, r2, g1, g2, b1, b2, rgb_diff, rgb_diff2, i_allow[5], i_trgbackground, i_tmp;
+    int tc_fg_r, tc_fg_g, tc_fg_b, tc_fg_set, tc_bg_r, tc_bg_g, tc_bg_b, tc_bg_set;
 
     if ( nfargs < 2 ) {
        safe_str("#-1 FUNCTION (ANSI) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -35394,6 +35402,9 @@ FUNCTION(fun_ansi)
     r1 = r2 = g1 = g2 = b1 = b2 = 0;
     rgb_diff = rgb_diff2 = 1000;
     i_fgcolor = i_bgcolor = -1;
+    tc_fg_set = tc_bg_set = 0;
+    tc_fg_r = tc_fg_g = tc_fg_b = 0;
+    tc_bg_r = tc_bg_g = tc_bg_b = 0;
     for ( i = 0;i < 5; i++ ) 
        i_allow[i] = 0;
 
@@ -35487,88 +35498,106 @@ FUNCTION(fun_ansi)
                        s--;
                  }
                  break;
-              case '#':
-                 if ( isxdigit(*(s+1)) && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
-                      isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) ) {
-                    sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
-                    rgb_diff = rgb_diff2 = 1000;
-                    for (cx = mux_namecolors; cx->s_hex; cx++) {
-                       if(cx->i_dec < 16) 
-                          continue;
-                       sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                       rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                       if ( rgb_diff < rgb_diff2 ) {
-                          rgb_diff2 = rgb_diff;
-                          if ( i_trgbackground )
-                             i_bgcolor = cx->i_dec;
-                          else
-                             i_fgcolor = cx->i_dec;
-                          /* Exact match -- break out */
-                          if ( rgb_diff2 == 0 )
-                             break;
-                       }
-                    }
-                    s+=6;
-                    i_xterm_ansi = 1;
-                 }
-                 break;
-              case '<':
-                 if ( (*(s+1) == '#') && isxdigit(*(s+2)) && isxdigit(*(s+3)) && 
-                      isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) && 
-                      isxdigit(*(s+7)) && *(s+8) == '>' ) {
-                    sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
-                    rgb_diff = rgb_diff2 = 1000;
-                    for (cx = mux_namecolors; cx->s_hex; cx++) {
-                       if(cx->i_dec < 16) 
-                          continue;
-                       sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                       rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                       if ( rgb_diff < rgb_diff2 ) {
-                          rgb_diff2 = rgb_diff;
-                          if ( i_trgbackground )
-                             i_bgcolor = cx->i_dec;
-                          else
-                             i_fgcolor = cx->i_dec;
-                          /* Exact match -- break out */
-                          if ( rgb_diff2 == 0 )
-                             break;
-                       }
-                    }
-                    while ( s && *s && (*s != '>') )
-                       s++;
-                    i_xterm_ansi = 1;
-                 } else {
-                    if ( (strchr(s, '>') != NULL) && ((strchr(s, '/') == NULL) || ((long)strchr(s, '>') < (long)strchr(s, '/'))) ) {
-                       r1 = atoi(s+1);
-                       if ( strchr(s+1, ' ') != NULL ) {
-                          g1 = atoi(strchr(s+1, ' ')+1);
-                          if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
-                             b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                             rgb_diff = rgb_diff2 = 1000;
-                             for (cx = mux_namecolors; cx->s_hex; cx++) {
-                                if(cx->i_dec < 16) 
-                                   continue;
-                                sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
-                                rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
-                                if ( rgb_diff < rgb_diff2 ) {
-                                   rgb_diff2 = rgb_diff;
-                                   if ( i_trgbackground )
-                                      i_bgcolor = cx->i_dec;
-                                   else
-                                      i_fgcolor = cx->i_dec;
-                                   /* Exact match -- break out */
-                                   if ( rgb_diff2 == 0 )
-                                      break;
-                                }
-                             }
-                          }
-                       }
-                       while ( s && *s && (*s != '>') )
-                          s++;
-                       i_xterm_ansi = 1;
-                    }
-                 }
-                 break;
+               case '#':
+                  if ( isxdigit(*(s+1)) && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
+                       isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) ) {
+                     sscanf(s+1, "%2x%2x%2x", &r1, &g1, &b1);
+                     rgb_diff = rgb_diff2 = 1000;
+                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                        if(cx->i_dec < 16)
+                           continue;
+                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                        if ( rgb_diff < rgb_diff2 ) {
+                           rgb_diff2 = rgb_diff;
+                           if ( i_trgbackground )
+                              i_bgcolor = cx->i_dec;
+                           else
+                              i_fgcolor = cx->i_dec;
+                           /* Exact match -- break out */
+                           if ( rgb_diff2 == 0 )
+                              break;
+                        }
+                     }
+                     if ( i_trgbackground ) {
+                        tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                     } else {
+                        tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                     }
+                     s+=6;
+                     i_xterm_ansi = 1;
+                  }
+                  break;
+               case '<':
+                  if ( (*(s+1) == '#') && isxdigit(*(s+2)) && isxdigit(*(s+3)) &&
+                       isxdigit(*(s+4)) && isxdigit(*(s+5)) && isxdigit(*(s+6)) &&
+                       isxdigit(*(s+7)) && *(s+8) == '>' ) {
+                     sscanf(s+2, "%2x%2x%2x", &r1, &g1, &b1);
+                     rgb_diff = rgb_diff2 = 1000;
+                     for (cx = mux_namecolors; cx->s_hex; cx++) {
+                        if(cx->i_dec < 16)
+                           continue;
+                        sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                        rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                        if ( rgb_diff < rgb_diff2 ) {
+                           rgb_diff2 = rgb_diff;
+                           if ( i_trgbackground )
+                              i_bgcolor = cx->i_dec;
+                           else
+                              i_fgcolor = cx->i_dec;
+                           /* Exact match -- break out */
+                           if ( rgb_diff2 == 0 )
+                              break;
+                        }
+                     }
+                     if ( i_trgbackground ) {
+                        tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                     } else {
+                        tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                     }
+                     while ( s && *s && (*s != '>') )
+                        s++;
+                     i_xterm_ansi = 1;
+                  } else {
+                     if ( (strchr(s, '>') != NULL) && ((strchr(s, '/') == NULL) || ((long)strchr(s, '>') < (long)strchr(s, '/'))) ) {
+                        r1 = atoi(s+1);
+                        if ( strchr(s+1, ' ') != NULL ) {
+                           g1 = atoi(strchr(s+1, ' ')+1);
+                           if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
+                               b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
+                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
+                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
+                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                               rgb_diff = rgb_diff2 = 1000;
+                              for (cx = mux_namecolors; cx->s_hex; cx++) {
+                                 if(cx->i_dec < 16)
+                                    continue;
+                                 sscanf(cx->s_hex, "%2x%2x%2x", &r2, &g2, &b2);
+                                 rgb_diff = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1);
+                                 if ( rgb_diff < rgb_diff2 ) {
+                                    rgb_diff2 = rgb_diff;
+                                    if ( i_trgbackground )
+                                       i_bgcolor = cx->i_dec;
+                                    else
+                                       i_fgcolor = cx->i_dec;
+                                    /* Exact match -- break out */
+                                    if ( rgb_diff2 == 0 )
+                                       break;
+                                 }
+                              }
+                              if ( i_trgbackground ) {
+                                 tc_bg_r = r1; tc_bg_g = g1; tc_bg_b = b1; tc_bg_set = 1;
+                              } else {
+                                 tc_fg_r = r1; tc_fg_g = g1; tc_fg_b = b1; tc_fg_set = 1;
+                              }
+                           }
+                        }
+                        while ( s && *s && (*s != '>') )
+                           s++;
+                        i_xterm_ansi = 1;
+                     }
+                  }
+                  break;
               case 'u': 
                  if ( !i_allow[0] && (mudconf.global_ansimask & MASK_UNDERSCORE) )
                     safe_str(SAFE_ANSI_UNDERSCORE, ansi_special, &ansi_specialptr);
@@ -35676,32 +35705,46 @@ FUNCTION(fun_ansi)
          }
          s++;
       }
-      if ( i_xterm_ansi ) {
-         if ( i_fgcolor >= 0 && i_fgcolor <= 255 ) {
-            t_buff2 = alloc_lbuf("fun_ansi");
-#ifdef TINY_SUB
-            sprintf(t_buff2, "%%x0x%02x", i_fgcolor);
-#else
-            sprintf(t_buff2, "%%c0x%02x", i_fgcolor);
-#endif
-            safe_str(t_buff2, buff, bufcx);
-            free_lbuf(t_buff2);
-         } else {
-            safe_str(ansi_normalfg, buff, bufcx);
-         }
-         if ( i_bgcolor >= 0 && i_bgcolor <= 255) {
-            t_buff2 = alloc_lbuf("fun_ansi");
-#ifdef TINY_SUB
-            sprintf(t_buff2, "%%x0X%02x", i_bgcolor);
-#else
-            sprintf(t_buff2, "%%c0X%02x", i_bgcolor);
-#endif
-            safe_str(t_buff2, buff, bufcx);
-            free_lbuf(t_buff2);
-         } else {
-            safe_str(ansi_normalbg, buff, bufcx);
-         }
-      } else {
+        if ( i_xterm_ansi ) {
+            if ( tc_fg_set ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+                sprintf(t_buff2, "%s<%d %d %d>", SAFE_CHRST, tc_fg_r, tc_fg_g, tc_fg_b);
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else if ( i_fgcolor >= 0 && i_fgcolor <= 255 ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+               for (cx = mux_namecolors; cx->s_hex; cx++) {
+                  if (cx->i_dec == i_fgcolor) {
+                     sscanf(cx->s_hex, "%2x%2x%2x", &r1, &g1, &b1);
+                      sprintf(t_buff2, "%s<%d %d %d>", SAFE_CHRST, r1, g1, b1);
+                     break;
+                  }
+               }
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else {
+               safe_str(ansi_normalfg, buff, bufcx);
+            }
+            if ( tc_bg_set ) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+                sprintf(t_buff2, "%s<%d %d %d>", SAFE_UCHRST, tc_bg_r, tc_bg_g, tc_bg_b);
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else if ( i_bgcolor >= 0 && i_bgcolor <= 255) {
+               t_buff2 = alloc_lbuf("fun_ansi");
+               for (cx = mux_namecolors; cx->s_hex; cx++) {
+                  if (cx->i_dec == i_bgcolor) {
+                     sscanf(cx->s_hex, "%2x%2x%2x", &r1, &g1, &b1);
+                      sprintf(t_buff2, "%s<%d %d %d>", SAFE_UCHRST, r1, g1, b1);
+                     break;
+                  }
+               }
+               safe_str(t_buff2, buff, bufcx);
+               free_lbuf(t_buff2);
+            } else {
+             safe_str(ansi_normalbg, buff, bufcx);
+          }
+       } else {
          safe_str(ansi_normalfg, buff, bufcx);
          safe_str(ansi_normalbg, buff, bufcx);
       }
@@ -35712,8 +35755,9 @@ FUNCTION(fun_ansi)
       memset(ansi_normalbg, '\0', MBUF_SIZE);
       memset(ansi_special, '\0', MBUF_SIZE);
       ansi_specialptr = ansi_special;
-      i_fgcolor = i_bgcolor = -1;
-      for ( k = 0;k < 5; k++ ) 
+       i_fgcolor = i_bgcolor = -1;
+       tc_fg_set = tc_bg_set = 0;
+       for ( k = 0;k < 5; k++ )
          i_allow[k] = 0;
    }
    free_mbuf(ansi_normalfg);
@@ -35925,11 +35969,11 @@ FUNCTION(fun_stripansi)
                           ||   ((*(cp+1) == SAFE_CHR3) || (*(cp+1) == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) *(cp+2)] ) {
-              cp+=3;
-              continue;
-           }
-           if ( (*(cp+2) == '0') && ((*(cp+3) == 'x') || (*(cp+3) == 'X')) &&
+            if ( isAnsi[(int) *(cp+2)] ) {
+               cp+=3;
+               continue;
+            }
+              if ( (*(cp+2) == '0') && ((*(cp+3) == 'x') || (*(cp+3) == 'X')) &&
                 *(cp+4) && *(cp+5) && isxdigit(*(cp+4)) && isxdigit(*(cp+5)) ) {
               cp+=6;
               continue;

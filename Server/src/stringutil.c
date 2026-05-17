@@ -778,14 +778,21 @@ clone_ansi(char *s_input, char *s_inputptr,
       if ( !s_outputptr || !s_outsplitptr )
          break;
       *s_outputptr = *s_inputptr;
-      strcpy(s_outsplitptr->s_bghex, s_insplitptr->s_bghex);
-      strcpy(s_outsplitptr->s_fghex, s_insplitptr->s_fghex);
-      s_outsplitptr->c_fgansi = s_insplitptr->c_fgansi;
-      s_outsplitptr->c_bgansi = s_insplitptr->c_bgansi;
-      s_outsplitptr->c_accent = s_insplitptr->c_accent;
-      s_outsplitptr->i_special = s_insplitptr->i_special;
-      s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
-      s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
+       strcpy(s_outsplitptr->s_bghex, s_insplitptr->s_bghex);
+       strcpy(s_outsplitptr->s_fghex, s_insplitptr->s_fghex);
+       s_outsplitptr->c_fgansi = s_insplitptr->c_fgansi;
+       s_outsplitptr->c_bgansi = s_insplitptr->c_bgansi;
+       s_outsplitptr->c_accent = s_insplitptr->c_accent;
+       s_outsplitptr->i_special = s_insplitptr->i_special;
+       s_outsplitptr->i_ascii8 = s_insplitptr->i_ascii8;
+       s_outsplitptr->i_utf8 = s_insplitptr->i_utf8;
+       s_outsplitptr->i_truecolor = s_insplitptr->i_truecolor;
+       s_outsplitptr->i_fgr = s_insplitptr->i_fgr;
+       s_outsplitptr->i_fgg = s_insplitptr->i_fgg;
+       s_outsplitptr->i_fgb = s_insplitptr->i_fgb;
+       s_outsplitptr->i_bgr = s_insplitptr->i_bgr;
+       s_outsplitptr->i_bgg = s_insplitptr->i_bgg;
+       s_outsplitptr->i_bgb = s_insplitptr->i_bgb;
       s_inputptr++;
       s_insplitptr++;
       s_outputptr++;
@@ -808,37 +815,55 @@ void clone_ansisplitter_two(ANSISPLIT *a_split, ANSISPLIT *b_split, ANSISPLIT *c
    p_bp = b_split;
    p_cp = c_split;
 
-   if ( !*(p_bp->s_fghex) && !*(p_bp->s_bghex) &&
-        !(p_bp->i_special) && !(p_bp->c_accent) &&
-        !(p_bp->c_fgansi) && !(p_bp->c_bgansi) ) {
+    if ( !*(p_bp->s_fghex) && !*(p_bp->s_bghex) &&
+         !(p_bp->i_special) && !(p_bp->c_accent) &&
+         !(p_bp->c_fgansi) && !(p_bp->c_bgansi) &&
+         !(p_bp->i_truecolor) ) {
       strcpy(p_ap->s_fghex, p_cp->s_fghex);
       strcpy(p_ap->s_bghex, p_cp->s_bghex);
       p_ap->i_special = p_cp->i_special;
       p_ap->c_accent  = p_cp->c_accent;
       p_ap->c_fgansi  = p_cp->c_fgansi;
       p_ap->c_bgansi  = p_cp->c_bgansi;
-   } else {
+      p_ap->i_truecolor = p_cp->i_truecolor;
+      p_ap->i_fgr = p_cp->i_fgr; p_ap->i_fgg = p_cp->i_fgg; p_ap->i_fgb = p_cp->i_fgb;
+      p_ap->i_bgr = p_cp->i_bgr; p_ap->i_bgg = p_cp->i_bgg; p_ap->i_bgb = p_cp->i_bgb;
+    } else {
       strcpy(p_ap->s_fghex, p_bp->s_fghex);
       strcpy(p_ap->s_bghex, p_bp->s_bghex);
       p_ap->i_special = p_bp->i_special;
       p_ap->c_accent  = p_bp->c_accent;
       p_ap->c_fgansi  = p_bp->c_fgansi;
       p_ap->c_bgansi  = p_bp->c_bgansi;
-   }
-   if ( p_bp->i_ascii8 ) {
-      p_ap->i_ascii8  = p_bp->i_ascii8;
-   } else if (p_cp->i_ascii8) {
-      p_ap->i_ascii8  = p_cp->i_ascii8;
-   } else {
-      p_ap->i_ascii8  = 0;
-   }
-   if ( p_bp->i_utf8 ) {
-      p_ap->i_utf8    = p_bp->i_utf8;
-   } else if (p_cp->i_utf8) {
-      p_ap->i_utf8    = p_cp->i_utf8;
-   } else {
-      p_ap->i_utf8    = 0;
-   }
+      p_ap->i_truecolor = p_bp->i_truecolor;
+      p_ap->i_fgr = p_bp->i_fgr; p_ap->i_fgg = p_bp->i_fgg; p_ap->i_fgb = p_bp->i_fgb;
+      p_ap->i_bgr = p_bp->i_bgr; p_ap->i_bgg = p_bp->i_bgg; p_ap->i_bgb = p_bp->i_bgb;
+    }
+    if ( p_bp->i_ascii8 ) {
+       p_ap->i_ascii8  = p_bp->i_ascii8;
+    } else if (p_cp->i_ascii8) {
+       p_ap->i_ascii8  = p_cp->i_ascii8;
+    } else {
+       p_ap->i_ascii8  = 0;
+    }
+    if ( p_bp->i_utf8 ) {
+       p_ap->i_utf8    = p_bp->i_utf8;
+    } else if (p_cp->i_utf8) {
+       p_ap->i_utf8    = p_cp->i_utf8;
+    } else {
+       p_ap->i_utf8    = 0;
+    }
+    if ( p_bp->i_truecolor ) {
+       p_ap->i_truecolor = p_bp->i_truecolor;
+       p_ap->i_fgr = p_bp->i_fgr; p_ap->i_fgg = p_bp->i_fgg; p_ap->i_fgb = p_bp->i_fgb;
+       p_ap->i_bgr = p_bp->i_bgr; p_ap->i_bgg = p_bp->i_bgg; p_ap->i_bgb = p_bp->i_bgb;
+    } else if (p_cp->i_truecolor) {
+       p_ap->i_truecolor = p_cp->i_truecolor;
+       p_ap->i_fgr = p_cp->i_fgr; p_ap->i_fgg = p_cp->i_fgg; p_ap->i_fgb = p_cp->i_fgb;
+       p_ap->i_bgr = p_cp->i_bgr; p_ap->i_bgg = p_cp->i_bgg; p_ap->i_bgb = p_cp->i_bgb;
+    } else {
+       p_ap->i_truecolor = 0;
+    }
 }
 
 void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
@@ -855,6 +880,9 @@ void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
    p_ap->c_bgansi  = p_bp->c_bgansi;
    p_ap->i_ascii8  = p_bp->i_ascii8;
    p_ap->i_utf8    = p_bp->i_utf8;
+   p_ap->i_truecolor = p_bp->i_truecolor;
+   p_ap->i_fgr = p_bp->i_fgr; p_ap->i_fgg = p_bp->i_fgg; p_ap->i_fgb = p_bp->i_fgb;
+   p_ap->i_bgr = p_bp->i_bgr; p_ap->i_bgg = p_bp->i_bgg; p_ap->i_bgb = p_bp->i_bgb;
 }
 
 void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
@@ -871,6 +899,9 @@ void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
       p_bp->c_accent = '\0';
       p_bp->c_fgansi = '\0';
       p_bp->c_bgansi = '\0';
+      p_bp->i_truecolor = 0;
+      p_bp->i_fgr = 0; p_bp->i_fgg = 0; p_bp->i_fgb = 0;
+      p_bp->i_bgr = 0; p_bp->i_bgg = 0; p_bp->i_bgb = 0;
       p_bp++;
    }
 }
@@ -887,10 +918,13 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
    memset(s_last.s_fghex, '\0', 5);
    s_last.c_fgansi = '\0';
    s_last.c_bgansi = '\0';
-   s_last.c_accent = '\0';
-   s_last.i_special = 0;
-   s_last.i_ascii8 = 0;
-   s_last.i_utf8 = 0;
+    s_last.c_accent = '\0';
+    s_last.i_special = 0;
+    s_last.i_ascii8 = 0;
+    s_last.i_utf8 = 0;
+    s_last.i_truecolor = 0;
+    s_last.i_fgr = 0; s_last.i_fgg = 0; s_last.i_fgb = 0;
+    s_last.i_bgr = 0; s_last.i_bgg = 0; s_last.i_bgb = 0;
 
    s_buffptr = s_buffer = alloc_lbuf("rebuild_ansi");
    s_format = alloc_sbuf("rebuild_ansi");
@@ -903,12 +937,19 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       if ( !s_ptr )
          break;
 
-      /* Ansi changed and we should look to normalize it */
-      if ( i_normalize && ((s_ptr->c_bgansi != s_last.c_bgansi) ||
-                           (s_ptr->c_fgansi != s_last.c_fgansi) ||
-                           strcmp(s_ptr->s_fghex, s_last.s_fghex) ||
-                           strcmp(s_ptr->s_bghex, s_last.s_bghex) ||
-                           (s_ptr->i_special != s_last.i_special) )) {
+       /* Ansi changed and we should look to normalize it */
+       if ( i_normalize && ((s_ptr->c_bgansi != s_last.c_bgansi) ||
+                            (s_ptr->c_fgansi != s_last.c_fgansi) ||
+                            strcmp(s_ptr->s_fghex, s_last.s_fghex) ||
+                            strcmp(s_ptr->s_bghex, s_last.s_bghex) ||
+                            (s_ptr->i_special != s_last.i_special) ||
+                            (s_ptr->i_truecolor != s_last.i_truecolor) ||
+                            (s_ptr->i_fgr != s_last.i_fgr) ||
+                            (s_ptr->i_fgg != s_last.i_fgg) ||
+                            (s_ptr->i_fgb != s_last.i_fgb) ||
+                            (s_ptr->i_bgr != s_last.i_bgr) ||
+                            (s_ptr->i_bgg != s_last.i_bgg) ||
+                            (s_ptr->i_bgb != s_last.i_bgb) )) {
          i_ansi = -1;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
@@ -958,10 +999,20 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
             i_ansi |= 1;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
-         safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
-         i_normalize = 1;
-      }
-      if ( (s_ptr->s_bghex[0] == '0') && (ToUpper(s_ptr->s_bghex[1]) == 'X') && 
+          safe_str(s_ptr->s_fghex, s_buffer, &s_buffptr);
+          i_normalize = 1;
+       }
+       if ( (s_ptr->i_truecolor & TC_FG_SET) &&
+            ((i_ansi == -1) || (s_ptr->i_fgr != s_last.i_fgr) ||
+             (s_ptr->i_fgg != s_last.i_fgg) || (s_ptr->i_fgb != s_last.i_fgb)) ) {
+          if ( i_ansi < 0 ) i_ansi = 1; else i_ansi |= 1;
+          safe_chr('%', s_buffer, &s_buffptr);
+          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
+            sprintf(s_format, "<%d %d %d>", s_ptr->i_fgr, s_ptr->i_fgg, s_ptr->i_fgb);
+          safe_str(s_format, s_buffer, &s_buffptr);
+          i_normalize = 1;
+       }
+       if ( (s_ptr->s_bghex[0] == '0') && (ToUpper(s_ptr->s_bghex[1]) == 'X') &&
            isxdigit(s_ptr->s_bghex[2]) && isxdigit(s_ptr->s_bghex[3]) && 
            ((i_ansi == -1) || strcmp(s_ptr->s_bghex, s_last.s_bghex)) ) {
          if ( i_ansi < 0 )
@@ -970,10 +1021,20 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
             i_ansi |= 2;
          safe_chr('%', s_buffer, &s_buffptr);
          safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
-         safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
-         i_normalize = 1;
-      }
-      if ( (i_ansi != 1) && (i_ansi != 3) ) {
+          safe_str(s_ptr->s_bghex, s_buffer, &s_buffptr);
+          i_normalize = 1;
+       }
+       if ( (s_ptr->i_truecolor & TC_BG_SET) &&
+            ((i_ansi == -1) || (s_ptr->i_bgr != s_last.i_bgr) ||
+             (s_ptr->i_bgg != s_last.i_bgg) || (s_ptr->i_bgb != s_last.i_bgb)) ) {
+          if ( i_ansi < 0 ) i_ansi = 2; else i_ansi |= 2;
+          safe_chr('%', s_buffer, &s_buffptr);
+          safe_chr(SAFE_UCHR, s_buffer, &s_buffptr);
+            sprintf(s_format, "<%d %d %d>", s_ptr->i_bgr, s_ptr->i_bgg, s_ptr->i_bgb);
+          safe_str(s_format, s_buffer, &s_buffptr);
+          i_normalize = 1;
+       }
+       if ( (i_ansi != 1) && (i_ansi != 3) ) {
          if ( s_ptr->c_fgansi && ((i_ansi == -1) || (s_ptr->c_fgansi != s_last.c_fgansi)) ) {
             if ( isAnsi[(int) (s_ptr->c_fgansi)] ) {
                safe_chr('%', s_buffer, &s_buffptr);
@@ -1005,13 +1066,16 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
          i_normalize2 = 0;
       }
 
-      strcpy(s_last.s_bghex, s_ptr->s_bghex);
-      strcpy(s_last.s_fghex, s_ptr->s_fghex);
-      s_last.c_fgansi = s_ptr->c_fgansi;
-      s_last.c_bgansi = s_ptr->c_bgansi;
-      s_last.c_accent = s_ptr->c_accent;
-      s_last.i_special = s_ptr->i_special;
-      /* no need for s_last duplicating i_ascii8 */
+       strcpy(s_last.s_bghex, s_ptr->s_bghex);
+       strcpy(s_last.s_fghex, s_ptr->s_fghex);
+       s_last.c_fgansi = s_ptr->c_fgansi;
+       s_last.c_bgansi = s_ptr->c_bgansi;
+       s_last.c_accent = s_ptr->c_accent;
+       s_last.i_special = s_ptr->i_special;
+       s_last.i_truecolor = s_ptr->i_truecolor;
+       s_last.i_fgr = s_ptr->i_fgr; s_last.i_fgg = s_ptr->i_fgg; s_last.i_fgb = s_ptr->i_fgb;
+       s_last.i_bgr = s_ptr->i_bgr; s_last.i_bgg = s_ptr->i_bgg; s_last.i_bgb = s_ptr->i_bgb;
+       /* no need for s_last duplicating i_ascii8 */
       /* i_ascii8 handler.  Unicode/UTF8 will work similarly -- nudge nudge */
       if ( (*s_inptr == '?') && (s_ptr->i_utf8 > 0) ) {
         safe_chr('%', s_buffer, &s_buffptr);
@@ -1111,11 +1175,13 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 
    ANSISPLIT *s_ptr, *s_ptr2, s_tmp[1];
    char *s_inptr, *s_inptrtmp, *s_outptr;
-   int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt, 
-       i_tohex, i_upper, i_r, i_g, i_b, i_escaped;
-   char buf_utf8[17], c1, c2;
+    int i_hex1, i_hex2, i_ansi1, i_ansi2, i_special, i_accent, utfcnt,
+         i_upper, i_r, i_g, i_b, i_escaped;
+    int i_tc1, i_tc2;
+    char buf_utf8[17], c1, c2;
 
-   i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = i_escaped = 0;
+    i_hex1 = i_hex2 = i_ansi1 = i_ansi2 = i_special = i_accent = i_escaped = 0;
+    i_tc1 = i_tc2 = 0;
    if ( !s_input || !*s_input || !s_output || !s_split ) {
       *s_output = '\0';
       return;
@@ -1126,7 +1192,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
    s_ptr = s_split;
    s_ptr2 = s_tmp;
    s_inptrtmp = NULL;
-   i_tohex = i_upper = 0;
+    i_upper = 0;
 
    memset(buf_utf8, '\0', sizeof(buf_utf8));
    memset(s_ptr->s_fghex, '\0', 5);
@@ -1207,13 +1273,14 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
                case 'N': s_ptr->i_special |= SPLIT_NOANSI;
                          i_special = 1;
                          break;
-               case 'n': s_ptr->i_special = 0;
-                         memset(s_ptr->s_fghex, '\0', 5);
-                         memset(s_ptr->s_bghex, '\0', 5);
-                         s_ptr->c_fgansi ='\0';
-                         s_ptr->c_bgansi ='\0';
-                         i_special = i_ansi1 = i_ansi2 = i_hex1 = i_hex2 = 0;
-                         break;
+                case 'n': s_ptr->i_special = 0;
+                          memset(s_ptr->s_fghex, '\0', 5);
+                          memset(s_ptr->s_bghex, '\0', 5);
+                          s_ptr->c_fgansi ='\0';
+                          s_ptr->c_bgansi ='\0';
+                          s_ptr->i_truecolor = 0;
+                          i_special = i_ansi1 = i_ansi2 = i_hex1 = i_hex2 = i_tc1 = i_tc2 = 0;
+                          break;
                default:  if ( ToUpper(*(s_inptr+2)) == *(s_inptr+2) ) {
                             i_ansi2 = 1;
                             s_ptr->c_bgansi = *(s_inptr+2);
@@ -1247,58 +1314,55 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
             s_inptr+=6;
             continue;
          }
-         /* 24 Bit colors */
-         if ( (*(s_inptr+2) == '<') && ((s_inptrtmp = strchr(s_inptr+2, '>')) != NULL) ) {
-            i_upper = 0;
-            if ( isupper(*(s_inptr+1)) )
-               i_upper = 1;
-            if ( sscanf(s_inptr+2, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-               if ( (c1 != '<') || (c2 != '>') ) {
-                  s_inptr = s_inptrtmp+1;
-               } else {
-#ifdef STANDALONE
-                  i_tohex = 0;
-#else
-                  i_tohex = down_ansi(i_r, i_g, i_b);
-#endif
-                  if ( i_upper ) {
-                     i_hex2 = 1;
-                     i_ansi2 = 0;
-                     s_ptr->c_bgansi ='\0';
-                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
-                  } else {
-                     i_hex1 = 1;
-                     i_ansi1 = 0;
-                     s_ptr->c_fgansi ='\0';
-                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
-                  }
-               }
-            } else if ( sscanf(s_inptr+2, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-               if ( (c1 != '<') || (c2 != '>') ) {
-                  s_inptr = s_inptrtmp+1;
-               } else {
-#ifdef STANDALONE
-                  i_tohex = 0;
-#else
-                  i_tohex = down_ansi(i_r, i_g, i_b);
-#endif
-                  if ( i_upper ) {
-                     i_hex2 = 1;
-                     i_ansi2 = 0;
-                     s_ptr->c_bgansi ='\0';
-                     sprintf(s_ptr->s_bghex, "0X%02x", i_tohex);
-                  } else {
-                     i_hex1 = 1;
-                     i_ansi1 = 0;
-                     s_ptr->c_fgansi ='\0';
-                     sprintf(s_ptr->s_fghex, "0x%02x", i_tohex);
-                  }    
-               }  
+          /* 24 Bit colors */
+          if ( (*(s_inptr+2) == '<') && ((s_inptrtmp = strchr(s_inptr+2, '>')) != NULL) ) {
+             i_upper = 0;
+             if ( isupper(*(s_inptr+1)) )
+                i_upper = 1;
+              if ( sscanf(s_inptr+2, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                 if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
+                 if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
+                 if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+                 if ( (c1 != '<') || (c2 != '>') ) {
+                   s_inptr = s_inptrtmp+1;
+                } else {
+                   if ( i_upper ) {
+                      i_tc2 = 1; i_hex2 = 0; i_ansi2 = 0;
+                      s_ptr->i_truecolor |= TC_BG_SET;
+                      s_ptr->i_bgr = i_r; s_ptr->i_bgg = i_g; s_ptr->i_bgb = i_b;
+                      s_ptr->c_bgansi ='\0';
+                      memset(s_ptr->s_bghex, '\0', 5);
+                   } else {
+                      i_tc1 = 1; i_hex1 = 0; i_ansi1 = 0;
+                      s_ptr->i_truecolor |= TC_FG_SET;
+                      s_ptr->i_fgr = i_r; s_ptr->i_fgg = i_g; s_ptr->i_fgb = i_b;
+                      s_ptr->c_fgansi ='\0';
+                      memset(s_ptr->s_fghex, '\0', 5);
+                   }
+                }
+             } else if ( sscanf(s_inptr+2, "%c#%02x%02x%02x%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
+                if ( (c1 != '<') || (c2 != '>') ) {
+                   s_inptr = s_inptrtmp+1;
+                } else {
+                   if ( i_upper ) {
+                      i_tc2 = 1; i_hex2 = 0; i_ansi2 = 0;
+                      s_ptr->i_truecolor |= TC_BG_SET;
+                      s_ptr->i_bgr = i_r; s_ptr->i_bgg = i_g; s_ptr->i_bgb = i_b;
+                      s_ptr->c_bgansi ='\0';
+                      memset(s_ptr->s_bghex, '\0', 5);
+                   } else {
+                      i_tc1 = 1; i_hex1 = 0; i_ansi1 = 0;
+                      s_ptr->i_truecolor |= TC_FG_SET;
+                      s_ptr->i_fgr = i_r; s_ptr->i_fgg = i_g; s_ptr->i_fgb = i_b;
+                      s_ptr->c_fgansi ='\0';
+                      memset(s_ptr->s_fghex, '\0', 5);
+                   }
+                }  
+             }
+               s_inptr = s_inptrtmp+1;
             }
-            s_inptr = s_inptrtmp+1;
          }
-      }
-      if ( (*s_inptr == '%') && (*(s_inptr+1) == 'f') ) {
+       if ( (*s_inptr == '%') && (*(s_inptr+1) == 'f') ) {
          if ( isprint(*(s_inptr+2)) ) {
             switch ( *(s_inptr+2) ) {
                case 'n':
@@ -1366,11 +1430,19 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
          s_ptr->i_special = (s_ptr-1)->i_special;
       else
          (s_ptr-1)->i_special = 0;
-      if ( i_accent )
-         s_ptr->c_accent = (s_ptr-1)->c_accent;
-      else
-         (s_ptr-1)->c_accent = '\0';
-      s_inptr++;
+       if ( i_accent )
+          s_ptr->c_accent = (s_ptr-1)->c_accent;
+       else
+          (s_ptr-1)->c_accent = '\0';
+       if ( i_tc1 )
+          s_ptr->i_truecolor |= (s_ptr-1)->i_truecolor & TC_FG_SET;
+       else
+          (s_ptr-1)->i_truecolor &= ~TC_FG_SET;
+       if ( i_tc2 )
+          s_ptr->i_truecolor |= (s_ptr-1)->i_truecolor & TC_BG_SET;
+       else
+          (s_ptr-1)->i_truecolor &= ~TC_BG_SET;
+       s_inptr++;
       s_outptr++;
    }
    *s_outptr = '\0';

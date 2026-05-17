@@ -179,6 +179,7 @@
 #define NOCODE		0x00200000	/* Players may not code */
 #define HAS_PROTECT	0x00400000	/* Player target has protect name data */
 #define XTERMCOLOR      0x00800000      /* Extended ANSI Xterm colors */
+#define TRUECOLOR       0x08000000      /* TrueColor 24-bit RGB ANSI */
 #define HAS_ATTRPIPE    0x01000000      /* Attribute piping via @pipe */
 #define HAS_OBJECTTAG   0x02000000      /* Has ____ObjectTag attribute set */
 #define COLORMAIL	0x04000000 	/* Colorize the mail names */
@@ -1002,6 +1003,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define ShowAnsi(x)	((Flags2(x) & ANSI) != 0)
 #define ShowAnsiColor(x)	((Flags2(x) & ANSICOLOR) != 0)
 #define ShowAnsiXterm(x)	((Flags4(x) & XTERMCOLOR) != 0)
+#define ShowAnsiTrueColor(x)  ((Flags4(x) & TRUECOLOR) != 0)
 #define NoFlash(x)	((Flags2(x) & NOFLASH) != 0)
 #define NoUnderline(x)	((Flags4(x) & NOUNDERLINE) != 0)
 #define NoName(x)	((Flags4(x) & NONAME) != 0)

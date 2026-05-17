@@ -88,6 +88,9 @@ extern int check_tor(struct in_addr, int);
 
 extern char * skip_mux_ansi(char *, char *, char **);
 extern int count_mux_ansi(char *);
+extern int down_ansi(int, int, int);
+extern char *ansi_translate_fg[257];
+extern char *ansi_translate_bg[257];
 
 
 #ifdef LOCAL_RWHO_SERVER
@@ -138,9 +141,9 @@ strip_ansi(const char *raw)
 		p++;
 	} else
 	    *q++ = *p++;
-    }
-    *q = '\0';
-    RETURN(buf); /* #98 */
+     }
+     *q = '\0';
+     RETURN(buf); /* #98 */
 }
 
 /* These functions only strip RAW ansi.  Leave this as it is or shit breaks */
@@ -194,22 +197,22 @@ strip_safe_ansi(const char *raw)
               p+=3;
               continue;
            }
-           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
-                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
-              p+=6; // strip safe XTERM ansi
-              continue;
-           }
-           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
-              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
-              continue;
-           }
-           *q++ = *p++;
-        } else {
-            *q++ = *p++;
-        }
-    }
-    *q = '\0';
-    RETURN(buf); /* #99 */
+            if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
+                 (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+               p+=6; // strip safe XTERM ansi
+               continue;
+            }
+             if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+                p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
+                continue;
+             }
+             *q++ = *p++;
+          } else {
+              *q++ = *p++;
+          }
+      }
+      *q = '\0';
+      RETURN(buf); /* #99 */
 }
 
 
@@ -240,25 +243,25 @@ strip_all_special2(const char *raw)
               p+=6; // strip safe XTERM ansi
               continue;
            }
-           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
-              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
-              continue;
-           }
-           *q++ = *p++;
-        } else if (*p == ESC_CHAR) {
-            // Strip normal ansi
-            while (*p && !isalpha((int)*p))
-                p++;
-            if (*p)
-                p++;
-        } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
-           p+=3;
-        } else {
+            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+               p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
+               continue;
+            }
             *q++ = *p++;
-        }
-    }
-    *q = '\0';
-    RETURN(buf); /* #100 */
+         } else if (*p == ESC_CHAR) {
+             // Strip normal ansi
+             while (*p && !isalpha((int)*p))
+                 p++;
+             if (*p)
+                 p++;
+         } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
+            p+=3;
+         } else {
+             *q++ = *p++;
+         }
+     }
+     *q = '\0';
+     RETURN(buf); /* #100 */
 }
 
 extern char *
@@ -288,26 +291,26 @@ strip_all_special(const char *raw)
               p+=6; // strip safe XTERM ansi
               continue;
            }
-           /* Strip mux ansi */
-           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
-              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
-              continue;
-           }
-           *q++ = *p++;
-        } else if (*p == ESC_CHAR) {
-            // Strip normal ansi
-            while (*p && !isalpha((int)*p))
-                p++;
-            if (*p)
-                p++;
-        } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
-           p+=3;
-        } else {
+            /* Strip mux ansi */
+            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+               p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
+               continue;
+            }
             *q++ = *p++;
-        }
-    }
-    *q = '\0';
-    RETURN(buf); /* #100 */
+         } else if (*p == ESC_CHAR) {
+             // Strip normal ansi
+             while (*p && !isalpha((int)*p))
+                 p++;
+             if (*p)
+                 p++;
+         } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
+            p+=3;
+         } else {
+             *q++ = *p++;
+         }
+     }
+     *q = '\0';
+     RETURN(buf); /* #100 */
 }
 
 extern char *
@@ -337,24 +340,24 @@ strip_all_ansi(const char *raw)
               p+=6; // strip safe XTERM ansi
               continue;
            }
-           /* Strip mux ansi */
-           if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
-              p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
-              continue;
-           }
-           *q++ = *p++;
-        } else if (*p == ESC_CHAR) {
-            // Strip normal ansi
-            while (*p && !isalpha((int)*p))
-                p++;
-            if (*p)
-                p++;
-        } else {
+            /* Strip mux ansi */
+            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+               p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
+               continue;
+            }
             *q++ = *p++;
-        }
-    }
-    *q = '\0';
-    RETURN(buf); /* #100 */
+         } else if (*p == ESC_CHAR) {
+             // Strip normal ansi
+             while (*p && !isalpha((int)*p))
+                 p++;
+             if (*p)
+                 p++;
+         } else {
+             *q++ = *p++;
+         }
+     }
+     *q = '\0';
+     RETURN(buf); /* #100 */
 }
 #endif
 
@@ -557,43 +560,105 @@ strip_ansi_xterm(const char *raw)
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
 	} else {
-	    /* We've got an ANSI code here -- verify it's XTERM codes */
+	    /* We've got an ANSI code here -- verify it's XTERM/TrueColor codes */
             if ( (*(p+1) && (*(p+1) == '[')) && (*(p+2) && ((*(p+2) == '4') || (*(p+2) == '3'))) && (*(p+3) && (*(p+3) == '8')) ) {
                if ( *(p+2) == '3' ) {
                   i_type = 0;
                } else {
                   i_type = 1;
                }
-               i_chk = 0;
-	       while (*p && !isalpha((int)*p)) {
-                  if ( *p == ';' )
-                     i_chk++;
-                  if ( i_chk == 2 ) {
-                     i_chk2 = -1;
-                     sscanf( p+1, "%d", &i_chk2);
-                     if ( (i_chk2 >= 0) && (i_chk2 < 256) ) {
-                        if ( i_type ) {
-                           r = ansi_translate_bg[i_chk2];
-                        } else {
-                           r = ansi_translate_fg[i_chk2];
-                        }
-                        while ( r && *r ) {
-	                   *q++ = *r++;
-                        }
-                     }
-                     i_chk++;
-                  }
-		  p++;
+               /* Check mode: ;2; = TrueColor (pass through), ;5; = 256-color (downconvert) */
+               if ( *(p+4) == ';' && *(p+5) == '2' && *(p+6) == ';' ) {
+                  /* TrueColor: copy the entire escape as-is */
+                  while (*p && *p != 'm')
+                     *q++ = *p++;
+                  if (*p)
+                     *q++ = *p++;
+               } else {
+                  /* 256-color: downconvert to 16-color */
+                  i_chk = 0;
+ 	          while (*p && !isalpha((int)*p)) {
+                      if ( *p == ';' )
+                         i_chk++;
+                      if ( i_chk == 2 ) {
+                         i_chk2 = -1;
+                         sscanf( p+1, "%d", &i_chk2);
+                         if ( (i_chk2 >= 0) && (i_chk2 < 256) ) {
+                            if ( i_type ) {
+                               r = ansi_translate_bg[i_chk2];
+                            } else {
+                               r = ansi_translate_fg[i_chk2];
+                            }
+                            while ( r && *r ) {
+ 	                      *q++ = *r++;
+                            }
+                         }
+                         i_chk++;
+                      }
+ 		      p++;
+                   }
+                   if ( *p )
+                      p++;
                }
-               if ( *p )
-                  p++;
             } else {
-	       *q++ = *p++;
+ 	       *q++ = *p++;
             }
         }
     }
     *q = '\0';
     RETURN(buf); /* #104 */
+}
+
+static char *
+strip_ansi_truecolor(const char *raw)
+{
+    static char buf[LBUF_SIZE];
+    char *p = (char *) raw;
+    char *q = buf;
+    int i_r, i_g, i_b, i_type, i_256;
+
+    DPUSH; /* #106 */
+
+    while (p && *p) {
+        if (*p != ESC_CHAR) {
+            *q++ = *p++;
+        } else {
+            /* Check for TrueColor: \x1B[38;2;R;G;Bm or \x1B[48;2;R;G;Bm */
+            if ((*(p+1) == '[') &&
+                ((*(p+2) == '3' || *(p+2) == '4') && *(p+3) == '8') &&
+                *(p+4) == ';' && *(p+5) == '2' && *(p+6) == ';') {
+
+                i_type = (*(p+2) == '3') ? 0 : 1;
+                p += 7;
+
+                i_r = atoi(p);
+                while (*p && isdigit(*p)) p++;
+                if (*p == ';') p++;
+                i_g = atoi(p);
+                while (*p && isdigit(*p)) p++;
+                if (*p == ';') p++;
+                i_b = atoi(p);
+                while (*p && isdigit(*p)) p++;
+
+                /* Downsample to nearest 256-color */
+                i_256 = down_ansi(i_r, i_g, i_b);
+
+                /* Output 256-color escape */
+                if (i_type)
+                    q += sprintf(q, "\x1B[48;5;%dm", i_256);
+                else
+                    q += sprintf(q, "\x1B[38;5;%dm", i_256);
+
+                /* Skip to end of ANSI sequence */
+                while (*p && *p != 'm') p++;
+                if (*p) p++;
+            } else {
+                *q++ = *p++;
+            }
+        }
+    }
+    *q = '\0';
+    RETURN(buf);
 }
 
 extern char *
@@ -2040,14 +2105,15 @@ queue_string(DESC * d, const char *s)
 
     if ( !d )
        VOIDRETURN;
-    if ((!d->player || !ShowAnsi(d->player)) && index(s, ESC_CHAR))
-	new = strip_ansi(s);
-    else if (!ShowAnsiColor(d->player) && index(s, ESC_CHAR))
-	new = strip_ansi_color(s);
-    else if (!ShowAnsiXterm(d->player) && index(s, ESC_CHAR))
-        new = strip_ansi_xterm(s);
-    else
-	new = (char *) s;
+    new = (char *) s;
+    if (new && (!d->player || !ShowAnsi(d->player)) && index(new, ESC_CHAR))
+        new = strip_ansi(new);
+    else if (new && !ShowAnsiTrueColor(d->player) && index(new, ESC_CHAR))
+        new = strip_ansi_truecolor(new);
+    if (new && !ShowAnsiXterm(d->player) && index(new, ESC_CHAR))
+        new = strip_ansi_xterm(new);
+    if (new && !ShowAnsiColor(d->player) && index(new, ESC_CHAR))
+        new = strip_ansi_color(new);
     if (NoFlash(d->player) && index(new, ESC_CHAR))
 	new = strip_ansi_flash(new);
     if (NoUnderline(d->player) && index(new, ESC_CHAR))

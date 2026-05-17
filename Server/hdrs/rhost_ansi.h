@@ -24,6 +24,12 @@
 
 #define ANSI_XTERM_BG	"\x1B[48;5;"
 #define ANSI_XTERM_FG	"\x1B[38;5;"
+#define ANSI_TRUECOLOR_FG	"\x1B[38;2;"
+#define ANSI_TRUECOLOR_BG	"\x1B[48;2;"
+
+/* TrueColor ANSISPLIT flags */
+#define TC_FG_SET	0x01
+#define TC_BG_SET	0x02
 
 #define ANSI_NORMAL   "\x1B[0m"
 #define ANSI_NORMAL2	"0"
@@ -121,6 +127,8 @@
 
 #define ANSI_XTERM_BG	"\033[48;5;"
 #define ANSI_XTERM_FG	"\033[38;5;"
+#define ANSI_TRUECOLOR_FG	"\033[38;2;"
+#define ANSI_TRUECOLOR_BG	"\033[48;2;"
 
 #define ANSI_NORMAL   "\033[0m"
 
@@ -384,4 +392,13 @@ static char isAnsi[256] =
   #endif
 #endif
 #endif
+#endif
+
+/* Helper macro: check if a character matches any configured ANSI_SUB */
+#ifdef SAFE_CHR3
+#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR||(c)==SAFE_CHR2||(c)==SAFE_UCHR2||(c)==SAFE_CHR3||(c)==SAFE_UCHR3)
+#elif defined(SAFE_CHR2)
+#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR||(c)==SAFE_CHR2||(c)==SAFE_UCHR2)
+#else
+#define IS_ANSI_SUB(c) ((c)==SAFE_CHR||(c)==SAFE_UCHR)
 #endif
