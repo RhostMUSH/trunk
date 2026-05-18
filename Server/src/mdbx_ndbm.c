@@ -102,7 +102,7 @@ dbm_open(const char *name, int flags, mode_t mode)
     }
 
     /* Single data file, no subdirectory. Single-threaded. */
-    env_flags = MDBX_NOSUBDIR | MDBX_NOTLS;
+    env_flags = MDBX_NOSUBDIR | MDBX_NOSTICKYTHREADS;
     if ((flags & O_ACCMODE) == O_RDONLY)
         env_flags |= MDBX_RDONLY;
 
@@ -209,7 +209,7 @@ dbm_fetch(DBM *db, datum key)
 
     free_fetch_buf(db);
 
-    rc = mdbx_txn_begin(db->env, NULL, MDBX_RDONLY, &txn);
+    rc = mdbx_txn_begin(db->env, NULL, MDBX_TXN_RDONLY, &txn);
     if (rc != MDBX_SUCCESS)
         return result;
 
@@ -328,7 +328,7 @@ dbm_firstkey(DBM *db)
     /* Release any prior iteration. */
     iter_close(db);
 
-    rc = mdbx_txn_begin(db->env, NULL, MDBX_RDONLY, &db->iter_txn);
+    rc = mdbx_txn_begin(db->env, NULL, MDBX_TXN_RDONLY, &db->iter_txn);
     if (rc != MDBX_SUCCESS)
         return result;
 

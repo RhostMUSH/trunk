@@ -22,7 +22,7 @@
 #include "../src/mdbx/mdbx.h"
 
 extern void VDECL(fatal, (const char *,...));
-extern void mush_logf();
+extern void mush_logf(const char *fmt, ...);
 extern void FDECL(log_db_err, (int, int, const char *));
 
 /* Default database name */
@@ -217,7 +217,7 @@ dddb_get(Aname *nam)
     if (!db_initted)
         return ANULL;
 
-    rc = mdbx_txn_begin(env, NULL, MDBX_RDONLY, &txn);
+    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
     if (rc != MDBX_SUCCESS)
         return ANULL;
 
@@ -304,7 +304,7 @@ dddb_check(Aname *nam)
     if (!db_initted)
         return 0;
 
-    rc = mdbx_txn_begin(env, NULL, MDBX_RDONLY, &txn);
+    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
     if (rc != MDBX_SUCCESS)
         return 0;
 

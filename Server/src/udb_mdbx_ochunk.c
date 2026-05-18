@@ -24,7 +24,7 @@
 
 extern int  FDECL(obj_siz, (Obj *));
 extern void VDECL(fatal, (const char *,...));
-extern void mush_logf();
+extern void mush_logf(const char *fmt, ...);
 
 /* On-disk sizes matching udb_obj.c */
 #define OBJ_HEADER_SIZE   (sizeof(Objname) + sizeof(int))
@@ -257,7 +257,7 @@ dddb_init()
     snprintf(fnam, sizeof(fnam), "%.250s.mdbx",
              dbfile ? dbfile : DEFAULT_DBMCHUNKFILE);
 
-    rc = mdbx_env_open(env, fnam, MDBX_NOSUBDIR | MDBX_NOTLS, 0600);
+    rc = mdbx_env_open(env, fnam, MDBX_NOSUBDIR | MDBX_NOSTICKYTHREADS, 0600);
     if (rc != MDBX_SUCCESS) {
         mush_logf("db_init: mdbx_env_open failed for ", fnam, "\n", (char *)0);
         mdbx_env_close(env);
@@ -355,7 +355,7 @@ dddb_get(Objname *nam)
     if (!db_initted)
         return (Obj *)0;
 
-    rc = mdbx_txn_begin(env, NULL, MDBX_RDONLY, &txn);
+    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
     if (rc != MDBX_SUCCESS)
         return (Obj *)0;
 
@@ -452,7 +452,7 @@ dddb_check(char *nam)
     if (!db_initted)
         return 0;
 
-    rc = mdbx_txn_begin(env, NULL, MDBX_RDONLY, &txn);
+    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
     if (rc != MDBX_SUCCESS)
         return 0;
 
