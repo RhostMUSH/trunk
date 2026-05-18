@@ -3401,6 +3401,8 @@ atr_get_raw(dbref thing, int atr)
     if(a != NULL)
       if(strlen(a) > (LBUF_SIZE-1))
       {
+        if (atr == A_LIST)
+            return a;
         memset(tmp_lbuf, '\0', LBUF_SIZE);
         strncpy(tmp_lbuf,a,LBUF_SIZE-1);
         return tmp_lbuf;

@@ -1310,11 +1310,11 @@ CF_HAND(cf_verifyint_runtime)
 
 CF_HAND(cf_vint)
 {
-    int i_ceil = 10000, vp_old=0;
+    int i_ceil = 100000, vp_old=0;
     char s_buf[20];
   
     sscanf(str, "%d", &vp_old);
-    i_ceil = 10000;
+    i_ceil = 100000;
     sprintf(s_buf, (char *)"[QDBM/MDBX Mode]");
     if ((vp_old < 0) || (vp_old > i_ceil)) {
         if ( !mudstate.initializing) {
