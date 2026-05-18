@@ -2841,6 +2841,14 @@ main(int argc, char *argv[])
       cf_read((char *) CONF_FILE);
     }
 
+    if (mudconf.ip_family < 1 || mudconf.ip_family > 3) {
+        fprintf(stderr, "FATAL: ip_family must be 1 (IPv4), 2 (IPv6), or 3 (both). Got: %d\n", mudconf.ip_family);
+        STARTLOG(LOG_ALWAYS, "INI", "ERR")
+            log_text((char *) "Invalid ip_family value. Must be 1, 2, or 3.");
+        ENDLOG
+        exit(1);
+    }
+
     fcache_init();
     helpindex_init();
 
@@ -3019,7 +3027,7 @@ main(int argc, char *argv[])
     }
     local_startup();
     /* --- main mush loop --- */
-    shovechars(mudconf.port, mudconf.ip_address);
+    shovechars(mudconf.port, mudconf.ip_address, mudconf.ip_address_v6, mudconf.ip_family);
     /* --- end main mush loop --- */
     local_shutdown();
     rebooting = mudstate.reboot_flag;

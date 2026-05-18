@@ -2212,7 +2212,7 @@ DESC	*d;
         DESC_ITER_CONN(d) {
           if (d->player == player) {
              sprintf(tbuf, "%-10d %-10s %-10s %s", d->descriptor, time_format_1(mudstate.now - d->last_time),
-                     wiz_time_format_2(mudstate.now - d->connected_at), inet_ntoa(d->address.sin_addr));
+                      wiz_time_format_2(mudstate.now - d->connected_at), d->addr);
              notify(player, tbuf);
           }
         }
@@ -3640,9 +3640,9 @@ void do_site_buff(dbref player, char *instr, char *label)
 void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
 {
   SITE *pt1, *pt2;
-  struct in_addr addr_num, mask_num;
-  char count; 
+  char count;
   unsigned long maskval;
+  int is_ipv6;
 
   if ( key & SITE_LIST ) {
      do_site_buff(player, mudconf.forbid_host, (char *)"forbid_host");
@@ -3665,21 +3665,54 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     notify(player,"Bad format in site command");
     return;
   }
-  addr_num.s_addr = inet_addr(buff1);
-  if ( strchr(buff2, '/') != NULL ) {
-     maskval = atol(buff2+1);
-     if (((long)maskval < 0) || (maskval > 32)) {
-        notify(player, "Bad mask in site command");
-        return;
+   is_ipv6 = (strchr(buff1, ':') != NULL);
+
+   if ((mudconf.ip_family == 1 && is_ipv6) ||
+       (mudconf.ip_family == 2 && !is_ipv6)) {
+      notify(player, "Entry ignored -- address family is disabled.");
+      return;
+   }
+
+   if (is_ipv6) {
+     struct in6_addr addr6_tmp;
+     if (inet_pton(AF_INET6, buff1, &addr6_tmp) != 1) {
+       notify(player,"Bad host address in site command");
+       return;
      }
-     maskval = (0xFFFFFFFFUL << (32 - maskval));
-     mask_num.s_addr = htonl(maskval);
-  } else
-       mask_num.s_addr = inet_addr(buff2);
-  if (addr_num.s_addr == -1) {
-    notify(player,"Bad host address in site command");
-    return;
+  } else {
+     struct in_addr addr_tmp;
+     addr_tmp.s_addr = inet_addr(buff1);
+     if (addr_tmp.s_addr == (in_addr_t)-1) {
+       notify(player,"Bad host address in site command");
+       return;
+     }
   }
+
+   if ( strchr(buff2, '/') != NULL ) {
+      maskval = atol(buff2+1);
+      if (is_ipv6) {
+         if (((long)maskval < 0) || (maskval > 128)) {
+            notify(player, "Bad mask in site command");
+            return;
+         }
+      } else {
+         if (((long)maskval < 0) || (maskval > 32)) {
+            notify(player, "Bad mask in site command");
+            return;
+         }
+      }
+   } else {
+      if (is_ipv6) {
+         struct in6_addr mask6_tmp;
+         if (inet_pton(AF_INET6, buff2, &mask6_tmp) != 1) {
+            notify(player, "Bad mask in site command");
+            return;
+         }
+      } else {
+         struct in_addr mask_tmp;
+         mask_tmp.s_addr = inet_addr(buff2);
+      }
+   }
   count = 0;
 
   /* remove from suspect list */
@@ -3687,7 +3720,9 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt2 = NULL;
     pt1 = mudstate.suspect_list;
     while (pt1) {
-      if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
+      if ((pt1->addr_family == (is_ipv6 ? AF_INET6 : AF_INET)) &&
+          (strcmp(pt1->address_str, buff1) == 0) &&
+          (strcmp(pt1->mask_str, buff2) == 0) &&
 	((key & SITE_ALL) || (!(pt1->flag) && (key & SITE_TRU)) || (key == pt1->flag))) {
         count = 1;
         if (!pt2) {
@@ -3714,7 +3749,9 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt2 = NULL;
     pt1 = mudstate.access_list;
     while (pt1) {
-      if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
+      if ((pt1->addr_family == (is_ipv6 ? AF_INET6 : AF_INET)) &&
+          (strcmp(pt1->address_str, buff1) == 0) &&
+          (strcmp(pt1->mask_str, buff2) == 0) &&
 	( (key & SITE_ALL) || ((pt1->flag == H_PERMIT) && (key & SITE_PER)) ||
           (key == pt1->flag))) {
         count = 1;
@@ -3722,13 +3759,13 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
           pt2 = pt1->next;
           free(pt1);
           mudstate.access_list = pt2;
-  	  pt1 = pt2;
+   	  pt1 = pt2;
 	  pt2 = NULL;
         }
         else {
           pt2->next = pt1->next;
           free(pt1);
-  	  pt1 = pt2->next;
+   	  pt1 = pt2->next;
         }
       }
       else {
@@ -3743,20 +3780,22 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
     pt2 = NULL;
     pt1 = mudstate.special_list;
     while (pt1) {
-      if ((pt1->address.s_addr == addr_num.s_addr) && (pt1->mask.s_addr == mask_num.s_addr) &&
+      if ((pt1->addr_family == (is_ipv6 ? AF_INET6 : AF_INET)) &&
+          (strcmp(pt1->address_str, buff1) == 0) &&
+          (strcmp(pt1->mask_str, buff2) == 0) &&
 	((key & SITE_ALL) || (key == pt1->flag))) {
         count = 1;
         if (!pt2) {
           pt2 = pt1->next;
           free(pt1);
           mudstate.special_list = pt2;
-  	  pt1 = pt2;
+   	  pt1 = pt2;
 	  pt2 = NULL;
         }
         else {
           pt2->next = pt1->next;
           free(pt1);
-  	  pt1 = pt2->next;
+   	  pt1 = pt2->next;
         }
       }
       else {
@@ -3765,7 +3804,7 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
       }
     }
   }
-  if (count) 
+  if (count)
     notify(player,"Entry removed from site list");
   else
     notify(player,"Entry not found in site list");

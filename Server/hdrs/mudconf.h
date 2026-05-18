@@ -46,6 +46,8 @@ struct confdata {
         char	logdb_name[128];/* Name of log db */
 	int	round_kludge; /* Kludge workaround to fix rounding 2.5 to 2. [Loki] */
 	char ip_address[15];
+	char ip_address_v6[INET6_ADDRSTRLEN];
+	int	ip_family;	/* 1=IPv4, 2=IPv6, 3=both */
 	int	port;		/* user port */
 	int	html_port;	/* html port - Thorin 6/97 */
 	int	api_port;	/* API port -- Ashen-Shugar 6/2017 */
@@ -579,11 +581,15 @@ extern CONFDATA mudconf;
 typedef struct site_data SITE;
 struct site_data {
 	struct site_data *next;		/* Next site in chain */
-	struct in_addr address;		/* Host or network address */
-	struct in_addr mask;		/* Mask to apply before comparing */
+	struct in_addr address;		/* Host or network address (IPv4 compat) */
+	struct in_addr mask;		/* Mask to apply before comparing (IPv4 compat) */
 	int	flag;			/* Value to return on match */
 	int	key;			/* Auto sited or not? */
 	int	maxcon;			/* Maximum connections allowed from site */
+	char address_str[INET6_ADDRSTRLEN + 1];  /* IPv4 or IPv6 address string */
+	char mask_str[INET6_ADDRSTRLEN + 1];     /* CIDR or dotted mask string */
+	int	addr_family;		/* AF_INET or AF_INET6 */
+	int	cidr_prefix;		/* 0-32 for IPv4, 0-128 for IPv6 */
 };
 
 
@@ -620,10 +626,14 @@ struct forward_list {
 
 typedef struct blacklist_list BLACKLIST;
 struct blacklist_list {
-	char	s_site[20];
+	char	s_site[46];
         struct	in_addr	site_addr;
 	struct	in_addr mask_addr;
 	struct	blacklist_list	*next;
+	char site_addr_str[INET6_ADDRSTRLEN + 1];
+	char mask_addr_str[INET6_ADDRSTRLEN + 1];
+	int addr_family;
+	int cidr_prefix;
 };
 
 /* For a future mod to split up HIGH cpu based on function
@@ -922,6 +932,8 @@ struct statedata {
 	int	nested_control;	/* Nested controlock */
 	int	nospam_counter;	/* Counter for nospam connect enabled */
 	char	nospam_lastsite[60]; /* lastsite comparison to nospam connect */
+	char	lastsite_ip[INET6_ADDRSTRLEN + 1]; /* Last IPv4/IPv6 site for paranoia tracking */
+	char	api_lastsite_ip[INET6_ADDRSTRLEN + 1]; /* Last IPv4/IPv6 site for API rate limiting */
 	int	no_announce;	/* Do not handle announcements */
 #else
   dbref remote; /* Remote location for @remote */

@@ -8980,7 +8980,7 @@ FUNCTION(fun_lookup_site)
                }
                gotone = 1;
                if ( c_type == 1 ) {
-                  safe_str(inet_ntoa(d->address.sin_addr), buff, bufcx);
+                   safe_str(d->addr, buff, bufcx);
                } else {
                   safe_str(d->longaddr, buff, bufcx);
                }

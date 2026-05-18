@@ -219,6 +219,8 @@ struct descriptor_data {
   char account_rawpass[100];		/* For raw account password */
   char longaddr[256]; /* Because DNS hostnames go huge these days */
   int longaddrcheck; /* To ensure proper Descriptor upgrades */
+  unsigned short remote_port;  /* Remote client port (host byte order) */
+  int  addr_family;            /* AF_INET or AF_INET6, 0 = unset */
 };
 
 /* flags in the flag field */
@@ -245,7 +247,7 @@ extern DESC *desc_in_use;
 
 extern void	NDECL(emergency_shutdown);
 extern void	FDECL(shutdownsock, (DESC *, int));
-extern void	FDECL(shovechars, (int, char*));
+extern void	FDECL(shovechars, (int, char *, char *, int));
 extern void	NDECL(set_signals);
 extern void	FDECL(start_auth, (DESC *));
 extern void 	FDECL(check_auth_connect, (DESC *));
@@ -283,7 +285,9 @@ extern int	FDECL(fetch_connect, (dbref));
 extern void	NDECL(check_idle);
 extern void	NDECL(process_commands);
 extern int	FDECL(site_check, (struct in_addr, SITE *, int, int, int));
+extern int	FDECL(site_check_str, (const char *, int, SITE *, int, int, int));
 extern int	FDECL(blacklist_check, (struct in_addr host, int));
+extern int	FDECL(blacklist_check_str, (const char *, int, int));
 extern void	FDECL(make_ulist, (dbref, char *, char **, int, dbref, int));
 extern dbref	FDECL(find_connected_name, (dbref, char *));
 

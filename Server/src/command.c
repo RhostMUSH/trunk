@@ -3896,46 +3896,46 @@ process_command(dbref player, dbref cause, int interactive,
                  if ( Good_obj(boot_plr) ) {
                     notify(boot_plr, "You (or your object) were detected consistantly CPU-SLAMMING the mush.  " \
                                      "Proper steps have been taken.  Goodbye.");
-                    tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                    do_halt(boot_plr, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", boot_plr));
-                    free_lbuf(tpr_buff);
-                    s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
-                    s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
-                    if ( isPlayer(boot_plr) ) {
-                       tchbuff = alloc_mbuf("cpu_regsite");
-                       DESC_ITER_CONN(d) {
-                          if ( d->player == boot_plr ) {
-                               sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-                               if ( mudconf.cpu_secure_lvl == 4 ) {
-                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
-                                   cf_site((int *)&mudstate.access_list, tchbuff,
-                                           (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
-                                 }
-                               }
-                               else {
-                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
-                                   cf_site((int *)&mudstate.access_list, tchbuff,
-                                           (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
-                                 }
-                               }
-                          }
-                       }
-                       boot_off(boot_plr, NULL);
-                       free_mbuf(tchbuff);
-                    }
-                    if ( mudconf.cpu_secure_lvl == 4 )
-                       sprintf(cpulbuf, 
-                              "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & RegSited #%d]",
-                               mudconf.max_cpu_cycles, 
-                               (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
-                    else
-                       sprintf(cpulbuf, 
-                              "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & ForbidSited #%d]",
-                               mudconf.max_cpu_cycles, 
-                               (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
-                 } else {
-                    tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                    do_halt(player, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", player));
+                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                     do_halt(boot_plr, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", boot_plr));
+                     free_lbuf(tpr_buff);
+                     s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
+                     s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
+                     if ( isPlayer(boot_plr) ) {
+                        tchbuff = alloc_mbuf("cpu_regsite");
+                        DESC_ITER_CONN(d) {
+                           if ( d->player == boot_plr ) {
+                                sprintf(tchbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+                                if ( mudconf.cpu_secure_lvl == 4 ) {
+                                  if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                    cf_site((int *)&mudstate.access_list, tchbuff,
+                                            (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
+                                  }
+                                }
+                                else {
+                                  if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                    cf_site((int *)&mudstate.access_list, tchbuff,
+                                            (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
+                                  }
+                                }
+                           }
+                        }
+                        boot_off(boot_plr, NULL);
+                        free_mbuf(tchbuff);
+                     }
+                     if ( mudconf.cpu_secure_lvl == 4 )
+                        sprintf(cpulbuf, 
+                               "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & RegSited #%d]",
+                                mudconf.max_cpu_cycles, 
+                                (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
+                     else
+                        sprintf(cpulbuf, 
+                               "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & ForbidSited #%d]",
+                                mudconf.max_cpu_cycles, 
+                                (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
+                  } else {
+                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                     do_halt(player, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", player));
                     free_lbuf(tpr_buff);
                     sprintf(cpulbuf, "MULTICPU RUNAWAY [%d times/@halted only]", 
                          mudconf.max_cpu_cycles);
@@ -4622,51 +4622,51 @@ process_command(dbref player, dbref cause, int interactive,
                  log_text(" ");
                  log_text(cpulbuf);
                  ENDLOG
-              } else if ( (mudconf.cpu_secure_lvl == 4) || (mudconf.cpu_secure_lvl == 5) ) {
-                 notify(player, "Excessive CPU slamming detected.  HALTED.");
-                 if ( Good_obj(boot_plr) ) {
-                    notify(boot_plr, "You (or your object) were detected consistantly CPU-SLAMMING the mush.  " \
-                                     "Proper steps have been taken.  Goodbye.");
-                    tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                    do_halt(boot_plr, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", boot_plr));
-                    free_lbuf(tpr_buff);
-                    s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
-                    s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
-                    if ( isPlayer(boot_plr) ) {
-                       tchbuff = alloc_mbuf("cpu_regsite");
-                       DESC_ITER_CONN(d) {
-                          if ( d->player == boot_plr ) {
-                               sprintf(tchbuff, "%s 255.255.255.255", inet_ntoa(d->address.sin_addr));
-                               if ( mudconf.cpu_secure_lvl == 4 ) {
-                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
-                                   cf_site((int *)&mudstate.access_list, tchbuff,
-                                           (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
+               } else if ( (mudconf.cpu_secure_lvl == 4) || (mudconf.cpu_secure_lvl == 5) ) {
+                  notify(player, "Excessive CPU slamming detected.  HALTED.");
+                  if ( Good_obj(boot_plr) ) {
+                     notify(boot_plr, "You (or your object) were detected consistantly CPU-SLAMMING the mush.  " \
+                                      "Proper steps have been taken.  Goodbye.");
+                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                     do_halt(boot_plr, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", boot_plr));
+                     free_lbuf(tpr_buff);
+                     s_Flags2(boot_plr, (Flags2(boot_plr) | FUBAR));
+                     s_Flags3(boot_plr, (Flags3(boot_plr) | NOCONNECT));
+                      if ( isPlayer(boot_plr) ) {
+                         tchbuff = alloc_mbuf("cpu_regsite");
+                         DESC_ITER_CONN(d) {
+                            if ( d->player == boot_plr ) {
+                                 sprintf(tchbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+                                 if ( mudconf.cpu_secure_lvl == 4 ) {
+                                   if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                     cf_site((int *)&mudstate.access_list, tchbuff,
+                                             (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
+                                   }
                                  }
-                               }
-                               else {
-                                 if ( !(site_check(d->address.sin_addr, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
-                                   cf_site((int *)&mudstate.access_list, tchbuff,
-                                           (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
+                                 else {
+                                   if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                     cf_site((int *)&mudstate.access_list, tchbuff,
+                                             (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
+                                   }
                                  }
-                               }
-                          }
-                       }
-                       boot_off(boot_plr, NULL);
-                       free_mbuf(tchbuff);
-                    }
-                    if ( mudconf.cpu_secure_lvl == 4 )
-                       sprintf(cpulbuf, 
-                              "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & RegSited #%d]",
-                               mudconf.max_cpu_cycles, 
-                               (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
-                    else
-                       sprintf(cpulbuf, 
-                              "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & ForbidSited #%d]",
-                               mudconf.max_cpu_cycles,
-                               (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
-                 } else {
-                    tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                    do_halt(player, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", player));
+                            }
+                         }
+                         boot_off(boot_plr, NULL);
+                         free_mbuf(tchbuff);
+                      }
+                      if ( mudconf.cpu_secure_lvl == 4 )
+                         sprintf(cpulbuf, 
+                                "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & RegSited #%d]",
+                                 mudconf.max_cpu_cycles, 
+                                 (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
+                      else
+                         sprintf(cpulbuf, 
+                                "MULTICPU RUNAWAY [%d times/@halted%s FUBARED, NOCONNECTED, @booted & ForbidSited #%d]",
+                                mudconf.max_cpu_cycles,
+                                (mudstate.chkcpu_locktog ? ", SILENTEFFECTED, " : ", "), boot_plr);
+                  } else {
+                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                     do_halt(player, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", player));
                     free_lbuf(tpr_buff);
                     sprintf(cpulbuf, "MULTICPU RUNAWAY [%d times/@halted only]",
                          mudconf.max_cpu_cycles);
@@ -13128,11 +13128,12 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
 {
    char *s_buff, *s_buffptr, *tmpbuff, *s_addrip, *s_addrmask, *s_addrtok; 
    static char s_prefix[30], s_prefix2[20], s_file[22], s_switch[10];
-   int i_loop_chk, i_page, i_page_val, i_invalid, i_maskcnt, i_bltype, i_cnt_type;
-   unsigned long maskval;
-   struct in_addr in_tempaddr, in_tempaddr2;
-   FILE *f_in;
-   BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3, *bpmark, *bl_target;
+    int i_loop_chk, i_page, i_page_val, i_invalid, i_maskcnt, i_bltype, i_cnt_type;
+    int is_ipv6_add, is_ipv6_del, is_ipv6_load, cidr_prefix_add, match, load_cidr_prefix;
+    unsigned long maskval;
+    struct in_addr in_tempaddr, in_tempaddr2;
+    FILE *f_in;
+    BLACKLIST *b_lst_ptr, *b_lst_ptr2, *b_lst_ptr3, *bpmark, *bl_target;
   
    memset(s_prefix, '\0', strlen(s_prefix));
    memset(s_prefix2, '\0', strlen(s_prefix2));
@@ -13249,30 +13250,44 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          }
          notify(player, tmpbuff);
          notify(player, "==============================================================================");
-         while ( bl_target ) {
-            i_loop_chk++;
-            if ( (i_loop_chk % 40) == 1 )
-               i_page++;
-            if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
-               bl_target = bl_target->next;
-               continue;
-            }
-            if ( (i_loop_chk % 2) != 0 ) {
-               sprintf(s_addrip, "[%s]", inet_ntoa(bl_target->mask_addr));
-               if ( !*s_buff ) {
-                  sprintf(s_buff, "   %-16s %-18s", (char *)inet_ntoa(bl_target->site_addr), s_addrip);
-               } else {
-                  sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(bl_target->site_addr), s_addrip);
-                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-               }
-            } else {
-               sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(bl_target->site_addr), s_addrip);
-               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-               notify(player, s_buff);
-               memset(s_buff, '\0', LBUF_SIZE);
-            }
-            bl_target = bl_target->next;
-         } 
+          while ( bl_target ) {
+             i_loop_chk++;
+             if ( (i_loop_chk % 40) == 1 )
+                i_page++;
+             if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
+                bl_target = bl_target->next;
+                continue;
+             }
+             if ( (i_loop_chk % 2) != 0 ) {
+                if (bl_target->addr_family == AF_INET6) {
+                   sprintf(s_addrip, "[%s]", bl_target->mask_addr_str);
+                   if ( !*s_buff ) {
+                      sprintf(s_buff, "   %-44s %-44s", bl_target->site_addr_str, s_addrip);
+                   } else {
+                      sprintf(tmpbuff, "%s    %-44s %-44s", s_buff, bl_target->site_addr_str, s_addrip);
+                      strcpy(s_buff, tmpbuff);
+                   }
+                } else {
+                   sprintf(s_addrip, "[%s]", inet_ntoa(bl_target->mask_addr));
+                   if ( !*s_buff ) {
+                      sprintf(s_buff, "   %-16s %-18s", (char *)inet_ntoa(bl_target->site_addr), s_addrip);
+                   } else {
+                      sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(bl_target->site_addr), s_addrip);
+                      strcpy(s_buff, tmpbuff);
+                   }
+                }
+             } else {
+                if (bl_target->addr_family == AF_INET6) {
+                   sprintf(tmpbuff, "%s    %-44s %-44s", s_buff, bl_target->site_addr_str, s_addrip);
+                } else {
+                   sprintf(tmpbuff, "%s    %-16s %-18s", s_buff, (char *)inet_ntoa(bl_target->site_addr), s_addrip);
+                }
+                strcpy(s_buff, tmpbuff);
+                notify(player, s_buff);
+                memset(s_buff, '\0', LBUF_SIZE);
+             }
+             bl_target = bl_target->next;
+          }
          free_lbuf(tmpbuff);
          if ( (i_loop_chk % 2) != 0 ) {
             notify(player, s_buff);
@@ -13308,30 +13323,48 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          i_loop_chk = 0;
          memset(s_buff, '\0', LBUF_SIZE);
          memset(tmpbuff, '\0', LBUF_SIZE);
-         while ( bl_target ) {
-            sprintf(s_buffptr, "%s", (char *)inet_ntoa(bl_target->site_addr));
-            if ( quick_wild(name, s_buffptr) ) {
-               i_loop_chk++;
-               s_addrip = (char *)" ";
-               if ( strcmp("255.255.255.255", inet_ntoa(bl_target->mask_addr)) != 0 ) {
-                  s_addrip = (char *)"[M]";
-               }
-               if ( (i_loop_chk % 4) != 0 ) {
-                  if ( !*s_buff ) {
-                     sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-                  } else {
-                     sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-                     memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-                  }
-               } else {
-                  sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-                  notify(player, s_buff);
-                  memset(s_buff, '\0', LBUF_SIZE);
-               }
-            }
-            bl_target = bl_target->next;
-         }
+          while ( bl_target ) {
+             sprintf(s_buffptr, "%s", (bl_target->addr_family == AF_INET6) ? bl_target->site_addr_str : (char *)inet_ntoa(bl_target->site_addr));
+             if ( quick_wild(name, s_buffptr) ) {
+                i_loop_chk++;
+                s_addrip = (char *)" ";
+                if (bl_target->addr_family == AF_INET6) {
+                   if (strcmp(bl_target->mask_addr_str, "/128") != 0 && strcmp(bl_target->mask_addr_str, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff") != 0) {
+                      s_addrip = (char *)"[M]";
+                   }
+                } else {
+                   if ( strcmp("255.255.255.255", inet_ntoa(bl_target->mask_addr)) != 0 ) {
+                      s_addrip = (char *)"[M]";
+                   }
+                }
+                if ( (i_loop_chk % 4) != 0 ) {
+                   if ( !*s_buff ) {
+                      if (bl_target->addr_family == AF_INET6) {
+                         sprintf(s_buff, "%3s%-44s", s_addrip, bl_target->site_addr_str);
+                      } else {
+                         sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                      }
+                   } else {
+                      if (bl_target->addr_family == AF_INET6) {
+                         sprintf(tmpbuff, "%s %3s%-44s", s_buff, s_addrip, bl_target->site_addr_str);
+                      } else {
+                         sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                      }
+                      strcpy(s_buff, tmpbuff);
+                   }
+                } else {
+                   if (bl_target->addr_family == AF_INET6) {
+                      sprintf(tmpbuff, "%s %3s%-44s", s_buff, s_addrip, bl_target->site_addr_str);
+                   } else {
+                      sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                   }
+                   strcpy(s_buff, tmpbuff);
+                   notify(player, s_buff);
+                   memset(s_buff, '\0', LBUF_SIZE);
+                }
+             }
+             bl_target = bl_target->next;
+          }
          if ( (i_loop_chk % 4) != 0 ) {
             notify(player, s_buff);
          }
@@ -13389,33 +13422,51 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          }
          notify(player, tmpbuff);
          notify(player, "==============================================================================");
-         while ( bl_target ) {
-            i_loop_chk++;
-            if ( (i_loop_chk % 80) == 1 )
-               i_page++;
-            if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
-               bl_target = bl_target->next;
-               continue;
-            }
-            s_addrip = (char *)" ";
-            if ( strcmp("255.255.255.255", inet_ntoa(bl_target->mask_addr)) != 0 ) {
-               s_addrip = (char *)"[M]";
-            }
-            if ( (i_loop_chk % 4) != 0 ) {
-               if ( !*s_buff ) {
-                  sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-               } else {
-                  sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-                  memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-               }
-            } else {
-               sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
-               memcpy(s_buff, tmpbuff, LBUF_SIZE - 1);
-               notify(player, s_buff);
-               memset(s_buff, '\0', LBUF_SIZE);
-            }
-            bl_target = bl_target->next;
-         } 
+          while ( bl_target ) {
+             i_loop_chk++;
+             if ( (i_loop_chk % 80) == 1 )
+                i_page++;
+             if ( !((i_page_val == 0) || (i_page_val == i_page)) ) {
+                bl_target = bl_target->next;
+                continue;
+             }
+             s_addrip = (char *)" ";
+             if (bl_target->addr_family == AF_INET6) {
+                if (strcmp(bl_target->mask_addr_str, "/128") != 0 && strcmp(bl_target->mask_addr_str, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff") != 0) {
+                   s_addrip = (char *)"[M]";
+                }
+             } else {
+                if ( strcmp("255.255.255.255", inet_ntoa(bl_target->mask_addr)) != 0 ) {
+                   s_addrip = (char *)"[M]";
+                }
+             }
+             if ( (i_loop_chk % 4) != 0 ) {
+                if ( !*s_buff ) {
+                   if (bl_target->addr_family == AF_INET6) {
+                      sprintf(s_buff, "%3s%-44s", s_addrip, bl_target->site_addr_str);
+                   } else {
+                      sprintf(s_buff, "%3s%-16s", s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                   }
+                } else {
+                   if (bl_target->addr_family == AF_INET6) {
+                      sprintf(tmpbuff, "%s %3s%-44s", s_buff, s_addrip, bl_target->site_addr_str);
+                   } else {
+                      sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                   }
+                   strcpy(s_buff, tmpbuff);
+                }
+             } else {
+                if (bl_target->addr_family == AF_INET6) {
+                   sprintf(tmpbuff, "%s %3s%-44s", s_buff, s_addrip, bl_target->site_addr_str);
+                } else {
+                   sprintf(tmpbuff, "%s %3s%-16s", s_buff, s_addrip, (char *)inet_ntoa(bl_target->site_addr));
+                }
+                strcpy(s_buff, tmpbuff);
+                notify(player, s_buff);
+                memset(s_buff, '\0', LBUF_SIZE);
+             }
+             bl_target = bl_target->next;
+          }
          free_lbuf(tmpbuff);
          if ( (i_loop_chk % 4) != 0 ) {
             notify(player, s_buff);
@@ -13454,70 +13505,131 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
           
          i_cnt_type = 0;
 
-         while ( !feof(f_in) ) {
-            inet_aton((char *)"255.255.255.255", &in_tempaddr2);
-            fgets(s_buff, MBUF_SIZE-2, f_in);
-            if ( feof(f_in) ) {
-               break;
-            }
-            if ( i_loop_chk >= mudconf.blacklist_max ) {
-               notify(player, unsafe_tprintf("@blacklist%s: WARNING - %s exceeds MAX (blacklist_max) entries. Rest ignored.", s_prefix, s_file));
-               break;
-            }
-            i_loop_chk++;
-            if ( (i_loop_chk % 20000) == 0 ) {
-               notify(player, unsafe_tprintf("@blacklist%s loading --- %10d loaded -- continuing", s_prefix, i_loop_chk));
-            }
-            s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
-            if ( s_addrip ) {
-               s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
-            }
-            if ( s_addrmask ) {
-               if ( *s_addrmask == '/' ) {
-                  maskval = atol(s_addrmask+1);
-                  if (((long)maskval < 0) || (maskval > 32)) {
-                     i_invalid++;
-                     continue;
-                  }
-                  if ( maskval != 0 ) {
-                     maskval = (0xFFFFFFFFUL << (32 - maskval));
-                  }
-                  in_tempaddr2.s_addr = htonl(maskval);
-               } else {
-                  if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
-                     i_invalid++;
-                     continue;
-                  }
-               }
-               i_maskcnt++;
-            }
-            if ( !inet_aton(s_addrip, &in_tempaddr) ) {
-               i_invalid++;
-               continue;
-            }
-            b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
-            sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
-            b_lst_ptr->site_addr = in_tempaddr;
-            b_lst_ptr->mask_addr = in_tempaddr2;
-            b_lst_ptr->next = NULL;
-            if ( bl_target == NULL ) {
-               bl_target = b_lst_ptr;
-               bpmark = b_lst_ptr;
-            } else {
-               if ( bpmark ) {
-                  bpmark->next = b_lst_ptr;
-                  bpmark = b_lst_ptr;
-               } else {
-                  b_lst_ptr2 = bl_target;
-                  while ( b_lst_ptr2->next != NULL ) {
-                     b_lst_ptr2=b_lst_ptr2->next;
-                  }
-                  b_lst_ptr2->next = b_lst_ptr;
-                  bpmark = b_lst_ptr;
-               }
-            }
-            i_cnt_type++;
-         }
+          while ( !feof(f_in) ) {
+             inet_aton((char *)"255.255.255.255", &in_tempaddr2);
+             fgets(s_buff, MBUF_SIZE-2, f_in);
+             if ( feof(f_in) ) {
+                break;
+             }
+             if ( i_loop_chk >= mudconf.blacklist_max ) {
+                notify(player, unsafe_tprintf("@blacklist%s: WARNING - %s exceeds MAX (blacklist_max) entries. Rest ignored.", s_prefix, s_file));
+                break;
+             }
+             i_loop_chk++;
+             if ( (i_loop_chk % 20000) == 0 ) {
+                notify(player, unsafe_tprintf("@blacklist%s loading --- %10d loaded -- continuing", s_prefix, i_loop_chk));
+             }
+             s_addrip = strtok_r(s_buff, " \t", &s_addrtok);
+             if ( s_addrip ) {
+                s_addrmask = strtok_r(NULL, " \t", &s_addrtok);
+             }
+              is_ipv6_load = (strchr(s_addrip, ':') != NULL);
+
+              if ((mudconf.ip_family == 1 && is_ipv6_load) ||
+                  (mudconf.ip_family == 2 && !is_ipv6_load)) {
+                 i_invalid++;
+                 continue;
+              }
+
+              load_cidr_prefix = 0;
+             if ( s_addrmask ) {
+                if ( *s_addrmask == '/' ) {
+                   maskval = atol(s_addrmask+1);
+                   load_cidr_prefix = (int)maskval;
+                   if (is_ipv6_load) {
+                      if (((long)maskval < 0) || (maskval > 128)) {
+                         i_invalid++;
+                         continue;
+                      }
+                   } else {
+                      if (((long)maskval < 0) || (maskval > 32)) {
+                         i_invalid++;
+                         continue;
+                      }
+                      if ( maskval != 0 ) {
+                         maskval = (0xFFFFFFFFUL << (32 - maskval));
+                      }
+                      in_tempaddr2.s_addr = htonl(maskval);
+                   }
+                } else {
+                   if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+                      i_invalid++;
+                      continue;
+                   }
+                }
+                i_maskcnt++;
+             }
+             if (is_ipv6_load) {
+                struct in6_addr addr6_tmp;
+                if ( inet_pton(AF_INET6, s_addrip, &addr6_tmp) != 1 ) {
+                   i_invalid++;
+                   continue;
+                }
+             } else {
+                if ( !inet_aton(s_addrip, &in_tempaddr) ) {
+                   i_invalid++;
+                   continue;
+                }
+             }
+             b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
+             sprintf(b_lst_ptr->s_site, "%.45s", strip_returntab(s_addrip,2));
+             b_lst_ptr->addr_family = is_ipv6_load ? AF_INET6 : AF_INET;
+             if (is_ipv6_load) {
+                memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
+                memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
+                strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+                b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+                if (s_addrmask && *s_addrmask) {
+                   if (*s_addrmask == '/') {
+                      snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", load_cidr_prefix);
+                      b_lst_ptr->cidr_prefix = load_cidr_prefix;
+                   } else {
+                      strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                      b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                      b_lst_ptr->cidr_prefix = 128;
+                   }
+                } else {
+                   strcpy(b_lst_ptr->mask_addr_str, "/128");
+                   b_lst_ptr->cidr_prefix = 128;
+                }
+             } else {
+                b_lst_ptr->site_addr = in_tempaddr;
+                b_lst_ptr->mask_addr = in_tempaddr2;
+                strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+                b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+                if (s_addrmask && *s_addrmask) {
+                   if (*s_addrmask == '/') {
+                      snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", load_cidr_prefix);
+                      b_lst_ptr->cidr_prefix = load_cidr_prefix;
+                   } else {
+                      strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                      b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                      b_lst_ptr->cidr_prefix = 32;
+                   }
+                } else {
+                   strcpy(b_lst_ptr->mask_addr_str, "255.255.255.255");
+                   b_lst_ptr->cidr_prefix = 32;
+                }
+             }
+             b_lst_ptr->next = NULL;
+             if ( bl_target == NULL ) {
+                bl_target = b_lst_ptr;
+                bpmark = b_lst_ptr;
+             } else {
+                if ( bpmark ) {
+                   bpmark->next = b_lst_ptr;
+                   bpmark = b_lst_ptr;
+                } else {
+                   b_lst_ptr2 = bl_target;
+                   while ( b_lst_ptr2->next != NULL ) {
+                      b_lst_ptr2=b_lst_ptr2->next;
+                   }
+                   b_lst_ptr2->next = b_lst_ptr;
+                   bpmark = b_lst_ptr;
+                }
+             }
+             i_cnt_type++;
+          }
          switch (i_bltype) {
             case BL_DENY:
                mudstate.blacklist_cnt = i_cnt_type;
@@ -13543,188 +13655,300 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
          free_lbuf(s_buff);
          fclose(f_in);
          break;
-      case BLACKLIST_ADD:
-         if ( i_cnt_type > mudconf.blacklist_max ) {
-            notify(player, unsafe_tprintf("@blacklist/add%s: Maximum (blacklist_max) entries have been reached.  Not added.", s_prefix));
-            break;
-         }
+       case BLACKLIST_ADD:
+          if ( i_cnt_type > mudconf.blacklist_max ) {
+             notify(player, unsafe_tprintf("@blacklist/add%s: Maximum (blacklist_max) entries have been reached.  Not added.", s_prefix));
+             break;
+          }
 
-         tmpbuff = alloc_lbuf("blacklist_add");
-         memset(tmpbuff, '\0', LBUF_SIZE);
-         sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
+          tmpbuff = alloc_lbuf("blacklist_add");
+          memset(tmpbuff, '\0', LBUF_SIZE);
+          sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
 
-         s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
-         if ( !s_addrip || !*s_addrip || !inet_aton(s_addrip, &in_tempaddr) ) {
-            notify(player, unsafe_tprintf("@blacklist/add%s: Invalid IP address specified.", s_prefix));
-            free_lbuf(tmpbuff);
-            break;
-         }
+          s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
+          if ( !s_addrip || !*s_addrip ) {
+             notify(player, unsafe_tprintf("@blacklist/add%s: Invalid IP address specified.", s_prefix));
+             free_lbuf(tmpbuff);
+             break;
+          }
+           is_ipv6_add = (strchr(s_addrip, ':') != NULL);
 
-         i_invalid = 0;
-         s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
+           if ((mudconf.ip_family == 1 && is_ipv6_add) ||
+               (mudconf.ip_family == 2 && !is_ipv6_add)) {
+              notify(player, unsafe_tprintf("@blacklist/add%s: Entry ignored -- address family is disabled.", s_prefix));
+              free_lbuf(tmpbuff);
+              break;
+           }
 
-         if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
-            maskval = atol(s_addrmask+1);
-            if (((long)maskval < 0) || (maskval > 32)) {
-               i_invalid = 1;
-            }
-            if ( maskval != 0 ) {
-               maskval = (0xFFFFFFFFUL << (32 - maskval));
-            }
-            in_tempaddr2.s_addr = htonl(maskval);
-         } else if ( s_addrmask && *s_addrmask ) {
-            if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
-               i_invalid = 1;
-            }
-         } else {
-            i_invalid = 1;
-         }
-         if ( i_invalid ) {
-            notify(player, unsafe_tprintf("@blacklist/add%s: Invalid MASK address specified.", s_prefix));
-            free_lbuf(tmpbuff);
-            break;
-         }
-
-         b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
-         sprintf(b_lst_ptr->s_site, "%.19s", strip_returntab(s_addrip,2));
-         b_lst_ptr->site_addr = in_tempaddr;
-         b_lst_ptr->mask_addr = in_tempaddr2;
-         b_lst_ptr->next = NULL;
-         if ( bl_target == NULL ) {
-            bl_target = b_lst_ptr;
-         } else {      
-            b_lst_ptr2 = bl_target;
-            while ( b_lst_ptr2->next != NULL ) {
-               b_lst_ptr2=b_lst_ptr2->next;
-            }
-            b_lst_ptr2->next = b_lst_ptr;
-         }
-         i_cnt_type++;
-
-         switch (i_bltype) {
-            case BL_DENY:
-               mudstate.blacklist_cnt = i_cnt_type;
-               mudstate.bl_list = bl_target;
-               break;
-            case BL_NODNS:
-               mudstate.blacklist_nodns_cnt = i_cnt_type;
-               mudstate.nd_list = bl_target;
-               break;
-            case BL_REG:
-               mudstate.blacklist_reg_cnt = i_cnt_type;
-               mudstate.rg_list = bl_target;
-               break;
-            case BL_NOGST:
-               mudstate.blacklist_nogst_cnt = i_cnt_type;
-               mudstate.ng_list = bl_target;
-               break;
-         }
-
-         s_buff = alloc_lbuf("blacklist_add2");
-         sprintf(s_buff, "@blacklist/add: %s %s '%s' with MASK '%s' added [%d entries total].", 
-                 s_prefix, (char *)"IP", s_addrip, s_addrmask, i_cnt_type);
-         notify(player, s_buff);
-         free_lbuf(s_buff);
-         free_lbuf(tmpbuff);
-         break;
-      case BLACKLIST_DEL:
-         tmpbuff = alloc_lbuf("blacklist_del");
-         memset(tmpbuff, '\0', LBUF_SIZE);
-         sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
-
-         s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
-         if ( !s_addrip || !*s_addrip || !inet_aton(s_addrip, &in_tempaddr) ) {
-            notify(player, unsafe_tprintf("@blacklist/del%s: Invalid IP address specified.", s_prefix));
-            free_lbuf(tmpbuff);
-            break;
-         }
-
-         i_invalid = 0;
-         s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
-
-         if ( !s_addrmask ) {
-            s_addrmask = (char *)"255.255.255.255";
-         }
-
-         if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
-            maskval = atol(s_addrmask+1);
-            if (((long)maskval < 0) || (maskval > 32)) {
-               i_invalid = 1;
-            }
-            if ( maskval != 0 ) {
-               maskval = (0xFFFFFFFFUL << (32 - maskval));
-            }
-            in_tempaddr2.s_addr = htonl(maskval);
-         } else if ( s_addrmask && *s_addrmask ) {
-            if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
-               i_invalid = 1;
-            }
-         } else {
-            i_invalid = 1;
-         }
-
-         if ( i_invalid ) {
-            notify(player, unsafe_tprintf("@blacklist/del%s: Invalid MASK address specified.", s_prefix));
-            free_lbuf(tmpbuff);
-            break;
-         }
-         b_lst_ptr = bl_target;
-         s_buff = alloc_lbuf("blacklist_del");
-         if ( b_lst_ptr == NULL ) {
-            sprintf(s_buff, "@blacklist/del: %s is empty.", s_prefix2);
-            notify(player, s_buff);
-         } else {
-             i_invalid = 1;
-             b_lst_ptr3 = b_lst_ptr;
-             while ( b_lst_ptr ) {
-                if ( (b_lst_ptr->site_addr.s_addr == in_tempaddr.s_addr) &&
-                     (b_lst_ptr->mask_addr.s_addr == in_tempaddr2.s_addr) ) {
-                   b_lst_ptr2 = b_lst_ptr;
-                   if ( b_lst_ptr == bl_target ) {
-                      bl_target = b_lst_ptr->next;
-                   }
-                   b_lst_ptr3->next = b_lst_ptr->next;
-                   free(b_lst_ptr2);
-                   sprintf(s_buff, "@blacklist/del: %s %s '%s' with mask '%s' deleted.",
-                           s_prefix, (char *)"IP", s_addrip, s_addrmask);
-                   notify(player, s_buff);
-                   i_cnt_type--;
-                   if ( i_cnt_type == 0 ) {
-                      bl_target = NULL;
-                   }
-                   i_invalid = 0;
-                   break;
-                }
-                b_lst_ptr3 = b_lst_ptr;
-                b_lst_ptr = b_lst_ptr->next;
+           if (is_ipv6_add) {
+             struct in6_addr addr6_tmp;
+             if (inet_pton(AF_INET6, s_addrip, &addr6_tmp) != 1) {
+                notify(player, unsafe_tprintf("@blacklist/add%s: Invalid IP address specified.", s_prefix));
+                free_lbuf(tmpbuff);
+                break;
              }
-         }
-         switch (i_bltype) {
-            case BL_DENY:
-               mudstate.blacklist_cnt = i_cnt_type;
-               mudstate.bl_list = bl_target;
-               break;
-            case BL_NODNS:
-               mudstate.blacklist_nodns_cnt = i_cnt_type;
-               mudstate.nd_list = bl_target;
-               break;
-            case BL_REG:
-               mudstate.blacklist_reg_cnt = i_cnt_type;
-               mudstate.rg_list = bl_target;
-               break;
-            case BL_NOGST:
-               mudstate.blacklist_nogst_cnt = i_cnt_type;
-               mudstate.ng_list = bl_target;
-               break;
-         }
-         if ( i_invalid ) {
-            sprintf(s_buff, "@blacklist/del: %s %s '%s' with mask '%s' was not found.",
-                    s_prefix, (char *)"IP", s_addrip, s_addrmask);
-            notify(player, s_buff);
-         }
-         free_lbuf(s_buff);
-         free_lbuf(tmpbuff);
-         break;
+          } else {
+             if (!inet_aton(s_addrip, &in_tempaddr)) {
+                notify(player, unsafe_tprintf("@blacklist/add%s: Invalid IP address specified.", s_prefix));
+                free_lbuf(tmpbuff);
+                break;
+             }
+          }
+
+          i_invalid = 0;
+          s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
+          cidr_prefix_add = 0;
+
+          if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
+             maskval = atol(s_addrmask+1);
+             cidr_prefix_add = (int)maskval;
+             if (is_ipv6_add) {
+                if (((long)maskval < 0) || (maskval > 128)) {
+                   i_invalid = 1;
+                }
+             } else {
+                if (((long)maskval < 0) || (maskval > 32)) {
+                   i_invalid = 1;
+                }
+                if ( maskval != 0 ) {
+                   maskval = (0xFFFFFFFFUL << (32 - maskval));
+                }
+                in_tempaddr2.s_addr = htonl(maskval);
+             }
+          } else if ( s_addrmask && *s_addrmask ) {
+             if (is_ipv6_add) {
+                struct in6_addr mask6;
+                if (inet_pton(AF_INET6, s_addrmask, &mask6) != 1) {
+                   i_invalid = 1;
+                }
+                cidr_prefix_add = 128;
+             } else {
+                if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+                   i_invalid = 1;
+                }
+                cidr_prefix_add = 32;
+             }
+          } else {
+             i_invalid = 1;
+          }
+          if ( i_invalid ) {
+             notify(player, unsafe_tprintf("@blacklist/add%s: Invalid MASK address specified.", s_prefix));
+             free_lbuf(tmpbuff);
+             break;
+          }
+
+          b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
+          sprintf(b_lst_ptr->s_site, "%.45s", strip_returntab(s_addrip,2));
+          b_lst_ptr->addr_family = is_ipv6_add ? AF_INET6 : AF_INET;
+          b_lst_ptr->cidr_prefix = cidr_prefix_add;
+          if (is_ipv6_add) {
+             memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
+             memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
+             strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+             b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+             if (s_addrmask && *s_addrmask) {
+                if (*s_addrmask == '/') {
+                   snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", cidr_prefix_add);
+                } else {
+                   strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                   b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                }
+             } else {
+                strcpy(b_lst_ptr->mask_addr_str, "/128");
+             }
+          } else {
+             b_lst_ptr->site_addr = in_tempaddr;
+             b_lst_ptr->mask_addr = in_tempaddr2;
+             strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+             b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+             if (s_addrmask && *s_addrmask) {
+                if (*s_addrmask == '/') {
+                   snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", cidr_prefix_add);
+                } else {
+                   strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                   b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                }
+             } else {
+                strcpy(b_lst_ptr->mask_addr_str, "255.255.255.255");
+             }
+          }
+          b_lst_ptr->next = NULL;
+          if ( bl_target == NULL ) {
+             bl_target = b_lst_ptr;
+          } else {      
+             b_lst_ptr2 = bl_target;
+             while ( b_lst_ptr2->next != NULL ) {
+                b_lst_ptr2=b_lst_ptr2->next;
+             }
+             b_lst_ptr2->next = b_lst_ptr;
+          }
+          i_cnt_type++;
+
+          switch (i_bltype) {
+             case BL_DENY:
+                mudstate.blacklist_cnt = i_cnt_type;
+                mudstate.bl_list = bl_target;
+                break;
+             case BL_NODNS:
+                mudstate.blacklist_nodns_cnt = i_cnt_type;
+                mudstate.nd_list = bl_target;
+                break;
+             case BL_REG:
+                mudstate.blacklist_reg_cnt = i_cnt_type;
+                mudstate.rg_list = bl_target;
+                break;
+             case BL_NOGST:
+                mudstate.blacklist_nogst_cnt = i_cnt_type;
+                mudstate.ng_list = bl_target;
+                break;
+          }
+
+          s_buff = alloc_lbuf("blacklist_add2");
+          sprintf(s_buff, "@blacklist/add: %s %s '%s' with MASK '%s' added [%d entries total].", 
+                  s_prefix, (is_ipv6_add ? (char *)"IPv6" : (char *)"IP"), s_addrip, s_addrmask, i_cnt_type);
+          notify(player, s_buff);
+          free_lbuf(s_buff);
+          free_lbuf(tmpbuff);
+          break;
+       case BLACKLIST_DEL:
+          tmpbuff = alloc_lbuf("blacklist_del");
+          memset(tmpbuff, '\0', LBUF_SIZE);
+          sprintf(tmpbuff, "%.*s", LBUF_SIZE - 1, name);
+
+          s_addrip = strtok_r(tmpbuff, " \t", &s_buffptr);
+          if ( !s_addrip || !*s_addrip ) {
+             notify(player, unsafe_tprintf("@blacklist/del%s: Invalid IP address specified.", s_prefix));
+             free_lbuf(tmpbuff);
+             break;
+          }
+          is_ipv6_del = (strchr(s_addrip, ':') != NULL);
+          if (is_ipv6_del) {
+             struct in6_addr addr6_tmp;
+             if (inet_pton(AF_INET6, s_addrip, &addr6_tmp) != 1) {
+                notify(player, unsafe_tprintf("@blacklist/del%s: Invalid IP address specified.", s_prefix));
+                free_lbuf(tmpbuff);
+                break;
+             }
+          } else {
+             if (!inet_aton(s_addrip, &in_tempaddr)) {
+                notify(player, unsafe_tprintf("@blacklist/del%s: Invalid IP address specified.", s_prefix));
+                free_lbuf(tmpbuff);
+                break;
+             }
+          }
+
+          i_invalid = 0;
+          s_addrmask = strtok_r(NULL, " \t", &s_buffptr);
+
+          if ( !s_addrmask ) {
+             s_addrmask = is_ipv6_del ? (char *)"/128" : (char *)"255.255.255.255";
+          }
+
+          if ( s_addrmask && *s_addrmask && *s_addrmask == '/' ) {
+             maskval = atol(s_addrmask+1);
+             if (is_ipv6_del) {
+                if (((long)maskval < 0) || (maskval > 128)) {
+                   i_invalid = 1;
+                }
+             } else {
+                if (((long)maskval < 0) || (maskval > 32)) {
+                   i_invalid = 1;
+                }
+                if ( maskval != 0 ) {
+                   maskval = (0xFFFFFFFFUL << (32 - maskval));
+                }
+                in_tempaddr2.s_addr = htonl(maskval);
+             }
+          } else if ( s_addrmask && *s_addrmask ) {
+             if (is_ipv6_del) {
+                struct in6_addr mask6;
+                if (inet_pton(AF_INET6, s_addrmask, &mask6) != 1) {
+                   i_invalid = 1;
+                }
+             } else {
+                if ( !inet_aton(s_addrmask, &in_tempaddr2) ) {
+                   i_invalid = 1;
+                }
+             }
+          } else {
+             i_invalid = 1;
+          }
+
+          if ( i_invalid ) {
+             notify(player, unsafe_tprintf("@blacklist/del%s: Invalid MASK address specified.", s_prefix));
+             free_lbuf(tmpbuff);
+             break;
+          }
+          b_lst_ptr = bl_target;
+          s_buff = alloc_lbuf("blacklist_del");
+          if ( b_lst_ptr == NULL ) {
+             sprintf(s_buff, "@blacklist/del: %s is empty.", s_prefix2);
+             notify(player, s_buff);
+          } else {
+              i_invalid = 1;
+              b_lst_ptr3 = b_lst_ptr;
+              while ( b_lst_ptr ) {
+                 match = 0;
+                 if (b_lst_ptr->addr_family == (is_ipv6_del ? AF_INET6 : AF_INET)) {
+                    if (is_ipv6_del) {
+                       if (strcmp(b_lst_ptr->site_addr_str, s_addrip) == 0 &&
+                           strcmp(b_lst_ptr->mask_addr_str, s_addrmask) == 0) {
+                          match = 1;
+                       }
+                    } else {
+                       if ( (b_lst_ptr->site_addr.s_addr == in_tempaddr.s_addr) &&
+                            (b_lst_ptr->mask_addr.s_addr == in_tempaddr2.s_addr) ) {
+                          match = 1;
+                       }
+                    }
+                 }
+                 if (match) {
+                    b_lst_ptr2 = b_lst_ptr;
+                    if ( b_lst_ptr == bl_target ) {
+                       bl_target = b_lst_ptr->next;
+                    }
+                    b_lst_ptr3->next = b_lst_ptr->next;
+                    free(b_lst_ptr2);
+                    sprintf(s_buff, "@blacklist/del: %s %s '%s' with mask '%s' deleted.",
+                            s_prefix, (is_ipv6_del ? (char *)"IPv6" : (char *)"IP"), s_addrip, s_addrmask);
+                    notify(player, s_buff);
+                    i_cnt_type--;
+                    if ( i_cnt_type == 0 ) {
+                       bl_target = NULL;
+                    }
+                    i_invalid = 0;
+                    break;
+                 }
+                 b_lst_ptr3 = b_lst_ptr;
+                 b_lst_ptr = b_lst_ptr->next;
+              }
+          }
+          switch (i_bltype) {
+             case BL_DENY:
+                mudstate.blacklist_cnt = i_cnt_type;
+                mudstate.bl_list = bl_target;
+                break;
+             case BL_NODNS:
+                mudstate.blacklist_nodns_cnt = i_cnt_type;
+                mudstate.nd_list = bl_target;
+                break;
+             case BL_REG:
+                mudstate.blacklist_reg_cnt = i_cnt_type;
+                mudstate.rg_list = bl_target;
+                break;
+             case BL_NOGST:
+                mudstate.blacklist_nogst_cnt = i_cnt_type;
+                mudstate.ng_list = bl_target;
+                break;
+          }
+          if ( i_invalid ) {
+             sprintf(s_buff, "@blacklist/del: %s %s '%s' with mask '%s' was not found.",
+                     s_prefix, (is_ipv6_del ? (char *)"IPv6" : (char *)"IP"), s_addrip, s_addrmask);
+             notify(player, s_buff);
+          }
+          free_lbuf(s_buff);
+          free_lbuf(tmpbuff);
+          break;
       case BLACKLIST_CLEAR:
          i_loop_chk=0;
          while ( bl_target ) {

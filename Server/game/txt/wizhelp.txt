@@ -3008,6 +3008,9 @@
   
   Example:  @site/permit 123.123.123.0=255.255.255.0
             @site/permit 123.123.123.0=/24
+
+  Example for iPv6:
+            @site/permit 2001:db8::/32
   
   See Also:  @admin, permit_site, register_site, suspect_site, forbid_site,
              noguest_site, trust_site, passproxy_site, forbidapi_site,
@@ -3045,10 +3048,10 @@
   spamming the site list.  You can have a maximum of 100,000 entries in the
   blacklist.  This reads a list of sites in a file blacklist.txt that it 
   populates into the blacklist.  All invalid sites will be ignored.  All
-  site masks are assumed to be '255.255.255.255' (/32).  The blacklist.txt
-  file will be a single line list of IP's that you wish to have in the
-  blacklist.  There is a script that can be ran that will populate this
-  file with all known TOR exit points.
+  site masks are assumed to be '255.255.255.255' (/32) for IPv4 or '/128'
+  for IPV6.  The blacklist.txt file will be a single line list of IP's that
+  you wish to have in the blacklist.  There is a script that can be ran that
+  will populate this file with all known TOR exit points.
   
   The second argument, like the normal @blacklist, only applies to NoDNS 
   entries.
@@ -3064,8 +3067,9 @@
   The Noguest blacklist file will be blacklist_nogst.txt
   The Register blacklist file will be blacklist_reg.txt
   
-  You may optionally have a netmask (in ipv4 or CIDR notation) after the IP
-  in the blacklist.txt.  If no masks is seen, it will assume /32.  
+  You may optionally have a netmask (in ipv4 dotted notation, IPV6, or CIDR
+  notation) after the IP in the blacklist.txt.  If no masks is seen, it will
+  assume /32 for IPv4 or /128 for IPv6.
   
   The following switches exist for @blacklist:
     /load   - Load in all sites in the blacklist.txt file
@@ -3076,7 +3080,8 @@
     /search - search for a wildcard IP address (@blacklist/search 127.*)
     /add    - Add an IP with a mask (syntax: @blacklist/add IP MASK)
     /del    - Delete an IP with a mask (syntax: @blacklist/del IP MASK)
-              Note: MASK if not specified assumes 255.255.255.255
+              Note: MASK if not specified assumes 255.255.255.255 (/32) for
+              IPv4 or /128 for IPV6.
   
   The following feature switches can be used with the above 4 switches:
     /nodns     - If this is used with any of the 4 main switches, it will 
@@ -3116,10 +3121,14 @@
     > @blacklist/add/nodns 12.12.12.0 255.255.255.0 (add IP with MASK)
     > @blacklist/del 12.12.12.0 255.255.255.0 (delete IP with MASK)
     > @blacklist/del/nodns 12.12.12.0 255.255.255.0 (delete IP with MASK)
+
+    > @blacklist/add 2001:db8::1 /48 (add IPv6 with CIDR mask)
+    > @blacklist/del 2001:db8::1 /48 (delete IPv6 with CIDR mask)
   
   With /list, any entry that has a [M] before the IP signifies that there
   is a non-standard netmask associated with the IP.  A nonstandard netmask
-  is considered one that is not /32 (255.255.255.255).
+  is considered one that is not /32 (255.255.255.255) for IPv4 or /128
+  for IPv6.
   
   The default value of blacklists allowed are 100,000.  This value can
   be configured with blacklist_max for between 1000 and 5,000,000.
@@ -3140,10 +3149,12 @@
      123.123.123.123
      122.122.122.0 /24
      122.122.0.0 255.255.0.0
+     2001:db8::1
+     2001:db8::/48
   
-  If you do not specify a netmask, it will assume 255.255.255.255 (/32) as
-  the netmask.  You may use CIDR notation (ie: /24) or the ipv4 notation
-  instead (ie: 255.255.255.0).  
+  If you do not specify a netmask, it will assume 255.255.255.255 (/32) for
+  IPv4 or /128 for IPv6.  You may use CIDR notation (i.e.: /24, /48), the
+  IPv4 dotted notation (ie: 255.255.255.0), or a full IPv6 mask.
   
   IP and NETMASK needs to be separated by a white space.  This can be
   one or more spaces and/or one or more tabs.
@@ -9288,6 +9299,9 @@
   only engage as long as amount of simultaneous connections from the
   specified site exceeds this threshold.
 
+  Both IPv4 and IPv6 addresses are supported.  Masks may be specified as
+  dotted notation, IPv6 notation, or CIDR prefix (/##).
+
   See Also: badsite_file, noguest_site, permit_site, register_site, 
             SITE LISTS.
 
@@ -10264,8 +10278,35 @@
 & ip_address
   Config parameter: ip_address <address>.  Default: 0.0.0.0
   
-  Specifies the IP address on which the game listens for new connections.
-  See Also: port.
+  Specifies the v4 IP address on which the game listens for new connections.
+  Only gets used if ip_family is set to 1 (default) or 3.
+
+  See Also: ip_address_v6, port.
+
+& ip_address_v6
+  Config parameter: ip_address_v6 <address>.  Default: ::
+  
+  Specifies the IPv6 address on which the game listens for new connections.
+  Only gets used if ip_family is set to 2 or 3, not by default.
+
+  See Also: ip_address, port.
+
+& ip_family
+  Config parameter: ip_family <value>.  Default: 1
+  
+  Specifies which address family the game listens on.  This works in
+  conjunction with ip_address and ip_address_v6.  The following values exist:
+    1 - IPv4 only (listens on ip_address)
+    2 - IPv6 only (listens on ip_address_v6)
+    3 - Dual-stack (listens on both ip_address and ip_address_v6)
+    0 - INVALID! Do not set this. It will abort startup of the game since it
+        would otherwise result in a non-listening MUSH, which makes no sense.
+  
+  When set to 3 (dual-stack), the game will create separate sockets for
+  IPv4 and IPv6 connections.  All site-based features (@site, @blacklist,
+  site lists, etc.) support both IPv4 and IPv6 addresses with CIDR notation.
+  
+  See Also: ip_address, ip_address_v6, port.
 
 & kill_guarantee_cost
   Config parameter: kill_guarantee_cost <amount>.  Default: 100
@@ -11020,6 +11061,9 @@
   If the optional <maxconns> parameter is specified, this limitation will
   only engage as long as amount of simultaneous connections from the
   specified site exceeds this threshold.
+
+  Both IPv4 and IPv6 addresses are supported.  Masks may be specified as
+  dotted notation, IPv6 notation, or CIDR prefix (/##).
   
   See Also: forbid_site, forbidapi_site
 
@@ -11343,6 +11387,10 @@
   with the mask.  This directive is typically used to enable connections from
   a few selected hosts or subnets that would otherwise be disallowed by a
   forbid_site directive.  The default is all sites permitted, none forbidden.
+
+  Both IPv4 and IPv6 addresses are supported.  Masks may be specified as
+  dotted notation, IPv6 notation, or CIDR prefix (/##).
+
   See Also: badsite_file, forbid_site, register_site, forbidapi_site, 
             SITE LISTS.
 
@@ -11527,7 +11575,7 @@
   for new connections.  This must be a unique port ID and not match
   the other 'port' config option.
   
-  See Also: ip_address, port, api_nodns
+  See Also: ip_address, ip_address_v6, ip_family, port, api_nodns
 
 & api_nodns
   Config parameter: api_nodns <boolean>.  Default: 0
@@ -11541,7 +11589,7 @@
   Config parameter: port <port>.  Default: 6250
   
   Specifies the IP port on which the game listens for new connections.
-  See Also: ip_address, api_port.
+  See Also: ip_address, ip_address_v6, ip_family, api_port.
 
 & posesay_funct
   Config parameter: posesay_funct <yes/no>.  Default: no
@@ -11726,6 +11774,9 @@
   If the optional <maxconns> parameter is specified, this limitation will
   only engage as long as amount of simultaneous connections from the
   specified site exceeds this threshold.
+
+  Both IPv4 and IPv6 addresses are supported.  Masks may be specified as
+  dotted notation, IPv6 notation, or CIDR prefix (/##).
 
   See Also: forbid_site, forbidapi_site, noguest_site, permit_site, 
             REGISTRATION, SITE LISTS.
@@ -13714,13 +13765,13 @@
   and trust_site parameters. The syntax of these parameters is:
   <param-name> <address> <mask> <max_conn>, where:
  
-  Address  - Four-part decimal Internet address, specified as a.b.c.d,
-             of the host or network to which this parameter applies.
-  Mask     - Four-part decimal Internet address, specified as a.b.c.d
+  Address  - IPv4 address (a.b.c.d) or IPv6 address (hexadecimal with
+             colons) of the host or network to which this parameter applies.
+  Mask     - IPv4 dotted mask (a.b.c.d), IPv6 mask, or CIDR prefix (/##).
              The mask is used to determine which parts of the address are
              to be used for comparison, it is AND'd with both the address
-             of the host and the address in the directive.  The mask may
-             also be /## notation.
+             of the host and the address in the directive.  CIDR ranges
+             are 0-32 for IPv4 and 0-128 for IPv6.
   Max_Conn - An OPTIONAL parameter. If this parameter is set, instead of 
              triggering on the first connection, the restrictions of
              FORBID_SITE/HOST, REGISTER_SITE/HOST, NOGUEST_SITE/HOST,
@@ -13747,6 +13798,8 @@
   noguest_site   150.25.10.0  255.255.255.0    <- Disallow C class for guest
   noguest_site   150.25.10.0  /24              <- Disallow C class for guest
   forbid_site    0.0.0.0      0.0.0.0          <- Disallow everyone else
+  noguest_site   2001:db8::/48              <- Disallow IPv6 /48 for guest
+  forbid_site    ::/0                       <- Disallow everyone else (IPv6)
  
   These directives only allow access from 135.346.*.* and 195.3.17.1, except
   that all hosts in the 135.246.4 subnet except for 135.246.4.40 are also

@@ -99,6 +99,8 @@ NDECL(cf_init)
     strcpy(mudconf.uncompress, "/usr/ucb/zcat -c");
     strcpy(mudconf.status_file, "shutdown.status");
 	strcpy(mudconf.ip_address, "0.0.0.0");
+    strcpy(mudconf.ip_address_v6, "::");
+    mudconf.ip_family = 1;
     mudconf.port = 6250;
     mudconf.html_port = 6251;
     mudconf.api_port = -1;
@@ -3956,6 +3958,7 @@ CF_HAND2(cf_site)
     int i_maxcon, i_found;
     struct in_addr addr_num, mask_num;
     unsigned long maskval;
+    int is_ipv6, i_mask_prefix;
 
     addr_txt = strtok_r(str, " \t=,", &tstrtokr);
     mask_txt = NULL;
@@ -3966,23 +3969,58 @@ CF_HAND2(cf_site)
 		      (char *) "");
 	return -1;
     }
-    addr_num.s_addr = inet_addr(addr_txt);
-    if ( strchr(mask_txt, '/') != NULL ) {
-       maskval = atol(mask_txt+1);
-       if (((long)maskval < 0) || (maskval > 32)) {
-	  cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
+    is_ipv6 = (strchr(addr_txt, ':') != NULL);
+
+    if ((mudconf.ip_family == 1 && is_ipv6) ||
+        (mudconf.ip_family == 2 && !is_ipv6)) {
+       return 0;
+    }
+
+    if (is_ipv6) {
+       struct in6_addr addr6_tmp;
+       if (inet_pton(AF_INET6, addr_txt, &addr6_tmp) != 1) {
+	  cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
 	  return -1;
        }
-       if ( maskval != 0 ) {
-          maskval = (0xFFFFFFFFUL << (32 - maskval));
+       memset(&addr_num, 0, sizeof(addr_num));
+    } else {
+       addr_num.s_addr = inet_addr(addr_txt);
+       if (addr_num.s_addr == (in_addr_t)-1) {
+	  cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
+	  return -1;
        }
-       mask_num.s_addr = htonl(maskval);
-    } else
-       mask_num.s_addr = inet_addr(mask_txt);
+    }
 
-    if (addr_num.s_addr == -1) {
-	cf_log_syntax(player, cmd, "Bad host address: %s", addr_txt);
-	return -1;
+    i_mask_prefix = 0;
+    if ( strchr(mask_txt, '/') != NULL ) {
+       maskval = atol(mask_txt+1);
+       i_mask_prefix = (int)maskval;
+       if (is_ipv6) {
+          if (((long)maskval < 0) || (maskval > 128)) {
+	     cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
+	     return -1;
+          }
+       } else {
+          if (((long)maskval < 0) || (maskval > 32)) {
+	     cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
+	     return -1;
+          }
+          if ( maskval != 0 ) {
+             maskval = (0xFFFFFFFFUL << (32 - maskval));
+          }
+          mask_num.s_addr = htonl(maskval);
+       }
+    } else {
+       if (is_ipv6) {
+          struct in6_addr mask6_tmp;
+          if (inet_pton(AF_INET6, mask_txt, &mask6_tmp) != 1) {
+	     cf_log_syntax(player, cmd, "Bad address mask: %s", mask_txt);
+	     return -1;
+          }
+          i_mask_prefix = 128;
+       } else {
+          mask_num.s_addr = inet_addr(mask_txt);
+       }
     }
 
     i_maxcon = -1;
@@ -4001,11 +4039,19 @@ CF_HAND2(cf_site)
     i_found = 0;
     for ( s_tmp = head; s_tmp; s_tmp = s_tmp->next ) {
        if ( s_tmp && (s_tmp->maxcon == i_maxcon) &&
-            (s_tmp->address.s_addr == addr_num.s_addr) &&
-            (s_tmp->mask.s_addr == mask_num.s_addr) &&
             (s_tmp->flag == extra) ) {
-          i_found = 1;
-          break;
+          if (s_tmp->addr_family == 0 && !is_ipv6) {
+             if ((s_tmp->address.s_addr == addr_num.s_addr) &&
+                 (s_tmp->mask.s_addr == mask_num.s_addr)) {
+                i_found = 1;
+                break;
+             }
+          } else if ((s_tmp->addr_family == (is_ipv6 ? AF_INET6 : AF_INET)) &&
+                     (strcmp(s_tmp->address_str, addr_txt) == 0) &&
+                     (strcmp(s_tmp->mask_str, mask_txt) == 0)) {
+             i_found = 1;
+             break;
+          }
        }
     }
     if ( i_found ) {
@@ -4028,8 +4074,19 @@ CF_HAND2(cf_site)
        site->key = 0;
     }
     site->maxcon = i_maxcon;
-    site->address.s_addr = addr_num.s_addr;
-    site->mask.s_addr = mask_num.s_addr;
+    site->addr_family = is_ipv6 ? AF_INET6 : AF_INET;
+    site->cidr_prefix = i_mask_prefix;
+    strncpy(site->address_str, addr_txt, sizeof(site->address_str) - 1);
+    site->address_str[sizeof(site->address_str) - 1] = '\0';
+    strncpy(site->mask_str, mask_txt, sizeof(site->mask_str) - 1);
+    site->mask_str[sizeof(site->mask_str) - 1] = '\0';
+    if (is_ipv6) {
+       memset(&site->address, 0, sizeof(site->address));
+       memset(&site->mask, 0, sizeof(site->mask));
+    } else {
+       site->address.s_addr = addr_num.s_addr;
+       site->mask.s_addr = mask_num.s_addr;
+    }
     site->flag = extra;
     site->next = NULL;
 
@@ -4960,10 +5017,16 @@ CONF conftable[] =
     {(char *) "inventory_name",
      cf_string, CA_IMMORTAL, (int *) mudconf.invname, 79, 0, CA_PUBLIC,
      (char *) "What is the inventory name for alt inventory?"},
-    {(char *) "ip_address",
-     cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
-     (char *) "IP address for the MUSH to listen on."},
-    {(char *) "iter_loop_max",
+     {(char *) "ip_address",
+      cf_string, CA_DISABLED, (int *) mudconf.ip_address, 15, 0, CA_WIZARD,
+      (char *) "IP address for the MUSH to listen on."},
+     {(char *) "ip_address_v6",
+      cf_string, CA_DISABLED, (int *) mudconf.ip_address_v6, 46, 0, CA_WIZARD,
+      (char *) "IPv6 address for the MUSH to listen on."},
+     {(char *) "ip_family",
+      cf_int, CA_DISABLED, &mudconf.ip_family, 0, 0, CA_WIZARD,
+      (char *) "IP family: 1=IPv4, 2=IPv6, 3=both. Default: 1"},
+     {(char *) "iter_loop_max",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.iter_loop_max, 0, 0, CA_PUBLIC,
      (char *) "Maximum iteration allowed for iter() infinite loops.\r\n"\
               "                             Default: 100000   Value: %d"},

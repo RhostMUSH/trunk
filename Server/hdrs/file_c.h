@@ -27,7 +27,7 @@
 
 /* File cache routines */
 
-extern void	FDECL(fcache_rawdump, (int fd, int num, struct in_addr host, char *s_site));
+extern void	FDECL(fcache_rawdump, (int fd, int num, const char *host, char *s_site));
 extern void	FDECL(fcache_dump, (DESC *d, int num, char *s_site));
 extern void	FDECL(fcache_send, (dbref, int));
 extern void	FDECL(fcache_load, (dbref));

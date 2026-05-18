@@ -36931,7 +36931,7 @@
 	  
 	  Current Changelogs:
 	  -------------------
-	  1 - 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
+	  1 - 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
 	  2 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
 	      4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
 	  3 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
@@ -36941,6 +36941,7 @@
 	  5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
 	      4.3.1, 4.3.0
 
+& 4.30.0
 & 4.29.0
 & 4.28.0
 & 4.27.8
@@ -36951,6 +36952,20 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.30.0
+  * Full IPv6 Support
+    - New config option: ip_family - defaults to IPv4 only (1)
+      Can be set to 2 (IPv6 only) or 3 (both).
+    - New config option: ip_address_v6 - for setting the IPv6
+      address to listen on. Optional, like ip_address.
+    - All site-based features work for IPv6: @site, @blacklist,
+      *_site entries, suspect lists.
+    - IPv6 CIDR Notion (i.e. /64 masks and such) are supported.
+    - Tor exit node detection SHOULD work, but Tor IPv6 nodes
+      are rare.
+    - All Rhost defenses (autoblocks, rate limits etc.) support
+      IPv6 targets.
 
   4.29.0
   * LibMDBX Support (Provided by Brazil@TinyMUX)

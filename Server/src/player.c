@@ -274,7 +274,7 @@ int check_site(dbref player, DESC *d)
   dbref	aowner;
   int	aflags, ok, i_retvar = -1;
 
-  host = inet_ntoa(d->address.sin_addr);
+  host = d->addr;
   siteinfo = atr_get(player,A_SITEGOOD, &aowner, &aflags);
   if (*siteinfo == '\0')
     ok = 1;

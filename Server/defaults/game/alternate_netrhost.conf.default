@@ -48,6 +48,8 @@ abort_on_bug             0
 # ports
 
 #ip_address
+#ip_address_v6 ::
+#ip_family 1
 port        6250
 debug_id    44660
 #html_port  6251

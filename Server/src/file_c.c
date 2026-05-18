@@ -238,7 +238,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 }
 
 void 
-fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
+fcache_rawdump(int fd, int num, const char *host, char *s_site)
 {
     int cnt, remaining;
     char *start;
@@ -279,7 +279,7 @@ fcache_rawdump(int fd, int num, struct in_addr host, char *s_site)
              sarray[2] = alloc_lbuf("fcache_dump2");
              sarray[3] = alloc_lbuf("fcache_dump2");
              sarray[4] = NULL;
-             strcpy(sarray[0], inet_ntoa(host));
+             strcpy(sarray[0], host);
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
              sprintf(sarray[3], "#%d", NOTHING);
@@ -437,7 +437,7 @@ fcache_dump(DESC * d, int num, char *s_site)
              sarray[2] = alloc_lbuf("fcache_dump2");
              sarray[3] = alloc_lbuf("fcache_dump2");
              sarray[4] = NULL;
-             strcpy(sarray[0], inet_ntoa(d->address.sin_addr));
+              strcpy(sarray[0], d->addr);
              strcpy(sarray[1], d->longaddr);
              sprintf(sarray[2], "%d", d->descriptor);
              if ( d->player <= 0 )
