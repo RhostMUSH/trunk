@@ -932,9 +932,10 @@ int dump_reboot_db( void )
 {
   DESC* d;
   struct SNOOPLISTNODE* slnptr;
-  FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[38 + 6];
-  int i_prefix, i_suffix, i_descsize;
+  FILE* rebootfile = NULL, *suffixfile = NULL;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8];
+  int i_prefix, i_suffix;
+  int i_hot_size, i_cold_size;
 
   DPUSH; /* #107 */
 
@@ -943,25 +944,13 @@ int dump_reboot_db( void )
   ENDLOG
 
   strcpy(rebootfilename, mudconf.muddb_name);
-  strcpy(rebootsizeref, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
   strcat(rebootfilename, ".reboot");
   strcat(suffixfilename, ".fx");
-  strcat(rebootsizeref, ".size");
 
   rebootfile = fopen(rebootfilename, "wb");
   suffixfile = fopen(suffixfilename, "wb");
-  sizefile = fopen(rebootsizeref, "wb");
 
-  if ( sizefile ) {
-     i_descsize = sizeof(DESC);
-     if ( !fwrite(&i_descsize, sizeof(i_descsize), 1, sizefile) ) {
-        STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
-      log_text((char *) "Error writing to reboot file.");
-    ENDLOG
-     }
-     fclose(sizefile);
-  }
   if( !rebootfile || !suffixfile) {
     STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
       log_text((char *) "Unable to open reboot file for writing.");
@@ -1019,6 +1008,18 @@ int dump_reboot_db( void )
     RETURN(0); /* #107 */
   }
 
+  i_hot_size = sizeof(DESC_HOT);
+  i_cold_size = sizeof(DESC_COLD);
+  if (!fwrite(&i_hot_size, sizeof(i_hot_size), 1, rebootfile) ||
+      !fwrite(&i_cold_size, sizeof(i_cold_size), 1, rebootfile)) {
+    STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
+      log_text((char *) "Error writing DESC sizes to reboot file.");
+    ENDLOG
+    fclose(rebootfile);
+    fclose(suffixfile);
+    RETURN(0); /* #107 */
+  }
+
   i_prefix = mkattr("____OUTPUTPREFIX");
   i_suffix = mkattr("____OUTPUTSUFFIX");
   DESC_ITER_ALL(d) {
@@ -1056,7 +1057,8 @@ int dump_reboot_db( void )
        }
        d->hot.flags |= DS_HAVEsFX;
     }
-    if( !fwrite(d, sizeof(DESC), 1, rebootfile) ) {
+    if( !fwrite(&d->hot, sizeof(DESC_HOT), 1, rebootfile) ||
+        !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
         log_text((char *) "Error writing to reboot file.");
       ENDLOG
@@ -1088,9 +1090,11 @@ int load_reboot_db( void )
   DESC* d;
   DESC* prev;
   DESC* tempd;
-  FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[32 + 6], *s_text, *s_god;
-  int i_prefix, i_suffix, i_fxchk, i_descsize;
+  FILE* rebootfile = NULL, *suffixfile = NULL;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8], *s_text, *s_god;
+  int i_prefix, i_suffix, i_fxchk;
+  int i_file_hot_size, i_file_cold_size;
+  int i_hot_read, i_cold_read;
 
   DPUSH; /* #108 */
 
@@ -1101,11 +1105,9 @@ int load_reboot_db( void )
   i_fxchk = ndescriptors = 0;
 
   strcpy(rebootfilename, mudconf.muddb_name);
-  strcpy(rebootsizeref, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
   strcat(rebootfilename, ".reboot");
   strcat(suffixfilename, ".fx");
-  strcat(rebootsizeref, ".size");
 
   rebootfile = fopen(rebootfilename, "rb");
   if( !rebootfile ) {
@@ -1113,38 +1115,6 @@ int load_reboot_db( void )
       log_text((char *) "Unable to open reboot file for reading.");
     ENDLOG
     RETURN(0); /* #108 */
-  }
-
-  sizefile = fopen(rebootsizeref, "rb");
-
-  i_descsize = sizeof(DESC);
-  if ( sizefile ) {
-     if ( !fread(&i_descsize, sizeof(i_descsize), 1, sizefile) ) {
-        STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-           log_text((char *) "Error reading DESC SIZE file for assigning DESC size. This can potentially cause a crash on reboot.  Assuming same size DESC");
-        ENDLOG
-     }
-     fclose(sizefile);
-     unlink(rebootsizeref);
-     sizefile = NULL;
-  } else {
-     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-        log_text((char *) "Unable to open DESC SIZE file for reading. This can potentially cause a crash on reboot.  Assuming baseline DESC.");
-     ENDLOG
-     i_descsize = sizeof(DESCORIG);
-  }
-
-  if ( i_descsize > sizeof(DESC) ) {
-     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-        log_text((char *) "Size of DESC being loaded is larger than in-game DESC.  Trimming value impossible. This would cause corruption on reboot.");
-     ENDLOG
-     if ( sizefile ) {
-        fclose(sizefile);
-        unlink(rebootsizeref);
-     }
-     fclose(rebootfile);
-     unlink(rebootfilename);
-     RETURN(0);
   }
 
 
@@ -1199,17 +1169,37 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
+
+  if( !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
+      !fread(&i_file_cold_size, sizeof(i_file_cold_size), 1, rebootfile) ) {
+    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+      log_text((char *) "Error reading DESC sizes from reboot file.");
+    ENDLOG
+    fclose(rebootfile);
+    if ( !i_fxchk ) fclose(suffixfile);
+    RETURN(0); /* #108 */
+  }
+
+  if ( i_file_hot_size > sizeof(DESC_HOT) || i_file_cold_size > sizeof(DESC_COLD) ) {
+    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+      log_text((char *) "Reboot file DESC struct is larger than current in-game DESC. Cannot load safely.");
+    ENDLOG
+    fclose(rebootfile);
+    if ( !i_fxchk ) fclose(suffixfile);
+    RETURN(0); /* #108 */
+  }
+
+  i_hot_read = (i_file_hot_size < sizeof(DESC_HOT)) ? i_file_hot_size : sizeof(DESC_HOT);
+  i_cold_read = (i_file_cold_size < sizeof(DESC_COLD)) ? i_file_cold_size : sizeof(DESC_COLD);
+
   i_prefix = mkattr("____OUTPUTPREFIX");
   i_suffix = mkattr("____OUTPUTSUFFIX");
   s_text = alloc_lbuf("reboot_fx");
   while(!feof(rebootfile)) {
     d = alloc_desc("reboot_sock");
-    d->cold->account_owner = NOTHING;
-    d->cold->ws_frame_len = 0;
-    d->cold->checksum[0] = '\0';
-    d->cold->account_rawpass[0] = '\0';
-    if( !fread(d, i_descsize, 1, rebootfile) ) {
+    if( !fread(&d->hot, i_hot_read, 1, rebootfile) ||
+        !fread(d->cold, i_cold_read, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
         break;
       }
