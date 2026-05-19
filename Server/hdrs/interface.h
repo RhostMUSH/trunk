@@ -110,59 +110,6 @@ struct descriptor_data_online {
   dbref player;
 };
 
-/* We define this to allow people who are on older systems to boot new desc data w/o crashing */
-typedef struct descriptor_data_orig DESCORIG;
-struct descriptor_data_orig {
-  int descriptor;
-  int flags;
-  int retries_left;
-  int regtries_left;
-  int command_count;
-  int timeout;
-  int host_info;
-  char addr[51];
-  char doing[256];
-  dbref player;
-  char *output_prefix;
-  char *output_suffix;
-  int output_size;
-  int output_tot;
-  int output_lost;
-  TBLOCK *output_head;
-  TBLOCK *output_tail;
-  int input_size;
-  int input_tot;
-  int input_lost;
-  CBLK *input_head;
-  CBLK *input_tail;
-  CBLK *raw_input;
-  char *raw_input_at;
-  time_t connected_at;
-  time_t last_time;
-  int quota;
-  struct sockaddr_in address;	/* added 3/6/90 SCG */
-  struct descriptor_data *hashnext;
-  struct descriptor_data *next;
-  struct descriptor_data **prev;
-  struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
-  int logged;
-  int authdescriptor;		    /* added 2/95 Thorin */
-  char userid[MBUF_SIZE];	    /* added 2/95 Thorin */
-  int door_desc;		/* added 11/15/97 Seawolf */
-  int door_num;			/* added 11/15/97 Seawolf */
-  TBLOCK *door_output_head;
-  TBLOCK *door_output_tail;
-  int door_output_size;
-  CBLK *door_input_head;
-  CBLK *door_input_tail;
-  int door_int1;
-  int door_int2;
-  int door_int3;
-  char *door_lbuf;
-  char *door_mbuf;
-  char *door_raw;
-};
-
 /* Forward declarations for hot/cold split */
 typedef struct desc_cold DESC_COLD;
 typedef struct descriptor_data DESC;
@@ -208,7 +155,6 @@ struct desc_hot_arrays {
     int          output_tot[MAX_DESCRIPTORS];
     int          output_size[MAX_DESCRIPTORS];
     time_t       last_time[MAX_DESCRIPTORS];
-    DESC        *hashnext[MAX_DESCRIPTORS];
 };
 
 extern struct desc_hot_arrays desc_hot;
@@ -228,7 +174,6 @@ extern struct desc_hot_arrays desc_hot;
 #define D_OUTPUT_TOT(d)  (desc_hot.output_tot[(d)->slot_index])
 #define D_OUTPUT_SIZE(d) (desc_hot.output_size[(d)->slot_index])
 #define D_LAST_TIME(d)   (desc_hot.last_time[(d)->slot_index])
-#define D_HASHNEXT(d)    (desc_hot.hashnext[(d)->slot_index])
 
 /* Cold descriptor data — accessed infrequently */
 struct desc_cold {
@@ -368,21 +313,20 @@ extern int ndescriptors;    /* total open FDs: main + doors + auth */
 extern int ndesc_slots;     /* entries in desc_slots array only */
 
 #define DESC_ITER_PLAYER(p,d) \
-	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab);d;d=D_HASHNEXT(d))
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++) \
+	    if (D_PLAYER(d) == (p))
 #define DESC_ITER_CONN(d) \
 	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++) \
-		if (D_FLAGS(d) & DS_CONNECTED)
+	    if (D_FLAGS(d) & DS_CONNECTED)
 #define DESC_ITER_ALL(d) \
 	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++)
 
 #define DESC_SAFEITER_PLAYER(p,d,n) \
-	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab), \
-        	n=((d!=NULL) ? D_HASHNEXT(d) : NULL); \
-	     d; \
-	     d=n,n=((n!=NULL) ? D_HASHNEXT(n) : NULL))
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, (n) = d, 1); _di--) \
+	    if (D_PLAYER(d) == (p))
 #define DESC_SAFEITER_CONN(d) \
 	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--) \
-		if (D_FLAGS(d) & DS_CONNECTED)
+	    if (D_FLAGS(d) & DS_CONNECTED)
 #define DESC_SAFEITER_ALL(d) \
 	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--)
 
