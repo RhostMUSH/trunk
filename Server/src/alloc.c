@@ -43,7 +43,7 @@ typedef struct pooldata {
 
 POOL pools[NUM_POOLS];
 const char *poolnames[] =
-{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "AtrName"};
+{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "AtrName", "DescCold"};
 
 #define POOL_MAGICNUM 0xdeadbeef
 

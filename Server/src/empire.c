@@ -159,7 +159,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     close(sock_req);
     return -1;
   }
-  strcpy(buf,Name(desc_in_use->player));
+  strcpy(buf,Name(desc_in_use->hot.player));
   strcat(buf,"@");
   strcat(buf,mudconf.mud_name);
   if (!sendcmd(sock_req, USER, buf)) {
@@ -202,8 +202,8 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
   return 1;
 
  abort:
-  free_lbuf(d->door_lbuf);
-  free_mbuf(d->door_mbuf);
+  free_lbuf(d->cold->door_lbuf);
+  free_mbuf(d->cold->door_mbuf);
   close(sock_req);
   return -1;
 }
@@ -212,9 +212,9 @@ void empire_prompt(DESC *d)
 {
   char buf[1024];
 
-  if (d->door_int1 == C_PROMPT)
+  if (d->cold->door_int1 == C_PROMPT)
     queue_string(d,"\r\n");
-  sprintf(buf,"%s%s\r\n",d->door_mbuf,d->door_lbuf);
+  sprintf(buf,"%s%s\r\n",d->cold->door_mbuf,d->cold->door_lbuf);
   queue_string(d,buf);
   process_output(d);
 }
@@ -268,10 +268,10 @@ int empire_from_empsrv(DESC *d, char *text)
 	code = *pt1 - '0';
       switch (code) {
 	case C_PROMPT:
-	  if (sscanf(pt2,"%d %d", &(d->door_int2), &(d->door_int3)) != 2)
+	  if (sscanf(pt2,"%d %d", &(d->cold->door_int2), &(d->cold->door_int3)) != 2)
 	    queue_string(d, "empire: bad server prompt.\r\n");
-	  d->door_int1 = code;
-	  sprintf(d->door_lbuf, "[%d:%d] Command : ", d->door_int2, d->door_int3);
+	  d->cold->door_int1 = code;
+	  sprintf(d->cold->door_lbuf, "[%d:%d] Command : ", d->cold->door_int2, d->cold->door_int3);
 	  empire_prompt(d);
 	  break;
 	case C_REDIR:
@@ -281,8 +281,8 @@ int empire_from_empsrv(DESC *d, char *text)
 	  queue_string(d,"empire: pipe not supported.\r\n");
 	  break;
 	case C_FLUSH:
-	  d->door_int1 = code;
-	  strcpy(d->door_lbuf, pt2);
+	  d->cold->door_int1 = code;
+	  strcpy(d->cold->door_lbuf, pt2);
 	  empire_prompt(d);
 	  break;
 	case C_EXECUTE:
@@ -294,11 +294,11 @@ int empire_from_empsrv(DESC *d, char *text)
 	  strcpy(pt3,pt2);
 	  do_command(d,pt3);
 	  free_lbuf(pt3);
-	  if (!(d->flags & DS_HAS_DOOR)) {
+	  if (!(d->hot.flags & DS_HAS_DOOR)) {
 	    queue_string(d,"Exec send EOF failed; Empire door was closed.\r\n");
 	    return -1;
 	  }
-	  else if (WRITE(d->door_desc,"ctld\n", 5) < 5) {
+	  else if (WRITE(d->cold->door_desc,"ctld\n", 5) < 5) {
 	    queue_string(d,"Exec send EOF failed\r\n");
 	    return -1;
 	  }
@@ -306,11 +306,11 @@ int empire_from_empsrv(DESC *d, char *text)
 	case C_INFORM:
 	  if (*pt2) {
 	    pt2[strlen(pt2)-1] = '\0';
-	    sprintf(d->door_mbuf, "(%s)", pt2+1);
+	    sprintf(d->cold->door_mbuf, "(%s)", pt2+1);
 	    empire_prompt(d);
 	  }
 	  else
-	    *(d->door_mbuf) = '\0';
+	    *(d->cold->door_mbuf) = '\0';
 	  break;
 	default:
 	  empire_output(d, code, pt2);

@@ -15,7 +15,8 @@
 #define POOL_ZLISTNODE  7
 #define POOL_ATRCACHE   8
 #define POOL_ATRNAME    9
-#define	NUM_POOLS       10 
+#define POOL_DESC_COLD  10
+#define	NUM_POOLS       11 
 
 
 #ifndef GDBM

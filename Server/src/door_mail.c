@@ -177,7 +177,7 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
       queue_string(d, "Count not allocate required memory.");
       goto abort;
     }
-    p->player = d->player;
+    p->player = d->hot.player;
     p->id = id;
     p->status = OK_e;
     strncpy(p->user, user, 30);
@@ -202,7 +202,7 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
 
 int mailDoorClose(DESC *d) {
   mail_t *p;
-  p = findStruct(d->player);
+  p = findStruct(d->hot.player);
   if (p) {
     delStruct(p);
   }
@@ -210,7 +210,7 @@ int mailDoorClose(DESC *d) {
 }
 
 int mailDoorOutput(DESC *d, char *pText) {
-  notify(d->player, "Command ignored.");
+  notify(d->hot.player, "Command ignored.");
   return -1;
 }
 
@@ -224,7 +224,7 @@ int mailDoorInput(DESC *d, char *pText) {
   queue_string(d, "\r\n");
 #endif
 
-  p = findStruct(d->player);
+  p = findStruct(d->hot.player);
   if (!p) {
     queue_string(d, "Could not find you in the mail-door system.. aborting.");
     goto abort;
@@ -233,15 +233,15 @@ int mailDoorInput(DESC *d, char *pText) {
   if (strncmp(pText, "+OK", 3) == 0) {
     switch (p->status) {
       case OK_e:
-	sendcmd(d->door_desc, unsafe_tprintf("USER %s\r\n", p->user));
+	sendcmd(d->cold->door_desc, unsafe_tprintf("USER %s\r\n", p->user));
 	p->status = USER_e;
 	break;
       case USER_e:
-	sendcmd(d->door_desc, unsafe_tprintf("PASS %s\r\n", p->pass));
+	sendcmd(d->cold->door_desc, unsafe_tprintf("PASS %s\r\n", p->pass));
 	p->status = PASS_e;
 	break;
       case PASS_e:
-	sendcmd(d->door_desc, "STAT\r\n");
+	sendcmd(d->cold->door_desc, "STAT\r\n");
 	p->status = STAT_e;
 	break;
       case STAT_e:
@@ -266,7 +266,7 @@ int mailDoorInput(DESC *d, char *pText) {
 	queue_string(d, unsafe_tprintf("You have %s mail message%s occupying %s bytes.",
 				n, (l > 1) ? "s" : "", (s == '\0') ? "(unknown)" : s));
 	queue_string(d, "\r\n");
-	sendcmd(d->door_desc, "QUIT\r\n");
+	sendcmd(d->cold->door_desc, "QUIT\r\n");
 	p->status = DONE_e;
 	break;
     default:

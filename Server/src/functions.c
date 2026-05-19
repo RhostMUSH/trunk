@@ -7729,8 +7729,8 @@ FUNCTION(fun_totcmds)
       if (Connected(target) && (!Cloak(target) || Wizard(player)) &&
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
          DESC_ITER_CONN(d) {
-            if (d->player == target)
-               tot_cmds += d->command_count;
+            if (d->hot.player == target)
+               tot_cmds += d->cold->command_count;
          }
          if ( tot_cmds > 2000000000 )
             tot_cmds = 2000000000;
@@ -7770,12 +7770,12 @@ FUNCTION(fun_doing)
    } else if (Connected(target) && (!Cloak(target) || Wizard(player)) &&
              (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
       DESC_ITER_CONN(d) {
-         if (d->player == target) {
-            if ( (d->descriptor == portid) && (nfargs == 2) ) {
-               safe_str(d->doing, buff, bufcx);
+         if (d->hot.player == target) {
+            if ( (d->hot.descriptor == portid) && (nfargs == 2) ) {
+               safe_str(d->cold->doing, buff, bufcx);
                break;
             } else if (nfargs != 2) {
-               safe_str(d->doing, buff, bufcx);
+               safe_str(d->cold->doing, buff, bufcx);
                break;
             }
          }
@@ -7815,17 +7815,17 @@ FUNCTION(fun_charin)
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
          i_loop = 0;
          DESC_ITER_CONN(d) {
-            if (d->player == target) {
+            if (d->hot.player == target) {
                if ( i_type == 0 ) {
                   switch( i_subval ) {
                      case 1: /* pending */
-                        cmd += d->input_size;
+                        cmd += d->hot.input_size;
                         break;
                      case 2: /* lost */
-                        cmd += d->input_lost;
+                        cmd += d->cold->input_lost;
                         break;
                      default: /* total */
-                        cmd += d->input_tot;
+                        cmd += d->hot.input_tot;
                         break;
                   }
                } else {
@@ -7834,16 +7834,16 @@ FUNCTION(fun_charin)
                   }
                   switch ( i_subval ) {
                      case 1: /* pending */
-                        cmd = d->input_size;
+                        cmd = d->hot.input_size;
                         break;
                      case 2: /* lost */
-                        cmd = d->input_lost;
+                        cmd = d->cold->input_lost;
                         break;
                      default: /* total */
-                        cmd = d->input_tot;
+                        cmd = d->hot.input_tot;
                         break;
                   }
-                  sprintf(tmp_buff, "%d:%d", d->descriptor, cmd);
+                  sprintf(tmp_buff, "%d:%d", d->hot.descriptor, cmd);
                   safe_str(tmp_buff, buff, bufcx);
                   i_loop=1;
                }
@@ -7904,17 +7904,17 @@ FUNCTION(fun_charout)
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
          i_loop = 0;
          DESC_ITER_CONN(d) {
-            if (d->player == target) {
+            if (d->hot.player == target) {
                if ( i_type == 0 ) {
                   switch( i_subval ) {
                      case 1: /* pending */
-                        cmd += d->output_size;
+                        cmd += d->hot.output_size;
                         break;
                      case 2: /* lost */
-                        cmd += d->output_lost;
+                        cmd += d->cold->output_lost;
                         break;
                      default: /* total */
-                        cmd += d->output_tot;
+                        cmd += d->hot.output_tot;
                         break;
                   }
                } else {
@@ -7923,16 +7923,16 @@ FUNCTION(fun_charout)
                   }
                   switch ( i_subval ) {
                      case 1: /* pending */
-                        cmd = d->output_size;
+                        cmd = d->hot.output_size;
                         break;
                      case 2: /* lost */
-                        cmd = d->output_lost;
+                        cmd = d->cold->output_lost;
                         break;
                      default: /* total */
-                        cmd = d->output_tot;
+                        cmd = d->hot.output_tot;
                         break;
                   }
-                  sprintf(tmp_buff, "%d:%d", d->descriptor, cmd);
+                  sprintf(tmp_buff, "%d:%d", d->hot.descriptor, cmd);
                   safe_str(tmp_buff, buff, bufcx);
                   i_loop=1;
                }
@@ -7996,13 +7996,13 @@ FUNCTION(fun_cmds)
          i_loop=0;
          found = 0;
          DESC_ITER_CONN(d) {
-            if (d->player == target) {
+            if (d->hot.player == target) {
                if ( i_type == 0 ) {
                   found = 1;
-                  cmd += d->command_count;
+                  cmd += d->cold->command_count;
                } else {
-                  if ( d_type == d->descriptor ) {
-                     cmd = d->command_count;
+                  if ( d_type == d->hot.descriptor ) {
+                     cmd = d->cold->command_count;
                      /* Fake single mode */
                      i_type = 0;
                      found = 1;
@@ -8010,7 +8010,7 @@ FUNCTION(fun_cmds)
                   } else if ( (i_type == 1) && (d_type == -1) ) {
                      if (i_loop)
                         safe_chr(' ', buff, bufcx);
-                     sprintf(tmp_buff, "%d:%d", d->descriptor, d->command_count);
+                     sprintf(tmp_buff, "%d:%d", d->hot.descriptor, d->cold->command_count);
                      safe_str(tmp_buff, buff, bufcx);
                      i_loop=1;
                      found = 1;
@@ -8824,12 +8824,12 @@ FUNCTION(fun_port)
     it = lookup_player(player, fargs[0], 0);
     if (Good_obj(it) && (Immortal(player) || Controls(player, it))) {
        DESC_ITER_CONN(d) {
-          if (d->player == it) {
+          if (d->hot.player == it) {
              if (gotone) {
                 safe_chr(' ', buff, bufcx);
              }
              gotone = 1;
-             ival(buff, bufcx, d->descriptor);
+             ival(buff, bufcx, d->hot.descriptor);
           }
        }
     }
@@ -8973,16 +8973,16 @@ FUNCTION(fun_lookup_site)
    }
    if ( Good_chk(it) && Controls(player, it)) {
       DESC_ITER_CONN(d) {
-         if ( d->player == it ) {
-            if ( (mush_port == -1) || (d->descriptor == mush_port) ) {
+         if ( d->hot.player == it ) {
+            if ( (mush_port == -1) || (d->hot.descriptor == mush_port) ) {
                if ( gotone ) {
                   safe_chr(' ', buff, bufcx);
                }
                gotone = 1;
                if ( c_type == 1 ) {
-                   safe_str(d->addr, buff, bufcx);
+                   safe_str(d->cold->addr, buff, bufcx);
                } else {
-                  safe_str(d->longaddr, buff, bufcx);
+                  safe_str(d->cold->longaddr, buff, bufcx);
                }
             }
          }
@@ -24612,8 +24612,8 @@ FUNCTION(fun_account_owner)
    if ( nfargs == 1 ) {
       i_port = atoi(fargs[0]);
       DESC_SAFEITER_ALL(d, dnext) {
-         if ( i_port == d->descriptor ) {
-            ival(buff, bufcx, d->account_owner);
+         if ( i_port == d->hot.descriptor ) {
+            ival(buff, bufcx, d->cold->account_owner);
             break;
          }
       }
@@ -24627,12 +24627,12 @@ FUNCTION(fun_account_owner)
       }
       i_port = atoi(fargs[0]);
       DESC_SAFEITER_ALL(d, dnext) {
-         if ( i_port == d->descriptor ) {
-            if ( d->account_owner < 0 ) {
+         if ( i_port == d->hot.descriptor ) {
+            if ( d->cold->account_owner < 0 ) {
                safe_str("#-1 YOU ARE ALREADY LOGGED OFF", buff, bufcx);
             } else {
-               d->account_owner = NOTHING;
-               memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+               d->cold->account_owner = NOTHING;
+               memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
                ival(buff, bufcx, 1);
             }
             return;
@@ -24655,7 +24655,7 @@ FUNCTION(fun_account_owner)
 
    i_port = atoi(fargs[2]);
    DESC_SAFEITER_ALL(d, dnext) {
-      if ( i_port == d->descriptor ) {
+      if ( i_port == d->hot.descriptor ) {
          s_buffptr = s_buff = alloc_lbuf("account_owner");
          s_tmp = alloc_lbuf("account_owner2");
          s_tmp2 = alloc_lbuf("account_owner3");
@@ -24669,7 +24669,7 @@ FUNCTION(fun_account_owner)
          safe_str(s_buff, buff, bufcx);
          if ( atoi(s_buff) ) {
             /* Move account owner to any data type, not just player */
-            /* d->account_owner = lookup_player(player, fargs[0], 0); */
+            /* d->cold->account_owner = lookup_player(player, fargs[0], 0); */
             target = lookup_player(player, fargs[0], 0);
             if ( !Good_chk(target) ) {
                target = match_thing(player, fargs[0]);
@@ -24678,9 +24678,9 @@ FUNCTION(fun_account_owner)
                   target = NOTHING;
                }
             }
-            d->account_owner = target;
-            memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
-            strncpy(d->account_rawpass, fargs[3], sizeof(d->account_rawpass) - 1);
+            d->cold->account_owner = target;
+            memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
+            strncpy(d->cold->account_rawpass, fargs[3], sizeof(d->cold->account_rawpass) - 1);
          }         
          free_lbuf(s_buff);
          free_lbuf(s_tmp);
@@ -24710,11 +24710,11 @@ FUNCTION(fun_account_who)
    }
    i_first = 0;
    DESC_SAFEITER_ALL(d, dnext) {
-      if ( d->account_owner >= 0 ) {
+      if ( d->cold->account_owner >= 0 ) {
          if ( i_first ) {
             safe_str(sep, buff, bufcx);
          }
-         ival(buff, bufcx, d->descriptor);
+         ival(buff, bufcx, d->hot.descriptor);
          i_first = 1;
       }
    }
@@ -24751,8 +24751,8 @@ FUNCTION(fun_account_su)
    i_attr = attr->number;
 
    DESC_SAFEITER_ALL(d, dnext) {
-      if ( i_port == d->descriptor ) {
-         if ( d->account_owner < 0 ) {
+      if ( i_port == d->hot.descriptor ) {
+         if ( d->cold->account_owner < 0 ) {
             safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
             return;
          }
@@ -24762,7 +24762,7 @@ FUNCTION(fun_account_su)
          strcpy(s_tmp, (char *)"chk");
          sprintf(s_tmp2, "%s/%s", fargs[0], fargs[2]);
          s_array[0] = s_tmp2;
-         s_array[1] = d->account_rawpass;
+         s_array[1] = d->cold->account_rawpass;
          s_array[2] = s_tmp;
          fun_attrpass(s_buff, &s_buffptr, player, cause, cause, s_array, 3, (char **)NULL, 0);
          i_return = atoi(s_buff);
@@ -24777,10 +24777,10 @@ FUNCTION(fun_account_su)
          mudstate.no_announce = 1;
          shutdownsock(d, R_SU);
          mudstate.no_announce = i_noannounce;
-         sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->account_rawpass);
+         sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->cold->account_rawpass);
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-         d->last_time = mudstate.now;
+         d->hot.last_time = mudstate.now;
          free_lbuf(s_buff);
          free_lbuf(s_tmp);
          free_lbuf(s_tmp2);
@@ -24819,7 +24819,7 @@ FUNCTION(fun_account_boot)
    }
 
    DESC_SAFEITER_ALL(d, dnext) {
-      if ( Good_obj(d->account_owner) && (i_port == d->descriptor) ) {
+      if ( Good_obj(d->cold->account_owner) && (i_port == d->hot.descriptor) ) {
          if ( i_boottype ) {
             shutdownsock(d, R_QUIT);
          } else {
@@ -24864,16 +24864,16 @@ FUNCTION(fun_account_login)
    i_attr = attr->number;
    i_port = atoi(fargs[2]);
    DESC_SAFEITER_ALL(d, dnext) {
-      if ( (i_port == d->descriptor) && !(d->flags & DS_CONNECTED) ) {
+      if ( (i_port == d->hot.descriptor) && !(d->hot.flags & DS_CONNECTED) ) {
          s_buff = alloc_lbuf("fun_account_login");
          if ( nfargs > 3 ) {
              sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
          } else {
-             sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->account_rawpass);
+             sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->cold->account_rawpass);
          }
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-         if ( d->flags & DS_CONNECTED ) {
+         if ( d->hot.flags & DS_CONNECTED ) {
             ival(buff, bufcx, 1);
          } else {
             ival(buff, bufcx, 0);
@@ -36169,13 +36169,13 @@ FUNCTION(fun_idle)
           tmp_buff = alloc_lbuf("fun_idle");
           first = 0;
           DESC_ITER_CONN(d) {
-             if (d->player == target && ((i_type == 0) || (((i_type == 1) && (d_type == -1)) ||
-                                        (((d_type != -1) && d->descriptor == d_type)))) ) {
+             if (d->hot.player == target && ((i_type == 0) || (((i_type == 1) && (d_type == -1)) ||
+                                        (((d_type != -1) && d->hot.descriptor == d_type)))) ) {
                 if ( first )
                    safe_chr(' ', buff, bufcx);
-                idletime = (mudstate.now - d->last_time);
+                idletime = (mudstate.now - d->hot.last_time);
                 if ( (d_type == -1) && (i_type == 1) )
-                   sprintf(tmp_buff, "%d:%d", d->descriptor, idletime);
+                   sprintf(tmp_buff, "%d:%d", d->hot.descriptor, idletime);
                 else
                    sprintf(tmp_buff, "%d", idletime);
                 safe_str(tmp_buff, buff, bufcx);
@@ -36232,13 +36232,13 @@ FUNCTION(fun_conn)
           tmp_buff = alloc_lbuf("fun_conn");
           first = 0;
           DESC_ITER_CONN(d) {
-             if (d->player == target && ((i_type == 0) || (((i_type == 1) && (d_type == -1)) ||
-                                        (((d_type != -1) && d->descriptor == d_type)))) ) {
+             if (d->hot.player == target && ((i_type == 0) || (((i_type == 1) && (d_type == -1)) ||
+                                        (((d_type != -1) && d->hot.descriptor == d_type)))) ) {
                 if ( first )
                    safe_chr(' ', buff, bufcx);
-                conntime = (mudstate.now - d->connected_at);
+                conntime = (mudstate.now - d->cold->connected_at);
                 if ( (d_type == -1) && (i_type == 1))
-                   sprintf(tmp_buff, "%d:%d", d->descriptor, conntime);
+                   sprintf(tmp_buff, "%d:%d", d->hot.descriptor, conntime);
                 else
                    sprintf(tmp_buff, "%d", conntime);
                 safe_str(tmp_buff, buff, bufcx);

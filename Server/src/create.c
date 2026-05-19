@@ -1403,12 +1403,12 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
             ENDLOG
             return;
        }
-       DESC_ITER_PLAYER(goodplayer, d) {
-          if (!dtime || (now - d->last_time) < dtime) {
-             e = d;
-             dtime = now - d->last_time;
-          }
-       }
+        DESC_ITER_PLAYER(goodplayer, d) {
+           if (!dtime || (now - d->hot.last_time) < dtime) {
+              e = d;
+              dtime = now - d->hot.last_time;
+           }
+        }
        if ( !e ) {
           STARTLOG(LOG_PCREATES, "CRE", "AREG")
              log_text((char *) "Connection non-existing for player ");

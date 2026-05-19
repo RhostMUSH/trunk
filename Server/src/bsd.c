@@ -90,6 +90,21 @@ int ndescriptors = 0;
 DESC *descriptor_list = NULL;
 DESC *desc_in_use = NULL;
 
+/* Hot/cold descriptor allocation wrappers */
+DESC *_alloc_desc(const char *tag) {
+    DESC *d = (DESC *)pool_alloc(POOL_DESC, tag, __LINE__, __FILE__);
+    d->cold = (DESC_COLD *)pool_alloc(POOL_DESC_COLD, tag, __LINE__, __FILE__);
+    memset(d->cold, 0, sizeof(DESC_COLD));
+    return d;
+}
+
+void _free_desc(DESC *d) {
+    if (d && d->cold) {
+        pool_free(POOL_DESC_COLD, (char **)&d->cold, __LINE__, __FILE__);
+    }
+    pool_free(POOL_DESC, (char **)&d, __LINE__, __FILE__);
+}
+
 DESC *FDECL(initializesock, (int, const char *, int, unsigned short, char *, int, int));
 DESC *FDECL(new_connection, (int, int));
 int FDECL(process_output, (DESC *));
@@ -515,27 +530,27 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
     /* we may be rebooting, so recalc maxd */
     DESC_ITER_ALL(d) {
-      if( d->descriptor >= maxd ) {
-        maxd = d->descriptor + 1;
+      if( d->hot.descriptor >= maxd ) {
+        maxd = d->hot.descriptor + 1;
       }
-      if ((d->flags & DS_HAS_DOOR) && (d->door_desc >= maxd)) {
-	maxd = d->door_desc + 1;
+      if ((d->hot.flags & DS_HAS_DOOR) && (d->cold->door_desc >= maxd)) {
+	maxd = d->cold->door_desc + 1;
       }
-      /* If we rebooted after the d->longaddr addition, makes sure
+      /* If we rebooted after the d->cold->longaddr addition, makes sure
          all current d->addrs get copied over --Amb */
-      if( d->longaddrcheck != 242242242)
+      if( d->cold->longaddrcheck != 242242242)
       {
-        memset(d->longaddr, '\0', sizeof(d->longaddr));
-        strncpy(d->longaddr,d->addr,sizeof(d->longaddr));
-        d->longaddrcheck = 242242242;
+        memset(d->cold->longaddr, '\0', sizeof(d->cold->longaddr));
+        strncpy(d->cold->longaddr,d->cold->addr,sizeof(d->cold->longaddr));
+        d->cold->longaddrcheck = 242242242;
       }
-      if( d->flags & DS_CONNECTED ) {
+      if( d->hot.flags & DS_CONNECTED ) {
         if(!silent) {
           queue_string(d, "Game: New server image successfully loaded.\r\n");
-        } else if ( d->player == found ) {
+        } else if ( d->hot.player == found ) {
           queue_string(d, "Game: Finished Rebooting Silently.\r\n"); 
         }
-        strncpy(all, Name(d->player), 5);
+        strncpy(all, Name(d->hot.player), 5);
         *(all + 5) = '\0';
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
@@ -543,7 +558,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
            ptsitebuff = strtok_r(tsitebuff, " \t", &tstrtokr);
            sitecntr = 1;
            while ( (ptsitebuff != NULL) && (sitecntr < 32) ) {
-              if ( lookup_player(NOTHING, ptsitebuff, 0) == d->player ) {
+              if ( lookup_player(NOTHING, ptsitebuff, 0) == d->hot.player ) {
                  temp1 = sitecntr;
                  temp2 = 0x00000001;
                  temp2 <<= (temp1 - 1);
@@ -554,18 +569,18 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
               sitecntr++;
            }
         } else if (!stricmp(all, "guest")) {
-            temp1 = atoi((Name(d->player) + 5));
+            temp1 = atoi((Name(d->hot.player) + 5));
             temp2 = 0x00000001;
             temp2 <<= (temp1 - 1);
             mudstate.guest_status |= temp2;
             mudstate.guest_num++;
         }
       }
-      if ( Good_obj(d->player) && InProgram(d->player) ) {
-         if ( (mudconf.login_to_prog && !(ProgCon(d->player))) ||
-              (!mudconf.login_to_prog && ProgCon(d->player)) ) {
+      if ( Good_obj(d->hot.player) && InProgram(d->hot.player) ) {
+         if ( (mudconf.login_to_prog && !(ProgCon(d->hot.player))) ||
+              (!mudconf.login_to_prog && ProgCon(d->hot.player)) ) {
             queue_string(d, "You are still in a @program.\r\n");
-            progatr = atr_get(d->player, A_PROGPROMPTBUF, &aowner2, &aflags2);
+            progatr = atr_get(d->hot.player, A_PROGPROMPTBUF, &aowner2, &aflags2);
             if ( progatr && *progatr ) {
                if ( strcmp(progatr, "NULL") != 0 ) {
 #ifdef ZENTY_ANSI
@@ -587,11 +602,11 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
             free_lbuf(progatr);
          } else {
             queue_string(d, "Your @program was aborted from the @reboot.\r\n");
-            s_Flags4(d->player, (Flags4(d->player) & (~INPROGRAM)));
+            s_Flags4(d->hot.player, (Flags4(d->hot.player) & (~INPROGRAM)));
             queue_string(d, "\377\371");
             mudstate.shell_program = 0;
-            atr_clr(d->player, A_PROGBUFFER);
-            atr_clr(d->player, A_PROGPROMPTBUF);
+            atr_clr(d->hot.player, A_PROGBUFFER);
+            atr_clr(d->hot.player, A_PROGPROMPTBUF);
          }
       }
     }
@@ -679,43 +694,43 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	/* Mark sockets that we want to test for change in status */
 	DESC_ITER_ALL(d) {
 #ifdef TLI
-	    if (!d->input_head || d->output_head) {
-		fds[d->descriptor].fd = d->descriptor;
-		fds[d->descriptor].events = 0;
-		if (!d->input_head)
-		    fds[d->descriptor].events |= POLLIN;
-		if (d->output_head)
-		    fds[d->descriptor].events |= POLLOUT;
+	    if (!d->hot.input_head || d->hot.output_head) {
+		fds[d->hot.descriptor].fd = d->hot.descriptor;
+		fds[d->hot.descriptor].events = 0;
+		if (!d->hot.input_head)
+		    fds[d->hot.descriptor].events |= POLLIN;
+		if (d->hot.output_head)
+		    fds[d->hot.descriptor].events |= POLLOUT;
 	    }
 #else
-	    if (!d->input_head && (d->flags & DS_AUTH_IN_PROGRESS) == 0)
-		FD_SET(d->descriptor, &input_set);
-	    if (d->output_head)
-		FD_SET(d->descriptor, &output_set);
+	    if (!d->hot.input_head && (d->hot.flags & DS_AUTH_IN_PROGRESS) == 0)
+		FD_SET(d->hot.descriptor, &input_set);
+	    if (d->hot.output_head)
+		FD_SET(d->hot.descriptor, &output_set);
             /* If API we always want to test input and output */
-            if ( d->flags & DS_API ) {
-		FD_SET(d->descriptor, &input_set);
-		FD_SET(d->descriptor, &output_set);
+            if ( d->hot.flags & DS_API ) {
+		FD_SET(d->hot.descriptor, &input_set);
+		FD_SET(d->hot.descriptor, &output_set);
             }
-	    if (d->flags & DS_AUTH_IN_PROGRESS) {
-                if ( d->flags & DS_API ) {
-                   d->flags &= ~DS_AUTH_IN_PROGRESS;
+	    if (d->hot.flags & DS_AUTH_IN_PROGRESS) {
+                if ( d->hot.flags & DS_API ) {
+                   d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
                 } else {
                    active_auths++;
-		   if (d->authdescriptor >= maxd)
-		       maxd = d->authdescriptor + 1;
-		   if (d->flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
-		       FD_SET(d->authdescriptor, &output_set);
-		   FD_SET(d->authdescriptor, &input_set);
+		   if (d->cold->authdescriptor >= maxd)
+		       maxd = d->cold->authdescriptor + 1;
+		   if (d->hot.flags & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
+		       FD_SET(d->cold->authdescriptor, &output_set);
+		   FD_SET(d->cold->authdescriptor, &input_set);
                }
 	    }
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (d->door_desc >= maxd)
-		maxd = d->door_desc + 1;
-	      if (!d->door_input_head)
-		FD_SET(d->door_desc, &input_set);
-	      if (d->door_output_head)
-		FD_SET(d->door_desc, &output_set);
+	    if (d->hot.flags & DS_HAS_DOOR) {
+	      if (d->cold->door_desc >= maxd)
+		maxd = d->cold->door_desc + 1;
+	      if (!d->cold->door_input_head)
+		FD_SET(d->cold->door_desc, &input_set);
+	      if (d->cold->door_output_head)
+		FD_SET(d->cold->door_desc, &output_set);
 	    }
 #endif
 	}
@@ -767,21 +782,21 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
         */
         if( active_auths > 0 ) {
 	  DESC_SAFEITER_ALL(d, dnext) {
-	    if( (d->flags & DS_AUTH_IN_PROGRESS) &&
-	        (time(NULL) - d->connected_at >= 3) ) {
-		d->flags &= ~DS_AUTH_IN_PROGRESS;
+	    if( (d->hot.flags & DS_AUTH_IN_PROGRESS) &&
+	        (time(NULL) - d->cold->connected_at >= 3) ) {
+		d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
 		logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
-                sprintf(logbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+                sprintf(logbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
                 cf_site((int *)&mudstate.special_list, logbuff,
                     (H_NOAUTH | H_AUTOSITE), 0, 1, "noauth_site");
-	      	shutdown(d->authdescriptor, 2);
-		close(d->authdescriptor);
-              	strcpy(d->userid,"");
+	      	shutdown(d->cold->authdescriptor, 2);
+		close(d->cold->authdescriptor);
+              	strcpy(d->cold->userid,"");
 		STARTLOG(LOG_NET, "NET", "FAIL")
   		  sprintf(logbuff,
 	   	  	"[%d/%s] Auth request timed out",
-		    	d->descriptor,
-			d->longaddr);
+		    	d->hot.descriptor,
+			d->cold->longaddr);
 		  log_text(logbuff);
 	 	ENDLOG
 		free_mbuf(logbuff);
@@ -827,8 +842,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                     }
 		}
 	    } else {
-		if (newd->descriptor >= maxd)
-		    maxd = newd->descriptor + 1;
+		if (newd->hot.descriptor >= maxd)
+		    maxd = newd->hot.descriptor + 1;
 	    }
 	}
         if ( apiport != -1 ) {
@@ -854,8 +869,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                        }
 		   }
 	       } else {
-		   if (newd->descriptor >= maxd)
-		       maxd = newd->descriptor + 1;
+		   if (newd->hot.descriptor >= maxd)
+		       maxd = newd->hot.descriptor + 1;
 	       }
 	   }
          }
@@ -882,8 +897,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                        }
 		   }
 	       } else {
-		   if (newd->descriptor >= maxd)
-		       maxd = newd->descriptor + 1;
+		   if (newd->hot.descriptor >= maxd)
+		       maxd = newd->hot.descriptor + 1;
 	       }
 	   }
         }
@@ -910,8 +925,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                        }
 		   }
 	       } else {
-		   if (newd->descriptor >= maxd)
-		       maxd = newd->descriptor + 1;
+		   if (newd->hot.descriptor >= maxd)
+		       maxd = newd->hot.descriptor + 1;
 	       }
 	   }
         }
@@ -920,66 +935,66 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	DESC_SAFEITER_ALL(d, dnext) {
 	    /* Check for Auth */
 
-	    if (d->flags & DS_AUTH_IN_PROGRESS) {
-		if ((d->flags & DS_AUTH_CONNECTING) &&
-                    CheckOutput(d->authdescriptor)) {
+	    if (d->hot.flags & DS_AUTH_IN_PROGRESS) {
+		if ((d->hot.flags & DS_AUTH_CONNECTING) &&
+                    CheckOutput(d->cold->authdescriptor)) {
                     check_auth_connect(d);
                 }
-		else if ((d->flags & DS_NEED_AUTH_WRITE) &&
-		    CheckOutput(d->authdescriptor)) {
+		else if ((d->hot.flags & DS_NEED_AUTH_WRITE) &&
+		    CheckOutput(d->cold->authdescriptor)) {
 		    write_auth(d);
                 }
-                else if( CheckInput(d->authdescriptor) ) {
+                else if( CheckInput(d->cold->authdescriptor) ) {
 		      check_auth(d);
                 }
 	    }
 
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (CheckInput(d->door_desc)) {
-		d->last_time = mudstate.now;
+	    if (d->hot.flags & DS_HAS_DOOR) {
+	      if (CheckInput(d->cold->door_desc)) {
+		d->hot.last_time = mudstate.now;
 		if (!process_door_input(d)) {
-		  closeDoorWithId(d, d->door_num);
+		  closeDoorWithId(d, d->cold->door_num);
 		}
 	      }
 	    }
 	    /* Lensy:
 	     *  Additional check needed because the above call might close the conny
 	     */
-	    if (d->flags & DS_HAS_DOOR) {
-	      if (CheckOutput(d->door_desc)) {
+	    if (d->hot.flags & DS_HAS_DOOR) {
+	      if (CheckOutput(d->cold->door_desc)) {
 		if (!process_door_output(d)) {
-		  closeDoorWithId(d, d->door_num);
+		  closeDoorWithId(d, d->cold->door_num);
 		}
 	      }
 	    }
 	    /* Process input from sockets with pending input */
 
-	    check = CheckInput(d->descriptor);
+	    check = CheckInput(d->hot.descriptor);
 	    if (check) {
 
 		/* Undo autodark */
 
-                i_oldlasttime = d->last_time;
-                flagkeep = d->flags;
-                if ( Good_obj(d->player) && !TogHideIdle(d->player) ) {
-                   d->last_time = mudstate.now;
-                   if (d->flags & DS_AUTODARK) {
-                       d->flags &= ~DS_AUTODARK;
-                       s_Flags(d->player,
-                               Flags(d->player) & ~DARK);
+                i_oldlasttime = d->hot.last_time;
+                flagkeep = d->hot.flags;
+                if ( Good_obj(d->hot.player) && !TogHideIdle(d->hot.player) ) {
+                   d->hot.last_time = mudstate.now;
+                   if (d->hot.flags & DS_AUTODARK) {
+                       d->hot.flags &= ~DS_AUTODARK;
+                       s_Flags(d->hot.player,
+                               Flags(d->hot.player) & ~DARK);
                    }
-                   if (d->flags & DS_AUTOUNF) {
-                       d->flags &= ~DS_AUTOUNF;
-                       s_Flags2(d->player,
-                               Flags2(d->player) & ~UNFINDABLE);
+                   if (d->hot.flags & DS_AUTOUNF) {
+                       d->hot.flags &= ~DS_AUTOUNF;
+                       s_Flags2(d->hot.player,
+                               Flags2(d->hot.player) & ~UNFINDABLE);
                    }
-                } else if ( d->last_time == 0 ) {
-                   d->last_time = mudstate.now;
+                } else if ( d->hot.last_time == 0 ) {
+                   d->hot.last_time = mudstate.now;
                 }
 
 		/* Process received data */
 
-                i_oldlastcnt = d->input_tot;
+                i_oldlastcnt = d->hot.input_tot;
 				
 		if (!process_input(d)) {
 		    shutdownsock(d, R_SOCKDIED);
@@ -987,16 +1002,16 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		}
 
                 /* Idle stamp checking for command typed */
-                if ( mudconf.idle_stamp && (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
+                if ( mudconf.idle_stamp && (d->hot.flags & DS_CONNECTED) && d->hot.input_head && (char *)(d->hot.input_head->cmd) ) {
                    ulCRC32 = 0;
-                   i_len = strlen(d->input_head->cmd);
-                   ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->input_head->cmd, i_len);
+                   i_len = strlen(d->hot.input_head->cmd);
+                   ulCRC32 = CRC32_ProcessBuffer(ulCRC32, d->hot.input_head->cmd, i_len);
                    anum = mkattr("_IDLESTAMP");
                    if ( anum > 0 ) {
                       ap = atr_num(anum);
                       if (ap) {
                          attr_wizhidden("_IDLESTAMP");
-                         progatr = atr_get(d->player, ap->number, &aowner2, &aflags2);
+                         progatr = atr_get(d->hot.player, ap->number, &aowner2, &aflags2);
                          if ( progatr ) {
                             progatr_str = progatr;
                             i_progatr = 0;
@@ -1031,7 +1046,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                                         i_progatr++;
                                         if(mudconf.idle_cmdcount > -1) {
                                            if(i_progatr > mudconf.idle_cmdcount)
-                                              d->last_time = i_oldlasttime;
+                                              d->hot.last_time = i_oldlasttime;
                                         }
                                      } else {
                                         i_progatr = 1;
@@ -1069,7 +1084,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                                sprintf(s_progatr, "%u:1", ulCRC32);
                                safe_str(s_progatr, b_progatr, &b_progatrptr);
                             }
-                            atr_add_raw(d->player, ap->number, b_progatr);
+                            atr_add_raw(d->hot.player, ap->number, b_progatr);
                             free_sbuf(s_progatr);
                             free_lbuf(b_progatr);
                          }
@@ -1078,13 +1093,13 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                    }
                 }
 
-                if ( (d->flags & DS_CONNECTED) && d->input_head && (char *)(d->input_head->cmd) ) {
-                   memcpy(s_cutter, d->input_head->cmd, 5);
-                   memcpy(s_cutter2, d->input_head->cmd, 7);
+                if ( (d->hot.flags & DS_CONNECTED) && d->hot.input_head && (char *)(d->hot.input_head->cmd) ) {
+                   memcpy(s_cutter, d->hot.input_head->cmd, 5);
+                   memcpy(s_cutter2, d->hot.input_head->cmd, 7);
                    s_cutter[5] = '\0';
                    s_cutter2[7] = '\0';
-                   if ( Good_obj(d->player) && 
-                       (((Wizard(d->player) || HasPriv(d->player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && (stricmp(s_cutter, "idle ") == 0)) || 
+                   if ( Good_obj(d->hot.player) && 
+                       (((Wizard(d->hot.player) || HasPriv(d->hot.player, NOTHING, POWER_WIZ_IDLE, POWER5, NOTHING)) && (stricmp(s_cutter, "idle ") == 0)) || 
                         ((stricmp(s_cutter, "@@") == 0) && mudconf.null_is_idle) ||
                         ((stricmp(s_cutter, "th") == 0) && mudconf.think_is_idle) ||
                         ((stricmp(s_cutter, "thi") == 0) && mudconf.think_is_idle) ||
@@ -1093,33 +1108,33 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                         (stricmp(s_cutter, "idle") == 0) ||
                         (stricmp(s_cutter2, "idle @@") == 0)) ) {
                       cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
-                      if ( cmdp && check_access(d->player, cmdp->perms, cmdp->perms2, 0)) {
-                         if ( !(CmdCheck(d->player) && cmdtest(d->player, "idle")) ) {
-                            d->last_time = i_oldlasttime;
-                            d->flags = d->flags | flagkeep;
-                            if ( d->flags & DS_AUTOUNF ) 
-                               s_Flags2(d->player, Flags2(d->player) | UNFINDABLE);
-                            if ( d->flags & DS_AUTODARK ) 
-                               s_Flags(d->player, Flags(d->player) | DARK);
+                      if ( cmdp && check_access(d->hot.player, cmdp->perms, cmdp->perms2, 0)) {
+                         if ( !(CmdCheck(d->hot.player) && cmdtest(d->hot.player, "idle")) ) {
+                            d->hot.last_time = i_oldlasttime;
+                            d->hot.flags = d->hot.flags | flagkeep;
+                            if ( d->hot.flags & DS_AUTOUNF ) 
+                               s_Flags2(d->hot.player, Flags2(d->hot.player) | UNFINDABLE);
+                            if ( d->hot.flags & DS_AUTODARK ) 
+                               s_Flags(d->hot.player, Flags(d->hot.player) | DARK);
                          }
                       }
                    }
                 }
 
                 /* Ignore Null Input */
-                if ( (d->input_tot <= (i_oldlastcnt + 2)) && d->input_head && (char *)(d->input_head->cmd) &&
-                     ((*(d->input_head->cmd) == '\r') || (*(d->input_head->cmd) == '\n')) ) {
-                   d->last_time = i_oldlasttime;
+                if ( (d->hot.input_tot <= (i_oldlastcnt + 2)) && d->hot.input_head && (char *)(d->hot.input_head->cmd) &&
+                     ((*(d->hot.input_head->cmd) == '\r') || (*(d->hot.input_head->cmd) == '\n')) ) {
+                   d->hot.last_time = i_oldlasttime;
                 }
                 /* Ignore Potato's broken NOP code */
-                if ( (d->input_tot == (i_oldlastcnt + 3)) && !d->input_head ) {
-                   d->last_time = i_oldlasttime;
+                if ( (d->hot.input_tot == (i_oldlastcnt + 3)) && !d->hot.input_head ) {
+                   d->hot.last_time = i_oldlasttime;
                 }
 	    }
 
 	    /* Process output for sockets with pending output */
 
-	    check = CheckOutput(d->descriptor);
+	    check = CheckOutput(d->hot.descriptor);
 	    if (check) {
 		if (!process_output(d)) {
 		    shutdownsock(d, R_SOCKDIED);
@@ -1127,8 +1142,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    }
 
             /* Force API disconnect if timeon greater than timeout value */
-            if ( (d->flags & DS_API) ) {
-		if ( (d->connected_at + d->timeout) < time(NULL) ) {
+            if ( (d->hot.flags & DS_API) ) {
+		if ( (d->cold->connected_at + d->cold->timeout) < time(NULL) ) {
 			shutdownsock(d, R_API);
 		}
             }
@@ -1540,7 +1555,7 @@ new_connection(int sock, int key)
     strcpy(tsite_buff, addroutbuf);
     if ( tsite_buff ) {
        DESC_SAFEITER_ALL(dchk, dchknext) {
-          if ( strcmp(tsite_buff, dchk->addr) == 0 )
+          if ( strcmp(tsite_buff, dchk->cold->addr) == 0 )
              maxsitecon++;
           maxtsitecon++;
        }
@@ -1679,7 +1694,7 @@ new_connection(int sock, int key)
     mudstate.debug_cmd = cmdsave;
 
     if ( key && d ) {
-       d->flags |= DS_API;
+       d->hot.flags |= DS_API;
     }
     RETURN(d); /* #5 */
 }
@@ -1740,22 +1755,22 @@ shutdownsock(DESC * d, int reason)
 
     DPUSH; /* #6 */
     i_addflags = 0;
-    if ( d->flags & DS_API ) {
+    if ( d->hot.flags & DS_API ) {
        i_addflags = MF_API;
     }
 
     if ( ((reason == R_LOGOUT) || (reason == R_SU)) &&
-          (site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) {
+          (site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) {
 	reason = R_QUIT;
-        if( d->flags & DS_API ) {
+        if( d->hot.flags & DS_API ) {
            reason = R_API; 
         }
     }
 
-    if (d->flags & DS_CONNECTED) {
+    if (d->hot.flags & DS_CONNECTED) {
 
-        handle_conninfo_write(d, d->player, CONN_ALL); /* Write A_CONNINFO */
-	strncpy(all, Name(d->player), 5);
+        handle_conninfo_write(d, d->hot.player, CONN_ALL); /* Write A_CONNINFO */
+	strncpy(all, Name(d->hot.player), 5);
 	*(all + 5) = '\0';
         if ( strlen(mudconf.guest_namelist) > 0 ) {
            memset(tsitebuff, 0, sizeof(tsitebuff));
@@ -1763,7 +1778,7 @@ shutdownsock(DESC * d, int reason)
            ptsitebuff = strtok_r(tsitebuff, " \t", &tstrtokr);
            sitecntr = 1;
            while ( (ptsitebuff != NULL) && (sitecntr < 32) ) {
-              if ( lookup_player(NOTHING, ptsitebuff, 0) == d->player ) {
+              if ( lookup_player(NOTHING, ptsitebuff, 0) == d->hot.player ) {
                  temp1 = sitecntr;
                  temp2 = 0x00000001;
                  temp2 <<= (temp1 - 1);
@@ -1774,18 +1789,18 @@ shutdownsock(DESC * d, int reason)
               sitecntr++;
            }
         } else if (!stricmp(all, "guest")) {
-	    temp1 = atoi((Name(d->player) + 5));
+	    temp1 = atoi((Name(d->hot.player) + 5));
 	    temp2 = 0x00000001;
 	    temp2 <<= (temp1 - 1);
 	    mudstate.guest_status &= ~temp2;
 	    mudstate.guest_num--;
 	}
 	if (mudconf.maildelete)
-	    mail_md1(d->player, d->player, 1, -1, 0);
+	    mail_md1(d->hot.player, d->hot.player, 1, -1, 0);
 	strcpy(all, "all");
-	mail_mark(d->player, M_READM, all, NOTHING, 1);
-	atr_clr(d->player, A_MPSET);
-	atr_clr(d->player, A_MCURR);
+	mail_mark(d->hot.player, M_READM, all, NOTHING, 1);
+	atr_clr(d->hot.player, A_MPSET);
+	atr_clr(d->hot.player, A_MCURR);
 
 	/* Do the disconnect stuff if we aren't doing a LOGOUT
 	 * (which keeps the connection open so the player can connect
@@ -1797,9 +1812,9 @@ shutdownsock(DESC * d, int reason)
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "DISC")
 		buff = alloc_lbuf("shutdownsock.LOG.disconn");
 	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->longaddr);
+		    d->hot.descriptor, d->cold->longaddr);
 	    log_text(buff);
-	    log_name(d->player);
+	    log_name(d->hot.player);
 	    sprintf(buff, " <Reason: %s>",
 		    disc_reasons[reason]);
 	    log_text(buff);
@@ -1809,9 +1824,9 @@ shutdownsock(DESC * d, int reason)
 	    STARTLOG(LOG_NET | LOG_LOGIN, "NET", "LOGO")
 		buff = alloc_lbuf("shutdownsock.LOG.logout");
 	    sprintf(buff, "[%d/%s] Logout by ",
-		    d->descriptor, d->longaddr);
+		    d->hot.descriptor, d->cold->longaddr);
 	    log_text(buff);
-	    log_name(d->player);
+	    log_name(d->hot.player);
 	    sprintf(buff, " <Reason: %s>",
 		    disc_reasons[reason]);
 	    log_text(buff);
@@ -1824,36 +1839,36 @@ shutdownsock(DESC * d, int reason)
 	 */
 
 	STARTLOG(LOG_ACCOUNTING, "DIS", "ACCT")
-	    now = mudstate.now - d->connected_at;
+	    now = mudstate.now - d->cold->connected_at;
 	buff = alloc_lbuf("shutdownsock.LOG.accnt");
-	buff2 = decode_flags(GOD, GOD, Flags(d->player),
-			     Flags2(d->player), Flags3(d->player),
-			     Flags4(d->player));
+	buff2 = decode_flags(GOD, GOD, Flags(d->hot.player),
+			     Flags2(d->hot.player), Flags3(d->hot.player),
+			     Flags4(d->hot.player));
 	sprintf(buff, "%d %s %d %ld %d %d [%s] <%s> %s",
-		d->player, buff2, d->command_count, now,
-		Location(d->player), Pennies(d->player),
-		d->longaddr, disc_reasons[reason],
-		Name(d->player));
+		d->hot.player, buff2, d->cold->command_count, now,
+		Location(d->hot.player), Pennies(d->hot.player),
+		d->cold->longaddr, disc_reasons[reason],
+		Name(d->hot.player));
 	log_text(buff);
 	free_lbuf(buff);
 	free_mbuf(buff2);
 	ENDLOG
-	announce_disconnect(d->player, d, disc_messages[reason]);
+	announce_disconnect(d->hot.player, d, disc_messages[reason]);
     } else {
 	if ( (reason == R_LOGOUT) || (reason == R_SU) ) {
 	    reason = R_QUIT;
         }
-        if ( d->flags & DS_API ) {
+        if ( d->hot.flags & DS_API ) {
 	    reason = R_API;
         }
-        if ( d->flags & DS_WEBSOCKETS ) {
+        if ( d->hot.flags & DS_WEBSOCKETS ) {
 	    reason = R_WEBSOCKETS;
         }
 	STARTLOG(LOG_SECURITY | LOG_NET, "NET", "DISC")
 	    buff = alloc_lbuf("shutdownsock.LOG.neverconn");
 	sprintf(buff,
 		"[%d/%s] Connection closed, never connected. <Reason: %s>",
-		d->descriptor, d->longaddr, disc_reasons[reason]);
+		d->hot.descriptor, d->cold->longaddr, disc_reasons[reason]);
 	log_text(buff);
 	free_lbuf(buff);
 	ENDLOG
@@ -1862,15 +1877,15 @@ shutdownsock(DESC * d, int reason)
     process_door_output(d);
     clearstrings(d);
     i_sitecnt = i_guestcnt = 0;
-    if (d->flags & DS_HAS_DOOR) closeDoorWithId(d, d->door_num);
+    if (d->hot.flags & DS_HAS_DOOR) closeDoorWithId(d, d->cold->door_num);
     if ( (reason == R_LOGOUT) || (reason == R_SU) ) {
-        addroutbuf = (char *) addrout(d->addr, d->addr_family, (d->flags & DS_API));
+        addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (d->hot.flags & DS_API));
         t_addroutbuf = alloc_lbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
            DESC_SAFEITER_ALL(dchk, dchknext) {
-              if ( strcmp(t_addroutbuf, dchk->addr) == 0 ) {
-                 if ( Good_chk(dchk->player) && Guest(dchk->player) ) {
+              if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
+                 if ( Good_chk(dchk->hot.player) && Guest(dchk->hot.player) ) {
                     i_guestcnt++;
                  }
                  i_sitecnt++;
@@ -1878,64 +1893,64 @@ shutdownsock(DESC * d, int reason)
            }
         }
         free_lbuf(t_addroutbuf);
-	d->flags &= ~DS_CONNECTED;
-	d->connected_at = mudstate.now;
-	d->retries_left = mudconf.retry_limit;
-	d->regtries_left = mudconf.regtry_limit;
-	d->command_count = 0;
-	d->timeout = mudconf.idle_timeout;
-	d->player = 0;
-	d->doing[0] = '\0';
-	d->quota = mudconf.cmd_quota_max;
-	d->last_time = 0;
-         d->host_info = (site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, 0) & ~0x4) |
- 	 			  site_check_str(d->addr, d->addr_family,
+	d->hot.flags &= ~DS_CONNECTED;
+	d->cold->connected_at = mudstate.now;
+	d->cold->retries_left = mudconf.retry_limit;
+	d->cold->regtries_left = mudconf.regtry_limit;
+	d->cold->command_count = 0;
+	d->cold->timeout = mudconf.idle_timeout;
+	d->hot.player = 0;
+	d->cold->doing[0] = '\0';
+	d->hot.quota = mudconf.cmd_quota_max;
+	d->hot.last_time = 0;
+         d->hot.host_info = (site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, 0) & ~0x4) |
+ 	 			  site_check_str(d->cold->addr, d->cold->addr_family,
  			  mudstate.suspect_list, 0, 0, 0);
-            i_sitemax = site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 1, H_FORBIDDEN);
+            i_sitemax = site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 1, H_FORBIDDEN);
             if ( (i_sitemax != -1) && (i_sitecnt < (i_sitemax + 1)) )
-               d->host_info &= ~H_FORBIDDEN;
-            i_sitemax = site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 1, H_REGISTRATION);
+               d->hot.host_info &= ~H_FORBIDDEN;
+            i_sitemax = site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 1, H_REGISTRATION);
             if ( (i_sitemax != -1) && (i_sitecnt < (i_sitemax + 1)) )
-               d->host_info &= ~H_REGISTRATION;
-            i_sitemax = site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 1, H_NOGUEST);
+               d->hot.host_info &= ~H_REGISTRATION;
+            i_sitemax = site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 1, H_NOGUEST);
             if ( (i_sitemax != -1) && (i_guestcnt < (i_sitemax + 1)) )
-               d->host_info &= ~H_NOGUEST;
+               d->hot.host_info &= ~H_NOGUEST;
 
         memset(tchbuff, 0, sizeof(tchbuff));
         strcpy(tchbuff, mudconf.forbid_host);
-        if ((char *)mudconf.forbid_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_FORBIDDEN;
+        if ((char *)mudconf.forbid_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_FORBIDDEN;
         strcpy(tchbuff, mudconf.register_host);
-        if ((char *)mudconf.register_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_REGISTRATION;
-         if ( blacklist_check_str(d->addr, d->addr_family, 2) ) {
-            d->host_info = d->host_info | H_REGISTRATION;
+        if ((char *)mudconf.register_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_REGISTRATION;
+         if ( blacklist_check_str(d->cold->addr, d->cold->addr_family, 2) ) {
+            d->hot.host_info = d->hot.host_info | H_REGISTRATION;
          }
          strcpy(tchbuff, mudconf.autoreg_host);
-         if ((char *)mudconf.autoreg_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-            d->host_info = d->host_info | H_NOAUTOREG;
+         if ((char *)mudconf.autoreg_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+            d->hot.host_info = d->hot.host_info | H_NOAUTOREG;
          strcpy(tchbuff, mudconf.noguest_host);
-         if ((char *)mudconf.noguest_host && lookup(d->longaddr, tchbuff, i_guestcnt, &i_retvar))
-            d->host_info = d->host_info | H_NOGUEST;
-         if ( blacklist_check_str(d->addr, d->addr_family, 3) ) {
-           d->host_info = d->host_info | H_NOGUEST;
+         if ((char *)mudconf.noguest_host && lookup(d->cold->longaddr, tchbuff, i_guestcnt, &i_retvar))
+            d->hot.host_info = d->hot.host_info | H_NOGUEST;
+         if ( blacklist_check_str(d->cold->addr, d->cold->addr_family, 3) ) {
+           d->hot.host_info = d->hot.host_info | H_NOGUEST;
         }
         strcpy(tchbuff, mudconf.suspect_host);
-        if ((char *)mudconf.suspect_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_SUSPECT;
+        if ((char *)mudconf.suspect_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_SUSPECT;
         strcpy(tchbuff, mudconf.passproxy_host);
-        if ((char *)mudconf.passproxy_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_PASSPROXY;
+        if ((char *)mudconf.passproxy_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_PASSPROXY;
         strcpy(tchbuff, mudconf.hardconn_host);
-        if ((char *)mudconf.hardconn_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_HARDCONN;
+        if ((char *)mudconf.hardconn_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_HARDCONN;
         strcpy(tchbuff, mudconf.permit_host);
-        if ((char *)mudconf.permit_host && lookup(d->longaddr, tchbuff, i_sitecnt, &i_retvar))
-           d->host_info = d->host_info | H_PERMIT;
-	d->input_tot = d->input_size;
-	d->output_tot = 0;
+        if ((char *)mudconf.permit_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+           d->hot.host_info = d->hot.host_info | H_PERMIT;
+	d->hot.input_tot = d->hot.input_size;
+	d->hot.output_tot = 0;
          
-        mudstate.total_bytesin += d->input_size;
+        mudstate.total_bytesin += d->hot.input_size;
         if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
            if ( mudstate.avg_bytesin == 0 ) {
               mudstate.avg_bytesin = mudstate.daily_bytesin;
@@ -1948,49 +1963,49 @@ shutdownsock(DESC * d, int reason)
               mudstate.avg_bytesout = (mudstate.avg_bytesout + mudstate.daily_bytesout) / 2;
            }
            mudstate.daily_bytesout = 0;
-           mudstate.daily_bytesin = d->input_size;
+           mudstate.daily_bytesin = d->hot.input_size;
            mudstate.reset_daily_bytes = time(NULL);
         } else {
-           mudstate.daily_bytesin += d->input_size;
+           mudstate.daily_bytesin += d->hot.input_size;
         }
  
 	/* free up the snooplist before freeing the desc -Thorin */
           
-	while (d->snooplist) {
-	    temp = d->snooplist->next;
-	    if (d->snooplist->sfile) {
-		fprintf(d->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate.now, ctime(&mudstate.now));
-		fclose(d->snooplist->sfile);
+	while (d->cold->snooplist) {
+	    temp = d->cold->snooplist->next;
+	    if (d->cold->snooplist->sfile) {
+		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+		fclose(d->cold->snooplist->sfile);
 	    }
-	    free(d->snooplist);
-	    d->snooplist = temp;
+	    free(d->cold->snooplist);
+	    d->cold->snooplist = temp;
 	}
-	d->snooplist = NULL;
-	d->logged = 0;
+	d->cold->snooplist = NULL;
+	d->cold->logged = 0;
         if ( !mudstate.no_announce ) {
 	   welcome_user(d);
         }
     } else {
-	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->userid, d->longaddr, d->descriptor, 0, 0, (char *)disc_reasons[reason]);
-	shutdown(d->descriptor, 2);
-	close(d->descriptor);
+	broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT DISCONNECT", d->cold->userid, d->cold->longaddr, d->hot.descriptor, 0, 0, (char *)disc_reasons[reason]);
+	shutdown(d->hot.descriptor, 2);
+	close(d->hot.descriptor);
 	freeqs(d,0); /* 0 is for all */
-	*d->prev = d->next;
-	if (d->next)
-	    d->next->prev = d->prev;
+	*d->hot.prev = d->hot.next;
+	if (d->hot.next)
+	    d->hot.next->hot.prev = d->hot.prev;
 	/* free up the snooplist before freeing the desc -Thorin */
-	while (d->snooplist) {
-	    temp = d->snooplist->next;
-	    if (d->snooplist->sfile) {
-		fprintf(d->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate.now, ctime(&mudstate.now));
-		fclose(d->snooplist->sfile);
+	while (d->cold->snooplist) {
+	    temp = d->cold->snooplist->next;
+	    if (d->cold->snooplist->sfile) {
+		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+		fclose(d->cold->snooplist->sfile);
 	    }
-	    free(d->snooplist);
-	    d->snooplist = temp;
+	    free(d->cold->snooplist);
+	    d->cold->snooplist = temp;
 	}
-	if (d->flags & DS_AUTH_IN_PROGRESS) {
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
+	if (d->hot.flags & DS_AUTH_IN_PROGRESS) {
+	    shutdown(d->cold->authdescriptor, 2);
+	    close(d->cold->authdescriptor);
 	}
 	free_desc(d);
 	ndescriptors--;
@@ -2038,47 +2053,47 @@ start_auth(DESC * d)
     struct sockaddr_in sin;
 
     DPUSH; /* #8 */
-    if ( d->addr_family == AF_INET6 ) {
-       d->flags &= ~DS_AUTH_IN_PROGRESS;
+    if ( d->cold->addr_family == AF_INET6 ) {
+       d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
        VOIDRETURN;
     }
-    if ( d->flags & DS_API ) {
-      d->flags &= ~DS_AUTH_IN_PROGRESS;
+    if ( d->hot.flags & DS_API ) {
+      d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
       VOIDRETURN; /* #8 */
     }
 
     if( !mudconf.authenticate ) {
-      d->flags &= ~DS_AUTH_IN_PROGRESS;
+      d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
       VOIDRETURN; /* #8 */
     }
 
     /* check the noauth_site list */
-    if( d->addr_family == AF_INET && site_check(d->address.sin_addr, mudstate.special_list, 1, 0, H_NOAUTH) & H_NOAUTH ) {
+    if( d->cold->addr_family == AF_INET && site_check(d->cold->address.sin_addr, mudstate.special_list, 1, 0, H_NOAUTH) & H_NOAUTH ) {
       STARTLOG(LOG_NET, "NET", "AUTH")
         logbuff = alloc_lbuf("start_auth.LOG.site_check");
         sprintf(logbuff,
-        "[%d/%s] Site configured as NOAUTH, not checking", d->descriptor, d->longaddr);
+        "[%d/%s] Site configured as NOAUTH, not checking", d->hot.descriptor, d->cold->longaddr);
         log_text(logbuff);
         free_lbuf(logbuff);
       ENDLOG
-      d->flags &= ~DS_AUTH_IN_PROGRESS;
+      d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
       VOIDRETURN; /* #8 */
     }
 
     bzero((char *) &sin, sizeof(sin));
 
-    if ((d->authdescriptor = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((d->cold->authdescriptor = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 	log_perror("NET", "FAIL", "creating auth sock", "socket");
-	d->flags &= ~DS_AUTH_IN_PROGRESS;
+	d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
 	VOIDRETURN; /* #8 */
     }
 
     /* now make the socket non-blocking */
-    make_nonblocking(d->authdescriptor);
+    make_nonblocking(d->cold->authdescriptor);
 
     sin.sin_port = htons(113);	/* auth/ident port */
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = d->address.sin_addr.s_addr;
+    sin.sin_addr.s_addr = d->cold->address.sin_addr.s_addr;
 
     /* 1/2/97 - Thorin - Solaris has a problem with blocking on
        connect even when the socket is non-blocking, so instead we
@@ -2088,38 +2103,38 @@ start_auth(DESC * d)
     STARTLOG(LOG_NET, "NET", "AUTH")
       logbuff = alloc_lbuf("start_auth.LOG.connecting");
       sprintf(logbuff,
-      "[%d/%s] Starting AUTH connection", d->descriptor, d->longaddr);
+      "[%d/%s] Starting AUTH connection", d->hot.descriptor, d->cold->longaddr);
       log_text(logbuff);
       free_lbuf(logbuff);
     ENDLOG
 
     alarm_msec(3);
 
-    if( connect(d->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
+    if( connect(d->cold->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
           mudstate.alarm_triggered = 2;
-  	  d->flags &= ~DS_AUTH_IN_PROGRESS;
+  	  d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
           logbuff = alloc_lbuf("start_auth.LOG.timeout");
           if( errno != EINTR ) {
 	    log_perror("NET", "FAIL", "connecting AUTH sock", "connect");
           } else {
             STARTLOG(LOG_NET, "NET", "AUTH")
               sprintf(logbuff,
-              "[%d/%s] AUTH connect alarm timed out", d->descriptor, d->longaddr);
+              "[%d/%s] AUTH connect alarm timed out", d->hot.descriptor, d->cold->longaddr);
               log_text(logbuff);
             ENDLOG
           }
-           sprintf(logbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+           sprintf(logbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
           cf_site((int *)&mudstate.special_list, logbuff,
                     (H_NOAUTH | H_AUTOSITE), 0, 1, "noauth_site");
           free_lbuf(logbuff);
-	  shutdown(d->authdescriptor, 2);
-	  close(d->authdescriptor);
+	  shutdown(d->cold->authdescriptor, 2);
+	  close(d->cold->authdescriptor);
 	  VOIDRETURN; /* #8 */
         }
     }
 
-    d->flags |= DS_AUTH_CONNECTING;
+    d->hot.flags |= DS_AUTH_CONNECTING;
     DPOP; /* #8 */
 }
 
@@ -2130,29 +2145,29 @@ check_auth_connect(DESC * d)
     int sockerr = 0;
     int sockerrlen = sizeof(sockerr);
 
-    d->flags &= ~DS_AUTH_CONNECTING;
+    d->hot.flags &= ~DS_AUTH_CONNECTING;
 
-    if( getsockopt(d->authdescriptor, SOL_SOCKET, SO_ERROR, &sockerr, (unsigned int *) &sockerrlen) ) {
+    if( getsockopt(d->cold->authdescriptor, SOL_SOCKET, SO_ERROR, &sockerr, (unsigned int *) &sockerrlen) ) {
         log_perror("NET", "FAIL", "checking AUTH connect", "getsockopt");
-        d->flags &= ~DS_AUTH_IN_PROGRESS;
+        d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
 /* do we really need this next line? */
-        close(d->authdescriptor);
+        close(d->cold->authdescriptor);
     }
     else {
         if( sockerr ) {
             STARTLOG(LOG_NET, "NET", "AUTH")
               logbuff = alloc_lbuf("check_auth_connect.LOG.timeout");
               sprintf(logbuff,
-              "[%d/%s] AUTH connect: %s", d->descriptor, d->longaddr, strerror(sockerr));
+              "[%d/%s] AUTH connect: %s", d->hot.descriptor, d->cold->longaddr, strerror(sockerr));
               log_text(logbuff);
               free_lbuf(logbuff);
             ENDLOG
-            d->flags &= ~DS_AUTH_IN_PROGRESS;
+            d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
 /* do we really need this next line? */
-            close(d->authdescriptor);
+            close(d->cold->authdescriptor);
         }
         else {
-            d->flags |= DS_NEED_AUTH_WRITE;
+            d->hot.flags |= DS_NEED_AUTH_WRITE;
         }
     }
 }
@@ -2167,9 +2182,9 @@ write_auth(DESC * d)
 
     buff = alloc_mbuf("auth");
 
-    sprintf(buff, "%d, %d\r\n", d->remote_port, mudconf.port);
+    sprintf(buff, "%d, %d\r\n", d->cold->remote_port, mudconf.port);
 
-    if (write(d->authdescriptor, buff, strlen(buff)) < 0) {
+    if (write(d->cold->authdescriptor, buff, strlen(buff)) < 0) {
 	free_mbuf(buff);
 	if (errno == EINTR) {
 
@@ -2179,21 +2194,21 @@ write_auth(DESC * d)
             STARTLOG(LOG_NET, "NET", "AUTH")
       	      logbuff = alloc_lbuf("check_auth.LOG.writeerr");
     	      sprintf(logbuff,
-	              "[%d/%s] AUTH write: %s", d->descriptor, d->longaddr,
+	              "[%d/%s] AUTH write: %s", d->hot.descriptor, d->cold->longaddr,
 	              strerror(errno));
 	      log_text(logbuff);
 	      free_lbuf(logbuff);
 	    ENDLOG
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
+	    d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
+	    shutdown(d->cold->authdescriptor, 2);
+	    close(d->cold->authdescriptor);
 	}
     }
     else {
         free_mbuf(buff);
     }
-    d->flags &= ~DS_NEED_AUTH_WRITE;
-    shutdown(d->authdescriptor, 1);	/* close write */
+    d->hot.flags &= ~DS_NEED_AUTH_WRITE;
+    shutdown(d->cold->authdescriptor, 1);	/* close write */
     VOIDRETURN; /* #9 */
 }
 
@@ -2212,42 +2227,42 @@ check_auth(DESC * d)
 
     buff = alloc_mbuf("check_auth_rec_buffer");
 
-    if ((numread = read(d->authdescriptor, buff, MBUF_SIZE - 1)) < 0) {
+    if ((numread = read(d->cold->authdescriptor, buff, MBUF_SIZE - 1)) < 0) {
         STARTLOG(LOG_NET, "NET", "AUTH")
   	  logbuff = alloc_lbuf("check_auth.LOG.readerr");
 	  sprintf(logbuff,
-	          "[%d/%s] AUTH read: %s", d->descriptor, d->longaddr,
+	          "[%d/%s] AUTH read: %s", d->hot.descriptor, d->cold->longaddr,
 	          strerror(errno));
 	  log_text(logbuff);
 	  free_lbuf(logbuff);
 	ENDLOG
-	d->flags &= ~DS_AUTH_IN_PROGRESS;
-	shutdown(d->authdescriptor, 2);
-	close(d->authdescriptor);
+	d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
+	shutdown(d->cold->authdescriptor, 2);
+	close(d->cold->authdescriptor);
         free_mbuf(buff);
 	VOIDRETURN; /* #10 */
     }
     buff[numread] = '\0';
 
-    useridptr = d->userid + strlen(d->userid);
-    safe_mb_str(buff, d->userid, &useridptr);
+    useridptr = d->cold->userid + strlen(d->cold->userid);
+    safe_mb_str(buff, d->cold->userid, &useridptr);
     free_mbuf(buff);
 
-    if (index(d->userid, '\r') || index(d->userid, '\n')) {
+    if (index(d->cold->userid, '\r') || index(d->cold->userid, '\n')) {
 	/* we got it all */
 	/* extract the user id if it's there */
 
         resp3 = alloc_mbuf("check_auth_resp3");
         buff2 = alloc_mbuf("check_auth_buff2");
-        /* d->userid is guaranteed to be within MBUF size,
+        /* d->cold->userid is guaranteed to be within MBUF size,
            therefore a direct sscanf of any field within will be
            <= MBUF size */
-	if (sscanf(d->userid, "%d , %d : USERID : %s : %s", &resp1, &resp2, resp3, buff2) == 4) {
-	    strncpy(d->userid, strip_nonprint(buff2), MBUF_SIZE - 1);
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
-            if ( strcmp(buff2, d->userid) != 0 ) {
+	if (sscanf(d->cold->userid, "%d , %d : USERID : %s : %s", &resp1, &resp2, resp3, buff2) == 4) {
+	    strncpy(d->cold->userid, strip_nonprint(buff2), MBUF_SIZE - 1);
+	    d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
+	    shutdown(d->cold->authdescriptor, 2);
+	    close(d->cold->authdescriptor);
+            if ( strcmp(buff2, d->cold->userid) != 0 ) {
                STARTLOG(LOG_NET, "NET", "AUTH")
 		  logbuff = alloc_lbuf("check_auth.LOG.got_it");
                   sprintf(logbuff, "Warning: Non-printable codes stripped in userid '%s'.", buff2);
@@ -2258,24 +2273,24 @@ check_auth(DESC * d)
 	    STARTLOG(LOG_NET, "NET", "AUTH")
 		logbuff = alloc_lbuf("check_auth.LOG.got_it");
 	        sprintf(logbuff,
-		    "[%d/%s] User identified: %s", d->descriptor, d->longaddr,
-		    d->userid);
+		    "[%d/%s] User identified: %s", d->hot.descriptor, d->cold->longaddr,
+		    d->cold->userid);
 	        log_text(logbuff);
 	        free_lbuf(logbuff);
 	    ENDLOG
 	} else {		/* protocol error */
-	    d->flags &= ~DS_AUTH_IN_PROGRESS;
-	    shutdown(d->authdescriptor, 2);
-	    close(d->authdescriptor);
+	    d->hot.flags &= ~DS_AUTH_IN_PROGRESS;
+	    shutdown(d->cold->authdescriptor, 2);
+	    close(d->cold->authdescriptor);
 	    STARTLOG(LOG_NET, "NET", "AUTH")
 		logbuff = alloc_lbuf("check_auth.LOG.prot_err");
 	        sprintf(logbuff,
-		  "[%d/%s] Auth protocol error: %s", d->descriptor, d->longaddr,
-		    d->userid);
+		  "[%d/%s] Auth protocol error: %s", d->hot.descriptor, d->cold->longaddr,
+		    d->cold->userid);
 	        log_text(logbuff);
 	        free_lbuf(logbuff);
 	    ENDLOG
-            strcpy(d->userid,"");
+            strcpy(d->cold->userid,"");
 	}
         free_mbuf(resp3);
         free_mbuf(buff2);
@@ -2299,24 +2314,24 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     i_nope = 0;
     ndescriptors++;
     d = alloc_desc("init_sock");
-    d->descriptor = s;
-    d->flags = 0;
+    d->hot.descriptor = s;
+    d->hot.flags = 0;
     if ( !keyval ) {
-       d->flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;
+       d->hot.flags = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;
     }
-    d->connected_at = mudstate.now;
-    d->retries_left = mudconf.retry_limit;
-    d->regtries_left = mudconf.regtry_limit;
-    d->command_count = 0;
-    d->timeout = mudconf.idle_timeout;
-    d->addr_family = addr_family;
-    d->remote_port = remote_port;
+    d->cold->connected_at = mudstate.now;
+    d->cold->retries_left = mudconf.retry_limit;
+    d->cold->regtries_left = mudconf.regtry_limit;
+    d->cold->command_count = 0;
+    d->cold->timeout = mudconf.idle_timeout;
+    d->cold->addr_family = addr_family;
+    d->cold->remote_port = remote_port;
     if (is_ipv4 && inet_pton(AF_INET, ip_str, &ipv4_addr) == 1) {
-       d->address.sin_family = AF_INET;
-       d->address.sin_addr = ipv4_addr;
-       d->address.sin_port = htons(remote_port);
+       d->cold->address.sin_family = AF_INET;
+       d->cold->address.sin_addr = ipv4_addr;
+       d->cold->address.sin_port = htons(remote_port);
     } else {
-       memset(&d->address, 0, sizeof(d->address));
+       memset(&d->cold->address, 0, sizeof(d->cold->address));
     }
     addroutbuf = (char *) addrout(ip_str, addr_family, keyval);
     t_addroutbuf = alloc_lbuf("check_max_sitecons");
@@ -2324,8 +2339,8 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     i_sitecnt = i_guestcnt = 0;
     if ( t_addroutbuf ) {
        DESC_SAFEITER_ALL(dchk, dchknext) {
-          if ( strcmp(t_addroutbuf, dchk->addr) == 0 ) {
-             if ( Good_chk(dchk->player) && Guest(dchk->player) ) {
+          if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
+             if ( Good_chk(dchk->hot.player) && Guest(dchk->hot.player) ) {
                 i_guestcnt++;
              }
              i_sitecnt++;
@@ -2334,114 +2349,114 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     }
     free_lbuf(t_addroutbuf);
      if ( is_ipv4 ) {
-        d->host_info = (site_check(ipv4_addr, mudstate.access_list, 1, 0, 0) & ~0x4) |
+        d->hot.host_info = (site_check(ipv4_addr, mudstate.access_list, 1, 0, 0) & ~0x4) |
                        site_check(ipv4_addr, mudstate.suspect_list, 0, 0, 0);
         i_sitemax = site_check(ipv4_addr, mudstate.access_list, 1, 1, H_FORBIDDEN);
         if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
-           d->host_info &= ~H_FORBIDDEN;
+           d->hot.host_info &= ~H_FORBIDDEN;
         i_sitemax = site_check(ipv4_addr, mudstate.access_list, 1, 1, H_REGISTRATION);
         if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
-           d->host_info &= ~H_REGISTRATION;
+           d->hot.host_info &= ~H_REGISTRATION;
         i_sitemax = site_check(ipv4_addr, mudstate.access_list, 1, 1, H_NOGUEST);
         if ( (i_sitemax != -1) && (i_guestcnt < i_sitemax) )
-           d->host_info &= ~H_NOGUEST;
+           d->hot.host_info &= ~H_NOGUEST;
      } else {
-        d->host_info = (site_check_str(ip_str, addr_family, mudstate.access_list, 1, 0, 0) & ~0x4) |
+        d->hot.host_info = (site_check_str(ip_str, addr_family, mudstate.access_list, 1, 0, 0) & ~0x4) |
                        site_check_str(ip_str, addr_family, mudstate.suspect_list, 0, 0, 0);
         i_sitemax = site_check_str(ip_str, addr_family, mudstate.access_list, 1, 1, H_FORBIDDEN);
         if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
-           d->host_info &= ~H_FORBIDDEN;
+           d->hot.host_info &= ~H_FORBIDDEN;
         i_sitemax = site_check_str(ip_str, addr_family, mudstate.access_list, 1, 1, H_REGISTRATION);
         if ( (i_sitemax != -1) && (i_sitecnt < i_sitemax) )
-           d->host_info &= ~H_REGISTRATION;
+           d->hot.host_info &= ~H_REGISTRATION;
         i_sitemax = site_check_str(ip_str, addr_family, mudstate.access_list, 1, 1, H_NOGUEST);
         if ( (i_sitemax != -1) && (i_guestcnt < i_sitemax) )
-           d->host_info &= ~H_NOGUEST;
+           d->hot.host_info &= ~H_NOGUEST;
      }
     memset(tchbuff, 0, sizeof(tchbuff));
     strcpy(tchbuff, mudconf.forbid_host);
     if ((char *)mudconf.forbid_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
-       d->host_info = d->host_info | H_FORBIDDEN;
+       d->hot.host_info = d->hot.host_info | H_FORBIDDEN;
     strcpy(tchbuff, mudconf.register_host);
     if ((char *)mudconf.register_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
-       d->host_info = d->host_info | H_REGISTRATION;
+       d->hot.host_info = d->hot.host_info | H_REGISTRATION;
      if ( blacklist_check_str(ip_str, addr_family, 2) ) {
-        d->host_info = d->host_info | H_REGISTRATION;
+        d->hot.host_info = d->hot.host_info | H_REGISTRATION;
      }
      strcpy(tchbuff, mudconf.autoreg_host);
      if ((char *)mudconf.autoreg_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
-        d->host_info = d->host_info | H_NOAUTOREG;
+        d->hot.host_info = d->hot.host_info | H_NOAUTOREG;
      strcpy(tchbuff, mudconf.noguest_host);
      if ((char *)mudconf.noguest_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
-        d->host_info = d->host_info | H_NOGUEST;
+        d->hot.host_info = d->hot.host_info | H_NOGUEST;
      if ( blacklist_check_str(ip_str, addr_family, 3) ) {
-       d->host_info = d->host_info | H_NOGUEST;
+       d->hot.host_info = d->hot.host_info | H_NOGUEST;
     }
     strcpy(tchbuff, mudconf.suspect_host);
     if ((char *)mudconf.suspect_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
-       d->host_info = d->host_info | H_SUSPECT;
+       d->hot.host_info = d->hot.host_info | H_SUSPECT;
     strcpy(tchbuff, mudconf.passproxy_host);
     if ((char *)mudconf.passproxy_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
-       d->host_info = d->host_info | H_PASSPROXY;
+       d->hot.host_info = d->hot.host_info | H_PASSPROXY;
     strcpy(tchbuff, mudconf.hardconn_host);
     if ((char *)mudconf.hardconn_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
-       d->host_info = d->host_info | H_HARDCONN;
+       d->hot.host_info = d->hot.host_info | H_HARDCONN;
     strcpy(tchbuff, mudconf.permit_host);
     if ((char *)mudconf.permit_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
-       d->host_info = d->host_info | H_PERMIT;
-    d->host_info = d->host_info | i_keyflag;
-    d->player = 0;
-    d->addr[0] = '\0';
-    d->longaddr[0] = '\0';
-    d->longaddrcheck = 242242242;
-    d->doing[0] = '\0';
+       d->hot.host_info = d->hot.host_info | H_PERMIT;
+    d->hot.host_info = d->hot.host_info | i_keyflag;
+    d->hot.player = 0;
+    d->cold->addr[0] = '\0';
+    d->cold->longaddr[0] = '\0';
+    d->cold->longaddrcheck = 242242242;
+    d->cold->doing[0] = '\0';
     make_nonblocking(s);
-    d->output_prefix = NULL;
-    d->output_suffix = NULL;
-    d->output_size = 0;
-    d->output_tot = 0;
-    d->output_lost = 0;
-    d->output_head = NULL;
-    d->output_tail = NULL;
-    d->door_output_head = NULL;
-    d->door_output_tail = NULL;
-    d->door_input_head = NULL;
-    d->door_input_tail = NULL;
-    d->door_desc = -1;
-    d->door_num = 0;
-    d->door_output_size = 0;
-    d->door_int1 = 0;
-    d->door_int2 = 0;
-    d->door_int3 = 0;
-    d->door_lbuf = NULL;
-    d->door_mbuf = NULL;
-    d->door_raw = NULL;
-    d->input_head = NULL;
-    d->input_tail = NULL;
-    d->input_size = 0;
-    d->input_tot = 0;
-    d->input_lost = 0;
-    d->raw_input = NULL;
-    d->raw_input_at = NULL;
-    d->quota = mudconf.cmd_quota_max;
-    d->last_time = 0;
-    d->snooplist = NULL;
-    d->logged = 0;
-    d->checksum[0] = '\0';
-    d->ws_frame_len = 0;
-    d->account_owner = NOTHING;
-    memset(d->account_rawpass, '\0', sizeof(d->account_rawpass));
+    d->cold->output_prefix = NULL;
+    d->cold->output_suffix = NULL;
+    d->hot.output_size = 0;
+    d->hot.output_tot = 0;
+    d->cold->output_lost = 0;
+    d->hot.output_head = NULL;
+    d->hot.output_tail = NULL;
+    d->cold->door_output_head = NULL;
+    d->cold->door_output_tail = NULL;
+    d->cold->door_input_head = NULL;
+    d->cold->door_input_tail = NULL;
+    d->cold->door_desc = -1;
+    d->cold->door_num = 0;
+    d->cold->door_output_size = 0;
+    d->cold->door_int1 = 0;
+    d->cold->door_int2 = 0;
+    d->cold->door_int3 = 0;
+    d->cold->door_lbuf = NULL;
+    d->cold->door_mbuf = NULL;
+    d->cold->door_raw = NULL;
+    d->hot.input_head = NULL;
+    d->hot.input_tail = NULL;
+    d->hot.input_size = 0;
+    d->hot.input_tot = 0;
+    d->cold->input_lost = 0;
+    d->cold->raw_input = NULL;
+    d->cold->raw_input_at = NULL;
+    d->hot.quota = mudconf.cmd_quota_max;
+    d->hot.last_time = 0;
+    d->cold->snooplist = NULL;
+    d->cold->logged = 0;
+    d->cold->checksum[0] = '\0';
+    d->cold->ws_frame_len = 0;
+    d->cold->account_owner = NOTHING;
+    memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
 
-    *d->userid = '\0';
-    memset(d->addr, 0, sizeof(d->addr));
-    strncpy(d->addr, ip_str, sizeof(d->addr) - 1);
-    memset(d->longaddr, '\0', sizeof(d->longaddr));
-    strncpy(d->longaddr, addr_str, sizeof(d->longaddr) - 1);
+    *d->cold->userid = '\0';
+    memset(d->cold->addr, 0, sizeof(d->cold->addr));
+    strncpy(d->cold->addr, ip_str, sizeof(d->cold->addr) - 1);
+    memset(d->cold->longaddr, '\0', sizeof(d->cold->longaddr));
+    strncpy(d->cold->longaddr, addr_str, sizeof(d->cold->longaddr) - 1);
     if (descriptor_list)
-	descriptor_list->prev = &d->next;
-    d->hashnext = NULL;
-    d->next = descriptor_list;
-    d->prev = &descriptor_list;
+	descriptor_list->hot.prev = &d->hot.next;
+    d->hot.hashnext = NULL;
+    d->hot.next = descriptor_list;
+    d->hot.prev = &descriptor_list;
     descriptor_list = d;
     if ( !keyval && mudconf.sconnect_reip && mudconf.ssl_welcome )  {
        memset(tchbuff, 0, sizeof(tchbuff));
@@ -2456,8 +2471,8 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     } else if ( i_nope && !keyval ) {
        start_auth(d);
     } else if ( keyval ) {
-       d->timeout = 1;
-       d->flags |= DS_API;
+       d->cold->timeout = 1;
+       d->hot.flags |= DS_API;
     }
     RETURN(d); /* #11 */
 }
@@ -2474,18 +2489,18 @@ process_output(DESC * d)
     cmdsave = mudstate.debug_cmd;
     mudstate.debug_cmd = (char *) "< process_output >";
 
-    tb = d->output_head;
+    tb = d->hot.output_head;
     retry_cnt = retry_success = 0;
     while (tb != NULL) {
 	while (tb->hdr.nchars > 0) {
 
-	    cnt = WRITE(d->descriptor, tb->hdr.start,
+	    cnt = WRITE(d->hot.descriptor, tb->hdr.start,
 			tb->hdr.nchars);
 	    if (cnt < 0) {
 		mudstate.debug_cmd = cmdsave;
                 if ( (errno == EWOULDBLOCK) || (errno == EAGAIN) ) {
                    while ( retry_cnt < 10 ) {
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+	              cnt = WRITE(d->hot.descriptor, tb->hdr.start, tb->hdr.nchars);
                       if ( (cnt < 0) && !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
                          retry_cnt = 20;
                          retry_success = 1;
@@ -2503,19 +2518,19 @@ process_output(DESC * d)
                    /* It's a timeout, let's wait for a few milliseconds and try again */
 /*                    usleep(10); */
                       nanosleep((struct timespec[]){{0, 100000000}}, NULL);
-	              cnt = WRITE(d->descriptor, tb->hdr.start, tb->hdr.nchars);
+	              cnt = WRITE(d->hot.descriptor, tb->hdr.start, tb->hdr.nchars);
                    }
                    if ( cnt < 0 ) {
-                      if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != d->player) ) {
+                      if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != d->hot.player) ) {
                          STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
                             memset(s_savebuff, '\0', sizeof(s_savebuff));
                             log_text((char *) "WARNING: Failed socket write to descriptor past 10 times ");
-                            sprintf(s_savebuff, "[port %d/player #%d/error %d] ", d->descriptor, d->player,
+                            sprintf(s_savebuff, "[port %d/player #%d/error %d] ", d->hot.descriptor, d->hot.player,
                                     errno);
                             log_text(s_savebuff);
                             log_text((char *)strerror(errno));
                          ENDLOG
-                         mudstate.last_network_owner = d->player;
+                         mudstate.last_network_owner = d->hot.player;
                       }
                       RETURN(1);
                    }
@@ -2528,16 +2543,16 @@ process_output(DESC * d)
                 if ( cnt < 0 )
 		   RETURN(0); /* #12 */
 	    }
-	    d->output_size -= cnt;
+	    d->hot.output_size -= cnt;
 	    tb->hdr.nchars -= cnt;
 	    tb->hdr.start += cnt;
 	}
 	save = tb;
 	tb = tb->hdr.nxt;
 	free_lbuf(save);
-	d->output_head = tb;
+	d->hot.output_head = tb;
 	if (tb == NULL)
-	    d->output_tail = NULL;
+	    d->hot.output_tail = NULL;
     }
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #12 */
@@ -2623,40 +2638,40 @@ process_input(DESC * d)
 
     memset(qfind, '\0', sizeof(qfind));
     memset(tmpbuf, '\0', sizeof(tmpbuf));
-    got = in = READ(d->descriptor, buf, sizeof buf);
+    got = in = READ(d->hot.descriptor, buf, sizeof buf);
     if (got <= 0) {
 	mudstate.debug_cmd = cmdsave;
 	RETURN(0); /* #16 */
     }
 #ifdef ENABLE_WEBSOCKETS
 ///// NEW WEBSOCK #ifdef ENABLE_WEBSOCKETS
-    if (d->flags & DS_WEBSOCKETS) {
+    if (d->hot.flags & DS_WEBSOCKETS) {
         /* Process using WebSockets framing. */
         got2 = got;
         got = in = process_websocket_frame(d, buf, got2);
     }
 ///// END NEW WEBSOCK #endif
 #endif
-    if (!d->raw_input) {
-	d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-	d->raw_input_at = d->raw_input->cmd;
+    if (!d->cold->raw_input) {
+	d->cold->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+	d->cold->raw_input_at = d->cold->raw_input->cmd;
     }
-    p = d->raw_input_at;
-    pend = d->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
+    p = d->cold->raw_input_at;
+    pend = d->cold->raw_input->cmd + LBUF_SIZE - sizeof(CBLKHDR) - 1;
     lost = 0;
     in_get = 1;
-    if ( d->flags & DS_API ) {
+    if ( d->hot.flags & DS_API ) {
        in_get = 0;
     }
 //fprintf(stderr, "Test: %s\nVal: %d", buf, in_get);
     for (q = buf, qend = buf + got; q < qend; q++) {
-	if ( (*q == '\n') && (!(d->flags & DS_API) || (!in_get && ((q+10) > qend) && (d->flags & DS_API))) ) {
+	if ( (*q == '\n') && (!(d->hot.flags & DS_API) || (!in_get && ((q+10) > qend) && (d->hot.flags & DS_API))) ) {
   	      *p = '\0';
-		if (p > d->raw_input->cmd) {
-			save_command(d, d->raw_input);
-			d->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
-			p = d->raw_input_at = d->raw_input->cmd;
-			pend = d->raw_input->cmd + LBUF_SIZE -
+		if (p > d->cold->raw_input->cmd) {
+			save_command(d, d->cold->raw_input);
+			d->cold->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+			p = d->cold->raw_input_at = d->cold->raw_input->cmd;
+			pend = d->cold->raw_input->cmd + LBUF_SIZE -
 			sizeof(CBLKHDR) - 1;
 		} else {
 			in -= 1;	/* for newline */
@@ -2667,10 +2682,10 @@ process_input(DESC * d)
 	    else
 		queue_string(d, " \b");
 	    in -= 2;
-	    if (p > d->raw_input->cmd)
+	    if (p > d->cold->raw_input->cmd)
 		p--;
-	    if (p < d->raw_input_at)
-		(d->raw_input_at)--;
+	    if (p < d->cold->raw_input_at)
+		(d->cold->raw_input_at)--;
         /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
         } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
             sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
@@ -2741,15 +2756,15 @@ process_input(DESC * d)
 		lost++;
 	}
     }
-    if (p > d->raw_input->cmd) {
-	d->raw_input_at = p;
+    if (p > d->cold->raw_input->cmd) {
+	d->cold->raw_input_at = p;
     } else {
-	free_lbuf(d->raw_input);
-	d->raw_input = NULL;
-	d->raw_input_at = NULL;
+	free_lbuf(d->cold->raw_input);
+	d->cold->raw_input = NULL;
+	d->cold->raw_input_at = NULL;
     }
     if ( got > 0 ) {
-       d->input_tot += got;
+       d->hot.input_tot += got;
        mudstate.total_bytesin += got;
        if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
           if ( mudstate.avg_bytesin == 0 ) {
@@ -2770,9 +2785,9 @@ process_input(DESC * d)
        }
     }
     if ( in > 0 )
-       d->input_size += in;
+       d->hot.input_size += in;
     if ( lost > 0 )
-       d->input_lost += lost;
+       d->cold->input_lost += lost;
     
     mudstate.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
@@ -2788,12 +2803,12 @@ close_sockets(int emergency, char *message)
     DESC_SAFEITER_ALL(d, dnext) {
 	if (emergency) {
 
-	    WRITE(d->descriptor, message, strlen(message));
-	    if (shutdown(d->descriptor, 2) < 0)
+	    WRITE(d->hot.descriptor, message, strlen(message));
+	    if (shutdown(d->hot.descriptor, 2) < 0)
 		log_perror("NET", "FAIL", NULL, "shutdown");
-	    close(d->descriptor);
-	    if (d->flags & DS_HAS_DOOR)
-	      close(d->door_desc);
+	    close(d->hot.descriptor);
+	    if (d->hot.flags & DS_HAS_DOOR)
+	      close(d->cold->door_desc);
 	} else {
 	    queue_string(d, message);
 	    queue_write(d, "\r\n", 2);

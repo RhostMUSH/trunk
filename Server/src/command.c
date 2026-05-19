@@ -3590,8 +3590,8 @@ process_command(dbref player, dbref cause, int interactive,
                (mudconf.noshell_prog && !NoShProg(player))) ) {
              notify(player, "You are not allowed to execute commands from within the @program.");
              DESC_ITER_CONN(d) {
-                if ( d->player == player ) {
-                   progatr = atr_get(d->player, A_PROGPROMPTBUF, &aowner, &aflags);
+                if ( d->hot.player == player ) {
+                   progatr = atr_get(d->hot.player, A_PROGPROMPTBUF, &aowner, &aflags);
                    if ( progatr && *progatr ) {
                       if ( strcmp(progatr, "NULL") != 0 ) {
                          tprp_buff = tpr_buff = alloc_lbuf("process_command");
@@ -3620,7 +3620,7 @@ process_command(dbref player, dbref cause, int interactive,
           atr_clr(player, A_PROGBUFFER);
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
           DESC_ITER_CONN(d) {
-             if ( d->player == player ) {
+             if ( d->hot.player == player ) {
                 queue_string(d, "\377\371");
              }
           }
@@ -3904,16 +3904,16 @@ process_command(dbref player, dbref cause, int interactive,
                      if ( isPlayer(boot_plr) ) {
                         tchbuff = alloc_mbuf("cpu_regsite");
                         DESC_ITER_CONN(d) {
-                           if ( d->player == boot_plr ) {
-                                sprintf(tchbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+                           if ( d->hot.player == boot_plr ) {
+                                sprintf(tchbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
                                 if ( mudconf.cpu_secure_lvl == 4 ) {
-                                  if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                  if ( !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                     cf_site((int *)&mudstate.access_list, tchbuff,
                                             (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
                                   }
                                 }
                                 else {
-                                  if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                  if ( !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
                                     cf_site((int *)&mudstate.access_list, tchbuff,
                                             (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
                                   }
@@ -4635,16 +4635,16 @@ process_command(dbref player, dbref cause, int interactive,
                       if ( isPlayer(boot_plr) ) {
                          tchbuff = alloc_mbuf("cpu_regsite");
                          DESC_ITER_CONN(d) {
-                            if ( d->player == boot_plr ) {
-                                 sprintf(tchbuff, "%s %s", d->addr, (d->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+                            if ( d->hot.player == boot_plr ) {
+                                 sprintf(tchbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
                                  if ( mudconf.cpu_secure_lvl == 4 ) {
-                                   if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
+                                   if ( !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) ) {
                                      cf_site((int *)&mudstate.access_list, tchbuff,
                                              (H_REGISTRATION | H_AUTOSITE), 0, 1, "register_site");
                                    }
                                  }
                                  else {
-                                   if ( !(site_check_str(d->addr, d->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
+                                   if ( !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ) {
                                      cf_site((int *)&mudstate.access_list, tchbuff,
                                              (H_FORBIDDEN | H_AUTOSITE), 0, 1, "forbid_site");
                                    }
@@ -9826,10 +9826,10 @@ void do_door(dbref player, dbref cause, int key, char *dname, char *args[], int 
             d_use = NULL;
             i_now = 0;
             DESC_ITER_CONN(d_door) {
-               if (d_door->player == target) {
-                  if ( d_door->last_time > i_now ) {
+               if (d_door->hot.player == target) {
+                  if ( d_door->hot.last_time > i_now ) {
                      d_use = d_door;
-                     i_now = d_door->last_time;
+                     i_now = d_door->hot.last_time;
                   }
                }
             }
@@ -10436,7 +10436,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
     */
    tprp_buff = tpr_buff = alloc_lbuf("do_program");
    DESC_ITER_CONN(d) {
-      if ( d->player == thing ) {
+      if ( d->hot.player == thing ) {
         progatr = atr_get(it, A_PROGPROMPT, &aowner, &aflags);
         memset(strprompt, 0, sizeof(strprompt));
         strncpy(strprompt, progatr, sizeof(strprompt)-1);
@@ -10504,7 +10504,7 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
    }
    s_Flags4(thing, (Flags4(thing) & (~INPROGRAM)));
    DESC_ITER_CONN(d) {
-      if ( d->player == thing ) {
+      if ( d->hot.player == thing ) {
          queue_string(d, "\377\371");
       }
    }
@@ -13084,9 +13084,9 @@ do_progreset(dbref player, dbref cause, int key, char *name)
    }
    if ( !InProgram(target) ) {
       DESC_ITER_CONN(d) {
-         if ( d->player == target ) {
+         if ( d->hot.player == target ) {
             queue_string(d, "\377\371");
-            atr_clr(d->player, A_PROGPROMPTBUF);
+            atr_clr(d->hot.player, A_PROGPROMPTBUF);
          }
       }
       notify_quiet(player, "Program prompt reset.");
@@ -13094,7 +13094,7 @@ do_progreset(dbref player, dbref cause, int key, char *name)
       if ( i_buff ) {
          tprp_buff = tpr_buff = alloc_lbuf("do_progreset");
          DESC_ITER_CONN(d) {
-            if ( d->player == target ) {
+            if ( d->hot.player == target ) {
                tprp_buff = tpr_buff;
                atr_add_raw(target, A_PROGPROMPTBUF, buff);
 #ifdef ZENTY_ANSI
@@ -14965,14 +14965,14 @@ do_cmdquota(dbref player, dbref cause, int key, char *name, char *cmdquota) {
 
    i_cntr = 0;
    DESC_ITER_ALL(d) {
-      if ( ((target != NOTHING) && (d->player == target)) ||
-           ((target == NOTHING) && (d->descriptor == i_port)) ) {
-         d->quota = i_cmdquota;
-         if ( (Wizard(d->player) && (i_cmdquota == mudconf.wizcmd_quota_max)) ||
-              (!Wizard(d->player) && (i_cmdquota == mudconf.cmd_quota_max)) ) {
-            d->flags &= ~DS_CMDQUOTA;
+      if ( ((target != NOTHING) && (d->hot.player == target)) ||
+           ((target == NOTHING) && (d->hot.descriptor == i_port)) ) {
+         d->hot.quota = i_cmdquota;
+         if ( (Wizard(d->hot.player) && (i_cmdquota == mudconf.wizcmd_quota_max)) ||
+              (!Wizard(d->hot.player) && (i_cmdquota == mudconf.cmd_quota_max)) ) {
+            d->hot.flags &= ~DS_CMDQUOTA;
          } else {
-            d->flags |= DS_CMDQUOTA;
+            d->hot.flags |= DS_CMDQUOTA;
          }
          i_cntr++;
       }

@@ -112,7 +112,7 @@ static void forceDoorClosed(int player, int door) {
   DESC *d;
   DPUSH; /* #1 */
   DESC_ITER_CONN(d) {
-    if (d->flags & DS_HAS_DOOR && d->door_num == door) {
+    if (d->hot.flags & DS_HAS_DOOR && d->cold->door_num == door) {
       closeDoorWithId(d, door);
       notify(player, unsafe_tprintf("%s has slammed the door shut.", Name(player)));
     }
@@ -218,7 +218,7 @@ static int addDoor(const char *doorName,
       goto error;
     }
     gaDoors[gnDoors]->doorStatus = INTERNAL_e;
-    gaDoors[gnDoors]->pDescriptor->player= SYSTEM;
+    gaDoors[gnDoors]->pDescriptor->hot.player= SYSTEM;
   }
 
   // Check LOC is a room
@@ -267,28 +267,28 @@ static int addDoor(const char *doorName,
 static void shut_door(DESC *d)
 {
   DPUSH; /* 4 */
-  if (d->flags & DS_HAS_DOOR) {
-    shutdown(d->door_desc,2);
-    close(d->door_desc);
+  if (d->hot.flags & DS_HAS_DOOR) {
+    shutdown(d->cold->door_desc,2);
+    close(d->cold->door_desc);
     ndescriptors--;
-    d->door_num = 0;
-    d->door_desc = -1;
-    d->door_output_size = 0;
+    d->cold->door_num = 0;
+    d->cold->door_desc = -1;
+    d->cold->door_output_size = 0;
   }
   freeqs(d,1);
-  if (d->door_lbuf != NULL) {
-    free_lbuf(d->door_lbuf);
-    d->door_lbuf = NULL;
+  if (d->cold->door_lbuf != NULL) {
+    free_lbuf(d->cold->door_lbuf);
+    d->cold->door_lbuf = NULL;
   }
-  if (d->door_mbuf != NULL) {
-    free_mbuf(d->door_mbuf);
-    d->door_mbuf = NULL;
+  if (d->cold->door_mbuf != NULL) {
+    free_mbuf(d->cold->door_mbuf);
+    d->cold->door_mbuf = NULL;
   }
-  d->flags &= ~DS_HAS_DOOR;
-  d->door_num = 0;
-  if (d->door_raw != NULL) {
-    free_lbuf(d->door_raw);
-    d->door_raw = NULL;
+  d->hot.flags &= ~DS_HAS_DOOR;
+  d->cold->door_num = 0;
+  if (d->cold->door_raw != NULL) {
+    free_lbuf(d->cold->door_raw);
+    d->cold->door_raw = NULL;
   }
   VOIDRETURN; /* 4 */
 }
@@ -298,16 +298,16 @@ static void shut_door(DESC *d)
 void door_raw_input(DESC *d, char *input)
 {
   DPUSH; /* 5 */
-  if (gaDoors[d->door_num]->pFnReadDoor == NULL) {
+  if (gaDoors[d->cold->door_num]->pFnReadDoor == NULL) {
     queue_door_string(d, input, 1); /* 3rd arg means slap a newline on */
   } else {
-    if ((gaDoors[d->door_num]->pFnReadDoor)(d, input) < 0) {
-      LOGTEXT("ERR", d->player, 
-	      unsafe_tprintf("ran into an unexpected error writing to '%s'", gaDoors[d->door_num]->pName));
-      notify(d->player, 
+    if ((gaDoors[d->cold->door_num]->pFnReadDoor)(d, input) < 0) {
+      LOGTEXT("ERR", d->hot.player, 
+	      unsafe_tprintf("ran into an unexpected error writing to '%s'", gaDoors[d->cold->door_num]->pName));
+      notify(d->hot.player, 
 	     unsafe_tprintf("Worlds shimmer, reality wavers, and the door to '%s' slams before your eyes.",
-		     gaDoors[d->door_num]->pName));
-      closeDoorWithId(d, d->door_num);
+		     gaDoors[d->cold->door_num]->pName));
+      closeDoorWithId(d, d->cold->door_num);
       
     }
   }
@@ -318,16 +318,16 @@ void door_raw_input(DESC *d, char *input)
 void door_raw_output(DESC *d, char *output)
 {
   DPUSH; /* 5 */
-  if (gaDoors[d->door_num]->pFnWriteDoor == NULL) {
+  if (gaDoors[d->cold->door_num]->pFnWriteDoor == NULL) {
     queue_string(d, output);
   } else {
-    if ((gaDoors[d->door_num]->pFnWriteDoor)(d, output) < 0) {
-      LOGTEXT("ERR", d->player, 
-	      unsafe_tprintf("ran into an unexpected error reading from '%s'", gaDoors[d->door_num]->pName));
-      notify(d->player, 
+    if ((gaDoors[d->cold->door_num]->pFnWriteDoor)(d, output) < 0) {
+      LOGTEXT("ERR", d->hot.player, 
+	      unsafe_tprintf("ran into an unexpected error reading from '%s'", gaDoors[d->cold->door_num]->pName));
+      notify(d->hot.player, 
 	     unsafe_tprintf("Worlds shimmer, reality wavers, and the door to '%s' slams before your eyes.",
-		     gaDoors[d->door_num]->pName));
-      closeDoorWithId(d, d->door_num);
+		     gaDoors[d->cold->door_num]->pName));
+      closeDoorWithId(d, d->cold->door_num);
     }
   }
   VOIDRETURN; /* 5 */
@@ -338,27 +338,27 @@ static int setup_player(DESC *d, int sock, int doorIdx) {
   int retval = sock;
 
   if (sock >= 0) {
-      d->door_lbuf = alloc_lbuf("door_lbuf");
-      if (d->door_lbuf == NULL) {
+      d->cold->door_lbuf = alloc_lbuf("door_lbuf");
+      if (d->cold->door_lbuf == NULL) {
           close(sock);
           queue_string(d, "Could not allocate door buffer\r\n");
           retval = -1;
       }
-      *(d->door_lbuf) = '\0';
-      d->door_mbuf = alloc_mbuf("door_lbuf");
-      if ( (sock >= 0) && d->door_mbuf == NULL ) {
+      *(d->cold->door_lbuf) = '\0';
+      d->cold->door_mbuf = alloc_mbuf("door_lbuf");
+      if ( (sock >= 0) && d->cold->door_mbuf == NULL ) {
           close(sock);
           queue_string(desc_in_use, "Could not allocate door buffer\r\n");
-          free_lbuf(d->door_lbuf);
-          d->door_lbuf = NULL;
+          free_lbuf(d->cold->door_lbuf);
+          d->cold->door_lbuf = NULL;
           retval = -1;
       }
 
       if (retval >= 0) {
-          *(d->door_mbuf) = '\0';
-          d->door_desc = sock;
-          d->flags |= DS_HAS_DOOR;   
-          d->door_num = doorIdx;
+          *(d->cold->door_mbuf) = '\0';
+          d->cold->door_desc = sock;
+          d->hot.flags |= DS_HAS_DOOR;   
+          d->cold->door_num = doorIdx;
       /*  process_output(d); */
       }
   }
@@ -438,11 +438,11 @@ int process_door_output(DESC * d)
 
     DPUSH; /* #7 */
 
-    tb = d->door_output_head;
+    tb = d->cold->door_output_head;
     while (tb != NULL) {
 	while (tb->hdr.nchars > 0) {
 
-	    cnt = WRITE(d->door_desc, tb->hdr.start,
+	    cnt = WRITE(d->cold->door_desc, tb->hdr.start,
 			tb->hdr.nchars);
 	    if (cnt < 0) {
 		if (errno == EWOULDBLOCK) {
@@ -450,16 +450,16 @@ int process_door_output(DESC * d)
                 }
 		RETURN(0); /* #7 */
 	    }
-	    d->door_output_size -= cnt;
+	    d->cold->door_output_size -= cnt;
 	    tb->hdr.nchars -= cnt;
 	    tb->hdr.start += cnt;
 	}
 	save = tb;
 	tb = tb->hdr.nxt;
 	free_lbuf(save);
-	d->door_output_head = tb;
+	d->cold->door_output_head = tb;
 	if (tb == NULL)
-	    d->door_output_tail = NULL;
+	    d->cold->door_output_tail = NULL;
     }
     RETURN(1); /* #7 */
 }
@@ -471,16 +471,16 @@ int process_door_input(DESC * d)
   int got;
 
   DPUSH; /* #8 */
-  got = READ(d->door_desc, buf, sizeof(buf) - 1);
+  got = READ(d->cold->door_desc, buf, sizeof(buf) - 1);
   if (got <= 0) {
     RETURN(0); /* #8 */
   }
   *(buf + got) = '\0';
-  if (d->door_raw != NULL) {
+  if (d->cold->door_raw != NULL) {
     pt = strchr(buf,'\n');
     if (pt == NULL) {
-      if ((strlen(d->door_raw) + strlen(buf)) < LBUF_SIZE -1) {
-	strcat(d->door_raw,buf);
+      if ((strlen(d->cold->door_raw) + strlen(buf)) < LBUF_SIZE -1) {
+	strcat(d->cold->door_raw,buf);
 	RETURN(1); /* #8 */
       }
       else {
@@ -490,20 +490,20 @@ int process_door_input(DESC * d)
     }
     else {
       *pt = '\0';
-      if ((strlen(d->door_raw) + strlen(buf)) < LBUF_SIZE - sizeof(CBLKHDR) -2) {
-	strcat(d->door_raw,buf);
-	strcat(d->door_raw,"\r\n");
-	save_door(d,d->door_raw);
+      if ((strlen(d->cold->door_raw) + strlen(buf)) < LBUF_SIZE - sizeof(CBLKHDR) -2) {
+	strcat(d->cold->door_raw,buf);
+	strcat(d->cold->door_raw,"\r\n");
+	save_door(d,d->cold->door_raw);
 	if (*(pt+1) == '\0') {
-	  free_lbuf(d->door_raw);
-	  d->door_raw = NULL;
+	  free_lbuf(d->cold->door_raw);
+	  d->cold->door_raw = NULL;
 	  RETURN(1); /* #8 */
 	}
 	else {
-	  strcpy(d->door_raw,pt+1);
-	  strcpy(buf,d->door_raw);
-	  free_lbuf(d->door_raw);
-	  d->door_raw = NULL;
+	  strcpy(d->cold->door_raw,pt+1);
+	  strcpy(buf,d->cold->door_raw);
+	  free_lbuf(d->cold->door_raw);
+	  d->cold->door_raw = NULL;
 	}
       }
       else {
@@ -524,18 +524,18 @@ int process_door_input(DESC * d)
       *pt = '\0';
       save_door(d,buf);
       *pt = save;
-      d->door_raw = alloc_lbuf("door_raw");
-      if (d->door_raw == NULL) {
+      d->cold->door_raw = alloc_lbuf("door_raw");
+      if (d->cold->door_raw == NULL) {
 	RETURN(0); /* #8 */
       }
-      strcpy(d->door_raw,pt);
+      strcpy(d->cold->door_raw,pt);
     }
     else {
-      d->door_raw = alloc_lbuf("door_raw");
-      if (d->door_raw == NULL) {
+      d->cold->door_raw = alloc_lbuf("door_raw");
+      if (d->cold->door_raw == NULL) {
 	RETURN(0); /* #8 */
       }
-      strcpy(d->door_raw,buf);
+      strcpy(d->cold->door_raw,buf);
     }
   }
   RETURN(1); /* #8 */
@@ -549,11 +549,11 @@ void save_door(DESC *d, char *info)
   qpt = (CBLK *) alloc_lbuf("process_door_input");
   strcpy(qpt->cmd, info);
   qpt->hdr.nxt = NULL;
-  if (d->door_input_tail == NULL)
-    d->door_input_head = qpt;
+  if (d->cold->door_input_tail == NULL)
+    d->cold->door_input_head = qpt;
   else
-    d->door_input_tail->hdr.nxt = qpt;
-  d->door_input_tail = qpt;
+    d->cold->door_input_tail->hdr.nxt = qpt;
+  d->cold->door_input_tail = qpt;
   DPOP; /* #9 */
 }
 
@@ -598,12 +598,12 @@ void queue_door_write(DESC * d, const char *b, int n)
 	VOIDRETURN; /* #118 */
     }
 
-    if (d->door_output_size + n > mudconf.output_limit)
+    if (d->cold->door_output_size + n > mudconf.output_limit)
 	process_door_output(d);
 
-    left = mudconf.output_limit - d->door_output_size - n;
+    left = mudconf.output_limit - d->cold->door_output_size - n;
     if (left < 0) {
-	tp = d->door_output_head;
+	tp = d->cold->door_output_head;
 	if (tp == NULL) {
 	    STARTLOG(LOG_PROBLEMS, "QUE", "WRITE")
 		log_text((char *) "Flushing when door_output_head is null!");
@@ -613,35 +613,35 @@ void queue_door_write(DESC * d, const char *b, int n)
             buf = alloc_lbuf("queue_door_write.LOG");
 	    sprintf(buf,
 		    "[%d/%s] Output buffer overflow, %d chars discarded by ",
-		    d->door_desc, d->longaddr, tp->hdr.nchars);
+		    d->cold->door_desc, d->cold->longaddr, tp->hdr.nchars);
 	    log_text(buf);
 	    free_lbuf(buf);
-	    log_name(d->player);
+	    log_name(d->hot.player);
 	    ENDLOG
-            d->door_output_size -= tp->hdr.nchars;
-	    d->door_output_head = tp->hdr.nxt;
-	    if (d->door_output_head == NULL)
-		d->door_output_tail = NULL;
+            d->cold->door_output_size -= tp->hdr.nchars;
+	    d->cold->door_output_head = tp->hdr.nxt;
+	    if (d->cold->door_output_head == NULL)
+		d->cold->door_output_tail = NULL;
 	    free_lbuf(tp);
 	}
     }
     /* Allocate an output buffer if needed */
 
-    if (d->door_output_head == NULL) {
+    if (d->cold->door_output_head == NULL) {
 	tp = (TBLOCK *) alloc_lbuf("queue_door_write.new");
 	tp->hdr.nxt = NULL;
 	tp->hdr.start = tp->data;
 	tp->hdr.end = tp->data;
 	tp->hdr.nchars = 0;
-	d->door_output_head = tp;
-	d->door_output_tail = tp;
+	d->cold->door_output_head = tp;
+	d->cold->door_output_tail = tp;
     } else {
-	tp = d->door_output_tail;
+	tp = d->cold->door_output_tail;
     }
 
     /* Now tp points to the last buffer in the chain */
 
-    d->door_output_size += n;
+    d->cold->door_output_size += n;
     do {
 
 	/* See if there is enough space in the buffer to hold the
@@ -675,8 +675,8 @@ void queue_door_write(DESC * d, const char *b, int n)
 	    tp->hdr.start = tp->data;
 	    tp->hdr.end = tp->data;
 	    tp->hdr.nchars = 0;
-	    d->door_output_tail->hdr.nxt = tp;
-	    d->door_output_tail = tp;
+	    d->cold->door_output_tail->hdr.nxt = tp;
+	    d->cold->door_output_tail = tp;
 	}
     } while (n > 0);
     VOIDRETURN; /* #118 */
@@ -776,7 +776,7 @@ void openDoor(dbref player,
     } else {
        notify(player, "Only players can open a door.");
     }
-  } else if (desc_in_use && (desc_in_use->flags & DS_HAS_DOOR) ) {
+  } else if (desc_in_use && (desc_in_use->hot.flags & DS_HAS_DOOR) ) {
     if ( player != cause ) {
        notify(cause, "Target already has a door open on the attempted connection.");
     } else {
@@ -816,10 +816,10 @@ void openDoor(dbref player,
         i_now = 0;
         d_use = NULL;
         DESC_ITER_CONN(d_door) {
-           if (d_door->player == player) {
-              if ( d_door->last_time > i_now ) {
+           if (d_door->hot.player == player) {
+              if ( d_door->hot.last_time > i_now ) {
                  d_use = d_door;
-                 i_now = d_door->last_time;
+                 i_now = d_door->hot.last_time;
               }
            }
         }
@@ -877,16 +877,16 @@ void closeDoorWithId(DESC *desc, int d) {
 
   if (d < 0 || d >= gnDoors ) {
     // LOG
-    notify(desc->player,
+    notify(desc->hot.player,
 	   "@DOOR/CLOSE attempted with invalid door id. This has been logged"); 
-    LOGTEXT("ERR", desc->player, unsafe_tprintf("tried to @door/close an invalid door id '%d'",
+    LOGTEXT("ERR", desc->hot.player, unsafe_tprintf("tried to @door/close an invalid door id '%d'",
 			           d));
     VOIDRETURN /* 11.5 */
   }
 
   if (d && gaDoors[d]->pFnCloseDoor) {
     if ((gaDoors[d]->pFnCloseDoor)(desc) < 0) {
-      LOGTEXT("ERR", desc->player, 
+      LOGTEXT("ERR", desc->hot.player, 
 	      unsafe_tprintf("tried to close a door to %s, but the door did not close cleanly.",
 		      gaDoors[d]->pName));
     }
@@ -900,7 +900,7 @@ void closeDoorWithId(DESC *desc, int d) {
     gaDoors[d]->doorStatus = CLOSED_e;
   }
 
-  LOGTEXT("INF", desc->player, unsafe_tprintf("Door '%s' closed",
+  LOGTEXT("INF", desc->hot.player, unsafe_tprintf("Door '%s' closed",
   				       gaDoors[d]->pName));
 
   VOIDRETURN; /* #11.5*/
@@ -911,11 +911,11 @@ void closeDoor(DESC *desc, char *pDoor) {
   DPUSH; /* #12 */
  
   if ( !pDoor || *pDoor == '\0') {
-    notify(desc->player, "@DOOR/CLOSE requires a door name.");
+    notify(desc->hot.player, "@DOOR/CLOSE requires a door name.");
   } else {
     d = findDoor(pDoor);
     if (d < 0) {
-      notify(desc->player, "Invalid door name.");
+      notify(desc->hot.player, "Invalid door name.");
     } else {
       closeDoorWithId(desc, d);    
     }
@@ -957,8 +957,8 @@ void listDoors(dbref player, char *dName, int full) {
       if (full) {
 	notify(player, "The following players are using this door:");
 	DESC_ITER_CONN(desc) {
-	  if (desc->flags & DS_HAS_DOOR && desc->door_num == d) {
-	    notify(player, unsafe_tprintf("   (#%-6d) %s", desc->player, Name(desc->player)));
+	  if (desc->hot.flags & DS_HAS_DOOR && desc->cold->door_num == d) {
+	    notify(player, unsafe_tprintf("   (#%-6d) %s", desc->hot.player, Name(desc->hot.player)));
 	  }
 	}
       }
@@ -996,10 +996,10 @@ void door_registerInternalDoorDescriptors(fd_set *input_set,
   int i;
   for (i = 0 ; i < gnDoors ; i++) {
     if (gaDoors[i]->doorStatus == INTERNAL_e) {
-      FD_SET(gaDoors[i]->pDescriptor->door_desc, input_set);
-      FD_SET(gaDoors[i]->pDescriptor->door_desc, output_set);
-      if (gaDoors[i]->pDescriptor->door_desc >= *maxd)
-	(*maxd) = gaDoors[i]->pDescriptor->door_desc + 1;
+      FD_SET(gaDoors[i]->pDescriptor->cold->door_desc, input_set);
+      FD_SET(gaDoors[i]->pDescriptor->cold->door_desc, output_set);
+      if (gaDoors[i]->pDescriptor->cold->door_desc >= *maxd)
+	(*maxd) = gaDoors[i]->pDescriptor->cold->door_desc + 1;
     }
   }
 }
@@ -1009,7 +1009,7 @@ void door_checkInternalDoorDescriptors(fd_set *input_set,
   int i;
   for (i = 0 ; i < gnDoors ; i++) {
     if (gaDoors[i]->doorStatus == INTERNAL_e) {
-      if (FD_ISSET(gaDoors[i]->pDescriptor->door_desc, input_set)) {
+      if (FD_ISSET(gaDoors[i]->pDescriptor->cold->door_desc, input_set)) {
 	if (!process_door_input(gaDoors[i]->pDescriptor)) {
 	  closeDoorWithId(gaDoors[i]->pDescriptor, i);
 	}	
@@ -1020,7 +1020,7 @@ void door_checkInternalDoorDescriptors(fd_set *input_set,
      * the door. Doh!
      */
     if (gaDoors[i]->doorStatus == INTERNAL_e) {
-      if (FD_ISSET(gaDoors[i]->pDescriptor->door_desc, output_set)) {
+      if (FD_ISSET(gaDoors[i]->pDescriptor->cold->door_desc, output_set)) {
 	if (!process_door_output(gaDoors[i]->pDescriptor)) {
 	  closeDoorWithId(gaDoors[i]->pDescriptor, i);
 	}
@@ -1047,23 +1047,23 @@ void door_processInternalDoors(void) {
 	    continue;
 	  }
 	  d = gaDoors[i]->pDescriptor;
-	  if (d->quota > 0 && (t = d->input_head)) {
-	    d->quota--;
+	  if (d->hot.quota > 0 && (t = d->hot.input_head)) {
+	    d->hot.quota--;
 	    nprocessed++;
-	    d->input_head = (CBLK *) t->hdr.nxt;
-	    if (!d->input_head)
-	      d->input_tail = NULL;
-	    d->input_size -= (strlen(t->cmd) + 1);
-	    if (d->flags & DS_HAS_DOOR && t->cmd[0] != '!') //input = player input
+	    d->hot.input_head = (CBLK *) t->hdr.nxt;
+	    if (!d->hot.input_head)
+	      d->hot.input_tail = NULL;
+	    d->hot.input_size -= (strlen(t->cmd) + 1);
+	    if (d->hot.flags & DS_HAS_DOOR && t->cmd[0] != '!') //input = player input
 	      door_raw_input(d, t->cmd); 
 	    free_lbuf(t);
 	  }
 
-	  if ((t = d->door_input_head)) {
+	  if ((t = d->cold->door_input_head)) {
 	    nprocessed++;
-	    d->door_input_head = (CBLK *) t->hdr.nxt;
-	    if (!d->door_input_head)
-	      d->door_input_tail = NULL;
+	    d->cold->door_input_head = (CBLK *) t->hdr.nxt;
+	    if (!d->cold->door_input_head)
+	      d->cold->door_input_tail = NULL;
 	    door_raw_output(d, t->cmd);
 	    free_lbuf(t);
 	  }

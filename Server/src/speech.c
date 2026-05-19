@@ -3790,7 +3790,7 @@ void com_send(char *chan, char *mess)
 
   DESC_ITER_CONN(d) {
       char *foo;
-      yyy=atr_get(d->player,A_CHANNEL,&aowner,&aflags);
+      yyy=atr_get(d->hot.player,A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
         strcat(yyy," ");
@@ -3799,7 +3799,7 @@ void com_send(char *chan, char *mess)
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
           if(*ptr == ' ') *ptr = '\0';
           if(!strcmp(foo,chan)) /* tell the person. */
-            notify(d->player,mess);
+            notify(d->hot.player,mess);
           foo+=strlen(foo)+1;
         }
       }
@@ -3817,11 +3817,11 @@ void com_who(char *chan, dbref who)
   notify(who,unsafe_tprintf("-- Scanning for connected users on channel %s --", chan ) );
   tprp_buff = tpr_buff = alloc_lbuf("com_who");
   DESC_ITER_CONN(d) {
-    if(Findable(d->player) || Wizard(who)) {
+    if(Findable(d->hot.player) || Wizard(who)) {
       char *foo;
-      if (Immortal(d->player) && Cloak(d->player) && SCloak(d->player) && !Immortal(who))
+      if (Immortal(d->hot.player) && Cloak(d->hot.player) && SCloak(d->hot.player) && !Immortal(who))
 	continue;
-      yyy = atr_get(d->player,A_CHANNEL,&aowner,&aflags);
+      yyy = atr_get(d->hot.player,A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
         strcat(yyy," ");
@@ -3830,7 +3830,7 @@ void com_who(char *chan, dbref who)
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
           if(*ptr == ' ') *ptr = '\0';
           if(!strcmp(foo,chan)) {
-            membuff = unparse_object(who,d->player,0);
+            membuff = unparse_object(who,d->hot.player,0);
             tprp_buff = tpr_buff;
             notify(who,safe_tprintf(tpr_buff, &tprp_buff, "%s is on channel %s.",membuff,chan));
             free_lbuf(membuff);

@@ -907,10 +907,10 @@ void news_post(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   tprp_buff = tpr_buff = alloc_lbuf("news_post");
   DESC_ITER_CONN(d) {
-    if( d->player != player &&
-        user_subscribed(d->player, groupkeyptr) ) {
+    if( d->hot.player != player &&
+        user_subscribed(d->hot.player, groupkeyptr) ) {
       tprp_buff = tpr_buff;
-      notify(d->player, safe_tprintf(tpr_buff, &tprp_buff, "News: New article posted to group '%s' by %s: %s",
+      notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: New article posted to group '%s' by %s: %s",
                              groupkeyptr, Name(player), newga.title));
     }
   }
@@ -1118,9 +1118,9 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   tprp_buff = tpr_buff = alloc_lbuf("news_repost");
   DESC_ITER_CONN(d) {
-    if( d->player != player &&
-        user_subscribed(d->player, groupkeyptr) ) {
-      notify(d->player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d reposted to group '%s' by %s: %s",
+    if( d->hot.player != player &&
+        user_subscribed(d->hot.player, groupkeyptr) ) {
+      notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d reposted to group '%s' by %s: %s",
                              newga.seq,
                              groupkeyptr, Name(player), newga.title));
     }
@@ -2287,10 +2287,10 @@ void news_yank(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
     tprp_buff = tpr_buff = alloc_lbuf("news_yank");
     DESC_ITER_CONN(d) {
-      if( d->player != player &&
-          user_subscribed(d->player, groupkeyptr) ) {
+      if( d->hot.player != player &&
+          user_subscribed(d->hot.player, groupkeyptr) ) {
         tprp_buff = tpr_buff;
-        notify(d->player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d yanked from group '%s' by %s.",
+        notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d yanked from group '%s' by %s.",
                                seqkey,
                                groupkeyptr, Name(player)));
       }

@@ -116,7 +116,7 @@ complete_handshake(DESC *d, const char *key) {
     compute_websocket_accept(accept, key);
 
     // Set socket timeout to mush default
-    d->timeout = mudconf.idle_timeout;
+    d->cold->timeout = mudconf.idle_timeout;
 
     // Construct payload
     memset(buf, '\0', LBUF_SIZE);
@@ -130,14 +130,14 @@ complete_handshake(DESC *d, const char *key) {
     free_lbuf(buf);
 
     // Change API descriptor flag for websockets to maintain connection
-    d->flags &= ~DS_API;
-    d->flags |= DS_WEBSOCKETS;
+    d->hot.flags &= ~DS_API;
+    d->hot.flags |= DS_WEBSOCKETS;
 
     // Send login screen
     welcome_user(d);
 
     /* Set initial state */
-    d->checksum[0] = 4;
+    d->cold->checksum[0] = 4;
 }
 
 /* Abort an invalid handshake request */
@@ -187,12 +187,12 @@ websocket_write(DESC *d, const char *output, int len)
         write_message(tb, output, n, op, fin);
 
         /* If there is already buffered output add this to chain */
-        if (d->output_head == NULL) {
-            d->output_head = tb;
+        if (d->hot.output_head == NULL) {
+            d->hot.output_head = tb;
         } else {
-            d->output_tail->hdr.nxt = tb;
+            d->hot.output_tail->hdr.nxt = tb;
         }
-        d->output_tail = tb;
+        d->hot.output_tail = tb;
     } while (len > 0);
 }
 
@@ -210,11 +210,11 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
   wp = tbuf1;
 
   /* Restore state. */
-  memcpy(mask, d->checksum, sizeof(mask));
+  memcpy(mask, d->cold->checksum, sizeof(mask));
   state = mask[0];
   type = mask[5];
   err = mask[6];
-  len = d->ws_frame_len;
+  len = d->cold->ws_frame_len;
 
   /* Process buffer bytes. */
   for (cp = tbuf1, end = tbuf1 + got; cp != end; ++cp) {
@@ -346,8 +346,8 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
   mask[0] = state;
   mask[5] = type;
   mask[6] = err;
-  memcpy(d->checksum, mask, sizeof(mask));
-  d->ws_frame_len = len;
+  memcpy(d->cold->checksum, mask, sizeof(mask));
+  d->cold->ws_frame_len = len;
 
   return wp - tbuf1;
 }

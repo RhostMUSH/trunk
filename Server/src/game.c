@@ -1927,7 +1927,7 @@ do_reboot(dbref player, dbref cause, int key)
      f = fopen("reboot.silent", "w+");
 
      DESC_ITER_CONN(d) {
-        if ( d->player == player ) {
+        if ( d->hot.player == player ) {
            if (f == NULL) {
               queue_string(d,"Cannot write silent reboot file. Final message will not be snuffed.");
            } else {
@@ -2758,6 +2758,7 @@ main(int argc, char *argv[])
     pool_init(POOL_BOOL, sizeof(struct boolexp));
 
     pool_init(POOL_DESC, sizeof(DESC));
+    pool_init(POOL_DESC_COLD, sizeof(DESC_COLD));
     pool_init(POOL_QENTRY, sizeof(BQUE));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
 

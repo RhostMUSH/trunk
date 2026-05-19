@@ -160,7 +160,7 @@ complete_handshake(DESC *d)
   memcpy(bp, RESPONSE, RESPONSE_LEN);
   bp += RESPONSE_LEN;
 
-  compute_websocket_accept(bp, d->checksum);
+  compute_websocket_accept(bp, d->cold->checksum);
   bp += WEBSOCKET_ACCEPT_LEN;
 
   memcpy(bp, "\r\n\r\n", 4);
@@ -181,10 +181,10 @@ complete_handshake(DESC *d)
    * Fortunately, the WebSockets client will presumably wait until it gets the
    * response back from the server before switching, so we're probably OK.
    */
-  d->flags &= ~DS_WEBSOCKETS_REQUEST;
-  d->flags |= DS_WEBSOCKETS;
+  d->hot.flags &= ~DS_WEBSOCKETS_REQUEST;
+  d->hot.flags |= DS_WEBSOCKETS;
 
-  d->checksum[0] = 4;
+  d->cold->checksum[0] = 4;
   
   welcome_user(d);
   process_output(d);
@@ -213,9 +213,9 @@ process_websocket_request(DESC *d, const char *command)
     log_text((char *) "WebSockets upgrade requested.");
     ENDLOG
 
-    d->flags &= ~DS_API;
-    d->flags |= DS_WEBSOCKETS_REQUEST;
-    d->timeout = mudconf.idle_timeout; /* Set timeout to base mush timeout value */
+    d->hot.flags &= ~DS_API;
+    d->hot.flags |= DS_WEBSOCKETS_REQUEST;
+    d->cold->timeout = mudconf.idle_timeout; /* Set timeout to base mush timeout value */
     
     /* If there is a newline, we have a multi-line request to process. */
     if (strstr(command, "\n")) {
@@ -255,7 +255,7 @@ process_websocket_header(DESC *d, const char *command)
   
   /* TODO: Full implementation should verify entire request. */
   if ( (command == NULL) || (*command == '\0') || (*command == '\n') ) {
-    if (!d->checksum[0]) {
+    if (!d->cold->checksum[0]) {
       abort_handshake(d);
 
       STARTLOG(LOG_ALWAYS, "NET", "WS")
@@ -283,7 +283,7 @@ process_websocket_header(DESC *d, const char *command)
     
     fprintf(stderr, "KEYGEN: \"%s\"\n", value);
     if (value && strlen(value) == WEBSOCKET_KEY_LEN) {
-      memcpy(d->checksum, value, WEBSOCKET_KEY_LEN + 1);
+      memcpy(d->cold->checksum, value, WEBSOCKET_KEY_LEN + 1);
        fprintf(stderr, "KEYGEN: \"%s\"\n", "[VALIDATED]");
     }
     
@@ -306,11 +306,11 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
   wp = tbuf1;
 
   /* Restore state. */
-  memcpy(mask, d->checksum, sizeof(mask));
+  memcpy(mask, d->cold->checksum, sizeof(mask));
   state = mask[0];
   type = mask[5];
   first = mask[6];
-  len = d->ws_frame_len;
+  len = d->cold->ws_frame_len;
 
   /* Process buffer bytes. */
   for (cp = tbuf1, end = tbuf1 + got; cp != end; ++cp) {
@@ -452,8 +452,8 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
   mask[0] = state;
   mask[5] = type;
   mask[6] = first;
-  memcpy(d->checksum, mask, sizeof(mask));
-  d->ws_frame_len = len;
+  memcpy(d->cold->checksum, mask, sizeof(mask));
+  d->cold->ws_frame_len = len;
 
   return wp - tbuf1;
 }

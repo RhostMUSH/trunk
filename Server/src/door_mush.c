@@ -14,7 +14,7 @@
 extern int parse_dynhelp(dbref, dbref, int, char *, char *, char *, char *, int, int, char *);
 
 int mushDoorOpen(DESC *d, int nArgs, char *args[], int id) {
-  dbref player = d->player;
+  dbref player = d->hot.player;
   int sock, i_found;
   char *t_buff, *t_bufptr, *s_addy, *s_port, *s_strtok;
 

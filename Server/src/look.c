@@ -4214,16 +4214,16 @@ do_whereall(dbref player, dbref cause, int key)
 	return;
     }
     DESC_ITER_CONN(d) {
-	if ((((Findable(d->player) && mudconf.who_unfindable) || 
-            !(Dark(d->player) && !mudconf.who_unfindable && !mudconf.player_dark && !Admin(player)) ||
+	if ((((Findable(d->hot.player) && mudconf.who_unfindable) || 
+            !(Dark(d->hot.player) && !mudconf.who_unfindable && !mudconf.player_dark && !Admin(player)) ||
             (!mudconf.who_unfindable && mudconf.player_dark)) &&
-              !Cloak(d->player)) || Immortal(player) || (Wizard(player) && !Immortal(d->player))) {
+              !Cloak(d->hot.player)) || Immortal(player) || (Wizard(player) && !Immortal(d->hot.player))) {
 
-	    if ( (Hidden(d->player) || Unfindable(d->player)) && !Immortal(player) && !(Wizard(player) && Wizard(d->player)))
-		sprintf(buf, "%.100s wishes to have some privacy.", Name(d->player));
+	    if ( (Hidden(d->hot.player) || Unfindable(d->hot.player)) && !Immortal(player) && !(Wizard(player) && Wizard(d->hot.player)))
+		sprintf(buf, "%.100s wishes to have some privacy.", Name(d->hot.player));
 	    else {
-		membuff = unparse_object(player, Location(d->player), 1);
-		sprintf(buf, "%.100s is at the %.900s.", Name(d->player), membuff);
+		membuff = unparse_object(player, Location(d->hot.player), 1);
+		sprintf(buf, "%.100s is at the %.900s.", Name(d->hot.player), membuff);
 		free_lbuf(membuff);
 	    }
 

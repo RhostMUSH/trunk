@@ -2204,11 +2204,11 @@ NDECL(do_second)
        /* Ok, let's update the player time stats here */
        DESC_SAFEITER_ALL(d, dnext) {
          
-          if (d->flags & DS_CONNECTED) {
-             d->last_time = d->last_time + floor(d_timediff);
-             d->connected_at = d->connected_at + floor(d_timediff);
+          if (d->hot.flags & DS_CONNECTED) {
+             d->hot.last_time = d->hot.last_time + floor(d_timediff);
+             d->cold->connected_at = d->cold->connected_at + floor(d_timediff);
           } else {
-             d->connected_at = d->connected_at + floor(d_timediff);
+             d->cold->connected_at = d->cold->connected_at + floor(d_timediff);
           }
        }
        /* Let's update the internal counters with the new time */

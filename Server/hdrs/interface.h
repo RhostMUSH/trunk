@@ -163,64 +163,104 @@ struct descriptor_data_orig {
   char *door_raw;
 };
 
+/* Forward declarations for hot/cold split */
+typedef struct desc_hot DESC_HOT;
+typedef struct desc_cold DESC_COLD;
+typedef struct descriptor_data DESC;
+
+/* ************************************************************************
+ * DESC Hot/Cold Split — Cache-optimized descriptor layout.
+ *
+ * DESC_HOT (~104 bytes, 2 cache lines) contains fields accessed every tick:
+ *   flags, descriptor, player, quota, input/output queues, host_info,
+ *   input/output sizes, last_time, hashnext, next, prev.
+ *
+ * DESC_COLD (~500+ bytes) contains rarely-accessed fields:
+ *   Embedded arrays (addr, doing, userid, longaddr, account_rawpass, checksum),
+ *   Door fields, snooplist, auth fields, websocket fields, etc.
+ *
+ * NOTE: This breaks reboot compatibility. Old .reboot files will be skipped.
+ * Connected players will reconnect automatically on first boot with this change.
+ */
+
+/* Hot descriptor data — accessed every game tick */
+struct desc_hot {
+    int          descriptor;      /* socket fd */
+    int          flags;           /* DS_CONNECTED, DS_API, etc. */
+    int          quota;           /* command quota */
+    int          host_info;       /* site flags */
+    dbref        player;          /* connected player */
+    /* 4 bytes padding on 64-bit */
+    CBLK        *input_head;      /* input queue */
+    CBLK        *input_tail;      /* input tail */
+    TBLOCK      *output_head;     /* output queue */
+    TBLOCK      *output_tail;     /* output tail */
+    int          input_tot;       /* total input bytes */
+    int          input_size;      /* input buffer size */
+    int          output_tot;      /* total output bytes */
+    int          output_size;     /* output buffer size */
+    time_t       last_time;       /* last activity */
+    DESC        *hashnext;        /* hash chain */
+    DESC        *next;            /* list forward */
+    DESC       **prev;            /* list back-pointer */
+};
+
+/* Cold descriptor data — accessed infrequently */
+struct desc_cold {
+    /* Embedded arrays (~680 bytes) */
+    char  addr[51];
+    char  doing[256];
+    char  userid[MBUF_SIZE];
+    char  longaddr[256];
+    char  account_rawpass[100];
+    char  checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
+
+    /* Pointers */
+    char  *output_prefix;
+    char  *output_suffix;
+    CBLK  *raw_input;
+    char  *raw_input_at;
+    struct SNOOPLISTNODE *snooplist;
+    char  *door_lbuf;
+    char  *door_mbuf;
+    char  *door_raw;
+
+    /* Door fields */
+    TBLOCK *door_output_head;
+    TBLOCK *door_output_tail;
+    CBLK   *door_input_head;
+    CBLK   *door_input_tail;
+    int     door_desc;
+    int     door_num;
+    int     door_output_size;
+    int     door_int1;
+    int     door_int2;
+    int     door_int3;
+
+    /* Integers */
+    int     retries_left;
+    int     regtries_left;
+    int     command_count;
+    int     timeout;
+    int     output_lost;
+    int     input_lost;
+    int     logged;
+    int     authdescriptor;
+    int     longaddrcheck;
+    int     addr_family;
+    long    ws_frame_len;
+    unsigned short remote_port;
+
+    /* Other */
+    time_t  connected_at;
+    dbref   account_owner;
+    struct sockaddr_in address;
+};
+
 typedef struct descriptor_data DESC;
 struct descriptor_data {
-  int descriptor;
-  int flags;
-  int retries_left;
-  int regtries_left;
-  int command_count;
-  int timeout;
-  int host_info;
-  char addr[51];
-  char doing[256];
-  dbref player;
-  char *output_prefix;
-  char *output_suffix;
-  int output_size;
-  int output_tot;
-  int output_lost;
-  TBLOCK *output_head;
-  TBLOCK *output_tail;
-  int input_size;
-  int input_tot;
-  int input_lost;
-  CBLK *input_head;
-  CBLK *input_tail;
-  CBLK *raw_input;
-  char *raw_input_at;
-  time_t connected_at;
-  time_t last_time;
-  int quota;
-  struct sockaddr_in address;	/* added 3/6/90 SCG */
-  struct descriptor_data *hashnext;
-  struct descriptor_data *next;
-  struct descriptor_data **prev;
-  struct SNOOPLISTNODE *snooplist;  /* added 2/95 Thorin */
-  int logged;
-  int authdescriptor;		    /* added 2/95 Thorin */
-  char userid[MBUF_SIZE];	    /* added 2/95 Thorin */
-  int door_desc;		/* added 11/15/97 Seawolf */
-  int door_num;			/* added 11/15/97 Seawolf */
-  TBLOCK *door_output_head;
-  TBLOCK *door_output_tail;
-  int door_output_size;
-  CBLK *door_input_head;
-  CBLK *door_input_tail;
-  int door_int1;
-  int door_int2;
-  int door_int3;
-  char *door_lbuf;
-  char *door_mbuf;
-  char *door_raw;
-  char checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
-  long ws_frame_len;
-  dbref account_owner;		/* For softcoded account systems */
-  char account_rawpass[100];		/* For raw account password */
-  char longaddr[256]; /* Because DNS hostnames go huge these days */
-  int longaddrcheck; /* To ensure proper Descriptor upgrades */
-  unsigned short remote_port;  /* Remote client port (host byte order) */
-  int  addr_family;            /* AF_INET or AF_INET6, 0 = unset */
+    DESC_HOT     hot;
+    DESC_COLD   *cold;
 };
 
 /* flags in the flag field */
@@ -293,31 +333,36 @@ extern dbref	FDECL(find_connected_name, (dbref, char *));
 
 /* From predicates.c */
 
-#define alloc_desc(s) (DESC *)pool_alloc(POOL_DESC,s,__LINE__,__FILE__)
-#define free_desc(b) pool_free(POOL_DESC,((char **)&(b)),__LINE__,__FILE__)
+#define alloc_desc(s) _alloc_desc(s)
+#define free_desc(b) _free_desc(b)
+#define alloc_desc_cold(s) (DESC_COLD *)pool_alloc(POOL_DESC_COLD,s,__LINE__,__FILE__)
+#define free_desc_cold(b) pool_free(POOL_DESC_COLD,((char **)&(b)),__LINE__,__FILE__)
+
+extern DESC *_alloc_desc(const char *);
+extern void _free_desc(DESC *);
 
 #define DESC_ITER_PLAYER(p,d) \
-	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab);d;d=d->hashnext)
+	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab);d;d=d->hot.hashnext)
 #define DESC_ITER_CONN(d) \
-	for (d=descriptor_list;(d);d=(d)->next) \
-		if ((d)->flags & DS_CONNECTED)
+	for (d=descriptor_list;(d);d=(d)->hot.next) \
+		if ((d)->hot.flags & DS_CONNECTED)
 #define DESC_ITER_ALL(d) \
-	for (d=descriptor_list;(d);d=(d)->next)
+	for (d=descriptor_list;(d);d=(d)->hot.next)
 
 #define DESC_SAFEITER_PLAYER(p,d,n) \
 	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab), \
-        	n=((d!=NULL) ? d->hashnext : NULL); \
+        	n=((d!=NULL) ? d->hot.hashnext : NULL); \
 	     d; \
-	     d=n,n=((n!=NULL) ? n->hashnext : NULL))
+	     d=n,n=((n!=NULL) ? n->hot.hashnext : NULL))
 #define DESC_SAFEITER_CONN(d,n) \
-	for (d=descriptor_list,n=((d!=NULL) ? d->next : NULL); \
+	for (d=descriptor_list,n=((d!=NULL) ? d->hot.next : NULL); \
 	     d; \
-	     d=n,n=((n!=NULL) ? n->next : NULL)) \
-		if ((d)->flags & DS_CONNECTED)
+	     d=n,n=((n!=NULL) ? n->hot.next : NULL)) \
+		if ((d)->hot.flags & DS_CONNECTED)
 #define DESC_SAFEITER_ALL(d,n) \
-	for (d=descriptor_list,n=((d!=NULL) ? d->next : NULL); \
+	for (d=descriptor_list,n=((d!=NULL) ? d->hot.next : NULL); \
 	     d; \
-	     d=n,n=((n!=NULL) ? n->next : NULL))
+	     d=n,n=((n!=NULL) ? n->hot.next : NULL))
 
 #define MALLOC(result, type, number, where) do { \
 	if (!((result)=(type *) XMALLOC (((number) * sizeof (type)), where))) \

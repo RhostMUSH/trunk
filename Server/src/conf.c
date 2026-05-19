@@ -1705,8 +1705,8 @@ CF_HAND(cf_who_bool)
   ret = cf_bool(vp, str, extra, extra2, player, cmd);
   if (prev && !ret) {
     DESC_ITER_CONN(d) {
-      strncpy(d->doing,strip_ansi(d->doing),DOING_SIZE);
-      *(d->doing + DOING_SIZE) = '\0';
+      strncpy(d->cold->doing,strip_ansi(d->cold->doing),DOING_SIZE);
+      *(d->cold->doing + DOING_SIZE) = '\0';
     }
   }
   return ret;
@@ -1793,7 +1793,7 @@ CF_HAND(cf_dynguest)
 
    DESC_ITER_CONN(d) {
       memset(tplayer, 0, sizeof(tplayer));
-      strncpy(tplayer, Name(d->player), 5);
+      strncpy(tplayer, Name(d->hot.player), 5);
       if ( stricmp(tplayer, "guest") == 0 ) {
          noret_val = 1;
          break;
@@ -1803,7 +1803,7 @@ CF_HAND(cf_dynguest)
       tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
       while (tplaybuff != NULL ) {
          lupp = lookup_player(NOTHING, tplaybuff, 0);
-         if ( lupp == d->player ) {
+         if ( lupp == d->hot.player ) {
             noret_val = 1;
             break;
          }
@@ -1820,7 +1820,7 @@ CF_HAND(cf_dynguest)
             noret_val = 4;
             break;
          }
-         if ( lupp == d->player ) {
+         if ( lupp == d->hot.player ) {
             noret_val = 2;
             break;
          }

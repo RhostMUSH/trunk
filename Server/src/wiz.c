@@ -2163,30 +2163,30 @@ void do_conncheck(dbref player, dbref cause, int key)
   DESC_SAFEITER_ALL(d, dnext) {
     // LENSY: FIX ME
     if ( key & CONNCHECK_ACCT ) {
-       if ( d->account_owner > 0 ) {
-          sprintf(buff2, "%-15.15s #%d", Name(d->account_owner), d->account_owner);
+       if ( d->cold->account_owner > 0 ) {
+          sprintf(buff2, "%-15.15s #%d", Name(d->cold->account_owner), d->cold->account_owner);
        } else {
          strcpy(buff2, "NONE");
        }
     } else {
-       if ( (d->flags & DS_HAS_DOOR) && (d->door_num >= 0) ) {
-         sprintf(buff2, "%4d  %-16s", d->door_desc, returnDoorName(d->door_num));
+       if ( (d->hot.flags & DS_HAS_DOOR) && (d->cold->door_num >= 0) ) {
+         sprintf(buff2, "%4d  %-16s", d->cold->door_desc, returnDoorName(d->cold->door_num));
        } else {
          strcpy(buff2, "NONE");
        }
     }
-    if (d->flags & DS_CONNECTED) {
-      strcpy(buff,Name(d->player));
+    if (d->hot.flags & DS_CONNECTED) {
+      strcpy(buff,Name(d->hot.player));
     } else {
       strcpy(buff,"NONE");
     }
     tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
-    if (*(d->userid)) {
+    if (*(d->cold->userid)) {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->userid, d->longaddr));
+             buff, buff2, d->hot.descriptor, ((key & CONNCHECK_QUOTA) ? d->hot.quota : d->cold->command_count), d->cold->userid, d->cold->longaddr));
     } else {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
-             buff, buff2, d->descriptor, ((key & CONNCHECK_QUOTA) ? d->quota : d->command_count), d->longaddr));
+             buff, buff2, d->hot.descriptor, ((key & CONNCHECK_QUOTA) ? d->hot.quota : d->cold->command_count), d->cold->longaddr));
     }
     free_lbuf(tpr_buff);
   }
@@ -2210,9 +2210,9 @@ DESC	*d;
                 (char *)"------------------------------------------------------------------------------");
         notify(player, tbuf);
         DESC_ITER_CONN(d) {
-          if (d->player == player) {
-             sprintf(tbuf, "%-10d %-10s %-10s %s", d->descriptor, time_format_1(mudstate.now - d->last_time),
-                      wiz_time_format_2(mudstate.now - d->connected_at), d->addr);
+          if (d->hot.player == player) {
+             sprintf(tbuf, "%-10d %-10s %-10s %s", d->hot.descriptor, time_format_1(mudstate.now - d->hot.last_time),
+                      wiz_time_format_2(mudstate.now - d->cold->connected_at), d->cold->addr);
              notify(player, tbuf);
           }
         }
@@ -2226,14 +2226,14 @@ DESC	*d;
            port = atoi(name);
            count = count2 = 0;
            DESC_ITER_CONN(d) {
-             if ( d->player == player )
+             if ( d->hot.player == player )
                 count2++;
            }
           
            DESC_ITER_CONN(d) {
-             if ( (d->player == player) && (d->descriptor == port) ) {
+             if ( (d->hot.player == player) && (d->hot.descriptor == port) ) {
                 if ( count2 > 1 )
-	           boot_by_port(d->descriptor,!God(player),player,NULL);
+	           boot_by_port(d->hot.descriptor,!God(player),player,NULL);
                 count++;
              }
            }
@@ -2251,14 +2251,14 @@ DESC	*d;
      default:              /* default behavior */
         time(&now);
         DESC_ITER_CONN(d) {
-          if (d->player == player) {
-            if (!count || (now - d->last_time) < dtime) {
+          if (d->hot.player == player) {
+            if (!count || (now - d->hot.last_time) < dtime) {
 	      if (count)
 	        boot_by_port(port,!God(player),player,NULL);
-	      dtime = now - d->last_time;
-	      port = d->descriptor;
+	      dtime = now - d->hot.last_time;
+	      port = d->hot.descriptor;
             } else {
-	      boot_by_port(d->descriptor,!God(player),player,NULL);
+	      boot_by_port(d->hot.descriptor,!God(player),player,NULL);
             }
             count++;
           }
