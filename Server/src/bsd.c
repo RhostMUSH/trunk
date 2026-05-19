@@ -120,8 +120,6 @@ extern void FDECL(broadcast_monitor, (dbref, int, char *, char *, char *, int, i
 extern int FDECL(lookup, (char *, char *, int, int *));
 extern CF_HAND(cf_site);
 extern double NDECL(next_timer);
-extern void FDECL(desc_addhash, (DESC *));
-extern void FDECL(desc_delhash, (DESC *));
 
 extern int FDECL(alarm_msec, (double));
 extern int NDECL(alarm_stop);
@@ -2018,7 +2016,6 @@ shutdownsock(DESC * d, int reason)
 	    int last = ndesc_slots - 1;
 	    free_desc(d);
 	    if (i != last && i < last) {
-		desc_delhash(&desc_slots[last]);
 		#define SWAP_F(f) desc_hot.f[i] = desc_hot.f[last]
 		SWAP_F(descriptor); SWAP_F(flags); SWAP_F(quota);
 		SWAP_F(host_info); SWAP_F(player);
@@ -2026,13 +2023,13 @@ shutdownsock(DESC * d, int reason)
 		SWAP_F(output_head); SWAP_F(output_tail);
 		SWAP_F(input_tot); SWAP_F(input_size);
 		SWAP_F(output_tot); SWAP_F(output_size);
-		SWAP_F(last_time); SWAP_F(hashnext);
+		SWAP_F(last_time);
 		#undef SWAP_F
 		desc_slots[i].slot_index = i;
 		desc_slots[last].slot_index = last;
 		desc_hot.descriptor[last] = -1;
+		desc_slots[i].cold = desc_slots[last].cold;
 		desc_slots[last].cold = NULL;
-		desc_addhash(&desc_slots[i]);
 	    }
 	}
 	ndescriptors--;
@@ -2485,7 +2482,6 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     strncpy(d->cold->addr, ip_str, sizeof(d->cold->addr) - 1);
     memset(d->cold->longaddr, '\0', sizeof(d->cold->longaddr));
     strncpy(d->cold->longaddr, addr_str, sizeof(d->cold->longaddr) - 1);
-    desc_addhash(d);
     if ( !keyval && mudconf.sconnect_reip && mudconf.ssl_welcome )  {
        memset(tchbuff, 0, sizeof(tchbuff));
        strcpy(tchbuff, mudconf.sconnect_host);

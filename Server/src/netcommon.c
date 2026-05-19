@@ -76,7 +76,6 @@ extern int FDECL(alarm_msec, (double));
 extern int FDECL(process_output, (DESC * d));
 extern int decode_base64(const char *, int, char *, char **, int);
 extern CF_HAND(cf_site);
-void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
 extern const char *addrout(const char *, int, int);
@@ -1074,7 +1073,6 @@ int dump_reboot_db( void )
         !fwrite(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
         !fwrite(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
         !fwrite(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
-        !fwrite(&D_HASHNEXT(d), sizeof(DESC *), 1, rebootfile) ||
         !fwrite(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
@@ -1245,7 +1243,6 @@ int load_reboot_db( void )
         !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
         !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
         !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
-        !fread(&D_HASHNEXT(d), sizeof(DESC *), 1, rebootfile) ||
         !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fread(d->cold, i_cold_read, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
@@ -1287,14 +1284,12 @@ int load_reboot_db( void )
     d->cold->door_mbuf = NULL;
     d->cold->raw_input = NULL;
     d->cold->raw_input_at = NULL;
-    D_HASHNEXT(d) = NULL;
     d->cold->snooplist = NULL;
     d->cold->logged = 0;
 
     ndescriptors++;
     ndesc_slots++;
 
-    desc_addhash(d);
     s_Connected(D_PLAYER(d));
     STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
       log_text((char*) "Reconnecting: ");
@@ -2201,68 +2196,6 @@ freeqs(DESC * d, int dooronly)
   VOIDRETURN; /* #121 */
 }
 
-/* ---------------------------------------------------------------------------
- * desc_addhash: Add a net descriptor to its player hash list.
- */
-
-void 
-desc_addhash(DESC * d)
-{
-    dbref player;
-    DESC *hdesc;
-
-    DPUSH; /* #122 */
-
-    player = D_PLAYER(d);
-    hdesc = (DESC *) nhashfind((int) player, &mudstate.desc_htab);
-    if (hdesc == NULL) {
-	D_HASHNEXT(d) = NULL;
-	nhashadd((int) player, (int *) d, &mudstate.desc_htab);
-    } else {
-	D_HASHNEXT(d) = hdesc;
-	nhashrepl((int) player, (int *) d, &mudstate.desc_htab);
-    }
-    VOIDRETURN; /* #122 */
-}
-
-/* ---------------------------------------------------------------------------
- * desc_delhash: Remove a net descriptor from its player hash list.
- */
-
-void 
-desc_delhash(DESC * d)
-{
-    DESC *hdesc, *last;
-    dbref player;
-
-    DPUSH; /* #123 */
-
-    player = D_PLAYER(d);
-    last = NULL;
-    hdesc = (DESC *) nhashfind((int) player, &mudstate.desc_htab);
-    while (hdesc != NULL) {
-	if (d == hdesc) {
-	    if (last == NULL) {
-		if (D_HASHNEXT(d) == NULL) {
-		    nhashdelete((int) player,
-				&mudstate.desc_htab);
-		} else {
-		    nhashrepl((int) player,
-			      (int *) D_HASHNEXT(d),
-			      &mudstate.desc_htab);
-		}
-	    } else {
-		D_HASHNEXT(last) = D_HASHNEXT(d);
-	    }
-	    break;
-	}
-	last = hdesc;
-	hdesc = D_HASHNEXT(hdesc);
-    }
-    D_HASHNEXT(d) = NULL;
-    VOIDRETURN; /* #123 */
-}
-
 void 
 welcome_user(DESC * d)
 {
@@ -2462,7 +2395,6 @@ announce_connect(dbref player, DESC * d, int dc)
 
     DPUSH; /* #130 */
 
-    desc_addhash(d);
     buf = atr_pget(player, A_TIMEOUT, &aowner, &aflags);
     if (buf) {
 	d->cold->timeout = atoi(buf);
@@ -3022,7 +2954,6 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
        }
     }
     mudstate.curr_enactor = temp;
-    desc_delhash(d);
     local_player_disconnect(player);
     VOIDRETURN; /* #131 */
 }

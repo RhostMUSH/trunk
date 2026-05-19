@@ -8390,7 +8390,6 @@ list_hashstats(dbref player)
     list_hashstat(player, "Attr names", &mudstate.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
     list_hashstat(player, "Player Names", &mudstate.player_htab);
-    list_nhashstat(player, "Net Descriptors", &mudstate.desc_htab);
     list_nhashstat(player, "Forwardlists", &mudstate.fwdlist_htab);
     list_nhashstat(player, "Overlaid $-cmds", &mudstate.parent_htab);
     list_hashstat(player, "Object Tags", &mudstate.objecttag_htab);

@@ -4308,7 +4308,6 @@ void showdbstats(dbref player)
  * sum = sum + ((&mudstate.flags_htab)->hashsize * (&mudstate.flags_htab)->entries);
  * sum = sum + ((&mudstate.attr_name_htab)->hashsize * (&mudstate.attr_name_htab)->entries);
  * sum = sum + ((&mudstate.player_htab)->hashsize * (&mudstate.player_htab)->entries);
- * sum = sum + ((&mudstate.desc_htab)->hashsize * (&mudstate.desc_htab)->entries);
  * sum = sum + ((&mudstate.fwdlist_htab)->hashsize * (&mudstate.fwdlist_htab)->entries);
  * sum = sum + ((&mudstate.parent_htab)->hashsize * (&mudstate.parent_htab)->entries);
  * sum = sum + ((&mudstate.news_htab)->hashsize * (&mudstate.news_htab)->entries);

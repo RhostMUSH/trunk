@@ -2800,7 +2800,6 @@ main(int argc, char *argv[])
     hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
-    nhashinit(&mudstate.desc_htab, 131);
 #ifdef HAS_OPENSSL
     OpenSSL_add_all_digests();
 #endif
@@ -2973,7 +2972,6 @@ main(int argc, char *argv[])
 #endif
     hashreset(&mudstate.wizhelp_htab);
     hashreset(&mudstate.error_htab);
-    nhashreset(&mudstate.desc_htab);
 
 /*  Missing hash resets */
     hashreset(&mudstate.cmd_alias_htab);
