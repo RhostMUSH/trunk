@@ -424,6 +424,10 @@ int make_socket(int port, char* address)
 	log_perror("NET", "FAIL", NULL, "setsockopt");
     }
     if (is_ipv6) {
+        opt = 1;
+        if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&opt, sizeof(opt)) < 0) {
+            log_perror("NET", "FAIL", NULL, "setsockopt(IPV6_V6ONLY)");
+        }
         memset(&server6, 0, sizeof(server6));
         server6.sin6_family = AF_INET6;
         if (inet_pton(AF_INET6, address, &server6.sin6_addr) != 1)
@@ -715,6 +719,12 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    FD_SET(sock, &input_set);
             if ( apiport != -1 ) {
 	       FD_SET(sock2, &input_set);
+            }
+            if ( sock6 >= 0 ) {
+               FD_SET(sock6, &input_set);
+            }
+            if ( sock6_api >= 0 ) {
+               FD_SET(sock6_api, &input_set);
             }
 #endif
 	}
