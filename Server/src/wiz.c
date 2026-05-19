@@ -24,6 +24,7 @@ char *strtok_r(char *, const char *, char **);
 #include "rhost_ansi.h"
 
 extern void remote_write_obj(FILE *, dbref, int, int);
+extern int ndescriptors;
 extern int remote_read_obj(FILE *, dbref, int, int, int*, int);
 extern int remote_read_sanitize(FILE *, dbref, int, int, int);
 extern dbref FDECL(match_thing, (dbref, char *));
@@ -2150,7 +2151,7 @@ void do_newpassword(dbref player, dbref cause, int key, char *name,
 
 void do_conncheck(dbref player, dbref cause, int key)
 {
-  DESC *d, *dnext;
+  DESC *d;
   char buff[MBUF_SIZE], buff2[MBUF_SIZE], *tpr_buff, *tprp_buff;
 
   if ( key & CONNCHECK_ACCT ) {
@@ -2160,7 +2161,7 @@ void do_conncheck(dbref player, dbref cause, int key)
   } else {
     notify(player,unsafe_tprintf("%-23s Port  %-16s Port    Cmds User@Site","Name", "Door Name"));
   }
-  DESC_SAFEITER_ALL(d, dnext) {
+  DESC_SAFEITER_ALL(d) {
     // LENSY: FIX ME
     if ( key & CONNCHECK_ACCT ) {
        if ( d->cold->account_owner > 0 ) {
@@ -2169,24 +2170,24 @@ void do_conncheck(dbref player, dbref cause, int key)
          strcpy(buff2, "NONE");
        }
     } else {
-       if ( (d->hot.flags & DS_HAS_DOOR) && (d->cold->door_num >= 0) ) {
+       if ( (D_FLAGS(d) & DS_HAS_DOOR) && (d->cold->door_num >= 0) ) {
          sprintf(buff2, "%4d  %-16s", d->cold->door_desc, returnDoorName(d->cold->door_num));
        } else {
          strcpy(buff2, "NONE");
        }
     }
-    if (d->hot.flags & DS_CONNECTED) {
-      strcpy(buff,Name(d->hot.player));
+    if (D_FLAGS(d) & DS_CONNECTED) {
+      strcpy(buff,Name(D_PLAYER(d)));
     } else {
       strcpy(buff,"NONE");
     }
     tprp_buff = tpr_buff = alloc_lbuf("do_dolist");
     if (*(d->cold->userid)) {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s@%s",
-             buff, buff2, d->hot.descriptor, ((key & CONNCHECK_QUOTA) ? d->hot.quota : d->cold->command_count), d->cold->userid, d->cold->longaddr));
+             buff, buff2, D_DESCRIPTOR(d), ((key & CONNCHECK_QUOTA) ? D_QUOTA(d) : d->cold->command_count), d->cold->userid, d->cold->longaddr));
     } else {
       notify(player, safe_tprintf(tpr_buff, &tprp_buff, "%-23s %-22s %4d %7d %s",
-             buff, buff2, d->hot.descriptor, ((key & CONNCHECK_QUOTA) ? d->hot.quota : d->cold->command_count), d->cold->longaddr));
+             buff, buff2, D_DESCRIPTOR(d), ((key & CONNCHECK_QUOTA) ? D_QUOTA(d) : d->cold->command_count), d->cold->longaddr));
     }
     free_lbuf(tpr_buff);
   }
@@ -2210,8 +2211,8 @@ DESC	*d;
                 (char *)"------------------------------------------------------------------------------");
         notify(player, tbuf);
         DESC_ITER_CONN(d) {
-          if (d->hot.player == player) {
-             sprintf(tbuf, "%-10d %-10s %-10s %s", d->hot.descriptor, time_format_1(mudstate.now - d->hot.last_time),
+          if (D_PLAYER(d) == player) {
+             sprintf(tbuf, "%-10d %-10s %-10s %s", D_DESCRIPTOR(d), time_format_1(mudstate.now - D_LAST_TIME(d)),
                       wiz_time_format_2(mudstate.now - d->cold->connected_at), d->cold->addr);
              notify(player, tbuf);
           }
@@ -2226,14 +2227,14 @@ DESC	*d;
            port = atoi(name);
            count = count2 = 0;
            DESC_ITER_CONN(d) {
-             if ( d->hot.player == player )
+             if ( D_PLAYER(d) == player )
                 count2++;
            }
           
            DESC_ITER_CONN(d) {
-             if ( (d->hot.player == player) && (d->hot.descriptor == port) ) {
+             if ( (D_PLAYER(d) == player) && (D_DESCRIPTOR(d) == port) ) {
                 if ( count2 > 1 )
-	           boot_by_port(d->hot.descriptor,!God(player),player,NULL);
+	           boot_by_port(D_DESCRIPTOR(d),!God(player),player,NULL);
                 count++;
              }
            }
@@ -2251,14 +2252,14 @@ DESC	*d;
      default:              /* default behavior */
         time(&now);
         DESC_ITER_CONN(d) {
-          if (d->hot.player == player) {
-            if (!count || (now - d->hot.last_time) < dtime) {
+          if (D_PLAYER(d) == player) {
+            if (!count || (now - D_LAST_TIME(d)) < dtime) {
 	      if (count)
 	        boot_by_port(port,!God(player),player,NULL);
-	      dtime = now - d->hot.last_time;
-	      port = d->hot.descriptor;
+	      dtime = now - D_LAST_TIME(d);
+	      port = D_DESCRIPTOR(d);
             } else {
-	      boot_by_port(d->hot.descriptor,!God(player),player,NULL);
+	      boot_by_port(D_DESCRIPTOR(d),!God(player),player,NULL);
             }
             count++;
           }

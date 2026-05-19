@@ -76,7 +76,7 @@ extern int FDECL(alarm_msec, (double));
 extern int FDECL(process_output, (DESC * d));
 extern int decode_base64(const char *, int, char *, char **, int);
 extern CF_HAND(cf_site);
-static void desc_addhash(DESC * d);
+void desc_addhash(DESC * d);
 extern int FDECL(lookup, (char *, char *, int, int *));
 static void set_userstring(char **, const char *);
 extern const char *addrout(const char *, int, int);
@@ -783,7 +783,7 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 		if (found == 0)
 		    notify(player, "Snooped Players:");
 		found++;
-		notify(player, unsafe_tprintf("  %s [port %d]", Name(d->hot.player), d->hot.descriptor));
+		notify(player, unsafe_tprintf("  %s [port %d]", Name(D_PLAYER(d)), D_DESCRIPTOR(d)));
 		for (node = d->cold->snooplist; node; node = node->next) {
 		    if (node->sfile) {
 			if (node->logonly)
@@ -1008,9 +1008,12 @@ int dump_reboot_db( void )
     RETURN(0); /* #107 */
   }
 
-  i_hot_size = sizeof(DESC_HOT);
+  /* Reboot format v3: SoA — write version marker, then fields individually */
+  i_hot_size = sizeof(DESC_COLD); /* placeholder, cold size only */
   i_cold_size = sizeof(DESC_COLD);
-  if (!fwrite(&i_hot_size, sizeof(i_hot_size), 1, rebootfile) ||
+  int i_reboot_version = 3;
+  if (!fwrite(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
+      !fwrite(&i_hot_size, sizeof(i_hot_size), 1, rebootfile) ||
       !fwrite(&i_cold_size, sizeof(i_cold_size), 1, rebootfile)) {
     STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
       log_text((char *) "Error writing DESC sizes to reboot file.");
@@ -1025,17 +1028,17 @@ int dump_reboot_db( void )
   DESC_ITER_ALL(d) {
     /* Lensy, bugfix 29/02/04
      * Doors should NOT be carried through on a reboot, at least not here! */
-    if (d->hot.flags & DS_HAS_DOOR) {
+    if (D_FLAGS(d) & DS_HAS_DOOR) {
       /* Force close the door */
       closeDoorWithId(d, d->cold->door_num);
     }
     /* Don't save API data on reboot, and don't attempt to reconnect it */
-    if (d->hot.flags & DS_API) {
+    if (D_FLAGS(d) & DS_API) {
       /* Force close the API */
       shutdownsock(d, R_API);
       continue;
     }
-    if ( (i_prefix > 0 ) && d->cold->output_prefix && *(d->cold->output_prefix) && Good_chk(d->hot.player) ) {
+    if ( (i_prefix > 0 ) && d->cold->output_prefix && *(d->cold->output_prefix) && Good_chk(D_PLAYER(d)) ) {
        if (!fwrite(d->cold->output_prefix, LBUF_SIZE, 1, suffixfile)) {
           STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
             log_text((char *) "Error writing to reboot file.");
@@ -1044,9 +1047,9 @@ int dump_reboot_db( void )
           fclose(suffixfile);
           RETURN(0); /* #107 */
        }
-       d->hot.flags |= DS_HAVEpFX;
+       D_FLAGS(d) |= DS_HAVEpFX;
     }
-    if ( (i_suffix > 0 ) && d->cold->output_suffix && *(d->cold->output_suffix) && Good_chk(d->hot.player) ) {
+    if ( (i_suffix > 0 ) && d->cold->output_suffix && *(d->cold->output_suffix) && Good_chk(D_PLAYER(d)) ) {
        if (!fwrite(d->cold->output_suffix, LBUF_SIZE, 1, suffixfile)) {
           STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
             log_text((char *) "Error writing to reboot file.");
@@ -1055,9 +1058,24 @@ int dump_reboot_db( void )
           fclose(suffixfile);
           RETURN(0); /* #107 */
        }
-       d->hot.flags |= DS_HAVEsFX;
+       D_FLAGS(d) |= DS_HAVEsFX;
     }
-    if( !fwrite(&d->hot, sizeof(DESC_HOT), 1, rebootfile) ||
+    /* Write hot fields individually (SoA format v3) */
+    if( !fwrite(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
+        !fwrite(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
+        !fwrite(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
+        !fwrite(&D_HASHNEXT(d), sizeof(DESC *), 1, rebootfile) ||
+        !fwrite(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
         log_text((char *) "Error writing to reboot file.");
@@ -1088,13 +1106,11 @@ int dump_reboot_db( void )
 int load_reboot_db( void )
 {
   DESC* d;
-  DESC* prev;
-  DESC* tempd;
   FILE* rebootfile = NULL, *suffixfile = NULL;
   char rebootfilename[32 + 8], suffixfilename[32 + 8], *s_text, *s_god;
   int i_prefix, i_suffix, i_fxchk;
   int i_file_hot_size, i_file_cold_size;
-  int i_hot_read, i_cold_read;
+  int i_cold_read;
 
   DPUSH; /* #108 */
 
@@ -1102,7 +1118,7 @@ int load_reboot_db( void )
     log_text((char *) "Loading reboot data...");
   ENDLOG
 
-  i_fxchk = ndescriptors = 0;
+  i_fxchk = ndescriptors = ndesc_slots = 0;
 
   strcpy(rebootfilename, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
@@ -1171,26 +1187,37 @@ int load_reboot_db( void )
     RETURN(0); /* #108 */
   }
 
-  if( !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
+  int i_reboot_version = 0;
+  if( !fread(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
+      !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
       !fread(&i_file_cold_size, sizeof(i_file_cold_size), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-      log_text((char *) "Error reading DESC sizes from reboot file.");
+      log_text((char *) "Error reading reboot file header.");
     ENDLOG
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
   }
+  (void)i_file_hot_size; /* read for file position, not used in v3 */
 
-  if ( i_file_hot_size > sizeof(DESC_HOT) || i_file_cold_size > sizeof(DESC_COLD) ) {
+  if ( i_reboot_version != 3 ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-      log_text((char *) "Reboot file DESC struct is larger than current in-game DESC. Cannot load safely.");
+      log_text((char *) "Reboot file format is not v3 (SoA). Cannot load. Delete .reboot file and restart.");
     ENDLOG
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
   }
 
-  i_hot_read = (i_file_hot_size < sizeof(DESC_HOT)) ? i_file_hot_size : sizeof(DESC_HOT);
+  if ( i_file_cold_size > sizeof(DESC_COLD) ) {
+    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+      log_text((char *) "Reboot file DESC_COLD struct is larger than current. Cannot load safely.");
+    ENDLOG
+    fclose(rebootfile);
+    if ( !i_fxchk ) fclose(suffixfile);
+    RETURN(0); /* #108 */
+  }
+
   i_cold_read = (i_file_cold_size < sizeof(DESC_COLD)) ? i_file_cold_size : sizeof(DESC_COLD);
 
   i_prefix = mkattr("____OUTPUTPREFIX");
@@ -1198,7 +1225,28 @@ int load_reboot_db( void )
   s_text = alloc_lbuf("reboot_fx");
   while(!feof(rebootfile)) {
     d = alloc_desc("reboot_sock");
-    if( !fread(&d->hot, i_hot_read, 1, rebootfile) ||
+    if (!d) {
+      STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+        log_text((char *) "Too many descriptors in reboot file for current MAX_DESCRIPTORS. Skipping excess connections.");
+      ENDLOG
+      break;
+    }
+    /* Read hot fields individually (SoA format v3) */
+    if( !fread(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fread(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
+        !fread(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
+        !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
+        !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
+        !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
+        !fread(&D_HASHNEXT(d), sizeof(DESC *), 1, rebootfile) ||
+        !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fread(d->cold, i_cold_read, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
         free_desc(d);
@@ -1212,22 +1260,22 @@ int load_reboot_db( void )
       RETURN(0); /* #108 */
     }
     d->cold->output_prefix = NULL;
-    if ( (i_prefix > 0) && (d->hot.flags & DS_HAVEpFX) && Good_chk(d->hot.player) ) {
+    if ( (i_prefix > 0) && (D_FLAGS(d) & DS_HAVEpFX) && Good_chk(D_PLAYER(d)) ) {
        if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
           set_userstring(&d->cold->output_prefix, s_text);
     }
     d->cold->output_suffix = NULL;
-    if ( (i_suffix > 0) && Good_chk(d->hot.player) && (d->hot.flags & DS_HAVEsFX) ) {
+    if ( (i_suffix > 0) && Good_chk(D_PLAYER(d)) && (D_FLAGS(d) & DS_HAVEsFX) ) {
        if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
           set_userstring(&d->cold->output_suffix, s_text);
     }
-    d->hot.flags &= ~(DS_HAVEpFX|DS_HAVEsFX);
-    d->hot.output_size = 0;
-    d->hot.output_head = NULL;
-    d->hot.output_tail = NULL;
-    d->hot.input_size = 0;
-    d->hot.input_head = NULL;
-    d->hot.input_tail = NULL;
+    D_FLAGS(d) &= ~(DS_HAVEpFX|DS_HAVEsFX);
+    D_OUTPUT_SIZE(d) = 0;
+    D_OUTPUT_HEAD(d) = NULL;
+    D_OUTPUT_TAIL(d) = NULL;
+    D_INPUT_SIZE(d) = 0;
+    D_INPUT_HEAD(d) = NULL;
+    D_INPUT_TAIL(d) = NULL;
     d->cold->door_desc = 0;
     d->cold->door_output_head = NULL;
     d->cold->door_output_tail = NULL;
@@ -1239,33 +1287,18 @@ int load_reboot_db( void )
     d->cold->door_mbuf = NULL;
     d->cold->raw_input = NULL;
     d->cold->raw_input_at = NULL;
-    d->hot.hashnext = NULL;
-    d->hot.next = NULL;
-    d->hot.prev = NULL;
+    D_HASHNEXT(d) = NULL;
     d->cold->snooplist = NULL;
     d->cold->logged = 0;
 
-    /* place the nodes in their original order */
-    prev = descriptor_list;
-    DESC_ITER_ALL(tempd) {
-      /* seek end of list */
-      prev = tempd;
-    }
-
-    if( !prev ) {
-      d->hot.prev = &descriptor_list;
-      descriptor_list = d;
-    }
-    else {
-      d->hot.prev = &(prev->hot.next);
-      prev->hot.next = d;
-    }
+    ndescriptors++;
+    ndesc_slots++;
 
     desc_addhash(d);
-    s_Connected(d->hot.player);
+    s_Connected(D_PLAYER(d));
     STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
       log_text((char*) "Reconnecting: ");
-      log_name(d->hot.player);
+      log_name(D_PLAYER(d));
     ENDLOG
     mudstate.recordcurrconn++;
   }
@@ -1357,22 +1390,22 @@ update_quotas(struct timeval last, struct timeval current)
     if (nslices > 0) {
 	DESC_ITER_ALL(d) {
             /* IF customquotas exceed the max current values, ignore it and carry on */
-            if ( (d->hot.flags & DS_CMDQUOTA) ) {
-               if ( Good_chk(d->hot.player) && 
-                    ((Wizard(d->hot.player) && d->hot.quota > mudconf.wizcmd_quota_max) ||
-                     (!Wizard(d->hot.player) && d->hot.quota > mudconf.cmd_quota_max)) ) {
+            if ( (D_FLAGS(d) & DS_CMDQUOTA) ) {
+               if ( Good_chk(D_PLAYER(d)) && 
+                    ((Wizard(D_PLAYER(d)) && D_QUOTA(d) > mudconf.wizcmd_quota_max) ||
+                     (!Wizard(D_PLAYER(d)) && D_QUOTA(d) > mudconf.cmd_quota_max)) ) {
                   continue;
                }
                /* Cleanup the flag */
-               d->hot.flags &= ~DS_CMDQUOTA;
+               D_FLAGS(d) &= ~DS_CMDQUOTA;
             }
-	    d->hot.quota += mudconf.cmd_quota_incr * nslices;
-            if ( Good_chk(d->hot.player) && Wizard(d->hot.player) ) {
-	       if (d->hot.quota > mudconf.wizcmd_quota_max)
-		   d->hot.quota = mudconf.wizcmd_quota_max;
+	    D_QUOTA(d) += mudconf.cmd_quota_incr * nslices;
+            if ( Good_chk(D_PLAYER(d)) && Wizard(D_PLAYER(d)) ) {
+	       if (D_QUOTA(d) > mudconf.wizcmd_quota_max)
+		   D_QUOTA(d) = mudconf.wizcmd_quota_max;
             } else {
-	       if (d->hot.quota > mudconf.cmd_quota_max)
-		   d->hot.quota = mudconf.cmd_quota_max;
+	       if (D_QUOTA(d) > mudconf.cmd_quota_max)
+		   D_QUOTA(d) = mudconf.cmd_quota_max;
             }
 	}
     }
@@ -1387,7 +1420,7 @@ update_quotas(struct timeval last, struct timeval current)
 void 
 raw_notify(dbref player, const char *msg, int port, int type)
 {
-    DESC *d, *sd, *dnext;
+    DESC *d, *sd;
     struct SNOOPLISTNODE *node;
     char antemp[20];
     int found;
@@ -1409,11 +1442,11 @@ raw_notify(dbref player, const char *msg, int port, int type)
     strcpy(antemp, ANSI_NORMAL);
     if (!port) {
       DESC_ITER_PLAYER(player, d) {
-	if ((d->hot.flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->hot.player) & DOORRED)) {
+	if ((D_FLAGS(d) & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(D_PLAYER(d)) & DOORRED)) {
 	  continue;
         }
 	queue_string(d, msg);
-	if (ShowAnsi(d->hot.player) && index(msg, ESC_CHAR)) {
+	if (ShowAnsi(D_PLAYER(d)) && index(msg, ESC_CHAR)) {
 	    queue_string(d, antemp);
         }
         if ( type ) {
@@ -1433,10 +1466,10 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		    continue;
                 }
 		DESC_ITER_PLAYER(node->snooper, sd) {
-		    if ((sd->hot.flags & DS_HAS_DOOR) && (Flags3(sd->hot.player) & DOORRED)) {
+		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
-                    if( ShowAnsi(sd->hot.player) ) {
+                    if( ShowAnsi(D_PLAYER(sd)) ) {
                       queue_string(sd, ANSI_HILITE);
                       queue_string(sd, ANSI_WHITE);
 		      queue_string(sd, "|");
@@ -1464,24 +1497,24 @@ raw_notify(dbref player, const char *msg, int port, int type)
       }
     } else {
       found = 0;
-      DESC_SAFEITER_ALL(d,dnext) {
-	if (d->hot.descriptor != port) {
+      DESC_SAFEITER_ALL(d) {
+	if (D_DESCRIPTOR(d) != port) {
 	  continue;
         }
-	if (!(d->hot.player) && !Immortal(mudstate.pageref)) {
+	if (!(D_PLAYER(d)) && !Immortal(mudstate.pageref)) {
 	  mudstate.pageref = NOTHING;
 	  break;
 	}
-	if (Immortal(d->hot.player) && SCloak(d->hot.player) && !Immortal(mudstate.pageref)) {
+	if (Immortal(D_PLAYER(d)) && SCloak(D_PLAYER(d)) && !Immortal(mudstate.pageref)) {
 	  mudstate.pageref = NOTHING;
 	  break;
 	}
 	found = 1;
-	if ((d->hot.flags & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(d->hot.player) & DOORRED)) {
+	if ((D_FLAGS(d) & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(D_PLAYER(d)) & DOORRED)) {
 	  continue;
         }
 	queue_string(d, msg);
-	if (d->hot.player && ShowAnsi(d->hot.player) && index(msg, ESC_CHAR)) {
+	if (D_PLAYER(d) && ShowAnsi(D_PLAYER(d)) && index(msg, ESC_CHAR)) {
 	    queue_string(d, antemp);
         }
 	queue_write(d, "\r\n", 2);
@@ -1489,7 +1522,7 @@ raw_notify(dbref player, const char *msg, int port, int type)
 	    for (node = d->cold->snooplist; node; node = node->next) {
 		if (node->sfile) {
 		    fprintf(node->sfile, "%ld|", mudstate.now);
-		    fputs(Name(d->hot.player), node->sfile);
+		    fputs(Name(D_PLAYER(d)), node->sfile);
 		    fputs("> ", node->sfile);
 		    fputs(strip_ansi(msg), node->sfile);
 		    fputc('\n', node->sfile);
@@ -1499,15 +1532,15 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		    continue;
                 }
 		DESC_ITER_PLAYER(node->snooper, sd) {
-		    if ((sd->hot.flags & DS_HAS_DOOR) && (Flags3(sd->hot.player) & DOORRED)) {
+		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
-                    if( ShowAnsi(sd->hot.player) ) {
+                    if( ShowAnsi(D_PLAYER(sd)) ) {
                       queue_string(sd, ANSI_HILITE);
                       queue_string(sd, ANSI_WHITE);
 		      queue_string(sd, "|");
                       queue_string(sd, ANSI_GREEN);
-		      queue_string(sd, Name(d->hot.player));
+		      queue_string(sd, Name(D_PLAYER(d)));
                       queue_string(sd, ANSI_WHITE);
 		      queue_string(sd, "| ");
                       queue_string(sd, ANSI_NORMAL);
@@ -1515,7 +1548,7 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		      queue_string(sd, antemp);
                     } else {
 		      queue_string(sd, "|");
-		      queue_string(sd, Name(d->hot.player));
+		      queue_string(sd, Name(D_PLAYER(d)));
 		      queue_string(sd, "> ");
 		      queue_string(sd, msg);
                     }
@@ -1575,42 +1608,42 @@ broadcast_monitor(dbref player, int inflags, char *type,
       pt1 = NULL;
      
     DESC_ITER_CONN(d) {
-        if ((inflags & MF_API) && !HasPriv(d->hot.player, NOTHING, POWER_MONITORAPI, POWER5, NOTHING))
+        if ((inflags & MF_API) && !HasPriv(D_PLAYER(d), NOTHING, POWER_MONITORAPI, POWER5, NOTHING))
             continue;
-        if ((inflags & MF_COMPFAIL) && (Toggles2(d->hot.player) & TOG_MONITOR_BFAIL))
+        if ((inflags & MF_COMPFAIL) && (Toggles2(D_PLAYER(d)) & TOG_MONITOR_BFAIL))
             continue;
-        if ((inflags & MF_BFAIL) && !(Toggles2(d->hot.player) & TOG_MONITOR_BFAIL))
+        if ((inflags & MF_BFAIL) && !(Toggles2(D_PLAYER(d)) & TOG_MONITOR_BFAIL))
             continue;
-	if ((inflags & MF_FAIL) && !(Toggles(d->hot.player) & TOG_MONITOR_FAIL))
+	if ((inflags & MF_FAIL) && !(Toggles(D_PLAYER(d)) & TOG_MONITOR_FAIL))
 	    continue;
-	if ((inflags & MF_VLIMIT) && !(Toggles(d->hot.player) & TOG_MONITOR_VLIMIT))
+	if ((inflags & MF_VLIMIT) && !(Toggles(D_PLAYER(d)) & TOG_MONITOR_VLIMIT))
 	    continue;
-	if ((inflags & MF_CPU) && !(Toggles(d->hot.player) & TOG_MONITOR_CPU))
+	if ((inflags & MF_CPU) && !(Toggles(D_PLAYER(d)) & TOG_MONITOR_CPU))
             continue;
-        if ((inflags & MF_CPUEXT) && !(Toggles(d->hot.player) & TOG_MONITOR_CPU))
+        if ((inflags & MF_CPUEXT) && !(Toggles(D_PLAYER(d)) & TOG_MONITOR_CPU))
             continue;
-	if ((d->hot.flags & DS_HAS_DOOR) && (Flags3(d->hot.player) & DOORRED))
+	if ((D_FLAGS(d) & DS_HAS_DOOR) && (Flags3(D_PLAYER(d)) & DOORRED))
 	    continue;
-	if ((inflags & MF_DCONN) && !Immortal(d->hot.player))
+	if ((inflags & MF_DCONN) && !Immortal(D_PLAYER(d)))
 	    continue;
 	if (inflags & MF_DCONN)
 	    inflags &= ~MF_DCONN;
 	if (inflags & MF_CONN) {
-	    if ( (Toggles(d->hot.player) & TOG_MONITOR_CONN) && (Toggles(d->hot.player) & TOG_MONITOR) ) {
-		if( ShowAnsi(d->hot.player) ) 
+	    if ( (Toggles(D_PLAYER(d)) & TOG_MONITOR_CONN) && (Toggles(D_PLAYER(d)) & TOG_MONITOR) ) {
+		if( ShowAnsi(D_PLAYER(d)) ) 
                   queue_string(d, ANSI_HILITE);
                 if (inflags & MF_API ) {
 		   queue_string(d, "[MONITOR] API ");
                 } else {
 		   queue_string(d, "[MONITOR] ");
                 }
-		if( ShowAnsi(d->hot.player) ) 
+		if( ShowAnsi(D_PLAYER(d)) ) 
                   queue_string(d, ANSI_NORMAL);
-		if (Wizard(d->hot.player) || (pt1 == NULL) || SeeSuspect(d->hot.player))
+		if (Wizard(D_PLAYER(d)) || (pt1 == NULL) || SeeSuspect(D_PLAYER(d)))
 		  queue_string(d, type);
 		else
 		  queue_string(d, b3);
-		if (reason && TogReason(d->hot.player)) {
+		if (reason && TogReason(D_PLAYER(d))) {
 		  queue_string(d, " (");
 		  queue_string(d, reason);
 		  queue_string(d, ")");
@@ -1628,7 +1661,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		     sprintf(buff, "Port: %d, Site: %s", succ, site);
                 }
 		queue_string(d, buff);
-                if ( Toggles(d->hot.player) & TOG_MONITOR_TIME ) {
+                if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
                    t = time(NULL);
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
@@ -1640,11 +1673,11 @@ broadcast_monitor(dbref player, int inflags, char *type,
 	    continue;
 	}
 	if (inflags & MF_AREG) {
-	  if ( (Toggles(d->hot.player) & TOG_MONITOR_AREG) && (Toggles(d->hot.player) & TOG_MONITOR) )  {
-		if( ShowAnsi(d->hot.player) ) 
+	  if ( (Toggles(D_PLAYER(d)) & TOG_MONITOR_AREG) && (Toggles(D_PLAYER(d)) & TOG_MONITOR) )  {
+		if( ShowAnsi(D_PLAYER(d)) ) 
                   queue_string(d, ANSI_HILITE);
 		queue_string(d, "[MONITOR] ");
-		if( ShowAnsi(d->hot.player) ) 
+		if( ShowAnsi(D_PLAYER(d)) ) 
                   queue_string(d, ANSI_NORMAL);
 		queue_string(d, type);
 		if (userid && *userid)
@@ -1652,7 +1685,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		else
 		  sprintf(buff, " | Port: %d, Site: %s, Char/Email: %s", succ, site, reason);
 		queue_string(d, buff);
-                if ( Toggles(d->hot.player) & TOG_MONITOR_TIME ) {
+                if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
                    t = time(NULL);
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
@@ -1663,18 +1696,18 @@ broadcast_monitor(dbref player, int inflags, char *type,
 	  }
 	  continue;
 	}
-	if (((Toggles(d->hot.player) & TOG_MONITOR) &&
-	((((player != NOTHING) && !Cloak(player)) || Immortal(d->hot.player) || (inflags & (MF_FAIL|MF_BFAIL)))))) {
-	    if( ShowAnsi(d->hot.player) ) 
+	if (((Toggles(D_PLAYER(d)) & TOG_MONITOR) &&
+	((((player != NOTHING) && !Cloak(player)) || Immortal(D_PLAYER(d)) || (inflags & (MF_FAIL|MF_BFAIL)))))) {
+	    if( ShowAnsi(D_PLAYER(d)) ) 
               queue_string(d, ANSI_HILITE);
 	    queue_string(d, "[MONITOR] ");
-	    if( ShowAnsi(d->hot.player) ) 
+	    if( ShowAnsi(D_PLAYER(d)) ) 
               queue_string(d, ANSI_NORMAL);
-	    if (Wizard(d->hot.player) || (pt1 == NULL) || SeeSuspect(d->hot.player))
+	    if (Wizard(D_PLAYER(d)) || (pt1 == NULL) || SeeSuspect(D_PLAYER(d)))
 	      queue_string(d, type);
 	    else
 	      queue_string(d, b3);
-	    if (reason && TogReason(d->hot.player)) {
+	    if (reason && TogReason(D_PLAYER(d))) {
 	      queue_string(d, " (");
 	      queue_string(d, reason);
 	      queue_string(d, ")");
@@ -1721,7 +1754,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
                 }
             }
 	    if (!(inflags & (MF_SITE | MF_STATS))) {
-                if ( Toggles(d->hot.player) & TOG_MONITOR_TIME ) {
+                if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
                    t = time(NULL);
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
@@ -1731,22 +1764,22 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		process_output(d);
 		continue;
 	    }
-	    if (((inflags & (MF_SITE)) && Toggles(d->hot.player) & (TOG_MONITOR_USERID | TOG_MONITOR_SITE)))
+	    if (((inflags & (MF_SITE)) && Toggles(D_PLAYER(d)) & (TOG_MONITOR_USERID | TOG_MONITOR_SITE)))
 		queue_string(d, " | ");
-	    if ((Toggles(d->hot.player) & TOG_MONITOR_USERID) &&
+	    if ((Toggles(D_PLAYER(d)) & TOG_MONITOR_USERID) &&
 		(*userid)) {
 		queue_string(d, userid);
 		queue_string(d, "@");
 	    }
-	    if (Toggles(d->hot.player) & (TOG_MONITOR_SITE | TOG_MONITOR_USERID))
+	    if (Toggles(D_PLAYER(d)) & (TOG_MONITOR_SITE | TOG_MONITOR_USERID))
 		queue_string(d, site);
 	    if ((inflags & MF_STATS) &&
-		(Toggles(d->hot.player) & TOG_MONITOR_STATS)) {
+		(Toggles(D_PLAYER(d)) & TOG_MONITOR_STATS)) {
 		sprintf(buff, " (Succ: %d | Fail: %d/%d)",
 			succ, recentfail, fail);
 		queue_string(d, buff);
 	    }
-            if ( Toggles(d->hot.player) & TOG_MONITOR_TIME ) {
+            if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
                t = time(NULL);
                tp = localtime(&t);
                sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
@@ -1827,27 +1860,27 @@ raw_broadcast(va_alist)
 #endif   
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
-	if ((!(((Flags2(d->hot.player) & NO_WALLS) || ((d->hot.flags & DS_HAS_DOOR) && (Flags3(d->hot.player) & DOORRED))) 
+	if ((!(((Flags2(D_PLAYER(d)) & NO_WALLS) || ((D_FLAGS(d) & DS_HAS_DOOR) && (Flags3(D_PLAYER(d)) & DOORRED))) 
 	  && sender != 0 && !Wizard(sender)) || mudstate.nowall_over) &&
 	    ((inflags == 0) ||
-	     ((inflags & GUILDMASTER) && Guildmaster(d->hot.player)) ||
-	     ((inflags & BUILDER) && Builder(d->hot.player)) ||
-	     ((inflags & ADMIN) && Admin(d->hot.player)) ||
-	     ((inflags & WIZARD) && Wizard(d->hot.player)) ||
-	     ((inflags & IMMORTAL) && Immortal(d->hot.player)))) {
-           if ( i_nowalls && (Flags2(d->hot.player) & NO_WALLS) ) 
+	     ((inflags & GUILDMASTER) && Guildmaster(D_PLAYER(d))) ||
+	     ((inflags & BUILDER) && Builder(D_PLAYER(d))) ||
+	     ((inflags & ADMIN) && Admin(D_PLAYER(d))) ||
+	     ((inflags & WIZARD) && Wizard(D_PLAYER(d))) ||
+	     ((inflags & IMMORTAL) && Immortal(D_PLAYER(d))))) {
+           if ( i_nowalls && (Flags2(D_PLAYER(d)) & NO_WALLS) ) 
               continue;
 #ifdef ZENTY_ANSI
-		   if ( UTF8(d->hot.player) )
+		   if ( UTF8(D_PLAYER(d)) )
 			  queue_string(d, msg_utf);
-           else if ( Accents(d->hot.player ) )
+           else if ( Accents(D_PLAYER(d) ) )
               queue_string(d, msg_ns2);
            else
 	      queue_string(d, strip_safe_accents(message));
 #else	   
 	   queue_string(d, buff);
 #endif	   
-	    if (ShowAnsi(d->hot.player) && index(buff, ESC_CHAR))
+	    if (ShowAnsi(D_PLAYER(d)) && index(buff, ESC_CHAR))
 		queue_string(d, antemp);
 	    queue_write(d, "\r\n", 2);
 	    process_output(d);
@@ -1911,19 +1944,19 @@ raw_broadcast2(va_alist)
 
     strcpy(antemp, ANSI_NORMAL);
     DESC_ITER_CONN(d) {
-	if ((inflags != WIZARD) && ((Flags2(d->hot.player) & inflags) == inflags)) {
-	    if ((((!(Flags2(d->hot.player) & NO_WALLS)) || mudstate.nowall_over) && (!Wizard(d->hot.player))) || (inflags == 0)) {
-		if (((inflags == BUILDER) && !Builder(d->hot.player)) || (inflags == ADMIN) || (inflags == 0)) {
+	if ((inflags != WIZARD) && ((Flags2(D_PLAYER(d)) & inflags) == inflags)) {
+	    if ((((!(Flags2(D_PLAYER(d)) & NO_WALLS)) || mudstate.nowall_over) && (!Wizard(D_PLAYER(d)))) || (inflags == 0)) {
+		if (((inflags == BUILDER) && !Builder(D_PLAYER(d))) || (inflags == ADMIN) || (inflags == 0)) {
 		    queue_string(d, buff);
-		    if (ShowAnsi(d->hot.player) && index(buff, ESC_CHAR))
+		    if (ShowAnsi(D_PLAYER(d)) && index(buff, ESC_CHAR))
 			queue_string(d, antemp);
 		    queue_write(d, "\r\n", 2);
 		    process_output(d);
 		}
 	    }
-	} else if (Immortal(d->hot.player) && (inflags == WIZARD)) {
+	} else if (Immortal(D_PLAYER(d)) && (inflags == WIZARD)) {
 	    queue_string(d, buff);
-	    if (ShowAnsi(d->hot.player) && index(buff, ESC_CHAR))
+	    if (ShowAnsi(D_PLAYER(d)) && index(buff, ESC_CHAR))
 		queue_string(d, antemp);
 	    queue_write(d, "\r\n", 2);
 	    process_output(d);
@@ -1970,13 +2003,13 @@ queue_write(DESC * d, const char *b, int n)
 	VOIDRETURN; /* #117 */
     }
 
-    if (d->hot.output_size + n > mudconf.output_limit)
+    if (D_OUTPUT_SIZE(d) + n > mudconf.output_limit)
 	process_output(d);
 
-    left = mudconf.output_limit - d->hot.output_size - n;
+    left = mudconf.output_limit - D_OUTPUT_SIZE(d) - n;
     if (left < 0) {
         mudstate.outputflushed = 1;
-	tp = d->hot.output_head;
+	tp = D_OUTPUT_HEAD(d);
 	if (tp == NULL) {
 	    STARTLOG(LOG_PROBLEMS, "QUE", "WRITE")
 		log_text((char *) "Flushing when output_head is null!");
@@ -1986,16 +2019,16 @@ queue_write(DESC * d, const char *b, int n)
             buf = alloc_lbuf("queue_write.LOG");
 	    sprintf(buf,
 		    "[%d/%s] Output buffer overflow, %d chars discarded by ",
-		    d->hot.descriptor, d->cold->longaddr, tp->hdr.nchars);
+		    D_DESCRIPTOR(d), d->cold->longaddr, tp->hdr.nchars);
 	    log_text(buf);
 	    free_lbuf(buf);
-	    log_name(d->hot.player);
+	    log_name(D_PLAYER(d));
 	    ENDLOG
-            d->hot.output_size -= tp->hdr.nchars;
-	    d->hot.output_head = tp->hdr.nxt;
+            D_OUTPUT_SIZE(d) -= tp->hdr.nchars;
+	    D_OUTPUT_HEAD(d) = tp->hdr.nxt;
 	    d->cold->output_lost += tp->hdr.nchars;
-	    if (d->hot.output_head == NULL)
-		d->hot.output_tail = NULL;
+	    if (D_OUTPUT_HEAD(d) == NULL)
+		D_OUTPUT_TAIL(d) = NULL;
 	    free_lbuf(tp);
 	}
     }
@@ -2003,7 +2036,7 @@ queue_write(DESC * d, const char *b, int n)
 
 #ifdef ENABLE_WEBSOCKETS
     ///// NEW WEBSOCK
-    if (d->hot.flags & DS_WEBSOCKETS) {
+    if (D_FLAGS(d) & DS_WEBSOCKETS) {
         /* Format output for websockets */
         websocket_write(d, b, n);
         VOIDRETURN;
@@ -2013,21 +2046,21 @@ queue_write(DESC * d, const char *b, int n)
 
 
     /* Allocate an output buffer if needed */
-    if (d->hot.output_head == NULL) {
+    if (D_OUTPUT_HEAD(d) == NULL) {
 	tp = (TBLOCK *) alloc_lbuf("queue_write.new");
 	tp->hdr.nxt = NULL;
 	tp->hdr.start = tp->data;
 	tp->hdr.end = tp->data;
 	tp->hdr.nchars = 0;
-	d->hot.output_head = tp;
-	d->hot.output_tail = tp;
+	D_OUTPUT_HEAD(d) = tp;
+	D_OUTPUT_TAIL(d) = tp;
     } else {
-	tp = d->hot.output_tail;
+	tp = D_OUTPUT_TAIL(d);
     }
 
     /* Now tp points to the last buffer in the chain */
-    d->hot.output_size += n;
-    d->hot.output_tot += n;
+    D_OUTPUT_SIZE(d) += n;
+    D_OUTPUT_TOT(d) += n;
     mudstate.total_bytesout += n;
     if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
        if ( mudstate.avg_bytesin == 0 ) {
@@ -2080,8 +2113,8 @@ queue_write(DESC * d, const char *b, int n)
 	    tp->hdr.start = tp->data;
 	    tp->hdr.end = tp->data;
 	    tp->hdr.nchars = 0;
-	    d->hot.output_tail->hdr.nxt = tp;
-	    d->hot.output_tail = tp;
+	    D_OUTPUT_TAIL(d)->hdr.nxt = tp;
+	    D_OUTPUT_TAIL(d) = tp;
 	}
     } while (n > 0);
     VOIDRETURN; /* #117 */
@@ -2098,17 +2131,17 @@ queue_string(DESC * d, const char *s)
     if ( !d )
        VOIDRETURN;
     new = (char *) s;
-    if (new && (!d->hot.player || !ShowAnsi(d->hot.player)) && index(new, ESC_CHAR))
+    if (new && (!D_PLAYER(d) || !ShowAnsi(D_PLAYER(d))) && index(new, ESC_CHAR))
         new = strip_ansi(new);
-    else if (new && !ShowAnsiTrueColor(d->hot.player) && index(new, ESC_CHAR))
+    else if (new && !ShowAnsiTrueColor(D_PLAYER(d)) && index(new, ESC_CHAR))
         new = strip_ansi_truecolor(new);
-    if (new && !ShowAnsiXterm(d->hot.player) && index(new, ESC_CHAR))
+    if (new && !ShowAnsiXterm(D_PLAYER(d)) && index(new, ESC_CHAR))
         new = strip_ansi_xterm(new);
-    if (new && !ShowAnsiColor(d->hot.player) && index(new, ESC_CHAR))
+    if (new && !ShowAnsiColor(D_PLAYER(d)) && index(new, ESC_CHAR))
         new = strip_ansi_color(new);
-    if (NoFlash(d->hot.player) && index(new, ESC_CHAR))
+    if (NoFlash(D_PLAYER(d)) && index(new, ESC_CHAR))
 	new = strip_ansi_flash(new);
-    if (NoUnderline(d->hot.player) && index(new, ESC_CHAR))
+    if (NoUnderline(D_PLAYER(d)) && index(new, ESC_CHAR))
 	new = strip_ansi_underline(new);
     if (new)
 	queue_write(d, new, strlen(new));
@@ -2124,23 +2157,23 @@ freeqs(DESC * d, int dooronly)
     DPUSH; /* #121 */
 
   if (!dooronly) {
-    tb = d->hot.output_head;
+    tb = D_OUTPUT_HEAD(d);
     while (tb) {
 	tnext = tb->hdr.nxt;
 	free_lbuf(tb);
 	tb = tnext;
     }
-    d->hot.output_head = NULL;
-    d->hot.output_tail = NULL;
+    D_OUTPUT_HEAD(d) = NULL;
+    D_OUTPUT_TAIL(d) = NULL;
 
-    cb = d->hot.input_head;
+    cb = D_INPUT_HEAD(d);
     while (cb) {
 	cnext = (CBLK *) cb->hdr.nxt;
 	free_lbuf(cb);
 	cb = cnext;
     }
-    d->hot.input_head = NULL;
-    d->hot.input_tail = NULL;
+    D_INPUT_HEAD(d) = NULL;
+    D_INPUT_TAIL(d) = NULL;
 
     if (d->cold->raw_input)
 	free_lbuf(d->cold->raw_input);
@@ -2172,7 +2205,7 @@ freeqs(DESC * d, int dooronly)
  * desc_addhash: Add a net descriptor to its player hash list.
  */
 
-static void 
+void 
 desc_addhash(DESC * d)
 {
     dbref player;
@@ -2180,13 +2213,13 @@ desc_addhash(DESC * d)
 
     DPUSH; /* #122 */
 
-    player = d->hot.player;
+    player = D_PLAYER(d);
     hdesc = (DESC *) nhashfind((int) player, &mudstate.desc_htab);
     if (hdesc == NULL) {
-	d->hot.hashnext = NULL;
+	D_HASHNEXT(d) = NULL;
 	nhashadd((int) player, (int *) d, &mudstate.desc_htab);
     } else {
-	d->hot.hashnext = hdesc;
+	D_HASHNEXT(d) = hdesc;
 	nhashrepl((int) player, (int *) d, &mudstate.desc_htab);
     }
     VOIDRETURN; /* #122 */
@@ -2196,7 +2229,7 @@ desc_addhash(DESC * d)
  * desc_delhash: Remove a net descriptor from its player hash list.
  */
 
-static void 
+void 
 desc_delhash(DESC * d)
 {
     DESC *hdesc, *last;
@@ -2204,29 +2237,29 @@ desc_delhash(DESC * d)
 
     DPUSH; /* #123 */
 
-    player = d->hot.player;
+    player = D_PLAYER(d);
     last = NULL;
     hdesc = (DESC *) nhashfind((int) player, &mudstate.desc_htab);
     while (hdesc != NULL) {
 	if (d == hdesc) {
 	    if (last == NULL) {
-		if (d->hot.hashnext == NULL) {
+		if (D_HASHNEXT(d) == NULL) {
 		    nhashdelete((int) player,
 				&mudstate.desc_htab);
 		} else {
 		    nhashrepl((int) player,
-			      (int *) d->hot.hashnext,
+			      (int *) D_HASHNEXT(d),
 			      &mudstate.desc_htab);
 		}
 	    } else {
-		last->hot.hashnext = d->hot.hashnext;
+		D_HASHNEXT(last) = D_HASHNEXT(d);
 	    }
 	    break;
 	}
 	last = hdesc;
-	hdesc = hdesc->hot.hashnext;
+	hdesc = D_HASHNEXT(hdesc);
     }
-    d->hot.hashnext = NULL;
+    D_HASHNEXT(d) = NULL;
     VOIDRETURN; /* #123 */
 }
 
@@ -2234,11 +2267,11 @@ void
 welcome_user(DESC * d)
 {
     DPUSH; /* #124 */
-    if (mudconf.offline_reg && !(d->hot.host_info & H_PERMIT) && (d->hot.host_info & H_REGISTRATION))
+    if (mudconf.offline_reg && !(D_HOST_INFO(d) & H_PERMIT) && (D_HOST_INFO(d) & H_REGISTRATION))
 	fcache_dump(d, FC_CONN_AUTO_H, (char *)NULL);
     else if (mudconf.offline_reg)
 	fcache_dump(d, FC_CONN_AUTO, (char *)NULL);
-    else if (!(d->hot.host_info & H_PERMIT) && (d->hot.host_info & H_REGISTRATION))
+    else if (!(D_HOST_INFO(d) & H_PERMIT) && (D_HOST_INFO(d) & H_REGISTRATION))
 	fcache_dump(d, FC_CONN_REG, (char *)NULL);
     else
 	fcache_dump(d, FC_CONN, (char *)NULL);
@@ -2251,11 +2284,11 @@ save_command(DESC * d, CBLK * command)
 {
     DPUSH; /* #125 */
     command->hdr.nxt = NULL;
-    if (d->hot.input_tail == NULL)
-	d->hot.input_head = command;
+    if (D_INPUT_TAIL(d) == NULL)
+	D_INPUT_HEAD(d) = command;
     else
-	d->hot.input_tail->hdr.nxt = command;
-    d->hot.input_tail = command;
+	D_INPUT_TAIL(d)->hdr.nxt = command;
+    D_INPUT_TAIL(d) = command;
     VOIDRETURN; /* #125 */
 }
 
@@ -2480,7 +2513,7 @@ announce_connect(dbref player, DESC * d, int dc)
     time_str = ctime(&mudstate.now);
     time_str[strlen(time_str) - 1] = '\0';
     record_login(player, 1, time_str, d->cold->longaddr, &totsucc, &totfail, &newfail);
-    if ( !(d->hot.flags & DS_SSL) ) {
+    if ( !(D_FLAGS(d) & DS_SSL) ) {
         atr_add_raw(player, A_LASTIP, d->cold->addr);
     } else {
        if ( d->cold->doing[0] != '\0' ) {
@@ -2494,10 +2527,10 @@ announce_connect(dbref player, DESC * d, int dc)
        if (Suspect(player))
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [SUSPECT]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
-       else if (d->hot.host_info & H_SUSPECT)
+       else if (D_HOST_INFO(d) & H_SUSPECT)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [SUSPECT SITE]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
-       else if (d->hot.host_info & H_PASSPROXY)
+       else if (D_HOST_INFO(d) & H_PASSPROXY)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "RECONNECT [PROXY BYPASS]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
        else if (dc)
@@ -2510,10 +2543,10 @@ announce_connect(dbref player, DESC * d, int dc)
        if (Suspect(player))
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "CONNECT [SUSPECT]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
-       else if (d->hot.host_info & H_SUSPECT)
+       else if (D_HOST_INFO(d) & H_SUSPECT)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "CONNECT [SUSPECT SITE]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
-       else if (d->hot.host_info & H_PASSPROXY)
+       else if (D_HOST_INFO(d) & H_PASSPROXY)
 	   broadcast_monitor(player, MF_SITE | MF_STATS | MF_TRIM, "CONNECT [PROXY BYPASS]",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
        else if (dc)
@@ -2646,8 +2679,8 @@ announce_connect(dbref player, DESC * d, int dc)
 
 
     look_in(player, player, Location(player), (LK_SHOWEXIT | LK_OBEYTERSE));
-    if ( d && Prompt(d->hot.player) ) {
-       progatr = atr_get(d->hot.player, A_PROGPROMPT, &aowner, &aflags);
+    if ( d && Prompt(D_PLAYER(d)) ) {
+       progatr = atr_get(D_PLAYER(d), A_PROGPROMPT, &aowner, &aflags);
        if ( *progatr ) {
           s_pmt = s_pmtptr = alloc_lbuf("process_ic_command");
           queue_string(d, safe_tprintf(s_pmt, &s_pmtptr, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
@@ -2660,7 +2693,7 @@ announce_connect(dbref player, DESC * d, int dc)
             (!mudconf.login_to_prog && ProgCon(player)) ) {
           notify(player, "You are still in a @program.");
           DESC_ITER_CONN(d) {
-             if ( d->hot.player == player ) {
+             if ( D_PLAYER(d) == player ) {
                 progatr = atr_get(player, A_PROGPROMPTBUF, &aowner2, &aflags2);
                 if ( progatr && *progatr ) {
                    if ( strcmp(progatr, "NULL") != 0 ) {
@@ -2689,7 +2722,7 @@ announce_connect(dbref player, DESC * d, int dc)
           notify(player, "Your @program was aborted from disconnecting.");
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
           DESC_ITER_CONN(d) {
-             if ( d->hot.player == player ) {
+             if ( D_PLAYER(d) == player ) {
                 queue_string(d, "\377\371");
              }
              process_output(d);
@@ -2726,8 +2759,8 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
        cmdcnt = 2000000000;
     atr_add_raw(player, A_TOTCMDS, unsafe_tprintf("%d",cmdcnt));
     atr_add_raw(player, A_LSTCMDS, unsafe_tprintf("%d", d->cold->command_count));
-    atr_add_raw(player, A_TOTCHARIN, unsafe_tprintf("%d", d->hot.input_tot));
-    atr_add_raw(player, A_TOTCHAROUT, unsafe_tprintf("%d", d->hot.output_tot));
+    atr_add_raw(player, A_TOTCHARIN, unsafe_tprintf("%d", D_INPUT_TOT(d)));
+    atr_add_raw(player, A_TOTCHAROUT, unsafe_tprintf("%d", D_OUTPUT_TOT(d)));
 
 
     loc = Location(player);
@@ -2741,14 +2774,14 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
         else
 	   broadcast_monitor(player, MF_TRIM, "PARTIAL DISCONN [SUSPECT]", 
                              NULL, NULL, 0, 0, 0, (char *)reason);
-    } else if (d->hot.host_info & H_SUSPECT) {
+    } else if (D_HOST_INFO(d) & H_SUSPECT) {
         if ( num < 2 )
 	   broadcast_monitor(player, MF_TRIM, "DISCONN [SUSPECT SITE]", 
                              d->cold->userid, d->cold->longaddr, 0, 0, 0, (char *)reason);
         else
 	   broadcast_monitor(player, MF_TRIM, "PARTIAL DISCONN [SUSPECT SITE]", 
                              d->cold->userid, d->cold->longaddr, 0, 0, 0, (char *)reason);
-    } else if (d->hot.host_info & H_PASSPROXY) {
+    } else if (D_HOST_INFO(d) & H_PASSPROXY) {
         if ( num < 2 )
 	   broadcast_monitor(player, MF_TRIM, "DISCONN [PROXY BYPASS]", 
                              d->cold->userid, d->cold->longaddr, 0, 0, 0, (char *)reason);
@@ -2880,13 +2913,13 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 		}
 	    }
 	}
-	if (d->hot.flags & DS_AUTODARK) {
-	    s_Flags(d->hot.player, Flags(d->hot.player) & ~DARK);
-	    d->hot.flags &= ~DS_AUTODARK;
+	if (D_FLAGS(d) & DS_AUTODARK) {
+	    s_Flags(D_PLAYER(d), Flags(D_PLAYER(d)) & ~DARK);
+	    D_FLAGS(d) &= ~DS_AUTODARK;
 	}
-	if (d->hot.flags & DS_AUTOUNF) {
-	    s_Flags2(d->hot.player, Flags2(d->hot.player) & ~UNFINDABLE);
-	    d->hot.flags &= ~DS_AUTOUNF;
+	if (D_FLAGS(d) & DS_AUTOUNF) {
+	    s_Flags2(D_PLAYER(d), Flags2(D_PLAYER(d)) & ~UNFINDABLE);
+	    D_FLAGS(d) &= ~DS_AUTOUNF;
 	}
     } else {
 	buf = alloc_mbuf("announce_disconnect.partial");
@@ -3017,16 +3050,16 @@ boot_off(dbref player, char *message)
 int 
 boot_by_port(int port, int no_god, int who, char *message)
 {
-    DESC *d, *dnext;
+    DESC *d;
     int count;
     char *buf;
 
     DPUSH; /* #133 */
     count = 0;
-    DESC_SAFEITER_ALL(d, dnext) {
-	if ((d->hot.descriptor == port) && (!no_god || !God(d->hot.player))) {
-	    if ((d->hot.player == who) || !DePriv(who, d->hot.player, DP_BOOT, POWER6, NOTHING)) {
-	      if (Controls(who,d->hot.player)) {
+    DESC_SAFEITER_ALL(d) {
+	if ((D_DESCRIPTOR(d) == port) && (!no_god || !God(D_PLAYER(d)))) {
+	    if ((D_PLAYER(d) == who) || !DePriv(who, D_PLAYER(d), DP_BOOT, POWER6, NOTHING)) {
+	      if (Controls(who,D_PLAYER(d))) {
 		STARTLOG(LOG_WIZARD,"WIZ","BOOT")
 		  buf = alloc_sbuf("do_boot.port");
 		  sprintf(buf, "Port %d", port);
@@ -3090,7 +3123,7 @@ fetch_idle(dbref target)
 
     result = -1;
     DESC_ITER_PLAYER(target, d) {
-	idletime = (mudstate.now - d->hot.last_time);
+	idletime = (mudstate.now - D_LAST_TIME(d));
 	if ((result == -1) || (idletime < result))
 	   result = idletime;
     }
@@ -3117,20 +3150,20 @@ fetch_connect(dbref target)
 void 
 NDECL(check_idle)
 {
-    DESC *d, *dnext;
+    DESC *d;
     time_t idletime;
 
     DPUSH; /* #137 */
 
-    DESC_SAFEITER_ALL(d, dnext) {
-	if (d->hot.flags & DS_CONNECTED) {
+    DESC_SAFEITER_ALL(d) {
+	if (D_FLAGS(d) & DS_CONNECTED) {
 
 
 	#ifdef ENABLE_WEBSOCKETS
 	    /* Websockets don't like these random bytes. They want Unicode. */
-	    if (!(d->hot.flags & DS_WEBSOCKETS)) {
+	    if (!(D_FLAGS(d) & DS_WEBSOCKETS)) {
 	#endif
-            if ( KeepAlive(d->hot.player) ) {
+            if ( KeepAlive(D_PLAYER(d)) ) {
                /* Send NOP code to players to keep NAT/routers/firewalls happy */
                queue_string(d, "\377\361");
 	       process_output(d);
@@ -3138,34 +3171,34 @@ NDECL(check_idle)
 	#ifdef ENABLE_WEBSOCKETS
 	    }
 	#endif
-            if ( d->hot.last_time > mudstate.now )
+            if ( D_LAST_TIME(d) > mudstate.now )
 	       idletime = 0;
             else
-	       idletime = mudstate.now - d->hot.last_time;
-	    if (( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) && !Wizard(d->hot.player)) {
+	       idletime = mudstate.now - D_LAST_TIME(d);
+	    if (( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) && !Wizard(D_PLAYER(d))) {
 		queue_string(d, "*** Inactivity Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
             } else if (mudconf.idle_wiz_cloak &&
 		       ( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) &&
-		       Wizard(d->hot.player) && (!Dark(d->hot.player) || !Unfindable(d->hot.player))) {
-                if ( !Dark(d->hot.player) ) {
-		   s_Flags(d->hot.player, Flags(d->hot.player) | DARK);
-		   d->hot.flags |= DS_AUTODARK;
+		       Wizard(D_PLAYER(d)) && (!Dark(D_PLAYER(d)) || !Unfindable(D_PLAYER(d)))) {
+                if ( !Dark(D_PLAYER(d)) ) {
+		   s_Flags(D_PLAYER(d), Flags(D_PLAYER(d)) | DARK);
+		   D_FLAGS(d) |= DS_AUTODARK;
                 }
-                if ( !Unfindable(d->hot.player) ) {
-		   s_Flags2(d->hot.player, Flags2(d->hot.player) | UNFINDABLE);
-		   d->hot.flags |= DS_AUTOUNF;
+                if ( !Unfindable(D_PLAYER(d)) ) {
+		   s_Flags2(D_PLAYER(d), Flags2(D_PLAYER(d)) | UNFINDABLE);
+		   D_FLAGS(d) |= DS_AUTOUNF;
                 }
                 if (mudconf.idle_message)
-                   notify(d->hot.player, "You have exceeded the timeout and been CLOAKED.");
+                   notify(D_PLAYER(d), "You have exceeded the timeout and been CLOAKED.");
 	    } else if (mudconf.idle_wiz_dark &&
 		       ( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) &&
-		       Wizard(d->hot.player) && !Dark(d->hot.player)) {
-		s_Flags(d->hot.player, Flags(d->hot.player) | DARK);
-		d->hot.flags |= DS_AUTODARK;
+		       Wizard(D_PLAYER(d)) && !Dark(D_PLAYER(d))) {
+		s_Flags(D_PLAYER(d), Flags(D_PLAYER(d)) | DARK);
+		D_FLAGS(d) |= DS_AUTODARK;
                 if (mudconf.idle_message)
-                   notify(d->hot.player, "You have exceeded the timeout and set DARK.");
+                   notify(D_PLAYER(d), "You have exceeded the timeout and set DARK.");
 	    }
 	} else {
             if ( (d->cold->connected_at > mudstate.now) ||
@@ -3183,7 +3216,7 @@ NDECL(check_idle)
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
-	    } else if ( d->hot.flags & DS_API ) {
+	    } else if ( D_FLAGS(d) & DS_API ) {
                /* Force API disconnecting after d->cold->timeout from connection */
                if ( (idletime > (d->cold->timeout)) || (mudstate.now > (d->cold->connected_at + d->cold->timeout)) ) {
                   process_output(d);
@@ -3215,8 +3248,8 @@ dump_users(DESC * e, char *match, int key)
 
     DPUSH; /* #139 */
     memset(buf_format, 0, sizeof(buf_format));
-    if ( Good_chk(e->hot.player) && Fubar(e->hot.player)) {
-	notify(e->hot.player, "You can't do that...");
+    if ( Good_chk(D_PLAYER(e)) && Fubar(D_PLAYER(e))) {
+	notify(D_PLAYER(e), "You can't do that...");
 	VOIDRETURN; /* #139 */
     }
     while (match && *match && isspace((int)*match))
@@ -3232,10 +3265,10 @@ dump_users(DESC * e, char *match, int key)
     tprp_buff = tpr_buff = alloc_lbuf("dump_users_tprintf");
 
     i_pipetype = 1;
-    if ( Good_chk(e->hot.player) && H_Attrpipe(e->hot.player) ) {
+    if ( Good_chk(D_PLAYER(e)) && H_Attrpipe(D_PLAYER(e)) ) {
        atr = atr_str3("___ATTRPIPE");
        if ( atr ) {
-          atext2 = atr_get(e->hot.player, atr->number, &aowner, &aflags);
+          atext2 = atr_get(D_PLAYER(e), atr->number, &aowner, &aflags);
           if ( *atext2 ) {
              if ( (a_tee = strchr(atext2, ' ')) != NULL ) {
                 *a_tee = '\0';
@@ -3243,14 +3276,14 @@ dump_users(DESC * e, char *match, int key)
              }
              atr = atr_str3(atext2);
              if ( atr ) {
-                if ( Controlsforattr(e->hot.player, e->hot.player, atr, aflags) ) {
+                if ( Controlsforattr(D_PLAYER(e), D_PLAYER(e), atr, aflags) ) {
                    i_attrpipe = 1;
                 }
              }
           }
           free_lbuf(atext2);
           if ( i_attrpipe ) {
-             atext2 = atr_get(e->hot.player, atr->number, &aowner, &aflags);
+             atext2 = atr_get(D_PLAYER(e), atr->number, &aowner, &aflags);
              atextptr = atext = alloc_lbuf("dump_users_pipe");
              safe_str(atext2, atext, &atextptr);
              free_lbuf(atext2);
@@ -3258,10 +3291,10 @@ dump_users(DESC * e, char *match, int key)
        }
        if ( !i_attrpipe ) {
           queue_string(e, (char *)"Notice: Piping attribute no longer exists.  Piping has been auto-disabled.\r\n");
-          s_Flags4(e->hot.player, Flags4(e->hot.player) & ~HAS_ATTRPIPE);
+          s_Flags4(D_PLAYER(e), Flags4(D_PLAYER(e)) & ~HAS_ATTRPIPE);
           atr = atr_str3("___ATTRPIPE");
           if ( atr ) {
-             atr_clr(e->hot.player, atr->number);
+             atr_clr(D_PLAYER(e), atr->number);
           }
        }
     }
@@ -3302,8 +3335,8 @@ dump_users(DESC * e, char *match, int key)
         if ( i_pipetype ) {
 	   queue_string(e, "Pend  Lost     Total  Pend  Lost     Total\r\n");
         }
-    } else if ((e->hot.flags & DS_CONNECTED) && (Wizard(e->hot.player) || HasPriv(e->hot.player, NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA))
-               && (!DePriv(e->hot.player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
+    } else if ((D_FLAGS(e) & DS_CONNECTED) && (Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA))
+               && (!DePriv(D_PLAYER(e), NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
                && (key == CMD_WHO)) {
 #ifdef PARIS
         if ( i_attrpipe ) {
@@ -3329,14 +3362,14 @@ dump_users(DESC * e, char *match, int key)
            parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
 		   *mp_utf = '\0';
-		   if ( UTF8(e->hot.player) ) {
+		   if ( UTF8(D_PLAYER(e)) ) {
                 if (i_attrpipe) {
                    safe_str(msg_utf, atext, &atextptr);
                 }
                 if (i_pipetype) {
                     queue_string(e, msg_utf);   
                 }			  
-           } else if ( Accents(e->hot.player) ) {
+           } else if ( Accents(D_PLAYER(e)) ) {
 	          if (i_attrpipe) {
                    safe_str(msg_ns2, atext, &atextptr);
                 }
@@ -3371,7 +3404,7 @@ dump_users(DESC * e, char *match, int key)
            parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
 		   *mp_utf = '\0';
-		   if ( UTF8(e->hot.player) ) {
+		   if ( UTF8(D_PLAYER(e)) ) {
 			  if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_utf),
                           atext, &atextptr);
@@ -3380,7 +3413,7 @@ dump_users(DESC * e, char *match, int key)
 	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                               mudstate.guild_hdr, msg_utf));
               }
-           } else if ( Accents(e->hot.player) ) {
+           } else if ( Accents(D_PLAYER(e)) ) {
 	          if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
                           atext, &atextptr);
@@ -3432,7 +3465,7 @@ dump_users(DESC * e, char *match, int key)
 	doingAccentBufp = doingAccentBuf;
 	doingUtfBufp = doingUtfBuf;
 	parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
-        if ( !Accents(e->hot.player) ) {
+        if ( !Accents(D_PLAYER(e)) ) {
            strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
         }
 	pDoing = doingAccentBuf;
@@ -3440,62 +3473,62 @@ dump_users(DESC * e, char *match, int key)
 	pDoing = d->cold->doing;
 #endif
 
-	if (Cloak(d->hot.player) && rcount)
+	if (Cloak(D_PLAYER(d)) && rcount)
 	    rcount--;
-        else if ((Dark(d->hot.player) && !mudconf.who_unfindable && !mudconf.player_dark && rcount && 
+        else if ((Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && rcount && 
                   mudconf.allow_whodark))
 	    rcount--;
-        else if (NoWho(d->hot.player) && rcount && !(d->hot.player == e->hot.player || Wizard(e->hot.player)) && rcount)
+        else if (NoWho(D_PLAYER(d)) && rcount && !(D_PLAYER(d) == D_PLAYER(e) || Wizard(D_PLAYER(e))) && rcount)
             rcount--;
-        else if (NoWho(d->hot.player) && !(e->hot.flags & DS_CONNECTED) && rcount)
+        else if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED) && rcount)
             rcount--;
 
         /* Rewrote this big honking if() because it was an eye sore and pissed me off -- Ash */
-	if ( ( !(Unfindable(d->hot.player) && mudconf.who_unfindable) || 
-               (Wizard(e->hot.player) && (e->hot.flags & DS_CONNECTED)) || 
-               (Unfindable(d->hot.player) && HasPriv(e->hot.player,d->hot.player,POWER_WHO_UNFIND,POWER4,NOTHING)) ||
-	        HasPriv(e->hot.player, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING) ||
+	if ( ( !(Unfindable(D_PLAYER(d)) && mudconf.who_unfindable) || 
+               (Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) || 
+               (Unfindable(D_PLAYER(d)) && HasPriv(D_PLAYER(e),D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING)) ||
+	        HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING) ||
                (!mudconf.who_unfindable && mudconf.player_dark) ||
-	       (Admin(e->hot.player) && (e->hot.flags & DS_CONNECTED) && !Wizard(d->hot.player)) 
+	       (Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED) && !Wizard(D_PLAYER(d))) 
              ) &&
-             !( Dark(d->hot.player) && 
+             !( Dark(D_PLAYER(d)) && 
                 !mudconf.who_unfindable && 
                 !mudconf.player_dark && 
-                !(Admin(e->hot.player) && (e->hot.flags & DS_CONNECTED)) && 
+                !(Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) && 
                 mudconf.allow_whodark
               ) ) {
-	    if (!Unfindable(d->hot.player))
+	    if (!Unfindable(D_PLAYER(d)))
 		count++;
-	    if (match && !(string_prefix(Name(d->hot.player), match)))
+	    if (match && !(string_prefix(Name(D_PLAYER(d)), match)))
 		continue;
-	    if ((key == CMD_SESSION) && !Wizard(e->hot.player) &&
-		!Admin(e->hot.player) && !Builder(e->hot.player) &&
-		(d->hot.player != e->hot.player))
+	    if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
+		!Admin(D_PLAYER(e)) && !Builder(D_PLAYER(e)) &&
+		(D_PLAYER(d) != D_PLAYER(e)))
 		continue;
-	    if ((key == CMD_SESSION) && !Wizard(e->hot.player) &&
-		Wizard(d->hot.player))
+	    if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
+		Wizard(D_PLAYER(d)))
 		continue;
-	    if ((key == CMD_SESSION) && !Admin(e->hot.player) &&
-		Admin(d->hot.player))
+	    if ((key == CMD_SESSION) && !Admin(D_PLAYER(e)) &&
+		Admin(D_PLAYER(d)))
 		continue;
-	    if (SCloak(d->hot.player) && Dark(d->hot.player) && Unfindable(d->hot.player) && !Immortal(e->hot.player))
+	    if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) && Unfindable(D_PLAYER(d)) && !Immortal(D_PLAYER(e)))
 		continue;
-	    if (Cloak(d->hot.player) && !Wizard(e->hot.player))
+	    if (Cloak(D_PLAYER(d)) && !Wizard(D_PLAYER(e)))
 		continue;
-	    if ((Cloak(d->hot.player) || NoWho(d->hot.player)) && !(e->hot.flags & DS_CONNECTED))
+	    if ((Cloak(D_PLAYER(d)) || NoWho(D_PLAYER(d))) && !(D_FLAGS(e) & DS_CONNECTED))
 		continue;
-            if (NoWho(d->hot.player) && (d->hot.player != e->hot.player) &&
-                !(Wizard(e->hot.player) || HasPriv(e->hot.player, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING)))
+            if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != D_PLAYER(e)) &&
+                !(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
                 continue;
-            if (NoWho(d->hot.player) && !(e->hot.flags & DS_CONNECTED))
+            if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED))
                 continue;
-            if (Dark(d->hot.player) && !mudconf.who_unfindable && !mudconf.player_dark && 
-                !(e->hot.flags & DS_CONNECTED) && mudconf.allow_whodark)
+            if (Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && 
+                !(D_FLAGS(e) & DS_CONNECTED) && mudconf.allow_whodark)
                 continue;
-	    if ((e->hot.flags & DS_CONNECTED) &&
-		(Wizard(e->hot.player) || HasPriv(e->hot.player, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING)) &&
-		(!DePriv(e->hot.player, d->hot.player, DP_WIZ_WHO, POWER6, NOTHING) || (e->hot.player == d->hot.player)) &&
-		(!DePriv(e->hot.player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF)) &&
+	    if ((D_FLAGS(e) & DS_CONNECTED) &&
+		(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)) &&
+		(!DePriv(D_PLAYER(e), D_PLAYER(d), DP_WIZ_WHO, POWER6, NOTHING) || (D_PLAYER(e) == D_PLAYER(d))) &&
+		(!DePriv(D_PLAYER(e), NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF)) &&
 		(key == CMD_WHO)) {
                 if ( mudconf.whohost_size <= 0 || mudconf.whohost_size > 28 )
 #ifdef PARIS
@@ -3511,13 +3544,13 @@ dump_users(DESC * e, char *match, int key)
 #endif
 		sprintf(buf,
                         buf_format,
-			Name(d->hot.player),
+			Name(D_PLAYER(d)),
 			time_format_1(now - d->cold->connected_at),
-			time_format_2(now - d->hot.last_time),
+			time_format_2(now - D_LAST_TIME(d)),
 #ifdef PARIS
-                        Location(d->hot.player), d->cold->command_count,
+                        Location(D_PLAYER(d)), d->cold->command_count,
 #else
-			Location(d->hot.player), d->hot.descriptor,
+			Location(D_PLAYER(d)), D_DESCRIPTOR(d),
 #endif
 			d->cold->longaddr);
 
@@ -3527,77 +3560,77 @@ dump_users(DESC * e, char *match, int key)
 		fp = &buf[14];
 #endif
 
-                if ( !(HasPriv(d->hot.player, e->hot.player, POWER_HIDEBIT, POWER5, NOTHING) && 
-                       (d->hot.player != e->hot.player || mudstate.objevalst) && (e->hot.flags & DS_CONNECTED))) {
-                   if (mudconf.who_showwiz && Guildmaster(d->hot.player) ) {
-                      if ( Immortal(d->hot.player) ||
-                           ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 ) ||
-                           ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 ) ||
-                           ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 ) ||
-                           ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 ) )
+                if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) && 
+                       (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst) && (D_FLAGS(e) & DS_CONNECTED))) {
+                   if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
+                      if ( Immortal(D_PLAYER(d)) ||
+                           ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
+                           ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 ) ||
+                           ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 ) ||
+                           ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 ) )
                           *fp++ = '*';
                    }
                    else if (mudconf.who_showwiztype ) {
-                      if ( Immortal(d->hot.player) )
+                      if ( Immortal(D_PLAYER(d)) )
                          *fp++ = 'W';
-                      else if ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 )
+                      else if ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 )
                          *fp++ = 'W';
-                      else if ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 )
+                      else if ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 )
                          *fp++ = 'a';
-                      else if ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 )
+                      else if ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 )
                          *fp++ = 'B';
-                      else if ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 )
+                      else if ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 )
                          *fp++ = 'g';
                    }
                 }
-                if ( (e->hot.flags & DS_CONNECTED) && Wizard(e->hot.player) && (d->hot.flags & DS_SSL) ) {
+                if ( (D_FLAGS(e) & DS_CONNECTED) && Wizard(D_PLAYER(e)) && (D_FLAGS(d) & DS_SSL) ) {
                    *fp++ = '$';
                 }
-		if (Dark(d->hot.player) && (e->hot.flags & DS_CONNECTED)) {
-		    if (d->hot.flags & DS_AUTODARK)
+		if (Dark(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED)) {
+		    if (D_FLAGS(d) & DS_AUTODARK)
 			*fp++ = 'd';
 		    else
 			*fp++ = 'D';
 		}
-		if (Unfindable(d->hot.player) && (e->hot.flags & DS_CONNECTED)) {
-		  if (d->hot.flags & DS_AUTOUNF) {
+		if (Unfindable(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED)) {
+		  if (D_FLAGS(d) & DS_AUTOUNF) {
 		    *fp++ = 'h';
 		  } else {
 		    *fp++ = 'H';
 		  }
 		}
-                if ( NoWho(d->hot.player) && (e->hot.flags & DS_CONNECTED) )
+                if ( NoWho(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED) )
                     *fp++ = 'U';
-		if (Suspect(d->hot.player) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-                    (e->hot.flags & DS_CONNECTED))
+		if (Suspect(D_PLAYER(d)) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+                    (D_FLAGS(e) & DS_CONNECTED))
 		    *fp++ = '+';
-		if ((d->hot.host_info & H_FORBIDDEN) && Wizard(e->hot.player) && (e->hot.flags & DS_CONNECTED))
+		if ((D_HOST_INFO(d) & H_FORBIDDEN) && Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED))
 		    *fp++ = 'F';
-		if ((d->hot.host_info & H_PERMIT) && Wizard(e->hot.player) && (e->hot.flags & DS_CONNECTED))
+		if ((D_HOST_INFO(d) & H_PERMIT) && Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED))
 		    *fp++ = 'P';
-		if (d->hot.host_info & H_REGISTRATION && (e->hot.flags & DS_CONNECTED) && 
+		if (D_HOST_INFO(d) & H_REGISTRATION && (D_FLAGS(e) & DS_CONNECTED) && 
                     !mudconf.noregist_onwho)
 		    *fp++ = 'R';
-		if ((d->hot.host_info & H_SUSPECT) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-		    (e->hot.flags & DS_CONNECTED))
+		if ((D_HOST_INFO(d) & H_SUSPECT) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+		    (D_FLAGS(e) & DS_CONNECTED))
 		    *fp++ = '+';
-		if ((d->hot.host_info & H_PASSPROXY) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-		    (e->hot.flags & DS_CONNECTED))
+		if ((D_HOST_INFO(d) & H_PASSPROXY) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+		    (D_FLAGS(e) & DS_CONNECTED))
 		    *fp++ = '^';
 	    } else if (key == CMD_SESSION) {
 		sprintf(buf,
 			"%-16.16s %10d %4d  %4d%6d%10d%6d%6d%10d\r\n",
-			Name(d->hot.player),
+			Name(D_PLAYER(d)),
 			d->cold->command_count,
-			d->hot.descriptor,
-			d->hot.input_size, d->cold->input_lost,
-			d->hot.input_tot,
-			d->hot.output_size, d->cold->output_lost,
-			d->hot.output_tot);
+			D_DESCRIPTOR(d),
+			D_INPUT_SIZE(d), d->cold->input_lost,
+			D_INPUT_TOT(d),
+			D_OUTPUT_SIZE(d), d->cold->output_lost,
+			D_OUTPUT_TOT(d));
 	    } else {
-		if ((key == CMD_WHO) && ((HasPriv(e->hot.player, NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA)) ||
-					 (Wizard(e->hot.player) && DePriv(e->hot.player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_NA))) &&
-		    !DePriv(e->hot.player, NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
+		if ((key == CMD_WHO) && ((HasPriv(D_PLAYER(e), NOTHING, POWER_WIZ_WHO, POWER3, POWER_LEVEL_NA)) ||
+					 (Wizard(D_PLAYER(e)) && DePriv(D_PLAYER(e), NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_NA))) &&
+		    !DePriv(D_PLAYER(e), NOTHING, DP_WIZ_WHO, POWER6, POWER_LEVEL_OFF))
 		    continue;
 		if (mudconf.who_default) {
 #ifdef PARIS
@@ -3605,13 +3638,13 @@ dump_users(DESC * e, char *match, int key)
 #else
 		  sprintf(buf, "%-14.14s   %10s %4s  %-s\r\n",
 #endif
-			Name(d->hot.player),
+			Name(D_PLAYER(d)),
 			time_format_1(now - d->cold->connected_at),
-			time_format_2(now - d->hot.last_time),
+			time_format_2(now - D_LAST_TIME(d)),
 			pDoing);
 		}
 		else {
-		  gp = Guild(d->hot.player);
+		  gp = Guild(D_PLAYER(d));
 		  if (!*gp)
 		    gp = mudconf.guild_default;
 #ifdef PARIS
@@ -3619,111 +3652,111 @@ dump_users(DESC * e, char *match, int key)
 #else
 		  sprintf(buf, "%-14.14s   %10s %4s  %-11.11s %-s\r\n",
 #endif
-			Name(d->hot.player),
+			Name(D_PLAYER(d)),
 			time_format_1(now - d->cold->connected_at),
-			time_format_2(now - d->hot.last_time),
+			time_format_2(now - D_LAST_TIME(d)),
 			gp, pDoing);
 		}
-		if (Admin(e->hot.player) || HasPriv(e->hot.player, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING)) {
+		if (Admin(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)) {
 #ifdef PARIS
                     fp = &buf[16];
 #else
                     fp = &buf[14];
 #endif
-                    if ( !(HasPriv(d->hot.player, e->hot.player, POWER_HIDEBIT, POWER5, NOTHING) &&
-                           (d->hot.player != e->hot.player || mudstate.objevalst)) && (e->hot.flags & DS_CONNECTED)) {
-                        if (mudconf.who_showwiz && Guildmaster(d->hot.player) ) {
-                           if ( Immortal(d->hot.player) ||
-                                ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 ) ||
-                                ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 ) ||
-                                ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 ) ||
-                                ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 ) )
+                    if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) &&
+                           (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
+                        if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
+                           if ( Immortal(D_PLAYER(d)) ||
+                                ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
+                                ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 ) ||
+                                ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 ) ||
+                                ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 ) )
                                *fp++ = '*';
                         }
                         else if (mudconf.who_showwiztype ) {
-                           if ( Immortal(d->hot.player) )
+                           if ( Immortal(D_PLAYER(d)) )
                               *fp++ = 'W';
-                           else if ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 )
+                           else if ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 )
                               *fp++ = 'W';
-                           else if ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 )
+                           else if ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 )
                               *fp++ = 'a';
-                           else if ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 )
+                           else if ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 )
                               *fp++ = 'B';
-                           else if ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 )
+                           else if ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 )
                               *fp++ = 'g';
                         }
                     }
-                    if ( (e->hot.flags & DS_CONNECTED) && Wizard(e->hot.player) && (d->hot.flags & DS_SSL) ) {
+                    if ( (D_FLAGS(e) & DS_CONNECTED) && Wizard(D_PLAYER(e)) && (D_FLAGS(d) & DS_SSL) ) {
                        *fp++ = '$';
                     }
-		    if (Dark(d->hot.player) && (e->hot.flags & DS_CONNECTED)) {
-			if (d->hot.flags & DS_AUTODARK)
+		    if (Dark(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED)) {
+			if (D_FLAGS(d) & DS_AUTODARK)
 			    *fp++ = 'd';
 			else
 			    *fp++ = 'D';
 		    }
-		    if (Unfindable(d->hot.player) && (e->hot.flags & DS_CONNECTED)) {
-		        if (d->hot.flags & DS_AUTOUNF)
+		    if (Unfindable(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED)) {
+		        if (D_FLAGS(d) & DS_AUTOUNF)
 			    *fp++ = 'h';
 		        else
 			    *fp++ = 'H';
 		    }
-                    if ( NoWho(d->hot.player) && (e->hot.flags & DS_CONNECTED) )
+                    if ( NoWho(D_PLAYER(d)) && (D_FLAGS(e) & DS_CONNECTED) )
                         *fp++ = 'U';
-		    if (Suspect(d->hot.player) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-                       (e->hot.flags & DS_CONNECTED))
+		    if (Suspect(D_PLAYER(d)) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+                       (D_FLAGS(e) & DS_CONNECTED))
 			*fp++ = '+';
-		    if ((d->hot.host_info & H_FORBIDDEN) && Wizard(e->hot.player) && (e->hot.flags & DS_CONNECTED))
+		    if ((D_HOST_INFO(d) & H_FORBIDDEN) && Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED))
 			*fp++ = 'F';
-		    if ((d->hot.host_info & H_PERMIT) && Wizard(e->hot.player) && (e->hot.flags & DS_CONNECTED))
+		    if ((D_HOST_INFO(d) & H_PERMIT) && Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED))
 			*fp++ = 'P';
-		    if (d->hot.host_info & H_REGISTRATION && (e->hot.flags & DS_CONNECTED) &&
+		    if (D_HOST_INFO(d) & H_REGISTRATION && (D_FLAGS(e) & DS_CONNECTED) &&
                         !mudconf.noregist_onwho)
 			*fp++ = 'R';
-		    if ((d->hot.host_info & H_SUSPECT) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-                        (e->hot.flags & DS_CONNECTED))
+		    if ((D_HOST_INFO(d) & H_SUSPECT) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+                        (D_FLAGS(e) & DS_CONNECTED))
 			*fp++ = '+';
-		    if ((d->hot.host_info & H_PASSPROXY) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-                        (e->hot.flags & DS_CONNECTED))
+		    if ((D_HOST_INFO(d) & H_PASSPROXY) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+                        (D_FLAGS(e) & DS_CONNECTED))
 			*fp++ = '^';
 		}
-		else if (HasPriv(e->hot.player, d->hot.player, POWER_WHO_UNFIND, POWER4, NOTHING) && 
-				(e->hot.flags & DS_CONNECTED))
+		else if (HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WHO_UNFIND, POWER4, NOTHING) && 
+				(D_FLAGS(e) & DS_CONNECTED))
 		   one_chr_holder = 'H';
 #ifdef PARIS
                 fp = &buf[16];
 #else
                 fp = &buf[14];
 #endif
-                if ( !(HasPriv(d->hot.player, e->hot.player, POWER_HIDEBIT, POWER5, NOTHING) &&
-                       (d->hot.player != e->hot.player || mudstate.objevalst)) && (e->hot.flags & DS_CONNECTED)) {
-                   if (mudconf.who_showwiz && Guildmaster(d->hot.player) ) {
-                      if ( Immortal(d->hot.player) ||
-                           ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 ) ||
-                           ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 ) ||
-                           ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 ) ||
-                           ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 ) )
+                if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) &&
+                       (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
+                   if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
+                      if ( Immortal(D_PLAYER(d)) ||
+                           ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
+                           ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 ) ||
+                           ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 ) ||
+                           ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 ) )
                           *fp++ = '*';
                    }
                    else if (mudconf.who_showwiztype ) {
-                      if ( Immortal(d->hot.player) )
+                      if ( Immortal(D_PLAYER(d)) )
                          *fp++ = 'W';
-                      else if ( Wizard(d->hot.player) && mudconf.who_wizlevel < 5 )
+                      else if ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 )
                          *fp++ = 'W';
-                      else if ( Admin(d->hot.player) && mudconf.who_wizlevel < 4 )
+                      else if ( Admin(D_PLAYER(d)) && mudconf.who_wizlevel < 4 )
                          *fp++ = 'a';
-                      else if ( Builder(d->hot.player) && mudconf.who_wizlevel < 3 )
+                      else if ( Builder(D_PLAYER(d)) && mudconf.who_wizlevel < 3 )
                          *fp++ = 'B';
-                      else if ( Guildmaster(d->hot.player) && mudconf.who_wizlevel < 2 )
+                      else if ( Guildmaster(D_PLAYER(d)) && mudconf.who_wizlevel < 2 )
                          *fp++ = 'g';
                    }
                 }
-		if (!(Admin(e->hot.player) || HasPriv(e->hot.player, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING))) {
-		   if (Suspect(d->hot.player) && (Wizard(e->hot.player) || SeeSuspect(e->hot.player)) && 
-                      (e->hot.flags & DS_CONNECTED))
+		if (!(Admin(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING))) {
+		   if (Suspect(D_PLAYER(d)) && (Wizard(D_PLAYER(e)) || SeeSuspect(D_PLAYER(e))) && 
+                      (D_FLAGS(e) & DS_CONNECTED))
 	              *fp++ = '+';
 		}
-                if ( one_chr_holder == 'H' && (e->hot.flags & DS_CONNECTED))
+                if ( one_chr_holder == 'H' && (D_FLAGS(e) & DS_CONNECTED))
                    *fp++ = one_chr_holder;
                 one_chr_holder=' ';
 	    }
@@ -3733,7 +3766,7 @@ dump_users(DESC * e, char *match, int key)
             if ( i_pipetype ) {
 	       queue_string(e, buf);
             }
-	    if (ShowAnsi(e->hot.player) && index(buf, ESC_CHAR)) {
+	    if (ShowAnsi(D_PLAYER(e)) && index(buf, ESC_CHAR)) {
                 if ( i_attrpipe ) {
                    safe_str(antemp, atext, &atextptr);
                 } 
@@ -3781,7 +3814,7 @@ dump_users(DESC * e, char *match, int key)
 	   queue_string(e, buf);
         }
     }
-    if ( NoWho(e->hot.player) ) {
+    if ( NoWho(D_PLAYER(e)) ) {
        if ( i_attrpipe ) {
           safe_str(buf, atext, &atextptr);
        } 
@@ -3795,8 +3828,8 @@ dump_users(DESC * e, char *match, int key)
 	free_lbuf(doingUtfBuf);
     free_lbuf(tpr_buff);
     if ( i_attrpipe ) {
-       atr_add_raw(e->hot.player, atr->number, atext);
-       if ( !Quiet(e->hot.player) && TogNoisy(e->hot.player) && !i_pipetype )
+       atr_add_raw(D_PLAYER(e), atr->number, atext);
+       if ( !Quiet(D_PLAYER(e)) && TogNoisy(D_PLAYER(e)) && !i_pipetype )
           queue_string(e, "Piping output to attribute.\r\n");
        free_lbuf(atext);
     }
@@ -3828,16 +3861,16 @@ do_mudwho(dbref player, dbref cause, int key, char *name, char *mud)
 		   name, mud, mudstate.doing_hdr));
 #endif
     DESC_ITER_CONN(d) {
-        if (Dark(d->hot.player) && !mudconf.who_unfindable && !mudconf.player_dark &&
+        if (Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark &&
                 mudconf.allow_whodark)
                 continue;
-	if (!(Unfindable(d->hot.player) && mudconf.who_unfindable)) {
+	if (!(Unfindable(D_PLAYER(d)) && mudconf.who_unfindable)) {
 	    notify(player,
 		   unsafe_tprintf("@inwho %s@%s=%-16.16s %10s %4s %s",
 			   name, mud,
-			   Name(d->hot.player),
+			   Name(D_PLAYER(d)),
 			   time_format_1(now - d->cold->connected_at),
-			   time_format_2(now - d->hot.last_time),
+			   time_format_2(now - D_LAST_TIME(d)),
 			   *(d->cold->doing) ? d->cold->doing : ""));
 	    players++;
 	}
@@ -3998,9 +4031,9 @@ do_doing(dbref player, dbref cause, int key, char *arg)
 	  gotone = 0;
 	  dtime = 0;
 	  DESC_ITER_PLAYER(player, d) {
-	    if (!gotone || (now - d->hot.last_time) < dtime) {
+	    if (!gotone || (now - D_LAST_TIME(d)) < dtime) {
 	      e = d;
-	      dtime = now - d->hot.last_time;
+	      dtime = now - D_LAST_TIME(d);
 	      gotone= 1;
 	    }
 	  }
@@ -4131,7 +4164,7 @@ failconn(const char *logcode, const char *logtype,
     STARTLOG(LOG_LOGIN | LOG_SECURITY, logcode, "RJCT")
 	buff = alloc_lbuf("failconn.LOG");
     sprintf(buff, "[%d/%s] %s rejected to ",
-	    d->hot.descriptor, d->cold->longaddr, logtype);
+	    D_DESCRIPTOR(d), d->cold->longaddr, logtype);
     log_text(buff);
     free_lbuf(buff);
     if (player != NOTHING)
@@ -4219,7 +4252,7 @@ softcode_trigger(DESC *d, const char *msg) {
 
     /* Port  as %4*/
     s_ptr = s_array[4];
-    ival(s_array[4], &s_ptr, d->hot.descriptor);
+    ival(s_array[4], &s_ptr, D_DESCRIPTOR(d));
 
     s_return = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                        EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
@@ -4387,7 +4420,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
 
    /* Hide the password length from SESSION */
-   d->hot.input_tot -= (strlen(msg) + 1);
+   D_INPUT_TOT(d) -= (strlen(msg) + 1);
 
    /* Crack the command apart */
    memset(cchk, '\0', SBUF_SIZE);
@@ -4410,7 +4443,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    }
 
    if ( mudconf.connect_methods > 0 ) {
-       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (d->hot.flags & DS_API));
+       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (D_FLAGS(d) & DS_API));
        tsite_buff = alloc_lbuf("hardconn_check");
       strcpy(tsite_buff, mudconf.hardconn_host);
       if ( (mudconf.connect_methods & 1) && 
@@ -4455,11 +4488,11 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "OVERFLOW")
          *(((char *)msg)+LBUF_SIZE-MBUF_SIZE-1) = '\0';
          buff = alloc_lbuf("check_conn.LOG.over");
-         sprintf(buff, "[%d/%s] Attempted overflow -> %.3800s", d->hot.descriptor, d->cold->longaddr, msg);
+         sprintf(buff, "[%d/%s] Attempted overflow -> %.3800s", D_DESCRIPTOR(d), d->cold->longaddr, msg);
          log_text(buff);
          free_lbuf(buff);
       ENDLOG
-      broadcast_monitor(NOTHING, MF_CONN, "ATTEMPTED OVERFLOW", d->cold->userid, d->cold->longaddr, d->hot.descriptor, 0, 0, NULL);
+      broadcast_monitor(NOTHING, MF_CONN, "ATTEMPTED OVERFLOW", d->cold->userid, d->cold->longaddr, D_DESCRIPTOR(d), 0, 0, NULL);
       free_mbuf(command);
       free_mbuf(user);
       free_mbuf(password);
@@ -4474,7 +4507,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
     STARTLOG(LOG_CONNECT, "CMD", "BAD")
        buff = alloc_lbuf("check_conn.LOG.bad");
        sprintf(buff, "[%d/%s] On connect screen -> %.3900s",
-               d->hot.descriptor, d->cold->longaddr, msg);
+               D_DESCRIPTOR(d), d->cold->longaddr, msg);
        log_text(buff);
        free_lbuf(buff);
     ENDLOG
@@ -4508,7 +4541,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       queue_string(d, " guest guest' to connect to a guest character.\r\n");
       STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
          buff = alloc_lbuf("check_conn.LOG.bad");
-         sprintf(buff, "[%d/%s] Failed connect to '%s'", d->hot.descriptor, d->cold->longaddr, user);
+         sprintf(buff, "[%d/%s] Failed connect to '%s'", D_DESCRIPTOR(d), d->cold->longaddr, user);
          log_text(buff);
          free_lbuf(buff);
       ENDLOG
@@ -4531,7 +4564,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       }
       *command = 'a';
       comptest = 1;
-    } else if (!comptest && (d->hot.host_info & H_NOGUEST)) {
+    } else if (!comptest && (D_HOST_INFO(d) & H_NOGUEST)) {
        i_sitemax = site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 1, H_NOGUEST);
        if ( i_sitemax == -1 ) {
           tsite_buff = alloc_lbuf("noguest_check");
@@ -4553,7 +4586,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "GUESTFAIL")
          buff = alloc_lbuf("check_conn.LOG,badguest");
          sprintf(buff, "[%d/%s] Attempt to connect to guest char from registered site",
-                 d->hot.descriptor, d->cold->longaddr);
+                 D_DESCRIPTOR(d), d->cold->longaddr);
          log_text(buff);
          free_lbuf(buff);
       ENDLOG
@@ -4576,7 +4609,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
          buff = alloc_lbuf("check_conn.LOG.bad");
          sprintf(buff, "[%d/%s] Failed connect to '%s'",
-                 d->hot.descriptor, d->cold->longaddr, user);
+                 D_DESCRIPTOR(d), d->cold->longaddr, user);
          log_text(buff);
          free_lbuf(buff);
       ENDLOG
@@ -4691,7 +4724,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "RESTRICT")
             buff = alloc_lbuf("check_conn.LOG.restrict");
             sprintf(buff, "[%d/%s] (RESTRICTED) Failed connect to '%s'",
-                    d->hot.descriptor, d->cold->longaddr, user);
+                    D_DESCRIPTOR(d), d->cold->longaddr, user);
             log_text(buff);
             free_lbuf(buff);
          ENDLOG
@@ -4708,7 +4741,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BADSITE")
             buff = alloc_lbuf("check_conn.LOG.bad");
             sprintf(buff, "[%d/%s] Failed connect to '%s'",
-                    d->hot.descriptor, d->cold->longaddr, user);
+                    D_DESCRIPTOR(d), d->cold->longaddr, user);
             log_text(buff);
             free_lbuf(buff);
          ENDLOG
@@ -4724,7 +4757,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          postest = postestcnt = 0;
          if ((player != NOTHING) && NoPossess(player)) {
             DESC_ITER_CONN(d3) {
-               if (d3->hot.player == player) {
+               if (D_PLAYER(d3) == player) {
                   if ( strcmp(d3->cold->longaddr, d->cold->longaddr) || strcmp(d3->cold->userid, d->cold->userid)) {
                      postest = 1;
                      break;
@@ -4803,7 +4836,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   sarray[4] = NULL;
                    strcpy(sarray[0], d->cold->addr);
                   strcpy(sarray[1], d->cold->longaddr);
-                  sprintf(sarray[2], "%d", d->hot.descriptor);
+                  sprintf(sarray[2], "%d", D_DESCRIPTOR(d));
                   if ( !Good_chk(player ) )
                      sprintf(sarray[3], "#%d", NOTHING);
                   else
@@ -4872,7 +4905,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
                buff = alloc_lbuf("check_conn.LOG.bad");
                sprintf(buff, "[%d/%s] Failed connect to '%s'",
-                       d->hot.descriptor, d->cold->longaddr, user);
+                       D_DESCRIPTOR(d), d->cold->longaddr, user);
                log_text(buff);
                free_lbuf(buff);
             ENDLOG
@@ -4890,14 +4923,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             STARTLOG(LOG_LOGIN, "CON", "LOGIN")
                buff = alloc_lbuf("check_conn.LOG.login");
                sprintf(buff, "[%d/%s] Connected to ",
-                       d->hot.descriptor, d->cold->longaddr);
+                       D_DESCRIPTOR(d), d->cold->longaddr);
                log_text(buff);
                log_name_and_loc(player);
                free_lbuf(buff);
             ENDLOG
-            d->hot.flags |= DS_CONNECTED;
+            D_FLAGS(d) |= DS_CONNECTED;
             d->cold->connected_at = time(0);
-            d->hot.player = player;
+            D_PLAYER(d) = player;
             mudstate.recordcurrconn++;
             if ( mudstate.recordcurrconn > mudstate.recordconn ) {
                mudstate.recordconn = mudstate.recordcurrconn;
@@ -5002,7 +5035,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   if ( (mudconf.pcreate_paranoia == 1) && 
                        ( !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION) &&
                        ( site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_PERMIT) != H_PERMIT) ) &&
-                      !(d->hot.host_info & H_REGISTRATION) ) {
+                      !(D_HOST_INFO(d) & H_REGISTRATION) ) {
                     cf_site((int *)&mudstate.access_list, buff, 
                             H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
                     sprintf(buff, "(PCREATE) [%.100s] marked for autoregistration.  (Remote port %d)",
@@ -5072,7 +5105,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   cmdsave);
          RETURN(0); /* #146 */
       }
-      if ((d->hot.host_info & H_REGISTRATION) && !(d->hot.host_info & H_PERMIT)) {
+      if ((D_HOST_INFO(d) & H_REGISTRATION) && !(D_HOST_INFO(d) & H_PERMIT)) {
            i_sitemax = site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 1, H_REGISTRATION);
           if ( i_sitemax == -1 ) {
              tsite_buff = alloc_lbuf("register_check");
@@ -5101,7 +5134,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             STARTLOG(LOG_SECURITY | LOG_PCREATES, "CON", "BAD")
                buff = alloc_lbuf("check_conn.LOG.badcrea");
                sprintf(buff, "[%d/%s] Create of '%s' failed",
-                       d->hot.descriptor, d->cold->longaddr, user);
+                       D_DESCRIPTOR(d), d->cold->longaddr, user);
                log_text(buff);
                free_lbuf(buff);
             ENDLOG
@@ -5113,16 +5146,16 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          } else {
             STARTLOG(LOG_LOGIN | LOG_PCREATES, "CON", "CREA")
                buff = alloc_lbuf("check_conn.LOG.create");
-               sprintf(buff, "[%d/%s] Created ", d->hot.descriptor, d->cold->longaddr);
+               sprintf(buff, "[%d/%s] Created ", D_DESCRIPTOR(d), d->cold->longaddr);
                log_text(buff);
                log_name(player);
                free_lbuf(buff);
             ENDLOG
 
             move_object(player, mudconf.start_room);
-            d->hot.flags |= DS_CONNECTED;
+            D_FLAGS(d) |= DS_CONNECTED;
             d->cold->connected_at = time(0);
-            d->hot.player = player;
+            D_PLAYER(d) = player;
             mudstate.recordcurrconn++;
             if ( mudstate.recordcurrconn > mudstate.recordconn ) {
                mudstate.recordconn = mudstate.recordcurrconn;
@@ -5155,14 +5188,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          }
       }
    } else if ( i_allow && mudconf.offline_reg && !strncmp(cchk, mudconf.string_register, i_size)) {
-      if (d->hot.host_info & H_NOAUTOREG) {
+      if (D_HOST_INFO(d) & H_NOAUTOREG) {
          buff3 = alloc_lbuf("reg.fail");
          queue_string(d, "Permission denied.\r\n");
          process_output(d);
          strcpy(buff3,user);
          strcat(buff3,"/");
          strcat(buff3,password);
-         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL (NoAutoReg)", d->cold->userid, d->cold->longaddr, d->hot.descriptor, 0, 0, buff3);
+         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL (NoAutoReg)", d->cold->userid, d->cold->longaddr, D_DESCRIPTOR(d), 0, 0, buff3);
          free_lbuf(buff3);
       } else if (d->cold->regtries_left <= 0) {
          buff3 = alloc_lbuf("reg.fail");
@@ -5171,7 +5204,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          strcpy(buff3,user);
          strcat(buff3,"/");
          strcat(buff3,password);
-         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", d->cold->userid, d->cold->longaddr, d->hot.descriptor, 0, 0, buff3);
+         broadcast_monitor(NOTHING, MF_AREG, "NOAUTOREG FAIL LIMIT", d->cold->userid, d->cold->longaddr, D_DESCRIPTOR(d), 0, 0, buff3);
          free_lbuf(buff3);
       } else {
          switch (reg_internal(user, password, (char *)d, 0, NULL, user, 0)) {
@@ -5225,7 +5258,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          welcome_user(d);
          i_return = 0;
       }
-      if ( Good_obj(d->hot.player) && !TogHideIdle(d->hot.player) ) {
+      if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) ) {
          d->cold->command_count++;
       }
    }
@@ -5282,7 +5315,7 @@ do_command(DESC * d, char *command)
         maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout, i_do_proxy;
     struct SNOOPLISTNODE *node;
     struct itimerval itimer;
-    DESC *sd, *d2, *dssl, *dsslnext;
+    DESC *sd, *d2, *dssl;
     NAMETAB *cp;
 
     DPUSH; /* #147 */
@@ -5306,8 +5339,8 @@ do_command(DESC * d, char *command)
     }
     mudstate.breakdolist = 0;
     
-    if ( d && Prompt(d->hot.player) ) {
-       s_rollback = atr_get(d->hot.player, A_PROGPROMPT, &aowner, &aflags);
+    if ( d && Prompt(D_PLAYER(d)) ) {
+       s_rollback = atr_get(D_PLAYER(d), A_PROGPROMPT, &aowner, &aflags);
        if ( *s_rollback ) {
           s_strtokr = s_strtok = alloc_lbuf("process_ic_command");
           queue_string(d, safe_tprintf(s_strtok, &s_strtokr, "%s%s%s \377\371", ANSI_HILITE, s_rollback, ANSI_NORMAL));
@@ -5322,7 +5355,7 @@ do_command(DESC * d, char *command)
 	for (node = d->cold->snooplist; node; node = node->next) {
 	    if (node->sfile) {
 		fprintf(node->sfile, "%ld>", mudstate.now);
-		fputs(Name(d->hot.player), node->sfile);
+		fputs(Name(D_PLAYER(d)), node->sfile);
 		fputs("> ", node->sfile);
 		fputs(command, node->sfile);
 		fputc('\n', node->sfile);
@@ -5330,20 +5363,20 @@ do_command(DESC * d, char *command)
 	    if (!Connected(node->snooper) || node->logonly)
 		continue;
 	    DESC_ITER_PLAYER(node->snooper, sd) {
-                if( ShowAnsi(sd->hot.player) ) {
+                if( ShowAnsi(D_PLAYER(sd)) ) {
                   queue_string(sd, ANSI_HILITE);
                   queue_string(sd, ANSI_WHITE);
                 }
 		queue_string(sd, ">");
-                if( ShowAnsi(sd->hot.player) ) {
+                if( ShowAnsi(D_PLAYER(sd)) ) {
                   queue_string(sd, ANSI_YELLOW);
                 }
-		queue_string(sd, Name(d->hot.player));
-                if( ShowAnsi(sd->hot.player) ) {
+		queue_string(sd, Name(D_PLAYER(d)));
+                if( ShowAnsi(D_PLAYER(sd)) ) {
                   queue_string(sd, ANSI_WHITE);
                 }
 		queue_string(sd, "> ");
-                if( ShowAnsi(sd->hot.player) ) {
+                if( ShowAnsi(D_PLAYER(sd)) ) {
                   queue_string(sd, ANSI_NORMAL);
                 }
 		queue_string(sd, command);
@@ -5365,15 +5398,15 @@ do_command(DESC * d, char *command)
      */
     
     addroutbuf = NULL;
-    if ( !d->hot.player && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+    if ( !D_PLAYER(d) && *arg && *command && !mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
-       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (d->hot.flags & DS_API));
+       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (D_FLAGS(d) & DS_API));
        s_rollback = alloc_lbuf("sconnect_handler");
        queue_string(d, "SSL attempt to negotiate without SSL enabled.\r\n");
        process_output(d);
        sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
        broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [SSL DISABLED]", NULL, s_rollback,
-                          d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                          D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
         STARTLOG(LOG_ALWAYS, "NET", "SSL");
            log_text("[DISABLED] ");
           log_text(s_rollback);
@@ -5384,7 +5417,7 @@ do_command(DESC * d, char *command)
     }
     /* Support haproxy PROXY as though it were our own */
     haproxy_rest = 0;
-    if ( !d->hot.player && *arg && *command && mudconf.sconnect_reip &&
+    if ( !D_PLAYER(d) && *arg && *command && mudconf.sconnect_reip &&
          !strcmp("PROXY", command) ) {
        strtok_r(arg, " ", &haproxy_rest); /* TCP4 */
        haproxy_srcip = strtok_r(NULL, " ", &haproxy_rest); /* Source IP */
@@ -5403,20 +5436,20 @@ do_command(DESC * d, char *command)
            RETURN(0);
        }
     }
-    else if ( !d->hot.player && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
+    else if ( !D_PLAYER(d) && *arg && *command && mudconf.sconnect_reip && *(mudconf.sconnect_cmd) &&
          !strcmp(mudconf.sconnect_cmd, command) ) {
        i_do_proxy = 1;
     }
 
     if ( i_do_proxy ) {
        s_rollback = alloc_lbuf("sconnect_handler");
-       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (d->hot.flags & DS_API));
-       if ( d->hot.flags & DS_SSL ) {
+       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (D_FLAGS(d) & DS_API));
+       if ( D_FLAGS(d) & DS_SSL ) {
           queue_string(d, "SSL attempt to negotiate twice.\r\n");
           process_output(d);
           sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
           broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [HACKING]", NULL, s_rollback,
-                            d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                            D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
              log_text("[HACKING] ");
              log_text(s_rollback);
@@ -5437,7 +5470,7 @@ do_command(DESC * d, char *command)
        }
 
        addrsav = alloc_mbuf("address_save");
-       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (d->hot.flags & DS_API));
+       addroutbuf = (char *) addrout(d->cold->addr, d->cold->addr_family, (D_FLAGS(d) & DS_API));
        sprintf(addrsav, "%.*s", (MBUF_SIZE - 10), addroutbuf);
 
        i_valid = 0;
@@ -5458,14 +5491,14 @@ do_command(DESC * d, char *command)
               /* Blacklist check and TOR check first */
                 if ( blacklist_check_str(arg, ssl_addr_family, 0) || check_tor_str(arg, ssl_addr_family, mudconf.port) ) {
                   if ( mudconf.ssl_welcome ) {
-                     d->hot.host_info |= H_FORBIDDEN;
-                     fcache_rawdump(d->hot.descriptor, FC_CONN_SITE, arg, (char *)NULL);
+                     D_HOST_INFO(d) |= H_FORBIDDEN;
+                     fcache_rawdump(D_DESCRIPTOR(d), FC_CONN_SITE, arg, (char *)NULL);
                   }
                  queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                  process_output(d);
                  sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
                  broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BLACKLIST/TOR]", NULL, s_rollback,
-                                   d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                   D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                  STARTLOG(LOG_ALWAYS, "NET", "SSL");
                     log_text("[BLACKLIST/TOR] ");
                     log_text(s_rollback);
@@ -5510,7 +5543,7 @@ do_command(DESC * d, char *command)
            }
 
           /* Count connections */
-          DESC_SAFEITER_ALL(dssl, dsslnext) {
+          DESC_SAFEITER_ALL(dssl) {
              if ( strcmp(s_sitetmp, dssl->cold->addr) == 0 ) {
                 maxsitecon++;
              }
@@ -5528,14 +5561,14 @@ do_command(DESC * d, char *command)
                      if ( (site_check_str(arg, ssl_addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
                        lookup(s_sitetmp, s_sitebuff, maxsitecon, &i_retvar)) {
                         if ( mudconf.ssl_welcome ) {
-                           d->hot.host_info |= H_FORBIDDEN;
-                           fcache_rawdump(d->hot.descriptor, FC_CONN_SITE, arg, (char *)NULL);
+                           D_HOST_INFO(d) |= H_FORBIDDEN;
+                           fcache_rawdump(D_DESCRIPTOR(d), FC_CONN_SITE, arg, (char *)NULL);
                         }
                        queue_string(d, "SSL Connections are not allowed from your site.\r\n");
                        process_output(d);
                        sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                        broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [FORBID]", NULL, s_rollback,
-                                         d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                         D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                        STARTLOG(LOG_ALWAYS, "NET", "SSL");
                           log_text("[FORBIDDEN] ");
                           log_text(s_rollback);
@@ -5590,15 +5623,15 @@ do_command(DESC * d, char *command)
                    // queue_string(d, "SSL Connections are flagged REGISTER ONLY from your site.\r\n");
                    // process_output(d);
                    strcpy(s_msg, (char *)"SSL Connections are flagged REGISTER ONLY from your site.\r\n");
-                   d->hot.host_info |= H_REGISTRATION;
+                   D_HOST_INFO(d) |= H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 10 ) {
-                      d->hot.host_info |= H_SUSPECT;
+                      D_HOST_INFO(d) |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & SUSPECT]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    } else {
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    }
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
                       if ( i_valid == 10 ) {
@@ -5615,15 +5648,15 @@ do_command(DESC * d, char *command)
                    // queue_string(d, "SSL Connections are flagged NOGUEST from your site.\r\n");
                    // process_output(d);
                    strcpy(s_msg, (char *)"SSL Connections are flagged NOGUEST from your site.\r\n");
-                   d->hot.host_info |= H_NOGUEST;
+                   D_HOST_INFO(d) |= H_NOGUEST;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 12 ) {
-                      d->hot.host_info |= H_SUSPECT;
+                      D_HOST_INFO(d) |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST & SUSPECT]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    } else {
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [NOGUEST]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    }
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
                       if ( i_valid == 12 ) {
@@ -5640,15 +5673,15 @@ do_command(DESC * d, char *command)
                    // queue_string(d, "SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
                    // process_output(d);
                    strcpy(s_msg, (char *)"SSL Connections are flagged REGISTER and NOGUEST from your site.\r\n");
-                   d->hot.host_info |= H_NOGUEST | H_REGISTRATION;
+                   D_HOST_INFO(d) |= H_NOGUEST | H_REGISTRATION;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    if ( i_valid == 14 ) {
-                      d->hot.host_info |= H_SUSPECT;
+                      D_HOST_INFO(d) |= H_SUSPECT;
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER, NOGUEST & SUSPECT]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    } else {
                       broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [REGISTER & NOGUEST]", NULL, s_rollback,
-                                        d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                        D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    }
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
                       if ( i_valid == 14 ) {
@@ -5662,10 +5695,10 @@ do_command(DESC * d, char *command)
                    break;
                 case 8: /* Suspect */
                    /* We don't notify them of site being suspect */
-                   d->hot.host_info |= H_SUSPECT;
+                   D_HOST_INFO(d) |= H_SUSPECT;
                    sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
                    broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [SUSPECT]", NULL, s_rollback,
-                                     d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                                     D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
                    STARTLOG(LOG_ALWAYS, "NET", "SSL");
                       log_text("[SUSPECT] ");
                       log_text(s_rollback);
@@ -5708,7 +5741,7 @@ do_command(DESC * d, char *command)
           }
 
           /* Flag the connection SSL as we're successful at this point and log and continue */
-          d->hot.flags |= DS_SSL;
+          D_FLAGS(d) |= DS_SSL;
 
           /* All set up, send the welcome message to user */
           if ( mudconf.ssl_welcome ) {
@@ -5723,7 +5756,7 @@ do_command(DESC * d, char *command)
           if ( !i_valid ) {
              sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [BADIP]", NULL, s_rollback,
-                               d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                               D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
              STARTLOG(LOG_ALWAYS, "NET", "SSL");
                 log_text("[BADIP] ");
                 log_text(s_rollback);
@@ -5731,7 +5764,7 @@ do_command(DESC * d, char *command)
           } else if ( i_valid == 1 ) { 
              sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, s_sitetmp, arg);
              broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [OK]", NULL, s_rollback,
-                               d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                               D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
              STARTLOG(LOG_ALWAYS, "NET", "SSL");
                 log_text("[OK] ");
                 log_text(s_rollback);
@@ -5741,7 +5774,7 @@ do_command(DESC * d, char *command)
           free_lbuf(s_sitetmp);
           free_mbuf(addrsav);
 
-          if ( haproxy_rest && (d->hot.flags & DS_API) ) {
+          if ( haproxy_rest && (D_FLAGS(d) & DS_API) ) {
              arg = strstr(haproxy_rest, "\r\n");
              if(arg) {
                 arg += 2; /* Skip the \r\n */
@@ -5762,7 +5795,7 @@ do_command(DESC * d, char *command)
           process_output(d);
           sprintf(s_rollback, "%.50s -> %.50s {%s} ", addrsav, arg, arg);
           broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [DENIED]", NULL, s_rollback,
-                            d->hot.descriptor, 0, d->cold->remote_port, NULL);
+                            D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
              log_text("[DENIED] ");
              log_text(s_rollback);
@@ -5775,26 +5808,26 @@ do_command(DESC * d, char *command)
        free_lbuf(s_rollback);
     }
 
-    if ( d->hot.player && InProgram(d->hot.player) && (command[0] == '|') && 
-         !((NoShProg(d->hot.player) && !mudconf.noshell_prog) || 
-           (!Immortal(d->hot.player) && mudconf.noshell_prog && !NoShProg(d->hot.player))) ) 
+    if ( D_PLAYER(d) && InProgram(D_PLAYER(d)) && (command[0] == '|') && 
+         !((NoShProg(D_PLAYER(d)) && !mudconf.noshell_prog) || 
+           (!Immortal(D_PLAYER(d)) && mudconf.noshell_prog && !NoShProg(D_PLAYER(d)))) ) 
        cp = (NAMETAB *) hashfind(command+1, &mudstate.logout_cmd_htab);
     else
        cp = (NAMETAB *) hashfind(command, &mudstate.logout_cmd_htab);
     /* Make modification here for zone/location icmd check and global icmd check */
     cval = 0; 
-    if ( cp && d->hot.player )
-       cval = (igcheck(d->hot.player, cp->perm) ? 2 : 0);
-    if ( (cval == 0) && cp && d->hot.player && CmdCheck(d->hot.player) )
-      cval = cmdtest(d->hot.player, cp->name);
+    if ( cp && D_PLAYER(d) )
+       cval = (igcheck(D_PLAYER(d), cp->perm) ? 2 : 0);
+    if ( (cval == 0) && cp && D_PLAYER(d) && CmdCheck(D_PLAYER(d)) )
+      cval = cmdtest(D_PLAYER(d), cp->name);
     /* Let's do the zone check */
-    if ( (cval == 0) && cp && d->hot.player && Good_obj(Location(d->hot.player)) ) {
-       cval = zonecmdtest(d->hot.player, cp->name);
+    if ( (cval == 0) && cp && D_PLAYER(d) && Good_obj(Location(D_PLAYER(d))) ) {
+       cval = zonecmdtest(D_PLAYER(d), cp->name);
     }
     /* If ignored on WHO or DOING, then allow on connect screen but not in-game */
     if ( cp && (((cp->flag & CMD_MASK) == CMD_WHO) || ((cp->flag & CMD_MASK) == CMD_DOING)) ) {
       if ( cp->perm & CA_IGNORE ) {
-	if ( d->hot.player && Connected(d->hot.player) )
+	if ( D_PLAYER(d) && Connected(D_PLAYER(d)) )
 	  cval = 2;
 	else {
              chk_perm = 1;
@@ -5809,13 +5842,13 @@ do_command(DESC * d, char *command)
       cp = NULL;
     }
 
-    if ( !(d->hot.flags & DS_CONNECTED) && cp && (cp->perm & CF_DARK) ) {
+    if ( !(D_FLAGS(d) & DS_CONNECTED) && cp && (cp->perm & CF_DARK) ) {
       if ( chk_perm && cp )
          cp->perm = store_perm;
       cp = NULL;
     }
 
-    if ( (d->hot.flags & DS_API) && (cp == NULL) ) {
+    if ( (D_FLAGS(d) & DS_API) && (cp == NULL) ) {
        handle_html(d, 400, (char *) "Exec: Error - Invalid Headers Supplied\r\n\r\n", NULL, NULL, NULL);
        process_output(d);
        shutdownsock(d, R_API);
@@ -5826,22 +5859,22 @@ do_command(DESC * d, char *command)
        RETURN(0); /* #147 */
     }
 
-    if ( !(d->hot.flags & DS_API) ) {
-       if (cp == NULL || (cp != NULL && InProgram(d->hot.player) && command[0] != '|') || 
-           (((NoShProg(d->hot.player) && !mudconf.noshell_prog) ||
-             (!NoShProg(d->hot.player) && mudconf.noshell_prog && !Immortal(d->hot.player))) && 
-            InProgram(d->hot.player))) {
+    if ( !(D_FLAGS(d) & DS_API) ) {
+       if (cp == NULL || (cp != NULL && InProgram(D_PLAYER(d)) && command[0] != '|') || 
+           (((NoShProg(D_PLAYER(d)) && !mudconf.noshell_prog) ||
+             (!NoShProg(D_PLAYER(d)) && mudconf.noshell_prog && !Immortal(D_PLAYER(d)))) && 
+            InProgram(D_PLAYER(d)))) {
 	   if (*arg)
 	       *--arg = ' ';	/* restore nullified space */
-	   if (d->hot.flags & DS_CONNECTED) {
-               if ( Good_obj(d->hot.player) && !TogHideIdle(d->hot.player) )
+	   if (D_FLAGS(d) & DS_CONNECTED) {
+               if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) )
 	          d->cold->command_count++;
 	       if (d->cold->output_prefix) {
 		   queue_string(d, d->cold->output_prefix);
 		   queue_write(d, "\r\n", 2);
 	       }
-	       mudstate.curr_player = d->hot.player;
-	       mudstate.curr_enactor = d->hot.player;
+	       mudstate.curr_player = D_PLAYER(d);
+	       mudstate.curr_enactor = D_PLAYER(d);
                mudstate.curr_pid = -1;
                memset(mudstate.curr_pidcmd, '\0', LBUF_SIZE);
 	       desc_in_use = d;
@@ -5855,7 +5888,7 @@ do_command(DESC * d, char *command)
                if ( *command == '}' ) {
                   mudstate.no_space_compress = 1;
                }
-	       process_command(d->hot.player, d->hot.player, 1,
+	       process_command(D_PLAYER(d), D_PLAYER(d), 1,
 			       command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook, mudstate.no_space_compress);
                mudstate.no_space_compress = no_space;
                mudstate.rollbackcnt = i_rollback;
@@ -5886,7 +5919,7 @@ do_command(DESC * d, char *command)
      * and suffix processing, and invoke the command handler.
      */
 
-    if ( Good_obj(d->hot.player) && !TogHideIdle(d->hot.player) )
+    if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) )
        d->cold->command_count++;
     if (cp && !(cp->flag & CMD_NOxFIX)) {
 	if (d->cold->output_prefix) {
@@ -5894,16 +5927,16 @@ do_command(DESC * d, char *command)
 	    queue_write(d, "\r\n", 2);
 	}
     }
-    if ( cp && !(d->hot.flags & DS_API) && ((Good_chk(d->hot.player) && !check_access(d->hot.player, cp->perm, cp->perm2, 0)) || cval ||
-	((cp->perm & CA_PLAYER) && !(d->hot.flags & DS_CONNECTED))) ) {
+    if ( cp && !(D_FLAGS(d) & DS_API) && ((Good_chk(D_PLAYER(d)) && !check_access(D_PLAYER(d), cp->perm, cp->perm2, 0)) || cval ||
+	((cp->perm & CA_PLAYER) && !(D_FLAGS(d) & DS_CONNECTED))) ) {
 	queue_string(d, "Permission denied.\r\n");
     } else if ( cp ) {
 	mudstate.debug_cmd = cp->name;
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
-            if ( !(d->hot.flags & DS_CONNECTED) ) {
+            if ( !(D_FLAGS(d) & DS_CONNECTED) ) {
                process_output(d);
-               if ( d && (d->hot.flags & DS_API) ) {
+               if ( d && (D_FLAGS(d) & DS_API) ) {
 		  shutdownsock(d, R_API);
                } else {
 		  shutdownsock(d, R_QUIT);
@@ -5912,9 +5945,9 @@ do_command(DESC * d, char *command)
 		if ( chk_perm && cp )
 		  cp->perm = store_perm;
 		RETURN(0); /* #147 */
-	    } else if (Good_chk(d->hot.player) && !Fubar(d->hot.player)) {
+	    } else if (Good_chk(D_PLAYER(d)) && !Fubar(D_PLAYER(d))) {
                 process_output(d);
-                if ( d && (d->hot.flags & DS_API) ) {
+                if ( d && (D_FLAGS(d) & DS_API) ) {
 		   shutdownsock(d, R_API);
                 } else {
 		   shutdownsock(d, R_QUIT);
@@ -5924,28 +5957,28 @@ do_command(DESC * d, char *command)
 		  cp->perm = store_perm;
 		RETURN(0); /* #147 */
 	    } else {
-		notify_quiet(d->hot.player, "Permission denied.");
+		notify_quiet(D_PLAYER(d), "Permission denied.");
 		break;
 	    }
 	case CMD_LOGOUT:
-            if ( !(d->hot.flags & DS_CONNECTED) ) {
+            if ( !(D_FLAGS(d) & DS_CONNECTED) ) {
                process_output(d);
-               if ( d && (d->hot.flags & DS_API) ) {
+               if ( d && (D_FLAGS(d) & DS_API) ) {
 		  shutdownsock(d, R_API);
                } else {
 		  shutdownsock(d, R_LOGOUT);
                }
 		break;
-	    } else if (!Fubar(d->hot.player)) {
+	    } else if (!Fubar(D_PLAYER(d))) {
                 process_output(d);
-                if ( d && (d->hot.flags & DS_API) ) {
+                if ( d && (D_FLAGS(d) & DS_API) ) {
 		   shutdownsock(d, R_API);
                 } else {
 		   shutdownsock(d, R_LOGOUT);
                 }
 		break;
 	    } else {
-		notify_quiet(d->hot.player, "Permission denied.");
+		notify_quiet(D_PLAYER(d), "Permission denied.");
 		break;
 	    }
 	case CMD_WHO:
@@ -5955,10 +5988,10 @@ do_command(DESC * d, char *command)
 	    dump_users(d, arg, CMD_DOING);
 	    break;
 	case CMD_SESSION:
-            if ( d->hot.flags & DS_CONNECTED )
+            if ( D_FLAGS(d) & DS_CONNECTED )
 	       dump_users(d, arg, CMD_SESSION);
             else
-	       notify_quiet(d->hot.player, "Permission denied.");
+	       notify_quiet(D_PLAYER(d), "Permission denied.");
 	    break;
 #ifdef LOCAL_RWHO_SERVER
 	case CMD_RWHO:
@@ -5973,13 +6006,13 @@ do_command(DESC * d, char *command)
 	    break;
         case CMD_PUT:
         case CMD_HEAD:
-            if ( (d->hot.flags & DS_CONNECTED) || !(d->hot.flags & DS_API) ) {
-               if ( d->hot.flags & DS_CONNECTED ) {
-                  notify_quiet(d->hot.player, "Not supported.");
+            if ( (D_FLAGS(d) & DS_CONNECTED) || !(D_FLAGS(d) & DS_API) ) {
+               if ( D_FLAGS(d) & DS_CONNECTED ) {
+                  notify_quiet(D_PLAYER(d), "Not supported.");
                } else {
                   queue_string(d, "Not on API port and not supported.\r\n");
                   process_output(d);
-                  if ( d->hot.flags & DS_API ) {
+                  if ( D_FLAGS(d) & DS_API ) {
                      shutdownsock(d, R_API);
                      mudstate.debug_cmd = cmdsave;
                      if ( chk_perm && cp )
@@ -5990,9 +6023,9 @@ do_command(DESC * d, char *command)
             }
             break;
         case CMD_GET:
-            if ( !(d->hot.flags & DS_API) || (d->hot.flags & DS_CONNECTED) ) {
-               if ( d->hot.flags & DS_CONNECTED ) {
-                  notify_quiet(d->hot.player, "Permission denied.");
+            if ( !(D_FLAGS(d) & DS_API) || (D_FLAGS(d) & DS_CONNECTED) ) {
+               if ( D_FLAGS(d) & DS_CONNECTED ) {
+                  notify_quiet(D_PLAYER(d), "Permission denied.");
                } else {
                   queue_string(d, "Not on API port.\r\n");
                   process_output(d);
@@ -6430,7 +6463,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_sockver);
             ///// END NEW WEBSOCK
             process_output(d);
-            if ((d->hot.flags & DS_API) && (d->cold->timeout == 1) )
+            if ((D_FLAGS(d) & DS_API) && (d->cold->timeout == 1) )
                 shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -6440,9 +6473,9 @@ do_command(DESC * d, char *command)
 #endif
 
         case CMD_POST:
-            if ( !(d->hot.flags & DS_API) || (d->hot.flags & DS_CONNECTED) ) {
-               if ( d->hot.flags & DS_CONNECTED ) {
-                  notify_quiet(d->hot.player, "Permission denied.");
+            if ( !(D_FLAGS(d) & DS_API) || (D_FLAGS(d) & DS_CONNECTED) ) {
+               if ( D_FLAGS(d) & DS_CONNECTED ) {
+                  notify_quiet(D_PLAYER(d), "Permission denied.");
                } else {
                   queue_string(d, "Not on API port.\r\n");
                   process_output(d);
@@ -6632,7 +6665,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);
-            if ((d->hot.flags & DS_API) && (d->cold->timeout == 1) )
+            if ((D_FLAGS(d) & DS_API) && (d->cold->timeout == 1) )
                shutdownsock(d, R_API);
             mudstate.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -6644,12 +6677,12 @@ do_command(DESC * d, char *command)
         case CMD_INFO:
           gotone = 0;
           DESC_ITER_CONN(d2) {
-             if (Cloak(d2->hot.player))
+             if (Cloak(D_PLAYER(d2)))
 	        continue;
-             if (!(mudconf.who_unfindable) && Dark(d2->hot.player) && 
+             if (!(mudconf.who_unfindable) && Dark(D_PLAYER(d2)) && 
                  !(mudconf.player_dark) && mudconf.allow_whodark )
                 continue;
-             if (NoWho(d2->hot.player))
+             if (NoWho(D_PLAYER(d2)))
                 continue;
              gotone += 1;
           }
@@ -6667,7 +6700,7 @@ do_command(DESC * d, char *command)
           break;
 
 	default:
-            if ( d->hot.flags & DS_API ) {
+            if ( D_FLAGS(d) & DS_API ) {
                process_output(d);
                shutdownsock(d, R_API);
                mudstate.debug_cmd = cmdsave;
@@ -6686,7 +6719,7 @@ do_command(DESC * d, char *command)
 	}
     }
     /* Any API foo should just drop here as we have nothing for them to do */
-    if ( d->hot.flags & DS_API ) {
+    if ( D_FLAGS(d) & DS_API ) {
        handle_html(d, 400, (char *)"Exec: Error - Unrecognized Input\r\n", NULL, NULL,  NULL);
        if ( cp ) {
           queue_string(d, unsafe_tprintf("Return: Bad command -> %s\r\n\r\n", cp->name));
@@ -6717,7 +6750,7 @@ void
 NDECL(process_commands)
 {
     int nprocessed, aflags2, i;
-    DESC *d, *dnext;
+    DESC *d;
     CBLK *t;
     char *cmdsave, *progatr;
     dbref aowner2;
@@ -6732,18 +6765,18 @@ NDECL(process_commands)
 
     do {
 	nprocessed = 0;
-	DESC_SAFEITER_ALL(d, dnext) {
-	    if ((d->hot.flags & DS_AUTH_IN_PROGRESS) == 0) {
-		if ( ((d->hot.quota > 0) || (d->hot.flags & DS_API)) && (t = d->hot.input_head)) {
-                    if ( !(d->hot.flags & DS_API) ) {
-		       d->hot.quota--;
+	DESC_SAFEITER_ALL(d) {
+	    if ((D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0) {
+		if ( ((D_QUOTA(d) > 0) || (D_FLAGS(d) & DS_API)) && (t = D_INPUT_HEAD(d))) {
+                    if ( !(D_FLAGS(d) & DS_API) ) {
+		       D_QUOTA(d)--;
                     }
 		    nprocessed++;
-		    d->hot.input_head = (CBLK *) t->hdr.nxt;
-		    if (!d->hot.input_head)
-			d->hot.input_tail = NULL;
-		    d->hot.input_size -= (strlen(t->cmd) + 1);
-		    if (d->hot.flags & DS_HAS_DOOR && t->cmd[0] != '!')
+		    D_INPUT_HEAD(d) = (CBLK *) t->hdr.nxt;
+		    if (!D_INPUT_HEAD(d))
+			D_INPUT_TAIL(d) = NULL;
+		    D_INPUT_SIZE(d) -= (strlen(t->cmd) + 1);
+		    if (D_FLAGS(d) & DS_HAS_DOOR && t->cmd[0] != '!')
 			door_raw_input(d, t->cmd); 
 		    else {
                         for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
@@ -6754,9 +6787,9 @@ NDECL(process_commands)
 #endif
                         }
                         mudstate.global_regs_wipe = 0;
-			do_command(d, (d->hot.flags & DS_HAS_DOOR) ? &t->cmd[1] : t->cmd);
-                        if ( InProgram(d->hot.player) ) {
-                           progatr = atr_get(d->hot.player, A_PROGPROMPTBUF, &aowner2, &aflags2);
+			do_command(d, (D_FLAGS(d) & DS_HAS_DOOR) ? &t->cmd[1] : t->cmd);
+                        if ( InProgram(D_PLAYER(d)) ) {
+                           progatr = atr_get(D_PLAYER(d), A_PROGPROMPTBUF, &aowner2, &aflags2);
                            if ( progatr && *progatr ) {
                               if ( strcmp(progatr, "NULL") != 0 ) {
 #ifdef ZENTY_ANSI
@@ -7350,55 +7383,55 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim, int
        s_array[1] = NULL;
     }
     DESC_ITER_CONN(d) {
-	if (!Wizard(target) && Cloak(d->hot.player))
+	if (!Wizard(target) && Cloak(D_PLAYER(d)))
 	    continue;
-        if (!Admin(target) && !(mudconf.who_unfindable) && Dark(d->hot.player) && 
+        if (!Admin(target) && !(mudconf.who_unfindable) && Dark(D_PLAYER(d)) && 
             !(mudconf.player_dark) && mudconf.allow_whodark )
             continue;
-	if (Immortal(d->hot.player) && Cloak(d->hot.player) && SCloak(d->hot.player) && !Immortal(target))
+	if (Immortal(D_PLAYER(d)) && Cloak(D_PLAYER(d)) && SCloak(D_PLAYER(d)) && !Immortal(target))
 	    continue;
-	if (!Admin(target) && Unfindable(d->hot.player) && mudconf.who_unfindable
-		&& !HasPriv(target,d->hot.player,POWER_WHO_UNFIND,POWER4,NOTHING))
+	if (!Admin(target) && Unfindable(D_PLAYER(d)) && mudconf.who_unfindable
+		&& !HasPriv(target,D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING))
 	    continue;
-        if (NoWho(d->hot.player) && (d->hot.player != target) &&
-            !(Wizard(target) || HasPriv(target, d->hot.player, POWER_WIZ_WHO, POWER3, NOTHING)))
+        if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != target) &&
+            !(Wizard(target) || HasPriv(target, D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
             continue;
 	if (gotone)
 	    safe_chr(' ', buff, bufcx);
         if ( i_type == 2 ) {
            /* This is player and not target as it needs the immediate enactor, not 'target' */
-           if ( (target == d->hot.player) || Wizard(player) ) 
-              i_port = d->hot.descriptor;
+           if ( (target == D_PLAYER(d)) || Wizard(player) ) 
+              i_port = D_DESCRIPTOR(d);
            else
               i_port = -1;
            tprp_buff = tpr_buff;
 	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
         } else if ( i_type == 1 ) {
            /* This is player and not target as it needs the immediate enactor, not 'target' */
-           if ( (target == d->hot.player) || Wizard(player) ) 
-              i_port = d->hot.descriptor;
+           if ( (target == D_PLAYER(d)) || Wizard(player) ) 
+              i_port = D_DESCRIPTOR(d);
            else
               i_port = -1;
            tprp_buff = tpr_buff;
            if ( i_objid ) {
-              sprintf(tbuf, "#%d", d->hot.player);
+              sprintf(tbuf, "#%d", D_PLAYER(d));
               s_array[0] = tbuf;
               array_buffptr = array_buff;
-              fun_objid(array_buff, &array_buffptr, player, d->hot.player, d->hot.player, s_array, 1, (char **)NULL, 0);
+              fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
 	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s|%d", array_buff, i_port), buff, bufcx);
            } else {
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", d->hot.player, i_port), buff, bufcx);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", D_PLAYER(d), i_port), buff, bufcx);
            }
         } else {
            tprp_buff = tpr_buff;
            if ( i_objid ) {
-              sprintf(tbuf, "#%d", d->hot.player);
+              sprintf(tbuf, "#%d", D_PLAYER(d));
               array_buffptr = array_buff;
               s_array[0] = tbuf;
-              fun_objid(array_buff, &array_buffptr, player, d->hot.player, d->hot.player, s_array, 1, (char **)NULL, 0);
+              fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
 	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s", array_buff), buff, bufcx);
            } else {
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", d->hot.player), buff, bufcx);
+	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", D_PLAYER(d)), buff, bufcx);
            }
         }
         gotone = 1;
@@ -7427,14 +7460,14 @@ find_connected_name(dbref player, char *name)
 
     found = NOTHING;
     DESC_ITER_CONN(d) {
-	if (Good_obj(player) && !Wizard(player) && Hidden(d->hot.player))
+	if (Good_obj(player) && !Wizard(player) && Hidden(D_PLAYER(d)))
 	    continue;
-	if (!string_prefix(Name(d->hot.player), name))
+	if (!string_prefix(Name(D_PLAYER(d)), name))
 	    continue;
-	if ((found != NOTHING) && (found != d->hot.player)) {
+	if ((found != NOTHING) && (found != D_PLAYER(d))) {
 	    RETURN(NOTHING); /* #154 */
         }
-	found = d->hot.player;
+	found = D_PLAYER(d);
     }
     RETURN(found); /* #154 */
 }
@@ -7459,9 +7492,9 @@ NDECL(rwho_update)
     buf = alloc_mbuf("rwho_update");
     rwhocli_pingalive();
     DESC_ITER_ALL(d) {
-	if ((d->hot.flags & DS_CONNECTED) && !Hidden(d->hot.player)) {
-	    sprintf(buf, "%d@%s", d->hot.player, mudconf.mud_name);
-	    rwhocli_userlogin(buf, Name(d->hot.player), d->cold->connected_at);
+	if ((D_FLAGS(d) & DS_CONNECTED) && !Hidden(D_PLAYER(d))) {
+	    sprintf(buf, "%d@%s", D_PLAYER(d), mudconf.mud_name);
+	    rwhocli_userlogin(buf, Name(D_PLAYER(d)), d->cold->connected_at);
 	}
     }
     free_mbuf(buf);

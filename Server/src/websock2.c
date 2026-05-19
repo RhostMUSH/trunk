@@ -130,8 +130,8 @@ complete_handshake(DESC *d, const char *key) {
     free_lbuf(buf);
 
     // Change API descriptor flag for websockets to maintain connection
-    d->hot.flags &= ~DS_API;
-    d->hot.flags |= DS_WEBSOCKETS;
+    D_FLAGS(d) &= ~DS_API;
+    D_FLAGS(d) |= DS_WEBSOCKETS;
 
     // Send login screen
     welcome_user(d);
@@ -187,12 +187,12 @@ websocket_write(DESC *d, const char *output, int len)
         write_message(tb, output, n, op, fin);
 
         /* If there is already buffered output add this to chain */
-        if (d->hot.output_head == NULL) {
-            d->hot.output_head = tb;
+        if (D_OUTPUT_HEAD(d) == NULL) {
+            D_OUTPUT_HEAD(d) = tb;
         } else {
-            d->hot.output_tail->hdr.nxt = tb;
+            D_OUTPUT_TAIL(d)->hdr.nxt = tb;
         }
-        d->hot.output_tail = tb;
+        D_OUTPUT_TAIL(d) = tb;
     } while (len > 0);
 }
 

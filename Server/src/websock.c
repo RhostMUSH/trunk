@@ -181,8 +181,8 @@ complete_handshake(DESC *d)
    * Fortunately, the WebSockets client will presumably wait until it gets the
    * response back from the server before switching, so we're probably OK.
    */
-  d->hot.flags &= ~DS_WEBSOCKETS_REQUEST;
-  d->hot.flags |= DS_WEBSOCKETS;
+  D_FLAGS(d) &= ~DS_WEBSOCKETS_REQUEST;
+  D_FLAGS(d) |= DS_WEBSOCKETS;
 
   d->cold->checksum[0] = 4;
   
@@ -213,8 +213,8 @@ process_websocket_request(DESC *d, const char *command)
     log_text((char *) "WebSockets upgrade requested.");
     ENDLOG
 
-    d->hot.flags &= ~DS_API;
-    d->hot.flags |= DS_WEBSOCKETS_REQUEST;
+    D_FLAGS(d) &= ~DS_API;
+    D_FLAGS(d) |= DS_WEBSOCKETS_REQUEST;
     d->cold->timeout = mudconf.idle_timeout; /* Set timeout to base mush timeout value */
     
     /* If there is a newline, we have a multi-line request to process. */

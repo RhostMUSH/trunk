@@ -25,6 +25,7 @@ char *index(const char *, int);
 #endif /* REALITY_LEVELS */
 
 extern int count_chars(const char *, const char c);
+extern int ndescriptors;
 extern dbref    FDECL(match_thing, (dbref, char *));
 extern POWENT * FDECL(find_power, (dbref, char *));
 extern void fun_parenstr(char *, char **, dbref, dbref, dbref, char **, int, char **, int);
@@ -4214,16 +4215,16 @@ do_whereall(dbref player, dbref cause, int key)
 	return;
     }
     DESC_ITER_CONN(d) {
-	if ((((Findable(d->hot.player) && mudconf.who_unfindable) || 
-            !(Dark(d->hot.player) && !mudconf.who_unfindable && !mudconf.player_dark && !Admin(player)) ||
+	if ((((Findable(D_PLAYER(d)) && mudconf.who_unfindable) || 
+            !(Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && !Admin(player)) ||
             (!mudconf.who_unfindable && mudconf.player_dark)) &&
-              !Cloak(d->hot.player)) || Immortal(player) || (Wizard(player) && !Immortal(d->hot.player))) {
+              !Cloak(D_PLAYER(d))) || Immortal(player) || (Wizard(player) && !Immortal(D_PLAYER(d)))) {
 
-	    if ( (Hidden(d->hot.player) || Unfindable(d->hot.player)) && !Immortal(player) && !(Wizard(player) && Wizard(d->hot.player)))
-		sprintf(buf, "%.100s wishes to have some privacy.", Name(d->hot.player));
+	    if ( (Hidden(D_PLAYER(d)) || Unfindable(D_PLAYER(d))) && !Immortal(player) && !(Wizard(player) && Wizard(D_PLAYER(d))))
+		sprintf(buf, "%.100s wishes to have some privacy.", Name(D_PLAYER(d)));
 	    else {
-		membuff = unparse_object(player, Location(d->hot.player), 1);
-		sprintf(buf, "%.100s is at the %.900s.", Name(d->hot.player), membuff);
+		membuff = unparse_object(player, Location(D_PLAYER(d)), 1);
+		sprintf(buf, "%.100s is at the %.900s.", Name(D_PLAYER(d)), membuff);
 		free_lbuf(membuff);
 	    }
 

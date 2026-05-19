@@ -54,6 +54,7 @@ extern int FDECL(cf_read, (char *fn));
 extern void NDECL(init_functab);
 extern void NDECL(init_ansitab);
 extern void FDECL(close_sockets, (int emergency, char *message));
+extern int ndescriptors;
 extern void NDECL(close_main_socket);
 extern void NDECL(init_version);
 extern void NDECL(init_logout_cmdtab);
@@ -1927,7 +1928,7 @@ do_reboot(dbref player, dbref cause, int key)
      f = fopen("reboot.silent", "w+");
 
      DESC_ITER_CONN(d) {
-        if ( d->hot.player == player ) {
+        if ( D_PLAYER(d) == player ) {
            if (f == NULL) {
               queue_string(d,"Cannot write silent reboot file. Final message will not be snuffed.");
            } else {
@@ -2757,10 +2758,15 @@ main(int argc, char *argv[])
     pool_init(POOL_SBUF, SBUF_SIZE);
     pool_init(POOL_BOOL, sizeof(struct boolexp));
 
-    pool_init(POOL_DESC, sizeof(DESC));
     pool_init(POOL_DESC_COLD, sizeof(DESC_COLD));
     pool_init(POOL_QENTRY, sizeof(BQUE));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
+
+    for (int i = 0; i < MAX_DESCRIPTORS; i++) {
+        desc_hot.descriptor[i] = -1;
+        desc_slots[i].slot_index = i;
+        desc_slots[i].cold = NULL;
+    }
 
     pool_init(POOL_ATRCACHE, LBUF_SIZE);
     pool_init(POOL_ATRNAME, SBUF_SIZE);

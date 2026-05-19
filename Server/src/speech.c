@@ -22,6 +22,7 @@ char *strtok_r(char *, const char *, char **);
 #endif /* REALITY_LEVELS */
 
 extern void FDECL(do_page_one, (dbref, dbref, int, char *));
+extern int ndescriptors;
 extern char * parse_ansi_name(dbref, char *);
 
 int sp_ok(dbref player)
@@ -3790,7 +3791,7 @@ void com_send(char *chan, char *mess)
 
   DESC_ITER_CONN(d) {
       char *foo;
-      yyy=atr_get(d->hot.player,A_CHANNEL,&aowner,&aflags);
+      yyy=atr_get(D_PLAYER(d),A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
         strcat(yyy," ");
@@ -3799,7 +3800,7 @@ void com_send(char *chan, char *mess)
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
           if(*ptr == ' ') *ptr = '\0';
           if(!strcmp(foo,chan)) /* tell the person. */
-            notify(d->hot.player,mess);
+            notify(D_PLAYER(d),mess);
           foo+=strlen(foo)+1;
         }
       }
@@ -3817,11 +3818,11 @@ void com_who(char *chan, dbref who)
   notify(who,unsafe_tprintf("-- Scanning for connected users on channel %s --", chan ) );
   tprp_buff = tpr_buff = alloc_lbuf("com_who");
   DESC_ITER_CONN(d) {
-    if(Findable(d->hot.player) || Wizard(who)) {
+    if(Findable(D_PLAYER(d)) || Wizard(who)) {
       char *foo;
-      if (Immortal(d->hot.player) && Cloak(d->hot.player) && SCloak(d->hot.player) && !Immortal(who))
+      if (Immortal(D_PLAYER(d)) && Cloak(D_PLAYER(d)) && SCloak(D_PLAYER(d)) && !Immortal(who))
 	continue;
-      yyy = atr_get(d->hot.player,A_CHANNEL,&aowner,&aflags);
+      yyy = atr_get(D_PLAYER(d),A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
         strcat(yyy," ");
@@ -3830,7 +3831,7 @@ void com_who(char *chan, dbref who)
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
           if(*ptr == ' ') *ptr = '\0';
           if(!strcmp(foo,chan)) {
-            membuff = unparse_object(who,d->hot.player,0);
+            membuff = unparse_object(who,D_PLAYER(d),0);
             tprp_buff = tpr_buff;
             notify(who,safe_tprintf(tpr_buff, &tprp_buff, "%s is on channel %s.",membuff,chan));
             free_lbuf(membuff);

@@ -39,6 +39,7 @@
 
 /* Any thoughts on where this should live? */
 extern void FDECL(putstring, (FILE *, const char *));
+extern int ndescriptors;
 
 /* ==================== Module Scope Macros ============================ */
 
@@ -907,10 +908,10 @@ void news_post(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   tprp_buff = tpr_buff = alloc_lbuf("news_post");
   DESC_ITER_CONN(d) {
-    if( d->hot.player != player &&
-        user_subscribed(d->hot.player, groupkeyptr) ) {
+    if( D_PLAYER(d) != player &&
+        user_subscribed(D_PLAYER(d), groupkeyptr) ) {
       tprp_buff = tpr_buff;
-      notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: New article posted to group '%s' by %s: %s",
+      notify(D_PLAYER(d), safe_tprintf(tpr_buff, &tprp_buff, "News: New article posted to group '%s' by %s: %s",
                              groupkeyptr, Name(player), newga.title));
     }
   }
@@ -1118,9 +1119,9 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   tprp_buff = tpr_buff = alloc_lbuf("news_repost");
   DESC_ITER_CONN(d) {
-    if( d->hot.player != player &&
-        user_subscribed(d->hot.player, groupkeyptr) ) {
-      notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d reposted to group '%s' by %s: %s",
+    if( D_PLAYER(d) != player &&
+        user_subscribed(D_PLAYER(d), groupkeyptr) ) {
+      notify(D_PLAYER(d), safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d reposted to group '%s' by %s: %s",
                              newga.seq,
                              groupkeyptr, Name(player), newga.title));
     }
@@ -2287,10 +2288,10 @@ void news_yank(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
     tprp_buff = tpr_buff = alloc_lbuf("news_yank");
     DESC_ITER_CONN(d) {
-      if( d->hot.player != player &&
-          user_subscribed(d->hot.player, groupkeyptr) ) {
+      if( D_PLAYER(d) != player &&
+          user_subscribed(D_PLAYER(d), groupkeyptr) ) {
         tprp_buff = tpr_buff;
-        notify(d->hot.player, safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d yanked from group '%s' by %s.",
+        notify(D_PLAYER(d), safe_tprintf(tpr_buff, &tprp_buff, "News: Article %d yanked from group '%s' by %s.",
                                seqkey,
                                groupkeyptr, Name(player)));
       }

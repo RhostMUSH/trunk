@@ -112,7 +112,7 @@ static void forceDoorClosed(int player, int door) {
   DESC *d;
   DPUSH; /* #1 */
   DESC_ITER_CONN(d) {
-    if (d->hot.flags & DS_HAS_DOOR && d->cold->door_num == door) {
+    if (D_FLAGS(d) & DS_HAS_DOOR && d->cold->door_num == door) {
       closeDoorWithId(d, door);
       notify(player, unsafe_tprintf("%s has slammed the door shut.", Name(player)));
     }
@@ -218,7 +218,7 @@ static int addDoor(const char *doorName,
       goto error;
     }
     gaDoors[gnDoors]->doorStatus = INTERNAL_e;
-    gaDoors[gnDoors]->pDescriptor->hot.player= SYSTEM;
+    gaDoors[gnDoors]->D_PLAYER(pDescriptor)= SYSTEM;
   }
 
   // Check LOC is a room
@@ -267,7 +267,7 @@ static int addDoor(const char *doorName,
 static void shut_door(DESC *d)
 {
   DPUSH; /* 4 */
-  if (d->hot.flags & DS_HAS_DOOR) {
+  if (D_FLAGS(d) & DS_HAS_DOOR) {
     shutdown(d->cold->door_desc,2);
     close(d->cold->door_desc);
     ndescriptors--;
@@ -284,7 +284,7 @@ static void shut_door(DESC *d)
     free_mbuf(d->cold->door_mbuf);
     d->cold->door_mbuf = NULL;
   }
-  d->hot.flags &= ~DS_HAS_DOOR;
+  D_FLAGS(d) &= ~DS_HAS_DOOR;
   d->cold->door_num = 0;
   if (d->cold->door_raw != NULL) {
     free_lbuf(d->cold->door_raw);
@@ -302,9 +302,9 @@ void door_raw_input(DESC *d, char *input)
     queue_door_string(d, input, 1); /* 3rd arg means slap a newline on */
   } else {
     if ((gaDoors[d->cold->door_num]->pFnReadDoor)(d, input) < 0) {
-      LOGTEXT("ERR", d->hot.player, 
+      LOGTEXT("ERR", D_PLAYER(d), 
 	      unsafe_tprintf("ran into an unexpected error writing to '%s'", gaDoors[d->cold->door_num]->pName));
-      notify(d->hot.player, 
+      notify(D_PLAYER(d), 
 	     unsafe_tprintf("Worlds shimmer, reality wavers, and the door to '%s' slams before your eyes.",
 		     gaDoors[d->cold->door_num]->pName));
       closeDoorWithId(d, d->cold->door_num);
@@ -322,9 +322,9 @@ void door_raw_output(DESC *d, char *output)
     queue_string(d, output);
   } else {
     if ((gaDoors[d->cold->door_num]->pFnWriteDoor)(d, output) < 0) {
-      LOGTEXT("ERR", d->hot.player, 
+      LOGTEXT("ERR", D_PLAYER(d), 
 	      unsafe_tprintf("ran into an unexpected error reading from '%s'", gaDoors[d->cold->door_num]->pName));
-      notify(d->hot.player, 
+      notify(D_PLAYER(d), 
 	     unsafe_tprintf("Worlds shimmer, reality wavers, and the door to '%s' slams before your eyes.",
 		     gaDoors[d->cold->door_num]->pName));
       closeDoorWithId(d, d->cold->door_num);
@@ -357,7 +357,7 @@ static int setup_player(DESC *d, int sock, int doorIdx) {
       if (retval >= 0) {
           *(d->cold->door_mbuf) = '\0';
           d->cold->door_desc = sock;
-          d->hot.flags |= DS_HAS_DOOR;   
+          D_FLAGS(d) |= DS_HAS_DOOR;   
           d->cold->door_num = doorIdx;
       /*  process_output(d); */
       }
@@ -616,7 +616,7 @@ void queue_door_write(DESC * d, const char *b, int n)
 		    d->cold->door_desc, d->cold->longaddr, tp->hdr.nchars);
 	    log_text(buf);
 	    free_lbuf(buf);
-	    log_name(d->hot.player);
+	    log_name(D_PLAYER(d));
 	    ENDLOG
             d->cold->door_output_size -= tp->hdr.nchars;
 	    d->cold->door_output_head = tp->hdr.nxt;
@@ -776,7 +776,7 @@ void openDoor(dbref player,
     } else {
        notify(player, "Only players can open a door.");
     }
-  } else if (desc_in_use && (desc_in_use->hot.flags & DS_HAS_DOOR) ) {
+  } else if (desc_in_use && (D_FLAGS(desc_in_use) & DS_HAS_DOOR) ) {
     if ( player != cause ) {
        notify(cause, "Target already has a door open on the attempted connection.");
     } else {
@@ -816,10 +816,10 @@ void openDoor(dbref player,
         i_now = 0;
         d_use = NULL;
         DESC_ITER_CONN(d_door) {
-           if (d_door->hot.player == player) {
-              if ( d_door->hot.last_time > i_now ) {
+           if (D_PLAYER(d_door) == player) {
+              if ( D_LAST_TIME(d_door) > i_now ) {
                  d_use = d_door;
-                 i_now = d_door->hot.last_time;
+                 i_now = D_LAST_TIME(d_door);
               }
            }
         }
@@ -877,16 +877,16 @@ void closeDoorWithId(DESC *desc, int d) {
 
   if (d < 0 || d >= gnDoors ) {
     // LOG
-    notify(desc->hot.player,
+    notify(D_PLAYER(desc),
 	   "@DOOR/CLOSE attempted with invalid door id. This has been logged"); 
-    LOGTEXT("ERR", desc->hot.player, unsafe_tprintf("tried to @door/close an invalid door id '%d'",
+    LOGTEXT("ERR", D_PLAYER(desc), unsafe_tprintf("tried to @door/close an invalid door id '%d'",
 			           d));
     VOIDRETURN /* 11.5 */
   }
 
   if (d && gaDoors[d]->pFnCloseDoor) {
     if ((gaDoors[d]->pFnCloseDoor)(desc) < 0) {
-      LOGTEXT("ERR", desc->hot.player, 
+      LOGTEXT("ERR", D_PLAYER(desc), 
 	      unsafe_tprintf("tried to close a door to %s, but the door did not close cleanly.",
 		      gaDoors[d]->pName));
     }
@@ -900,7 +900,7 @@ void closeDoorWithId(DESC *desc, int d) {
     gaDoors[d]->doorStatus = CLOSED_e;
   }
 
-  LOGTEXT("INF", desc->hot.player, unsafe_tprintf("Door '%s' closed",
+  LOGTEXT("INF", D_PLAYER(desc), unsafe_tprintf("Door '%s' closed",
   				       gaDoors[d]->pName));
 
   VOIDRETURN; /* #11.5*/
@@ -911,11 +911,11 @@ void closeDoor(DESC *desc, char *pDoor) {
   DPUSH; /* #12 */
  
   if ( !pDoor || *pDoor == '\0') {
-    notify(desc->hot.player, "@DOOR/CLOSE requires a door name.");
+    notify(D_PLAYER(desc), "@DOOR/CLOSE requires a door name.");
   } else {
     d = findDoor(pDoor);
     if (d < 0) {
-      notify(desc->hot.player, "Invalid door name.");
+      notify(D_PLAYER(desc), "Invalid door name.");
     } else {
       closeDoorWithId(desc, d);    
     }
@@ -957,8 +957,8 @@ void listDoors(dbref player, char *dName, int full) {
       if (full) {
 	notify(player, "The following players are using this door:");
 	DESC_ITER_CONN(desc) {
-	  if (desc->hot.flags & DS_HAS_DOOR && desc->cold->door_num == d) {
-	    notify(player, unsafe_tprintf("   (#%-6d) %s", desc->hot.player, Name(desc->hot.player)));
+	  if (D_FLAGS(desc) & DS_HAS_DOOR && desc->cold->door_num == d) {
+	    notify(player, unsafe_tprintf("   (#%-6d) %s", D_PLAYER(desc), Name(D_PLAYER(desc))));
 	  }
 	}
       }
@@ -1047,14 +1047,14 @@ void door_processInternalDoors(void) {
 	    continue;
 	  }
 	  d = gaDoors[i]->pDescriptor;
-	  if (d->hot.quota > 0 && (t = d->hot.input_head)) {
-	    d->hot.quota--;
+	  if (D_QUOTA(d) > 0 && (t = D_INPUT_HEAD(d))) {
+	    D_QUOTA(d)--;
 	    nprocessed++;
-	    d->hot.input_head = (CBLK *) t->hdr.nxt;
-	    if (!d->hot.input_head)
-	      d->hot.input_tail = NULL;
-	    d->hot.input_size -= (strlen(t->cmd) + 1);
-	    if (d->hot.flags & DS_HAS_DOOR && t->cmd[0] != '!') //input = player input
+	    D_INPUT_HEAD(d) = (CBLK *) t->hdr.nxt;
+	    if (!D_INPUT_HEAD(d))
+	      D_INPUT_TAIL(d) = NULL;
+	    D_INPUT_SIZE(d) -= (strlen(t->cmd) + 1);
+	    if (D_FLAGS(d) & DS_HAS_DOOR && t->cmd[0] != '!') //input = player input
 	      door_raw_input(d, t->cmd); 
 	    free_lbuf(t);
 	  }

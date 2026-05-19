@@ -1404,9 +1404,9 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
             return;
        }
         DESC_ITER_PLAYER(goodplayer, d) {
-           if (!dtime || (now - d->hot.last_time) < dtime) {
+           if (!dtime || (now - D_LAST_TIME(d)) < dtime) {
               e = d;
-              dtime = now - d->hot.last_time;
+              dtime = now - D_LAST_TIME(d);
            }
         }
        if ( !e ) {

@@ -164,16 +164,15 @@ struct descriptor_data_orig {
 };
 
 /* Forward declarations for hot/cold split */
-typedef struct desc_hot DESC_HOT;
 typedef struct desc_cold DESC_COLD;
 typedef struct descriptor_data DESC;
 
 /* ************************************************************************
- * DESC Hot/Cold Split — Cache-optimized descriptor layout.
+ * DESC Hot/Cold Split — SoA (Structure of Arrays) layout.
  *
- * DESC_HOT (~104 bytes, 2 cache lines) contains fields accessed every tick:
- *   flags, descriptor, player, quota, input/output queues, host_info,
- *   input/output sizes, last_time, hashnext, next, prev.
+ * struct desc_hot_arrays: 15 parallel arrays indexed by slot_index.
+ *   At 150 descriptors: flags[150]=600B fits in L1. At 500: 2KB per field.
+ *   Accessor macros: D_FLAGS(d), D_PLAYER(d), etc.
  *
  * DESC_COLD (~500+ bytes) contains rarely-accessed fields:
  *   Embedded arrays (addr, doing, userid, longaddr, account_rawpass, checksum),
@@ -183,27 +182,53 @@ typedef struct descriptor_data DESC;
  * Connected players will reconnect automatically on first boot with this change.
  */
 
-/* Hot descriptor data — accessed every game tick */
-struct desc_hot {
-    int          descriptor;      /* socket fd */
-    int          flags;           /* DS_CONNECTED, DS_API, etc. */
-    int          quota;           /* command quota */
-    int          host_info;       /* site flags */
-    dbref        player;          /* connected player */
-    /* 4 bytes padding on 64-bit */
-    CBLK        *input_head;      /* input queue */
-    CBLK        *input_tail;      /* input tail */
-    TBLOCK      *output_head;     /* output queue */
-    TBLOCK      *output_tail;     /* output tail */
-    int          input_tot;       /* total input bytes */
-    int          input_size;      /* input buffer size */
-    int          output_tot;      /* total output bytes */
-    int          output_size;     /* output buffer size */
-    time_t       last_time;       /* last activity */
-    DESC        *hashnext;        /* hash chain */
-    DESC        *next;            /* list forward */
-    DESC       **prev;            /* list back-pointer */
+/* Maximum simultaneous descriptors (configurable via -DDYN_MAXDESCRIPTORS=N) */
+#ifdef DYN_MAXDESCRIPTORS
+#define MAX_DESCRIPTORS DYN_MAXDESCRIPTORS
+#else
+#define MAX_DESCRIPTORS 150
+#endif
+
+/* Hot descriptor data — Structure of Arrays (SoA) for cache efficiency.
+ * Each field is a parallel array indexed by slot_index.
+ * At 500 descriptors: flags[500]=2KB vs AoS 44KB per-iteration working set.
+ * Accessor macros: D_FLAGS(d), D_PLAYER(d), etc. */
+struct desc_hot_arrays {
+    int          descriptor[MAX_DESCRIPTORS];
+    int          flags[MAX_DESCRIPTORS];
+    int          quota[MAX_DESCRIPTORS];
+    int          host_info[MAX_DESCRIPTORS];
+    dbref        player[MAX_DESCRIPTORS];
+    CBLK        *input_head[MAX_DESCRIPTORS];
+    CBLK        *input_tail[MAX_DESCRIPTORS];
+    TBLOCK      *output_head[MAX_DESCRIPTORS];
+    TBLOCK      *output_tail[MAX_DESCRIPTORS];
+    int          input_tot[MAX_DESCRIPTORS];
+    int          input_size[MAX_DESCRIPTORS];
+    int          output_tot[MAX_DESCRIPTORS];
+    int          output_size[MAX_DESCRIPTORS];
+    time_t       last_time[MAX_DESCRIPTORS];
+    DESC        *hashnext[MAX_DESCRIPTORS];
 };
+
+extern struct desc_hot_arrays desc_hot;
+
+/* Accessor macros — d->hot.X becomes D_X(d) */
+#define D_DESCRIPTOR(d)  (desc_hot.descriptor[(d)->slot_index])
+#define D_FLAGS(d)       (desc_hot.flags[(d)->slot_index])
+#define D_QUOTA(d)       (desc_hot.quota[(d)->slot_index])
+#define D_HOST_INFO(d)   (desc_hot.host_info[(d)->slot_index])
+#define D_PLAYER(d)      (desc_hot.player[(d)->slot_index])
+#define D_INPUT_HEAD(d)  (desc_hot.input_head[(d)->slot_index])
+#define D_INPUT_TAIL(d)  (desc_hot.input_tail[(d)->slot_index])
+#define D_OUTPUT_HEAD(d) (desc_hot.output_head[(d)->slot_index])
+#define D_OUTPUT_TAIL(d) (desc_hot.output_tail[(d)->slot_index])
+#define D_INPUT_TOT(d)   (desc_hot.input_tot[(d)->slot_index])
+#define D_INPUT_SIZE(d)  (desc_hot.input_size[(d)->slot_index])
+#define D_OUTPUT_TOT(d)  (desc_hot.output_tot[(d)->slot_index])
+#define D_OUTPUT_SIZE(d) (desc_hot.output_size[(d)->slot_index])
+#define D_LAST_TIME(d)   (desc_hot.last_time[(d)->slot_index])
+#define D_HASHNEXT(d)    (desc_hot.hashnext[(d)->slot_index])
 
 /* Cold descriptor data — accessed infrequently */
 struct desc_cold {
@@ -259,7 +284,7 @@ struct desc_cold {
 
 typedef struct descriptor_data DESC;
 struct descriptor_data {
-    DESC_HOT     hot;
+    int          slot_index;
     DESC_COLD   *cold;
 };
 
@@ -280,7 +305,7 @@ struct descriptor_data {
 #define DS_WEBSOCKETS           0x2000          /* Target is a WebSocket */
 
 
-extern DESC *descriptor_list;
+extern DESC desc_slots[MAX_DESCRIPTORS];
 extern DESC *desc_in_use;
 
 /* from the net interface */
@@ -335,34 +360,31 @@ extern dbref	FDECL(find_connected_name, (dbref, char *));
 
 #define alloc_desc(s) _alloc_desc(s)
 #define free_desc(b) _free_desc(b)
-#define alloc_desc_cold(s) (DESC_COLD *)pool_alloc(POOL_DESC_COLD,s,__LINE__,__FILE__)
-#define free_desc_cold(b) pool_free(POOL_DESC_COLD,((char **)&(b)),__LINE__,__FILE__)
 
 extern DESC *_alloc_desc(const char *);
 extern void _free_desc(DESC *);
 
+extern int ndescriptors;    /* total open FDs: main + doors + auth */
+extern int ndesc_slots;     /* entries in desc_slots array only */
+
 #define DESC_ITER_PLAYER(p,d) \
-	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab);d;d=d->hot.hashnext)
+	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab);d;d=D_HASHNEXT(d))
 #define DESC_ITER_CONN(d) \
-	for (d=descriptor_list;(d);d=(d)->hot.next) \
-		if ((d)->hot.flags & DS_CONNECTED)
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++) \
+		if (D_FLAGS(d) & DS_CONNECTED)
 #define DESC_ITER_ALL(d) \
-	for (d=descriptor_list;(d);d=(d)->hot.next)
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++)
 
 #define DESC_SAFEITER_PLAYER(p,d,n) \
 	for (d=(DESC *)nhashfind((int)p,&mudstate.desc_htab), \
-        	n=((d!=NULL) ? d->hot.hashnext : NULL); \
+        	n=((d!=NULL) ? D_HASHNEXT(d) : NULL); \
 	     d; \
-	     d=n,n=((n!=NULL) ? n->hot.hashnext : NULL))
-#define DESC_SAFEITER_CONN(d,n) \
-	for (d=descriptor_list,n=((d!=NULL) ? d->hot.next : NULL); \
-	     d; \
-	     d=n,n=((n!=NULL) ? n->hot.next : NULL)) \
-		if ((d)->hot.flags & DS_CONNECTED)
-#define DESC_SAFEITER_ALL(d,n) \
-	for (d=descriptor_list,n=((d!=NULL) ? d->hot.next : NULL); \
-	     d; \
-	     d=n,n=((n!=NULL) ? n->hot.next : NULL))
+	     d=n,n=((n!=NULL) ? D_HASHNEXT(n) : NULL))
+#define DESC_SAFEITER_CONN(d) \
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--) \
+		if (D_FLAGS(d) & DS_CONNECTED)
+#define DESC_SAFEITER_ALL(d) \
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--)
 
 #define MALLOC(result, type, number, where) do { \
 	if (!((result)=(type *) XMALLOC (((number) * sizeof (type)), where))) \

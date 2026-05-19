@@ -9,14 +9,13 @@
 #define	POOL_MBUF	1
 #define	POOL_LBUF	2
 #define	POOL_BOOL	3
-#define	POOL_DESC	4
-#define	POOL_QENTRY	5
-#define POOL_PCACHE	6
-#define POOL_ZLISTNODE  7
-#define POOL_ATRCACHE   8
-#define POOL_ATRNAME    9
-#define POOL_DESC_COLD  10
-#define	NUM_POOLS       11 
+#define	POOL_QENTRY	4
+#define POOL_PCACHE	5
+#define POOL_ZLISTNODE  6
+#define POOL_ATRCACHE   7
+#define POOL_ATRNAME    8
+#define POOL_DESC_COLD  9
+#define	NUM_POOLS       10 
 
 
 #ifndef GDBM

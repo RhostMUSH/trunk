@@ -43,6 +43,7 @@ CONFDATA mudconf;
 STATEDATA mudstate;
 
 extern void NDECL(init_version);
+extern int ndescriptors;
 #ifndef STANDALONE
 extern int FDECL(pstricmp, (char *, char *, int));
 extern NAMETAB logdata_nametab[];
@@ -1793,7 +1794,7 @@ CF_HAND(cf_dynguest)
 
    DESC_ITER_CONN(d) {
       memset(tplayer, 0, sizeof(tplayer));
-      strncpy(tplayer, Name(d->hot.player), 5);
+      strncpy(tplayer, Name(D_PLAYER(d)), 5);
       if ( stricmp(tplayer, "guest") == 0 ) {
          noret_val = 1;
          break;
@@ -1803,7 +1804,7 @@ CF_HAND(cf_dynguest)
       tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
       while (tplaybuff != NULL ) {
          lupp = lookup_player(NOTHING, tplaybuff, 0);
-         if ( lupp == d->hot.player ) {
+         if ( lupp == D_PLAYER(d) ) {
             noret_val = 1;
             break;
          }
@@ -1820,7 +1821,7 @@ CF_HAND(cf_dynguest)
             noret_val = 4;
             break;
          }
-         if ( lupp == d->hot.player ) {
+         if ( lupp == D_PLAYER(d) ) {
             noret_val = 2;
             break;
          }

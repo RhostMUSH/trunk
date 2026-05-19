@@ -159,7 +159,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     close(sock_req);
     return -1;
   }
-  strcpy(buf,Name(desc_in_use->hot.player));
+  strcpy(buf,Name(D_PLAYER(desc_in_use)));
   strcat(buf,"@");
   strcat(buf,mudconf.mud_name);
   if (!sendcmd(sock_req, USER, buf)) {
@@ -294,7 +294,7 @@ int empire_from_empsrv(DESC *d, char *text)
 	  strcpy(pt3,pt2);
 	  do_command(d,pt3);
 	  free_lbuf(pt3);
-	  if (!(d->hot.flags & DS_HAS_DOOR)) {
+	  if (!(D_FLAGS(d) & DS_HAS_DOOR)) {
 	    queue_string(d,"Exec send EOF failed; Empire door was closed.\r\n");
 	    return -1;
 	  }

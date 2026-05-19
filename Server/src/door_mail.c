@@ -177,7 +177,7 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
       queue_string(d, "Count not allocate required memory.");
       goto abort;
     }
-    p->player = d->hot.player;
+    p->player = D_PLAYER(d);
     p->id = id;
     p->status = OK_e;
     strncpy(p->user, user, 30);
@@ -202,7 +202,7 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
 
 int mailDoorClose(DESC *d) {
   mail_t *p;
-  p = findStruct(d->hot.player);
+  p = findStruct(D_PLAYER(d));
   if (p) {
     delStruct(p);
   }
@@ -210,7 +210,7 @@ int mailDoorClose(DESC *d) {
 }
 
 int mailDoorOutput(DESC *d, char *pText) {
-  notify(d->hot.player, "Command ignored.");
+  notify(D_PLAYER(d), "Command ignored.");
   return -1;
 }
 
@@ -224,7 +224,7 @@ int mailDoorInput(DESC *d, char *pText) {
   queue_string(d, "\r\n");
 #endif
 
-  p = findStruct(d->hot.player);
+  p = findStruct(D_PLAYER(d));
   if (!p) {
     queue_string(d, "Could not find you in the mail-door system.. aborting.");
     goto abort;

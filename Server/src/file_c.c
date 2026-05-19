@@ -439,11 +439,11 @@ fcache_dump(DESC * d, int num, char *s_site)
              sarray[4] = NULL;
               strcpy(sarray[0], d->cold->addr);
              strcpy(sarray[1], d->cold->longaddr);
-             sprintf(sarray[2], "%d", d->hot.descriptor);
-             if ( d->hot.player <= 0 )
+             sprintf(sarray[2], "%d", D_DESCRIPTOR(d));
+             if ( D_PLAYER(d) <= 0 )
                 sprintf(sarray[3], "#%d", NOTHING);
              else
-                sprintf(sarray[3], "#%d", d->hot.player);
+                sprintf(sarray[3], "#%d", D_PLAYER(d));
              chk_stop = mudstate.chkcpu_stopper;
              chk_tog = mudstate.chkcpu_toggle;
              mudstate.chkcpu_stopper = time(NULL);

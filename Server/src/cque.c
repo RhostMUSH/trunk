@@ -19,6 +19,7 @@
 #include "alloc.h"
 
 extern int FDECL(a_Queue, (dbref, int));
+extern int ndescriptors;
 extern void FDECL(s_Queue, (dbref, int));
 extern int FDECL(QueueMax, (dbref));
 extern double NDECL(next_timer);
@@ -2101,7 +2102,7 @@ void
 NDECL(do_second)
 {
     BQUE *trail, *point, *next;
-    DESC *d, *dnext;
+    DESC *d;
     char *cmdsave, *cpulbuf;
     int i_offset, mtimerlen;
     double d_timediff;
@@ -2202,10 +2203,10 @@ NDECL(do_second)
           free_lbuf(cpulbuf);
        ENDLOG
        /* Ok, let's update the player time stats here */
-       DESC_SAFEITER_ALL(d, dnext) {
+       DESC_SAFEITER_ALL(d) {
          
-          if (d->hot.flags & DS_CONNECTED) {
-             d->hot.last_time = d->hot.last_time + floor(d_timediff);
+          if (D_FLAGS(d) & DS_CONNECTED) {
+             D_LAST_TIME(d) = D_LAST_TIME(d) + floor(d_timediff);
              d->cold->connected_at = d->cold->connected_at + floor(d_timediff);
           } else {
              d->cold->connected_at = d->cold->connected_at + floor(d_timediff);

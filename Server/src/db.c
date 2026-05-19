@@ -38,6 +38,7 @@ int malloc_count = 0;
 #endif /* TEST_MALLOC */
 
 extern double mush_mktime64(struct tm *);
+extern int ndescriptors;
 extern double safe_atof(char *);
 extern int FDECL(do_convtime, (char *, struct tm *));
 
@@ -4680,7 +4681,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    DESC *d;
 
    DESC_ITER_CONN(d) {
-      if ( d->hot.player == player ) {
+      if ( D_PLAYER(d) == player ) {
          if ( key & DBCLEAN_CHECK )
             queue_string(d,"Checking database of empty attributes.  Please wait...");
          else
@@ -4693,7 +4694,7 @@ void do_dbclean(dbref player, dbref cause, int key)
    s_chkattr = alloc_lbuf("attribute_delete");
 
    DESC_ITER_CONN(d) {
-      if ( d->hot.player == player ) {
+      if ( D_PLAYER(d) == player ) {
          queue_string(d, "---> Hashing values...");
          queue_write(d, "\r\n", 2);
          process_output(d);
@@ -4715,7 +4716,7 @@ void do_dbclean(dbref player, dbref cause, int key)
       }
    }
    DESC_ITER_CONN(d) {
-      if ( d->hot.player == player ) {
+      if ( D_PLAYER(d) == player ) {
          if ( key & DBCLEAN_CHECK )
             queue_string(d, "---> Initializing check routines...");
          else
@@ -4756,7 +4757,7 @@ void do_dbclean(dbref player, dbref cause, int key)
                   i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted") );
           i_del = 0;
           DESC_ITER_CONN(d) {
-             if ( d->hot.player == player ) {
+             if ( D_PLAYER(d) == player ) {
                 queue_string(d, s_chkattr);
                 queue_write(d, "\r\n", 2);
                 process_output(d);
@@ -4768,7 +4769,7 @@ void do_dbclean(dbref player, dbref cause, int key)
       sprintf(s_chkattr, "---> %10d/%10d attributes processed [%d %s]\r\n---> Completed!  %d total attributes have been %s.", 
                           i_walkie, i_max, i_del, ((key & DBCLEAN_CHECK) ? "would be deleted" : "deleted"),
                           i_cntr, ((key & DBCLEAN_CHECK) ? "verified deleteable" : "deleted") );
-      if ( d->hot.player == player ) {
+      if ( D_PLAYER(d) == player ) {
          queue_string(d, s_chkattr);
          queue_write(d, "\r\n", 2);
          process_output(d);
