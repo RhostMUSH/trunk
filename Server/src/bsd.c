@@ -107,10 +107,11 @@ int signal_depth;
 
 void populate_tor_seed(void)
 {
-   struct sockaddr_in *p_sock2;
+   struct sockaddr_in *p_sock4;
+   struct sockaddr_in6 *p_sock6;
    void *v_sock;
    struct addrinfo hints, *res, *p_res;
-   char ipstr[INET_ADDRSTRLEN + 1], *tbuff, *tbuff2, *tpr2, *strtok, *mystrtok_r;
+   char ipstr[INET6_ADDRSTRLEN + 1], *tbuff, *tbuff2, *tpr2, *strtok, *mystrtok_r;
    char *tok1, *tok2, *tok3, *tok4, *tokptr;
    int i_validip;
 
@@ -121,7 +122,7 @@ void populate_tor_seed(void)
 
    memset(&hints, 0, sizeof(hints));
    hints.ai_socktype = SOCK_STREAM;
-   hints.ai_family = AF_INET;
+   hints.ai_family = AF_UNSPEC;
 
    tbuff = alloc_lbuf("populate_tor_seed");
    tpr2 = tbuff2 = alloc_lbuf("populate_tor_seed2");
@@ -134,34 +135,48 @@ void populate_tor_seed(void)
    while ( strtok ) {
       if ((getaddrinfo(strtok, NULL, &hints, &res)) == 0) {
          for( p_res = res; p_res != NULL; p_res = p_res->ai_next) {
-            p_sock2 = (struct sockaddr_in *)p_res->ai_addr;
-            v_sock = &(p_sock2->sin_addr);
-   
-            inet_ntop(p_res->ai_family, v_sock, ipstr, sizeof(ipstr)-1);
-            tok1 = tok2 = tok3 = tok4 = NULL;
-            tok1 = strtok_r(ipstr, ".", &tokptr);
-            if ( tok1 ) {
-               tok2 = strtok_r(NULL, ".", &tokptr);
-               if ( tok2 ) {
-                  tok3 = strtok_r(NULL, ".", &tokptr);
-                  if ( tok3 ) {
-                     tok4 = strtok_r(NULL, ".", &tokptr);
+            if (p_res->ai_family == AF_INET) {
+               p_sock4 = (struct sockaddr_in *)p_res->ai_addr;
+               v_sock = &(p_sock4->sin_addr);
+               inet_ntop(AF_INET, v_sock, ipstr, sizeof(ipstr)-1);
+               tok1 = tok2 = tok3 = tok4 = NULL;
+               tok1 = strtok_r(ipstr, ".", &tokptr);
+               if ( tok1 ) {
+                  tok2 = strtok_r(NULL, ".", &tokptr);
+                  if ( tok2 ) {
+                     tok3 = strtok_r(NULL, ".", &tokptr);
+                     if ( tok3 ) {
+                        tok4 = strtok_r(NULL, ".", &tokptr);
+                     }
                   }
                }
+               if ( !tok4 ) {
+                  continue;
+               }
+               if ( i_validip )
+                  safe_chr(' ', tbuff2, &tpr2);
+               safe_str(tok4, tbuff2, &tpr2);
+               safe_chr('.', tbuff2, &tpr2);
+               safe_str(tok3, tbuff2, &tpr2);
+               safe_chr('.', tbuff2, &tpr2);
+               safe_str(tok2, tbuff2, &tpr2);
+               safe_chr('.', tbuff2, &tpr2);
+               safe_str(tok1, tbuff2, &tpr2);
+               i_validip = 1;
+            } else if (p_res->ai_family == AF_INET6) {
+               struct in6_addr addr6;
+               p_sock6 = (struct sockaddr_in6 *)p_res->ai_addr;
+               addr6 = p_sock6->sin6_addr;
+               if ( i_validip )
+                  safe_chr(' ', tbuff2, &tpr2);
+               int i;
+               for (i = 15; i >= 0; i--) {
+                  safe_str(unsafe_tprintf("%x.%x.", (addr6.s6_addr[i] >> 4) & 0xF, addr6.s6_addr[i] & 0xF), tbuff2, &tpr2);
+               }
+               *(tpr2 - 1) = '\0';
+               tpr2--;
+               i_validip = 1;
             }
-            if ( !tok4 ) {
-               continue;
-            }
-            if ( i_validip )
-               safe_chr(' ', tbuff2, &tpr2);
-            safe_str(tok4, tbuff2, &tpr2);
-            safe_chr('.', tbuff2, &tpr2);
-            safe_str(tok3, tbuff2, &tpr2);
-            safe_chr('.', tbuff2, &tpr2);
-            safe_str(tok2, tbuff2, &tpr2);
-            safe_chr('.', tbuff2, &tpr2);
-            safe_str(tok1, tbuff2, &tpr2);
-            i_validip = 1;
          }
          freeaddrinfo(res);
       }
@@ -181,84 +196,14 @@ void populate_tor_seed(void)
 }
 
 /*********************************************************************************************
- * 1. Need a mudstate.tor_ipaddr 1000 char buffer to house the tor-translated addresses
- * 2. Need to write a mudconf.tor_localhost to mudstate.tor_ipaddr cache routine
- * 3. Need to loop for each entry in tor_ipaddr for a tor lookup *bleh*
- * 4. This function needs re-arrangement to minimalize as much as we can on overhead
+ * check_tor_str: IPv6-aware Tor exitlist DNS checking.
+ * Generates reverse nibble PTR for IPv6, standard reverse for IPv4.
+ * Checks for `127.0.0.2` (IPv4) or `::2` (IPv6) response.
  */
-int check_tor(struct in_addr a_remote, int i_port) {
-   char *s_reverselocal, *s_reverseremote, *s_tordns, *tortok, *tortokptr,
-        *s_tmp, *s_tok1, *s_tok2, *s_tok3, *s_tok4, *s_tokptr, *s_tmp2,
-        ipstr[INET_ADDRSTRLEN + 1];
-   int i_found;
-   struct addrinfo hints, *res, *p_res;
-   struct sockaddr_in *p_sock2;
-   void *v_sock;
-
-   if ( !*(mudstate.tor_localcache) )
-      populate_tor_seed();
-
-
-   s_tmp           = alloc_lbuf("check_tor_local");
-   s_reverselocal  = alloc_sbuf("check_tor_1");
-   s_reverseremote = alloc_sbuf("check_tor_2");
-   s_tordns        = alloc_lbuf("check_tor_3");
-
-   memset(s_tmp, '\0', LBUF_SIZE);
-   strcpy(s_tmp, mudstate.tor_localcache);
-   tortok = strtok_r(s_tmp, " \t", &tortokptr);
-   i_found = 0;
-   while (tortok) {
-      sprintf(s_reverselocal, "%s", tortok);
-      s_tmp2 = inet_ntoa(a_remote);
-      s_tok1 = s_tok2 = s_tok3 = s_tok4 = NULL; 
-      s_tok1 = strtok_r(s_tmp2, ".", &s_tokptr);
-      if ( s_tok1 ) {
-         s_tok2 = strtok_r(NULL, ".", &s_tokptr);
-         if ( s_tok2 ) {
-            s_tok3 = strtok_r(NULL, ".", &s_tokptr);
-            if ( s_tok3 ) {
-               s_tok4 = strtok_r(NULL, ".", &s_tokptr);
-            }
-         }
-      }
-      if ( s_tok4 ) {
-         sprintf(s_reverseremote, "%s.%s.%s.%s", s_tok4, s_tok3, s_tok2, s_tok1);
-         sprintf(s_tordns, "%s.%d.%s.ip-port.exitlist.torproject.org", s_reverseremote, i_port, s_reverselocal);
-         memset(&hints, 0, sizeof(hints));
-         hints.ai_socktype = SOCK_STREAM;
-         hints.ai_family = AF_INET;
-         if ((getaddrinfo(s_tordns, NULL, &hints, &res)) == 0) {
-            memset(ipstr, '\0', sizeof(ipstr));
-            for( p_res = res; p_res != NULL; p_res = p_res->ai_next) {
-               p_sock2 = (struct sockaddr_in *)p_res->ai_addr;
-               v_sock = &(p_sock2->sin_addr);
-            
-               inet_ntop(p_res->ai_family, v_sock, ipstr, sizeof(ipstr)-1);
-               if ( strcmp(ipstr, "127.0.0.2") == 0 ) {
-                  i_found = 1;
-                  break;
-               }
-            }
-            freeaddrinfo(res);
-            if ( i_found )
-               break;
-         }
-      }
-      tortok = strtok_r(NULL, " \t", &tortokptr);
-   }
-    free_lbuf(s_tmp);
-    free_sbuf(s_reverselocal);
-    free_sbuf(s_reverseremote);
-    free_lbuf(s_tordns);
-
-    return i_found;
-}
-
 int check_tor_str(const char *addr_str, int addr_family, int i_port) {
    char *s_reverselocal, *s_reverseremote, *s_tordns, *tortok, *tortokptr,
         *s_tmp, *s_tok1, *s_tok2, *s_tok3, *s_tok4, *s_tokptr, *s_tmp2,
-        ipstr[INET_ADDRSTRLEN + 1];
+        ipstr[INET6_ADDRSTRLEN + 1];
    int i_found;
    struct addrinfo hints, *res, *p_res;
    struct sockaddr_in *p_sock2;
@@ -269,7 +214,7 @@ int check_tor_str(const char *addr_str, int addr_family, int i_port) {
 
    s_tmp           = alloc_lbuf("check_tor_local");
    s_reverselocal  = alloc_sbuf("check_tor_1");
-   s_reverseremote = alloc_sbuf("check_tor_2");
+   s_reverseremote = alloc_mbuf("check_tor_2");
    s_tordns        = alloc_lbuf("check_tor_3");
 
    memset(s_tmp, '\0', LBUF_SIZE);
@@ -1246,7 +1191,7 @@ addrout(const char *ip_str, int addr_family, int i_key)
             RETURN(hostname_buf);
         } else {
     	    logbuff = alloc_lbuf("bsd.addrout");
-            sprintf(logbuff, "%s %s", ip_str, (addr_family == AF_INET6) ? "/128" : "255.255.255.255");
+            snprintf(logbuff, LBUF_SIZE, "%s %s", ip_str, (addr_family == AF_INET6) ? "/128" : "255.255.255.255");
             cf_site((int *)&mudstate.special_list, logbuff,
                     (H_NODNS | H_AUTOSITE), 0, 1, "nodns_site");
             free_lbuf(logbuff);

@@ -84,7 +84,6 @@ extern void fun_objid(char *, char **, dbref, dbref, dbref, char **, int, char *
 extern CMDENT * lookup_command(char *);
 extern int process_hook(dbref, dbref, char *, ATTR *, int, int, char *);
 extern int encode_base64(const char *, int, char *, char **);
-extern int check_tor(struct in_addr, int);
 extern int check_tor_str(const char *, int, int);
 
 extern char * skip_mux_ansi(char *, char *, char **);
@@ -6859,6 +6858,7 @@ blacklist_check_str(const char *addr_str, int addr_family, int i_type)
    BLACKLIST *b_host;
    struct in_addr addr4, site4, mask4;
    struct in6_addr addr6, site6, mask6;
+   int effective_family;
 
    DPUSH;
    i_return = 0;
@@ -6888,19 +6888,31 @@ blacklist_check_str(const char *addr_str, int addr_family, int i_type)
    if (addr_family == AF_INET6) {
       if (inet_pton(AF_INET6, addr_str, &addr6) != 1)
          RETURN(0);
-   } else {
+      effective_family = AF_INET6;
+   } else if (addr_family == AF_INET) {
       addr4.s_addr = inet_addr(addr_str);
       if (addr4.s_addr == (in_addr_t)-1)
          RETURN(0);
+      effective_family = AF_INET;
+   } else {
+      /* addr_family == 0: legacy reboot entry, try both families */
+      addr4.s_addr = inet_addr(addr_str);
+      if (addr4.s_addr != (in_addr_t)-1) {
+         effective_family = AF_INET;
+      } else if (inet_pton(AF_INET6, addr_str, &addr6) == 1) {
+         effective_family = AF_INET6;
+      } else {
+         RETURN(0);
+      }
    }
 
     while ( b_host ) {
-       if (b_host->addr_family != addr_family && b_host->addr_family != 0) {
+       if (b_host->addr_family != effective_family && b_host->addr_family != 0) {
           b_host = b_host->next;
           continue;
        }
 
-      if (addr_family == AF_INET6) {
+      if (effective_family == AF_INET6) {
          if (inet_pton(AF_INET6, b_host->site_addr_str, &site6) != 1) {
             b_host = b_host->next;
             continue;
@@ -6998,6 +7010,7 @@ site_check_str(const char *addr_str, int addr_family, SITE *site_list, int stop,
    int rflag, rkey, i_found;
    struct in_addr addr4, site4, mask4;
    struct in6_addr addr6, site6, mask6;
+   int effective_family;
 
    DPUSH; /* #149 */
    rflag = i_found = 0;
@@ -7006,17 +7019,29 @@ site_check_str(const char *addr_str, int addr_family, SITE *site_list, int stop,
    if (addr_family == AF_INET6) {
       if (inet_pton(AF_INET6, addr_str, &addr6) != 1)
          RETURN(0);
-   } else {
+      effective_family = AF_INET6;
+   } else if (addr_family == AF_INET) {
       addr4.s_addr = inet_addr(addr_str);
       if (addr4.s_addr == (in_addr_t)-1)
          RETURN(0);
+      effective_family = AF_INET;
+   } else {
+      /* addr_family == 0: legacy reboot entry, try both families */
+      addr4.s_addr = inet_addr(addr_str);
+      if (addr4.s_addr != (in_addr_t)-1) {
+         effective_family = AF_INET;
+      } else if (inet_pton(AF_INET6, addr_str, &addr6) == 1) {
+         effective_family = AF_INET6;
+      } else {
+         RETURN(0);
+      }
    }
 
     for (this = site_list; this; this = this->next) {
-       if (this->addr_family != addr_family && this->addr_family != 0)
+       if (this->addr_family != effective_family && this->addr_family != 0)
           continue;
 
-      if (addr_family == AF_INET6) {
+      if (effective_family == AF_INET6) {
          if (inet_pton(AF_INET6, this->address_str, &site6) != 1)
             continue;
          if (strchr(this->mask_str, '/') != NULL) {
