@@ -2760,6 +2760,7 @@ main(int argc, char *argv[])
 
     pool_init(POOL_DESC_COLD, sizeof(DESC_COLD));
     pool_init(POOL_QENTRY, sizeof(BQUE));
+    pool_init(POOL_BQUE_COLD, sizeof(BQUE_COLD));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
 
     for (int i = 0; i < MAX_DESCRIPTORS; i++) {

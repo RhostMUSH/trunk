@@ -85,7 +85,7 @@ void execute_entry(BQUE *queue)
 	    mudstate.curr_enactor = queue->cause;
 	    mudstate.curr_player = player;
             mudstate.curr_pid = queue->pid;
-            strncpy(mudstate.curr_pidcmd, queue->comm, LBUF_SIZE - 1);
+            strncpy(mudstate.curr_pidcmd, Q_COMM(queue), LBUF_SIZE - 1);
             mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
 	    a_Queue(Owner(player), -1);
 	    queue->player = 0;
@@ -95,21 +95,21 @@ void execute_entry(BQUE *queue)
 		/* Load scratch args */
 
 		for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-		    if (queue->scr[i]) {
+		    if (Q_SCR(queue)[i]) {
 			strcpy(mudstate.global_regs[i],
-			       queue->scr[i]);
+			       Q_SCR(queue)[i]);
 		    } else {
 			*mudstate.global_regs[i] = '\0';
 		    }
-                    if ( queue->scrname[i]) {
+                    if ( Q_SCRNAME(queue)[i]) {
 			strcpy(mudstate.global_regsname[i],
-			       queue->scrname[i]);
+			       Q_SCRNAME(queue)[i]);
 		    } else {
 			*mudstate.global_regsname[i] = '\0';
 		    }
 		}
 
-		command = queue->comm;
+		command = Q_COMM(queue);
 		mudstate.breakst = 0;
 		mudstate.jumpst = 0;
 		memset(mudstate.gotolabel,'\0',16);
@@ -128,21 +128,21 @@ void execute_entry(BQUE *queue)
        		   }
     		}
 		i_nospace = mudstate.no_space_compress;
-		if ( (queue->bitwise_flags & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
+		if ( (Q_BITWISE(queue) & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
 			mudstate.no_space_compress = 1;
 		} 
                 cmd_bitmask = mudstate.cmd_bitmask;
-                mudstate.cmd_bitmask |= queue->bitwise_flags;
+                mudstate.cmd_bitmask |= Q_BITWISE(queue);
 		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
 			desc_in_use = NULL;
-			queue->bitwise_flags = 0;
+			Q_BITWISE(queue) = 0;
 			process_command(player,
 					queue->cause,
 					0, cp,
-					queue->env,
-					queue->nargs, queue->shellprg, queue->hooked_command, mudstate.no_space_compress);
+					Q_ENV(queue),
+					Q_NARGS(queue), Q_SHELLPRG(queue), Q_HOOKED(queue), mudstate.no_space_compress);
 		    }
 		}
 		mudstate.no_space_compress = i_nospace;
@@ -255,9 +255,10 @@ halt_que(dbref player, dbref object)
 		trail->next = next = point->next;
 	    else
 		mudstate.qwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	} else
 	    next = (trail = point)->next;
@@ -275,9 +276,10 @@ halt_que(dbref player, dbref object)
 	    if (point == mudstate.qsemlast)
 		mudstate.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	} else
 	    next = (trail = point)->next;
@@ -353,9 +355,10 @@ ind_pid_func(dbref player, int pid, int func)
 		trail->next = next = point->next;
 	    else
 		mudstate.qwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -388,9 +391,10 @@ ind_pid_func(dbref player, int pid, int func)
 	    if (point == mudstate.qsemlast)
 		mudstate.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -422,53 +426,54 @@ freeze_pid(dbref player, int pid, int key)
       for (point = mudstate.qwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
-	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
+HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    psave = Owner(point->player);
             freezepid = alloc_qentry("freeze_pid.qblock");
-            if (point->text) {
-               freezepid->text = (char *) malloc(point->text_len); 
-               freezepid->text_len = point->text_len;
-               memcpy((char *)freezepid->text, (char *)point->text, point->text_len);
+            freezepid->cold = alloc_bque_cold("freeze_pid.cold");
+            if (Q_TEXT(point)) {
+               Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
+               Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
+               memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
-               freezepid->text = NULL;
+               Q_TEXT(freezepid) = NULL;
             }
-            if (point->comm) {
-/*             freezepid->comm = (char *) malloc(strlen(point->comm) + 1);
-               strcpy((char *)freezepid->comm, (char *)point->comm); */
-               freezepid->comm = freezepid->text + (point->comm - point->text);
+            if (Q_COMM(point)) {
+/*             Q_COMM(freezepid) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+               strcpy((char *)Q_COMM(freezepid), (char *)Q_COMM(point)); */
+               Q_COMM(freezepid) = Q_TEXT(freezepid) + (Q_COMM(point) - Q_TEXT(point));
             } else {
-               freezepid->comm = NULL;
+               Q_COMM(freezepid) = NULL;
             }
             freezepid->waittime = point->waittime;
 
             for (a = 0; a < NUM_ENV_VARS; a++) {
-                if ( point->env[a] )
-                   freezepid->env[a] = freezepid->text + (point->env[a] - point->text);
+                if ( Q_ENV(point)[a] )
+                   Q_ENV(freezepid)[a] = Q_TEXT(freezepid) + (Q_ENV(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->env[a] = NULL;
+                   Q_ENV(freezepid)[a] = NULL;
             }
             for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                if ( point->scr[a] )
-                   freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
+                if ( Q_SCR(point)[a] )
+                   Q_SCR(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCR(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->scr[a] = NULL;
+                   Q_SCR(freezepid)[a] = NULL;
             }
             for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                if ( point->scrname[a] )
-                   freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
+                if ( Q_SCRNAME(point)[a] )
+                   Q_SCRNAME(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->scrname[a] = NULL;
+                   Q_SCRNAME(freezepid)[a] = NULL;
             }
-            freezepid->bitwise_flags = point->bitwise_flags;
+            Q_BITWISE(freezepid) = Q_BITWISE(point);
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
-            freezepid->nargs = point->nargs;
+            Q_NARGS(freezepid) = Q_NARGS(point);
             freezepid->pid = time(NULL);
-            freezepid->shellprg = point->shellprg;
+            Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
-            freezepid->hooked_command = point->hooked_command;
+            Q_HOOKED(freezepid) = Q_HOOKED(point);
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
             else
@@ -479,9 +484,10 @@ freeze_pid(dbref player, int pid, int key)
 		trail->next = next = point->next;
 	    else
 		mudstate.qwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -504,49 +510,50 @@ freeze_pid(dbref player, int pid, int key)
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    psave = Owner(point->player);
             freezepid = alloc_qentry("freeze_pid.qblock");
-            if (point->text) {
-               freezepid->text = (char *) malloc(point->text_len);
-               freezepid->text_len = point->text_len;
-               memcpy((char *)freezepid->text, (char *)point->text, point->text_len);
+            freezepid->cold = alloc_bque_cold("freeze_pid.cold");
+            if (Q_TEXT(point)) {
+               Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
+               Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
+               memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
-               freezepid->text = NULL;
+               Q_TEXT(freezepid) = NULL;
             }
-            if (point->comm) {
-/*             freezepid->comm = (char *) malloc(strlen(point->comm) + 1);
-               strcpy((char *)freezepid->comm, (char *)point->comm); */
-               freezepid->comm = freezepid->text + (point->comm - point->text);
+            if (Q_COMM(point)) {
+/*             Q_COMM(freezepid) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+               strcpy((char *)Q_COMM(freezepid), (char *)Q_COMM(point)); */
+               Q_COMM(freezepid) = Q_TEXT(freezepid) + (Q_COMM(point) - Q_TEXT(point));
             } else {
-               freezepid->comm = NULL;
+               Q_COMM(freezepid) = NULL;
             }
             freezepid->waittime = point->waittime;
             for (a = 0; a < NUM_ENV_VARS; a++) {
-                if ( point->env[a] )
-                   freezepid->env[a] = freezepid->text + (point->env[a] - point->text);
+                if ( Q_ENV(point)[a] )
+                   Q_ENV(freezepid)[a] = Q_TEXT(freezepid) + (Q_ENV(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->env[a] = NULL;
+                   Q_ENV(freezepid)[a] = NULL;
             }
             for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                if ( point->scr[a] )
-                   freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
+                if ( Q_SCR(point)[a] )
+                   Q_SCR(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCR(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->scr[a] = NULL;
+                   Q_SCR(freezepid)[a] = NULL;
             }
             for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                if ( point->scrname[a] )
-                   freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
+                if ( Q_SCRNAME(point)[a] )
+                   Q_SCRNAME(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                 else
-                   freezepid->scrname[a] = NULL;
+                   Q_SCRNAME(freezepid)[a] = NULL;
             }
-            freezepid->bitwise_flags = point->bitwise_flags;
+            Q_BITWISE(freezepid) = Q_BITWISE(point);
             freezepid->player = point->player;
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
-            freezepid->nargs = point->nargs;
+            Q_NARGS(freezepid) = Q_NARGS(point);
             freezepid->pid = time(NULL);
-            freezepid->shellprg = freezepid->shellprg;
+            Q_SHELLPRG(freezepid) = Q_SHELLPRG(freezepid);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
-            freezepid->hooked_command = point->hooked_command;
+            Q_HOOKED(freezepid) = Q_HOOKED(point);
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
             else
@@ -560,9 +567,10 @@ freeze_pid(dbref player, int pid, int key)
 	    if (point == mudstate.qsemlast)
 		mudstate.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -633,57 +641,59 @@ thaw_pid(dbref player, int pid, int key)
                badpid = 1;
             } else if ( !(key & THAW_DEL) ) {
                freezepid = alloc_qentry("thaw_pid.qblock");
-               if (point->text) {
-                  freezepid->text = (char *) malloc(point->text_len);
-                  freezepid->text_len = point->text_len;
-                  memcpy((char *)freezepid->text, (char *)point->text, point->text_len);
+               freezepid->cold = alloc_bque_cold("thaw_pid.cold");
+               if (Q_TEXT(point)) {
+                  Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
+                  Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
+                  memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
                } else {
-                  freezepid->text = NULL;
+                  Q_TEXT(freezepid) = NULL;
                }
-               if (point->comm) {
-/*                freezepid->comm = (char *) malloc(strlen(point->comm) + 1);
-                  strcpy((char *)freezepid->comm, (char *)point->comm); */
-                  freezepid->comm = freezepid->text + (point->comm - point->text);
+               if (Q_COMM(point)) {
+/*                Q_COMM(freezepid) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+                  strcpy((char *)Q_COMM(freezepid), (char *)Q_COMM(point)); */
+                  Q_COMM(freezepid) = Q_TEXT(freezepid) + (Q_COMM(point) - Q_TEXT(point));
                } else {
-                  freezepid->comm = NULL;
+                  Q_COMM(freezepid) = NULL;
                }
                freezepid->waittime = point->waittime - point->pid + time_ng(NULL);
                for (a = 0; a < NUM_ENV_VARS; a++) {
-                   if ( point->env[a] )
-                      freezepid->env[a] = freezepid->text + (point->env[a] - point->text);
+                   if ( Q_ENV(point)[a] )
+                      Q_ENV(freezepid)[a] = Q_TEXT(freezepid) + (Q_ENV(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->env[a] = NULL;
+                      Q_ENV(freezepid)[a] = NULL;
                }
                for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                   if ( point->scr[a] )
-                      freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
+                   if ( Q_SCR(point)[a] )
+                      Q_SCR(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCR(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->scr[a] = NULL;
+                      Q_SCR(freezepid)[a] = NULL;
                }
                for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                   if ( point->scrname[a] )
-                      freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
+                   if ( Q_SCRNAME(point)[a] )
+                      Q_SCRNAME(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->scrname[a] = NULL;
+                      Q_SCRNAME(freezepid)[a] = NULL;
                }
-               freezepid->bitwise_flags = point->bitwise_flags;
+               Q_BITWISE(freezepid) = Q_BITWISE(point);
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
-               freezepid->nargs = point->nargs;
-               freezepid->shellprg = point->shellprg;
+               Q_NARGS(freezepid) = Q_NARGS(point);
+               Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
-               freezepid->hooked_command = point->hooked_command;
+               Q_HOOKED(freezepid) = Q_HOOKED(point);
             }
 	    numhalted++;
 	    if (trail)
 		trail->next = next = point->next;
 	    else
 		mudstate.fqwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -711,52 +721,53 @@ thaw_pid(dbref player, int pid, int key)
                badpid = 1;
             } else if ( !(key & THAW_DEL) ) {
                freezepid = alloc_qentry("thaw_pid.qblock");
-               if (point->text) {
-                  freezepid->text = (char *) malloc(point->text_len);
-                  freezepid->text_len = point->text_len;
-                  memcpy((char *)freezepid->text, (char *)point->text, point->text_len);
+               freezepid->cold = alloc_bque_cold("thaw_pid.cold");
+               if (Q_TEXT(point)) {
+                  Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
+                  Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
+                  memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
                } else {
-                  freezepid->text = NULL;
+                  Q_TEXT(freezepid) = NULL;
                }
-               if (point->comm) {
-/*                freezepid->comm = (char *) malloc(strlen(point->comm) + 1);
-                  strcpy((char *)freezepid->comm, (char *)point->comm); */
-                  freezepid->comm = freezepid->text + (point->comm - point->text);
+               if (Q_COMM(point)) {
+/*                Q_COMM(freezepid) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+                  strcpy((char *)Q_COMM(freezepid), (char *)Q_COMM(point)); */
+                  Q_COMM(freezepid) = Q_TEXT(freezepid) + (Q_COMM(point) - Q_TEXT(point));
                } else {
-                  freezepid->comm = NULL;
+                  Q_COMM(freezepid) = NULL;
                }
                if ( point->waittime  != 0 )
                   freezepid->waittime = point->waittime - point->pid + time_ng(NULL);
                else
                   freezepid->waittime = 0;
                for (a = 0; a < NUM_ENV_VARS; a++) {
-                   if ( point->env[a] )
-                      freezepid->env[a] = freezepid->text + (point->env[a] - point->text);
+                   if ( Q_ENV(point)[a] )
+                      Q_ENV(freezepid)[a] = Q_TEXT(freezepid) + (Q_ENV(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->env[a] = NULL;
+                      Q_ENV(freezepid)[a] = NULL;
                }
                for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                   if ( point->scr[a] )
-                      freezepid->scr[a] = freezepid->text + (point->scr[a] - point->text);
+                   if ( Q_SCR(point)[a] )
+                      Q_SCR(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCR(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->scr[a] = NULL;
+                      Q_SCR(freezepid)[a] = NULL;
                }
                for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-                   if ( point->scrname[a] )
-                      freezepid->scrname[a] = freezepid->text + (point->scrname[a] - point->text);
+                   if ( Q_SCRNAME(point)[a] )
+                      Q_SCRNAME(freezepid)[a] = Q_TEXT(freezepid) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                    else
-                      freezepid->scrname[a] = NULL;
+                      Q_SCRNAME(freezepid)[a] = NULL;
                }
-               freezepid->bitwise_flags = point->bitwise_flags;
+               Q_BITWISE(freezepid) = Q_BITWISE(point);
                freezepid->player = point->player;
                freezepid->cause = point->cause;
                freezepid->sem = point->sem;
                freezepid->pid = point->pid;
-               freezepid->nargs = point->nargs;
-               freezepid->shellprg = point->shellprg;
+               Q_NARGS(freezepid) = Q_NARGS(point);
+               Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
-               freezepid->hooked_command = point->hooked_command;
+               Q_HOOKED(freezepid) = Q_HOOKED(point);
             }
 	    numhalted++;
 	    if (trail)
@@ -766,9 +777,10 @@ thaw_pid(dbref player, int pid, int key)
 	    if (point == mudstate.fqsemlast)
 		mudstate.fqsemlast = trail;
 	    add_to(point->sem, 1, A_SEMAPHORE);
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -837,8 +849,9 @@ thaw_pid(dbref player, int pid, int key)
            mudstate.qsemlast = freezepid; 
        }
     } else if ( tpid == -1 && (!(key & THAW_DEL) || badpid)) {
-	    if (freezepid->text)
-		free(freezepid->text);
+	    if (Q_TEXT(freezepid))
+		free(Q_TEXT(freezepid));
+	    free_bque_cold(freezepid->cold);
 	    free_qentry(freezepid);
     } else if ( key & THAW_DEL ) {
        numhalted = -1;
@@ -947,46 +960,47 @@ wait_que_pid(dbref player, int pid, int newwait)
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    psave = Owner(point->player);
             rewait = alloc_qentry("wait_que_pid.qblock");
-            if (point->text) {
-               rewait->text = (char *) malloc(point->text_len);
-               rewait->text_len = point->text_len;
-               memcpy((char *)rewait->text, (char *)point->text, point->text_len);
+            rewait->cold = alloc_bque_cold("wait_que_pid.cold");
+            if (Q_TEXT(point)) {
+               Q_TEXT(rewait) = (char *) malloc(Q_TEXT_LEN(point));
+               Q_TEXT_LEN(rewait) = Q_TEXT_LEN(point);
+               memcpy((char *)Q_TEXT(rewait), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
-               rewait->text = NULL;
+               Q_TEXT(rewait) = NULL;
             }
-            if (point->comm) {
-/*             rewait->comm = (char *) malloc(strlen(point->comm) + 1);
-               strcpy((char *)rewait->comm, (char *)point->comm); */
-               rewait->comm = rewait->text + (point->comm - point->text);
+            if (Q_COMM(point)) {
+/*             Q_COMM(rewait) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+               strcpy((char *)Q_COMM(rewait), (char *)Q_COMM(point)); */
+               Q_COMM(rewait) = Q_TEXT(rewait) + (Q_COMM(point) - Q_TEXT(point));
             } else {
-               rewait->comm = NULL;
+               Q_COMM(rewait) = NULL;
             }
             rewait->waittime = time(NULL) + newwait;
             for (a = 0; a < NUM_ENV_VARS; a++) {
-                if ( point->env[a] )
-                   rewait->env[a] = rewait->text + (point->env[a] - point->text);
+                if ( Q_ENV(point)[a] )
+                   Q_ENV(rewait)[a] = Q_TEXT(rewait) + (Q_ENV(point)[a] - Q_TEXT(point));
                 else
-                   rewait->env[a] = NULL;
+                   Q_ENV(rewait)[a] = NULL;
             }
             for (a = 0; a < MAX_GLOBAL_REGS; a++) {
-                if ( point->scr[a] )
-                   rewait->scr[a] = rewait->text + (point->scr[a] - point->text);
+                if ( Q_SCR(point)[a] )
+                   Q_SCR(rewait)[a] = Q_TEXT(rewait) + (Q_SCR(point)[a] - Q_TEXT(point));
                 else
-                   rewait->scr[a] = NULL;
+                   Q_SCR(rewait)[a] = NULL;
             }
             for (a = 0; a < MAX_GLOBAL_REGS; a++) {
-                if ( point->scrname[a] )
-                   rewait->scrname[a] = rewait->text + (point->scrname[a] - point->text);
+                if ( Q_SCRNAME(point)[a] )
+                   Q_SCRNAME(rewait)[a] = Q_TEXT(rewait) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                 else
-                   rewait->scrname[a] = NULL;
+                   Q_SCRNAME(rewait)[a] = NULL;
             }
-            rewait->bitwise_flags = point->bitwise_flags;
+            Q_BITWISE(rewait) = Q_BITWISE(point);
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
-            rewait->nargs = point->nargs;
+            Q_NARGS(rewait) = Q_NARGS(point);
             rewait->pid = point->pid;
-            rewait->shellprg = point->shellprg;
+            Q_SHELLPRG(rewait) = Q_SHELLPRG(point);
             rewait->stop_bool = point->stop_bool;
             rewait->stop_bool_val = newwait;
 	    numhalted++;
@@ -995,9 +1009,10 @@ wait_que_pid(dbref player, int pid, int newwait)
 		trail->next = next = point->next;
 	    else
 		mudstate.qwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -1020,46 +1035,47 @@ wait_que_pid(dbref player, int pid, int newwait)
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    psave = Owner(point->player);
             rewait = alloc_qentry("wait_que_pid.qblock");
-            if (point->text) {
-               rewait->text = (char *) malloc(point->text_len);
-               rewait->text_len = point->text_len;
-               memcpy((char *)rewait->text, (char *)point->text, point->text_len);
+            rewait->cold = alloc_bque_cold("wait_que_pid.cold");
+            if (Q_TEXT(point)) {
+               Q_TEXT(rewait) = (char *) malloc(Q_TEXT_LEN(point));
+               Q_TEXT_LEN(rewait) = Q_TEXT_LEN(point);
+               memcpy((char *)Q_TEXT(rewait), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
-               rewait->text = NULL;
+               Q_TEXT(rewait) = NULL;
             }
-            if (point->comm) {
-/*             rewait->comm = (char *) malloc(strlen(point->comm) + 1);
-               strcpy((char *)rewait->comm, (char *)point->comm); */
-               rewait->comm = rewait->text + (point->comm - point->text);
+            if (Q_COMM(point)) {
+/*             Q_COMM(rewait) = (char *) malloc(strlen(Q_COMM(point)) + 1);
+               strcpy((char *)Q_COMM(rewait), (char *)Q_COMM(point)); */
+               Q_COMM(rewait) = Q_TEXT(rewait) + (Q_COMM(point) - Q_TEXT(point));
             } else {
-               rewait->comm = NULL;
+               Q_COMM(rewait) = NULL;
             }
             rewait->waittime = time(NULL) + newwait;
             for (a = 0; a < NUM_ENV_VARS; a++) {
-                if ( point->env[a] )
-                   rewait->env[a] = rewait->text + (point->env[a] - point->text);
+                if ( Q_ENV(point)[a] )
+                   Q_ENV(rewait)[a] = Q_TEXT(rewait) + (Q_ENV(point)[a] - Q_TEXT(point));
                 else
-                   rewait->env[a] = NULL;
+                   Q_ENV(rewait)[a] = NULL;
             }
             for (a = 0; a < MAX_GLOBAL_REGS; a++) {
-                if ( point->scr[a] )
-                   rewait->scr[a] = rewait->text + (point->scr[a] - point->text);
+                if ( Q_SCR(point)[a] )
+                   Q_SCR(rewait)[a] = Q_TEXT(rewait) + (Q_SCR(point)[a] - Q_TEXT(point));
                 else
-                   rewait->scr[a] = NULL;
+                   Q_SCR(rewait)[a] = NULL;
             }
             for (a = 0; a < MAX_GLOBAL_REGS; a++) {
-                if ( point->scrname[a] )
-                   rewait->scrname[a] = rewait->text + (point->scrname[a] - point->text);
+                if ( Q_SCRNAME(point)[a] )
+                   Q_SCRNAME(rewait)[a] = Q_TEXT(rewait) + (Q_SCRNAME(point)[a] - Q_TEXT(point));
                 else
-                   rewait->scrname[a] = NULL;
+                   Q_SCRNAME(rewait)[a] = NULL;
             }
-            rewait->bitwise_flags = point->bitwise_flags;
+            Q_BITWISE(rewait) = Q_BITWISE(point);
             rewait->player = point->player;
             rewait->cause = point->cause;
             rewait->sem = point->sem;
-            rewait->nargs = point->nargs;
+            Q_NARGS(rewait) = Q_NARGS(point);
             rewait->pid = point->pid;
-            rewait->shellprg = point->shellprg;
+            Q_SHELLPRG(rewait) = Q_SHELLPRG(point);
             rewait->stop_bool = point->stop_bool;
             rewait->stop_bool_val = newwait;
 	    pid_table[point->pid] = 0;
@@ -1070,9 +1086,10 @@ wait_que_pid(dbref player, int pid, int newwait)
 		mudstate.qsemfirst = next = point->next;
 	    if (point == mudstate.qsemlast)
 		mudstate.qsemlast = trail;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -1137,7 +1154,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
-            point->bitwise_flags = 0;
+            Q_BITWISE(point) = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1158,7 +1175,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    psave = Owner(point->player);
 	    numhalted++;
 	    point->player = NOTHING;
-            point->bitwise_flags = 0;
+            Q_BITWISE(point) = 0;
 	    pid_table[point->pid] = 0;
 	    found = 1;
 	    break;
@@ -1200,9 +1217,10 @@ halt_que_pid(dbref player, int pid, int key)
 		trail->next = next = point->next;
 	    else
 		mudstate.qwait = next = point->next;
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -1249,9 +1267,10 @@ halt_que_pid(dbref player, int pid, int key)
 	    if (point == mudstate.qsemlast)
 		mudstate.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
-	    if (point->text)
-		free(point->text);
-            point->text=NULL;
+	    if (Q_TEXT(point))
+		free(Q_TEXT(point));
+            Q_TEXT(point)=NULL;
+	    free_bque_cold(point->cold);
 	    free_qentry(point);
 	    found = 1;
 	    break;
@@ -1296,7 +1315,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
-        point->bitwise_flags = 0;
+        Q_BITWISE(point) = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qlast = NULL;
@@ -1313,7 +1332,7 @@ halt_que_all(void)
 
 	numhalted++;
 	point->player = NOTHING;
-        point->bitwise_flags = 0;
+        Q_BITWISE(point) = 0;
 	pid_table[point->pid] = 0;
     }
     mudstate.qllast = NULL;
@@ -1326,10 +1345,11 @@ halt_que_all(void)
 	  giveto(point->player, mudconf.waitcost, NOTHING);
 	a_Queue(Owner(point->player), -1);
 	next = point->next;
-	if (point->text)
-	    free(point->text);
-        point->text=NULL;
-	free_qentry(point);
+	if (Q_TEXT(point))
+	    free(Q_TEXT(point));
+        Q_TEXT(point)=NULL;
+	free_bque_cold(point->cold);
+	    free_qentry(point);
 	mudstate.qwait = next;
 	numhalted++;
     }
@@ -1348,10 +1368,11 @@ halt_que_all(void)
 	a_Queue(Owner(point->player), -1);
 	next = point->next;
 	add_to(point->sem, -1, A_SEMAPHORE);
-	if (point->text)
-	    free(point->text);
-        point->text=NULL;
-	free_qentry(point);
+	if (Q_TEXT(point))
+	    free(Q_TEXT(point));
+        Q_TEXT(point)=NULL;
+	free_bque_cold(point->cold);
+	    free_qentry(point);
 	mudstate.qsemfirst = next;
 	numhalted++;
     }
@@ -1512,11 +1533,12 @@ nfy_que(dbref sem, int key, int count, int pid_val)
 			   mudconf.waitcost, NOTHING);
 		    a_Queue(Owner(point->player), -1);
 		  }
-		    if (point->text)
-			free(point->text);
-                    point->text=NULL;
+		    if (Q_TEXT(point))
+			free(Q_TEXT(point));
+                    Q_TEXT(point)=NULL;
 		    pid_table[point->pid] = 0;
-		    free_qentry(point);
+		    free_bque_cold(point->cold);
+	    free_qentry(point);
 		}
 	    } else {
 		next = (trail = point)->next;
@@ -1710,34 +1732,35 @@ setup_que(dbref player, dbref cause, char *command,
     /* Create the queue entry and load the save string */
 
     tmp = alloc_qentry("setup_que.qblock");
+    tmp->cold = alloc_bque_cold("setup_que.cold");
     pid_table[tpid] = 1;
     last_pid = tpid;
     tmp->pid = tpid;
-    tmp->comm = NULL;
+    Q_COMM(tmp) = NULL;
     for (a = 0; a < NUM_ENV_VARS; a++) {
-	tmp->env[a] = NULL;
+	Q_ENV(tmp)[a] = NULL;
     }
     for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-	tmp->scr[a] = NULL;
+	Q_SCR(tmp)[a] = NULL;
     }
     for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-	tmp->scrname[a] = NULL;
+	Q_SCRNAME(tmp)[a] = NULL;
     }
 
-    tptr = tmp->text = (char *) malloc(tlen);
-    tmp->text_len = tlen;
+    tptr = Q_TEXT(tmp) = (char *) malloc(tlen);
+    Q_TEXT_LEN(tmp) = tlen;
     if (!tptr)
 	abort();
 
     if (command) {
 	strcpy(tptr, command);
-	tmp->comm = tptr;
+	Q_COMM(tmp) = tptr;
 	tptr += (strlen(command) + 1);
     }
     for (a = 0; a < nargs; a++) {
 	if (args[a]) {
 	    strcpy(tptr, args[a]);
-	    tmp->env[a] = tptr;
+	    Q_ENV(tmp)[a] = tptr;
 	    tptr += (strlen(args[a]) + 1);
 	}
     }
@@ -1745,7 +1768,7 @@ setup_que(dbref player, dbref cause, char *command,
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a]) {
 		strcpy(tptr, sargs[a]);
-		tmp->scr[a] = tptr;
+		Q_SCR(tmp)[a] = tptr;
 		tptr += (strlen(sargs[a]) + 1);
 	    }
 	}
@@ -1754,30 +1777,30 @@ setup_que(dbref player, dbref cause, char *command,
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a]) {
 		strcpy(tptr, sargsname[a]);
-		tmp->scrname[a] = tptr;
+		Q_SCRNAME(tmp)[a] = tptr;
 		tptr += (strlen(sargsname[a]) + 1);
 	    }
 	}
     }
     /* Load the rest of the queue block */
 
-    tmp->bitwise_flags = 0;
+    Q_BITWISE(tmp) = 0;
     if ( mudstate.no_space_compress )
-       tmp->bitwise_flags |= PREPARSE_RAW;
-    tmp->bitwise_flags |= mudstate.cmd_bitmask;
+       Q_BITWISE(tmp) |= PREPARSE_RAW;
+    Q_BITWISE(tmp) |= mudstate.cmd_bitmask;
     tmp->player = player;
     tmp->waittime = 0;
     tmp->next = NULL;
     tmp->sem = NOTHING;
     tmp->cause = cause;
-    tmp->nargs = nargs;
+    Q_NARGS(tmp) = nargs;
     tmp->stop_bool = 0;
     tmp->stop_bool_val = 0;
-    tmp->hooked_command = mudstate.no_hook;
+    Q_HOOKED(tmp) = mudstate.no_hook;
     if ( InProgram(player) )
-       tmp->shellprg = 1;
+       Q_SHELLPRG(tmp) = 1;
     else
-       tmp->shellprg = 0;
+       Q_SHELLPRG(tmp) = 0;
     return tmp;
 }
 
@@ -2262,9 +2285,10 @@ do_top(int ncmds)
 	mudstate.qfirst = mudstate.qfirst->next;
 	if (!mudstate.qfirst)
 	    mudstate.qlast = NULL;
-	if (tmp->text)
-	    free(tmp->text);
-	free_qentry(tmp);
+	if (Q_TEXT(tmp))
+	    free(Q_TEXT(tmp));
+	free_bque_cold(tmp->cold);
+	    free_qentry(tmp);
         mudstate.curr_cmd = (char *) "";
     }
 
@@ -2369,7 +2393,7 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
    if ( key & 32 ) {
       if ( do_sep )
          safe_chr('|', buff, bufcx);
-      safe_str(tmp->comm, buff, bufcx);
+      safe_str(Q_COMM(tmp), buff, bufcx);
    }
 }
 
@@ -2546,7 +2570,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       tmp->sem,
                                mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
-			       bufp, tmp->comm));
+			       bufp, Q_COMM(tmp)));
 	    else if (tmp->waittime > 0)
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
@@ -2554,26 +2578,26 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                                stop_chr,
                                mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
-			       bufp, tmp->comm));
+			       bufp, Q_COMM(tmp)));
 	    else if (Good_obj(tmp->sem))
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, tmp->sem,
-			       bufp, tmp->comm));
+			       bufp, Q_COMM(tmp)));
 	    else
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid, stop_chr, bufp, tmp->comm));
+                               tmp->pid, stop_chr, bufp, Q_COMM(tmp)));
 	    bp = bufp;
 	    if (key == PS_LONG) {
-		for (i = 0; i < (tmp->nargs); i++) {
-		    if (tmp->env[i] != NULL) {
+		for (i = 0; i < (Q_NARGS(tmp)); i++) {
+		    if (Q_ENV(tmp)[i] != NULL) {
 			safe_str((char *) "; Arg",
 				 bufp, &bp);
 			safe_chr(i + '0', bufp, &bp);
 			safe_str((char *) "='",
 				 bufp, &bp);
-			safe_str(tmp->env[i],
+			safe_str(Q_ENV(tmp)[i],
 				 bufp, &bp);
 			safe_chr('\'', bufp, &bp);
 		    }
@@ -2581,7 +2605,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 		*bp = '\0';
 		bp = unparse_object2(player, tmp->cause, 0);
                 tprp_buff = tpr_buff;
-		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", tmp->bitwise_flags, bp, bufp));
+		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", Q_BITWISE(tmp), bp, bufp));
 		free_lbuf(bp);
 	    }
 	    free_lbuf(bufp);

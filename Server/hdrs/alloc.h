@@ -15,7 +15,8 @@
 #define POOL_ATRCACHE   7
 #define POOL_ATRNAME    8
 #define POOL_DESC_COLD  9
-#define	NUM_POOLS       10 
+#define POOL_BQUE_COLD  10
+#define	NUM_POOLS       11 
 
 
 #ifndef GDBM
@@ -77,6 +78,8 @@ extern int      FDECL(getBufferSize, (char *));
 #define	free_bool(b)	pool_free(POOL_BOOL,((char **)&(b)),__LINE__,__FILE__)
 #define	alloc_qentry(s)	(BQUE *)pool_alloc(POOL_QENTRY,s,__LINE__,__FILE__)
 #define	free_qentry(b)	pool_free(POOL_QENTRY,((char **)&(b)),__LINE__,__FILE__)
+#define alloc_bque_cold(s) (BQUE_COLD *)pool_alloc(POOL_BQUE_COLD,s,__LINE__,__FILE__)
+#define free_bque_cold(b) pool_free(POOL_BQUE_COLD,((char **)&(b)),__LINE__,__FILE__)
 #define alloc_pcache(s)	(PCACHE *)pool_alloc(POOL_PCACHE,s,__LINE__,__FILE__)
 #define free_pcache(b)	pool_free(POOL_PCACHE,((char **)&(b)),__LINE__,__FILE__)
 #define alloc_zlistnode(s)	(ZLISTNODE *)pool_alloc(POOL_ZLISTNODE,s,__LINE__,__FILE__)
@@ -99,6 +102,8 @@ extern int      FDECL(getBufferSize, (char *));
 #define	free_bool(b)	if (b) free(b)
 #define	alloc_qentry(s)	(BQUE *)malloc(sizeof(BQUE))
 #define	free_qentry(b)	if (b) free(b)
+#define alloc_bque_cold(s) (BQUE_COLD *)malloc(sizeof(BQUE_COLD))
+#define free_bque_cold(b) if (b) free(b)
 #define	alloc_pcache(s)	(PCACHE *)malloc(sizeof(PCACHE))
 #define free_pcache(b)	if (b) free(b)
 #define	alloc_zlistnode(s)	(ZLISTNODE *)malloc(sizeof(ZLISTNODE))

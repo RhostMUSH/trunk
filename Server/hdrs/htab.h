@@ -72,30 +72,55 @@ struct name_table {
 	unsigned int	flag;
 };
 
-/* BQUE - Command queue */
+/* BQUE - Command queue - Hot/Cold split for cache efficiency.
+ *
+ * BQUE (~56 bytes, 1 cache line) contains hot fields accessed during
+ * queue traversal (do_second, halt_que, etc.):
+ *   next, player, cause, sem, waittime, pid, stop_bool, stop_bool_val, plr_type
+ *
+ * BQUE_COLD (~692 bytes) contains fields accessed only during command execution:
+ *   text, comm, env[], scr[], scrname[], nargs, shellprg, text_len, etc.
+ */
+
+typedef struct bque_cold BQUE_COLD;
+struct bque_cold {
+	char	*text;
+	char	*comm;
+	char	*env[NUM_ENV_VARS];
+	char	*scr[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+	char	*scrname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+	int	nargs;
+	int	shellprg;
+	int	text_len;
+	int	hooked_command;
+	int	bitwise_flags;
+};
 
 typedef struct bque BQUE;
 struct bque {
 	BQUE	*next;
-	dbref	player;		/* player who will do command */
-	dbref	cause;		/* player causing command (for %N) */
-	dbref	sem;		/* blocking semaphore */
-	double	waittime;	/* time to run command */
-	char	*text;		/* buffer for comm, env, and scr text */
-	char	*comm;		/* command */
-	char	*env[NUM_ENV_VARS];	/* environment vars */
-	char	*scr[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* temp vars */
-        char    *scrname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST]; /* Temp names */
-	int	nargs;		/* How many args I have */
+	dbref	player;
+	dbref	cause;
+	dbref	sem;
+	double	waittime;
 	int	pid;
-	int	stop_bool;	/* Boolean if we are to stop the process */
-	double	stop_bool_val;	/* time in seconds.milliseconds it was stopped */
-        int     shellprg;        /* Did you shell from the program */
-	int	plr_type;	/* Type of player - used only in freeze/thaw */
-        int     text_len;       /* Size of text length */
-	int	hooked_command;	/* Is command hooked ? */
-	int	bitwise_flags;	/* The list of bitwise flags to pass like space compress */
+	int	stop_bool;
+	double	stop_bool_val;
+	int	plr_type;
+	BQUE_COLD *cold;
 };
+
+/* BQUE cold accessor macros */
+#define Q_TEXT(d)       ((d)->cold->text)
+#define Q_COMM(d)       ((d)->cold->comm)
+#define Q_ENV(d)        ((d)->cold->env)
+#define Q_SCR(d)        ((d)->cold->scr)
+#define Q_SCRNAME(d)    ((d)->cold->scrname)
+#define Q_NARGS(d)      ((d)->cold->nargs)
+#define Q_SHELLPRG(d)   ((d)->cold->shellprg)
+#define Q_TEXT_LEN(d)   ((d)->cold->text_len)
+#define Q_HOOKED(d)     ((d)->cold->hooked_command)
+#define Q_BITWISE(d)    ((d)->cold->bitwise_flags)
 
 
 extern void	FDECL(real_hashinit, (HASHTAB *, int, const char *, int));

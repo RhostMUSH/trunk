@@ -150,6 +150,7 @@ pool_check(const char *tag, int line_num, char *file_name)
     pool_vfy(POOL_BOOL, tag, line_num, file_name);
     pool_vfy(POOL_DESC_COLD, tag, line_num, file_name);
     pool_vfy(POOL_QENTRY, tag, line_num, file_name);
+    pool_vfy(POOL_BQUE_COLD, tag, line_num, file_name);
     pool_vfy(POOL_ZLISTNODE, tag, line_num, file_name);
     pool_vfy(POOL_ATRCACHE, tag, line_num, file_name);
     pool_vfy(POOL_ATRNAME, tag, line_num, file_name);
