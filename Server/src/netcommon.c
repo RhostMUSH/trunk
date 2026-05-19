@@ -1201,11 +1201,13 @@ int load_reboot_db( void )
     if( !fread(&d->hot, i_hot_read, 1, rebootfile) ||
         !fread(d->cold, i_cold_read, 1, rebootfile) ) {
       if( feof(rebootfile) ) {
+        free_desc(d);
         break;
       }
       STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
         log_text((char *) "Error reading from reboot file.");
       ENDLOG
+      free_desc(d);
       fclose(rebootfile);
       RETURN(0); /* #108 */
     }
