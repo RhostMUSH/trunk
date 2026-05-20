@@ -51,6 +51,69 @@ char *index(const char *, int);
 extern int ndescriptors;
 extern int FDECL(alarm_msec, (double));
 
+/* ---------------------------------------------------------------------------
+ * DESC_OLD — Legacy descriptor struct for reboot format migration.
+ * Exact replica of struct descriptor_data from pre hot/cold split (interface.old:167-222).
+ * Used only in load_reboot_db() to read old-format .reboot files and migrate to v3.
+ */
+typedef struct desc_old DESC_OLD;
+struct desc_old {
+    int descriptor;
+    int flags;
+    int retries_left;
+    int regtries_left;
+    int command_count;
+    int timeout;
+    int host_info;
+    char addr[51];
+    char doing[256];
+    dbref player;
+    char *output_prefix;
+    char *output_suffix;
+    int output_size;
+    int output_tot;
+    int output_lost;
+    TBLOCK *output_head;
+    TBLOCK *output_tail;
+    int input_size;
+    int input_tot;
+    int input_lost;
+    CBLK *input_head;
+    CBLK *input_tail;
+    CBLK *raw_input;
+    char *raw_input_at;
+    time_t connected_at;
+    time_t last_time;
+    int quota;
+    struct sockaddr_in address;
+    struct descriptor_data *hashnext;
+    struct descriptor_data *next;
+    struct descriptor_data **prev;
+    struct SNOOPLISTNODE *snooplist;
+    int logged;
+    int authdescriptor;
+    char userid[MBUF_SIZE];
+    int door_desc;
+    int door_num;
+    TBLOCK *door_output_head;
+    TBLOCK *door_output_tail;
+    int door_output_size;
+    CBLK *door_input_head;
+    CBLK *door_input_tail;
+    int door_int1;
+    int door_int2;
+    int door_int3;
+    char *door_lbuf;
+    char *door_mbuf;
+    char *door_raw;
+    char checksum[WEBSOCKETS_CHECKSUM_LEN + 1];
+    long ws_frame_len;
+    dbref account_owner;
+    char account_rawpass[100];
+    char longaddr[256];
+    int longaddrcheck;
+};
+
 
 /* Logged out command table definitions */
 
@@ -1104,11 +1167,13 @@ int dump_reboot_db( void )
 int load_reboot_db( void )
 {
   DESC* d;
-  FILE* rebootfile = NULL, *suffixfile = NULL;
-  char rebootfilename[32 + 8], suffixfilename[32 + 8], *s_text, *s_god;
+  FILE* rebootfile = NULL, *suffixfile = NULL, *sizefile = NULL;
+  char rebootfilename[32 + 8], suffixfilename[32 + 8], rebootsizeref[32 + 8], *s_text, *s_god;
   int i_prefix, i_suffix, i_fxchk;
   int i_file_hot_size, i_file_cold_size;
   int i_cold_read;
+  int i_is_old_format = 0;
+  int i_old_descsize = 0;
 
   DPUSH; /* #108 */
 
@@ -1120,8 +1185,10 @@ int load_reboot_db( void )
 
   strcpy(rebootfilename, mudconf.muddb_name);
   strcpy(suffixfilename, mudconf.muddb_name);
+  strcpy(rebootsizeref, mudconf.muddb_name);
   strcat(rebootfilename, ".reboot");
   strcat(suffixfilename, ".fx");
+  strcat(rebootsizeref, ".size");
 
   rebootfile = fopen(rebootfilename, "rb");
   if( !rebootfile ) {
@@ -1131,9 +1198,28 @@ int load_reboot_db( void )
     RETURN(0); /* #108 */
   }
 
+  /* Detect old format: if .size file exists, it's pre hot/cold split */
+  sizefile = fopen(rebootsizeref, "rb");
+  if ( sizefile ) {
+     if ( !fread(&i_old_descsize, sizeof(i_old_descsize), 1, sizefile) ) {
+        STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+           log_text((char *) "Error reading DESC SIZE file. Assuming baseline DESC.");
+        ENDLOG
+        i_old_descsize = sizeof(DESC_OLD);
+     }
+     fclose(sizefile);
+     sizefile = NULL;
+     if ( i_old_descsize < (int)sizeof(DESC_OLD) ) {
+        i_old_descsize = sizeof(DESC_OLD);
+     }
+     i_is_old_format = 1;
+     STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
+       log_text((char *) "Detected legacy reboot format (pre hot/cold split). Migrating to v3.");
+     ENDLOG
+  }
 
   suffixfile = fopen(suffixfilename, "rb");
-  if ( !suffixfile ) 
+  if ( !suffixfile )
      i_fxchk = 1;
 
   if( !fread(&(mudconf.who_default), sizeof(mudconf.who_default), 1, rebootfile) ) {
@@ -1143,7 +1229,7 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
   if( !fread(&(mudstate.start_time), sizeof(mudstate.start_time), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Error reading from reboot file.");
@@ -1151,7 +1237,7 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
   if( !fread(&(mudstate.mushflat_time), sizeof(mudstate.mushflat_time), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Error reading from reboot file.");
@@ -1159,7 +1245,7 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
   if( !fread(&(mudstate.newsflat_time), sizeof(mudstate.newsflat_time), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Error reading from reboot file.");
@@ -1167,7 +1253,7 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
   if( !fread(&(mudstate.mailflat_time), sizeof(mudstate.mailflat_time), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Error reading from reboot file.");
@@ -1175,7 +1261,7 @@ int load_reboot_db( void )
     fclose(rebootfile);
     if ( !i_fxchk ) fclose(suffixfile);
     RETURN(0); /* #108 */
-  } 
+  }
   if( !fread(&(mudstate.aregflat_time), sizeof(mudstate.aregflat_time), 1, rebootfile) ) {
     STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
       log_text((char *) "Error reading from reboot file.");
@@ -1185,119 +1271,249 @@ int load_reboot_db( void )
     RETURN(0); /* #108 */
   }
 
-  int i_reboot_version = 0;
-  if( !fread(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
-      !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
-      !fread(&i_file_cold_size, sizeof(i_file_cold_size), 1, rebootfile) ) {
-    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-      log_text((char *) "Error reading reboot file header.");
-    ENDLOG
-    fclose(rebootfile);
-    if ( !i_fxchk ) fclose(suffixfile);
-    RETURN(0); /* #108 */
+  if ( i_is_old_format ) {
+     /* Legacy format: no version marker, descriptors are raw binary structs */
+     i_prefix = mkattr("____OUTPUTPREFIX");
+     i_suffix = mkattr("____OUTPUTSUFFIX");
+     s_text = alloc_lbuf("reboot_fx");
+
+     while(!feof(rebootfile)) {
+        DESC_OLD old_desc;
+        memset(&old_desc, 0, sizeof(old_desc));
+
+        if( !fread(&old_desc, i_old_descsize, 1, rebootfile) ) {
+           if( feof(rebootfile) ) {
+              break;
+           }
+           STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+             log_text((char *) "Error reading from reboot file (legacy format).");
+           ENDLOG
+           fclose(rebootfile);
+           if ( !i_fxchk ) fclose(suffixfile);
+           free_lbuf(s_text);
+           RETURN(0); /* #108 */
+        }
+
+        /* Skip empty/invalid descriptors */
+        if ( old_desc.descriptor < 0 ) {
+           continue;
+        }
+
+        d = alloc_desc("reboot_migrate");
+        if (!d) {
+           STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+             log_text((char *) "Too many descriptors in reboot file for current MAX_DESCRIPTORS. Skipping excess connections.");
+           ENDLOG
+           break;
+        }
+
+        /* Map hot fields */
+        D_DESCRIPTOR(d) = old_desc.descriptor;
+        D_FLAGS(d) = old_desc.flags;
+        D_QUOTA(d) = old_desc.quota;
+        D_HOST_INFO(d) = old_desc.host_info;
+        D_PLAYER(d) = old_desc.player;
+        D_INPUT_HEAD(d) = old_desc.input_head;   /* stale pointer, nulled below */
+        D_INPUT_TAIL(d) = old_desc.input_tail;   /* stale pointer, nulled below */
+        D_OUTPUT_HEAD(d) = old_desc.output_head; /* stale pointer, nulled below */
+        D_OUTPUT_TAIL(d) = old_desc.output_tail; /* stale pointer, nulled below */
+        D_INPUT_TOT(d) = old_desc.input_tot;
+        D_INPUT_SIZE(d) = old_desc.input_size;
+        D_OUTPUT_TOT(d) = old_desc.output_tot;
+        D_OUTPUT_SIZE(d) = old_desc.output_size;
+        D_LAST_TIME(d) = old_desc.last_time;
+
+        /* Map cold fields via memcpy for contiguous arrays and scalars */
+        memcpy(d->cold->addr, old_desc.addr, sizeof(old_desc.addr));
+        memcpy(d->cold->doing, old_desc.doing, sizeof(old_desc.doing));
+        memcpy(d->cold->userid, old_desc.userid, sizeof(old_desc.userid));
+        memcpy(d->cold->longaddr, old_desc.longaddr, sizeof(old_desc.longaddr));
+        memcpy(d->cold->account_rawpass, old_desc.account_rawpass, sizeof(old_desc.account_rawpass));
+        memcpy(d->cold->checksum, old_desc.checksum, sizeof(old_desc.checksum));
+        d->cold->retries_left = old_desc.retries_left;
+        d->cold->regtries_left = old_desc.regtries_left;
+        d->cold->command_count = old_desc.command_count;
+        d->cold->timeout = old_desc.timeout;
+        d->cold->output_lost = old_desc.output_lost;
+        d->cold->input_lost = old_desc.input_lost;
+        d->cold->logged = old_desc.logged;
+        d->cold->authdescriptor = old_desc.authdescriptor;
+        d->cold->longaddrcheck = old_desc.longaddrcheck;
+        d->cold->ws_frame_len = old_desc.ws_frame_len;
+        d->cold->connected_at = old_desc.connected_at;
+        d->cold->account_owner = old_desc.account_owner;
+        memcpy(&d->cold->address, &old_desc.address, sizeof(old_desc.address));
+
+        /* Old format was IPv4-only */
+        d->cold->addr_family = AF_INET;
+        d->cold->remote_port = 0;
+
+        /* Null all stale pointers from old process */
+        d->cold->output_prefix = NULL;
+        d->cold->output_suffix = NULL;
+        d->cold->raw_input = NULL;
+        d->cold->raw_input_at = NULL;
+        d->cold->snooplist = NULL;
+        d->cold->door_lbuf = NULL;
+        d->cold->door_mbuf = NULL;
+        d->cold->door_raw = NULL;
+        d->cold->door_output_head = NULL;
+        d->cold->door_output_tail = NULL;
+        d->cold->door_input_head = NULL;
+        d->cold->door_input_tail = NULL;
+
+        /* Read prefix/suffix from .fx file */
+        if ( (i_prefix > 0) && (old_desc.flags & DS_HAVEpFX) && Good_chk(old_desc.player) ) {
+           if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
+              set_userstring(&d->cold->output_prefix, s_text);
+        }
+        if ( (i_suffix > 0) && Good_chk(old_desc.player) && (old_desc.flags & DS_HAVEsFX) ) {
+           if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
+              set_userstring(&d->cold->output_suffix, s_text);
+        }
+
+        /* Clear transient state */
+        D_FLAGS(d) &= ~(DS_HAVEpFX|DS_HAVEsFX);
+        D_OUTPUT_SIZE(d) = 0;
+        D_OUTPUT_HEAD(d) = NULL;
+        D_OUTPUT_TAIL(d) = NULL;
+        D_INPUT_SIZE(d) = 0;
+        D_INPUT_HEAD(d) = NULL;
+        D_INPUT_TAIL(d) = NULL;
+        d->cold->door_desc = 0;
+        d->cold->door_output_size = 0;
+        d->cold->snooplist = NULL;
+        d->cold->logged = 0;
+
+        ndescriptors++;
+        ndesc_slots++;
+
+        s_Connected(D_PLAYER(d));
+        STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
+          log_text((char*) "Reconnecting (migrated): ");
+          log_name(D_PLAYER(d));
+        ENDLOG
+        mudstate.recordcurrconn++;
+     }
+     free_lbuf(s_text);
+     /* Clean up legacy .size file */
+     unlink(rebootsizeref);
+  } else {
+     /* v3 format: read version marker and sizes */
+     int i_reboot_version = 0;
+     if( !fread(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
+         !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
+         !fread(&i_file_cold_size, sizeof(i_file_cold_size), 1, rebootfile) ) {
+       STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+         log_text((char *) "Error reading reboot file header.");
+       ENDLOG
+       fclose(rebootfile);
+       if ( !i_fxchk ) fclose(suffixfile);
+       RETURN(0); /* #108 */
+     }
+     (void)i_file_hot_size; /* read for file position, not used in v3 */
+
+     if ( i_reboot_version != 3 ) {
+       STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+         log_text((char *) "Reboot file format is not v3 (SoA) and no legacy .size file found. Cannot load. Delete .reboot file and restart.");
+       ENDLOG
+       fclose(rebootfile);
+       if ( !i_fxchk ) fclose(suffixfile);
+       RETURN(0); /* #108 */
+     }
+
+     if ( i_file_cold_size > sizeof(DESC_COLD) ) {
+       STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+         log_text((char *) "Reboot file DESC_COLD struct is larger than current. Cannot load safely.");
+       ENDLOG
+       fclose(rebootfile);
+       if ( !i_fxchk ) fclose(suffixfile);
+       RETURN(0); /* #108 */
+     }
+
+     i_cold_read = (i_file_cold_size < sizeof(DESC_COLD)) ? i_file_cold_size : sizeof(DESC_COLD);
+
+     i_prefix = mkattr("____OUTPUTPREFIX");
+     i_suffix = mkattr("____OUTPUTSUFFIX");
+     s_text = alloc_lbuf("reboot_fx");
+     while(!feof(rebootfile)) {
+       d = alloc_desc("reboot_sock");
+       if (!d) {
+         STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+           log_text((char *) "Too many descriptors in reboot file for current MAX_DESCRIPTORS. Skipping excess connections.");
+         ENDLOG
+         break;
+       }
+       /* Read hot fields individually (SoA format v3) */
+       if( !fread(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+           !fread(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
+           !fread(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
+           !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
+           !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
+           !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
+           !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
+           !fread(d->cold, i_cold_read, 1, rebootfile) ) {
+         if( feof(rebootfile) ) {
+           free_desc(d);
+           break;
+         }
+         STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
+           log_text((char *) "Error reading from reboot file.");
+         ENDLOG
+         free_desc(d);
+         fclose(rebootfile);
+         RETURN(0); /* #108 */
+       }
+       d->cold->output_prefix = NULL;
+       if ( (i_prefix > 0) && (D_FLAGS(d) & DS_HAVEpFX) && Good_chk(D_PLAYER(d)) ) {
+          if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
+             set_userstring(&d->cold->output_prefix, s_text);
+       }
+       d->cold->output_suffix = NULL;
+       if ( (i_suffix > 0) && Good_chk(D_PLAYER(d)) && (D_FLAGS(d) & DS_HAVEsFX) ) {
+          if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
+             set_userstring(&d->cold->output_suffix, s_text);
+       }
+       D_FLAGS(d) &= ~(DS_HAVEpFX|DS_HAVEsFX);
+       D_OUTPUT_SIZE(d) = 0;
+       D_OUTPUT_HEAD(d) = NULL;
+       D_OUTPUT_TAIL(d) = NULL;
+       D_INPUT_SIZE(d) = 0;
+       D_INPUT_HEAD(d) = NULL;
+       D_INPUT_TAIL(d) = NULL;
+       d->cold->door_desc = 0;
+       d->cold->door_output_head = NULL;
+       d->cold->door_output_tail = NULL;
+       d->cold->door_input_head = NULL;
+       d->cold->door_input_tail = NULL;
+       d->cold->door_raw = NULL;
+       d->cold->door_output_size = 0;
+       d->cold->door_lbuf = NULL;
+       d->cold->door_mbuf = NULL;
+       d->cold->raw_input = NULL;
+       d->cold->raw_input_at = NULL;
+       d->cold->snooplist = NULL;
+       d->cold->logged = 0;
+
+       ndescriptors++;
+       ndesc_slots++;
+
+       s_Connected(D_PLAYER(d));
+       STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
+         log_text((char*) "Reconnecting: ");
+         log_name(D_PLAYER(d));
+       ENDLOG
+       mudstate.recordcurrconn++;
+     }
+     free_lbuf(s_text);
   }
-  (void)i_file_hot_size; /* read for file position, not used in v3 */
-
-  if ( i_reboot_version != 3 ) {
-    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-      log_text((char *) "Reboot file format is not v3 (SoA). Cannot load. Delete .reboot file and restart.");
-    ENDLOG
-    fclose(rebootfile);
-    if ( !i_fxchk ) fclose(suffixfile);
-    RETURN(0); /* #108 */
-  }
-
-  if ( i_file_cold_size > sizeof(DESC_COLD) ) {
-    STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-      log_text((char *) "Reboot file DESC_COLD struct is larger than current. Cannot load safely.");
-    ENDLOG
-    fclose(rebootfile);
-    if ( !i_fxchk ) fclose(suffixfile);
-    RETURN(0); /* #108 */
-  }
-
-  i_cold_read = (i_file_cold_size < sizeof(DESC_COLD)) ? i_file_cold_size : sizeof(DESC_COLD);
-
-  i_prefix = mkattr("____OUTPUTPREFIX");
-  i_suffix = mkattr("____OUTPUTSUFFIX");
-  s_text = alloc_lbuf("reboot_fx");
-  while(!feof(rebootfile)) {
-    d = alloc_desc("reboot_sock");
-    if (!d) {
-      STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-        log_text((char *) "Too many descriptors in reboot file for current MAX_DESCRIPTORS. Skipping excess connections.");
-      ENDLOG
-      break;
-    }
-    /* Read hot fields individually (SoA format v3) */
-    if( !fread(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
-        !fread(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
-        !fread(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
-        !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
-        !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
-        !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
-        !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
-        !fread(d->cold, i_cold_read, 1, rebootfile) ) {
-      if( feof(rebootfile) ) {
-        free_desc(d);
-        break;
-      }
-      STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-        log_text((char *) "Error reading from reboot file.");
-      ENDLOG
-      free_desc(d);
-      fclose(rebootfile);
-      RETURN(0); /* #108 */
-    }
-    d->cold->output_prefix = NULL;
-    if ( (i_prefix > 0) && (D_FLAGS(d) & DS_HAVEpFX) && Good_chk(D_PLAYER(d)) ) {
-       if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
-          set_userstring(&d->cold->output_prefix, s_text);
-    }
-    d->cold->output_suffix = NULL;
-    if ( (i_suffix > 0) && Good_chk(D_PLAYER(d)) && (D_FLAGS(d) & DS_HAVEsFX) ) {
-       if ( !i_fxchk && fread(s_text, LBUF_SIZE, 1, suffixfile) )
-          set_userstring(&d->cold->output_suffix, s_text);
-    }
-    D_FLAGS(d) &= ~(DS_HAVEpFX|DS_HAVEsFX);
-    D_OUTPUT_SIZE(d) = 0;
-    D_OUTPUT_HEAD(d) = NULL;
-    D_OUTPUT_TAIL(d) = NULL;
-    D_INPUT_SIZE(d) = 0;
-    D_INPUT_HEAD(d) = NULL;
-    D_INPUT_TAIL(d) = NULL;
-    d->cold->door_desc = 0;
-    d->cold->door_output_head = NULL;
-    d->cold->door_output_tail = NULL;
-    d->cold->door_input_head = NULL;
-    d->cold->door_input_tail = NULL;
-    d->cold->door_raw = NULL;
-    d->cold->door_output_size = 0;
-    d->cold->door_lbuf = NULL;
-    d->cold->door_mbuf = NULL;
-    d->cold->raw_input = NULL;
-    d->cold->raw_input_at = NULL;
-    d->cold->snooplist = NULL;
-    d->cold->logged = 0;
-
-    ndescriptors++;
-    ndesc_slots++;
-
-    s_Connected(D_PLAYER(d));
-    STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
-      log_text((char*) "Reconnecting: ");
-      log_name(D_PLAYER(d));
-    ENDLOG
-    mudstate.recordcurrconn++;
-  }
-  free_lbuf(s_text);
   fclose(rebootfile);
   if ( suffixfile) {
      fclose(suffixfile);
