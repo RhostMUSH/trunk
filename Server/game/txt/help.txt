@@ -36941,6 +36941,7 @@
 	  5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
 	      4.3.1, 4.3.0
 
+& 4.31.0
 & 4.30.0
 & 4.29.0
 & 4.28.0
@@ -36952,6 +36953,14 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.31.0
+  * Improved data layouts for Player connections and command queue
+    - Improved CPU Cache locality, split into hot/cold data structures.
+    - Should speed up things on connection-heavy and command-queue
+      heavy games.
+    - Soft migration, a @reboot won't disconnect players despite
+      the change of player connection data.
 
   4.30.0
   * Full IPv6 Support
