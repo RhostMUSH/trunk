@@ -89,6 +89,7 @@ static int sock, sock2, sock6, sock6_api;
 int ndescriptors = 0;
 int ndesc_slots = 0;
 DESC desc_slots[MAX_DESCRIPTORS];
+DESC_COLD desc_cold[MAX_DESCRIPTORS];
 struct desc_hot_arrays desc_hot;
 DESC *desc_in_use = NULL;
 
@@ -97,7 +98,7 @@ DESC *_alloc_desc(const char *tag) {
         if (desc_hot.descriptor[i] < 0) {
             DESC *d = &desc_slots[i];
             d->slot_index = i;
-            d->cold = (DESC_COLD *)pool_alloc(POOL_DESC_COLD, tag, __LINE__, __FILE__);
+            d->cold = &desc_cold[i];
             memset(d->cold, 0, sizeof(DESC_COLD));
             return d;
         }
@@ -106,11 +107,10 @@ DESC *_alloc_desc(const char *tag) {
 }
 
 void _free_desc(DESC *d) {
-    if (d && d->cold) {
-        pool_free(POOL_DESC_COLD, (char **)&d->cold, __LINE__, __FILE__);
+    if (d) {
+        D_DESCRIPTOR(d) = -1;
+        d->cold = NULL;
     }
-    D_DESCRIPTOR(d) = -1;
-    d->cold = NULL;
 }
 
 DESC *FDECL(initializesock, (int, const char *, int, unsigned short, char *, int, int));
@@ -2027,11 +2027,14 @@ shutdownsock(DESC * d, int reason)
 		SWAP_F(output_tot); SWAP_F(output_size);
 		SWAP_F(last_time);
 		#undef SWAP_F
+		DESC_COLD tmp_cold = desc_cold[i];
+		desc_cold[i] = desc_cold[last];
+		desc_cold[last] = tmp_cold;
+		desc_slots[i].cold = &desc_cold[i];
+		desc_slots[last].cold = &desc_cold[last];
 		desc_slots[i].slot_index = i;
 		desc_slots[last].slot_index = last;
 		desc_hot.descriptor[last] = -1;
-		desc_slots[i].cold = desc_slots[last].cold;
-		desc_slots[last].cold = NULL;
 	    }
 	}
 	ndescriptors--;

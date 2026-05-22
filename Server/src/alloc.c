@@ -43,7 +43,7 @@ typedef struct pooldata {
 
 POOL pools[NUM_POOLS];
 const char *poolnames[] =
-{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "AtrName", "DescCold"};
+{"Sbufs", "Mbufs", "Lbufs", "Bools", "Descs", "Qentries", "Pcaches", "ZListNodes", "AtrCache", "DescCold"};
 
 #define POOL_MAGICNUM 0xdeadbeef
 
@@ -148,7 +148,6 @@ pool_check(const char *tag, int line_num, char *file_name)
     pool_vfy(POOL_MBUF, tag, line_num, file_name);
     pool_vfy(POOL_SBUF, tag, line_num, file_name);
     pool_vfy(POOL_BOOL, tag, line_num, file_name);
-    pool_vfy(POOL_DESC_COLD, tag, line_num, file_name);
     pool_vfy(POOL_QENTRY, tag, line_num, file_name);
     pool_vfy(POOL_BQUE_COLD, tag, line_num, file_name);
     pool_vfy(POOL_ZLISTNODE, tag, line_num, file_name);

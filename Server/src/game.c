@@ -2758,7 +2758,6 @@ main(int argc, char *argv[])
     pool_init(POOL_SBUF, SBUF_SIZE);
     pool_init(POOL_BOOL, sizeof(struct boolexp));
 
-    pool_init(POOL_DESC_COLD, sizeof(DESC_COLD));
     pool_init(POOL_QENTRY, sizeof(BQUE));
     pool_init(POOL_BQUE_COLD, sizeof(BQUE_COLD));
     pool_init(POOL_ZLISTNODE, sizeof(ZLISTNODE));
@@ -2766,7 +2765,8 @@ main(int argc, char *argv[])
     for (int i = 0; i < MAX_DESCRIPTORS; i++) {
         desc_hot.descriptor[i] = -1;
         desc_slots[i].slot_index = i;
-        desc_slots[i].cold = NULL;
+        desc_slots[i].cold = &desc_cold[i];
+        memset(&desc_cold[i], 0, sizeof(DESC_COLD));
     }
 
     pool_init(POOL_ATRCACHE, LBUF_SIZE);

@@ -256,6 +256,7 @@ struct descriptor_data {
 
 
 extern DESC desc_slots[MAX_DESCRIPTORS];
+extern DESC_COLD desc_cold[MAX_DESCRIPTORS];
 extern DESC *desc_in_use;
 
 /* from the net interface */
