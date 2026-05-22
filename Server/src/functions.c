@@ -8841,27 +8841,183 @@ FUNCTION(fun_port)
 FUNCTION(fun_width)
 {
     DESC *d;
-    DESC_ITER_CONN(d) {
-        if (D_PLAYER(d) == player) {
-            unsigned short w = d->cold->term_width;
-            ival(buff, bufcx, w ? w : 78);
+    dbref target;
+    int port;
+    unsigned short w;
+
+    if (!fn_range_check("WIDTH", nfargs, 0, 1, buff, bufcx))
+        return;
+
+    if (nfargs == 0) {
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == player) {
+                w = d->cold->term_width;
+                ival(buff, bufcx, w ? w : 78);
+                return;
+            }
+        }
+        ival(buff, bufcx, 78);
+        return;
+    }
+
+    if (is_number(fargs[0])) {
+        if (!Builder(player)) {
+            safe_str("#-1 PERMISSION DENIED", buff, bufcx);
             return;
         }
+        port = atoi(fargs[0]);
+        DESC_ITER_CONN(d) {
+            if (D_DESCRIPTOR(d) == port) {
+                if (!Wizard(player) && !Admin(player) && !Builder(player) &&
+                    D_PLAYER(d) != player)
+                    break;
+                if (!Wizard(player) && Wizard(D_PLAYER(d)))
+                    break;
+                if (!Admin(player) && Admin(D_PLAYER(d)))
+                    break;
+                if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) &&
+                    Unfindable(D_PLAYER(d)) && !Immortal(player))
+                    break;
+                if (Cloak(D_PLAYER(d)) && !Wizard(player))
+                    break;
+                if (NoWho(D_PLAYER(d)) && D_PLAYER(d) != player &&
+                    !(Wizard(player) || HasPriv(player, D_PLAYER(d),
+                      POWER_WIZ_WHO, POWER3, NOTHING)))
+                    break;
+
+                w = d->cold->term_width;
+                ival(buff, bufcx, w ? w : 78);
+                return;
+            }
+        }
+        ival(buff, bufcx, 78);
+        return;
     }
-    ival(buff, bufcx, 78);
+
+    target = lookup_player(player, fargs[0], 1);
+    if (!Good_obj(target) ||
+        (((Dark(target) && !Wizard(player) && !(mudconf.player_dark)) ||
+          (Wizard(player) && !Immortal(player) && Immortal(target) && SCloak(target))) &&
+         (player != target))) {
+        ival(buff, bufcx, 78);
+        return;
+    }
+    if (NoWho(target) && (target != player) &&
+        !(Wizard(player) || HasPriv(player, target, POWER_WIZ_WHO, POWER3, NOTHING))) {
+        ival(buff, bufcx, 78);
+        return;
+    }
+
+    {
+        DESC *best = NULL;
+        int best_idle = -1;
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == target) {
+                int idle = (int)(mudstate.now - D_LAST_TIME(d));
+                if (!best || idle < best_idle) {
+                    best = d;
+                    best_idle = idle;
+                }
+            }
+        }
+        if (best) {
+            w = best->cold->term_width;
+            ival(buff, bufcx, w ? w : 78);
+        } else {
+            ival(buff, bufcx, 78);
+        }
+    }
 }
 
 FUNCTION(fun_height)
 {
     DESC *d;
-    DESC_ITER_CONN(d) {
-        if (D_PLAYER(d) == player) {
-            unsigned short h = d->cold->term_height;
-            ival(buff, bufcx, h ? h : 24);
+    dbref target;
+    int port;
+    unsigned short h;
+
+    if (!fn_range_check("HEIGHT", nfargs, 0, 1, buff, bufcx))
+        return;
+
+    if (nfargs == 0) {
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == player) {
+                h = d->cold->term_height;
+                ival(buff, bufcx, h ? h : 24);
+                return;
+            }
+        }
+        ival(buff, bufcx, 24);
+        return;
+    }
+
+    if (is_number(fargs[0])) {
+        if (!Builder(player)) {
+            safe_str("#-1 PERMISSION DENIED", buff, bufcx);
             return;
         }
+        port = atoi(fargs[0]);
+        DESC_ITER_CONN(d) {
+            if (D_DESCRIPTOR(d) == port) {
+                if (!Wizard(player) && !Admin(player) && !Builder(player) &&
+                    D_PLAYER(d) != player)
+                    break;
+                if (!Wizard(player) && Wizard(D_PLAYER(d)))
+                    break;
+                if (!Admin(player) && Admin(D_PLAYER(d)))
+                    break;
+                if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) &&
+                    Unfindable(D_PLAYER(d)) && !Immortal(player))
+                    break;
+                if (Cloak(D_PLAYER(d)) && !Wizard(player))
+                    break;
+                if (NoWho(D_PLAYER(d)) && D_PLAYER(d) != player &&
+                    !(Wizard(player) || HasPriv(player, D_PLAYER(d),
+                      POWER_WIZ_WHO, POWER3, NOTHING)))
+                    break;
+
+                h = d->cold->term_height;
+                ival(buff, bufcx, h ? h : 24);
+                return;
+            }
+        }
+        ival(buff, bufcx, 24);
+        return;
     }
-    ival(buff, bufcx, 24);
+
+    target = lookup_player(player, fargs[0], 1);
+    if (!Good_obj(target) ||
+        (((Dark(target) && !Wizard(player) && !(mudconf.player_dark)) ||
+          (Wizard(player) && !Immortal(player) && Immortal(target) && SCloak(target))) &&
+         (player != target))) {
+        ival(buff, bufcx, 24);
+        return;
+    }
+    if (NoWho(target) && (target != player) &&
+        !(Wizard(player) || HasPriv(player, target, POWER_WIZ_WHO, POWER3, NOTHING))) {
+        ival(buff, bufcx, 24);
+        return;
+    }
+
+    {
+        DESC *best = NULL;
+        int best_idle = -1;
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == target) {
+                int idle = (int)(mudstate.now - D_LAST_TIME(d));
+                if (!best || idle < best_idle) {
+                    best = d;
+                    best_idle = idle;
+                }
+            }
+        }
+        if (best) {
+            h = best->cold->term_height;
+            ival(buff, bufcx, h ? h : 24);
+        } else {
+            ival(buff, bufcx, 24);
+        }
+    }
 }
 
 FUNCTION(fun_chkgarbage)
@@ -42907,8 +43063,8 @@ FUN flist[] =
 #endif
     {"WHERE", fun_where, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"WHILE", fun_while, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"WIDTH", fun_width, -1, 0, CA_PUBLIC, CA_NO_CODE},
-    {"HEIGHT", fun_height, -1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"WIDTH", fun_width, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"HEIGHT", fun_height, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WORDPOS", fun_wordpos, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WORDS", fun_words, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WRAP", fun_wrap, 2, FN_VARARGS, CA_PUBLIC, 0},
