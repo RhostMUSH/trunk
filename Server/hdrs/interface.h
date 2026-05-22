@@ -225,6 +225,11 @@ struct desc_cold {
     time_t  connected_at;
     dbref   account_owner;
     struct sockaddr_in address;
+
+    /* Telnet/NAWS state */
+    void   *telnet;             /* libtelnet state for this connection */
+    unsigned short term_width;  /* NAWS terminal width (0 = unknown) */
+    unsigned short term_height; /* NAWS terminal height (0 = unknown) */
 };
 
 typedef struct descriptor_data DESC;

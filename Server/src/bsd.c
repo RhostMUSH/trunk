@@ -59,6 +59,7 @@ void bzero(void *, int);
 #endif
 
 
+#include "telnet_io.h"
 #include "debug.h"
 #define FILENUM BSD_C
 
@@ -2014,6 +2015,7 @@ shutdownsock(DESC * d, int reason)
 	{
 	    int i = (int)(d - desc_slots);
 	    int last = ndesc_slots - 1;
+	    telnet_free_desc(d);
 	    free_desc(d);
 	    if (i != last && i < last) {
 		#define SWAP_F(f) desc_hot.f[i] = desc_hot.f[last]
@@ -2489,14 +2491,18 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
           i_nope = 1;
        }
     }
+    /* Initialize libtelnet (sends DO NAWS proactively) before any output */
+    if (!keyval) {
+        telnet_init_desc(d);
+    }
     if ( !i_nope && !keyval ) {
        welcome_user(d);
        start_auth(d);
     } else if ( i_nope && !keyval ) {
        start_auth(d);
     } else if ( keyval ) {
-       d->cold->timeout = 1;
-       D_FLAGS(d) |= DS_API;
+        d->cold->timeout = 1;
+        D_FLAGS(d) |= DS_API;
     }
     RETURN(d); /* #11 */
 }
@@ -2676,6 +2682,10 @@ process_input(DESC * d)
     }
 ///// END NEW WEBSOCK #endif
 #endif
+    /* Strip telnet negotiation for non-websocket, non-API connections */
+    if (d->cold->telnet && !(D_FLAGS(d) & (DS_WEBSOCKETS | DS_API))) {
+        telnet_preprocess_input(d, buf, &got);
+    }
     if (!d->cold->raw_input) {
 	d->cold->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
 	d->cold->raw_input_at = d->cold->raw_input->cmd;

@@ -8838,6 +8838,32 @@ FUNCTION(fun_port)
        safe_str("-1", buff, bufcx);
 }
 
+FUNCTION(fun_width)
+{
+    DESC *d;
+    DESC_ITER_CONN(d) {
+        if (D_PLAYER(d) == player) {
+            unsigned short w = d->cold->term_width;
+            ival(buff, bufcx, w ? w : 78);
+            return;
+        }
+    }
+    ival(buff, bufcx, 78);
+}
+
+FUNCTION(fun_height)
+{
+    DESC *d;
+    DESC_ITER_CONN(d) {
+        if (D_PLAYER(d) == player) {
+            unsigned short h = d->cold->term_height;
+            ival(buff, bufcx, h ? h : 24);
+            return;
+        }
+    }
+    ival(buff, bufcx, 24);
+}
+
 FUNCTION(fun_chkgarbage)
 {
    int i, retval, i_both;
@@ -42881,6 +42907,8 @@ FUN flist[] =
 #endif
     {"WHERE", fun_where, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"WHILE", fun_while, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"WIDTH", fun_width, -1, 0, CA_PUBLIC, CA_NO_CODE},
+    {"HEIGHT", fun_height, -1, 0, CA_PUBLIC, CA_NO_CODE},
     {"WORDPOS", fun_wordpos, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WORDS", fun_words, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WRAP", fun_wrap, 2, FN_VARARGS, CA_PUBLIC, 0},

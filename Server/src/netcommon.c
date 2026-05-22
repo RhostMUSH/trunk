@@ -1122,6 +1122,9 @@ int dump_reboot_db( void )
        }
        D_FLAGS(d) |= DS_HAVEsFX;
     }
+    /* Null telnet pointer before writing cold struct (stale across processes) */
+    void *saved_telnet = d->cold->telnet;
+    d->cold->telnet = NULL;
     /* Write hot fields individually (SoA format v3) */
     if( !fwrite(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
@@ -1138,6 +1141,7 @@ int dump_reboot_db( void )
         !fwrite(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
         !fwrite(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
+      d->cold->telnet = saved_telnet;
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
         log_text((char *) "Error writing to reboot file.");
       ENDLOG
@@ -1153,6 +1157,8 @@ int dump_reboot_db( void )
         fclose(slnptr->sfile);
       }
     }
+    /* Restore telnet pointer (was nulled for serialization) */
+    d->cold->telnet = saved_telnet;
   }
 
   fclose(rebootfile);
@@ -1383,6 +1389,7 @@ int load_reboot_db( void )
         d->cold->door_desc = 0;
         d->cold->door_output_size = 0;
         d->cold->snooplist = NULL;
+        d->cold->telnet = NULL;
         d->cold->logged = 0;
 
         ndescriptors++;
@@ -1497,17 +1504,18 @@ int load_reboot_db( void )
        d->cold->door_output_size = 0;
        d->cold->door_lbuf = NULL;
        d->cold->door_mbuf = NULL;
-       d->cold->raw_input = NULL;
-       d->cold->raw_input_at = NULL;
-       d->cold->snooplist = NULL;
-       d->cold->logged = 0;
+        d->cold->raw_input = NULL;
+        d->cold->raw_input_at = NULL;
+        d->cold->snooplist = NULL;
+        d->cold->telnet = NULL;
+        d->cold->logged = 0;
 
-       ndescriptors++;
-       ndesc_slots++;
+        ndescriptors++;
+        ndesc_slots++;
 
-       s_Connected(D_PLAYER(d));
-       STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
-         log_text((char*) "Reconnecting: ");
+        s_Connected(D_PLAYER(d));
+        STARTLOG(LOG_ALWAYS, "RBT", "LOAD")
+          log_text((char*) "Reconnecting: ");
          log_name(D_PLAYER(d));
        ENDLOG
        mudstate.recordcurrconn++;
