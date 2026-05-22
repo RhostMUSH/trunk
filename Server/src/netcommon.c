@@ -32,6 +32,7 @@ char *index(const char *, int);
 #define INCLUDE_ASCII_TABLE
 #include "rhost_ansi.h"
 #include "local.h"
+#include "telnet_io.h"
 #ifdef REALITY_LEVELS
 #include "levels.h"
 #endif /* REALITY_LEVELS */
@@ -1390,6 +1391,7 @@ int load_reboot_db( void )
         d->cold->door_output_size = 0;
         d->cold->snooplist = NULL;
         d->cold->telnet = NULL;
+        telnet_init_desc(d);
         d->cold->logged = 0;
 
         ndescriptors++;
@@ -1508,6 +1510,7 @@ int load_reboot_db( void )
         d->cold->raw_input_at = NULL;
         d->cold->snooplist = NULL;
         d->cold->telnet = NULL;
+        telnet_init_desc(d);
         d->cold->logged = 0;
 
         ndescriptors++;
