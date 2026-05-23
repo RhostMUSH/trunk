@@ -1352,9 +1352,12 @@ down_ansi(int i_r, int i_g, int i_b)
    int i_tohex, i_r2, i_g2, i_b2, rgb_diff, rgb_diff2;
    MUXANSI  *cx;
 
-   if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
-   if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
-   if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+   if ( i_r < 0 ) i_r = 0;
+   if ( i_r > 255 ) i_r = 255;
+   if ( i_g < 0 ) i_g = 0;
+   if ( i_g > 255 ) i_g = 255;
+   if ( i_b < 0 ) i_b = 0;
+   if ( i_b > 255 ) i_b = 255;
 
    rgb_diff = rgb_diff2 = 1000;
    for (cx = mux_namecolors; cx->s_hex; cx++) {
@@ -5183,12 +5186,12 @@ FUNCTION(fun_wrapcolumns)
            if (pt2)
               *pt2 = '\0';
            safe_str(hbpt, buff, bufcx);
-           if (pt2 && (pt2+1))
-              hbpt = pt2+2;
-           if (!count)
-              break;
-           if (x < (ncols - 1)) {
-              if (between) {
+            if (pt2)
+               hbpt = pt2+2;
+            if (!count)
+               break;
+            if (x < (ncols - 1)) {
+               if (between) {
 #ifdef ZENTY_ANSI
                  safe_chr('%', buff, bufcx);
                  safe_chr(SAFE_CHR, buff, bufcx);
@@ -5252,8 +5255,8 @@ FUNCTION(fun_wrapcolumns)
            hbpt = string;
            for (z = 0; z < pos; z++) {
               pt2 = strchr(hbpt,'\r');
-              if ( pt2 && (pt2+1))
-                 hbpt = pt2+2;
+               if ( pt2 )
+                  hbpt = pt2+2;
               else if ( *hbpt ) {
                  pt2 = strchr(hbpt,'\0');
                  if ( pt2 )
@@ -15214,10 +15217,11 @@ FUNCTION(fun_listnewsgroups)
       if ((target == NOTHING) || !Controls(player,target)) {
          notify(player, "#-1 PERMISSION DENIED");
          return;
-      } else
+      } else {
          retptr = news_function_group(target, cause, 1);
          safe_str(retptr, buff, bufcx);
          free_lbuf(retptr);
+      }
    }
 
 }
@@ -20228,7 +20232,7 @@ FUNCTION(fun_strfunc)
          s_attr = atr_get(ufp->obj, ufp->atr, &aowner, &aflags);
          if ( s_attr && *s_attr ) {
             feval = EV_STRIP | EV_FCHECK | EV_EVAL;
-            if ( (ufp->perms2 & CA_NO_EVAL) || !(ufp->perms2 * CA_EVAL) ) {
+             if ( (ufp->perms2 & CA_NO_EVAL) || !(ufp->perms2 & CA_EVAL) ) {
                if ( mudconf.brace_compatibility )
                   feval = (feval & ~EV_EVAL & ~EV_STRIP) | EV_STRIP_ESC;
                else
@@ -35387,9 +35391,12 @@ deansi(char *string, char *buff, char **bufcx)
                       g1 = atoi(strchr(s+1, ' ')+1);
                       if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
                                b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
-                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
-                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                                if ( r1 < 0 ) r1 = 0;
+                                if ( r1 > 255 ) r1 = 255;
+                                if ( g1 < 0 ) g1 = 0;
+                                if ( g1 > 255 ) g1 = 255;
+                                if ( b1 < 0 ) b1 = 0;
+                                if ( b1 > 255 ) b1 = 255;
                                rgb_diff = rgb_diff2 = 1000;
                          for (cx = mux_namecolors; cx->s_hex; cx++) {
                             if(cx->i_dec < 16) 
@@ -35783,9 +35790,12 @@ FUNCTION(fun_ansi)
                            g1 = atoi(strchr(s+1, ' ')+1);
                            if ( strchr(strchr(s+1, ' ')+1, ' ') ) {
                                b1 = atoi(strchr(strchr(s+1, ' ')+1, ' ')+1);
-                               if ( r1 < 0 ) r1 = 0; if ( r1 > 255 ) r1 = 255;
-                               if ( g1 < 0 ) g1 = 0; if ( g1 > 255 ) g1 = 255;
-                               if ( b1 < 0 ) b1 = 0; if ( b1 > 255 ) b1 = 255;
+                                if ( r1 < 0 ) r1 = 0;
+                                if ( r1 > 255 ) r1 = 255;
+                                if ( g1 < 0 ) g1 = 0;
+                                if ( g1 > 255 ) g1 = 255;
+                                if ( b1 < 0 ) b1 = 0;
+                                if ( b1 > 255 ) b1 = 255;
                                rgb_diff = rgb_diff2 = 1000;
                               for (cx = mux_namecolors; cx->s_hex; cx++) {
                                  if(cx->i_dec < 16)
@@ -37194,11 +37204,12 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
               val = handle_set_comp(ptrs1[i1], ptrs2[i2], sort_type, i_reverse);
               if (!val) {
                  /* Got a match, copy it */
-                 if (!first)
+                 if (!first) {
                     safe_chr(osep, buff, bufcx);
+                 }
                  first = 0;
                  safe_str(ptrs1[i1], buff, bufcx);
-                 oldp = ptrs1[i1];
+                oldp = ptrs1[i1];
                  i1++;
                  i2++;
                  while ((i1 < n1) && !strcmp(ptrs1[i1], oldp))

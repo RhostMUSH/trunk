@@ -1363,9 +1363,12 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
              if ( isupper(*(s_inptr+1)) )
                 i_upper = 1;
               if ( sscanf(s_inptr+2, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-                 if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
-                 if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
-                 if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+                  if ( i_r < 0 ) i_r = 0;
+                  if ( i_r > 255 ) i_r = 255;
+                  if ( i_g < 0 ) i_g = 0;
+                  if ( i_g > 255 ) i_g = 255;
+                  if ( i_b < 0 ) i_b = 0;
+                  if ( i_b > 255 ) i_b = 255;
                  if ( (c1 != '<') || (c2 != '>') ) {
                    s_inptr = s_inptrtmp+1;
                 } else {

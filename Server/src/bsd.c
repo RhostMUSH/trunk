@@ -1010,7 +1010,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		}
 
                 /* Idle stamp checking for command typed */
-                if ( mudconf.idle_stamp && (D_FLAGS(d) & DS_CONNECTED) && D_INPUT_HEAD(d) && (char *)(D_INPUT_HEAD(d)->cmd) ) {
+                if ( mudconf.idle_stamp && (D_FLAGS(d) & DS_CONNECTED) && D_INPUT_HEAD(d) && D_INPUT_HEAD(d)->cmd[0] ) {
                    ulCRC32 = 0;
                    i_len = strlen(D_INPUT_HEAD(d)->cmd);
                    ulCRC32 = CRC32_ProcessBuffer(ulCRC32, D_INPUT_HEAD(d)->cmd, i_len);
@@ -1101,7 +1101,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                    }
                 }
 
-                if ( (D_FLAGS(d) & DS_CONNECTED) && D_INPUT_HEAD(d) && (char *)(D_INPUT_HEAD(d)->cmd) ) {
+                if ( (D_FLAGS(d) & DS_CONNECTED) && D_INPUT_HEAD(d) && D_INPUT_HEAD(d)->cmd[0] ) {
                    memcpy(s_cutter, D_INPUT_HEAD(d)->cmd, 5);
                    memcpy(s_cutter2, D_INPUT_HEAD(d)->cmd, 7);
                    s_cutter[5] = '\0';
@@ -1130,7 +1130,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                 }
 
                 /* Ignore Null Input */
-                if ( (D_INPUT_TOT(d) <= (i_oldlastcnt + 2)) && D_INPUT_HEAD(d) && (char *)(D_INPUT_HEAD(d)->cmd) &&
+                if ( (D_INPUT_TOT(d) <= (i_oldlastcnt + 2)) && D_INPUT_HEAD(d) && D_INPUT_HEAD(d)->cmd[0] &&
                      ((*(D_INPUT_HEAD(d)->cmd) == '\r') || (*(D_INPUT_HEAD(d)->cmd) == '\n')) ) {
                    D_LAST_TIME(d) = i_oldlasttime;
                 }
@@ -1433,7 +1433,7 @@ new_connection(int sock, int key)
           strcpy(tsite_buff, addroutbuf);
           strcpy(tchbuff, mudconf.passproxy_host);
           if ( !( (site_check(ipv4_addr, mudstate.suspect_list, 1, 0, H_PASSPROXY) == H_PASSPROXY) || 
-                  ((char *)mudconf.passproxy_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) ) {
+                  (mudconf.passproxy_host[0] && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) ) {
              STARTLOG(LOG_NET | LOG_SECURITY, "NET", "PROXY");
                 buff = alloc_lbuf("new_connection.LOG.badsite");
                 sprintf(buff, "[%d/%s] Possible Proxy [MTU %d/MSS %d].  (Remote port %d)",
@@ -1498,7 +1498,7 @@ new_connection(int sock, int key)
               (strcmp(mudstate.api_lastsite_ip, ipbuf) == 0) &&
               (mudstate.last_apicon_attempt >= (mudstate_hot.now - 60))) &&
             !((site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_PASSAPI) == H_PASSAPI) ||
-               ((char *)mudconf.passapi_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) ) {
+                (mudconf.passapi_host[0] && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) ) {
             sprintf(tchbuff, "%s %s", ipbuf, (addr_family == AF_INET6) ? "/128" : "255.255.255.255");
             if ( !(site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ) {
               cf_site((int *)&mudstate.access_list, tchbuff, H_FORBIDAPI|H_AUTOSITE, 0, 1, "forbidapi_site");
@@ -1589,13 +1589,13 @@ new_connection(int sock, int key)
     strcpy(tchbuff, mudconf.permit_host);
     strcpy(tsite_buff, addroutbuf);
     if ( !(site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_PERMIT) == H_PERMIT) &&
-        !((char *)mudconf.permit_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) {
+        !(mudconf.permit_host[0] && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) {
       strcpy(tchbuff, mudconf.forbid_host);
       if ((site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN) ||
           (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
-          ((char *)mudconf.forbid_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
-   
-         i_chksite = site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 1, H_FORBIDDEN);
+           (mudconf.forbid_host[0] && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) {
+    
+          i_chksite = site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 1, H_FORBIDDEN);
          i_forbid = 1;
          if ( i_chksite != -1 ) {  
             if ( maxsitecon < i_chksite ) {
@@ -1609,7 +1609,7 @@ new_connection(int sock, int key)
        strcpy(tsite_buff, addroutbuf);
         if ( (site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ||
             (maxsitecon >= mudconf.max_sitecons) || (maxtsitecon >= (mudstate.max_logins_allowed+7)) ||
-            ((char *)mudconf.forbidapi_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) {
+             (mudconf.forbidapi_host[0] && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar)) ) {
     
           i_chksite = site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 1, H_FORBIDAPI);
           i_forbid = 1;
@@ -1949,34 +1949,34 @@ shutdownsock(DESC * d, int reason)
 
         memset(tchbuff, 0, sizeof(tchbuff));
         strcpy(tchbuff, mudconf.forbid_host);
-        if ((char *)mudconf.forbid_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.forbid_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_FORBIDDEN;
         strcpy(tchbuff, mudconf.register_host);
-        if ((char *)mudconf.register_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.register_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_REGISTRATION;
          if ( blacklist_check_str(d->cold->addr, d->cold->addr_family, 2) ) {
             D_HOST_INFO(d) = D_HOST_INFO(d) | H_REGISTRATION;
          }
          strcpy(tchbuff, mudconf.autoreg_host);
-         if ((char *)mudconf.autoreg_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+          if (mudconf.autoreg_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
             D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOAUTOREG;
          strcpy(tchbuff, mudconf.noguest_host);
-         if ((char *)mudconf.noguest_host && lookup(d->cold->longaddr, tchbuff, i_guestcnt, &i_retvar))
+          if (mudconf.noguest_host[0] && lookup(d->cold->longaddr, tchbuff, i_guestcnt, &i_retvar))
             D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOGUEST;
          if ( blacklist_check_str(d->cold->addr, d->cold->addr_family, 3) ) {
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOGUEST;
         }
         strcpy(tchbuff, mudconf.suspect_host);
-        if ((char *)mudconf.suspect_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.suspect_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_SUSPECT;
         strcpy(tchbuff, mudconf.passproxy_host);
-        if ((char *)mudconf.passproxy_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.passproxy_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_PASSPROXY;
         strcpy(tchbuff, mudconf.hardconn_host);
-        if ((char *)mudconf.hardconn_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.hardconn_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_HARDCONN;
         strcpy(tchbuff, mudconf.permit_host);
-        if ((char *)mudconf.permit_host && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
+        if (mudconf.permit_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_PERMIT;
 	D_INPUT_TOT(d) = D_INPUT_SIZE(d);
 	D_OUTPUT_TOT(d) = 0;
@@ -2433,34 +2433,34 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
      }
     memset(tchbuff, 0, sizeof(tchbuff));
     strcpy(tchbuff, mudconf.forbid_host);
-    if ((char *)mudconf.forbid_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+    if (mudconf.forbid_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_FORBIDDEN;
     strcpy(tchbuff, mudconf.register_host);
-    if ((char *)mudconf.register_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+    if (mudconf.register_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_REGISTRATION;
      if ( blacklist_check_str(ip_str, addr_family, 2) ) {
         D_HOST_INFO(d) = D_HOST_INFO(d) | H_REGISTRATION;
      }
      strcpy(tchbuff, mudconf.autoreg_host);
-     if ((char *)mudconf.autoreg_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+     if (mudconf.autoreg_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
         D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOAUTOREG;
      strcpy(tchbuff, mudconf.noguest_host);
-     if ((char *)mudconf.noguest_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
+     if (mudconf.noguest_host[0] && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
         D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOGUEST;
      if ( blacklist_check_str(ip_str, addr_family, 3) ) {
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_NOGUEST;
     }
     strcpy(tchbuff, mudconf.suspect_host);
-    if ((char *)mudconf.suspect_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+    if (mudconf.suspect_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_SUSPECT;
     strcpy(tchbuff, mudconf.passproxy_host);
-    if ((char *)mudconf.passproxy_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+    if (mudconf.passproxy_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_PASSPROXY;
     strcpy(tchbuff, mudconf.hardconn_host);
-    if ((char *)mudconf.hardconn_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
+    if (mudconf.hardconn_host[0] && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_HARDCONN;
     strcpy(tchbuff, mudconf.permit_host);
-    if ((char *)mudconf.permit_host && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
+    if (mudconf.permit_host[0] && lookup(addr_str, tchbuff, i_guestcnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_PERMIT;
     D_HOST_INFO(d) = D_HOST_INFO(d) | i_keyflag;
     D_PLAYER(d) = 0;
@@ -2513,7 +2513,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     if ( !keyval && mudconf.sconnect_reip && mudconf.ssl_welcome )  {
        memset(tchbuff, 0, sizeof(tchbuff));
        strcpy(tchbuff, mudconf.sconnect_host);
-        if ((char *)mudconf.sconnect_host && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar)) {
+        if (mudconf.sconnect_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar)) {
           i_nope = 1;
        }
     }

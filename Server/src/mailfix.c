@@ -1957,7 +1957,7 @@ int tacnuke()
       for (x = 0; x < count; x++, pt2++)
 	*(hdlst + (*pt2 - 1)) = 1;
       for (x = 0; x < top - 1; x++) {
-	if (!*(hdlst + x) && !(hdlst + x)) {
+	if (!*(hdlst + x)) {
 /*	  *pt4++ = x+1; */
 	  count2++;
 	}

@@ -1095,7 +1095,7 @@ NDECL(init_flagtab)
 
     ohtab_init(&mudstate_hot.flags_htab, 257);
     nbuf = alloc_sbuf("init_flagtab");
-    for (fp = gen_flags; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
+    for (fp = gen_flags; fp->flagname[0]; fp++) {
       for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
 	*np = ToLower((int)*bp);
       }
@@ -5703,7 +5703,7 @@ void do_totemdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
-      if ( !fp || !((char *)(fp->flagname))) {
+      if ( !fp || !fp->flagname[0]) {
          notify_quiet(player, "Bad totem given to @totemdef");
          return;
       }
@@ -5957,7 +5957,7 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
-      if ( !fp || !((char *)(fp->flagname))) {
+      if ( !fp || !fp->flagname[0]) {
          notify_quiet(player, "Bad flag given to @flagdef");
          return;
       }

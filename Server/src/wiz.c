@@ -3709,9 +3709,6 @@ void do_site(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, "Bad mask in site command");
             return;
          }
-      } else {
-         struct in_addr mask_tmp;
-         mask_tmp.s_addr = inet_addr(buff2);
       }
    }
   count = 0;

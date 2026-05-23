@@ -260,12 +260,12 @@ strip_safe_ansi(const char *raw)
               p+=3;
               continue;
            }
-            if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
-                 (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+             if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                  *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
                p+=6; // strip safe XTERM ansi
                continue;
             }
-             if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+              if ( *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
                 p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
                 continue;
              }
@@ -297,16 +297,16 @@ strip_all_special2(const char *raw)
                          ||   (*(p+1) == SAFE_CHR3) || (*(p+1) == SAFE_UCHR3)
 #endif
 )) {
-           if ( isAnsi[(int) *(p+2)]) {
-              p+=3; // strip safe ansi
-              continue;
-           }
-           if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
-                *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
-              p+=6; // strip safe XTERM ansi
-              continue;
-           }
-            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+            if ( isAnsi[(int) *(p+2)]) {
+               p+=3; // strip safe ansi
+               continue;
+            }
+            if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                 *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+               p+=6; // strip safe XTERM ansi
+               continue;
+            }
+             if ( *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
                p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
                continue;
             }
@@ -354,26 +354,26 @@ strip_all_special(const char *raw)
               p+=6; // strip safe XTERM ansi
               continue;
            }
-            /* Strip mux ansi */
-            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+             /* Strip mux ansi */
+            if ( *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
                p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
                continue;
             }
             *q++ = *p++;
          } else if (*p == ESC_CHAR) {
-             // Strip normal ansi
-             while (*p && !isalpha((int)*p))
-                 p++;
-             if (*p)
-                 p++;
-         } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
-            p+=3;
-         } else {
-             *q++ = *p++;
-         }
-     }
-     *q = '\0';
-     RETURN(buf); /* #100 */
+              // Strip normal ansi
+              while (*p && !isalpha((int)*p))
+                  p++;
+              if (*p)
+                  p++;
+          } else if ( (*p == '%') && (*(p+1) == 'f') && isprint(*(p+2)) ) {
+             p+=3;
+          } else {
+              *q++ = *p++;
+          }
+      }
+      *q = '\0';
+      RETURN(buf); /* #100 */
 }
 
 extern char *
@@ -398,23 +398,23 @@ strip_all_ansi(const char *raw)
               p+=3; // strip safe ansi
               continue;
            }
-           if ( (p+2) && *(p+2) == '0' && ((p+3) && ((*(p+3) == 'x') || (*(p+3) == 'X'))) &&
-                (p+4) && *(p+4) && (p+5) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
+            if ( *(p+2) == '0' && ((*(p+3) == 'x') || (*(p+3) == 'X')) &&
+                 *(p+4) && *(p+5) && isxdigit(*(p+4)) && isxdigit(*(p+5)) ) {
               p+=6; // strip safe XTERM ansi
               continue;
            }
-            /* Strip mux ansi */
-            if ( (p+2) && *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
-               p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
-               continue;
-            }
-            *q++ = *p++;
-         } else if (*p == ESC_CHAR) {
-             // Strip normal ansi
-             while (*p && !isalpha((int)*p))
-                 p++;
-             if (*p)
-                 p++;
+             /* Strip mux ansi */
+             if ( *(p+2) == '<' && (strchr(p+2, '>') != NULL) ) {
+                p = skip_mux_ansi(p+2, (char *)NULL, (char **)NULL);
+                continue;
+             }
+             *q++ = *p++;
+          } else if (*p == ESC_CHAR) {
+              // Strip normal ansi
+              while (*p && !isalpha((int)*p))
+                  p++;
+              if (*p)
+                  p++;
          } else {
              *q++ = *p++;
          }
@@ -3189,6 +3189,7 @@ int
 boot_off(dbref player, char *message)
 {
     DESC *d, *dnext;
+    (void)dnext;
     int count;
 
     DPUSH; /* #132 */
@@ -4608,20 +4609,20 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
            (!strncmp(cchk, mudconf.string_conn, i_size) ||
             !strncmp(cchk, mudconf.string_conndark, i_size) ||
             !strncmp(cchk, mudconf.string_connhide, i_size)) ) {
-          if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
-                !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
-              i_allow = 0;
-           }
-        }
-        if ( i_allow && (mudconf.connect_methods & 2) && !strncmp(cchk, mudconf.string_create, i_size) ) {
-           if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
-                !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
-              i_allow = 0;
-           }
-        }
-        if ( i_allow && (mudconf.connect_methods & 4) && !strncmp(cchk, mudconf.string_register, i_size) ) {
-           if ( !((char *)mudconf.hardconn_host && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
-                !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+           if ( !(mudconf.hardconn_host[0] && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+                 !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+               i_allow = 0;
+            }
+         }
+         if ( i_allow && (mudconf.connect_methods & 2) && !strncmp(cchk, mudconf.string_create, i_size) ) {
+            if ( !(mudconf.hardconn_host[0] && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+                 !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
+               i_allow = 0;
+            }
+         }
+         if ( i_allow && (mudconf.connect_methods & 4) && !strncmp(cchk, mudconf.string_register, i_size) ) {
+            if ( !(mudconf.hardconn_host[0] && lookup(addroutbuf, tsite_buff, 1, &i_sitemax)) &&
+                 !(site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_HARDCONN) & H_HARDCONN) ) {
              i_allow = 0;
           }
        }

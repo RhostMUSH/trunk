@@ -1368,9 +1368,12 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                  case '<': /* MUX compatible ansi sequences */
                      if ( (tmp = strchr(string, '>')) != NULL ) {
                           if ( sscanf(string, "%c%d %d %d%c", &c1, &i_r, &i_g, &i_b, &c2) == 5 ) {
-                              if ( i_r < 0 ) i_r = 0; if ( i_r > 255 ) i_r = 255;
-                              if ( i_g < 0 ) i_g = 0; if ( i_g > 255 ) i_g = 255;
-                              if ( i_b < 0 ) i_b = 0; if ( i_b > 255 ) i_b = 255;
+                               if ( i_r < 0 ) i_r = 0;
+                               if ( i_r > 255 ) i_r = 255;
+                               if ( i_g < 0 ) i_g = 0;
+                               if ( i_g > 255 ) i_g = 255;
+                               if ( i_b < 0 ) i_b = 0;
+                               if ( i_b > 255 ) i_b = 255;
                               if ( (c1 != '<') || (c2 != '>') ) {
                                  string = tmp;
                              } else {
@@ -2051,10 +2054,12 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                   safe_str("%%", buff, &bufc);
                else if ( *(dstr + 1) == '<' ) 
                   safe_str("%%", buff, &bufc);
-               else
-#endif                
-                  safe_chr('%', buff, &bufc);            
-		  break;
+                else
+#endif
+                {
+                   safe_chr('%', buff, &bufc);
+                }
+ 		  break;
 #ifndef NOEXTSUBS
 #ifdef TINY_SUB
 	    case 'x':
@@ -2934,7 +2939,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 		free_sbuf(tbuf);
 		break;
             case '_':           /* Yay is the trace breakpoint */
-                if ( (dstr+1) && (*(dstr+1) == '<') && strchr(dstr, '>') ) {
+                if ( dstr && (*(dstr+1) == '<') && strchr(dstr, '>') ) {
                    dstr+=2;
                    if ( dstr && *dstr ) {
                       t_bufb = t_bufa = alloc_lbuf("trace_subs");

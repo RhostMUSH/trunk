@@ -1306,12 +1306,12 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
   strcpy(instr_buff, mudconf.goodmail_host);
   tmp_email_ptr = tmp_email = alloc_mbuf("tmp_email");
   safe_str(email, tmp_email, &tmp_email_ptr);
-  if (((char *)mudconf.goodmail_host) && lookup(tmp_email, instr_buff, -2, &i_retvar)) {
+  if (mudconf.goodmail_host[0] && lookup(tmp_email, instr_buff, -2, &i_retvar)) {
      allow_through = 1;
   }
   /* Now let's see if the mail is invalid */
   strcpy(instr_buff, mudconf.validate_host);
-  if (((char *)mudconf.validate_host) && lookup(tmp_email, instr_buff, -2, &i_retvar) && !allow_through) {
+  if (mudconf.validate_host[0] && lookup(tmp_email, instr_buff, -2, &i_retvar) && !allow_through) {
     if ( !key ) {
        STARTLOG(LOG_SECURITY | LOG_PCREATES, "AUTOREG", "BAD")
          tpr_buff = tprp_buff = alloc_lbuf("reg_internal");

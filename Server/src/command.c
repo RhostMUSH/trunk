@@ -10948,7 +10948,7 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
       return;
    }
 
-   if ( !string || !*string || !(string+1) || !*(string+1) ) {
+   if ( !string || !*string || !*(string+1) ) {
       if ( key & PREPARSE_RAW ) {
          notify(player, "} requires an argument.");
       } else {
