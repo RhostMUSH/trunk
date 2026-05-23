@@ -37233,14 +37233,15 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                    i1++;
                 while ((i2 < n2) && !strcmp(ptrs2[i2], oldp))
                    i2++;
-             } else if (val < 0) {
-               /* Item in list1 not in list2, copy */
-               if (!first)
-                  safe_chr(osep, buff, bufcx);
-                  first = 0;
-                  safe_str(ptrs1[i1], buff, bufcx);
-                  oldp = ptrs1[i1];
-                  i1++;
+              } else if (val < 0) {
+                /* Item in list1 not in list2, copy */
+                if (!first) {
+                   safe_chr(osep, buff, bufcx);
+                }
+                first = 0;
+                safe_str(ptrs1[i1], buff, bufcx);
+                oldp = ptrs1[i1];
+                i1++;
                   while ((i1 < n1) && !strcmp(ptrs1[i1], oldp))
                      i1++;
              } else {
@@ -37251,14 +37252,15 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
                    i2++;
              }
           }
-          /* Copy remainder of list1 */
-          while (i1 < n1) {
-             if (!first)
-                safe_chr(osep, buff, bufcx);
-             first = 0;
-             safe_str(ptrs1[i1], buff, bufcx);
-             oldp = ptrs1[i1];
-             i1++;
+           /* Copy remainder of list1 */
+           while (i1 < n1) {
+              if (!first) {
+                 safe_chr(osep, buff, bufcx);
+              }
+              first = 0;
+              safe_str(ptrs1[i1], buff, bufcx);
+              oldp = ptrs1[i1];
+              i1++;
              while ((i1 < n1) && !strcmp(ptrs1[i1], oldp))
                 i1++;
           }
