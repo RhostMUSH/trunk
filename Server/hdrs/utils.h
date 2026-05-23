@@ -14,14 +14,14 @@ int bittype(dbref player);
         STARTLOG(LOG_BUGS, "ASSERT", "FAIL"); \
         log_text("Assertion failed, raise a bug report: '#x'");  \
         ENDLOG; \
-        mudstate.panicking = 1; \
+        mudstate_hot.panicking = 1; \
     }
 
 #define RHOSTpanic(x) \
     STARTLOG(LOG_BUGS, "PANIC", "ERR"); \
     log_text(x); \
     ENDLOG; \
-    mudstate.panicking = 1;
+    mudstate_hot.panicking = 1;
 
 
 #endif

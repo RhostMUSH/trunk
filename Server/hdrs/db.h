@@ -308,7 +308,7 @@ extern void	FDECL(showdbstats, (dbref));
 	     (thing)!=NOTHING && (Next(thing)!=(thing)); \
 	     (thing)=(next), (next)=Next(next))
 #define	DO_WHOLE_DB(thing) \
-	for ((thing)=0; (thing)<mudstate.db_top; (thing)++)
+	for ((thing)=0; (thing)<mudstate_hot.db_top; (thing)++)
 
 #define	Dropper(thing)	(Connected(Owner(thing)) && Hearer(thing))
 

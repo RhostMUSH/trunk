@@ -650,13 +650,165 @@ struct struct_cpu_recurse {
 	int	chk_stats;
 };
 
+/* STATE_HOT: frequently-accessed fields split from STATEDATA
+ * for CPU cache locality. Accessed on every game tick or every
+ * command dispatch. Hot working set ~2.3KB, fits L1 cache.
+ */
+typedef struct state_hot STATE_HOT;
+struct state_hot {
+
+        /* 1. Timing / loop control (every tick) */
+        time_t  now;                     /* time, 8B */
+        time_t  lastnow;                 /* 8B */
+        double  nowmsec;                 /* 8B */
+        double  lastnowmsec;             /* 8B */
+        int     shutdown_flag;           /* 4B */
+        int     reboot_flag;             /* 4B */
+        int     alarm_triggered;         /* 4B */
+        double  dump_counter;            /* 8B */
+        double  check_counter;           /* 8B */
+        double  idle_counter;            /* 8B */
+        double  vattr_counter;           /* 8B */
+        double  rwho_counter;            /* 8B */
+        double  mstats_counter;          /* 8B */
+
+        /* 2. DB bounds (every object operation) */
+        dbref   freelist;                /* 4B */
+        dbref   recoverlist;             /* 4B */
+        int     db_top;                  /* 4B */
+        int     db_size;                 /* 4B */
+        int     min_size;                /* 4B */
+        MARKBUF *markbits;               /* ptr, 8B */
+
+        /* 3. Command context (every command) */
+        dbref   curr_enactor;            /* 4B */
+        dbref   curr_player;             /* 4B */
+        int     curr_pid;                /* 4B */
+        char   *curr_cmd;                /* ptr 8B */
+        char   *debug_cmd;               /* ptr 8B */
+        char   *curr_plrcmd;             /* ptr 8B */
+        char   *lbuf_buffer;             /* ptr 8B */
+
+        /* 4. Eval context (every function call) */
+        int     evalcount;               /* 4B */
+        int     funccount;               /* 4B */
+        int     evalnum;                 /* 4B */
+        int     func_nest_lev;           /* 4B */
+        int     func_invk_ctr;           /* 4B */
+        int     ntfy_nest_lev;           /* 4B */
+        int     lock_nest_lev;           /* 4B */
+        int     ufunc_nest_lev;          /* 4B */
+        int     trace_nest_lev;          /* 4B */
+        int     eval_rec;                /* 4B */
+        int     recurse_rlevel;          /* 4B */
+        int     evalresult;              /* 4B */
+        int     evalstate[MAXEVLEVEL];   /* 40B */
+        int     evaldb[MAXEVLEVEL];      /* 40B */
+
+        /* 5. CPU limiting (every command) */
+        time_t  chkcpu_stopper;          /* 8B */
+        int     chkcpu_toggle;           /* 4B */
+        int     chkcpu_inline;           /* 4B */
+        char    chkcpu_inlinestr[SBUF_SIZE]; /* 32/64B */
+        int     chkcpu_locktog;          /* 4B */
+
+        /* 6. Hook / command dispatch (every command) */
+        int     no_hook;                 /* 4B */
+        int     no_hook_count;           /* 4B */
+        int     cmd_bitmask;             /* 4B */
+
+        /* 7. Per-command state */
+        dbref   remote;                  /* 4B */
+        dbref   remotep;                 /* 4B */
+        dbref   vlplay;                  /* 4B */
+        dbref   posesay_dbref;           /* 4B */
+        int     no_space_compress;       /* 4B */
+        int     outputflushed;           /* 4B */
+        int     allowbypass;             /* 4B */
+        int     func_reverse;            /* 4B */
+        int     func_ignore;             /* 4B */
+        int     func_bypass;             /* 4B */
+        int     stack_val;               /* 4B */
+        int     stack_toggle;            /* 4B */
+        int     stack_cntr;              /* 4B */
+        int     inside_locks;            /* 4B */
+        int     nolookie;                /* 4B */
+        int     reality_notify;          /* 4B */
+        int     password_nochk;          /* 4B */
+        int     emit_substitute;         /* 4B */
+        int     curr_percentsubs;        /* 4B */
+        int     tog_percentsubs;         /* 4B */
+        int     cntr_percentsubs;        /* 4B */
+        double  cntr_reset;              /* 8B */
+        int     sub_overridestate;       /* 4B */
+        int     sub_includestate;        /* 4B */
+        int     clust_time;              /* 4B */
+        int     argtwo_fix;              /* 4B */
+        int     exitcheck;               /* 4B */
+        int     zone_return;             /* 4B */
+        int     posesay_fluff;           /* 4B */
+        int     force_halt;              /* 4B */
+        int     nospam_counter;          /* 4B */
+        int     no_announce;             /* 4B */
+        int     reverse_wild;            /* 4B */
+        int     ahear_count;             /* 4B */
+        dbref   ahear_lastplr;           /* 4B */
+        int     ahear_currtime;          /* 4B */
+
+        /* 8. Global registers (every %q / @qreg op) */
+        char    *global_regs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+        char    *global_regsname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+#ifndef NO_GLOBAL_REGBACKUP
+        char    *global_regs_backup[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
+#endif
+        char    nameofqreg[37];
+
+        /* 9. Queue heads (every queue op) */
+        BQUE    *qfirst;
+        BQUE    *qlast;
+        BQUE    *qlfirst;
+        BQUE    *qllast;
+        BQUE    *qwait;
+        BQUE    *qsemfirst;
+        BQUE    *qsemlast;
+        BQUE    *fqwait;
+        BQUE    *fqsemfirst;
+        BQUE    *fqsemlast;
+
+        /* 10. Hot hash table headers (every lookup) */
+        HASHTAB command_htab;
+        HASHTAB func_htab;
+        HASHTAB flags_htab;
+        HASHTAB toggles_htab;
+        HASHTAB player_htab;
+        HASHTAB attr_name_htab;
+
+        /* 11. Startup / panic flags (checked everywhere) */
+        int     initializing;
+        int     dbloading;
+        int     panicking;
+        int     logging;
+
+        /* 12. Profiling counters (always compiled, every command) */
+        int     objevalst;
+        int     breakst;
+        int     jumpst;
+
+        /* 13. Heavy CPU tracking (every heavy function call) */
+        int     heavy_cpu_recurse;
+        time_t  heavy_cpu_tmark1;
+        time_t  heavy_cpu_tmark2;
+        int     heavy_cpu_lockdown;
+
+        /* 14. Mail / whisper state */
+        int     mail_state;
+        int     whisper_state;
+};
+
 typedef struct statedata STATEDATA;
 struct statedata {
 #ifndef STANDALONE
         /* command profiling */
-        int     objevalst;
-	int	breakst;
-	int	jumpst;
 	double	total_bytesin;
 	double	total_bytesout;
 	double	daily_bytesin;
@@ -671,8 +823,6 @@ struct statedata {
 	int	inlinestate;
 	char	rollback[LBUF_SIZE];
 	int	breakdolist;
-  dbref remote; /* Remote location for @remote */
-  dbref remotep;/* Remote location for @remote player*/
 	int	dolistnest;
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
@@ -680,29 +830,15 @@ struct statedata {
 	dbref	store_lastx2;	/* Store the previous created exit# for dig */
 	dbref	store_loc;	/* Store target location for open/dig */
         dbref   store_passwd;	/* Store the password foodoo */
-        int     evalcount;
 	int	allocsin;
 	int	allocsout;
-        int     funccount;
         int     attribfetchcount;
-	int	func_reverse;
-	int	func_ignore;
-        int     func_bypass;
-	int	initializing;	/* are we reading config file at startup? */
 	int	adminexec;	/* issuing @admin/exec in-game */
-	int	dbloading;	/* are we reading config file at startup? */
-	int	panicking;	/* are we in the middle of dying horribly? */
-	int	logging;	/* Are we in the middle of logging? */
 	int	quiet_match;	/* Snuff noisy match results */
 	clock_t	clock_mush;	/* The CPU usage the mush has used since last restart */
 	int	epoch;		/* Generation number for dumps */
 	int	generation;	/* DB global generation number */
-	dbref	curr_enactor;	/* Who initiated the current command */
-	dbref	curr_player;	/* Who is running the current command */
-	int	curr_pid;	/* Current PID of the process running */
-        char    *curr_cmd;      /* The current command */
         char    curr_pidcmd[LBUF_SIZE];    /* Current command on the pid */
-        char    *curr_plrcmd;      /* The current player's command */
         char    curr_cmd_hook[LBUF_SIZE]; /* The current command - for hooking */
         char    *iter_arr[50];   /* Iter recursive memory - text*/
         int     iter_inumarr[50];/* Iter recursive memory - number*/
@@ -710,31 +846,7 @@ struct statedata {
         int     iter_inum;      /* Iter inum value */
 	int	dol_inumarr[50];/* Dolist array */
 	char	*dol_arr[50];	/* Dolist Array */
-	int	alarm_triggered;/* Has periodic alarm signal occurred? */
-	time_t	now;		/* What time is it now? */
-	int	no_hook;	/* Do not hook */
-	int	no_hook_count;	/* count of how many hooks are processed per 'command'  no more than 5 */
-	double  nowmsec; /* What time is it now, with msecs */
-	time_t	lastnow;	/* What time was it last? */
-	double  lastnowmsec; /* What time was it last, with msecs */
-	double	dump_counter;	/* Countdown to next db dump */
-	double	check_counter;	/* Countdown to next db check */
-	double	idle_counter;	/* Countdown to next idle check */
-	double	vattr_counter;	/* Countdown to next vattr check */
-	double	rwho_counter;	/* Countdown to next RWHO dump */
-	double	mstats_counter;	/* Countdown to next mstats snapshot */
-	time_t  chkcpu_stopper; /* What time was it when command started */
-	int     chkcpu_toggle;  /* Toggles the chkcpu to notify if aborted */
-	int	chkcpu_inline;	/* We are inline */
-        char    chkcpu_inlinestr[SBUF_SIZE]; /* Name of the inline process */
-	int	chkcpu_locktog;	/* Toggles the chkcpu to notify if aborted via locks */
-	int	ahear_count;	/* Current ahear nest count */
-	dbref	ahear_lastplr;	/* Last Player to try the ahear thingy */
-	int	ahear_currtime;	/* Time the ahear was issued */
-        int     force_halt;     /* Can you force the halted person? */
 	int	rwho_on;	/* Have we connected to an RWHO server? */
-	int	shutdown_flag;	/* Should interface be shut down? */
-	int	reboot_flag;
 	char	version[256];	/* MUSH version string */
 	char	short_ver[128];	/* Short version number (for RWHO) */
 	time_t	start_time;	/* When was MUSH started */
@@ -744,8 +856,6 @@ struct statedata {
         time_t  newsflat_time;  /* When was news last flatfiled */
         time_t  mailflat_time;  /* When was mail last flatfiled */
 	char	buffer[256];	/* A buffer for holding temp stuff */
-        char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
-	char	*debug_cmd;	/* The command we are executing (if any) */
 	char	doing_hdr[81];	/* Doing column header in the WHO display */
 	char	ng_doing_hdr[81];
 	char	guild_hdr[12];
@@ -758,19 +868,13 @@ struct statedata {
 	SITE	*suspect_list;	/* Sites that are suspect */
 	SITE	*special_list;	/* Sites that have special requirements */
         HASHTAB cmd_alias_htab; /* Command alias hashtable */
-	HASHTAB	command_htab;	/* Commands hashtable */
 	HASHTAB	command_vattr_htab;	/* Commands VATTR dynamic hashtable */
 	HASHTAB	logout_cmd_htab;/* Logged-out commands hashtable (WHO, etc) */
-	HASHTAB func_htab;	/* Functions hashtable */
 	HASHTAB ufunc_htab;	/* Local functions hashtable */
 	HASHTAB ulfunc_htab;	/* User-Defined Local functions hashtable */
-	HASHTAB flags_htab;	/* Flags hashtable */
-	HASHTAB toggles_htab;	/* Toggles hashtable */
 	HASHTAB powers_htab;
 	HASHTAB depowers_htab;
-	HASHTAB	attr_name_htab;	/* Attribute names hashtable */
 	NHSHTAB	attr_num_htab;	/* Attribute numbers hashtable */
-	HASHTAB player_htab;	/* Player name->number hashtable */
 	HASHTAB objecttag_htab;	/* Tag->number hashtable */
 	NHSHTAB	fwdlist_htab;	/* Room forwardlists */
 	NHSHTAB	parent_htab;	/* Parent $-command exclusion */
@@ -790,18 +894,6 @@ struct statedata {
 	int 	vattr_reuseptr;
 	int 	vattr_reusecnt;
 	int	account_subsys_inuse;	/* Set to 1 if account subsystem is in use */
-	int	no_space_compress;	/* State data to not allow space compress */
-	int	cmd_bitmask;	/* bitmask states for command handlers */
-	BQUE	*qfirst;	/* Head of player queue */
-	BQUE	*qlast;		/* Tail of player queue */
-	BQUE	*qlfirst;	/* Head of object queue */
-	BQUE	*qllast;	/* Tail of object queue */
-	BQUE	*qwait;		/* Head of wait queue */
-	BQUE	*qsemfirst;	/* Head of semaphore queue */
-	BQUE	*qsemlast;	/* Tail of semaphore queue */
-	BQUE	*fqwait;	/* Head of freeze wait queue */
-	BQUE	*fqsemfirst;	/* Head of freeze semaphore queue */
-	BQUE	*fqsemlast;	/* Tail of freeze semaphore queue */
 	BADNAME	*badname_head;	/* List of disallowed names */
 	PROTECTNAME	*protectname_head;	/* List of protected names */
 	int	mstat_ixrss[2];	/* Summed shared size */
@@ -813,40 +905,13 @@ struct statedata {
 	char	*mod_alist;	/* Attribute list for modifying */
 	int	mod_size;	/* Length of modified buffer */
 	dbref	mod_al_id;	/* Where did mod_alist come from? */
-	dbref	freelist;	/* Head of object freelist */
-	int	min_size;	/* Minimum db size (from file header) */
-	int	db_top;		/* Number of items in the db */
-	int	db_size;	/* Allocated size of db structure */
-	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
-        int	trace_nest_lev;	/* The trace nest level */
-	int	func_nest_lev;	/* Current nesting of functions */
-	int	func_invk_ctr;	/* Functions invoked so far by this command */
-	int	ntfy_nest_lev;	/* Current nesting of notifys */
-	int	lock_nest_lev;	/* Current nesting of lock evals */
-        int     ufunc_nest_lev; /* Current nesting of USER functions */
-	char	*global_regs[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global registers */
-	char	*global_regsname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];	/* Global register names */
-#ifndef NO_GLOBAL_REGBACKUP
-        char    *global_regs_backup[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
-#endif
-        char    nameofqreg[37]; /* Buffer to hold qregs */
         int	global_regs_wipe;	/* Toggle to wipe localized regs */
-	int	mail_state;
-	int	whisper_state;
-	int	eval_rec;
 	int	guest_num;
 	int	guest_status;
 	dbref	free_num;
-	dbref	recoverlist;
 	char	nuke_status;
 	char	write_status;
 	int	nowall_over;
-	int	evalnum;
-	int	evalresult;
-	int	evalstate[MAXEVLEVEL];
-	int	evaldb[MAXEVLEVEL];
-	dbref	vlplay;
-	int	exitcheck;
 	dbref	pageref;
 	int	droveride;
 	int	scheck;
@@ -857,10 +922,6 @@ struct statedata {
         int     new_vattr;	/* New Vattr Defined */
 	int	max_logins_allowed; /* Total logins allowed based on free OS descriptors */
 	int	last_cmd_timestamp;
-	int	heavy_cpu_recurse;	/* functions with heavy CPU usage */
-        time_t	heavy_cpu_tmark1;	/* Time maker */
-        time_t	heavy_cpu_tmark2;	/* Time maker */
-        int	heavy_cpu_lockdown;	/* Lock down a function if heavily abused */
 	int	cmp_lastsite;    	/* Last site that connected */
 	int	cmp_lastsite_cnt; 	/* Number of times last site connected */
 	int	api_lastsite;    	/* API Last site that connected */
@@ -869,32 +930,13 @@ struct statedata {
 	int	last_apicon_attempt;
         int     last_pcreate_cnt;
         int     last_pcreate_time;
-	int	reverse_wild;	/* @wipe and such have wildmatches REVERSED */
-	int	stack_val;	/* Current Stack Value of command */
-	int	stack_toggle;	/* Toggle to show if stack was hit or not */
-	int	stack_cntr;	/* Counter of how many consecutive stack overflows there were */
         int     train_cntr;     /* Counter for train nest limit */
         int     sudo_cntr;      /* Counter for sudo nest limit */
         int     sidefx_currcalls; /* Current sidefx calls */
         int     sidefx_toggle;  /* Toggle to show sidefx ceiling was hit */
-	int     emit_substitute;  /* Toggle @emit substitutions */
-        int     inside_locks;	/* Enable/disable 'inside locks' */
-	int	nolookie;	/* Don't look into the vattr table at this point */
-	int	reality_notify;	/* Reality level check inside notify */
-	int	password_nochk;	/* Don't allow @hooks to pass/execute %x/%c to find password */
-	int	curr_percentsubs;	/* Current percent sub tree */
-	int	tog_percentsubs;	/* Ok, you hit the max percent sub ceiling.  Bad boy */
-	int	cntr_percentsubs;	/* Counter to kill the little pecker */
-        double  cntr_reset;	/* Reset the basic counters after 60 seconds */
-	int	recurse_rlevel;	/* Allow recurse limit for reality levels */
-	int	sub_overridestate; /* state information for sub_overrides */
-	int	sub_includestate; /* state information for sub_overrides */
 	int	log_maximum;	/* State to count logtotext() calls per command */
 	int	trainmode;	/* ] enabled */
-        int     outputflushed;  /* Is output flushed on command? */
-	int     allowbypass;	/* Is bypass() allowed?  Ergo, in @function? */
 	int	shifted;	/* Is 0-9 registers shifted? */
-	int	clust_time;	/* Time for cluster */
 	dbref	last_network_owner;	/* The last network owner who had network issues */
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
@@ -921,25 +963,15 @@ struct statedata {
 	int 	insideaflags; 	/* Inside @aflag eval check */
 	int	insideicmds;	/* Inside ICMD evaluation */
 	time_t	mysql_last;	/* Last MySQL hang time */
-	int	argtwo_fix;	/* Arg 2 fix test for '=' */
-        int     zone_return;	/* Return value of zonecmd() function */
-	int	posesay_fluff;	/* Allow pose/say fluffing */
-	dbref	posesay_dbref;	/* Allow pose/say fluffing */
 	int	trace_indent;	/* Trace indention */
 	int	mail_inline;	/* Do not let mail work inline other mail */
         int	iter_special;	/* Special iter handler for 'inf' args */
 	int	nested_control;	/* Nested controlock */
-	int	nospam_counter;	/* Counter for nospam connect enabled */
 	char	nospam_lastsite[60]; /* lastsite comparison to nospam connect */
 	char	lastsite_ip[INET6_ADDRSTRLEN + 1]; /* Last IPv4/IPv6 site for paranoia tracking */
 	char	api_lastsite_ip[INET6_ADDRSTRLEN + 1]; /* Last IPv4/IPv6 site for API rate limiting */
-	int	no_announce;	/* Do not handle announcements */
 #else
-  dbref remote; /* Remote location for @remote */
-  dbref remotep;/* Remote location for @remote player */
-	int	logging;	/* Are we in the middle of logging? */
 	char	buffer[256];	/* A buffer for holding temp stuff */
-        char    *lbuf_buffer;	/* An lbuf buffer we can globally use */
 	int	attr_next;	/* Next attr to alloc when freelist is empty */
 	int 	vattr_reuse[MAXVATTRCACHE + 1];
 	int 	vattr_reuseptr;
@@ -948,22 +980,15 @@ struct statedata {
 	char	*mod_alist;	/* Attribute list for modifying */
 	int	mod_size;	/* Length of modified buffer */
 	dbref	mod_al_id;	/* Where did mod_alist come from? */
-	int	min_size;	/* Minimum db size (from file header) */
-	int	db_top;		/* Number of items in the db */
-	int	db_size;	/* Allocated size of db structure */
         int     new_vattr;	/* New Vattr Defined */
-	int	nolookie;	/* Don't look into the vattr table at this point */
-	dbref	freelist;	/* Head of object freelist */
-	dbref	recoverlist;
-	dbref	vlplay;
 	FILE	*f_logfile_name;
         int	log_chk_reboot;
 	int	help_shell;	/* Shell to the next help index */
-	MARKBUF	*markbits;	/* temp storage for marking/unmarking */
 #endif	/* STANDALONE */
 };
 
 extern STATEDATA mudstate;
+extern struct state_hot mudstate_hot;
 
 /* Configuration parameter handler definition */
 

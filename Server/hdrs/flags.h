@@ -872,7 +872,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define isThing(x)      (Good_obj(x) && (Typeof(x) == TYPE_THING))
 #define isZone(x)       (Good_obj(x) && (Typeof(x) == TYPE_ZONE))
 
-#define Good_obj(x)     (((x) >= 0) && ((x) < mudstate.db_top) && \
+#define Good_obj(x)     (((x) >= 0) && ((x) < mudstate_hot.db_top) && \
 			 (Typeof(x) <= TYPE_ZONE))
 #define Good_owner(x)   (Good_obj(x) && OwnsOthers(x))
 
@@ -880,7 +880,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Transparent(x)  ((Flags(x) & SEETHRU) != 0)
 #define Link_ok(x)      (((Flags(x) & LINK_OK) != 0) && Has_contents(x))
 #ifndef STANDALONE
-#define Wizard(x)       (evlevchk(x,4) ? mudstate.evalresult : \
+#define Wizard(x)       (evlevchk(x,4) ? mudstate_hot.evalresult : \
 			((Flags(x) & WIZARD) || Immortal(x) || God(x) ||\
 			 ((Flags(Owner(x)) & WIZARD) && Inherits(x))))
 #else
@@ -914,7 +914,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Visual(x)       ((Flags(x) & VISUAL) != 0)
 #define TogReason(x)	((Toggles(x) & TOG_MONITOR_DISREASON) != 0)
 #ifndef STANDALONE
-#define Immortal(x)     (evlevchk(x,5) ? mudstate.evalresult : \
+#define Immortal(x)     (evlevchk(x,5) ? mudstate_hot.evalresult : \
 		         ((Flags(x) & IMMORTAL) || God(x) || \
 			 ((Flags(Owner(x)) & IMMORTAL) && Inherits(x))))
 #else
@@ -925,11 +925,11 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			 (Flags(Owner(x)) & WIZARD)) && Hidden(x) && \
 			 Unfindable(x))
 #ifndef STANDALONE
-#define Admin(x)        (evlevchk(x,3) ? mudstate.evalresult : \
+#define Admin(x)        (evlevchk(x,3) ? mudstate_hot.evalresult : \
 			((Flags2(x) & ADMIN) || \
 			 Wizard(x) || \
 			 ((Flags2(Owner(x)) & ADMIN) && Inherits(x))))
-#define Guildmaster(x)  (evlevchk(x,1) ? mudstate.evalresult : \
+#define Guildmaster(x)  (evlevchk(x,1) ? mudstate_hot.evalresult : \
 			((Flags2(x) & GUILDMASTER) || \
 			 Builder(x) || Admin(x) || Wizard(x) || \
 			 ((Flags2(Owner(x)) & GUILDMASTER) && Inherits(x))))
@@ -966,7 +966,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #define Light(x)        ((Flags2(x) & LIGHT) != 0)
 #define Suspect(x)      ((Flags2(Owner(x)) & SUSPECT) != 0)
 #ifndef STANDALONE
-#define Builder(x)      (evlevchk(x,2) ? mudstate.evalresult : \
+#define Builder(x)      (evlevchk(x,2) ? mudstate_hot.evalresult : \
 			((Flags2(x) & BUILDER) || \
 			 Admin(x) || \
 			 ((Flags2(Owner(x)) & BUILDER) && Inherits(x))))
@@ -1034,16 +1034,16 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 			 (!(God(x) && !God(p))) && \
 			 (Wizard(p) || \
 			  (Owner(p) == Owner(x))))
-#define Mark(x)         (mudstate.markbits->chunk[(x)>>3] |= \
+#define Mark(x)         (mudstate_hot.markbits->chunk[(x)>>3] |= \
 			 mudconf.markdata[(x)&7])
-#define Unmark(x)       (mudstate.markbits->chunk[(x)>>3] &= \
+#define Unmark(x)       (mudstate_hot.markbits->chunk[(x)>>3] &= \
 			 ~mudconf.markdata[(x)&7])
-#define Marked(x)       (mudstate.markbits->chunk[(x)>>3] & \
+#define Marked(x)       (mudstate_hot.markbits->chunk[(x)>>3] & \
 			 mudconf.markdata[(x)&7])
-#define Mark_all(i)     for ((i)=0; (i)<((mudstate.db_top+7)>>3); (i)++) \
-				mudstate.markbits->chunk[i]=0xff
-#define Unmark_all(i)   for ((i)=0; (i)<((mudstate.db_top+7)>>3); (i)++) \
-				mudstate.markbits->chunk[i]=0x0
+#define Mark_all(i)     for ((i)=0; (i)<((mudstate_hot.db_top+7)>>3); (i)++) \
+				mudstate_hot.markbits->chunk[i]=0xff
+#define Unmark_all(i)   for ((i)=0; (i)<((mudstate_hot.db_top+7)>>3); (i)++) \
+				mudstate_hot.markbits->chunk[i]=0x0
 #define Link_exit(p,x)  ((Typeof(x) == TYPE_EXIT) && \
 			 (!NoEx(x)) && \
 			 ((Location(x) == NOTHING) || Controls(p,x)))
@@ -1083,7 +1083,7 @@ extern int	FDECL(has_aflag, (dbref, dbref, int, char *));
 #ifndef STANDALONE
 #define ControlsforattrOwner(p,x,a,f) \
 			  ((((Owner(p) == Owner(x)) && \
-                             (evlevchk(p,bittype(p)) ? mudstate.evalresult : 1) && \
+                             (evlevchk(p,bittype(p)) ? mudstate_hot.evalresult : 1) && \
 			     (Inherits(p) || !Inherits(x))) || \
                              could_doit(p,x,A_LTWINK,0,0)) && \
 			   ((Immortal(p) && !(((a)->flags & (AF_GOD)) || \

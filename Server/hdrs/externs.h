@@ -1449,7 +1449,7 @@ extern int      FDECL(mush_crypt_validate, (dbref, const char *, const char *, i
 		log_text(m); \
 	ENDLOG
 
-#define	test_top()		((mudstate.qfirst != NULL) ? 1 : 0)
+#define	test_top()		((mudstate_hot.qfirst != NULL) ? 1 : 0)
 #define	controls(p,x)		Controls(p,x)
 
 #define atr_get(w,x,y,z)	atr_get_ash(w,x,y,z,__LINE__,__FILE__)
