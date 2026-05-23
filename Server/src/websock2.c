@@ -74,7 +74,7 @@ compute_payload_len(TBLOCK *tb, int len)
         *tb->hdr.end++ = len & 0xFF;
     } else { // payload > 65536
         int pos;
-        *tb->hdr.end++ = 126;
+        *tb->hdr.end++ = 127;
 
         for (pos = 56; pos >= 0; pos -= 8) {
             *tb->hdr.end++ = (len >> pos) & 0xFF;
@@ -138,6 +138,7 @@ complete_handshake(DESC *d, const char *key) {
 
     /* Set initial state */
     d->cold->checksum[0] = 4;
+    d->cold->ws_last_pong = time(NULL);
 }
 
 /* Abort an invalid handshake request */
@@ -196,6 +197,71 @@ websocket_write(DESC *d, const char *output, int len)
     } while (len > 0);
 }
 
+static void
+websocket_send_pong(DESC *d)
+{
+    TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.pong");
+    tb->hdr.nxt = NULL;
+    tb->hdr.start = tb->data;
+    tb->hdr.end = tb->data;
+
+    *tb->hdr.end++ = 0x80 | WS_OP_PONG;
+    *tb->hdr.end++ = 0;
+
+    tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
+
+    if (D_OUTPUT_HEAD(d) == NULL) {
+        D_OUTPUT_HEAD(d) = tb;
+    } else {
+        D_OUTPUT_TAIL(d)->hdr.nxt = tb;
+    }
+    D_OUTPUT_TAIL(d) = tb;
+}
+
+void
+websocket_send_close(DESC *d, unsigned short code)
+{
+    TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.close");
+    tb->hdr.nxt = NULL;
+    tb->hdr.start = tb->data;
+    tb->hdr.end = tb->data;
+
+    *tb->hdr.end++ = 0x80 | WS_OP_CLOSE;
+    *tb->hdr.end++ = 2;
+    *tb->hdr.end++ = (code >> 8) & 0xFF;
+    *tb->hdr.end++ = code & 0xFF;
+
+    tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
+
+    if (D_OUTPUT_HEAD(d) == NULL) {
+        D_OUTPUT_HEAD(d) = tb;
+    } else {
+        D_OUTPUT_TAIL(d)->hdr.nxt = tb;
+    }
+    D_OUTPUT_TAIL(d) = tb;
+}
+
+void
+websocket_send_ping(DESC *d)
+{
+    TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.ping");
+    tb->hdr.nxt = NULL;
+    tb->hdr.start = tb->data;
+    tb->hdr.end = tb->data;
+
+    *tb->hdr.end++ = 0x80 | WS_OP_PING;
+    *tb->hdr.end++ = 0;
+
+    tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
+
+    if (D_OUTPUT_HEAD(d) == NULL) {
+        D_OUTPUT_HEAD(d) = tb;
+    } else {
+        D_OUTPUT_TAIL(d)->hdr.nxt = tb;
+    }
+    D_OUTPUT_TAIL(d) = tb;
+}
+
 int
 process_websocket_frame(DESC *d, char *tbuf1, int got)
 {
@@ -227,21 +293,55 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
 
       switch (op) {
       case WS_OP_CONTINUATION:
-        /* Continue the previous opcode. */
-        /* TODO: Error handling (only data frames can be continued). */
-        err = 0;
-        op = type & 0x0F;
-        break;
+	if (!d->cold->ws_fragmented) {
+	  err = 1;
+	} else {
+	  err = 0;
+	  op = type & 0x0F;
+	  d->cold->ws_fragmented = !(ch & 0x80);
+	}
+	break;
 
       case WS_OP_TEXT:
-        /* First frame of a new message. */
-        err = 0;
-        break;
+	if (d->cold->ws_fragmented) {
+	  err = 1;
+	} else {
+	  err = 0;
+	  d->cold->ws_fragmented = !(ch & 0x80);
+	}
+	break;
+
+      case WS_OP_CLOSE:
+	if (!(ch & 0x80)) {
+	  err = 1;
+	  op = WS_OP_CONTINUATION;
+	} else {
+	  err = 2;
+	}
+	break;
+
+      case WS_OP_PING:
+	if (!(ch & 0x80)) {
+	  err = 1;
+	  op = WS_OP_CONTINUATION;
+	} else {
+	  err = 3;
+	}
+	break;
+
+      case WS_OP_PONG:
+	if (!(ch & 0x80)) {
+	  err = 1;
+	  op = WS_OP_CONTINUATION;
+	} else {
+	  err = 4;
+	}
+	break;
 
       default:
-        /* Ignore unrecognized opcode. */
-        err = 1;
-        break;
+	err = 1;
+	d->cold->ws_fragmented = 0;
+	break;
       }
 
       type = (ch & 0xF0) | op;
@@ -295,6 +395,11 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
       break;
 
     case 16:
+      if (len > LBUF_SIZE) {
+	err = 1;
+	d->cold->ws_fragmented = 0;
+      }
+      /* FALLTHROUGH */
     case 17:
     case 18:
       /* 32-bit mask key. */
@@ -305,35 +410,48 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
       mask[4] = ch;
 
       if (len) {
-        /* Begin payload. */
-        state = 0;
-     } else {
-        /* Empty payload. */
-        state = 4;
+	/* Begin payload. */
+	state = 0;
+      } else {
+	/* Empty payload — end of frame. */
+	state = 4;
 
-        /* TODO: Handle end of frame. */
+	switch (type & 0x0F) {
+	case WS_OP_CLOSE:
+	  websocket_send_close(d, WS_CLOSE_NORMAL);
+	  d->cold->ws_closing = 1;
+	  break;
+	case WS_OP_PING:
+	  websocket_send_pong(d);
+	  break;
+	case WS_OP_PONG:
+	  d->cold->ws_last_pong = time(NULL);
+	  break;
+	}
       }
       break;
 
     default:
-      /* Payload data; handle according to opcode. */
-      if (!err) {
-        *wp++ = ch ^ mask[state];
-      } else {
-        STARTLOG(LOG_ALWAYS, "NET", "WS");
-        log_text("Unknown operation received.\n");
-        ENDLOG;
-        break;
+      /* Payload data; write only for recognized data frames. */
+      if (err == 0) {
+	*wp++ = ch ^ mask[state];
       }
-
       if (--len) {
-        /* More payload bytes. */
-        state &= 0x3;
+	state &= 0x3;
       } else {
-        /* Last payload byte. */
-        state = 4;
-
-        /* TODO: Handle end of frame. */
+	state = 4;
+	switch (type & 0x0F) {
+	case WS_OP_CLOSE:
+	  websocket_send_close(d, WS_CLOSE_NORMAL);
+	  d->cold->ws_closing = 1;
+	  break;
+	case WS_OP_PING:
+	  websocket_send_pong(d);
+	  break;
+	case WS_OP_PONG:
+	  d->cold->ws_last_pong = time(NULL);
+	  break;
+	}
       }
       break;
     }

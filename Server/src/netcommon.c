@@ -6249,7 +6249,7 @@ do_command(DESC * d, char *command)
             s_strtok = strtok_r(s_buffer, "\n", &s_strtokr);
             i_enc64 = i_parse = i_snarfing = i_usepass = i_snarfing4 = 0;
             ///// NEW WEBSOCK
-            int i_socksnarf = 0;
+            int ws_upgrade = 0, ws_connection = 0, ws_host = 0, ws_version = 0, ws_key = 0;
             char *s_sockhost = alloc_lbuf("cmd_sockhost");
             char *s_sockkey = alloc_lbuf("cmd_sockkey");
             char *s_sockver = alloc_lbuf("cmd_sockver");
@@ -6264,45 +6264,47 @@ do_command(DESC * d, char *command)
                ////////   NEW WEBSOCK
                ///// TODO: Improve logic here
 
-                  if ( !stricmp(s_snarfheader, (char *)"Upgrade" ) ) {
-                     if ( !stricmp(s_snarfvalue, (char *)"Websocket" ) ) {
-                        i_socksnarf++;
-                     }
-                  }
+                   if ( !stricmp(s_snarfheader, (char *)"Upgrade" ) ) {
+                      if ( !stricmp(s_snarfvalue, (char *)"Websocket" ) ) {
+                         ws_upgrade = 1;
+                      }
+                   }
 
-                  if ( !stricmp(s_snarfheader, (char *)"Connection" ) ) {
-                     if ( !stricmp(s_snarfvalue, (char *)"Upgrade" ) ) {
-                        i_socksnarf++;
-                     }
-		     else if ( !stricmp(s_snarfvalue, (char *)"keep-alive, Upgrade" ) ) {
-                        i_socksnarf++;
-                     }
-                  }
+                   if ( !stricmp(s_snarfheader, (char *)"Connection" ) ) {
+                      /* Check for "upgrade" anywhere in the value (case-insensitive) */
+                      char *cp;
+                      for (cp = s_snarfvalue; *cp; cp++) {
+                         if (strncasecmp(cp, "upgrade", 7) == 0) {
+                            ws_connection = 1;
+                            break;
+                         }
+                      }
+                   }
 
-                  if ( !stricmp(s_snarfheader, (char *)"Host" ) ) {
-                     strcpy(s_sockhost, s_snarfvalue);
-                     i_socksnarf++;
-                  }
+                   if ( !stricmp(s_snarfheader, (char *)"Host" ) ) {
+                      strcpy(s_sockhost, s_snarfvalue);
+                      ws_host = 1;
+                   }
 
-                  if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Version" ) ) {
-                     strcpy(s_sockver, s_snarfvalue);
-                     if ( !stricmp(s_sockver, (char *)"13" ) ) {
-                        i_socksnarf++;
-                     }
-                  }
+                   if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Version" ) ) {
+                      strcpy(s_sockver, s_snarfvalue);
+                      if ( !stricmp(s_sockver, (char *)"13" ) ) {
+                         ws_version = 1;
+                      }
+                   }
 
-                  if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Key" ) ) {
-                     strcpy(s_sockkey, s_snarfvalue);
+                   if ( !stricmp(s_snarfheader, (char *)"Sec-WebSocket-Key" ) ) {
+                      strcpy(s_sockkey, s_snarfvalue);
 #ifdef ENABLE_WEBSOCKETS
-                     if (validate_websocket_key(s_sockkey)) {
-                        i_socksnarf++;
-                     }
+                      if (validate_websocket_key(s_sockkey)) {
+                         ws_key = 1;
+                      }
 #else
-                     i_socksnarf++;
+                      ws_key = 1;
 #endif
-                  }
+                   }
 
-               ////////   END NEW WEBSOCK
+                ////////   END NEW WEBSOCK
 
                   if ( (d->cold->timeout == 1) && !stricmp(s_snarfheader, (char *)"Keep-Alive" ) ) {
                      if ( !strncasecmp(s_snarfvalue, (char *)"timeout=", 8) ) {
@@ -6384,7 +6386,7 @@ do_command(DESC * d, char *command)
             }
 
             ///// NEW WEBSOCK
-            if (i_socksnarf >= 5) {
+            if (ws_upgrade && ws_connection && ws_host && ws_version && ws_key) {
                 free_lbuf(s_user); // Was allocated but will not be used
 #ifdef ENABLE_WEBSOCKETS
                 STARTLOG(LOG_ALWAYS, "NET", "WS");

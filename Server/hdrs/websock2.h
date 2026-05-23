@@ -19,6 +19,15 @@
 /* Maximum Size of WebSocket Header */
 #define WS_HDR_SIZE 16;
 
+/* WebSocket close status codes */
+#define WS_CLOSE_NORMAL   1000
+#define WS_CLOSE_GOING    1001
+#define WS_CLOSE_PROTOCOL 1002
+
+/* Ping/Pong intervals (seconds) */
+#define WS_PING_INTERVAL 45
+#define WS_PING_TIMEOUT  90
+
 /* WebSocket opcodes. */
 enum WebSocketOp {
   WS_OP_CONTINUATION = 0x0,
@@ -40,5 +49,7 @@ extern int validate_websocket_key(char *);
 extern void complete_handshake(DESC *, const char *);
 extern void websocket_write(DESC *, const char *, int);
 extern int process_websocket_frame(DESC *, char *, int);
+extern void websocket_send_close(DESC *, unsigned short);
+extern void websocket_send_ping(DESC *);
 
 #endif /* undef MUSH_WEBSOCK_H */

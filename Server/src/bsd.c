@@ -1155,6 +1155,23 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 			shutdownsock(d, R_API);
 		}
             }
+
+#ifdef ENABLE_WEBSOCKETS
+            /* WebSocket cleanup: close + ping/pong keepalive */
+            if (D_FLAGS(d) & DS_WEBSOCKETS) {
+                if (d->cold->ws_closing) {
+                    shutdownsock(d, R_WEBSOCKETS);
+                    continue;
+                }
+                time_t now = time(NULL);
+                if (!d->cold->ws_last_pong)
+                    d->cold->ws_last_pong = now;
+                else if (now - d->cold->ws_last_pong > WS_PING_TIMEOUT)
+                    shutdownsock(d, R_TIMEOUT);
+                else if (now - d->cold->ws_last_pong > WS_PING_INTERVAL)
+                    websocket_send_ping(d);
+            }
+#endif
 	}
 	door_checkInternalDoorDescriptors(&input_set, &output_set);
 	
@@ -1881,6 +1898,12 @@ shutdownsock(DESC * d, int reason)
 	free_lbuf(buff);
 	ENDLOG
     }
+    /* Send WebSocket close frame before shutting down */
+#ifdef ENABLE_WEBSOCKETS
+    if ((D_FLAGS(d) & DS_WEBSOCKETS) && !d->cold->ws_closing) {
+	websocket_send_close(d, WS_CLOSE_GOING);
+    }
+#endif
     process_output(d);
     process_door_output(d);
     clearstrings(d);
@@ -2680,6 +2703,10 @@ process_input(DESC * d)
         /* Process using WebSockets framing. */
         got2 = got;
         got = in = process_websocket_frame(d, buf, got2);
+        if (d->cold->ws_closing) {
+            mudstate.debug_cmd = cmdsave;
+            RETURN(1);
+        }
     }
 ///// END NEW WEBSOCK #endif
 #endif

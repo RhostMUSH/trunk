@@ -230,6 +230,11 @@ struct desc_cold {
     void   *telnet;             /* libtelnet state for this connection */
     unsigned short term_width;  /* NAWS terminal width (0 = unknown) */
     unsigned short term_height; /* NAWS terminal height (0 = unknown) */
+
+    /* WebSocket control */
+    int     ws_closing;         /* 1 = close frame received, pending shutdown */
+    char    ws_fragmented;      /* 1 = in-progress fragmented message */
+    time_t  ws_last_pong;       /* timestamp of last PONG received */
 };
 
 typedef struct descriptor_data DESC;
