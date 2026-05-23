@@ -2494,10 +2494,8 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
           i_nope = 1;
        }
     }
-    /* Initialize libtelnet (sends DO NAWS proactively) before any output */
-    if (!keyval) {
-        telnet_init_desc(d);
-    }
+    /* telnet_init_desc is deferred to process_input() to avoid sending
+     * IAC DO NAWS to WebSocket connections before the WS upgrade. */
     if ( !i_nope && !keyval ) {
        welcome_user(d);
        start_auth(d);
@@ -2685,8 +2683,13 @@ process_input(DESC * d)
     }
 ///// END NEW WEBSOCK #endif
 #endif
-    /* Strip telnet negotiation for non-websocket, non-API connections */
-    if (d->cold->telnet && !(D_FLAGS(d) & (DS_WEBSOCKETS | DS_API))) {
+    /* First-time init for non-websocket, non-API connections.
+     * Deferred from initializesock() so we don't send DO NAWS to WS clients. */
+    if (!d->cold->telnet && !(D_FLAGS(d) & (DS_WEBSOCKETS | DS_API))) {
+        telnet_init_desc(d);
+    }
+    /* Strip telnet negotiation if initialized */
+    if (d->cold->telnet) {
         telnet_preprocess_input(d, buf, &got);
     }
     if (!d->cold->raw_input) {
