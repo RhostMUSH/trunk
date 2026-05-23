@@ -8370,6 +8370,19 @@ list_nhashstat(dbref player, const char *tab_name, NHSHTAB * htab)
 }
 
 static void 
+list_ohtabstat(dbref player, const char *tab_name, OHTAB * htab)
+{
+    char *buff;
+
+    DPUSH; /* #49-b */
+
+    buff = ohtab_info(tab_name, htab);
+    notify(player, buff);
+    free_mbuf(buff);
+    DPOP; /* #49-b */
+}
+
+static void 
 list_hashstats(dbref player)
 {
     DPUSH; /* #51 */
@@ -8385,7 +8398,7 @@ list_hashstats(dbref player)
     list_hashstat(player, "Functions", &mudstate_hot.func_htab);
     list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
     list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
-    list_hashstat(player, "Flags", &mudstate_hot.flags_htab);
+    list_ohtabstat(player, "Flags", &mudstate_hot.flags_htab);
     list_hashstat(player, "Totems", &mudstate.totem_htab);
     list_hashstat(player, "Attr names", &mudstate_hot.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);

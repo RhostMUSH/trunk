@@ -2957,10 +2957,10 @@ main(int argc, char *argv[])
     hashreset(&mudstate.command_vattr_htab);
     hashreset(&mudstate.logout_cmd_htab);
     hashreset(&mudstate_hot.func_htab);
-    hashreset(&mudstate_hot.toggles_htab);
+    ohtab_reset(&mudstate_hot.toggles_htab);
     hashreset(&mudstate.powers_htab);
     hashreset(&mudstate.depowers_htab);
-    hashreset(&mudstate_hot.flags_htab);
+    ohtab_reset(&mudstate_hot.flags_htab);
     hashreset(&mudstate_hot.attr_name_htab);
     nhashreset(&mudstate.attr_num_htab);
     hashreset(&mudstate_hot.player_htab);

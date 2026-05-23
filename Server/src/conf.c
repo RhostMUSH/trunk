@@ -3186,6 +3186,54 @@ CF_HAND(cf_string_sub)
  * cf_alias: define a generic hash table alias.
  */
 
+int validate_ohtab_aliases(dbref player,
+                           OHTAB *htab,
+                           char *orig, char *alias,
+                           char *label, char *cmd) {
+  int *cmdp = NULL, *aliasp = NULL, retval;
+
+  retval = 0;
+
+  if (!orig || !*orig) {
+    cf_log_syntax(player, cmd, "Don't know what to alias.", "");
+    return -1;
+  }
+
+  if (!alias || !*alias) {
+    ;
+  } else if (strcmp("!", orig) == 0) {
+    aliasp = ohtab_find(alias, htab);
+    if (!aliasp) {
+      cf_log_syntax(player, cmd, "Error: '%s' is not a valid alias.", alias);
+      retval = -1;
+    } else if (htab->last_entry->bIsOriginal == 1) {
+      cf_log_syntax(player, cmd, "Error: '%s' is not an alias, cannot delete.", alias);
+      retval = -1;
+    } else {
+      cf_log_syntax(player, cmd, "Warning: Alias '%s' deleted.", alias);
+      ohtab_delete(alias, htab);
+      retval = 1;
+    }
+  } else {
+    cmdp = ohtab_find(orig, htab);
+    if (cmdp == NULL) {
+      cf_log_notfound(player, cmd, label, orig);
+      retval = -1;
+    }
+    aliasp = ohtab_find(alias, htab);
+    if (aliasp == NULL) {
+      retval = ohtab_add(alias, cmdp, htab, 0);
+    } else if ( htab->last_entry->bIsOriginal == 1) {
+      cf_log_syntax(player, cmd, "Error: '%s' is not an alias, cannot redefine.", alias);
+      retval = -1;
+    } else {
+      cf_log_syntax(player, cmd, "Warning: Redefining alias '%s'", alias);
+      retval = ohtab_repl(alias, cmdp, htab, 0);
+    }
+  }
+  return retval;
+}
+
 int validate_aliases(dbref player,
 		     HASHTAB *htab,
 		     char *orig, char *alias,
@@ -3460,7 +3508,7 @@ CF_HAND(cf_flagalias)
     alias = strtok_r(str, " \t=,", &tstrtokr);
     orig = strtok_r(NULL, " \t=,", &tstrtokr);
 
-    retval = validate_aliases(player,
+    retval = validate_ohtab_aliases(player,
 			      &mudstate_hot.flags_htab, orig, alias,
 			      "Flag", cmd);
     return retval;
@@ -3817,7 +3865,7 @@ CF_HAND(cf_set_toggles)
 	else
 	  clear = 0;
 
-        fp = (TOGENT *) hashfind(sp, &mudstate_hot.toggles_htab);
+        fp = (TOGENT *) ohtab_find(sp, &mudstate_hot.toggles_htab);
 	if (fp != NULL) {
 	    if (success == 0) {
 		(*fset).word1 = 0;
@@ -3885,7 +3933,7 @@ CF_HAND(cf_set_flags)
 	else
 	  clear = 0;
 
-	fp = (FLAGENT *) hashfind(sp, &mudstate_hot.flags_htab);
+	fp = (FLAGENT *) ohtab_find(sp, &mudstate_hot.flags_htab);
 	if (fp != NULL) {
 	    if (success == 0) {
 		(*fset).word1 = 0;

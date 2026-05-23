@@ -32,6 +32,37 @@ struct num_hasharray {
 	NHSHENT		*element[500];
 };
 
+/* Open-addressing hash table entry.
+ * target == NULL          → slot never used (EMPTY)
+ * target == (char *)-1    → slot was deleted (TOMBSTONE)
+ * target == anything else → valid key string
+ */
+#define OHT_TOMBSTONE ((char *)-1)
+
+typedef struct ohtent OHTENT;
+struct ohtent {
+	char			*target;
+	int			*data;
+	int			bIsOriginal;
+};
+
+typedef struct ohtable OHTAB;
+struct ohtable {
+	int		hashsize;
+	int		mask;
+	int		entries;
+	int		tombstones;
+	double		checks;
+	double		scans;
+	int		max_scan;
+	double		hits;
+	int		nulls;
+	OHTENT		*slot;
+	int		last_hval;
+	OHTENT		*last_entry;
+	int		bOnlyOriginals;
+};
+
 typedef struct hashtable HASHTAB;
 struct hashtable {
 	int		hashsize;
@@ -176,6 +207,31 @@ extern int *	FDECL(real_hash_firstentry2, (HASHTAB *htab, int, const char *, int
 #define hash_nextentry(a)                real_hash_nextentry(a, __FILE__, __LINE__)
 #define hash_firstentry(a)               real_hash_firstentry(a, __FILE__, __LINE__)
 #define hash_firstentry2(a, b)           real_hash_firstentry2(a, b, __FILE__, __LINE__)
+
+/* OHTAB (open-addressing) function declarations */
+extern void	FDECL(real_ohtab_init, (OHTAB *, int, const char *, int));
+extern void	FDECL(real_ohtab_reset, (OHTAB *, const char *, int));
+extern int *	FDECL(real_ohtab_find, (const char *, OHTAB *, const char *, int));
+extern int	FDECL(real_ohtab_add, (char *, int *, OHTAB *, int, const char *, int));
+extern void	FDECL(real_ohtab_delete, (const char *, OHTAB *, const char *, int));
+extern void	FDECL(real_ohtab_flush, (OHTAB *, int, const char *, int));
+extern int	FDECL(real_ohtab_repl, (char *, int *, OHTAB *, int, const char *, int));
+extern char *	FDECL(real_ohtab_info, (const char *, OHTAB *, const char *, int));
+extern int *	FDECL(real_ohtab_firstentry, (OHTAB *, const char *, int));
+extern int *	FDECL(real_ohtab_firstentry2, (OHTAB *, int, const char *, int));
+extern int *	FDECL(real_ohtab_nextentry, (OHTAB *, const char *, int));
+
+#define ohtab_init(a,b)                    real_ohtab_init(a, b, __FILE__, __LINE__)
+#define ohtab_reset(a)                     real_ohtab_reset(a, __FILE__, __LINE__)
+#define ohtab_find(a, b)                   real_ohtab_find(a, b, __FILE__, __LINE__)
+#define ohtab_add(a, b, c, d)              real_ohtab_add(a, b, c, d, __FILE__, __LINE__)
+#define ohtab_delete(a, b)                 real_ohtab_delete(a, b, __FILE__, __LINE__)
+#define ohtab_flush(a, b)                  real_ohtab_flush(a, b, __FILE__, __LINE__)
+#define ohtab_repl(a, b, c, d)             real_ohtab_repl(a, b, c, d, __FILE__, __LINE__)
+#define ohtab_info(a, b)                   real_ohtab_info(a, b, __FILE__, __LINE__)
+#define ohtab_firstentry(a)                real_ohtab_firstentry(a, __FILE__, __LINE__)
+#define ohtab_firstentry2(a, b)            real_ohtab_firstentry2(a, b, __FILE__, __LINE__)
+#define ohtab_nextentry(a)                 real_ohtab_nextentry(a, __FILE__, __LINE__)
 
 extern NAMETAB powers_nametab[];
 #define nhashinit(h,s) hashinit((HASHTAB *)h, s)

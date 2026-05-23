@@ -963,5 +963,410 @@ void hashwalk_dump(HASHTAB *pHtab, char *ref) {
   
   fclose(pFile);
 }
+
+/* ---------------------------------------------------------------------------
+ * OHTAB (open-addressing hash table) implementation.
+ *
+ * Linear probing with tombstone deletion. Single contiguous allocation
+ * for all slots — eliminates per-entry malloc overhead and pointer chasing.
+ * ---------------------------------------------------------------------------
+ */
+
+void real_ohtab_init(OHTAB *htab, int size, const char *fileName, int lineNo)
+{
+    int i;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_init was passed a NULL htab.");
+        return;
+    }
+    if (size < 0) {
+        LOGTEXT("WRN", "ohtab_init was passed a size < 0.");
+        size = 50;
+    }
+
+    /* Round up to next power of two for fast AND masking */
+    {
+        int tsize;
+        for (tsize = 1; tsize < size; tsize = tsize << 1);
+        size = tsize;
+    }
+
+    htab->mask = size - 1;
+    htab->hashsize = size;
+    htab->entries = 0;
+    htab->tombstones = 0;
+    htab->checks = 0;
+    htab->scans = 0;
+    htab->max_scan = 0;
+    htab->hits = 0;
+    htab->nulls = size;
+    htab->last_hval = 0;
+    htab->last_entry = NULL;
+    htab->bOnlyOriginals = 0;
+
+    htab->slot = (OHTENT *)malloc(sizeof(OHTENT) * size);
+    for (i = 0; i < size; i++)
+        htab->slot[i].target = NULL;
+}
+
+void real_ohtab_reset(OHTAB *htab, const char *fileName, int lineNo)
+{
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_reset was passed a NULL htab.");
+        return;
+    }
+    htab->checks = 0;
+    htab->scans = 0;
+    htab->hits = 0;
+}
+
+int *real_ohtab_find(const char *str, OHTAB *htab, const char *fileName, int lineNo)
+{
+    int hval, numchecks, start;
+
+    if (str == NULL) {
+        LOGTEXT("ERR", "ohtab_find was passed a NULL key-string");
+        return NULL;
+    }
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_find was passed a NULL htab");
+        return NULL;
+    }
+    if (htab->slot == NULL) {
+        LOGTEXT("ERR", "ohtab_find was passed a NULL htab->slot");
+        return NULL;
+    }
+
+    numchecks = 0;
+    htab->scans++;
+    hval = hashval((char *)str, htab->mask);
+    start = hval;
+
+    do {
+        numchecks++;
+        if (htab->slot[hval].target == NULL) {
+            /* Empty slot — not found */
+            break;
+        }
+        if (htab->slot[hval].target != OHT_TOMBSTONE &&
+            strcasecmp(htab->slot[hval].target, str) == 0) {
+            /* Found it */
+            htab->hits++;
+            if (numchecks > htab->max_scan)
+                htab->max_scan = numchecks;
+            htab->checks += (double)numchecks;
+            htab->last_entry = &htab->slot[hval];
+            return htab->slot[hval].data;
+        }
+        hval = (hval + 1) & htab->mask;
+    } while (hval != start);
+
+    if (numchecks > htab->max_scan)
+        htab->max_scan = numchecks;
+    htab->checks += (double)numchecks;
+    return NULL;
+}
+
+int real_ohtab_add(char *str, int *hashdata, OHTAB *htab, int bOriginal,
+                   const char *fileName, int lineNo)
+{
+    int hval, start;
+    int first_tomb = -1;
+
+    if (str == NULL || *str == '\0') {
+        LOGTEXT("ERR", "ohtab_add was passed an empty string.");
+        return -1;
+    }
+    if (hashdata == NULL) {
+        LOGTEXT("ERR", "ohtab_add was passed a NULL data structure.");
+        return -1;
+    }
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_add was passed a NULL htab.");
+        return -1;
+    }
+    if (bOriginal != 0 && bOriginal != 1) {
+        LOGTEXT("ERR", "ohtab_add was passed an invalid bOriginal value.");
+        return -1;
+    }
+
+    /* Duplicate check: same logic as hashadd2 */
+    if (bOriginal) {
+        int *p = ohtab_find(str, htab);
+        if (p) {
+            /* An entry exists. If it's an original, reject. If alias, delete it first. */
+            /* We need to re-find to know bIsOriginal — use the last_entry from find */
+            if (htab->last_entry && htab->last_entry->bIsOriginal)
+                return -1;
+            /* It's an alias, delete it */
+            ohtab_delete(str, htab);
+        }
+    } else {
+        if (ohtab_find(str, htab) != NULL)
+            return -1;
+    }
+
+    /* Find insertion slot (empty or tombstone) */
+    hval = hashval(str, htab->mask);
+    start = hval;
+    do {
+        if (htab->slot[hval].target == NULL) {
+            /* Empty slot — use this */
+            if (first_tomb >= 0)
+                hval = first_tomb;
+            break;
+        }
+        if (htab->slot[hval].target == OHT_TOMBSTONE) {
+            if (first_tomb < 0)
+                first_tomb = hval;
+        }
+        hval = (hval + 1) & htab->mask;
+    } while (hval != start);
+
+    /* If we looped all the way around but found a tombstone, use it */
+    if (htab->slot[hval].target != NULL && htab->slot[hval].target != OHT_TOMBSTONE && first_tomb >= 0)
+        hval = first_tomb;
+
+    /* Table is completely full — no empty slot and no tombstone */
+    if (htab->slot[hval].target != NULL && htab->slot[hval].target != OHT_TOMBSTONE)
+        return -1;
+
+    if (htab->slot[hval].target == NULL)
+        htab->nulls--;
+    else if (htab->slot[hval].target == OHT_TOMBSTONE)
+        htab->tombstones--;
+
+    htab->slot[hval].target = strsave(str);
+    htab->slot[hval].data = hashdata;
+    htab->slot[hval].bIsOriginal = bOriginal;
+    htab->entries++;
+    return 0;
+}
+
+void real_ohtab_delete(const char *str, OHTAB *htab, const char *fileName, int lineNo)
+{
+    int hval, start;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_delete was passed a NULL htab.");
+        return;
+    }
+    if (str == NULL) {
+        LOGTEXT("ERR", "ohtab_delete was passed a NULL string.");
+        return;
+    }
+    if (htab->slot == NULL) {
+        LOGTEXT("ERR", "ohtab_delete was passed a NULL htab->slot");
+        return;
+    }
+
+    hval = hashval((char *)str, htab->mask);
+    start = hval;
+
+    do {
+        if (htab->slot[hval].target == NULL)
+            break;
+        if (htab->slot[hval].target != OHT_TOMBSTONE &&
+            strcasecmp(htab->slot[hval].target, str) == 0) {
+            free(htab->slot[hval].target);
+            htab->slot[hval].target = OHT_TOMBSTONE;
+            htab->entries--;
+            htab->tombstones++;
+            return;
+        }
+        hval = (hval + 1) & htab->mask;
+    } while (hval != start);
+}
+
+void real_ohtab_flush(OHTAB *htab, int size, const char *fileName, int lineNo)
+{
+    int i;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_flush was passed a NULL htab.");
+        return;
+    }
+    if (htab->slot == NULL) {
+        LOGTEXT("ERR", "ohtab_flush was passed a NULL htab->slot");
+        return;
+    }
+
+    for (i = 0; i < htab->hashsize; i++) {
+        if (htab->slot[i].target != NULL && htab->slot[i].target != OHT_TOMBSTONE) {
+            free(htab->slot[i].target);
+            htab->slot[i].target = NULL;
+        }
+    }
+
+    if ((size > 0) && (size != htab->hashsize)) {
+        free(htab->slot);
+        ohtab_init(htab, size);
+    } else {
+        htab->entries = 0;
+        htab->tombstones = 0;
+        htab->checks = 0;
+        htab->scans = 0;
+        htab->max_scan = 0;
+        htab->hits = 0;
+        htab->nulls = htab->hashsize;
+    }
+}
+
+int real_ohtab_repl(char *str, int *hashdata, OHTAB *htab, int bOriginal,
+                    const char *fileName, int lineNo)
+{
+    int hval, start;
+
+    if (str == NULL || *str == '\0') {
+        LOGTEXT("ERR", "ohtab_repl was passed an empty string.");
+        return 0;
+    }
+    if (hashdata == NULL) {
+        LOGTEXT("ERR", "ohtab_repl was passed a NULL data structure.");
+        return 0;
+    }
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_repl was passed a NULL htab.");
+        return 0;
+    }
+
+    hval = hashval(str, htab->mask);
+    start = hval;
+
+    do {
+        if (htab->slot[hval].target == NULL)
+            break;
+        if (htab->slot[hval].target != OHT_TOMBSTONE &&
+            strcasecmp(htab->slot[hval].target, str) == 0) {
+            htab->slot[hval].data = hashdata;
+            htab->slot[hval].bIsOriginal = bOriginal;
+            return 1;
+        }
+        hval = (hval + 1) & htab->mask;
+    } while (hval != start);
+
+    return 0;
+}
+
+char *real_ohtab_info(const char *tab_name, OHTAB *htab, const char *fileName, int lineNo)
+{
+    char *buff, *s_format, *s_pt;
+    const char *errstr = "<?>";
+    int i_max = 99999999;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_info was passed a NULL htab.");
+        return NULL;
+    }
+    if (tab_name == NULL) {
+        LOGTEXT("WRN", "ohtab_info was passed an empty tab_name.");
+        tab_name = errstr;
+    }
+
+    buff = alloc_mbuf("ohtab_info");
+    s_pt = s_format = alloc_mbuf("ohtab_format");
+
+    safe_str((char *)"%-14.14s %6d %8d %5d %5d ", s_format, &s_pt);
+
+    if (htab->scans > i_max)
+        safe_str((char *)"%8.2e ", s_format, &s_pt);
+    else
+        safe_str((char *)"%8.0f ", s_format, &s_pt);
+
+    if (htab->hits > i_max)
+        safe_str((char *)"%8.2e ", s_format, &s_pt);
+    else
+        safe_str((char *)"%8.0f ", s_format, &s_pt);
+
+    if (htab->checks > i_max)
+        safe_str((char *)"%8.2e ", s_format, &s_pt);
+    else
+        safe_str((char *)"%8.0f ", s_format, &s_pt);
+
+    safe_str((char *)"%8d", s_format, &s_pt);
+
+    sprintf(buff, s_format,
+            tab_name, htab->hashsize, htab->entries,
+            htab->tombstones, htab->nulls,
+            htab->scans, htab->hits, htab->checks,
+            htab->max_scan);
+
+    free_mbuf(s_format);
+    return buff;
+}
+
+static OHTENT *ohtab_find_first_valid(OHTAB *htab, int bOnlyOriginals)
+{
+    int i;
+
+    for (i = 0; i < htab->hashsize; i++) {
+        if (htab->slot[i].target == NULL || htab->slot[i].target == OHT_TOMBSTONE)
+            continue;
+        if (!bOnlyOriginals ||
+            ((htab->slot[i].bIsOriginal == 1) && (bOnlyOriginals != 2)) ||
+            ((htab->slot[i].bIsOriginal == 0) && (bOnlyOriginals == 2))) {
+            htab->last_hval = i;
+            htab->last_entry = &htab->slot[i];
+            htab->bOnlyOriginals = bOnlyOriginals;
+            return &htab->slot[i];
+        }
+    }
+    return NULL;
+}
+
+int *real_ohtab_firstentry(OHTAB *htab, const char *fileName, int lineNo)
+{
+    return real_ohtab_firstentry2(htab, 0, fileName, lineNo);
+}
+
+int *real_ohtab_firstentry2(OHTAB *htab, int bOnlyOriginals,
+                             const char *fileName, int lineNo)
+{
+    OHTENT *e;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_firstentry2 was passed a NULL htab.");
+        return NULL;
+    }
+    if (bOnlyOriginals != 0 && bOnlyOriginals != 1 && bOnlyOriginals != 2) {
+        LOGTEXT("ERR", "ohtab_firstentry2 was passed an invalid value.");
+        return NULL;
+    }
+    if (htab->slot == NULL) {
+        LOGTEXT("ERR", "ohtab_firstentry2 was passed a NULL htab->slot");
+        return NULL;
+    }
+
+    e = ohtab_find_first_valid(htab, bOnlyOriginals);
+    return e ? e->data : NULL;
+}
+
+int *real_ohtab_nextentry(OHTAB *htab, const char *fileName, int lineNo)
+{
+    int i;
+
+    if (htab == NULL) {
+        LOGTEXT("ERR", "ohtab_nextentry was passed a NULL htab.");
+        return NULL;
+    }
+    if (htab->slot == NULL) {
+        LOGTEXT("ERR", "ohtab_nextentry was passed a NULL htab->slot");
+        return NULL;
+    }
+
+    for (i = htab->last_hval + 1; i < htab->hashsize; i++) {
+        if (htab->slot[i].target == NULL || htab->slot[i].target == OHT_TOMBSTONE)
+            continue;
+        if (!htab->bOnlyOriginals ||
+            ((htab->slot[i].bIsOriginal == 1) && (htab->bOnlyOriginals != 2)) ||
+            ((htab->slot[i].bIsOriginal == 0) && (htab->bOnlyOriginals == 2))) {
+            htab->last_hval = i;
+            htab->last_entry = &htab->slot[i];
+            return htab->slot[i].data;
+        }
+    }
+    return NULL;
+}
 #endif
   

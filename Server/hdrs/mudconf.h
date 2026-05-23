@@ -778,8 +778,8 @@ struct state_hot {
         /* 10. Hot hash table headers (every lookup) */
         HASHTAB command_htab;
         HASHTAB func_htab;
-        HASHTAB flags_htab;
-        HASHTAB toggles_htab;
+        OHTAB flags_htab;
+        OHTAB toggles_htab;
         HASHTAB player_htab;
         HASHTAB attr_name_htab;
 
