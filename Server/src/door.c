@@ -408,7 +408,7 @@ int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonbloc
 	sin.sin_family = AF_INET;
         alarm_msec(3);
 	if (connect(new_port, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-           mudstate.alarm_triggered = 2;
+           mudstate_hot.alarm_triggered = 2;
            if( errno != EINPROGRESS ) {
 	      close(new_port);
 	      new_port = -1;
@@ -1037,8 +1037,8 @@ void door_processInternalDoors(void) {
 
     DPUSH; /* #148 */
 
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "process_commands";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "process_commands";
 
     do {
 	nprocessed = 0;
@@ -1069,7 +1069,7 @@ void door_processInternalDoors(void) {
 	  }
 	}
     } while (nprocessed > 0);
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     VOIDRETURN; /* #148 */
 }
 /****************************************************

@@ -1328,7 +1328,7 @@ do_fixdb(dbref player, dbref cause, int key, char *arg1, char *arg2)
     char *s_types[]={ "room", "thing", "exit", "player", "zone", "garbage", "unknown type 1", "unknown type 2", NULL };
     int aflags, i_type;
 
-    if ( mudstate.remotep != NOTHING ) {
+    if ( mudstate_hot.remotep != NOTHING ) {
        notify(player, "You can't fix the db remotely.");
        return;
     }
@@ -1466,7 +1466,7 @@ NDECL(init_attrtab)
     ATTR *a;
     char *buff, *p, *q;
 
-    hashinit(&mudstate.attr_name_htab, 521);
+    hashinit(&mudstate_hot.attr_name_htab, 521);
     buff = alloc_sbuf("init_attrtab");
     for (a = attr; a->number; a++) {
         /* Anum extend handles outside ranges but won't abort */
@@ -1478,7 +1478,7 @@ NDECL(init_attrtab)
 	for (p = buff, q = (char *) a->name; *q; p++, q++)
 	    *p = ToLower((int)*q);
 	*p = '\0';
-	hashadd2(buff, (int *) a, &mudstate.attr_name_htab, 1);
+	hashadd2(buff, (int *) a, &mudstate_hot.attr_name_htab, 1);
     }
     free_sbuf(buff);
 }
@@ -1504,14 +1504,14 @@ atr_str_cluster(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1548,14 +1548,14 @@ atr_str_objid(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1592,14 +1592,14 @@ atr_str_exec(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1636,14 +1636,14 @@ atr_str_atrpeval(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1680,14 +1680,14 @@ atr_str_parseatr(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1724,14 +1724,14 @@ atr_str_notify(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1768,14 +1768,14 @@ atr_str_mtch(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1812,14 +1812,14 @@ atr_str4(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1856,14 +1856,14 @@ atr_str3(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1900,14 +1900,14 @@ atr_str2(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1944,14 +1944,14 @@ atr_str(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -1988,14 +1988,14 @@ atr_str_bool(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate.attr_name_htab);
+    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
     }
     /* Nope, look for a user attribute */
 
-    if ( mudstate.nolookie )
+    if ( mudstate_hot.nolookie )
        va = NULL;
     else
        va = (VATTR *) vattr_find(buff);
@@ -2842,15 +2842,15 @@ al_add(dbref thing, int attrnum)
     if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (cold_db[thing].nvattr >= mudconf.vlimit)) {
       if ( 
 #ifndef STANDALONE
-          !mudstate.dbloading &&
+          !mudstate_hot.dbloading &&
 #endif
-          (mudstate.vlplay != NOTHING) ) {
+          (mudstate_hot.vlplay != NOTHING) ) {
 #ifndef STANDALONE
 	attr = atr_num_aladd(attrnum);
-        notify_quiet(mudstate.vlplay,"Variable attribute limit reached.");
+        notify_quiet(mudstate_hot.vlplay,"Variable attribute limit reached.");
 	STARTLOG(LOG_SECURITY, "SEC", "VLIMIT")
 	  log_text("Variable attribute limit reached -> Player: ");
-	  log_name(mudstate.vlplay);
+	  log_name(mudstate_hot.vlplay);
 	  log_text(" Object: ");
 	  log_name(thing);
 	  if (attr) {
@@ -2860,11 +2860,11 @@ al_add(dbref thing, int attrnum)
 	ENDLOG
 
 	if (attr) {
-	  broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"VARIABLE ATTRIBUTE LIMIT",
+	  broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"VARIABLE ATTRIBUTE LIMIT",
 		(char *)attr->name, NULL, thing, 0, 0, NULL);
 	}
 	else {
-	  broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"VARIABLE ATTRIBUTE LIMIT",
+	  broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"VARIABLE ATTRIBUTE LIMIT",
 		NULL, NULL, thing, 0, 0, NULL);
 	}
         if ( attr && mudstate.new_vattr) {
@@ -2872,26 +2872,26 @@ al_add(dbref thing, int attrnum)
            mudstate.new_vattr = 0;
         }
 #endif
-        mudstate.vlplay = NOTHING;
+        mudstate_hot.vlplay = NOTHING;
       }
       return;
     }
     do_limit_add = 0;
     if ( 
 #ifndef STANDALONE
-         !mudstate.dbloading && 
+         !mudstate_hot.dbloading && 
 #endif
          (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
-         !((mudstate.vlplay != NOTHING) && 
-          ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
+         !((mudstate_hot.vlplay != NOTHING) && 
+          ((Wizard(mudstate_hot.vlplay) || (Good_obj(Owner(mudstate_hot.vlplay)) && Wizard(Owner(mudstate_hot.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
 #ifndef STANDALONE
        player = NOTHING;
-       if ( Good_obj(mudstate.vlplay) ) {
-          if ( isPlayer(mudstate.vlplay) ) {
-             player = mudstate.vlplay;
+       if ( Good_obj(mudstate_hot.vlplay) ) {
+          if ( isPlayer(mudstate_hot.vlplay) ) {
+             player = mudstate_hot.vlplay;
           } else {
-             player = Owner(mudstate.vlplay);
+             player = Owner(mudstate_hot.vlplay);
              if ( !(Good_obj(player) && isPlayer(player)) )
                 player = NOTHING;
           }
@@ -2910,10 +2910,10 @@ al_add(dbref thing, int attrnum)
              if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
                      (i_array[1] == -2 ? (Wizard(player) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
-                   notify_quiet(mudstate.vlplay,"Variable attribute new creation maximum reached.");
+                   notify_quiet(mudstate_hot.vlplay,"Variable attribute new creation maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "VMAXIMUM")
                      log_text("Variable attribute new creation maximum reached -> Player: ");
-                     log_name(mudstate.vlplay);
+                     log_name(mudstate_hot.vlplay);
                      log_text(" Object: ");
                      log_name(thing);
                      if (attr) {
@@ -2922,18 +2922,18 @@ al_add(dbref thing, int attrnum)
                      }
                    ENDLOG
                    if (attr) {
-                     broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"CREATE V-ATTRIBUTE MAXIMUM",
+                     broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"CREATE V-ATTRIBUTE MAXIMUM",
                            (char *)attr->name, NULL, thing, 0, 0, NULL);
                    }
                    else {
-                     broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"CREATE V-ATTRIBUTE MAXIMUM",
+                     broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"CREATE V-ATTRIBUTE MAXIMUM",
                            NULL, NULL, thing, 0, 0, NULL);
                    }
                    if ( attr && mudstate.new_vattr) {
                       vattr_delete((char *)attr->name);
                       mudstate.new_vattr = 0;
                    }
-                   mudstate.vlplay = NOTHING;
+                   mudstate_hot.vlplay = NOTHING;
                    free_lbuf(s_chkattr); 
                    return;
                 }
@@ -2950,13 +2950,13 @@ al_add(dbref thing, int attrnum)
           free_lbuf(s_chkattr);
        }
     }
-    if ( !mudstate.dbloading && (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
+    if ( !mudstate_hot.dbloading && (attrnum > A_USER_MAXIMUM) && (attrnum < A_INLINE_START) ) {
        attr = atr_num_aladd(attrnum);
-       broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
+       broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"V-ATTRIBUTE CEILING REACHED",
                          NULL, NULL, thing, 0, 0, NULL);
        STARTLOG(LOG_SECURITY, "SEC", "VCEILING")
        log_text("Variable attribute new creation maximum reached -> Player: ");
-       log_name(mudstate.vlplay);
+       log_name(mudstate_hot.vlplay);
        log_text(" Object: ");
        log_name(thing);
        if (attr) {
@@ -2970,7 +2970,7 @@ al_add(dbref thing, int attrnum)
        }
     }
 #else
-       mudstate.vlplay = NOTHING;
+       mudstate_hot.vlplay = NOTHING;
        return;
     }
 #endif
@@ -3037,16 +3037,16 @@ al_delete(dbref thing, int attrnum)
     }
 
     if ( (attrnum > A_USER_START) && (attrnum < A_INLINE_START) && mudstate.new_vattr && 
-         !((mudstate.vlplay != NOTHING) && 
-          ((Wizard(mudstate.vlplay) || (Good_obj(Owner(mudstate.vlplay)) && Wizard(Owner(mudstate.vlplay)))) && 
+         !((mudstate_hot.vlplay != NOTHING) && 
+          ((Wizard(mudstate_hot.vlplay) || (Good_obj(Owner(mudstate_hot.vlplay)) && Wizard(Owner(mudstate_hot.vlplay)))) && 
          !mudconf.vattr_limit_checkwiz)) ) {
 #ifndef STANDALONE
        player = NOTHING;
-       if ( Good_obj(mudstate.vlplay) ) {
-          if ( isPlayer(mudstate.vlplay) ) {
-             player = mudstate.vlplay;
+       if ( Good_obj(mudstate_hot.vlplay) ) {
+          if ( isPlayer(mudstate_hot.vlplay) ) {
+             player = mudstate_hot.vlplay;
           } else {
-             player = Owner(mudstate.vlplay);
+             player = Owner(mudstate_hot.vlplay);
              if ( !(Good_obj(player) && isPlayer(player)) )
                 player = NOTHING;
           }
@@ -3062,13 +3062,13 @@ al_delete(dbref thing, int attrnum)
                   s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
                  i_array[i] = atoi(s_buffptr);
              }
-             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
+             if ( (i_array[1] != -1) && !((i_array[1] == -2) && ((Wizard(mudstate_hot.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) == -1)) ) {
                 if ( (i_array[0]+1) > 
-                     (i_array[1] == -2 ? (Wizard(mudstate.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
-                   notify_quiet(mudstate.vlplay,"Variable attribute new creation (del) maximum reached.");
+                     (i_array[1] == -2 ? (Wizard(mudstate_hot.vlplay) ? mudconf.wizmax_vattr_limit : mudconf.max_vattr_limit) : i_array[1]) ) {
+                   notify_quiet(mudstate_hot.vlplay,"Variable attribute new creation (del) maximum reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "VMAXIMUM")
                      log_text("Variable attribute new creation (del) maximum reached -> Player: ");
-                     log_name(mudstate.vlplay);
+                     log_name(mudstate_hot.vlplay);
                      log_text(" Object: ");
                      log_name(thing);
                      if (attr) {
@@ -3077,18 +3077,18 @@ al_delete(dbref thing, int attrnum)
                      }
                    ENDLOG
                    if (attr) {
-                     broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"CREATE(DEL) V-ATTRIBUTE MAXIMUM",
+                     broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"CREATE(DEL) V-ATTRIBUTE MAXIMUM",
                            (char *)attr->name, NULL, thing, 0, 0, NULL);
                    }
                    else {
-                     broadcast_monitor(mudstate.vlplay,MF_VLIMIT,"CREATE(DEL) V-ATTRIBUTE MAXIMUM",
+                     broadcast_monitor(mudstate_hot.vlplay,MF_VLIMIT,"CREATE(DEL) V-ATTRIBUTE MAXIMUM",
                            NULL, NULL, thing, 0, 0, NULL);
                    }
                    if ( attr && mudstate.new_vattr) {
                       vattr_delete((char *)attr->name);
                       mudstate.new_vattr = 0;
                    }
-                   mudstate.vlplay = NOTHING;
+                   mudstate_hot.vlplay = NOTHING;
                    free_lbuf(s_chkattr); 
                    return;
                 }
@@ -3108,7 +3108,7 @@ al_delete(dbref thing, int attrnum)
        }
     }
 #else
-       mudstate.vlplay = NOTHING;
+       mudstate_hot.vlplay = NOTHING;
        return;
     }
 #endif
@@ -3812,7 +3812,7 @@ atr_cpy(dbref player, dbref dest, dbref source)
 	if (attr) {
 	    if ((attr != A_MONEY) && Write_attr(owner, dest, at, aflags)) {
 		/* Only set attrs that owner has perm to set */
-    		mudstate.vlplay = player;
+    		mudstate_hot.vlplay = player;
                 if ( !((aflags & AF_NOCLONE) || (at && (at->flags & AF_NOCLONE))) ) {
 		   atr_add(dest, attr, buf, aowner, aflags);
                 }
@@ -3980,7 +3980,7 @@ int atrcint(dbref player, dbref thing, int key, char *s_wild)
                if ( (key == 1) && (anum > (A_USER_START - 1)) && (anum < A_INLINE_START) ) {
                   newatr = alloc_sbuf("atrcint");
 #ifndef STANDALONE
-                  sprintf(newatr, "XYZZY_%d_%d", (int)(mudstate.now), anum);
+                  sprintf(newatr, "XYZZY_%d_%d", (int)(mudstate_hot.now), anum);
 #else
                   sprintf(newatr, "XYZZY_%d", anum);
 #endif
@@ -4074,7 +4074,7 @@ db_grow(dbref newtop)
 
     /* If requested size is smaller than the current db size, ignore it */
 
-    if (newtop <= mudstate.db_top) {
+    if (newtop <= mudstate_hot.db_top) {
 	return;
     }
     /* If requested size is greater than the current db size but smaller
@@ -4082,8 +4082,8 @@ db_grow(dbref newtop)
      * initialize the new area.
      */
 
-    if (newtop <= mudstate.db_size) {
-	for (i = mudstate.db_top; i < newtop; i++) {
+    if (newtop <= mudstate_hot.db_size) {
+	for (i = mudstate_hot.db_top; i < newtop; i++) {
 	    s_Owner(i, GOD);
 	    s_Flags(i, (TYPE_THING | GOING));
 	    s_Flags2(i, 0);
@@ -4115,21 +4115,21 @@ db_grow(dbref newtop)
             }
             dbtotem[i].modified = 0;
 	}
-	mudstate.db_top = newtop;
+	mudstate_hot.db_top = newtop;
 	return;
     }
     /* Grow by a minimum of delta objects */
 
-    if (newtop <= mudstate.db_size + delta) {
-	newsize = mudstate.db_size + delta;
+    if (newtop <= mudstate_hot.db_size + delta) {
+	newsize = mudstate_hot.db_size + delta;
     } else {
 	newsize = newtop;
     }
 
     /* Enforce minimumdatabase size */
 
-    if (newsize < mudstate.min_size)
-	newsize = mudstate.min_size + delta;;
+    if (newsize < mudstate_hot.min_size)
+	newsize = mudstate_hot.min_size + delta;;
 
     /* Grow the name table */
 
@@ -4188,10 +4188,10 @@ db_grow(dbref newtop)
 	cold_db -= SIZE_HACK;
 	dbtotem -= SIZE_HACK;
         dblwire -= SIZE_HACK;
-        memcpy((char *) newhot, (char *) hot_db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ_HOT));
-        memcpy((char *) newcold, (char *) cold_db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ_COLD));
-        memcpy((char *) newtotem, (char *) dbtotem, (mudstate.db_top + SIZE_HACK) * sizeof(OBJTOTEM));
-        memcpy((char *) newlwire, (char *) dblwire, (mudstate.db_top + SIZE_HACK) * sizeof(LWIRE));
+        memcpy((char *) newhot, (char *) hot_db, (mudstate_hot.db_top + SIZE_HACK) * sizeof(OBJ_HOT));
+        memcpy((char *) newcold, (char *) cold_db, (mudstate_hot.db_top + SIZE_HACK) * sizeof(OBJ_COLD));
+        memcpy((char *) newtotem, (char *) dbtotem, (mudstate_hot.db_top + SIZE_HACK) * sizeof(OBJTOTEM));
+        memcpy((char *) newlwire, (char *) dblwire, (mudstate_hot.db_top + SIZE_HACK) * sizeof(LWIRE));
 	cp = (char *) hot_db;
 	XFREE(cp, "db_grow.hot");
 	cp = (char *) cold_db;
@@ -4253,7 +4253,7 @@ db_grow(dbref newtop)
     newtotem = NULL;
     newlwire = NULL;
 
-    for (i = mudstate.db_top; i < newtop; i++) {
+    for (i = mudstate_hot.db_top; i < newtop; i++) {
 	if (mudconf.cache_names)
 	    i_Name(i);
 	s_Flags(i, TYPE_THING | GOING);
@@ -4285,22 +4285,22 @@ db_grow(dbref newtop)
         }
         dbtotem[i].modified = 0;
     }
-    mudstate.db_top = newtop;
-    mudstate.db_size = newsize;
+    mudstate_hot.db_top = newtop;
+    mudstate_hot.db_size = newsize;
 
     /* Grow the db mark buffer */
 
     marksize = (newsize + 7) >> 3;
     newmarkbuf = (MARKBUF *) XMALLOC(marksize, "db_grow");
     bzero((char *) newmarkbuf, marksize);
-    if (mudstate.markbits) {
+    if (mudstate_hot.markbits) {
 	marksize = (newtop + 7) >> 3;
-/*	bcopy((char *) mudstate.markbits, (char *) newmarkbuf, marksize); */
-        memcpy((char *) newmarkbuf, (char *) mudstate.markbits, marksize);
-	cp = (char *) mudstate.markbits;
+/*	bcopy((char *) mudstate_hot.markbits, (char *) newmarkbuf, marksize); */
+        memcpy((char *) newmarkbuf, (char *) mudstate_hot.markbits, marksize);
+	cp = (char *) mudstate_hot.markbits;
 	XFREE(cp, "db_grow");
     }
-    mudstate.markbits = newmarkbuf;
+    mudstate_hot.markbits = newmarkbuf;
 }
 
 #ifndef STANDALONE 
@@ -4310,12 +4310,12 @@ void showdbstats(dbref player)
 
    sum = 0;
  /* This logic doesn't work.  We'd have to maintain a total count */
-/* sum = ((&mudstate.command_htab)->hashsize * (&mudstate.command_htab)->entries);
+/* sum = ((&mudstate_hot.command_htab)->hashsize * (&mudstate_hot.command_htab)->entries);
  * sum = sum + ((&mudstate.logout_cmd_htab)->hashsize * (&mudstate.logout_cmd_htab)->entries);
- * sum = sum + ((&mudstate.func_htab)->hashsize * (&mudstate.func_htab)->entries);
- * sum = sum + ((&mudstate.flags_htab)->hashsize * (&mudstate.flags_htab)->entries);
- * sum = sum + ((&mudstate.attr_name_htab)->hashsize * (&mudstate.attr_name_htab)->entries);
- * sum = sum + ((&mudstate.player_htab)->hashsize * (&mudstate.player_htab)->entries);
+ * sum = sum + ((&mudstate_hot.func_htab)->hashsize * (&mudstate_hot.func_htab)->entries);
+ * sum = sum + ((&mudstate_hot.flags_htab)->hashsize * (&mudstate_hot.flags_htab)->entries);
+ * sum = sum + ((&mudstate_hot.attr_name_htab)->hashsize * (&mudstate_hot.attr_name_htab)->entries);
+ * sum = sum + ((&mudstate_hot.player_htab)->hashsize * (&mudstate_hot.player_htab)->entries);
  * sum = sum + ((&mudstate.fwdlist_htab)->hashsize * (&mudstate.fwdlist_htab)->entries);
  * sum = sum + ((&mudstate.parent_htab)->hashsize * (&mudstate.parent_htab)->entries);
  * sum = sum + ((&mudstate.news_htab)->hashsize * (&mudstate.news_htab)->entries);
@@ -4331,12 +4331,12 @@ void showdbstats(dbref player)
   notify(player, " ");
   notify(player, "DB Size         DB Top          DB Object Size  VHash Size      Total Mem");
   notify(player, unsafe_tprintf("%-16d%-16d%-16d (h)+%-3d(c)%-16d%dK", 
-                         mudstate.db_size,
-                         mudstate.db_top,
+                         mudstate_hot.db_size,
+                         mudstate_hot.db_top,
                          (int)sizeof(OBJ_HOT),
                          (int)sizeof(OBJ_COLD),
                          sum,
-                         ((mudstate.db_size * (sizeof(OBJ_HOT) + sizeof(OBJ_COLD)) + sum) / 1024)));
+                         ((mudstate_hot.db_size * (sizeof(OBJ_HOT) + sizeof(OBJ_COLD)) + sum) / 1024)));
 }
 #endif
 
@@ -4349,7 +4349,7 @@ NDECL(db_free)
     char *cp;
 
     if (hot_db != NULL) {
-        for( i = 0; i < mudstate.db_top; i++ ) {
+        for( i = 0; i < mudstate_hot.db_top; i++ ) {
            zlist_destroy(i);
         }
 	hot_db -= SIZE_HACK;
@@ -4361,10 +4361,10 @@ NDECL(db_free)
 	hot_db = NULL;
 	cold_db = NULL;
     }
-    mudstate.db_top = 0;
-    mudstate.db_size = 0;
-    mudstate.freelist = NOTHING;
-    mudstate.recoverlist = NOTHING;
+    mudstate_hot.db_top = 0;
+    mudstate_hot.db_size = 0;
+    mudstate_hot.freelist = NOTHING;
+    mudstate_hot.recoverlist = NOTHING;
 }
 
 #ifndef STANDALONE
@@ -4475,11 +4475,11 @@ parse_dbref_special(char *s) {
          atext = atr_get(x, A_CREATED_TIME, &aowner, &aflags);
          if ( atext && *atext ) {
             if ( mudconf.objid_localtime ) {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
             } else {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
                mynow = mktime(ttm);
-               ttm = gmtime(&mudstate.now);
+               ttm = gmtime(&mudstate_hot.now);
                mynow -= mktime(ttm);
             }
             l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
@@ -4678,7 +4678,7 @@ init_gdbm_db(char *gdbmfile)
     ENDLOG
 #endif
 	db_free();
-    mudstate.nolookie = 0;
+    mudstate_hot.nolookie = 0;
     vattr_init();
     return (0);
 }

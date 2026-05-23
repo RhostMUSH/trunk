@@ -70,8 +70,8 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 	 * argument of the operation.
 	 */
 
-	mudstate.lock_nest_lev++;
-	if (mudstate.lock_nest_lev >= mudconf.lock_nest_lim) {
+	mudstate_hot.lock_nest_lev++;
+	if (mudstate_hot.lock_nest_lev >= mudconf.lock_nest_lim) {
 #ifndef STANDALONE
 	    STARTLOG(LOG_BUGS, "BUG", "LOCK")
 		log_name_and_loc(player);
@@ -81,7 +81,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 #else
 	    fprintf(stderr, "Lock exceeded recursion limit.\n");
 #endif
-	    mudstate.lock_nest_lev--;
+	    mudstate_hot.lock_nest_lev--;
 	    return (0);
 	}
 	if ((b->sub1->type != BOOLEXP_CONST) || (b->sub1->thing < 0)) {
@@ -99,7 +99,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 #else
 	    fprintf(stderr, "Broken lock.\n");
 #endif
-	    mudstate.lock_nest_lev--;
+	    mudstate_hot.lock_nest_lev--;
 	    return (0);
 	}
         if ( mudconf.parent_control )
@@ -108,7 +108,7 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 	   key = atr_get(b->sub1->thing, A_LOCK, &aowner, &aflags);
 	c = eval_boolexp_atr(player, b->sub1->thing, from, key,1, i_evaltype);
 	free_lbuf(key);
-	mudstate.lock_nest_lev--;
+	mudstate_hot.lock_nest_lev--;
 	return (c);
     case BOOLEXP_CONST:
 	return (b->thing == player ||
@@ -145,13 +145,13 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
 	    checkit = 1;
 	}
 	if (checkit) {
-            boolchk = mudstate.inside_locks;
+            boolchk = mudstate_hot.inside_locks;
             if (Toggles2(source) & TOG_SILENTEFFECTS) {
                checkit = 0;
             } else {
-               mudstate.inside_locks = 1;
-               mudstate.chkcpu_locktog = 0;
-               if ( mudstate.chkcpu_toggle )
+               mudstate_hot.inside_locks = 1;
+               mudstate_hot.chkcpu_locktog = 0;
+               if ( mudstate_hot.chkcpu_toggle )
                   lockchk = 1;
                mybuff[0] = alloc_sbuf("boolexp_eval");
                mybuff[1] = alloc_lbuf("boolexp_argpass");
@@ -170,9 +170,9 @@ eval_boolexp(dbref player, dbref thing, dbref from, BOOLEXP * b, int i_evaltype)
                }
                free_sbuf(mybuff[0]);
                free_lbuf(mybuff[1]);
-               if ( mudstate.chkcpu_toggle && !lockchk )
-                  mudstate.chkcpu_locktog = 1;
-               mudstate.inside_locks = boolchk;
+               if ( mudstate_hot.chkcpu_toggle && !lockchk )
+                  mudstate_hot.chkcpu_locktog = 1;
+               mudstate_hot.inside_locks = boolchk;
 	       checkit = !string_compare(buff2, (char *) b->sub1);
 	       free_lbuf(buff2);
             }

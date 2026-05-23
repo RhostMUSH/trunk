@@ -26,9 +26,9 @@ static void lua_timer_hook(lua_State *L, lua_Debug *ar)
 {
     static int mem_check_counter = 0;
 
-    if(mudstate.alarm_triggered) {
+    if(mudstate_hot.alarm_triggered) {
         luaL_error(L, "Alarm triggered");
-        mudstate.alarm_triggered = 2;
+        mudstate_hot.alarm_triggered = 2;
     }
     /* Check memory every 1000 instructions to reduce overhead */
     if(++mem_check_counter >= 1000) {
@@ -414,9 +414,9 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
     size_t size;
     int error, alarm_trig;
 
-    alarm_trig =  mudstate.alarm_triggered;
+    alarm_trig =  mudstate_hot.alarm_triggered;
     alarm_msec(5);
-    mudstate.alarm_triggered = 0;
+    mudstate_hot.alarm_triggered = 0;
     if(LUA_OK == (error = luaL_dostring(lua->state, scriptbuf))) {
         raw = lua_tolstring(lua->state, -1, &size);
     } else {
@@ -428,13 +428,13 @@ exec_lua_script(lua_t *lua, char *scriptbuf, int *len)
         end_log();
     }
 
-    if(raw && !mudstate.alarm_triggered) {
+    if(raw && !mudstate_hot.alarm_triggered) {
         res = malloc(size + 1);
         strncpy(res, raw, size + 1);
         res[size] = 0; /* Just coding defensively here */
     }
-    if ( mudstate.alarm_triggered != 2 )
-       mudstate.alarm_triggered = alarm_trig;
+    if ( mudstate_hot.alarm_triggered != 2 )
+       mudstate_hot.alarm_triggered = alarm_trig;
 
     if(res) {
         *len = strlen(res);

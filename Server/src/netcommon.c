@@ -748,7 +748,7 @@ handle_html(DESC *d, int code, char *buf1, char *buf2, char *buf3, char *buf4)
 {
    char *s_dtime;
 
-   s_dtime = (char *) ctime(&mudstate.now);
+   s_dtime = (char *) ctime(&mudstate_hot.now);
 
    switch(code) {
       case 200: /* OK */
@@ -940,7 +940,7 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	    if (node->sfile && !(d->cold->logged)) {
 		d->cold->logged = 1;
 		fprintf(node->sfile, "Snoop attached: [%s/%s] (%ld) %s", 
-                        d->cold->addr, d->cold->longaddr, mudstate.now, ctime(&mudstate.now));
+                        d->cold->addr, d->cold->longaddr, mudstate_hot.now, ctime(&mudstate_hot.now));
 	    }
 	    node->next = d->cold->snooplist;
 	    d->cold->snooplist = node;
@@ -955,8 +955,8 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 		    node = d->cold->snooplist->next;
 		    if (d->cold->snooplist->sfile) {
 			fprintf(d->cold->snooplist->sfile, 
-                                "Snoop detached: (%ld) %s", mudstate.now, 
-                                ctime(&mudstate.now));
+                                "Snoop detached: (%ld) %s", mudstate_hot.now, 
+                                ctime(&mudstate_hot.now));
 			fclose(d->cold->snooplist->sfile);
 			d->cold->logged = 0;
 		    }
@@ -971,7 +971,7 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 		    if (node != NULL) {
 			prev->next = node->next;
 			if (node->sfile) {
-			    fprintf(node->sfile, "Snoop detached: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+			    fprintf(node->sfile, "Snoop detached: (%ld) %s", mudstate_hot.now, ctime(&mudstate_hot.now));
 			    fclose(node->sfile);
 			    d->cold->logged = 0;
 			}
@@ -1677,7 +1677,7 @@ raw_notify(dbref player, const char *msg, int port, int type)
 	if (d->cold->snooplist) {
 	    for (node = d->cold->snooplist; node; node = node->next) {
 		if (node->sfile) {
-		    fprintf(node->sfile, "%ld|", mudstate.now);
+		    fprintf(node->sfile, "%ld|", mudstate_hot.now);
 		    fputs(Name(player), node->sfile);
 		    fputs("> ", node->sfile);
 		    fputs(strip_ansi(msg), node->sfile);
@@ -1743,7 +1743,7 @@ raw_notify(dbref player, const char *msg, int port, int type)
 	if (d->cold->snooplist) {
 	    for (node = d->cold->snooplist; node; node = node->next) {
 		if (node->sfile) {
-		    fprintf(node->sfile, "%ld|", mudstate.now);
+		    fprintf(node->sfile, "%ld|", mudstate_hot.now);
 		    fputs(Name(D_PLAYER(d)), node->sfile);
 		    fputs("> ", node->sfile);
 		    fputs(strip_ansi(msg), node->sfile);
@@ -2230,7 +2230,7 @@ queue_write(DESC * d, const char *b, int n)
 
     left = mudconf.output_limit - D_OUTPUT_SIZE(d) - n;
     if (left < 0) {
-        mudstate.outputflushed = 1;
+        mudstate_hot.outputflushed = 1;
 	tp = D_OUTPUT_HEAD(d);
 	if (tp == NULL) {
 	    STARTLOG(LOG_PROBLEMS, "QUE", "WRITE")
@@ -2284,7 +2284,7 @@ queue_write(DESC * d, const char *b, int n)
     D_OUTPUT_SIZE(d) += n;
     D_OUTPUT_TOT(d) += n;
     mudstate.total_bytesout += n;
-    if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+    if ( (mudstate.reset_daily_bytes + 86400) < mudstate_hot.now ) {
        if ( mudstate.avg_bytesin == 0 ) {
           mudstate.avg_bytesin = mudstate.daily_bytesin;
        } else {
@@ -2669,7 +2669,7 @@ announce_connect(dbref player, DESC * d, int dc)
     if ((loc != NOTHING) && !(Dark(player) && Wizard(player)))
 	key |= (MSG_NBR | MSG_NBR_EXITS | MSG_LOC | MSG_FWDLIST);
 
-    time_str = ctime(&mudstate.now);
+    time_str = ctime(&mudstate_hot.now);
     time_str[strlen(time_str) - 1] = '\0';
     record_login(player, 1, time_str, d->cold->longaddr, &totsucc, &totfail, &newfail);
     if ( !(D_FLAGS(d) & DS_SSL) ) {
@@ -2715,8 +2715,8 @@ announce_connect(dbref player, DESC * d, int dc)
 	   broadcast_monitor(player, MF_SITE | MF_STATS, "CONNECT",
 			     d->cold->userid, d->cold->longaddr, totsucc, newfail, totfail, NULL);
     }
-    temp = mudstate.curr_enactor;
-    mudstate.curr_enactor = player;
+    temp = mudstate_hot.curr_enactor;
+    mudstate_hot.curr_enactor = player;
     if ( (!dc && !Cloak(player) && !NCloak(player) && !(Wizard(player) && Dark(player)) &&
          !(mudconf.blind_snuffs_cons && (Blind(player) || (Good_chk(loc) && Blind(loc)))) ) ||
 	DePriv(player, NOTHING, DP_CLOAK, POWER6, POWER_LEVEL_NA)) {
@@ -2891,7 +2891,7 @@ announce_connect(dbref player, DESC * d, int dc)
           atr_clr(player, A_PROGPROMPTBUF);
        }
     }
-    mudstate.curr_enactor = temp;
+    mudstate_hot.curr_enactor = temp;
     local_player_connect(player, num);
     VOIDRETURN; /* #130 */
 }
@@ -2955,8 +2955,8 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	   broadcast_monitor(player, 0, "PARTIAL DISCONN", 
                              NULL, NULL, 0, 0, 0, (char *)reason);
     }
-    temp = mudstate.curr_enactor;
-    mudstate.curr_enactor = player;
+    temp = mudstate_hot.curr_enactor;
+    mudstate_hot.curr_enactor = player;
 
     if (num < 2) {
 	buf = alloc_mbuf("announce_disconnect.only");
@@ -3029,7 +3029,7 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	}
 	free_mbuf(buf);
 
-        sprintf(s_timeon, "%ld", (mudstate.now - d->cold->connected_at));
+        sprintf(s_timeon, "%ld", (mudstate_hot.now - d->cold->connected_at));
 	argv[0] = (char *) reason;
         argv[1] = (char *) s_timeon;
         argv[2] = (char *) "0";
@@ -3148,7 +3148,7 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
 	free_mbuf(buf);
 
         if ( mudconf.partial_deconn ) {
-           sprintf(s_timeon, "%ld", (mudstate.now - d->cold->connected_at));
+           sprintf(s_timeon, "%ld", (mudstate_hot.now - d->cold->connected_at));
            argv[0] = (char *) reason;
            argv[1] = (char *) s_timeon;
            argv[2] = (char *) "1";
@@ -3180,7 +3180,7 @@ announce_disconnect(dbref player, DESC *d, const char *reason)
            }   
        }
     }
-    mudstate.curr_enactor = temp;
+    mudstate_hot.curr_enactor = temp;
     local_player_disconnect(player);
     VOIDRETURN; /* #131 */
 }
@@ -3281,7 +3281,7 @@ fetch_idle(dbref target)
 
     result = -1;
     DESC_ITER_PLAYER(target, d) {
-	idletime = (mudstate.now - D_LAST_TIME(d));
+	idletime = (mudstate_hot.now - D_LAST_TIME(d));
 	if ((result == -1) || (idletime < result))
 	   result = idletime;
     }
@@ -3298,7 +3298,7 @@ fetch_connect(dbref target)
 
     result = -1;
     DESC_ITER_PLAYER(target, d) {
-	conntime = (mudstate.now - d->cold->connected_at);
+	conntime = (mudstate_hot.now - d->cold->connected_at);
 	if (conntime > result)
 	    result = conntime;
     }
@@ -3329,10 +3329,10 @@ NDECL(check_idle)
 	#ifdef ENABLE_WEBSOCKETS
 	    }
 	#endif
-            if ( D_LAST_TIME(d) > mudstate.now )
+            if ( D_LAST_TIME(d) > mudstate_hot.now )
 	       idletime = 0;
             else
-	       idletime = mudstate.now - D_LAST_TIME(d);
+	       idletime = mudstate_hot.now - D_LAST_TIME(d);
 	    if (( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) && !Wizard(D_PLAYER(d))) {
 		queue_string(d, "*** Inactivity Timeout ***\r\n");
                 process_output(d);
@@ -3359,11 +3359,11 @@ NDECL(check_idle)
                    notify(D_PLAYER(d), "You have exceeded the timeout and set DARK.");
 	    }
 	} else {
-            if ( (d->cold->connected_at > mudstate.now) ||
-                 ((d->cold->connected_at + mudconf.conn_timeout + 60) < mudstate.now) ) {
+            if ( (d->cold->connected_at > mudstate_hot.now) ||
+                 ((d->cold->connected_at + mudconf.conn_timeout + 60) < mudstate_hot.now) ) {
                idletime = 0;
             } else {
-	       idletime = mudstate.now - d->cold->connected_at;
+	       idletime = mudstate_hot.now - d->cold->connected_at;
             }
             if ( d->cold->account_owner != NOTHING ) {
                if ( idletime < mudconf.idle_timeout ) {
@@ -3376,7 +3376,7 @@ NDECL(check_idle)
 		shutdownsock(d, R_TIMEOUT);
 	    } else if ( D_FLAGS(d) & DS_API ) {
                /* Force API disconnecting after d->cold->timeout from connection */
-               if ( (idletime > (d->cold->timeout)) || (mudstate.now > (d->cold->connected_at + d->cold->timeout)) ) {
+               if ( (idletime > (d->cold->timeout)) || (mudstate_hot.now > (d->cold->connected_at + d->cold->timeout)) ) {
                   process_output(d);
 		  shutdownsock(d, R_API);
                }
@@ -3719,7 +3719,7 @@ dump_users(DESC * e, char *match, int key)
 #endif
 
                 if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) && 
-                       (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst) && (D_FLAGS(e) & DS_CONNECTED))) {
+                       (D_PLAYER(d) != D_PLAYER(e) || mudstate_hot.objevalst) && (D_FLAGS(e) & DS_CONNECTED))) {
                    if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
                       if ( Immortal(D_PLAYER(d)) ||
                            ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
@@ -3822,7 +3822,7 @@ dump_users(DESC * e, char *match, int key)
                     fp = &buf[14];
 #endif
                     if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) &&
-                           (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
+                           (D_PLAYER(d) != D_PLAYER(e) || mudstate_hot.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
                         if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
                            if ( Immortal(D_PLAYER(d)) ||
                                 ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
@@ -3887,7 +3887,7 @@ dump_users(DESC * e, char *match, int key)
                 fp = &buf[14];
 #endif
                 if ( !(HasPriv(D_PLAYER(d), D_PLAYER(e), POWER_HIDEBIT, POWER5, NOTHING) &&
-                       (D_PLAYER(d) != D_PLAYER(e) || mudstate.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
+                       (D_PLAYER(d) != D_PLAYER(e) || mudstate_hot.objevalst)) && (D_FLAGS(e) & DS_CONNECTED)) {
                    if (mudconf.who_showwiz && Guildmaster(D_PLAYER(d)) ) {
                       if ( Immortal(D_PLAYER(d)) ||
                            ( Wizard(D_PLAYER(d)) && mudconf.who_wizlevel < 5 ) ||
@@ -4075,7 +4075,7 @@ do_uptime(dbref player, dbref cause, int key)
 
   memset(s_uptime, '\0', MBUF_SIZE);
   if ( ut ) {
-     strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
+     strcpy(s_uptime, time_format_1(mudstate_hot.now - ut->ut_tv.tv_sec));
   }
   endutent();
 #else
@@ -4086,7 +4086,7 @@ do_uptime(dbref player, dbref cause, int key)
 
   memset(s_uptime, '\0', MBUF_SIZE);
   if ( ut ) {
-     strcpy(s_uptime, time_format_1(mudstate.now - ut->ut_tv.tv_sec));
+     strcpy(s_uptime, time_format_1(mudstate_hot.now - ut->ut_tv.tv_sec));
   }
   endutxent();
 #endif
@@ -4343,7 +4343,7 @@ failconn(const char *logcode, const char *logtype,
     free_mbuf(user);
     free_mbuf(password);
     shutdownsock(d, disconnect_reason);
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     VOIDRETURN; /* #145 */
 }
 
@@ -4414,7 +4414,7 @@ softcode_trigger(DESC *d, const char *msg) {
 
     s_return = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                        EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
-    if ( mudstate.chkcpu_toggle ) {
+    if ( mudstate_hot.chkcpu_toggle ) {
        broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
                          (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
        STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -4422,7 +4422,7 @@ softcode_trigger(DESC *d, const char *msg) {
           sprintf(s_text, " CPU login customcmd overload on attribute %s", (char *)atr->name);
           log_text(s_text);
        ENDLOG
-       mudstate.chkcpu_toggle = 0;
+       mudstate_hot.chkcpu_toggle = 0;
     }
     free_lbuf(s_text);
     if ( !s_return || !*s_return ) {
@@ -4458,7 +4458,7 @@ softcode_trigger(DESC *d, const char *msg) {
           
           s_buff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                         EV_FCHECK | EV_EVAL, s_text, s_array, 5, (char **)NULL, 0);
-          if ( mudstate.chkcpu_toggle ) {
+          if ( mudstate_hot.chkcpu_toggle ) {
              broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN CUSTOMCMD",
                                unsafe_tprintf("run_%s", s_strtok), NULL, mudconf.file_object, 0, 0, NULL);
              STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -4466,7 +4466,7 @@ softcode_trigger(DESC *d, const char *msg) {
                 sprintf(s_text, " CPU login customcmd overload on attribute run_%s", s_strtok);
                 log_text(s_text);
              ENDLOG
-             mudstate.chkcpu_toggle = 0;
+             mudstate_hot.chkcpu_toggle = 0;
           }
           free_lbuf(s_text);
           if ( !s_buff || !*s_buff ) {
@@ -4573,8 +4573,8 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
    bittemp = bitcmp = i_chk = 0;
    i_allow = i_return = 1;
-   cmdsave = mudstate.debug_cmd;
-   mudstate.debug_cmd = (char *) "< check_connect >";
+   cmdsave = mudstate_hot.debug_cmd;
+   mudstate_hot.debug_cmd = (char *) "< check_connect >";
 
 
    /* Hide the password length from SESSION */
@@ -4655,7 +4655,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       free_mbuf(user);
       free_mbuf(password);
       shutdownsock(d, R_HACKER);
-      mudstate.debug_cmd = cmdsave;
+      mudstate_hot.debug_cmd = cmdsave;
       RETURN(0); /* #146 */
    }
 
@@ -4685,7 +4685,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       free_mbuf(command);
       free_mbuf(user);
       free_mbuf(password);
-      mudstate.debug_cmd = cmdsave;
+      mudstate_hot.debug_cmd = cmdsave;
       RETURN(1); /* #146 */
    }
    player2 = lookup_player(NOTHING, user, 0);
@@ -4717,7 +4717,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          free_mbuf(user);
          free_mbuf(password);
          shutdownsock(d, R_BADLOGIN);
-         mudstate.debug_cmd = cmdsave;
+         mudstate_hot.debug_cmd = cmdsave;
          RETURN(0); /* #146 */
       }
       *command = 'a';
@@ -4753,7 +4753,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          free_mbuf(user);
          free_mbuf(password);
 	 shutdownsock(d, R_BADLOGIN);
-	 mudstate.debug_cmd = cmdsave;
+	 mudstate_hot.debug_cmd = cmdsave;
 	 RETURN(0); /* #146 */
       }
       *command = 'a';
@@ -4776,7 +4776,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          free_mbuf(user);
          free_mbuf(password);
          shutdownsock(d, R_BADLOGIN);
-         mudstate.debug_cmd = cmdsave;
+         mudstate_hot.debug_cmd = cmdsave;
          RETURN(0); /* #146 */
       }
       *command = 'a';
@@ -4891,7 +4891,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             free_mbuf(user);
             free_mbuf(password);
             shutdownsock(d, R_BADLOGIN);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             RETURN(0); /* #146 */
          }
       } else if (player == NOPERM) {
@@ -4908,7 +4908,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             free_mbuf(user);
             free_mbuf(password);
             shutdownsock(d, R_BADLOGIN);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             RETURN(0); /* #146 */
          }
       } else {
@@ -5002,7 +5002,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   if ( i_atr == -1 ) {
                      buff3 = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
-                     if ( mudstate.chkcpu_toggle ) {
+                     if ( mudstate_hot.chkcpu_toggle ) {
                         broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
                                           (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
                                           NULL, mudconf.file_object, 0, 0, NULL);
@@ -5012,12 +5012,12 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                                    (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
                            log_text(buff);
                         ENDLOG
-                        mudstate.chkcpu_toggle = 0;
+                        mudstate_hot.chkcpu_toggle = 0;
                      }
                   } else {
                      buff3 = cpuexec(player, player, player,
                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
-                     if ( mudstate.chkcpu_toggle ) {
+                     if ( mudstate_hot.chkcpu_toggle ) {
                         broadcast_monitor(player, MF_CPU, "CPU RUNAWAY LOGIN PROCESS",
                                           (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"), 
                                           NULL, player, 0, 0, NULL);
@@ -5027,7 +5027,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                                    (postest ? (char *)"SITE_NOPOSSESS" : (char *)"SITE_NOCONNECT"));
                            log_text(buff);
                         ENDLOG
-                        mudstate.chkcpu_toggle = 0;
+                        mudstate_hot.chkcpu_toggle = 0;
                      }
                   }
                   if ( buff3 && *buff3 ) {
@@ -5072,7 +5072,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                free_mbuf(user);
                free_mbuf(password);
                shutdownsock(d, R_BADLOGIN);
-               mudstate.debug_cmd = cmdsave;
+               mudstate_hot.debug_cmd = cmdsave;
                RETURN(0); /* #146 */
             }
          } else if ( ((mudconf.control_flags & CF_LOGIN) && ok_to_login) ||
@@ -5184,7 +5184,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       /* Enforce ceiling on creates */
       if (mudconf.max_pcreate_lim != -1) {
          if ( (mudstate.last_pcreate_cnt >= mudconf.max_pcreate_lim) &&
-              ((mudstate.last_pcreate_time + mudconf.max_pcreate_time) > mudstate.now) ) {
+              ((mudstate.last_pcreate_time + mudconf.max_pcreate_time) > mudstate_hot.now) ) {
             broadcast_monitor(NOTHING, (MF_SITE | MF_BFAIL), "FAIL (CREATE CEILING)", d->cold->userid,
                               d->cold->longaddr, 0, 0, 0, user);
             buff = alloc_mbuf("check_conn.LOG.badcrea");
@@ -5208,7 +5208,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                 }
                broadcast_monitor(NOTHING, MF_CONN, unsafe_tprintf("PCREATE-SITE AUTO-BLOCKED[%d attempts/%ds time]",
                                  mudstate.last_pcreate_cnt,
-                                 (mudstate.now - mudstate.last_pcreate_time)),
+                                 (mudstate_hot.now - mudstate.last_pcreate_time)),
                                  d->cold->userid, d->cold->longaddr, 0, 0, 0, user);
                STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
                   log_text(buff);
@@ -5221,10 +5221,10 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 		     cmdsave);
             RETURN(0); /* #146 */
          } else {
-            if ( (mudstate.last_pcreate_time + mudconf.max_pcreate_time) < mudstate.now ) {
+            if ( (mudstate.last_pcreate_time + mudconf.max_pcreate_time) < mudstate_hot.now ) {
                mudstate.last_pcreate_cnt = 0;
             }
-            mudstate.last_pcreate_time = mudstate.now;
+            mudstate.last_pcreate_time = mudstate_hot.now;
          } 
          mudstate.last_pcreate_cnt++;
       }
@@ -5332,14 +5332,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   s_uselock = alloc_sbuf("offline_create");
                   sprintf(s_uselock, "%s", (char *)"AO_@PCREATE");
                   hk_ap2 = atr_str(s_uselock);
-                  chk_stop = mudstate.chkcpu_stopper;
-                  chk_tog  = mudstate.chkcpu_toggle;
-                  mudstate.chkcpu_stopper = time(NULL);
-                  mudstate.chkcpu_toggle = 0;
-                  mudstate.chkcpu_locktog = 0;
+                  chk_stop = mudstate_hot.chkcpu_stopper;
+                  chk_tog  = mudstate_hot.chkcpu_toggle;
+                  mudstate_hot.chkcpu_stopper = time(NULL);
+                  mudstate_hot.chkcpu_toggle = 0;
+                  mudstate_hot.chkcpu_locktog = 0;
                   process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
-                  mudstate.chkcpu_toggle = chk_tog;
-                  mudstate.chkcpu_stopper = chk_stop;
+                  mudstate_hot.chkcpu_toggle = chk_tog;
+                  mudstate_hot.chkcpu_stopper = chk_stop;
                   free_sbuf(s_uselock);
                }
             }
@@ -5376,14 +5376,14 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      s_uselock = alloc_sbuf("offline_register");
                      sprintf(s_uselock, "%s", (char *)"AO_@REGISTER");
                      hk_ap2 = atr_str(s_uselock);
-                     chk_stop = mudstate.chkcpu_stopper;
-                     chk_tog  = mudstate.chkcpu_toggle;
-                     mudstate.chkcpu_stopper = time(NULL);
-                     mudstate.chkcpu_toggle = 0;
-                     mudstate.chkcpu_locktog = 0;
+                     chk_stop = mudstate_hot.chkcpu_stopper;
+                     chk_tog  = mudstate_hot.chkcpu_toggle;
+                     mudstate_hot.chkcpu_stopper = time(NULL);
+                     mudstate_hot.chkcpu_toggle = 0;
+                     mudstate_hot.chkcpu_locktog = 0;
                      process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
-                     mudstate.chkcpu_toggle = chk_tog;
-                     mudstate.chkcpu_stopper = chk_stop;
+                     mudstate_hot.chkcpu_toggle = chk_tog;
+                     mudstate_hot.chkcpu_stopper = chk_stop;
                      free_sbuf(s_uselock);
                   }
                }
@@ -5427,7 +5427,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
       mudstate.guest_num++;
       mudstate.guest_status |= bittemp;
    }
-   mudstate.debug_cmd = cmdsave;
+   mudstate_hot.debug_cmd = cmdsave;
    RETURN(i_return); /* #146 */
 }
 int
@@ -5482,10 +5482,10 @@ do_command(DESC * d, char *command)
     i_do_proxy = 0;
     time_str = NULL;
     chk_perm = store_perm = 0;
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< do_command >";
-    mudstate.breakst = 0;
-    mudstate.jumpst = 0;
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< do_command >";
+    mudstate_hot.breakst = 0;
+    mudstate_hot.jumpst = 0;
     if( mudstate.gotostate > 0) {
        memset(mudstate.gotolabel, '\0', 16);
        mudstate.gotostate = 0;
@@ -5512,7 +5512,7 @@ do_command(DESC * d, char *command)
     if (d->cold->snooplist) {
 	for (node = d->cold->snooplist; node; node = node->next) {
 	    if (node->sfile) {
-		fprintf(node->sfile, "%ld>", mudstate.now);
+		fprintf(node->sfile, "%ld>", mudstate_hot.now);
 		fputs(Name(D_PLAYER(d)), node->sfile);
 		fputs("> ", node->sfile);
 		fputs(command, node->sfile);
@@ -6010,7 +6010,7 @@ do_command(DESC * d, char *command)
        handle_html(d, 400, (char *) "Exec: Error - Invalid Headers Supplied\r\n\r\n", NULL, NULL, NULL);
        process_output(d);
        shutdownsock(d, R_API);
-       mudstate.debug_cmd = cmdsave;
+       mudstate_hot.debug_cmd = cmdsave;
        if ( chk_perm && cp ) {
           cp->perm = store_perm;
        }
@@ -6031,41 +6031,41 @@ do_command(DESC * d, char *command)
 		   queue_string(d, d->cold->output_prefix);
 		   queue_write(d, "\r\n", 2);
 	       }
-	       mudstate.curr_player = D_PLAYER(d);
-	       mudstate.curr_enactor = D_PLAYER(d);
-               mudstate.curr_pid = -1;
+	       mudstate_hot.curr_player = D_PLAYER(d);
+	       mudstate_hot.curr_enactor = D_PLAYER(d);
+               mudstate_hot.curr_pid = -1;
                memset(mudstate.curr_pidcmd, '\0', LBUF_SIZE);
 	       desc_in_use = d;
                s_rollback = alloc_lbuf("s_rollback_docommand");
                strcpy(s_rollback, mudstate.rollback);
                i_rollback = mudstate.rollbackcnt;
-               i_jump = mudstate.jumpst;
-               mudstate.jumpst = mudstate.rollbackcnt = 0;
+               i_jump = mudstate_hot.jumpst;
+               mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
                strcpy(mudstate.rollback, command);
-               no_space = mudstate.no_space_compress;
+               no_space = mudstate_hot.no_space_compress;
                if ( *command == '}' ) {
-                  mudstate.no_space_compress = 1;
+                  mudstate_hot.no_space_compress = 1;
                }
 	       process_command(D_PLAYER(d), D_PLAYER(d), 1,
-			       command, (char **) NULL, 0, mudstate.shell_program, mudstate.no_hook, mudstate.no_space_compress);
-               mudstate.no_space_compress = no_space;
+			       command, (char **) NULL, 0, mudstate.shell_program, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
+               mudstate_hot.no_space_compress = no_space;
                mudstate.rollbackcnt = i_rollback;
-               mudstate.jumpst = i_jump;
+               mudstate_hot.jumpst = i_jump;
                strcpy(mudstate.rollback, s_rollback);
                free_lbuf(s_rollback);
-               mudstate.curr_cmd = (char *) "";
+               mudstate_hot.curr_cmd = (char *) "";
 	       if (d->cold->output_suffix) {
 		   queue_string(d, d->cold->output_suffix);
 		   queue_write(d, "\r\n", 2);
 	       }
-	       mudstate.debug_cmd = cmdsave;
+	       mudstate_hot.debug_cmd = cmdsave;
 	       if ( chk_perm && cp ) {
 	         cp->perm = store_perm;
                }
                process_output(d);
 	       RETURN(1); /* #147 */
 	   } else {
-	       mudstate.debug_cmd = cmdsave;
+	       mudstate_hot.debug_cmd = cmdsave;
                retval = check_connect(d, command, 0, NOTHING);
 	       if ( chk_perm && cp )
 	         cp->perm = store_perm;
@@ -6089,7 +6089,7 @@ do_command(DESC * d, char *command)
 	((cp->perm & CA_PLAYER) && !(D_FLAGS(d) & DS_CONNECTED))) ) {
 	queue_string(d, "Permission denied.\r\n");
     } else if ( cp ) {
-	mudstate.debug_cmd = cp->name;
+	mudstate_hot.debug_cmd = cp->name;
 	switch (cp->flag & CMD_MASK) {
 	case CMD_QUIT:
             if ( !(D_FLAGS(d) & DS_CONNECTED) ) {
@@ -6099,7 +6099,7 @@ do_command(DESC * d, char *command)
                } else {
 		  shutdownsock(d, R_QUIT);
                }
-		mudstate.debug_cmd = cmdsave;
+		mudstate_hot.debug_cmd = cmdsave;
 		if ( chk_perm && cp )
 		  cp->perm = store_perm;
 		RETURN(0); /* #147 */
@@ -6110,7 +6110,7 @@ do_command(DESC * d, char *command)
                 } else {
 		   shutdownsock(d, R_QUIT);
                 }
-		mudstate.debug_cmd = cmdsave;
+		mudstate_hot.debug_cmd = cmdsave;
 		if ( chk_perm && cp )
 		  cp->perm = store_perm;
 		RETURN(0); /* #147 */
@@ -6172,7 +6172,7 @@ do_command(DESC * d, char *command)
                   process_output(d);
                   if ( D_FLAGS(d) & DS_API ) {
                      shutdownsock(d, R_API);
-                     mudstate.debug_cmd = cmdsave;
+                     mudstate_hot.debug_cmd = cmdsave;
                      if ( chk_perm && cp )
                         cp->perm = store_perm;
                      RETURN(0); /* #147 */
@@ -6195,7 +6195,7 @@ do_command(DESC * d, char *command)
                        (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;
             RETURN(0); /* #147 */
@@ -6210,22 +6210,22 @@ do_command(DESC * d, char *command)
              * things that would normally be initialized for normal commands for this
              */
             /* For all valid commands we must initialize the timers */
-            mudstate.heavy_cpu_recurse = 0;
-            mudstate.heavy_cpu_tmark1 = time(NULL);
-            mudstate.chkcpu_toggle = 0;
-            mudstate.chkcpu_stopper = time(NULL);
-            mudstate.chkcpu_locktog = 0;
-            mudstate.stack_val = 0;
-            mudstate.stack_toggle = 0;
+            mudstate_hot.heavy_cpu_recurse = 0;
+            mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+            mudstate_hot.chkcpu_toggle = 0;
+            mudstate_hot.chkcpu_stopper = time(NULL);
+            mudstate_hot.chkcpu_locktog = 0;
+            mudstate_hot.stack_val = 0;
+            mudstate_hot.stack_toggle = 0;
             mudstate.sidefx_currcalls = 0;
-            mudstate.curr_percentsubs = 0;
-            mudstate.tog_percentsubs = 0;
+            mudstate_hot.curr_percentsubs = 0;
+            mudstate_hot.tog_percentsubs = 0;
             mudstate.sidefx_toggle = 0;
             mudstate.log_maximum = 0;
 
             /* profiling */
-            mudstate.evalcount = 0;
-            mudstate.funccount = 0;
+            mudstate_hot.evalcount = 0;
+            mudstate_hot.funccount = 0;
             mudstate.allocsin = 0;
             mudstate.allocsout = 0;
             mudstate.attribfetchcount = 0;
@@ -6499,7 +6499,7 @@ do_command(DESC * d, char *command)
                            } 
                            if ( *s_snarfing ) {
                               free_lbuf(s_buffer);
-                              i_cputog = mudstate.chkcpu_toggle;
+                              i_cputog = mudstate_hot.chkcpu_toggle;
                                sprintf(s_snarfing2, "[%s]->%.*s", d->cold->addr, (LBUF_SIZE-30), s_snarfing);
                               switch(i_parse) {
                                  case 1: /* Do not parse -- percent args only */
@@ -6554,7 +6554,7 @@ do_command(DESC * d, char *command)
 #endif
                                          break;
                               }
-                              if ( mudstate.chkcpu_toggle && !i_cputog ) {
+                              if ( mudstate_hot.chkcpu_toggle && !i_cputog ) {
                                  /* Ok, API hit the cpu -- remove the API @power and sort out later */
                                  sprintf(s_snarfing, "%s", (char *)"API");
                                  power_set(thing, GOD, s_snarfing, POWER_LEVEL_OFF);
@@ -6567,7 +6567,7 @@ do_command(DESC * d, char *command)
                                     log_text(s_snarfing);
                                  ENDLOG
                               }
-                              mudstate.chkcpu_toggle = i_cputog;
+                              mudstate_hot.chkcpu_toggle = i_cputog;
 
                               /* This is a one off handler */
                               handle_html(d, 200, NULL, NULL, NULL, NULL);
@@ -6625,7 +6625,7 @@ do_command(DESC * d, char *command)
             process_output(d);
             if ((D_FLAGS(d) & DS_API) && (d->cold->timeout == 1) )
                 shutdownsock(d, R_API);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;
             RETURN(0); /* #147 */
@@ -6647,7 +6647,7 @@ do_command(DESC * d, char *command)
                         (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
             process_output(d);
             shutdownsock(d, R_API);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;
             RETURN(0); /* #147 */
@@ -6658,22 +6658,22 @@ do_command(DESC * d, char *command)
              * things that would normally be initialized for normal commands for this
              */
             /* For all valid commands we must initialize the timers */
-            mudstate.heavy_cpu_recurse = 0;
-            mudstate.heavy_cpu_tmark1 = time(NULL);
-            mudstate.chkcpu_toggle = 0;
-            mudstate.chkcpu_stopper = time(NULL);
-            mudstate.chkcpu_locktog = 0;
-            mudstate.stack_val = 0;
-            mudstate.stack_toggle = 0;
+            mudstate_hot.heavy_cpu_recurse = 0;
+            mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+            mudstate_hot.chkcpu_toggle = 0;
+            mudstate_hot.chkcpu_stopper = time(NULL);
+            mudstate_hot.chkcpu_locktog = 0;
+            mudstate_hot.stack_val = 0;
+            mudstate_hot.stack_toggle = 0;
             mudstate.sidefx_currcalls = 0;
-            mudstate.curr_percentsubs = 0;
-            mudstate.tog_percentsubs = 0;
+            mudstate_hot.curr_percentsubs = 0;
+            mudstate_hot.tog_percentsubs = 0;
             mudstate.sidefx_toggle = 0;
             mudstate.log_maximum = 0;
 
             /* profiling */
-            mudstate.evalcount = 0;
-            mudstate.funccount = 0;
+            mudstate_hot.evalcount = 0;
+            mudstate_hot.funccount = 0;
             mudstate.allocsin = 0;
             mudstate.allocsout = 0;
             mudstate.attribfetchcount = 0;
@@ -6827,7 +6827,7 @@ do_command(DESC * d, char *command)
             process_output(d);
             if ((D_FLAGS(d) & DS_API) && (d->cold->timeout == 1) )
                shutdownsock(d, R_API);
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             if ( chk_perm && cp )
                cp->perm = store_perm;
             RETURN(0); /* #147 */
@@ -6852,7 +6852,7 @@ do_command(DESC * d, char *command)
           queue_string(d, unsafe_tprintf("Name: %s\r\n", mudconf.mud_name));
           queue_string(d, unsafe_tprintf("Uptime: %s\r\n", time_str));
           queue_string(d, unsafe_tprintf("Connected: %d\r\n", gotone));
-          queue_string(d, unsafe_tprintf("Size: %d\r\n", mudstate.db_top));
+          queue_string(d, unsafe_tprintf("Size: %d\r\n", mudstate_hot.db_top));
           queue_string(d, unsafe_tprintf("Version: %s\r\n", mudstate.short_ver));
           queue_string(d, "### End INFO");
           queue_write(d, "\r\n", 2); 
@@ -6863,7 +6863,7 @@ do_command(DESC * d, char *command)
             if ( D_FLAGS(d) & DS_API ) {
                process_output(d);
                shutdownsock(d, R_API);
-               mudstate.debug_cmd = cmdsave;
+               mudstate_hot.debug_cmd = cmdsave;
                if ( chk_perm && cp )
                   cp->perm = store_perm;
                RETURN(0); /* #147 */
@@ -6888,7 +6888,7 @@ do_command(DESC * d, char *command)
        }
        process_output(d);
        shutdownsock(d, R_API);
-       mudstate.debug_cmd = cmdsave;
+       mudstate_hot.debug_cmd = cmdsave;
        if ( chk_perm && cp )
           cp->perm = store_perm;
        RETURN(0); /* #147 */
@@ -6899,7 +6899,7 @@ do_command(DESC * d, char *command)
 	    queue_write(d, "\r\n", 2);
 	}
     }
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     if ( chk_perm && cp )
       cp->perm = store_perm;
     process_output(d);
@@ -6920,8 +6920,8 @@ NDECL(process_commands)
 
     DPUSH; /* #148 */
 
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "process_commands";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "process_commands";
 
     do {
 	nprocessed = 0;
@@ -6940,10 +6940,10 @@ NDECL(process_commands)
 			door_raw_input(d, t->cmd); 
 		    else {
                         for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-                           *mudstate.global_regs[i] = '\0';
-                           *mudstate.global_regsname[i] = '\0';
+                           *mudstate_hot.global_regs[i] = '\0';
+                           *mudstate_hot.global_regsname[i] = '\0';
 #ifndef NO_GLOBAL_REGBACKUP
-                           *mudstate.global_regs_backup[i] = '\0';
+                           *mudstate_hot.global_regs_backup[i] = '\0';
 #endif
                         }
                         mudstate.global_regs_wipe = 0;
@@ -6985,7 +6985,7 @@ NDECL(process_commands)
 	    }
 	}
     } while (nprocessed > 0);
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     VOIDRETURN; /* #148 */
 }
 

@@ -1093,14 +1093,14 @@ NDECL(init_flagtab)
     FLAGENT *fp;
     char *nbuf, *np, *bp;
 
-    hashinit(&mudstate.flags_htab, 521);
+    hashinit(&mudstate_hot.flags_htab, 521);
     nbuf = alloc_sbuf("init_flagtab");
     for (fp = gen_flags; (char *)(fp->flagname) && (*fp->flagname != '\0'); fp++) {
       for (np = nbuf, bp = (char *) fp->flagname; *bp; np++, bp++) {
 	*np = ToLower((int)*bp);
       }
       *np = '\0';
-      hashadd2(nbuf, (int *) fp, &mudstate.flags_htab, 1);
+      hashadd2(nbuf, (int *) fp, &mudstate_hot.flags_htab, 1);
     }
     free_sbuf(nbuf);
 
@@ -1112,14 +1112,14 @@ NDECL(init_toggletab)
     TOGENT *tp;
     char *nbuf, *np, *bp;
 
-    hashinit(&mudstate.toggles_htab, 131);
+    hashinit(&mudstate_hot.toggles_htab, 131);
     nbuf = alloc_sbuf("init_toggletab");
     for (tp = tog_table; (char *)(tp->togglename); tp++) {
 	for (np = nbuf, bp = (char *) tp->togglename; *bp; np++, bp++) {
 	    *np = ToLower((int)*bp);
         }
 	*np = '\0';
-	hashadd(nbuf, (int *) tp, &mudstate.toggles_htab);
+	hashadd(nbuf, (int *) tp, &mudstate_hot.toggles_htab);
     }
     free_sbuf(nbuf);
 }
@@ -1178,9 +1178,9 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
     f_int = 0;
     nptrs = 0;
 
-    for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+    for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	 fp;
-	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	 fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
 
 	if ((fp->listperm & CA_BUILDER) && !Builder(player))
 	    continue;
@@ -1437,9 +1437,9 @@ display_toggletab2(dbref player, char *buff, char **bufcx)
     f_int = 0;
     nptrs = 0;
 
-    for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+    for (tp = (TOGENT *) hash_firstentry(&mudstate_hot.toggles_htab);
          tp;
-	 tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+	 tp = (TOGENT *) hash_nextentry(&mudstate_hot.toggles_htab)) {
 
 	if ((tp->listperm & CA_BUILDER) && !Builder(player))
 	    continue;
@@ -1541,7 +1541,7 @@ find_flag_perm(dbref thing, char *flagname, dbref player)
     for (cp = flagname; *cp; cp++)
 	*cp = ToLower((int)*cp);
 
-    fp = (FLAGENT *)hashfind(flagname, &mudstate.flags_htab);
+    fp = (FLAGENT *)hashfind(flagname, &mudstate_hot.flags_htab);
     if ( fp ) {
        if ((fp->listperm & CA_BUILDER) && !Builder(player))
           fp = (FLAGENT*)NULL;
@@ -1567,7 +1567,7 @@ find_flag(dbref thing, char *flagname)
 
     for (cp = flagname; *cp; cp++)
 	*cp = ToLower((int)*cp);
-    return (FLAGENT *) hashfind(flagname, &mudstate.flags_htab);
+    return (FLAGENT *) hashfind(flagname, &mudstate_hot.flags_htab);
 }
 
 TOGENT *
@@ -1581,7 +1581,7 @@ find_toggle_perm(dbref thing, char *togglename, dbref player)
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
 
-    tp = (TOGENT *)hashfind(togglename, &mudstate.toggles_htab);
+    tp = (TOGENT *)hashfind(togglename, &mudstate_hot.toggles_htab);
 
     if ( tp ) {
        if ((tp->listperm & CA_GUILDMASTER) && !Guildmaster(player))
@@ -1641,7 +1641,7 @@ find_toggle(dbref thing, char *togglename)
 
     for (cp = togglename; *cp; cp++)
 	*cp = ToLower((int)*cp);
-    return (TOGENT *) hashfind(togglename, &mudstate.toggles_htab);
+    return (TOGENT *) hashfind(togglename, &mudstate_hot.toggles_htab);
 }
 
 POWENT *
@@ -2693,9 +2693,9 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
     if (object_types[flagtype].lett != ' ')
 	safe_mb_chr(object_types[flagtype].lett, buf, &bp);
 
-    for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+    for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	 fp;
-	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	 fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
 	if (fp->flagflag & FLAG2)
 	    fv = flag2word;
 	else if (fp->flagflag & FLAG3) {
@@ -2747,7 +2747,7 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
                  (!(fp->flagflag) && ((fp->flagvalue == IMMORTAL) ||
                   (fp->flagvalue == WIZARD)))) &&
                  (HasPriv(target, player, POWER_HIDEBIT, POWER5, NOTHING) && 
-                  (Owner(player) != Owner(target) || mudstate.objevalst)) ) {
+                  (Owner(player) != Owner(target) || mudstate_hot.objevalst)) ) {
                continue;
             }
 	    if (fp->flagflag & FLAG3 || fp->flagflag & FLAG4) {
@@ -2796,9 +2796,9 @@ decode_flags_func(dbref player, dbref target, FLAG flagword, FLAG flag2word,
     if (object_types[flagtype].lett != ' ')
 	safe_mb_chr(object_types[flagtype].lett, buf, &bp);
 
-    for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+    for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	 fp;
-	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	 fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
         check = 0;
 	if (fp->flagflag & FLAG2)
 	    fv = flag2word;
@@ -2856,7 +2856,7 @@ decode_flags_func(dbref player, dbref target, FLAG flagword, FLAG flag2word,
                  (!(fp->flagflag) && ((fp->flagvalue == IMMORTAL) ||
                   (fp->flagvalue == WIZARD)))) &&
                  (HasPriv(target, player, POWER_HIDEBIT, POWER5, NOTHING) && 
-                  (Owner(player) != Owner(target) || mudstate.objevalst)) ) {
+                  (Owner(player) != Owner(target) || mudstate_hot.objevalst)) ) {
                continue;
             }
 
@@ -3162,7 +3162,7 @@ has_flag(dbref player, dbref it, char *flagname)
              (!(fp->flagflag) && ((fp->flagvalue == IMMORTAL) ||
               (fp->flagvalue == WIZARD)))) &&
              (HasPriv(it, player, POWER_HIDEBIT, POWER5, NOTHING) &&
-              (Owner(it) != Owner(player) || mudstate.objevalst)) ) {
+              (Owner(it) != Owner(player) || mudstate_hot.objevalst)) ) {
            return 0;
         }
 
@@ -3213,9 +3213,9 @@ flag_description(dbref player, dbref target, int test, int *vp, int i_type)
     }
     /* Store the type-invariant flags */
 
-    for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+    for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	 fp;
-	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	 fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
         if ( vp ) {
 	   if (fp->flagflag & FLAG2)
                fv = (*fset).word2;
@@ -3275,7 +3275,7 @@ flag_description(dbref player, dbref target, int test, int *vp, int i_type)
                  (!(fp->flagflag) && ((fp->flagvalue == IMMORTAL) ||
                   (fp->flagvalue == WIZARD)))) &&
                  (HasPriv(target, player, POWER_HIDEBIT, POWER5, NOTHING) &&
-                  (Owner(target) != Owner(player) || mudstate.objevalst)) ) {
+                  (Owner(target) != Owner(player) || mudstate_hot.objevalst)) ) {
                continue;
             }
 	    safe_chr(' ', buff, &bp);
@@ -3462,9 +3462,9 @@ toggle_description(dbref player, dbref target, int test, int keyval, int *vp)
     }
     t2 = test;
 
-    for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab); 
+    for (tp = (TOGENT *) hash_firstentry(&mudstate_hot.toggles_htab); 
     	 tp;
-	 tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+	 tp = (TOGENT *) hash_nextentry(&mudstate_hot.toggles_htab)) {
     
         if ( vp ) {
 	   if (tp->toggleflag & TOGGLE2)
@@ -4552,9 +4552,9 @@ convert_flags(dbref player, char *flaglist, FLAGSET * fset, FLAG * p_type, int w
 
 	if (handled)
 	    continue;
-	for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+	for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	     fp;
-	     fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	     fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
 	    if (!word && (fp->flagflag & (FLAG3 | FLAG4)))
 		continue;
 	    if (word && (!(fp->flagflag) || (fp->flagflag & FLAG2)))
@@ -4622,9 +4622,9 @@ decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i
     f4 = Flags4(thing);
 
     s_ptr = s_buff = alloc_lbuf("decompile_flags");
-    for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+    for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	 fp;
-	 fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)){
+	 fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)){
 
 	/* Skip if we shouldn't decompile this flag */
 
@@ -4659,7 +4659,7 @@ decompile_flags(dbref player, dbref thing, char *thingname, char *qualout, int i
               (!(fp->flagflag) && ((fp->flagvalue == IMMORTAL) ||
               (fp->flagvalue == WIZARD)))) &&
               (HasPriv(thing, player, POWER_HIDEBIT, POWER5, NOTHING) &&
-               (Owner(thing) != Owner(player) || mudstate.objevalst)) ) {
+               (Owner(thing) != Owner(player) || mudstate_hot.objevalst)) ) {
                continue;
         }
 
@@ -4743,9 +4743,9 @@ decompile_toggles(dbref player, dbref thing, char *thingname, char *qualout, int
     f2 = Toggles2(thing);
 
     s_ptr = s_buff = alloc_lbuf("decompile_flags");
-    for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+    for (tp = (TOGENT *) hash_firstentry(&mudstate_hot.toggles_htab);
          tp;
-         tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+         tp = (TOGENT *) hash_nextentry(&mudstate_hot.toggles_htab)) {
 
 	/* Skip if we shouldn't decompile this flag */
 
@@ -4958,7 +4958,7 @@ int flagstuff_internal(char *alias, char *newname)
   char buff1[SBUF_SIZE], buff2[SBUF_SIZE], buff3[SBUF_SIZE], *pt1, *pt2, *pt3, *pt4, *sbuff;
 
   if ( !newname || !*newname || !alias || !*alias ) {
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
        STARTLOG(LOG_STARTUP, "FLG", "ERROR")
           log_text((char *)"flag_name: Missing arguments. Expects syntax: flag_name NEWNAME OLDNAME");
        ENDLOG
@@ -4966,7 +4966,7 @@ int flagstuff_internal(char *alias, char *newname)
     return -1;
   }
   if ( !good_flag(newname) || !good_flag(alias) ) {
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
        STARTLOG(LOG_STARTUP, "FLG", "ERROR")
           sbuff = alloc_lbuf("flagstuff_internal.LOG");
           sprintf(sbuff, "flag_name: invalid arguments. Flag: %s, Rename: %s", alias, newname);
@@ -4987,9 +4987,9 @@ int flagstuff_internal(char *alias, char *newname)
   *pt2 = '\0';
   *pt4 = '\0';
   strcpy(buff3, buff1);
-  flag1 = (FLAGENT *)hashfind(buff1, &mudstate.flags_htab);
+  flag1 = (FLAGENT *)hashfind(buff1, &mudstate_hot.flags_htab);
   if (flag1 != NULL) {
-    flag2 = (FLAGENT *)hashfind(buff2, &mudstate.flags_htab);
+    flag2 = (FLAGENT *)hashfind(buff2, &mudstate_hot.flags_htab);
     if (flag2 == NULL) {
       memset(buff2, '\0', SBUF_SIZE);
       pt1 = newname;
@@ -5001,10 +5001,10 @@ int flagstuff_internal(char *alias, char *newname)
       }
       *pt2 = '\0';
       *pt3 = '\0';
-      hashrepl2(buff3, (int *) flag1, &mudstate.flags_htab, 0);
+      hashrepl2(buff3, (int *) flag1, &mudstate_hot.flags_htab, 0);
       strcpy(flag1->flagname,buff2);
-      hashadd2(buff1, (int *) flag1, &mudstate.flags_htab, 1);
-      if (mudstate.initializing) {
+      hashadd2(buff1, (int *) flag1, &mudstate_hot.flags_htab, 1);
+      if (mudstate_hot.initializing) {
          STARTLOG(LOG_STARTUP, "FLG", "RNAME")
             sbuff = alloc_lbuf("flagstuff_internal.LOG");
 	    sprintf(sbuff, "flag_name: renamed %s to %s", alias, newname);
@@ -5015,7 +5015,7 @@ int flagstuff_internal(char *alias, char *newname)
       return 0;
     }
   }
-  if (mudstate.initializing) {
+  if (mudstate_hot.initializing) {
      STARTLOG(LOG_STARTUP, "FLG", "ERROR")
         sbuff = alloc_lbuf("flagstuff_internal.LOG");
         if ( flag1 == NULL )
@@ -5104,9 +5104,9 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                            "-----------+-----------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_toggledef");
-      for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+      for (tp = (TOGENT *) hash_firstentry(&mudstate_hot.toggles_htab);
            tp;
-	   tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+	   tp = (TOGENT *) hash_nextentry(&mudstate_hot.toggles_htab)) {
          if ( wild_mtch ) {
             if (!quick_wild(flag1, (char *)tp->togglename))
                continue;
@@ -5161,9 +5161,9 @@ void do_toggledef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, "+-------------------+---+-----------+" \
                            "-----------+-----------+----------+---+");
    } else { 
-      for (tp = (TOGENT *) hash_firstentry(&mudstate.toggles_htab);
+      for (tp = (TOGENT *) hash_firstentry(&mudstate_hot.toggles_htab);
            tp;
-	   tp = (TOGENT *) hash_nextentry(&mudstate.toggles_htab)) {
+	   tp = (TOGENT *) hash_nextentry(&mudstate_hot.toggles_htab)) {
          if (minmatch(flag1, (char *)tp->togglename, strlen(tp->togglename))) 
             break;
       }
@@ -5326,7 +5326,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *totem_perms, char *cmd, char
       strtok2 = strtok_r(NULL, " \t", &strtokptr);
    }
    if ( !strtok || !*strtok || !strtok2 || !*strtok2 ) {
-      if ( !mudstate.initializing && Good_chk(player)) {
+      if ( !mudstate_hot.initializing && Good_chk(player)) {
          if ( !strtok || !*strtok )
             notify(player, "Nothing specified.  Please enter a valid flag.");
          else
@@ -5352,17 +5352,17 @@ int do_flag_and_toggle_def_conf(dbref player, char *totem_perms, char *cmd, char
    tp  = (TOGENT *)NULL;
    tmp = (TOTEMENT *)NULL;
    if ( i_type == IS_TYPE_FLAG ) {
-      fp = (FLAGENT *)hashfind(strtok, &mudstate.flags_htab);
+      fp = (FLAGENT *)hashfind(strtok, &mudstate_hot.flags_htab);
    }
    if ( i_type == IS_TYPE_TOGGLE ) {
-      tp = (TOGENT *)hashfind(strtok, &mudstate.toggles_htab);
+      tp = (TOGENT *)hashfind(strtok, &mudstate_hot.toggles_htab);
    }
    if ( i_type == IS_TYPE_TOTEM ) {
       tmp = (TOTEMENT *)hashfind(strtok, &mudstate.totem_htab);
    }
    if ( ((i_type == IS_TYPE_FLAG) && !fp) || ((i_type == IS_TYPE_TOGGLE) && !tp) || ((i_type == IS_TYPE_TOTEM) && !tmp) ) {
       buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-      if ( !mudstate.initializing && Good_chk(player) ) {
+      if ( !mudstate_hot.initializing && Good_chk(player) ) {
          sprintf(buff, "Invalid %s '%s' specified.  Please enter a valid argument.", 
                 ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
          notify_quiet(player, buff);
@@ -5409,7 +5409,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *totem_perms, char *cmd, char
    }
    if ( !mask_del && !mask_add ) {
       buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-      if ( !mudstate.initializing && Good_chk(player) ) {
+      if ( !mudstate_hot.initializing && Good_chk(player) ) {
          sprintf(buff, "No valid permissions for %s '%s' specified.  Please enter a valid permissions.", 
                  ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok);
          notify_quiet(player, buff);
@@ -5486,7 +5486,7 @@ int do_flag_and_toggle_def_conf(dbref player, char *totem_perms, char *cmd, char
            break;
    } 
    buff = alloc_lbuf("do_flag_and_toggle_def_conf");
-   if ( !mudstate.initializing && Good_chk(player) ) {
+   if ( !mudstate_hot.initializing && Good_chk(player) ) {
       sprintf(buff, "%s: permission set for %s '%s' [added: %08x, removed: %08x].", 
               cmd, ((i_type == IS_TYPE_FLAG) ? "flag" : ((i_type == IS_TYPE_TOGGLE) ? "toggle" : "totem")), strtok, mask_add, mask_del);
       notify_quiet(player, buff);
@@ -5893,9 +5893,9 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
                            "------------+------------+----------+---+");
       fnd = 0;
       tprp_buff = tpr_buff = alloc_lbuf("do_flagdef");
-      for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+      for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	   fp;
-	   fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)){
+	   fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)){
          if ( wild_mtch ) {
             if (!quick_wild(flag1, (char *)fp->flagname))
                continue;
@@ -5951,9 +5951,9 @@ void do_flagdef(dbref player, dbref cause, int key, char *flag1, char *flag2)
       notify_quiet(player, "+----------------+---+------------+" \
                            "------------+------------+----------+---+");
    } else { 
-      for (fp = (FLAGENT *) hash_firstentry2(&mudstate.flags_htab, 1); 
+      for (fp = (FLAGENT *) hash_firstentry2(&mudstate_hot.flags_htab, 1); 
 	   fp;
-	   fp = (FLAGENT *) hash_nextentry(&mudstate.flags_htab)) {
+	   fp = (FLAGENT *) hash_nextentry(&mudstate_hot.flags_htab)) {
          if (minmatch(flag1, fp->flagname, strlen(fp->flagname))) 
             break;
       }
@@ -6082,12 +6082,12 @@ void do_flagstuff(dbref player, dbref cause, int key, char *flag1, char *flag2)
   if (key & FLAGSW_REMOVE) {
     if (*flag2)
       notify(player,"Extra argument ignored.");
-    lookup = (FLAGENT *)hashfind(flag1, &mudstate.flags_htab);
+    lookup = (FLAGENT *)hashfind(flag1, &mudstate_hot.flags_htab);
     if (lookup != NULL) {
       if (!stricmp(lookup->flagname,flag1))
 	notify(player, "Error: You can't remove the present flag name from the hash table.");
       else {
-	hashdelete(flag1, &mudstate.flags_htab);
+	hashdelete(flag1, &mudstate_hot.flags_htab);
         tprp_buff = tpr_buff = alloc_lbuf("flag_stuff");
 	notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Flag name '%s' removed from the hash table.",flag1));
         free_lbuf(tpr_buff);
@@ -6137,7 +6137,7 @@ totem_handle_error(int i_error, dbref player, char *s_type, char *s_inbuff)
    s_buff = alloc_lbuf("totem_handle_error");
    s_buffptr = s_inbuff;
    if ( i_error != -777 ) { /* Snuff errors */
-      if ( mudstate.initializing ) {
+      if ( mudstate_hot.initializing ) {
          sprintf(s_buff, "%s ", s_type);
       } else {
          if ( *s_type ) {
@@ -6800,7 +6800,7 @@ totem_rename(char *totem, char *totemren)
 
   /* Rename the flag -- old name is new alias -- this stops existing aliases from eating their face */
   strcpy(hashp->flagname, ucname);
-  hashrepl2(lcname, (int *) hashp, &mudstate.flags_htab, 0);
+  hashrepl2(lcname, (int *) hashp, &mudstate_hot.flags_htab, 0);
 
   /* Add the new name over the old hash */
   stat = hashadd2(newname, (int *)hashp, &mudstate.totem_htab, 1);

@@ -81,7 +81,7 @@ close_logfile( void )
    mudstate.f_logfile_name = NULL;
 
 #ifndef STANDALONE
-   if ( ! mudstate.reboot_flag ) {
+   if ( ! mudstate_hot.reboot_flag ) {
       (void) rename(mudconf.logdb_name, mudstate.buffer);
    }
 #endif
@@ -147,8 +147,8 @@ start_log(const char *primary, const char *secondary)
     else
        f_foo = stderr;
 
-    mudstate.logging++;
-    switch (mudstate.logging) {
+    mudstate_hot.logging++;
+    switch (mudstate_hot.logging) {
     case 1:
     case 2:
 
@@ -179,11 +179,11 @@ start_log(const char *primary, const char *secondary)
 #endif
 	/* If a recursive call, log it and return indicating no log */
 
-	if (mudstate.logging == 1)
+	if (mudstate_hot.logging == 1)
 	    return 1;
 	fprintf(f_foo, "Recursive logging request.\r\n");
     default:
-	mudstate.logging--;
+	mudstate_hot.logging--;
     }
     return 0;
 }
@@ -204,7 +204,7 @@ NDECL(end_log)
 
     fprintf(f_foo, "\n");
     fflush(f_foo);
-    mudstate.logging--;
+    mudstate_hot.logging--;
 }
 
 /* ---------------------------------------------------------------------------
@@ -230,7 +230,7 @@ log_perror(const char *primary, const char *secondary,
     }
     perror((char *) failing_object);
     fflush(f_foo);
-    mudstate.logging--;
+    mudstate_hot.logging--;
 }
 
 /* ---------------------------------------------------------------------------

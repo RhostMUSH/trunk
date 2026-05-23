@@ -635,9 +635,9 @@ ATTR 	*tst_glb, *format_atr;
 	nocandoforyou = !(!(Toggles2(thing) & TOG_SILENTEFFECTS));
 	/* message to player */
 
-        chk_stop = mudstate.chkcpu_stopper;
-        mudstate.chkcpu_stopper = time(NULL);
-        chkoldstate = mudstate.chkcpu_toggle;
+        chk_stop = mudstate_hot.chkcpu_stopper;
+        mudstate_hot.chkcpu_stopper = time(NULL);
+        chkoldstate = mudstate_hot.chkcpu_toggle;
 	cpustopper = 0;
         i_didsave = did_allocate_buff = 0;
 
@@ -674,8 +674,8 @@ ATTR 	*tst_glb, *format_atr;
                 saveregname[x] = alloc_sbuf("ulocal_regname");
                 pt = savereg[x];
                 npt = saveregname[x];
-                safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
              }
           }
 	  for(i = 1; i < desclist[0]; ++i)
@@ -823,7 +823,7 @@ ATTR 	*tst_glb, *format_atr;
                  free_lbuf(master_str);
   	      free_lbuf(d);
 	   }
-	   cpustopper += mudstate.chkcpu_toggle;
+	   cpustopper += mudstate_hot.chkcpu_toggle;
            if ( ((what == A_IDESC) || (what == A_DESC)) ) {
 	      d = atr_pget(thing, A_DESC2, &aowner, &aflags);
               tst_glb = atr_num(A_DESC2);
@@ -874,7 +874,7 @@ ATTR 	*tst_glb, *format_atr;
                  free_lbuf(master_str);
 	      free_lbuf(d);
 	   }
-	   cpustopper += mudstate.chkcpu_toggle;
+	   cpustopper += mudstate_hot.chkcpu_toggle;
 	} else if ((what < 0) && def) {
 	  if(nocandoforyou) {
 	    notify(player, "Message has been nullified.");
@@ -946,7 +946,7 @@ ATTR 	*tst_glb, *format_atr;
 		}
                 if ( tst_attr )
                    free_lbuf(master_str);
-		cpustopper += mudstate.chkcpu_toggle;
+		cpustopper += mudstate_hot.chkcpu_toggle;
 		free_lbuf(d);
 	} else if ((owhat < 0) && odef && Has_location(player) &&
 	    Good_obj(loc = Location(player)) && !nocandoforyou) {
@@ -958,10 +958,10 @@ ATTR 	*tst_glb, *format_atr;
         if ( i_didsave && mudconf.descs_are_local ) {
            i_didsave = 0;
            for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-              pt = mudstate.global_regs[x];
-              npt = mudstate.global_regsname[x];
-              safe_str(savereg[x],mudstate.global_regs[x],&pt);
-              safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+              pt = mudstate_hot.global_regs[x];
+              npt = mudstate_hot.global_regsname[x];
+              safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+              safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
               free_lbuf(savereg[x]);
               free_sbuf(saveregname[x]);
            }
@@ -981,7 +981,7 @@ ATTR 	*tst_glb, *format_atr;
 		if (*(act = atr_pget(thing, desclist[i_rlvl], &aowner, &aflags))) {
 			found_a_desc = 1;
 			charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
-			if (*charges && !mudstate.chkcpu_toggle) {
+			if (*charges && !mudstate_hot.chkcpu_toggle) {
 				num = atoi(charges);
 				if (num > 0) {
 					buff = alloc_sbuf("did_it.charges");
@@ -995,23 +995,23 @@ ATTR 	*tst_glb, *format_atr;
 					free_lbuf(act);
 					free_lbuf(buff);
 					free_lbuf(charges);
-					mudstate.chkcpu_toggle = chkoldstate;
-                                        mudstate.chkcpu_stopper = chk_stop;
+					mudstate_hot.chkcpu_toggle = chkoldstate;
+                                        mudstate_hot.chkcpu_stopper = chk_stop;
 					return;
 				}
 			}
 			free_lbuf(charges);
-                        if ( !mudstate.chkcpu_toggle ) {
+                        if ( !mudstate_hot.chkcpu_toggle ) {
 			   wait_que(thing, player, 0, NOTHING, act, args, nargs,
-				   mudstate.global_regs, mudstate.global_regsname);
+				   mudstate_hot.global_regs, mudstate_hot.global_regsname);
                         }
 		}
 		free_lbuf(act);
 		if (awhat == A_ADESC) {
 		  act = atr_pget(thing, A_ADESC2, &aowner, &aflags);
-		  if (*act && !mudstate.chkcpu_toggle) 
+		  if (*act && !mudstate_hot.chkcpu_toggle) 
 		    wait_que(thing, player, 0, NOTHING, act, args, nargs, 
-                             mudstate.global_regs, mudstate.global_regsname);
+                             mudstate_hot.global_regs, mudstate_hot.global_regsname);
 		  free_lbuf(act);
 		}
                 if ( ((mudconf.reality_compare > 1) && found_a_desc) ||
@@ -1019,15 +1019,15 @@ ATTR 	*tst_glb, *format_atr;
                    found_a_desc = 1;
                    break;
                 }
-                if ( mudstate.chkcpu_toggle ) {
+                if ( mudstate_hot.chkcpu_toggle ) {
                    found_a_desc = 1;
                    break;
                 }
            }
-           if ( !found_a_desc && !mudstate.chkcpu_toggle ) {
+           if ( !found_a_desc && !mudstate_hot.chkcpu_toggle ) {
                 if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
                         charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
-                        if (*charges && !mudstate.chkcpu_toggle) {
+                        if (*charges && !mudstate_hot.chkcpu_toggle) {
                                 num = atoi(charges);
                                 if (num > 0) {
                                         buff = alloc_sbuf("did_it.charges");
@@ -1041,30 +1041,30 @@ ATTR 	*tst_glb, *format_atr;
                                         free_lbuf(act);
                                         free_lbuf(buff);
                                         free_lbuf(charges);
-                                        mudstate.chkcpu_toggle = chkoldstate;
-                                        mudstate.chkcpu_stopper = chk_stop;
+                                        mudstate_hot.chkcpu_toggle = chkoldstate;
+                                        mudstate_hot.chkcpu_stopper = chk_stop;
                                         return;
                                 }
                         }
                         free_lbuf(charges);
-                        if ( !mudstate.chkcpu_toggle ) {
+                        if ( !mudstate_hot.chkcpu_toggle ) {
                            wait_que(thing, player, 0, NOTHING, act, args, nargs,
-                                   mudstate.global_regs, mudstate.global_regsname);
+                                   mudstate_hot.global_regs, mudstate_hot.global_regsname);
                         }
                 }
                 free_lbuf(act);
                 if (awhat == A_ADESC) {
                   act = atr_pget(thing, A_ADESC2, &aowner, &aflags);
-                  if (*act && !mudstate.chkcpu_toggle)
+                  if (*act && !mudstate_hot.chkcpu_toggle)
                     wait_que(thing, player, 0, NOTHING, act, args, nargs,
-                             mudstate.global_regs, mudstate.global_regsname);
+                             mudstate_hot.global_regs, mudstate_hot.global_regsname);
                   free_lbuf(act);
                 }
 
            }
 	}
       }
-      cpustopper += mudstate.chkcpu_toggle;
+      cpustopper += mudstate_hot.chkcpu_toggle;
       if ( cpustopper && !chkoldstate ) {
            notify(player, "Overload on CPU detected.  Process aborted.");
            broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS",
@@ -1082,7 +1082,7 @@ ATTR 	*tst_glb, *format_atr;
                  s_Toggles2(thing, (Toggles2(thing) | TOG_SILENTEFFECTS));
 	         s_Flags(thing, (Flags(thing) | HALT));
                  s_Toggles(thing, (Toggles(thing) & ~TOG_FORCEHALTED));
-                 mudstate.breakst = 1;
+                 mudstate_hot.breakst = 1;
               }
               log_text(" - Object toggled SILENTEFFECT and HALTED.");
               broadcast_monitor(player, MF_CPUEXT, "MULTIPLE CPU RUNAWAYS - INTERNAL ATTRIB",
@@ -1097,16 +1097,16 @@ ATTR 	*tst_glb, *format_atr;
       if ( i_didsave && mudconf.descs_are_local ) {
          i_didsave = 0;
          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-            pt = mudstate.global_regs[x];
-            npt = mudstate.global_regsname[x];
-            safe_str(savereg[x],mudstate.global_regs[x],&pt);
-            safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+            pt = mudstate_hot.global_regs[x];
+            npt = mudstate_hot.global_regsname[x];
+            safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+            safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
             free_lbuf(savereg[x]);
             free_sbuf(saveregname[x]);
          }
       }
-      mudstate.chkcpu_toggle = chkoldstate;
-      mudstate.chkcpu_stopper = chk_stop;
+      mudstate_hot.chkcpu_toggle = chkoldstate;
+      mudstate_hot.chkcpu_stopper = chk_stop;
 }
 
 void 

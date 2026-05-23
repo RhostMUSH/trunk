@@ -324,7 +324,7 @@ setq_templates(dbref thing)
                if ( isalpha(*c_field) ) {
                   /* MAX_GLOBAL_REGS only */
                   for ( i = 0; i < MAX_GLOBAL_REGS; i++ ) {
-                     if ( mudstate.nameofqreg[i] == tolower(*c_field) )
+                     if ( mudstate_hot.nameofqreg[i] == tolower(*c_field) )
                         break;
                   }
                   if ( i < MAX_GLOBAL_REGS )
@@ -341,7 +341,7 @@ setq_templates(dbref thing)
                   regnum = -1;
 
                if ( regnum != -1 ) {
-                  strncpy(mudstate.global_regsname[regnum], s_intok2, (SBUF_SIZE - 1));
+                  strncpy(mudstate_hot.global_regsname[regnum], s_intok2, (SBUF_SIZE - 1));
                }
             }
             s_intok = strtok_r( NULL, " ", &s_intokr);
@@ -404,17 +404,17 @@ NDECL(report)
     DPUSH; /* #69 */
     STARTLOG(LOG_BUGS, "BUG", "INFO")
 	log_text((char *) "Command: '");
-    log_text(mudstate.debug_cmd);
+    log_text(mudstate_hot.debug_cmd);
     log_text((char *) "'");
     ENDLOG
-	if (Good_obj(mudstate.curr_player)) {
+	if (Good_obj(mudstate_hot.curr_player)) {
 	STARTLOG(LOG_BUGS, "BUG", "INFO")
 	    log_text((char *) "Player: ");
-	log_name_and_loc(mudstate.curr_player);
-	if ((mudstate.curr_enactor != mudstate.curr_player) &&
-	    Good_obj(mudstate.curr_enactor)) {
+	log_name_and_loc(mudstate_hot.curr_player);
+	if ((mudstate_hot.curr_enactor != mudstate_hot.curr_player) &&
+	    Good_obj(mudstate_hot.curr_enactor)) {
 	    log_text((char *) " Enactor: ");
-	    log_name_and_loc(mudstate.curr_enactor);
+	    log_name_and_loc(mudstate_hot.curr_enactor);
 	}
 	ENDLOG
     }
@@ -443,9 +443,9 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     /* See if we can do it.  Silently fail if we can't. */
 
     ck3 = ck2 = chkwild = i_inparen = 0;
-    oldchk = mudstate.chkcpu_toggle;
+    oldchk = mudstate_hot.chkcpu_toggle;
     if (!could_doit(player, parent, A_LUSE, 1, 1)) {
-        if ( mudstate.chkcpu_toggle && !oldchk ) {
+        if ( mudstate_hot.chkcpu_toggle && !oldchk ) {
            broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (USELOCK)",
                              (char *)"(internal-attribute)", NULL, parent, 0, 0, NULL);
            STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -560,7 +560,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
             do_brk = 0;
 #ifdef ATTR_HACK
             /* Ok, let's check for attribute uselocks */
-            if ( ((aflags & AF_USELOCK) || (ap->flags & AF_USELOCK)) && !mudstate.chkcpu_toggle && !(aflags & AF_NOPROG) ) {
+            if ( ((aflags & AF_USELOCK) || (ap->flags & AF_USELOCK)) && !mudstate_hot.chkcpu_toggle && !(aflags & AF_NOPROG) ) {
                if ( !(Wizard(player) && !NoOverride(player) && mudconf.wiz_override &&
                     !DePriv(player,NOTHING,DP_OVERRIDE,POWER7,POWER_LEVEL_NA) &&
                     !NoUselock(player) && mudconf.wiz_uselock) ) {
@@ -580,14 +580,14 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                                  saveregname[x] = alloc_sbuf("ulocal_regname");
                                  pt = savereg[x];
                                  npt = saveregname[x];
-                                 safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                                 safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                                 safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                                 safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                               }
                               cputext = alloc_lbuf("store_text_attruselock");
                               strcpy(cputext, atext);
                               result = cpuexec(parent, player, player, EV_FCHECK | EV_EVAL, atext,
                                                args, 10, (char **)NULL, 0);
-                              if ( !i_cpuslam && mudstate.chkcpu_toggle ) {
+                              if ( !i_cpuslam && mudstate_hot.chkcpu_toggle ) {
                                  i_cpuslam = 1;
                                  cpuslam = alloc_lbuf("uselock_cpuslam");
                                  memset(cpuslam, 0, LBUF_SIZE);
@@ -606,10 +606,10 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                               }
                               free_lbuf(cputext);
                               for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                                 pt = mudstate.global_regs[x];
-                                 npt = mudstate.global_regsname[x];
-                                 safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                                 safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                                 pt = mudstate_hot.global_regs[x];
+                                 npt = mudstate_hot.global_regsname[x];
+                                 safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                                 safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                                  free_lbuf(savereg[x]);
                                  free_sbuf(saveregname[x]);
                               }
@@ -645,7 +645,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
                if ( ck3 == 0 ) {
                   setq_templates(thing);
 	          wait_que(thing, player, 0, NOTHING, s, args, 10,
-		           mudstate.global_regs, mudstate.global_regsname);
+		           mudstate_hot.global_regs, mudstate_hot.global_regsname);
                   if ( (ap->flags & AF_SINGLETHREAD) || (aflags & AF_SINGLETHREAD) ) {
                      atr_set_flags(parent, attr, (aflags | AF_NOPROG));
                   }
@@ -700,7 +700,7 @@ verify_checksum(dbref thing)
 
    /* If CPU time hit or time exceeded just bypass checksum checks */
    t_tme = time(NULL);
-   if ( mudstate.chkcpu_toggle || ((mudstate.now + 5) <= t_tme )) {
+   if ( mudstate_hot.chkcpu_toggle || ((mudstate_hot.now + 5) <= t_tme )) {
       return 1;
    }
 
@@ -993,9 +993,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     /* Enforce a recursion limit */
 
-    mudstate.ntfy_nest_lev++;
-    if (mudstate.ntfy_nest_lev >= mudconf.ntfy_nest_lim) {
-	mudstate.ntfy_nest_lev--;
+    mudstate_hot.ntfy_nest_lev++;
+    if (mudstate_hot.ntfy_nest_lev >= mudconf.ntfy_nest_lim) {
+	mudstate_hot.ntfy_nest_lev--;
 	VOIDRETURN; /* #75 */
     }
     /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
@@ -1029,7 +1029,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                          free_lbuf(s_pipeattr);
                          if ( !Quiet(target) && TogNoisy(target) )
                             raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
-	                 mudstate.ntfy_nest_lev--;
+	                 mudstate_hot.ntfy_nest_lev--;
 	                 VOIDRETURN; /* #75 */
                       }
                    } else {
@@ -1070,7 +1070,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	if ( !port && Nospoof(target) && (target != sender) &&
   	     ( !(Wizard(sender) || HasPriv(sender, target, POWER_WIZ_SPOOF, POWER5, NOTHING)) || 
                Immortal(target) || Spoof(sender) || Spoof(Owner(sender)) ) &&
-	     (target != mudstate.curr_enactor) && (target != mudstate.curr_player)) {
+	     (target != mudstate_hot.curr_enactor) && (target != mudstate_hot.curr_player)) {
 
 	    /* I'd really like to use unsafe_tprintf here but I can't
 	     * because the caller may have.
@@ -1089,9 +1089,9 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 		safe_str(Name(Owner(sender)), msg_ns, &mp);
 		safe_chr('}', msg_ns, &mp);
 	    }
-	    if (sender != mudstate.curr_enactor) {
+	    if (sender != mudstate_hot.curr_enactor) {
 		sprintf(tbuff, "<-(#%d)",
-			mudstate.curr_enactor);
+			mudstate_hot.curr_enactor);
 		safe_str(tbuff, msg_ns, &mp);
 	    }
 	    safe_str((char *) "] ", msg_ns, &mp);
@@ -1135,8 +1135,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     check_listens = Halted(target) ? 0 : 1;
     switch (Typeof(target)) {
     case TYPE_PLAYER:
-        i_chkcpu = mudstate.chkcpu_toggle;
-        if ( mudstate.posesay_fluff && Connected(target) ) {
+        i_chkcpu = mudstate_hot.chkcpu_toggle;
+        if ( mudstate_hot.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_PREFIX");
            if ( ap_attrpipe ) {
               s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
@@ -1147,18 +1147,18 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[3] = alloc_mbuf("speech_prefix3");
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
-                 if ( Good_chk(mudstate.posesay_dbref) && 
-	                  CANSEE(target,mudstate.posesay_dbref) && !HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
-                        !Spoof(mudstate.posesay_dbref) && !Spoof(Owner(mudstate.posesay_dbref)) ) {
-                    sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                 if ( Good_chk(mudstate_hot.posesay_dbref) && 
+	                  CANSEE(target,mudstate_hot.posesay_dbref) && !HasPriv(mudstate_hot.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
+                        !Spoof(mudstate_hot.posesay_dbref) && !Spoof(Owner(mudstate_hot.posesay_dbref)) ) {
+                    sprintf(vap[3], "#%d", mudstate_hot.posesay_dbref);
                    
                     /* Replace @N/@n and @K/@k with name and colorname */
-                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
-                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    s_tb1 = replace_string("@N", Name(mudstate_hot.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate_hot.posesay_dbref), s_tb1, 0);
                     free_lbuf(s_pipeattr);
                     free_lbuf(s_tb1);
-                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
-                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    s_tb1 = replace_string("@K", ColorName(mudstate_hot.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate_hot.posesay_dbref, 1), s_tb1, 0);
                     free_lbuf(s_tb1);
                     free_lbuf(s_tb2);
                  } else {
@@ -1174,16 +1174,16 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(s_tb1);
                     free_lbuf(s_tb2);
                  }
-                 ttm2 = localtime(&mudstate.now);
+                 ttm2 = localtime(&mudstate_hot.now);
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
-                 if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
-                    mudstate.posesay_fluff = 0;
+                 if ( mudconf.posesay_funct && !mudstate_hot.chkcpu_toggle ) {
+                    mudstate_hot.posesay_fluff = 0;
                     s_pipebuffptr = cpuexec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
                                             vap, 4, (char **)NULL, 0);
-                    mudstate.posesay_fluff = 1;
-                    if ( mudstate.chkcpu_toggle ) {
+                    mudstate_hot.posesay_fluff = 1;
+                    if ( mudstate_hot.chkcpu_toggle ) {
                        aflags |= AF_NOPROG;
                        atr_set_flags(target, ap_attrpipe->number, aflags);
                        broadcast_monitor(target, MF_CPU, "CPU RUNAWAY PROCESS (SPEECH_PREFIX)",
@@ -1229,7 +1229,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
            }
         }
 	if (key & MSG_ME) {
-           if ( mudstate.emit_substitute ) {
+           if ( mudstate_hot.emit_substitute ) {
               s_tbuff = alloc_sbuf("emit_substitute");
               sprintf(s_tbuff, "#%d", target);
               s_tstr = replace_string(BOUND_VAR, s_tbuff, msg_ns, 0);
@@ -1240,7 +1240,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
              raw_notify(target, msg_ns, port, 1);
            }
         }
-        if ( mudstate.posesay_fluff && Connected(target) ) {
+        if ( mudstate_hot.posesay_fluff && Connected(target) ) {
            ap_attrpipe = atr_str_notify("SPEECH_SUFFIX");
            if ( ap_attrpipe ) {
               s_pipeattr = atr_pget(target, ap_attrpipe->number, &aowner, &aflags);
@@ -1251,18 +1251,18 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                  vap[3] = alloc_mbuf("speech_prefix3");
                  s_pipeattr2 = alloc_lbuf("speech_cpu");
                  sprintf(s_pipeattr2, "%.*s", (LBUF_SIZE - 100), s_pipeattr);
-                 if ( Good_chk(mudstate.posesay_dbref) && 
-	                 CANSEE(target,mudstate.posesay_dbref) && !HasPriv(mudstate.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
-                        !Spoof(mudstate.posesay_dbref) && !Spoof(Owner(mudstate.posesay_dbref)) )  {
-                    sprintf(vap[3], "#%d", mudstate.posesay_dbref);
+                 if ( Good_chk(mudstate_hot.posesay_dbref) && 
+	                 CANSEE(target,mudstate_hot.posesay_dbref) && !HasPriv(mudstate_hot.posesay_dbref, target, POWER_WIZ_SPOOF, POWER5, NOTHING) && 
+                        !Spoof(mudstate_hot.posesay_dbref) && !Spoof(Owner(mudstate_hot.posesay_dbref)) )  {
+                    sprintf(vap[3], "#%d", mudstate_hot.posesay_dbref);
 
                     /* Replace @N/@n and @K/@k with name and colorname */
-                    s_tb1 = replace_string("@N", Name(mudstate.posesay_dbref), s_pipeattr, 0);
-                    s_tb2 = replace_string("@n", Name(mudstate.posesay_dbref), s_tb1, 0);
+                    s_tb1 = replace_string("@N", Name(mudstate_hot.posesay_dbref), s_pipeattr, 0);
+                    s_tb2 = replace_string("@n", Name(mudstate_hot.posesay_dbref), s_tb1, 0);
                     free_lbuf(s_pipeattr);
                     free_lbuf(s_tb1);
-                    s_tb1 = replace_string("@K", ColorName(mudstate.posesay_dbref, 1), s_tb2, 0);
-                    s_pipeattr = replace_string("@k", ColorName(mudstate.posesay_dbref, 1), s_tb1, 0);
+                    s_tb1 = replace_string("@K", ColorName(mudstate_hot.posesay_dbref, 1), s_tb2, 0);
+                    s_pipeattr = replace_string("@k", ColorName(mudstate_hot.posesay_dbref, 1), s_tb1, 0);
                     free_lbuf(s_tb1);
                     free_lbuf(s_tb2);
                  } else {
@@ -1278,16 +1278,16 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     free_lbuf(s_tb1);
                     free_lbuf(s_tb2);
                  }
-                 ttm2 = localtime(&mudstate.now);
+                 ttm2 = localtime(&mudstate_hot.now);
                  ttm2->tm_year += 1900;
                  sprintf(vap[1], "%02d/%02d/%d", ttm2->tm_mday, ttm2->tm_mon + 1, ttm2->tm_year);
                  sprintf(vap[2], "%02d:%02d:%02d", ttm2->tm_hour, ttm2->tm_min, ttm2->tm_sec);
-                 if ( mudconf.posesay_funct && !mudstate.chkcpu_toggle ) {
-                    mudstate.posesay_fluff = 0;
+                 if ( mudconf.posesay_funct && !mudstate_hot.chkcpu_toggle ) {
+                    mudstate_hot.posesay_fluff = 0;
                     s_pipebuffptr = cpuexec(target, target, target, EV_FCHECK | EV_EVAL | EV_STRIP, s_pipeattr,
                                             vap, 4, (char **)NULL, 0);
-                    mudstate.posesay_fluff = 1;
-                    if ( mudstate.chkcpu_toggle ) {
+                    mudstate_hot.posesay_fluff = 1;
+                    if ( mudstate_hot.chkcpu_toggle ) {
                        aflags |= AF_NOPROG;
                        atr_set_flags(target, ap_attrpipe->number, aflags);
                        broadcast_monitor(target, MF_CPU, "CPU RUNAWAY PROCESS (SPEECH_SUFFIX)",
@@ -1332,7 +1332,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
               free_lbuf(s_pipeattr);
            }
         }
-        mudstate.chkcpu_toggle = i_chkcpu;
+        mudstate_hot.chkcpu_toggle = i_chkcpu;
 	if (!mudconf.player_listen)
 	    check_listens = 0;
     case TYPE_THING:
@@ -1359,7 +1359,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                safe_str(ANSI_NORMAL, tbuff, &tp);
 	    safe_str(msg_ns, tbuff, &tp);
 	    *tp = '\0';
-            if ( mudstate.emit_substitute ) {
+            if ( mudstate_hot.emit_substitute ) {
 	      s_tbuff = alloc_sbuf("emit_substitute");
               sprintf(s_tbuff, "#%d", Owner(target));
               s_tstr = replace_string(BOUND_VAR, s_tbuff, tbuff, 0);
@@ -1399,10 +1399,10 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	/* Process AxHEAR if we pass LISTEN, USElock and it's for me */
 
 	if ((key & MSG_ME) && pass_listen && pass_uselock) {
-	    if ( (mudstate.ahear_lastplr == target) &&
-                 (mudstate.ahear_count >= mudconf.ahear_maxcount) && 
-	         ((mudstate.ahear_currtime + mudconf.ahear_maxtime) > time(NULL)) ) {
-               if ( mudstate.ahear_count == mudconf.ahear_maxcount ) {
+	    if ( (mudstate_hot.ahear_lastplr == target) &&
+                 (mudstate_hot.ahear_count >= mudconf.ahear_maxcount) && 
+	         ((mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) > time(NULL)) ) {
+               if ( mudstate_hot.ahear_count == mudconf.ahear_maxcount ) {
                   cpulbuf = alloc_lbuf("log_uselock_attrib");
                   sprintf(cpulbuf, "RUNAWAY PROCESS (A*HEAR) by #%d(#%d) [%d/%ds]",
                           sender, target, mudconf.ahear_maxcount, mudconf.ahear_maxtime);
@@ -1415,7 +1415,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                   log_text(cpulbuf);
                   free_lbuf(cpulbuf);
                   ENDLOG
-                  mudstate.ahear_count++;
+                  mudstate_hot.ahear_count++;
                }
 	    } else {
 	       if (sender != target)
@@ -1611,7 +1611,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    DOLIST(obj, Contents(target)) {
 		if (obj != target) {
 #ifdef REALITY_LEVELS
-                    if ( !mudstate.reality_notify || (mudstate.reality_notify && IsRealArg(obj, sender, i_type)) )
+                    if ( !mudstate_hot.reality_notify || (mudstate_hot.reality_notify && IsRealArg(obj, sender, i_type)) )
 #endif
 		       notify_check(obj, sender, buff, port,
 				    MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | noansi, i_type);
@@ -1637,7 +1637,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	    DOLIST(obj, Contents(targetloc)) {
 		if ((obj != target) && (obj != targetloc)) {
 #ifdef REALITY_LEVELS
-                    if ( !mudstate.reality_notify || (mudstate.reality_notify && IsRealArg(obj, sender, i_type)) )
+                    if ( !mudstate_hot.reality_notify || (mudstate_hot.reality_notify && IsRealArg(obj, sender, i_type)) )
 #endif
 		       notify_check(obj, sender, buff, port,
 				    MSG_ME | MSG_F_DOWN | MSG_S_OUTSIDE | noansi, i_type);
@@ -1671,7 +1671,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
   }
   if (msg_ns)
      free_lbuf(msg_ns);
-  mudstate.ntfy_nest_lev--;
+  mudstate_hot.ntfy_nest_lev--;
   VOIDRETURN; /* #75 */
 }
 
@@ -1871,7 +1871,7 @@ do_shutdown(dbref player, dbref cause, int key, char *message)
     }
     /* Set up for normal shutdown */
 
-    mudstate.shutdown_flag = 1;
+    mudstate_hot.shutdown_flag = 1;
     VOIDRETURN; /* #81 */
 }
 
@@ -1946,7 +1946,7 @@ do_reboot(dbref player, dbref cause, int key)
     raw_broadcast(0, 0, "Game: Restart by %s.", Name(Owner(player)));
     raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected. Please wait...");
   }
-  if ( mudstate.shutdown_flag ) {
+  if ( mudstate_hot.shutdown_flag ) {
      raw_broadcast(0, 0, "Game: Signal USR2 caught in middle of reboot.  Shutting down the game.");
      do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
   }
@@ -1954,7 +1954,7 @@ do_reboot(dbref player, dbref cause, int key)
     log_text((char *) "Reboot by ");
     log_name(player);
   ENDLOG
-  mudstate.reboot_flag = port;
+  mudstate_hot.reboot_flag = port;
   VOIDRETURN; /* #80 */
 }
 
@@ -1996,7 +1996,7 @@ dump_database_internal(int panic_dump)
 	}
         /* This is broke, I don't know why yet */
         reset_signals(); /* Resume normal signal handling. */
-        if ( mudstate.shutdown_flag ) {
+        if ( mudstate_hot.shutdown_flag ) {
            do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
         }
 	VOIDRETURN; /* #82 */
@@ -2021,7 +2021,7 @@ dump_database_internal(int panic_dump)
 			   tmpfile);
             /* This is broke, I don't know why yet */
             reset_signals(); 	/* Resume normal signal handling. */
-            if ( mudstate.shutdown_flag ) {
+            if ( mudstate_hot.shutdown_flag ) {
                do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
             }
 	    VOIDRETURN; /* #82 */
@@ -2053,7 +2053,7 @@ dump_database_internal(int panic_dump)
     /* This is broke, I don't know why yet */
     reset_signals();  	/* Resume normal signal handling. */
 
-    if ( mudstate.shutdown_flag ) {
+    if ( mudstate_hot.shutdown_flag ) {
        do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
     }
     
@@ -2206,7 +2206,7 @@ fork_and_dump(int key, char *msg)
       log_perror("DMP", "FORK", NULL, "fork()");
     }
   }
-  if ( mudstate.shutdown_flag ) {
+  if ( mudstate_hot.shutdown_flag ) {
      do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
   }
   mudstate.dumpstatechk=0;
@@ -2303,7 +2303,7 @@ list_check(dbref thing, dbref player, char type, char *str, int check_parent, in
     DPUSH; /* #87 */
 
     match = 0;
-    limit = mudstate.db_top;
+    limit = mudstate_hot.db_top;
     while (thing != NOTHING) {
 #ifdef REALITY_LEVELS
         if ((thing != player) && IsReal(thing, player) && 
@@ -2797,7 +2797,7 @@ main(int argc, char *argv[])
     initDoorSystem();
 #endif
     init_totemreservations();
-    hashinit(&mudstate.player_htab, 521);
+    hashinit(&mudstate_hot.player_htab, 521);
     hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);
@@ -2924,7 +2924,7 @@ main(int argc, char *argv[])
         DPOP; /* #92 */
 	exit(2);
     }
-    mudstate.dbloading = 1; /* fast-load attributes without additional checks */
+    mudstate_hot.dbloading = 1; /* fast-load attributes without additional checks */
     if (mindb)
 	db_make_minimal();
     else if (load_game(rebooting) < 0) {
@@ -2935,16 +2935,16 @@ main(int argc, char *argv[])
 	DPOP; /* #92 */
 	exit(2);
     }
-    mudstate.dbloading = 0;
+    mudstate_hot.dbloading = 0;
     srandom(getpid());
     set_signals();
 
     /* initialize the buffers and variables */
     for (mindb = 0; mindb < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); mindb++) {
-	mudstate.global_regs[mindb] = alloc_lbuf("main.global_reg");
-	mudstate.global_regsname[mindb] = alloc_sbuf("main.global_regname");
+	mudstate_hot.global_regs[mindb] = alloc_lbuf("main.global_reg");
+	mudstate_hot.global_regsname[mindb] = alloc_sbuf("main.global_regname");
 #ifndef NO_GLOBAL_REGBACKUP
-	mudstate.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");
+	mudstate_hot.global_regs_backup[mindb] = alloc_lbuf("main.global_regbkup");
 #endif
     }
 
@@ -2953,17 +2953,17 @@ main(int argc, char *argv[])
 
     /* Reset all the hash stats */
 
-    hashreset(&mudstate.command_htab);
+    hashreset(&mudstate_hot.command_htab);
     hashreset(&mudstate.command_vattr_htab);
     hashreset(&mudstate.logout_cmd_htab);
-    hashreset(&mudstate.func_htab);
-    hashreset(&mudstate.toggles_htab);
+    hashreset(&mudstate_hot.func_htab);
+    hashreset(&mudstate_hot.toggles_htab);
     hashreset(&mudstate.powers_htab);
     hashreset(&mudstate.depowers_htab);
-    hashreset(&mudstate.flags_htab);
-    hashreset(&mudstate.attr_name_htab);
+    hashreset(&mudstate_hot.flags_htab);
+    hashreset(&mudstate_hot.attr_name_htab);
     nhashreset(&mudstate.attr_num_htab);
-    hashreset(&mudstate.player_htab);
+    hashreset(&mudstate_hot.player_htab);
     hashreset(&mudstate.objecttag_htab);
     nhashreset(&mudstate.fwdlist_htab);
     hashreset(&mudstate.news_htab);
@@ -2982,19 +2982,19 @@ main(int argc, char *argv[])
     hashreset(&mudstate.ansi_htab);
     hashreset(&mudstate.totem_htab);
 
-    mudstate.nowmsec = time_ng(NULL);
-    mudstate.now = (time_t) floor(mudstate.nowmsec);
-    mudstate.lastnowmsec = mudstate.nowmsec;
-    mudstate.lastnow = mudstate.now;
-    mudstate.evalnum = 0;
+    mudstate_hot.nowmsec = time_ng(NULL);
+    mudstate_hot.now = (time_t) floor(mudstate_hot.nowmsec);
+    mudstate_hot.lastnowmsec = mudstate_hot.nowmsec;
+    mudstate_hot.lastnow = mudstate_hot.now;
+    mudstate_hot.evalnum = 0;
     mudstate.guest_num = 0;
     mudstate.guest_status = 0;
     mudstate.free_num = NOTHING;
     mudstate.nuke_status = 0;
-    mudstate.exitcheck = 0;
+    mudstate_hot.exitcheck = 0;
     mudstate.droveride = 0;
     mudstate.scheck = 0;
-    mudstate.mail_state = mail_init();
+    mudstate_hot.mail_state = mail_init();
     mudstate.autoreg = areg_init();
     start_news_system();
     val_count();
@@ -3020,10 +3020,10 @@ main(int argc, char *argv[])
     /* go do it */
 
 
-    mudstate.nowmsec = time_ng(NULL);
-    mudstate.now = (time_t) floor(mudstate.nowmsec);
-    mudstate.lastnowmsec = mudstate.nowmsec;
-    mudstate.lastnow = mudstate.now;
+    mudstate_hot.nowmsec = time_ng(NULL);
+    mudstate_hot.now = (time_t) floor(mudstate_hot.nowmsec);
+    mudstate_hot.lastnowmsec = mudstate_hot.nowmsec;
+    mudstate_hot.lastnow = mudstate_hot.now;
     init_timer();
 
     if( rebooting ) {
@@ -3037,7 +3037,7 @@ main(int argc, char *argv[])
     shovechars(mudconf.port, mudconf.ip_address, mudconf.ip_address_v6, mudconf.ip_family);
     /* --- end main mush loop --- */
     local_shutdown();
-    rebooting = mudstate.reboot_flag;
+    rebooting = mudstate_hot.reboot_flag;
 
     if (!rebooting)
       close_sockets(0, (char *) "Going down - Bye");

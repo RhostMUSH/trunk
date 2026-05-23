@@ -5712,7 +5712,7 @@ i, and fc and c, can be the same variables. */
 #endif
 
   endtme = time(NULL);
-  starttme = mudstate.chkcpu_stopper;
+  starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
 
@@ -5722,8 +5722,8 @@ i, and fc and c, can be the same variables. */
      timechk = 3600;
   else
      timechk = mudconf.cputimechk;
-  if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
-      mudstate.chkcpu_toggle = 1;
+  if ( mudstate_hot.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
+      mudstate_hot.chkcpu_toggle = 1;
       RRETURN(PCRE_ERROR_MATCHLIMIT);
   }
 
@@ -7470,7 +7470,7 @@ pcre_exec(const pcre * external_re, const pcre_extra * extra_data,
      tinterval = 0;
 
   endtme = time(NULL);
-  starttme = mudstate.chkcpu_stopper;
+  starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
 
@@ -7486,8 +7486,8 @@ pcre_exec(const pcre * external_re, const pcre_extra * extra_data,
      intervalchk = 100;
   else
      intervalchk = mudconf.cpuintervalchk;
-  if ( mudstate.chkcpu_toggle || (((endtme - starttme) > timechk) && ((tinterval/100) > intervalchk)) ) {
-      mudstate.chkcpu_toggle = 1;
+  if ( mudstate_hot.chkcpu_toggle || (((endtme - starttme) > timechk) && ((tinterval/100) > intervalchk)) ) {
+      mudstate_hot.chkcpu_toggle = 1;
       return PCRE_ERROR_BADOPTION;
   }
 

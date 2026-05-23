@@ -716,7 +716,7 @@ mail_proc_err()
     }
     ENDLOG
     mail_close();
-    mudstate.mail_state = mail_init();
+    mudstate_hot.mail_state = mail_init();
 }
 
 void mail_rem_dump()
@@ -1774,7 +1774,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
        *pt2 = indpass;
   }
   *(pt2+1) = (short int)strlen(msg);
-  *pt3 = mudstate.now;
+  *pt3 = mudstate_hot.now;
   if (subj)  {
     if (*aft) {
       *(mbuf1+hsuboff) = '(';
@@ -1949,15 +1949,15 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
                  (ColorMail(*toplay) ? ColorName(subj_dbref(player, subj, 0), 1) : Name(subj_dbref(player, subj, 0))));
         }
      }
-     cmd_bitmask = mudstate.cmd_bitmask;
-     mudstate.cmd_bitmask |= NOMAIL;
+     cmd_bitmask = mudstate_hot.cmd_bitmask;
+     mudstate_hot.cmd_bitmask |= NOMAIL;
      wait_que(*toplay, *toplay, 0, NOTHING, s_mail, s_mailarr, 5, NULL, NULL);
      free_lbuf(s_mailarr[0]);
      free_lbuf(s_mailarr[1]);
      free_lbuf(s_mailarr[2]);
      free_lbuf(s_mailarr[3]);
      free_lbuf(s_mailarr[4]);
-     mudstate.cmd_bitmask = cmd_bitmask;
+     mudstate_hot.cmd_bitmask = cmd_bitmask;
   }
   free_lbuf(s_mail);
   return (index);
@@ -2359,7 +2359,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
          strncat(pt2,Name(player),22);
       strcat(pt2,") ");
       strcat(pt2,"[");
-      strcat(pt2, ctime((time_t *)(&mudstate.now)));
+      strcat(pt2, ctime((time_t *)(&mudstate_hot.now)));
       *(pt2 + strlen(pt2) - 1) = ']';
       strcat(pt2, "\r\n");
       strcat(pt2,mpt);
@@ -2856,7 +2856,7 @@ mail_quick_function(dbref player, char *fname, int keyval)
   short int *step;
   char *ret_buff, *ret_ptr, *tpr_buff, *tprp_buff;
 
-  if (mudstate.mail_state != 1) {
+  if (mudstate_hot.mail_state != 1) {
       ret_ptr = ret_buff = alloc_lbuf("mail_quick_function");
       safe_str("#-1 MAIL CURRENTLY DISABLED", ret_buff, &ret_ptr);
       return(ret_buff);
@@ -3222,7 +3222,7 @@ void mail_status(dbref player, char *buf, dbref wiz, int key, int type, char *ou
           tmp_mval *= (double) SECDAY;
           i_autodelete = 0;
           if ( (tmp_mval >= 0) && 
-               (difftime(mudstate.now,*(time_t *)(mbuf2+htimeoff)) >= tmp_mval) ) {
+               (difftime(mudstate_hot.now,*(time_t *)(mbuf2+htimeoff)) >= tmp_mval) ) {
              i_autodelete = 1;
           }
 	  strcpy(sbuf1,ctime((time_t *)(mbuf2+htimeoff)));
@@ -4143,10 +4143,10 @@ void mail_mark(dbref player, int key, char *buf, dbref wiz, int key2)
   int len, count, term, low, high, x, check, i_chk;
   char *cpt1, *cpt2, *cpt3;
 
-  if (mudstate.mail_state != 1) {
+  if (mudstate_hot.mail_state != 1) {
         return;
   }
-  if (mudstate.mail_state != 1 ) return; /* here due to called direct from bsd.c */
+  if (mudstate_hot.mail_state != 1 ) return; /* here due to called direct from bsd.c */
   if ((key & M_SAVE) != 0) {
     saved = 1;
     key &= ~M_SAVE;
@@ -4798,7 +4798,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
     if ((stricmp(buf1, "+send") == 0) || ((key & M_ALL) && Brandy(player) && 
          ((stricmp(buf1, "--") == 0) || (stricmp(buf1, "-~") == 0)) && chk_dash)) {
         if ( stricmp(buf1, "-~") == 0 ) {
-           cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+           cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
            if ( cmdp ) {
               if ( search_nametab(player, cmdp->switches, "anonymous") == -1 ) {
                  notify(player, "Mail: Warning - unable to send anonymously.");
@@ -5204,7 +5204,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
             type_three = 0;
             type_two = 1;
             ztmpptr = ztmp = alloc_lbuf("mail_write.proof_listing");
-            time_tmp = (char *) ctime(&mudstate.now);
+            time_tmp = (char *) ctime(&mudstate_hot.now);
             time_tmp[strlen(time_tmp) - 1] = '\0';
             is_first = 0;
             for (count = min; count <= max; count++) {
@@ -6126,7 +6126,7 @@ mail_md1(dbref player, dbref wiz, int key, int val, int i_all)
     short int *spt1, len;
     double mval;
 
-    if (mudstate.mail_state != 1) {
+    if (mudstate_hot.mail_state != 1) {
         return;
     }
     if (get_ind_rec(player,MIND_IRCV,lbuf7,0,NOTHING,1)) {
@@ -6154,7 +6154,7 @@ mail_md1(dbref player, dbref wiz, int key, int val, int i_all)
 	    if ( (i_all && ((*(mbuf1+hstoff) == 'N') || (*(mbuf1+hstoff) == 'U'))) || 
                  (*(mbuf1+hstoff) == 'O') || 
                  (*(mbuf1+hstoff) == 'M')) {
-	      if (difftime(mudstate.now,*(time_t *)(mbuf1+htimeoff)) >= mval) {
+	      if (difftime(mudstate_hot.now,*(time_t *)(mbuf1+htimeoff)) >= mval) {
 		*(mbuf1+hstoff) = 'P';
 		*(int *)sbuf1 = MIND_HRCV;
 		*(int *)(sbuf1+sizeof(int)) = player;
@@ -6182,7 +6182,7 @@ mail_md2(dbref player, dbref wiz, int key)
     short int *spt1;
     double mval;
 
-    if (mudstate.mail_state != 1) {
+    if (mudstate_hot.mail_state != 1) {
         return 0;
     }
     count = 0;
@@ -6206,7 +6206,7 @@ mail_md2(dbref player, dbref wiz, int key)
 	for (y = 0; y < x; y++, spt1++) {
 	  if (get_hd_rcv_rec(player,*spt1,mbuf1,NOTHING,1)) {
 	    if ((*(mbuf1 + hstoff) == 'O') || (*(mbuf1+hstoff) == 'M')) {
-	      if (difftime(mudstate.now,*(time_t *)(mbuf1+htimeoff)) >= mval) {
+	      if (difftime(mudstate_hot.now,*(time_t *)(mbuf1+htimeoff)) >= mval) {
 		count++;
 	      }
 	    }
@@ -6655,7 +6655,7 @@ mail_alias_function(dbref player, int key, char *buf1, char *buf2)
     struct boolexp *okey;
     char *outstr, *outstrptr;
 
-    if (mudstate.mail_state != 1) {
+    if (mudstate_hot.mail_state != 1) {
         outstrptr = outstr = alloc_lbuf("mail_alias_function");
         safe_str("#-1 MAIL CURRENTLY DISABLED", outstr, &outstrptr);
         return(outstr);
@@ -6885,16 +6885,16 @@ mail_alias(dbref player, int key, char *buf1, char *buf2)
 
 void mail_onoff(dbref player, int key)
 {
-  if (!mudstate.mail_state) {
+  if (!mudstate_hot.mail_state) {
     notify_quiet(player,"MAIL ERROR: Mail not active due to error at startup");
   }
   else if (key == WM_ON) {
-    mudstate.mail_state = 1;
+    mudstate_hot.mail_state = 1;
     mnuke_read();
     notify_quiet(player,"Mail: Mail system turned on");
   }
   else {
-    mudstate.mail_state = 2;
+    mudstate_hot.mail_state = 2;
     notify_quiet(player,"Mail: Mail system turned off");
   }
 }
@@ -7183,7 +7183,7 @@ void mail_load(dbref player)
     mail_error(player,MERR_DUMP);
     return;
   }
-  mudstate.mail_state = 0;
+  mudstate_hot.mail_state = 0;
   dbm_close(mailfile);
   dbm_close(foldfile);
   system(unsafe_tprintf("rm \"%s\"*", mailname));
@@ -7423,7 +7423,7 @@ void mail_load(dbref player)
     dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
   }
   fclose(dump2);
-  mudstate.mail_state = 1; 
+  mudstate_hot.mail_state = 1; 
   notify_quiet(player,"Mail: Mail and folder databases loaded");
 }
 
@@ -7436,7 +7436,7 @@ void mail_clean(dbref player)
 void mail_restart(dbref player)
 {
   mail_close();
-  mudstate.mail_state = mail_init();
+  mudstate_hot.mail_state = mail_init();
   notify_quiet(player,"Mail: Mail system restarted");
 }
 
@@ -9278,7 +9278,7 @@ do_mail2(dbref player, dbref cause, int key, char *buf1, char *buf2)
     dbref owner;
     char *p1, *p2;
 
-    if (mudstate.mail_state != 1) {
+    if (mudstate_hot.mail_state != 1) {
 	notify_quiet(player, "Mail: Mail is currently turned off.");
 	return;
     }
@@ -9394,7 +9394,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
     char *p1, *p2, *atrxxx;
     dbref owner, owner2;
 
-    if ( (!key || (key & (M_SEND|M_FORWARD|M_REPLY|M_FSEND|M_ANON))) && (mudstate.cmd_bitmask & NOMAIL) ) {
+    if ( (!key || (key & (M_SEND|M_FORWARD|M_REPLY|M_FSEND|M_ANON))) && (mudstate_hot.cmd_bitmask & NOMAIL) ) {
       notify(player, "MAIL ERROR: Unable to send mail through this method.");
       return;
     }
@@ -9419,7 +9419,7 @@ do_mail(dbref player, dbref cause, int key, char *buf1, char *buf2)
        i_version = 32;
     }
 
-    if (mudstate.mail_state != 1) {
+    if (mudstate_hot.mail_state != 1) {
 	notify_quiet(player, "Mail: Mail is currently turned off.");
 	return;
     }
@@ -9738,7 +9738,7 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
     dbref owner;
 
     recblock = 0;
-    if ((mudstate.mail_state != 1) && (key != WM_OFF) && (key != WM_ON)) {
+    if ((mudstate_hot.mail_state != 1) && (key != WM_OFF) && (key != WM_ON)) {
       if (key == WM_WIPE) {
 	mnuke_save(player,buf1);
 	return;
@@ -9750,8 +9750,8 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
             sprintf(p1, "rm -f data/%s.mail.* data/%s.folder.* >/dev/null 2>&1", mudconf.muddb_name, mudconf.muddb_name); 
             mail_close();
             system(p1);
-            mudstate.mail_state = mail_init();
-            if ( mudstate.mail_state != 1 ) {
+            mudstate_hot.mail_state = mail_init();
+            if ( mudstate_hot.mail_state != 1 ) {
 	       notify_quiet(player, "Mail: Mail was unable to be recovered.  Sorry.");
             } else {
                sprintf(p1, "data/%s.dump.mail", mudconf.muddb_name);

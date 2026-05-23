@@ -283,12 +283,12 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
              strcpy(sarray[1], sarray[0]);
              sprintf(sarray[2], "%d", fd);
              sprintf(sarray[3], "#%d", NOTHING);
-             chk_stop = mudstate.chkcpu_stopper;
-             chk_tog = mudstate.chkcpu_toggle;
-             mudstate.chkcpu_stopper = time(NULL);
+             chk_stop = mudstate_hot.chkcpu_stopper;
+             chk_tog = mudstate_hot.chkcpu_toggle;
+             mudstate_hot.chkcpu_stopper = time(NULL);
              retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                                EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
-             if ( !chk_tog && mudstate.chkcpu_toggle ) {
+             if ( !chk_tog && mudstate_hot.chkcpu_toggle ) {
                 broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY TXTFILE PROCESS",
                                   (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
                 STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -297,8 +297,8 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
                    log_text(atext);
                 ENDLOG
              }
-             mudstate.chkcpu_stopper = chk_stop;
-             mudstate.chkcpu_toggle = chk_tog;
+             mudstate_hot.chkcpu_stopper = chk_stop;
+             mudstate_hot.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -338,7 +338,7 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
        if ( nomatch ) {
           if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
              lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
-             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate_hot.now));
              start = lbuf1;
              remaining = strlen(lbuf1);
 	     while (remaining > 0) {
@@ -368,7 +368,7 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
     } else {
        if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
           lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
-          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate_hot.now));
           start = lbuf1;
           remaining = strlen(lbuf1);
           while (remaining > 0) {
@@ -444,12 +444,12 @@ fcache_dump(DESC * d, int num, char *s_site)
                 sprintf(sarray[3], "#%d", NOTHING);
              else
                 sprintf(sarray[3], "#%d", D_PLAYER(d));
-             chk_stop = mudstate.chkcpu_stopper;
-             chk_tog = mudstate.chkcpu_toggle;
-             mudstate.chkcpu_stopper = time(NULL);
+             chk_stop = mudstate_hot.chkcpu_stopper;
+             chk_tog = mudstate_hot.chkcpu_toggle;
+             mudstate_hot.chkcpu_stopper = time(NULL);
              retbuff = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object,
                             EV_STRIP | EV_FCHECK | EV_EVAL, atext, sarray, 4, (char **)NULL, 0);
-             if ( !chk_tog && mudstate.chkcpu_toggle ) {
+             if ( !chk_tog && mudstate_hot.chkcpu_toggle ) {
                 broadcast_monitor(mudconf.file_object, MF_CPU, "CPU RUNAWAY TXTFILE PROCESS",
                                   (char *)atr->name, NULL, mudconf.file_object, 0, 0, NULL);
                 STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -458,8 +458,8 @@ fcache_dump(DESC * d, int num, char *s_site)
                    log_text(atext);
                 ENDLOG
              }
-             mudstate.chkcpu_stopper = chk_stop;
-             mudstate.chkcpu_toggle = chk_tog;
+             mudstate_hot.chkcpu_stopper = chk_stop;
+             mudstate_hot.chkcpu_toggle = chk_tog;
              if ( !*retbuff ) {
                 nomatch = 1;
              } else {
@@ -494,7 +494,7 @@ fcache_dump(DESC * d, int num, char *s_site)
        if ( nomatch ) {
           if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
              lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
-             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+             sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate_hot.now));
              i_length = strlen(lbuf1);
              queue_write(d, lbuf1, i_length);
 /*
@@ -512,7 +512,7 @@ fcache_dump(DESC * d, int num, char *s_site)
     } else {
        if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
           lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
-          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate.now));
+          sprintf(lbuf1, "HTTP/1.1 400 Bad Request\r\nContent-type: text/plain\r\nDate: %sExec: Error - IP is forbidden\r\n", (char *)ctime(&mudstate_hot.now));
           i_length = strlen(lbuf1);
           queue_write(d, lbuf1, i_length);
 /*

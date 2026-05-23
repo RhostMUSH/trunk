@@ -71,7 +71,7 @@ pool_err(const char *logsys, int logflag, int poolnum,
 	 const char *tag, POOLHDR * ph, const char *action,
 	 const char *reason, int line_num, char *file_name)
 {
-    if (!mudstate.logging) {
+    if (!mudstate_hot.logging) {
 	STARTLOG(logflag, logsys, "ALLOC")
 	    sprintf(mudstate.buffer,
 #ifdef BIT64
@@ -244,7 +244,7 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
 
     /* If the buffer was modified after it was last freed, log it. */
 
-    if ((*p != POOL_MAGICNUM) && (!mudstate.logging)) {
+    if ((*p != POOL_MAGICNUM) && (!mudstate_hot.logging)) {
 	pool_err("BUG", LOG_PROBLEMS, poolnum, tag, ph, "Alloc",
 		 "buffer modified after free", line_num, file_name);
     }
@@ -678,7 +678,7 @@ showTotemStats(dbref player)
   double i_show;
   char c_let;
 
-  i_tot = (double)sizeof(OBJTOTEM) * (double)mudstate.db_top;
+  i_tot = (double)sizeof(OBJTOTEM) * (double)mudstate_hot.db_top;
   if ( i_tot > 1000000000.0 ) {
      i_show = i_tot / 1000000000.0;
      c_let = 'G';
@@ -691,7 +691,7 @@ showTotemStats(dbref player)
   }
   notify(player, unsafe_tprintf("\r\nTotal overhead of @totems per dbref# -- %d", sizeof(OBJTOTEM)));
   notify(player, "    Size   Slots    Objects   Total Memory");
-  notify(player, unsafe_tprintf("    %4d  %6d   %8d   %.0f (%.2f%c)", (sizeof(OBJTOTEM) / TOTEM_SLOTS), TOTEM_SLOTS, mudstate.db_top, i_tot, i_show, c_let));
+  notify(player, unsafe_tprintf("    %4d  %6d   %8d   %.0f (%.2f%c)", (sizeof(OBJTOTEM) / TOTEM_SLOTS), TOTEM_SLOTS, mudstate_hot.db_top, i_tot, i_show, c_let));
 }
 
 void

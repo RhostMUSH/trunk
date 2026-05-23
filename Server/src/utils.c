@@ -79,12 +79,12 @@ handle_conninfo_write(DESC *din, dbref player, int i_key)
    
    switch(i_key) {
       case CONN_ALL:
-         i_tmp = mudstate.now - din->cold->connected_at;
+         i_tmp = mudstate_hot.now - din->cold->connected_at;
          if ( i_tmp > i_clong ) {
             i_clong = (int)i_tmp;
          }
          i_ctime += (int)i_tmp;
-         i_clogout = mudstate.now;
+         i_clogout = mudstate_hot.now;
          i_ctotal++;
          i_clast = i_tmp;
          s_buff = alloc_lbuf("handle_conninfo");
@@ -93,7 +93,7 @@ handle_conninfo_write(DESC *din, dbref player, int i_key)
          free_lbuf(s_buff);
          break;
       case CONN_TIME:
-         i_tmp = mudstate.now - din->cold->connected_at;
+         i_tmp = mudstate_hot.now - din->cold->connected_at;
          i_ctime += (int)i_tmp;
          s_buff = alloc_lbuf("handle_conninfo");
          sprintf(s_buff, "%d %d %d %d %ld", i_ctime, i_clong, i_clast, i_ctotal, i_clogout);
@@ -101,7 +101,7 @@ handle_conninfo_write(DESC *din, dbref player, int i_key)
          free_lbuf(s_buff);
          break;
       case CONN_LONGEST:
-         i_tmp = mudstate.now - din->cold->connected_at;
+         i_tmp = mudstate_hot.now - din->cold->connected_at;
          if ( i_tmp > i_clong ) {
             i_clong = (int)i_tmp;
          }
@@ -111,7 +111,7 @@ handle_conninfo_write(DESC *din, dbref player, int i_key)
          free_lbuf(s_buff);
          break;
       case CONN_LAST:
-         i_tmp = mudstate.now - din->cold->connected_at;
+         i_tmp = mudstate_hot.now - din->cold->connected_at;
          i_clast = (int)i_tmp;
          s_buff = alloc_lbuf("handle_conninfo");
          sprintf(s_buff, "%d %d %d %d %ld", i_ctime, i_clong, i_clast, i_ctotal, i_clogout);
@@ -126,7 +126,7 @@ handle_conninfo_write(DESC *din, dbref player, int i_key)
          free_lbuf(s_buff);
          break;
       case CONN_LOGOUT:
-         i_clogout = mudstate.now;
+         i_clogout = mudstate_hot.now;
          s_buff = alloc_lbuf("handle_conninfo");
          sprintf(s_buff, "%d %d %d %d %ld", i_ctime, i_clong, i_clast, i_ctotal, i_clogout);
          atr_add_raw(D_PLAYER(din), A_CONNINFO, s_buff);
@@ -182,7 +182,7 @@ handle_conninfo_read(char *s_target, dbref player, int i_key)
       case CONN_TIME:
          DESC_ITER_CONN(d) {
             if ( D_PLAYER(d) == target ) {
-               i_tmp = mudstate.now - d->cold->connected_at;
+               i_tmp = mudstate_hot.now - d->cold->connected_at;
                i_ctime += (int)i_tmp;
             }
          }   
@@ -191,7 +191,7 @@ handle_conninfo_read(char *s_target, dbref player, int i_key)
       case CONN_LONGEST:
          DESC_ITER_CONN(d) {
             if ( D_PLAYER(d) == target ) {
-               i_tmp = mudstate.now - d->cold->connected_at;
+               i_tmp = mudstate_hot.now - d->cold->connected_at;
                if ( i_tmp > i_clong ) {
                   i_clong = (int)i_tmp;
                }

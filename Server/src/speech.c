@@ -187,8 +187,8 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    pbuf = atr_pget(player, A_SAYSTRING, &aowner, &aflags);
                 }
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
-                mudstate.posesay_fluff = 1;
-                mudstate.posesay_dbref = player;
+                mudstate_hot.posesay_fluff = 1;
+                mudstate_hot.posesay_dbref = player;
                 if ( Good_chk(mudconf.hook_obj) ) {
                    atr_p = atr_str4("M_SAY");
                    if ( atr_p ) {
@@ -875,15 +875,15 @@ void do_say (dbref player, dbref cause, int key, char *message)
 #endif /* REALITY_LEVELS */
                    }
                 }
-                mudstate.posesay_fluff = 0;
-                mudstate.posesay_dbref = -1;
+                mudstate_hot.posesay_fluff = 0;
+                mudstate_hot.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
                 free_lbuf(pbuf);
 		break;
 	case SAY_POSE:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
-                mudstate.posesay_fluff = 1;
-                mudstate.posesay_dbref = player;
+                mudstate_hot.posesay_fluff = 1;
+                mudstate_hot.posesay_dbref = player;
                 if ( Good_chk(mudconf.hook_obj) ) {
                    atr_p = atr_str4("M_POSE");
                    if ( atr_p ) {
@@ -1143,14 +1143,14 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
-                mudstate.posesay_fluff = 0;
-                mudstate.posesay_dbref = -1;
+                mudstate_hot.posesay_fluff = 0;
+                mudstate_hot.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_POSE_NOSPC:
                 tprp_buff = tpr_buff = alloc_lbuf("do_say");
-                mudstate.posesay_fluff = 1;
-                mudstate.posesay_dbref = player;
+                mudstate_hot.posesay_fluff = 1;
+                mudstate_hot.posesay_dbref = player;
                 if ( Good_chk(mudconf.hook_obj) ) {
                    atr_p = atr_str4("M_POSE");
                    if ( atr_p ) {
@@ -1410,13 +1410,13 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
 #endif /* REALITY_LEVELS */
                 }
-                mudstate.posesay_fluff = 0;
-                mudstate.posesay_dbref = -1;
+                mudstate_hot.posesay_fluff = 0;
+                mudstate_hot.posesay_dbref = -1;
                 free_lbuf(tpr_buff);
 		break;
 	case SAY_EMIT:
-                mudstate.posesay_fluff = 1;
-                mudstate.posesay_dbref = player;
+                mudstate_hot.posesay_fluff = 1;
+                mudstate_hot.posesay_dbref = player;
                 if ( Good_chk(mudconf.hook_obj) ) {
                    atr_p = atr_str4("M_@EMIT");
                    if ( atr_p ) {
@@ -1424,7 +1424,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    }
                 }
 	        if (say_flags2 & SAY_SUBSTITUTE)
-		  mudstate.emit_substitute = 1;
+		  mudstate_hot.emit_substitute = 1;
 		if ((say_flags & SAY_HERE) || !say_flags) {
                    if ( i_mogrify ) {
                       s_mogrify = atr_pget(mudconf.hook_obj, atr_p->number, &aowner, &aflags);
@@ -1467,18 +1467,18 @@ void do_say (dbref player, dbref cause, int key, char *message)
                 }
 		if (say_flags & SAY_ROOM) {
                    if ((Typeof(loc) == TYPE_ROOM) && (say_flags & SAY_HERE)) {
-                      mudstate.emit_substitute = 0;
-                      mudstate.posesay_fluff = 0;
-                      mudstate.posesay_dbref = -1;
+                      mudstate_hot.emit_substitute = 0;
+                      mudstate_hot.posesay_fluff = 0;
+                      mudstate_hot.posesay_dbref = -1;
                       return;
                    }
                    depth = 0;
                    while((Typeof(loc) != TYPE_ROOM) && (depth++ < 20)) {
                       loc = Location(loc);
                       if ((loc == NOTHING) || (loc == Location(loc))) {
-                         mudstate.emit_substitute = 0;
-                         mudstate.posesay_fluff = 0;
-                         mudstate.posesay_dbref = -1;
+                         mudstate_hot.emit_substitute = 0;
+                         mudstate_hot.posesay_fluff = 0;
+                         mudstate_hot.posesay_dbref = -1;
                          return;
                       }
                    }
@@ -1523,9 +1523,9 @@ void do_say (dbref player, dbref cause, int key, char *message)
                       free_lbuf(s_execmogrify);
                    }
 		}
-                mudstate.posesay_fluff = 0;
-                mudstate.posesay_dbref = -1;
-		mudstate.emit_substitute = 0;
+                mudstate_hot.posesay_fluff = 0;
+                mudstate_hot.posesay_dbref = -1;
+		mudstate_hot.emit_substitute = 0;
 		break;
 	case SAY_SHOUT:
 		if (say_flags & SAY_NOTAG) 
@@ -1749,10 +1749,10 @@ static void page_return (dbref player, dbref target, const char *tag,
       mudstate.droveride = 1;
    str = atr_pget(target, anum, &aowner, &aflags);
    if (*str) {
-      chk_stop = mudstate.chkcpu_stopper;
-      chk_tog  = mudstate.chkcpu_toggle;
-      mudstate.chkcpu_stopper = time(NULL);
-      mudstate.chkcpu_toggle = 0;
+      chk_stop = mudstate_hot.chkcpu_stopper;
+      chk_tog  = mudstate_hot.chkcpu_toggle;
+      mudstate_hot.chkcpu_stopper = time(NULL);
+      mudstate_hot.chkcpu_toggle = 0;
       s_pagebuff[1] = NULL;
       if ( s_pagestr && *s_pagestr ) {
          s_pagebuff[0] = (char *)s_pagestr;
@@ -1777,8 +1777,8 @@ static void page_return (dbref player, dbref target, const char *tag,
          free_lbuf(tpr_buff);
       }
       free_lbuf(str2);
-      mudstate.chkcpu_stopper = chk_stop;
-      mudstate.chkcpu_toggle = chk_tog;
+      mudstate_hot.chkcpu_stopper = chk_stop;
+      mudstate_hot.chkcpu_toggle = chk_tog;
    } else if (dflt && *dflt) {
       notify_with_cause(player, target, dflt);
    }
@@ -2966,7 +2966,7 @@ ZLISTNODE *z_ptr, *y_ptr;
    }
    while (list) {
       ok_to_do = 0;
-      mudstate.whisper_state = 1;
+      mudstate_hot.whisper_state = 1;
       if (plist) {
          rcpt = recip2;
          if (!sep1)
@@ -3072,7 +3072,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                target = match_result();
             }
       }
-      mudstate.whisper_state = 0;
+      mudstate_hot.whisper_state = 0;
       if ( (target != NOTHING) && (target != AMBIGUOUS) ) {
          if ((SCloak(target) && Cloak(target) && !Immortal(player)) ||
              (Cloak(target) && !Wizard(player))) {
@@ -3241,14 +3241,14 @@ ZLISTNODE *z_ptr, *y_ptr;
 #ifdef REALITY_LEVELS
                                  if ( !is_rlevelon || (is_rlevelon && IsRealArg(z_ptr->object, player, 0)) ) {
                                     if ( is_rlevelon )
-                                       mudstate.reality_notify = 1;
+                                       mudstate_hot.reality_notify = 1;
 #endif
                                     if(noansi)
                                        noansi_notify_all_from_inside_real(z_ptr->object, player, result, i_realitybit);
                                     else
                                        notify_all_from_inside_real(z_ptr->object, player, result, i_realitybit);
 #ifdef REALITY_LEVELS
-                                    mudstate.reality_notify = 0;
+                                    mudstate_hot.reality_notify = 0;
                                  }
 #endif
                               }
@@ -3259,7 +3259,7 @@ ZLISTNODE *z_ptr, *y_ptr;
 #ifdef REALITY_LEVELS
                         if ( !is_rlevelon || (is_rlevelon && IsRealArg(target, player, 0)) ) {
                            if ( is_rlevelon )
-                              mudstate.reality_notify = 1;
+                              mudstate_hot.reality_notify = 1;
 #endif
                            if(noansi) {
                               noansi_notify_all_from_inside_real(target, player, result, i_realitybit);
@@ -3267,7 +3267,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                               notify_all_from_inside_real(target, player, result, i_realitybit);
                            }
 #ifdef REALITY_LEVELS
-                           mudstate.reality_notify = 0;
+                           mudstate_hot.reality_notify = 0;
                         }
 #endif
                      }
@@ -3413,11 +3413,11 @@ ZLISTNODE *z_ptr, *y_ptr;
 #ifdef REALITY_LEVELS
                      if ( !is_rlevelon || (is_rlevelon && IsRealArg(loc, player, 0)) ) {
                         if ( is_rlevelon )
-                           mudstate.reality_notify = 1;
+                           mudstate_hot.reality_notify = 1;
 #endif
                         notify_all_from_inside_real(loc, player, result, i_realitybit);
 #ifdef REALITY_LEVELS
-                        mudstate.reality_notify = 0;
+                        mudstate_hot.reality_notify = 0;
                      }
 #endif
                   if (pemit_flags & PEMIT_ROOM) {
@@ -3440,11 +3440,11 @@ ZLISTNODE *z_ptr, *y_ptr;
 #ifdef REALITY_LEVELS
                            if ( !is_rlevelon || (is_rlevelon && IsRealArg(loc, player, 0)) ) {
                               if ( is_rlevelon )
-                                 mudstate.reality_notify = 1;
+                                 mudstate_hot.reality_notify = 1;
 #endif
                               notify_all_from_inside_real(loc, player, message, i_realitybit);
 #ifdef REALITY_LEVELS
-                              mudstate.reality_notify = 0;
+                              mudstate_hot.reality_notify = 0;
                            }
 #endif
                         }

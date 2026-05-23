@@ -191,10 +191,10 @@ dbref Location(dbref target)
 }
 dbref Location_safe(dbref target, int override)
 {
-  if((mudstate.remote < 0) || (override != 0))
+  if((mudstate_hot.remote < 0) || (override != 0))
     return hot_db[target].location;
   else
-    return mudstate.remote;
+    return mudstate_hot.remote;
 }
 dbref absloc(dbref player)
 {
@@ -1561,7 +1561,7 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
       i_regexp = 1;
    }
    s_rollback = alloc_lbuf("s_rollback_switch");
-   i_orig = mudstate.chkcpu_toggle;
+   i_orig = mudstate_hot.chkcpu_toggle;
    for (a=0; (a<(nargs-1)) && args[a] && args[a+1]; a+=2) {
       buff = exec(player, cause, cause, EV_FCHECK|EV_EVAL|EV_TOP, args[a],
                   cargs, ncargs, (char **)NULL, 0);
@@ -1583,62 +1583,62 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
                      npt = saveregname[x];
-                     safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                     safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                     safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                     safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                      if ( i_clearreg ) {
-                        *mudstate.global_regs[x] = '\0';
-                        *mudstate.global_regsname[x] = '\0';
+                        *mudstate_hot.global_regs[x] = '\0';
+                        *mudstate_hot.global_regsname[x] = '\0';
                      }
                   }
                }
-               i_breakst = mudstate.breakst;
+               i_breakst = mudstate_hot.breakst;
                s_buffptr = s_buff = alloc_lbuf("switch_inline");
                strcpy(s_buffptr, retbuff);
                strcpy(s_rollback, mudstate.rollback);
                i_rollback = mudstate.rollbackcnt;
-               i_jump = mudstate.jumpst;
-               mudstate.jumpst = mudstate.rollbackcnt = 0;
+               i_jump = mudstate_hot.jumpst;
+               mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
                if ( s_buffptr ) {
                   strcpy(mudstate.rollback, s_buffptr);
                }
-               i_chkinline = mudstate.chkcpu_inline;
-               sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
-               mudstate.chkcpu_inline = 1;
-               i_hook = mudstate.no_hook;
-               while (s_buffptr && !mudstate.chkcpu_toggle) {
-                  if ( mudstate.breakst )
+               i_chkinline = mudstate_hot.chkcpu_inline;
+               sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+               mudstate_hot.chkcpu_inline = 1;
+               i_hook = mudstate_hot.no_hook;
+               while (s_buffptr && !mudstate_hot.chkcpu_toggle) {
+                  if ( mudstate_hot.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
                      if ( i_hook ) {
-                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate_hot.no_space_compress);
                      } else {
-                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                      }
                   }
                }
-               mudstate.no_hook = i_hook;
-               mudstate.chkcpu_inline = i_chkinline;
-               mudstate.jumpst = i_jump;
+               mudstate_hot.no_hook = i_hook;
+               mudstate_hot.chkcpu_inline = i_chkinline;
+               mudstate_hot.jumpst = i_jump;
                mudstate.rollbackcnt = i_rollback;
                strcpy(mudstate.rollback, s_rollback);
                free_lbuf(s_buff);
                if ( (desc_in_use != NULL) || i_nobreak ) {
-                  mudstate.breakst = i_breakst;
+                  mudstate_hot.breakst = i_breakst;
                }
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                     pt = mudstate.global_regs[x];
-                     npt = mudstate.global_regsname[x];
-                     safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                     safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                     pt = mudstate_hot.global_regs[x];
+                     npt = mudstate_hot.global_regsname[x];
+                     safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                     safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                      free_lbuf(savereg[x]);
                      free_sbuf(saveregname[x]);
                   }
                }
             } else {
                wait_que(player, cause, 0, NOTHING, retbuff,
-                        cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+                        cargs, ncargs, mudstate_hot.global_regs, mudstate_hot.global_regsname);
             }
             free_lbuf(retbuff);
          } else {
@@ -1649,61 +1649,61 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                      saveregname[x] = alloc_sbuf("ulocal_regname");
                      pt = savereg[x];
                      npt = saveregname[x];
-                     safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                     safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                     safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                     safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                      if ( i_clearreg ) {
-                        *mudstate.global_regs[x] = '\0';
-                        *mudstate.global_regsname[x] = '\0';
+                        *mudstate_hot.global_regs[x] = '\0';
+                        *mudstate_hot.global_regsname[x] = '\0';
                      }
                   }
                }
-               i_breakst = mudstate.breakst;
+               i_breakst = mudstate_hot.breakst;
                s_buffptr = s_buff = alloc_lbuf("switch_inline");
                strcpy(s_buffptr, args[a+1]);
                strcpy(s_rollback, mudstate.rollback);
                i_rollback = mudstate.rollbackcnt;
-               i_jump = mudstate.jumpst;
+               i_jump = mudstate_hot.jumpst;
                if ( s_buffptr ) {
                   strcpy(mudstate.rollback, s_buffptr);
                }
-               i_chkinline = mudstate.chkcpu_inline;
-               sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
-               mudstate.chkcpu_inline = 1;
-               i_hook = mudstate.no_hook;
-               while (s_buffptr && !mudstate.chkcpu_toggle) {
-                  if ( mudstate.breakst )
+               i_chkinline = mudstate_hot.chkcpu_inline;
+               sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+               mudstate_hot.chkcpu_inline = 1;
+               i_hook = mudstate_hot.no_hook;
+               while (s_buffptr && !mudstate_hot.chkcpu_toggle) {
+                  if ( mudstate_hot.breakst )
                      break;
                   cp = parse_to(&s_buffptr, ';', 0);
                   if (cp && *cp) {
                      if ( i_hook ) {
-                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate_hot.no_space_compress);
                      } else {
-                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                        process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                      }
                   }
                }
-               mudstate.no_hook = i_hook;
-               mudstate.chkcpu_inline = i_chkinline;
+               mudstate_hot.no_hook = i_hook;
+               mudstate_hot.chkcpu_inline = i_chkinline;
                strcpy(mudstate.rollback, s_rollback);
-               mudstate.jumpst = i_jump;
+               mudstate_hot.jumpst = i_jump;
                mudstate.rollbackcnt = i_rollback;
                free_lbuf(s_buff);
                if ( (desc_in_use != NULL) || i_nobreak ) {
-                  mudstate.breakst = i_breakst;
+                  mudstate_hot.breakst = i_breakst;
                }
                if ( i_clearreg || i_localize ) {
                   for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                     pt = mudstate.global_regs[x];
-                     npt = mudstate.global_regsname[x];
-                     safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                     safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                     pt = mudstate_hot.global_regs[x];
+                     npt = mudstate_hot.global_regsname[x];
+                     safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                     safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                      free_lbuf(savereg[x]);
                      free_sbuf(saveregname[x]);
                   }
                }
             } else {
                wait_que(player, cause, 0, NOTHING, args[a+1],
-                        cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+                        cargs, ncargs, mudstate_hot.global_regs, mudstate_hot.global_regsname);
             }
          }
          if (key == SWITCH_ONE) {
@@ -1725,62 +1725,62 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
                   npt = saveregname[x];
-                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                  safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
-                     *mudstate.global_regs[x] = '\0';
-                     *mudstate.global_regsname[x] = '\0';
+                     *mudstate_hot.global_regs[x] = '\0';
+                     *mudstate_hot.global_regsname[x] = '\0';
                   }
                }
             }
-            i_breakst = mudstate.breakst;
+            i_breakst = mudstate_hot.breakst;
             s_buffptr = s_buff = alloc_lbuf("switch_inline");
             strcpy(s_buffptr, retbuff);
             strcpy(s_rollback, mudstate.rollback);
-            i_jump = mudstate.jumpst;
+            i_jump = mudstate_hot.jumpst;
             i_rollback = mudstate.rollbackcnt;
-            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
             if ( s_buffptr ) {
                strcpy(mudstate.rollback, s_buffptr);
             }
-            i_chkinline = mudstate.chkcpu_inline;
-            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
-            mudstate.chkcpu_inline = 1;
-            i_hook = mudstate.no_hook;
-            while (s_buffptr && !mudstate.chkcpu_toggle) {
-               if ( mudstate.breakst )
+            i_chkinline = mudstate_hot.chkcpu_inline;
+            sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+            mudstate_hot.chkcpu_inline = 1;
+            i_hook = mudstate_hot.no_hook;
+            while (s_buffptr && !mudstate_hot.chkcpu_toggle) {
+               if ( mudstate_hot.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
                   if ( i_hook ) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate_hot.no_space_compress);
                   } else {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                   }
                }
             }
-            mudstate.no_hook = i_hook;
-            mudstate.chkcpu_inline = i_chkinline;
+            mudstate_hot.no_hook = i_hook;
+            mudstate_hot.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
-            mudstate.jumpst = i_jump;
+            mudstate_hot.jumpst = i_jump;
             strcpy(mudstate.rollback, s_rollback);
             free_lbuf(s_buff);
             if ( (desc_in_use != NULL) || i_nobreak ) {
-               mudstate.breakst = i_breakst;
+               mudstate_hot.breakst = i_breakst;
             }
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                  pt = mudstate.global_regs[x];
-                  npt = mudstate.global_regsname[x];
-                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                  pt = mudstate_hot.global_regs[x];
+                  npt = mudstate_hot.global_regsname[x];
+                  safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                   free_lbuf(savereg[x]);
                   free_sbuf(saveregname[x]);
                }
             }
          } else {
             wait_que(player, cause, 0, NOTHING, retbuff, cargs, ncargs,
-                     mudstate.global_regs, mudstate.global_regsname);
+                     mudstate_hot.global_regs, mudstate_hot.global_regsname);
          }
          free_lbuf(retbuff);
       } else {
@@ -1791,67 +1791,67 @@ void do_switch (dbref player, dbref cause, int key, char *expr,
                   saveregname[x] = alloc_sbuf("ulocal_regname");
                   pt = savereg[x];
                   npt = saveregname[x];
-                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                  safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
-                     *mudstate.global_regs[x] = '\0';
-                     *mudstate.global_regsname[x] = '\0';
+                     *mudstate_hot.global_regs[x] = '\0';
+                     *mudstate_hot.global_regsname[x] = '\0';
                   }
                }
             }
-            i_breakst = mudstate.breakst;
+            i_breakst = mudstate_hot.breakst;
             s_buffptr = s_buff = alloc_lbuf("switch_inline");
             strcpy(s_buffptr, args[a]);
             strcpy(s_rollback, mudstate.rollback);
-            i_jump = mudstate.jumpst;
+            i_jump = mudstate_hot.jumpst;
             i_rollback = mudstate.rollbackcnt;
-            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
             if ( s_buffptr ) {
                strcpy(mudstate.rollback, s_buffptr);
             }
-            i_chkinline = mudstate.chkcpu_inline;
-            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
-            mudstate.chkcpu_inline = 1;
-            i_hook = mudstate.no_hook;
-            while (s_buffptr && !mudstate.chkcpu_toggle) {
-               if ( mudstate.breakst )
+            i_chkinline = mudstate_hot.chkcpu_inline;
+            sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@switch/inline");
+            mudstate_hot.chkcpu_inline = 1;
+            i_hook = mudstate_hot.no_hook;
+            while (s_buffptr && !mudstate_hot.chkcpu_toggle) {
+               if ( mudstate_hot.breakst )
                   break;
                cp = parse_to(&s_buffptr, ';', 0);
                if (cp && *cp) {
                   if ( i_hook ) {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate.no_space_compress);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, 1, mudstate_hot.no_space_compress);
                   } else {
-                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+                     process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                   }
                }
             }
-            mudstate.no_hook = i_hook;
-            mudstate.chkcpu_inline = i_chkinline;
+            mudstate_hot.no_hook = i_hook;
+            mudstate_hot.chkcpu_inline = i_chkinline;
             mudstate.rollbackcnt = i_rollback;
-            mudstate.jumpst = i_jump;
+            mudstate_hot.jumpst = i_jump;
             strcpy(mudstate.rollback, s_rollback);
             free_lbuf(s_buff);
             if ( (desc_in_use != NULL) || i_nobreak ) {
-               mudstate.breakst = i_breakst;
+               mudstate_hot.breakst = i_breakst;
             }
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                  pt = mudstate.global_regs[x];
-                  npt = mudstate.global_regsname[x];
-                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                  pt = mudstate_hot.global_regs[x];
+                  npt = mudstate_hot.global_regsname[x];
+                  safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                   free_lbuf(savereg[x]);
                   free_sbuf(saveregname[x]);
                }
             }
          } else {
             wait_que(player, cause, 0, NOTHING, args[a], cargs, ncargs,
-                     mudstate.global_regs, mudstate.global_regsname);
+                     mudstate_hot.global_regs, mudstate_hot.global_regsname);
          }
       }
    }
    if ( i_inline ) {
-      mudstate.chkcpu_toggle = i_orig;
+      mudstate_hot.chkcpu_toggle = i_orig;
    }
    free_lbuf(s_rollback);
    if ( i_notify ) {
@@ -2019,10 +2019,10 @@ char	*buff1, *buff2;
 			while (*buff1 && isspace((int)*buff1)) buff1++;
 			if (*buff1 == NUMBER_TOKEN) buff1++;
 			*high_bound = atoi(buff1);
-			if (*high_bound >= mudstate.db_top)
-				*high_bound = mudstate.db_top - 1;
+			if (*high_bound >= mudstate_hot.db_top)
+				*high_bound = mudstate_hot.db_top - 1;
 		} else {
-			*high_bound = mudstate.db_top - 1;
+			*high_bound = mudstate_hot.db_top - 1;
 		}
 		while (*buff2 && isspace((int)*buff2)) buff2++;
 		if (*buff2 == NUMBER_TOKEN) buff2++;
@@ -2031,7 +2031,7 @@ char	*buff1, *buff2;
 			*low_bound = 0;
 	} else {
 		*low_bound = 0;
-		*high_bound = mudstate.db_top - 1;
+		*high_bound = mudstate_hot.db_top - 1;
 	}
 }			
 
@@ -2360,9 +2360,9 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
            nocandoforyou=1;
 	}
 
-        chk_stop = mudstate.chkcpu_stopper;
-        mudstate.chkcpu_stopper = time(NULL);
-        chkoldstate = mudstate.chkcpu_toggle;
+        chk_stop = mudstate_hot.chkcpu_stopper;
+        mudstate_hot.chkcpu_stopper = time(NULL);
+        chkoldstate = mudstate_hot.chkcpu_toggle;
 	cpustopper = 0;
         did_allocate_buff = 0;
 	/* Default code idea from TM3 */
@@ -2399,8 +2399,8 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                       savereg2name[x] = alloc_sbuf("ulocal_regname");
                       pt2 = savereg2[x];
                       npt2 = savereg2name[x];
-                      safe_str(mudstate.global_regs[x],savereg2[x],&pt2);
-                      safe_str(mudstate.global_regsname[x],savereg2name[x],&npt2);
+                      safe_str(mudstate_hot.global_regs[x],savereg2[x],&pt2);
+                      safe_str(mudstate_hot.global_regsname[x],savereg2name[x],&npt2);
                    }
                 }
 		d = atr_pget(thing, what, &aowner, &aflags);
@@ -2442,8 +2442,8 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                              saveregname[x] = alloc_sbuf("ulocal_reg");
                              pt = savereg[x];
                              npt = saveregname[x];
-                             safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                             safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                             safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                             safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                            }
                         }
 			if ( tst_attr && *master_str ) {
@@ -2466,10 +2466,10 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                               (what == A_LEXIT_FMT) ||
                               (what == A_LDEXIT_FMT)) ) {
                            for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                             pt = mudstate.global_regs[x];
-                             npt = mudstate.global_regsname[x];
-                             safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                             safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                             pt = mudstate_hot.global_regs[x];
+                             npt = mudstate_hot.global_regsname[x];
+                             safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                             safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                              free_lbuf(savereg[x]);
                              free_sbuf(saveregname[x]);
                            }
@@ -2484,7 +2484,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 			notify(player, def);
 		   }
 		}
-		cpustopper += mudstate.chkcpu_toggle;
+		cpustopper += mudstate_hot.chkcpu_toggle;
                 if ( tst_attr )
                    free_lbuf(master_str);
 		free_lbuf(d);
@@ -2542,7 +2542,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                      free_lbuf(master_str);
 		  free_lbuf(d);
 		}
-		cpustopper += mudstate.chkcpu_toggle;
+		cpustopper += mudstate_hot.chkcpu_toggle;
            } else {
                 notify(player, "Sideeffect enabled target snuffed while wizcloaked.");
            }
@@ -2659,7 +2659,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                        free_lbuf(tpr_buff);
 		     }
 		   }
-		   cpustopper += mudstate.chkcpu_toggle;
+		   cpustopper += mudstate_hot.chkcpu_toggle;
                    if ( tst_attr )
                       free_lbuf(master_str);
 		   free_lbuf(d);
@@ -2682,10 +2682,10 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
         if ( i_didsave && mudconf.descs_are_local ) {
            i_didsave = 0;
            for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-              pt2 = mudstate.global_regs[x];
-              npt2 = mudstate.global_regsname[x];
-              safe_str(savereg2[x],mudstate.global_regs[x],&pt2);
-              safe_str(savereg2name[x],mudstate.global_regsname[x],&npt2);
+              pt2 = mudstate_hot.global_regs[x];
+              npt2 = mudstate_hot.global_regsname[x];
+              safe_str(savereg2[x],mudstate_hot.global_regs[x],&pt2);
+              safe_str(savereg2name[x],mudstate_hot.global_regsname[x],&npt2);
               free_lbuf(savereg2[x]);
               free_sbuf(savereg2name[x]);
            }
@@ -2698,15 +2698,15 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 #endif /* REALITY_LEVELS */
 		if (*(act = atr_pget(thing, awhat, &aowner, &aflags))) {
                         if ( (awhat == A_AHEAR) || (awhat == A_AAHEAR) || (awhat == A_AMHEAR) ) {
-                           mudstate.ahear_count++;
-                           mudstate.ahear_lastplr = thing;
-                           if ( (mudstate.ahear_currtime + mudconf.ahear_maxtime) < time(NULL) ) {
-                              mudstate.ahear_count = 0;
-                              mudstate.ahear_currtime = time(NULL);
+                           mudstate_hot.ahear_count++;
+                           mudstate_hot.ahear_lastplr = thing;
+                           if ( (mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) < time(NULL) ) {
+                              mudstate_hot.ahear_count = 0;
+                              mudstate_hot.ahear_currtime = time(NULL);
                            }
                         }
 			charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
-			if (*charges && !mudstate.chkcpu_toggle) {
+			if (*charges && !mudstate_hot.chkcpu_toggle) {
 				num = atoi(charges);
 				if (num > 0) {
 					buff = alloc_sbuf("did_it.charges");
@@ -2720,29 +2720,29 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 					free_lbuf(act);
 					free_lbuf(buff);
 					free_lbuf(charges);
-                                        mudstate.chkcpu_toggle = chkoldstate;
-                                        mudstate.chkcpu_stopper = chk_stop;
+                                        mudstate_hot.chkcpu_toggle = chkoldstate;
+                                        mudstate_hot.chkcpu_stopper = chk_stop;
 					return;
 				}
 			}
 			free_lbuf(charges);
-                        if ( !mudstate.chkcpu_toggle ) {
+                        if ( !mudstate_hot.chkcpu_toggle ) {
 			   wait_que(thing, player, 0, NOTHING, act, args, nargs,
-				   mudstate.global_regs, mudstate.global_regsname);
+				   mudstate_hot.global_regs, mudstate_hot.global_regsname);
                         }
 		}
 		free_lbuf(act);
 		if (awhat == A_ADESC) {
 		  act = atr_pget(thing, A_ADESC2, &aowner, &aflags);
-		  if (*act && !mudstate.chkcpu_toggle) {
+		  if (*act && !mudstate_hot.chkcpu_toggle) {
 		    wait_que(thing, player, 0, NOTHING, act, args, nargs, 
-                             mudstate.global_regs, mudstate.global_regsname);
+                             mudstate_hot.global_regs, mudstate_hot.global_regsname);
                   }
 		  free_lbuf(act);
 		}
 	}
       }
-      cpustopper += mudstate.chkcpu_toggle;
+      cpustopper += mudstate_hot.chkcpu_toggle;
       if ( cpustopper && !chkoldstate ) {
            if ( mudstate.curr_cpu_user != thing ) {
               mudstate.curr_cpu_user = thing;
@@ -2765,7 +2765,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                  s_Toggles2(thing, (Toggles2(thing) | TOG_SILENTEFFECTS));
 	         s_Flags(thing, (Flags(thing) | HALT));
                  s_Toggles(thing, (Toggles(thing) & ~TOG_FORCEHALTED));
-                 mudstate.breakst = 1;
+                 mudstate_hot.breakst = 1;
               }
               log_text(" - Object toggled SILENTEFFECT and HALTED.");
               broadcast_monitor(player, MF_CPUEXT, "MULTIPLE CPU RUNAWAYS - INTERNAL ATTRIB",
@@ -2780,16 +2780,16 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
       if ( i_didsave && mudconf.descs_are_local ) {
          i_didsave = 0;
          for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-            pt2 = mudstate.global_regs[x];
-            npt2 = mudstate.global_regsname[x];
-            safe_str(savereg2[x],mudstate.global_regs[x],&pt2);
-            safe_str(savereg2name[x],mudstate.global_regsname[x],&npt2);
+            pt2 = mudstate_hot.global_regs[x];
+            npt2 = mudstate_hot.global_regsname[x];
+            safe_str(savereg2[x],mudstate_hot.global_regs[x],&pt2);
+            safe_str(savereg2name[x],mudstate_hot.global_regsname[x],&npt2);
             free_lbuf(savereg2[x]);
             free_sbuf(savereg2name[x]);
          }
       }
-      mudstate.chkcpu_toggle = chkoldstate;
-      mudstate.chkcpu_stopper = chk_stop;
+      mudstate_hot.chkcpu_toggle = chkoldstate;
+      mudstate_hot.chkcpu_stopper = chk_stop;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2939,9 +2939,9 @@ int evlevchk(dbref player, int ckl)
 {
   int x;
 
-  for (x = mudstate.evalnum - 1; x >= 0; x--) {
-    if (mudstate.evaldb[x] == player) {
-      mudstate.evalresult = (mudstate.evalstate[x] >= ckl);
+  for (x = mudstate_hot.evalnum - 1; x >= 0; x--) {
+    if (mudstate_hot.evaldb[x] == player) {
+      mudstate_hot.evalresult = (mudstate_hot.evalstate[x] >= ckl);
       return 1;
     }
   }
@@ -2974,41 +2974,41 @@ int isreal_chk(dbref player, dbref thing, int real_bitwise)
          return 1;
 #endif
    } else if ( mudconf.reality_locks && (mudconf.reality_locktype < 2) ) {
-      mudstate.recurse_rlevel++;
-      if ( mudstate.recurse_rlevel < 10 ) {
+      mudstate_hot.recurse_rlevel++;
+      if ( mudstate_hot.recurse_rlevel < 10 ) {
          if ( (mudconf.reality_locktype == 0) && ChkReality(thing) &&
                could_doit(player, thing, A_LUSER, 0, 0) ) {
-            mudstate.recurse_rlevel--;
+            mudstate_hot.recurse_rlevel--;
             return 1;
          } else if ( (mudconf.reality_locktype == 1) && ChkReality(player) &&
                could_doit(thing, player, A_LUSER, 0, 0) ) {
-            mudstate.recurse_rlevel--;
+            mudstate_hot.recurse_rlevel--;
             return 1;
          }
       }
-      mudstate.recurse_rlevel--;
+      mudstate_hot.recurse_rlevel--;
    }
    if ( RxLevel(player) & i_realitybitwise && (mudconf.reality_locktype > 1) ) {
-      mudstate.recurse_rlevel++;
-      if ( mudstate.recurse_rlevel < 10 ) {
+      mudstate_hot.recurse_rlevel++;
+      if ( mudstate_hot.recurse_rlevel < 10 ) {
          if ( mudconf.reality_locks ) {
             if ( (((mudconf.reality_locktype == 2) && ChkReality(thing)) || 
                   (mudconf.reality_locktype == 4)) &&
                   could_doit(player, thing, A_LUSER, ((mudconf.reality_locktype == 2) ? 1 : 0), 0)) {
-               mudstate.recurse_rlevel--;
+               mudstate_hot.recurse_rlevel--;
                return 1;
             } else if ( (((mudconf.reality_locktype == 3) && ChkReality(player)) || 
                          (mudconf.reality_locktype == 5)) &&
                           could_doit(thing, player, A_LUSER, ((mudconf.reality_locktype == 3) ? 1 : 0), 0)) {
-               mudstate.recurse_rlevel--;
+               mudstate_hot.recurse_rlevel--;
                return 1;
             }
          }
       } else {
-         mudstate.recurse_rlevel--;
+         mudstate_hot.recurse_rlevel--;
          return 1;
       }
-      mudstate.recurse_rlevel--;
+      mudstate_hot.recurse_rlevel--;
    }
 #endif
    return 0;

@@ -2915,8 +2915,8 @@ main(int argc, char *argv[])
 	exit(3);
     }
     test = db_read(fp, &db_format, &db_ver, &db_flags);
-    mudstate.db_top = test;
-    fprintf(stderr,"Got past open and read: %d %d\n", mudstate.db_top, test);
+    mudstate_hot.db_top = test;
+    fprintf(stderr,"Got past open and read: %d %d\n", mudstate_hot.db_top, test);
     setupall();
     if (!readin()) {
       err_out(28,NULL,NULL);

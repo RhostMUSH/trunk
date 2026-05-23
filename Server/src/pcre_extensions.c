@@ -173,9 +173,9 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       }
       if ( curq == -1 ) {
          for ( qindex = 0; qindex < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); qindex++ ) {
-           if ( mudstate.global_regsname[qindex] && 
-                *(mudstate.global_regsname[qindex]) &&
-                !stricmp(mudstate.global_regsname[qindex], qregs[i]) ) {
+           if ( mudstate_hot.global_regsname[qindex] && 
+                *(mudstate_hot.global_regsname[qindex]) &&
+                !stricmp(mudstate_hot.global_regsname[qindex], qregs[i]) ) {
                curq = qindex;
                break;
             }
@@ -185,10 +185,10 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     if (curq < 0 || curq >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))
       continue;
     if (subpatterns < 0)
-      mudstate.global_regs[curq][0] = '\0';
+      mudstate_hot.global_regs[curq][0] = '\0';
     else
       pcre_copy_substring(fargs[0], offsets, subpatterns, i,
-                          mudstate.global_regs[curq], (LBUF_SIZE-1));
+                          mudstate_hot.global_regs[curq], (LBUF_SIZE-1));
   }
   free(re);
 }
@@ -247,7 +247,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
 
   t_now = time(NULL);
   for (i = 1; i < nfargs - 1; i += 2) {
-    if ( mudstate.chkcpu_toggle )
+    if ( mudstate_hot.chkcpu_toggle )
        break;
     postp = postbuf;
     prep = prebuf;
@@ -306,9 +306,9 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       t_later = time(NULL);
       /* Copy up to the start of the matched area */
       if ( t_later > (t_now + 5) ) {
-         mudstate.chkcpu_toggle = 1;
+         mudstate_hot.chkcpu_toggle = 1;
       }
-      if ( mudstate.chkcpu_toggle )
+      if ( mudstate_hot.chkcpu_toggle )
          break;
       tmp = prebuf[offsets[0]];
       prebuf[offsets[0]] = '\0';
@@ -414,7 +414,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       free_lbuf(mybuff);
       free_lbuf(obuf);
       if ( (*bufcx == (buff + LBUF_SIZE - 1)) &&
-           (mudstate.ufunc_nest_lev >= mudconf.func_nest_lim) ) {
+           (mudstate_hot.ufunc_nest_lev >= mudconf.func_nest_lim) ) {
         break;
       }
 
@@ -642,7 +642,7 @@ grep_internal_regexp(dbref player, dbref thing, char *wcheck, char *watr, int fl
 
     bp = retbuff;
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
-        if ( mudstate.chkcpu_toggle )
+        if ( mudstate_hot.chkcpu_toggle )
            break;
         attr = atr_num(ca);
         if (!attr)
@@ -716,7 +716,7 @@ do_regrep(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
             first = last_ret = 0;
             while (s_strtok) {
                aowner = match_thing(player, s_strtok);
-               if ( !mudstate.chkcpu_toggle && Good_chk(aowner) && Cluster(aowner) ) {
+               if ( !mudstate_hot.chkcpu_toggle && Good_chk(aowner) && Cluster(aowner) ) {
                   ret = grep_internal_regexp(player, aowner, fargs[2], fargs[1], key, i_atrreg);
                   if ( first && last_ret )
                      safe_chr(' ', buff, bufcx);
@@ -820,7 +820,7 @@ do_reswitch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        safe_str(tbuff, buff, bufcx);
        free_lbuf(tbuff);
        found = 1;
-       if (mudstate.chkcpu_toggle || first) {
+       if (mudstate_hot.chkcpu_toggle || first) {
           free_lbuf(pstr);
           break;
        }
@@ -880,10 +880,10 @@ do_remultimatch(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
     if (!fn_range_check(name, nfargs, 2, 3, buff, bufcx))
         return;
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -1022,7 +1022,7 @@ load_regexp_functions()
         dp++;
       }
       *dp = '\0';
-      hashadd2(buff, (int *) fp, &mudstate.func_htab, 1);
+      hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
     }
     free_sbuf(buff);
 }

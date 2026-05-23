@@ -81,7 +81,7 @@ double time_remainder, time_usec, time_sec;
 /* Debugging
   fprintf(stderr, "Time Triggered -- Value: %ld/%ld      Value2: %f/%f/%f\n", it_val.it_value.tv_sec, it_val.it_value.tv_usec, time_sec, time_usec, time);
  */
-  mudstate.alarm_triggered = 1;  /* Force timer to 1 here */
+  mudstate_hot.alarm_triggered = 1;  /* Force timer to 1 here */
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -93,7 +93,7 @@ struct itimerval it_val;
   it_val.it_interval.tv_sec = 0; // both set to '0' so the timer is one-shot
   it_val.it_interval.tv_usec = 0;
 
-  mudstate.alarm_triggered = 0;
+  mudstate_hot.alarm_triggered = 0;
   return setitimer(ITIMER_REAL,&it_val,NULL);
 }
 
@@ -126,17 +126,17 @@ double	result, i_rounder;
 	if ( mudconf.mtimer != 0 )
 		i_rounder = 1.0 / (double)mudconf.mtimer;
 
-	result = mudstate.dump_counter;
-	if (mudstate.check_counter < result)
-		result = mudstate.check_counter;
-	if (mudstate.idle_counter < result)
-		result = mudstate.idle_counter;
-	if (mudstate.rwho_counter < result)
-		result = mudstate.rwho_counter;
-	if (mudstate.mstats_counter < result)
-		result = mudstate.mstats_counter;
-/*	result = result-(mudstate.nowmsec); */
-        result = (mudstate.nowmsec) - result;
+	result = mudstate_hot.dump_counter;
+	if (mudstate_hot.check_counter < result)
+		result = mudstate_hot.check_counter;
+	if (mudstate_hot.idle_counter < result)
+		result = mudstate_hot.idle_counter;
+	if (mudstate_hot.rwho_counter < result)
+		result = mudstate_hot.rwho_counter;
+	if (mudstate_hot.mstats_counter < result)
+		result = mudstate_hot.mstats_counter;
+/*	result = result-(mudstate_hot.nowmsec); */
+        result = (mudstate_hot.nowmsec) - result;
 	if (result <= 0.0)
 		result = i_rounder;
 	return result;
@@ -144,19 +144,19 @@ double	result, i_rounder;
 
 void NDECL(init_timer)
 {
-	mudstate.nowmsec = time_ng(NULL);
-	mudstate.now = (time_t) floor(mudstate.nowmsec);
-	mudstate.lastnowmsec = mudstate.nowmsec;
-	mudstate.lastnow = mudstate.now;
-	mudstate.dump_counter = ((mudconf.dump_offset == 0) ? 
-		mudconf.dump_interval : mudconf.dump_offset) + mudstate.nowmsec;
-	mudstate.check_counter = ((mudconf.check_offset == 0) ?
-		mudconf.check_interval : mudconf.check_offset) + mudstate.nowmsec;
-	mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
-	mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
-	mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
-	mudstate.mstats_counter = 15.0 + mudstate.nowmsec;
-        mudstate.alarm_triggered = 0;
+	mudstate_hot.nowmsec = time_ng(NULL);
+	mudstate_hot.now = (time_t) floor(mudstate_hot.nowmsec);
+	mudstate_hot.lastnowmsec = mudstate_hot.nowmsec;
+	mudstate_hot.lastnow = mudstate_hot.now;
+	mudstate_hot.dump_counter = ((mudconf.dump_offset == 0) ? 
+		mudconf.dump_interval : mudconf.dump_offset) + mudstate_hot.nowmsec;
+	mudstate_hot.check_counter = ((mudconf.check_offset == 0) ?
+		mudconf.check_interval : mudconf.check_offset) + mudstate_hot.nowmsec;
+	mudstate_hot.idle_counter = mudconf.idle_interval + mudstate_hot.nowmsec;
+	mudstate_hot.vattr_counter = mudconf.vattr_interval + mudstate_hot.nowmsec;
+	mudstate_hot.rwho_counter = mudconf.rwho_interval + mudstate_hot.nowmsec;
+	mudstate_hot.mstats_counter = 15.0 + mudstate_hot.nowmsec;
+        mudstate_hot.alarm_triggered = 0;
 	alarm_msec (next_timer());
 }
 
@@ -164,28 +164,28 @@ void NDECL(dispatch)
 {
 char	*cmdsave;
 
-	cmdsave = mudstate.debug_cmd;
-	mudstate.debug_cmd = (char *)"< dispatch >";
+	cmdsave = mudstate_hot.debug_cmd;
+	mudstate_hot.debug_cmd = (char *)"< dispatch >";
 
 	/* this routine can be used to poll from interface.c */
 
-        if ( mudstate.alarm_triggered == 2 ) {
+        if ( mudstate_hot.alarm_triggered == 2 ) {
            STARTLOG(LOG_ALWAYS, "TIMER", "TRIGGERED");
               log_text("ALARM Timer trigger event -- forcing alarm reset.");
            ENDLOG
            /* Reset alarm and retrigger next timer with alarm state */
-           mudstate.alarm_triggered = 1;  /* Force timer from 2 to 1 here */
+           mudstate_hot.alarm_triggered = 1;  /* Force timer from 2 to 1 here */
            alarm_msec(next_timer());
            return;
         }
 
         /* If there is no alarm_msec state abort from dispatch and move on */
-	if (!mudstate.alarm_triggered) return;
+	if (!mudstate_hot.alarm_triggered) return;
 
-	mudstate.lastnowmsec = mudstate.nowmsec;
-	mudstate.lastnow = mudstate.now;
-	mudstate.nowmsec = time_ng(NULL);
-	mudstate.now = (time_t) floor(mudstate.nowmsec);
+	mudstate_hot.lastnowmsec = mudstate_hot.nowmsec;
+	mudstate_hot.lastnow = mudstate_hot.now;
+	mudstate_hot.nowmsec = time_ng(NULL);
+	mudstate_hot.now = (time_t) floor(mudstate_hot.nowmsec);
 
 	do_second();
 	local_second();
@@ -193,9 +193,9 @@ char	*cmdsave;
 	/* Free list reconstruction */
 
 	if ((mudconf.control_flags & CF_DBCHECK) &&
-	    (mudstate.check_counter <= mudstate.nowmsec)) {
-		mudstate.check_counter = mudconf.check_interval + mudstate.nowmsec;
-		mudstate.debug_cmd = (char *)"< dbck >";
+	    (mudstate_hot.check_counter <= mudstate_hot.nowmsec)) {
+		mudstate_hot.check_counter = mudconf.check_interval + mudstate_hot.nowmsec;
+		mudstate_hot.debug_cmd = (char *)"< dbck >";
 		cache_reset(0);
 		do_dbck (NOTHING, NOTHING, 0);
 		cache_reset(0);
@@ -205,40 +205,40 @@ char	*cmdsave;
 	/* Database dump routines */
 
 	if ((mudconf.control_flags & CF_CHECKPOINT) &&
-	    (mudstate.dump_counter <= mudstate.nowmsec)) {
-		mudstate.dump_counter = mudconf.dump_interval + mudstate.nowmsec;
-		mudstate.debug_cmd = (char *)"< dump >";
+	    (mudstate_hot.dump_counter <= mudstate_hot.nowmsec)) {
+		mudstate_hot.dump_counter = mudconf.dump_interval + mudstate_hot.nowmsec;
+		mudstate_hot.debug_cmd = (char *)"< dump >";
 		fork_and_dump(0, (char *)NULL);
 	}
 
 	/* Idle user check */
 
 	if ((mudconf.control_flags & CF_IDLECHECK) &&
-	    (mudstate.idle_counter <= mudstate.nowmsec)) {
-		mudstate.idle_counter = mudconf.idle_interval + mudstate.nowmsec;
-		mudstate.debug_cmd = (char *)"< idlecheck >";
+	    (mudstate_hot.idle_counter <= mudstate_hot.nowmsec)) {
+		mudstate_hot.idle_counter = mudconf.idle_interval + mudstate_hot.nowmsec;
+		mudstate_hot.debug_cmd = (char *)"< idlecheck >";
 		cache_reset(0);
 		check_idle();
 
 	}
 
 	if ((mudconf.control_flags & CF_VATTRCHECK) &&
-	    (mudstate.vattr_counter <= mudstate.nowmsec)) {
-		mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
-		mudstate.debug_cmd = (char *)"< vattrcheck >";
+	    (mudstate_hot.vattr_counter <= mudstate_hot.nowmsec)) {
+		mudstate_hot.vattr_counter = mudconf.vattr_interval + mudstate_hot.nowmsec;
+		mudstate_hot.debug_cmd = (char *)"< vattrcheck >";
                 do_recache_vattrs( GOD, 0, (char *)NULL, 1);
 	}
 
 #ifdef HAVE_GETRUSAGE
 	/* Memory use stats */
 
-	if (mudstate.mstats_counter <= mudstate.nowmsec) {
+	if (mudstate_hot.mstats_counter <= mudstate_hot.nowmsec) {
 
 		int	curr;
 
-		mudstate.mstats_counter = 15 + mudstate.nowmsec;
+		mudstate_hot.mstats_counter = 15 + mudstate_hot.nowmsec;
 		curr = mudstate.mstat_curr;
-		if ( (curr >= 0 ) && (mudstate.now > mudstate.mstat_secs[curr]) ) {
+		if ( (curr >= 0 ) && (mudstate_hot.now > mudstate.mstat_secs[curr]) ) {
 
 			struct rusage	usage;
 
@@ -247,7 +247,7 @@ char	*cmdsave;
 			mudstate.mstat_ixrss[curr] = usage.ru_ixrss;
 			mudstate.mstat_idrss[curr] = usage.ru_idrss;
 			mudstate.mstat_isrss[curr] = usage.ru_isrss;
-			mudstate.mstat_secs[curr] = mudstate.now;
+			mudstate.mstat_secs[curr] = mudstate_hot.now;
 			mudstate.mstat_curr = curr;
 		}
 	}
@@ -255,17 +255,17 @@ char	*cmdsave;
 
 #ifdef RWHO_IN_USE
 	if ((mudconf.control_flags & CF_RWHO_XMIT) &&
-	    (mudstate.rwho_counter <= mudstate.nowmsec)) {
-		mudstate.rwho_counter = mudconf.rwho_interval + mudstate.nowmsec;
-		mudstate.debug_cmd = (char *)"< rwho update >";
+	    (mudstate_hot.rwho_counter <= mudstate_hot.nowmsec)) {
+		mudstate_hot.rwho_counter = mudconf.rwho_interval + mudstate_hot.nowmsec;
+		mudstate_hot.debug_cmd = (char *)"< rwho update >";
 		rwho_update();
 	}
 #endif
 
 	/* reset alarm */
-        mudstate.alarm_triggered = 0;
+        mudstate_hot.alarm_triggered = 0;
 	alarm_msec (next_timer());
-	mudstate.debug_cmd = cmdsave;
+	mudstate_hot.debug_cmd = cmdsave;
 }
 
 /* ---------------------------------------------------------------------------
@@ -281,11 +281,11 @@ int	secs;
 	if ((key == 0) || (key & TWARP_QUEUE))		/* Sem/Wait queues */
 		do_queue(player, cause, QUEUE_WARP, arg);
 	if (key & TWARP_DUMP)
-		mudstate.dump_counter -= secs;
+		mudstate_hot.dump_counter -= secs;
 	if (key & TWARP_CLEAN)
-		mudstate.check_counter -= secs;
+		mudstate_hot.check_counter -= secs;
 	if (key & TWARP_IDLE)
-		mudstate.idle_counter -= secs;
+		mudstate_hot.idle_counter -= secs;
 	if (key & TWARP_RWHO)
-		mudstate.rwho_counter -= secs;
+		mudstate_hot.rwho_counter -= secs;
 }

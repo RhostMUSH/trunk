@@ -18,7 +18,7 @@ dbref	victim;
 char	*buf1, *buf2;
 int	cost;
 
-        if ( mudstate.remotep != NOTHING ) {
+        if ( mudstate_hot.remotep != NOTHING ) {
            notify(player, "You can't kill right now.");
            return;
         }
@@ -208,7 +208,7 @@ char	*str, *sp;
 		notify(giver, "Permission denied.");
 		return;
 	}
-	if ( (mudstate.remotep != NOTHING) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
+	if ( (mudstate_hot.remotep != NOTHING) || ((Flags3(thing) & NOMOVE) && !Wizard(giver)) ) {
 		notify(giver, "Permission denied.");
 		return;
 	}

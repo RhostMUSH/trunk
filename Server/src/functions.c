@@ -1759,11 +1759,11 @@ make_objid(dbref thing) {
          atext = atr_get(thing, A_CREATED_TIME, &aowner, &aflags);
          if ( atext && *atext ) {
             if ( mudconf.objid_localtime ) {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
             } else {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
                mynow = mktime(ttm);
-               ttm = gmtime(&mudstate.now);
+               ttm = gmtime(&mudstate_hot.now);
                mynow -= mktime(ttm);
             }
             l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
@@ -1796,7 +1796,7 @@ make_objid(dbref thing) {
 void safer_unufun(int tval)
 {
    if ( (tval != -1) && (tval != -2) ) {
-       mudstate.evalnum--;
+       mudstate_hot.evalnum--;
    }
 }
 
@@ -1857,10 +1857,10 @@ safer_ufun(dbref player, dbref thing, dbref target, int aflags1, int aflags2)
         if ( tlev > 0 )
            tlev2 = 0;
     }
-    if (mudstate.evalnum < MAXEVLEVEL) {
+    if (mudstate_hot.evalnum < MAXEVLEVEL) {
        if (tlev2 != -1) {
-           mudstate.evalstate[mudstate.evalnum] = tlev2;
-           mudstate.evaldb[mudstate.evalnum++] = target;
+           mudstate_hot.evalstate[mudstate_hot.evalnum] = tlev2;
+           mudstate_hot.evaldb[mudstate_hot.evalnum++] = target;
        }
     } else {
        if ( tlev2 != -1 ) {
@@ -1881,7 +1881,7 @@ time_format_2(double dt)
     register struct tm *delta, *ttm;
     static char buf[64];
 
-    ttm = localtime(&mudstate.now);
+    ttm = localtime(&mudstate_hot.now);
 
     if (dt < 0)
         dt = 0;
@@ -2734,8 +2734,8 @@ FUNCTION(fun_sweep)
 
    s_what = fargs[0];
 
-   if (mudstate.last_cmd_timestamp == mudstate.now) {
-      mudstate.heavy_cpu_recurse += 1;
+   if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+      mudstate_hot.heavy_cpu_recurse += 1;
    }
 
    /* this is a stupidly expensive function.  Increase limits against non-wizzes */
@@ -2744,8 +2744,8 @@ FUNCTION(fun_sweep)
    } else {
       i_max = 1;
    }
-   if ( (!Wizard(player) && (mudstate.heavy_cpu_recurse > i_max)) ||
-        mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+   if ( (!Wizard(player) && (mudstate_hot.heavy_cpu_recurse > i_max)) ||
+        mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
@@ -3038,8 +3038,8 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 
       /* First, walk the list to match the variable name */
       for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-         if ( mudstate.global_regsname[i] && *mudstate.global_regsname[i] &&
-              (stricmp(mudstate.global_regsname[i], (i_penntog ? s_arg0 : s_arg2)) == 0) ) {
+         if ( mudstate_hot.global_regsname[i] && *mudstate_hot.global_regsname[i] &&
+              (stricmp(mudstate_hot.global_regsname[i], (i_penntog ? s_arg0 : s_arg2)) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -3050,9 +3050,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
       if ( !i_namefnd ) {
          if ( mudconf.setq_pickend ) {
             for ( i = (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST - 1); i >= 0; i-- ) {
-               if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+               if ( !mudstate_hot.global_regsname[i] || !*mudstate_hot.global_regsname[i] ) {
                   if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
-                       mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                       mudstate_hot.global_regs[i] && *mudstate_hot.global_regs[i] ) {
                      continue;
                   }
                    regnum = i;
@@ -3062,9 +3062,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
              }
           } else {
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( !mudstate.global_regsname[i] || !*mudstate.global_regsname[i] ) {
+                if ( !mudstate_hot.global_regsname[i] || !*mudstate_hot.global_regsname[i] ) {
                    if ( ((!i_penntog && (strcmp(s_arg0, "+") == 0)) || i_penntog) && 
-                        mudstate.global_regs[i] && *mudstate.global_regs[i] ) {
+                        mudstate_hot.global_regs[i] && *mudstate_hot.global_regs[i] ) {
                       continue;
                    }
                    regnum = i;
@@ -3081,9 +3081,9 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
             regnum = atoi(s_arg0);
          } else {
             for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-               if ( mudstate.global_regsname[i] && 
-                    *(mudstate.global_regsname[i]) &&
-                    !stricmp(mudstate.global_regsname[i], s_arg0) ) {
+               if ( mudstate_hot.global_regsname[i] && 
+                    *(mudstate_hot.global_regsname[i]) &&
+                    !stricmp(mudstate_hot.global_regsname[i], s_arg0) ) {
                    regnum = i;
                    i_namefnd = 1;
                    break;
@@ -3093,7 +3093,7 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 #ifdef EXPANDED_QREGS
             if ( (regnum == -1) && !mudconf.penn_setq ) {
                for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-                  if ( mudstate.nameofqreg[i] == ToLower(*s_arg0) ) {
+                  if ( mudstate_hot.nameofqreg[i] == ToLower(*s_arg0) ) {
                      regnum = i;
                      break;
                   }
@@ -3108,7 +3108,7 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
 #ifdef EXPANDED_QREGS
             if ( strlen(s_arg0) == 1 ) {
                for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-                  if ( mudstate.nameofqreg[i] == ToLower(*s_arg0) ) {
+                  if ( mudstate_hot.nameofqreg[i] == ToLower(*s_arg0) ) {
                      regnum = i;
                      break;
                   }
@@ -3126,21 +3126,21 @@ process_setqs(dbref player, dbref cause, dbref caller, char *buff, char **bufcx,
    i = 0;
    if ( regnum == -1 ) {
       safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
-   } else if ( !i_namefnd && SetqLabel(player) && mudstate.global_regsname[regnum] && *(mudstate.global_regsname[regnum]) ) {
+   } else if ( !i_namefnd && SetqLabel(player) && mudstate_hot.global_regsname[regnum] && *(mudstate_hot.global_regsname[regnum]) ) {
       safe_str("#-1 GLOBAL REGISTER '[", buff, bufcx);
       safe_str(s_arg0, buff, bufcx);
       safe_str("] ", buff, bufcx);
-      safe_str(mudstate.global_regsname[regnum], buff, bufcx);
+      safe_str(mudstate_hot.global_regsname[regnum], buff, bufcx);
       safe_str("' LABEL PROTECTED", buff, bufcx);
    } else {
-      if (!mudstate.global_regs[regnum])
-         mudstate.global_regs[regnum] = alloc_lbuf("fun_setq");
-      strcpy(mudstate.global_regs[regnum], s_arg1);
-      if (!mudstate.global_regsname[regnum])
-         mudstate.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
+      if (!mudstate_hot.global_regs[regnum])
+         mudstate_hot.global_regs[regnum] = alloc_lbuf("fun_setq");
+      strcpy(mudstate_hot.global_regs[regnum], s_arg1);
+      if (!mudstate_hot.global_regsname[regnum])
+         mudstate_hot.global_regsname[regnum] = alloc_sbuf("fun_setq_name");
       if ( i_penntog || ((nfargs > 2) && *s_arg2) ) {
-         strncpy(mudstate.global_regsname[regnum], (i_penntog ? s_arg0 : s_arg2), (SBUF_SIZE - 1));
-         *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+         strncpy(mudstate_hot.global_regsname[regnum], (i_penntog ? s_arg0 : s_arg2), (SBUF_SIZE - 1));
+         *(mudstate_hot.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
       }
       if ( i_type ) {
          safe_str( s_arg1, buff, bufcx);
@@ -4188,7 +4188,7 @@ FUNCTION(fun_nslookup)
    char hostname[NI_MAXHOST + 1], ipstr[INET_ADDRSTRLEN + 1], *p_chk;
    int i_validip = 1, i_timechk=5;
 
-   if ( mudstate.heavy_cpu_lockdown == 1 ) {
+   if ( mudstate_hot.heavy_cpu_lockdown == 1 ) {
       safe_str("#-1 FUNCTION HAS BEEN LOCKED DOWN FOR HEAVY CPU USE.", buff, bufcx);
       return;
    }
@@ -4196,32 +4196,32 @@ FUNCTION(fun_nslookup)
       safe_str("#-1 EXPECTS AN IP OR HOSTNAME", buff, bufcx);
       return;
    } 
-   if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+   if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
    }
 
    if ( mudconf.cputimechk < i_timechk )
       i_timechk = mudconf.cputimechk;
    /* insanely dangerous function -- only allow 5 per command */
-   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
-      mudstate.chkcpu_toggle = 1;
-      mudstate.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
+   if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+      mudstate_hot.chkcpu_toggle = 1;
+      mudstate_hot.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
 /* nslookup should eat itself if it's over 5 seconds on a lookup */
-   if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
+   if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + 5) ) {
       safe_str("#-1 HEAVY CPU LIMIT ON PROTECTED FUNCTION EXCEEDED", buff, bufcx);
-      mudstate.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
-      mudstate.chkcpu_toggle = 1;
-      if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
-         mudstate.heavy_cpu_lockdown = 1;
+      mudstate_hot.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
+      mudstate_hot.chkcpu_toggle = 1;
+      if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+         mudstate_hot.heavy_cpu_lockdown = 1;
       } 
       return;
    }
    memset(hostname, '\0', sizeof(hostname));
    memset(ipstr, '\0', sizeof(ipstr));
-   mudstate.heavy_cpu_tmark2 = time(NULL);
+   mudstate_hot.heavy_cpu_tmark2 = time(NULL);
 
    p_chk = fargs[0];
    while ( *p_chk ) {
@@ -4250,11 +4250,11 @@ FUNCTION(fun_nslookup)
       hints.ai_family = AF_INET;
       if ((getaddrinfo(fargs[0], NULL, &hints, &res)) != 0) {
          safe_str("#-1 INVALID HOSTNAME", buff, bufcx);
-         mudstate.heavy_cpu_tmark2 = time(NULL);
-         if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
-            mudstate.chkcpu_toggle = 1;
-            if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
-               mudstate.heavy_cpu_lockdown = 1;
+         mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+         if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + 5) ) {
+            mudstate_hot.chkcpu_toggle = 1;
+            if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+               mudstate_hot.heavy_cpu_lockdown = 1;
             } 
          }
          return;
@@ -4272,11 +4272,11 @@ FUNCTION(fun_nslookup)
       }
       freeaddrinfo(res);
    }
-   mudstate.heavy_cpu_tmark2 = time(NULL);
-   if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + 5) ) {
-      mudstate.chkcpu_toggle = 1;
-      if ( mudstate.heavy_cpu_tmark2 > (mudstate.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
-         mudstate.heavy_cpu_lockdown = 1;
+   mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+   if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + 5) ) {
+      mudstate_hot.chkcpu_toggle = 1;
+      if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
+         mudstate_hot.heavy_cpu_lockdown = 1;
       } 
    }
 }
@@ -5382,7 +5382,7 @@ FUNCTION(fun_bittype)
       got = 2;
     }
     if ( Guildmaster(target) && HasPriv(target, player, POWER_HIDEBIT, POWER5, NOTHING) &&
-         (Owner(player) != Owner(target) || mudstate.objevalst) ) {
+         (Owner(player) != Owner(target) || mudstate_hot.objevalst) ) {
        if( Wanderer(target) || Guest(target) )
           got = 1;
        else
@@ -5457,14 +5457,14 @@ FUNCTION(fun_textfile)
    char *t_buff, *t_bufptr, *tmp_buff;
    CMDENT *cmdp;
 
-   if (mudstate.last_cmd_timestamp == mudstate.now) {
-      mudstate.heavy_cpu_recurse += 1;
+   if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+      mudstate_hot.heavy_cpu_recurse += 1;
    }
-   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+   if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
-   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dynhelp") ||
         cmdtest(Owner(player), "@dynhelp") || zonecmdtest(player, "@dynhelp") ) {
       notify(player, "Permission denied.");
@@ -5517,14 +5517,14 @@ FUNCTION(fun_dynhelp)
    dbref it;
    CMDENT *cmdp;
 
-   if (mudstate.last_cmd_timestamp == mudstate.now) {
-      mudstate.heavy_cpu_recurse += 1;
+   if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+      mudstate_hot.heavy_cpu_recurse += 1;
    }
-   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+   if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
-   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dynhelp") ||
         cmdtest(Owner(player), "@dynhelp") || zonecmdtest(player, "@dynhelp") ) {
       notify(player, "Permission denied.");
@@ -6376,10 +6376,10 @@ FUNCTION(fun_entrances)
     if (!fn_range_check("ENTRANCES", nfargs, 1, 4, buff, bufcx))
        return;
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -6438,7 +6438,7 @@ FUNCTION(fun_entrances)
     }
 
     low_bound = 0;
-    high_bound = mudstate.db_top - 1;
+    high_bound = mudstate_hot.db_top - 1;
     if ( nfargs > 2 ) {
        if ( !fargs[2] || !*fargs[2] )
           low_bound = 0;
@@ -6449,12 +6449,12 @@ FUNCTION(fun_entrances)
        low_bound = 0;
     if ( nfargs > 3 ) {
        if ( !fargs[3] || !*fargs[3] )
-          high_bound = mudstate.db_top - 1;
+          high_bound = mudstate_hot.db_top - 1;
        else
           high_bound = atoi(fargs[3]);
     }
-    if (high_bound >= mudstate.db_top)
-       high_bound = mudstate.db_top - 1;
+    if (high_bound >= mudstate_hot.db_top)
+       high_bound = mudstate_hot.db_top - 1;
 
     if (!payfor(player, mudconf.searchcost)) {
         tprp_buff = tpr_buff = alloc_lbuf("fun_entrances");
@@ -7109,7 +7109,7 @@ FUNCTION(fun_valid)
      }
      ival(buff, bufcx, ((cmdp != NULL) ? 1 : 0));
   } else if (!stricmp(fargs[0], "function")) {
-     fp = (FUN *) hashfind(fargs[1], &mudstate.func_htab);
+     fp = (FUN *) hashfind(fargs[1], &mudstate_hot.func_htab);
      if ( !fp ) {
         ival(buff, bufcx, 0);
      } else {
@@ -7345,7 +7345,7 @@ FUNCTION(fun_pgrep)
     else {
        i_first = 0;
        ITER_PARENTS(object, parent, loop) {
-          if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
+          if ( !mudstate_hot.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
              ret = grep_internal(player, parent, fargs[2], fargs[1], (i_key | ((i_showdbref == 2) ? 1 : 0)) );
              if ( *ret ) {
                 if ( i_showdbref == 1 ) {
@@ -8055,9 +8055,9 @@ FUNCTION(fun_moon)
    if ( *fargs[0] )
       dd_now = safe_atof(fargs[0]);
    else
-      dd_now = (double)mudstate.now;
+      dd_now = (double)mudstate_hot.now;
 
-   ttm = localtime(&mudstate.now);
+   ttm = localtime(&mudstate_hot.now);
    l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
    dd_now -= l_offset;
    GMT = mush_gmtime64_r(&dd_now, ttm);
@@ -8486,11 +8486,11 @@ FUNCTION(fun_crc32obj)
    }
 
    if ( stricmp(fargs[1], "SHOW") ) {
-     if (mudstate.last_cmd_timestamp == mudstate.now) {
-         mudstate.heavy_cpu_recurse += 1;
+     if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+         mudstate_hot.heavy_cpu_recurse += 1;
       }
    }
-   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+   if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
@@ -8913,7 +8913,7 @@ FUNCTION(fun_width)
         int best_idle = -1;
         DESC_ITER_CONN(d) {
             if (D_PLAYER(d) == target) {
-                int idle = (int)(mudstate.now - D_LAST_TIME(d));
+                int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
                 if (!best || idle < best_idle) {
                     best = d;
                     best_idle = idle;
@@ -9004,7 +9004,7 @@ FUNCTION(fun_height)
         int best_idle = -1;
         DESC_ITER_CONN(d) {
             if (D_PLAYER(d) == target) {
-                int idle = (int)(mudstate.now - D_LAST_TIME(d));
+                int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
                 if (!best || idle < best_idle) {
                     best = d;
                     best_idle = idle;
@@ -9034,12 +9034,12 @@ FUNCTION(fun_chkgarbage)
       return;
    }
    if ( (*fargs[1] == 'b') || (*fargs[1] == 'B') ) {
-      i = mudstate.recoverlist;
+      i = mudstate_hot.recoverlist;
       i_both = 1;
    } else if ( (*fargs[1] == 'r') || (*fargs[1] == 'R') ) {
-      i = mudstate.recoverlist;
+      i = mudstate_hot.recoverlist;
    } else {
-      i = mudstate.freelist;
+      i = mudstate_hot.freelist;
    }   
    while ( i != NOTHING ) {
       if ( i == thing ) {
@@ -9049,7 +9049,7 @@ FUNCTION(fun_chkgarbage)
       i = Link(i);
    }
    if ( i_both && !retval ) {
-      i = mudstate.freelist;
+      i = mudstate_hot.freelist;
       while ( i != NOTHING ) {
          if ( i == thing ) {
             retval = 1;
@@ -9881,7 +9881,7 @@ FUNCTION(fun_garble)
       /* Modified so that original 1 in X still works, but also added percent mod
        * if sip is equal to '1'.
        */
-      if ( mudstate.chkcpu_toggle )
+      if ( mudstate_hot.chkcpu_toggle )
          break;
       if ( i_string == 1 ) {
          if ( ((!(random() % num) && !sip) || (((random() % 100) < num) && sip)) ) {
@@ -10160,14 +10160,14 @@ FUNCTION(fun_time)
        }
     }
     if ( mudconf.time_paddzero ) {
-       tms = localtime(&mudstate.now);
+       tms = localtime(&mudstate_hot.now);
        temp = alloc_mbuf("time_withzero");
        memset(temp, '\0', MBUF_SIZE);
         (void)strftime(temp, MBUF_SIZE-1, (char *)"%a %b %0d %T %Y", tms);
        safe_str(temp, buff, bufcx);
        free_mbuf(temp);
     } else {
-       temp = (char *) ctime(&mudstate.now);
+       temp = (char *) ctime(&mudstate_hot.now);
        temp[strlen(temp) - 1] = '\0';
        safe_str(temp, buff, bufcx);
     }
@@ -12753,7 +12753,7 @@ FUNCTION(fun_timefmt)
   secs = atol(fargs[1]);
   secs2 = safe_atof(fargs[1]);
   /* tms2 = localtime(&secs); */
-  tms2 = localtime(&mudstate.now);
+  tms2 = localtime(&mudstate_hot.now);
 
 #ifndef BSD_LIKE /* because BSD sucks for POSIX compliance */
   l_timezone = timezone;
@@ -12805,7 +12805,7 @@ FUNCTION(fun_timefmt)
 #endif
         secs = i_frell + secs + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
         secs2 = (double)i_frell + secs2 + (double)(time_t)l_timezone + (double)(time_t)(tzmush->mush_offset);
-        i_frell += (time_t)mudstate.now + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
+        i_frell += (time_t)mudstate_hot.now + (time_t)l_timezone + (time_t)(tzmush->mush_offset);
         tms2 = localtime(&i_frell);
      }
   }
@@ -13090,7 +13090,7 @@ FUNCTION(fun_timefmt)
                 fmtdone = 1;
                 break;
               case 'j': /* The Time Zone tzset() based Itself */
-                tms3 = localtime(&mudstate.now);
+                tms3 = localtime(&mudstate_hot.now);
                 s_aptz = alloc_lbuf("j_timefmt");
                 (void)strftime(s_aptz, (LBUF_SIZE - 100), (char *)"%Z", tms3);
                 sprintf(fmtbuff, "%s", s_aptz);
@@ -13475,10 +13475,10 @@ FUNCTION(fun_ptimefmt)
         }
         tt = (time_t) val;
      } else {
-        tt = mudstate.now;
+        tt = mudstate_hot.now;
      }
   } else {
-    tt = mudstate.now;
+    tt = mudstate_hot.now;
   }
 
   ttm = localtime(&tt);
@@ -13569,23 +13569,23 @@ FUNCTION(fun_freelist)
    }
 
    if ( *fargs[0] ) {
-      if ( mudstate.freelist < 0 ) {
+      if ( mudstate_hot.freelist < 0 ) {
          dbval(buff, bufcx, statinfo.s_total);
       } else {
          i_key = atoi(fargs[0]);
          if ( i_key ) {
-            i_first = mudstate.freelist;
+            i_first = mudstate_hot.freelist;
             while ( i_first != NOTHING ) {
                i_last = i_first;
                i_first = Link(i_first);
             }
             dbval(buff, bufcx, i_last);
          } else {
-            dbval(buff, bufcx, mudstate.freelist);
+            dbval(buff, bufcx, mudstate_hot.freelist);
          }
       }
    } else {
-      i_first = mudstate.freelist;
+      i_first = mudstate_hot.freelist;
       i_last = 0;
       while ( i_first != NOTHING ) {
          if ( i_last ) {
@@ -13787,7 +13787,7 @@ FUNCTION(fun_msecstz)
        }
        tzset();
     } 
-    fval(buff, bufcx, mudstate.nowmsec + (double)offset );
+    fval(buff, bufcx, mudstate_hot.nowmsec + (double)offset );
     free_sbuf(s_env);
 }
 
@@ -13899,18 +13899,18 @@ FUNCTION(fun_secstz)
        }
        tzset();
     } 
-    ival(buff, bufcx, mudstate.now + offset);
+    ival(buff, bufcx, mudstate_hot.now + offset);
     free_sbuf(s_env);
 }
 
 FUNCTION(fun_msecs)
 {
-    fval(buff, bufcx, mudstate.nowmsec);
+    fval(buff, bufcx, mudstate_hot.nowmsec);
 }
 
 FUNCTION(fun_secs)
 {
-    ival(buff, bufcx, mudstate.now);
+    ival(buff, bufcx, mudstate_hot.now);
 }
 
 /* ---------------------------------------------------------------------------
@@ -13951,7 +13951,7 @@ FUNCTION(fun_convsecs)
     }
 
     tt2 = safe_atof(fargs[0]);
-    ttm2 = localtime(&mudstate.now);
+    ttm2 = localtime(&mudstate_hot.now);
     l_offset = (long) mktime(ttm2) - (long) mush_mktime64(ttm2);
     tt2 -= l_offset;
     mush_gmtime64_r(&tt2, ttm2);
@@ -14130,7 +14130,7 @@ FUNCTION(fun_convtime)
     long l_offset;
     char *outstr;
 
-    ttm = localtime(&mudstate.now);
+    ttm = localtime(&mudstate_hot.now);
     l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
     if (do_convtime(fargs[0], ttm)) {
        fval(buff, bufcx, (double)(mush_mktime64(ttm) + l_offset));
@@ -15118,9 +15118,9 @@ FUNCTION(fun_listcommands)
   }
 
   if ( i_cmdtype == 3 ) {
-     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
           cmdp;
-          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+          cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
 
         if ( (cmdp->cmdtype & CMD_ATTR_e) && 
            check_access(player, cmdp->perms, cmdp->perms2, 0)) {
@@ -15143,9 +15143,9 @@ FUNCTION(fun_listcommands)
   }
 
   if ( !i_cmdtype || (i_cmdtype == 2) ) {
-     for (cmdp = (CMDENT *) hash_firstentry(&mudstate.command_htab);
+     for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
           cmdp;
-          cmdp = (CMDENT *) hash_nextentry(&mudstate.command_htab)) {
+          cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
 
        if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
              check_access(player, cmdp->perms, cmdp->perms2, 0)) {
@@ -15250,10 +15250,10 @@ FUNCTION(fun_lrooms)
   dbref start, eloop;
   int index, got, depth, d2, showall, index2, i_objid;
 
-  if (mudstate.last_cmd_timestamp == mudstate.now) {
-     mudstate.heavy_cpu_recurse += 1;
+  if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+     mudstate_hot.heavy_cpu_recurse += 1;
   }
-  if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+  if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
      safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
      return;
   }
@@ -16338,7 +16338,7 @@ FUNCTION(fun_mailalias)
    if (!fn_range_check("MAILALIAS", nfargs, 1, 2, buff, bufcx))
       return;
 
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16371,7 +16371,7 @@ FUNCTION(fun_mailquota)
    if (!fn_range_check("MAILQUOTA", nfargs, 1, 2, buff, bufcx))
       return;
 
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16420,7 +16420,7 @@ FUNCTION(fun_mailquick)
    keyval = 0;
    if (!fn_range_check("MAILQUICK", nfargs, 1, 3, buff, bufcx))
       return;
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16454,7 +16454,7 @@ FUNCTION(fun_folderlist)
 {
    char *tbuff, *tbuffptr;
 
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16480,7 +16480,7 @@ FUNCTION(fun_foldercurrent)
    if (!fn_range_check("FOLDERCURRENT", nfargs, 1, 2, buff, bufcx))
       return;
 
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16508,7 +16508,7 @@ FUNCTION(fun_mailstatus)
 
    if (!fn_range_check("MAILSTATUS", nfargs, 1, 2, buff, bufcx))
       return;
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -16637,7 +16637,7 @@ FUNCTION(fun_zfuneval)
     }
 
     i_extra = 0;
-    if (mudstate.evalnum < MAXEVLEVEL) {
+    if (mudstate_hot.evalnum < MAXEVLEVEL) {
        if ( lbuf && *lbuf ) {
           tlev = search_nametab(player, evaltab_sw, lbuf);
        } else {
@@ -16668,8 +16668,8 @@ FUNCTION(fun_zfuneval)
        } else
            tlev = -1;
        if (tlev != -1) {
-           mudstate.evalstate[mudstate.evalnum] = tlev;
-           mudstate.evaldb[mudstate.evalnum++] = player;
+           mudstate_hot.evalstate[mudstate_hot.evalnum] = tlev;
+           mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
        }
     } else {
        tlev = -1;
@@ -16688,7 +16688,7 @@ FUNCTION(fun_zfuneval)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     if (tlev != -1) {
-       mudstate.evalnum--;
+       mudstate_hot.evalnum--;
     }
 }
 
@@ -16707,7 +16707,7 @@ FUNCTION(fun_streval)
     }
 
     result = exec(player, cause, player, EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
-    if (mudstate.evalnum < MAXEVLEVEL) {
+    if (mudstate_hot.evalnum < MAXEVLEVEL) {
        if ( result && *result ) {
           tlev = search_nametab(player, evaltab_sw, result);
        } else {
@@ -16734,11 +16734,11 @@ FUNCTION(fun_streval)
        } else
            tlev = -1;
        if (tlev != -1) {
-           mudstate.evalstate[mudstate.evalnum] = tlev;
+           mudstate_hot.evalstate[mudstate_hot.evalnum] = tlev;
            if ( Good_chk(player) && !isPlayer(player) )
-              mudstate.evaldb[mudstate.evalnum++] = Owner(player);
+              mudstate_hot.evaldb[mudstate_hot.evalnum++] = Owner(player);
            else
-              mudstate.evaldb[mudstate.evalnum++] = player;
+              mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
        }
     } else {
        tlev = -1;
@@ -16752,7 +16752,7 @@ FUNCTION(fun_streval)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     if (tlev != -1) {
-       mudstate.evalnum--;
+       mudstate_hot.evalnum--;
     }
 }
 
@@ -16844,7 +16844,7 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        return;
     }
     i_extra = 0;
-    if (mudstate.evalnum < MAXEVLEVEL) {
+    if (mudstate_hot.evalnum < MAXEVLEVEL) {
        if ( lbuf && *lbuf ) {
           tlev = search_nametab(player, evaltab_sw, lbuf);
        } else {
@@ -16875,8 +16875,8 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        } else
            tlev = -1;
        if (tlev != -1) {
-           mudstate.evalstate[mudstate.evalnum] = tlev;
-           mudstate.evaldb[mudstate.evalnum++] = player;
+           mudstate_hot.evalstate[mudstate_hot.evalnum] = tlev;
+           mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
        }
     } else {
        free_lbuf(lbuf);
@@ -16896,7 +16896,7 @@ do_ueval(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     if (tlev != -1) {
-       mudstate.evalnum--;
+       mudstate_hot.evalnum--;
     }
 }
 
@@ -17150,10 +17150,10 @@ FUNCTION(fun_parenmatch)
     char *atext, *atextptr, *revatext, *revatextptr;
     char *tbuff, *tbuffptr, *p_extra, *s_stripansi;
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -17645,11 +17645,11 @@ FUNCTION(fun_zfunlocal)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
@@ -17665,10 +17665,10 @@ FUNCTION(fun_zfunlocal)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -17752,11 +17752,11 @@ FUNCTION(fun_zfunldefault)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     if ( nfargs > 2 ) {
@@ -17794,10 +17794,10 @@ FUNCTION(fun_zfunldefault)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -17886,11 +17886,11 @@ FUNCTION(fun_zfun2ldefault)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     if ( nfargs > 2 ) {
@@ -17928,10 +17928,10 @@ FUNCTION(fun_zfun2ldefault)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -18477,11 +18477,11 @@ FUNCTION(fun_ulocal)
       saveregname[x] = alloc_sbuf("ulocal_reg_name");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
@@ -18498,10 +18498,10 @@ FUNCTION(fun_ulocal)
     free_lbuf(result);
 
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -18571,11 +18571,11 @@ FUNCTION(fun_uldefault)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
 
@@ -18615,10 +18615,10 @@ FUNCTION(fun_uldefault)
     free_lbuf(result);
 
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -18687,11 +18687,11 @@ FUNCTION(fun_u2local)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
@@ -18708,10 +18708,10 @@ FUNCTION(fun_u2local)
     free_lbuf(result);
 
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -18804,11 +18804,11 @@ FUNCTION(fun_zfun2local)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
@@ -18824,10 +18824,10 @@ FUNCTION(fun_zfun2local)
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -18897,11 +18897,11 @@ FUNCTION(fun_u2ldefault)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
 
@@ -18942,10 +18942,10 @@ FUNCTION(fun_u2ldefault)
     free_lbuf(result);
 
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -19240,7 +19240,7 @@ FUNCTION(fun_parent)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *) hashfind((char *)"@parent", &mudstate.command_htab);
+        cmdp = (CMDENT *) hashfind((char *)"@parent", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@parent") ||
              cmdtest(Owner(player), "@parent") || zonecmdtest(player, "@parent") ) {
            notify(player, "Permission denied.");
@@ -19648,10 +19648,10 @@ FUNCTION(fun_v)
 /* Bypass function with ignore case if bypass() called */
 FUNCTION(fun_bypass)
 {
-   if ( *fargs[0] && mudstate.allowbypass )
-      mudstate.func_bypass = (atoi(fargs[0]) ? 1 : 0);
+   if ( *fargs[0] && mudstate_hot.allowbypass )
+      mudstate_hot.func_bypass = (atoi(fargs[0]) ? 1 : 0);
    else
-      mudstate.func_bypass = 0;
+      mudstate_hot.func_bypass = 0;
 }
 
 /* ---------------------------------------------------------------------------
@@ -19852,16 +19852,16 @@ FUNCTION(fun_localize)
              }
              for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
                 /* Match register name */
-                if ( i_multi && mudstate.global_regsname[x] && *mudstate.global_regsname[x] && !stricmp(s_strtok, mudstate.global_regsname[x]) ) {
+                if ( i_multi && mudstate_hot.global_regsname[x] && *mudstate_hot.global_regsname[x] && !stricmp(s_strtok, mudstate_hot.global_regsname[x]) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 /* Match a-z and 0-9 */
-                } else if ( i_multi && (i_len == 1 ) && (x < MAX_GLOBAL_REGS) && (mudstate.nameofqreg[x] == *s_strtok) ) {
+                } else if ( i_multi && (i_len == 1 ) && (x < MAX_GLOBAL_REGS) && (mudstate_hot.nameofqreg[x] == *s_strtok) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 /* Match register by number */
                 } else if ( i_multi && mudconf.setq_nums && (x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) && (i_reg == x) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 /* Old format just match a-z and 0-9 to input string */
-                } else if ( !i_multi && (x < MAX_GLOBAL_REGS) && (strchr(s_strtok, mudstate.nameofqreg[x]) != NULL) ) {
+                } else if ( !i_multi && (x < MAX_GLOBAL_REGS) && (strchr(s_strtok, mudstate_hot.nameofqreg[x]) != NULL) ) {
                    i_flagreg[x] = (i_reverse ? 1 : 0);
                 }
              }
@@ -19889,11 +19889,11 @@ FUNCTION(fun_localize)
       saveregname[x] = alloc_sbuf("ulocal_regname");
       pt = savereg[x];
       npt = saveregname[x];
-      safe_str(mudstate.global_regs[x],savereg[x],&pt);
-      safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+      safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+      safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
       if ( mudstate.global_regs_wipe == 1 ) {
-         *mudstate.global_regs[x] = '\0';
-         *mudstate.global_regsname[x] = '\0';
+         *mudstate_hot.global_regs[x] = '\0';
+         *mudstate_hot.global_regsname[x] = '\0';
       }
     }
     result = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0],
@@ -19901,10 +19901,10 @@ FUNCTION(fun_localize)
     for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
       if ( i_flagreg[x] ) /* If flagged ignore restoring */
          continue;
-      pt = mudstate.global_regs[x];
-      npt = mudstate.global_regsname[x];
-      safe_str(savereg[x],mudstate.global_regs[x],&pt);
-      safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+      pt = mudstate_hot.global_regs[x];
+      npt = mudstate_hot.global_regsname[x];
+      safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+      safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
       free_lbuf(savereg[x]);
       free_sbuf(saveregname[x]);
     }
@@ -20069,7 +20069,7 @@ FUNCTION(fun_passthrough)
       }
       free_lbuf(s_buff);
    }
-   fp = (FUN *) hashfind(fargs[0], &mudstate.func_htab);
+   fp = (FUN *) hashfind(fargs[0], &mudstate_hot.func_htab);
    if ( fp ) {
       if ( !stricmp((char *)fp->name, "passthrough") ) {
          safe_str("#-1 RECURSIVE CALLING PASSTHROUGH", buff, bufcx);
@@ -20108,7 +20108,7 @@ FUNCTION(fun_strfunc)
    }
 
     i_found = 0;
-   fp = (FUN *) hashfind(list, &mudstate.func_htab);
+   fp = (FUN *) hashfind(list, &mudstate_hot.func_htab);
    if ( !fp ) {
       if ( mudconf.strfunc_softfuncs >= 1 ) {
          ufp = (UFUN *) hashfind(list, &mudstate.ufunc_htab);
@@ -20136,10 +20136,10 @@ FUNCTION(fun_strfunc)
    free_lbuf(list);
    if ( (!i_found && !check_access(player, fp->perms, fp->perms2, 0)) ||
         ( i_found && !check_access(player, ufp->perms, ufp->perms2, 0)) ) {
-      if ( mudstate.func_ignore && !mudstate.func_bypass ) {
+      if ( mudstate_hot.func_ignore && !mudstate_hot.func_bypass ) {
          safe_str("#-1 INVALID FUNCTION", buff, bufcx);
          return;
-      } else if ( !mudstate.func_ignore ) {
+      } else if ( !mudstate_hot.func_ignore ) {
          safe_str("#-1 PERMISSION DENIED", buff, bufcx);
          return;
       }
@@ -20249,15 +20249,15 @@ FUNCTION(fun_strfunc)
                   saveregname[z] = alloc_sbuf("ulocal_regname");
                   ptsavereg = savereg[z];
                   nptsavereg = saveregname[z];
-                  safe_str(mudstate.global_regs[z],savereg[z],&ptsavereg);
-                  safe_str(mudstate.global_regsname[z],saveregname[z],&nptsavereg);
+                  safe_str(mudstate_hot.global_regs[z],savereg[z],&ptsavereg);
+                  safe_str(mudstate_hot.global_regsname[z],saveregname[z],&nptsavereg);
                   if ( ufp->flags & FN_PROTECT ) {
-                     *mudstate.global_regs[z] = '\0';
-                     *mudstate.global_regsname[z] = '\0';
+                     *mudstate_hot.global_regs[z] = '\0';
+                     *mudstate_hot.global_regsname[z] = '\0';
                   }
                }
             }
-            mudstate.allowbypass = 1;
+            mudstate_hot.allowbypass = 1;
             is_trace_bkup = 0;
             if ( ufp->flags & FN_NOTRACE ) {
                is_trace_bkup = mudstate.notrace;
@@ -20271,13 +20271,13 @@ FUNCTION(fun_strfunc)
             if ( ufp->flags & FN_NOTRACE ) {
                mudstate.notrace = is_trace_bkup;
             }
-            mudstate.allowbypass = 0;
+            mudstate_hot.allowbypass = 0;
             if ( ufp->flags & FN_PRES ) {
                for (z = 0; z < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); z++) {
-                  ptsavereg = mudstate.global_regs[z];
-                  nptsavereg = mudstate.global_regsname[z];
-                  safe_str(savereg[z],mudstate.global_regs[z],&ptsavereg);
-                  safe_str(saveregname[z],mudstate.global_regsname[z],&nptsavereg);
+                  ptsavereg = mudstate_hot.global_regs[z];
+                  nptsavereg = mudstate_hot.global_regsname[z];
+                  safe_str(savereg[z],mudstate_hot.global_regs[z],&ptsavereg);
+                  safe_str(saveregname[z],mudstate_hot.global_regsname[z],&nptsavereg);
                   free_lbuf(savereg[z]);
                   free_sbuf(saveregname[z]);
                }
@@ -20507,10 +20507,10 @@ FUNCTION(fun_execscript)
       return;
    }
 
-   if (mudstate.last_cmd_timestamp == mudstate.now) {
-      mudstate.heavy_cpu_recurse += 1;
+   if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+      mudstate_hot.heavy_cpu_recurse += 1;
    }
-   if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+   if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       free_lbuf(s_combine);
       return;
@@ -20522,8 +20522,8 @@ FUNCTION(fun_execscript)
    else
       i_count = mudconf.cputimechk;
 
-   if ( i_now > (mudstate.now + i_count) ) {
-      mudstate.chkcpu_toggle = 1;
+   if ( i_now > (mudstate_hot.now + i_count) ) {
+      mudstate_hot.chkcpu_toggle = 1;
       free_lbuf(s_combine);
       return;
    }
@@ -20716,15 +20716,15 @@ FUNCTION(fun_execscript)
          break;
       }
       i_flags[i_count] = 0;
-      if ( *mudstate.global_regs[i_count] ) {
+      if ( *mudstate_hot.global_regs[i_count] ) {
          if ( i_count >= MAX_GLOBAL_REGS ) {
             sprintf(s_varset, "MUSHQ_%d", i_count);
          } else {
-            sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+            sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate_hot.nameofqreg[i_count]));
          }
-         i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
-         if ( mudstate.global_regsname[i_count] && *(mudstate.global_regsname[i_count]) ) {
-            sprintf(s_varset, "MUSHN_%s", mudstate.global_regsname[i_count]);
+         i_varset = setenv(s_varset, mudstate_hot.global_regs[i_count], 1);
+         if ( mudstate_hot.global_regsname[i_count] && *(mudstate_hot.global_regsname[i_count]) ) {
+            sprintf(s_varset, "MUSHN_%s", mudstate_hot.global_regsname[i_count]);
             s_buff = s_varset;
             i_noex = 0;
             while ( *s_buff ) {
@@ -20738,10 +20738,10 @@ FUNCTION(fun_execscript)
             if ( i_noex ) {
                if ( i_count >= MAX_GLOBAL_REGS ) {
                   sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%d'", 
-                           mudstate.global_regsname[i_count], i_count);
+                           mudstate_hot.global_regsname[i_count], i_count);
                } else {
                   sprintf(s_varset, "Warning: Unable to pass register name '%s' for register '%c'", 
-                           mudstate.global_regsname[i_count], ToUpper(mudstate.nameofqreg[i_count]));
+                           mudstate_hot.global_regsname[i_count], ToUpper(mudstate_hot.nameofqreg[i_count]));
                }
                notify_quiet(player, s_varset);
             } else {
@@ -20750,13 +20750,13 @@ FUNCTION(fun_execscript)
                }
                i_flags[i_count] = 1;
                safe_str(s_varset, s_nregs, &s_nregsptr);
-               i_varset = setenv(s_varset, mudstate.global_regs[i_count], 1);
+               i_varset = setenv(s_varset, mudstate_hot.global_regs[i_count], 1);
                if ( i_count >= MAX_GLOBAL_REGS ) {
                   sprintf(s_varset, "MUSHQN_%d", i_count);
                } else {
-                  sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+                  sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate_hot.nameofqreg[i_count]));
                }
-               i_varset = setenv(s_varset, mudstate.global_regsname[i_count], 1);
+               i_varset = setenv(s_varset, mudstate_hot.global_regsname[i_count], 1);
             }
          }
       }
@@ -20964,23 +20964,23 @@ FUNCTION(fun_execscript)
                  (!*(s_dbref+1) || (((*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N')) && !*(s_dbref+2))) ) {
                   if ( (*(s_dbref+1) == 'n') || (*(s_dbref+1) == 'N' ) ) {
                     for ( i_id = 0; i_id < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i_id++ ) {
-                       if ( *(mudstate.global_regsname[i_id]) && !stricmp(mudstate.global_regsname[i_id], s_variable) ) {
+                       if ( *(mudstate_hot.global_regsname[i_id]) && !stricmp(mudstate_hot.global_regsname[i_id], s_variable) ) {
                           if ( !s_string || !*s_string ) {
-                             *mudstate.global_regs[i_id]='\0';
+                             *mudstate_hot.global_regs[i_id]='\0';
                           } else {
-                             sprintf(mudstate.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
+                             sprintf(mudstate_hot.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
                           }
                           break;
                        }
                     }
-                  } else if ( (strlen(s_variable) == 1) && (index(mudstate.nameofqreg, ToLower(*s_variable)) != NULL) ) {
+                  } else if ( (strlen(s_variable) == 1) && (index(mudstate_hot.nameofqreg, ToLower(*s_variable)) != NULL) ) {
                     /* Locked to only MAX_GLOBAL_REGS */
                     for ( i_id = 0; i_id < MAX_GLOBAL_REGS; i_id++ ) {
-                       if ( ToLower(*s_variable) == mudstate.nameofqreg[i_id] ) {
+                       if ( ToLower(*s_variable) == mudstate_hot.nameofqreg[i_id] ) {
                           if ( !s_string || !*s_string ) {
-                             *mudstate.global_regs[i_id]='\0';
+                             *mudstate_hot.global_regs[i_id]='\0';
                           } else {
-                             sprintf(mudstate.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
+                             sprintf(mudstate_hot.global_regs[i_id], "%.*s", (LBUF_SIZE-10), s_string);
                           }
                           break;
                        } else {
@@ -21099,14 +21099,14 @@ FUNCTION(fun_execscript)
       if ( i_count >= MAX_GLOBAL_REGS ) {
          sprintf(s_varset, "MUSHQ_%d", i_count);
       } else {
-         sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate.nameofqreg[i_count]));
+         sprintf(s_varset, "MUSHQ_%c", ToUpper(mudstate_hot.nameofqreg[i_count]));
       }
       unsetenv(s_varset);
       if ( i_flags[i_count] ) {
          if ( i_count >= MAX_GLOBAL_REGS ) {
             sprintf(s_varset, "MUSHQN_%d", i_count);
          } else {
-            sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate.nameofqreg[i_count]));
+            sprintf(s_varset, "MUSHQN_%c", ToUpper(mudstate_hot.nameofqreg[i_count]));
          }
          unsetenv(s_varset);
       }
@@ -22004,7 +22004,7 @@ FUNCTION(fun_name)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@name", &mudstate.command_htab);
+        cmdp = (CMDENT *)hashfind((char *)"@name", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@name") ||
               cmdtest(Owner(player), "@name") || zonecmdtest(player, "@name") ) {
            notify(player, "Permission denied.");
@@ -22223,10 +22223,10 @@ FUNCTION(fun_setqmatch)
    if (wild_match(fargs[1], fargs[0], t_args, 10, 0)) {
       for (i = 0; i < 10; i++) {
          if ( t_args[i] ) {
-            if (!mudstate.global_regs[i])
-               mudstate.global_regs[i] = alloc_lbuf("fun_setqmatch");
-            pt = mudstate.global_regs[i];
-            safe_str(t_args[i],mudstate.global_regs[i],&pt);
+            if (!mudstate_hot.global_regs[i])
+               mudstate_hot.global_regs[i] = alloc_lbuf("fun_setqmatch");
+            pt = mudstate_hot.global_regs[i];
+            safe_str(t_args[i],mudstate_hot.global_regs[i],&pt);
             first = 1;
          }
       }
@@ -22251,10 +22251,10 @@ FUNCTION(fun_nummatch)
 
     varargs_preamble("NUMMATCH", 3);
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -22291,10 +22291,10 @@ FUNCTION(fun_totmatch)
 
     varargs_preamble("TOTMATCH", 3);
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -23282,11 +23282,11 @@ FUNCTION(fun_objid) {
          atext = atr_get(it, A_CREATED_TIME, &aowner, &aflags);
          if ( atext && *atext ) {
             if ( mudconf.objid_localtime ) {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
             } else {
-               ttm = localtime(&mudstate.now);
+               ttm = localtime(&mudstate_hot.now);
                mynow = mktime(ttm);
-               ttm = gmtime(&mudstate.now);
+               ttm = gmtime(&mudstate_hot.now);
                mynow -= mktime(ttm);
             }
             l_offset = (long) mktime(ttm) - (long) mush_mktime64(ttm);
@@ -24956,14 +24956,14 @@ FUNCTION(fun_account_su)
             safe_str("#-1 INVALID PASSWORD FOR USER", buff, bufcx);
             return;
          }
-         i_noannounce = mudstate.no_announce;
-         mudstate.no_announce = 1;
+         i_noannounce = mudstate_hot.no_announce;
+         mudstate_hot.no_announce = 1;
          shutdownsock(d, R_SU);
-         mudstate.no_announce = i_noannounce;
+         mudstate_hot.no_announce = i_noannounce;
          sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->cold->account_rawpass);
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-         D_LAST_TIME(d) = mudstate.now;
+         D_LAST_TIME(d) = mudstate_hot.now;
          free_lbuf(s_buff);
          free_lbuf(s_tmp);
          free_lbuf(s_tmp2);
@@ -25333,7 +25333,7 @@ FUNCTION(fun_lzone)
 /* --------------------------------------------------------------------------
  * fun_zone: Return a list of objects in zone list
  *
- * mudstate.zone_return values:
+ * mudstate_hot.zone_return values:
  *  1 - Success
  *  0 - Initial state   (not used)
  * -1 - invalid number of arguments (not used)
@@ -25363,7 +25363,7 @@ FUNCTION(fun_zonecmd)
   }
 
   mudstate.sidefx_currcalls++;
-  cmdp = (CMDENT *)hashfind((char *)"@zone", &mudstate.command_htab);
+  cmdp = (CMDENT *)hashfind((char *)"@zone", &mudstate_hot.command_htab);
   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@zone") ||
         cmdtest(Owner(player), "@zone") || zonecmdtest(player, "@zone") ) {
      notify(player, "Permission denied.");
@@ -25371,7 +25371,7 @@ FUNCTION(fun_zonecmd)
   }
 
  /* add, del, purge */
-  mudstate.zone_return = 0;
+  mudstate_hot.zone_return = 0;
   switch (*fargs[0]) {
      case 'a': /* Add */
      case 'A': /* Add */
@@ -25381,7 +25381,7 @@ FUNCTION(fun_zonecmd)
                   safe_str("#-1 ADD TO WHAT ZONE?", buff, bufcx);
                } else {
                   do_zone(player, cause, (ZONE_ADD|SIDEEFFECT), fargs[1], fargs[2]);
-                  switch( mudstate.zone_return ) {
+                  switch( mudstate_hot.zone_return ) {
                      case -2: /* No permission */
                               safe_str("#-1 PERMISSION DENIED", buff, bufcx);
                               break;
@@ -25405,7 +25405,7 @@ FUNCTION(fun_zonecmd)
                   safe_str("#-1 DELETE FROM WHAT ZONE?", buff, bufcx);
                } else {
                   do_zone(player, cause, (ZONE_DELETE|SIDEEFFECT), fargs[1], fargs[2]);
-                  switch( mudstate.zone_return ) {
+                  switch( mudstate_hot.zone_return ) {
                      case -2: /* No permission */
                               safe_str("#-1 PERMISSION DENIED", buff, bufcx);
                               break;
@@ -25423,7 +25423,7 @@ FUNCTION(fun_zonecmd)
                   safe_str("#-1 REPLACE WHAT FROM WHAT ZONE?", buff, bufcx);
                } else {
                   do_zone(player, cause, (ZONE_REPLACE|SIDEEFFECT), fargs[1], fargs[2]);
-                  switch( mudstate.zone_return ) {
+                  switch( mudstate_hot.zone_return ) {
                      case -2: /* No permission */
                               safe_str("#-1 PERMISSION DENIED", buff, bufcx);
                               break;
@@ -25452,7 +25452,7 @@ FUNCTION(fun_zonecmd)
                   s_fill = alloc_lbuf("zone_fill");
                   do_zone(player, cause, (ZONE_PURGE|SIDEEFFECT), fargs[1], s_fill);
                   free_lbuf(s_fill);
-                  switch( mudstate.zone_return ) {
+                  switch( mudstate_hot.zone_return ) {
                      case -2: /* No permission */
                               safe_str("#-1 PERMISSION DENIED", buff, bufcx);
                               break;
@@ -25477,7 +25477,7 @@ FUNCTION(fun_zonecmd)
                safe_str("#-1 INVALID COMMAND ARGUMENT TO ZONE", buff, bufcx);
                break;
   }
-  mudstate.zone_return = 0;
+  mudstate_hot.zone_return = 0;
 
 }
 
@@ -28957,7 +28957,7 @@ FUNCTION(fun_mailsize)
 {
     dbref target;
 
-    if ( mudstate.mail_state != 1 ) {
+    if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
     }
@@ -28975,7 +28975,7 @@ FUNCTION(fun_mailsize)
 
 FUNCTION(fun_msizetot)
 {
-    if ( mudstate.mail_state != 1 ) {
+    if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
     }
@@ -29010,7 +29010,7 @@ FUNCTION(fun_lock)
            notify(player, "#-1 SIDE-EFFECT PORTION OF LOCK DISABLED");
            return;
         }
-        if ( mudstate.inside_locks ) {
+        if ( mudstate_hot.inside_locks ) {
            notify(player, "#-1 LOCK ATTEMPTED INSIDE LOCK");
            return;
         }
@@ -29018,7 +29018,7 @@ FUNCTION(fun_lock)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@lock", &mudstate.command_htab);
+        cmdp = (CMDENT *)hashfind((char *)"@lock", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@lock") ||
               cmdtest(Owner(player), "@lock") || zonecmdtest(player, "@lock") ) {
            notify(player, "Permission denied.");
@@ -29367,30 +29367,30 @@ process_sex(dbref player, char *what, const char *token,
 
 FUNCTION(fun_obj)
 {
-    mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_O;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate | SUB_O;
     process_sex(player, fargs[0], "%o", buff, bufcx);
-    mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_O;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate & ~SUB_O;
 }
 
 FUNCTION(fun_poss)
 {
-    mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_P;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate | SUB_P;
     process_sex(player, fargs[0], "%p", buff, bufcx);
-    mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_P;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate & ~SUB_P;
 }
 
 FUNCTION(fun_subj)
 {
-    mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_S;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate | SUB_S;
     process_sex(player, fargs[0], "%s", buff, bufcx);
-    mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_S;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate & ~SUB_S;
 }
 
 FUNCTION(fun_aposs)
 {
-    mudstate.sub_overridestate = mudstate.sub_overridestate | SUB_A;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate | SUB_A;
     process_sex(player, fargs[0], "%a", buff, bufcx);
-    mudstate.sub_overridestate = mudstate.sub_overridestate & ~SUB_A;
+    mudstate_hot.sub_overridestate = mudstate_hot.sub_overridestate & ~SUB_A;
 }
 
 /* ---------------------------------------------------------------------------
@@ -30792,8 +30792,8 @@ FUNCTION(fun_array)
 
    /* insanely dangerous function -- only allow 10 per command */
    it_now = time(NULL);
-   if (it_now > (mudstate.now + 5)) {
-      mudstate.chkcpu_toggle = 1;
+   if (it_now > (mudstate_hot.now + 5)) {
+      mudstate_hot.chkcpu_toggle = 1;
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
@@ -30862,9 +30862,9 @@ FUNCTION(fun_array)
 
 
    for ( i = 0; i < i_regs; i++ ) {
-      if ( !mudstate.global_regs[i] )
-         mudstate.global_regs[i] = alloc_lbuf("fun_setq");
-      *mudstate.global_regs[i] = '\0';
+      if ( !mudstate_hot.global_regs[i] )
+         mudstate_hot.global_regs[i] = alloc_lbuf("fun_setq");
+      *mudstate_hot.global_regs[i] = '\0';
    }
    s_inptr = s_input;
    p_in = insplit;
@@ -30924,12 +30924,12 @@ FUNCTION(fun_array)
                *(s_outptr-1) = '\0';
             }
             s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
-            s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-            if ( *mudstate.global_regs[i_regcurr] ) {
+            s_tptr = mudstate_hot.global_regs[i_regcurr] + strlen(mudstate_hot.global_regs[i_regcurr]);
+            if ( *mudstate_hot.global_regs[i_regcurr] ) {
                if ( *osep )
-                  safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+                  safe_str(osep, mudstate_hot.global_regs[i_regcurr], &s_tptr);
             }
-            safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(s_tmpbuff, mudstate_hot.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
             memset(s_output, '\0', LBUF_SIZE);
@@ -30944,12 +30944,12 @@ FUNCTION(fun_array)
       }   
       if ( *s_output && i ) {
          s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
-         s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-         if ( *mudstate.global_regs[i_regcurr] ) {
+         s_tptr = mudstate_hot.global_regs[i_regcurr] + strlen(mudstate_hot.global_regs[i_regcurr]);
+         if ( *mudstate_hot.global_regs[i_regcurr] ) {
             if ( *osep )
-               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate_hot.global_regs[i_regcurr], &s_tptr);
          }
-         safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+         safe_str(s_tmpbuff, mudstate_hot.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
    /* Down then over */
@@ -31051,12 +31051,12 @@ FUNCTION(fun_array)
                break;
             }
 
-            s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-            if ( *mudstate.global_regs[i_regcurr] ) {
+            s_tptr = mudstate_hot.global_regs[i_regcurr] + strlen(mudstate_hot.global_regs[i_regcurr]);
+            if ( *mudstate_hot.global_regs[i_regcurr] ) {
                if ( *osep )
-                  safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+                  safe_str(osep, mudstate_hot.global_regs[i_regcurr], &s_tptr);
             }
-            safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+            safe_str(s_tmpbuff, mudstate_hot.global_regs[i_regcurr], &s_tptr);
             free_lbuf(s_tmpbuff);
             initialize_ansisplitter(outsplit, LBUF_SIZE);
             memset(s_output, '\0', LBUF_SIZE);
@@ -31070,12 +31070,12 @@ FUNCTION(fun_array)
       }   
       if ( *s_output && i ) {
          s_tmpbuff = rebuild_ansi(s_output, outsplit, 0);
-         s_tptr = mudstate.global_regs[i_regcurr] + strlen(mudstate.global_regs[i_regcurr]);
-         if ( *mudstate.global_regs[i_regcurr] ) {
+         s_tptr = mudstate_hot.global_regs[i_regcurr] + strlen(mudstate_hot.global_regs[i_regcurr]);
+         if ( *mudstate_hot.global_regs[i_regcurr] ) {
             if ( *osep )
-               safe_str(osep, mudstate.global_regs[i_regcurr], &s_tptr);
+               safe_str(osep, mudstate_hot.global_regs[i_regcurr], &s_tptr);
          }
-         safe_str(s_tmpbuff, mudstate.global_regs[i_regcurr], &s_tptr);
+         safe_str(s_tmpbuff, mudstate_hot.global_regs[i_regcurr], &s_tptr);
          free_lbuf(s_tmpbuff);
       }
    }
@@ -31464,33 +31464,33 @@ search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, 
 
     /* Set up for the search.  If any errors, abort. */
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
 
     evc = 0;
-    if (mudstate.evalnum < MAXEVLEVEL) {
+    if (mudstate_hot.evalnum < MAXEVLEVEL) {
        if (DePriv(player,player,DP_SEARCH_ANY,POWER7,NOTHING)) {
           evc = DePriv(player,NOTHING,DP_SEARCH_ANY,POWER7,POWER_LEVEL_NA);
        if (!DPShift(player))
-          mudstate.evalstate[mudstate.evalnum] = evc - 1;
+          mudstate_hot.evalstate[mudstate_hot.evalnum] = evc - 1;
        else
-          mudstate.evalstate[mudstate.evalnum] = evc;
-       mudstate.evaldb[mudstate.evalnum++] = player;
+          mudstate_hot.evalstate[mudstate_hot.evalnum] = evc;
+       mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
        } else if (HasPriv(player,player,POWER_SEARCH_ANY,POWER4,NOTHING)) {
           evc = HasPriv(player,NOTHING,POWER_SEARCH_ANY,POWER4,POWER_LEVEL_NA);
-          mudstate.evalstate[mudstate.evalnum] = evc;
-          mudstate.evaldb[mudstate.evalnum++] = player;
+          mudstate_hot.evalstate[mudstate_hot.evalnum] = evc;
+          mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
        }
     }
     if (evc) {
        if (!search_setup(player, fargs[0], &searchparm, 1, i_zone)) {
           safe_str("#-1 ERROR DURING SEARCH", buff, bufcx);
-          mudstate.evalnum--;
+          mudstate_hot.evalnum--;
           return;
        }
     } else {
@@ -31518,7 +31518,7 @@ search_guts(dbref player, dbref cause, dbref caller, char *fargs[], char *buff, 
     free_sbuf(nbuf);
     file_olist_cleanup(&master);
     if (evc)
-       mudstate.evalnum--;
+       mudstate_hot.evalnum--;
 }
 
 int mush_minimum(int a,int b, int c)
@@ -31667,10 +31667,10 @@ FUNCTION(fun_stats)
     dbref who;
     STATS statinfo;
 
-    if (mudstate.last_cmd_timestamp == mudstate.now) {
-       mudstate.heavy_cpu_recurse += 1;
+    if (mudstate.last_cmd_timestamp == mudstate_hot.now) {
+       mudstate_hot.heavy_cpu_recurse += 1;
     }
-    if ( mudstate.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
+    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
        safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
@@ -32272,7 +32272,7 @@ FUNCTION(fun_sandbox)
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
        upfun2 = (UFUN *)NULL;
-       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       pfun = (FUN *) hashfind(s_strtok, &mudstate_hot.func_htab);
        if ( i_ufun && !pfun ) {
           if ( i_ufun & 1 ) {
              upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
@@ -32363,13 +32363,13 @@ FUNCTION(fun_sandbox)
        s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
     }
 
-    i_reverse_save = mudstate.func_reverse;
+    i_reverse_save = mudstate_hot.func_reverse;
     /* If in reverse mode, do not unreverse */
-    if ( !mudstate.func_reverse ) {
-       mudstate.func_reverse = i_reverse;
+    if ( !mudstate_hot.func_reverse ) {
+       mudstate_hot.func_reverse = i_reverse;
     }
     retarg0 = exec(player, cause, caller, EV_FCHECK | EV_STRIP | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
-    mudstate.func_reverse = i_reverse_save;
+    mudstate_hot.func_reverse = i_reverse_save;
     safe_str(retarg0, buff, bufcx);
     free_lbuf(retarg0);
 
@@ -32380,7 +32380,7 @@ FUNCTION(fun_sandbox)
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
        upfun2 = (UFUN *)NULL;
-       pfun = (FUN *) hashfind(s_strtok, &mudstate.func_htab);
+       pfun = (FUN *) hashfind(s_strtok, &mudstate_hot.func_htab);
        if ( i_ufun && !pfun ) {
           if ( i_ufun & 1 ) {
              upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
@@ -32441,7 +32441,7 @@ FUNCTION(fun_objeval)
 
     if (!fn_range_check("OBJEVAL", nfargs, 2, 4, buff, bufcx))
        return;
-    mudstate.objevalst = 0;
+    mudstate_hot.objevalst = 0;
     prev_nocode = mudstate.nocodeoverride;
 
     i_target = i_enforce = 0;
@@ -32478,7 +32478,7 @@ FUNCTION(fun_objeval)
     free_lbuf(cp);
     if (obj != NOTHING) {
         if ( !Wizard(obj) && (obj != player) )
-           mudstate.objevalst = 1;
+           mudstate_hot.objevalst = 1;
         if ( i_target ) {
            result = exec(obj, obj, obj, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
         } else {
@@ -32486,13 +32486,13 @@ FUNCTION(fun_objeval)
         }
     } else {
         if ( !Wizard(cause) && (cause != player) )
-           mudstate.objevalst = 1;
+           mudstate_hot.objevalst = 1;
         result = exec(player, cause, player, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
     }
     safe_str(result, buff, bufcx);
     free_lbuf(result);
     mudstate.nocodeoverride = prev_nocode;
-    mudstate.objevalst = 0;
+    mudstate_hot.objevalst = 0;
 }
 
 /* ---------------------
@@ -32592,7 +32592,7 @@ FUNCTION(fun_iter)
         first = 0;
         safe_str(result, buff, bufcx);
         free_lbuf(result);
-        if ( mudstate.chkcpu_toggle ) {
+        if ( mudstate_hot.chkcpu_toggle ) {
            break;
         }
         if ( mudstate.iter_inumbrk[mudstate.iter_inum] ) {
@@ -36356,7 +36356,7 @@ FUNCTION(fun_idle)
                                         (((d_type != -1) && D_DESCRIPTOR(d) == d_type)))) ) {
                 if ( first )
                    safe_chr(' ', buff, bufcx);
-                idletime = (mudstate.now - D_LAST_TIME(d));
+                idletime = (mudstate_hot.now - D_LAST_TIME(d));
                 if ( (d_type == -1) && (i_type == 1) )
                    sprintf(tmp_buff, "%d:%d", D_DESCRIPTOR(d), idletime);
                 else
@@ -36419,7 +36419,7 @@ FUNCTION(fun_conn)
                                         (((d_type != -1) && D_DESCRIPTOR(d) == d_type)))) ) {
                 if ( first )
                    safe_chr(' ', buff, bufcx);
-                conntime = (mudstate.now - d->cold->connected_at);
+                conntime = (mudstate_hot.now - d->cold->connected_at);
                 if ( (d_type == -1) && (i_type == 1))
                    sprintf(tmp_buff, "%d:%d", D_DESCRIPTOR(d), conntime);
                 else
@@ -36887,8 +36887,8 @@ static int u_comp(const void *s1, const void *s2)
        }
     }
 
-    if ((mudstate.func_invk_ctr > i_funinvlim) ||
-        (mudstate.func_nest_lev > mudconf.func_nest_lim))
+    if ((mudstate_hot.func_invk_ctr > i_funinvlim) ||
+        (mudstate_hot.func_nest_lev > mudconf.func_nest_lim))
         return 0;
 
     tbuf = alloc_lbuf("u_comp");
@@ -38020,8 +38020,8 @@ FUNCTION(fun_dec)
           regnum = atoi(fargs[0]);
        } else {
           for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-             if ( *(mudstate.global_regsname[i]) &&
-                  !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
+             if ( *(mudstate_hot.global_regsname[i]) &&
+                  !stricmp(mudstate_hot.global_regsname[i], fargs[0]) ) {
                 regnum = i;
                 i_namefnd = 1;
                 break;
@@ -38033,7 +38033,7 @@ FUNCTION(fun_dec)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) ) {
+             if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
                 regnum = -1;
                 break;
              }
@@ -38046,13 +38046,13 @@ FUNCTION(fun_dec)
     if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       pt1 = mudstate.global_regs[regnum];
+       pt1 = mudstate_hot.global_regs[regnum];
        if ( !is_number(pt1) ) {
            safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
        } else {
-           val = atoi(mudstate.global_regs[regnum]) - 1;
+           val = atoi(mudstate_hot.global_regs[regnum]) - 1;
            tprp_buff = tpr_buff = alloc_lbuf("fun_dec");
-           strcpy(mudstate.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
+           strcpy(mudstate_hot.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
            free_lbuf(tpr_buff);
        }
     }
@@ -38119,8 +38119,8 @@ FUNCTION(fun_inc)
           regnum = atoi(fargs[0]);
        } else {
           for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-             if ( *(mudstate.global_regsname[i]) &&
-                  !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
+             if ( *(mudstate_hot.global_regsname[i]) &&
+                  !stricmp(mudstate_hot.global_regsname[i], fargs[0]) ) {
                 regnum = i;
                 i_namefnd = 1;
                 break;
@@ -38132,7 +38132,7 @@ FUNCTION(fun_inc)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) ) {
+             if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
                 regnum = -1;
                 break;
              }
@@ -38145,13 +38145,13 @@ FUNCTION(fun_inc)
     if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
     } else {
-       pt1 = mudstate.global_regs[regnum];
+       pt1 = mudstate_hot.global_regs[regnum];
        if ( !is_number(pt1) ) {
            safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
        } else {
-           val = atoi(mudstate.global_regs[regnum]) + 1;
+           val = atoi(mudstate_hot.global_regs[regnum]) + 1;
            tprp_buff = tpr_buff = alloc_lbuf("fun_inc");
-           strcpy(mudstate.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
+           strcpy(mudstate_hot.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
            free_lbuf(tpr_buff);
        }
     }
@@ -38175,22 +38175,22 @@ FUNCTION(fun_pushregs)
 
        if ( regnum == 0 ) {
           for ( cntr = 0; cntr < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); cntr++ ) {
-             if ( !mudstate.global_regs_backup[cntr] )
+             if ( !mudstate_hot.global_regs_backup[cntr] )
                 continue;
-             if ( !mudstate.global_regs[cntr] )
-                mudstate.global_regs[cntr] = alloc_lbuf("fun_pushregs");
-             strcpy(mudstate.global_regs[cntr],
-                    mudstate.global_regs_backup[cntr]);
-             *mudstate.global_regs_backup[cntr]='\0';
+             if ( !mudstate_hot.global_regs[cntr] )
+                mudstate_hot.global_regs[cntr] = alloc_lbuf("fun_pushregs");
+             strcpy(mudstate_hot.global_regs[cntr],
+                    mudstate_hot.global_regs_backup[cntr]);
+             *mudstate_hot.global_regs_backup[cntr]='\0';
           }
        } else {
           for ( cntr = 0; cntr < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); cntr++ ) {
-             if ( !mudstate.global_regs[cntr] )
+             if ( !mudstate_hot.global_regs[cntr] )
                 continue;
-             if ( !mudstate.global_regs_backup[cntr] )
-                mudstate.global_regs_backup[cntr] = alloc_lbuf("fun_pushregs");
-             strcpy(mudstate.global_regs_backup[cntr],
-                    mudstate.global_regs[cntr]);
+             if ( !mudstate_hot.global_regs_backup[cntr] )
+                mudstate_hot.global_regs_backup[cntr] = alloc_lbuf("fun_pushregs");
+             strcpy(mudstate_hot.global_regs_backup[cntr],
+                    mudstate_hot.global_regs[cntr]);
           }
        }
     } else {
@@ -38204,11 +38204,11 @@ FUNCTION(fun_pushregs)
                 regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
              }
              if ( (regnum >= 0) && (regnum < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
-                if ( mudstate.global_regs[regnum] ) {
-                   if ( !mudstate.global_regs_backup[regnum] )
-                      mudstate.global_regs_backup[regnum] = alloc_lbuf("fun_pushregs");
-                   strcpy(mudstate.global_regs_backup[regnum],
-                          mudstate.global_regs[regnum]);
+                if ( mudstate_hot.global_regs[regnum] ) {
+                   if ( !mudstate_hot.global_regs_backup[regnum] )
+                      mudstate_hot.global_regs_backup[regnum] = alloc_lbuf("fun_pushregs");
+                   strcpy(mudstate_hot.global_regs_backup[regnum],
+                          mudstate_hot.global_regs[regnum]);
                 }
              }
           } else if ( (*strtok == '-') && *(strtok+1) && !*(strtok+2) ) {
@@ -38218,11 +38218,11 @@ FUNCTION(fun_pushregs)
                 regnum = 10 + (int)ToLower(*(strtok+1)) - (int)'a';
              }
              if ( (regnum >= 0) && (regnum < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) ) {
-                if ( mudstate.global_regs_backup[regnum] ) {
-                   if ( !mudstate.global_regs[regnum] )
-                      mudstate.global_regs[regnum] = alloc_lbuf("fun_pushregs");
-                   strcpy(mudstate.global_regs[regnum],
-                          mudstate.global_regs_backup[regnum]);
+                if ( mudstate_hot.global_regs_backup[regnum] ) {
+                   if ( !mudstate_hot.global_regs[regnum] )
+                      mudstate_hot.global_regs[regnum] = alloc_lbuf("fun_pushregs");
+                   strcpy(mudstate_hot.global_regs[regnum],
+                          mudstate_hot.global_regs_backup[regnum]);
                 }
              }
           }
@@ -38242,13 +38242,13 @@ fun_nameq_display(int i_val, int *i_namefnd, int i_cap, char *buff, char **bufcx
 #ifdef EXPANDED_QREGS
    if ( !mudconf.setq_nums ) {
       if ( i_val < MAX_GLOBAL_REGS ) {
-         safe_chr(mudstate.nameofqreg[i_val], buff, bufcx);
+         safe_chr(mudstate_hot.nameofqreg[i_val], buff, bufcx);
       } else {
          ival(buff, bufcx, i_val);
       }
    } else {
       if ( i_cap && (i_val < MAX_GLOBAL_REGS) ) {
-         safe_chr(mudstate.nameofqreg[i_val], buff, bufcx);
+         safe_chr(mudstate_hot.nameofqreg[i_val], buff, bufcx);
       } else {
          ival(buff, bufcx, i_val);
       }
@@ -38284,7 +38284,7 @@ FUNCTION(fun_nameq)
              i_cap = 1;
           case 'l': /* List all registers with labels -- wild match on label name */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( *mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i]) ) {
+                if ( *mudstate_hot.global_regsname[i] && quick_wild(fargs[0], mudstate_hot.global_regsname[i]) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38295,7 +38295,7 @@ FUNCTION(fun_nameq)
           case 'n': /* List all registers with contents -- wild match on reg number */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
-                if ( *mudstate.global_regs[i] && quick_wild(fargs[0], s_num) ) {
+                if ( *mudstate_hot.global_regs[i] && quick_wild(fargs[0], s_num) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38305,7 +38305,7 @@ FUNCTION(fun_nameq)
              i_cap = 1;
           case 'v': /* List all registers with values -- wild match on reg contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( *mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i]) ) {
+                if ( *mudstate_hot.global_regs[i] && quick_wild(fargs[0], mudstate_hot.global_regs[i]) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38315,8 +38315,8 @@ FUNCTION(fun_nameq)
              i_cap = 1;
           case 'u': /* List all registers in use with labels or values -- wild match on label or contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( (*mudstate.global_regsname[i] && quick_wild(fargs[0], mudstate.global_regsname[i])) || 
-                     (*mudstate.global_regs[i] && quick_wild(fargs[0], mudstate.global_regs[i])) ) {
+                if ( (*mudstate_hot.global_regsname[i] && quick_wild(fargs[0], mudstate_hot.global_regsname[i])) || 
+                     (*mudstate_hot.global_regs[i] && quick_wild(fargs[0], mudstate_hot.global_regs[i])) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38326,8 +38326,8 @@ FUNCTION(fun_nameq)
              i_cap = 1;
           case 'b': /* List all registers in use with labels and values  -- wild match on label and contents */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
-                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || quick_wild(fargs[0], mudstate.global_regs[i])) ) {
+                if ( *mudstate_hot.global_regsname[i] && *mudstate_hot.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate_hot.global_regsname[i]) || quick_wild(fargs[0], mudstate_hot.global_regs[i])) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38338,8 +38338,8 @@ FUNCTION(fun_nameq)
           case 'f': /* List all registers in use with labels and contents -- wild match on label or register */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
-                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
-                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || quick_wild(fargs[0], s_num)) ) {
+                if ( *mudstate_hot.global_regsname[i] && *mudstate_hot.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate_hot.global_regsname[i]) || quick_wild(fargs[0], s_num)) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
              }
@@ -38350,9 +38350,9 @@ FUNCTION(fun_nameq)
           case 'a': /* List all registers in use with labels, values and contents -- wild match on label, contents, or register */
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
                 sprintf(s_num, "%d", i);
-                if ( *mudstate.global_regsname[i] && *mudstate.global_regs[i] &&
-                     (quick_wild(fargs[0], mudstate.global_regsname[i]) || 
-                      quick_wild(fargs[0], mudstate.global_regs[i]) ||
+                if ( *mudstate_hot.global_regsname[i] && *mudstate_hot.global_regs[i] &&
+                     (quick_wild(fargs[0], mudstate_hot.global_regsname[i]) || 
+                      quick_wild(fargs[0], mudstate_hot.global_regs[i]) ||
                       quick_wild(fargs[0], s_num)) ) {
                    fun_nameq_display(i, &i_namefnd, i_cap, buff, bufcx);
                 }
@@ -38372,8 +38372,8 @@ FUNCTION(fun_nameq)
     if ( !((strlen(fargs[0]) == 1) ||
           (mudconf.setq_nums && is_number(fargs[0]))) ) {
        for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-          if ( mudstate.global_regsname[i] && *(mudstate.global_regsname[i]) &&
-               (stricmp(mudstate.global_regsname[i], fargs[0]) == 0) ) {
+          if ( mudstate_hot.global_regsname[i] && *(mudstate_hot.global_regsname[i]) &&
+               (stricmp(mudstate_hot.global_regsname[i], fargs[0]) == 0) ) {
              regnum = i;
              i_namefnd = 1;
              break;
@@ -38384,7 +38384,7 @@ FUNCTION(fun_nameq)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate.nameofqreg[i] == ToLower(*fargs[0]) ) {
+             if ( mudstate_hot.nameofqreg[i] == ToLower(*fargs[0]) ) {
                 regnum = i;
                 break;
              }
@@ -38414,22 +38414,22 @@ FUNCTION(fun_nameq)
                 if ( mudconf.setq_nums && (i_returnnum == 2) ) {
                    ival(buff, bufcx, regnum);
                 } else {
-                   safe_chr(mudstate.nameofqreg[regnum], buff, bufcx);
+                   safe_chr(mudstate_hot.nameofqreg[regnum], buff, bufcx);
                 }
              }
 #else
              ival(buff, bufcx, regnum);
 #endif
           } else {
-             safe_str(mudstate.global_regsname[regnum], buff, bufcx);
+             safe_str(mudstate_hot.global_regsname[regnum], buff, bufcx);
           }
        } else {
           /* If label is already in use, don't set it */
           i_namefnd = 0;
           if ( fargs[1] && *fargs[1] ) {
              for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-                if ( mudstate.global_regsname[i] && *(mudstate.global_regsname[i]) &&
-                     (stricmp(mudstate.global_regsname[i], fargs[1]) == 0) ) {
+                if ( mudstate_hot.global_regsname[i] && *(mudstate_hot.global_regsname[i]) &&
+                     (stricmp(mudstate_hot.global_regsname[i], fargs[1]) == 0) ) {
                    i_namefnd = 1;
                    break;
                 }
@@ -38440,8 +38440,8 @@ FUNCTION(fun_nameq)
              safe_str(fargs[1], buff, bufcx);
              safe_str("] ALREADY IN USE", buff, bufcx);
           } else { 
-             strncpy(mudstate.global_regsname[regnum], fargs[1], (SBUF_SIZE - 1));
-             *(mudstate.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
+             strncpy(mudstate_hot.global_regsname[regnum], fargs[1], (SBUF_SIZE - 1));
+             *(mudstate_hot.global_regsname[regnum] + SBUF_SIZE - 1) = '\0';
           }
        }
     }
@@ -38699,8 +38699,8 @@ FUNCTION(fun_r)
           regnum = atoi(fargs[0]);
        } else {
           for ( i = 0 ; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++ ) {
-             if ( *(mudstate.global_regsname[i]) &&
-                  !stricmp(mudstate.global_regsname[i], fargs[0]) ) {
+             if ( *(mudstate_hot.global_regsname[i]) &&
+                  !stricmp(mudstate_hot.global_regsname[i], fargs[0]) ) {
                 regnum = i;
                 break;
              }
@@ -38711,7 +38711,7 @@ FUNCTION(fun_r)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate.nameofqreg[i] == tolower(*fargs[0]) ) {
+             if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
                 regnum = i;
                 break;
              }
@@ -38723,8 +38723,8 @@ FUNCTION(fun_r)
     }
     if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
-    } else if (mudstate.global_regs[regnum]) {
-       safe_str(mudstate.global_regs[regnum], buff, bufcx);
+    } else if (mudstate_hot.global_regs[regnum]) {
+       safe_str(mudstate_hot.global_regs[regnum], buff, bufcx);
     }
 }
 
@@ -39875,7 +39875,7 @@ FUNCTION(fun_mailread)
    int i_key;
    CMDENT *cmdp;
 
-   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
          cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
       notify(player, "Permission denied.");
@@ -39885,7 +39885,7 @@ FUNCTION(fun_mailread)
    if (!fn_range_check("MAILREAD", nfargs, 3, 4, buff, bufcx))
       return;
 
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -39937,7 +39937,7 @@ FUNCTION(fun_cluster_add)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@cluster", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@cluster", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@cluster") ||
          cmdtest(Owner(player), "@cluster") || zonecmdtest(player, "@cluster") ) {
       notify(player, "Permission denied.");
@@ -39973,7 +39973,7 @@ FUNCTION(fun_lset)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@lset", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@lset", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@lset") ||
          cmdtest(Owner(player), "@lset") || zonecmdtest(player, "@lset") ) {
       notify(player, "Permission denied.");
@@ -40015,7 +40015,7 @@ FUNCTION(fun_totemset)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@totem", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@totem", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@totem") ||
          cmdtest(Owner(player), "@totem") || zonecmdtest(player, "@totem") ) {
       notify(player, "Permission denied.");
@@ -40062,7 +40062,7 @@ FUNCTION(fun_set)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -40121,7 +40121,7 @@ FUNCTION(fun_rset)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -40156,11 +40156,11 @@ FUNCTION(fun_rset)
                  fargs[0], cargs, ncargs, (char **)NULL, 0);
    s_buf2 = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL,
                  fargs[1], cargs, ncargs, (char **)NULL, 0);
-   mudstate.lbuf_buffer = alloc_lbuf("lbuf_rset");
+   mudstate_hot.lbuf_buffer = alloc_lbuf("lbuf_rset");
    do_set(player, cause, (SET_QUIET|SIDEEFFECT|SET_RSET|i_key), s_buf1, s_buf2);
-   safe_str(mudstate.lbuf_buffer, buff, bufcx);
-   free_lbuf(mudstate.lbuf_buffer);
-   mudstate.lbuf_buffer = NULL;
+   safe_str(mudstate_hot.lbuf_buffer, buff, bufcx);
+   free_lbuf(mudstate_hot.lbuf_buffer);
+   mudstate_hot.lbuf_buffer = NULL;
    free_lbuf(s_buf1);
    free_lbuf(s_buf2);
 }
@@ -40178,7 +40178,7 @@ FUNCTION(fun_toggle)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@toggle", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@toggle", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@toggle") ||
          cmdtest(Owner(player), "@toggle") || zonecmdtest(player, "@toggle") ) {
       notify(player, "Permission denied.");
@@ -40200,7 +40200,7 @@ FUNCTION(fun_link)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@link", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@link", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@link") ||
          cmdtest(Owner(player), "@link") || zonecmdtest(player, "@link") ) {
       notify(player, "Permission denied.");
@@ -40257,7 +40257,7 @@ FUNCTION(fun_create)
    }
 
    switch (sep) {
-      case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
+      case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40265,7 +40265,7 @@ FUNCTION(fun_create)
                  }
                  do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
-      case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate.command_htab);
+      case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
                        cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
                     notify(player, "Permission denied.");
@@ -40274,7 +40274,7 @@ FUNCTION(fun_create)
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
-      case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate.command_htab);
+      case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
                        cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
                     notify(player, "Permission denied.");
@@ -40283,7 +40283,7 @@ FUNCTION(fun_create)
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
-      case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate.command_htab);
+      case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
                        cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
                     notify(player, "Permission denied.");
@@ -40304,7 +40304,7 @@ FUNCTION(fun_create)
                     do_pcreate(player, cause, (SIDEEFFECT|i_key), fargs[0], fargs[1]);
                  }
                  break;
-      default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate.command_htab);
+      default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40335,7 +40335,7 @@ FUNCTION(fun_dig)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
          cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
       notify(player, "Permission denied.");
@@ -40404,7 +40404,7 @@ FUNCTION(fun_open)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
          cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
       notify(player, "Permission denied.");
@@ -40448,7 +40448,7 @@ FUNCTION(fun_lemit)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@emit") ||
          cmdtest(Owner(player), "@emit") || zonecmdtest(player, "@emit") ) {
       notify(player, "Permission denied.");
@@ -40478,7 +40478,7 @@ FUNCTION(fun_trigger)
    }
  
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@trigger", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@trigger", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@trigger") ||
          cmdtest(Owner(player), "@trigger") || zonecmdtest(player, "@trigger") ) {
       notify(player, "Permission denied.");
@@ -40501,7 +40501,7 @@ FUNCTION(fun_emit)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@emit") ||
          cmdtest(Owner(player), "@emit") || zonecmdtest(player, "@emit") ) {
       notify(player, "Permission denied.");
@@ -40527,7 +40527,7 @@ FUNCTION(fun_mailsend)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
          cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
       notify(player, "Permission denied.");
@@ -40536,7 +40536,7 @@ FUNCTION(fun_mailsend)
 
    if (!fn_range_check("MAILSEND", nfargs, 3, 5, buff, bufcx))
       return;
-   if ( mudstate.mail_state != 1 ) {
+   if ( mudstate_hot.mail_state != 1 ) {
       safe_str("#-1 MAIL SYSTEM IS CURRENTLY OFF", buff, bufcx);
       return;
    }
@@ -40596,7 +40596,7 @@ FUNCTION(fun_clone)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@clone", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@clone", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@clone") ||
          cmdtest(Owner(player), "@clone") || zonecmdtest(player, "@clone") ) {
       notify(player, "Permission denied.");
@@ -40655,7 +40655,7 @@ FUNCTION(fun_oemit)
    }
       
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@oemit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@oemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@oemit") ||
          cmdtest(Owner(player), "@oemit") || zonecmdtest(player, "@oemit") ) {
       notify(player, "Permission denied.");
@@ -40687,7 +40687,7 @@ FUNCTION(fun_pemit)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40726,7 +40726,7 @@ FUNCTION(fun_remit)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40772,7 +40772,7 @@ FUNCTION(fun_zemit)
    }
    
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40808,7 +40808,7 @@ FUNCTION(fun_tel)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@teleport", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@teleport", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@teleport") ||
          cmdtest(Owner(player), "@teleport") || zonecmdtest(player, "@teleport") ) {
       notify(player, "Permission denied.");
@@ -40855,7 +40855,7 @@ FUNCTION(fun_cluster_wipe)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@wipe") ||
          cmdtest(Owner(player), "@wipe") || zonecmdtest(player, "@wipe") ) {
       notify(player, "Permission denied.");
@@ -40907,7 +40907,7 @@ FUNCTION(fun_cluster_wipe)
    }
 
    endtme = time(NULL);
-   starttme = mudstate.chkcpu_stopper;
+   starttme = mudstate_hot.chkcpu_stopper;
    if ( endtme < starttme )
       endtme = starttme;
    if ( mudconf.cputimechk < 10 )
@@ -40925,10 +40925,10 @@ FUNCTION(fun_cluster_wipe)
       endtme = time(NULL);
       if ( endtme < starttme )
          endtme = starttme;
-      if ( mudstate.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
-          mudstate.chkcpu_toggle = 1;
+      if ( mudstate_hot.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
+          mudstate_hot.chkcpu_toggle = 1;
       }
-      if ( mudstate.chkcpu_toggle ) {
+      if ( mudstate_hot.chkcpu_toggle ) {
          notify_quiet(player, "CPU: cluster wipe exceeded cpu limit.");
          break;
       }
@@ -40978,7 +40978,7 @@ FUNCTION(fun_wipe)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@wipe") ||
          cmdtest(Owner(player), "@wipe") || zonecmdtest(player, "@wipe") ) {
       notify(player, "Permission denied.");
@@ -41020,7 +41020,7 @@ FUNCTION(fun_destroy)
       notify(player, "#-1 FUNCTION DISABLED");
       return;
    }
-   if ( mudstate.inside_locks ) {
+   if ( mudstate_hot.inside_locks ) {
       notify(player, "#-1 DESTROY ATTEMPTED INSIDE LOCK");
       return;
    }
@@ -41029,7 +41029,7 @@ FUNCTION(fun_destroy)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@destroy", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@destroy", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@destroy") ||
          cmdtest(Owner(player), "@destroy") || zonecmdtest(player, "@destroy") ) {
       notify(player, "Permission denied.");
@@ -41061,7 +41061,7 @@ FUNCTION(fun_move)
     notify(player, "Permission denied.");
     return;
   }
-  cmdp = (CMDENT *)hashfind((char *)"goto", &mudstate.command_htab);
+  cmdp = (CMDENT *)hashfind((char *)"goto", &mudstate_hot.command_htab);
   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "goto") ||
        cmdtest(Owner(player), "goto") || zonecmdtest(player, "goto") ) {
     notify(player, "Permission denied.");
@@ -41144,7 +41144,7 @@ FUNCTION(fun_rxlevel)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@rxlevel", &mudstate.command_htab);
+        cmdp = (CMDENT *)hashfind((char *)"@rxlevel", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@rxlevel") ||
               cmdtest(Owner(player), "@rxlevel") || zonecmdtest(player, "@rxlevel") ) {
            notify(player, "Permission denied.");
@@ -41352,7 +41352,7 @@ FUNCTION(fun_txlevel)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@txlevel", &mudstate.command_htab);
+        cmdp = (CMDENT *)hashfind((char *)"@txlevel", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@txlevel") ||
               cmdtest(Owner(player), "@txlevel") || zonecmdtest(player, "@txlevel") ) {
            notify(player, "Permission denied.");
@@ -41545,7 +41545,7 @@ FUNCTION(fun_cluster_grep)
             s_tmpbuff = alloc_mbuf("cluster_grep");
             while ( s_strtok ) {
                parent = match_thing(player, s_strtok);
-               if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
+               if ( !mudstate_hot.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
                   ret = grep_internal(player, parent, fargs[2], fargs[1], (i_key | ((i_type == 2) ? 1 : 0)) );
                   if ( *ret ) {
                      if ( i_first )
@@ -41922,8 +41922,8 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
          saveregname[i] = alloc_sbuf("cluster_ulocal_regname");
          pt = savereg[i];
          npt = saveregname[i];
-         safe_str(mudstate.global_regs[i], savereg[i], &pt);
-         safe_str(mudstate.global_regsname[i], saveregname[i], &npt);
+         safe_str(mudstate_hot.global_regs[i], savereg[i], &pt);
+         safe_str(mudstate_hot.global_regsname[i], saveregname[i], &npt);
        }
     }
     switch(i_is_alt) {
@@ -41960,10 +41960,10 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     }
     if ( i_is_local ) {
        for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-         pt = mudstate.global_regs[i];
-         npt = mudstate.global_regsname[i];
-         safe_str(savereg[i], mudstate.global_regs[i], &pt);
-         safe_str(saveregname[i], mudstate.global_regsname[i], &npt);
+         pt = mudstate_hot.global_regs[i];
+         npt = mudstate_hot.global_regsname[i];
+         safe_str(savereg[i], mudstate_hot.global_regs[i], &pt);
+         safe_str(saveregname[i], mudstate_hot.global_regsname[i], &npt);
          free_lbuf(savereg[i]);
          free_sbuf(saveregname[i]);
        }
@@ -42039,7 +42039,7 @@ FUNCTION(fun_cluster_set)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate.command_htab);
+   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -43140,7 +43140,7 @@ NDECL(init_functab)
     char *buff, *cp, *dp;
 
     buff = alloc_sbuf("init_functab");
-    hashinit(&mudstate.func_htab, 521);
+    hashinit(&mudstate_hot.func_htab, 521);
     for (fp = flist; fp->name; fp++) {
       cp = (char *) fp->name;
       dp = buff;
@@ -43150,7 +43150,7 @@ NDECL(init_functab)
          dp++;
       }
       *dp = '\0';
-      hashadd2(buff, (int *) fp, &mudstate.func_htab, 1);
+      hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
     }
     free_sbuf(buff);
 
@@ -43447,7 +43447,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
 
     /* Verify that the function doesn't exist in the builtin table */
 
-    if (hashfind(np, &mudstate.func_htab) != NULL) {
+    if (hashfind(np, &mudstate_hot.func_htab) != NULL) {
         if ( key & FN_DEL )
             notify_quiet(player, "Can not delete built in function.");
         else
@@ -43766,8 +43766,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     f_int = 0;
     if ( !key || (key & 1) ) {
        nptrs = 0;
-       for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
-                fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
+       for (fp = (FUN *) hash_firstentry2(&mudstate_hot.func_htab, 1); fp;
+                fp = (FUN *) hash_nextentry(&mudstate_hot.func_htab)) {
           if ( (fp->perms & CF_DARK) && !Wizard(player) )
              continue;
           if (check_access(player, fp->perms, fp->perms2, 0)) {
@@ -43900,8 +43900,8 @@ CF_HAND(cf_func_access)
        *ap++ = '\0';
 
     /* Global hardcoded Functions */
-    for (fp = (FUN *) hash_firstentry2(&mudstate.func_htab, 1); fp;
-               fp = (FUN *) hash_nextentry(&mudstate.func_htab)) {
+    for (fp = (FUN *) hash_firstentry2(&mudstate_hot.func_htab, 1); fp;
+               fp = (FUN *) hash_nextentry(&mudstate_hot.func_htab)) {
        if (!string_compare(fp->name, str)) {
            return (cf_modify_multibits(&fp->perms, &fp->perms2, ap, extra, extra2,
                      player, cmd));

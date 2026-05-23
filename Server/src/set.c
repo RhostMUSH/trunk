@@ -177,7 +177,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 
    i_ansi = 0;
    if ( key & NAME_ANSI ) {
-      cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+      cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
             cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
          notify(player, "Permission denied.");
@@ -1186,7 +1186,7 @@ ATTR	*attr;
          return;
       }
       could_hear = Hearer(thing);
-      mudstate.vlplay = player;
+      mudstate_hot.vlplay = player;
 
       if ( !(key & SET_TREE) && ReqTrees(thing) && !(key & SET_BYPASS) && (strchr(attr->name, *(mudconf.tree_character)) != NULL) ) {
          notify_quiet(player, "Target requires TREE set method for TREE attributes.");
@@ -1235,7 +1235,7 @@ ATTR	*attr;
 
       handle_ears(thing, could_hear, Hearer(thing));
       if (!(key & SET_QUIET) && !Quiet(player) && !Quiet(thing)) {
-         if (mudstate.vlplay != NOTHING) {
+         if (mudstate_hot.vlplay != NOTHING) {
             if ( (key & SET_NOISY) || TogNoisy(player) ) {
                tprp_buff = tpr_buff = alloc_lbuf("set_attr_internal");
                if ( *attrtext )
@@ -1660,13 +1660,13 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
    
             could_hear = Hearer(thing);
             atr_set_flags(thing, atr, aflags);
-            if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
-               if ( *(mudstate.lbuf_buffer) ) {
-                  safe_chr(' ', mudstate.lbuf_buffer, &s_bufit);
-                  safe_str(s_tset, mudstate.lbuf_buffer, &s_bufit);
+            if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
+               if ( *(mudstate_hot.lbuf_buffer) ) {
+                  safe_chr(' ', mudstate_hot.lbuf_buffer, &s_bufit);
+                  safe_str(s_tset, mudstate_hot.lbuf_buffer, &s_bufit);
                } else {
-                  s_bufit = mudstate.lbuf_buffer;
-                  safe_str(s_tset, mudstate.lbuf_buffer, &s_bufit);
+                  s_bufit = mudstate_hot.lbuf_buffer;
+                  safe_str(s_tset, mudstate_hot.lbuf_buffer, &s_bufit);
                }
             }
    
@@ -1791,8 +1791,8 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
 
       /* Go set it */
       set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
-      if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
-         strcpy(mudstate.lbuf_buffer, p);
+      if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
+         strcpy(mudstate_hot.lbuf_buffer, p);
       }
       free_lbuf(buff);
       return;
@@ -1806,8 +1806,8 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
    }
 
    /* Set or clear a flag...control checked in flag set */  
-   if ( (key & SET_RSET) && (mudstate.lbuf_buffer) ) {
-      strcpy(mudstate.lbuf_buffer, flag);
+   if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
+      strcpy(mudstate_hot.lbuf_buffer, flag);
    }
    flag_set(thing, player, flag, key);
 }
@@ -1947,7 +1947,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
          }
       }
       if (!stop_set) {
-	mudstate.vlplay = player;
+	mudstate_hot.vlplay = player;
 	atr_add(thing, out_attr->number, astr,
 		Owner(player), aflags);
         if ( (out_attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
@@ -1964,7 +1964,7 @@ void do_mvattr (dbref player, dbref cause, int key, char *what,
             free_lbuf(buff2ret);
             ENDLOG
         }
-	if (mudstate.vlplay != NOTHING) {
+	if (mudstate_hot.vlplay != NOTHING) {
 	  if (!Quiet(player)) {
             tprp_buff = tpr_buff;
 	    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s: Set.", out_attr->name));
@@ -2187,7 +2187,7 @@ int	ca, ok, aflags, i_nowild;
         i_nowild = 0;
         if ( *str && (!strchr(str, '*') && !strchr(str, '?')) ) {
            i_nowild = 1;
-           atr2 = (ATTR *) hashfind(str, &mudstate.attr_name_htab);
+           atr2 = (ATTR *) hashfind(str, &mudstate_hot.attr_name_htab);
            if ( !atr2 )
               i_nowild = 0;
         }
@@ -2231,7 +2231,7 @@ int	ca, ok, aflags, i_nowild;
 		else if (!Wizard(player) && ((attr->flags & AF_PINVIS) || (aflags & AF_PINVIS)))
 			ok = 0;
 
-                if ( mudstate.reverse_wild == 1 ) {
+                if ( mudstate_hot.reverse_wild == 1 ) {
 		   if (ok && ((i_nowild && (strcmp(atr2->name, attr->name) == 0)) ||
                               (!i_regexp && !quick_wild(str, (char *)attr->name)) ||
                               ( i_regexp && !quick_regexp_match(str, (char *)attr->name, 0))) ) {
@@ -2599,7 +2599,7 @@ OBLOCKMASTER master;
                                    free_lbuf(buff2);
                                 }
 				if (doit) {
-					mudstate.vlplay = player;
+					mudstate_hot.vlplay = player;
                                         if ( !editchk ) {
 					   atr_add(thing, ap->number, result, Owner(player), aflags);
                                            if ( (ap->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
@@ -2618,7 +2618,7 @@ OBLOCKMASTER master;
                                            }
                                         }
 					if (!Quiet(player)) {
-					    if (mudstate.vlplay != NOTHING) {
+					    if (mudstate_hot.vlplay != NOTHING) {
                                                 tprp_buff = tpr_buff;
                                                 if ( No_Ansi_Ex(player) ) {
 						   notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "%s - %s: %s",
@@ -2686,7 +2686,7 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
 
    i_owner = i_regexp = mudstate.wipe_state = 0;
    if ( key & WIPE_PRESERVE )
-      mudstate.reverse_wild = 1;
+      mudstate_hot.reverse_wild = 1;
 
    if ( key & WIPE_REGEXP )
       i_regexp = 1;
@@ -2715,16 +2715,16 @@ void do_wipe(dbref player, dbref cause, int key, char *it2)
    }
    
    olist_init(&master);
-   orig_revwild = mudstate.reverse_wild;
+   orig_revwild = mudstate_hot.reverse_wild;
    if (!it || !*it || !parse_attrib_wild(player, it, &thing, 0, 0, 1, &master, 0, i_regexp, 0)) {
       if ( !(key & SIDEEFFECT) )
          notify_quiet(player, "No match.");
       olist_cleanup(&master);
-      mudstate.reverse_wild = orig_revwild;
+      mudstate_hot.reverse_wild = orig_revwild;
       mudstate.wipe_state = -1;
       return;
    }
-   mudstate.reverse_wild = orig_revwild;
+   mudstate_hot.reverse_wild = orig_revwild;
    if ( (( Flags(thing) & SAFE ) || Indestructable(thing)) && mudconf.safe_wipe > 0 ) {
       if ( !(Controls( player, thing ) || could_doit(player,thing,A_LTWINK,0,0)) ) {
          if ( !(key & SIDEEFFECT) ) {
@@ -2837,7 +2837,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
 
    i_rollbackstate = mudstate.rollbackstate;
    mudstate.rollbackstate = 1;
-   i_jump = mudstate.jumpst;
+   i_jump = mudstate_hot.jumpst;
    i_rollbackcnt = mudstate.rollbackcnt;
    t_string = alloc_lbuf("do_rollback_string");
    strcpy(t_string, string);
@@ -2939,7 +2939,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
                   s_tmp2 = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
                   strcpy(s_teval[i], s_tmp2);
                   free_lbuf(s_tmp2);
-                  if ( mudstate.chkcpu_toggle ) {
+                  if ( mudstate_hot.chkcpu_toggle ) {
                      break;
                   }
                }
@@ -2947,10 +2947,10 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             for ( i = 0; i < 10; i++ ) {
                strcpy(s_eval[i], s_teval[i]);
             }
-            if ( mudstate.chkcpu_toggle ) {
+            if ( mudstate_hot.chkcpu_toggle ) {
                break;
             }
-            wait_que(player, cause, i_wait, NOTHING, s_waitbuff, s_eval, 10, mudstate.global_regs, mudstate.global_regsname);
+            wait_que(player, cause, i_wait, NOTHING, s_waitbuff, s_eval, 10, mudstate_hot.global_regs, mudstate_hot.global_regsname);
             i_count--;
             if ( i_count > 0 ) {
                strcpy(t_string, string);
@@ -3015,29 +3015,29 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
 
    s_buff = alloc_lbuf("do_rollback");
 
-   i_orig = mudstate.chkcpu_toggle;
-   i_chkinline = mudstate.chkcpu_inline;
-   sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@rollback");
-   if ( mudstate.chkcpu_inline ) {
-      i_now = mudstate.now;
+   i_orig = mudstate_hot.chkcpu_toggle;
+   i_chkinline = mudstate_hot.chkcpu_inline;
+   sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@rollback");
+   if ( mudstate_hot.chkcpu_inline ) {
+      i_now = mudstate_hot.now;
    } else {
       i_now = time(NULL);
    }
-   mudstate.chkcpu_inline = 1;
-   while ( !mudstate.chkcpu_toggle && (i_count > 0) ) {
+   mudstate_hot.chkcpu_inline = 1;
+   while ( !mudstate_hot.chkcpu_toggle && (i_count > 0) ) {
       strcpy(s_buff, mudstate.rollback);
       s_buffptr = s_buff;
       i_loop = 0;
       mudstate.rollbackcnt = i_rollbackcnt - i_step - 1;
       if ( mudstate.rollbackcnt < 0 )
          mudstate.rollbackcnt = 0; 
-      mudstate.jumpst = 0;
+      mudstate_hot.jumpst = 0;
       mudstate.gotostate = 0;
       if ( i_dolabel ) {
          mudstate.gotostate = 1;
       }
-      i_hook = mudstate.no_hook;
-      while (s_buffptr && !mudstate.chkcpu_toggle && !mudstate.breakst) {
+      i_hook = mudstate_hot.no_hook;
+      while (s_buffptr && !mudstate_hot.chkcpu_toggle && !mudstate_hot.breakst) {
          i_loop++;
          cp = parse_to(&s_buffptr, ';', 0);
          if ( !cp )
@@ -3048,21 +3048,21 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             break;
          if (cp && *cp) {
             if ( i_hook ) {
-               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), 1, mudstate.no_space_compress);
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), 1, mudstate_hot.no_space_compress);
             } else {
-               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+               process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
             }
          }
          if ( time(NULL) > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
             notify(player, "@rollback:  Aborted for high utilization.");
-            mudstate.breakst=1;
-            mudstate.chkcpu_toggle =1;
+            mudstate_hot.breakst=1;
+            mudstate_hot.chkcpu_toggle =1;
             break;
          }
       }
-      mudstate.no_hook = i_hook;
-      mudstate.jumpst = i_jump;
-      if ( mudstate.chkcpu_toggle )
+      mudstate_hot.no_hook = i_hook;
+      mudstate_hot.jumpst = i_jump;
+      if ( mudstate_hot.chkcpu_toggle )
          break;
       i_count--;
 
@@ -3076,7 +3076,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             free_lbuf(s_buff);
             mudstate.rollbackcnt = i_rollbackcnt;
             mudstate.rollbackstate = i_rollbackstate;
-            mudstate.jumpst = i_jump;
+            mudstate_hot.jumpst = i_jump;
             for (i = 0; i < 10; i++ ) {
                free_lbuf(s_eval[i]);
                free_lbuf(s_teval[i]);
@@ -3100,7 +3100,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
             }
             free_lbuf(s_tmp);
          }
-         if ( mudstate.chkcpu_toggle )
+         if ( mudstate_hot.chkcpu_toggle )
             break;
          for (i = 0; i < 10; i++ ) {
             if ( (i < nargs) && (((nargs == 1) && *argv[i]) || (nargs > 1)) ) {
@@ -3108,20 +3108,20 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
                s_tmp = exec(player, cause, cause, EV_EVAL | EV_FCHECK, s_store[i], s_eval, 10, (char **)NULL, 0);
                strcpy(s_teval[i], s_tmp);
                free_lbuf(s_tmp);
-               if ( mudstate.chkcpu_toggle )
+               if ( mudstate_hot.chkcpu_toggle )
                   break;
             }
          }
          for (i = 0; i < 10; i++ ) {
             strcpy(s_eval[i], s_teval[i]);
          }
-         if ( mudstate.chkcpu_toggle )
+         if ( mudstate_hot.chkcpu_toggle )
             break;
       }
 
    }
-   mudstate.chkcpu_inline = i_chkinline;
-   mudstate.chkcpu_toggle = i_orig;
+   mudstate_hot.chkcpu_inline = i_chkinline;
+   mudstate_hot.chkcpu_toggle = i_orig;
    free_lbuf(s_buff);
    free_lbuf(t_string);
    for (i = 0; i < 10; i++ ) {
@@ -3134,7 +3134,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
       strncpy(mudstate.gotolabel, labelbak, 15);
    }
    mudstate.rollbackcnt = i_rollbackcnt;
-   mudstate.jumpst = i_jump;
+   mudstate_hot.jumpst = i_jump;
    mudstate.rollbackstate = i_rollbackstate;
 
 }
@@ -3149,7 +3149,7 @@ void do_include(dbref player, dbref cause, int key, char *main_string,
         *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_rollback, *string, *sub_string;
 
    /* Modified so if in @hook we can allow @includes */
-   if ( (desc_in_use != NULL) && !mudstate.no_hook ) {
+   if ( (desc_in_use != NULL) && !mudstate_hot.no_hook ) {
       notify_quiet(player, "You can not use @include at command line.");
       return;
    }
@@ -3242,7 +3242,7 @@ void do_include(dbref player, dbref cause, int key, char *main_string,
       s_buff[i] = alloc_lbuf("do_include_buffers");
       if ( key & INCLUDE_OVERRIDE ) {
 /*       if ( nargs > 0 ) { */
-         if ( !mudstate.argtwo_fix ) {
+         if ( !mudstate_hot.argtwo_fix ) {
             if ( (i < nargs) && (((nargs > 1) || ((nargs <= 1) && argv[i] && *argv[i]))) ) {
                if ( argv[i] && *argv[i] )
                   sprintf(s_buff[i], "%s", argv[i]);      
@@ -3269,68 +3269,68 @@ void do_include(dbref player, dbref cause, int key, char *main_string,
          saveregname[x] = alloc_sbuf("ulocal_regname");
          pt = savereg[x];
          npt = saveregname[x];
-         safe_str(mudstate.global_regs[x],savereg[x],&pt);
-         safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+         safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+         safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
          if ( key & INCLUDE_CLEAR ) {
-            *mudstate.global_regs[x] = '\0';
-            *mudstate.global_regsname[x] = '\0';
+            *mudstate_hot.global_regs[x] = '\0';
+            *mudstate_hot.global_regsname[x] = '\0';
          }
       }
    }
-   i_savebreak = mudstate.breakst;
-   if ( mudstate.chkcpu_inline ) {
-      i_now = mudstate.now;
+   i_savebreak = mudstate_hot.breakst;
+   if ( mudstate_hot.chkcpu_inline ) {
+      i_now = mudstate_hot.now;
    } else {
       i_now = time(NULL);
    }
    s_rollback = alloc_lbuf("s_rollback_include");
    strcpy(s_rollback, mudstate.rollback);
-   i_jump = mudstate.jumpst;
+   i_jump = mudstate_hot.jumpst;
    i_rollback = mudstate.rollbackcnt;
-   mudstate.rollbackcnt = mudstate.jumpst = 0;
+   mudstate.rollbackcnt = mudstate_hot.jumpst = 0;
    if ( buff1ptr ) {
       strcpy(mudstate.rollback, buff1ptr);
    }
-   chk_tog = mudstate.chkcpu_toggle;
-   i_chkinline = mudstate.chkcpu_inline;
-   mudstate.chkcpu_inline = 1;
+   chk_tog = mudstate_hot.chkcpu_toggle;
+   i_chkinline = mudstate_hot.chkcpu_inline;
+   mudstate_hot.chkcpu_inline = 1;
 
    /* If @include is called inside a hook, we keep the state */
-   i_hook = mudstate.no_hook;
-   while (buff1ptr && !mudstate.breakst && !mudstate.chkcpu_toggle) {
+   i_hook = mudstate_hot.no_hook;
+   while (buff1ptr && !mudstate_hot.breakst && !mudstate_hot.chkcpu_toggle) {
       cp = parse_to(&buff1ptr, ';', 0);
       if (cp && *cp) {
          if ( i_hook ) {
-            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate.no_space_compress);
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), 1, mudstate_hot.no_space_compress);
          } else {
-            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), mudstate.no_hook, mudstate.no_space_compress);
+            process_command(target, targetcause, 0, cp, s_buff, 10, InProgram(thing), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
          }
          if ( key & INCLUDE_IBREAK )
-            mudstate.breakst = i_savebreak;
+            mudstate_hot.breakst = i_savebreak;
       }
       if ( time(NULL) > (i_now + 5) ) {
          notify(player, "@include:  Aborted for high utilization.");
-         mudstate.breakst=1;
+         mudstate_hot.breakst=1;
          break;
       }
    }
-   mudstate.no_hook = i_hook;
+   mudstate_hot.no_hook = i_hook;
 
    if ( key & INCLUDE_NOBREAK ) {
-      mudstate.breakst = i_savebreak;
+      mudstate_hot.breakst = i_savebreak;
    }
-   mudstate.chkcpu_toggle = chk_tog;
-   mudstate.chkcpu_inline = i_chkinline;
-   mudstate.jumpst = i_jump;
+   mudstate_hot.chkcpu_toggle = chk_tog;
+   mudstate_hot.chkcpu_inline = i_chkinline;
+   mudstate_hot.jumpst = i_jump;
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);
    free_lbuf(s_rollback);
    if ( (key & INCLUDE_LOCAL) || (key & INCLUDE_CLEAR) ) {
       for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-         pt = mudstate.global_regs[x];
-         npt = mudstate.global_regsname[x];
-         safe_str(savereg[x],mudstate.global_regs[x],&pt);
-         safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+         pt = mudstate_hot.global_regs[x];
+         npt = mudstate_hot.global_regsname[x];
+         safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+         safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
          free_lbuf(savereg[x]);
          free_sbuf(saveregname[x]);
       }
@@ -3416,7 +3416,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
        }
        free_lbuf(charges);
        wait_que(thing, player, 0, NOTHING, buff1ptr, argv, nargs, 
-                mudstate.global_regs, mudstate.global_regsname);
+                mudstate_hot.global_regs, mudstate_hot.global_regsname);
      } else {
         notify_quiet(player, "No match.");
         didtrig = 1;
@@ -3424,7 +3424,7 @@ void do_trigger(dbref player, dbref cause, int key, char *object,
   } else {
      if (*buff1ptr) {
         wait_que(it, player, 0, NOTHING, buff1ptr, argv, nargs, 
-                 mudstate.global_regs, mudstate.global_regsname);
+                 mudstate_hot.global_regs, mudstate_hot.global_regsname);
      } else {
         notify_quiet(player, "No match.");
         didtrig = 1;

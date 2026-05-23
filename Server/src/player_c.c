@@ -192,7 +192,7 @@ int QueueMax(dbref player)
          if (pp->qmax >= 0) {
             m = pp->qmax;
          } else {
-            m = mudstate.db_top + 1;
+            m = mudstate_hot.db_top + 1;
             if ( Good_obj(player) && Builder(player) ) {
                if (m < mudconf.wizqueuemax)
                   m = mudconf.wizqueuemax;

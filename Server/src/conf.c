@@ -41,6 +41,7 @@ struct confparm {
 
 CONFDATA mudconf;
 STATEDATA mudstate;
+struct state_hot mudstate_hot;
 
 extern void NDECL(init_version);
 extern int ndescriptors;
@@ -428,9 +429,9 @@ NDECL(cf_init)
     mudstate.vattr_reusecnt = 0;
     mudstate.execscript_noreg = 0;	/* execscript has no registers processed */
     mudstate.help_shell = 0;		/* help redirection */
-    mudstate.no_space_compress = 0;	/* Override space compression */
-    mudstate.cmd_bitmask = 0;		/* cmd bitwise mask */
-    mudstate.no_announce = 0;		/* Do not broadcast announcements */
+    mudstate_hot.no_space_compress = 0;	/* Override space compression */
+    mudstate_hot.cmd_bitmask = 0;		/* cmd bitwise mask */
+    mudstate_hot.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
     mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
@@ -443,19 +444,19 @@ NDECL(cf_init)
     mudstate.avg_bytesin = 0;		/* Bytes total in avg */
     mudstate.avg_bytesout = 0;		/* Bytes total out avg */
     mudstate.reset_daily_bytes = time(NULL); /* Reset marker for daily totals */
-    mudstate.posesay_dbref = -1;	/* Dbref# of person doing @emit/say/pose */
-    mudstate.posesay_fluff = 0;		/* Pose and say fluff */
-    mudstate.no_hook = 0;		/* Do not process hooks */
-    mudstate.no_hook_count = 0;		/* Count of times hook include can be called per command */
-    mudstate.zone_return = 0;		/* State data of zonecmd() */
-    mudstate.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
+    mudstate_hot.posesay_dbref = -1;	/* Dbref# of person doing @emit/say/pose */
+    mudstate_hot.posesay_fluff = 0;		/* Pose and say fluff */
+    mudstate_hot.no_hook = 0;		/* Do not process hooks */
+    mudstate_hot.no_hook_count = 0;		/* Count of times hook include can be called per command */
+    mudstate_hot.zone_return = 0;		/* State data of zonecmd() */
+    mudstate_hot.argtwo_fix = 0;		/* Argument 2 fix for @include and other */
     mudstate.mysql_last = 0;		/* Time of last mysql hang check */
     mudstate.insideaflags = 0;		/* inside @aflags eval check */
     mudstate.insideicmds = 0;		/* inside @icmd eval check */
     mudstate.dumpstatechk = 0;		/* State of the dump state */
     mudstate.forceusr2 = 0;		/* Forcing kill USR2 here */
-    mudstate.breakst = 0;
-    mudstate.jumpst = 0;
+    mudstate_hot.breakst = 0;
+    mudstate_hot.jumpst = 0;
     memset(mudstate.gotolabel, '\0', 16);
     mudstate.gotostate = 0;
     mudstate.rollbackcnt = 0;
@@ -490,32 +491,32 @@ NDECL(cf_init)
     mudstate.store_passwd = -1;
     mudstate.shifted = 0;
     mudstate.trainmode = 0;           /* initialize trainmode variable */
-    mudstate.outputflushed = 0;               /* initialize output buffer variable */
-    mudstate.allowbypass = 0;		/* Allow bypass() in @functions */
-    mudstate.sub_overridestate = 0;	/* %-sub override state */
-    mudstate.sub_includestate = 0;	/* %-sub override state */
-    mudstate.recurse_rlevel = 0;
-    mudstate.func_reverse = 0;
-    mudstate.func_ignore = 0;
-    mudstate.func_bypass = 0;
-    mudstate.nolookie = 1;
-    mudstate.reality_notify = 0;
-    mudstate.password_nochk = 0;
-    mudstate.ahear_count = 0;
-    mudstate.ahear_currtime = 0;
-    mudstate.ahear_lastplr = -1;
-    mudstate.chkcpu_toggle = 0;
-    mudstate.chkcpu_inline = 0;
-    memset(mudstate.chkcpu_inlinestr, '\0', SBUF_SIZE);
-    mudstate.chkcpu_locktog = 0;
-    mudstate.chkcpu_stopper = time(NULL);
+    mudstate_hot.outputflushed = 0;               /* initialize output buffer variable */
+    mudstate_hot.allowbypass = 0;		/* Allow bypass() in @functions */
+    mudstate_hot.sub_overridestate = 0;	/* %-sub override state */
+    mudstate_hot.sub_includestate = 0;	/* %-sub override state */
+    mudstate_hot.recurse_rlevel = 0;
+    mudstate_hot.func_reverse = 0;
+    mudstate_hot.func_ignore = 0;
+    mudstate_hot.func_bypass = 0;
+    mudstate_hot.nolookie = 1;
+    mudstate_hot.reality_notify = 0;
+    mudstate_hot.password_nochk = 0;
+    mudstate_hot.ahear_count = 0;
+    mudstate_hot.ahear_currtime = 0;
+    mudstate_hot.ahear_lastplr = -1;
+    mudstate_hot.chkcpu_toggle = 0;
+    mudstate_hot.chkcpu_inline = 0;
+    memset(mudstate_hot.chkcpu_inlinestr, '\0', SBUF_SIZE);
+    mudstate_hot.chkcpu_locktog = 0;
+    mudstate_hot.chkcpu_stopper = time(NULL);
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
-    mudstate.curr_percentsubs = 0; /* Counter for substitutions called */
-    mudstate.cntr_reset = time_ng(NULL);
-    mudstate.tog_percentsubs = 0; /* Toggle disabler */
-    mudstate.cntr_percentsubs = 0; /* Counter of 3, and then you die */
+    mudstate_hot.curr_percentsubs = 0; /* Counter for substitutions called */
+    mudstate_hot.cntr_reset = time_ng(NULL);
+    mudstate_hot.tog_percentsubs = 0; /* Toggle disabler */
+    mudstate_hot.cntr_percentsubs = 0; /* Counter of 3, and then you die */
     mudstate.sidefx_toggle = 0; /* Toggle to show sidefx ceiling reached */
-    mudstate.inside_locks = 0;	/* Toggle inside lock check */
+    mudstate_hot.inside_locks = 0;	/* Toggle inside lock check */
     mudconf.max_sitecons = 50; /* Default maximum # of connects from this site */
     mudconf.must_unlquota = 0; /* Must @quota/unlock to give @quota */
     mudconf.partial_conn = 1; /* Enable/Disable @aconnects on partial connect */
@@ -760,7 +761,7 @@ NDECL(cf_init)
                                  */
     /* Connection security level */
     mudstate.cmp_lastsite = -1;
-    mudstate.nospam_counter = 0;
+    mudstate_hot.nospam_counter = 0;
     memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
     mudstate.cmp_lastsite_cnt = 0;
     mudstate.api_lastsite = -1;
@@ -777,10 +778,10 @@ NDECL(cf_init)
     mudconf.max_pcreate_time = 60;
     mudstate.last_pcreate_time = 0;
     mudstate.last_pcreate_cnt = 0;
-    mudstate.reverse_wild = 0;
-    mudstate.stack_val = 0;
-    mudstate.stack_toggle = 0;
-    mudstate.stack_cntr = 0;
+    mudstate_hot.reverse_wild = 0;
+    mudstate_hot.stack_val = 0;
+    mudstate_hot.stack_toggle = 0;
+    mudstate_hot.stack_cntr = 0;
     mudstate.train_cntr = 0;
     mudstate.sudo_cntr = 0;
 
@@ -808,16 +809,16 @@ NDECL(cf_init)
     mudconf.log_maximum = 1;
     mudconf.cluster_cap = 10;	/* Cap of cluster wait in seconds for action */
     mudconf.clusterfunc_cap = 1;/* Cap of cluster wait in seconds for action function */
-    mudstate.clust_time = 0;
+    mudstate_hot.clust_time = 0;
     mudstate.log_maximum = 0;
 
     memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
     mudstate.new_vattr = 0;
     mudstate.last_cmd_timestamp = 0;
-    mudstate.heavy_cpu_recurse = 0;
-    mudstate.heavy_cpu_tmark1 = time(NULL);
-    mudstate.heavy_cpu_tmark2 = time(NULL);
-    mudstate.heavy_cpu_lockdown = 0;
+    mudstate_hot.heavy_cpu_recurse = 0;
+    mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+    mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+    mudstate_hot.heavy_cpu_lockdown = 0;
     mudstate.max_logins_allowed = 0;
     mudstate.iter_inum = -1;
     /* Current CPU slam level */
@@ -825,46 +826,46 @@ NDECL(cf_init)
     /* Last dbref# to CPU-SLAM */
     mudstate.curr_cpu_user=NOTHING;
     mudstate.last_cpu_user=NOTHING;
-    mudstate.force_halt = 0;
+    mudstate_hot.force_halt = 0;
     mudstate.autoreg = 0;
-    mudstate.initializing = 0;
+    mudstate_hot.initializing = 0;
     mudstate.adminexec = 0;
-    mudstate.dbloading = 0;
-    mudstate.panicking = 0;
-    mudstate.logging = 0;
+    mudstate_hot.dbloading = 0;
+    mudstate_hot.panicking = 0;
+    mudstate_hot.logging = 0;
     mudstate.epoch = 0;
     mudstate.generation = 0;
-    mudstate.curr_player = NOTHING;
-    mudstate.curr_pid = -1;
+    mudstate_hot.curr_player = NOTHING;
+    mudstate_hot.curr_pid = -1;
     memset(mudstate.curr_pidcmd, '\0', LBUF_SIZE);
-    mudstate.curr_enactor = NOTHING;
-    mudstate.curr_cmd = (char *) "< none >";
-    mudstate.curr_plrcmd = (char *) "< none >";
+    mudstate_hot.curr_enactor = NOTHING;
+    mudstate_hot.curr_cmd = (char *) "< none >";
+    mudstate_hot.curr_plrcmd = (char *) "< none >";
     memset(mudstate.curr_cmd_hook, '\0', LBUF_SIZE);
-    mudstate.shutdown_flag = 0;
-    mudstate.reboot_flag = 0;
+    mudstate_hot.shutdown_flag = 0;
+    mudstate_hot.reboot_flag = 0;
     mudstate.rwho_on = 0;
     mudstate.attr_next = A_USER_START;
-    mudstate.debug_cmd = (char *) "< init >";
+    mudstate_hot.debug_cmd = (char *) "< init >";
     strcpy(mudstate.doing_hdr, "Doing");
     strcpy(mudstate.ng_doing_hdr, "Doing");
     strcpy(mudstate.guild_hdr, "Guild");
     mudstate.access_list = NULL;
     mudstate.suspect_list = NULL;
     mudstate.special_list = NULL;
-    mudstate.qfirst = NULL;
-    mudstate.qlast = NULL;
-    mudstate.qlfirst = NULL;
-    mudstate.qllast = NULL;
-    mudstate.qwait = NULL;
-    mudstate.qsemfirst = NULL;
-    mudstate.qsemlast = NULL;
-    mudstate.fqwait = NULL;
-    mudstate.fqsemfirst = NULL;
-    mudstate.fqsemlast = NULL;
+    mudstate_hot.qfirst = NULL;
+    mudstate_hot.qlast = NULL;
+    mudstate_hot.qlfirst = NULL;
+    mudstate_hot.qllast = NULL;
+    mudstate_hot.qwait = NULL;
+    mudstate_hot.qsemfirst = NULL;
+    mudstate_hot.qsemlast = NULL;
+    mudstate_hot.fqwait = NULL;
+    mudstate_hot.fqsemfirst = NULL;
+    mudstate_hot.fqsemlast = NULL;
     mudstate.badname_head = NULL;
     mudstate.protectname_head = NULL;
-    mudstate.lbuf_buffer = NULL;
+    mudstate_hot.lbuf_buffer = NULL;
     mudstate.mstat_ixrss[0] = 0;
     mudstate.mstat_ixrss[1] = 0;
     mudstate.mstat_idrss[0] = 0;
@@ -880,37 +881,37 @@ NDECL(cf_init)
     mudstate.mod_alist = NULL;
     mudstate.mod_size = 0;
     mudstate.mod_al_id = NOTHING;
-    mudstate.min_size = 0;
-    mudstate.db_top = 0;
-    mudstate.db_size = 0;
-    mudstate.freelist = NOTHING;
-    mudstate.markbits = NULL;
-    mudstate.trace_nest_lev = 0;
-    mudstate.func_nest_lev = 0;
-    mudstate.ufunc_nest_lev = 0;
-    mudstate.func_invk_ctr = 0;
-    mudstate.ntfy_nest_lev = 0;
-    mudstate.lock_nest_lev = 0;
-    mudstate.whisper_state = 0;
+    mudstate_hot.min_size = 0;
+    mudstate_hot.db_top = 0;
+    mudstate_hot.db_size = 0;
+    mudstate_hot.freelist = NOTHING;
+    mudstate_hot.markbits = NULL;
+    mudstate_hot.trace_nest_lev = 0;
+    mudstate_hot.func_nest_lev = 0;
+    mudstate_hot.ufunc_nest_lev = 0;
+    mudstate_hot.func_invk_ctr = 0;
+    mudstate_hot.ntfy_nest_lev = 0;
+    mudstate_hot.lock_nest_lev = 0;
+    mudstate_hot.whisper_state = 0;
     mudstate.nowall_over = 0;
-    mudstate.eval_rec = 0;
+    mudstate_hot.eval_rec = 0;
     for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-	mudstate.global_regs[i] = NULL;
-	mudstate.global_regsname[i] = NULL;
+	mudstate_hot.global_regs[i] = NULL;
+	mudstate_hot.global_regsname[i] = NULL;
 #ifndef NO_GLOBAL_REGBACKUP
-	mudstate.global_regs_backup[i] = NULL;
+	mudstate_hot.global_regs_backup[i] = NULL;
 #endif
     }
-    mudstate.remote = NOTHING;
-    mudstate.remotep = NOTHING;
+    mudstate_hot.remote = NOTHING;
+    mudstate_hot.remotep = NOTHING;
 #ifdef EXPANDED_QREGS
-    strcpy(mudstate.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
-    mudstate.nameofqreg[36]='\0';
+    strcpy(mudstate_hot.nameofqreg, "0123456789abcdefghijklmnopqrstuvwxyz");
+    mudstate_hot.nameofqreg[36]='\0';
 #else
-    strcpy(mudstate.nameofqreg, "0123456789");
-    mudstate.nameofqreg[10]='\0';
+    strcpy(mudstate_hot.nameofqreg, "0123456789");
+    mudstate_hot.nameofqreg[10]='\0';
 #endif
-    mudstate.emit_substitute = 0; /* Toggle @emit/substitute */
+    mudstate_hot.emit_substitute = 0; /* Toggle @emit/substitute */
     mudconf.allow_fancy_quotes = 0;  /* Allow UTF-8 double quote characters */
     mudconf.allow_fullwidth_colon = 0; /* Allow UTF-8 fullwidth colon character */
 #else
@@ -947,7 +948,7 @@ NDECL(cf_init)
     mudconf.vlimit = 100000; /* we need this to be very large for db conversions */
     mudconf.safer_passwords = 0; /* If enabled, requires tougher to guess passwords */
     mudconf.vattr_limit_checkwiz = 0; /* Check if wizards check vattr limits */
-    mudstate.logging = 0;
+    mudstate_hot.logging = 0;
     mudstate.attr_next = A_USER_START;
     mudstate.iter_alist.data = NULL;
     mudstate.iter_alist.len = 0;
@@ -955,13 +956,13 @@ NDECL(cf_init)
     mudstate.mod_alist = NULL;
     mudstate.mod_size = 0;
     mudstate.mod_al_id = NOTHING;
-    mudstate.min_size = 0;
-    mudstate.db_top = 0;
-    mudstate.db_size = 0;
-    mudstate.freelist = NOTHING;
-    mudstate.markbits = NULL;
-    mudstate.remote = NOTHING;
-    mudstate.remotep = NOTHING;
+    mudstate_hot.min_size = 0;
+    mudstate_hot.db_top = 0;
+    mudstate_hot.db_size = 0;
+    mudstate_hot.freelist = NOTHING;
+    mudstate_hot.markbits = NULL;
+    mudstate_hot.remote = NOTHING;
+    mudstate_hot.remotep = NOTHING;
 #endif /* STANDALONE */
 }
 
@@ -1012,7 +1013,7 @@ cf_log_notfound(dbref player, char *cmd, const char *thingname,
     }
 
     /* Modified this so buffers are cut off on unrecognized commands */
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
 	STARTLOG(LOG_STARTUP, "CNF", "NFND")
 	    buff = alloc_lbuf("cf_log_notfound.LOG");
 	sprintf(buff, "%.150s: %.1900s %.1900s not found",
@@ -1037,7 +1038,7 @@ cf_log_syntax(dbref player, char *cmd, const char *template, char *arg)
 {
     char *buff;
 
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
 	STARTLOG(LOG_STARTUP, "CNF", "SYNTX")
 	    buff = alloc_lbuf("cf_log_syntax.LOG");
 	sprintf(buff, template, arg);
@@ -1073,7 +1074,7 @@ cf_status_from_succfail(dbref player, char *cmd, int success, int failure)
        Always return FAILURE(-1) */
 
     if (failure == 0) {
-	if (mudstate.initializing) {
+	if (mudstate_hot.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NDATA")
 		buff = alloc_lbuf("cf_status_from_succfail.LOG");
 	    sprintf(buff, "%.3900s: Nothing to set", cmd);
@@ -1271,7 +1272,7 @@ CF_HAND(cf_chartoint)
      }
      s++;
   }
-  if ( !mudstate.initializing && *fail_str ) {
+  if ( !mudstate_hot.initializing && *fail_str ) {
      notify(player, unsafe_tprintf("Invalid substitutions: %s", fail_str));
   }
   free_lbuf(fail_str);
@@ -1282,7 +1283,7 @@ CF_HAND(cf_chartoint)
 CF_HAND(cf_int_runtime)
 {
    /* Copy the numeric value to the parameter but ONLY on startup */
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
        sscanf(str, "%d", vp);
        return 0;
     }
@@ -1295,14 +1296,14 @@ CF_HAND(cf_verifyint_runtime)
 {
     int vp_old = 0;
 
-    if ( !mudstate.initializing) {
+    if ( !mudstate_hot.initializing) {
        notify(player, "This value can only be set in the .conf file at boot time.");
        return -1;
     }
 
     sscanf(str, "%d", &vp_old);
     if ((vp_old < extra2) || (vp_old > extra)) {
-        if ( !mudstate.initializing) 
+        if ( !mudstate_hot.initializing) 
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
 	return -1;
     } else {
@@ -1320,7 +1321,7 @@ CF_HAND(cf_vint)
     i_ceil = 100000;
     sprintf(s_buf, (char *)"[QDBM/MDBX Mode]");
     if ((vp_old < 0) || (vp_old > i_ceil)) {
-        if ( !mudstate.initializing) {
+        if ( !mudstate_hot.initializing) {
            notify(player, unsafe_tprintf("%s Value must be between 0 and %d.", s_buf, i_ceil));
         }
 	return -1;
@@ -1337,7 +1338,7 @@ CF_HAND(cf_recurseint)
     sscanf(str, "%d", &vp_old);
     i_ceil = STACKMAX / 10;
     if ((vp_old < 0) || (vp_old > i_ceil)) {
-        if ( !mudstate.initializing) {
+        if ( !mudstate_hot.initializing) {
            notify(player, unsafe_tprintf("Value must be between 0 and %d [Stackmax is %d].", i_ceil, STACKMAX));
         }
 	return -1;
@@ -1353,7 +1354,7 @@ CF_HAND(cf_mailint)
 
     sscanf(str, "%d", &vp_old);
     if ((vp_old < 10) || (vp_old > 9999)) {
-        if ( !mudstate.initializing) 
+        if ( !mudstate_hot.initializing) 
            notify(player, "Value must be between 10 and 9999.");
 	return -1;
     } else {
@@ -1368,12 +1369,12 @@ CF_HAND(cf_timerint)
 
     sscanf(str, "%d", &vp_old);
     if ((vp_old < extra2) || (vp_old > extra)) {
-        if ( !mudstate.initializing) {
+        if ( !mudstate_hot.initializing) {
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
         }
 	return -1;
     } else if ( (vp_old != 1) && (vp_old != 10) && (vp_old != 100) && (vp_old != 1000) ) {
-        if ( !mudstate.initializing) {
+        if ( !mudstate_hot.initializing) {
            notify(player, unsafe_tprintf("Value must be 1, 10, 100, or 1000.", extra2, extra));
         }
 	return -1;
@@ -1389,12 +1390,12 @@ CF_HAND(cf_verifyintvattr)
 
     sscanf(str, "%d", &vp_old);
     if ((vp_old < extra2) || (vp_old > extra)) {
-        if ( !mudstate.initializing) 
+        if ( !mudstate_hot.initializing) 
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
 	return -1;
     } else {
         *vp = vp_old;
-         mudstate.vattr_counter = mudconf.vattr_interval + mudstate.nowmsec;
+         mudstate_hot.vattr_counter = mudconf.vattr_interval + mudstate_hot.nowmsec;
 	return 0;
     }
 }
@@ -1405,7 +1406,7 @@ CF_HAND(cf_verifyint)
 
     sscanf(str, "%d", &vp_old);
     if ((vp_old < extra2) || (vp_old > extra)) {
-        if ( !mudstate.initializing) 
+        if ( !mudstate_hot.initializing) 
            notify(player, unsafe_tprintf("Value must be between %d and %d.", extra2, extra));
 	return -1;
     } else {
@@ -1420,7 +1421,7 @@ CF_HAND(cf_verifyint_mysql)
 
     sscanf(str, "%d", &vp_old);
     if ( (vp_old != 0) && ((vp_old < extra2) || (vp_old > extra)) ) {
-        if ( !mudstate.initializing) 
+        if ( !mudstate_hot.initializing) 
            notify(player, unsafe_tprintf("Value must be 0 or between %d and %d.", extra2, extra));
 	return -1;
     } else {
@@ -1644,7 +1645,7 @@ CF_HAND(cf_hook)
     strncpy(playbuff, str, 200);
     hookcmd = strtok_r(playbuff, " \t", &tstrtokr);
     if ( hookcmd != NULL )
-       cmdp = (CMDENT *)hashfind(hookcmd, &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind(hookcmd, &mudstate_hot.command_htab);
     else
        return retval;
     if ( !cmdp )
@@ -1758,7 +1759,7 @@ CF_HAND(cf_dynguest)
    noret_val = 0;
 
    /* On initialization, lookup_player() doesn't work */
-   if (mudstate.initializing) {
+   if (mudstate_hot.initializing) {
       memset(playbuff, 0, sizeof(playbuff));
       strncpy(playbuff, str, 1000);
       tplaybuff = strtok_r(playbuff, " \t", &tstrtokr);
@@ -2759,7 +2760,7 @@ CF_HAND(cf_atrperms)
                      atrp2->target = i_target;
                      atrp2->enactor = i_enactor;
                      if ( (i_owner != -1) || (i_target != -1) ) {
-                        if ( mudstate.initializing ) 
+                        if ( mudstate_hot.initializing ) 
                            atrp2->controller = 1;
                         else
                            atrp2->controller = player;
@@ -2827,7 +2828,7 @@ CF_HAND(cf_atrperms)
             atrp->target = i_target;
             atrp->enactor = i_enactor;
             if ( (i_target != -1) || (i_owner != -1) ) {
-               if ( mudstate.initializing ) 
+               if ( mudstate_hot.initializing ) 
                   atrp->controller = 1;
                else
                   atrp->controller = player;
@@ -2898,7 +2899,7 @@ CF_HAND(cf_string_chr)
     l_diff = strlen(str);
     if (l_diff >= extra) {
 	str[extra - 1] = '\0';
-	if (mudstate.initializing) {
+	if (mudstate_hot.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
 	        sprintf(buff, "%.3900s: String truncated", cmd);
@@ -2964,7 +2965,7 @@ CF_HAND(cf_pronstring)
        }
        free_lbuf(s_buff);
     }
-    if ( mudstate.initializing ) {
+    if ( mudstate_hot.initializing ) {
        s_buff = alloc_lbuf("cf_pronstring2");
        STARTLOG(LOG_STARTUP, "CNF", "PRON")
           if ( retval ) {
@@ -2980,7 +2981,7 @@ CF_HAND(cf_pronstring)
        ENDLOG
        free_lbuf(s_buff);
     }
-    if ( str && *str && !retval && !mudstate.initializing ) {
+    if ( str && *str && !retval && !mudstate_hot.initializing ) {
        if ( i_pipe ) {
           notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1|sexname2:subj2:obj2:poss2:aposs2|...");
        } else {
@@ -3005,7 +3006,7 @@ CF_HAND(cf_stringver)
     l_diff = strlen(str);
     if (l_diff >= extra) {
 	str[extra - 1] = '\0';
-	if (mudstate.initializing) {
+	if (mudstate_hot.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_stringver.LOG");
 	        sprintf(buff, "%.3900s: String truncated", cmd);
@@ -3037,8 +3038,8 @@ CF_HAND(cf_stringtz)
 
     if ( !str || !*str ) {
        retval = -3;
-       if ( !mudstate.initializing ) {
-          tt = mudstate.now;
+       if ( !mudstate_hot.initializing ) {
+          tt = mudstate_hot.now;
           ttm = localtime(&tt);
 
           buff = alloc_lbuf("cf_stringtz.LOG");
@@ -3062,7 +3063,7 @@ CF_HAND(cf_stringtz)
           l_diff = strlen(str);
           if (l_diff >= extra) {
              str[extra - 1] = '\0';
-             if (mudstate.initializing) {
+             if (mudstate_hot.initializing) {
                 STARTLOG(LOG_STARTUP, "CNF", "NFND")
                    buff = alloc_lbuf("cf_stringtz.LOG");
                    sprintf(buff, "%.3900s: String truncated", cmd);
@@ -3091,7 +3092,7 @@ CF_HAND(cf_stringtz)
           STARTLOG(LOG_STARTUP, "CNF", "NFND")
              buff = alloc_lbuf("cf_stringtz.LOG");
              sprintf(buff, "Invalid TIMEZONE specified (%d loaded): %.3900s", global_timezone_max,  str);
-             if ( !mudstate.initializing ) {
+             if ( !mudstate_hot.initializing ) {
                 notify_quiet(player, buff);
              }
              log_text(buff);
@@ -3115,7 +3116,7 @@ CF_HAND(cf_string)
     l_diff = strlen(str);
     if (l_diff >= extra) {
 	str[extra - 1] = '\0';
-	if (mudstate.initializing) {
+	if (mudstate_hot.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
 	        sprintf(buff, "%.3900s: String truncated", cmd);
@@ -3146,7 +3147,7 @@ CF_HAND(cf_string_sub)
     l_diff = strlen(str);
     if (l_diff >= extra) {
 	str[extra - 1] = '\0';
-	if (mudstate.initializing) {
+	if (mudstate_hot.initializing) {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
 		buff = alloc_lbuf("cf_string.LOG");
 	        sprintf(buff, "%.3900s: String truncated", cmd);
@@ -3164,7 +3165,7 @@ CF_HAND(cf_string_sub)
     for (ptr = str; *ptr; ptr++) {
        *ptr = ToLower(*ptr);
        if ( strchr(s_sublist, *ptr) != NULL ) {
-          if ( !mudstate.initializing ) {
+          if ( !mudstate_hot.initializing ) {
             notify(player, "String invalid.  Contained reserved percent-sub character.");
           } else {
 	    STARTLOG(LOG_STARTUP, "CNF", "NFND")
@@ -3329,7 +3330,7 @@ CF_HAND(cf_totemadd)
     char *totem = NULL, *totem_value = NULL, *totem_slot = NULL, *tstrtokr, *s_inbuff, *s_new;
     int retval, i_tv = -1, i_ts = -1;
 
-    if (!mudstate.initializing) {
+    if (!mudstate_hot.initializing) {
        if ( Good_chk(player) ) {
           notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
        }
@@ -3375,7 +3376,7 @@ CF_HAND(cf_totemletter)
          *tstrtokr, *s_inbuff, *s_new;
     int retval, i_tier;
 
-    if (!mudstate.initializing) {
+    if (!mudstate_hot.initializing) {
        if ( Good_chk(player) ) {
           notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
        }
@@ -3416,7 +3417,7 @@ CF_HAND(cf_totemalias)
     char *alias = NULL, *orig = NULL, *tstrtokr, *s_inbuff, *s_new;
     int retval;
 
-    if (!mudstate.initializing) {
+    if (!mudstate_hot.initializing) {
        if ( Good_chk(player) ) {
           notify_quiet(player, "This @admin parameter can only be issued through .conf files.");
        }
@@ -3460,7 +3461,7 @@ CF_HAND(cf_flagalias)
     orig = strtok_r(NULL, " \t=,", &tstrtokr);
 
     retval = validate_aliases(player,
-			      &mudstate.flags_htab, orig, alias,
+			      &mudstate_hot.flags_htab, orig, alias,
 			      "Flag", cmd);
     return retval;
 }
@@ -3469,7 +3470,7 @@ CF_HAND(cf_flagname)
 {
     char *alias, *orig, *tstrtokr;
 
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
 	alias = strtok_r(str, " \t=,", &tstrtokr);
 	orig = strtok_r(NULL, " \t=,", &tstrtokr);
 	return (flagstuff_internal(orig,alias));
@@ -3816,7 +3817,7 @@ CF_HAND(cf_set_toggles)
 	else
 	  clear = 0;
 
-        fp = (TOGENT *) hashfind(sp, &mudstate.toggles_htab);
+        fp = (TOGENT *) hashfind(sp, &mudstate_hot.toggles_htab);
 	if (fp != NULL) {
 	    if (success == 0) {
 		(*fset).word1 = 0;
@@ -3884,7 +3885,7 @@ CF_HAND(cf_set_flags)
 	else
 	  clear = 0;
 
-	fp = (FLAGENT *) hashfind(sp, &mudstate.flags_htab);
+	fp = (FLAGENT *) hashfind(sp, &mudstate_hot.flags_htab);
 	if (fp != NULL) {
 	    if (success == 0) {
 		(*fset).word1 = 0;
@@ -4097,7 +4098,7 @@ CF_HAND2(cf_site)
      * made while running are processed first.
      */
 
-    if (mudstate.initializing) {
+    if (mudstate_hot.initializing) {
 	if (head == NULL) {
 	    *vp = (pmath2) site;
 	} else {
@@ -4155,7 +4156,7 @@ CF_HAND(cf_include)
     extern int FDECL(cf_set, (char *, char *, dbref));
 
 
-    if (!mudstate.initializing)
+    if (!mudstate_hot.initializing)
 	return -1;
 
     STARTLOG(LOG_ALWAYS, "CNF", "INCL")
@@ -4250,7 +4251,7 @@ CONF conftable[] =
      (char *) "Maximum listen/ahear time laps (in seconds)?\r\n"\
               "                             Default: 60   Value: %d"},
     {(char *) "alias",
-     cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.command_htab, 0, 0, CA_WIZARD,
+     cf_cmd_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.command_htab, 0, 0, CA_WIZARD,
      (char *) "Define command aliases."},
     {(char *) "allow_ansinames",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
@@ -4283,7 +4284,7 @@ CONF conftable[] =
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
      (char *) "Configure attribute permissions (internal)."},
     {(char *) "attr_alias",
-     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.attr_name_htab, 0, 0, CA_WIZARD,
+     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.attr_name_htab, 0, 0, CA_WIZARD,
      (char *) "Define attribute aliases."},
     {(char *) "attr_cmd_access",
      cf_acmd_access, CA_GOD | CA_IMMORTAL, NULL,
@@ -4778,7 +4779,7 @@ CONF conftable[] =
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure permissions for functions."},
     {(char *) "function_alias",
-     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate.func_htab, 0, 0, CA_WIZARD,
+     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.func_htab, 0, 0, CA_WIZARD,
      (char *) "Define aliases for functions."},
     {(char *) "function_invocation_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.func_invk_lim, 0, 0, CA_WIZARD,
@@ -6086,19 +6087,19 @@ cf_set(char *cp, char *ap, dbref player)
 
     for (tp = conftable; tp->pname; tp++) {
 	if (!strcmp(tp->pname, cp)) {
-	    if (!mudstate.initializing &&
+	    if (!mudstate_hot.initializing &&
 		!check_access(player, tp->flags, 0, 0)) {
 		notify(player,
 		       "Permission denied.");
 		return (-1);
 	    }
-	    if (!mudstate.initializing) {
+	    if (!mudstate_hot.initializing) {
 		buff = alloc_lbuf("cf_set");
 		strcpy(buff, ap);
 	    }
 	    i = ((int (*)(int *, char *, long, long, dbref, char *))tp->interpreter)(tp->loc, ap, tp->extra, tp->extra2, player, cp);
             if ( i != 777) {
-	       if (!mudstate.initializing) {
+	       if (!mudstate_hot.initializing) {
 		   STARTLOG(LOG_CONFIGMODS, "CFG", "UPDAT")
 		       log_name(player);
 		   log_text((char *) " entered config directive: ");
@@ -6151,12 +6152,12 @@ cf_read(char *fn)
     int retval;
 
     if ( strcmp(fn, "rhost_vattr.conf") == 0 ) {
-       mudstate.initializing = -1;
+       mudstate_hot.initializing = -1;
     } else {
-       mudstate.initializing = 1;
+       mudstate_hot.initializing = 1;
     }
     retval = cf_include(NULL, fn, 0, 0, 0, (char *) "init");
-    mudstate.initializing = 0;
+    mudstate_hot.initializing = 0;
 
     /* Fill in missing DB file names */
 
@@ -6715,7 +6716,7 @@ CMD_ONE_ARG(dump_config) {
       notify(player, "Could not open file for writing.");
     } else {
       fprintf("# RhostMUSH config file.\n");
-      fprintf("# Autogenerated by %s at %s.\n", Name(player), ctime(&mudstate.now));
+      fprintf("# Autogenerated by %s at %s.\n", Name(player), ctime(&mudstate_hot.now));
       fprintf("#\n");
       for (pConf = conftable, i = 0 ; pConf[i].pname != NULL ; i++) {
 	fprintf("# Param: %s\n#   %s\n%s\t",

@@ -207,7 +207,7 @@ char	*savec, *cp;
 int string_compare(const char *s1, const char *s2)
 {
 #ifndef STANDALONE
-  if( !mudconf.space_compress || mudstate.no_space_compress ) {
+  if( !mudconf.space_compress || mudstate_hot.no_space_compress ) {
     while (*s1 && *s2 && ToLower((int)*s1) == ToLower((int)*s2))
       s1++, s2++;
 
@@ -2158,17 +2158,17 @@ trigger_cluster_action(dbref thing, dbref player)
          attr = atr_str_cluster("_CLUSTER_ACTION_FUNC");
          if ( !attr ) {
             attr = atr_str_cluster("_CLUSTER_ACTION");
-            if ( attr && (mudstate.clust_time + mudconf.cluster_cap) < mudstate.now ) {
+            if ( attr && (mudstate_hot.clust_time + mudconf.cluster_cap) < mudstate_hot.now ) {
                did_it(thing, thing, 0, NULL, 0, NULL, attr->number, (char **) NULL, 0);
-               mudstate.clust_time = mudstate.now;
+               mudstate_hot.clust_time = mudstate_hot.now;
             }
-         } else if ( (mudstate.clust_time + mudconf.clusterfunc_cap) < mudstate.now ) {
+         } else if ( (mudstate_hot.clust_time + mudconf.clusterfunc_cap) < mudstate_hot.now ) {
             s_strtok = atr_get(thing, attr->number, &aowner, &aflags);
             if ( s_strtok && *s_strtok ) {
                s_tmpstr = cpuexec(thing, thing, thing, EV_STRIP | EV_FCHECK | EV_EVAL, 
                                s_strtok, (char **)NULL, 0, (char **)NULL, 0);
                free_lbuf(s_tmpstr);
-               mudstate.clust_time = mudstate.now;
+               mudstate_hot.clust_time = mudstate_hot.now;
             }
             free_lbuf(s_strtok);
          }

@@ -499,7 +499,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
     DPUSH; /* #2 */
     apiport = mudconf.api_port;
-    mudstate.debug_cmd = (char *) "< shovechars >";
+    mudstate_hot.debug_cmd = (char *) "< shovechars >";
     sock = sock2 = sock6 = sock6_api = -1;
     maxd = 0;
     if (ip_family & 1) {
@@ -637,7 +637,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
     mudstate.max_logins_allowed = avail_descriptors - 10;
     ENDLOG
 
-    while (mudstate.shutdown_flag == 0) {
+    while (mudstate_hot.shutdown_flag == 0) {
 
         /* Beginning of a new cycle - free unsafe_tprint buffers */
         freeTrackedBuffers();
@@ -650,7 +650,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	door_processInternalDoors();
 #endif
 	local_tick();
-	if (mudstate.shutdown_flag || mudstate.reboot_flag)
+	if (mudstate_hot.shutdown_flag || mudstate_hot.reboot_flag)
 	    break;
 
 	/* test for events */
@@ -959,7 +959,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
 	    if (D_FLAGS(d) & DS_HAS_DOOR) {
 	      if (CheckInput(d->cold->door_desc)) {
-		D_LAST_TIME(d) = mudstate.now;
+		D_LAST_TIME(d) = mudstate_hot.now;
 		if (!process_door_input(d)) {
 		  closeDoorWithId(d, d->cold->door_num);
 		}
@@ -985,7 +985,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                 i_oldlasttime = D_LAST_TIME(d);
                 flagkeep = D_FLAGS(d);
                 if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) ) {
-                   D_LAST_TIME(d) = mudstate.now;
+                   D_LAST_TIME(d) = mudstate_hot.now;
                    if (D_FLAGS(d) & DS_AUTODARK) {
                        D_FLAGS(d) &= ~DS_AUTODARK;
                        s_Flags(D_PLAYER(d),
@@ -997,7 +997,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                                Flags2(D_PLAYER(d)) & ~UNFINDABLE);
                    }
                 } else if ( D_LAST_TIME(d) == 0 ) {
-                   D_LAST_TIME(d) = mudstate.now;
+                   D_LAST_TIME(d) = mudstate_hot.now;
                 }
 
 		/* Process received data */
@@ -1115,7 +1115,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                         ((stricmp(s_cutter, "think") == 0) && mudconf.think_is_idle) ||
                         (stricmp(s_cutter, "idle") == 0) ||
                         (stricmp(s_cutter2, "idle @@") == 0)) ) {
-                      cmdp = (CMDENT *) hashfind("idle", &mudstate.command_htab);
+                      cmdp = (CMDENT *) hashfind("idle", &mudstate_hot.command_htab);
                       if ( cmdp && check_access(D_PLAYER(d), cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(D_PLAYER(d)) && cmdtest(D_PLAYER(d), "idle")) ) {
                             D_LAST_TIME(d) = i_oldlasttime;
@@ -1301,8 +1301,8 @@ new_connection(int sock, int key)
     DPUSH; /* #5 */
 
     cur_port = i_proxychk = 0;
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< new_connection >";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< new_connection >";
     i_addflags = 0;
     if ( key ) {
        i_addflags = MF_API;
@@ -1489,21 +1489,21 @@ new_connection(int sock, int key)
 
      if ( i_addflags & MF_API ) {
         mudstate.api_lastsite_cnt++;
-        if ( ((mudstate.last_apicon_attempt + 60) < mudstate.now) || (mudstate.last_apicon_attempt == 0) ) {
-           mudstate.last_apicon_attempt = mudstate.now;
+        if ( ((mudstate.last_apicon_attempt + 60) < mudstate_hot.now) || (mudstate.last_apicon_attempt == 0) ) {
+           mudstate.last_apicon_attempt = mudstate_hot.now;
         }
         strcpy(tchbuff, mudconf.passapi_host);
         addroutbuf = (char *) addrout(ipbuf, addr_family, (i_addflags & MF_API));
         if ( ((mudstate.api_lastsite_cnt >= mudconf.max_lastsite_api) &&
               (strcmp(mudstate.api_lastsite_ip, ipbuf) == 0) &&
-              (mudstate.last_apicon_attempt >= (mudstate.now - 60))) &&
+              (mudstate.last_apicon_attempt >= (mudstate_hot.now - 60))) &&
             !((site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_PASSAPI) == H_PASSAPI) ||
                ((char *)mudconf.passapi_host && lookup(addroutbuf, tchbuff, maxsitecon, &i_retvar))) ) {
             sprintf(tchbuff, "%s %s", ipbuf, (addr_family == AF_INET6) ? "/128" : "255.255.255.255");
             if ( !(site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_FORBIDAPI) == H_FORBIDAPI) ) {
               cf_site((int *)&mudstate.access_list, tchbuff, H_FORBIDAPI|H_AUTOSITE, 0, 1, "forbidapi_site");
               broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("API SITE SET AUTO-FORBID[%d attempts/%ds time]", 
-                                mudstate.api_lastsite_cnt, (mudstate.now - mudstate.last_apicon_attempt)),
+                                mudstate.api_lastsite_cnt, (mudstate_hot.now - mudstate.last_apicon_attempt)),
                                 NULL, ipbuf, newsock, 0, cur_port, NULL);
               STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
                  buff = alloc_lbuf("new_connection.LOG.autoforbidapi");
@@ -1527,14 +1527,14 @@ new_connection(int sock, int key)
                !(site_check_str(ipbuf, addr_family, mudstate.access_list, 1, 0, H_REGISTRATION) == H_REGISTRATION)) ) {
            if ( (mudstate.cmp_lastsite_cnt >= mudconf.max_lastsite_cnt) &&
                 (strcmp(mudstate.lastsite_ip, ipbuf) == 0) &&
-                 (mudstate.last_con_attempt >= (mudstate.now - mudconf.min_con_attempt)) ) {
+                 (mudstate.last_con_attempt >= (mudstate_hot.now - mudconf.min_con_attempt)) ) {
                sprintf(tchbuff, "%s %s", ipbuf, (addr_family == AF_INET6) ? "/128" : "255.255.255.255");
               if (mudconf.lastsite_paranoia == 1) {
                  cf_site((int *)&mudstate.access_list, tchbuff,
                          H_REGISTRATION|H_AUTOSITE, 0, 1, "register_site");
     	        broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-REGISTER[%d attempts/%ds time]", 
                                    mudstate.cmp_lastsite_cnt, 
-                                   (mudstate.now - mudstate.last_con_attempt)),
+                                   (mudstate_hot.now - mudstate.last_con_attempt)),
                                    NULL, ipbuf, newsock, 0, cur_port, NULL);
   	        STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOR")
   	        buff = alloc_lbuf("new_connection.LOG.autoregister");
@@ -1548,7 +1548,7 @@ new_connection(int sock, int key)
                          H_FORBIDDEN|H_AUTOSITE, 0, 1, "forbid_site");
     	        broadcast_monitor(NOTHING, MF_CONN | i_addflags, unsafe_tprintf("SITE SET AUTO-FORBID[%d attempts/%ds time]", 
                                    mudstate.cmp_lastsite_cnt, 
-                                   (mudstate.now - mudstate.last_con_attempt)),
+                                   (mudstate_hot.now - mudstate.last_con_attempt)),
                                    NULL, ipbuf, newsock, 0, cur_port, NULL);
   	        STARTLOG(LOG_NET | LOG_SECURITY, "NET", "AUTOF")
   	        buff = alloc_lbuf("new_connection.LOG.autoregister");
@@ -1561,14 +1561,14 @@ new_connection(int sock, int key)
                mudstate.cmp_lastsite_cnt = 0;
            } else if ( (mudconf.lastsite_paranoia > 0) &&
                        ((strcmp(mudstate.lastsite_ip, ipbuf) != 0) || 
-                        (mudstate.last_con_attempt < (mudstate.now - mudconf.min_con_attempt))) ) {
+                        (mudstate.last_con_attempt < (mudstate_hot.now - mudconf.min_con_attempt))) ) {
               strncpy(mudstate.lastsite_ip, ipbuf, sizeof(mudstate.lastsite_ip) - 1);
               mudstate.lastsite_ip[sizeof(mudstate.lastsite_ip) - 1] = '\0';
               mudstate.cmp_lastsite_cnt = 0;
            }
-           if ( ((mudstate.last_con_attempt + mudconf.min_con_attempt) < mudstate.now) ||
+           if ( ((mudstate.last_con_attempt + mudconf.min_con_attempt) < mudstate_hot.now) ||
                  (mudstate.last_con_attempt == 0) ) {
-              mudstate.last_con_attempt = mudstate.now;
+              mudstate.last_con_attempt = mudstate_hot.now;
               mudstate.cmp_lastsite_cnt = 0;
            }
            mudstate.cmp_lastsite_cnt++;
@@ -1633,20 +1633,20 @@ new_connection(int sock, int key)
 	   ENDLOG
          } else if ( mudconf.nospam_connect == 1 ) {
             if ( !(*mudstate.nospam_lastsite) || (strcmp(mudstate.nospam_lastsite, ipbuf) != 0) ) {
-               if ( mudstate.nospam_counter > 0 ) {
+               if ( mudstate_hot.nospam_counter > 0 ) {
                   STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
                      buff = alloc_lbuf("new_connection.LOG.badsite");
                      sprintf(buff, "[%s] Connection refused [total %d times].",
-                             mudstate.nospam_lastsite, mudstate.nospam_counter);
+                             mudstate.nospam_lastsite, mudstate_hot.nospam_counter);
                      log_text(buff);
                      free_lbuf(buff);
                   ENDLOG
                }
                memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
                sprintf(mudstate.nospam_lastsite, "%.*s", (int)sizeof(mudstate.nospam_lastsite) - 1, ipbuf);
-               mudstate.nospam_counter = 1;
+               mudstate_hot.nospam_counter = 1;
             } else {
-               mudstate.nospam_counter++;
+               mudstate_hot.nospam_counter++;
             }
          }
          if ( maxsitecon >= mudconf.max_sitecons ) {
@@ -1683,15 +1683,15 @@ new_connection(int sock, int key)
 	buff = alloc_lbuf("new_connection.sitename");
          if ( mudconf.nospam_connect == 1 ) {
             if ( *mudstate.nospam_lastsite ) {
-               if ( mudstate.nospam_counter > 0 ) {
+               if ( mudstate_hot.nospam_counter > 0 ) {
                   STARTLOG(LOG_NET | LOG_SECURITY, "NET", "SITE")
                      sprintf(buff, "[%s] Connection refused [total %d times].",
-                             mudstate.nospam_lastsite, mudstate.nospam_counter);
+                             mudstate.nospam_lastsite, mudstate_hot.nospam_counter);
                      log_text(buff);
                   ENDLOG
                }
                memset(mudstate.nospam_lastsite, '\0', sizeof(mudstate.nospam_lastsite));
-               mudstate.nospam_counter = 0;
+               mudstate_hot.nospam_counter = 0;
             }
          }
          memset(buff, 0, LBUF_SIZE);
@@ -1714,9 +1714,9 @@ new_connection(int sock, int key)
 	d = initializesock(newsock, ipbuf, addr_family, cur_port, buff, i_proxychk, key);
          broadcast_monitor(NOTHING, MF_CONN | i_addflags, "PORT CONNECT", NULL, buff, newsock, 0, cur_port, NULL);
 	free_lbuf(buff);
-	mudstate.debug_cmd = cmdsave;
+	mudstate_hot.debug_cmd = cmdsave;
     }
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
 
     if ( key && d ) {
        D_FLAGS(d) |= DS_API;
@@ -1864,7 +1864,7 @@ shutdownsock(DESC * d, int reason)
 	 */
 
 	STARTLOG(LOG_ACCOUNTING, "DIS", "ACCT")
-	    now = mudstate.now - d->cold->connected_at;
+	    now = mudstate_hot.now - d->cold->connected_at;
 	buff = alloc_lbuf("shutdownsock.LOG.accnt");
 	buff2 = decode_flags(GOD, GOD, Flags(D_PLAYER(d)),
 			     Flags2(D_PLAYER(d)), Flags3(D_PLAYER(d)),
@@ -1925,7 +1925,7 @@ shutdownsock(DESC * d, int reason)
         }
         free_lbuf(t_addroutbuf);
 	D_FLAGS(d) &= ~DS_CONNECTED;
-	d->cold->connected_at = mudstate.now;
+	d->cold->connected_at = mudstate_hot.now;
 	d->cold->retries_left = mudconf.retry_limit;
 	d->cold->regtries_left = mudconf.regtry_limit;
 	d->cold->command_count = 0;
@@ -1982,7 +1982,7 @@ shutdownsock(DESC * d, int reason)
 	D_OUTPUT_TOT(d) = 0;
          
         mudstate.total_bytesin += D_INPUT_SIZE(d);
-        if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+        if ( (mudstate.reset_daily_bytes + 86400) < mudstate_hot.now ) {
            if ( mudstate.avg_bytesin == 0 ) {
               mudstate.avg_bytesin = mudstate.daily_bytesin;
            } else {
@@ -2005,7 +2005,7 @@ shutdownsock(DESC * d, int reason)
 	while (d->cold->snooplist) {
 	    temp = d->cold->snooplist->next;
 	    if (d->cold->snooplist->sfile) {
-		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to logout: (%ld) %s", mudstate_hot.now, ctime(&mudstate_hot.now));
 		fclose(d->cold->snooplist->sfile);
 	    }
 	    free(d->cold->snooplist);
@@ -2013,7 +2013,7 @@ shutdownsock(DESC * d, int reason)
 	}
 	d->cold->snooplist = NULL;
 	d->cold->logged = 0;
-        if ( !mudstate.no_announce ) {
+        if ( !mudstate_hot.no_announce ) {
 	   welcome_user(d);
         }
     } else {
@@ -2025,7 +2025,7 @@ shutdownsock(DESC * d, int reason)
 	while (d->cold->snooplist) {
 	    temp = d->cold->snooplist->next;
 	    if (d->cold->snooplist->sfile) {
-		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate.now, ctime(&mudstate.now));
+		fprintf(d->cold->snooplist->sfile, "Snoop stopped due to shutdown of descriptor: (%ld) %s", mudstate_hot.now, ctime(&mudstate_hot.now));
 		fclose(d->cold->snooplist->sfile);
 	    }
 	    free(d->cold->snooplist);
@@ -2165,7 +2165,7 @@ start_auth(DESC * d)
 
     if( connect(d->cold->authdescriptor, (struct sockaddr *) &sin, sizeof(sin)) < 0){
         if( errno != EINPROGRESS ) {
-          mudstate.alarm_triggered = 2;
+          mudstate_hot.alarm_triggered = 2;
   	  D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
           logbuff = alloc_lbuf("start_auth.LOG.timeout");
           if( errno != EINTR ) {
@@ -2377,7 +2377,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     if ( !keyval ) {
        D_FLAGS(d) = DS_AUTH_IN_PROGRESS | DS_NEED_AUTH_WRITE;
     }
-    d->cold->connected_at = mudstate.now;
+    d->cold->connected_at = mudstate_hot.now;
     d->cold->retries_left = mudconf.retry_limit;
     d->cold->regtries_left = mudconf.regtry_limit;
     d->cold->command_count = 0;
@@ -2540,8 +2540,8 @@ process_output(DESC * d)
 
     DPUSH; /* #12 */
 
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< process_output >";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< process_output >";
 
     tb = D_OUTPUT_HEAD(d);
     retry_cnt = retry_success = 0;
@@ -2551,7 +2551,7 @@ process_output(DESC * d)
 	    cnt = WRITE(D_DESCRIPTOR(d), tb->hdr.start,
 			tb->hdr.nchars);
 	    if (cnt < 0) {
-		mudstate.debug_cmd = cmdsave;
+		mudstate_hot.debug_cmd = cmdsave;
                 if ( (errno == EWOULDBLOCK) || (errno == EAGAIN) ) {
                    while ( retry_cnt < 10 ) {
 	              cnt = WRITE(D_DESCRIPTOR(d), tb->hdr.start, tb->hdr.nchars);
@@ -2608,7 +2608,7 @@ process_output(DESC * d)
 	if (tb == NULL)
 	    D_OUTPUT_TAIL(d) = NULL;
     }
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     RETURN(1); /* #12 */
 }
 
@@ -2687,14 +2687,14 @@ process_input(DESC * d)
 #endif
 
     DPUSH; /* #16 */
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< process_input >";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< process_input >";
 
     memset(qfind, '\0', sizeof(qfind));
     memset(tmpbuf, '\0', sizeof(tmpbuf));
     got = in = READ(D_DESCRIPTOR(d), buf, sizeof buf);
     if (got <= 0) {
-	mudstate.debug_cmd = cmdsave;
+	mudstate_hot.debug_cmd = cmdsave;
 	RETURN(0); /* #16 */
     }
 #ifdef ENABLE_WEBSOCKETS
@@ -2704,7 +2704,7 @@ process_input(DESC * d)
         got2 = got;
         got = in = process_websocket_frame(d, buf, got2);
         if (d->cold->ws_closing) {
-            mudstate.debug_cmd = cmdsave;
+            mudstate_hot.debug_cmd = cmdsave;
             RETURN(1);
         }
     }
@@ -2833,7 +2833,7 @@ process_input(DESC * d)
     if ( got > 0 ) {
        D_INPUT_TOT(d) += got;
        mudstate.total_bytesin += got;
-       if ( (mudstate.reset_daily_bytes + 86400) < mudstate.now ) {
+       if ( (mudstate.reset_daily_bytes + 86400) < mudstate_hot.now ) {
           if ( mudstate.avg_bytesin == 0 ) {
              mudstate.avg_bytesin = mudstate.daily_bytesin;
           } else {
@@ -2856,7 +2856,7 @@ process_input(DESC * d)
     if ( lost > 0 )
        d->cold->input_lost += lost;
     
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     RETURN(1); /* #16 */
 }
 
@@ -2879,7 +2879,7 @@ close_sockets(int emergency, char *message)
 	} else {
 	    queue_string(d, message);
 	    queue_write(d, "\r\n", 2);
-	    if (!(mudstate.reboot_flag))
+	    if (!(mudstate_hot.reboot_flag))
 	      shutdownsock(d, R_GOING_DOWN);
 	    else
 	      shutdownsock(d, R_REBOOT);
@@ -3006,7 +3006,7 @@ void ignore_signals(){
 /* Called to reset signal handling after db operations. */
 
 void reset_signals(){
-        if ( mudstate.reboot_flag || (signal_depth < 1) )
+        if ( mudstate_hot.reboot_flag || (signal_depth < 1) )
            return;
 
 	signal_depth = signal_depth - 1; /* Reduce 'signal unset' depth. We only want
@@ -3015,7 +3015,7 @@ void reset_signals(){
 	if(signal_depth == 0) 
 		set_signals();
         /* If signals were ignored, the alarm_msec() will have been as well */
-        mudstate.alarm_triggered = 0;
+        mudstate_hot.alarm_triggered = 0;
         alarm_msec (next_timer());
 }
 
@@ -3028,12 +3028,12 @@ check_panicking(int sig)
 
     /* If we are panicking, turn off signal catching and resignal */
 
-    if (mudstate.panicking) {
+    if (mudstate_hot.panicking) {
 	for (i = 0; i < NSIG; i++)
 	    signal(i, SIG_DFL);
 	kill(getpid(), sig);
     }
-    mudstate.panicking = 1;
+    mudstate_hot.panicking = 1;
     DPOP; /* #21 */
 }
 
@@ -3122,7 +3122,7 @@ sighandler(int sig)
     switch (sig) {
     case SIGALRM:		/* Timer */
         /* This will allow dispatch() to update the queue */
-	mudstate.alarm_triggered = 1;
+	mudstate_hot.alarm_triggered = 1;
 	break;
     case SIGCHLD:		/* Change in child status */
 #ifndef SIGNAL_SIGCHLD_BRAINDAMAGE
@@ -3181,7 +3181,7 @@ sighandler(int sig)
                                   break;
                                if ( i_croncnt < 20 ) {
                                   wait_que(i_crontmp, i_crontmp, 0, NOTHING, s_crontmp, (char **)NULL, 0,
-                                         mudstate.global_regs, mudstate.global_regsname);
+                                         mudstate_hot.global_regs, mudstate_hot.global_regsname);
                                } else {
                                   STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
                                      log_text((char *) "Signal USR1 received with signal_crontab: Entries after the 20th command line ignored.");
@@ -3267,7 +3267,7 @@ sighandler(int sig)
           STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
             log_text((char *) "Reboot due to signal SIGUSR1.");
           ENDLOG
-          mudstate.reboot_flag = 1;
+          mudstate_hot.reboot_flag = 1;
           break;			
     case SIGHUP:		/* Perform a database dump */
         log_signal(signames[sig], sig);
@@ -3296,13 +3296,13 @@ sighandler(int sig)
            log_text((char*) "Shutting down due to signal SIGUSR2.");
            if ( mudstate.dumpstatechk ) {
               log_text((char *)"  Waiting for dump to finish.  Passively triggering shutdown.");
-              mudstate.shutdown_flag = 1;
+              mudstate_hot.shutdown_flag = 1;
            }
         ENDLOG
-        if ( !mudstate.shutdown_flag ) {
+        if ( !mudstate_hot.shutdown_flag ) {
            mudstate.forceusr2 = 0;
            do_shutdown(NOTHING, NOTHING, 0, buff);
-           mudstate.shutdown_flag = 1;
+           mudstate_hot.shutdown_flag = 1;
         }
         break;
     case SIGTERM:		/* Attempt flatfile dump before shutdown. */
@@ -3413,7 +3413,7 @@ sighandler(int sig)
 
     }
     signal(sig, sighandler);
-    mudstate.panicking = 0;
+    mudstate_hot.panicking = 0;
 #ifdef VMS
     RETURN(1); /* #23 */
 #else

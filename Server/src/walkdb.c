@@ -29,7 +29,7 @@ char	*command;		/* allocated by replace_string  */
 
 	command = replace_string (BOUND_VAR, argstr, action, 0),
 	wait_que (player, cause, 0, NOTHING, command, cargs, ncargs,
-		mudstate.global_regs, mudstate.global_regsname);
+		mudstate_hot.global_regs, mudstate_hot.global_regsname);
 	free_lbuf(command);
 }
 
@@ -185,7 +185,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    int x, cntr, pid_val, i_localize, i_clearreg, i_nobreak, i_inline, i_storebreak, i_jump, i_rollback, i_chkinline, i_hook;
 
    pid_val = 0;
-   i_storebreak = mudstate.breakst;
+   i_storebreak = mudstate_hot.breakst;
 
    if ( ((key & DOLIST_PID) && (key & DOLIST_NOTIFY)) ||
         (((key & DOLIST_CLEARREG) || (key & DOLIST_NOBREAK) || (key & DOLIST_LOCALIZE)) && !(key & DOLIST_INLINE)) ) {
@@ -267,42 +267,42 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                   *saveregname[x] = '\0';
                   pt = savereg[x];
                   npt = saveregname[x];
-                  safe_str(mudstate.global_regs[x],savereg[x],&pt);
-                  safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+                  safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+                  safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
                   if ( i_clearreg ) {
-                     *mudstate.global_regs[x] = '\0';
-                     *mudstate.global_regsname[x] = '\0';
+                     *mudstate_hot.global_regs[x] = '\0';
+                     *mudstate_hot.global_regsname[x] = '\0';
                   }
                }
             }
-            if ( mudstate.chkcpu_inline ) {
-               i_now = mudstate.now;
+            if ( mudstate_hot.chkcpu_inline ) {
+               i_now = mudstate_hot.now;
             } else {
                i_now = time(NULL);
             }
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;
             strcpy(s_rollback, mudstate.rollback);
-            i_jump = mudstate.jumpst;
+            i_jump = mudstate_hot.jumpst;
             i_rollback = mudstate.rollbackcnt;
-            mudstate.jumpst = mudstate.rollbackcnt = 0;
+            mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
             if ( buff3tok ) {
                strcpy(mudstate.rollback, buff3tok);
             }
-            i_chkinline = mudstate.chkcpu_inline;
-            sprintf(mudstate.chkcpu_inlinestr, "%s", (char *)"@dolist/inline");
-            mudstate.chkcpu_inline = 1;
-            i_hook = mudstate.no_hook;
-            while ( !mudstate.breakdolist && !mudstate.chkcpu_toggle && buff3tok && !mudstate.breakst ) { 
+            i_chkinline = mudstate_hot.chkcpu_inline;
+            sprintf(mudstate_hot.chkcpu_inlinestr, "%s", (char *)"@dolist/inline");
+            mudstate_hot.chkcpu_inline = 1;
+            i_hook = mudstate_hot.no_hook;
+            while ( !mudstate.breakdolist && !mudstate_hot.chkcpu_toggle && buff3tok && !mudstate_hot.breakst ) { 
                buff3ptr = parse_to(&buff3tok, ';', 0);
                if ( buff3ptr && *buff3ptr ) {
                   if ( i_hook ) {
-                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), 1, mudstate.no_space_compress);
+                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), 1, mudstate_hot.no_space_compress);
                   } else {
-                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate.no_hook, mudstate.no_space_compress);
+                     process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                   }
                }
-               if ( mudstate.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
+               if ( mudstate_hot.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
                       notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
                    }
@@ -311,24 +311,24 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                    break;
                }
             }
-            mudstate.no_hook = i_hook;
-            mudstate.chkcpu_inline = i_chkinline;
-            mudstate.jumpst = i_jump;
+            mudstate_hot.no_hook = i_hook;
+            mudstate_hot.chkcpu_inline = i_chkinline;
+            mudstate_hot.jumpst = i_jump;
             mudstate.rollbackcnt = i_rollback;
             strcpy(mudstate.rollback, s_rollback);
             if ( i_clearreg || i_localize ) {
                for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-                  pt = mudstate.global_regs[x];
-                  npt = mudstate.global_regsname[x];
-                  safe_str(savereg[x],mudstate.global_regs[x],&pt);
-                  safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+                  pt = mudstate_hot.global_regs[x];
+                  npt = mudstate_hot.global_regsname[x];
+                  safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+                  safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
                   *savereg[x] = '\0';
                   *saveregname[x] = '\0';
                }
             }
             free_lbuf(buff3);
             if ( i_nobreak ) {
-               mudstate.breakst = i_storebreak;
+               mudstate_hot.breakst = i_storebreak;
             }
             mudstate.dolistnest--;
             if ( mudstate.dolistnest >= 0 ) {
@@ -345,7 +345,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
    free_lbuf(s_rollback);
    if ( i_inline ) {
       if ( desc_in_use != NULL ) {
-         mudstate.breakst = i_storebreak;
+         mudstate_hot.breakst = i_storebreak;
       }
    }
    if ( i_clearreg || i_localize ) {
@@ -363,14 +363,14 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          strcpy(tbuf, (char *) "@notify me");
       }
       wait_que(player, cause, 0, NOTHING, tbuf, cargs, ncargs,
-               mudstate.global_regs, mudstate.global_regsname);
+               mudstate_hot.global_regs, mudstate_hot.global_regsname);
       free_lbuf(tbuf);
    }
    if ( cntr == 1 )
       notify (player, "That's terrific, but what should I do with the list?");
 /*
    if ( (mudstate.dolistnest == 0) && mudstate.breakdolist ) {
-      mudstate.chkcpu_toggle = 1;
+      mudstate_hot.chkcpu_toggle = 1;
    }
 */
 }
@@ -474,7 +474,7 @@ void do_stats (dbref player, dbref cause, int key, char *name)
          break;
       case STAT_FREE:
          if ( Wizard(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING) ) {
-            i = mudstate.freelist;
+            i = mudstate_hot.freelist;
             if ( i != NOTHING ) {
                notify(player, "Free dbref list:");
             } else {
@@ -498,8 +498,8 @@ void do_stats (dbref player, dbref cause, int key, char *name)
             }
             free_sbuf(t_buff);
          } 
-         if ( mudstate.freelist >= 0 ) {
-            notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate.freelist));
+         if ( mudstate_hot.freelist >= 0 ) {
+            notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate_hot.freelist));
          } else {
             notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
          }
@@ -517,8 +517,8 @@ void do_stats (dbref player, dbref cause, int key, char *name)
                notify(player, "Current database cap is:");
                notify(player, unsafe_tprintf("  %5d objects", mudconf.max_size));
             }
-            if ( mudstate.freelist >= 0 ) {
-               notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate.freelist));
+            if ( mudstate_hot.freelist >= 0 ) {
+               notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate_hot.freelist));
             } else {
                notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
             }
@@ -943,17 +943,17 @@ int	err, i;
 	/* make sure player has money to do the search */
 
 	if (mc)
-	  mudstate.evalnum--;
+	  mudstate_hot.evalnum--;
 	if (!payfor(player, mudconf.searchcost)) {
 		notify(player,
 			unsafe_tprintf("You don't have enough %s to search. (You need %d)",
 				mudconf.many_coins, mudconf.searchcost));
 		if (mc)
-		  mudstate.evalnum++;
+		  mudstate_hot.evalnum++;
 		return 0;
 	}
 	if (mc)
-	  mudstate.evalnum++;
+	  mudstate_hot.evalnum++;
 	return 1;
 }
 
@@ -964,13 +964,13 @@ void do_search_for_players(dbref player, dbref cause, int key, char *arg)
 	int     save_invk_ctr;
 	int     aflags;
 
-	save_invk_ctr = mudstate.func_invk_ctr;
+	save_invk_ctr = mudstate_hot.func_invk_ctr;
 	DO_WHOLE_DB(thing) {
 
 		if ((thing % 100) == 0) {
 			cache_reset(0);
 		}
-		mudstate.func_invk_ctr = save_invk_ctr;
+		mudstate_hot.func_invk_ctr = save_invk_ctr;
 		switch (Typeof(thing)) {
 			case TYPE_PLAYER:
 				if (Controls(player,thing)) {
@@ -988,7 +988,7 @@ void do_search_for_players(dbref player, dbref cause, int key, char *arg)
 		}
 
 	}
-	mudstate.func_invk_ctr = save_invk_ctr;
+	mudstate_hot.func_invk_ctr = save_invk_ctr;
 }
 
 void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int i_zone)
@@ -1000,7 +1000,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int
    ZLISTNODE *z_ptr;
 
    buff = alloc_sbuf("search_perform.num");
-   save_invk_ctr = mudstate.func_invk_ctr;
+   save_invk_ctr = mudstate_hot.func_invk_ctr;
 
    if ((!(parm->s_fset.word1 & IMMORTAL) && !(parm->s_fset.word2 & SCLOAK)) || Immortal(player)) {
       if ( i_zone ) {
@@ -1016,7 +1016,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int
             if ((thing % 100) == 0) {
                cache_reset(0);
             }
-            mudstate.func_invk_ctr = save_invk_ctr;
+            mudstate_hot.func_invk_ctr = save_invk_ctr;
 
             /* Check for matching type */
             if ((parm->s_rst_type != NOTYPE) && (parm->s_rst_type != Typeof(thing)))
@@ -1096,7 +1096,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int
             if ((thing % 100) == 0) {
                cache_reset(0);
             }
-            mudstate.func_invk_ctr = save_invk_ctr;
+            mudstate_hot.func_invk_ctr = save_invk_ctr;
 
             /* Check for matching type */
             if ((parm->s_rst_type != NOTYPE) && (parm->s_rst_type != Typeof(thing)))
@@ -1177,7 +1177,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int
       }
    }
    free_sbuf(buff);
-   mudstate.func_invk_ctr = save_invk_ctr;
+   mudstate_hot.func_invk_ctr = save_invk_ctr;
 }
 
 static void search_mark (dbref player, int key, FILE** master)
@@ -1243,25 +1243,25 @@ FILE* master;
 	}
 
 	evc = 0;
-	if (mudstate.evalnum < MAXEVLEVEL) {
+	if (mudstate_hot.evalnum < MAXEVLEVEL) {
           if (DePriv(player,player,DP_SEARCH_ANY,POWER7,NOTHING)) {
             evc = DePriv(player,NOTHING,DP_SEARCH_ANY,POWER7,POWER_LEVEL_NA);
             if (!DPShift(player))
-              mudstate.evalstate[mudstate.evalnum] = evc - 1;
+              mudstate_hot.evalstate[mudstate_hot.evalnum] = evc - 1;
 	    else
-              mudstate.evalstate[mudstate.evalnum] = evc;
-            mudstate.evaldb[mudstate.evalnum++] = player;
+              mudstate_hot.evalstate[mudstate_hot.evalnum] = evc;
+            mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
           } 
           else if (HasPriv(player,player,POWER_SEARCH_ANY,POWER4,NOTHING)) {
             evc = HasPriv(player,NOTHING,POWER_SEARCH_ANY,POWER4,POWER_LEVEL_NA);
-            mudstate.evalstate[mudstate.evalnum] = evc;
-            mudstate.evaldb[mudstate.evalnum++] = player;
+            mudstate_hot.evalstate[mudstate_hot.evalnum] = evc;
+            mudstate_hot.evaldb[mudstate_hot.evalnum++] = player;
           }
 	}
         file_olist_init(&master,"dosearch.tmp");
 	if (evc) {
 	  if (!search_setup (player, arg, &searchparm, 1, i_zone)) {
-		mudstate.evalnum--;
+		mudstate_hot.evalnum--;
 		return;
 	  }
 	}
@@ -1277,7 +1277,7 @@ FILE* master;
 	if (key != SRCH_SEARCH) {
 		search_mark(player, key, &master);
 		if (evc)
-		  mudstate.evalnum--;
+		  mudstate_hot.evalnum--;
 		return;
 	}
 
@@ -1446,7 +1446,7 @@ FILE* master;
 	free_lbuf(outbuf);
 	file_olist_cleanup(&master);
 	if (evc)
-	  mudstate.evalnum--;
+	  mudstate_hot.evalnum--;
 }
 
 /* ---------------------------------------------------------------------------

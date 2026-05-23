@@ -695,7 +695,7 @@ char	*temp, *tp;
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
 
-	p = (pmath2)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
 	if (p) {
 
 		/* Entry found in the hashtable.  If a player, succeed if the
@@ -720,10 +720,10 @@ char	*temp, *tp;
 
 		/* It's an alias (or an incorrect entry).  Clobber it */
 
-		stat = hashrepl(temp, (int *)(pmath2)player, &mudstate.player_htab);
+		stat = hashrepl(temp, (int *)(pmath2)player, &mudstate_hot.player_htab);
 		free_lbuf(temp);
 	} else {
-		stat = hashadd(temp, (int *)(pmath2)player, &mudstate.player_htab);
+		stat = hashadd(temp, (int *)(pmath2)player, &mudstate_hot.player_htab);
 		free_lbuf(temp);
 		stat = (stat < 0) ? 0 : 1;
 	}
@@ -740,12 +740,12 @@ char	*temp, *tp;
 	*tp = '\0';
 	for (tp=temp; *tp; tp++)
 		*tp = ToLower((int)*tp);
-	p = (pmath2)hashfind(temp, &mudstate.player_htab);
+	p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
 	if (!p || (p == NOTHING) || ((player != NOTHING) && (p != player))) {
 		free_lbuf(temp);
 		return 0;
 	}
-	hashdelete(temp, &mudstate.player_htab);
+	hashdelete(temp, &mudstate_hot.player_htab);
 	free_lbuf(temp);
 	return 1;
 }
@@ -799,7 +799,7 @@ dbref lookup_player (dbref doer, char *name, int check_who)
    *tp = '\0';
    for (tp=temp; *tp; tp++)
       *tp = ToLower((int)*tp);
-   p = (pmath2)hashfind(temp, &mudstate.player_htab);
+   p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
    free_lbuf(temp);
    if (!p) {
       if (check_who)
@@ -985,7 +985,7 @@ dbref protectname_unalias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
                free_lbuf(temp);
                if ( p == target ) {
                   delete_player_name(target, bp->name);
@@ -1024,7 +1024,7 @@ dbref protectname_alias (char *protect_name, dbref player)
                safe_str(bp->name, temp, &tp);
 	       for (tp=temp; *tp; tp++)
 		   *tp = ToLower((int)*tp);
-	       p = (pmath2)hashfind(temp, &mudstate.player_htab);
+	       p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
                free_lbuf(temp);
                if ( !p ) {
                   add_player_name(target, bp->name);
@@ -1498,7 +1498,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
   } else {
     i_ansi = 0;
     if ( key & REGISTER_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");

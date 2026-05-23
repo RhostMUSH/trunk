@@ -82,43 +82,43 @@ void execute_entry(BQUE *queue)
 	if ((player >= 0) && !Going(player) && !Recover(player)) {
 	    if (!FreeFlag(Owner(player)))
 	      giveto(player, mudconf.waitcost, NOTHING);
-	    mudstate.curr_enactor = queue->cause;
-	    mudstate.curr_player = player;
-            mudstate.curr_pid = queue->pid;
+	    mudstate_hot.curr_enactor = queue->cause;
+	    mudstate_hot.curr_player = player;
+            mudstate_hot.curr_pid = queue->pid;
             strncpy(mudstate.curr_pidcmd, Q_COMM(queue), LBUF_SIZE - 1);
             mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
 	    a_Queue(Owner(player), -1);
 	    queue->player = 0;
 	    pid_table[queue->pid] = 0;
-	    if (!Halted(player) || mudstate.force_halt) {
+	    if (!Halted(player) || mudstate_hot.force_halt) {
 
 		/* Load scratch args */
 
 		for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
 		    if (Q_SCR(queue)[i]) {
-			strcpy(mudstate.global_regs[i],
+			strcpy(mudstate_hot.global_regs[i],
 			       Q_SCR(queue)[i]);
 		    } else {
-			*mudstate.global_regs[i] = '\0';
+			*mudstate_hot.global_regs[i] = '\0';
 		    }
                     if ( Q_SCRNAME(queue)[i]) {
-			strcpy(mudstate.global_regsname[i],
+			strcpy(mudstate_hot.global_regsname[i],
 			       Q_SCRNAME(queue)[i]);
 		    } else {
-			*mudstate.global_regsname[i] = '\0';
+			*mudstate_hot.global_regsname[i] = '\0';
 		    }
 		}
 
 		command = Q_COMM(queue);
-		mudstate.breakst = 0;
-		mudstate.jumpst = 0;
+		mudstate_hot.breakst = 0;
+		mudstate_hot.jumpst = 0;
 		memset(mudstate.gotolabel,'\0',16);
     		mudstate.gotostate = 0;
 		mudstate.rollbackcnt = 0;
     		mudstate.breakdolist = 0;
     		mudstate.includecnt = 0;
     		mudstate.includenest = 0;
-    		mudstate.force_halt =0;
+    		mudstate_hot.force_halt =0;
     		if ( !mudstate.rollbackstate ) {
 		   mudstate.rollbackcnt = 0;
        		   if ( command ) {
@@ -127,13 +127,13 @@ void execute_entry(BQUE *queue)
 		      memset(mudstate.rollback, '\0', LBUF_SIZE);
        		   }
     		}
-		i_nospace = mudstate.no_space_compress;
+		i_nospace = mudstate_hot.no_space_compress;
 		if ( (Q_BITWISE(queue) & PREPARSE_RAW) == PREPARSE_RAW ) { /* nospace */
-			mudstate.no_space_compress = 1;
+			mudstate_hot.no_space_compress = 1;
 		} 
-                cmd_bitmask = mudstate.cmd_bitmask;
-                mudstate.cmd_bitmask |= Q_BITWISE(queue);
-		while (command && !mudstate.breakst && !mudstate.chkcpu_toggle ) {
+                cmd_bitmask = mudstate_hot.cmd_bitmask;
+                mudstate_hot.cmd_bitmask |= Q_BITWISE(queue);
+		while (command && !mudstate_hot.breakst && !mudstate_hot.chkcpu_toggle ) {
 		    cp = parse_to(&command, ';', 0);
 		    if (cp && *cp) {
 			desc_in_use = NULL;
@@ -142,11 +142,11 @@ void execute_entry(BQUE *queue)
 					queue->cause,
 					0, cp,
 					Q_ENV(queue),
-					Q_NARGS(queue), Q_SHELLPRG(queue), Q_HOOKED(queue), mudstate.no_space_compress);
+					Q_NARGS(queue), Q_SHELLPRG(queue), Q_HOOKED(queue), mudstate_hot.no_space_compress);
 		    }
 		}
-		mudstate.no_space_compress = i_nospace;
-                mudstate.cmd_bitmask = cmd_bitmask;
+		mudstate_hot.no_space_compress = i_nospace;
+                mudstate_hot.cmd_bitmask = cmd_bitmask;
                 mudstate.shell_program = 0;
 	    }
 	}
@@ -189,17 +189,17 @@ give_que(BQUE * tmp)
     /* Thread the command into the correct queue */
 
     if (Typeof(tmp->cause) == TYPE_PLAYER) {
-	if (mudstate.qlast != NULL) {
-	    mudstate.qlast->next = tmp;
-	    mudstate.qlast = tmp;
+	if (mudstate_hot.qlast != NULL) {
+	    mudstate_hot.qlast->next = tmp;
+	    mudstate_hot.qlast = tmp;
 	} else
-	    mudstate.qlast = mudstate.qfirst = tmp;
+	    mudstate_hot.qlast = mudstate_hot.qfirst = tmp;
     } else {
-	if (mudstate.qllast) {
-	    mudstate.qllast->next = tmp;
-	    mudstate.qllast = tmp;
+	if (mudstate_hot.qllast) {
+	    mudstate_hot.qllast->next = tmp;
+	    mudstate_hot.qllast = tmp;
 	} else
-	    mudstate.qllast = mudstate.qlfirst = tmp;
+	    mudstate_hot.qllast = mudstate_hot.qlfirst = tmp;
     }
 }
 
@@ -231,7 +231,7 @@ halt_que(dbref player, dbref object)
 
     /* Player queue */
 
-    for (point = mudstate.qfirst; point; point = point->next)
+    for (point = mudstate_hot.qfirst; point; point = point->next)
 	if (que_want(point, player, object)) {
 	    numhalted++;
 	    point->player = NOTHING;
@@ -239,7 +239,7 @@ halt_que(dbref player, dbref object)
 	}
     /* Object queue */
 
-    for (point = mudstate.qlfirst; point; point = point->next)
+    for (point = mudstate_hot.qlfirst; point; point = point->next)
 	if (que_want(point, player, object)) {
 	    numhalted++;
 	    point->player = NOTHING;
@@ -247,14 +247,14 @@ halt_que(dbref player, dbref object)
 	}
     /* Wait queue */
 
-    for (point = mudstate.qwait, trail = NULL; point; point = next)
+    for (point = mudstate_hot.qwait, trail = NULL; point; point = next)
 	if (que_want(point, player, object)) {
 	    numhalted++;
 	    pid_table[point->pid] = 0;
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qwait = next = point->next;
+		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -265,16 +265,16 @@ halt_que(dbref player, dbref object)
 
     /* Semaphore queue */
 
-    for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+    for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if ( (point->pid != kick_pid) && que_want(point, player, object)) {
 	    pid_table[point->pid] = 0;
 	    numhalted++;
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
@@ -308,7 +308,7 @@ ind_pid_func(dbref player, int pid, int func)
 
     /* Player queue */
 
-    for (point = mudstate.qfirst; point; point = point->next) {
+    for (point = mudstate_hot.qfirst; point; point = point->next) {
       if (point->pid == pid) {
 	if (Immortal(player) || Controls(player,Owner(point->player))) {  
 	    if (func == FUNC_KICK)
@@ -326,7 +326,7 @@ ind_pid_func(dbref player, int pid, int func)
     /* Object queue */
 
     if (!found) {
-      for (point = mudstate.qlfirst; point; point = point->next) {
+      for (point = mudstate_hot.qlfirst; point; point = point->next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player))) { 
 	    if (func == FUNC_KICK)
@@ -345,7 +345,7 @@ ind_pid_func(dbref player, int pid, int func)
     /* Wait queue */
 
     if (!found) {
-      for (point = mudstate.qwait, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player))) { 
 	    if (func == FUNC_KICK)
@@ -354,7 +354,7 @@ ind_pid_func(dbref player, int pid, int func)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qwait = next = point->next;
+		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -375,7 +375,7 @@ ind_pid_func(dbref player, int pid, int func)
     /* Semaphore queue */
 
     if (!found) {
-      for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player))) { 
 	    if (func == FUNC_KICK) {
@@ -387,9 +387,9 @@ ind_pid_func(dbref player, int pid, int func)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
@@ -423,7 +423,7 @@ freeze_pid(dbref player, int pid, int key)
     /* Wait queue */
 
     if (!found) {
-      for (point = mudstate.qwait, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -483,7 +483,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qwait = next = point->next;
+		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -504,7 +504,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
     /* Semaphore queue */
 
     if (!found) {
-      for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if ( (point->pid == pid) && (point->pid != kick_pid) ) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -563,9 +563,9 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
@@ -591,7 +591,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
        if (freezepid->sem == NOTHING) {
            /* No semaphore, put on wait queue if wait value specified.
             *          * Otherwise put on the normal queue. */
-           for (pntr = mudstate.fqwait, trail = NULL;
+           for (pntr = mudstate_hot.fqwait, trail = NULL;
                pntr && pntr->waittime <= freezepid->waittime;
                pntr = pntr->next) {
                trail = pntr;
@@ -600,14 +600,14 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
            if (trail != NULL)
                trail->next = freezepid;
            else
-               mudstate.fqwait = freezepid;
+               mudstate_hot.fqwait = freezepid;
        } else {
            freezepid->next = NULL;
-           if (mudstate.fqsemlast != NULL)
-               mudstate.fqsemlast->next = freezepid;
+           if (mudstate_hot.fqsemlast != NULL)
+               mudstate_hot.fqsemlast->next = freezepid;
            else
-               mudstate.fqsemfirst = freezepid;
-           mudstate.fqsemlast = freezepid;
+               mudstate_hot.fqsemfirst = freezepid;
+           mudstate_hot.fqsemlast = freezepid;
        }
     }
     return numhalted;
@@ -630,7 +630,7 @@ thaw_pid(dbref player, int pid, int key)
     /* Wait queue */
 
     if (!found) {
-      for (point = mudstate.fqwait, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.fqwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -689,7 +689,7 @@ thaw_pid(dbref player, int pid, int key)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.fqwait = next = point->next;
+		mudstate_hot.fqwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -710,7 +710,7 @@ thaw_pid(dbref player, int pid, int key)
     /* Semaphore queue */
 
     if (!found) {
-      for (point = mudstate.fqsemfirst, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.fqsemfirst, trail = NULL; point; point = next) {
 	if ( (point->pid == pid) && (point->pid != kick_pid) ) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -773,9 +773,9 @@ thaw_pid(dbref player, int pid, int key)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.fqsemfirst = next = point->next;
-	    if (point == mudstate.fqsemlast)
-		mudstate.fqsemlast = trail;
+		mudstate_hot.fqsemfirst = next = point->next;
+	    if (point == mudstate_hot.fqsemlast)
+		mudstate_hot.fqsemlast = trail;
 	    add_to(point->sem, 1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
@@ -830,7 +830,7 @@ thaw_pid(dbref player, int pid, int key)
        if (freezepid->sem == NOTHING) {
            /* No semaphore, put on wait queue if wait value specified.
             *          * Otherwise put on the normal queue. */
-           for (pntr = mudstate.qwait, trail = NULL;
+           for (pntr = mudstate_hot.qwait, trail = NULL;
                pntr && pntr->waittime <= freezepid->waittime;
                pntr = pntr->next) {
                trail = pntr;
@@ -839,14 +839,14 @@ thaw_pid(dbref player, int pid, int key)
            if (trail != NULL)
                trail->next = freezepid;
            else
-               mudstate.qwait = freezepid;
+               mudstate_hot.qwait = freezepid;
        } else {
            freezepid->next = NULL;
-           if (mudstate.qsemlast != NULL)
-               mudstate.qsemlast->next = freezepid;
+           if (mudstate_hot.qsemlast != NULL)
+               mudstate_hot.qsemlast->next = freezepid;
            else
-               mudstate.qsemfirst = freezepid;
-           mudstate.qsemlast = freezepid; 
+               mudstate_hot.qsemfirst = freezepid;
+           mudstate_hot.qsemlast = freezepid; 
        }
     } else if ( tpid == -1 && (!(key & THAW_DEL) || badpid)) {
 	    if (Q_TEXT(freezepid))
@@ -878,7 +878,7 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
          break;
    }
    found = 0;
-   for (point = mudstate.qwait; point; point = point->next) {
+   for (point = mudstate_hot.qwait; point; point = point->next) {
       if (point->pid == pid) {
          if (Immortal(player) || Controls(player,Owner(point->player)) ||
              HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -906,7 +906,7 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
       }
    }
    if (!found) {
-      for (point = mudstate.qsemfirst; point; point = point->next) {
+      for (point = mudstate_hot.qsemfirst; point; point = point->next) {
          if ( (point->pid == pid) && (point->pid != kick_pid) ) {
             if (Immortal(player) || Controls(player,Owner(point->player)) ||
                 HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -954,7 +954,7 @@ wait_que_pid(dbref player, int pid, int newwait)
     /* Wait queue */
 
     if (!found) {
-      for (point = mudstate.qwait, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1008,7 +1008,7 @@ wait_que_pid(dbref player, int pid, int newwait)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qwait = next = point->next;
+		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -1029,7 +1029,7 @@ wait_que_pid(dbref player, int pid, int newwait)
     /* Semaphore queue */
 
     if (!found) {
-      for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if ( (point->pid == pid) && (point->pid != kick_pid) ) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1083,9 +1083,9 @@ wait_que_pid(dbref player, int pid, int newwait)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -1110,7 +1110,7 @@ wait_que_pid(dbref player, int pid, int newwait)
        if (rewait->sem == NOTHING) {
            /* No semaphore, put on wait queue if wait value specified.
             *          * Otherwise put on the normal queue. */
-           for (pntr = mudstate.qwait, trail = NULL;
+           for (pntr = mudstate_hot.qwait, trail = NULL;
                pntr && pntr->waittime <= rewait->waittime;
                pntr = pntr->next) {
                trail = pntr;
@@ -1119,14 +1119,14 @@ wait_que_pid(dbref player, int pid, int newwait)
            if (trail != NULL)
                trail->next = rewait;
            else
-               mudstate.qwait = rewait;
+               mudstate_hot.qwait = rewait;
        } else {
            rewait->next = NULL;
-           if (mudstate.qsemlast != NULL)
-               mudstate.qsemlast->next = rewait;
+           if (mudstate_hot.qsemlast != NULL)
+               mudstate_hot.qsemlast->next = rewait;
            else
-               mudstate.qsemfirst = rewait;
-           mudstate.qsemlast = rewait;
+               mudstate_hot.qsemfirst = rewait;
+           mudstate_hot.qsemlast = rewait;
        }
     }
     return numhalted;
@@ -1147,7 +1147,7 @@ halt_que_pid(dbref player, int pid, int key)
 
     /* Player queue */
 
-    for (point = mudstate.qfirst; point; point = point->next) {
+    for (point = mudstate_hot.qfirst; point; point = point->next) {
       if (point->pid == pid) {
 	if (Immortal(player) || Controls(player,Owner(point->player)) || 
 	  HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1168,7 +1168,7 @@ halt_que_pid(dbref player, int pid, int key)
     /* Object queue */
 
     if (!found) {
-      for (point = mudstate.qlfirst; point; point = point->next) {
+      for (point = mudstate_hot.qlfirst; point; point = point->next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1190,7 +1190,7 @@ halt_que_pid(dbref player, int pid, int key)
     /* Wait queue */
 
     if (!found) {
-      for (point = mudstate.qwait, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qwait, trail = NULL; point; point = next) {
 	if (point->pid == pid) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1198,7 +1198,7 @@ halt_que_pid(dbref player, int pid, int key)
                if ( (key == 1) && (point->stop_bool == 0) ) {
                   point->stop_bool = 1;
                   if ( point->waittime != 0 )
-                     point->stop_bool_val = point->waittime - mudstate.nowmsec;
+                     point->stop_bool_val = point->waittime - mudstate_hot.nowmsec;
                   else
                      point->stop_bool_val = 0;
                   numhalted++;
@@ -1216,7 +1216,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qwait = next = point->next;
+		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -1237,7 +1237,7 @@ halt_que_pid(dbref player, int pid, int key)
     /* Semaphore queue */
 
     if (!found) {
-      for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+      for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if ( (point->pid == pid) && (point->pid != kick_pid) ) {
 	  if (Immortal(player) || Controls(player,Owner(point->player)) ||
 	  	HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
@@ -1245,7 +1245,7 @@ halt_que_pid(dbref player, int pid, int key)
                if ( (key == 1) && (point->stop_bool == 0) ) {
                   point->stop_bool = 1;
                   if ( point->waittime != 0 )
-                     point->stop_bool_val = point->waittime - mudstate.nowmsec;
+                     point->stop_bool_val = point->waittime - mudstate_hot.nowmsec;
                   else
                      point->stop_bool_val = 0;
                   numhalted++;
@@ -1263,9 +1263,9 @@ halt_que_pid(dbref player, int pid, int key)
 	    if (trail)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
@@ -1308,7 +1308,7 @@ halt_que_all(void)
     ** the mush will crash! - Thorin - 3/99
     */
 
-    for( point = mudstate.qfirst; point; point = point->next ) {
+    for( point = mudstate_hot.qfirst; point; point = point->next ) {
 	if (!FreeFlag(Owner(point->player)))
 	  giveto(point->player, mudconf.waitcost, NOTHING);
 	a_Queue(Owner(point->player), -1);
@@ -1318,14 +1318,14 @@ halt_que_all(void)
         Q_BITWISE(point) = 0;
 	pid_table[point->pid] = 0;
     }
-    mudstate.qlast = NULL;
+    mudstate_hot.qlast = NULL;
 
     /* object queue */
     /* Don't delete object queue entries, just tag them, or else
     ** the mush will crash! - Thorin - 3/99
     */
 
-    for( point = mudstate.qlfirst; point; point = point->next ) {
+    for( point = mudstate_hot.qlfirst; point; point = point->next ) {
 	if (!FreeFlag(Owner(point->player)))
 	  giveto(point->player, mudconf.waitcost, NOTHING);
 	a_Queue(Owner(point->player), -1);
@@ -1335,12 +1335,12 @@ halt_que_all(void)
         Q_BITWISE(point) = 0;
 	pid_table[point->pid] = 0;
     }
-    mudstate.qllast = NULL;
+    mudstate_hot.qllast = NULL;
 
     /* wait queue */
 
-    while (mudstate.qwait) {
-	point = mudstate.qwait;
+    while (mudstate_hot.qwait) {
+	point = mudstate_hot.qwait;
 	if (!FreeFlag(Owner(point->player)))
 	  giveto(point->player, mudconf.waitcost, NOTHING);
 	a_Queue(Owner(point->player), -1);
@@ -1350,17 +1350,17 @@ halt_que_all(void)
         Q_TEXT(point)=NULL;
 	free_bque_cold(point->cold);
 	    free_qentry(point);
-	mudstate.qwait = next;
+	mudstate_hot.qwait = next;
 	numhalted++;
     }
     /* no last pointer for the wait que */
 
     /* Semaphore queue */
 
-    while (mudstate.qsemfirst) {
-	point = mudstate.qsemfirst;
+    while (mudstate_hot.qsemfirst) {
+	point = mudstate_hot.qsemfirst;
         if ( point->pid == kick_pid ) {
-           mudstate.qsemfirst = point->next;
+           mudstate_hot.qsemfirst = point->next;
            continue;
         }
 	if (!FreeFlag(Owner(point->player)))
@@ -1373,10 +1373,10 @@ halt_que_all(void)
         Q_TEXT(point)=NULL;
 	free_bque_cold(point->cold);
 	    free_qentry(point);
-	mudstate.qsemfirst = next;
+	mudstate_hot.qsemfirst = next;
 	numhalted++;
     }
-    mudstate.qsemlast = NULL;
+    mudstate_hot.qsemlast = NULL;
     init_pid_table();
 
     return numhalted;
@@ -1510,7 +1510,7 @@ nfy_que(dbref sem, int key, int count, int pid_val)
     free_lbuf(str);
     if (num > 0) {
 	num = 0;
-	for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+	for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	    if ( (((pid_val == -1) && (point->sem == sem)) || 
                   ((point->sem == sem) && (point->pid == pid_val))) &&
                   (point->pid != kick_pid) ) {
@@ -1518,9 +1518,9 @@ nfy_que(dbref sem, int key, int count, int pid_val)
 		if (trail)
 		    trail->next = next = point->next;
 		else
-		    mudstate.qsemfirst = next = point->next;
-		if (point == mudstate.qsemlast)
-		    mudstate.qsemlast = trail;
+		    mudstate_hot.qsemfirst = next = point->next;
+		if (point == mudstate_hot.qsemlast)
+		    mudstate_hot.qsemlast = trail;
 
 		/* Either run or discard the command */
 
@@ -1647,7 +1647,7 @@ setup_que(dbref player, dbref cause, char *command,
 
     /* Can we run commands at all? */
 
-    if (Halted(player) && !mudstate.force_halt)
+    if (Halted(player) && !mudstate_hot.force_halt)
 	return NULL;
 
     /* make sure player can afford to do it */
@@ -1785,9 +1785,9 @@ setup_que(dbref player, dbref cause, char *command,
     /* Load the rest of the queue block */
 
     Q_BITWISE(tmp) = 0;
-    if ( mudstate.no_space_compress )
+    if ( mudstate_hot.no_space_compress )
        Q_BITWISE(tmp) |= PREPARSE_RAW;
-    Q_BITWISE(tmp) |= mudstate.cmd_bitmask;
+    Q_BITWISE(tmp) |= mudstate_hot.cmd_bitmask;
     tmp->player = player;
     tmp->waittime = 0;
     tmp->next = NULL;
@@ -1796,7 +1796,7 @@ setup_que(dbref player, dbref cause, char *command,
     Q_NARGS(tmp) = nargs;
     tmp->stop_bool = 0;
     tmp->stop_bool_val = 0;
-    Q_HOOKED(tmp) = mudstate.no_hook;
+    Q_HOOKED(tmp) = mudstate_hot.no_hook;
     if ( InProgram(player) )
        Q_SHELLPRG(tmp) = 1;
     else
@@ -1832,7 +1832,7 @@ wait_que(dbref player, dbref cause, double wait, dbref sem,
 	if (wait <= 0) {
 	    give_que(tmp);
 	} else {
-	    for (point = mudstate.qwait, trail = NULL;
+	    for (point = mudstate_hot.qwait, trail = NULL;
 		 point && point->waittime <= tmp->waittime;
 		 point = point->next) {
 		trail = point;
@@ -1841,15 +1841,15 @@ wait_que(dbref player, dbref cause, double wait, dbref sem,
 	    if (trail != NULL)
 		trail->next = tmp;
 	    else
-		mudstate.qwait = tmp;
+		mudstate_hot.qwait = tmp;
 	}
     } else {
 	tmp->next = NULL;
-	if (mudstate.qsemlast != NULL)
-	    mudstate.qsemlast->next = tmp;
+	if (mudstate_hot.qsemlast != NULL)
+	    mudstate_hot.qsemlast->next = tmp;
 	else
-	    mudstate.qsemfirst = tmp;
-	mudstate.qsemlast = tmp;
+	    mudstate_hot.qsemfirst = tmp;
+	mudstate_hot.qsemlast = tmp;
     }
 }
 
@@ -1965,13 +1965,13 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
            else
 	      howlong = atof(event);
 	   wait_que(player, cause, howlong, NOTHING, cmd,
-		    cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+		    cargs, ncargs, mudstate_hot.global_regs, mudstate_hot.global_regsname);
            if ( recpid ) {
-              if (!mudstate.global_regs[recpidval])
-                  mudstate.global_regs[recpidval] = alloc_lbuf("fun_setq");
-              pt = mudstate.global_regs[recpidval];
+              if (!mudstate_hot.global_regs[recpidval])
+                  mudstate_hot.global_regs[recpidval] = alloc_lbuf("fun_setq");
+              pt = mudstate_hot.global_regs[recpidval];
               sprintf(numval, "%d", last_pid);
-              safe_str(numval, mudstate.global_regs[recpidval], &pt);
+              safe_str(numval, mudstate_hot.global_regs[recpidval], &pt);
               free_sbuf(numval);
            }
 	   return;
@@ -2008,13 +2008,13 @@ do_wait(dbref player, dbref cause, int key, char *eventorig,
 	       howlong = 0;
 	   }
 	   wait_que(player, cause, howlong, thing, cmd,
-		    cargs, ncargs, mudstate.global_regs, mudstate.global_regsname);
+		    cargs, ncargs, mudstate_hot.global_regs, mudstate_hot.global_regsname);
            if ( recpid ) {
-              if (!mudstate.global_regs[recpidval])
-                  mudstate.global_regs[recpidval] = alloc_lbuf("fun_setq");
-              pt = mudstate.global_regs[recpidval];
+              if (!mudstate_hot.global_regs[recpidval])
+                  mudstate_hot.global_regs[recpidval] = alloc_lbuf("fun_setq");
+              pt = mudstate_hot.global_regs[recpidval];
               sprintf(numval, "%d", last_pid);
-              safe_str(numval, mudstate.global_regs[recpidval], &pt);
+              safe_str(numval, mudstate_hot.global_regs[recpidval], &pt);
               free_sbuf(numval);
            }
            
@@ -2088,7 +2088,7 @@ NDECL(que_next)
      * after a one-second pause.
      */
 
-    if (mudstate.qlfirst != NULL)
+    if (mudstate_hot.qlfirst != NULL)
 	return 0.1;
 
     /* Walk the wait and semaphore queues, looking for the smallest
@@ -2097,18 +2097,18 @@ NDECL(que_next)
      */
 
     min = 1000;
-    for (point = mudstate.qwait; point; point = point->next) {
-	this = point->waittime - mudstate.nowmsec;
+    for (point = mudstate_hot.qwait; point; point = point->next) {
+	this = point->waittime - mudstate_hot.nowmsec;
 	if (this <= 0.2)
 	    return 0.1;
 	if (this < min)
 	    min = this;
     }
 
-    for (point = mudstate.qsemfirst; point; point = point->next) {
+    for (point = mudstate_hot.qsemfirst; point; point = point->next) {
 	if (point->waittime == 0)	/* Skip if no timeout */
 	    continue;
-	this = point->waittime - mudstate.nowmsec;
+	this = point->waittime - mudstate_hot.nowmsec;
 	if (this <= 0.2)
 	    return 0.1;
 	if (this < min)
@@ -2150,16 +2150,16 @@ NDECL(do_second)
           break;
     }
 
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< do_second >";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< do_second >";
 
-    if (mudstate.qlfirst) {
-	if (mudstate.qlast)
-	    mudstate.qlast->next = mudstate.qlfirst;
+    if (mudstate_hot.qlfirst) {
+	if (mudstate_hot.qlast)
+	    mudstate_hot.qlast->next = mudstate_hot.qlfirst;
 	else
-	    mudstate.qfirst = mudstate.qlfirst;
-	mudstate.qlast = mudstate.qllast;
-	mudstate.qllast = mudstate.qlfirst = NULL;
+	    mudstate_hot.qfirst = mudstate_hot.qlfirst;
+	mudstate_hot.qlast = mudstate_hot.qllast;
+	mudstate_hot.qllast = mudstate_hot.qlfirst = NULL;
     }
     /* Note: the point->waittime test would be 0 except the command is
      * being put in the low priority queue to be done in one second anyways
@@ -2168,21 +2168,21 @@ NDECL(do_second)
     /* Do the wait queue */
 
     i_offset = 0;
-    d_timediff = (int)mudstate.nowmsec - (int)mudstate.lastnowmsec;
-    for (point = mudstate.qwait, trail = NULL; point ; point = next) {
+    d_timediff = (int)mudstate_hot.nowmsec - (int)mudstate_hot.lastnowmsec;
+    for (point = mudstate_hot.qwait, trail = NULL; point ; point = next) {
         /* We'll raise offsets to 5 minutes now before it wigs out */
         if ( (d_timediff > 300) || (d_timediff < -300) ) {
            point->waittime = point->waittime + d_timediff;
            i_offset = 1;
         } 
         if ( point->stop_bool ) {
-           point->waittime = mudstate.nowmsec + point->stop_bool_val;
+           point->waittime = mudstate_hot.nowmsec + point->stop_bool_val;
         }
-        if ( point->waittime <= mudstate.nowmsec ) {
+        if ( point->waittime <= mudstate_hot.nowmsec ) {
            if (trail != NULL)
               trail->next = next = point->next;
            else
-	      mudstate.qwait = next = point->next;
+	      mudstate_hot.qwait = next = point->next;
 	   give_que(point);
         } else
            next = (trail = point)->next;
@@ -2190,7 +2190,7 @@ NDECL(do_second)
 
     /* Check the semaphore queue for expired timed-waits */
 
-    for (point = mudstate.qsemfirst, trail = NULL; point; point = next) {
+    for (point = mudstate_hot.qsemfirst, trail = NULL; point; point = next) {
 	if (point->waittime == 0) {
 	    next = (trail = point)->next;
 	    continue;		/* Skip if not timed-wait */
@@ -2201,15 +2201,15 @@ NDECL(do_second)
            i_offset = 1;
         }
         if ( point->stop_bool ) {
-           point->waittime = mudstate.nowmsec + point->stop_bool_val;
+           point->waittime = mudstate_hot.nowmsec + point->stop_bool_val;
         }
-	if (point->waittime <= mudstate.nowmsec) {
+	if (point->waittime <= mudstate_hot.nowmsec) {
 	    if (trail != NULL)
 		trail->next = next = point->next;
 	    else
-		mudstate.qsemfirst = next = point->next;
-	    if (point == mudstate.qsemlast)
-		mudstate.qsemlast = trail;
+		mudstate_hot.qsemfirst = next = point->next;
+	    if (point == mudstate_hot.qsemlast)
+		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    point->sem = NOTHING;
 	    give_que(point);
@@ -2236,18 +2236,18 @@ NDECL(do_second)
           }
        }
        /* Let's update the internal counters with the new time */
-       mudstate.dump_counter = mudstate.dump_counter + d_timediff;
-       mudstate.idle_counter = mudstate.idle_counter + d_timediff;
-       mudstate.check_counter = mudstate.check_counter + d_timediff;
-       mudstate.mstats_counter = mudstate.mstats_counter + d_timediff;
-       mudstate.rwho_counter = mudstate.rwho_counter + d_timediff;
-       mudstate.cntr_reset = mudstate.cntr_reset + d_timediff;
+       mudstate_hot.dump_counter = mudstate_hot.dump_counter + d_timediff;
+       mudstate_hot.idle_counter = mudstate_hot.idle_counter + d_timediff;
+       mudstate_hot.check_counter = mudstate_hot.check_counter + d_timediff;
+       mudstate_hot.mstats_counter = mudstate_hot.mstats_counter + d_timediff;
+       mudstate_hot.rwho_counter = mudstate_hot.rwho_counter + d_timediff;
+       mudstate_hot.cntr_reset = mudstate_hot.cntr_reset + d_timediff;
 
        /* Reset Alarm Timer */
-       mudstate.alarm_triggered = 0;
+       mudstate_hot.alarm_triggered = 0;
        alarm_msec (next_timer());
     }
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     return;
 }
 
@@ -2265,41 +2265,41 @@ do_top(int ncmds)
     if ((mudconf.control_flags & CF_DEQUEUE) == 0)
 	return 0;
 
-    cmdsave = mudstate.debug_cmd;
-    mudstate.debug_cmd = (char *) "< do_top >";
+    cmdsave = mudstate_hot.debug_cmd;
+    mudstate_hot.debug_cmd = (char *) "< do_top >";
 
     for (count = 0; count < ncmds; count++) {
 	if (!test_top()) {
-	    mudstate.debug_cmd = cmdsave;
+	    mudstate_hot.debug_cmd = cmdsave;
 	    for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-		*mudstate.global_regs[i] = '\0';
-		*mudstate.global_regsname[i] = '\0';
+		*mudstate_hot.global_regs[i] = '\0';
+		*mudstate_hot.global_regsname[i] = '\0';
 #ifndef NO_GLOBAL_REGBACKUP
-   	        *mudstate.global_regs_backup[i] = '\0';
+   	        *mudstate_hot.global_regs_backup[i] = '\0';
 #endif
             }
 	    return count;
 	}
-	execute_entry(mudstate.qfirst);
-	tmp = mudstate.qfirst;
-	mudstate.qfirst = mudstate.qfirst->next;
-	if (!mudstate.qfirst)
-	    mudstate.qlast = NULL;
+	execute_entry(mudstate_hot.qfirst);
+	tmp = mudstate_hot.qfirst;
+	mudstate_hot.qfirst = mudstate_hot.qfirst->next;
+	if (!mudstate_hot.qfirst)
+	    mudstate_hot.qlast = NULL;
 	if (Q_TEXT(tmp))
 	    free(Q_TEXT(tmp));
 	free_bque_cold(tmp->cold);
 	    free_qentry(tmp);
-        mudstate.curr_cmd = (char *) "";
+        mudstate_hot.curr_cmd = (char *) "";
     }
 
     for (i = 0; i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); i++) {
-	*mudstate.global_regs[i] = '\0';
-	*mudstate.global_regsname[i] = '\0';
+	*mudstate_hot.global_regs[i] = '\0';
+	*mudstate_hot.global_regsname[i] = '\0';
 #ifndef NO_GLOBAL_REGBACKUP
-  	*mudstate.global_regs_backup[i] = '\0';
+  	*mudstate_hot.global_regs_backup[i] = '\0';
 #endif
     }
-    mudstate.debug_cmd = cmdsave;
+    mudstate_hot.debug_cmd = cmdsave;
     return count;
 }
 
@@ -2375,7 +2375,7 @@ fun_do_display(BQUE *tmp, dbref player, dbref player_targ, dbref obj_targ, int k
       if ( do_sep )
          safe_chr('|', buff, bufcx);
       if ( tmp->waittime )
-         sprintf(i_buffering, "%.*f", mtimerlen, (tmp->waittime - mudstate.nowmsec));
+         sprintf(i_buffering, "%.*f", mtimerlen, (tmp->waittime - mudstate_hot.nowmsec));
       else
          sprintf(i_buffering, "%d", 0);
       safe_str(i_buffering, buff, bufcx);
@@ -2410,7 +2410,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    /* Show pid of current running process then exit */
    if ( key & 64 ) {
       s_tmp = alloc_sbuf("func_pid_count_pid");
-      sprintf(s_tmp, "%d", mudstate.curr_pid);
+      sprintf(s_tmp, "%d", mudstate_hot.curr_pid);
       safe_str(s_tmp, buff, bufcx);
       free_sbuf(s_tmp);
       return;
@@ -2448,7 +2448,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    first = i_count = 0;
    /* Player running queue */
    if ( s_type == 'p' ) {
-      for ( tmp = mudstate.qfirst; tmp; tmp = tmp->next ) {
+      for ( tmp = mudstate_hot.qfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
@@ -2459,7 +2459,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    } 
    /* Object running queue */
    if ( s_type == 'o' ) {
-      for ( tmp = mudstate.qlfirst; tmp; tmp = tmp->next ) {
+      for ( tmp = mudstate_hot.qlfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
@@ -2470,7 +2470,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    }
    /* Wait queue */
    if ( (s_type == 'q') || (s_type == 'w') || (s_type == 'c') ) {
-      for ( tmp = mudstate.qwait; tmp; tmp = tmp->next ) {
+      for ( tmp = mudstate_hot.qwait; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
@@ -2485,7 +2485,7 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    }
    /* Semaphore queue */
    if ( (s_type == 'q') || (s_type == 's') || (s_type == 'c') ) {
-      for ( tmp = mudstate.qsemfirst; tmp; tmp = tmp->next ) {
+      for ( tmp = mudstate_hot.qsemfirst; tmp; tmp = tmp->next ) {
          if ( !fun_do_chk(tmp, player, &player_targ, &obj_targ) ) 
             continue;
          if ( (i_pid > 0) && (i_pid != tmp->pid) )
@@ -2569,7 +2569,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                                stop_chr,
 			       tmp->sem,
                                mtimerlen,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
+			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
 			       bufp, Q_COMM(tmp)));
 	    else if (tmp->waittime > 0)
 		notify(player,
@@ -2577,7 +2577,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                                tmp->pid,
                                stop_chr,
                                mtimerlen,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate.nowmsec,
+			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
 			       bufp, Q_COMM(tmp)));
 	    else if (Good_obj(tmp->sem))
 		notify(player,
@@ -2676,13 +2676,13 @@ do_ps(dbref player, dbref cause, int key, char *target)
 
     /* Go do it */
     if ( !(key & PS_FREEZE) ) {
-       show_que(player, key, mudstate.qfirst, &pqtot, &pqent, &pqdel,
+       show_que(player, key, mudstate_hot.qfirst, &pqtot, &pqent, &pqdel,
 	        player_targ, obj_targ, "Player", 0);
-       show_que(player, key, mudstate.qlfirst, &oqtot, &oqent, &oqdel,
+       show_que(player, key, mudstate_hot.qlfirst, &oqtot, &oqent, &oqdel,
 	        player_targ, obj_targ, "Object", 0);
-       show_que(player, key, mudstate.qwait, &wqtot, &wqent, &i,
+       show_que(player, key, mudstate_hot.qwait, &wqtot, &wqent, &i,
 	        player_targ, obj_targ, "Wait", 0);
-       show_que(player, key, mudstate.qsemfirst, &sqtot, &sqent, &i,
+       show_que(player, key, mudstate_hot.qsemfirst, &sqtot, &sqent, &i,
 	        player_targ, obj_targ, "Semaphore", 0);
 
        /* Display stats */
@@ -2715,9 +2715,9 @@ do_ps(dbref player, dbref cause, int key, char *target)
        notify(player, bufp);
        free_mbuf(bufp);
     } else {
-       show_que(player, key, mudstate.fqwait, &wqtot, &wqent, &i,
+       show_que(player, key, mudstate_hot.fqwait, &wqtot, &wqent, &i,
 	        player_targ, obj_targ, "Wait", 1);
-       show_que(player, key, mudstate.fqsemfirst, &sqtot, &sqent, &i,
+       show_que(player, key, mudstate_hot.fqsemfirst, &sqtot, &sqent, &i,
 	        player_targ, obj_targ, "Semaphore", 1);
        bufp = alloc_mbuf("do_ps");
        sprintf(bufp, "Freeze Totals:  Wait...%d/%d   Semaphore...%d/%d", wqent, wqtot, sqent, sqtot);
@@ -2771,13 +2771,13 @@ do_queue(dbref player, dbref cause, int key, char *arg)
 	}
 	/* Handle the wait queue */
 
-	for (point = mudstate.qwait; point; point = point->next) {
+	for (point = mudstate_hot.qwait; point; point = point->next) {
 	    point->waittime = -i;
 	}
 
 	/* Handle the semaphore queue */
 
-	for (point = mudstate.qsemfirst; point; point = point->next) {
+	for (point = mudstate_hot.qsemfirst; point; point = point->next) {
 	    if (point->waittime > 0) {
 		point->waittime -= i;
 		if (point->waittime <= 0)

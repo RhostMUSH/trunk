@@ -422,8 +422,8 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
      */
 
     obj = NOTHING;
-    if (mudstate.freelist != NOTHING) {
-	obj = mudstate.freelist;
+    if (mudstate_hot.freelist != NOTHING) {
+	obj = mudstate_hot.freelist;
 	if (mudstate.free_num != NOTHING) {
 	    tlink = obj; /* used to be an IS_CLEAN in the following */
 	    while (Good_obj(obj) && (Link(obj) != NOTHING) && (obj != mudstate.free_num)) {
@@ -432,15 +432,15 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 		obj = Link(tlink);
 	    } /* Used to be an IS_CLEAN in the following */
 	    if (Good_obj(obj) && (obj == mudstate.free_num)) {
-		if (mudstate.freelist == obj) {
-		    mudstate.freelist = Link(obj);
+		if (mudstate_hot.freelist == obj) {
+		    mudstate_hot.freelist = Link(obj);
 		} else {
 		    s_Link(tlink, Link(obj));
 		}
 	    } else {
-		obj = mudstate.freelist; /* used to be IS_CLEAN in the following */
+		obj = mudstate_hot.freelist; /* used to be IS_CLEAN in the following */
 		if (Good_obj(obj)) {
-		    mudstate.freelist = Link(obj);
+		    mudstate_hot.freelist = Link(obj);
 		} else {
                     tprp_buff = tpr_buff = alloc_lbuf("create_obj");
 		    LOG_SIMPLE(LOG_PROBLEMS, "FRL", "DAMAG",
@@ -448,13 +448,13 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 				       obj));
                     free_lbuf(tpr_buff);
 		    obj = NOTHING;
-		    mudstate.freelist = NOTHING;
+		    mudstate_hot.freelist = NOTHING;
 		}
 	    }
 	    mudstate.free_num = NOTHING;
 	} else { /* used to be an is clean in the following */
 	    if (Good_obj(obj)) {
-		mudstate.freelist = Link(obj);
+		mudstate_hot.freelist = Link(obj);
 	    } else {
                 tprp_buff = tpr_buff = alloc_lbuf("create_obj");
 		LOG_SIMPLE(LOG_PROBLEMS, "FRL", "DAMAG",
@@ -462,13 +462,13 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 				   obj));
                 free_lbuf(tpr_buff);
 		obj = NOTHING;
-		mudstate.freelist = NOTHING;
+		mudstate_hot.freelist = NOTHING;
 	    }
 	}
     }
     if (obj == NOTHING) {
 	if (mudconf.max_size > 0) {
-	    if (mudstate.db_top >= mudconf.max_size) {
+	    if (mudstate_hot.db_top >= mudconf.max_size) {
                 if ( Good_chk(player) ) {
 		   notify(player, "The database has reached it MAXIMUM number of objects.");
 		   notify(player, "Please recycle some old objects!");
@@ -476,8 +476,8 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 		return NOTHING;
 	    }
 	}
-	obj = mudstate.db_top;
-	db_grow(mudstate.db_top + 1);
+	obj = mudstate_hot.db_top;
+	db_grow(mudstate_hot.db_top + 1);
     }
     atr_free(obj);		/* just in case... */
 
@@ -760,7 +760,7 @@ destroy_obj(dbref player, dbref obj, int purge)
 	    notify(player, "Destroyed.");
 	}
     }
-    sprintf(tbuff, "%ld", mudstate.now);
+    sprintf(tbuff, "%ld", mudstate_hot.now);
     atr_add_raw(obj, A_RECTIME, tbuff);
 #endif
     zlist_destroy(obj);
@@ -840,11 +840,11 @@ do_recover(dbref player, dbref cause, int key, char *buff)
 	return;
     }
     obj = atoi(buff + 1);
-    if ((obj < 0) || (obj > mudstate.db_top)) {
+    if ((obj < 0) || (obj > mudstate_hot.db_top)) {
 	notify(player, "Bad dbref specified.");
 	return;
     }
-    owner = mudstate.recoverlist;
+    owner = mudstate_hot.recoverlist;
     place = NOTHING;
     while ((owner != NOTHING) && (owner != obj)) {
 	place = owner;
@@ -871,7 +871,7 @@ do_recover(dbref player, dbref cause, int key, char *buff)
 	   return;
        }
        if (place == NOTHING) {
-	   mudstate.recoverlist = Link(obj);
+	   mudstate_hot.recoverlist = Link(obj);
        } else {
 	   s_Link(place, Link(obj));
        }
@@ -1022,9 +1022,9 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	comp = atoi(buffp1+1);
     }
     if (key == REC_FREE) 
-      i = mudstate.freelist;
+      i = mudstate_hot.freelist;
     else
-      i = mudstate.recoverlist;
+      i = mudstate_hot.recoverlist;
 #ifndef STANDALONE
     tprp_buff = tpr_buff = alloc_lbuf("destroy_obj");
 #endif
@@ -1047,7 +1047,7 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	    pt1 = atr_get(i, A_RECTIME, &dummy1, &dummy2);
 	    timevar = atol(pt1);
 	    free_lbuf(pt1);
-	    if (difftime(mudstate.now, timevar) <= timecomp) {
+	    if (difftime(mudstate_hot.now, timevar) <= timecomp) {
 		i = Link(i);
 		continue;
 	    }
@@ -1144,13 +1144,13 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    return;
 	}
 	obj = atoi(buff + 1);
-	if ((obj < 0) || (obj > mudstate.db_top)) {
+	if ((obj < 0) || (obj > mudstate_hot.db_top)) {
 #ifndef STANDALONE
 	    notify(player, "Bad dbref specified.");
 #endif
 	    return;
 	}
-	owner = mudstate.recoverlist;
+	owner = mudstate_hot.recoverlist;
 	place = NOTHING;
 	while ((owner != NOTHING) && (owner != obj)) {
 	    place = owner;
@@ -1163,7 +1163,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    return;
 	}
 	if (place == NOTHING) {
-	    mudstate.recoverlist = Link(obj);
+	    mudstate_hot.recoverlist = Link(obj);
 	} else {
 	    s_Link(place, Link(obj));
 	}
@@ -1332,7 +1332,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 		return;
 	    }
 	}
-	obj = mudstate.recoverlist;
+	obj = mudstate_hot.recoverlist;
 	place = NOTHING;
 #ifndef STANDALONE
 	count = 0;
@@ -1348,7 +1348,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 		    obj = Link(obj);
 		    continue;
 		}
-		if (difftime(mudstate.now, timevar) <= timecomp) {
+		if (difftime(mudstate_hot.now, timevar) <= timecomp) {
 		    place = obj;
 		    obj = Link(obj);
 		    continue;
@@ -1362,7 +1362,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 		    obj = Link(obj);
 		    continue;
 		}
-		if (difftime(mudstate.now, timevar) <= timecomp) {
+		if (difftime(mudstate_hot.now, timevar) <= timecomp) {
 		    place = obj;
 		    obj = Link(obj);
 		    continue;
@@ -1371,7 +1371,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 		pt1 = atr_get(obj, A_RECTIME, &dummy1, &dummy2);
 		timevar = atol(pt1);
 		free_lbuf(pt1);
-		if (difftime(mudstate.now, timevar) <= timecomp) {
+		if (difftime(mudstate_hot.now, timevar) <= timecomp) {
 		    place = obj;
 		    obj = Link(obj);
 		    continue;
@@ -1394,7 +1394,7 @@ do_purge(dbref player, dbref cause, int key, char *buff)
 	    count++;
 #endif
 	    if (place == NOTHING)
-		mudstate.recoverlist = Link(obj);
+		mudstate_hot.recoverlist = Link(obj);
 	    else
 		s_Link(place, Link(obj));
 	    atr_free(obj);
@@ -1456,19 +1456,19 @@ NDECL(make_freelist)
 {
     dbref i;
 
-    mudstate.freelist = NOTHING;
-    mudstate.recoverlist = NOTHING;
+    mudstate_hot.freelist = NOTHING;
+    mudstate_hot.recoverlist = NOTHING;
     DO_WHOLE_DB(i) {
 	if (Going(i) && Recover(i)) {
 	    s_Flags(i, Flags(i) & ~GOING);
 	}
 	if (Recover(i) && !Byeroom(i)) {
-	    s_Link(i, mudstate.recoverlist);
-	    mudstate.recoverlist = i;
+	    s_Link(i, mudstate_hot.recoverlist);
+	    mudstate_hot.recoverlist = i;
 	}
 	else if (Going(i)) {			/* was  IS_CLEAN */
-	    s_Link(i, mudstate.freelist);
-	    mudstate.freelist = i;
+	    s_Link(i, mudstate_hot.freelist);
+	    mudstate_hot.freelist = i;
 	}
     }
 }
@@ -2364,7 +2364,7 @@ void
 do_dbck(dbref player, dbref cause, int key)
 {
 #ifndef STANDALONE
-    if (mudstate.remotep != NOTHING) {
+    if (mudstate_hot.remotep != NOTHING) {
        notify(player, "Can not dbck remotely.");
        return;
     }
@@ -2379,7 +2379,7 @@ do_dbck(dbref player, dbref cause, int key)
 #ifndef STANDALONE
     if (player != NOTHING) {
         /* We want this as it's resetting the game for the most part */
-        mudstate.alarm_triggered = 0;
+        mudstate_hot.alarm_triggered = 0;
 	alarm_msec(next_timer());
 	if (!Quiet(player))
 	    notify(player, "Done.");

@@ -98,12 +98,12 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
    time_t i_time, i_timechk;
 
    /* get victim */
-   if ( mudstate.remotep != NOTHING) {
+   if ( mudstate_hot.remotep != NOTHING) {
       notify(player, "You can't teleport.");
       return;
    }
 
-   if ( !mudstate.argtwo_fix && nargs && !*dlist[0] ) {
+   if ( !mudstate_hot.argtwo_fix && nargs && !*dlist[0] ) {
       notify(player, "No valid destination to teleport to.");
       return;
    }
@@ -154,7 +154,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
          notify(player, "@tel/list exceeded the timeout limit");
          i_abort = 1;
       }
-      if ( (key & TEL_LIST) && (mudstate.chkcpu_toggle || i_abort) ) {
+      if ( (key & TEL_LIST) && (mudstate_hot.chkcpu_toggle || i_abort) ) {
          broadcast_monitor(player, MF_CPU, "CPU RUNAWAY PROCESS (@tel/list)",
                            (char *)"(@tel list processing)", NULL, player, 0, 0, NULL);
          STARTLOG(LOG_ALWAYS, "WIZ", "CPU");
@@ -261,7 +261,7 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
             continue;
          }
       }
-      if ( (mudstate.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
+      if ( (mudstate_hot.remotep != NOTHING) || (No_tel(victim) && !Wizard(player)) ) {
          if ( victim == player ) {
             notify_quiet(player,"You aren't allowed to @tel.");
          } else {
@@ -485,7 +485,7 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx, char **c
            (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
          i_found = 1;
          /* Past interval, re-cache the data from executor */
-         if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+         if ( ((cp->i_interval != 0) && (mudstate_hot.now >= (cp->i_interval + cp->i_lastrun))) ||
               ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
          /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
             if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
@@ -495,7 +495,7 @@ do_atrcache_fetch(dbref player, char *s_slot, char *buff, char **bufcx, char **c
                strcpy(cp->s_cache, retbuff);
                free_lbuf(retbuff);
                free_lbuf(s_tbuff);
-               cp->i_lastrun = mudstate.now;
+               cp->i_lastrun = mudstate_hot.now;
                cp->commandtrig = 0;
             }
          } 
@@ -553,7 +553,7 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
          /* Past interval, re-cache the data from executor */
          s_tbuff = alloc_lbuf("atrcache_recache");
          if ( key || 
-              ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+              ((cp->i_interval != 0) && (mudstate_hot.now >= (cp->i_interval + cp->i_lastrun))) ||
               ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
          /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
             if ( Good_chk(cp->owner) && (Immortal(player) || !cp->lock || (cp->lock && Controls(player, cp->owner))) ) {
@@ -561,7 +561,7 @@ do_atrcache_recache(dbref player, char *s_slot, char *buff, char **bufcx, int ke
                retbuff = exec(cp->owner, cp->owner, cp->owner, EV_EVAL | EV_FCHECK, s_tbuff, cargs, ncargs, (char **)NULL, 0);
                strcpy(cp->s_cache, retbuff);
                free_lbuf(retbuff);
-               cp->i_lastrun = mudstate.now;
+               cp->i_lastrun = mudstate_hot.now;
                cp->commandtrig = 0;
             }
          } 
@@ -1150,7 +1150,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   (cp->visible || Immortal(player) || (Good_chk(cp->owner) && Controls(player, cp->owner))) ) {
                i_found = 1;
                /* Past interval, re-cache the data from executor */
-               if ( ((cp->i_interval != 0) && (mudstate.now >= (cp->i_interval + cp->i_lastrun))) ||
+               if ( ((cp->i_interval != 0) && (mudstate_hot.now >= (cp->i_interval + cp->i_lastrun))) ||
                     ((cp->i_interval == 0) && (cp->commandtrig == 1)) ) {
                   /* Force lock on controller -- if owner is invalid or lock fails, don't re-cache */
                   /* Logic:
@@ -1167,7 +1167,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                      strcpy(cp->s_cache, retbuff);
                      free_lbuf(retbuff);
                      free_lbuf(s_tbuff);
-                     cp->i_lastrun = mudstate.now;
+                     cp->i_lastrun = mudstate_hot.now;
                      cp->commandtrig = 0;
                   }
                } 
@@ -1268,7 +1268,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   sprintf(s_tbuff, "@atrcache/cache: Cache on slot %d [%s] has been forcefully refreshed.", i_cnt, cp->name);
                   notify(player, s_tbuff);
                   free_lbuf(s_tbuff);
-                  cp->i_lastrun = mudstate.now;
+                  cp->i_lastrun = mudstate_hot.now;
                   cp->commandtrig = 0;
                   i_found = 1;
                   break;
@@ -1686,9 +1686,9 @@ dbref	victim;
 	}
 
         if ( Halted(victim) && ForceHalted(player) ) {
-           mudstate.force_halt = 1;
+           mudstate_hot.force_halt = 1;
         } else
-           mudstate.force_halt = 0;
+           mudstate_hot.force_halt = 0;
         /* If /inline call sudo */
         if ( key & FORCE_INLINE ) {
            /* If you want additional keys to @force/inline, use @sudo */
@@ -1696,7 +1696,7 @@ dbref	victim;
         } else {
 	   /* force victim to do command */
 	   wait_que(victim, player, 0, NOTHING, command, args, nargs,
-		   mudstate.global_regs, mudstate.global_regsname);
+		   mudstate_hot.global_regs, mudstate_hot.global_regsname);
         }
 }
 
@@ -1711,7 +1711,7 @@ dbref target;
 char *retbuff, *s_rollback;
 int i_jump, i_rollback, i_hook;
 
-   if ( mudstate.remote != -1 ) {
+   if ( mudstate_hot.remote != -1 ) {
       notify(player, "You can not nest @remote.");
       return;
    }
@@ -1729,27 +1729,27 @@ int i_jump, i_rollback, i_hook;
   if(!Good_obj(target) ||Recover(target) || Going(target) || !Controls(player,target)) {
     notify(player,"Permission denied.");
   }
-  mudstate.remote = target;
-  mudstate.remotep = player;
+  mudstate_hot.remote = target;
+  mudstate_hot.remotep = player;
   s_rollback = alloc_lbuf("s_rollback_remote");
   strcpy(s_rollback, mudstate.rollback);
-  i_jump = mudstate.jumpst;
+  i_jump = mudstate_hot.jumpst;
   i_rollback = mudstate.rollbackcnt;
-  mudstate.jumpst = mudstate.rollbackcnt = 0;
+  mudstate_hot.jumpst = mudstate.rollbackcnt = 0;
   strcpy(mudstate.rollback, command);
-  i_hook = mudstate.no_hook;
+  i_hook = mudstate_hot.no_hook;
   if ( i_hook ) {
-     process_command(player, player, 0, command, args, nargs, 0, 1, mudstate.no_space_compress);
+     process_command(player, player, 0, command, args, nargs, 0, 1, mudstate_hot.no_space_compress);
   } else {
-     process_command(player, player, 0, command, args, nargs, 0, mudstate.no_hook, mudstate.no_space_compress);
+     process_command(player, player, 0, command, args, nargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
   }
-  mudstate.no_hook = i_hook;
-  mudstate.jumpst = i_jump;
+  mudstate_hot.no_hook = i_hook;
+  mudstate_hot.jumpst = i_jump;
   mudstate.rollbackcnt = i_rollback;
   strcpy(mudstate.rollback, s_rollback);
   free_lbuf(s_rollback);
-  mudstate.remote = -1;
-  mudstate.remotep = -1;
+  mudstate_hot.remote = -1;
+  mudstate_hot.remotep = -1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2212,8 +2212,8 @@ DESC	*d;
         notify(player, tbuf);
         DESC_ITER_CONN(d) {
           if (D_PLAYER(d) == player) {
-             sprintf(tbuf, "%-10d %-10s %-10s %s", D_DESCRIPTOR(d), time_format_1(mudstate.now - D_LAST_TIME(d)),
-                      wiz_time_format_2(mudstate.now - d->cold->connected_at), d->cold->addr);
+             sprintf(tbuf, "%-10d %-10s %-10s %s", D_DESCRIPTOR(d), time_format_1(mudstate_hot.now - D_LAST_TIME(d)),
+                      wiz_time_format_2(mudstate_hot.now - d->cold->connected_at), d->cold->addr);
              notify(player, tbuf);
           }
         }

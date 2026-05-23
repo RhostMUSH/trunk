@@ -372,7 +372,7 @@ get_list(FILE * f, dbref i, int key, int *i_count)
     ATTR *a_atr;
 
     buff = alloc_lbuf("get_list");
-    mudstate.vlplay = NOTHING;
+    mudstate_hot.vlplay = NOTHING;
     while (1) {
 	switch (c = getc(f)) {
 	case '>':		/* read # then string */
@@ -1084,7 +1084,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 		tstr = getstring_noalloc(f);	/* junk */
 		break;
 	    }
-	    mudstate.min_size = getref(f);
+	    mudstate_hot.min_size = getref(f);
 	    size_gotten = 1;
 	    break;
 	case '+':		/* MUSH 2.0 header */
@@ -1148,7 +1148,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 			    i);
 		    tstr = getstring_noalloc(f);	/* junk */
 		} else {
-		    mudstate.min_size = getref(f);
+		    mudstate_hot.min_size = getref(f);
 		}
 		size_gotten = 1;
 		break;
@@ -1491,7 +1491,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 #ifndef STANDALONE
 		load_player_names();
 #endif
-		return mudstate.db_top;
+		return mudstate_hot.db_top;
 	    }
 	default:
 	    fprintf(stderr, "\nIllegal character '%c' near object #%d\n",
@@ -1883,7 +1883,7 @@ db_write(FILE * f, int format, int version)
     fflush(stderr);
 #endif
     i = mudstate.attr_next;
-    fprintf(f, "+V%d\n+S%d\n+N%d\n", flags, mudstate.db_top, i);
+    fprintf(f, "+V%d\n+S%d\n+N%d\n", flags, mudstate_hot.db_top, i);
 
     /* Dump user-named attribute info */
 
@@ -1914,5 +1914,5 @@ db_write(FILE * f, int format, int version)
     fprintf(stderr, "\n");
     fflush(stderr);
 #endif
-    return (mudstate.db_top);
+    return (mudstate_hot.db_top);
 }

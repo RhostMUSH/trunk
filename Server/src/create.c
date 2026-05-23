@@ -18,7 +18,7 @@
 int 
 validate_freematch(dbref target) 
 {
-   dbref obj = mudstate.freelist;
+   dbref obj = mudstate_hot.freelist;
    int i_return = 0;
 
    while ( Good_obj(obj) ) {
@@ -186,7 +186,7 @@ do_open(dbref player, dbref cause, int key, char *direction,
 
     i_ansi = 0;
     if ( key & OPEN_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
@@ -439,7 +439,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key) {
              notify_quiet(player, "You can't do that.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -449,7 +449,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects one argument.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
       }
       break;
@@ -465,7 +465,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key) {
              notify_quiet(player, "You can't do that.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -477,7 +477,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects two arguments.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -487,7 +487,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       thing = noisy_match_result();
       if( thing == NOTHING ) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
 
@@ -498,7 +498,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -506,7 +506,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -515,7 +515,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "You can't zone a Zone Master.");
         } else {
-           mudstate.zone_return = -3;
+           mudstate_hot.zone_return = -3;
         }
         return;
       }
@@ -526,7 +526,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       zonemaster = noisy_match_result();
       if (zonemaster == NOTHING) {
         if ( i_key ) {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -535,7 +535,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "That's not a Zone Master.");
         } else {
-           mudstate.zone_return = -4;
+           mudstate_hot.zone_return = -4;
         }
         return;
       }
@@ -546,7 +546,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -555,7 +555,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Object is already in that zone.");
         } else {
-           mudstate.zone_return = -5;
+           mudstate_hot.zone_return = -5;
         }
         return;
       }
@@ -566,7 +566,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       if ( !i_key ) {
          notify_quiet(player, "Zone Master added to object.");
       } else {
-         mudstate.zone_return = 1;
+         mudstate_hot.zone_return = 1;
       }
       break;
     case ZONE_REPLACE: /* Replace zone */
@@ -575,7 +575,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects two arguments.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -584,7 +584,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects second argument in format OLDZONE/NEWZONE.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -595,7 +595,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects destination zone.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -608,7 +608,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       zonemaster_to = noisy_match_result();
       if ( !Good_chk(zonemaster) || !Good_chk(zonemaster_to) ) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
 
@@ -617,7 +617,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       thing = noisy_match_result();
       if( thing == NOTHING ) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
 
@@ -626,7 +626,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -635,7 +635,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "You can't zone a Zone Master.");
         } else {
-           mudstate.zone_return = -3;
+           mudstate_hot.zone_return = -3;
         }
         return;
       }
@@ -644,7 +644,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "That is not one of this object's Zone Masters.");
         } else {
-           mudstate.zone_return = -6;
+           mudstate_hot.zone_return = -6;
         }
         return;
       }
@@ -653,7 +653,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "That's not a Zone Master.");
         } else {
-           mudstate.zone_return = -4;
+           mudstate_hot.zone_return = -4;
         }
         return;
       }
@@ -667,7 +667,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -675,7 +675,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Object is already in that zone.");
         } else {
-           mudstate.zone_return = -5;
+           mudstate_hot.zone_return = -5;
         }
         return;
       }
@@ -686,7 +686,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       if ( !i_key ) {
          notify_quiet(player, "Replaced.");
       } else {
-         mudstate.zone_return = 1;
+         mudstate_hot.zone_return = 1;
       }
       break;
 
@@ -695,7 +695,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects two arguments.");
         } else {
-           mudstate.zone_return = -1;
+           mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -706,7 +706,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       zonemaster = noisy_match_result();
       if (zonemaster == NOTHING) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
      
@@ -715,7 +715,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       thing = noisy_match_result();
       if( thing == NOTHING ) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
 
@@ -723,7 +723,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "That is not one of this object's Zone Masters.");
         } else {
-           mudstate.zone_return = -5;
+           mudstate_hot.zone_return = -5;
         }
         return;
       }
@@ -737,7 +737,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
          if ( !i_key ) {
             notify_quiet(player, "Permission denied.");
          } else {
-            mudstate.zone_return = -2;
+            mudstate_hot.zone_return = -2;
          }
          return;
       }
@@ -747,7 +747,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Permission denied.");
         } else {
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         }
         return;
       }
@@ -758,7 +758,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       if ( !i_key ) {
          notify_quiet(player, "Deleted.");
       } else {
-         mudstate.zone_return = 1;
+         mudstate_hot.zone_return = 1;
       }
       break;
     case ZONE_PURGE:
@@ -766,7 +766,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "This switch expects one argument.");
         } else {
-         mudstate.zone_return = -1;
+         mudstate_hot.zone_return = -1;
         }
         return;
       }
@@ -777,7 +777,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
       thing = noisy_match_result();
       if (thing == NOTHING) {
         if ( i_key )
-           mudstate.zone_return = -2;
+           mudstate_hot.zone_return = -2;
         return;
       }
 
@@ -787,7 +787,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -796,7 +796,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -804,7 +804,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "All objects removed from zone.");
         } else {
-           mudstate.zone_return = 1;
+           mudstate_hot.zone_return = 1;
         }
       }
       else {
@@ -812,7 +812,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -821,7 +821,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
           if ( !i_key ) {
              notify_quiet(player, "Permission denied.");
           } else {
-             mudstate.zone_return = -2;
+             mudstate_hot.zone_return = -2;
           }
           return;
         }
@@ -830,7 +830,7 @@ do_zone(dbref player, dbref cause, int key, char *tname, char *pname)
         if ( !i_key ) {
            notify_quiet(player, "Object removed from all zones.");
         } else {
-           mudstate.zone_return = 1;
+           mudstate_hot.zone_return = 1;
         }
       }
       break;
@@ -933,7 +933,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
     }
     i_ansi = 0;
     if ( key & DIG_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
@@ -1016,7 +1016,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
     }
     free_sbuf(buff);
     if (key == DIG_TELEPORT ) {
-       if ( No_tel(player) || (mudstate.remotep != NOTHING) ) {
+       if ( No_tel(player) || (mudstate_hot.remotep != NOTHING) ) {
           notify_quiet(player, "You can't teleport to your @dug room.");
        } else {
 	(void) move_via_teleport(player, room, cause, 0, 0);
@@ -1061,7 +1061,7 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
 
     i_ansi = 0;
     if ( key & CREATE_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
@@ -1112,7 +1112,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 
     i_ansi = 0;
     if ( key & CLONE_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
@@ -1356,7 +1356,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     }
     i_ansi = 0;
     if ( key & PCRE_ANSI ) {
-       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate.command_htab);
+       cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
        if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           if ( !(key & SIDEEFFECT) ) {
@@ -1657,7 +1657,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
     char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff, *tstrtokr;
 
 
-    if (mudstate.remotep != NOTHING) {
+    if (mudstate_hot.remotep != NOTHING) {
        notify(player, "Sorry, you can't destroy remotely.");
        return;
     }
@@ -1835,7 +1835,7 @@ do_nuke(dbref player, dbref cause, int key, char *name)
 
     /* XXX This is different from Pern. */
 
-    if (mudstate.remotep != NOTHING) {
+    if (mudstate_hot.remotep != NOTHING) {
        notify(player, "Sorry, you can't nuke remotely.");
        return;
     }

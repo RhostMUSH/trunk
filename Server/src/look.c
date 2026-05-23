@@ -1469,10 +1469,10 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	if (!attr)
 	    continue;
         endtme = time(NULL);
-        if ( endtme < mudstate.chkcpu_stopper )
-           endtme = mudstate.chkcpu_stopper;
-        if ( mudstate.chkcpu_toggle || ((endtme - mudstate.chkcpu_stopper) > timechk) ) {
-           mudstate.chkcpu_toggle = 1;
+        if ( endtme < mudstate_hot.chkcpu_stopper )
+           endtme = mudstate_hot.chkcpu_stopper;
+        if ( mudstate_hot.chkcpu_toggle || ((endtme - mudstate_hot.chkcpu_stopper) > timechk) ) {
+           mudstate_hot.chkcpu_toggle = 1;
            break;
         }
 	strcpy(tbuf, attr->name);
@@ -1577,7 +1577,7 @@ do_grep(dbref player, dbref cause, int key, char *source,
     } else if ( i_parent ) {
         s_ptr = s_buff = alloc_lbuf("do_grep_parent");
         ITER_PARENTS(thing, parent, loop) {
-           if ( !mudstate.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
+           if ( !mudstate_hot.chkcpu_toggle && Good_chk(parent) && Examinable(player, parent) ) {
               if ( PCRE_EXEC && (key & GREP_REGEXP) ) {
                  pt1 = grep_internal_regexp(player, parent, wildch[1], wildch[0], 1, 0);
               } else {
@@ -1843,7 +1843,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                             }
                          }
                          if ( !no_set ) {
-		            mudstate.vlplay = player;
+		            mudstate_hot.vlplay = player;
 		            atr_add(thing2, t2, pt1->info, player, pt1->flags);
                             if ( (attr->flags & AF_LOGGED) || (aflags & AF_LOGGED) ) {
                                STARTLOG(LOG_ALWAYS, "LOG", "ATTR");
@@ -1861,7 +1861,7 @@ do_cpattr(dbref player, dbref cause, int key, char *source,
                                 ENDLOG
                             }
 		            atrpush(-1, attr->name, thing2);
-		            if (mudstate.vlplay != NOTHING)
+		            if (mudstate_hot.vlplay != NOTHING)
 		               pt1->wt = 1;
 		            else
 		               notify_quiet(player,"Permission denied.");
@@ -2281,33 +2281,33 @@ look_in(dbref player, dbref cause, dbref loc, int key)
           else
              s = unparse_object_ansi(player, loc, 1, 0);
     } else {
-       chk_stop = mudstate.chkcpu_stopper;
-       chk_tog = mudstate.chkcpu_toggle;
-       mudstate.chkcpu_stopper = time(NULL);
-       mudstate.chkcpu_toggle = 0;
+       chk_stop = mudstate_hot.chkcpu_stopper;
+       chk_tog = mudstate_hot.chkcpu_toggle;
+       mudstate_hot.chkcpu_stopper = time(NULL);
+       mudstate_hot.chkcpu_toggle = 0;
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
             savereg[x] = alloc_lbuf("ulocal_reg");
             saveregname[x] = alloc_sbuf("ulocal_regname");
             pt = savereg[x];
             npt = saveregname[x];
-            safe_str(mudstate.global_regs[x],savereg[x],&pt);
-            safe_str(mudstate.global_regsname[x],saveregname[x],&npt);
+            safe_str(mudstate_hot.global_regs[x],savereg[x],&pt);
+            safe_str(mudstate_hot.global_regsname[x],saveregname[x],&npt);
           }
        }
        s = cpuexec(loc, player, player, EV_FIGNORE|EV_EVAL|EV_TOP, nfmt, (char **) NULL, 0, (char **)NULL, 0);
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
-            pt = mudstate.global_regs[x];
-            npt = mudstate.global_regsname[x];
-            safe_str(savereg[x],mudstate.global_regs[x],&pt);
-            safe_str(saveregname[x],mudstate.global_regsname[x],&npt);
+            pt = mudstate_hot.global_regs[x];
+            npt = mudstate_hot.global_regsname[x];
+            safe_str(savereg[x],mudstate_hot.global_regs[x],&pt);
+            safe_str(saveregname[x],mudstate_hot.global_regsname[x],&npt);
             free_lbuf(savereg[x]);
             free_sbuf(saveregname[x]);
           }
        }
-       mudstate.chkcpu_stopper = chk_stop;
-       mudstate.chkcpu_toggle = chk_tog;
+       mudstate_hot.chkcpu_stopper = chk_stop;
+       mudstate_hot.chkcpu_toggle = chk_tog;
        free_lbuf(nfmt);
     }
     notify(player, s);
@@ -2716,7 +2716,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
        i_cluster = 1;
        key &= ~EXAM_CLUSTER;
     }
-    mudstate.outputflushed = 0;
+    mudstate_hot.outputflushed = 0;
     do_parent = key & EXAM_PARENT;
     thing = NOTHING;
     keyfound = 0;
@@ -2803,10 +2803,10 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	     exam_wildattrs(player, thing, do_parent, &master, keyfound, NOTHING, &i_found, i_display);
           }
 	  olist_cleanup(&master);
-          if ( mudstate.outputflushed ) {
+          if ( mudstate_hot.outputflushed ) {
               notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
           }
-          if ( i_cluster && !mudstate.outputflushed ) {
+          if ( i_cluster && !mudstate_hot.outputflushed ) {
              a_chk = atr_str("_CLUSTER");
              if ( a_chk ) {
                 s_cluster = atr_get(thing, a_chk->number, &aowner, &aflags);
@@ -2825,7 +2825,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	                    exam_wildattrs(player, i_cluster_db, 0, &master, 1, i_cluster_db, &i_found, i_display);
                          }
 	                 olist_cleanup(&master);
-                         if ( mudstate.outputflushed ) {
+                         if ( mudstate_hot.outputflushed ) {
                              notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
                              break;
                          }
@@ -2891,7 +2891,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 	} else {
 	    debug_examine(player, thing);
 	}
-        if ( mudstate.outputflushed ) {
+        if ( mudstate_hot.outputflushed ) {
             notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
         }
 	return;
@@ -3056,7 +3056,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
           i_cluster_db = NOTHING;
        }
        look_atrs(player, thing, do_parent, i_tree, i_cluster_db, 0, i_display);
-       if ( i_cluster && !mudstate.outputflushed ) {
+       if ( i_cluster && !mudstate_hot.outputflushed ) {
           a_chk = atr_str("_CLUSTER");
           if ( a_chk ) {
              s_cluster = atr_get(thing, a_chk->number, &aowner, &aflags);
@@ -3066,7 +3066,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
                    i_cluster_db = match_thing(player, s_clustertk);
                    if ( Good_chk(i_cluster_db) && (i_cluster_db != thing) ) {
                       look_atrs(player, i_cluster_db, do_parent, i_tree, i_cluster_db, 0, i_display);
-                      if ( mudstate.outputflushed ) {
+                      if ( mudstate_hot.outputflushed ) {
                           break;
                       }
                    }
@@ -3238,7 +3238,7 @@ do_examine(dbref player, dbref cause, int key, char *name)
 			   Name(Owner(thing))));
 	}
     }
-    if ( mudstate.outputflushed ) {
+    if ( mudstate_hot.outputflushed ) {
        notify_quiet(player, "WARNING: Output limited exceeded on examine.  Attributes cut off.");
     }
 }
@@ -4411,7 +4411,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
     }
     key_buff = key;
     key = 0;
-    mudstate.outputflushed = 0;
+    mudstate_hot.outputflushed = 0;
     thing = NOTHING;
     if (!name || !*name)
       return;
@@ -4465,7 +4465,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
       }
       decomp_wildattrs(player, thing, &master, qual, qualout, i_tf, key_buff);
       olist_cleanup(&master);
-      if ( mudstate.outputflushed ) {
+      if ( mudstate_hot.outputflushed ) {
          notify_quiet(player, "WARNING: Output limited exceeded on @decompile.  Attributes cut off.");
       }
       free_lbuf(qual);
@@ -4677,7 +4677,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
       decompile_tags(player, thing, thingname, qualout, (i_tf|i_db));
     }
 
-    if ( mudstate.outputflushed ) {
+    if ( mudstate_hot.outputflushed ) {
         notify_quiet(player, "WARNING: Output limited exceeded on @decompile.  Attributes cut off.");
     }
 

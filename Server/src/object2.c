@@ -39,7 +39,7 @@ do_reclist(dbref player, dbref cause, int key, char *buff)
 	    comp = lookup_player(player, buff, 0);
 	    }
 	    }
-	    i = mudstate.recoverlist;
+	    i = mudstate_hot.recoverlist;
 	    while (i != NOTHING) {
 	    if ((typecomp > -1) && (Typeof(i) != typecomp)) {
 	    i = Link(i);

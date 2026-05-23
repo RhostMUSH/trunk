@@ -117,8 +117,8 @@ choose_thing(dbref thing1, dbref thing2)
     int has2;
 
     if (thing2 != NOTHING) {
-	if (!mudstate.whisper_state && ((Cloak(thing2) && !Wizard(match_who)) || (Cloak(thing2) && SCloak(thing2) && !Immortal(match_who)))) {
-	  if (!mudstate.exitcheck)
+	if (!mudstate_hot.whisper_state && ((Cloak(thing2) && !Wizard(match_who)) || (Cloak(thing2) && SCloak(thing2) && !Immortal(match_who)))) {
+	  if (!mudstate_hot.exitcheck)
 	    return NOTHING;
 	}
     }
@@ -383,8 +383,8 @@ match_list_altname(dbref first)
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
 #endif /* REALITY_LEVELS */
-	if (!mudstate.whisper_state && ((Cloak(first) && !Wizard(match_who)) || (Cloak(first) && SCloak(first) && !Immortal(match_who)))) {
-	  if (!mudstate.exitcheck)
+	if (!mudstate_hot.whisper_state && ((Cloak(first) && !Wizard(match_who)) || (Cloak(first) && SCloak(first) && !Immortal(match_who)))) {
+	  if (!mudstate_hot.exitcheck)
 	    continue;
 	}
 	if (first == absolute) {
@@ -517,8 +517,8 @@ match_list(dbref first)
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
 #endif /* REALITY_LEVELS */
-	if (!mudstate.whisper_state && ((Cloak(first) && !Wizard(match_who)) || (Cloak(first) && SCloak(first) && !Immortal(match_who)))) {
-	  if (!mudstate.exitcheck)
+	if (!mudstate_hot.whisper_state && ((Cloak(first) && !Wizard(match_who)) || (Cloak(first) && SCloak(first) && !Immortal(match_who)))) {
+	  if (!mudstate_hot.exitcheck)
 	    continue;
 	}
 	if (first == absolute) {

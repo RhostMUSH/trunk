@@ -124,7 +124,7 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 	pbuf->addr.len = sizeof (struct sockaddr_in);
 
 	sprintf(pbuf->udata.buf,"U\t%.20s\t%.20s\t%.20s\t%.10d\t0\t%.25s",
-		localnam,password,localnam,mudstate.now,comment);
+		localnam,password,localnam,mudstate_hot.now,comment);
 	pbuf->udata.len = strlen(pbuf->udata.buf);
 	t_sndudata (dgramfd, pbuf);
 #else
@@ -132,7 +132,7 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 		return(1);
 
 	sprintf(pbuf,"U\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
-		localnam,password,localnam,mudstate.now,comment);
+		localnam,password,localnam,mudstate_hot.now,comment);
 	sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif
 	return(0);
@@ -175,12 +175,12 @@ int NDECL(rwhocli_pingalive)
 	if(dgramfd != -1) {
 #ifdef TLI
 		sprintf(pbuf->udata.buf,"M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
-			localnam, password, localnam, mudstate.now, lcomment);
+			localnam, password, localnam, mudstate_hot.now, lcomment);
 		pbuf->udata.len = strlen(pbuf->udata.buf);
 		t_sndudata (dgramfd, pbuf);
 #else
 		sprintf(pbuf,"M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
-			localnam, password, localnam,mudstate.now, lcomment);
+			localnam, password, localnam,mudstate_hot.now, lcomment);
 		sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif
 	}

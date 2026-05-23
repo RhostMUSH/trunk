@@ -167,7 +167,7 @@ FUNCTION(local_fun_sql_escape) {
 
   if ( mysql_check_bool == -1 ) {
      if ( mudconf.mysql_delay != 0 ) {
-        if ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
+        if ( mudstate_hot.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
            mysql_check_bool = 0;
         } else {
            notify(player, "SQL failed connect multiple times.  Delaying for timeout period before retry.");
@@ -267,7 +267,7 @@ void local_mysql_init(void) {
   for (cmdp = mysql_cmd_table; cmdp->cmdname; cmdp++) {
     cmdp->cmdtype = CMD_LOCAL_e;
     cmdp->hookmask = 0;
-    hashadd(cmdp->cmdname, (int *) cmdp, &mudstate.command_htab);
+    hashadd(cmdp->cmdname, (int *) cmdp, &mudstate_hot.command_htab);
   }
 
   /* Register the functions */
@@ -281,7 +281,7 @@ void local_mysql_init(void) {
 	dp++;
       }
       *dp = '\0';
-    hashadd2(buff, (int *) fp, &mudstate.func_htab, 1);
+    hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
   }
   free_sbuf(buff);
 
@@ -293,21 +293,21 @@ int local_mysql_ping(MYSQL *mysql_struct, dbref player)
 {
   int mysql_return, alarm_trig;
 
-  alarm_trig = mudstate.alarm_triggered;
+  alarm_trig = mudstate_hot.alarm_triggered;
   alarm_msec(5);
-  mudstate.alarm_triggered = 0;
+  mudstate_hot.alarm_triggered = 0;
   mysql_return = mysql_ping(mysql_struct);
-  if ( mudstate.alarm_triggered ) {
+  if ( mudstate_hot.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
      STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
         log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
         log_text("Timeout Failure to respond to SQL database in sql-query.");
      ENDLOG
      sql_shutdown(player);
-     mudstate.alarm_triggered = 2;
+     mudstate_hot.alarm_triggered = 2;
      return 0;
   }
-  mudstate.alarm_triggered = alarm_trig;
+  mudstate_hot.alarm_triggered = alarm_trig;
   return mysql_return;
 }
 
@@ -331,11 +331,11 @@ static int sql_init(dbref player) {
   if (mysql_struct)
     sql_shutdown(player);
  
-  if ( (mysql_check_bool == -1) && (mudconf.mysql_delay != 0) && ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay)) ) {
+  if ( (mysql_check_bool == -1) && (mudconf.mysql_delay != 0) && ( mudstate_hot.now > (mudstate.mysql_last + mudconf.mysql_delay)) ) {
      mysql_check_bool = 0;
   }
 
-  if ( (mysql_check_bool == -1) || ((mysql_check_bool > 3) && (mudstate.now < (mysql_last_check + 120))) ) {
+  if ( (mysql_check_bool == -1) || ((mysql_check_bool > 3) && (mudstate_hot.now < (mysql_last_check + 120))) ) {
      if ( mudconf.mysql_delay > 0 )
         notify(player, "Too many failed attempts to connect to the database.  Please wait for timed delay.");
      else
@@ -350,7 +350,7 @@ static int sql_init(dbref player) {
         ENDLOG
      }
      mysql_check_bool = -1;
-     mudstate.mysql_last = mudstate.now;
+     mudstate.mysql_last = mudstate_hot.now;
      return -1;
   } 
   /* Try to connect to the database host. If we have specified
@@ -376,8 +376,8 @@ static int sql_init(dbref player) {
     log_text("Failed to connect to SQL database.");
     ENDLOG
     mysql_check_bool++;
-    if ( mudstate.now > (mysql_last_check + 120) )
-       mysql_last_check = mudstate.now;
+    if ( mudstate_hot.now > (mysql_last_check + 120) )
+       mysql_last_check = mudstate_hot.now;
     return -1;
   } else {
     STARTLOG(LOG_PROBLEMS, "SQL", "INF");
@@ -446,7 +446,7 @@ static int sql_query(dbref player,
   
   if ( mysql_check_bool == -1 ) {
      if ( mudconf.mysql_delay != 0 ) {
-        if ( mudstate.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
+        if ( mudstate_hot.now > (mudstate.mysql_last + mudconf.mysql_delay) ) {
            mysql_check_bool = 0;
         } else {
            notify(player, "SQL failed connect multiple times.  Delaying for timeout period before retry.");
@@ -505,24 +505,24 @@ static int sql_query(dbref player,
   s_qstr = alloc_lbuf("tmp_q_string");
   memset(s_qstr, '\0', LBUF_SIZE);
   strncpy(s_qstr, q_string, LBUF_SIZE - 2);
-  alarm_trig = mudstate.alarm_triggered;
+  alarm_trig = mudstate_hot.alarm_triggered;
   alarm_msec(5);
-  mudstate.alarm_triggered = 0;
+  mudstate_hot.alarm_triggered = 0;
   got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
-  if ( mudstate.alarm_triggered ) {
+  if ( mudstate_hot.alarm_triggered ) {
      notify(player, "The SQL engine forced a failure on a timeout.");
      STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
      log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
      log_text("Timeout Failure to respond to SQL database in sql-query.");
      ENDLOG
      sql_shutdown(player);
-     mudstate.alarm_triggered = 2;
+     mudstate_hot.alarm_triggered = 2;
      free_lbuf(s_qstr);
      if (buff)
         safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
      return 0;
   }
-  mudstate.alarm_triggered = alarm_trig;
+  mudstate_hot.alarm_triggered = alarm_trig;
   free_lbuf(s_qstr);
 
 
@@ -555,24 +555,24 @@ static int sql_query(dbref player,
       s_qstr = alloc_lbuf("tmp_q_string");
       memset(s_qstr, '\0', LBUF_SIZE);
       strncpy(s_qstr, q_string, LBUF_SIZE - 2);
-      alarm_trig = mudstate.alarm_triggered;
+      alarm_trig = mudstate_hot.alarm_triggered;
       alarm_msec(5);
-      mudstate.alarm_triggered = 0;
+      mudstate_hot.alarm_triggered = 0;
       got_rows = mysql_real_query(mysql_struct, s_qstr, strlen(s_qstr));
-      if ( mudstate.alarm_triggered ) {
+      if ( mudstate_hot.alarm_triggered ) {
          notify(player, "The SQL engine forced a failure on a timeout.");
          STARTLOG(LOG_PROBLEMS, "SQL", "ERR");
          log_text(unsafe_tprintf("DB connect by %s : ", player < 0 ? "SYSTEM" : Name(player)));
          log_text("Timeout Failure to respond to SQL database in sql-query.");
          ENDLOG
          sql_shutdown(player);
-         mudstate.alarm_triggered = 2;
+         mudstate_hot.alarm_triggered = 2;
          free_lbuf(s_qstr);
          if (buff)
            safe_str("#-1 CONNECTION TIMEOUT", buff, bp);
          return 0;
       }
-      mudstate.alarm_triggered = alarm_trig;
+      mudstate_hot.alarm_triggered = alarm_trig;
       free_lbuf(s_qstr);
     } else {
       notify(player, "The SQL engine forced a failure on a timeout and couldn't reconnect.");
