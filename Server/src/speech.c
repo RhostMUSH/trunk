@@ -3181,8 +3181,8 @@ ZLISTNODE *z_ptr, *y_ptr;
             if (do_zone) {
                in_zone = 0;
                if (!is_zonemaster) {
-                  for ( z_ptr = db[player].zonelist; z_ptr; z_ptr = z_ptr->next) {
-                     for ( y_ptr = db[target].zonelist; y_ptr; y_ptr = y_ptr->next) {
+                  for ( z_ptr = cold_db[player].zonelist; z_ptr; z_ptr = z_ptr->next) {
+                     for ( y_ptr = cold_db[target].zonelist; y_ptr; y_ptr = y_ptr->next) {
                         if ( z_ptr->object == y_ptr->object ) {
                            in_zone=1;
                            break;
@@ -3235,7 +3235,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                case PEMIT_PEMIT:
                   if (do_contents || do_zone) {
                      if (is_zonemaster && do_zone) {
-                        for ( z_ptr = db[target].zonelist; z_ptr; z_ptr = z_ptr->next) {
+                        for ( z_ptr = cold_db[target].zonelist; z_ptr; z_ptr = z_ptr->next) {
                            if ( z_ptr->object != target ) {
                               if (isRoom(z_ptr->object)) {
 #ifdef REALITY_LEVELS

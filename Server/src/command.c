@@ -2192,7 +2192,7 @@ int igcheck(dbref player, int mask)
            if ( ZoneMaster(loc) ) {
               return 0;
            }
-           for ( z_ptr = db[loc].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+           for ( z_ptr = cold_db[loc].zonelist; z_ptr; z_ptr = z_ptr->next ) {
               if ( Good_obj(z_ptr->object) && !Recover(z_ptr->object) &&
                    (isRoom(z_ptr->object) || isThing(z_ptr->object)) &&
                    IgnoreZone(z_ptr->object) ) {
@@ -2222,7 +2222,7 @@ zigcheck(dbref player, int mask)
          if ( ZoneMaster(loc) ) {
             return 0;
          }
-         for ( z_ptr = db[loc].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+         for ( z_ptr = cold_db[loc].zonelist; z_ptr; z_ptr = z_ptr->next ) {
             if ( Good_obj(z_ptr->object) && !Recover(z_ptr->object) &&
                 (isRoom(z_ptr->object) || isThing(z_ptr->object)) &&
                  IgnoreZone(z_ptr->object) ) {
@@ -2988,7 +2988,7 @@ int zonecmdtest(dbref player, char *cmd)
          i_ret = roomcmdtest(loc, cmd, player); 
       }
       if ( i_ret == 0 ) {
-         for ( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+         for ( ptr = cold_db[loc].zonelist; ptr; ptr = ptr->next ) {
             if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
                  (isRoom(ptr->object) || isThing(ptr->object)) &&
                  IgnoreZone(ptr->object) ) {
@@ -4910,9 +4910,9 @@ process_command(dbref player, dbref cause, int interactive,
         /* check for zone master commands */
         if( !succ && (sflag < 2) ) {
           realloc = absloc(player);
-          if( Good_obj(realloc) && db[realloc].zonelist && 
+          if( Good_obj(realloc) && cold_db[realloc].zonelist && 
               !ZoneMaster(realloc)) {
-              for( zonelistnodeptr = db[realloc].zonelist;
+              for( zonelistnodeptr = cold_db[realloc].zonelist;
                    zonelistnodeptr; 
                    zonelistnodeptr = zonelistnodeptr->next ) {
 	        if ((sflag = atr_match(zonelistnodeptr->object, player,
@@ -4937,8 +4937,8 @@ process_command(dbref player, dbref cause, int interactive,
            if (mudconf.match_mine) {
 	      if ( ZoneCmdChk(player) && ((Typeof(player) != TYPE_PLAYER) ||
                    (mudconf.match_mine_pl && mudconf.match_pl)) ) {
-                 if( db[player].zonelist && !ZoneMaster(player)) {
-                    for( zonelistnodeptr = db[player].zonelist;
+                 if( cold_db[player].zonelist && !ZoneMaster(player)) {
+                    for( zonelistnodeptr = cold_db[player].zonelist;
                          zonelistnodeptr; 
                          zonelistnodeptr = zonelistnodeptr->next ) {
 	               if ((sflag = atr_match(zonelistnodeptr->object, player,
@@ -9508,7 +9508,7 @@ void do_icmd(dbref player, dbref cause, int key, char *name,
        free_lbuf(atrpt);
        if ( !ZoneMaster(target) ) {
           tprp_buff = tpr_buff = alloc_lbuf("do_icmd");
-          for ( z_ptr = db[target].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+          for ( z_ptr = cold_db[target].zonelist; z_ptr; z_ptr = z_ptr->next ) {
              if ( Good_obj(z_ptr->object) && !Recover(z_ptr->object) &&
                  (isRoom(z_ptr->object) || isThing(z_ptr->object)) &&
                  IgnoreZone(z_ptr->object) ) {
@@ -12132,12 +12132,12 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                         i_corrupted = 1;
                         break;
                      }
-                     i_temp2 += (db[thing3].nvattr - i_isequal);
-                     if ( (db[thing3].nvattr - i_isequal) < i_lowball ) {
-                        i_lowball = (db[thing3].nvattr - i_isequal);
+                     i_temp2 += (cold_db[thing3].nvattr - i_isequal);
+                     if ( (cold_db[thing3].nvattr - i_isequal) < i_lowball ) {
+                        i_lowball = (cold_db[thing3].nvattr - i_isequal);
                      }
-                     if ( (db[thing3].nvattr - i_isequal) > i_highball ) {
-                        i_highball = (db[thing3].nvattr - i_isequal);
+                     if ( (cold_db[thing3].nvattr - i_isequal) > i_highball ) {
+                        i_highball = (cold_db[thing3].nvattr - i_isequal);
                      }
                      s_strtok = strtok_r(NULL, " ", &s_strtokptr);
                   }

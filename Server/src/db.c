@@ -27,7 +27,8 @@ void bzero(void *, int);
 #define O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
 #endif
 
-OBJ *db;
+OBJ_HOT *hot_db;
+OBJ_COLD *cold_db;
 OBJTOTEM *dbtotem;
 LWIRE *dblwire;
 NAME *names = NULL;
@@ -50,7 +51,7 @@ int zlist_inlist( dbref source, dbref target )
 {
   ZLISTNODE* ptr = NULL;
 
-  ptr = db[source].zonelist;
+  ptr = cold_db[source].zonelist;
 
   if( !ptr ) 
     return 0;
@@ -69,7 +70,7 @@ void zlist_destroy(dbref player)
   ZLISTNODE* ptr = NULL;
   ZLISTNODE* temp = NULL;
 
-  ptr = db[player].zonelist;
+  ptr = cold_db[player].zonelist;
 
   /* we must remove references to self in other lists */
   /* this can be object -> zmo or zmo -> object       */
@@ -78,10 +79,10 @@ void zlist_destroy(dbref player)
     zlist_del(ptr->object,player);
   }
 
-  while( db[player].zonelist ) {
-    temp = db[player].zonelist->next;
-    free_zlistnode(db[player].zonelist);
-    db[player].zonelist = temp;
+  while( cold_db[player].zonelist ) {
+    temp = cold_db[player].zonelist->next;
+    free_zlistnode(cold_db[player].zonelist);
+    cold_db[player].zonelist = temp;
   }
 }
 
@@ -90,19 +91,19 @@ void zlist_del(dbref player, dbref object)
   ZLISTNODE* ptr = NULL;
   ZLISTNODE* temp = NULL;
 
-  ptr = db[player].zonelist;
+  ptr = cold_db[player].zonelist;
 
   if( !ptr )
     return;
 
   if( ptr->object == object ) { /* head deletion */
-    temp = db[player].zonelist;
-    db[player].zonelist = db[player].zonelist->next;
+    temp = cold_db[player].zonelist;
+    cold_db[player].zonelist = cold_db[player].zonelist->next;
     free_zlistnode(temp); 
     return;
   }
 
-  temp = db[player].zonelist;
+  temp = cold_db[player].zonelist;
   ptr = temp->next;
 
   while( ptr && ptr->object != object ) {
@@ -123,14 +124,14 @@ void zlist_add(dbref player, dbref object)
   ZLISTNODE* node = NULL;
   ZLISTNODE* temp = NULL;
 
-  ptr = db[player].zonelist;
+  ptr = cold_db[player].zonelist;
 
   node = alloc_zlistnode("zlist_add");
   node->next = NULL;
   node->object = object;
 
   if( !ptr ) {
-    db[player].zonelist = node;
+    cold_db[player].zonelist = node;
     return;
   }
 
@@ -2838,7 +2839,7 @@ al_add(dbref thing, int attrnum)
 	if (anum == attrnum)
 	    return;
     }
-    if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (db[thing].nvattr >= mudconf.vlimit)) {
+    if ((attrnum >= A_USER_START) && (attrnum < A_INLINE_START) && (cold_db[thing].nvattr >= mudconf.vlimit)) {
       if ( 
 #ifndef STANDALONE
           !mudstate.dbloading &&
@@ -2989,7 +2990,7 @@ al_add(dbref thing, int attrnum)
     al_code(&cp, attrnum);
     *cp = '\0';
     if ( (attrnum >= A_USER_START) && (attrnum < A_INLINE_START) )
-      (db[thing].nvattr)++;
+      (cold_db[thing].nvattr)++;
     if ( do_limit_add ) {
        atr_add_raw(player, A_DESTVATTRMAX, s_mbuf);
        free_mbuf(s_mbuf);
@@ -3025,7 +3026,7 @@ al_delete(dbref thing, int attrnum)
 	anum = al_decode(&cp);
 	if (anum == attrnum) {
 	    if ( (anum >= A_USER_START) && (anum < A_INLINE_START) )
-	      (db[thing].nvattr)--;
+	      (cold_db[thing].nvattr)--;
 	    while (*cp) {
 		anum = al_decode(&cp);
 		al_code(&dp, anum);
@@ -3135,7 +3136,7 @@ al_destroy(dbref thing)
 	al_store();		/* remove from cache */
     atr_clr(thing, A_LIST);
     if (Good_obj(thing))
-      db[thing].nvattr = 0; 
+      cold_db[thing].nvattr = 0; 
 }
 
 /* ---------------------------------------------------------------------------
@@ -3495,7 +3496,7 @@ atr_pget_str_globalchk(char *s, dbref thing, int atr, dbref * owner, int *flags,
 #ifndef STANDALONE
     /* First, inherit from the zonemaster, if enabled */
     if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
-       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+       for ( z_ptr = cold_db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           if ( ZoneParent(z_ptr->object) ) {
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
@@ -3554,7 +3555,7 @@ atr_pget_str(char *s, dbref thing, int atr, dbref * owner, int *flags, int *reto
 #ifndef STANDALONE
     /* First, inherit from the zonemaster, if enabled */
     if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
-       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+       for ( z_ptr = cold_db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           if ( ZoneParent(z_ptr->object) ) {
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
@@ -3654,7 +3655,7 @@ atr_pget_info_globalchk(dbref thing, int atr, dbref * owner, int *flags)
 #ifndef STANDALONE
     /* First, inherit from the zonemaster, if enabled */
     if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
-       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+       for ( z_ptr = cold_db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           if ( ZoneParent(z_ptr->object) ) {
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
@@ -3697,7 +3698,7 @@ atr_pget_info(dbref thing, int atr, dbref * owner, int *flags)
 #ifndef STANDALONE
     /* First, inherit from the zonemaster, if enabled */
     if ( mudconf.zone_parents && Good_obj(thing) && !ZoneMaster(thing) && !NoZoneParent(thing) ) {
-       for ( z_ptr = db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+       for ( z_ptr = cold_db[thing].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           if ( ZoneParent(z_ptr->object) ) {
 	     buff = atr_get_raw(z_ptr->object, atr);
 	     if (buff && *buff) {
@@ -3951,7 +3952,7 @@ void val_count()
     for (anum = atr_head(d, &cp); anum; anum = atr_next(&cp)) {
       if ((anum >= A_USER_START) && (anum < A_INLINE_START)) count++;
     }
-    db[d].nvattr = count; 
+    cold_db[d].nvattr = count; 
   }
 }
 
@@ -4053,7 +4054,8 @@ db_grow(dbref newtop)
 {
     int newsize, marksize, delta, i, i_totem;
     MARKBUF *newmarkbuf;
-    OBJ *newdb;
+    OBJ_HOT *newhot;
+    OBJ_COLD *newcold;
     OBJTOTEM *newtotem;
     NAME *newnames;
     LWIRE *newlwire;
@@ -4103,8 +4105,8 @@ db_grow(dbref newtop)
 	    s_Parent(i, NOTHING);
 	    if (mudconf.cache_names)
 		i_Name(i);
-            db[i].zonelist = NULL;
-	    db[i].nvattr = 0;
+            cold_db[i].zonelist = NULL;
+	    cold_db[i].nvattr = 0;
             dblwire[i].funceval = 0;
             dblwire[i].funceval_override = 0;
             dblwire[i].queuemax = 0;
@@ -4166,34 +4168,37 @@ db_grow(dbref newtop)
 	names = newnames + SIZE_HACK;
 	newnames = NULL;
     }
-    /* Grow the db array */
+    /* Grow the hot/cold db arrays */
 
-    newdb = (OBJ *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ), "db_grow.db");
+    newhot = (OBJ_HOT *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ_HOT), "db_grow.hot");
+    newcold = (OBJ_COLD *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJ_COLD), "db_grow.cold");
     newtotem = (OBJTOTEM *) XMALLOC((newsize + SIZE_HACK) * sizeof(OBJTOTEM), "db_grow.db");
     newlwire = (LWIRE *) XMALLOC((newsize + SIZE_HACK) * sizeof(LWIRE), "db_grow.db");
-    if (!newdb || !newtotem || !newlwire) {
+    if (!newhot || !newcold || !newtotem || !newlwire) {
 	LOG_SIMPLE(LOG_ALWAYS, "ALC", "DB",
 	    unsafe_tprintf("Could not allocate space for %d item struct database.",
 		    newsize));
 	abort();
     }
-    if (db) {
+    if (hot_db) {
 
 	/* An old struct database exists.  Copy it to the new buffer */
 
-	db -= SIZE_HACK;
+	hot_db -= SIZE_HACK;
+	cold_db -= SIZE_HACK;
 	dbtotem -= SIZE_HACK;
         dblwire -= SIZE_HACK;
-/*	bcopy((char *) db, (char *) newdb,
-	      (mudstate.db_top + SIZE_HACK) * sizeof(OBJ)); */
-        memcpy((char *) newdb, (char *) db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ));
+        memcpy((char *) newhot, (char *) hot_db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ_HOT));
+        memcpy((char *) newcold, (char *) cold_db, (mudstate.db_top + SIZE_HACK) * sizeof(OBJ_COLD));
         memcpy((char *) newtotem, (char *) dbtotem, (mudstate.db_top + SIZE_HACK) * sizeof(OBJTOTEM));
         memcpy((char *) newlwire, (char *) dblwire, (mudstate.db_top + SIZE_HACK) * sizeof(LWIRE));
-	cp = (char *) db;
-	XFREE(cp, "db_grow.db");
+	cp = (char *) hot_db;
+	XFREE(cp, "db_grow.hot");
+	cp = (char *) cold_db;
+	XFREE(cp, "db_grow.cold");
 	cp = (char *) dbtotem;
 	XFREE(cp, "db_grow.db");
-	cp = (char *) dblwire;;
+	cp = (char *) dblwire;
 	XFREE(cp, "db_grow.db");
     } else {
 
@@ -4201,7 +4206,8 @@ db_grow(dbref newtop)
 	 * 'reserved' area in case it gets referenced.
 	 */
 
-	db = newdb;
+	hot_db = newhot;
+	cold_db = newcold;
         dbtotem = newtotem;
         dblwire = newlwire;
 	for (i = 0; i < SIZE_HACK; i++) {
@@ -4227,8 +4233,8 @@ db_grow(dbref newtop)
 /*                      s_Zone(i, NOTHING); */
 	    s_Parent(i, NOTHING);
 	    s_Pennies(i, 0);
-            db[i].zonelist = NULL;
-	    db[i].nvattr = 0;
+            cold_db[i].zonelist = NULL;
+	    cold_db[i].nvattr = 0;
             dblwire[i].funceval = 0;
             dblwire[i].funceval_override = 0;
             dblwire[i].queuemax = 0;
@@ -4238,10 +4244,12 @@ db_grow(dbref newtop)
             dbtotem[i].modified = 0;
 	}
     }
-    db = newdb + SIZE_HACK;
+    hot_db = newhot + SIZE_HACK;
+    cold_db = newcold + SIZE_HACK;
     dbtotem = newtotem + SIZE_HACK;
     dblwire = newlwire + SIZE_HACK;
-    newdb = NULL;
+    newhot = NULL;
+    newcold = NULL;
     newtotem = NULL;
     newlwire = NULL;
 
@@ -4267,8 +4275,8 @@ db_grow(dbref newtop)
 	s_Link(i, NOTHING);
 	s_Next(i, NOTHING);
 	s_Parent(i, NOTHING);
-        db[i].zonelist = NULL;
-	db[i].nvattr = 0;
+        cold_db[i].zonelist = NULL;
+	cold_db[i].nvattr = 0;
         dblwire[i].funceval = 0;
         dblwire[i].funceval_override = 0;
         dblwire[i].queuemax = 0;
@@ -4322,12 +4330,13 @@ void showdbstats(dbref player)
 
   notify(player, " ");
   notify(player, "DB Size         DB Top          DB Object Size  VHash Size      Total Mem");
-  notify(player, unsafe_tprintf("%-16d%-16d%-16d%-16d%dK", 
+  notify(player, unsafe_tprintf("%-16d%-16d%-16d (h)+%-3d(c)%-16d%dK", 
                          mudstate.db_size,
                          mudstate.db_top,
-                         sizeof(OBJ),
+                         (int)sizeof(OBJ_HOT),
+                         (int)sizeof(OBJ_COLD),
                          sum,
-                         ((mudstate.db_size * sizeof(OBJ) + sum) / 1024)));
+                         ((mudstate.db_size * (sizeof(OBJ_HOT) + sizeof(OBJ_COLD)) + sum) / 1024)));
 }
 #endif
 
@@ -4339,14 +4348,18 @@ NDECL(db_free)
     
     char *cp;
 
-    if (db != NULL) {
+    if (hot_db != NULL) {
         for( i = 0; i < mudstate.db_top; i++ ) {
            zlist_destroy(i);
         }
-	db -= SIZE_HACK;
-	cp = (char *) db;
-	XFREE(cp, "db_grow");
-	db = NULL;
+	hot_db -= SIZE_HACK;
+	cold_db -= SIZE_HACK;
+	cp = (char *) hot_db;
+	XFREE(cp, "db_grow.hot");
+	cp = (char *) cold_db;
+	XFREE(cp, "db_grow.cold");
+	hot_db = NULL;
+	cold_db = NULL;
     }
     mudstate.db_top = 0;
     mudstate.db_size = 0;
@@ -4383,7 +4396,7 @@ NDECL(db_make_minimal)
     s_Toggles6(0,mudconf.room_toggles.word6);
     s_Toggles7(0,mudconf.room_toggles.word7);
     s_Toggles8(0,mudconf.room_toggles.word8);
-    db[0].zonelist = NULL;
+    cold_db[0].zonelist = NULL;
 
     /* should be #1 */
     load_player_names();
@@ -4643,8 +4656,8 @@ dup_bool(BOOLEXP * b)
 void 
 clone_object(dbref a, dbref b)
 {
-/*    bcopy((char *) &db[b], (char *) &db[a], sizeof(struct object)); */
-   memcpy((char *) &db[a], (char *) &db[b], sizeof(struct object)); 
+   memcpy((char *) &hot_db[a], (char *) &hot_db[b], sizeof(OBJ_HOT)); 
+   memcpy((char *) &cold_db[a], (char *) &cold_db[b], sizeof(OBJ_COLD)); 
 }
 
 int 

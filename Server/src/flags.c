@@ -170,7 +170,7 @@ fh_zonemaster(dbref target, dbref player, FLAG flag, int fflags, int reset)
     return 0;
   }
 
-  if( db[target].zonelist ) {
+  if( cold_db[target].zonelist ) {
     notify_quiet(player, "You can't alter this flag while there are entries in the zone list.");
     return 0;
   }

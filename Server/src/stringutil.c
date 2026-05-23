@@ -2093,8 +2093,8 @@ find_cluster(dbref thing, dbref player, int anum)
    while ( s_strtok ) {
       thing2 = match_thing(player, s_strtok);
       if ( Good_chk(thing2) && Cluster(thing2) ) {
-         if ( i_value > db[thing2].nvattr ) {
-            i_value = db[thing2].nvattr;
+         if ( i_value > cold_db[thing2].nvattr ) {
+            i_value = cold_db[thing2].nvattr;
             s_useme = s_strtok;
          }
          if ( anum > 0 ) {
@@ -2139,8 +2139,8 @@ trigger_cluster_action(dbref thing, dbref player)
    while ( s_strtok ) {
       thing2 = match_thing(player, s_strtok);
       if ( Good_chk(thing2) && isThing(thing2) && Cluster(thing2) ) {
-         if ( (db[thing2].nvattr - 1) < i_lowball ) {
-            i_lowball = (db[thing2].nvattr - 1);
+         if ( (cold_db[thing2].nvattr - 1) < i_lowball ) {
+            i_lowball = (cold_db[thing2].nvattr - 1);
          }
       }
       s_strtok = strtok_r(NULL, " ", &s_strtokptr);

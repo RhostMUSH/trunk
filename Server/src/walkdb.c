@@ -1008,7 +1008,7 @@ void search_perform (dbref player, dbref cause, SEARCH *parm, FILE** master, int
          if ( !Good_chk(parm->s_rst_owner) )
             return;
 
-         for ( z_ptr = db[parm->s_rst_owner].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+         for ( z_ptr = cold_db[parm->s_rst_owner].zonelist; z_ptr; z_ptr = z_ptr->next ) {
             thing = z_ptr->object;
             if ( !Good_chk(thing) )
                break;
@@ -1504,7 +1504,7 @@ long count_player(dbref target, int i_val)
      DO_WHOLE_DB(d) {
        if (Going(d) || Recover(d)) continue;
        if (Owner(d) == target) {
-	   rval += sizeof(struct object) + strlen(Name(d)) + 1;
+	   rval += sizeof(OBJ_HOT) + sizeof(OBJ_COLD) + strlen(Name(d)) + 1;
 	   rval += count_atrs(d);
        }
      }
@@ -1512,11 +1512,11 @@ long count_player(dbref target, int i_val)
      DO_WHOLE_DB(d) {
        if (Going(d) || Recover(d)) continue;
        if (Owner(d) == target) {
-	   rval += sizeof(struct object) + strlen(Name(d)) + 1;
+	   rval += sizeof(OBJ_HOT) + sizeof(OBJ_COLD) + strlen(Name(d)) + 1;
        }
      }
   } else { /* Just target and attributes of target - Works for condition 2 & 3 */
-      rval += sizeof(struct object) + strlen(Name(target)) + 1;
+      rval += sizeof(OBJ_HOT) + sizeof(OBJ_COLD) + strlen(Name(target)) + 1;
       rval += count_atrs(target);
   }
   return rval;

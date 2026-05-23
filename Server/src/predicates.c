@@ -192,7 +192,7 @@ dbref Location(dbref target)
 dbref Location_safe(dbref target, int override)
 {
   if((mudstate.remote < 0) || (override != 0))
-    return db[target].location;
+    return hot_db[target].location;
   else
     return mudstate.remote;
 }
@@ -232,9 +232,9 @@ int ZoneWizard(dbref player, dbref target)
   if( !Good_chk(player) || !Inherits(player) ) 
     return 0;
 
-  if( db[target].zonelist &&
+  if( cold_db[target].zonelist &&
       !ZoneMaster(target) ) {
-    for( ptr = db[target].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[target].zonelist; ptr; ptr = ptr->next ) {
       if( could_doit(Owner(player), ptr->object, A_LZONEWIZ, 0, 0) ) 
         return 1;
     }

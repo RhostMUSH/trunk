@@ -16571,7 +16571,7 @@ FUNCTION(fun_zfuneval)
         else
             ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
      free_lbuf(lbuf);
@@ -16583,7 +16583,7 @@ FUNCTION(fun_zfuneval)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17391,7 +17391,7 @@ FUNCTION(fun_zfun)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17402,7 +17402,7 @@ FUNCTION(fun_zfun)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17487,7 +17487,7 @@ FUNCTION(fun_zfun2)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17498,7 +17498,7 @@ FUNCTION(fun_zfun2)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17583,7 +17583,7 @@ FUNCTION(fun_zfunlocal)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17594,7 +17594,7 @@ FUNCTION(fun_zfunlocal)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17698,7 +17698,7 @@ FUNCTION(fun_zfunldefault)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17710,7 +17710,7 @@ FUNCTION(fun_zfunldefault)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17827,7 +17827,7 @@ FUNCTION(fun_zfun2ldefault)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17839,7 +17839,7 @@ FUNCTION(fun_zfun2ldefault)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -17959,7 +17959,7 @@ FUNCTION(fun_zfundefault)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -17971,7 +17971,7 @@ FUNCTION(fun_zfundefault)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -18234,7 +18234,7 @@ FUNCTION(fun_zfun2default)
         else
             ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -18246,7 +18246,7 @@ FUNCTION(fun_zfun2default)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -18742,7 +18742,7 @@ FUNCTION(fun_zfun2local)
        else
            ap = atr_num(anum);
     } else {
-        ptr = db[player].zonelist;
+        ptr = cold_db[player].zonelist;
         if ( ptr == NULL ) {
            safe_str("#-1 INVALID ZONE", buff, bufcx);
            return;
@@ -18753,7 +18753,7 @@ FUNCTION(fun_zfun2local)
 
     /* Make sure it's a valid zone on the target */
     goodzone = 0;
-    for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
        if ( ptr->object == thing && thing != NOTHING ) {
           goodzone = 1;
           break;
@@ -25294,7 +25294,7 @@ FUNCTION(fun_lzone)
   if( (it != NOTHING) &&
       Examinable(player, it) ) {
     tbuf = alloc_sbuf("fun_lzone");
-    for( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[it].zonelist; ptr; ptr = ptr->next ) {
        i_cntr++;
        if ( (i_type && (i_cntr < i_max)) || (c_type == 'l'))
           continue;
@@ -25510,7 +25510,7 @@ FUNCTION(fun_zwho)
   gotone = 0;
   if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
      tbuf = alloc_sbuf("fun_zwho");
-     for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+     for ( ptr = cold_db[it].zonelist; ptr; ptr = ptr->next ) {
         if ( !i_chk && Good_obj(ptr->object) && !Recover(ptr->object) &&
              isPlayer(ptr->object) ) {
            if ( gotone )
@@ -25577,7 +25577,7 @@ FUNCTION(fun_inzone)
      gotone = 0;
      if ( (it != NOTHING) && Examinable(player, it) && ZoneMaster(it) ) {
         tbuf = alloc_sbuf("fun_inzone");
-        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+        for ( ptr = cold_db[it].zonelist; ptr; ptr = ptr->next ) {
            if ( Good_obj(ptr->object) && !Recover(ptr->object) &&
                 isRoom(ptr->object) ) {
               if ( gotone )
@@ -25593,7 +25593,7 @@ FUNCTION(fun_inzone)
      gotone = 0;
      if ( Examinable(player, it) && Examinable(player, target) && ZoneMaster(it) ) {
         tbuf = alloc_sbuf("fun_inzone");
-        for ( ptr = db[it].zonelist; ptr; ptr = ptr->next ) {
+        for ( ptr = cold_db[it].zonelist; ptr; ptr = ptr->next ) {
            if ( Good_chk(ptr->object) && (ptr->object == target) ) {
               gotone = 1;
               break;
@@ -26230,7 +26230,7 @@ FUNCTION(fun_zlcon)
    s_name = alloc_sbuf("zlcon_name");
    i_mux = mudconf.mux_lcon_compat;
    mudconf.mux_lcon_compat = 1;
-   for ( zptr = db[zmaster].zonelist; zptr; zptr = zptr->next ) {
+   for ( zptr = cold_db[zmaster].zonelist; zptr; zptr = zptr->next ) {
       sprintf(s_name, "#%d", zptr->object);
       s_array[0] = s_name;
       now2 = time(NULL);
@@ -39538,16 +39538,16 @@ FUNCTION(fun_vattrcnt)
        for (anum = atr_head(target, &cp); anum; anum = atr_next(&cp)) {
           if ( (anum >= A_USER_START) && (anum < A_INLINE_START) ) count++;
        }
-       if ( db[target].nvattr != count ) {
+       if ( cold_db[target].nvattr != count ) {
           s_mbuff = alloc_mbuf("fun_vattr");
-          sprintf(s_mbuff, "Value mismatch on user-count for dbref#%d.  was %d now %d.", target, db[target].nvattr, count);
-          db[target].nvattr = count;
+          sprintf(s_mbuff, "Value mismatch on user-count for dbref#%d.  was %d now %d.", target, cold_db[target].nvattr, count);
+          cold_db[target].nvattr = count;
           notify_quiet(player, s_mbuff);
           free_mbuf(s_mbuff);
        }
-       safe_str(myitoa(db[target].nvattr), buff, bufcx);
+       safe_str(myitoa(cold_db[target].nvattr), buff, bufcx);
     } else {
-       safe_str(myitoa(db[target].nvattr), buff, bufcx);
+       safe_str(myitoa(cold_db[target].nvattr), buff, bufcx);
     }
   }
 }
@@ -41436,7 +41436,7 @@ FUNCTION(fun_cluster_vattrcnt)
           while (s_strtok) {
              aowner = match_thing(player, s_strtok);
              if ( Good_chk(aowner) && Cluster(aowner) )
-                i_vattrcnt += (db[aowner].nvattr - 1);
+                i_vattrcnt += (cold_db[aowner].nvattr - 1);
              s_strtok = strtok_r(NULL, " ", &s_strtokptr);
           }
           safe_str(myitoa(i_vattrcnt), buff, bufcx);

@@ -520,7 +520,7 @@ look_exits(dbref player, dbref cause, dbref loc, const char *exit_name, int keyt
              }
           }
           if ( !t_level && !NoZoneParent(loc) ) {
-             for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+             for( ptr = cold_db[loc].zonelist; ptr; ptr = ptr->next ) {
                 if ( ptr && Good_chk(ptr->object) ) {
                    t_work = Toggles4(ptr->object);
                    t_work >>= (pent->powerpos);
@@ -944,7 +944,7 @@ look_contents_altinv(dbref player, dbref loc, const char *contents_name)
                   }
                }
                if ( !t_level && !NoZoneParent(loc) ) {
-                  for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+                  for( ptr = cold_db[loc].zonelist; ptr; ptr = ptr->next ) {
                      if ( ptr && Good_chk(ptr->object) ) {
                         t_work = Toggles4(ptr->object);
                         t_work >>= (pent->powerpos);
@@ -1122,7 +1122,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
                   }
                }
                if ( !t_level && !NoZoneParent(loc) ) {
-                  for( ptr = db[loc].zonelist; ptr; ptr = ptr->next ) {
+                  for( ptr = cold_db[loc].zonelist; ptr; ptr = ptr->next ) {
                      if ( ptr && Good_chk(ptr->object) ) {
                         t_work = Toggles4(ptr->object);
                         t_work >>= (pent->powerpos);
@@ -2461,7 +2461,7 @@ void viewzonelist( dbref player, dbref thing )
   char *cp;
   int i_numzones;
 
-  if( !db[thing].zonelist ) 
+  if( !cold_db[thing].zonelist ) 
     return;
 
   buf = alloc_lbuf("viewzonelist");
@@ -2471,14 +2471,14 @@ void viewzonelist( dbref player, dbref thing )
   safe_str((char *) ANSIEX(ANSI_NORMAL), buf, &cp);
 
   i_numzones = 0;
-  for( ptr = db[thing].zonelist; ptr; ptr = ptr->next )
+  for( ptr = cold_db[thing].zonelist; ptr; ptr = ptr->next )
      i_numzones++;
   if (i_numzones <= 20)
      i_numzones = 0;
   else
      buf2 = alloc_sbuf("viewzonelist.sbuf");
   
-  for( ptr = db[thing].zonelist; ptr; ptr = ptr->next ) {
+  for( ptr = cold_db[thing].zonelist; ptr; ptr = ptr->next ) {
     if (!i_numzones) {
        buf2 = unparse_object(player, ptr->object, 0);
        safe_str(buf2, buf, &cp);
@@ -3437,7 +3437,7 @@ do_inventory(dbref player, dbref cause, int key)
                    }
                 }
                 if ( !t_level && !NoZoneParent(player) ) {
-                   for( ptr = db[player].zonelist; ptr; ptr = ptr->next ) {
+                   for( ptr = cold_db[player].zonelist; ptr; ptr = ptr->next ) {
                       if ( ptr && Good_chk(ptr->object) ) {
                          t_work = Toggles4(ptr->object);
                          t_work >>= (pent->powerpos);
@@ -3734,10 +3734,10 @@ do_entrances(dbref player, dbref cause, int key, char *name)
     }
     /* Just count zones, as zones can be spammy as hell */
     if (control_thing) {
-       if( !db[thing].zonelist ) {
+       if( !cold_db[thing].zonelist ) {
           i_numzones=0; 
        } else {
-          for( zp = db[thing].zonelist; zp; zp = zp->next )
+          for( zp = cold_db[thing].zonelist; zp; zp = zp->next )
              i_numzones++;
        }
     }
@@ -4667,7 +4667,7 @@ do_decomp(dbref player, dbref cause, int key, char *name, char *qualin)
 
     /* If the object has zones, report it */
     buff = alloc_lbuf("decompile_zones");
-    for( ptr = db[thing].zonelist; ptr; ptr = ptr->next ) {
+    for( ptr = cold_db[thing].zonelist; ptr; ptr = ptr->next ) {
        sprintf(buff, "%s@zone/add %s=#%d", ((i_tf | i_db) ? qualout : (char *)""), thingname, ptr->object);
        notify_quiet(player, buff);
     }

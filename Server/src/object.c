@@ -542,17 +542,17 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
     }
     s_Owner(obj, (self_owned ? obj : owner));
 
-    if ( Good_chk(player) && AutoZoneAll(player) && db[player].zonelist ) {
-       for( z_ptr = db[player].zonelist; z_ptr; z_ptr = z_ptr->next ) {
+    if ( Good_chk(player) && AutoZoneAll(player) && cold_db[player].zonelist ) {
+       for( z_ptr = cold_db[player].zonelist; z_ptr; z_ptr = z_ptr->next ) {
           zlist_add(obj, z_ptr->object);
           zlist_add(z_ptr->object, obj);
        }
-    } else if ( Good_chk(player) && AutoZoneAdd(player) && db[player].zonelist ) {
-       z_ptr = db[player].zonelist;
+    } else if ( Good_chk(player) && AutoZoneAdd(player) && cold_db[player].zonelist ) {
+       z_ptr = cold_db[player].zonelist;
        zlist_add(obj, z_ptr->object);
        zlist_add(z_ptr->object, obj);
     } else {
-       db[obj].zonelist = NULL;
+       cold_db[obj].zonelist = NULL;
     }
 
     s_Pennies(obj, value);

@@ -2313,8 +2313,8 @@ list_check(dbref thing, dbref player, char type, char *str, int check_parent, in
 #endif
             /* Do zone command tests */
             if ( zone_chk && ZoneCmdChk(thing) ) {
-               if( db[thing].zonelist && !ZoneMaster(thing)) {
-                    for( zonelistnodeptr = db[thing].zonelist;
+               if( cold_db[thing].zonelist && !ZoneMaster(thing)) {
+                    for( zonelistnodeptr = cold_db[thing].zonelist;
                          zonelistnodeptr;
                          zonelistnodeptr = zonelistnodeptr->next ) {
                        if ((scheck = atr_match(zonelistnodeptr->object, player,
@@ -2729,7 +2729,8 @@ main(int argc, char *argv[])
        /* Fall through here and continue on */
     }
  
-    db = NULL;
+    hot_db = NULL;
+    cold_db = NULL;
     dbtotem = NULL;
     dddb_var_init();
     cache_var_init(); 

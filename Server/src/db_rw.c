@@ -24,7 +24,8 @@ extern const char *FDECL(getstring_noalloc, (FILE *));
 extern void FDECL(putstring, (FILE *, const char *));
 extern void FDECL(db_grow, (dbref));
 
-extern struct object *db;
+extern OBJ_HOT *hot_db;
+extern OBJ_COLD *cold_db;
 
 static int g_version;
 static int g_format;
@@ -1426,7 +1427,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 		s_Toggles7(i, getref(f));
 		s_Toggles8(i, getref(f));
 
-                db[i].zonelist = NULL;
+                cold_db[i].zonelist = NULL;
                 for( zonedata = getref(f); 
                      zonedata != -1; 
                      zonedata = getref(f)) {
@@ -1554,7 +1555,7 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
 	putref(f, Toggles7(i));
 	putref(f, Toggles8(i));
 
-        for(zlistnodeptr = db[i].zonelist; 
+        for(zlistnodeptr = cold_db[i].zonelist; 
             zlistnodeptr;
             zlistnodeptr = zlistnodeptr->next ) {
           putref(f, zlistnodeptr->object);
@@ -1831,7 +1832,7 @@ remote_read_obj(FILE *f, dbref i, int db_format, int flags, int *i_count, int ke
       if ( !key || (key & SNAPSHOT_DPOWER) ) {
          s_Toggles8(i, i_ref);
       }
-      db[i].zonelist = NULL;	/* Grab zones - settem if valid */
+      cold_db[i].zonelist = NULL;	/* Grab zones - settem if valid */
       for( i_ref = getref(f); 
          i_ref != -1; 
          i_ref = getref(f)) {

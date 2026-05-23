@@ -164,8 +164,8 @@ struct livewire {
    int queuemax;
 };
 
-typedef struct object OBJ;
-struct object {
+typedef struct obj_hot OBJ_HOT;
+struct obj_hot {
 	dbref	location;	/* PLAYER, THING: where it is */
 				/* ROOM: dropto: */
 				/* EXIT: where it goes to */
@@ -181,15 +181,19 @@ struct object {
 	dbref	parent;		/* ALL: defaults for attrs, exits, $cmds, */
 	dbref	owner;		/* PLAYER: domain number + class + moreflags */
 				/* THING, ROOM, EXIT: owning player number */
-	int	nvattr;		/* added 11/26 Seawolf.  */
-        ZLISTNODE* zonelist;    /* ZONEMASTER: list of objects in zone */
-                                /* OTHERS: list of zones belonged to */
 	FLAG	flags;		/* ALL: Flags set on the object */
 	FLAG	flags2;		/* ALL: even more flags */
 	FLAG	flags3;		/* ALL: yet more flags - Thorin 3/95*/
 	FLAG	flags4;		/* ALL: ditto */
 	FLAG	toggles;	/* ALL: power toggles - Thorin 3/95*/
 	FLAG	toggles2;	/* ALL: power toggles part 2 - Thorin 3/95*/
+};
+
+typedef struct obj_cold OBJ_COLD;
+struct obj_cold {
+	ZLISTNODE* zonelist;    /* ZONEMASTER: list of objects in zone */
+                                /* OTHERS: list of zones belonged to */
+	int	nvattr;		/* added 11/26 Seawolf.  */
 	FLAG	toggles3;	/* ALL: power toggles part 3 - Thorin 3/95*/
 	FLAG	toggles4;	/* ALL: power toggles part 4 - Thorin 3/95*/
 	FLAG	toggles5;
@@ -201,7 +205,8 @@ struct object {
 typedef char *NAME;
 
 extern OBJTOTEM *dbtotem;
-extern OBJ *db;
+extern OBJ_HOT *hot_db;
+extern OBJ_COLD *cold_db;
 extern NAME *names;
 extern LWIRE *dblwire;
 
@@ -210,50 +215,50 @@ extern LWIRE *dblwire;
 
 #define SYSTEM -1
 
-//#define	Location(t)		db[t].location
+//#define	Location(t)		hot_db[t].location
 #define	Zone(t)			NOTHING
-#define	Contents(t)		db[t].contents
-#define	Exits(t)		db[t].exits
-#define	Next(t)			db[t].next
-#define	Link(t)			db[t].link
-#define	Owner(t)		db[t].owner
-#define	Parent(t)		db[t].parent
-#define	Flags(t)		db[t].flags
-#define	Flags2(t)		db[t].flags2
-#define Flags3(t)		db[t].flags3
-#define Flags4(t)		db[t].flags4
-#define Toggles(t)		db[t].toggles
-#define Toggles2(t)		db[t].toggles2
-#define Toggles3(t)		db[t].toggles3
-#define Toggles4(t)		db[t].toggles4
-#define Toggles5(t)		db[t].toggles5
-#define Toggles6(t)		db[t].toggles6
-#define Toggles7(t)		db[t].toggles7
-#define Toggles8(t)		db[t].toggles8
+#define	Contents(t)		hot_db[t].contents
+#define	Exits(t)		hot_db[t].exits
+#define	Next(t)			hot_db[t].next
+#define	Link(t)			hot_db[t].link
+#define	Owner(t)		hot_db[t].owner
+#define	Parent(t)		hot_db[t].parent
+#define	Flags(t)		hot_db[t].flags
+#define	Flags2(t)		hot_db[t].flags2
+#define Flags3(t)		hot_db[t].flags3
+#define Flags4(t)		hot_db[t].flags4
+#define Toggles(t)		hot_db[t].toggles
+#define Toggles2(t)		hot_db[t].toggles2
+#define Toggles3(t)		cold_db[t].toggles3
+#define Toggles4(t)		cold_db[t].toggles4
+#define Toggles5(t)		cold_db[t].toggles5
+#define Toggles6(t)		cold_db[t].toggles6
+#define Toggles7(t)		cold_db[t].toggles7
+#define Toggles8(t)		cold_db[t].toggles8
 #define	Home(t)			Link(t)
 #define	Dropto(t)		Location(t)
 
 #define	i_Name(t)		names[t] = NULL;
-#define	s_Location(t,n)		db[t].location = (n)
+#define	s_Location(t,n)		hot_db[t].location = (n)
 #define	s_Zone(t,n)		((void)(n))
-#define	s_Contents(t,n)		db[t].contents = (n)
-#define	s_Exits(t,n)		db[t].exits = (n)
-#define	s_Next(t,n)		db[t].next = (n)
-#define	s_Link(t,n)		db[t].link = (n)
-#define	s_Owner(t,n)		db[t].owner = (n)
-#define	s_Parent(t,n)		db[t].parent = (n)
-#define	s_Flags(t,n)		db[t].flags = (n)
-#define	s_Flags2(t,n)		db[t].flags2 = (n)
-#define s_Flags3(t,n)		db[t].flags3 = (n)
-#define s_Flags4(t,n)		db[t].flags4 = (n)
-#define s_Toggles(t,n)		db[t].toggles = (n)
-#define s_Toggles2(t,n)		db[t].toggles2 = (n)
-#define s_Toggles3(t,n)		db[t].toggles3 = (n)
-#define s_Toggles4(t,n)		db[t].toggles4 = (n)
-#define s_Toggles5(t,n)		db[t].toggles5 = (n)
-#define s_Toggles6(t,n)		db[t].toggles6 = (n)
-#define s_Toggles7(t,n)		db[t].toggles7 = (n)
-#define s_Toggles8(t,n)		db[t].toggles8 = (n)
+#define	s_Contents(t,n)		hot_db[t].contents = (n)
+#define	s_Exits(t,n)		hot_db[t].exits = (n)
+#define	s_Next(t,n)		hot_db[t].next = (n)
+#define	s_Link(t,n)		hot_db[t].link = (n)
+#define	s_Owner(t,n)		hot_db[t].owner = (n)
+#define	s_Parent(t,n)		hot_db[t].parent = (n)
+#define	s_Flags(t,n)		hot_db[t].flags = (n)
+#define	s_Flags2(t,n)		hot_db[t].flags2 = (n)
+#define s_Flags3(t,n)		hot_db[t].flags3 = (n)
+#define s_Flags4(t,n)		hot_db[t].flags4 = (n)
+#define s_Toggles(t,n)		hot_db[t].toggles = (n)
+#define s_Toggles2(t,n)		hot_db[t].toggles2 = (n)
+#define s_Toggles3(t,n)		cold_db[t].toggles3 = (n)
+#define s_Toggles4(t,n)		cold_db[t].toggles4 = (n)
+#define s_Toggles5(t,n)		cold_db[t].toggles5 = (n)
+#define s_Toggles6(t,n)		cold_db[t].toggles6 = (n)
+#define s_Toggles7(t,n)		cold_db[t].toggles7 = (n)
+#define s_Toggles8(t,n)		cold_db[t].toggles8 = (n)
 
 #define	s_Home(t,n)		s_Link(t,n)
 #define	s_Dropto(t,n)		s_Location(t,n)
