@@ -5464,7 +5464,7 @@ FUNCTION(fun_textfile)
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
-   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@dynhelp", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dynhelp") ||
         cmdtest(Owner(player), "@dynhelp") || zonecmdtest(player, "@dynhelp") ) {
       notify(player, "Permission denied.");
@@ -5524,7 +5524,7 @@ FUNCTION(fun_dynhelp)
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
       return;
    }
-   cmdp = (CMDENT *)hashfind((char *)"@dynhelp", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@dynhelp", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dynhelp") ||
         cmdtest(Owner(player), "@dynhelp") || zonecmdtest(player, "@dynhelp") ) {
       notify(player, "Permission denied.");
@@ -7109,7 +7109,7 @@ FUNCTION(fun_valid)
      }
      ival(buff, bufcx, ((cmdp != NULL) ? 1 : 0));
   } else if (!stricmp(fargs[0], "function")) {
-     fp = (FUN *) hashfind(fargs[1], &mudstate_hot.func_htab);
+     fp = (FUN *) ohtab_find(fargs[1], &mudstate_hot.func_htab);
      if ( !fp ) {
         ival(buff, bufcx, 0);
      } else {
@@ -15118,9 +15118,9 @@ FUNCTION(fun_listcommands)
   }
 
   if ( i_cmdtype == 3 ) {
-     for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
+     for (cmdp = (CMDENT *) ohtab_firstentry(&mudstate_hot.command_htab);
           cmdp;
-          cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
+          cmdp = (CMDENT *) ohtab_nextentry(&mudstate_hot.command_htab)) {
 
         if ( (cmdp->cmdtype & CMD_ATTR_e) && 
            check_access(player, cmdp->perms, cmdp->perms2, 0)) {
@@ -15143,9 +15143,9 @@ FUNCTION(fun_listcommands)
   }
 
   if ( !i_cmdtype || (i_cmdtype == 2) ) {
-     for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
+     for (cmdp = (CMDENT *) ohtab_firstentry(&mudstate_hot.command_htab);
           cmdp;
-          cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
+          cmdp = (CMDENT *) ohtab_nextentry(&mudstate_hot.command_htab)) {
 
        if ( (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) &&
              check_access(player, cmdp->perms, cmdp->perms2, 0)) {
@@ -19240,7 +19240,7 @@ FUNCTION(fun_parent)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *) hashfind((char *)"@parent", &mudstate_hot.command_htab);
+        cmdp = (CMDENT *) ohtab_find((char *)"@parent", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@parent") ||
              cmdtest(Owner(player), "@parent") || zonecmdtest(player, "@parent") ) {
            notify(player, "Permission denied.");
@@ -20069,7 +20069,7 @@ FUNCTION(fun_passthrough)
       }
       free_lbuf(s_buff);
    }
-   fp = (FUN *) hashfind(fargs[0], &mudstate_hot.func_htab);
+   fp = (FUN *) ohtab_find(fargs[0], &mudstate_hot.func_htab);
    if ( fp ) {
       if ( !stricmp((char *)fp->name, "passthrough") ) {
          safe_str("#-1 RECURSIVE CALLING PASSTHROUGH", buff, bufcx);
@@ -20108,7 +20108,7 @@ FUNCTION(fun_strfunc)
    }
 
     i_found = 0;
-   fp = (FUN *) hashfind(list, &mudstate_hot.func_htab);
+   fp = (FUN *) ohtab_find(list, &mudstate_hot.func_htab);
    if ( !fp ) {
       if ( mudconf.strfunc_softfuncs >= 1 ) {
          ufp = (UFUN *) hashfind(list, &mudstate.ufunc_htab);
@@ -22004,7 +22004,7 @@ FUNCTION(fun_name)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@name", &mudstate_hot.command_htab);
+        cmdp = (CMDENT *)ohtab_find((char *)"@name", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@name") ||
               cmdtest(Owner(player), "@name") || zonecmdtest(player, "@name") ) {
            notify(player, "Permission denied.");
@@ -25363,7 +25363,7 @@ FUNCTION(fun_zonecmd)
   }
 
   mudstate.sidefx_currcalls++;
-  cmdp = (CMDENT *)hashfind((char *)"@zone", &mudstate_hot.command_htab);
+  cmdp = (CMDENT *)ohtab_find((char *)"@zone", &mudstate_hot.command_htab);
   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@zone") ||
         cmdtest(Owner(player), "@zone") || zonecmdtest(player, "@zone") ) {
      notify(player, "Permission denied.");
@@ -29018,7 +29018,7 @@ FUNCTION(fun_lock)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@lock", &mudstate_hot.command_htab);
+        cmdp = (CMDENT *)ohtab_find((char *)"@lock", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@lock") ||
               cmdtest(Owner(player), "@lock") || zonecmdtest(player, "@lock") ) {
            notify(player, "Permission denied.");
@@ -32272,7 +32272,7 @@ FUNCTION(fun_sandbox)
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
        upfun2 = (UFUN *)NULL;
-       pfun = (FUN *) hashfind(s_strtok, &mudstate_hot.func_htab);
+       pfun = (FUN *) ohtab_find(s_strtok, &mudstate_hot.func_htab);
        if ( i_ufun && !pfun ) {
           if ( i_ufun & 1 ) {
              upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
@@ -32380,7 +32380,7 @@ FUNCTION(fun_sandbox)
        pfun = (FUN *)NULL;
        upfun = (UFUN *)NULL;
        upfun2 = (UFUN *)NULL;
-       pfun = (FUN *) hashfind(s_strtok, &mudstate_hot.func_htab);
+       pfun = (FUN *) ohtab_find(s_strtok, &mudstate_hot.func_htab);
        if ( i_ufun && !pfun ) {
           if ( i_ufun & 1 ) {
              upfun = (UFUN *) hashfind(s_strtok, &mudstate.ufunc_htab);
@@ -39875,7 +39875,7 @@ FUNCTION(fun_mailread)
    int i_key;
    CMDENT *cmdp;
 
-   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"mail", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
          cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
       notify(player, "Permission denied.");
@@ -39937,7 +39937,7 @@ FUNCTION(fun_cluster_add)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@cluster", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@cluster", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@cluster") ||
          cmdtest(Owner(player), "@cluster") || zonecmdtest(player, "@cluster") ) {
       notify(player, "Permission denied.");
@@ -39973,7 +39973,7 @@ FUNCTION(fun_lset)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@lset", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@lset", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@lset") ||
          cmdtest(Owner(player), "@lset") || zonecmdtest(player, "@lset") ) {
       notify(player, "Permission denied.");
@@ -40015,7 +40015,7 @@ FUNCTION(fun_totemset)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@totem", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@totem", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@totem") ||
          cmdtest(Owner(player), "@totem") || zonecmdtest(player, "@totem") ) {
       notify(player, "Permission denied.");
@@ -40062,7 +40062,7 @@ FUNCTION(fun_set)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -40121,7 +40121,7 @@ FUNCTION(fun_rset)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -40178,7 +40178,7 @@ FUNCTION(fun_toggle)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@toggle", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@toggle", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@toggle") ||
          cmdtest(Owner(player), "@toggle") || zonecmdtest(player, "@toggle") ) {
       notify(player, "Permission denied.");
@@ -40200,7 +40200,7 @@ FUNCTION(fun_link)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@link", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@link", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@link") ||
          cmdtest(Owner(player), "@link") || zonecmdtest(player, "@link") ) {
       notify(player, "Permission denied.");
@@ -40257,7 +40257,7 @@ FUNCTION(fun_create)
    }
 
    switch (sep) {
-      case 't' : cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate_hot.command_htab);
+      case 't' : cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40265,7 +40265,7 @@ FUNCTION(fun_create)
                  }
                  do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
-      case 'r' : cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate_hot.command_htab);
+      case 'r' : cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
                        cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
                     notify(player, "Permission denied.");
@@ -40274,7 +40274,7 @@ FUNCTION(fun_create)
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
-      case 'e' : cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate_hot.command_htab);
+      case 'e' : cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
                        cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
                     notify(player, "Permission denied.");
@@ -40283,7 +40283,7 @@ FUNCTION(fun_create)
                  nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ',');
                  do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
-      case 'p' : cmdp = (CMDENT *)hashfind((char *)"@pcreate", &mudstate_hot.command_htab);
+      case 'p' : cmdp = (CMDENT *)ohtab_find((char *)"@pcreate", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
                        cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
                     notify(player, "Permission denied.");
@@ -40304,7 +40304,7 @@ FUNCTION(fun_create)
                     do_pcreate(player, cause, (SIDEEFFECT|i_key), fargs[0], fargs[1]);
                  }
                  break;
-      default:   cmdp = (CMDENT *)hashfind((char *)"@create", &mudstate_hot.command_htab);
+      default:   cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40335,7 +40335,7 @@ FUNCTION(fun_dig)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@dig", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
          cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
       notify(player, "Permission denied.");
@@ -40404,7 +40404,7 @@ FUNCTION(fun_open)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@open", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
          cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
       notify(player, "Permission denied.");
@@ -40448,7 +40448,7 @@ FUNCTION(fun_lemit)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@emit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@emit") ||
          cmdtest(Owner(player), "@emit") || zonecmdtest(player, "@emit") ) {
       notify(player, "Permission denied.");
@@ -40478,7 +40478,7 @@ FUNCTION(fun_trigger)
    }
  
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@trigger", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@trigger", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@trigger") ||
          cmdtest(Owner(player), "@trigger") || zonecmdtest(player, "@trigger") ) {
       notify(player, "Permission denied.");
@@ -40501,7 +40501,7 @@ FUNCTION(fun_emit)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@emit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@emit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@emit") ||
          cmdtest(Owner(player), "@emit") || zonecmdtest(player, "@emit") ) {
       notify(player, "Permission denied.");
@@ -40527,7 +40527,7 @@ FUNCTION(fun_mailsend)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"mail", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "mail") ||
          cmdtest(Owner(player), "mail") || zonecmdtest(player, "mail") ) {
       notify(player, "Permission denied.");
@@ -40596,7 +40596,7 @@ FUNCTION(fun_clone)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@clone", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@clone", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@clone") ||
          cmdtest(Owner(player), "@clone") || zonecmdtest(player, "@clone") ) {
       notify(player, "Permission denied.");
@@ -40655,7 +40655,7 @@ FUNCTION(fun_oemit)
    }
       
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@oemit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@oemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@oemit") ||
          cmdtest(Owner(player), "@oemit") || zonecmdtest(player, "@oemit") ) {
       notify(player, "Permission denied.");
@@ -40687,7 +40687,7 @@ FUNCTION(fun_pemit)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40726,7 +40726,7 @@ FUNCTION(fun_remit)
    }
 
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40772,7 +40772,7 @@ FUNCTION(fun_zemit)
    }
    
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@pemit", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@pemit", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pemit") ||
          cmdtest(Owner(player), "@pemit") || zonecmdtest(player, "@pemit") ) {
       notify(player, "Permission denied.");
@@ -40808,7 +40808,7 @@ FUNCTION(fun_tel)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@teleport", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@teleport", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@teleport") ||
          cmdtest(Owner(player), "@teleport") || zonecmdtest(player, "@teleport") ) {
       notify(player, "Permission denied.");
@@ -40855,7 +40855,7 @@ FUNCTION(fun_cluster_wipe)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@wipe", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@wipe") ||
          cmdtest(Owner(player), "@wipe") || zonecmdtest(player, "@wipe") ) {
       notify(player, "Permission denied.");
@@ -40978,7 +40978,7 @@ FUNCTION(fun_wipe)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@wipe", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@wipe", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@wipe") ||
          cmdtest(Owner(player), "@wipe") || zonecmdtest(player, "@wipe") ) {
       notify(player, "Permission denied.");
@@ -41029,7 +41029,7 @@ FUNCTION(fun_destroy)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@destroy", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@destroy", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@destroy") ||
          cmdtest(Owner(player), "@destroy") || zonecmdtest(player, "@destroy") ) {
       notify(player, "Permission denied.");
@@ -41061,7 +41061,7 @@ FUNCTION(fun_move)
     notify(player, "Permission denied.");
     return;
   }
-  cmdp = (CMDENT *)hashfind((char *)"goto", &mudstate_hot.command_htab);
+  cmdp = (CMDENT *)ohtab_find((char *)"goto", &mudstate_hot.command_htab);
   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "goto") ||
        cmdtest(Owner(player), "goto") || zonecmdtest(player, "goto") ) {
     notify(player, "Permission denied.");
@@ -41144,7 +41144,7 @@ FUNCTION(fun_rxlevel)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@rxlevel", &mudstate_hot.command_htab);
+        cmdp = (CMDENT *)ohtab_find((char *)"@rxlevel", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@rxlevel") ||
               cmdtest(Owner(player), "@rxlevel") || zonecmdtest(player, "@rxlevel") ) {
            notify(player, "Permission denied.");
@@ -41352,7 +41352,7 @@ FUNCTION(fun_txlevel)
            notify(player, "Permission denied.");
            return;
         }
-        cmdp = (CMDENT *)hashfind((char *)"@txlevel", &mudstate_hot.command_htab);
+        cmdp = (CMDENT *)ohtab_find((char *)"@txlevel", &mudstate_hot.command_htab);
         if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@txlevel") ||
               cmdtest(Owner(player), "@txlevel") || zonecmdtest(player, "@txlevel") ) {
            notify(player, "Permission denied.");
@@ -42039,7 +42039,7 @@ FUNCTION(fun_cluster_set)
       return;
    }
    mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)hashfind((char *)"@set", &mudstate_hot.command_htab);
+   cmdp = (CMDENT *)ohtab_find((char *)"@set", &mudstate_hot.command_htab);
    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@set") ||
          cmdtest(Owner(player), "@set") || zonecmdtest(player, "@set") ) {
       notify(player, "Permission denied.");
@@ -43140,7 +43140,7 @@ NDECL(init_functab)
     char *buff, *cp, *dp;
 
     buff = alloc_sbuf("init_functab");
-    hashinit(&mudstate_hot.func_htab, 521);
+    ohtab_init(&mudstate_hot.func_htab, 521);
     for (fp = flist; fp->name; fp++) {
       cp = (char *) fp->name;
       dp = buff;
@@ -43150,7 +43150,7 @@ NDECL(init_functab)
          dp++;
       }
       *dp = '\0';
-      hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
+      ohtab_add(buff, (int *) fp, &mudstate_hot.func_htab, 1);
     }
     free_sbuf(buff);
 
@@ -43447,7 +43447,7 @@ do_function(dbref player, dbref cause, int key, char *fname, char *target)
 
     /* Verify that the function doesn't exist in the builtin table */
 
-    if (hashfind(np, &mudstate_hot.func_htab) != NULL) {
+    if (ohtab_find(np, &mudstate_hot.func_htab) != NULL) {
         if ( key & FN_DEL )
             notify_quiet(player, "Can not delete built in function.");
         else
@@ -43766,8 +43766,8 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     f_int = 0;
     if ( !key || (key & 1) ) {
        nptrs = 0;
-       for (fp = (FUN *) hash_firstentry2(&mudstate_hot.func_htab, 1); fp;
-                fp = (FUN *) hash_nextentry(&mudstate_hot.func_htab)) {
+       for (       fp = (FUN *) ohtab_firstentry2(&mudstate_hot.func_htab, 1); fp;
+                fp = (FUN *) ohtab_nextentry(&mudstate_hot.func_htab)) {
           if ( (fp->perms & CF_DARK) && !Wizard(player) )
              continue;
           if (check_access(player, fp->perms, fp->perms2, 0)) {
@@ -43900,8 +43900,8 @@ CF_HAND(cf_func_access)
        *ap++ = '\0';
 
     /* Global hardcoded Functions */
-    for (fp = (FUN *) hash_firstentry2(&mudstate_hot.func_htab, 1); fp;
-               fp = (FUN *) hash_nextentry(&mudstate_hot.func_htab)) {
+    for (fp = (FUN *) ohtab_firstentry2(&mudstate_hot.func_htab, 1); fp;
+               fp = (FUN *) ohtab_nextentry(&mudstate_hot.func_htab)) {
        if (!string_compare(fp->name, str)) {
            return (cf_modify_multibits(&fp->perms, &fp->perms2, ap, extra, extra2,
                      player, cmd));

@@ -776,12 +776,12 @@ struct state_hot {
         BQUE    *fqsemlast;
 
         /* 10. Hot hash table headers (every lookup) */
-        HASHTAB command_htab;
-        HASHTAB func_htab;
+        OHTAB command_htab;
+        OHTAB func_htab;
         OHTAB flags_htab;
         OHTAB toggles_htab;
         HASHTAB player_htab;
-        HASHTAB attr_name_htab;
+        OHTAB attr_name_htab;
 
         /* 11. Startup / panic flags (checked everywhere) */
         int     initializing;

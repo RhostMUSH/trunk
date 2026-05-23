@@ -1466,7 +1466,7 @@ NDECL(init_attrtab)
     ATTR *a;
     char *buff, *p, *q;
 
-    hashinit(&mudstate_hot.attr_name_htab, 521);
+    ohtab_init(&mudstate_hot.attr_name_htab, 521);
     buff = alloc_sbuf("init_attrtab");
     for (a = attr; a->number; a++) {
         /* Anum extend handles outside ranges but won't abort */
@@ -1478,7 +1478,7 @@ NDECL(init_attrtab)
 	for (p = buff, q = (char *) a->name; *q; p++, q++)
 	    *p = ToLower((int)*q);
 	*p = '\0';
-	hashadd2(buff, (int *) a, &mudstate_hot.attr_name_htab, 1);
+	ohtab_add(buff, (int *) a, &mudstate_hot.attr_name_htab, 1);
     }
     free_sbuf(buff);
 }
@@ -1504,7 +1504,7 @@ atr_str_cluster(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1548,7 +1548,7 @@ atr_str_objid(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1592,7 +1592,7 @@ atr_str_exec(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1636,7 +1636,7 @@ atr_str_atrpeval(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1680,7 +1680,7 @@ atr_str_parseatr(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1724,7 +1724,7 @@ atr_str_notify(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1768,7 +1768,7 @@ atr_str_mtch(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1812,7 +1812,7 @@ atr_str4(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1856,7 +1856,7 @@ atr_str3(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1900,7 +1900,7 @@ atr_str2(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1944,7 +1944,7 @@ atr_str(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;
@@ -1988,7 +1988,7 @@ atr_str_bool(char *s)
 
     /* Look for a predefined attribute */
 
-    a = (ATTR *) hashfind(buff, &mudstate_hot.attr_name_htab);
+    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
     if (a != NULL) {
 	free_mbuf(buff);
 	return a;

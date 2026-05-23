@@ -4798,7 +4798,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
     if ((stricmp(buf1, "+send") == 0) || ((key & M_ALL) && Brandy(player) && 
          ((stricmp(buf1, "--") == 0) || (stricmp(buf1, "-~") == 0)) && chk_dash)) {
         if ( stricmp(buf1, "-~") == 0 ) {
-           cmdp = (CMDENT *)hashfind((char *)"mail", &mudstate_hot.command_htab);
+           cmdp = (CMDENT *)ohtab_find((char *)"mail", &mudstate_hot.command_htab);
            if ( cmdp ) {
               if ( search_nametab(player, cmdp->switches, "anonymous") == -1 ) {
                  notify(player, "Mail: Warning - unable to send anonymously.");

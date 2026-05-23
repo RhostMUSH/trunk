@@ -349,7 +349,7 @@ void local_sqlite_init(void) {
          dp++;
       }
       *dp = '\0';
-      hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
+      ohtab_add(buff, (int *) fp, &mudstate_hot.func_htab, 1);
    }
    free_sbuf(buff);
 }

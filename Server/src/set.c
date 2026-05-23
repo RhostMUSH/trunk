@@ -177,7 +177,7 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 
    i_ansi = 0;
    if ( key & NAME_ANSI ) {
-      cmdp = (CMDENT *)hashfind((char *)"@extansi", &mudstate_hot.command_htab);
+      cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
             cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
          notify(player, "Permission denied.");
@@ -2187,7 +2187,7 @@ int	ca, ok, aflags, i_nowild;
         i_nowild = 0;
         if ( *str && (!strchr(str, '*') && !strchr(str, '?')) ) {
            i_nowild = 1;
-           atr2 = (ATTR *) hashfind(str, &mudstate_hot.attr_name_htab);
+           atr2 = (ATTR *) ohtab_find(str, &mudstate_hot.attr_name_htab);
            if ( !atr2 )
               i_nowild = 0;
         }

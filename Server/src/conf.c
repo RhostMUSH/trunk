@@ -1645,7 +1645,7 @@ CF_HAND(cf_hook)
     strncpy(playbuff, str, 200);
     hookcmd = strtok_r(playbuff, " \t", &tstrtokr);
     if ( hookcmd != NULL )
-       cmdp = (CMDENT *)hashfind(hookcmd, &mudstate_hot.command_htab);
+       cmdp = (CMDENT *)ohtab_find(hookcmd, &mudstate_hot.command_htab);
     else
        return retval;
     if ( !cmdp )
@@ -3312,6 +3312,25 @@ CF_HAND(cf_alias)
     return retval;
 }
 
+CF_HAND(cf_ohtab_alias)
+{
+    char *alias = NULL, *orig = NULL, *tstrtokr;
+    int retval;
+
+    alias = strtok_r(str, " \t=,", &tstrtokr);
+    if ( alias ) {
+       orig = strtok_r(NULL, " \t=,", &tstrtokr);
+    }
+    if ( alias && orig ) {
+       retval = validate_ohtab_aliases(player,
+                                       (OHTAB *) vp, orig, alias,
+                                       "Entry", cmd);
+    } else {
+       retval = -1;
+    }
+    return retval;
+}
+
 /* ---------------------------------------------------------------------------
  * The @flagdef and @toggledef command line foo
  */
@@ -4332,7 +4351,7 @@ CONF conftable[] =
      (pmath2) attraccess_nametab, 0, CA_WIZARD,
      (char *) "Configure attribute permissions (internal)."},
     {(char *) "attr_alias",
-     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.attr_name_htab, 0, 0, CA_WIZARD,
+     cf_ohtab_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.attr_name_htab, 0, 0, CA_WIZARD,
      (char *) "Define attribute aliases."},
     {(char *) "attr_cmd_access",
      cf_acmd_access, CA_GOD | CA_IMMORTAL, NULL,
@@ -4827,7 +4846,7 @@ CONF conftable[] =
      (pmath2) access_nametab, (pmath2) access_nametab2, CA_WIZARD,
      (char *) "Configure permissions for functions."},
     {(char *) "function_alias",
-     cf_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.func_htab, 0, 0, CA_WIZARD,
+     cf_ohtab_alias, CA_GOD | CA_IMMORTAL, (int *) &mudstate_hot.func_htab, 0, 0, CA_WIZARD,
      (char *) "Define aliases for functions."},
     {(char *) "function_invocation_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.func_invk_lim, 0, 0, CA_WIZARD,

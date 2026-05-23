@@ -2046,7 +2046,7 @@ NDECL(init_cmdtab)
 
     DPUSH; /* #25 */
 
-    hashinit(&mudstate_hot.command_htab, 511);
+    ohtab_init(&mudstate_hot.command_htab, 511);
     hashinit(&mudstate.command_vattr_htab, 511);
     hashinit(&mudstate.cmd_alias_htab, 511);
 
@@ -2088,7 +2088,7 @@ NDECL(init_cmdtab)
 	    cp->handler = do_setattr;
             cp->hookmask = 0;
 	    cp->cmdtype = CMD_ATTR_e;
-	    stat = hashadd(cp->cmdname, (int *) cp, &mudstate_hot.command_htab);
+	    stat = ohtab_add(cp->cmdname, (int *) cp, &mudstate_hot.command_htab, 0);
       stat = (stat < 0) ? 0 : 1;
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
@@ -2105,7 +2105,7 @@ NDECL(init_cmdtab)
     for (cp = command_table; cp->cmdname; cp++) {
       cp->cmdtype = CMD_BUILTIN_e;
       cp->hookmask = 0;
-      stat = hashadd(cp->cmdname, (int *) cp, &mudstate_hot.command_htab);
+      stat = ohtab_add(cp->cmdname, (int *) cp, &mudstate_hot.command_htab, 0);
       stat = (stat < 0) ? 0 : 1;
       if(!stat) {
         logbuf = alloc_lbuf("add_command");
@@ -2121,27 +2121,27 @@ NDECL(init_cmdtab)
 
     for (anum = 0; anum < 256; anum++)
 	prefix_cmds[anum] = NULL;
-    prefix_cmds['"'] = (CMDENT *) hashfind((char *) "S",
+    prefix_cmds['"'] = (CMDENT *) ohtab_find((char *) "S",
 					   &mudstate_hot.command_htab);
-    prefix_cmds[':'] = (CMDENT *) hashfind((char *) "P",
+    prefix_cmds[':'] = (CMDENT *) ohtab_find((char *) "P",
 					   &mudstate_hot.command_htab);
-    prefix_cmds[';'] = (CMDENT *) hashfind((char *) "P",
+    prefix_cmds[';'] = (CMDENT *) ohtab_find((char *) "P",
 					   &mudstate_hot.command_htab);
-    prefix_cmds['\\'] = (CMDENT *) hashfind((char *) "E",
+    prefix_cmds['\\'] = (CMDENT *) ohtab_find((char *) "E",
 					    &mudstate_hot.command_htab);
-    prefix_cmds['#'] = (CMDENT *) hashfind((char *) "F",
+    prefix_cmds['#'] = (CMDENT *) ohtab_find((char *) "F",
 					   &mudstate_hot.command_htab);
-    prefix_cmds['&'] = (CMDENT *) hashfind((char *) "V",
+    prefix_cmds['&'] = (CMDENT *) ohtab_find((char *) "V",
 					   &mudstate_hot.command_htab);
-    prefix_cmds['>'] = (CMDENT *) hashfind((char *) "C",
+    prefix_cmds['>'] = (CMDENT *) ohtab_find((char *) "C",
 					   &mudstate_hot.command_htab);
-    prefix_cmds['-'] = (CMDENT *) hashfind((char *) "M",
+    prefix_cmds['-'] = (CMDENT *) ohtab_find((char *) "M",
 					   &mudstate_hot.command_htab);
-    prefix_cmds[']'] = (CMDENT *) hashfind((char *) "N",
+    prefix_cmds[']'] = (CMDENT *) ohtab_find((char *) "N",
                                            &mudstate_hot.command_htab);
-    prefix_cmds['}'] = (CMDENT *) hashfind((char *) "Z",
+    prefix_cmds['}'] = (CMDENT *) ohtab_find((char *) "Z",
                                            &mudstate_hot.command_htab);
-    goto_cmdp = (CMDENT *) hashfind("goto", &mudstate_hot.command_htab);
+    goto_cmdp = (CMDENT *) ohtab_find("goto", &mudstate_hot.command_htab);
     DPOP; /* #25 */
 }
 
@@ -3112,7 +3112,7 @@ CMDENT * lookup_command(char *cmdname) {
   retval = NULL;
 
   /* Check for a builtin command (or an alias of a builtin command) */
-  cmdp = (CMDENT *) hashfind(cmdname, &mudstate_hot.command_htab);
+  cmdp = (CMDENT *) ohtab_find(cmdname, &mudstate_hot.command_htab);
   
   if (cmdp) {
     retval = cmdp;
@@ -3141,7 +3141,7 @@ CMDENT *lookup_orig_command(char *cmdname) {
   retval = NULL;
 
   /* Check for a builtin command (or an alias of a builtin command) */
-  cmdp = (CMDENT *) hashfind(cmdname, &mudstate_hot.command_htab);
+  cmdp = (CMDENT *) ohtab_find(cmdname, &mudstate_hot.command_htab);
   
   if (cmdp) {
     retval = cmdp;
@@ -4407,7 +4407,7 @@ process_command(dbref player, dbref cause, int interactive,
     if ( do_ignore_exit != 2 ) {
 
     /* Check for a builtin command (or an alias of a builtin command) */
-    //cmdp = (CMDENT *) hashfind(lcbuf, &mudstate_hot.command_htab);
+    //cmdp = (CMDENT *) ohtab_find(lcbuf, &mudstate_hot.command_htab);
     cmdp = lookup_command(lcbuf);
 
     cval = cval2 = 0;
@@ -5267,7 +5267,7 @@ static void list_cmdtable(dbref player, char *s_command) {
   *bp = '\0';
 
   if ( s_command && *s_command ) {
-     cmdp = (CMDENT *) hashfind(s_command, &mudstate_hot.command_htab);
+     cmdp = (CMDENT *) ohtab_find(s_command, &mudstate_hot.command_htab);
      if ( !cmdp ) {
         cmdp = (CMDENT *) hashfind(s_command, &mudstate.command_vattr_htab);
      }
@@ -5321,9 +5321,9 @@ static void list_cmdtable(dbref player, char *s_command) {
   }
 
   safe_str("Commands: ", buff, &bp);
-  for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
+  for (cmdp = (CMDENT *) ohtab_firstentry(&mudstate_hot.command_htab);
        cmdp;
-       cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
+       cmdp = (CMDENT *) ohtab_nextentry(&mudstate_hot.command_htab)) {
 
     if ((cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e) 
 	&& check_access(player, cmdp->perms, cmdp->perms2, 0)) {
@@ -5861,7 +5861,7 @@ CF_HAND(cf_cmd_vattr)
      return -1;
   }   
 
-  cmdp = (CMDENT *) hashfind(cbuff, &mudstate_hot.command_htab);
+  cmdp = (CMDENT *) ohtab_find(cbuff, &mudstate_hot.command_htab);
   if ( cmdp ) {
      cf_log_syntax(player, cmd, "Error: '%s' is an existing standard command or alias.", cbuff);       
      free_sbuf(cbuff);
@@ -6046,7 +6046,7 @@ CF_HAND(cf_cmd_alias)
     }
 
     /* 1. Lookup the original command */
-    cmdp = (CMDENT *) hashfind(orig, &mudstate_hot.command_htab);
+    cmdp = (CMDENT *) ohtab_find(orig, &mudstate_hot.command_htab);
     if (cmdp == NULL) {
       cf_log_notfound(player, cmd, "Command", orig);
       DPOP; /* #40 */
@@ -6054,7 +6054,7 @@ CF_HAND(cf_cmd_alias)
     }   
 
     /* 2. Make sure there's no conflict on the alias */
-    if (hashfind(alias, &mudstate_hot.command_htab)) {
+    if (ohtab_find(alias, &mudstate_hot.command_htab)) {
       /* Can't override a command with an alias */
       cf_log_syntax(player, cmd, "Alias '%s' conflicts with internal command", alias);
       DPOP; /* #40 */
@@ -8391,16 +8391,16 @@ list_hashstats(dbref player)
            (char *)"Hash Stats", (char *)"Size", (char *)"Entries", (char *)"Del",
            (char *)"Empty", (char *)"Lookups", (char *)"Hits", (char *)"Checks",
            (char *)"Longest"));
-    list_hashstat(player, "Commands", &mudstate_hot.command_htab);
+    list_ohtabstat(player, "Commands", &mudstate_hot.command_htab);
     list_hashstat(player, "VATTR Commands", &mudstate.command_vattr_htab);
     list_hashstat(player, "Alias", &mudstate.cmd_alias_htab);
     list_hashstat(player, "Logged-out Cmds", &mudstate.logout_cmd_htab);
-    list_hashstat(player, "Functions", &mudstate_hot.func_htab);
+    list_ohtabstat(player, "Functions", &mudstate_hot.func_htab);
     list_hashstat(player, "User-Functions", &mudstate.ufunc_htab);
     list_hashstat(player, "Local-Functions", &mudstate.ulfunc_htab);
     list_ohtabstat(player, "Flags", &mudstate_hot.flags_htab);
     list_hashstat(player, "Totems", &mudstate.totem_htab);
-    list_hashstat(player, "Attr names", &mudstate_hot.attr_name_htab);
+    list_ohtabstat(player, "Attr names", &mudstate_hot.attr_name_htab);
     list_nhashstat(player, "Attr numbers", &mudstate.attr_num_htab);
     list_hashstat(player, "Player Names", &mudstate_hot.player_htab);
     list_nhashstat(player, "Forwardlists", &mudstate.fwdlist_htab);
@@ -8479,8 +8479,8 @@ list_functionperms(dbref player, char *s_mask, int key)
        notify(player, "--- Function Permissions ---");
    }
    s_buf = alloc_mbuf("list_functionperms");
-   for (fp = (FUN *) hash_firstentry2(&mudstate_hot.func_htab, 1); fp;
-        fp = (FUN *) hash_nextentry(&mudstate_hot.func_htab)) {
+   for (fp = (FUN *) ohtab_firstentry2(&mudstate_hot.func_htab, 1); fp;
+        fp = (FUN *) ohtab_nextentry(&mudstate_hot.func_htab)) {
       if ( chk_tog || check_access(player, fp->perms, fp->perms2, 0)) {
          if ( !key || (key && s_mask && *s_mask && quick_wild(s_mask, (char *)fp->name)) ) {
             sprintf(s_buf, "%-.31s:", fp->name);
@@ -11459,9 +11459,9 @@ void do_hook(dbref player, dbref cause, int key, char *name)
          found = 0;
          s_ptr = s_ptrbuff = alloc_lbuf("@hook");
          tprp_buff = tpr_buff = alloc_lbuf("do_hook");
-         for (cmdp = (CMDENT *) hash_firstentry(&mudstate_hot.command_htab);
+         for (cmdp = (CMDENT *) ohtab_firstentry(&mudstate_hot.command_htab);
 	      cmdp;
-	      cmdp = (CMDENT *) hash_nextentry(&mudstate_hot.command_htab)) {
+	      cmdp = (CMDENT *) ohtab_nextentry(&mudstate_hot.command_htab)) {
 
             if (! (cmdp->cmdtype & CMD_BUILTIN_e || cmdp->cmdtype & CMD_LOCAL_e)) {
 	       continue;

@@ -3315,7 +3315,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
   	    tbangc = tbuf;
             setup_bangs(&bang_not, &bang_yes, &bang_string, &bang_truebool, &tbangc);
 	    if (bang_not || bang_yes) {
-		fp = (FUN *) hashfind(tbangc, &mudstate_hot.func_htab);
+		fp = (FUN *) ohtab_find(tbangc, &mudstate_hot.func_htab);
 		ufp = NULL;
                 ulfp = NULL;
                 if ( fp == NULL ) {
@@ -3339,11 +3339,11 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
                 }
             } else {
-		fp = (FUN *) hashfind(tbuf, &mudstate_hot.func_htab);
+		fp = (FUN *) ohtab_find(tbuf, &mudstate_hot.func_htab);
     		ufp = NULL;
                 ulfp = NULL;
                 if ( fp == NULL ) {
-		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
+ 		   ufp = (UFUN *) hashfind(tbuf, &mudstate.ufunc_htab);
 		}
                 if ( ufp && ((ufp->perms & 0x00007F00) || 
                      ((!mudstate_hot.func_reverse && (ufp->perms2 & CA_SB_IGNORE)) ||
@@ -3364,7 +3364,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                 }
             }
 #else
-	    fp = (FUN *) hashfind(tbuf, &mudstate_hot.func_htab);
+	    fp = (FUN *) ohtab_find(tbuf, &mudstate_hot.func_htab);
 	    /* If not a builtin func, check for global func */
 
 	    ufp = NULL;

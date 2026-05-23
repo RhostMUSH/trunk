@@ -2953,15 +2953,15 @@ main(int argc, char *argv[])
 
     /* Reset all the hash stats */
 
-    hashreset(&mudstate_hot.command_htab);
+    ohtab_reset(&mudstate_hot.command_htab);
     hashreset(&mudstate.command_vattr_htab);
     hashreset(&mudstate.logout_cmd_htab);
-    hashreset(&mudstate_hot.func_htab);
+    ohtab_reset(&mudstate_hot.func_htab);
     ohtab_reset(&mudstate_hot.toggles_htab);
     hashreset(&mudstate.powers_htab);
     hashreset(&mudstate.depowers_htab);
     ohtab_reset(&mudstate_hot.flags_htab);
-    hashreset(&mudstate_hot.attr_name_htab);
+    ohtab_reset(&mudstate_hot.attr_name_htab);
     nhashreset(&mudstate.attr_num_htab);
     hashreset(&mudstate_hot.player_htab);
     hashreset(&mudstate.objecttag_htab);

@@ -267,7 +267,7 @@ void local_mysql_init(void) {
   for (cmdp = mysql_cmd_table; cmdp->cmdname; cmdp++) {
     cmdp->cmdtype = CMD_LOCAL_e;
     cmdp->hookmask = 0;
-    hashadd(cmdp->cmdname, (int *) cmdp, &mudstate_hot.command_htab);
+    ohtab_add(cmdp->cmdname, (int *) cmdp, &mudstate_hot.command_htab, 0);
   }
 
   /* Register the functions */
@@ -281,7 +281,7 @@ void local_mysql_init(void) {
 	dp++;
       }
       *dp = '\0';
-    hashadd2(buff, (int *) fp, &mudstate_hot.func_htab, 1);
+    ohtab_add(buff, (int *) fp, &mudstate_hot.func_htab, 1);
   }
   free_sbuf(buff);
 

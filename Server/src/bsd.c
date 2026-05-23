@@ -1115,7 +1115,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                         ((stricmp(s_cutter, "think") == 0) && mudconf.think_is_idle) ||
                         (stricmp(s_cutter, "idle") == 0) ||
                         (stricmp(s_cutter2, "idle @@") == 0)) ) {
-                      cmdp = (CMDENT *) hashfind("idle", &mudstate_hot.command_htab);
+                      cmdp = (CMDENT *) ohtab_find("idle", &mudstate_hot.command_htab);
                       if ( cmdp && check_access(D_PLAYER(d), cmdp->perms, cmdp->perms2, 0)) {
                          if ( !(CmdCheck(D_PLAYER(d)) && cmdtest(D_PLAYER(d), "idle")) ) {
                             D_LAST_TIME(d) = i_oldlasttime;
