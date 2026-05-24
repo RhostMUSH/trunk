@@ -3264,7 +3264,7 @@
         memory to keep track of the attributes on both side of the tree.
     2.  For large databases with large numbers of attributes, this can
         become next to impossible, especially if you resources are tight.
-    3.  There's several more checks in RhostMUSH with attributes than there
+    3.  There are several more checks in RhostMUSH with attributes than there
         is in MUX, thereby requiring more overhead to renumber.
     4.  The number of the attribute, regardless of gap, causes no additional
         overhead in the mush itself.

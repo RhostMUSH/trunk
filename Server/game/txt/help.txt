@@ -185,7 +185,7 @@
   Topic: TIMEZONE
   
   The TIMEZONE attribute (set with &TIMEZONE <target>=<string>) is used to 
-  specify the prerred timezone that the player wants.  This will override
+  specify the prefrred timezone that the player wants.  This will override
   the system local timezone.
   
   You may use the special string 'localtime' to specify you wish to use
@@ -206,7 +206,7 @@
     > &TIMEZONE me=GMT
   
   Some functions like secstz(), msecstz() and time() allow you to specify
-  the timezone as an argument.  Using thoe functions this way will 
+  the timezone as an argument.  Using those functions this way will 
   override any &TIMEZONE setting a player may have set.
   
   Timezones follow the following logic for lookup:
@@ -234,7 +234,7 @@
   expect.   
   
   This follows procedure of what would happen if you set an invalid
-  timezone on a physial server.  It will fall back to GMT time.
+  timezone on a physical server.  It will fall back to GMT time.
   
   You may use listtzones() to check for system recognized timezones.
    
@@ -412,7 +412,7 @@
   Topic: CODING3
   
   You may nest commands together with the ';' identifier.  This will
-  link commands together.  If you with to 'cluster' commands together,
+  link commands together.  If you wish to 'cluster' commands together,
   you may use the {}'s characters to surround a list of commands you
   wish to link together.
   
@@ -695,7 +695,7 @@
   Wildcards are the standard globbing mechanism for the mush engine.  With the
   wildcards, the '*' character is considered 0 or more characters and the '?'
   character is considered a single character.  These are used primarily in
-  commands and functions that allow mulit-matching based on wild card support.
+  commands and functions that allow multi-matching based on wild card support.
   
   Example:
     > say match(this is a test,?es*)
@@ -940,7 +940,7 @@
     > say !!$space(1000)                  (spaces are not-null strings)
     You say "1" 
     > say [setq(0,space(1000))]%q<!!$0> // %q<!!^0>     (process register 0)
-    YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
+    You say "1 // 0"     (spaces are not null // spaces are non-boolean)
     > say u(#lambda/[lit(%-!!$0 // %-!!^0)],space(10))  (process argument 0)
     YOu say "1 // 0"     (spaces are not null // spaces are non-boolean)
   
@@ -1060,7 +1060,7 @@
   
   Both @altname and @lock/altname are wizard only.
   
-  This will only effect look.  If you try to reference the altname of 
+  This will only affect look.  If you try to reference the altname of 
   the item with any other command, it will not recognize it as a valid
   name.  This is meant to avoid abusiveness.
   
@@ -1162,581 +1162,581 @@
   The RhostMUSH zone system works as follows:
   
   A zone is held together by a Zone Master. A Zone Master is an object or
-  room that has it's ZONEMASTER flag set. Once the flag is set, you may
-  do several things. To start with, you may decide you want others to
-  be able to have their objects join your zone. To do this set up a 
-  ZoneToLock on your ZONEMASTER. This lock defaults to false unlike most
-  other locks which default to true if they are missing.
- 
-  You may also want select few people to have control over objects in your
-  zone. These people will have wizard-like control within your zone.
-  To allow others control and modification ability to objects in your
-  zone you would set a ZoneWizLock on your zone master. This lock defaults
-  to false if missing (allowing no-one control). Note that you as an owner
-  of the zone master must still give yourself explicit zone wizard status
-  by putting yourself in the lock.
-  
-  You may also set a ZONEMASTER, ZONECONTENTS.  This flag will enable
-  searching the contents of the Zone Master for matching $commands.
-  
-  You may also set a ZONEMASTER, ZONEPARENT.  This allows the zonemaster
-  to allow its children to inherit attributes off the ZONEMASTER.  An object
-  @toggled NOZONEPARENT will not inherit attributes from any zonemaster.
-     
-  { Type 'help zones2' for more info. }
-  
-& zones2
-  You may also want a VERY select few to be able to alter the zone master
-  object itself. To do this set a TwinkLock on the zone master. This lock
-  defaults to false. 
-  
-  Any commands that you place on your zone master object will be searched
-  for by objects or players entering commands that are not matched on
-  an object local to them if they are essentially in a room of your zone.
-  Essentially in your zone means that they or any level of container that
-  they are within is physically in a room that is zoned to your zone master.
-  The parent of a zone master is not searched for commands when this
-  command search occurs.
- 
-  Once you have set up your zone master, you (or anyone in your 
-  zone master's ZoneToLock) may begin to add objects to your zone.
-  To do this, use the @zone/add, @zone/del, and @zone/purge commands.
- 
-  See Also: @zone, @lock, lzone(), zonecmd(), ZONEMASTER, ZONECONTENTS, 
-            ZONEPARENT
-  
-& @zone
-  Command: @zone[/<switch>] <target> [=<zone string>]
-  
-  Note: A zonemaster can not belong as a member to another zonemaster.  If
-        you wish to chain commands to zonemasters, use parents or zone local
-        master rooms (help zonemaster,  help zonecontents).
-  
-  Usage:
-    1) @zone[/list] <object or zonemaster>
-    2) @zone/add <object>=<zonemaster>
-    3) @zone/del <object or zonemaster>=<zonemaster or object>
-    4) @zone/purge <object or zonemaster>
-    5) @zone/replace <object>=<old zonemaster>/<new zonemaster>
-  
-  The @zone command adds and removes zone master entries from objects.
-  An object may be a member of multiple zones.
-   
-    * Usage 1 will list the zones an object belongs to, or the objects that
-      belong to a zonemaster.
-    * Usage 2 will add a zone to an object.
-    * Usage 3 will delete an object from a zone, or zone from an object. These
-      are essentially the same, but from different directions.
-    * Usage 4 will remove all references to zones from an object or
-      zone master.  
-    * Usage 5 will replace the old zonemaster with the new zonemaster on the
-      target object.
-  
-  The config param 'zones_like_parents' can also be enabled to allow @zones
-  to function $commands to its members as if it was a @parent.
-   
-  Example:
-    > @set #2=zonemaster
-    Set.
-    > @set #2=zonecontents (for when we want a zone to have zonemastery fun)
-    Set.
-    > @zone/add #1=#2 
-    Zone Master added to object.
-  
-  See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
-  
-& historical
-  For a list of actual changes, see 'help revis'.
-  
-  RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
-  Though the current code runs a MUSH compatible kernel, we still use
-  the exact same database from that period.  You will find RhostMUSH
-  is nothing like a MUD, MUSH or a MUSE.  It is a hybrid of many systems.
-  The coders for RhostMUSH have put a lot of effort into adding changes 
-  and modifying the server.  You will find that pretty much any code 
-  will work properly here on RhostMUSH.  Another major change is error 
-  messages are randomized.  So if you see something strange, you're 
-  not being spoofed.  Also, if you notice a strange response, don't 
-  think it's a problem.  Talk to a staff person as the option you 
-  may be trying may be disabled.
-  
-  The list of changes done to this server goes beyond any document
-  can describe.  The only resemblance this has to TinyMUSH or any
-  other variety of server is in its backward compatibility with
-  how it parses and functionality returns.
-   
-  For help on these people, look at CREDITS
-  
-  See Also: CREDITS
-  
-& drop
-  Command: drop[/<switch>] <object>
-           drop[/<switch>] <exit>
- 
-  The first form removes <object> from your inventory and puts it in your
-  location, except for the following special cases: Dropping a STICKY thing
-  sends it home, and dropping a thing in a room with a drop-to sends the thing
-  to the drop-to location.
- 
-  The second form removes <exit> from your list of exits and adds it to the
-  list of exits for the current location.  Anyone in the same location as
-  you may then use the exit to travel to the exit's destination.  You can
-  only drop exits when you own the location where you are dropping them.
- 
-  The following switch is recognized:
-     /quiet   - Don't perform the @odrop/@adrop attributes on the dropped
-                 object.  This switch only works if you control the object.
-   
-  'throw' is the same as 'drop'.
-  
-  See Also: get, @adrop, @drop, @odrop, DROP-TO, STICKY
-  
-& enter
-  Command: enter[/<switch>] <object>
-  The enter command is used to enter an object. Insides of objects are best
-  used for vehicles, or storage spaces when you don't have a home (or even
-  as a floating home).  In order to enter an object you must either own it or
-  it must have its ENTER_OK flag set, and you must also pass the object's
-  EnterLock (if it has one).
- 
-  The following switch is recognized:
-     /quiet   - Don't perform the @oenter/@aenter or @oefail/@aefail
-                attributes on the entered object, and don't perform the
-                @oxleave attribute on your current location.  This switch
-                only works if you control the object being entered.
- 
-  See Also: leave, @aefail, @aenter, @efail, @enter, @idesc, @lock, @oefail,
-            @oenter, @oxleave, ENTER_OK
-  
-& examine
-  Command: examine[/<switches>] <object>[/<wild-attrib>]
-  
-  Available switches are on: help examine4
-  
-  Displays all available information about <object>.  <object> may be an
-  object, 'me' or 'here'. You must control the object to examine it, or it
-  must be set VISUAL.  If you do not own the object, you will just see the
-  name of the object's owner, and optionally any public attributes and 
-  attributes owned by you set on the object.
- 
-  If an attribute is owned by a player other than the owner of the object,
-  the number of the attribute owner is shown in parentheses immediately
-  following the attribute name.  Flag letters may appear in parentheses also,
-  to indicate the status of the attribute.  The list of flag letters that
-  show up is shown in 'help examine2'
-  
-{ 'help examine2' for what the flag letters mean }
-{ 'help examine3' for what the global flag letters mean }
-{ 'help examine4' for what the switches are and examples }
-  
-& examine2
-  (CONTINUED)
-  Command: examine[/<switches>] <object>[/<wild-attrib>]
-  
-  The following flag letters show up with attributes when examined:
-    + - The attribute is locked, it does not change ownership when the
-        object is @chowned and may not be modified.
-    $ - The attribute is not checked when looking for $-commands.  Note
-        that the predefined attributes DESC, IDESC, ODESC, FAIL, OFAIL,
-        SUCC, OSUCC, DROP, ODROP, SEX, and CHARGES are never checked.
-    I - This attribute is not inherited by children of the object.
-    V - The attribute is visible to anyone who examines you.  Note that
-        the predefined attributes DESC, SEX, and LAST are always VISUAL.
-    N - The attribute will not be @cloned.
-    n - The attribute will not evaluate %0-%9 ($commands only)
-    s - The attribute can not be removed/wiped.
-    u - The attribute is set up to handle attribute-based uselocks.
-    M - The attribute is dark/inaccessible to anyone below wizard.
-    p - The attribute is INVISIBLE but accessible to anyone below wizard.
-    G - The attribute is modifiable by #1 only.
-    i - The attribute is modifiable by Immortal or higher only.
-    W - The attribute is modifiable by Wizard (Royalty) or higher only.
-    a - The attribute is modifiable by Councilor (admin) or higher only.
-    B - The attribute is modifiable by Architect or higher only.
-    g - The attribute is modifiable by Guildmaster or higher only.
-  
-{ 'help examine3' for what the global flag letters mean }
-{ 'help examine4' for what the switches are and examples }
-  
-& examine3
-  (CONTINUED)
-  Command: examine[/<switches>] <object>[/<wild-attrib>]
-  
-  If expanded looks are enabled (@list options to verify), you may also
-  see global attributes on attributes.  These are surrounded by []'s.
-  The following global attributes can exist:
-    + - The attribute is locked, it does not change ownership when the
-        object is @chowned and may not be modified.
-    $ - The attribute is not checked when looking for $-commands.  Note
-        that the predefined attributes DESC, IDESC, ODESC, FAIL, OFAIL,
-        SUCC, OSUCC, DROP, ODROP, SEX, and CHARGES are never checked.
-    I - This attribute is not inherited by children of the object.
-    V - The attribute is visible to anyone who examines you.  Note that
-        the predefined attributes DESC, SEX, and LAST are always VISUAL.
-    N - The attribute will not be @cloned.
-    n - The attribute will not evaluate %0-%9 ($commands only)
-    s - The attribute can not be removed/wiped.
-    u - The attribute is set up to handle attribute-based uselocks.
-    M - The attribute is dark/inaccessible to anyone below wizard.
-    p - The attribute is INVISIBLE but accessible to anyone below wizard.
-    G - The attribute is modifiable by #1 only.
-    i - The attribute is modifiable by Immortal or higher only.
-    W - The attribute is modifiable by Wizard (Royalty) or higher only.
-    a - The attribute is modifiable by Councilor (admin) or higher only.
-    B - The attribute is modifiable by Architect or higher only.
-    g - The attribute is modifiable by Guildmaster or higher only.
-  
-{ 'help examine4' for what the switches are and examples }
+	  room that has its ZONEMASTER flag set. Once the flag is set, you may
+	  do several things. To start with, you may decide you want others to
+	  be able to have their objects join your zone. To do this set up a 
+	  ZoneToLock on your ZONEMASTER. This lock defaults to false unlike most
+	  other locks which default to true if they are missing.
+	 
+	  You may also want select few people to have control over objects in your
+	  zone. These people will have wizard-like control within your zone.
+	  To allow others control and modification ability to objects in your
+	  zone you would set a ZoneWizLock on your zone master. This lock defaults
+	  to false if missing (allowing no-one control). Note that you as an owner
+	  of the zone master must still give yourself explicit zone wizard status
+	  by putting yourself in the lock.
+	  
+	  You may also set a ZONEMASTER, ZONECONTENTS.  This flag will enable
+	  searching the contents of the Zone Master for matching $commands.
+	  
+	  You may also set a ZONEMASTER, ZONEPARENT.  This allows the zonemaster
+	  to allow its children to inherit attributes off the ZONEMASTER.  An object
+	  @toggled NOZONEPARENT will not inherit attributes from any zonemaster.
+	     
+	  { Type 'help zones2' for more info. }
+	  
+	& zones2
+	  You may also want a VERY select few to be able to alter the zone master
+	  object itself. To do this set a TwinkLock on the zone master. This lock
+	  defaults to false. 
+	  
+	  Any commands that you place on your zone master object will be searched
+	  for by objects or players entering commands that are not matched on
+	  an object local to them if they are essentially in a room of your zone.
+	  Essentially in your zone means that they or any level of container that
+	  they are within is physically in a room that is zoned to your zone master.
+	  The parent of a zone master is not searched for commands when this
+	  command search occurs.
+	 
+	  Once you have set up your zone master, you (or anyone in your 
+	  zone master's ZoneToLock) may begin to add objects to your zone.
+	  To do this, use the @zone/add, @zone/del, and @zone/purge commands.
+	 
+	  See Also: @zone, @lock, lzone(), zonecmd(), ZONEMASTER, ZONECONTENTS, 
+		    ZONEPARENT
+	  
+	& @zone
+	  Command: @zone[/<switch>] <target> [=<zone string>]
+	  
+	  Note: A zonemaster can not belong as a member to another zonemaster.  If
+		you wish to chain commands to zonemasters, use parents or zone local
+		master rooms (help zonemaster,  help zonecontents).
+	  
+	  Usage:
+	    1) @zone[/list] <object or zonemaster>
+	    2) @zone/add <object>=<zonemaster>
+	    3) @zone/del <object or zonemaster>=<zonemaster or object>
+	    4) @zone/purge <object or zonemaster>
+	    5) @zone/replace <object>=<old zonemaster>/<new zonemaster>
+	  
+	  The @zone command adds and removes zone master entries from objects.
+	  An object may be a member of multiple zones.
+	   
+	    * Usage 1 will list the zones an object belongs to, or the objects that
+	      belong to a zonemaster.
+	    * Usage 2 will add a zone to an object.
+	    * Usage 3 will delete an object from a zone, or zone from an object. These
+	      are essentially the same, but from different directions.
+	    * Usage 4 will remove all references to zones from an object or
+	      zone master.  
+	    * Usage 5 will replace the old zonemaster with the new zonemaster on the
+	      target object.
+	  
+	  The config param 'zones_like_parents' can also be enabled to allow @zones
+	  to function $commands to its members as if it was a @parent.
+	   
+	  Example:
+	    > @set #2=zonemaster
+	    Set.
+	    > @set #2=zonecontents (for when we want a zone to have zonemastery fun)
+	    Set.
+	    > @zone/add #1=#2 
+	    Zone Master added to object.
+	  
+	  See Also: @lock, ZONES, zonecmd(), lzone(), ZONEMASTER, ZONECONTENTS
+	  
+	& historical
+	  For a list of actual changes, see 'help revis'.
+	  
+	  RhostMUSH, first originating in 1989/1990, was founded as a TinyMUD.
+	  Though the current code runs a MUSH compatible kernel, we still use
+	  the exact same database from that period.  You will find RhostMUSH
+	  is nothing like a MUD, MUSH or a MUSE.  It is a hybrid of many systems.
+	  The coders for RhostMUSH have put a lot of effort into adding changes 
+	  and modifying the server.  You will find that pretty much any code 
+	  will work properly here on RhostMUSH.  Another major change is error 
+	  messages are randomized.  So if you see something strange, you're 
+	  not being spoofed.  Also, if you notice a strange response, don't 
+	  think it's a problem.  Talk to a staff person as the option you 
+	  may be trying may be disabled.
+	  
+	  The list of changes done to this server goes beyond any document
+	  can describe.  The only resemblance this has to TinyMUSH or any
+	  other variety of server is in its backward compatibility with
+	  how it parses and functionality returns.
+	   
+	  For help on these people, look at CREDITS
+	  
+	  See Also: CREDITS
+	  
+	& drop
+	  Command: drop[/<switch>] <object>
+		   drop[/<switch>] <exit>
+	 
+	  The first form removes <object> from your inventory and puts it in your
+	  location, except for the following special cases: Dropping a STICKY thing
+	  sends it home, and dropping a thing in a room with a drop-to sends the thing
+	  to the drop-to location.
+	 
+	  The second form removes <exit> from your list of exits and adds it to the
+	  list of exits for the current location.  Anyone in the same location as
+	  you may then use the exit to travel to the exit's destination.  You can
+	  only drop exits when you own the location where you are dropping them.
+	 
+	  The following switch is recognized:
+	     /quiet   - Don't perform the @odrop/@adrop attributes on the dropped
+			 object.  This switch only works if you control the object.
+	   
+	  'throw' is the same as 'drop'.
+	  
+	  See Also: get, @adrop, @drop, @odrop, DROP-TO, STICKY
+	  
+	& enter
+	  Command: enter[/<switch>] <object>
+	  The enter command is used to enter an object. Insides of objects are best
+	  used for vehicles, or storage spaces when you don't have a home (or even
+	  as a floating home).  In order to enter an object you must either own it or
+	  it must have its ENTER_OK flag set, and you must also pass the object's
+	  EnterLock (if it has one).
+	 
+	  The following switch is recognized:
+	     /quiet   - Don't perform the @oenter/@aenter or @oefail/@aefail
+			attributes on the entered object, and don't perform the
+			@oxleave attribute on your current location.  This switch
+			only works if you control the object being entered.
+	 
+	  See Also: leave, @aefail, @aenter, @efail, @enter, @idesc, @lock, @oefail,
+		    @oenter, @oxleave, ENTER_OK
+	  
+	& examine
+	  Command: examine[/<switches>] <object>[/<wild-attrib>]
+	  
+	  Available switches are on: help examine4
+	  
+	  Displays all available information about <object>.  <object> may be an
+	  object, 'me' or 'here'. You must control the object to examine it, or it
+	  must be set VISUAL.  If you do not own the object, you will just see the
+	  name of the object's owner, and optionally any public attributes and 
+	  attributes owned by you set on the object.
+	 
+	  If an attribute is owned by a player other than the owner of the object,
+	  the number of the attribute owner is shown in parentheses immediately
+	  following the attribute name.  Flag letters may appear in parentheses also,
+	  to indicate the status of the attribute.  The list of flag letters that
+	  show up is shown in 'help examine2'
+	  
+	{ 'help examine2' for what the flag letters mean }
+	{ 'help examine3' for what the global flag letters mean }
+	{ 'help examine4' for what the switches are and examples }
+	  
+	& examine2
+	  (CONTINUED)
+	  Command: examine[/<switches>] <object>[/<wild-attrib>]
+	  
+	  The following flag letters show up with attributes when examined:
+	    + - The attribute is locked, it does not change ownership when the
+		object is @chowned and may not be modified.
+	    $ - The attribute is not checked when looking for $-commands.  Note
+		that the predefined attributes DESC, IDESC, ODESC, FAIL, OFAIL,
+		SUCC, OSUCC, DROP, ODROP, SEX, and CHARGES are never checked.
+	    I - This attribute is not inherited by children of the object.
+	    V - The attribute is visible to anyone who examines you.  Note that
+		the predefined attributes DESC, SEX, and LAST are always VISUAL.
+	    N - The attribute will not be @cloned.
+	    n - The attribute will not evaluate %0-%9 ($commands only)
+	    s - The attribute can not be removed/wiped.
+	    u - The attribute is set up to handle attribute-based uselocks.
+	    M - The attribute is dark/inaccessible to anyone below wizard.
+	    p - The attribute is INVISIBLE but accessible to anyone below wizard.
+	    G - The attribute is modifiable by #1 only.
+	    i - The attribute is modifiable by Immortal or higher only.
+	    W - The attribute is modifiable by Wizard (Royalty) or higher only.
+	    a - The attribute is modifiable by Councilor (admin) or higher only.
+	    B - The attribute is modifiable by Architect or higher only.
+	    g - The attribute is modifiable by Guildmaster or higher only.
+	  
+	{ 'help examine3' for what the global flag letters mean }
+	{ 'help examine4' for what the switches are and examples }
+	  
+	& examine3
+	  (CONTINUED)
+	  Command: examine[/<switches>] <object>[/<wild-attrib>]
+	  
+	  If expanded looks are enabled (@list options to verify), you may also
+	  see global attributes on attributes.  These are surrounded by []'s.
+	  The following global attributes can exist:
+	    + - The attribute is locked, it does not change ownership when the
+		object is @chowned and may not be modified.
+	    $ - The attribute is not checked when looking for $-commands.  Note
+		that the predefined attributes DESC, IDESC, ODESC, FAIL, OFAIL,
+		SUCC, OSUCC, DROP, ODROP, SEX, and CHARGES are never checked.
+	    I - This attribute is not inherited by children of the object.
+	    V - The attribute is visible to anyone who examines you.  Note that
+		the predefined attributes DESC, SEX, and LAST are always VISUAL.
+	    N - The attribute will not be @cloned.
+	    n - The attribute will not evaluate %0-%9 ($commands only)
+	    s - The attribute can not be removed/wiped.
+	    u - The attribute is set up to handle attribute-based uselocks.
+	    M - The attribute is dark/inaccessible to anyone below wizard.
+	    p - The attribute is INVISIBLE but accessible to anyone below wizard.
+	    G - The attribute is modifiable by #1 only.
+	    i - The attribute is modifiable by Immortal or higher only.
+	    W - The attribute is modifiable by Wizard (Royalty) or higher only.
+	    a - The attribute is modifiable by Councilor (admin) or higher only.
+	    B - The attribute is modifiable by Architect or higher only.
+	    g - The attribute is modifiable by Guildmaster or higher only.
+	  
+	{ 'help examine4' for what the switches are and examples }
 
-& examine4
-  (CONTINUED)
-  Command: examine[/<switches>] <object>[/<wild-attrib>]
-  
-  If you specify a wildcarded attribute name, then only those attributes
-  that match are shown.  So, 'exam me/v?' will show all your attributes that
-  start with v and are two characters long.
- 
-  The following switches are available:
-     /brief   - Show everything but the attributes.
-     /quick   - When examining an object you don't control, show only the
-                owner's name. 
-     /full    - When examining an object you don't control, show any public
-                attributes set on the object in addition to the owner's name.
-     /parent  - Includes attributes that are not present on the object itself
-                but which are inherited from the object's parent.  This only
-                works if you have permission to see it.
-     /tree    - Examine per Penn-Tree output separating trees with '`'.
-                Only useful with using #obj/attr format.
-     /regexp  - Use regular expression for wildcard matches.
-     /cluster - Examines the specified cluster (and all members).
-     /display - Ansify matching parenthesis, braces,and brackets.
-  
-  
-  Example:
-    > examine me
-      -- Output of examine of yourself
-    > examine me/*foo*
-      -- Output of just all attribs matching *foo*
-  
-  See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
-            ATTRIBUTE FLAGS, lattr(), cluster_lattr()
-  
-  
-& @protect
-  Command: @protect[/<switch>] [<player-name>]
-  
-  This command 'protects' your current user name or if enabled the specified
-  player name from being used by anyone else.  Essentially this 'locks in' 
-  your name so that if you ever switch your name to something else, no one 
-  else will be able to use the name that you have marked for protection.  
-  You have full access to any name you protect.  
-  
-  You can only protect your currently active name unless the enhanced 
-  options are enabled.  You may delete any name you, yourself, have protected.
-  Wizards may remove any protected name.  Immortals bypass protected names and
-  may also remove them.
-  
-  Any name that you have already added you may /alias or /unalias by name
-  regardless of the enhanced option being enabled.
-  
-  Notes: 
-    - See @list options system to see if the enhanced option is enabled.
-    - An @alias is already a protected name, but you can NOT switch to it.
-    - You can @protect/add or /del an @alias'd name, but can not /alias it.
-    - If you @protect/del an @alias name, it does not remove the @alias
-   
-  Switches available:
-    /list    - (default) - list the names you current have protected.  This
-               does not take any arguments.
-    /add     - Add your current name to your protected name list.  This does
-               not take any arguments unless protect_addenh is enabled.
-    /del     - Remove the specified name from your protected name list.  This
-               requires an argument.
-    /alias   - Adds the protected name as an alias.  This will work like 
-               @alias with regards to player lookups.
-    /unalias - This removes the protected name as an alias.  You can not
-               remove the active playername as an alias.
- 
-{ 'help @protect2' for examples and @admin params effective } 
+	& examine4
+	  (CONTINUED)
+	  Command: examine[/<switches>] <object>[/<wild-attrib>]
+	  
+	  If you specify a wildcarded attribute name, then only those attributes
+	  that match are shown.  So, 'exam me/v?' will show all your attributes that
+	  start with v and are two characters long.
+	 
+	  The following switches are available:
+	     /brief   - Show everything but the attributes.
+	     /quick   - When examining an object you don't control, show only the
+			owner's name. 
+	     /full    - When examining an object you don't control, show any public
+			attributes set on the object in addition to the owner's name.
+	     /parent  - Includes attributes that are not present on the object itself
+			but which are inherited from the object's parent.  This only
+			works if you have permission to see it.
+	     /tree    - Examine per Penn-Tree output separating trees with '`'.
+			Only useful with using #obj/attr format.
+	     /regexp  - Use regular expression for wildcard matches.
+	     /cluster - Examines the specified cluster (and all members).
+	     /display - Ansify matching parenthesis, braces,and brackets.
+	  
+	  
+	  Example:
+	    > examine me
+	      -- Output of examine of yourself
+	    > examine me/*foo*
+	      -- Output of just all attribs matching *foo*
+	  
+	  See Also: look, @decompile, VISUAL, ATTRIBUTE OWNERSHIP, FLAG LIST,
+		    ATTRIBUTE FLAGS, lattr(), cluster_lattr()
+	  
+	  
+	& @protect
+	  Command: @protect[/<switch>] [<player-name>]
+	  
+	  This command 'protects' your current user name or if enabled the specified
+	  player name from being used by anyone else.  Essentially this 'locks in' 
+	  your name so that if you ever switch your name to something else, no one 
+	  else will be able to use the name that you have marked for protection.  
+	  You have full access to any name you protect.  
+	  
+	  You can only protect your currently active name unless the enhanced 
+	  options are enabled.  You may delete any name you, yourself, have protected.
+	  Wizards may remove any protected name.  Immortals bypass protected names and
+	  may also remove them.
+	  
+	  Any name that you have already added you may /alias or /unalias by name
+	  regardless of the enhanced option being enabled.
+	  
+	  Notes: 
+	    - See @list options system to see if the enhanced option is enabled.
+	    - An @alias is already a protected name, but you can NOT switch to it.
+	    - You can @protect/add or /del an @alias'd name, but can not /alias it.
+	    - If you @protect/del an @alias name, it does not remove the @alias
+	   
+	  Switches available:
+	    /list    - (default) - list the names you current have protected.  This
+		       does not take any arguments.
+	    /add     - Add your current name to your protected name list.  This does
+		       not take any arguments unless protect_addenh is enabled.
+	    /del     - Remove the specified name from your protected name list.  This
+		       requires an argument.
+	    /alias   - Adds the protected name as an alias.  This will work like 
+		       @alias with regards to player lookups.
+	    /unalias - This removes the protected name as an alias.  You can not
+		       remove the active playername as an alias.
+	 
+	{ 'help @protect2' for examples and @admin params effective } 
 
-& protect_addenh
-& max_name_protect
-& @protect2
-  (CONTINUED)
-  Command: @protect[/<switch>] [<player-name>]  
-  
-  The following wizard @admin parameters exist (see wizhelp for help):
-    protect_addenh   -- this is the toggle that enables/disables enhanced adds
-    max_name_protect -- this controls total number of names to be protected
-  
-  Examples:
-    > say [name(me)] [num(me)]
-    You say "Bob #123"
-    > @protect/add
-    Your current name has been added to your protect list.
-    > @protect/add Simon            (if enhanced mode enabled)
-    The name has been added to your protect list.
-    > @protect/add Fred             (if enhanced mode enabled)
-    The name has been added to your protect list.
-    > @protect/del Bob
-    You have successfully deleted 'Bob' from your protect list.
-    > @protect/alias Simon
-    You have successfully activated 'simon' as an alias.
-    > @protect/alias Fred
-    You have successfully activated 'fred' as an alias.
-    > @protect/unalias Fred
-    You have successfully de-activated 'fred' as an alias.
-    > @protect/list
-    +------------------------------+----------------------------------+-------+
-    | Player Name Protected        | Dbref#   [ Player Name         ] | Alias |
-    +------------------------------+----------------------------------+-------+
-    | Simon                        | #123     [ Bob                 ] |   Y   |
-    | Fred                         | #123     [ Bob                 ] |   N   |
-    +------------------------------+----------------------------------+-------+
-    You have 2 out of 10 names protected.
-  
-  See Also: @name, @alias, listprotection()
-  
-& @program
-  Command: @program <player>=<obj/attr>[:<prefix>]
-  
-  Note:  The PROG @toggle is required for anything that will use @program.
-  
-  This command allows for small 'programs' within RhostMUSH. To understand this
-  command, you must first understand the fact that it completely bypasses any
-  commands, built-in or otherwise, and allows you to send user-input directly
-  into your code.
-   
-  A simple example:
-   
-  @va me=$start:@prog %#=me/vb:Please enter a word:
-  @vb me=@emit You entered %0!;@prog %#=me/vc:Please enter another word:
-  @vc me=@emit This time, you entered %0. You're done!
-   
-  > start
-  Please enter a word:
-  > foobar       (Note that @program literally gives you a '>' prompt.)
-  You entered foobar!
-  Please enter another word:
-  > hoopla
-  This time you entered hoopla. You're done!
-{ 'help @program2' for more }
- 
-& @program2 
-  As you can see, this command basically takes what a user types at the
-  prompt, stuffs it into %0 in the code in <obj/attr>, and then triggers
-  that attribute. Note that when @program triggers an attribute, the enactor
-  of that triggered attribute is <player>, and is inserted into %#.
-  r-registers are NOT preserved when @program triggers an attribute.  This
-  is an unfortunate side-effect from allowing @program to be done across
-  reboots and shutdowns.  Keep in mind that this will work differently 
-  than MUX's @program by splitting up arguments that were separated by 
-  commas into %0 - %9.  Any argument after the 10th is ignored.  
-  Check @list options to see if it is using this method, or the MUX method 
-  where it's only %0.
-   
-  An optional message, <prefix>, may be specified and will be output before
-  the @program prompt. This is useful for telling the user what information
-  they need to supply.
- 
-  A player caught in @program may send a command through to the normal
-  command processor at the @program prompt by prefixing it with the '|'
-  character, for example, '|WHO'.  This may be disabled for that particular
-  player with the @toggle NOSHPROG or if globally set this way.  Check
-  @list options if shelling commands from within a program is allowed.
- 
-{ 'help @program3' for more }
-  
-& @program3
-  There are extra things you may do with @program that is not available
-  anywhere else.  
-  
-  First, @program can be done across @reboots, @shutdowns, QUIT, LOGOUT,
-  or (heaven forbid) server crashes.  It remembers where the program was
-  last left off at when the player is next on.
-  
-  Secondly, there are @toggles in junction with @program.
-    1.  NOSHPROG -- specifies the target can not use | to access commands
-                    outside the program.
-    2.  PROG     -- specifies the target can use a @program on someone else
-    3   IMMPROG  -- specifies only an immortal can @quitprogram that player.
-  
-  Third, you can use pre-defined prompts instead of the default '> ' for
-  players.  This is done via the @progprompt command.  
-    i.e.  @progprompt *player=This is your prompt>
-  
-  Note that you need to specify the > at the end if you want it.
-  
-  See @list options to see what config parameters are enabled for @program
-  on the RhostMUSH you're at.
-  
-  Help files borrowed from TinyMUX 2.0 with permission.
-  
-  See Also: @toggle, @progprompt, @quitprogram
- 
-& @quitprogram
-  Command: @quitprogram[/<switch>] <player>
-  
-  Terminates the @program for player. If <player> is not specified, then it
-  works upon the enactor (a player may quit a program while they are in it
-  by piping out @quitprogram, see 'help @program').
-  
-  Available switches:
-    /quiet - do not notify the target (or yourself) of quitprogramming.
-             Note: errors are still displayed.
-  
-  Example:
-    > @quitprogram *TinyPlayer
-    @program cleared.
-    > @quitprogram/quiet *TinyPlayer  (notice no output)
-   
-  See also: @program, @progprompt.
- 
-& @progprompt
-  Attribute: @progprompt <player>=<string>
-  
-  This specifies a string (from 1 to 40 characters) that you may specify 
-  for a player going through a program instead of the base '-'.  If you 
-  specify a 'NULL' as the string, there will be no prompt.    
-  
-  The @progprompt does not end the string with a >.  If you wish to have
-  one, you'll have to add it to the end of the defined prompt.
-  
-  This is limited to 80 characters total.  You may have an ansified string.  
-  
-  Example:
-    > @progprompt me=Prompt>
-    Set.
-    > @wait 0=@progprompt me=[ansi(hr,Red>)]   (need the @wait to evaluate it) 
-    Set.
-  
-  See Also: @program, @quitprogram
-  
-& @fsay
-  Command: @fsay <object> = <message>
-  Forces <object> (which may be a player) to say <message>.  Can only
-  be executed if the enactor controls the object.
-  
-  See Also: say, @femit, pose
-  
-& @SELFBOOT
-  Command: @selfboot[/<switch>] [<port>]
- 
-  This command will disconnect all ports except the port that you
-  initiate the command from. (IE: it will disconnect your hung logins)
-  
-  You may specify the following optional switches:
-     /list -- Will list what ports you're currently connected on.
-     /port -- When specified with the <port> will boot the specific
-              connection.
-  
-  If you have a single connection, it will not boot it.
-  
-  Note: @selfboot by itself will boot every connection that has a greater
-        idle time than the other connection.  Which, if you have two ACTIVE
-        connections may not be the result you want :)
-   
-  See Also: port()
- 
-& grab
-  Command: grab <user>
-  
-  The command will check your permissions over the target's location and
-  over your current location.  If you are found to have control over both
-  of those locations, and of the user itself, then the targeted user
-  will be brought to your location.
-  
-  See Also: join, @teleport  
-  
-& join
-  Command: join <user>
-  
-  The command will check your permissions over the target's location and
-  over your current location.  If you are found to have control over both
-  of those location, then you are brought to the targeted user's location.
-  
-  See Also: grab, @teleport
-  
-& get
-  Command: get[/<switch>] <object>
-           get[/<switch>] <exit>
-           get[/<switch>] <object>'s <sub-object>
-  
-  The first form picks up <object> from your location and adds it to your
-  inventory.  It will fail if the object is locked against you, or if you
-  are inside a player or object that you don't control and which isn't
-  set ENTER_OK.
- 
-  The second form takes an exit from your location and adds it to you.
-  Anyone inside you may then use the exit to travel to the exit's destination.
-  You may take exits that you own, and exits owned by others in locations that
-  you own.
- 
-  The third form takes <sub-object> from <object> and adds it to your
-  inventory.  <object> must be ENTER_OK and <sub-object> must not be locked
-  against you for this to work.  The lock on <object> is not checked.
-  
-{ 'help get2' for more }
-  
-& get2
-  The following switch is recognized:
-     /quiet   - Don't perform the @osucc/@asucc or @ofail/@afail attributes
-                on the target object.  This switch only works if you control
-                the object.
- 
-  <object> and <sub-object> may be either players or things.
-  'take' is the same as 'get'.
-  
-  See Also: drop, @afail, @asucc, @fail, @ofail, @osucc, @succ, ENTER_OK,
-            FAILURE, SUCCESS
-  
-& give
-  Command: give <player>=<amount/object>
-  Gives player the specified amount of money or <object>. You can't give
-  someone money if their new total would be greater than 10000 (No reason to
-  get greedy).  You may also give players objects, but the other player must
-  be set ENTER_OK to receive something you give. 
-  
-  See Also: @apay, @cost, @opay, @pay, ENTER_OK
-  
-& goto
-  Command: goto[/<switch>] <direction>
-           goto[/<switch>] home
-           <direction>
-           home
- 
-  Moves you in the specified direction, assuming that the direction is not
-  locked against you.  'move home' is a special command that returns you to
-  your home. The word 'move' may be omitted.
- 
-  The following switch is recognized:
-     /quiet   - Don't perform the @osucc/@asucc/@odrop/@adrop or @ofail/@afail
-                attributes on the exit being used.  This switch only works if
-                you control the exit.
- 
-  'move' is the same as 'goto'.
-  
-  See Also: enter, home, leave, move()
-  
-& inventory
-  Command: inventory
-  
-  Lists what you are carrying and how much money you have.  If alternate 
-  inventories are in effect, anything wielded or worn may not be shown up
-  by this inventory.  To see these inventories, use the 'wielded' and
-  'worn' commands respectively.
-  
-  See Also: score, worn, wielded, invformat
-  
-& @invformat
-& invformat
-  Attribute: INVFORMAT
-  
-  This attribute is set via &INVFORMAT.  There is no '@invformat'.
-  
-  This attribute when set will format the enctor's inventory.  If the enactor
-  is @powered FORMATTING (either directly or through a parent/zone chain),
-  then you may also use %0-%6 for arguments.  They are:
+	& protect_addenh
+	& max_name_protect
+	& @protect2
+	  (CONTINUED)
+	  Command: @protect[/<switch>] [<player-name>]  
+	  
+	  The following wizard @admin parameters exist (see wizhelp for help):
+	    protect_addenh   -- this is the toggle that enables/disables enhanced adds
+	    max_name_protect -- this controls total number of names to be protected
+	  
+	  Examples:
+	    > say [name(me)] [num(me)]
+	    You say "Bob #123"
+	    > @protect/add
+	    Your current name has been added to your protect list.
+	    > @protect/add Simon            (if enhanced mode enabled)
+	    The name has been added to your protect list.
+	    > @protect/add Fred             (if enhanced mode enabled)
+	    The name has been added to your protect list.
+	    > @protect/del Bob
+	    You have successfully deleted 'Bob' from your protect list.
+	    > @protect/alias Simon
+	    You have successfully activated 'simon' as an alias.
+	    > @protect/alias Fred
+	    You have successfully activated 'fred' as an alias.
+	    > @protect/unalias Fred
+	    You have successfully de-activated 'fred' as an alias.
+	    > @protect/list
+	    +------------------------------+----------------------------------+-------+
+	    | Player Name Protected        | Dbref#   [ Player Name         ] | Alias |
+	    +------------------------------+----------------------------------+-------+
+	    | Simon                        | #123     [ Bob                 ] |   Y   |
+	    | Fred                         | #123     [ Bob                 ] |   N   |
+	    +------------------------------+----------------------------------+-------+
+	    You have 2 out of 10 names protected.
+	  
+	  See Also: @name, @alias, listprotection()
+	  
+	& @program
+	  Command: @program <player>=<obj/attr>[:<prefix>]
+	  
+	  Note:  The PROG @toggle is required for anything that will use @program.
+	  
+	  This command allows for small 'programs' within RhostMUSH. To understand this
+	  command, you must first understand the fact that it completely bypasses any
+	  commands, built-in or otherwise, and allows you to send user-input directly
+	  into your code.
+	   
+	  A simple example:
+	   
+	  @va me=$start:@prog %#=me/vb:Please enter a word:
+	  @vb me=@emit You entered %0!;@prog %#=me/vc:Please enter another word:
+	  @vc me=@emit This time, you entered %0. You're done!
+	   
+	  > start
+	  Please enter a word:
+	  > foobar       (Note that @program literally gives you a '>' prompt.)
+	  You entered foobar!
+	  Please enter another word:
+	  > hoopla
+	  This time you entered hoopla. You're done!
+	{ 'help @program2' for more }
+	 
+	& @program2 
+	  As you can see, this command basically takes what a user types at the
+	  prompt, stuffs it into %0 in the code in <obj/attr>, and then triggers
+	  that attribute. Note that when @program triggers an attribute, the enactor
+	  of that triggered attribute is <player>, and is inserted into %#.
+	  r-registers are NOT preserved when @program triggers an attribute.  This
+	  is an unfortunate side-effect from allowing @program to be done across
+	  reboots and shutdowns.  Keep in mind that this will work differently 
+	  than MUX's @program by splitting up arguments that were separated by 
+	  commas into %0 - %9.  Any argument after the 10th is ignored.  
+	  Check @list options to see if it is using this method, or the MUX method 
+	  where it's only %0.
+	   
+	  An optional message, <prefix>, may be specified and will be output before
+	  the @program prompt. This is useful for telling the user what information
+	  they need to supply.
+	 
+	  A player caught in @program may send a command through to the normal
+	  command processor at the @program prompt by prefixing it with the '|'
+	  character, for example, '|WHO'.  This may be disabled for that particular
+	  player with the @toggle NOSHPROG or if globally set this way.  Check
+	  @list options if shelling commands from within a program is allowed.
+	 
+	{ 'help @program3' for more }
+	  
+	& @program3
+	  There are extra things you may do with @program that is not available
+	  anywhere else.  
+	  
+	  First, @program can be done across @reboots, @shutdowns, QUIT, LOGOUT,
+	  or (heaven forbid) server crashes.  It remembers where the program was
+	  last left off at when the player is next on.
+	  
+	  Secondly, there are @toggles in junction with @program.
+	    1.  NOSHPROG -- specifies the target can not use | to access commands
+			    outside the program.
+	    2.  PROG     -- specifies the target can use a @program on someone else
+	    3   IMMPROG  -- specifies only an immortal can @quitprogram that player.
+	  
+	  Third, you can use pre-defined prompts instead of the default '> ' for
+	  players.  This is done via the @progprompt command.  
+	    i.e.  @progprompt *player=This is your prompt>
+	  
+	  Note that you need to specify the > at the end if you want it.
+	  
+	  See @list options to see what config parameters are enabled for @program
+	  on the RhostMUSH you're at.
+	  
+	  Help files borrowed from TinyMUX 2.0 with permission.
+	  
+	  See Also: @toggle, @progprompt, @quitprogram
+	 
+	& @quitprogram
+	  Command: @quitprogram[/<switch>] <player>
+	  
+	  Terminates the @program for player. If <player> is not specified, then it
+	  works upon the enactor (a player may quit a program while they are in it
+	  by piping out @quitprogram, see 'help @program').
+	  
+	  Available switches:
+	    /quiet - do not notify the target (or yourself) of quitprogramming.
+		     Note: errors are still displayed.
+	  
+	  Example:
+	    > @quitprogram *TinyPlayer
+	    @program cleared.
+	    > @quitprogram/quiet *TinyPlayer  (notice no output)
+	   
+	  See also: @program, @progprompt.
+	 
+	& @progprompt
+	  Attribute: @progprompt <player>=<string>
+	  
+	  This specifies a string (from 1 to 40 characters) that you may specify 
+	  for a player going through a program instead of the base '-'.  If you 
+	  specify a 'NULL' as the string, there will be no prompt.    
+	  
+	  The @progprompt does not end the string with a >.  If you wish to have
+	  one, you'll have to add it to the end of the defined prompt.
+	  
+	  This is limited to 80 characters total.  You may have an ansified string.  
+	  
+	  Example:
+	    > @progprompt me=Prompt>
+	    Set.
+	    > @wait 0=@progprompt me=[ansi(hr,Red>)]   (need the @wait to evaluate it) 
+	    Set.
+	  
+	  See Also: @program, @quitprogram
+	  
+	& @fsay
+	  Command: @fsay <object> = <message>
+	  Forces <object> (which may be a player) to say <message>.  Can only
+	  be executed if the enactor controls the object.
+	  
+	  See Also: say, @femit, pose
+	  
+	& @SELFBOOT
+	  Command: @selfboot[/<switch>] [<port>]
+	 
+	  This command will disconnect all ports except the port that you
+	  initiate the command from. (IE: it will disconnect your hung logins)
+	  
+	  You may specify the following optional switches:
+	     /list -- Will list what ports you're currently connected on.
+	     /port -- When specified with the <port> will boot the specific
+		      connection.
+	  
+	  If you have a single connection, it will not boot it.
+	  
+	  Note: @selfboot by itself will boot every connection that has a greater
+		idle time than the other connection.  Which, if you have two ACTIVE
+		connections may not be the result you want :)
+	   
+	  See Also: port()
+	 
+	& grab
+	  Command: grab <user>
+	  
+	  The command will check your permissions over the target's location and
+	  over your current location.  If you are found to have control over both
+	  of those locations, and of the user itself, then the targeted user
+	  will be brought to your location.
+	  
+	  See Also: join, @teleport  
+	  
+	& join
+	  Command: join <user>
+	  
+	  The command will check your permissions over the target's location and
+	  over your current location.  If you are found to have control over both
+	  of those location, then you are brought to the targeted user's location.
+	  
+	  See Also: grab, @teleport
+	  
+	& get
+	  Command: get[/<switch>] <object>
+		   get[/<switch>] <exit>
+		   get[/<switch>] <object>'s <sub-object>
+	  
+	  The first form picks up <object> from your location and adds it to your
+	  inventory.  It will fail if the object is locked against you, or if you
+	  are inside a player or object that you don't control and which isn't
+	  set ENTER_OK.
+	 
+	  The second form takes an exit from your location and adds it to you.
+	  Anyone inside you may then use the exit to travel to the exit's destination.
+	  You may take exits that you own, and exits owned by others in locations that
+	  you own.
+	 
+	  The third form takes <sub-object> from <object> and adds it to your
+	  inventory.  <object> must be ENTER_OK and <sub-object> must not be locked
+	  against you for this to work.  The lock on <object> is not checked.
+	  
+	{ 'help get2' for more }
+	  
+	& get2
+	  The following switch is recognized:
+	     /quiet   - Don't perform the @osucc/@asucc or @ofail/@afail attributes
+			on the target object.  This switch only works if you control
+			the object.
+	 
+	  <object> and <sub-object> may be either players or things.
+	  'take' is the same as 'get'.
+	  
+	  See Also: drop, @afail, @asucc, @fail, @ofail, @osucc, @succ, ENTER_OK,
+		    FAILURE, SUCCESS
+	  
+	& give
+	  Command: give <player>=<amount/object>
+	  Gives player the specified amount of money or <object>. You can't give
+	  someone money if their new total would be greater than 10000 (No reason to
+	  get greedy).  You may also give players objects, but the other player must
+	  be set ENTER_OK to receive something you give. 
+	  
+	  See Also: @apay, @cost, @opay, @pay, ENTER_OK
+	  
+	& goto
+	  Command: goto[/<switch>] <direction>
+		   goto[/<switch>] home
+		   <direction>
+		   home
+	 
+	  Moves you in the specified direction, assuming that the direction is not
+	  locked against you.  'move home' is a special command that returns you to
+	  your home. The word 'move' may be omitted.
+	 
+	  The following switch is recognized:
+	     /quiet   - Don't perform the @osucc/@asucc/@odrop/@adrop or @ofail/@afail
+			attributes on the exit being used.  This switch only works if
+			you control the exit.
+	 
+	  'move' is the same as 'goto'.
+	  
+	  See Also: enter, home, leave, move()
+	  
+	& inventory
+	  Command: inventory
+	  
+	  Lists what you are carrying and how much money you have.  If alternate 
+	  inventories are in effect, anything wielded or worn may not be shown up
+	  by this inventory.  To see these inventories, use the 'wielded' and
+	  'worn' commands respectively.
+	  
+	  See Also: score, worn, wielded, invformat
+	  
+	& @invformat
+	& invformat
+	  Attribute: INVFORMAT
+	  
+	  This attribute is set via &INVFORMAT.  There is no '@invformat'.
+	  
+	  This attribute when set will format the enactor's inventory. If the enactor
+          is @powered FORMATTING (either directly or through a parent/zone chain),
+          then you may also use %0-%6 for arguments.  They are:
     %0 - The space separated list of dbref#'s that would normally show 
          up in inventory.
     %1 - The '|' delimited list of names that would normally show up in
@@ -1893,7 +1893,7 @@
   See Also: look, smell, touch, listen, @staste, @sataste, @sotaste
   
 & think
-  Command: think[/<swiches>] <string>
+  Command: think[/<switches>] <string>
   Returns the string to the enactor at the permission level of the enactor.
   This works just as @pemit me=<string> would work.
   
@@ -2215,7 +2215,7 @@
   Command: news/post <group>/<title>=<text>
   
   The post command posts and article to a group. You must be subscribed to a 
-  group and pass it's postlock before this command will be successful. The
+  group and pass its postlock before this command will be successful. The
   title is mandatory, as well as the text. 
   
   Example:
@@ -2448,7 +2448,7 @@
   
   The news system was written in January of 1997, and consists of
   approximately 5000 lines of C code. It utilizes an ndbm database separate
-  from the RhostMUSH database to store all of it's information.
+  from the RhostMUSH database to store all of its information.
   
   System Limits:
     Group name        length   31 [a-zA-Z][a-zA-Z0-9_.]*
@@ -3214,7 +3214,7 @@
     ]   -- This tells the parser that the command following it is not 
            to be parsed.
     }   -- This tells the parser that the command following it is not 
-           to have white spaces stripped.  This follows all queud cmds.
+           to have white spaces stripped.  This follows all queued cmds.
    ]}   -- This combines the features of ] and }.
    }]   -- This combines the features of ] and }.
   
@@ -3329,17 +3329,17 @@
 & @atrcache
   Command: @atrcache[/switch(es)] <cachename/slot> [=<target/value>]
   
-  The @atrcache command is ued to cache out the EXECUTION of a string so
+  The @atrcache command is used to cache out the EXECUTION of a string so
   that it won't have to keep evaluating this until the next interval 
   specified.  This is intended to be used for heavy use cases where
   execution of code can have a huge performance hit or on something
   that would be called intensely in a loop that could also cause delay,
-  lage, or intensive loads.
+  lag, or intensive loads.
   
   The maximum caches are handled by a config parameter.  10 default
   with an absolute maximum being 200.
   
-  On system start (or reboot) all caches are unitialized and any
+  On system start (or reboot) all caches are uninitialized and any
   cached values will have been cleared.
       
   The following switches exist for the command.  Individual help is
@@ -3353,7 +3353,7 @@
       @atrcache/owner <cacheslot or cachename> = <new owner>
         -- specify the new owner for the specified cache slot.
       @atrcache/visible <cacheslot or cachename> = <boolean>
-        -- toggle if the cache slot is globally avaialble to fetch
+        -- toggle if the cache slot is globally available to fetch
       @atrcache/lock <cacheslot or cachename> = <boolean>
         -- toggle enforcing of recaching by owner or control.
       @atrcache/fetch <cacheslot or cachename>
@@ -3369,9 +3369,9 @@
       @atrcache/set <cacheslot or cachename> = <evaluated string>
         -- assign the cache slot the string to be executed for caching
       @atrcache/noansi  
-        -- used with the /info switch to supress ansi output
+        -- used with the /info switch to suppress ansi output
   
-  Indivitual help is available on each switch with 'help @atrcache/switchname'
+  Individual help is available on each switch with 'help @atrcache/switchname'
   
   See Also: atrcache(), %-h
 
@@ -3473,7 +3473,7 @@
   the specified cache to be locked.  This is the default value.  Once
   a cache is 'locked' it requires being fetched by someone who owns
   or controls the cache for the cache slot to re-cache upon exceeding
-  the interval.  This provides added protection against globaly
+  the interval.  This provides added protection against globally
   visible cache slots.
   
   Immortals will always trigger the cache upon interval.
@@ -3489,7 +3489,7 @@
   
   This command, part of the @atrcache command switches, will fetch the cache
   from the specified cache slot.  If the interval is exceeded it will
-  cause the cache to re-cache the value beofre displaying it on the fetch.
+  cause the cache to re-cache the value before displaying it on the fetch.
   
   This command follows the /lock and /visible permissions accordingly.
   
@@ -3866,18 +3866,18 @@
   
   See Also:  clusters, cluster functions, cluster commands, >
 
-& @cluster threshhold
-  Command: @cluster/threshhold <cluster object>=<value>
+& @cluster threshold
+  Command: @cluster/threshold <cluster object>=<value>
   
-  The threshhold switch sets the threshhold value that will let the
-  cluster know when the threshhold action is to be executed.  The
-  threshhold is defined as the LOWEST attribute count on any item
+  The threshold switch sets the threshold value that will let the
+  cluster know when the threshold action is to be executed.  The
+  threshold is defined as the LOWEST attribute count on any item
   currently in the cluster.  To avoid recursion based attacks, the
   threshold is only triggered once every 10 seconds regardless of
-  the threshhold being reached or not.
+  the threshold being reached or not.
    
   Example:
-    > @cluster/threshhold #3683=500
+    > @cluster/threshold #3683=500
     Cluster threshold for cluster #3683 set to: 500 
   
   See Also:  clusters, cluster functions, cluster commands, >
@@ -3890,7 +3890,7 @@
            @cluster/action/func <cluster object>=<string>
   
   The action switch sets the action that will be executed on the cluster
-  once the threshhold value has been reached.  The threshhold value
+  once the threshold value has been reached.  The threshold value
   is defined as the LOWEST attribute count on any item currently in
   the cluster.  The action is only executed once every 10 seconds to
   avoid recursive based attacks.
@@ -4069,7 +4069,7 @@
     58285728 CRC OK
     > @va me=abc
     > @crc32obj/check me
-    3345058013 CRC MISSMATCH [58285728]
+    3345058013 CRC MISMATCH [58285728]
     > @va me=xyz
     > @crc32obj/check me
     58285728 CRC OK
@@ -4194,7 +4194,7 @@
   the Obvious exits list.
   
   The optional <free dbref#> can be used if you have permission to specify
-  the free dbref# to use.  This is useable with the room, and/or both 
+  the free dbref# to use.  This is usable with the room, and/or both 
   optional exits.
    
   The following switches are available:
@@ -4393,7 +4393,7 @@
                      string and leaves unansified anything outside that.
         /raw       - raw mode of the string.  Allows to edit ansi markup.
         /braces    - enables special handling for editing out {}()[]
-                     but they must be escpaed out in <search> to edit.
+                     but they must be escaped out in <search> to edit.
    
   If <wild-attr> contains wildcard characters, then all attributes that
   match are edited.
@@ -4578,7 +4578,7 @@
   
   This command will hide (or unhide) you from the WHO/DOING.  If you
   specify the '/off' switch, it will unhide you to appear back on the
-  WHO/DOING.  This also effects lwho(), conn() and idle().  Only full
+  WHO/DOING.  This also affects lwho(), conn() and idle().  Only full
   wizards (and you yourself) can see you on the WHO when you @hide.
   The current switches exist:
      /on  - this hides you from the WHO (default).
@@ -4969,7 +4969,7 @@
                config    - show all current status/config information.
                mail      - show all current hardcoded mail configuration.
                convtime  - show all formats that convtime() handles
-               display   - dsplay detailed information on config options
+               display   - display detailed information on config options
                            > Requires argument
                mysql     - shows if mysql is enabled or disabled
                system    - show the default system settings for the mush
@@ -5167,7 +5167,7 @@
      messages of the room when they look at the room.
   
   Exits:
-     Controls who may pass through the exit to it's destination.  If you
+     Controls who may pass through the exit to its destination.  If you
      do not pass the lock, you will not be able to go through that exit.
      An exit with no lock is freely accessible.
   
@@ -5204,7 +5204,7 @@
   
   Rooms, Objects, Exits, Players:
      This allows people who pass the lock to be able to @zone items to your
-     zone.  This works similiar to the ParentLock with regards to @parents.
+     zone.  This works similar to the ParentLock with regards to @parents.
      If the lock does not exist, only those who control the item may @zone it.
   
 & @lock/zonewizlock
@@ -5271,7 +5271,7 @@
      on that particular target.
   
   Special Enhancement:  If enabled, this lock also serves as a reality level
-     lock.  This in effect allows special 'tweeking' of reality levels so
+     lock.  This in effect allows special 'tweaking' of reality levels so
      that you may specify additional passes through the reality  The target
      must be set CHKREALITY for this lock to work.  The CHKREALITY toggle is
      only settable by WIZARD and higher.  Depending on the current 
@@ -5280,7 +5280,7 @@
      will also check if the values are anded or or'd.  The following options 
      exist:
                0 - Reality level or'd with lock pass based on target
-               1 - Reailty level or'd with lock pass based on enactor
+               1 - Reality level or'd with lock pass based on enactor
                2 - Reality level and'd with lock fail based on target
                3 - Reality level and'd with lock fail based on enactor
      
@@ -5376,7 +5376,7 @@
                                    location.
      ChownLock:    All:            Specifies who may chown an item if set
                                    CHOWN_OK.  No lock means anyone can.
-     MailLock:     Players:        Lock your ability to receive m ail from
+     MailLock:     Players:        Lock your ability to receive mail from
                                    target(s).
   
      For mail locking, read the help on HELP MAIL LOCK
@@ -5974,7 +5974,7 @@
   (usually 10 levels).  The parent need not be the same type as its children,
   and flags are not inherited from parent objects.  However, a UseLock
   is inherited.  IE: if the parent is uselocked against you, you can not
-  use it's functionality.  You may not create parent loops.
+  use its functionality.  You may not create parent loops.
  
   The parent system inheritance in RhostMUSH is rather robust.  When 
   attributes are looked up it follows a chain of inheritance rules.
@@ -6919,7 +6919,7 @@
 { 'help @verb4' on how to format the custom verbs }
 
 & @verb4
-  Formatting can be doing using eithe the &FORMAT<verb> or the &<verb>FORMAT
+  Formatting can be doing using either the &FORMAT<verb> or the &<verb>FORMAT
   depending on how the RhostMUSH is currently configured.
   
   Type '@list options' to see what method of formatting is currently enabled.
@@ -7676,7 +7676,7 @@
   
   This attribute allows a user to define a user-presentable way for contents.
   This replaces the normal 'Contents:' and 'Carrying:' lists.  The variable
-  is evaluated as it would a description or other similiar message.
+  is evaluated as it would a description or other similar message.
   
   If the target is @powered FORMATTING, then the dbref# list of items that
   the target sees will be passed as %0 and the | separated list of names
@@ -7705,7 +7705,7 @@
   
   This attribute allows a user to define a user-presentable way for exits.
   This replaces the normal 'Obvious exits:'  listing.  The variable is
-  evaluated as it would a description or other similiar message.
+  evaluated as it would a description or other similar message.
   
   If the target is @powered FORMATTING, then the dbref# list of items that
   the target sees will be passed as %0 and the | separated list of names
@@ -8342,12 +8342,12 @@
 & @goto
   Command: @goto[/label] <textlabel>
  
-  This command is similiar to @jump, in that it can be used to skip commands
+  This command is similar to @jump, in that it can be used to skip commands
   following it in the queue, up to a certain point. Unlike @jump, this command
   does not skip a specified amount of commands, but lets you skip all commands
   until a specified, text-based label is reached.
 
-  This makes it, yes, quite similiar to classic GOTO commands from other
+  This makes it, yes, quite similar to classic GOTO commands from other
   programming languages, with the exception that the @goto command only allows
   you to skip *forward*, never backward. For backward jumps, see @rollback.
 
@@ -8422,7 +8422,7 @@
   Command: @sudo[</switch>] <target>=<command>
   
   The @sudo allows you to execute a command through the target. This is
-  done through the normal command processor and while similiar permissions
+  done through the normal command processor and while similar permissions
   to @force, does not suffer from the queue delay.  You can not @sudo to
   something you have no control over.  @sudo performs the action according
   to the target's viewpoint, including location. @sudo only works on a single
@@ -8882,7 +8882,7 @@
            3. @rollback/retry <boolean> [=<arg0, ..., argN>]
            4. @rollback/label[/<switch>] <label>|<args...> [=<arg0, ..., argN>]
   
-  The forth argument is the  /label option to @rollback.  The given syntax
+  The fourth argument is the  /label option to @rollback.  The given syntax
   requires you to use the label|args syntax where 'args' will be the arguments
   passed from condition 1, 2, or 3 depending on the additional switch you
   provide (or not provide).
@@ -9055,7 +9055,7 @@
   function is only seen by the owner of the target and all things owned by
   that target.  Function existence is checked by the object doing the 
   execution of the code, thereby allowing owners the ability to use their
-  own functions in their own code without worry of cross-funtion evaluation.
+  own functions in their own code without worry of cross-function evaluation.
 
   When invoked, the arguments to the function are loaded into %0-%9, 
   the <attr> attribute from <object> is fetched, and substitution is 
@@ -9751,7 +9751,7 @@
       p/P           -- plural   (they/them/their/theirs)
       Anything else -- neuter   (it/it/its/its)
   
-  Note: These can be overriden with the config param 'enforce_added_pronouns' 
+  Note: These can be overridden with the config param 'enforce_added_pronouns' 
   
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
@@ -9818,7 +9818,7 @@
   Optional switches are /quiet to suppress output or /noisy to give 
   verbose output.
   
-  The SAFELOG @toggle when set convers what you see from 'You say...' to
+  The SAFELOG @toggle when set converts what you see from 'You say...' to
   'yourname says' or whatever @saystring is set to.
    
   IN the example, when you talk, it would show:  Player barks "Hello"
@@ -10125,7 +10125,7 @@
   Command: @toggle[/switches] <object> = <toggle(s)>
  
   Turns toggles on and off on an object. To turn a toggle on you specify
-  it's name, to turn it off you specify it's name prefixed with a '!'.
+  its name, to turn it off you specify its name prefixed with a '!'.
  
   The following switches exist for @toggle:
       /check <me>     : checks your toggle list
@@ -10250,7 +10250,7 @@
   
   Note:  If the RhostMUSH is configured to make the BLIND flag 
          always in effect, then the BLIND flag will do the reverse
-         of it's normal behavior, and make exit movement visible.
+         of its normal behavior, and make exit movement visible.
          @list options to see if it's in effect or not.
   
   See Also: CLOAK, DARK, UNFINDABLE
@@ -10263,7 +10263,7 @@
   matching $command and the object is uselocked against you.
   
   If the object is set SHOWFAILCMD in addition to STOP, then the
-  error is showed appropriately and all command processing is 
+  error is shown appropriately and all command processing is 
   stopped at that point as well.
   
   See Also: @ufail, @fail
@@ -10285,14 +10285,14 @@
   Note:  The attribute is set with @set or &.
   
   This flag redirects the output that the target receives
-  and sends it to all of it's contents.  This is handy if you don't want
+  and sends it to all of its contents.  This is handy if you don't want
   to mess with @listens or @forwards.  This allows players to have 
   'listens' without having to enable 'player_listen' which can be 
   dangerous.
   
   The target set BOUNCE may have a BOUNCEFORWARD attribute that will
   redirect everything that object would have seen to the list of
-  dbref#'s specified in BOUNCEFORWARD.  The list must be dref#'s
+  dbref#'s specified in BOUNCEFORWARD.  The list must be dbref#'s
   and valid player objects.  Be aware that the source forwarding
   notifies the targets in the BOUNCEFORWARD where the text is
   originating from, so no abusing it :)
@@ -10536,7 +10536,7 @@
   the loc() or room() functions.  Bummer.
   
   If a room is set UNFINDABLE, players in that room (or inside objects
-  in the room) cannot be found by loc(),room(), or similiar functionality.
+  in the room) cannot be found by loc(),room(), or similar functionality.
   
   See Also: DARK
   
@@ -11028,7 +11028,7 @@
 
 & XTERMCOLOR LIST2
                                  [continued]
-             256 Color suport list.  [ansi(fg-value/bg-value,string)]
+             256 Color support list.  [ansi(fg-value/bg-value,string)]
   With %c subs, use the 2 digit HEX value.  The ansi() function can use either.
   
   063 [0x3F] RoyalBlue1      084 [0x54] SeaGreen1     105 [0x69] LightSlateBlue
@@ -11057,7 +11057,7 @@
 
 & XTERMCOLOR LIST3
                                  [continued]
-             256 Color suport list.  [ansi(fg-value/bg-value,string)]
+             256 Color support list.  [ansi(fg-value/bg-value,string)]
   With %c subs, use the 2 digit HEX value.  The ansi() function can use either.
   
   126 [0x7E] MediumVioletRed 147 [0x93] LghtSteelBlue 168 [0xA8] HotPink3    
@@ -11087,7 +11087,7 @@
 
 & XTERMCOLOR LIST4
                                  [continued]
-             256 Color suport list.  [ansi(fg-value/bg-value,string)]
+             256 Color support list.  [ansi(fg-value/bg-value,string)]
   With %c subs, use the 2 digit HEX value.  The ansi() function can use either.
 
   189 [0xBD] LightSteelBlue1 211 [0xD3] PalVioletRed1 233 [0xE9] Grey7  
@@ -12975,7 +12975,7 @@
 	  You may use the following classes in @search, search(), searchng(),
 	  zsearch(), zsearchobjid(), searchobjid(), and searchngobjid()
 	  
-	  Note: all classes are availabie with /zone as well.
+	  Note: all classes are available with /zone as well.
 	  
 	  function calls:
 	  
@@ -13162,7 +13162,7 @@
 	    %i_0-%i_99 = Equivalent to inum(0) through inum(99) [%i_l for outer]
 			 BANGS supported.  Note: '99' depends on recursion limit.
 	    %d0-%d9    = Equivalent to dtext(0) through dtext(9).  [%dl for outer]
-			 Only useable with /inline only.  BANGS supported.
+			 Only usable with /inline only.  BANGS supported.
 	    %q0-%q9    = Value of registers.  Basically equivalent to [r(0)] - [r(9)].
 			 Note: You may use %q<label>/%q<0> as well.  BANGS supported.
 	    %qa-%qz    = Extended value of registers.
@@ -13228,8 +13228,8 @@
 	  Note:  The functionality of '%c' and '%x' may be switched.  Check
 		 @list options to check.
 	  
-	  Note:  The functionality of '%f' is only useable if ZENTY_ANSI is enabled.
-		 The functionality of '%<' is only useable if ZENTY_ANSI is enabled.
+	  Note:  The functionality of '%f' is only usable if ZENTY_ANSI is enabled.
+		 The functionality of '%<' is only usable if ZENTY_ANSI is enabled.
 		 The functionality of '%<' requires the ACCENTS toggle.
 	   
 	  If the letter following the % is capitalized, the first letter of the
@@ -13696,7 +13696,7 @@
 	& ZFUN()
 	  Function: zfun([<zone>/]<attr>[,<arg>]...)
 	   
-	  The zfun function (similiar to u()) evaluates an attribute, either from the 
+	  The zfun function (similar to u()) evaluates an attribute, either from the 
 	  default zone of the object performing the function or from another zone you 
 	  control or pass the zonemaster lock on, passing in arguments and returning
 	  the result.
@@ -14181,8 +14181,8 @@
 	  The second example of the testlock function will evaluate a lock that you
 	  pass against a list of target(s).  It will return each target's dbref#
 	  based on the <key> and only evaluates <key> once for quicker processing.
-	  You may specify an optional <sep> seperator, or leave blank for a default
-	  of a space.  An optional <osep> for an output seperator may be specified
+	  You may specify an optional <sep> separator, or leave blank for a default
+	  of a space.  An optional <osep> for an output separator may be specified
 	  or it defaults to what the <sep> value is.
 	  
 	  The key <key> may be any normal key found in locks.  Please see
@@ -15125,7 +15125,7 @@
 	  have access to check the information, it returns '#-1'.
 	  
 	  If <key> is specified as '1', it will return the #obj/attribute pair
-	  that the person is currently in the programon.
+	  that the person is currently in the program.
 	   
 	  Examples:
 	    > say %#
@@ -15695,11 +15695,11 @@
 	  See Also: @cluster 
 
 	& SQUISH()
-	  Function squish(<string>[,<delimeter> [,<count>])
+	  Function: squish(<string>[,<delimiter> [,<count>])
 	  
 	  This function will remove multiple spaces (or specified delimiter) from
 	  the string.  This is meant for the ability to remove excess spaces from
-	  strings.  The delimeter defaults to a space.
+	  strings.  The delimiter defaults to a space.
 	  
 	  You may specify a <count> of how many repeated characters will be 
 	  inserted between the values in the string.  The count defaults to 1.
@@ -15828,7 +15828,7 @@
 	& MIX()
 	  Function: mix([<object>/]<attribute>,<list 1>,<list 2>[,<list N>][,<delim>])
 	  
-	  This function is similiar to map(), except it takes the arguments in the 
+	  This function is similar to map(), except it takes the arguments in the 
 	  lists and passes them into the attribute as %0 (for list1), %1 (for list2),
 	  up to %9 (for list9).  <delim> is used as the delimiter to separate items
 	  in each of the lists.  If the number of lists is 2, the delimiter may be
@@ -16361,7 +16361,7 @@
 	  The first form of this function will evaluate the passed string.  All 
 	  substitutions are evaluated and functions called with proper permissions.
 	  
-	  The second form of this function works similiar to the get_eval() function.
+	  The second form of this function works similar to the get_eval() function.
 	  
 	  Examples:
 	    > say eval(1 plus 1 equals [add(1,1)])
@@ -17104,7 +17104,7 @@
 	  empty string if nothing is found for that criteria.  If the key is outside
 	  of the range, it uses the default.
 	  
-	  The default deliminator is a colon (:).
+	  The default delimiter is a colon (:).
 	  
 	  Example:
 	    > say listprotection(me)
@@ -17245,7 +17245,7 @@
 	  Function: safebuff(<list> [[,<delim>, [<length>]])
 	  
 	  This function will return the list, by cutting off from the end any partial
-	  string, based on the delimeter you specify <delim>.  If no delimeter is
+	  string, based on the delimiter you specify <delim>.  If no delimiter is
 	  specified, it assumes a space.  A good place to have this is in search()
 	  functions that may reach or exceed the LBUF limit for output.
 	  
@@ -17473,7 +17473,7 @@
 	  This function returns true (1) if the object is able to see target at
 	  target's location.  Otherwise, it will return false (0).  You need to
 	  control the object to be able to successfully return the result else
-	  '0' will always be returned.  This will work similiar if you actually
+	  '0' will always be returned.  This will work similar if you actually
 	  looked at the room.  Naturally, as you wouldn't see yourself, it'll
 	  return '0' for that condition.
 	  
@@ -17712,7 +17712,7 @@
 	  The words in the string  may contain the wildcards '*' and '?'.  '?' 
 	  matches any one character, while '*' matches any number of characters, 
 	  including none.  So 's?x' would match 'sex' or 'six', but not to 'socx', 
-	  but 's*x' would match any of them.  <delim> may be used specified to 
+	  but 's*x' would match any of them.  <delim> may be used to 
 	  specify a delimiter other than a space.
 	  Examples:
 	    > say wildmatch(This is a test, test)
@@ -17795,7 +17795,7 @@
 	  See Also: match(), nummatch(), member(), nummember(), totmember()
 	  
 	& GRABALL()
-	  Function: graball(<string>, <pattern>[, <delimeter>[, <separator>]])
+	  Function: graball(<string>, <pattern>[, <delimiter>[, <separator>]])
 	   
 	  This function matches <pattern> against each word of <string>, returning
 	  the all the words it matches.  If no words are found to match the pattern,
@@ -17819,7 +17819,7 @@
 	  See Also: match(), member(), totmatch(), totmember(), grep(), grab()
 	  
 	& GRAB()
-	  Function: grab(<string>, <pattern>[, <delimeter>])
+	  Function: grab(<string>, <pattern>[, <delimiter>])
 	   
 	  This function matches <pattern> against each word of <string>, returning
 	  the first word it matches.  If no words are found to match the pattern,
@@ -18338,7 +18338,7 @@
 	  So 's?x' would match 'sex' or 'six', but not to 'socx', but 's*x' would
 	  match any of them.
 	  
-	  <delim> may be used specified to specify a delimiter other than a space.
+	  e<delim> may be used to specify a delimiter other than a space.
 	  
 	  Examples:
 	    > say match(This is a test, test)
@@ -18728,7 +18728,7 @@
 	  Todec converts the inputted number into decimal.  The following formats
 	  are used to send to it:
 	 
-		0x<number>  - used to specify a hexidecimal number. (base 16) 
+		0x<number>  - used to specify a hexadecimal number. (base 16) 
 		0<number>   - used to specify an octal number.      (base 8)
 		0b<number>  - used to specify a binary number.      (base 2)
 		<number>    - used to specify standard decimal.     (base 10)
@@ -18746,10 +18746,10 @@
 	& TOHEX()
 	  Function: tohex(<number>)
 	  
-	  Todec converts the inputted number into hexidecimal.  The following 
+	  Todec converts the inputted number into hexadecimal.  The following 
 	  formats are used to send to it:
 	 
-		0x<number>  - used to specify a hexidecimal number. (base 16) 
+		0x<number>  - used to specify a hexadecimal number. (base 16) 
 		0<number>   - used to specify an octal number.      (base 8)
 		0b<number>  - used to specify a binary number.      (base 2)
 		<number>    - used to specify standard decimal.     (base 10)
@@ -18770,7 +18770,7 @@
 	  Tooct converts the inputted number into octal.  The following formats
 	  are used to send to it:
 	 
-		0x<number>  - used to specify a hexidecimal number. (base 16) 
+		0x<number>  - used to specify a hexadecimal number. (base 16) 
 		0<number>   - used to specify an octal number.      (base 8)
 		0b<number>  - used to specify a binary number.      (base 2)
 		<number>    - used to specify standard decimal.     (base 10)
@@ -18791,7 +18791,7 @@
 	  Todec converts the inputted number into binary.  The following formats
 	  are used to send to it:
 	 
-		0x<number>  - used to specify a hexidecimal number. (base 16) 
+		0x<number>  - used to specify a hexadecimal number. (base 16) 
 		0<number>   - used to specify an octal number.      (base 8)
 		0b<number>  - used to specify a binary number.      (base 2)
 		<number>    - used to specify standard decimal.     (base 10)
@@ -20497,7 +20497,7 @@
 	& XCON()
 	  Function: xcon(<object>[/switch],<start>,<count> [,<switch>] [,<objid>])
 	  
-	  This function is similiar to lcon() except it returns a space-separated list
+	  This function is similar to lcon() except it returns a space-separated list
 	  of the contents of <object> starting at point <start> and returning <count>
 	  number of contents.  It takes a specific switch as an option:
 	      /PLAYER    -- lists all TYPE players in the contents.
@@ -20745,7 +20745,7 @@
 	  after evaluating it is the same as the original string.
 	 
 	  Example:
-	    > say escape(Sneak a peak at Wiz's desc... [get($1/desc)])
+	    > say escape(Sneak a peek at Wiz's desc... [get($1/desc)])
 	    You say "\Sneak a peek at Wiz's desc... \[get\(#1/desc\)\]"
 	 
 	  Note: 'say escape(Sneak a peek at Wiz's desc... [get(#1/desc)])' does not
@@ -20838,7 +20838,7 @@
 	  
 	  The following <type> values exist for special handling with <key>
 	  'L' or 'T'.  These work as bitmasks so add the values to combine:
-	       1  - capitalize all words after a hyphon -
+	       1  - capitalize all words after a hyphen -
 	       2  - capitalize all words after a right parenthesis (
 	       4  - capitalize all words after a right bracket [
 	       8  - capitalize all words after a right brace {
@@ -23638,10 +23638,10 @@
 	  See Also: pack(), unpack(), strmath(), bucket()
 
 	& UNESCLIST()
-	  Function: unesclist(<list of characters to un-escape>|<string>)
+	  Function: unesclist(<list of characters to unescape>|<string>)
 	  
-	  This function takes an optional list of characters you wish to un-escape 
-	  and then un-escapes them (via removing the \ character before it) from 
+	  This function takes an optional list of characters you wish to unescape 
+	  and then unescapes them (via removing the \ character before it) from 
 	  every character that you specified.  This is intended to be used with 
 	  weird escape situations like calling external sources.
 	  
@@ -23663,7 +23663,7 @@
 	  The inverse function of unpack is pack.  The radix can be between
 	  2 and 64.
 	  
-	  You may specify tghe PennMUSh compatable toggle (1) which will mimic Penn's
+	  You may specify the PennMUSH compatible toggle (1) which will mimic Penn's
 	  64 bit packing algo.
 	   
 	  Examples:
@@ -23702,7 +23702,7 @@
 	  Immortals may specify an <override> of '1' to force a new password
 	  over the original one.
 	  
-	  If the @admin param 'enforce_checksums' is enabled, on a CRC missmatch
+	  If the @admin param 'enforce_checksums' is enabled, on a CRC mismatch
 	  all $commands and ^listens will no longer work.
 	    
 	  The following options exist for <option>:
@@ -23724,7 +23724,7 @@
 	    > &NEWATTRIBUTE me=break crc
 	    Set.
 	    > think crc32obj(me, chk)
-	    4097521554 CRC MISSMATCH [5892856925]
+	    4097521554 CRC MISMATCH [5892856925]
 	    > &NEWATTRIBUTE me
 	    Cleared.
 	    > think crc32obj(me, chk)
@@ -23737,20 +23737,20 @@
 		    parenstr(!<string>)
 	  
 	  This function returns an ansified match of parenthesis, brackets, and
-	  braces while hilighting red any mis-matched of the three.  If you start
-	  the string you are comparing with a '!' then only the first mis-match
+	  braces while highlighting red any mismatched of the three.  If you start
+	  the string you are comparing with a '!' then only the first mismatch
 	  will be displayed.  The comparison will always be left to right.  If the
-	  string is too large, it will always be returned un-altered.  If there are
+	  string is too large, it will always be returned unaltered.  If there are
 	  a large number of parenthesis, brackets and praces, it is possible the
 	  result will be cut off as ansi takes up extra spaces.  If this is the case,
 	  use the '!' option to only hilight the errors (if any), otherwise it will
 	  return the hilighted string.
 	  
 	  Bugs:  
-	  Do to how pre-processing works for functions, even though the arguments to
+	  Due to how pre-processing works for functions, even though the arguments to
 	  this function are not evaluated, if you do not END in the right number
 	  of )'s and ]'s it's highly possible that it will evaluate portions of
-	  the string passed to it ANYWAY thinking that it's outside the bounds
+	  the string passed to it anyway, thinking that it's outside the bounds
 	  of the parsestr() function itself.  If you run into such a case, store
 	  the value you are comparing into an attribute and then use parenmatch()
 	  to compare the result so it won't assume (wrongly) how to parse it.
@@ -23767,17 +23767,17 @@
 	  Function: parenmatch([<object>/]<attribute> [,<type>, [<key>], [<flags>]])
 	  
 	  This function returns an ansified match of parenthesis, brackets, and braces
-	  while hilighting red any mis-matched of the three.  The comparison will 
+	  while highlighting red any mismatched of the three.  The comparison will 
 	  always be left to right.  If the string is too large, it will always be
-	  returned un-altered.  If there are a large number of parenthesis, brackets, 
+	  returned unaltered.  If there are a large number of parenthesis, brackets, 
 	  and braces, it is possible the result will be cut off as ansi takes up 
 	  extra spaces.  If this is the case, use type '1' to just return 
 	  errors (if any).  An optional key of '1' will issue a pretty-print of the
 	  output in addition to the color output.  You may specify more than one flag.
 	  
 	  The following types exist:
-	    0 - Ansify the string and highlight red the first missmatch found (default)
-	    1 - If there is a missmatch, ONLY return that, else ansify the string.
+	    0 - Ansify the string and highlight red the first mismatch found (default)
+	    1 - If there is a mismatch, ONLY return that, else ansify the string.
 	  
 	  The following keys exist:
 	    0 - (default) do not pretty print the output.
@@ -24724,10 +24724,10 @@
 	  first character a + for maxsort or a - for minsort.  If you do not specify
 	  a sort type after the +/- or if the value is invalid, it assumes alphanum.
 	  
-	  You may specify a seperator of <sep> for the elements in the list.  This can
+	  You may specify a separator of <sep> for the elements in the list.  This can
 	  only be one character.  If part of the <sep> value is a semicolon followed 
 	  by a string, it will take the first char as the <sep> value and anything
-	  after the semi-colon (;) as the <osep> output seperator for the list.  
+	  after the semi-colon (;) as the <osep> output separator for the list.  
 	  The <osep> may be more than one character.  An example is '%b;FOO' where
 	  '%b' (a space) would be the <sep> value, and 'FOO' would be the <osep>
 	  value.
@@ -25029,7 +25029,7 @@
 	& PFIND()
 	  Function: pfind(<target>)
 	  
-	  This function works similiar to pmatch, except it will return any valid 
+	  This function works similar to pmatch, except it will return any valid 
 	  dbref# when a dbref# is entered.  This also does not accept *player.
 	  
 	  This is provided for compatibility purposes to other codebases.
@@ -25157,7 +25157,7 @@
 	  Function: avg(<value1>,<value2>[,<value3>,...])
 		   mean(<value1>,<value2>[,<value3>,...])  (aliased)
 	  
-	  This function takes two more more values and returns the average of
+	  This function takes two more values and returns the average of
 	  the values.
 	  
 	  Example:
@@ -26696,7 +26696,7 @@
 	  Any number passed into it is automatically incremented by one.
 	  
 	  If <key> is 1, it does advanced increments.  It then will take the number
-	  at the end of the string and increment, or if the string is a hexidecimal
+	  at the end of the string and increment, or if the string is a hexadecimal
 	  code starting with '0x' or '0X' it will increment the hex number. 
 	  
 	  Example:
@@ -26749,7 +26749,7 @@
 	  Any number passed into it is automatically decremented by one.
 	  
 	  If <key> is 1, it does advanced increments.  It then will take the number
-	  at the end of the string and increment, or if the string is a hexidecimal
+	  at the end of the string and increment, or if the string is a hexadecimal
 	  code starting with '0x' or '0X' it will increment the hex number. 
 	  
 	  Example:
@@ -27129,7 +27129,7 @@
 	  
 	  You may specify an optional delimiter as the last argument of a 
 	  reister/string pair.  For a delimiter to work an odd number of arguments
-	  must be passed to the function.  The delimeter may be null/empty.
+	  must be passed to the function.  The delimiter may be null/empty.
 	  
 	  The default delimiter if not specified is a space.
 	  
@@ -27295,7 +27295,7 @@
 	  The <pos> fields may be negative to take the argument from the right
 	  instead of the left.
 	  
-	  You may specify a separate <sep> seperator or it assumes space if not
+	  You may specify a separate <sep> separator or it assumes space if not
 	  provided.  
 	  
 	  The <osep> output delimiter may be more than one character, and if 
@@ -27315,11 +27315,11 @@
 	 (CONTINUED)
 	  Function: insert(<list>,<pos> [..<posN>],<word>[[,<sep>][,<osep>][,<key>]])
 	  
-	  Note: if you leave the <osep> output seperator null when using <key>, it 
-		assumes you want an empty (null) output seperator.  To have it use 
-		the same seperator explicitly specify the <osep> if you plan to 
+	  Note: if you leave the <osep> output separator null when using <key>, it 
+		assumes you want an empty (null) output separator.  To have it use 
+		the same separator explicitly specify the <osep> if you plan to 
 		use <key>.  You only need to explicitly set <osep> if you use <key>
-		or if you plan to use a different output seperator.
+		or if you plan to use a different output separator.
 	  
 	  Examples:
 	    > say insert(This is a test, 4, new)
@@ -27395,7 +27395,7 @@
 	  The <pos> fields may be negative to take the argument from the right
 	  instead of the left.
 	  
-	  You may specify a separate <sep> seperator or it assumes space if not
+	  You may specify a separate <sep> separator or it assumes space if not
 	  provided.  
 	  
 	  The <osep> output delimiter may be more than one character, and if 
@@ -27421,7 +27421,7 @@
 	  The <pos> fields may be negative to take the argument from the right
 	  instead of the left.
 	  
-	  You may specify a separate <sep> seperator or it assumes space if not
+	  You may specify a separate <sep> separator or it assumes space if not
 	  provided.  
 	  
 	  The <osep> output delimiter may be more than one character, and if 
@@ -27584,7 +27584,7 @@
 	  Function: isxdigit(<string>)
 	 
 	  This function matches on the FIRST CHARACTER of the string and checks
-	  if it's a hexidecimal digit or not (0-9, A-F).  If it is, it returns
+	  if it's a hexadecimal digit or not (0-9, A-F).  If it is, it returns
 	  a '1', else it returns a '0'.
 	 
 	  Examples:
@@ -29718,7 +29718,7 @@
 	      > wmail/alias alisname=player1 player2 ... playerN
 	  
 	  * Global Evaluated Aliases
-	    Evaluated aliases are similiar to static aliases.  When a wizard sets
+	    Evaluated aliases are similar to static aliases.  When a wizard sets
 	    these up, they work by evaluation so can be used to set up global
 	    dynamic aliases.  These are referenced with a '$' prefix.  This requires 
 	    that the @admin config parameter 'mail_def_object' is defined.
@@ -31120,7 +31120,7 @@
 	  sending or forwarding.  This does *NOT* work for replies.
 	  
 	  This only works when you are @toggled BRANDY_MAIL and when you
-	  start a message with 'mail player-list=subject' (or similiar).
+	  start a message with 'mail player-list=subject' (or similar).
 	  
 	  Example:
 	    > mail/write +cc=player1 player2 &myalias +globalalias ~evalalias
@@ -31147,7 +31147,7 @@
 	  the To list.
 	  
 	  This only works when you are @toggled BRANDY_MAIL and when you
-	  start a message with 'mail player-list=subject' (or similiar).
+	  start a message with 'mail player-list=subject' (or similar).
 	   
 	  Example:
 	    > mail/write +bcc=player1 player2 &myalias +globalalias
@@ -31164,7 +31164,7 @@
 	  sending or forwarding.  This does *NOT* work for replies.
 	  
 	  This only works when you are @toggled BRANDY_MAIL and when you
-	  start a message with 'mail player-list=subject' (or similiar).
+	  start a message with 'mail player-list=subject' (or similar).
 	  
 	  Example:
 	    > mail/write +acc=player1 player2 &myalias +globalalias
@@ -32525,7 +32525,7 @@
 	  See Also: mail cmdlist, mail write cmdlist
 	  
 	& save
-	  RhostMUSH, unlike lp's, merc's, diku's or similiar mud derivatives, does not
+	  RhostMUSH, unlike lp's, merc's, diku's or similar mud derivatives, does not
 	  have a 'save' option.  Your player, upon creation, is automatically saved.
 	  Everything you do, whenever you do it, is also automatically saved.  So just
 	  have fun, relax, and enjoy your time on.   Leave the saving to us :)
@@ -32598,7 +32598,7 @@
 	    desc   -- show the description attribute name of the specified reality.
 	    adesc  -- show the adesc (action description) of the specified reality.
 	    value  -- show the bitmask value of the reality in decimal form.
-	    hex    -- show the bitmask value of the reality in hexidecimal form.
+	    hex    -- show the bitmask value of the reality in hexadecimal form.
 
 	  The default value 'adesc' will always be returned automatically for any 
 	  reality with the 'desc' attribute defined for that reality.
@@ -34160,7 +34160,7 @@
 	  * cand() works like and() but stops processing on first 'FALSE' [ASH]
 	  * cor() works like or() but stops processing on first 'TRUE' [ASH]
 	  * moon() based on the POM code from berkley [ASH]
-	  * isword() returns 'TRUE' if entire string is all alpha/hyphon [ASH]
+	  * isword() returns 'TRUE' if entire string is all alpha/hyphen [ASH]
 	  * itext() returns nth arg (text '##') of an iter() [ASH]
 	  * inum() returns nth arg (num '#@') of an iter() [ASH]
 	  * modulo() returns the modulus of the numbers [ASH]
@@ -34568,7 +34568,7 @@
 	  * Fix for legacy bug in @list functions for blowing a buffer [ASH]
 	  * Fix for ZENTY_ANSI compiletime with a possible buffer overrun [ASH]
 	  * Fix for two rhosts running same debugmon debug_id [ASH]
-	  * Fix for mis-matched DPUSH/RETURN for DPOP in door.c [ASH]
+	  * Fix for mismatched DPUSH/RETURN for DPOP in door.c [ASH]
 	  * Fix for pemit()/npemit() with argument evaluation [ASH]
 	  * Fix for legacy bug with vattr initialization [ASH]
 	  * Fix for library overflow issues regarding system call on ptimefmt() [ASH]
@@ -34747,7 +34747,7 @@
 	  * version() optionally handles an argument for compile date [ASH]
 	  * Improved bounds checking in various functions for security [ASH]
 	  * tel() now recognizes the QUIET switch [ASH]
-	  * Laxed useable characters for attributes [ASH]
+	  * Laxed usable characters for attributes [ASH]
 	  * added stepping argument to lnum()/lnum2() [ASH]
 	  * Relaxed permissions of reality locktype 2 & 3 [ASH]
 	  * Added locktype 4 & 5 for reverse of 2 & 3 [ASH]
@@ -34874,7 +34874,7 @@
 	    
 	  Bug Fixes
 	  ---------
-	  * fixed @door code to be useable [ASH] 
+	  * fixed @door code to be usable [ASH] 
 	  * Uninitialized variables in view_attr (internal) [KRK] 
 	  * Mail wouldn't compile under AIX [ASH] 
 	  * @assert not behaving like @break [KRK]
@@ -34964,7 +34964,7 @@
 	  -------
 	  * Cleanup for cluster documentation [KRK]
 	  * Updated help for printf() [ASH]
-	  * Updated switch recognization for commands to be user friendly [ASH]
+	  * Updated switch recognition for commands to be user friendly [ASH]
 	  * Center no longer has an 80 character limitation [ASH]
 	  * all *lattr() funcs take type > and < to show largest/smallest attrib [ASH]
 	    
@@ -35189,7 +35189,7 @@
 	  * printf() handles multi-character filler and filler is ANSI-aware [ASH]
 	  * printf() for :: padding optionally put spaces for 'blank lines' [ASH]
 	  * enabled QDBM database support right out of the config script [ASH]
-	  * @funciton/list and /display displays functions tagged NOTRACE [ASH]
+	  * @function/list and /display displays functions tagged NOTRACE [ASH]
 	  * global errors can no longer be traced [ASH]
 	  * Rewrote ansi and accent parser to be faster and single-parsed [ASH]
 	  * added /localize and /clearregs to @include for Penn compat. [ASH]
@@ -35402,7 +35402,7 @@
 	  * memcpy() crash bug with GCC 4.x with aggressive compiler optimization [ASH]
 	  * WHO/DOING would not properly show 'year' if on over a year [ASH]
 	  * strfunc() wouldn't handle null arguments properly [ASH]
-	  * QDBM on a panic SIGTERM dump could occasionally corrupt the db 
+	  * QDBM could, on a panic SIGTERM dump, occasionally corrupt the db 
 	    (but flatfile fine) [ASH]
 	  * @door definition change in later versions of GCC caused a conflict [ASH]
 
@@ -35494,7 +35494,7 @@
 	  * float_precision for floating point decimal precision (default 6) [ASH]
 	  * file_object parameter to specify dynamic override for connect.txt and 
 	    friends [ASH]
-	  * extractword() is a multi-char delimeter/separator/ansi-aware 
+	  * extractword() is a multi-char delimiter/separator/ansi-aware 
 	    extract/delextract [ASH]
 	  * mwords() is a multi-char delimiter/ansi-ignore words [ASH]
 	  * @dbclean to purge unused attributes from the db [ASH]
@@ -35524,7 +35524,7 @@
 	  * pmatch(here) run inside a player returns the #dbref. [ASH]
 	  * Internal lower limit of cputimechk and cpuintervalchk lowered to '1' [AMB]
 	  * Added missing config options to alternate_netrhost.conf [AMB]
-	  * Mentioned several config optons in help of the commands they modify. [AMB]
+	  * Mentioned several config options in help of the commands they modify. [AMB]
 	  * Updated README.first install steps to actually include 'make links' [AMB]
 	  * Added checks in Startmush that look for presence of binary first. [AMB]
 	  * Examine/@decompile now works on attribute aliases [ASH]
@@ -35542,7 +35542,7 @@
 	  * optionally compiles in system pcre libraries and not source derived [ASH]
 	  * @flagdef now will give you the flags that are assigned on set [ASH]
 	  * reality levels read 0x00000000 notation to mirror @list rlevel in conf 
-	    file for those who find the math of hexidecimal to decimal difficult [ASH]
+	    file for those who find the math of hexadecimal to decimal difficult [ASH]
 	  * uselock evaluation locks pass '0' for default, '1' for command and
 	    '2' for listens for @lock/use only [ASH]
 	  * @reboot/silent is more verbose to the player initiating it [ASH]
@@ -35738,7 +35738,7 @@
 	  * mysql has been enhanced and security improved [ASH]
 	  * setq/setr with + and ! if fed a label, if label is 0-9 or a-z,
 	    it sets the register instead of setting a label. [ASH]
-	  * caplist() optionally capitalizes all parts of hyphonated words
+	  * caplist() optionally capitalizes all parts of hyphenated words
 	    optionally if that word would have been capitalized [ASH]
 	  * pos(), totpos(), and numpos() optionally matches any of the 
 	    chars specified [ASH]
@@ -35798,7 +35798,7 @@
 	  * if a user-defined attribute was deleted the @function attached
 	    to it would no longer show up, now it does but gives warnings [ASH]
 	  * put a ceiling on function_recurse_limit to no longer bypass the
-	    debug STACK LIMIT (of 1000) as a worse case scenario [ASH]
+	    debug STACK LIMIT (of 1000) as a worst case scenario [ASH]
 	  * toggles did not showup when you @decompiled. [ASH]
 	  * @robot was broke with internal flag checks [ASH]
 	  * xinc/xdec for registers didn't understand labels [ASH]
@@ -35900,7 +35900,7 @@
 	  * logout_cmd_access if option set 'DARK' will be ignored and bypassed [ASH]
 	  * newpass_god modified to reset #1's password in-game if set [ASH]
 	  * 'w' option for / / in printf() allows cutting on line when |" used [ASH]
-	  * '<' and '>' values to null current value if prevous/next value null [ASH]
+	  * '<' and '>' values to null current value if previous/next value null [ASH]
 	  * repeat() has optional third argument for better ansi handling [ASH]
 	  * printf() would print a blank line if the last argument for each field
 	    was a carriage return.  New option '.' for each field will now
@@ -35925,7 +35925,7 @@
 	  * increase %_ labels to 1000 total instead of 100 [ASH]
 	  * 5th arg to keeptype() and remtype() to return dbref#'s [ASH]
 	  * improved featureset to sortlist() for merging [ASH]
-	  * modified @edit so that /check or sets are higlighted if a change 
+	  * modified @edit so that /check or sets are highlighted if a change 
 	    actually occurred with the first word 'Set' or 'Check' [ASH]
 	  * change over from strtok to strtok_r throughout source code [ASH]
 	  * keeptype(), remtype(), keepflags(), remflags() handle OBJID [ASH]
@@ -36073,7 +36073,7 @@
 	  * @jump added to jump 'ahead' a set number of commands in sequence [ASH]
 	  * @rollback to allow rolling back in the command queue based on varying
 	    abilities [ASH]
-	  * @goto command, a command similiar to @jump, using numerical labels. [AMB]
+	  * @goto command, a command similar to @jump, using numerical labels. [AMB]
 	  * @list alloc now lists network statistics for current running mush [ASH]
 	  * @rollback handles /label to be compatible with @goto [ASH]
 	  * msecs() like secs() but shows milisecond counts [ASH]
@@ -36298,7 +36298,7 @@
 	  * @cpattr has /verify switch that validates attributes being copied [ASH]
 	  * @blacklist supports /add, /del, and /search by IP [ASH]
 	  * @admin param global_error_cmd allows global error obj to process cmds [ASH]
-	  * morgrification for say, pose, and @emit.  (See wizhelp morgrify) [ASH]
+	  * mogrification for say, pose, and @emit.  (See wizhelp mogrify) [ASH]
 	  
 	  Changes
 	  ------------
@@ -36478,7 +36478,7 @@
 	  * port() modified so immortal can get port info of #1 [ASH]
 	  * added totem, totem2, totem3 to search classes [ASH]
 	  * @totem/list optionally allows a slot value [ASH]
-	  * improved safer_passwods for better entropy on SHA412 passwords [ASH]
+	  * improved safer_passwods for better entropy on SHA512 passwords [ASH]
 	  * salted SHA512 now randomized between 9 and 19 characters [ASH]
 	  * +all option to mail/read[/save] to output ALL mail (spammy) [ASH]
 	  * evaluation @locks pass the compared to argument as %1 [ASH]
@@ -36588,7 +36588,7 @@
 	  * raw_formatting config param to enable/disable } option [ASH]
 	  * textfile() and dynhelp() now handle QUERY [ASH]
 	  * TZ is pulled from the target (and parents) for preferred timezones [ASH]
-	  * idle_cmdcount option what works in conjunctin with enabled idle_stamp,
+	  * idle_cmdcount option what works in conjunction with enabled idle_stamp,
 	    and makes it so that often-repeated commands do not touch a player's
 	    idle time [AMB]
 	  * Added a wiz-only limits() function that gets the values otherwise
@@ -36599,7 +36599,7 @@
 	  * @K/@k and @N/@n substitutions for SPEECH_PREFIX/SPEECH_SUFFIX
 	  * Automatic UTF-8 -> Ascii fallback for a select series of characters.
 	    Inspired by WStarter, initial POC by Polk, adjustment by [AMB]
-	  * Made the default ascii UTF represenation a '?' instead of a space [AMB]
+	  * Made the default ascii UTF representation a '?' instead of a space [AMB]
 	  
 	  Changes
 	  -------
@@ -36620,8 +36620,8 @@
 	  Bug Fixes
 	  ------------
 	 * NO_ENH #ifdef has not been used for 27+ years but left for compatibility.
-	   This option is now documented in help so people ae not clueless [ASH] 
-	 * cleanup of non-critical bug in search_nametab with lazilly written code 
+	   This option is now documented in help so people are not clueless [ASH] 
+	 * cleanup of non-critical bug in search_nametab with lazily written code 
 	   that did not properly handle empty values [ASH]
 	 * Added missing documentation for 'max connections' parameter to *_host and
 	   *_site config params, as well as 'wizhelp site list' [AMB]
@@ -36680,9 +36680,9 @@
 	 * value and hex args added to rxdesc() [ASH]
 	 * reordered @list power/@list depower to be alphanumerical [ASH]
 	 * built in functions, @functions, or @lfunctions set DARK will only show
-	   listings for wizards or higher now but still useable by anyone [ASH]
+	   listings for wizards or higher now but still usable by anyone [ASH]
 	 * listprotections() now will do reverse lookups for wizards [ASH]
-	 * grep() rewritten for no-wild matchh to use strstr [ASH]
+	 * grep() rewritten for no-wild match to use strstr [ASH]
 	 * escapex() takes more arguments for specific exclusions [ASH]
 	 * objeval() takes special arg for wiz handling like a sudo() function [ASH]
 	 * runintz() function to force-run any functions in a specified timezone [ASH]
@@ -36748,7 +36748,7 @@
 	 * isword(), isnum(), isalnum(), isalpha(), isint(), isdigit(), islower(),
 	   ispunct(), isspace(), isupper(), isxdigit() UTF8 and ANSI aware [ASH]
 	 * @enable/@disable for vattrchecking -- automate reusing deleted attribs [ASH]
-	 * @attribute/show, @attribute/load -- load cache for reuseable attris [ASH]
+	 * @attribute/show, @attribute/load -- load cache for reusable attris [ASH]
 	 * vattr_interval to specify interval of when the cache is refreshed [ASH]
 	 * pos() and totpos() handles UTF8/ansi [ASH]
 	 * numpos() is now UTF8/ANSI aware [ASH]
@@ -36772,7 +36772,7 @@
 	 * added features to help list registers with nameq() [ASH]
 	 * localize() and privatize now aware of high register values [ASH]
 	 * added setqm() which handles one or more register sets [ASH]
-	 * nameqm() added which handles one ore more register names [ASH]
+	 * nameqm() added which handles one or more register names [ASH]
 	 * added sweep() function to mimic @sweep [ASH]
 	 * added nplisten for xcon()/lcon() to omit players not 
 	   explicitly listening [ASH]
@@ -36789,7 +36789,7 @@
 	 * Added more accounting for user defined attributes [ASH]
 	 * vattr stats now keep track of empty buckets [ASH]
 	 * new hash algo based on FNV for better bucket distribution [ASH]
-	 * setrm/setqm allow '>' seperator for register/labels [ASH]
+	 * setrm/setqm allow '>' separator for register/labels [ASH]
 	 * /zone to @search, zsearch(), and zsearchobjid() [ASH]
 	 * account_boot() to boot via QUIT or LOGOUT account logins [ASH]
 	 * zlcon() for all members of a zonemaster [ASH]
@@ -36813,11 +36813,11 @@
 	 * Improvement of help for printf/@sex [ASH]
 	 * totem help expanded on [ASH]
 	 * @totem, @set, and @toggle have improved help on mixing them up [ASH]
-	 * Enbedding optional config handler for config menu [ASH]
+	 * Embedding optional config handler for config menu [ASH]
 	 * protection for LUA for API [ASH]
 	 * @saystring optionally evaluates with saystring_eval config [ASH]
 	 * Modified @list alloc to show internal attrib overhead [ASH]
-	 * split options in @list options to subcatagories optionally [ASH]
+	 * split options in @list options to subcategories optionally [ASH]
 	 * PID() has optional argument to show all processes by player [ASH]
 	 * strfunc() optionally handles @function and @lfunction [ASH]
 	 * @atrcache/interval handles '0' for per-command updates [ASH]
@@ -36827,7 +36827,7 @@
 	 * stripunicode is now an alias to stripaccents [ASH]
 	 * Rewrote all the API handlers to be centralized [ASH]
 	 * Max pids and formatting raised from 32K to 256K queues [ASH]
-	 * isword() now recogizes accents [ASH]
+	 * isword() now recognizes accents [ASH]
 	 * functions for timezone awareness now warn on invalid TZ [ASH]
 	 * ptimefmt() is now TZ aware
 	 * wrap defaults to LEFT justify if no justification given [ASH]
@@ -36836,7 +36836,7 @@
 	 * atrcache() optionally allows arguments to be overridden passed [ASH]
 	 * argument list of runintz() has been flipped for better execution [ASH]
 	 * escapex has 'r' option to reverse the effect of how it handles escapes [ASH]
-	 * added more formatting allowances to ptimefmt() for MUX compatability [ASH]
+	 * added more formatting allowances to ptimefmt() for MUX compatibility [ASH]
 	 * better integration with MUX ansi handling (ongoing) [ASH]
 	 * allowed attrcnt() and cluster_attrcnt() to handle attrib patterns [ASH]
 	 * reworked all setq/setr/r functions for better optimization [ASH]
@@ -36844,11 +36844,11 @@
 	 * nameq() validates labels are not in use before setting [ASH]
 	 * setp renamed to setqm, namep renamed to nameqm
 	 * updated the converts and removed the need of gets() [ASH]
-	 * enhanced handler of db converter for more compatability [ASh]
+	 * enhanced handler of db converter for more compatibility [ASh]
 	 * @set #obj/attr handles multiple flags [ASH]
 	 * filter() when fed an empty list will return w/o evaluation [ASH]
 	 * pass additional arguments to sub_include and sub_override vals [ASH]
-	 * the '>' character is no longer valid for setq lables [ASH]
+	 * the '>' character is no longer valid for setq labels [ASH]
 	 * @list now shows pronouns recognized on the mush [ASH]
 	 * isnum() now recognizes prefix of '+' for MUX compatibility [ASH]
 	 * home won't let you go home if you're already home [ASH]
@@ -36876,12 +36876,12 @@
 	 * off by one register initialization in low level stack routine [ASH]
 	 * improvement on label warnings for registers [ASH]
 	 * some issues with the built in timer for alarm handling [ASH]
-	 * display in @list alloc had some erraneous values [ASH]
+	 * display in @list alloc had some erroneous values [ASH]
 	 * potential issue with a race condition on CPU alarm for API [ASH]
 	 * Hardening of some internal conditionals against db corruption [ASH]
 	 * compile issues without including ZENTY_ANSI on compiles [ASH]
 	 * @rxlevel/@txlevel did not honor the QUIET flag [ASH]
-	 * suspect site was erraneously tagged with some site configs [ASH]
+	 * suspect site was erroneously tagged with some site configs [ASH]
 	 * strlenvis() was not UTF8 aware [ASH]
 	 * LBUF overflow in lua code [ASH]
 	 * zoneinfo was not set up properly for BSD [ASH]
@@ -36895,7 +36895,7 @@
 	 * bug introduced that broke register sites [ASH]
 	 * potential buffer corruption in ansi handler for names for garbage [ASH]
 	 * potential crash with using SETQ_TEMPLATE [ASH]
-	 * privatize() didn't properly unhook privitizing registers [ASH]
+	 * privatize() didn't properly unhook privatizing registers [ASH]
 	 * fix #1 for the setq/setr rewrite with broken labels with setq_nums [ASH]
 	 * fix #2 for the setq/setr rewrite with broken labels with penn_setq [ASH]
 	 * off by one in %q<##> with setq_nums enabled [ASH]
@@ -37258,7 +37258,7 @@
   * MailSig optionally can be set to be evaluated
   
   4.6.0-4.6.2 - 08/03/24
-  * time_paddzero if enabled padds the day of the month in time() and 
+  * time_paddzero if enabled pads the day of the month in time() and 
     convsec() with a zero for MUX compatibility.
   * added & and | options to packmath()
   * columns() has better handling with an optional delimiter is specified.
@@ -37274,7 +37274,7 @@
     
   4.4.3 - 07/11/24
   * conn_perm did not honor the account subsystem for bypassing the
-    restrive nature. (ASH)
+    restrictive nature. (ASH)
   * @hook /fail on 'goto' with and without expand_goto was not handled
     properly (ASH)
   * goto was not fully vetted if it was disabled/ignored.
@@ -37353,6 +37353,6 @@
   * New 'Changelog X' help entries. The newest version(s) will always
     be in 'Changelog 1', older entries will get pushed to 2, 3 etc.
     once the current Changelog length would go over roughly 65
-    lines in length. Doe to the more rapid version changes, the
+    lines in length. Due to the more rapid version changes, the
     separation into new features, bugfixes etc. probably will not
     be needed anymore. [AMB]
