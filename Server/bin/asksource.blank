@@ -1,3 +1,4 @@
+#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -1556,9 +1557,9 @@ parse() {
                    then
                       echo "Values are unchanged.  No changes will be applied.  Hit <RETURN> to continue."
                       read ANS
-                   elif [ ${lc_conv} -lt 10 -o ${lc_conv} -gt 1000 ]
+                   elif [ ${lc_conv} -lt 10 -o ${lc_conv} -gt 3000 ]
                    then
-                      echo "Value is invalid.  Must be >= 10 or <= 1000  No changes will be applied.  Hit <RETURN> to continue."
+                      echo "Value is invalid.  Must be >= 10 or <= 3000  No changes will be applied.  Hit <RETURN> to continue."
                       read ANS
                    else
                       lc_value=${lc_conv}
