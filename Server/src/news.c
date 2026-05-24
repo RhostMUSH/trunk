@@ -998,7 +998,7 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
   }
 
   if( !get_UA(&ua, player, groupkeyptr, seqkey) ) {
-    notify(player, "News: You do have an active posting with that id.");
+    notify(player, "News: You do not have an active posting with that id.");
     return;
   }
 

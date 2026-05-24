@@ -1536,7 +1536,7 @@ void do_say (dbref player, dbref cause, int key, char *message)
                    notify(player, "You are set NO_WALLS and cannot send an announcement.");
                    return;
                 } else if (No_yell(player)) {
-                   notify(player, "Your @wall privilages are presently suspended.");
+                   notify(player, "Your @wall privileges are presently suspended.");
                    return;
                 } else if ((Guildmaster(player) || HasPriv(player,NOTHING,POWER_FREE_WALL,POWER4,NOTHING) || FreeFlag(player)) &&
                            !DePriv(player,NOTHING,DP_FREE,POWER6,POWER_LEVEL_NA)) {
@@ -1866,7 +1866,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
               && MuxPage(player) && !(key & PAGE_LOC)) {
           // get last page attr
 	  if ( key & PAGE_PORT) {
-	     notify(player, "Last page/return page not avaiable to ports switch.");
+	     notify(player, "Last page/return page not avaliable to ports switch.");
 	     return;
 	  }
           p1 = atr_get(player,A_LASTPAGE,&owner,&flags);
@@ -1889,7 +1889,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
                mpg = (char *)strtok_r(NULL, " ", &t_msg);
             }
             if ( !got ) {
-               safe_str("a now non-existant player.", lbuff, &lbx);
+               safe_str("a now non-existent player.", lbuff, &lbx);
             } else {
                safe_chr('.', lbuff, &lbx);
             }

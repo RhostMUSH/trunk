@@ -3829,7 +3829,7 @@ process_command(dbref player, dbref cause, int interactive,
               } else if (mudconf.cpu_secure_lvl == 2 ) {
                  notify(player, "Excessive CPU slamming detected.  HALTED.");
                  if ( Good_obj(boot_plr) ) {
-                    notify(boot_plr, "You (or your object) were detected consistantly CPU-SLAMMING the mush.  " \
+                    notify(boot_plr, "You (or your object) were detected consistently CPU-SLAMMING the mush.  " \
                                      "Proper steps have been taken.");
                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
                     do_halt(boot_plr, cause, 0, safe_tprintf(tpr_buff, &tprp_buff, "#%d", boot_plr));
@@ -5780,7 +5780,7 @@ CF_HAND(cf_cmd_vattr)
   
   if ( !alias || !orig) {
      if ( !mudstate_hot.initializing )
-        notify(player, "Error - you need to pass in the VATTR comamnd-alias and original VATTR");
+        notify(player, "Error - you need to pass in the VATTR command-alias and original VATTR");
      DPOP; /* #40A */
      return -1;
   }
@@ -5816,7 +5816,7 @@ CF_HAND(cf_cmd_vattr)
      *p = '\0';
      cmdp = (CMDENT *) hashfind(cbuff, &mudstate.command_vattr_htab);
      if (!cmdp) {
-        cf_log_syntax(player, cmd, "Error: Cannot delete non-existant VATTR command '%s'.", cbuff);       
+        cf_log_syntax(player, cmd, "Error: Cannot delete non-existent VATTR command '%s'.", cbuff);       
         free_sbuf(cbuff);
         DPOP; /* #40A */
         return -1;
@@ -6901,7 +6901,7 @@ list_options_config(dbref player)
     notify(player, "You can not use ~ATTRS or the USELOCK attribute flag.");
 #endif
     if ( mudconf.zone_parents )
-       notify(player, "Zone children inherent attributes from their zone master(s).");
+       notify(player, "Zone children inherit attributes from their zone master(s).");
 #ifdef EXPANDED_QREGS
     notify(player, "SETQ/SETR/R can handle a-z registers in addition to 0-9.");
 #else
@@ -7815,7 +7815,7 @@ list_options(dbref player)
        notify(player, "You can not use ~ATTRS or the USELOCK attribute flag.");
 #endif
     if ( mudconf.zone_parents )
-       notify(player, "Zone children inherent attributes from their zone master(s).");
+       notify(player, "Zone children inherit attributes from their zone master(s).");
 #ifdef EXPANDED_QREGS
        notify(player, "SETQ/SETR/R can handle a-z registers in addition to 0-9.");
 #else

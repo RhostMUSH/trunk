@@ -1217,7 +1217,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
             }
 	} else {
 	    s_Name(clone, Name(thing));
-	    notify(player, "Bad name for given for clone object.");
+	    notify(player, "Bad name given for clone object.");
 	    *arg2 = '\0';
 	}
     } else {
@@ -1749,9 +1749,9 @@ do_destroy(dbref player, dbref cause, int key, char *what)
              }
              if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
-                   notify_quiet(newplayer,"@destruction limit maximum reached.");
+                   notify_quiet(newplayer,"@destruction limit reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "DESTROY")
-                     log_text("@destruction limit maximum reached -> Player: ");
+                     log_text("@destruction limit reached -> Player: ");
                      log_name(newplayer);
                      log_text(" Object: ");
                      log_name(thing);

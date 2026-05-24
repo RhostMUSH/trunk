@@ -433,7 +433,7 @@ NDECL(cf_init)
     mudstate_hot.cmd_bitmask = 0;		/* cmd bitwise mask */
     mudstate_hot.no_announce = 0;		/* Do not broadcast announcements */
     mudstate.global_error_inside = 0;	/* Global Error Object is being executed */
-    mudstate.nested_control = 0;	/* Nested controlocks - 50 hardcode ceiling */
+    mudstate.nested_control = 0;	/* Nested control locks - 50 hardcode ceiling */
     mudstate.mail_inline = 0;		/* Mail is inline */
     mudstate.iter_special = 0;		/* iter inf special */
     mudstate.trace_indent = 0;		/* Initialize trace indent */
@@ -4537,7 +4537,7 @@ CONF conftable[] =
      (char *) "MAP() uses space/separator?"},
     {(char *) "max_api_timeout",
      cf_verifyint, CA_GOD | CA_IMMORTAL, &mudconf.max_api_timeout, 300, 1, CA_WIZARD,
-     (char *) "Max time an API connection (in seconds) is alloweed to stay connected\r\n"\
+     (char *) "Max time an API connection (in seconds) is allowed to stay connected\r\n"\
               "(Range: 1-300)   Default: 20   Value: %d"},
     {(char *) "max_cpu_cycles",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.max_cpu_cycles, 0, 0, CA_WIZARD,

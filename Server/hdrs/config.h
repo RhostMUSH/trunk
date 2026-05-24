@@ -15,7 +15,7 @@
  * USE_GDBM:	Define if you plan on using the disk based database scheme.
  *		The code will not work if this is not #defined.
  * rcheck:	Define if you are a) using the gnu_malloc package, and b)
- *		want to enable it's memory range checking features.  Useful for
+ *		want to enable its memory range checking features.  Useful for
  *		helping to track memory leaks.
  */
 
@@ -43,7 +43,7 @@
 #endif
 
 /* 
- * This option will requiure either penn_setq enabled or by using the
+ * This option will require either penn_setq enabled or by using the
  * +/! options to setq to specify 'next in line' for setting labels.
  *
  * The only way to access these additional registers is with labels
@@ -52,7 +52,7 @@
  * The expected overhead for each addition register is:
  *    (LBUF_SIZE * 2) + SBUF_SIZE
  *
- * This has been tested vigeriously with upwards to 10k extra.
+ * This has been tested vigoriously with upwards to 10k extra.
  * The overhead in setting all 10k registers took 3-5 seconds.
  * After that, using them was as fast as normal.
  *

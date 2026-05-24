@@ -4260,7 +4260,7 @@ do_whereis(dbref player, dbref cause, int key, char *name)
 	(!Wizard(player) && Cloak(thing)) || (Dark(thing) && !mudconf.who_unfindable && !mudconf.player_dark &&
          !Admin(player))) {
 	notify(player, "That player is not currently logged on.");
-	notify(thing, unsafe_tprintf("%s tried to locate you and was told your not logged on.",
+	notify(thing, unsafe_tprintf("%s tried to locate you and was told you're not logged on.",
 			      Name(player)));
 	return;
     }

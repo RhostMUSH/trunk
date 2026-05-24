@@ -299,7 +299,7 @@ fh_fubar(dbref target, dbref player, FLAG flag, int fflags, int reset)
 }
 
 /* ---------------------------------------------------------------------------
- * fh_admin: only WIZARDS or ADIMNS (or GOD) may set or clear the bit
+ * fh_admin: only WIZARDS or ADMINS (or GOD) may set or clear the bit
  */
 
 int 

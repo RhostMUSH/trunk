@@ -10085,7 +10085,7 @@ FUNCTION(fun_strip)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_sign: Returns -1, 0, or 1 based on the the sign of its argument.
+ * fun_sign: Returns -1, 0, or 1 based on the sign of its argument.
  */
 
 FUNCTION(fun_sign)
@@ -21921,7 +21921,7 @@ FUNCTION(fun_fullname)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_guild: Return an players's guild
+ * fun_guild: Return a players's guild
  */
 
 FUNCTION(fun_guild)
@@ -21951,7 +21951,7 @@ FUNCTION(fun_guild)
 }
 
 /* ---------------------------------------------------------------------------
- * fun_race: Return an players's race
+ * fun_race: Return a players's race
  */
 
 FUNCTION(fun_race)
@@ -22963,7 +22963,7 @@ FUNCTION(fun_extract)
          start--;
     }
 
-    /* If we ran of the end of the string, return nothing */
+    /* If we ran off the end of the string, return nothing */
 
     if (!s || !*s) {
          return;

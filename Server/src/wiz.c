@@ -1214,7 +1214,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                i_found = 1;
                retbuff = s_tbuff = alloc_lbuf("atrcache_interval");
                if ( i_setval == 0 ) {
-                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d (per commmand triggered).", 
+                  notify(player, safe_tprintf(s_tbuff, &retbuff, "@atrcache/interval: Slot %d [%s] interval changed from %d to %d (per command triggered).", 
                           i_cnt, cp->name, cp->i_interval, i_setval));
                   cp->commandtrig = 1;
                } else {
@@ -1466,9 +1466,9 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
                   }
                   notify(player, safe_tprintf(s_tbuff, &retbuff, "Last Fetched: %d [Never Fetched]", cp->i_lastrun));
                   notify(player, "------------------------------------------------------------------------------");
-                  notify(player, "Cache: N/A [unitialized]");
+                  notify(player, "Cache: N/A [unintialized]");
                   notify(player, "------------------------------------------------------------------------------");
-                  notify(player, "Exec-: N/A [unitialized]");
+                  notify(player, "Exec-: N/A [unintialized]");
                   notify(player, "------------------------------------------------------------------------------");
                }
               free_lbuf(s_tbuff);
@@ -1541,7 +1541,7 @@ void do_atrcache(dbref player, dbref cause, int key, char *s_slot,
          if ( isdigit(*s_slot) ) {
             i_slot = atoi(s_slot);
             if ( (i_slot < 0) || (i_slot >= mudconf.atrcachemax) ) {
-               notify(player, "@atrcache/set: Expecting nmae or slot (outside range).");
+               notify(player, "@atrcache/set: Expecting name or slot (outside range).");
                return;
             }
          }
@@ -4488,7 +4488,7 @@ do_livewire(dbref player, dbref cause, int key, char *s_target, char *s_value)
    int i_eval, i_evalover, aflags, i_value;
 
    if ( !s_target || !*s_target ) {
-      notify(player, "@livewiere:  I don't see that target.");
+      notify(player, "@livewire:  I don't see that target.");
       return;
    }
 
@@ -4497,7 +4497,7 @@ do_livewire(dbref player, dbref cause, int key, char *s_target, char *s_value)
    i_thing = noisy_match_result();
 
    if ( !Good_chk(i_thing) ) {
-      notify(player, "@livewiere:  I don't see that target.");
+      notify(player, "@livewire:  I don't see that target.");
       return;
    }
 

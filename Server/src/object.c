@@ -470,7 +470,7 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 	if (mudconf.max_size > 0) {
 	    if (mudstate_hot.db_top >= mudconf.max_size) {
                 if ( Good_chk(player) ) {
-		   notify(player, "The database has reached it MAXIMUM number of objects.");
+		   notify(player, "The database has reached its MAXIMUM number of objects.");
 		   notify(player, "Please recycle some old objects!");
                 }
 		return NOTHING;
@@ -2813,7 +2813,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
               else if(result == -2)
                 notify(player,"#-1 Tag name can't be over 32 characters.");
               else if(result == -3)
-                notify(player,"#-1 Tag name cannot have whitespaces.");
+                notify(player,"#-1 Tag name cannot have whitespace.");
               else if(result == -4)
                 notify(player,"#-1 Tag with same name already exists."); 
               else if(result == -5)
