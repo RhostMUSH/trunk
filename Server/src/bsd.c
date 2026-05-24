@@ -2900,6 +2900,18 @@ void close_main_socket( void )
     if ( sock6_api >= 0 ) close(sock6_api);
 }
 
+const char *get_listening_info(void)
+{
+    if (sock >= 0 && sock6 >= 0)
+        return "IPv4 + IPv6 (dual-stack)";
+    else if (sock >= 0)
+        return "IPv4 only";
+    else if (sock6 >= 0)
+        return "IPv6 only";
+    else
+        return "None";
+}
+
 void 
 NDECL(emergency_shutdown)
 {

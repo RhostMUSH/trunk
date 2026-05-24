@@ -6834,8 +6834,15 @@ if ( !key ) {
     notify(player, "\r\n--- Buffer Sizes and Limits --------------------------------------------------");
     notify(player, unsafe_tprintf("The current BUFFER sizes in use are: SBUF: %d, MBUF: %d, LBUF: %d", 
                               SBUF_SIZE, MBUF_SIZE, LBUF_SIZE));
-    notify(player, unsafe_tprintf("Maximum attribs per object [VLIMIT] is: %d", mudconf.vlimit));
-    notify(player, unsafe_tprintf("Maximum attribs per page of lattr output is: %d", ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)));
+     notify(player, unsafe_tprintf("Maximum attribs per object [VLIMIT] is: %d", mudconf.vlimit));
+     notify(player, unsafe_tprintf("Maximum attribs per page of lattr output is: %d", ((LBUF_SIZE - (LBUF_SIZE/20)) / SBUF_SIZE)));
+     notify(player, unsafe_tprintf("Maximum descriptors (MAX_DESCRIPTORS) is: %d", MAX_DESCRIPTORS));
+#ifdef DYN_MAXDESCRIPTORS
+     notify(player, unsafe_tprintf("  (set via -DDYN_MAXDESCRIPTORS=%d)", DYN_MAXDESCRIPTORS));
+#else
+     notify(player, "  (using default: 150 -- no DYN_MAXDESCRIPTORS set)");
+#endif
+     notify(player, unsafe_tprintf("Network listening: %s", get_listening_info()));
 }
 
     if ( Guildmaster(player) ) {
