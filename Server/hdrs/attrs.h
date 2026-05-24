@@ -289,5 +289,6 @@ typedef struct afstruct {
 #define A_WIREFUNCEVAL  2100000003
 #define A_WIREQUEUEMAX  2100000004
 #define A_AMAIL		2100000005
+#define A_LASTWHISPER  2100000006
 
 #endif

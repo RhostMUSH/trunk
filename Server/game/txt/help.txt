@@ -3133,9 +3133,13 @@
   See Also: +uptime
   
 & whisper
-  Command: whisper <player>=<message>
-  Whispers the message to the named person, if they are in the same room as
+  Command: whisper [<player>[,<player2>[,<player3>...]]=]<message>
+  Whispers the message to the named persons, if they are in the same room as
   you. No one else can see the message that you whisper.
+
+  If you have the MUXPAGE @toggle set on yourself, you can omit the player
+  list. Instead, you will whisper to the last targets you whispered to,
+  before. This matches TM3/MUX behavior.
  
   You can format the message one of several ways by specifying ':', ';', or
   '"' as the first character of the message.  ':' and ';' format the message

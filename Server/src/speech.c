@@ -2816,6 +2816,7 @@ dbref	target, loc, aowner, darray[LBUF_SIZE/2];
 char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
 char	*pc1, *tell, *tx, sep1, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *recipient_buff;
 char    *strtok, *strtokr, *strtokbuf;
+char    *p1, *lastw_buf, *lastw_ptr, *whisper_rcpt_buf;
 #ifdef REALITY_LEVELS
 char    *pt3, *r_bufr, *s_ptr, *reality_buff;
 #endif
@@ -2829,6 +2830,7 @@ ZLISTNODE *z_ptr, *y_ptr;
    rcpt = NULL;
    i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = i_oemitstr = dcntr = 0;
    xxx_x = xxx_y = xxx_z = 0;
+   lastw_buf = whisper_rcpt_buf = NULL;
 
    if ((Flags3(player) & NO_PESTER) && (key & (PEMIT_PEMIT|PEMIT_LIST|PEMIT_WHISPER|PEMIT_CONTENTS))) {
       notify(player, "Permission denied.");
@@ -2857,9 +2859,49 @@ ZLISTNODE *z_ptr, *y_ptr;
       key &= ~PEMIT_OSTR;
       i_oemitstr = 1;
    }
-   recipient_buff = recipient;
+    recipient_buff = recipient;
+    if ( (key == PEMIT_WHISPER) && MuxPage(player) && !(key & PEMIT_LIST) ) {
+        if ( *recipient_buff && *message && strchr(recipient_buff, ' ') != NULL ) {
+            key |= PEMIT_LIST;
+        } else if ( (!*recipient_buff && *message) || (*recipient_buff && !*message) ) {
+            p1 = atr_get(player, A_LASTWHISPER, &aowner, &aflags);
+            if ( !*p1 ) {
+                notify(player, "You have not yet whispered to anyone.");
+                free_lbuf(p1);
+                return;
+            }
+            whisper_rcpt_buf = alloc_lbuf("do_pemit.whisper_last");
+            {
+                char *wptr = whisper_rcpt_buf;
+                char *tstrtokr, *mpg;
+                int first_p = 1;
+                mpg = strtok_r(p1, " ", &tstrtokr);
+                while ( mpg && *mpg ) {
+                    target = lookup_player(player, mpg, 1);
+                    if ( Good_obj(target) ) {
+                        if ( !first_p )
+                            safe_chr(' ', whisper_rcpt_buf, &wptr);
+                        safe_str(Name(target), whisper_rcpt_buf, &wptr);
+                        first_p = 0;
+                    }
+                    mpg = strtok_r(NULL, " ", &tstrtokr);
+                }
+                free_lbuf(p1);
+                if ( first_p ) {
+                    notify(player, "None of your last whispered-to targets still exist.");
+                    free_lbuf(whisper_rcpt_buf);
+                    whisper_rcpt_buf = NULL;
+                    return;
+                }
+            }
+            if ( *recipient_buff && !*message )
+                message = recipient;
+            recipient_buff = whisper_rcpt_buf;
+            key |= PEMIT_LIST;
+        }
+    }
 #ifdef REALITY_LEVELS
-   if (  ((key & PEMIT_TOREALITY) && !(key & PEMIT_CONTENTS)) ) {
+    if (  ((key & PEMIT_TOREALITY) && !(key & PEMIT_CONTENTS)) ) {
       notify(player, "Illegal combination of switches.");
       return;
    }
@@ -2964,9 +3006,43 @@ ZLISTNODE *z_ptr, *y_ptr;
       result = exec(player, cause, cause, EV_EVAL|EV_STRIP|EV_FCHECK|EV_TOP,
                     message, cargs, ncargs, (char **)NULL, 0);
    }
-   while (list) {
-      ok_to_do = 0;
-      mudstate_hot.whisper_state = 1;
+    if ( (key == PEMIT_WHISPER) && MuxPage(player) ) {
+       if ( !*recipient_buff && !*result ) {
+          p1 = atr_get(player, A_LASTWHISPER, &aowner, &aflags);
+          if ( !*p1 ) {
+             notify(player, "You have not yet whispered to anyone.");
+          } else {
+             char *tstrtokr, *mpg;
+             int got_names = 0;
+             char *lbuff, *lbx;
+             lbx = lbuff = alloc_lbuf("do_pemit.whisper_last");
+             safe_str("You last whispered to ", lbuff, &lbx);
+             mpg = strtok_r(p1, " ", &tstrtokr);
+             while ( mpg && *mpg ) {
+                target = lookup_player(player, mpg, 1);
+                if ( Good_obj(target) ) {
+                   if ( got_names )
+                      safe_str(", ", lbuff, &lbx);
+                   safe_str(Name(target), lbuff, &lbx);
+                   got_names = 1;
+                }
+                mpg = strtok_r(NULL, " ", &tstrtokr);
+             }
+             if ( !got_names )
+                safe_str("a now non-existent player.", lbuff, &lbx);
+             else
+                safe_chr('.', lbuff, &lbx);
+             notify(player, lbuff);
+             free_lbuf(lbuff);
+          }
+          free_lbuf(p1);
+          return;
+       }
+
+    }
+    while (list) {
+       ok_to_do = 0;
+       mudstate_hot.whisper_state = 1;
       if (plist) {
          rcpt = recip2;
          if (!sep1)
@@ -3358,11 +3434,22 @@ ZLISTNODE *z_ptr, *y_ptr;
                         safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s.",Name(target)), buf2, &bp);
                         free_lbuf(tpr_buff);
                         *bp = '\0';
-                        notify_except2(loc, player, player, target, buf2);
-                        free_lbuf(buf2);
-                     }
-                  }
-                  break;
+                         notify_except2(loc, player, player, target, buf2);
+                         free_lbuf(buf2);
+                      }
+                   }
+                   {
+                      char xbuff[32];
+                      if ( !lastw_buf ) {
+                         lastw_buf = alloc_lbuf("do_pemit.lastw");
+                         lastw_ptr = lastw_buf;
+                      } else {
+                         safe_chr(' ', lastw_buf, &lastw_ptr);
+                      }
+                      sprintf(xbuff, "#%d", (int)target);
+                      safe_str(xbuff, lastw_buf, &lastw_ptr);
+                   }
+                   break;
                case PEMIT_FSAY:
                   tprp_buff = tpr_buff = alloc_lbuf("do_pemit");
                   if ( mudconf.saystring_eval ) {
@@ -3479,6 +3566,13 @@ ZLISTNODE *z_ptr, *y_ptr;
             recip2++;
       }
    }
+   if ( lastw_buf && *lastw_buf && (key == PEMIT_WHISPER) ) {
+      atr_add_raw(player, A_LASTWHISPER, lastw_buf);
+   }
+   if ( lastw_buf )
+      free_lbuf(lastw_buf);
+   if ( whisper_rcpt_buf )
+      free_lbuf(whisper_rcpt_buf);
    if ( i_oneeval && !noeval ) {
       free_lbuf(result);
    }
