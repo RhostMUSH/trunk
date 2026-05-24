@@ -19662,7 +19662,8 @@
   See Also: set(), rset()
 
 & WRAP()
-  Function: wrap(<txt>,<width>[,<jst>,[<ltxt>[,<rtxt>[,<hanging>][,<jstcut>]]])
+  Function: wrap(<txt>,<width>[,<jst>,[<ltxt>[,<rtxt>[,<hanging>][,<jstcut>]]]
+                 [,<key>])
    
   This function word wraps the text to fit into a column of the
   specified width.  Words are separated by spaces. If a word in the text
@@ -19690,6 +19691,7 @@
   
 & WRAP2
   Function: wrap(<txt>,<width>[,<jst>,[<ltxt>[,<rtxt>[,<hanging>][,<jstcut>]]])
+                 [,<key>])
   
   The <jstcut> is used for when the string sent to wrap() isn't as large
   as the width you specified.  If this condition is true, and you use
@@ -19709,6 +19711,15 @@
             you a
             stranger.
    
+  You may specify a <key> of 1 to tell wrap() to enable ansi processing
+  This will slow down the function.
+
+  The default is '0' which does NOT do ansi processing.
+  
+  Note: the config param 'ansi_default' handles if the ansi handling is
+        configured default or not.  In which case the 'key' is reversed.
+
+  Note: If you specify a <key> of 2 it will always be ansi aware.
   
   The width can not be above 4000 characters.
   

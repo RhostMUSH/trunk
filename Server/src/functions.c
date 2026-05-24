@@ -4353,7 +4353,7 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
 FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 {
   struct wrapinfo winfo;
-  int buffleft, i_justifylast, i_inansi, i_firstrun;
+  int buffleft, i_justifylast, i_inansi, i_firstrun, i_noansi_wrap;
   char* leftstart;
   char *crp;
   char *pp;
@@ -4364,7 +4364,7 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
 #endif
   char *expandbuff;
 
-  if (!fn_range_check("WRAP", nfargs, 2, 7, buff, bufcx))
+  if (!fn_range_check("WRAP", nfargs, 2, 8, buff, bufcx))
     return;
 
   memset(&winfo, 0, sizeof(winfo));
@@ -4423,14 +4423,49 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
        i_justifylast = 0;
   }
 
+#ifdef ZENTY_ANSI
+  i_noansi_wrap = 0;
+  if ( (nfargs >= 8) && *fargs[7] ) {
+     i_noansi_wrap = atoi(fargs[7]);
+  }
+  if ( !mudconf.ansi_default && (i_noansi_wrap != 2) ) {
+     i_noansi_wrap = !i_noansi_wrap;
+  }
+  if ( i_noansi_wrap == 2 )
+     i_noansi_wrap = 0;
+#else
+  i_noansi_wrap = 1;
+#endif
+
   /* setup phase done */
 
   expandbuff = alloc_lbuf("fun_wrap");
   *expandbuff = '\0';
 
+#ifdef ZENTY_ANSI
+  if ( !i_noansi_wrap ) {
+     tab_expand( expandbuff, strip_ansi(fargs[0]) );
+  } else {
+     tab_expand( expandbuff, fargs[0] );
+  }
+#else
   tab_expand( expandbuff, fargs[0] );
+#endif
 
   buffleft = strlen(expandbuff);
+
+#ifdef ZENTY_ANSI
+  if ( !i_noansi_wrap ) {
+     if ( (string_count(expandbuff, buffleft) <= winfo.width) && !strchr(expandbuff, '\r') ) {
+         if ( i_justifylast && (winfo.just == JUST_JUST) )
+            winfo.just = JUST_LEFT;
+         wrap_out( expandbuff, winfo.width, &winfo, buff, bufcx, " ", 1 );
+         if ( i_justifylast )
+            winfo.just = JUST_JUST;
+         buffleft = 0;
+     }
+  } else
+#endif
   if( (buffleft <= winfo.width) && !strchr(expandbuff, '\r') ) {
       if ( i_justifylast && (winfo.just == JUST_JUST) )
          winfo.just = JUST_LEFT;
@@ -4443,7 +4478,13 @@ FUNCTION(fun_wrap) /* text, width, just, left text, right text, hanging, type */
   for(leftstart = expandbuff; buffleft > 0; ) {
     crp = strchr(leftstart, '\r');
     if( crp && 
-        crp <= leftstart + winfo.width ) { /* split here and start over */
+#ifdef ZENTY_ANSI
+        ( (i_noansi_wrap && (crp <= leftstart + winfo.width)) ||
+          (!i_noansi_wrap && (string_count(leftstart, crp - leftstart) <= winfo.width)) )
+#else
+        crp <= leftstart + winfo.width
+#endif
+        ) { /* split here and start over */
 #ifdef ZENTY_ANSI
       if ( i_firstrun )
          safe_str( "\r\n", buff, bufcx );
