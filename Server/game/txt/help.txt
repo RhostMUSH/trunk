@@ -20770,7 +20770,7 @@
   Function: escapex(<string> [,<omission> [,<omission list>])
   
   This functions exactly like escape(), except you may specify what characters
-  you wish to omit from being escaped through <omition>.  The optional special
+  you wish to omit from being escaped through <omission>.  The optional special
   characters can be used when looking to escape out fields:
      f - omit the first escape (backslash) from the string.
      a - omit all forms of ansi substitutions from the string.
