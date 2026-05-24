@@ -7377,12 +7377,13 @@
   not JUMP_OK or LINK_OK, and that any exits leading to the room are locked so
   that only wizards may use them.
  
-  To make global commands, make an exit in the master room that is locked to
-  #0 (or some other impossible lock) and has an appropriate Afail action (and
-  possibly Fail and Ofail messages).  You can make global exits by having an
-  unlocked exit from the master room (or an exit locked to a desired key
-  object) lead to the desired destination.  When a player goes through one of
-  these exits, any KEY objects are returned home, as is done with @teleport.
+  You can make global exits by having an unlocked exit from the master room
+  (or an exit locked to a desired key object) lead to the desired destination.
+  When a player goes through one of these exits, any KEY objects are returned
+  home, as is done with @teleport.
+
+  If you set an exit inside the master room PRIVATE, it will stop being a
+  global exit.
  
   Do not put too many objects in the room, because each object is searched
   for $-command every time anyone (or anything) anywhere on the RhostMUSH 
