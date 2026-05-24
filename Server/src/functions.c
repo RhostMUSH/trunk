@@ -5372,6 +5372,30 @@ FUNCTION(fun_wrapcolumns)
  *               they have
  *
  */
+/* Return the numeric bittype level of a player (0=bad, 1=Wanderer, ..., 8=God) */
+int
+player_bittype(dbref target)
+{
+   if( !Good_obj(target) )
+      return 0;
+   if( God(target) )
+      return 8;
+   else if( Immortal(target) )
+      return 7;
+   else if( Wizard(target) )
+      return 6;
+   else if( Admin(target) )
+      return 5;
+   else if( Builder(target) )
+      return 4;
+   else if( Guildmaster(target) )
+      return 3;
+   else if( Wanderer(target) || Guest(target) )
+      return 1;
+   else
+      return 2;
+}
+
 FUNCTION(fun_bittype)
 {
   dbref target;
@@ -5401,30 +5425,7 @@ FUNCTION(fun_bittype)
     if ( i_chk == 0 ) {
        target = Owner(target);
     }
-    if( God(target) ) {
-      got = 8;
-    }
-    else if( Immortal(target) ) {
-      got = 7;
-    }
-    else if( Wizard(target) ) {
-      got = 6;
-    }
-    else if( Admin(target) ) {
-      got = 5;
-    }
-    else if( Builder(target) ) {
-      got = 4;
-    }
-    else if( Guildmaster(target) ) {
-      got = 3;
-    }
-    else if( Wanderer(target) || Guest(target) ) {
-      got = 1;
-    }
-    else {
-      got = 2;
-    }
+    got = player_bittype(target);
     if ( Guildmaster(target) && HasPriv(target, player, POWER_HIDEBIT, POWER5, NOTHING) &&
          (Owner(player) != Owner(target) || mudstate_hot.objevalst) ) {
        if( Wanderer(target) || Guest(target) )

@@ -183,9 +183,23 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
          notify(player, "Permission denied.");
          return;
       }
-      i_ansi = 1;
-   }
-   s_namebuff = alloc_lbuf("do_name_ansi");
+       if ( isPlayer(thing) && mudconf.playeransi_permit > 0 ) {
+          dbref who = Owner(player);
+          if ( DePriv(who, NOTHING, DP_ANSINAME, POWER8, POWER_LEVEL_NA) ) {
+             if ( !(key & SIDEEFFECT) )
+                notify(player, "Permission denied.");
+             return;
+          }
+          if ( !HasPriv(who, NOTHING, POWER_ANSINAME, POWER5, POWER_LEVEL_NA) &&
+               player_bittype(who) < mudconf.playeransi_permit ) {
+             if ( !(key & SIDEEFFECT) )
+                notify(player, "Permission denied.");
+             return;
+          }
+       }
+       i_ansi = 1;
+    }
+    s_namebuff = alloc_lbuf("do_name_ansi");
    s_tmp = alloc_lbuf("do_name_tmpbuf");
    sprintf(s_tmp, "#%d", thing);
    strcpy(s_namebuff, strip_all_special(newname));

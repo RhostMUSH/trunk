@@ -7010,6 +7010,7 @@ list_options_config(dbref player)
            strcat(buff, "EXITS");
        notify(player, unsafe_tprintf("Ansi colors in names allowed: %s", buff));
     }
+    notify(player, unsafe_tprintf("Min bittype for player ANSI names: %d", mudconf.playeransi_permit));
     free_mbuf(buff);
 #ifdef BANGS
     notify(player, "Bang (! and !!) notation has been enabled at compiletime.");
@@ -7475,6 +7476,7 @@ list_options(dbref player)
            strcat(buff, "EXITS");
        notify(player, unsafe_tprintf("Ansi colors in names allowed: %s", buff));
     }
+    notify(player, unsafe_tprintf("Min bittype for player ANSI names: %d", mudconf.playeransi_permit));
     free_mbuf(buff);
 #ifdef BANGS
     notify(player, "Bang (! and !!) notation has been enabled at compiletime.");
@@ -11169,6 +11171,20 @@ void do_extansi(dbref player, dbref cause, int key, char *name, char *instr)
       }
       return;
    }
+    if ( isPlayer(thing) && mudconf.playeransi_permit > 0 ) {
+       dbref who = Owner(player);
+       if ( DePriv(who, NOTHING, DP_ANSINAME, POWER8, POWER_LEVEL_NA) ) {
+          if ( !(key & SIDEEFFECT) )
+             notify(player, "Permission denied.");
+          return;
+       }
+       if ( !HasPriv(who, NOTHING, POWER_ANSINAME, POWER5, POWER_LEVEL_NA) &&
+            player_bittype(who) < mudconf.playeransi_permit ) {
+          if ( !(key & SIDEEFFECT) )
+             notify(player, "Permission denied.");
+          return;
+       }
+    }
    if ( !*instr || !instr ) {
       if (!(key & SET_QUIET) && !(key & SIDEEFFECT) && !Quiet(player) && !Quiet(thing)) {
           notify(player, "Ansi string cleared.");

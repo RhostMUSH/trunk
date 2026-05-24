@@ -699,6 +699,7 @@ NDECL(cf_init)
     mudconf.who_wizlevel = 0;
     mudconf.allow_whodark = 1;
     mudconf.allow_ansinames = 15;
+    mudconf.playeransi_permit = 0;
     mudconf.who_comment = 1;
     mudconf.safe_wipe = 0;
     mudconf.secure_jumpok = 0;
@@ -4324,6 +4325,11 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.allow_ansinames, 0, 0, CA_PUBLIC,
      (char *) "Allow names to be ansified?\r\n"\
               "                             Default: 15   Value: %d"},
+    {(char *) "playeransi_permit",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.playeransi_permit, 0, 0, CA_PUBLIC,
+     (char *) "Set minimum bittype level for players to use ANSI in names.\r\n"\
+              "             0=no restriction, 1=Wanderer+, ..., 7=God only\r\n"\
+              "             Default: 0   Value: %d"},
     {(char *) "allow_whodark",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.allow_whodark, 0, 0, CA_PUBLIC,
      (char *) "Allow dark players to hide from WHO/DOING?"},

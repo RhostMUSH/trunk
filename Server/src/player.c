@@ -1504,6 +1504,18 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
           notify(player, "Permission denied.");
           return;
        }
+       if ( mudconf.playeransi_permit > 0 ) {
+          dbref reg_owner = Owner(player);
+          if ( DePriv(reg_owner, NOTHING, DP_ANSINAME, POWER8, POWER_LEVEL_NA) ) {
+             notify(player, "Permission denied.");
+             return;
+          }
+          if ( !HasPriv(reg_owner, NOTHING, POWER_ANSINAME, POWER5, POWER_LEVEL_NA) &&
+               player_bittype(reg_owner) < mudconf.playeransi_permit ) {
+             notify(player, "Permission denied.");
+             return;
+          }
+       }
        i_ansi = 1;
        key &= ~REGISTER_ANSI;
     }

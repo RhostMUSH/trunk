@@ -1364,6 +1364,20 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
           }
           return;
        }
+       if ( mudconf.playeransi_permit > 0 ) {
+          dbref creator_owner = Owner(player);
+          if ( DePriv(creator_owner, NOTHING, DP_ANSINAME, POWER8, POWER_LEVEL_NA) ) {
+             if ( !(key & SIDEEFFECT) )
+                notify(player, "Permission denied.");
+             return;
+          }
+          if ( !HasPriv(creator_owner, NOTHING, POWER_ANSINAME, POWER5, POWER_LEVEL_NA) &&
+               player_bittype(creator_owner) < mudconf.playeransi_permit ) {
+             if ( !(key & SIDEEFFECT) )
+                notify(player, "Permission denied.");
+             return;
+          }
+       }
        i_ansi = 1;
     }
     if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*name == '#')) {

@@ -330,6 +330,7 @@ extern void     FDECL(decompile_tags, (dbref, dbref, char *, char *, int));
 extern int FDECL(obj_bitlevel, (dbref));
 extern int FDECL(obj_nomodlevel, (dbref));
 extern int FDECL(obj_noexlevel, (dbref));
+extern int FDECL(player_bittype, (dbref));
 
 /* From player.c */
 extern void	FDECL(record_login, (dbref, int, char *, char *,int *, int *, int *));

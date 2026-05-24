@@ -462,6 +462,7 @@ showother_altinv 0
 # formats/visuals
 
 allow_ansinames           15
+playeransi_permit         0
 blind_snuffs_cons         0
 cap_conjunctions          and or so when while since until although because both either neither nor yet also
 cap_articles              a an the this that these those each every either neither much enough which what some any

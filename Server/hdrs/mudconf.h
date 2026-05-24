@@ -574,6 +574,8 @@ struct confdata {
 	int	totem_rename;	/* Allow totem renames for (1) static or (2) perm or (3) both */
 	int	guest_displaylastsite;
 #endif	/* STANDALONE */
+	int	playeransi_permit;	/* Min bittype required to set ANSI names on players */
+				/* 0=no restriction, 1=Wanderer+, ..., 7=God only */
 };
 
 extern CONFDATA mudconf;

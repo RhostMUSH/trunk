@@ -323,7 +323,7 @@
 #define POWER_WIZ_IDLE		14
 #define POWER_WIZ_SPOOF		16
 #define POWER_USE_FREELIST	18
-/* 20 free */
+#define POWER_ANSINAME  20
 /* 22 free */
 /* 24 free */
 /* 26 free */
@@ -371,7 +371,7 @@
 #define DP_PASSWORD		0
 #define DP_MORTAL_EXAMINE	2
 #define DP_PERSONAL_COMMANDS	4
-/* 06 free */
+#define DP_ANSINAME		6
 #define DP_DARK			8
 /* 10 free */
 /* 12 free */

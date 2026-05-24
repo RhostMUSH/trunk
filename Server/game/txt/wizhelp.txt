@@ -1877,6 +1877,7 @@
   CHOWN_OTHER     *UNL_QUOTA            SEARCH_ANY        GIVE
   RECEIVE         *PASSWORD             NOGOLD            NOSTEAL
  *POWER           *MORTAL_EXAMINE      *PERSONAL_COMMAND *DARK
+  ANSINAME
   
   
   Any depower with a '*' specified a toggle and will be turned on or off
@@ -1991,6 +1992,14 @@
   
   This toggle depower will turn off the ability to use any $ command
   on any object that you do not specifically own.
+
+& DEPOWER ANSINAME
+  Depower argument: @depower[/switch] <user>=[@g|@a|@c] ansiname
+
+  This depower removes the ability to set ansi on player names, from
+  the target, even if playeransi_permit would normally allow them to do so.
+
+  See Also: @power ansiname
 
 & DEPOWER CHOWN_ME
   Depower argument: @depower[/switch] <user>=[@o|@g|@a|@c] CHOWN_ME
@@ -2205,23 +2214,32 @@
   
   There are various powers available to be set with @power.  These are:
   
-    API            *BOOT            CHANGE_QUOTAS     CHOWN_ANYWHERE 
-   *CHOWN_ME       *CHOWN_OTHER    *EXAMINE_ALL       EXAMINE_FULL     
-   *EXECSCRIPT      FREE_QUOTA      FORMATTING        FREE_PAGE       
-    FREE_WALL       FULLTEL        *GRAB_PLAYER      *HALT_QUEUE      
-    HALT_QUEUE_ALL *HIDEBIT        *JOIN_PLAYER       LONG_FINGERS   
-    MONITORAPI     *NO_BOOT        *NOFORCE          *NOKILL          
-    NOWHO           PCREATE        *PURGE            *SEARCH_ANY   
-   *SECURITY       *SEE_QUEUE       SEE_QUEUE_ALL     SHUTDOWN     
-   *STAT_ANY       *STEAL          *TEL_ANYWHERE     *TEL_ANYTHING
-    USE_FREELIST   *WHO_UNFIND      WIZ_IDLE         *WIZ_SPOOF      
-   *WIZ_WHO        *WRAITH        
+    ANSINAME        API            *BOOT              CHANGE_QUOTAS
+    CHOWN_ANYWHERE *CHOWN_ME       *CHOWN_OTHER      *EXAMINE_ALL
+    EXAMINE_FULL   *EXECSCRIPT      FREE_QUOTA        FORMATTING
+    FREE_PAGE       FREE_WALL       FULLTEL          *GRAB_PLAYER
+   *HALT_QUEUE      HALT_QUEUE_ALL *HIDEBIT          *JOIN_PLAYER
+    LONG_FINGERS    MONITORAPI     *NO_BOOT          *NOFORCE
+   *NOKILL          NOWHO           PCREATE          *PURGE
+   *SEARCH_ANY     *SECURITY       *SEE_QUEUE         SEE_QUEUE_ALL
+    SHUTDOWN       *STAT_ANY       *STEAL            *TEL_ANYWHERE
+   *TEL_ANYTHING    USE_FREELIST   *WHO_UNFIND        WIZ_IDLE
+   *WIZ_SPOOF      *WIZ_WHO        *WRAITH        
   
   Any powers with a '*' beside it can be power-defined from COUNCILOR 
   down to GUILDMASTER.
 
   Help is available separately to explain what each power does by typing:
       wizhelp power <power>
+
+& POWER ANSINAME
+  Power argument: @power[/switch] <user>=[@g|@a|@c] ansiname
+
+  This power grants the target the ability to set ansi on player names,
+  despite them normally being disallowed to do so by the playeransi_permit
+  config option.
+
+  See Also: @depower ansiname
 
 & POWER WIZ_SPOOF
   Power argument: @power[/switch] <user>=[@g|@a|@c] wiz_spoof
@@ -7931,6 +7949,7 @@
         aware regardless of the configuration parameter set.
    
   See normal help on the functions for more information.
+
    
 & ansi_txtfiles
   Config parameter: ansi_textfiles <boolean>   Default: 0
@@ -11523,6 +11542,28 @@
   player_starting_home parameter has not been set, then player_starting_room
   is used for both.
   See Also: player_starting_home, @pcreate, player_flags.
+
+& playeransi_permit
+  Config parameter: playeransi_permit.  Default: 0
+
+  This option sets the minim bittype level a player and their objects need
+  to have, in order to set ansi colors in playernames. This is analog to
+  the levels defined in the bittype() function:
+
+    God (#1)                 7
+    Super-Royalty/Immortal   6
+    Royalty/Wizard           5
+    Councilor                4
+    Architect                3
+    Guildmaster              2
+    Citizen (Normal Player)  1
+    Wanderer/Guest           0
+
+  If the option is set to 3, only Architects and above can set ansi in
+  playernames. The 'ansiname' @power and @depower allows more fine-grained
+  control beyond this.
+
+  See also: power ansiname, depower ansiname, help bittype
 
 & plushelp_file
   Config parameter: plushelp_file <path>.  Default: plushelp.txt

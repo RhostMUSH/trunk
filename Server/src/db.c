@@ -895,8 +895,21 @@ ansiname_ck(int key, dbref player, dbref thing, int anum, char *atext)
 #endif
       return 0;
    }
-   else
-      return 1;
+#ifndef STANDALONE
+   if ( isPlayer(player) && mudconf.playeransi_permit > 0 ) {
+      dbref target_owner = Owner(player);
+      if ( DePriv(target_owner, NOTHING, DP_ANSINAME, POWER8, POWER_LEVEL_NA) ) {
+         notify(player, "Permission denied.");
+         return 0;
+      }
+      if ( !HasPriv(target_owner, NOTHING, POWER_ANSINAME, POWER5, POWER_LEVEL_NA) &&
+           player_bittype(target_owner) < mudconf.playeransi_permit ) {
+         notify(player, "Permission denied.");
+         return 0;
+      }
+   }
+#endif
+   return 1;
 }
 
 /* ---------------------------------------------------------------------------
