@@ -2800,7 +2800,7 @@ main(int argc, char *argv[])
     initDoorSystem();
 #endif
     init_totemreservations();
-    hashinit(&mudstate_hot.player_htab, 521);
+    hashinit(&mudstate_hot.player_htab, 2047);
     hashinit(&mudstate.objecttag_htab, 1024);
     nhashinit(&mudstate.fwdlist_htab, 131);
     nhashinit(&mudstate.parent_htab, 131);

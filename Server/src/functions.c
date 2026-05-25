@@ -43195,7 +43195,7 @@ NDECL(init_functab)
     char *buff, *cp, *dp;
 
     buff = alloc_sbuf("init_functab");
-    ohtab_init(&mudstate_hot.func_htab, 521);
+    ohtab_init(&mudstate_hot.func_htab, 2047);
     for (fp = flist; fp->name; fp++) {
       cp = (char *) fp->name;
       dp = buff;

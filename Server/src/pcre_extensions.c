@@ -26,6 +26,109 @@
 
 const unsigned char *tables = NULL;
 
+/* ---------------------------------------------------------------------------
+ * PCRE compiled-pattern cache.
+ *
+ * quick_regexp_match() and regexp_wild_match() call pcre_compile() on every
+ * invocation.  For regexp $commands this means N_objects x N_regexp_cmds
+ * compilations per command typed — hundreds per dispatch.  This cache keeps
+ * recently-used compiled patterns alive so the compile → exec → free cycle
+ * becomes just exec.
+ *
+ * Open-addressing table with FNV-1a hash.  Fixed 64-entry power-of-2 size
+ * (no resize, no tombstones).  On insert, if the target probe chain has no
+ * empty slot, the oldest (smallest-stamp) entry in the chain is evicted.
+ * ---------------------------------------------------------------------------
+ */
+
+#define PCRE_CACHE_SIZE  64
+#define PCRE_CACHE_MASK  63
+
+typedef struct pcre_cache_ent {
+    char    *pattern;      /* strsave'd key */
+    int      flags;        /* PCRE_CASELESS etc. */
+    pcre    *re;           /* owned compiled regex */
+    unsigned int stamp;        /* monotonic age for LRU eviction */
+} PCRE_CACHE_ENT;
+
+static PCRE_CACHE_ENT pcre_cache[PCRE_CACHE_SIZE];
+static unsigned int pcre_cache_stamp = 0;
+
+/* FNV-1a hash of pattern  XOR  flags  →  index into cache table */
+static int pcre_cache_hash(const char *pat, int flags)
+{
+    unsigned int h = 0x01000193;
+    const unsigned char *p = (const unsigned char *)pat;
+    while (*p)
+        h = (h * 0x01000193) ^ *p++;
+    return (int)((h ^ (unsigned int)flags) & PCRE_CACHE_MASK);
+}
+
+/* Look up compiled regex for (pattern, flags).  Returns NULL on miss. */
+static pcre *pcre_cache_find(const char *pattern, int flags)
+{
+    if (!pattern)
+        return NULL;
+    int h = pcre_cache_hash(pattern, flags);
+    int start = h;
+    do {
+        PCRE_CACHE_ENT *e = &pcre_cache[h];
+        if (!e->pattern)
+            return NULL;
+        if (e->flags == flags && strcmp(e->pattern, pattern) == 0) {
+            e->stamp = ++pcre_cache_stamp;
+            return e->re;
+        }
+        h = (h + 1) & PCRE_CACHE_MASK;
+    } while (h != start);
+    return NULL;
+}
+
+/* Insert a compiled regex into the cache.  Evicts oldest entry in the
+ * probe chain if the table is full.  Takes ownership of `re`. */
+static void pcre_cache_add(const char *pattern, int flags, pcre *re)
+{
+    if (!pattern)
+        return;
+    int h = pcre_cache_hash(pattern, flags);
+    int start = h;
+    int empty = -1;
+    int lru_idx = -1;
+    unsigned int lru_val = 0xffffffffU;
+
+    do {
+        PCRE_CACHE_ENT *e = &pcre_cache[h];
+        if (!e->pattern) {
+            empty = h;
+            break;
+        }
+        if (e->stamp < lru_val) {
+            lru_val = e->stamp;
+            lru_idx = h;
+        }
+        h = (h + 1) & PCRE_CACHE_MASK;
+    } while (h != start);
+
+    if (empty < 0) {
+        /* No empty slot — evict the oldest entry in the chain */
+        if (lru_idx < 0)
+            return;
+        empty = lru_idx;
+        free(pcre_cache[empty].pattern);
+        pcre_cache[empty].pattern = NULL;
+        free(pcre_cache[empty].re);
+    }
+
+    pcre_cache[empty].pattern = strsave(pattern);
+    if (!pcre_cache[empty].pattern) {
+        free(re);
+        return;
+    }
+    pcre_cache[empty].flags   = flags;
+    pcre_cache[empty].re      = re;
+    pcre_cache[empty].stamp   = ++pcre_cache_stamp;
+}
+
 
 static void
 
@@ -75,33 +178,23 @@ int
 quick_regexp_match(const char *RESTRICT s, const char *RESTRICT d, int cs)
 {
   pcre *re;
-  const char *errptr;
-  int erroffset;
   int offsets[99];
   int r;
-  int flags = 0;                /* There's a PCRE_NO_AUTO_CAPTURE flag to turn all raw
-                                   ()'s into (?:)'s, which would be nice to use,
-                                   except that people might use backreferences in
-                                   their patterns. Argh. */
+  int flags = 0;
 
   if (!cs)
     flags |= PCRE_CASELESS;
 
-  if ((re = pcre_compile(s, flags, &errptr, &erroffset, tables)) == NULL) {
-    /*
-     * This is a matching error. We have an error message in
-     * errptr that we can ignore, since we're doing
-     * command-matching.
-     */
-    return 0;
+  re = pcre_cache_find(s, flags);
+  if (!re) {
+    const char *errptr;
+    int erroffset;
+    if ((re = pcre_compile(s, flags, &errptr, &erroffset, tables)) == NULL)
+      return 0;
+    pcre_cache_add(s, flags, re);
   }
-  /*
-   * Now we try to match the pattern. The relevant fields will
-   * automatically be filled in by this.
-   */
-  r = pcre_exec(re, NULL, d, strlen(d), 0, 0, offsets, 99);
 
-  free(re);
+  r = pcre_exec(re, NULL, d, strlen(d), 0, 0, offsets, 99);
 
   return (r >= 0);
 }
@@ -141,11 +234,14 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
     return;
   }
 
-  if ((re = pcre_compile(fargs[1], flags, &errptr, &erroffset, tables)) == NULL) {
-    /* Matching error. */
-    safe_str("#-1 REGEXP ERROR: ", buff, bufcx);
-    safe_str((char *)errptr, buff, bufcx);
-    return;
+  re = pcre_cache_find(fargs[1], flags);
+  if (!re) {
+    if ((re = pcre_compile(fargs[1], flags, &errptr, &erroffset, tables)) == NULL) {
+      safe_str("#-1 REGEXP ERROR: ", buff, bufcx);
+      safe_str((char *)errptr, buff, bufcx);
+      return;
+    }
+    pcre_cache_add(fargs[1], flags, re);
   }
   len = strlen(fargs[0]);
   subpatterns = pcre_exec(re, NULL, fargs[0], len, 0, 0, offsets, 99);
@@ -190,7 +286,6 @@ do_regmatch(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       pcre_copy_substring(fargs[0], offsets, subpatterns, i,
                           mudstate_hot.global_regs[curq], (LBUF_SIZE-1));
   }
-  free(re);
 }
 
 FUNCTION(fun_regmatch)
@@ -1037,68 +1132,39 @@ load_regexp_functions()
 int
 regexp_wild_match(char *pattern, char *str, char *args[], int nargs, int case_opt)
 {
-    int matches, i, len, erroffset, offsets[99];
-    const char *errptr;
+    int matches, i, len, offsets[99];
     pcre *re;
 
-    /*
-     * Load the regexp pattern. This allocates memory which must be
-     * later freed. A free() of the regexp does free all structures
-     * under it.
-     */
-
-    if ( (re = pcre_compile(pattern, case_opt, &errptr, &erroffset, tables)) == NULL) {
-        /*
-         * This is a matching error. We have an error message in
-         * regexp_errbuf that we can ignore, since we're doing
-         * command-matching.
-         */
-        return 0;
+    re = pcre_cache_find(pattern, case_opt);
+    if (!re) {
+        const char *errptr;
+        int erroffset;
+        if ((re = pcre_compile(pattern, case_opt, &errptr, &erroffset, tables)) == NULL)
+            return 0;
+        pcre_cache_add(pattern, case_opt, re);
     }
-
-    /*
-     * Now we try to match the pattern. The relevant fields will
-     * automatically be filled in by this.
-     */
 
     matches = pcre_exec(re, NULL, str, strlen(str), 0, 0, offsets, 99);
-    if (matches <= 0) {
-        free(re);
+    if (matches <= 0)
         return 0;
-    }
-
-    /*
-     * Now we fill in our args vector. Note that in regexp matching,
-     * 0 is the entire string matched, and the parenthesized strings
-     * go from 1 to 9. We DO PRESERVE THIS PARADIGM, for consistency
-     * with other languages.
-     */
 
     if ( matches > nargs )
        matches = nargs;
 
-    for (i = 0; i < nargs; i++) {
+    for (i = 0; i < nargs; i++)
         args[i] = NULL;
-    }
-
-    /* Convenient: nargs and NSUBEXP are the same.
-     * We are also guaranteed that our buffer is going to be LBUF_SIZE
-     * so we can copy without fear.
-     */
 
     for (i = 0; i < matches; ++i) {
-        if (offsets[i*2] == -1) {
+        if (offsets[i*2] == -1)
             continue;
-        }
         len = offsets[(i*2)+1] - offsets[i*2];
         if ( len > (LBUF_SIZE - 1) )
            len = LBUF_SIZE - 1;
         args[i] = alloc_lbuf("regexp_match");
         strncpy(args[i], str + offsets[i*2], len);
-        args[i][len] = '\0';        /* strncpy() does not null-terminate */
+        args[i][len] = '\0';
     }
 
-    free(re);
     return 1;
 }
 
