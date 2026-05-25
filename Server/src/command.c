@@ -2266,6 +2266,19 @@ check_access(dbref player, int mask, int mask2, int ccheck)
 	return 1;
     }
 
+    /* CA_PUBLIC — no privilege bits set in mask.  The sandbox/reverse
+     * checks and God bypass above already handled the cross-cutting
+     * deny conditions.  Only CA_NO_CODE among the remaining perms2
+     * flags can still deny (checked against NoCode status). */
+    if (mask == 0) {
+	if ((mask2 & CA_NO_CODE) && !Wizard(player) && NoCode(player) && !mudstate.nocodeoverride) {
+	    DPOP; /* #26 */
+	    return 0;
+	}
+        DPOP; /* #26 */
+	return 1;
+    }
+
     succ = fail = 0;
     if (mask & CA_GOD)
 	fail++;
@@ -4883,6 +4896,7 @@ process_command(dbref player, dbref cause, int interactive,
 	sflag = 0;
 	succ = 0;
 	int mast_checked = 0;
+	int self_checked = 0;
 
 	char cmd_prefix[SBUF_SIZE];
 	CMD_PREFIX_ENTRY *cmd_matches = NULL;
@@ -4907,6 +4921,7 @@ process_command(dbref player, dbref cause, int interactive,
 	if (mudconf.match_mine && sflag < 3) {
 	    if ((Typeof(player) != TYPE_PLAYER) ||
 		(mudconf.match_mine_pl && mudconf.match_pl)) {
+		self_checked = 1;
 		if ((cmd_matches
 		     && cmd_prefix_thing_matches(cmd_matches, player))
 		    || (cmd_regexp_count > 0
@@ -4942,15 +4957,17 @@ process_command(dbref player, dbref cause, int interactive,
 	/* Scope 3: Room itself */
 	if (Has_location(player) && sflag < 3) {
 	    dbref loc = Location(player);
-	    if ((cmd_matches
-		 && cmd_prefix_thing_matches(cmd_matches, loc))
-		|| (cmd_regexp_count > 0
-		    && cmd_prefix_regexp_has_thing(loc))) {
-		int mresult = atr_match(loc, player, AMATCH_CMD,
-					lcbuf, 1, 1);
-		if (mresult == 3) { sflag = 3; succ++; }
-		else if (mresult == 2) { succ++; mast_checked = 1; }
-		else if (mresult > 0) { succ++; }
+	    if (loc != player || !self_checked) {
+		if ((cmd_matches
+		     && cmd_prefix_thing_matches(cmd_matches, loc))
+		    || (cmd_regexp_count > 0
+			&& cmd_prefix_regexp_has_thing(loc))) {
+		    int mresult = atr_match(loc, player, AMATCH_CMD,
+					    lcbuf, 1, 1);
+		    if (mresult == 3) { sflag = 3; succ++; }
+		    else if (mresult == 2) { succ++; if (loc == mudconf.master_room) mast_checked = 1; }
+		    else if (mresult > 0) { succ++; }
+		}
 	    }
 	}
 
@@ -5049,12 +5066,15 @@ process_command(dbref player, dbref cause, int interactive,
 	    if (sflag < 3) {
 		if (Good_obj(mudconf.master_room)
 		    && Has_contents(mudconf.master_room)) {
-		    if (cmd_matches || cmd_regexp_count > 0) {
+		    dbref player_loc =
+			Has_location(player) ? Location(player) : NOTHING;
+		    if (player_loc != mudconf.master_room
+			&& (cmd_matches || cmd_regexp_count > 0)) {
 			succ += list_check(Contents(mudconf.master_room),
 					   player, AMATCH_CMD,
 					   lcbuf, 0, 0, 0);
 		    }
-		    if (!mast_checked
+		    if (player_loc != mudconf.master_room && !mast_checked
 			&& atr_match(mudconf.master_room, player,
 				     AMATCH_CMD, lcbuf, 0, 0) > 0)
 			succ++;

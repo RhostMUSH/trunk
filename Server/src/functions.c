@@ -38088,24 +38088,24 @@ FUNCTION(fun_dec)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
-                regnum = -1;
-                break;
-             }
-          }
+              if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
+                 regnum = i;
+                 break;
+              }
+           }
 #endif
-       } else {
-          regnum = atoi(fargs[0]);
-       }
-    }
-    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
-       safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
-    } else {
-       pt1 = mudstate_hot.global_regs[regnum];
-       if ( !is_number(pt1) ) {
-           safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
-       } else {
-           val = atoi(mudstate_hot.global_regs[regnum]) - 1;
+        } else {
+           regnum = atoi(fargs[0]);
+        }
+     }
+     if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
+        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+     } else {
+        pt1 = mudstate_hot.global_regs[regnum];
+        if ( !is_number(pt1) ) {
+            safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
+        } else {
+            val = atoi(mudstate_hot.global_regs[regnum]) - 1;
            tprp_buff = tpr_buff = alloc_lbuf("fun_dec");
            strcpy(mudstate_hot.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
            free_lbuf(tpr_buff);
@@ -38187,24 +38187,24 @@ FUNCTION(fun_inc)
           regnum = -1;
 #ifdef EXPANDED_QREGS
           for ( i = 0 ; i < MAX_GLOBAL_REGS; i++ ) {
-             if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
-                regnum = -1;
-                break;
-             }
-          }
+              if ( mudstate_hot.nameofqreg[i] == tolower(*fargs[0]) ) {
+                 regnum = i;
+                 break;
+              }
+           }
 #endif
-       } else {
-          regnum = atoi(fargs[0]);
-       }
-    }
-    if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
-       safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
-    } else {
-       pt1 = mudstate_hot.global_regs[regnum];
-       if ( !is_number(pt1) ) {
-           safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
-       } else {
-           val = atoi(mudstate_hot.global_regs[regnum]) + 1;
+        } else {
+           regnum = atoi(fargs[0]);
+        }
+     }
+     if ((regnum < 0) || (regnum >= (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST))) {
+        safe_str("#-1 INVALID GLOBAL REGISTER", buff, bufcx);
+     } else {
+        pt1 = mudstate_hot.global_regs[regnum];
+        if ( !is_number(pt1) ) {
+            safe_str("#-1 GLOBAL REGISTER NOT AN INTEGER", buff, bufcx);
+        } else {
+            val = atoi(mudstate_hot.global_regs[regnum]) + 1;
            tprp_buff = tpr_buff = alloc_lbuf("fun_inc");
            strcpy(mudstate_hot.global_regs[regnum], safe_tprintf(tpr_buff, &tprp_buff, "%d", val));
            free_lbuf(tpr_buff);
