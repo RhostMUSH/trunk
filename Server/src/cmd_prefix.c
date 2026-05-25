@@ -284,5 +284,5 @@ void cmd_prefix_rebuild(void)
 
 void cmd_prefix_init(void)
 {
-    ohtab_init(&cmd_prefix_htab, 1023);
+    ohtab_init(&cmd_prefix_htab, 4095);
 }

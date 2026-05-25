@@ -6467,46 +6467,84 @@ static const char *ud[] =
 {"Down", "Up"};
 
 static void
-list_options_cmdprefix(dbref player)
+list_options_cmdprefix(dbref player, int page)
 {
     CMD_PREFIX_ENTRY *ent;
     int *data;
-    int i;
+    int i, total, prefixes, seen, page_start, page_end, total_pages;
     char *buf, *bp;
 
-    notify(player, "--- $command prefix index ---");
-
-    buf = alloc_lbuf("list_options_cmdprefix");
-
+    /* Count total lines and unique prefixes */
+    total = 0;
+    prefixes = 0;
     for (data = (int *)ohtab_firstentry(&cmd_prefix_htab);
          data;
          data = (int *)ohtab_nextentry(&cmd_prefix_htab))
     {
         ent = (CMD_PREFIX_ENTRY *)data;
+        total += ent->count;
+        prefixes++;
+    }
+    total += cmd_regexp_count;
+
+    buf = alloc_lbuf("list_options_cmdprefix");
+
+    if (total == 0) {
+        sprintf(buf, "--- $command prefix index (empty) ---");
+        notify(player, buf);
+        free_lbuf(buf);
+        return;
+    }
+
+    int page_size = 100;
+    total_pages = (total + page_size - 1) / page_size;
+    if (page < 1) page = 1;
+    if (page > total_pages) page = total_pages;
+
+    page_start = (page - 1) * page_size;
+    page_end = page_start + page_size;
+    if (page_end > total) page_end = total;
+
+    sprintf(buf, "--- $command prefix index  Page (%d/%d) ---",
+            page, total_pages);
+    notify(player, buf);
+
+    seen = 0;
+    for (data = (int *)ohtab_firstentry(&cmd_prefix_htab);
+         data && seen < page_end;
+         data = (int *)ohtab_nextentry(&cmd_prefix_htab))
+    {
+        ent = (CMD_PREFIX_ENTRY *)data;
         char *prefix = cmd_prefix_htab.last_entry->target;
-        for (i = 0; i < ent->count; i++) {
-            ATTR *ap = atr_num(ent->matches[i].atr);
+        for (i = 0; i < ent->count && seen < page_end; i++, seen++) {
+            if (seen >= page_start) {
+                ATTR *ap = atr_num(ent->matches[i].atr);
+                bp = buf;
+                bp += sprintf(bp, "%-30s #%d  %s",
+                              prefix, ent->matches[i].thing,
+                              ap ? ap->name : "UNKNOWN");
+                *bp = '\0';
+                notify(player, buf);
+            }
+        }
+    }
+
+    for (i = 0; i < cmd_regexp_count && seen < page_end; i++, seen++) {
+        if (seen >= page_start) {
+            ATTR *ap = atr_num(cmd_regexp_list[i].atr);
             bp = buf;
             bp += sprintf(bp, "%-30s #%d  %s",
-                          prefix, ent->matches[i].thing,
+                          "regexp", cmd_regexp_list[i].thing,
                           ap ? ap->name : "UNKNOWN");
             *bp = '\0';
             notify(player, buf);
         }
     }
 
-    for (i = 0; i < cmd_regexp_count; i++) {
-        ATTR *ap = atr_num(cmd_regexp_list[i].atr);
-        bp = buf;
-        bp += sprintf(bp, "%-30s #%d  %s",
-                      "regexp", cmd_regexp_list[i].thing,
-                      ap ? ap->name : "UNKNOWN");
-        *bp = '\0';
-        notify(player, buf);
-    }
-
+    sprintf(buf, "--- Page (%d/%d) -- %d prefixes, %d entries ---",
+            page, total_pages, prefixes, total);
+    notify(player, buf);
     free_lbuf(buf);
-    notify(player, "--- End ---");
 }
 
 static void
@@ -9280,9 +9318,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
         case LIST_FUNPERMS:
            list_functionperms(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
            break;
-        case LIST_CMDPREFIX:
-           list_options_cmdprefix(player);
-           break;
+         case LIST_CMDPREFIX:
+            list_options_cmdprefix(player, s_ptr2 ? atoi(s_ptr2) : 1);
+            break;
         default:
 	   display_nametab(player, list_names,
 			   (char *) "Unknown option.  Use one of:", 1);
