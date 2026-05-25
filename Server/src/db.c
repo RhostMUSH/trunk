@@ -22,6 +22,7 @@ void bzero(void *, int);
 #include "match.h"
 #include "alloc.h"
 #include "interface.h"
+#include "cmd_prefix.h"
 
 #ifndef O_ACCMODE
 #define O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
@@ -3364,8 +3365,16 @@ atr_add(dbref thing, int atr, char *buff, dbref owner, int flags)
 #endif
 
     if (!buff || !*buff) {
+#ifndef STANDALONE
+	cmd_prefix_remove_match(thing, atr);
+#endif
 	atr_clr(thing, atr);
     } else {
+#ifndef STANDALONE
+	if (buff[0] == '$')
+	    cmd_prefix_remove_match(thing, atr);
+	cmd_prefix_check_add(thing, atr, buff, flags);
+#endif
 	tbuff = atr_encode(buff, thing, owner, flags, atr);
 	atr_add_raw(thing, atr, tbuff);
     }
@@ -4013,15 +4022,24 @@ int atrcint(dbref player, dbref thing, int key, char *s_wild)
                      notify(player, safe_tprintf(s_tprintf, &s_tprintfptr, "Attribute %d unable to be renamed.  Cleared.", anum, newatr));
 #endif
                      log_text("Attribute can not be recovered and was removed from attribute list");
+#ifndef STANDALONE
+                     cmd_prefix_remove_match(thing, anum);
+#endif
                      atr_clr(thing,anum);
-                 }
-                 free_sbuf(newatr);
-              } else if ( key == 0 ) {
-                 atr_clr(thing,anum);
-                 log_text("Attribute removed from attribute list");
-              } else if ( key == 3 ) {
-                 atr_clr(thing,anum);
-                 log_text("Attribute removed from attribute list");
+                  }
+                  free_sbuf(newatr);
+               } else if ( key == 0 ) {
+#ifndef STANDALONE
+                  cmd_prefix_remove_match(thing, anum);
+#endif
+                  atr_clr(thing,anum);
+                  log_text("Attribute removed from attribute list");
+               } else if ( key == 3 ) {
+#ifndef STANDALONE
+                  cmd_prefix_remove_match(thing, anum);
+#endif
+                  atr_clr(thing,anum);
+                  log_text("Attribute removed from attribute list");
               } else if ( key == 2 ) {
                  log_text("Attribute was NOT removed.");
               }

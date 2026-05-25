@@ -14,6 +14,9 @@
 #include "alloc.h"
 #include "local.h"
 #ifndef STANDALONE
+#include "cmd_prefix.h"
+#endif
+#ifndef STANDALONE
 #include "match.h"
 #endif
 
@@ -762,6 +765,9 @@ destroy_obj(dbref player, dbref obj, int purge)
     }
     sprintf(tbuff, "%ld", mudstate_hot.now);
     atr_add_raw(obj, A_RECTIME, tbuff);
+#endif
+#ifndef STANDALONE
+    cmd_prefix_remove_thing(obj);
 #endif
     zlist_destroy(obj);
     s_Location(obj, NOTHING);

@@ -27,6 +27,7 @@
 #include "alloc.h"
 #include "local.h"
 #include "rhost_utf8.h"
+#include "cmd_prefix.h"
 
 #ifdef REALITY_LEVELS
 #include "levels.h"
@@ -864,14 +865,15 @@ atr_match(dbref thing, dbref player, char type, char *str, int check_parents, in
 	    insert = 0;
 	result = atr_match1(thing, parent, player, type, str,
 			    exclude, insert, dpcheck, 0, &i_lock);
-	if ((result == 3) || (result == 2)) {
-	  match = 2;
+	if (result == 3) {
+	  match = 3;
 	  break;
-	}
-	else if (result > 0) {
+	} else if (result == 2) {
+	  if (match < 2)
+	    match = 2;
+	} else if (result > 0) {
+	  if (match < 1)
 	    match = 1;
-	    if (result == 2)
-	      break;
 	} else if (result < 0) {
 	    RETURN(match); /* #71 */
 	}
@@ -2793,6 +2795,7 @@ main(int argc, char *argv[])
     init_ansitab();
     init_attrtab();
     init_version();
+    cmd_prefix_init();
 #ifdef ENABLE_DOORS
     initDoorSystem();
 #endif
@@ -2936,6 +2939,7 @@ main(int argc, char *argv[])
 	exit(2);
     }
     mudstate_hot.dbloading = 0;
+    cmd_prefix_rebuild();
     srandom(getpid());
     set_signals();
 
