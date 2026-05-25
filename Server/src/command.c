@@ -29,7 +29,6 @@ char *index(const char *, int);
 #include "mail.h"
 #include "rhost_ansi.h"
 #include "door.h"
-#include "cmd_prefix.h"
 
 #include "debug.h"
 #define FILENUM COMMAND_C
@@ -3189,6 +3188,7 @@ process_command(dbref player, dbref cause, int interactive,
     dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
     CMDENT *cmdp;
     ZLISTNODE *zonelistnodeptr;
+    dbref realloc;
     struct itimerval itimer;
     DESC *d;
     ATTR *hk_ap2, *ap_log;
@@ -4891,196 +4891,111 @@ process_command(dbref player, dbref cause, int interactive,
     } /* IGNORE_EXIT */
     
     if (!DePriv(player, NOTHING, DP_COMMAND, POWER6, POWER_LEVEL_NA)) {
-	/* $command prefix index lookup */
+	/* Check for $-command matches on me */
 
 	sflag = 0;
-	succ = 0;
-	int mast_checked = 0;
-	int self_checked = 0;
-
-	char cmd_prefix[SBUF_SIZE];
-	CMD_PREFIX_ENTRY *cmd_matches = NULL;
-
-	{
-	    char *pp = lcbuf;
-	    int ci = 0;
-	    while (*pp == ' ' || *pp == '\t') pp++;
-	    if (*pp) {
-		while (*pp && *pp != ' ' && *pp != '\t'
-		       && ci < SBUF_SIZE - 1) {
-		    cmd_prefix[ci++] = tolower((unsigned char)*pp);
-		    pp++;
-		}
-	    }
-	    cmd_prefix[ci] = '\0';
-	    if (ci > 0)
-		cmd_matches = cmd_prefix_lookup(cmd_prefix);
-	}
-
-	/* Scope 1: Self */
-	if (mudconf.match_mine && sflag < 3) {
-	    if ((Typeof(player) != TYPE_PLAYER) ||
-		(mudconf.match_mine_pl && mudconf.match_pl)) {
-		self_checked = 1;
-		if ((cmd_matches
-		     && cmd_prefix_thing_matches(cmd_matches, player))
-		    || (cmd_regexp_count > 0
-			&& cmd_prefix_regexp_has_thing(player))) {
-		    int mresult = atr_match(player, player, AMATCH_CMD,
-					    lcbuf, 1, 0);
-		    if (mresult == 3) { sflag = 3; succ++; }
-		    else if (mresult == 2) { succ++; mast_checked = 1; }
-		    else if (mresult > 0) { succ++; }
-		}
+	if (mudconf.match_mine) {
+	    if (((Typeof(player) != TYPE_PLAYER) ||
+		 (mudconf.match_mine_pl && mudconf.match_pl)) &&
+		((sflag = atr_match(player, player, AMATCH_CMD, lcbuf, 1, 0)) > 0)) {
+		succ++;
 	    }
 	}
+	/* Check for $-command matches on nearby things and on my room */
 
-	/* Scope 2: Room contents */
-	if (Has_location(player) && Good_obj(Location(player))
-	    && sflag < 3) {
-	    dbref loc = Location(player);
-	    for (dbref mobj = Contents(loc); mobj != NOTHING && sflag < 3;
-		 mobj = Next(mobj)) {
-		if ((cmd_matches
-		     && cmd_prefix_thing_matches(cmd_matches, mobj))
-		    || (cmd_regexp_count > 0
-			&& cmd_prefix_regexp_has_thing(mobj))) {
-		    int mresult = atr_match(mobj, player, AMATCH_CMD,
-					    lcbuf, 1, 1);
-		    if (mresult == 3) { sflag = 3; succ++; break; }
-		    else if (mresult == 2) { succ++; mast_checked = 1; }
-		    else if (mresult > 0) { succ++; }
-		}
+	if (Has_location(player) && Good_obj(Location(player)) && (sflag < 2)) {
+	    sflag = list_check(Contents(Location(player)), player,
+			       AMATCH_CMD, lcbuf, 1, 1, 0);
+	    succ += sflag;
+	    if (sflag < 2) {
+	      if ((sflag = atr_match(Location(player), player,
+			  AMATCH_CMD, lcbuf, 1, 1)) > 0) {
+		succ++;
+	      }
 	    }
 	}
+	/* Check for $-command matches in my inventory */
 
-	/* Scope 3: Room itself */
-	if (Has_location(player) && sflag < 3) {
-	    dbref loc = Location(player);
-	    if (loc != player || !self_checked) {
-		if ((cmd_matches
-		     && cmd_prefix_thing_matches(cmd_matches, loc))
-		    || (cmd_regexp_count > 0
-			&& cmd_prefix_regexp_has_thing(loc))) {
-		    int mresult = atr_match(loc, player, AMATCH_CMD,
-					    lcbuf, 1, 1);
-		    if (mresult == 3) { sflag = 3; succ++; }
-		    else if (mresult == 2) { succ++; if (loc == mudconf.master_room) mast_checked = 1; }
-		    else if (mresult > 0) { succ++; }
-		}
-	    }
+	if (Has_contents(player) && (sflag < 2))
+	    succ += list_check(Contents(player), player,
+			       AMATCH_CMD, lcbuf, 1, 1, 0);
+
+        /* check for zone master commands */
+        if( !succ && (sflag < 2) ) {
+          realloc = absloc(player);
+          if( Good_obj(realloc) && cold_db[realloc].zonelist && 
+              !ZoneMaster(realloc)) {
+              for( zonelistnodeptr = cold_db[realloc].zonelist;
+                   zonelistnodeptr; 
+                   zonelistnodeptr = zonelistnodeptr->next ) {
+	        if ((sflag = atr_match(zonelistnodeptr->object, player,
+	  		  AMATCH_CMD, lcbuf, 1, 1)) > 0) {
+	  	  succ++;
+		  if (sflag > 1)
+		    break;
+                }
+		/* check for contents of zone masters */
+		if ( !succ && Good_obj(zonelistnodeptr->object) && 
+		     ZoneContents(zonelistnodeptr->object) ) {
+		     succ += list_check(Contents(zonelistnodeptr->object),
+				        player, AMATCH_CMD, lcbuf, 0, 0, 0);
+	        }
+	      }
+          }
+        }
+ 
+        /* Check for object/player $command matching for zonechecks if enabled */
+        if ( !succ && mudconf.zones_like_parents && (sflag < 2) ) {
+           /* Check player */
+           if (mudconf.match_mine) {
+	      if ( ZoneCmdChk(player) && ((Typeof(player) != TYPE_PLAYER) ||
+                   (mudconf.match_mine_pl && mudconf.match_pl)) ) {
+                 if( cold_db[player].zonelist && !ZoneMaster(player)) {
+                    for( zonelistnodeptr = cold_db[player].zonelist;
+                         zonelistnodeptr; 
+                         zonelistnodeptr = zonelistnodeptr->next ) {
+	               if ((sflag = atr_match(zonelistnodeptr->object, player,
+	  		    AMATCH_CMD, lcbuf, 1, 1)) > 0) {
+	  	          succ++;
+		          if (sflag > 1)
+		             break;
+                       }
+		       /* check for contents of zone masters */
+		       if ( !succ && Good_obj(zonelistnodeptr->object) && 
+		            ZoneContents(zonelistnodeptr->object) ) {
+		            succ += list_check(Contents(zonelistnodeptr->object),
+				               player, AMATCH_CMD, lcbuf, 0, 0, 0);
+	               }
+	             }
+                 }
+              }
+           }
+           /* Check Location */
+	   if ( !succ && Has_location(player) && Good_obj(Location(player)) && (sflag < 2) ) {
+	      sflag = list_check(Contents(Location(player)), player, AMATCH_CMD, lcbuf, 1, 1, 1);
+	      succ += sflag;
+	   }
+           /* Check Inventory */
+	   if ( !succ && Has_contents(player) && (sflag < 2) ) {
+	       succ += list_check(Contents(player), player, AMATCH_CMD, lcbuf, 1, 1, 1);
+           }
 	}
 
-	/* Scope 4: Inventory */
-	if (Has_contents(player) && sflag < 3) {
-	    for (dbref mobj = Contents(player); mobj != NOTHING && sflag < 3;
-		 mobj = Next(mobj)) {
-		if ((cmd_matches
-		     && cmd_prefix_thing_matches(cmd_matches, mobj))
-		    || (cmd_regexp_count > 0
-			&& cmd_prefix_regexp_has_thing(mobj))) {
-		    int mresult = atr_match(mobj, player, AMATCH_CMD,
-					    lcbuf, 1, 1);
-		    if (mresult == 3) { sflag = 3; succ++; break; }
-		    else if (mresult == 2) { succ++; mast_checked = 1; }
-		    else if (mresult > 0) { succ++; }
-		}
-	    }
-	}
+	/* If we didn't find anything, try in the master room */
 
-	/* Scope 5: Zone master commands */
-	if (sflag < 3) {
-	    dbref zm_loc = absloc(player);
-	    if (Good_obj(zm_loc) && cold_db[zm_loc].zonelist
-		&& !ZoneMaster(zm_loc)) {
-		for (zonelistnodeptr = cold_db[zm_loc].zonelist;
-		     zonelistnodeptr;
-		     zonelistnodeptr = zonelistnodeptr->next) {
-		    if ((cmd_matches
-			 && cmd_prefix_thing_matches(cmd_matches,
-						    zonelistnodeptr->object))
-			|| (cmd_regexp_count > 0
-			    && cmd_prefix_regexp_has_thing(
-				   zonelistnodeptr->object))) {
-			int mresult = atr_match(zonelistnodeptr->object,
-						player, AMATCH_CMD,
-						lcbuf, 1, 1);
-			if (mresult == 3) { sflag = 3; succ++; break; }
-			else if (mresult == 2) { succ++; mast_checked = 1; }
-			else if (mresult > 0) { succ++; }
-		    }
-		    if (Good_obj(zonelistnodeptr->object)
-			&& ZoneContents(zonelistnodeptr->object)) {
-			succ += list_check(Contents(zonelistnodeptr->object),
-					   player, AMATCH_CMD,
-					   lcbuf, 0, 0, 0);
-		    }
-		}
-	    }
-	}
-
-	/* Scope 6: Zone-like-parents */
-	if (mudconf.zones_like_parents && sflag < 3) {
-	    if (mudconf.match_mine && ZoneCmdChk(player)) {
-		if (cold_db[player].zonelist && !ZoneMaster(player)) {
-		    for (zonelistnodeptr = cold_db[player].zonelist;
-			 zonelistnodeptr;
-			 zonelistnodeptr = zonelistnodeptr->next) {
-			if ((cmd_matches
-			     && cmd_prefix_thing_matches(
-				    cmd_matches,
-				    zonelistnodeptr->object))
-			    || (cmd_regexp_count > 0
-				&& cmd_prefix_regexp_has_thing(
-				       zonelistnodeptr->object))) {
-			    int mresult = atr_match(zonelistnodeptr->object,
-						    player, AMATCH_CMD,
-						    lcbuf, 1, 1);
-			    if (mresult == 3) { sflag = 3; succ++; break; }
-			    else if (mresult == 2) { succ++; mast_checked = 1; }
-			    else if (mresult > 0) { succ++; }
-			}
-			if (Good_obj(zonelistnodeptr->object)
-			    && ZoneContents(zonelistnodeptr->object)) {
-			    succ += list_check(
-				    Contents(zonelistnodeptr->object),
-				    player, AMATCH_CMD,
-				    lcbuf, 0, 0, 0);
-			}
-		    }
-		}
-	    }
-	    if (Has_location(player) && Good_obj(Location(player))
-		&& sflag < 3) {
-		succ += list_check(Contents(Location(player)), player,
-				   AMATCH_CMD, lcbuf, 1, 1, 1);
-	    }
-	    if (Has_contents(player) && sflag < 3) {
-		succ += list_check(Contents(player), player,
-				   AMATCH_CMD, lcbuf, 1, 1, 1);
-	    }
-	}
-
-	/* Scope 7: Master room */
 	if (!DePriv(player, NOTHING, DP_MASTER, POWER6, POWER_LEVEL_NA)) {
-	    if (sflag < 3) {
-		if (Good_obj(mudconf.master_room)
-		    && Has_contents(mudconf.master_room)) {
-		    dbref player_loc =
-			Has_location(player) ? Location(player) : NOTHING;
-		    if (player_loc != mudconf.master_room
-			&& (cmd_matches || cmd_regexp_count > 0)) {
-			succ += list_check(Contents(mudconf.master_room),
-					   player, AMATCH_CMD,
-					   lcbuf, 0, 0, 0);
-		    }
-		    if (player_loc != mudconf.master_room && !mast_checked
-			&& atr_match(mudconf.master_room, player,
-				     AMATCH_CMD, lcbuf, 0, 0) > 0)
+	    if (!succ && (sflag < 2) ) {
+		if (Good_obj(mudconf.master_room) &&
+		    Has_contents(mudconf.master_room)) {
+		    succ += list_check(Contents(mudconf.master_room),
+				       player, AMATCH_CMD, lcbuf, 0, 0, 0);
+		    if (atr_match(mudconf.master_room,
+				  player, AMATCH_CMD, lcbuf, 0, 0) > 0) {
 			succ++;
+		    }
 		}
 	    }
-	}
+	 }
     }
     free_lbuf(lcbuf);
 
@@ -6465,87 +6380,6 @@ static const char *ed[] =
 {"Disabled", "Enabled"};
 static const char *ud[] =
 {"Down", "Up"};
-
-static void
-list_options_cmdprefix(dbref player, int page)
-{
-    CMD_PREFIX_ENTRY *ent;
-    int *data;
-    int i, total, prefixes, seen, page_start, page_end, total_pages;
-    char *buf, *bp;
-
-    /* Count total lines and unique prefixes */
-    total = 0;
-    prefixes = 0;
-    for (data = (int *)ohtab_firstentry(&cmd_prefix_htab);
-         data;
-         data = (int *)ohtab_nextentry(&cmd_prefix_htab))
-    {
-        ent = (CMD_PREFIX_ENTRY *)data;
-        total += ent->count;
-        prefixes++;
-    }
-    total += cmd_regexp_count;
-
-    buf = alloc_lbuf("list_options_cmdprefix");
-
-    if (total == 0) {
-        sprintf(buf, "--- $command prefix index (empty) ---");
-        notify(player, buf);
-        free_lbuf(buf);
-        return;
-    }
-
-    int page_size = 100;
-    total_pages = (total + page_size - 1) / page_size;
-    if (page < 1) page = 1;
-    if (page > total_pages) page = total_pages;
-
-    page_start = (page - 1) * page_size;
-    page_end = page_start + page_size;
-    if (page_end > total) page_end = total;
-
-    sprintf(buf, "--- $command prefix index  Page (%d/%d) ---",
-            page, total_pages);
-    notify(player, buf);
-
-    seen = 0;
-    for (data = (int *)ohtab_firstentry(&cmd_prefix_htab);
-         data && seen < page_end;
-         data = (int *)ohtab_nextentry(&cmd_prefix_htab))
-    {
-        ent = (CMD_PREFIX_ENTRY *)data;
-        char *prefix = cmd_prefix_htab.last_entry->target;
-        for (i = 0; i < ent->count && seen < page_end; i++, seen++) {
-            if (seen >= page_start) {
-                ATTR *ap = atr_num(ent->matches[i].atr);
-                bp = buf;
-                bp += sprintf(bp, "%-30s #%d  %s",
-                              prefix, ent->matches[i].thing,
-                              ap ? ap->name : "UNKNOWN");
-                *bp = '\0';
-                notify(player, buf);
-            }
-        }
-    }
-
-    for (i = 0; i < cmd_regexp_count && seen < page_end; i++, seen++) {
-        if (seen >= page_start) {
-            ATTR *ap = atr_num(cmd_regexp_list[i].atr);
-            bp = buf;
-            bp += sprintf(bp, "%-30s #%d  %s",
-                          "regexp", cmd_regexp_list[i].thing,
-                          ap ? ap->name : "UNKNOWN");
-            *bp = '\0';
-            notify(player, buf);
-        }
-    }
-
-    sprintf(buf, "--- Page (%d/%d) -- %d prefixes, %d entries ---",
-            page, total_pages, prefixes, total);
-    notify(player, buf);
-    free_lbuf(buf);
-}
 
 static void
 list_options_mail(dbref player)
@@ -9058,7 +8892,6 @@ list_rlevels(dbref player, int i_key)
 #define LIST_VATTRCMDS	33
 #define LIST_TOTEMS	34
 #define LIST_PRONOUNS	35
-#define LIST_CMDPREFIX	36
 
 NAMETAB list_names[] =
 {
@@ -9100,7 +8933,6 @@ NAMETAB list_names[] =
     {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {(char *) "pronouns", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
     {(char *) "gender", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
-    {(char *) "cmdprefix", 5, CA_WIZARD, 0, LIST_CMDPREFIX},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -9317,11 +9149,8 @@ do_list(dbref player, dbref cause, int extra, char *arg)
            break;
         case LIST_FUNPERMS:
            list_functionperms(player, s_ptr2, ((s_ptr2 && *s_ptr2) ? 1 : 0));
-           break;
-         case LIST_CMDPREFIX:
-            list_options_cmdprefix(player, s_ptr2 ? atoi(s_ptr2) : 1);
             break;
-        default:
+         default:
 	   display_nametab(player, list_names,
 			   (char *) "Unknown option.  Use one of:", 1);
     }
