@@ -43211,8 +43211,8 @@ NDECL(init_functab)
 
     ufun_head = NULL;
     ulfun_head = NULL;
-    hashinit(&mudstate.ufunc_htab, 131);
-    hashinit(&mudstate.ulfunc_htab, 131);
+    hashinit(&mudstate.ufunc_htab, 2047);
+    hashinit(&mudstate.ulfunc_htab, 2047);
 }
 
 void
