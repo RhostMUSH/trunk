@@ -6976,7 +6976,7 @@ NDECL(process_commands)
 		    free_lbuf(t);
 		}
 	    }
-	    if ((t = d->cold->door_input_head)) {
+	    if (d->cold && (t = d->cold->door_input_head)) {
 		nprocessed++;
 		d->cold->door_input_head = (CBLK *) t->hdr.nxt;
 		if (!d->cold->door_input_head)
