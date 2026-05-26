@@ -14090,8 +14090,34 @@
            SESSION command.
 
   In the case a player has multiple conections to the game, the width and
-  height of the least idle session will be displayed.w
+  height of the least idle session will be displayed.
 
+  See also: Terminfo()
+
+& terminfo()
+  Function: terminfo([player|port])
+
+  This function shows the following information about a connected client:
+
+  <clientname> - Defaults to 'unknown' if nothing is sent
+      "telnet" - If the client supports basic telnet.
+        "ansi" - Basic color support
+   "256-color" - Support for 256+ colors
+     "unicode" - UTF8 Support
+
+
+  Without arguments, this function uses the current player connection as
+  the target.
+
+  Player - Can be used on any player that is not hiding/dark/cloaked.
+    Port - Can only be used on your own SESSION list. Admins can use this
+         on any conmnection they can see in SESSION.
+
+  Example:
+  > th terminfo(me)
+    Beip telnet ansi 256-color unicode
+
+  See Also: width(), height()
   
 & type()
   Function: type(<object>)
@@ -36965,7 +36991,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
+  1 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
   2 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
   3 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
@@ -36975,6 +37001,7 @@
   5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 4.33.0
 & 4.32.0
 & 4.31.0
 & 4.30.0
@@ -36988,6 +37015,13 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  4.33.0
+  * support for more Telnet Negotitation:
+    - terminfo() shows information about a connected client.
+      For compatibility with MUX.
+    - Several bugfixes, including crashfixes due to the new
+      player descriptor changes.
 
   4.32.0
   * Support for TelNet Negotiation:
