@@ -79,24 +79,24 @@ struct SNOOPLISTNODE {
 /* ************************************************************************
  * BIG NOTE!!!!
  *
- * If you change anything in the DESC structure be sure to analyze the
- * effects of your change as it pertains to the @reboot code in bsd.c,
- * netcommon.c, and game.c. Also note that you MUST use @shutdown to
- * bring in any new code that has had the DESC structure changed. If not
- * then an @reboot will write out the old records to a file, then read
- * them in with the new structure and everything will be hosed!
- *    - Thorin 01/1997
+ * If you add or reorder fields in `desc_hot_arrays`, you MUST mirror the
+ * change in BOTH `dump_reboot_db()` (write) and `load_reboot_db()` (read)
+ * in src/netcommon.c.  The serialization order must match exactly between
+ * write and read, and must match the struct field order.
  *
- * This has been modified.  Going forward from Rhost 4.0.0p4 any changes
- * to this file is allowed but ONLY FOR ADDING NEW DATA AT THE END.
- * You can not:
- *   1.  Alter any of the field values including sizes
- *   2.  Change the order of any of the values.
- *   3.  Shrink/remove fields after adding them
+ * If you add or reorder fields in `DESC_COLD`, update `sizeof(DESC_COLD)`
+ * — the cold bulk-write in `dump_reboot_db()` and cold bulk-read in
+ * `load_reboot_db()` handle size mismatches via the `i_file_cold_size`
+ * guard (reads the lesser of file-size vs current-size, zero-filling
+ * leftover bytes on upgrade).
  *
- * If you do any of the two with the DESC data, a @reboot WILL CRASH.
- *    - Ashen-Shugar 12/2019
-*/
+ * Bump the reboot format version (i_reboot_version) whenever the
+ * hot field serialization order changes.  Old .reboot files will be
+ * rejected with a clear error message — admin deletes the file and
+ * cold-starts.  This is safer than silent data corruption.
+ *
+ *    - updated 2026-05-26 for v4 SoA serialization
+ */
 
 
 /* OK, let's make a temporary player desc data descriptor here */
