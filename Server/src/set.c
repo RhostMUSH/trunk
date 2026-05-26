@@ -177,8 +177,8 @@ void do_name(dbref player, dbref cause, int key, char *name, char *newname)
 
    i_ansi = 0;
    if ( key & NAME_ANSI ) {
-      cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-      if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
             cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
          notify(player, "Permission denied.");
          return;

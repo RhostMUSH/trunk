@@ -247,6 +247,7 @@ log_text(char *text)
     else
        f_foo = stderr;
 
+    if (!text) text = "(null)";
     /* Write only 3900 characters.  Notify if it was cut off */
     if ( strlen(text) > 3900 )
        if ( index(text,ESC_CHAR) )

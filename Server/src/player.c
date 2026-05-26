@@ -1499,7 +1499,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
     i_ansi = 0;
     if ( key & REGISTER_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
           return;
