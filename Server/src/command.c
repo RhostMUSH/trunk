@@ -2064,6 +2064,8 @@ NDECL(init_cmdtab)
             }
 	    *p = '\0';
 	    cp = (CMDENT *) malloc(sizeof(CMDENT));
+	    if (!cp)
+	        continue;
 	    cp->cmdname = (char *) strsave(cbuff);
 	    cp->perms = CA_NO_GUEST | CA_NO_SLAVE;
             cp->perms2 = 0;
@@ -5883,6 +5885,11 @@ CF_HAND(cf_cmd_vattr)
   }
 
   cp = (CMDENT *) malloc(sizeof(CMDENT));
+  if (!cp) {
+      free_sbuf(cbuff);
+      DPOP; /* #40A */
+      return -1;
+  }
   cp->cmdname = (char *) strsave(cbuff);
   cp->perms = CA_NO_GUEST | CA_NO_SLAVE;
   cp->perms2 = 0;

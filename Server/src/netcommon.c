@@ -898,7 +898,9 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	VOIDRETURN; /* #106 */
     }
     if ((key == SNOOP_ON) || key == 0) {
-	DESC_ITER_PLAYER(victim, d) {
+	DESC *d_tmp1;
+	DESC_SAFEITER_PLAYER(victim, d, d_tmp1) {
+	    (void)d_tmp1;
 	    for (node = d->cold->snooplist; node && node->snooper != Owner(oper);
 		 node = node->next) {
 	    }
@@ -915,7 +917,9 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 		}
 	    }
 	}
-	DESC_ITER_PLAYER(victim, d) {
+	DESC *d_tmp2;
+	DESC_SAFEITER_PLAYER(victim, d, d_tmp2) {
+	    (void)d_tmp2;
 	    node = (struct SNOOPLISTNODE *) malloc(sizeof(
 						     struct SNOOPLISTNODE));
 
@@ -1071,10 +1075,10 @@ int dump_reboot_db( void )
     RETURN(0); /* #107 */
   }
 
-  /* Reboot format v3: SoA — write version marker, then fields individually */
-  i_hot_size = sizeof(DESC_COLD); /* placeholder, cold size only */
+  /* Reboot format v4: SoA — write version marker, then hot fields (struct order), then cold bulk */
+  i_hot_size = 8 * (int)sizeof(int) + 4 * (int)sizeof(void *) + (int)sizeof(time_t) + (int)sizeof(dbref);
   i_cold_size = sizeof(DESC_COLD);
-  int i_reboot_version = 3;
+  int i_reboot_version = 4;
   if (!fwrite(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
       !fwrite(&i_hot_size, sizeof(i_hot_size), 1, rebootfile) ||
       !fwrite(&i_cold_size, sizeof(i_cold_size), 1, rebootfile)) {
@@ -1126,21 +1130,21 @@ int dump_reboot_db( void )
     /* Null telnet pointer before writing cold struct (stale across processes) */
     void *saved_telnet = d->cold->telnet;
     d->cold->telnet = NULL;
-    /* Write hot fields individually (SoA format v3) */
+    /* Write hot fields individually (SoA format v4) */
     if( !fwrite(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
-        !fwrite(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-        !fwrite(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
-        !fwrite(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-        !fwrite(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fwrite(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
         !fwrite(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
         !fwrite(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
         !fwrite(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
+        !fwrite(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+        !fwrite(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
-        !fwrite(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
         !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
       d->cold->telnet = saved_telnet;
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
@@ -1408,7 +1412,7 @@ int load_reboot_db( void )
      /* Clean up legacy .size file */
      unlink(rebootsizeref);
   } else {
-     /* v3 format: read version marker and sizes */
+     /* v4 format: read version marker and sizes */
      int i_reboot_version = 0;
      if( !fread(&i_reboot_version, sizeof(i_reboot_version), 1, rebootfile) ||
          !fread(&i_file_hot_size, sizeof(i_file_hot_size), 1, rebootfile) ||
@@ -1420,11 +1424,11 @@ int load_reboot_db( void )
        if ( !i_fxchk ) fclose(suffixfile);
        RETURN(0); /* #108 */
      }
-     (void)i_file_hot_size; /* read for file position, not used in v3 */
+     (void)i_file_hot_size; /* read for file position only — hot fields are individually serialized, sizes are implicit from types */
 
-     if ( i_reboot_version != 3 ) {
+     if ( i_reboot_version != 4 ) {
        STARTLOG(LOG_PROBLEMS, "RBT", "LOAD")
-         log_text((char *) "Reboot file format is not v3 (SoA) and no legacy .size file found. Cannot load. Delete .reboot file and restart.");
+         log_text((char *) "Reboot file format is not v4. Delete .reboot file and restart.");
        ENDLOG
        fclose(rebootfile);
        if ( !i_fxchk ) fclose(suffixfile);
@@ -1453,22 +1457,22 @@ int load_reboot_db( void )
          ENDLOG
          break;
        }
-       /* Read hot fields individually (SoA format v3) */
-       if( !fread(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
-           !fread(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
-           !fread(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
-           !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
-           !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
-           !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
-           !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
-           !fread(d->cold, i_cold_read, 1, rebootfile) ) {
+        /* Read hot fields individually (SoA format v4 — struct field order) */
+        if( !fread(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_QUOTA(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_HOST_INFO(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_PLAYER(d), sizeof(dbref), 1, rebootfile) ||
+            !fread(&D_INPUT_HEAD(d), sizeof(CBLK *), 1, rebootfile) ||
+            !fread(&D_INPUT_TAIL(d), sizeof(CBLK *), 1, rebootfile) ||
+            !fread(&D_OUTPUT_HEAD(d), sizeof(TBLOCK *), 1, rebootfile) ||
+            !fread(&D_OUTPUT_TAIL(d), sizeof(TBLOCK *), 1, rebootfile) ||
+            !fread(&D_INPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_INPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_OUTPUT_TOT(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_OUTPUT_SIZE(d), sizeof(int), 1, rebootfile) ||
+            !fread(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
+            !fread(d->cold, i_cold_read, 1, rebootfile) ) {
          if( feof(rebootfile) ) {
            free_desc(d);
            break;
@@ -1663,7 +1667,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 
     strcpy(antemp, ANSI_NORMAL);
     if (!port) {
-      DESC_ITER_PLAYER(player, d) {
+      DESC *d_tmp;
+      DESC_SAFEITER_PLAYER(player, d, d_tmp) {
+      (void)d_tmp;
 	if ((D_FLAGS(d) & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(D_PLAYER(d)) & DOORRED)) {
 	  continue;
         }
@@ -1687,7 +1693,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
                 }
-		DESC_ITER_PLAYER(node->snooper, sd) {
+		DESC *sd_tmp;
+		DESC_SAFEITER_PLAYER(node->snooper, sd, sd_tmp) {
+		(void)sd_tmp;
 		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
@@ -1753,7 +1761,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
                 }
-		DESC_ITER_PLAYER(node->snooper, sd) {
+		DESC *sd_tmp;
+		DESC_SAFEITER_PLAYER(node->snooper, sd, sd_tmp) {
+		(void)sd_tmp;
 		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
@@ -2223,6 +2233,10 @@ queue_write(DESC * d, const char *b, int n)
 
     if (n <= 0) {
 	VOIDRETURN; /* #117 */
+    }
+
+    if (!d) {
+        VOIDRETURN;
     }
 
     if (D_OUTPUT_SIZE(d) + n > mudconf.output_limit)
@@ -4165,7 +4179,9 @@ do_doing(dbref player, dbref cause, int key, char *arg)
 	}
 	*c = '\0';
 	if (key == DOING_MESSAGE) {
-	  DESC_ITER_PLAYER(player, d) {
+	  DESC *d_tmp;
+	  DESC_SAFEITER_PLAYER(player, d, d_tmp) {
+	  (void)d_tmp;
 	    c = d->cold->doing;
 	    if (len_noansi(pt2) > (DOING_SIZE + addlen)) {
 		pt1 = strip_all_special(pt2);
@@ -6976,7 +6992,7 @@ NDECL(process_commands)
 		    free_lbuf(t);
 		}
 	    }
-	    if ((t = d->cold->door_input_head)) {
+	    if (d->cold && (t = d->cold->door_input_head)) {
 		nprocessed++;
 		d->cold->door_input_head = (CBLK *) t->hdr.nxt;
 		if (!d->cold->door_input_head)

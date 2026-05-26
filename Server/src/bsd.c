@@ -1146,6 +1146,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    if (check) {
 		if (!process_output(d)) {
 		    shutdownsock(d, R_SOCKDIED);
+		    continue;
 		}
 	    }
 

@@ -187,7 +187,7 @@ do_open(dbref player, dbref cause, int key, char *direction,
     i_ansi = 0;
     if ( key & OPEN_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
           return;
@@ -934,7 +934,7 @@ do_dig(dbref player, dbref cause, int key, char *name,
     i_ansi = 0;
     if ( key & DIG_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
           return;
@@ -1062,7 +1062,7 @@ do_create(dbref player, dbref cause, int key, char *name, char *coststr)
     i_ansi = 0;
     if ( key & CREATE_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
           return;
@@ -1113,7 +1113,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
     i_ansi = 0;
     if ( key & CLONE_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           notify(player, "Permission denied.");
           return;
@@ -1357,10 +1357,10 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     i_ansi = 0;
     if ( key & PCRE_ANSI ) {
        cmdp = (CMDENT *)ohtab_find((char *)"@extansi", &mudstate_hot.command_htab);
-       if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
+       if ( !cmdp || !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@extansi") ||
            cmdtest(Owner(player), "@extansi") || zonecmdtest(player, "@extansi") ) {
           if ( !(key & SIDEEFFECT) ) {
-	     notify(player, "Permission denied.");
+ 	     notify(player, "Permission denied.");
           }
           return;
        }

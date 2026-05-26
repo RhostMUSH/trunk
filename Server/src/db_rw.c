@@ -1598,6 +1598,7 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
 	    }
 	    if (save) {
 		got = atr_get_raw(i, j);
+		if (!got) got = "";
 #ifndef STANDALONE
                 if ( key && a && *a->name )
 		   fprintf(f, ">%s\n%s\n", a->name, got);
