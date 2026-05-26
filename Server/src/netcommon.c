@@ -2225,6 +2225,10 @@ queue_write(DESC * d, const char *b, int n)
 	VOIDRETURN; /* #117 */
     }
 
+    if (!d) {
+        VOIDRETURN;
+    }
+
     if (D_OUTPUT_SIZE(d) + n > mudconf.output_limit)
 	process_output(d);
 
