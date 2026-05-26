@@ -19,6 +19,8 @@ char *index(const char *, int);
 #include "alloc.h"
 #include "attrs.h"
 #include "match.h"
+#include <signal.h>
+#include <sys/wait.h>
 
 #define	NUM_GOOD	4	/* # of successful logins to save data for */
 #define NUM_BAD		3	/* # of failed logins to save data for */
@@ -1232,6 +1234,55 @@ char	*buff, *bufp;
 	free_lbuf(buff);
 }
 
+static int mail_to(const char *prog, const char *email,
+                   const char *subject, int use_separator)
+{
+    pid_t pid;
+    int status;
+    char *argv[6];
+
+    pid = fork();
+    if (pid == 0) {
+        int i, maxfd;
+
+        signal(SIGALRM, SIG_DFL);
+
+        maxfd = (int)sysconf(_SC_OPEN_MAX);
+        if (maxfd < 0) maxfd = 256;
+        for (i = 3; i < maxfd; i++)
+            close(i);
+
+        {
+            FILE *f = fopen("mailtemp", "r");
+            if (f) {
+                dup2(fileno(f), STDIN_FILENO);
+                fclose(f);
+            }
+        }
+
+        i = 0;
+        argv[i++] = (char *)prog;
+        if (subject) {
+            argv[i++] = "-s";
+            argv[i++] = (char *)subject;
+        }
+        if (use_separator)
+            argv[i++] = "--";
+        argv[i++] = (char *)email;
+        argv[i] = NULL;
+
+        execvp(prog, argv);
+        _exit(127);
+    } else if (pid > 0) {
+        int wret;
+        do {
+            wret = waitpid(pid, &status, 0);
+        } while (wret < 0 && errno == EINTR);
+        return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    }
+    return -1;
+}
+
 int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char *ansiname, int isansi)
 {
   DESC *d;
@@ -1430,14 +1481,14 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
             broadcast_monitor(NOTHING, MF_AREG, "AUTOREG CREATE WARNING", d->cold->userid, d->cold->longaddr, 
                               D_DESCRIPTOR(d), 0, 0, "There is an error in the autoreg_include file!");
       }
-      if (mudconf.mailsub)
-        sprintf(buff,"%s -s \"%s autoregistration\" %s%s < mailtemp", 
-                mudconf.mailprog, mudconf.mud_name, (mudconf.mailmutt ? "-- " : " "), email);
-      else
-        sprintf(buff,"%s %s%s < mailtemp", 
-                mudconf.mailprog, (mudconf.mailmutt ? "-- " : " "), email);
-      system(buff);
-      system("rm mailtemp");
+      if (mudconf.mailsub) {
+          char subj_buf[256];
+          snprintf(subj_buf, sizeof(subj_buf), "%s autoregistration", mudconf.mud_name);
+          mail_to(mudconf.mailprog, email, subj_buf, mudconf.mailmutt);
+      } else {
+          mail_to(mudconf.mailprog, email, NULL, mudconf.mailmutt);
+      }
+      unlink("mailtemp");
       if ( !key ) {
          STARTLOG(LOG_SECURITY | LOG_PCREATES, "AUTOREG", "CREATE")
            tpr_buff = tprp_buff = alloc_lbuf("reg_internal");
