@@ -235,7 +235,22 @@ struct desc_cold {
     int     ws_closing;         /* 1 = close frame received, pending shutdown */
     char    ws_fragmented;      /* 1 = in-progress fragmented message */
     time_t  ws_last_pong;       /* timestamp of last PONG received */
+
+    /* Client detection (TTYPE / capabilities) */
+    char    client_name[64];    /* TTYPE terminal type, e.g. "Mudlet" */
+    char    client_name_first[64]; /* first TTYPE response in cycle for end-of-list detection */
+    int     client_caps;        /* bitmask: 0x01 = unicode detected */
 };
+
+/* Client capability flags */
+#define CLIENT_CAP_UNICODE    0x01
+#define CLIENT_MTTS_SEEN     0x02
+#define CLIENT_CAP_ANSI      0x04
+#define CLIENT_CAP_256COLOR  0x08
+#define CLIENT_CAP_TRUECOLOR 0x10
+#define CLIENT_TTYPE_SEND1   0x20
+#define CLIENT_TTYPE_SEND2   0x40
+#define CLIENT_TTYPE_SEND3   0x80
 
 typedef struct descriptor_data DESC;
 struct descriptor_data {

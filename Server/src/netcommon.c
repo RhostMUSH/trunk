@@ -898,7 +898,9 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	VOIDRETURN; /* #106 */
     }
     if ((key == SNOOP_ON) || key == 0) {
-	DESC_ITER_PLAYER(victim, d) {
+	DESC *d_tmp1;
+	DESC_SAFEITER_PLAYER(victim, d, d_tmp1) {
+	    (void)d_tmp1;
 	    for (node = d->cold->snooplist; node && node->snooper != Owner(oper);
 		 node = node->next) {
 	    }
@@ -915,7 +917,9 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 		}
 	    }
 	}
-	DESC_ITER_PLAYER(victim, d) {
+	DESC *d_tmp2;
+	DESC_SAFEITER_PLAYER(victim, d, d_tmp2) {
+	    (void)d_tmp2;
 	    node = (struct SNOOPLISTNODE *) malloc(sizeof(
 						     struct SNOOPLISTNODE));
 
@@ -1663,7 +1667,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 
     strcpy(antemp, ANSI_NORMAL);
     if (!port) {
-      DESC_ITER_PLAYER(player, d) {
+      DESC *d_tmp;
+      DESC_SAFEITER_PLAYER(player, d, d_tmp) {
+      (void)d_tmp;
 	if ((D_FLAGS(d) & DS_HAS_DOOR) && !mudstate.droveride && (Flags3(D_PLAYER(d)) & DOORRED)) {
 	  continue;
         }
@@ -1687,7 +1693,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
                 }
-		DESC_ITER_PLAYER(node->snooper, sd) {
+		DESC *sd_tmp;
+		DESC_SAFEITER_PLAYER(node->snooper, sd, sd_tmp) {
+		(void)sd_tmp;
 		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
@@ -1753,7 +1761,9 @@ raw_notify(dbref player, const char *msg, int port, int type)
 		if (!Connected(node->snooper) || node->logonly) {
 		    continue;
                 }
-		DESC_ITER_PLAYER(node->snooper, sd) {
+		DESC *sd_tmp;
+		DESC_SAFEITER_PLAYER(node->snooper, sd, sd_tmp) {
+		(void)sd_tmp;
 		    if ((D_FLAGS(sd) & DS_HAS_DOOR) && (Flags3(D_PLAYER(sd)) & DOORRED)) {
 			continue;
                     }
@@ -4169,7 +4179,9 @@ do_doing(dbref player, dbref cause, int key, char *arg)
 	}
 	*c = '\0';
 	if (key == DOING_MESSAGE) {
-	  DESC_ITER_PLAYER(player, d) {
+	  DESC *d_tmp;
+	  DESC_SAFEITER_PLAYER(player, d, d_tmp) {
+	  (void)d_tmp;
 	    c = d->cold->doing;
 	    if (len_noansi(pt2) > (DOING_SIZE + addlen)) {
 		pt1 = strip_all_special(pt2);

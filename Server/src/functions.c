@@ -9065,6 +9065,128 @@ FUNCTION(fun_height)
     }
 }
 
+/* ---------------------------------------------------------------------------
+ * terminfo: Return client terminal information.
+ * Syntax: terminfo()                  → own client
+ *         terminfo(session_port)     → session by port (Builder+)
+ *         terminfo(player_name)      → player's least-idle session
+ * Output: "clientname[ telnet][ unicode][ ssl]" or "unknown"
+ */
+static void build_terminfo_output(char *buff, char **bufcx, DESC *d)
+{
+    char *name = d->cold->client_name;
+
+    if (!name || !*name)
+        name = "unknown";
+
+    safe_str(name, buff, bufcx);
+
+    if (!(D_FLAGS(d) & DS_WEBSOCKETS))
+        safe_str(" telnet", buff, bufcx);
+
+    if (d->cold->client_caps & CLIENT_CAP_ANSI)
+        safe_str(" ansi", buff, bufcx);
+
+    if (d->cold->client_caps & CLIENT_CAP_256COLOR)
+        safe_str(" 256-color", buff, bufcx);
+
+    if (d->cold->client_caps & CLIENT_CAP_UNICODE)
+        safe_str(" unicode", buff, bufcx);
+
+    if (d->cold->client_caps & CLIENT_CAP_TRUECOLOR)
+        safe_str(" truecolor", buff, bufcx);
+
+    if (D_FLAGS(d) & DS_SSL)
+        safe_str(" ssl", buff, bufcx);
+}
+
+FUNCTION(fun_terminfo)
+{
+    DESC *d;
+    dbref target;
+    int port;
+
+    if (!fn_range_check("TERMINFO", nfargs, 0, 1, buff, bufcx))
+        return;
+
+    if (nfargs == 0) {
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == player) {
+                build_terminfo_output(buff, bufcx, d);
+                return;
+            }
+        }
+        safe_str("unknown", buff, bufcx);
+        return;
+    }
+
+    if (is_number(fargs[0])) {
+        if (!Builder(player)) {
+            safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+            return;
+        }
+        port = atoi(fargs[0]);
+        DESC_ITER_CONN(d) {
+            if (D_DESCRIPTOR(d) == port) {
+                if (!Wizard(player) && !Admin(player) && !Builder(player) &&
+                    D_PLAYER(d) != player)
+                    break;
+                if (!Wizard(player) && Wizard(D_PLAYER(d)))
+                    break;
+                if (!Admin(player) && Admin(D_PLAYER(d)))
+                    break;
+                if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) &&
+                    Unfindable(D_PLAYER(d)) && !Immortal(player))
+                    break;
+                if (Cloak(D_PLAYER(d)) && !Wizard(player))
+                    break;
+                if (NoWho(D_PLAYER(d)) && D_PLAYER(d) != player &&
+                    !(Wizard(player) || HasPriv(player, D_PLAYER(d),
+                      POWER_WIZ_WHO, POWER3, NOTHING)))
+                    break;
+
+                build_terminfo_output(buff, bufcx, d);
+                return;
+            }
+        }
+        safe_str("unknown", buff, bufcx);
+        return;
+    }
+
+    target = lookup_player(player, fargs[0], 1);
+    if (!Good_obj(target) ||
+        (((Dark(target) && !Wizard(player) && !(mudconf.player_dark)) ||
+          (Wizard(player) && !Immortal(player) && Immortal(target) && SCloak(target))) &&
+         (player != target))) {
+        safe_str("unknown", buff, bufcx);
+        return;
+    }
+    if (NoWho(target) && (target != player) &&
+        !(Wizard(player) || HasPriv(player, target, POWER_WIZ_WHO, POWER3, NOTHING))) {
+        safe_str("unknown", buff, bufcx);
+        return;
+    }
+
+    {
+        DESC *best = NULL;
+        int best_idle = -1;
+        DESC_ITER_CONN(d) {
+            if (D_PLAYER(d) == target) {
+                int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
+                if (!best || idle < best_idle) {
+                    best = d;
+                    best_idle = idle;
+                }
+            }
+        }
+        if (best) {
+            build_terminfo_output(buff, bufcx, best);
+        } else {
+            safe_str("unknown", buff, bufcx);
+        }
+    }
+}
+
 FUNCTION(fun_chkgarbage)
 {
    int i, retval, i_both;
@@ -43120,6 +43242,7 @@ FUN flist[] =
     {"WHILE", fun_while, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WIDTH", fun_width, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"HEIGHT", fun_height, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
+    {"TERMINFO", fun_terminfo, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WORDPOS", fun_wordpos, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WORDS", fun_words, 0, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
     {"WRAP", fun_wrap, 2, FN_VARARGS, CA_PUBLIC, 0},

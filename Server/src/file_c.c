@@ -534,8 +534,9 @@ void
 fcache_send(dbref player, int num)
 {
     DESC *d;
-
-    DESC_ITER_PLAYER(player, d) {
+    DESC *d_tmp;
+    DESC_SAFEITER_PLAYER(player, d, d_tmp) {
+	(void)d_tmp;
 	fcache_dump(d, num, (char *)NULL);
     }
 }
