@@ -137,7 +137,7 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
                             if (m & 1)    d->cold->client_caps |= CLIENT_CAP_ANSI;
                             if (m & 4)    d->cold->client_caps |= CLIENT_CAP_UNICODE;
                             if (m & (8|2)) d->cold->client_caps |= CLIENT_CAP_256COLOR;
-                            if (m & 8192) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
+                            if (m & 256) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
                         }
                         break;
                     }
@@ -156,7 +156,7 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
                 if (m & 1)    d->cold->client_caps |= CLIENT_CAP_ANSI;
                 if (m & 4)    d->cold->client_caps |= CLIENT_CAP_UNICODE;
                 if (m & (8|2)) d->cold->client_caps |= CLIENT_CAP_256COLOR;
-                if (m & 8192) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
+                if (m & 256) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
                 is_skip = 1;
             }
 
