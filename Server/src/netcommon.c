@@ -3627,7 +3627,7 @@ dump_users(DESC * e, char *match, int key)
         }
     }
     count = 0;
-    DESC_ITER_CONN(d) {
+    DESC_SAFEITER_CONN(d) {
 	rcount++;
 
 #ifdef ZENTY_ANSI
