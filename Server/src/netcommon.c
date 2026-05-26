@@ -3627,77 +3627,104 @@ dump_users(DESC * e, char *match, int key)
         }
     }
     count = 0;
-    DESC_SAFEITER_CONN(d) {
-	rcount++;
+    /* Collect phase: gather matching player slots */
+    {
+        int slots[MAX_DESCRIPTORS], nslots = 0;
+        DESC_SAFEITER_CONN(d) {
+            int slot;
+
+	    rcount++;
 
 #ifdef ZENTY_ANSI
-        *doingAccentBuf='\0';
-        *doingAnsiBuf='\0';
-        *doingUtfBuf='\0';
-	doingAnsiBufp = doingAnsiBuf;
-	doingAccentBufp = doingAccentBuf;
-	doingUtfBufp = doingUtfBuf;
-	parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
-        if ( !Accents(D_PLAYER(e)) ) {
-           strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-        }
-	pDoing = doingAccentBuf;
+            *doingAccentBuf='\0';
+            *doingAnsiBuf='\0';
+            *doingUtfBuf='\0';
+	    doingAnsiBufp = doingAnsiBuf;
+	    doingAccentBufp = doingAccentBuf;
+	    doingUtfBufp = doingUtfBuf;
+	    parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
+            if ( !Accents(D_PLAYER(e)) ) {
+               strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
+            }
+	    pDoing = doingAccentBuf;
 #else
-	pDoing = d->cold->doing;
+	    pDoing = d->cold->doing;
 #endif
 
-	if (Cloak(D_PLAYER(d)) && rcount)
-	    rcount--;
-        else if ((Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && rcount && 
-                  mudconf.allow_whodark))
-	    rcount--;
-        else if (NoWho(D_PLAYER(d)) && rcount && !(D_PLAYER(d) == D_PLAYER(e) || Wizard(D_PLAYER(e))) && rcount)
-            rcount--;
-        else if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED) && rcount)
-            rcount--;
+	    if (Cloak(D_PLAYER(d)) && rcount)
+	        rcount--;
+            else if ((Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && rcount && 
+                      mudconf.allow_whodark))
+	        rcount--;
+            else if (NoWho(D_PLAYER(d)) && rcount && !(D_PLAYER(d) == D_PLAYER(e) || Wizard(D_PLAYER(e))) && rcount)
+                rcount--;
+            else if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED) && rcount)
+                rcount--;
 
-        /* Rewrote this big honking if() because it was an eye sore and pissed me off -- Ash */
-	if ( ( !(Unfindable(D_PLAYER(d)) && mudconf.who_unfindable) || 
-               (Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) || 
-               (Unfindable(D_PLAYER(d)) && HasPriv(D_PLAYER(e),D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING)) ||
-	        HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING) ||
-               (!mudconf.who_unfindable && mudconf.player_dark) ||
-	       (Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED) && !Wizard(D_PLAYER(d))) 
-             ) &&
-             !( Dark(D_PLAYER(d)) && 
-                !mudconf.who_unfindable && 
-                !mudconf.player_dark && 
-                !(Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) && 
-                mudconf.allow_whodark
-              ) ) {
-	    if (!Unfindable(D_PLAYER(d)))
-		count++;
-	    if (match && !(string_prefix(Name(D_PLAYER(d)), match)))
-		continue;
-	    if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
-		!Admin(D_PLAYER(e)) && !Builder(D_PLAYER(e)) &&
-		(D_PLAYER(d) != D_PLAYER(e)))
-		continue;
-	    if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
-		Wizard(D_PLAYER(d)))
-		continue;
-	    if ((key == CMD_SESSION) && !Admin(D_PLAYER(e)) &&
-		Admin(D_PLAYER(d)))
-		continue;
-	    if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) && Unfindable(D_PLAYER(d)) && !Immortal(D_PLAYER(e)))
-		continue;
-	    if (Cloak(D_PLAYER(d)) && !Wizard(D_PLAYER(e)))
-		continue;
-	    if ((Cloak(D_PLAYER(d)) || NoWho(D_PLAYER(d))) && !(D_FLAGS(e) & DS_CONNECTED))
-		continue;
-            if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != D_PLAYER(e)) &&
-                !(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
-                continue;
-            if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED))
-                continue;
-            if (Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && 
-                !(D_FLAGS(e) & DS_CONNECTED) && mudconf.allow_whodark)
-                continue;
+            if ( ( !(Unfindable(D_PLAYER(d)) && mudconf.who_unfindable) || 
+                   (Wizard(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) || 
+                   (Unfindable(D_PLAYER(d)) && HasPriv(D_PLAYER(e),D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING)) ||
+	            HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING) ||
+                   (!mudconf.who_unfindable && mudconf.player_dark) ||
+	           (Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED) && !Wizard(D_PLAYER(d))) 
+                 ) &&
+                 !( Dark(D_PLAYER(d)) && 
+                    !mudconf.who_unfindable && 
+                    !mudconf.player_dark && 
+                    !(Admin(D_PLAYER(e)) && (D_FLAGS(e) & DS_CONNECTED)) && 
+                    mudconf.allow_whodark
+                  ) ) {
+	        if (!Unfindable(D_PLAYER(d)))
+	            count++;
+	        if (match && !(string_prefix(Name(D_PLAYER(d)), match)))
+	            continue;
+	        if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
+		    !Admin(D_PLAYER(e)) && !Builder(D_PLAYER(e)) &&
+		    (D_PLAYER(d) != D_PLAYER(e)))
+	            continue;
+	        if ((key == CMD_SESSION) && !Wizard(D_PLAYER(e)) &&
+		    Wizard(D_PLAYER(d)))
+	            continue;
+	        if ((key == CMD_SESSION) && !Admin(D_PLAYER(e)) &&
+		    Admin(D_PLAYER(d)))
+	            continue;
+	        if (SCloak(D_PLAYER(d)) && Dark(D_PLAYER(d)) && Unfindable(D_PLAYER(d)) && !Immortal(D_PLAYER(e)))
+	            continue;
+	        if (Cloak(D_PLAYER(d)) && !Wizard(D_PLAYER(e)))
+	            continue;
+	        if ((Cloak(D_PLAYER(d)) || NoWho(D_PLAYER(d))) && !(D_FLAGS(e) & DS_CONNECTED))
+	            continue;
+                if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != D_PLAYER(e)) &&
+                    !(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
+                    continue;
+                if (NoWho(D_PLAYER(d)) && !(D_FLAGS(e) & DS_CONNECTED))
+                    continue;
+                if (Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && 
+                    !(D_FLAGS(e) & DS_CONNECTED) && mudconf.allow_whodark)
+                    continue;
+                slot = d->slot_index;
+                if (nslots < MAX_DESCRIPTORS) {
+                    int _p;
+                    for (_p = 0; _p < nslots; _p++)
+                        if (slots[_p] == slot) break;
+                    if (_p >= nslots)
+                        slots[nslots++] = slot;
+                }
+	    }
+	}
+        /* Sort by connected_at descending (newest first) */
+        for (int _i = 0; _i < nslots - 1; _i++) {
+            for (int _j = _i + 1; _j < nslots; _j++) {
+                time_t ti = desc_cold[slots[_i]].connected_at;
+                time_t tj = desc_cold[slots[_j]].connected_at;
+                if (ti < tj) {
+                    int _t = slots[_i]; slots[_i] = slots[_j]; slots[_j] = _t;
+                }
+            }
+        }
+        /* Output phase: iterate sorted entries */
+        for (int _wi = 0; _wi < nslots; _wi++) {
+            d = &desc_slots[slots[_wi]];
 	    if ((D_FLAGS(e) & DS_CONNECTED) &&
 		(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)) &&
 		(!DePriv(D_PLAYER(e), D_PLAYER(d), DP_WIZ_WHO, POWER6, NOTHING) || (D_PLAYER(e) == D_PLAYER(d))) &&
@@ -7559,59 +7586,79 @@ make_ulist(dbref player, char *buff, char **bufcx, int i_type, dbref victim, int
        array_buffptr = array_buff = alloc_lbuf("buffer_for_objid");
        s_array[1] = NULL;
     }
-    DESC_ITER_CONN(d) {
-	if (!Wizard(target) && Cloak(D_PLAYER(d)))
-	    continue;
-        if (!Admin(target) && !(mudconf.who_unfindable) && Dark(D_PLAYER(d)) && 
-            !(mudconf.player_dark) && mudconf.allow_whodark )
-            continue;
-	if (Immortal(D_PLAYER(d)) && Cloak(D_PLAYER(d)) && SCloak(D_PLAYER(d)) && !Immortal(target))
-	    continue;
-	if (!Admin(target) && Unfindable(D_PLAYER(d)) && mudconf.who_unfindable
-		&& !HasPriv(target,D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING))
-	    continue;
-        if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != target) &&
-            !(Wizard(target) || HasPriv(target, D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
-            continue;
-	if (gotone)
-	    safe_chr(' ', buff, bufcx);
-        if ( i_type == 2 ) {
-           /* This is player and not target as it needs the immediate enactor, not 'target' */
-           if ( (target == D_PLAYER(d)) || Wizard(player) ) 
-              i_port = D_DESCRIPTOR(d);
-           else
-              i_port = -1;
-           tprp_buff = tpr_buff;
-	   safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
-        } else if ( i_type == 1 ) {
-           /* This is player and not target as it needs the immediate enactor, not 'target' */
-           if ( (target == D_PLAYER(d)) || Wizard(player) ) 
-              i_port = D_DESCRIPTOR(d);
-           else
-              i_port = -1;
-           tprp_buff = tpr_buff;
-           if ( i_objid ) {
-              sprintf(tbuf, "#%d", D_PLAYER(d));
-              s_array[0] = tbuf;
-              array_buffptr = array_buff;
-              fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s|%d", array_buff, i_port), buff, bufcx);
-           } else {
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", D_PLAYER(d), i_port), buff, bufcx);
-           }
-        } else {
-           tprp_buff = tpr_buff;
-           if ( i_objid ) {
-              sprintf(tbuf, "#%d", D_PLAYER(d));
-              array_buffptr = array_buff;
-              s_array[0] = tbuf;
-              fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s", array_buff), buff, bufcx);
-           } else {
-	      safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", D_PLAYER(d)), buff, bufcx);
-           }
+    /* Collect phase: gather matching player slots */
+    {
+        int slots[MAX_DESCRIPTORS], nslots = 0;
+        DESC_SAFEITER_CONN(d) {
+            if (!Wizard(target) && Cloak(D_PLAYER(d)))
+                continue;
+            if (!Admin(target) && !(mudconf.who_unfindable) && Dark(D_PLAYER(d)) && 
+                !(mudconf.player_dark) && mudconf.allow_whodark )
+                continue;
+            if (Immortal(D_PLAYER(d)) && Cloak(D_PLAYER(d)) && SCloak(D_PLAYER(d)) && !Immortal(target))
+                continue;
+            if (!Admin(target) && Unfindable(D_PLAYER(d)) && mudconf.who_unfindable
+                    && !HasPriv(target,D_PLAYER(d),POWER_WHO_UNFIND,POWER4,NOTHING))
+                continue;
+            if (NoWho(D_PLAYER(d)) && (D_PLAYER(d) != target) &&
+                !(Wizard(target) || HasPriv(target, D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)))
+                continue;
+            if (nslots < MAX_DESCRIPTORS) {
+                slots[nslots] = d->slot_index;
+                nslots++;
+            }
         }
-        gotone = 1;
+        /* Sort by connected_at descending (newest first) */
+        for (int _i = 0; _i < nslots - 1; _i++) {
+            for (int _j = _i + 1; _j < nslots; _j++) {
+                time_t ti = desc_cold[slots[_i]].connected_at;
+                time_t tj = desc_cold[slots[_j]].connected_at;
+                if (ti < tj) {
+                    int _t = slots[_i]; slots[_i] = slots[_j]; slots[_j] = _t;
+                }
+            }
+        }
+        /* Output phase: iterate sorted entries */
+        for (int _k = 0; _k < nslots; _k++) {
+            d = &desc_slots[slots[_k]];
+            if (gotone)
+                safe_chr(' ', buff, bufcx);
+            if ( i_type == 2 ) {
+               if ( (target == D_PLAYER(d)) || Wizard(player) ) 
+                  i_port = D_DESCRIPTOR(d);
+               else
+                  i_port = -1;
+               tprp_buff = tpr_buff;
+               safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%d", i_port), buff, bufcx);
+            } else if ( i_type == 1 ) {
+               if ( (target == D_PLAYER(d)) || Wizard(player) ) 
+                  i_port = D_DESCRIPTOR(d);
+               else
+                  i_port = -1;
+               tprp_buff = tpr_buff;
+               if ( i_objid ) {
+                  sprintf(tbuf, "#%d", D_PLAYER(d));
+                  s_array[0] = tbuf;
+                  array_buffptr = array_buff;
+                  fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
+                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s|%d", array_buff, i_port), buff, bufcx);
+               } else {
+                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d:%d", D_PLAYER(d), i_port), buff, bufcx);
+               }
+            } else {
+               tprp_buff = tpr_buff;
+               if ( i_objid ) {
+                  sprintf(tbuf, "#%d", D_PLAYER(d));
+                  array_buffptr = array_buff;
+                  s_array[0] = tbuf;
+                  fun_objid(array_buff, &array_buffptr, player, D_PLAYER(d), D_PLAYER(d), s_array, 1, (char **)NULL, 0);
+                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%s", array_buff), buff, bufcx);
+               } else {
+                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "#%d", D_PLAYER(d)), buff, bufcx);
+               }
+            }
+            gotone = 1;
+        }
     }
     if ( i_objid ) {
        free_sbuf(tbuf);
