@@ -9096,7 +9096,7 @@ static void build_terminfo_output(char *buff, char **bufcx, DESC *d)
     if (d->cold->client_caps & CLIENT_CAP_TRUECOLOR)
         safe_str(" truecolor", buff, bufcx);
 
-    if (D_FLAGS(d) & DS_SSL)
+    if ((d->cold->client_caps & CLIENT_CAP_SSL) || (D_FLAGS(d) & DS_SSL))
         safe_str(" ssl", buff, bufcx);
 }
 

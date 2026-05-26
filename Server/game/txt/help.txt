@@ -14104,6 +14104,9 @@
         "ansi" - Basic color support
    "256-color" - Support for 256+ colors
      "unicode" - UTF8 Support
+   "truecolor" - Support for Truecolor ANSI
+         "ssl" - Client either advertizes being SSL capable, or currently
+                 has an SSL connection established.
 
 
   Without arguments, this function uses the current player connection as

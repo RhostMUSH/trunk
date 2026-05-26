@@ -138,6 +138,7 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
                             if (m & 4)    d->cold->client_caps |= CLIENT_CAP_UNICODE;
                             if (m & (8|2)) d->cold->client_caps |= CLIENT_CAP_256COLOR;
                             if (m & 256) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
+                            if (m & 2048) d->cold->client_caps |= CLIENT_CAP_SSL;
                         }
                         break;
                     }
@@ -157,6 +158,7 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
                 if (m & 4)    d->cold->client_caps |= CLIENT_CAP_UNICODE;
                 if (m & (8|2)) d->cold->client_caps |= CLIENT_CAP_256COLOR;
                 if (m & 256) d->cold->client_caps |= CLIENT_CAP_TRUECOLOR;
+                if (m & 2048) d->cold->client_caps |= CLIENT_CAP_SSL;
                 is_skip = 1;
             }
 
@@ -241,14 +243,14 @@ void telnet_init_desc(DESC *d)
     d->cold->telnet = telnet_init(telopts, on_telnet_event, 0, d);
     d->cold->term_width = 0;
     d->cold->term_height = 0;
-    d->cold->client_caps = 0;
 
     /* Proactively request NAWS via DO NAWS — most clients wait for server to initiate */
     telnet_negotiate((telnet_t *)d->cold->telnet, TELNET_DO, TELNET_TELOPT_NAWS);
 
-    /* Fresh connection: query TTYPE for terminal name and CHARSET for UTF-8.
-     * On @reboot: client_name is already populated from DESC_COLD — keep the stored data. */
+    /* Fresh connection: reset caps, query TTYPE for terminal name and CHARSET for UTF-8.
+     * On @reboot: client_name and caps are already populated from DESC_COLD — keep stored data. */
     if (d->cold->client_name[0] == '\0') {
+        d->cold->client_caps = 0;
         telnet_ttype_send((telnet_t *)d->cold->telnet);
         unsigned char req[] = { 1, ' ', 'U', 'T', 'F', '-', '8' };
         telnet_subnegotiation((telnet_t *)d->cold->telnet,

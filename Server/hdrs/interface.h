@@ -251,6 +251,7 @@ struct desc_cold {
 #define CLIENT_TTYPE_SEND1   0x20
 #define CLIENT_TTYPE_SEND2   0x40
 #define CLIENT_TTYPE_SEND3   0x80
+#define CLIENT_CAP_SSL      0x100
 
 typedef struct descriptor_data DESC;
 struct descriptor_data {
