@@ -10711,6 +10711,40 @@ int printf_lookahead(char *s_string)
    return(i_return);
 }
 
+/* count %<uNNNN>/%<NNN> markup as 1, multi-byte UTF-8 as 1 */
+static int printf_visible_width(const char *s)
+{
+    int count = 0;
+    const unsigned char *p = (const unsigned char *)s;
+    while (*p) {
+        if (*p == '%' && *(p+1) == '<' && *(p+2) == 'u') {
+            p += 3;
+            while (*p && *p != '>') p++;
+            if (*p) p++;
+            count++;
+            continue;
+        }
+        if (*p == '%' && *(p+1) == '<' && isdigit(*(p+2))) {
+            p += 3;
+            while (*p && *p != '>') p++;
+            if (*p) p++;
+            count++;
+            continue;
+        }
+        if (*p == '\r' || *p == '\n') {
+            p++;
+            continue;
+        }
+        if ((*p & 0x80) == 0)            p += 1;
+        else if ((*p & 0xE0) == 0xC0)    p += 2;
+        else if ((*p & 0xF0) == 0xE0)    p += 3;
+        else if ((*p & 0xF8) == 0xF0)    p += 4;
+        else                              p += 1;
+        count++;
+    }
+    return count;
+}
+
 void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_format *fm, 
                       int numeric, char *shold, char **sholdptr, int morepadd,
                       int *adjust_padd, int *start_line)
@@ -10767,7 +10801,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 /*
 #ifdef ZENTY_ANSI
 */
-    i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
+    i_stripansi = printf_visible_width(strip_all_special(fmtbuff));
     idy = idx = i_chk = gapwidth = 0;
     snarfle_special_characters(fmtbuff, s_padstring);
     strcpy(fmtbuff, s_padstring);
@@ -10776,7 +10810,32 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
        s = fmtbuff;
        t = s_padstring;
        idy = idx = i_chk = 0;
-       while ( *s ) {
+        while ( *s ) {
+          /* %<uNNNN> or %<NNN> markup — count as 1 character, not N bytes */
+          if (*s == '%' && *(s+1) == '<' &&
+              (*(s+2) == 'u' || isdigit(*(s+2)))) {
+              char *e = strchr(s, '>');
+              if (e) {
+                  if ((i_chk + 1) > (fm->fieldwidth + morepadd) &&
+                      (i_stripansi > (fm->fieldwidth + morepadd))) {
+                      *t++ = '\r';
+                      *t++ = '\n';
+                      i_chk = 0;
+                      i_linecnt++;
+                      idx += 2;
+                      if (idx > (LBUF_SIZE - 12)) break;
+                  }
+                  while (s <= e) {
+                      *t++ = *s++;
+                      idx++;
+                      if (idx > (LBUF_SIZE - 12)) break;
+                  }
+                  i_chk++;
+                  i_lastspace = 0;
+                  if (idx > (LBUF_SIZE - 12)) break;
+                  continue;
+              }
+          }
           if ( (*s == '\n') || (*s == '\r')) {
              i_chk = 0;
              i_lastspace = 0;
@@ -10941,11 +11000,11 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           s_justbuff++;
           s++;
        } 
-       i_stripansi = i_nostripansi - count_extended(s_padstring);
-       memset(s_padstring, '\0', sizeof(s_padstring));
-    } else {
-       i_stripansi = strlen(strip_all_special(fmtbuff)) - count_extended(fmtbuff);
-    }
+       i_stripansi = printf_visible_width(s_padstring);
+        memset(s_padstring, '\0', sizeof(s_padstring));
+     } else {
+        i_stripansi = printf_visible_width(strip_all_special(fmtbuff));
+     }
     if ( (i_stripansi == 0) && (*(fm->format_padst) == '!') ) {
        fm->format_padstsize = 0;
        fm->format_padch = ' ';
@@ -11224,11 +11283,27 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                safe_chr( *(fmtbuff+1), shold, sholdptr );
                safe_chr( *(fmtbuff+2), shold, sholdptr );
             }
-            fmtbuff+=3;
-            i_inansi=1;
-            continue;
-         }
-         if ( (*fmtbuff == '%') && ( (*(fmtbuff+1) == SAFE_CHR)  || (*(fmtbuff+1) == SAFE_UCHR)
+             fmtbuff+=3;
+             i_inansi=1;
+             continue;
+          }
+          /* %<uNNNN> (unicode) or %<NNN> (extended ASCII) markup — 1 visible char */
+          if (*fmtbuff == '%' && *(fmtbuff+1) == '<' &&
+              (*(fmtbuff+2) == 'u' || isdigit(*(fmtbuff+2)))) {
+              char *end = strchr(fmtbuff, '>');
+              if (end) {
+                  char *s = fmtbuff;
+                  while (s <= end) {
+                      safe_chr(*s, buff, bufcx);
+                      safe_chr(*s, s_padbuf, &s_padbufptr);
+                      s++;
+                  }
+                  fmtbuff = end + 1;
+                  currwidth++;
+                  continue;
+              }
+          }
+          if ( (*fmtbuff == '%') && ( (*(fmtbuff+1) == SAFE_CHR)  || (*(fmtbuff+1) == SAFE_UCHR)
 #ifdef SAFE_CHR2
                                 ||   (*(fmtbuff+1) == SAFE_CHR2) || (*(fmtbuff+1) == SAFE_UCHR2)
 #endif
