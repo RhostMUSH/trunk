@@ -3,7 +3,6 @@
 
 /* Forward declaration — interface.h included by .c files in proper order */
 struct descriptor_data;
-typedef struct descriptor_data DESC;
 
 /* Initialize libtelnet for a descriptor. Call after alloc_desc in initializesock. */
 void telnet_init_desc(DESC *d);

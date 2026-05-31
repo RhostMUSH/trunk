@@ -3128,7 +3128,9 @@ CMDENT * lookup_command(char *cmdname) {
 
   /* Check for a builtin command (or an alias of a builtin command) */
   cmdp = (CMDENT *) ohtab_find(cmdname, &mudstate_hot.command_htab);
-  
+  if (cmdp && strcmp(cmdname, cmdp->cmdname) != 0)
+    cmdp = NULL;
+
   if (cmdp) {
     retval = cmdp;
   } else {
@@ -3157,7 +3159,9 @@ CMDENT *lookup_orig_command(char *cmdname) {
 
   /* Check for a builtin command (or an alias of a builtin command) */
   cmdp = (CMDENT *) ohtab_find(cmdname, &mudstate_hot.command_htab);
-  
+  if (cmdp && strcmp(cmdname, cmdp->cmdname) != 0)
+    cmdp = NULL;
+
   if (cmdp) {
     retval = cmdp;
   } else {
@@ -5283,6 +5287,8 @@ static void list_cmdtable(dbref player, char *s_command) {
 
   if ( s_command && *s_command ) {
      cmdp = (CMDENT *) ohtab_find(s_command, &mudstate_hot.command_htab);
+     if (cmdp && strcmp(s_command, cmdp->cmdname) != 0)
+       cmdp = NULL;
      if ( !cmdp ) {
         cmdp = (CMDENT *) hashfind(s_command, &mudstate.command_vattr_htab);
      }
@@ -5877,6 +5883,8 @@ CF_HAND(cf_cmd_vattr)
   }   
 
   cmdp = (CMDENT *) ohtab_find(cbuff, &mudstate_hot.command_htab);
+  if (cmdp && strcmp(cbuff, cmdp->cmdname) != 0)
+    cmdp = NULL;
   if ( cmdp ) {
      cf_log_syntax(player, cmd, "Error: '%s' is an existing standard command or alias.", cbuff);       
      free_sbuf(cbuff);
@@ -6067,19 +6075,24 @@ CF_HAND(cf_cmd_alias)
 
     /* 1. Lookup the original command */
     cmdp = (CMDENT *) ohtab_find(orig, &mudstate_hot.command_htab);
+    if (cmdp && strcmp(orig, cmdp->cmdname) != 0)
+      cmdp = NULL;
     if (cmdp == NULL) {
       cf_log_notfound(player, cmd, "Command", orig);
       DPOP; /* #40 */
       return -1;
-    }   
+    }
+    cp = cmdp;   /* save target command — step 2 will reuse cmdp */
 
     /* 2. Make sure there's no conflict on the alias */
-    if (ohtab_find(alias, &mudstate_hot.command_htab)) {
+    cmdp = (CMDENT *) ohtab_find(alias, &mudstate_hot.command_htab);
+    if (cmdp && strcmp(alias, cmdp->cmdname) == 0) {
       /* Can't override a command with an alias */
       cf_log_syntax(player, cmd, "Alias '%s' conflicts with internal command", alias);
       DPOP; /* #40 */
       return -1;
     }
+    cmdp = cp;   /* restore target command */
 
     if ((alias2p = (ALIASENT *) hashfind(alias, &mudstate.cmd_alias_htab))) {
       bReplaceAlias = 1;

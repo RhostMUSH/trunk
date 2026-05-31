@@ -1649,6 +1649,8 @@ CF_HAND(cf_hook)
        cmdp = (CMDENT *)ohtab_find(hookcmd, &mudstate_hot.command_htab);
     else
        return retval;
+    if (cmdp && strcmp(hookcmd, cmdp->cmdname) != 0)
+      cmdp = NULL;
     if ( !cmdp )
        return retval;
 
