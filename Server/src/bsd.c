@@ -109,6 +109,13 @@ DESC *_alloc_desc(const char *tag) {
 void _free_desc(DESC *d) {
     if (d) {
         D_DESCRIPTOR(d) = -1;
+        D_FLAGS(d) = 0;       D_QUOTA(d) = 0;
+        D_PLAYER(d) = 0;      D_HOST_INFO(d) = 0;
+        D_INPUT_HEAD(d) = NULL;  D_INPUT_TAIL(d) = NULL;
+        D_INPUT_SIZE(d) = 0;  D_INPUT_TOT(d) = 0;
+        D_OUTPUT_HEAD(d) = NULL; D_OUTPUT_TAIL(d) = NULL;
+        D_OUTPUT_SIZE(d) = 0; D_OUTPUT_TOT(d) = 0;
+        D_LAST_TIME(d) = 0;
         d->cold = NULL;
     }
 }

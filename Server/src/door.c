@@ -212,13 +212,13 @@ static int addDoor(const char *doorName,
   gaDoors[gnDoors]->nConnections = 0;
 
   if ( loc == dINTERNAL_e ) {
-    gaDoors[gnDoors]->pDescriptor = malloc(sizeof(DESC));
+    gaDoors[gnDoors]->pDescriptor = alloc_desc("door_internal");
     if (gaDoors[gnDoors]->pDescriptor == NULL) {
       LOGTEXT("ERR", -1, "Allocation of descriptor for internal door failed");
       goto error;
     }
     gaDoors[gnDoors]->doorStatus = INTERNAL_e;
-    gaDoors[gnDoors]->D_PLAYER(pDescriptor)= SYSTEM;
+    D_PLAYER(gaDoors[gnDoors]->pDescriptor) = SYSTEM;
   }
 
   // Check LOC is a room
@@ -258,6 +258,9 @@ static int addDoor(const char *doorName,
     free_mbuf(gaDoors[gnDoors]->pName);
   }
   if (gaDoors[gnDoors] != NULL) {
+    if (gaDoors[gnDoors]->pDescriptor) {
+        free_desc(gaDoors[gnDoors]->pDescriptor);
+    }
     free(gaDoors[gnDoors]);
   }
   RETURN(-1); /* 3 */
@@ -902,6 +905,11 @@ void closeDoorWithId(DESC *desc, int d) {
 
   LOGTEXT("INF", D_PLAYER(desc), unsafe_tprintf("Door '%s' closed",
   				       gaDoors[d]->pName));
+
+  if (gaDoors[d]->pDescriptor && gaDoors[d]->pDescriptor == desc) {
+    free_desc(desc);
+    gaDoors[d]->pDescriptor = NULL;
+  }
 
   VOIDRETURN; /* #11.5*/
 }
