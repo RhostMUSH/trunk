@@ -36994,15 +36994,68 @@
   
   Current Changelogs:
   -------------------
-  1 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
-  2 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
+  1 - 5.0.0
+  2 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
+  3 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
-  3 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
+  4 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
-  4 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+  5 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
-  5 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+  6 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
+
+& 5.0.0
+& changelog latest
+& changelog newest
+& changelog recent
+& changelog 1
+  Topic: CHANGELOG
+
+  5.0.0
+  * Bundles versions 4.28.* to 4.33.* into a new major release:
+
+    - A TON of speed improvements and code optimizations were done under the
+      hood, compiler warnings were removed, CPU usage was optimized.
+
+    - Support for MDBX Database backend (Thanks Brazil!) wirth further fixes.
+
+    - GDBM Support removed: Anybody using this ancient DB backend needs to
+      @dump/flat their game, upgrade, and import the flatfile.
+
+    - New compile time option in 'make config / make confsource' to set the
+      max players that can connect. Required due to code optimizations, in-
+      dependent of the max_players @admin config option. Default: 150
+
+    - Full IPv6 support: "ip_family" config option sets type (1 = IPv4,
+      2 = IPv6, 3 = both), and ip_address_v6 sets IPv6 address to listen on.
+
+    - IPv6 support for @blacklist, @site, and all *_site options.
+
+    - Truecolor ANSI support: @set TRUECOLOR on a player. uses the same
+      %x<R G B> and %x#RRGGBB formats as 256-color ANSI, except accurately.
+
+    - playeransi_permit option: uses values 0-7 ( see help bittype() ) to
+      determine which bittype is required to set ANSI colors on any player
+      names.
+
+    - wrap() has a third option to make it ansi-aware, just like functions
+      like left().
+
+    - printf() was overhauled to properly work with Unicode characters.
+
+    - Telnet NAWS negotiation: New width(), height() and terminfo() functions
+      compatible with the MUX implementation. Get a player's client info and
+      window sizes.
+
+    - The whisper command now makes use of the MUXPAGE toggle to be
+      compatible with MUX: whisper to the last target(s) if no targets were
+      specified.
+
+    - Websocket support for the API was improved and standardized with RFC
+      6455. The LUAi PI was hardened and simplified.
+
+    - A lot of help file typo fixes.
 
 & 4.33.0
 & 4.32.0
@@ -37013,10 +37066,7 @@
 & 4.27.8
 & 4.27.7
 & 4.27.6
-& changelog latest
-& changelog newest
-& changelog recent
-& changelog 1
+& changelog 2
   Topic: CHANGELOG
 
   4.33.0
