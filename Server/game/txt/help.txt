@@ -36994,7 +36994,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.0.1, 5.0.0
+  1 - 5.0.2, 5.0.1, 5.0.0
   2 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
   3 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
@@ -37005,6 +37005,7 @@
   6 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.0.2
 & 5.0.1
 & 5.0.0
 & changelog latest
@@ -37012,6 +37013,13 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  5.0.2
+  * Small fix for MDBX on BSD:
+    - Patched mdbx.c to guard BSD against the _POSIX_C_SOURCE define, so all
+      data types from types.h get correctly used.
+    - Added a guard in src/Makefile to add -lpthread on BSD due to MDBX'
+      use of pthreads.
 
   5.0.1
   * Small fix for compiling on BSD
