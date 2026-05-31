@@ -389,6 +389,9 @@ ifeq ($(OS),Darwin)
 	DEFS += -I/opt/homebrew/include -L/opt/homebrew/lib
 	MORELIBS += -lssl -lcrypto
 endif
+ifneq ($(filter $(OS),FreeBSD NetBSD OpenBSD DragonFly),)
+	MORELIBS += -lpthread
+endif
 
 # ================== END OF CONFIGURATION SECTION =================
 
