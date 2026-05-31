@@ -253,7 +253,6 @@ struct desc_cold {
 #define CLIENT_TTYPE_SEND3   0x80
 #define CLIENT_CAP_SSL      0x100
 
-typedef struct descriptor_data DESC;
 struct descriptor_data {
     int          slot_index;
     DESC_COLD   *cold;
