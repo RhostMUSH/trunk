@@ -241,15 +241,18 @@ void telnet_init_desc(DESC *d)
         return;
 
     d->cold->telnet = telnet_init(telopts, on_telnet_event, 0, d);
-    d->cold->term_width = 0;
-    d->cold->term_height = 0;
 
-    /* Proactively request NAWS via DO NAWS — most clients wait for server to initiate */
+    /* Proactively request NAWS via DO NAWS — most clients wait for server to initiate.
+     * On @reboot: re-negotiate to get client's current terminal size;
+     * stored term_width/height are preserved until the response arrives. */
     telnet_negotiate((telnet_t *)d->cold->telnet, TELNET_DO, TELNET_TELOPT_NAWS);
 
     /* Fresh connection: reset caps, query TTYPE for terminal name and CHARSET for UTF-8.
-     * On @reboot: client_name and caps are already populated from DESC_COLD — keep stored data. */
+     * On @reboot: client_name, caps, term_width, and term_height are already populated
+     * from DESC_COLD — keep stored data. */
     if (d->cold->client_name[0] == '\0') {
+        d->cold->term_width = 0;
+        d->cold->term_height = 0;
         d->cold->client_caps = 0;
         telnet_ttype_send((telnet_t *)d->cold->telnet);
         unsigned char req[] = { 1, ' ', 'U', 'T', 'F', '-', '8' };
