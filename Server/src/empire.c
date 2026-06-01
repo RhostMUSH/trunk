@@ -138,67 +138,67 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
   pt = buf2;
 
   if (*pt == '\0') {
-    queue_string(desc_in_use, "Read of door parameters failed.\r\n");
+    queue_string(d, "Read of door parameters failed.\r\n");
     return -1;
   }
   pt2 = strchr(pt,' ');
   if (pt2 == NULL) {
-    queue_string(desc_in_use, "Bad format in door parameters file.\r\n");
+    queue_string(d, "Bad format in door parameters file.\r\n");
     return -1;
   }
   *pt2 = '\0';
   sock_req = door_tcp_connect(pt,pt2+1, d, id, 0);
 
   if (sock_req < 0) {
-    queue_string(desc_in_use, "Connection to empire server failed.\r\n");
+    queue_string(d, "Connection to empire server failed.\r\n");
     return -1;
   }
 
   if (!expect(sock_req, C_INIT, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 1).\r\n");
+    queue_string(d, "Login to empire server failed (stage 1).\r\n");
     close(sock_req);
     return -1;
   }
-  strcpy(buf,Name(D_PLAYER(desc_in_use)));
+  strcpy(buf,Name(D_PLAYER(d)));
   strcat(buf,"@");
   strcat(buf,mudconf.mud_name);
   if (!sendcmd(sock_req, USER, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 2).\r\n");
+    queue_string(d, "Login to empire server failed (stage 2).\r\n");
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 3).\r\n");
+    queue_string(d, "Login to empire server failed (stage 3).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, COUN, country)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 4).\r\n");
+    queue_string(d, "Login to empire server failed (stage 4).\r\n");
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Possible bad country name. (stage 5).\r\n");
+    queue_string(d, "Login to empire server failed. Possible bad country name. (stage 5).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PASS, password)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 6).\r\n");
+    queue_string(d, "Login to empire server failed (stage 6).\r\n");
     goto abort;
   }
   if (!expect(sock_req, C_CMDOK, buf)) {
-    queue_string(desc_in_use, "Login to empire server failed. Possible bad password. (stage 7).\r\n");
+    queue_string(d, "Login to empire server failed. Possible bad password. (stage 7).\r\n");
     goto abort;
   }
   if (!sendcmd(sock_req, PLAY, (char *)0)) {
-    queue_string(desc_in_use, "Login to empire server failed (stage 8).\r\n");
+    queue_string(d, "Login to empire server failed (stage 8).\r\n");
     goto abort;
   }
   if (!expect(sock_req, C_INIT, buf)) {
-    queue_string(desc_in_use, buf);
-    queue_string(desc_in_use, "\r\n");
-    queue_string(desc_in_use, "Login to empire server failed. (stage 9).\r\n");
+    queue_string(d, buf);
+    queue_string(d, "\r\n");
+    queue_string(d, "Login to empire server failed. (stage 9).\r\n");
     goto abort;
   }
 
-  queue_string(desc_in_use, "\r\n\t-=O=-\r\n");
-  process_output(desc_in_use);
+  queue_string(d, "\r\n\t-=O=-\r\n");
+  process_output(d);
   return 1;
 
  abort:

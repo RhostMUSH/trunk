@@ -270,6 +270,7 @@ static int addDoor(const char *doorName,
 static void shut_door(DESC *d)
 {
   DPUSH; /* 4 */
+  if (!d || !d->cold) VOIDRETURN;
   if (D_FLAGS(d) & DS_HAS_DOOR) {
     shutdown(d->cold->door_desc,2);
     close(d->cold->door_desc);
@@ -301,6 +302,11 @@ static void shut_door(DESC *d)
 void door_raw_input(DESC *d, char *input)
 {
   DPUSH; /* 5 */
+  if (!d || !d->cold) VOIDRETURN;
+  if (d->cold->door_num < 0 || d->cold->door_num >= gnDoors) {
+    closeDoorWithId(d, d->cold->door_num);
+    VOIDRETURN;
+  }
   if (gaDoors[d->cold->door_num]->pFnReadDoor == NULL) {
     queue_door_string(d, input, 1); /* 3rd arg means slap a newline on */
   } else {
@@ -321,6 +327,11 @@ void door_raw_input(DESC *d, char *input)
 void door_raw_output(DESC *d, char *output)
 {
   DPUSH; /* 5 */
+  if (!d || !d->cold) VOIDRETURN;
+  if (d->cold->door_num < 0 || d->cold->door_num >= gnDoors) {
+    closeDoorWithId(d, d->cold->door_num);
+    VOIDRETURN;
+  }
   if (gaDoors[d->cold->door_num]->pFnWriteDoor == NULL) {
     queue_string(d, output);
   } else {
@@ -443,6 +454,7 @@ int process_door_output(DESC * d)
 
     DPUSH; /* #7 */
 
+    if (!d || !d->cold) RETURN(1); /* #7 */
     tb = d->cold->door_output_head;
     while (tb != NULL) {
 	while (tb->hdr.nchars > 0) {
@@ -476,6 +488,7 @@ int process_door_input(DESC * d)
   int got;
 
   DPUSH; /* #8 */
+  if (!d || !d->cold) RETURN(0); /* #8 */
   got = READ(d->cold->door_desc, buf, sizeof(buf) - 1);
   if (got <= 0) {
     RETURN(0); /* #8 */
@@ -551,6 +564,7 @@ void save_door(DESC *d, char *info)
   CBLK *qpt;
 
   DPUSH; /* #9 */
+  if (!d || !d->cold) return;
   qpt = (CBLK *) alloc_lbuf("process_door_input");
   strcpy(qpt->cmd, info);
   qpt->hdr.nxt = NULL;
@@ -599,6 +613,7 @@ void queue_door_write(DESC * d, const char *b, int n)
 
     DPUSH; /* #118 */
 
+    if (!d || !d->cold) return;
     if (n <= 0) {
 	VOIDRETURN; /* #118 */
     }
@@ -1078,6 +1093,7 @@ void door_processInternalDoors(void) {
 	    continue;
 	  }
 	  d = gaDoors[i]->pDescriptor;
+	  if (!d || !d->cold) continue;
 	  if (D_QUOTA(d) > 0 && (t = D_INPUT_HEAD(d))) {
 	    D_QUOTA(d)--;
 	    nprocessed++;

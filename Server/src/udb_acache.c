@@ -164,7 +164,7 @@ static const char *ncmsg = "cache_init: cannot allocate cache: ";
 
 	for(x = 0; x < cwidth; x++, sp++) {
 		sp->active.head = sp->old.head = CNULL;
-		sp->old.tail = sp->old.tail = CNULL;
+		sp->old.tail = sp->active.tail = CNULL;
 		sp->mactive.head = sp->mold.head = CNULL;
 		sp->mactive.tail = sp->mold.tail = CNULL;
 		sp->count = cdepth;

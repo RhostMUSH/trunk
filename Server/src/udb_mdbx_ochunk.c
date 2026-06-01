@@ -141,6 +141,9 @@ obj_from_buf(const char *buf, int bufsiz)
         memcpy(&a[j].attrnum, buf + off, sizeof(int));
         off += sizeof(int);
 
+        if (size < 0)
+            goto bail;
+
         if (off + size > bufsiz)
             goto bail;
 

@@ -2681,6 +2681,7 @@ snarfle_the_garthok(char *input, char *output)
          } else {
             i_count=(strchr(s_in, (unsigned char)240) - s_in);
          }
+         break;
       case 241: /* NOP */
          i_count++;
          break;

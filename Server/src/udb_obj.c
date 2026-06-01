@@ -53,6 +53,11 @@ objfromFILE(FILE *  f)
 		return((Obj *)0);
 	}
 
+	if (i < 0) {
+		free(o);
+		return((Obj *)0);
+	}
+
 	o->at_count = i;
 
 	/* Now get an array of Attrs */

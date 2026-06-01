@@ -669,7 +669,7 @@ get_free_entry(CacheLst *sp)
 			       (cp->op)->name,cp->op);
 #endif
 			if ((cp->op)->at_count == 0) {
-  			        if (DB_DEL(&((cp->op)->name),x))
+  			        if (DB_DEL(&((cp->op)->name), 0))
 					RETURN(CNULL); /* #167 */
 				cs_dels++;
 			} else {
@@ -709,7 +709,7 @@ static int cache_write(Cache *cp)
 		printf("sync %d -- %d\n",cp->op->name, cp->op);
 #endif
 		if (cp->op->at_count == 0) {
-			if(DB_DEL(&((cp->op)->name),x)) {
+			if(DB_DEL(&((cp->op)->name), 0)) {
 				log_db_err(cp->op->name, 0, "delete");
 				RETURN(1); /* #168 */
 			}

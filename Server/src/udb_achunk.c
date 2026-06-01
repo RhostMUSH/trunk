@@ -267,14 +267,13 @@ growbit(int maxblok)
 	newbytes = newtop / 8;
 	topbytes = bm_top / 8;
 	nbit = (char *)malloc(newbytes);
+	if (nbit == (char *)0)
+		fatal("db_init cannot grow bitmap ",(char *)-1,"\n",(char *)0);
 	if(bitm != (char *)0) {
 		bcopy(bitm,(char *)nbit, topbytes);
 		free((mall_t)bitm);
 	}
 	bitm = nbit;
-
-	if(bitm == (char *)0)
-		fatal("db_init cannot grow bitmap ",(char *)-1,"\n",(char *)0);
 
 	bzero(bitm+topbytes, (newbytes-topbytes));
 	bm_top = newtop;

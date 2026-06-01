@@ -250,6 +250,8 @@ VATTR *vattr_rename(char *name, char *newname)
 		vpo = vp;
 		vp = vp->next;
 	}
+	if (vp == NULL)
+		return(NULL);
 	vp->name = store_string(newname);
 
 	hash = vattr_hash(newname);
