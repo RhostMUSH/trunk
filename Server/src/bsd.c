@@ -1938,6 +1938,7 @@ shutdownsock(DESC * d, int reason)
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
            DESC_SAFEITER_ALL(dchk) {
+	      if (!dchk->cold) continue;
               if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
                  if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
                     i_guestcnt++;
@@ -2420,6 +2421,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     i_sitecnt = i_guestcnt = 0;
     if ( t_addroutbuf ) {
        DESC_SAFEITER_ALL(dchk) {
+	  if (!dchk->cold) continue;
           if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
              if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
                 i_guestcnt++;

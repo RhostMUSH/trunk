@@ -5762,6 +5762,7 @@ do_command(DESC * d, char *command)
 
           /* Count connections */
           DESC_SAFEITER_ALL(dssl) {
+	     if (!dssl->cold) continue;
              if ( strcmp(s_sitetmp, dssl->cold->addr) == 0 ) {
                 maxsitecon++;
              }

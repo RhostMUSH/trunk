@@ -25042,6 +25042,8 @@ FUNCTION(fun_account_owner)
    if ( nfargs == 1 ) {
       i_port = atoi(fargs[0]);
       DESC_SAFEITER_ALL(d) {
+	 /* freed-slot safety: d->cold is NULL for freed slots */
+	 if (!d->cold) continue;
          if ( i_port == D_DESCRIPTOR(d) ) {
             ival(buff, bufcx, d->cold->account_owner);
             break;
@@ -25057,6 +25059,8 @@ FUNCTION(fun_account_owner)
       }
       i_port = atoi(fargs[0]);
       DESC_SAFEITER_ALL(d) {
+	 /* freed-slot safety: d->cold is NULL for freed slots */
+	 if (!d->cold) continue;
          if ( i_port == D_DESCRIPTOR(d) ) {
             if ( d->cold->account_owner < 0 ) {
                safe_str("#-1 YOU ARE ALREADY LOGGED OFF", buff, bufcx);
@@ -25183,6 +25187,8 @@ FUNCTION(fun_account_su)
    i_attr = attr->number;
 
    DESC_SAFEITER_ALL(d) {
+      /* freed-slot safety: d->cold is NULL for freed slots */
+      if (!d->cold) continue;
       if ( i_port == D_DESCRIPTOR(d) ) {
          if ( d->cold->account_owner < 0 ) {
             safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
@@ -25298,6 +25304,8 @@ FUNCTION(fun_account_login)
    i_attr = attr->number;
    i_port = atoi(fargs[2]);
    DESC_SAFEITER_ALL(d) {
+      /* freed-slot safety: d->cold is NULL for freed slots */
+      if (!d->cold) continue;
       if ( (i_port == D_DESCRIPTOR(d)) && !(D_FLAGS(d) & DS_CONNECTED) ) {
          s_buff = alloc_lbuf("fun_account_login");
          if ( nfargs > 3 ) {
