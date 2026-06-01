@@ -100,14 +100,38 @@ DESC *_alloc_desc(const char *tag) {
             d->slot_index = i;
             d->cold = &desc_cold[i];
             memset(d->cold, 0, sizeof(DESC_COLD));
+            STARTLOG(LOG_NET, "DSC", "ALOC")
+                log_text((char *)"alloc_desc: slot ");
+                log_number(i);
+                log_text((char *)" tag=");
+                log_text((char *)(tag ? tag : "<null>"));
+                log_text((char *)" ndesc_slots=");
+                log_number(ndesc_slots);
+            ENDLOG
             return d;
         }
     }
+    STARTLOG(LOG_PROBLEMS, "DSC", "FULL")
+        log_text((char *)"alloc_desc: no free slots, tag=");
+        log_text((char *)(tag ? tag : "<null>"));
+    ENDLOG
     return NULL;
 }
 
 void _free_desc(DESC *d) {
     if (d) {
+        STARTLOG(LOG_NET, "DSC", "DFRE")
+            log_text((char *)"_free_desc: slot ");
+            log_number(d->slot_index);
+            log_text((char *)" descriptor=");
+            log_number(D_DESCRIPTOR(d));
+            log_text((char *)" player=");
+            log_number((int)D_PLAYER(d));
+            log_text((char *)" cold=");
+            log_number(d->cold ? 1 : 0);
+            log_text((char *)" telnet=");
+            log_number((d->cold && d->cold->telnet) ? 1 : 0);
+        ENDLOG
         D_DESCRIPTOR(d) = -1;
         D_FLAGS(d) = 0;       D_QUOTA(d) = 0;
         D_PLAYER(d) = 0;      D_HOST_INFO(d) = 0;
@@ -2062,6 +2086,18 @@ shutdownsock(DESC * d, int reason)
 	{
 	    int i = (int)(d - desc_slots);
 	    int last = ndesc_slots - 1;
+	    STARTLOG(LOG_NET, "DSC", "FREE")
+	        log_text((char *)"shutdownsock: slot ");
+	        log_number(i);
+	        log_text((char *)" (last=");
+	        log_number(last);
+	        log_text((char *)", reason=");
+	        log_number(reason);
+	        log_text((char *)") player=");
+	        log_number((int)D_PLAYER(d));
+	        log_text((char *)" telnet=");
+	        log_number(d->cold && d->cold->telnet ? 1 : 0);
+	    ENDLOG
 	    telnet_free_desc(d);
 	    free_desc(d);
 	    if (i != last && i < last) {
@@ -2082,6 +2118,20 @@ shutdownsock(DESC * d, int reason)
 		desc_slots[i].slot_index = i;
 		desc_slots[last].slot_index = last;
 		desc_hot.descriptor[last] = -1;
+		/* The cold data we just moved into slot i contains a live
+		 * telnet pointer whose ud field still points to &desc_slots[last].
+		 * Rebind it to &desc_slots[i] so future on_telnet_event calls
+		 * receive the correct (current) DESC pointer instead of the
+		 * just-freed slot. */
+		telnet_rebind_desc(&desc_slots[i]);
+		STARTLOG(LOG_NET, "DSC", "SWAP")
+		    log_text((char *)"shutdownsock swap: i=");
+		    log_number(i);
+		    log_text((char *)" last=");
+		    log_number(last);
+		    log_text((char *)" rebind_telnet=");
+		    log_number(desc_slots[i].cold && desc_slots[i].cold->telnet ? 1 : 0);
+		ENDLOG
 	    }
 	}
 	ndescriptors--;

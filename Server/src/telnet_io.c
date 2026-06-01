@@ -44,6 +44,21 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
 
     (void)telnet;
 
+    /* Defensive: telnet objects can outlive their owning desc when
+     * shutdownsock's swap moves cold data between slots. If the desc
+     * has been freed since this telnet was created, d->cold is NULL.
+     * Log the stale event and bail out before any cold dereference. */
+    if (!d || !d->cold) {
+        STARTLOG(LOG_PROBLEMS, "TEL", "STALE")
+            log_text((char *)"on_telnet_event: stale telnet fired on freed desc (slot ");
+            log_number(d ? d->slot_index : -1);
+            log_text((char *)", ev->type ");
+            log_number((int)ev->type);
+            log_text((char *)") — telnet object outlived its desc.");
+        ENDLOG
+        return;
+    }
+
     switch (ev->type) {
     case TELNET_EV_DATA:
         /* Clean user text — buffer it for the caller's byte loop */
@@ -236,11 +251,33 @@ void telnet_init_desc(DESC *d)
     if (!d)
         return;
 
+    if (!d->cold) {
+        STARTLOG(LOG_PROBLEMS, "TEL", "INIT")
+            log_text((char *)"telnet_init_desc: d->cold is NULL on slot ");
+            log_number(d->slot_index);
+        ENDLOG
+        return;
+    }
+
     /* Don't re-initialize if already set */
     if (d->cold->telnet)
         return;
 
     d->cold->telnet = telnet_init(telopts, on_telnet_event, 0, d);
+    if (!d->cold->telnet) {
+        STARTLOG(LOG_PROBLEMS, "TEL", "INIT")
+            log_text((char *)"telnet_init_desc: telnet_init returned NULL on slot ");
+            log_number(d->slot_index);
+        ENDLOG
+        return;
+    }
+    STARTLOG(LOG_NET, "TEL", "INIT")
+        log_text((char *)"telnet_init_desc: slot ");
+        log_number(d->slot_index);
+        log_text((char *)" telnet=alive ud=&desc_slots[");
+        log_number(d->slot_index);
+        log_text((char *)"]");
+    ENDLOG
 
     /* Proactively request NAWS via DO NAWS — most clients wait for server to initiate.
      * On @reboot: re-negotiate to get client's current terminal size;
@@ -267,8 +304,36 @@ void telnet_free_desc(DESC *d)
     if (!d || !d->cold || !d->cold->telnet)
         return;
 
+    STARTLOG(LOG_NET, "TEL", "FREE")
+        log_text((char *)"telnet_free_desc: slot ");
+        log_number(d->slot_index);
+        log_text((char *)" telnet=freed");
+    ENDLOG
     telnet_free((telnet_t *)d->cold->telnet);
     d->cold->telnet = NULL;
+}
+
+/* Mirror of libtelnet's struct telnet_t header — only valid because
+ * libtelnet places `ud` (user_data) as its FIRST member. We rely on
+ * the C struct layout guarantee that the first member sits at offset 0
+ * so we can rebind ud without including libtelnet's private internals. */
+struct telnet_t_ud_head {
+    void *ud;
+};
+
+/* Rebind a live telnet object's user_data to point at the DESC slot
+ * that currently owns it. Used after shutdownsock's swap moves cold
+ * data (including the telnet pointer) between desc_slots[] entries. */
+void telnet_rebind_desc(DESC *d_new)
+{
+    struct telnet_t_ud_head *t;
+
+    if (!d_new || !d_new->cold)
+        return;
+    t = (struct telnet_t_ud_head *)d_new->cold->telnet;
+    if (!t)
+        return;
+    t->ud = d_new;
 }
 
 /* Preprocess raw input through libtelnet.
