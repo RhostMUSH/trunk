@@ -329,7 +329,7 @@ dddb_mark(off_t lbn, int siz, int taken)
 		last_free = lbn;
 
 	while(bcnt--) {
-		if(lbn >= bm_top - 32)
+		if((int)lbn >= (int)bm_top - 32)
 			growbit(lbn + DDDB_BITBLOCK);
 
 		if(taken)
@@ -357,7 +357,7 @@ dddb_alloc(int siz)
 	bcnt = siz % bsiz ? (siz / bsiz) + 1 : (siz / bsiz);
 
 	while(1) {
-		if(lbn >= bm_top - 32) {
+		if((int)lbn >= (int)bm_top - 32) {
 			/* only check here. can't break around the top */
 			if(!overthetop) {
 				lbn = 0;
@@ -384,7 +384,7 @@ dddb_alloc(int siz)
 			}
 
 			lbn++;
-			if(lbn >= bm_top - 32)
+			if((int)lbn >= (int)bm_top - 32)
 				growbit(lbn + DDDB_BITBLOCK);
 		}
 		lbn++;

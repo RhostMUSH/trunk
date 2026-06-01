@@ -621,6 +621,7 @@ cache_put(Aname *nam, Attr *obj)
 
 		newobj->atrs = ATNULL;
 		newobj->name = nam->object;
+		newobj->at_count = 0;
 	}
 
 	/* Now we got the thing, hang the new version of the attrib on it. */

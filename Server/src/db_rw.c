@@ -1531,10 +1531,12 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
 	got = atr_get(i, A_LOCK, &aowner, &aflags);
 	tempbool = parse_boolexp(GOD, got, 1);
 	free_lbuf(got);
-        putboolexp(f, tempbool);
-        if( tempbool ) {
-          free_boolexp(tempbool);
-        }
+	if (tempbool) {
+	    putboolexp(f, tempbool);
+	    free_boolexp(tempbool);
+	} else {
+	    putc('\n', f);
+	}
     }
     putref(f, Owner(i));
     if (flags & V_PARENT)

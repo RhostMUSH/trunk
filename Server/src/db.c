@@ -996,7 +996,7 @@ Name(dbref thing)
     dbref aowner;
     int aflags;
     char *buff;
-    static char *tbuff[LBUF_SIZE];
+    static char tbuff[LBUF_SIZE];
 
     if (mudconf.cache_names) {
 	if (!names[thing]) {
