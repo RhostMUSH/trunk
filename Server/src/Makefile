@@ -24,31 +24,23 @@ incdir = ../hdrs
 include $(srcdir)/custom.defs
 
 ifeq "$(USEMYSQL)" "1"
-   CHK = $(shell mysql_config --version 2>/dev/null|wc -l)
-   CHK2 = $(shell ../bin/mysql_config --version 2>/dev/null|wc -l)
-   ifeq "$(CHK)" "1"
-      MYSQL_INCLUDE = $(shell mysql_config --include)
-      MYSQL_LIB = $(shell mysql_config --libs)
-      MYSQL_C = mysql.c
-      MYSQL_O = mysql.o
-      MYSQL_V = \"$(shell mysql_config --version 2>/dev/null)\"
-      MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
-   else
-      ifeq "$(CHK2)" "1"
-         MYSQL_INCLUDE = $(shell ../bin/mysql_config --include)
-         MYSQL_LIB = $(shell ../bin/mysql_config --libs)
+   ifeq "$(USEMARIADB)" "1"
+      CHK_MARIADB = $(shell mariadb_config --version 2>/dev/null|wc -l)
+      CHK2_MARIADB = $(shell ../bin/mariadb_config --version 2>/dev/null|wc -l)
+      ifeq "$(CHK_MARIADB)" "1"
+         MYSQL_INCLUDE = $(shell mariadb_config --include)
+         MYSQL_LIB = $(shell mariadb_config --libs)
          MYSQL_C = mysql.c
          MYSQL_O = mysql.o
-         MYSQL_V = \"$(shell ../bin/mysql_config --version 2>/dev/null)\"
+         MYSQL_V = \"$(shell mariadb_config --version 2>/dev/null)\"
          MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
       else
-         ifeq "$(FORCE_MYSQL)" "1"
-            MYSQL_INCLUDE = -I/usr/include/mysql
-            TMP = $(shell /sbin/ldconfig -p|egrep mysqlclient.so$$|awk '{print $$4}')
-            MYSQL_LIB = -L$(TMP) -lmysqlclient -lpthread -lz -lm -lssl -lcrypto -ldl
+         ifeq "$(CHK2_MARIADB)" "1"
+            MYSQL_INCLUDE = $(shell ../bin/mariadb_config --include)
+            MYSQL_LIB = $(shell ../bin/mariadb_config --libs)
             MYSQL_C = mysql.c
             MYSQL_O = mysql.o
-            MYSQL_V = \"X.XX\"
+            MYSQL_V = \"$(shell ../bin/mariadb_config --version 2>/dev/null)\"
             MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
          else
             MYSQL_INCLUDE=
@@ -57,6 +49,43 @@ ifeq "$(USEMYSQL)" "1"
             MYSQL_O=
             MYSQL_V=
             MYSQL_VERSION=
+         endif
+      endif
+   else
+      CHK = $(shell mysql_config --version 2>/dev/null|wc -l)
+      CHK2 = $(shell ../bin/mysql_config --version 2>/dev/null|wc -l)
+      ifeq "$(CHK)" "1"
+         MYSQL_INCLUDE = $(shell mysql_config --include)
+         MYSQL_LIB = $(shell mysql_config --libs)
+         MYSQL_C = mysql.c
+         MYSQL_O = mysql.o
+         MYSQL_V = \"$(shell mysql_config --version 2>/dev/null)\"
+         MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
+      else
+         ifeq "$(CHK2)" "1"
+            MYSQL_INCLUDE = $(shell ../bin/mysql_config --include)
+            MYSQL_LIB = $(shell ../bin/mysql_config --libs)
+            MYSQL_C = mysql.c
+            MYSQL_O = mysql.o
+            MYSQL_V = \"$(shell ../bin/mysql_config --version 2>/dev/null)\"
+            MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
+         else
+            ifeq "$(FORCE_MYSQL)" "1"
+               MYSQL_INCLUDE = -I/usr/include/mysql
+               TMP = $(shell /sbin/ldconfig -p|egrep mysqlclient.so$$|awk '{print $$4}')
+               MYSQL_LIB = -L$(TMP) -lmysqlclient -lpthread -lz -lm -lssl -lcrypto -ldl
+               MYSQL_C = mysql.c
+               MYSQL_O = mysql.o
+               MYSQL_V = \"X.XX\"
+               MYSQL_VERSION = -DMYSQL_VERSION=$(MYSQL_V)
+            else
+               MYSQL_INCLUDE=
+               MYSQL_LIB=
+               MYSQL_C=
+               MYSQL_O=
+               MYSQL_V=
+               MYSQL_VERSION=
+            endif
          endif
       endif
    endif

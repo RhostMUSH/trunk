@@ -17,8 +17,13 @@
  * Send comments, bug reports or fixes to: lensman@the-wyvern.net
  *
  */
+#ifdef MARIADB
+#include <mariadb/mysql.h>
+#include <mariadb/errmsg.h>
+#else
 #include <mysql/mysql.h>
 #include <mysql/errmsg.h>
+#endif
 
 #include <stdlib.h>
 #include <time.h>
