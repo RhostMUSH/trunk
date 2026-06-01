@@ -171,6 +171,7 @@ websocket_write(DESC *d, const char *output, int len)
     do {
         /* Create new buffer for the WebSocket frame */
         TBLOCK *tb = (TBLOCK *)alloc_lbuf("queue_write.websocket");
+        if (!tb) return;
         tb->hdr.nxt = NULL;
         tb->hdr.start = tb->data;
         tb->hdr.end = tb->data;
@@ -207,6 +208,7 @@ static void
 websocket_send_pong(DESC *d)
 {
     TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.pong");
+    if (!tb) return;
     tb->hdr.nxt = NULL;
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
@@ -228,6 +230,7 @@ void
 websocket_send_close(DESC *d, unsigned short code)
 {
     TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.close");
+    if (!tb) return;
     tb->hdr.nxt = NULL;
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
@@ -251,6 +254,7 @@ void
 websocket_send_ping(DESC *d)
 {
     TBLOCK *tb = (TBLOCK *)alloc_lbuf("websocket.ping");
+    if (!tb) return;
     tb->hdr.nxt = NULL;
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
