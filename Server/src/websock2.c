@@ -114,7 +114,7 @@ complete_handshake(DESC *d, const char *key) {
     if (!accept || !buf) {
 	if (accept) free_lbuf(accept);
 	if (buf) free_lbuf(buf);
-	return 0;
+	return;
     }
 
     // Get the accept response key
@@ -408,30 +408,31 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
       /* FALLTHROUGH */
     case 17:
     case 18:
-    case 19:
-      /* 32-bit mask key. Store at mask[1..4] to preserve mask[0] for state. */
-      mask[state - 15] = ch;
-      if (state == 19) {
-	/* All 4 mask key bytes received. */
-	if (len) {
-	  /* Begin payload. */
-	  state = 0;
-	} else {
-	  /* Empty payload — end of frame. */
-	  state = 4;
+      /* 32-bit mask key. */
+      mask[state - 16] = ch;
+      break;
 
-	  switch (type & 0x0F) {
-	  case WS_OP_CLOSE:
-	    websocket_send_close(d, WS_CLOSE_NORMAL);
-	    d->cold->ws_closing = 1;
-	    break;
-	  case WS_OP_PING:
-	    websocket_send_pong(d);
-	    break;
-	  case WS_OP_PONG:
-	    d->cold->ws_last_pong = time(NULL);
-	    break;
-	  }
+    case 19:
+      mask[4] = ch;
+
+      if (len) {
+	/* Begin payload. */
+	state = 0;
+      } else {
+	/* Empty payload — end of frame. */
+	state = 4;
+
+	switch (type & 0x0F) {
+	case WS_OP_CLOSE:
+	  websocket_send_close(d, WS_CLOSE_NORMAL);
+	  d->cold->ws_closing = 1;
+	  break;
+	case WS_OP_PING:
+	  websocket_send_pong(d);
+	  break;
+	case WS_OP_PONG:
+	  d->cold->ws_last_pong = time(NULL);
+	  break;
 	}
       }
       break;
@@ -439,7 +440,7 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
     default:
       /* Payload data; write only for recognized data frames. */
       if (err == 0) {
-	*wp++ = ch ^ mask[1 + state];
+	*wp++ = ch ^ mask[state];
       }
       if (--len) {
 	state &= 0x3;
