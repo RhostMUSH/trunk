@@ -244,5 +244,9 @@ main(int argc, char *argv[])
 	db_write(stdout, F_MUSH, db_ver | db_flags);
     }
     CLOSE;
+    if (debugmem) {
+	free(debugmem);
+	debugmem = NULL;
+    }
     return(0);
 }

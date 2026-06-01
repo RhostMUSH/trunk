@@ -520,7 +520,7 @@ dddb_check(char *nam)
 		return(0);
 
 	key.dptr = nam;
-	key.dsize = strlen(nam) + 1;
+	key.dsize = sizeof(Objname);
 #ifdef	HAVE_DBM
 	dat = fetch(key);
 #else
