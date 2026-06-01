@@ -2939,6 +2939,10 @@ main(int argc, char *argv[])
     fclose(output2);
     fclose(fp);
     CLOSE;
+    if (debugmem) {
+	free(debugmem);
+	debugmem = NULL;
+    }
 }
 #else
 void 

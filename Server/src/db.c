@@ -4375,6 +4375,26 @@ NDECL(db_free)
 	hot_db = NULL;
 	cold_db = NULL;
     }
+    if (mudconf.cache_names && names) {
+	cp = (char *) (names - SIZE_HACK);
+	XFREE(cp, "db_grow.names");
+	names = NULL;
+    }
+    if (dbtotem) {
+	cp = (char *) (dbtotem - SIZE_HACK);
+	XFREE(cp, "db_grow.db");
+	dbtotem = NULL;
+    }
+    if (dblwire) {
+	cp = (char *) (dblwire - SIZE_HACK);
+	XFREE(cp, "db_grow.db");
+	dblwire = NULL;
+    }
+    if (mudstate_hot.markbits) {
+	cp = (char *) mudstate_hot.markbits;
+	XFREE(cp, "db_grow.markbits");
+	mudstate_hot.markbits = NULL;
+    }
     mudstate_hot.db_top = 0;
     mudstate_hot.db_size = 0;
     mudstate_hot.freelist = NOTHING;
