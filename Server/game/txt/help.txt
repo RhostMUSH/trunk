@@ -37005,6 +37005,7 @@
   6 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.0.7
 & 5.0.6
 & 5.0.5
 & 5.0.4
@@ -37017,6 +37018,9 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  5.0.7
+  * Added another guard to protect the descriptor code.
 
   5.0.6
   * Crash fix for some player descriptor code in (sigh) doors.
