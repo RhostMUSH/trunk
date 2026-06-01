@@ -709,7 +709,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	/* Mark sockets that we want to test for change in status */
 	DESC_ITER_ALL(d) {
 #ifdef TLI
-	    if (!D_INPUT_HEAD(d) || D_OUTPUT_HEAD(d)) {
+	    if (D_DESCRIPTOR(d) >= 0 && (!D_INPUT_HEAD(d) || D_OUTPUT_HEAD(d))) {
 		fds[D_DESCRIPTOR(d)].fd = D_DESCRIPTOR(d);
 		fds[D_DESCRIPTOR(d)].events = 0;
 		if (!D_INPUT_HEAD(d))
@@ -718,15 +718,16 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		    fds[D_DESCRIPTOR(d)].events |= POLLOUT;
 	    }
 #else
-	    if (!D_INPUT_HEAD(d) && (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0)
-		FD_SET(D_DESCRIPTOR(d), &input_set);
-	    if (D_OUTPUT_HEAD(d))
-		FD_SET(D_DESCRIPTOR(d), &output_set);
-            /* If API we always want to test input and output */
-            if ( D_FLAGS(d) & DS_API ) {
-		FD_SET(D_DESCRIPTOR(d), &input_set);
-		FD_SET(D_DESCRIPTOR(d), &output_set);
-            }
+	    if (D_DESCRIPTOR(d) >= 0) {
+	        if (!D_INPUT_HEAD(d) && (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0)
+		    FD_SET(D_DESCRIPTOR(d), &input_set);
+	        if (D_OUTPUT_HEAD(d))
+		    FD_SET(D_DESCRIPTOR(d), &output_set);
+	        if ( D_FLAGS(d) & DS_API ) {
+		    FD_SET(D_DESCRIPTOR(d), &input_set);
+		    FD_SET(D_DESCRIPTOR(d), &output_set);
+	        }
+	    }
 	    if (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) {
                 if ( D_FLAGS(d) & DS_API ) {
                    D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
