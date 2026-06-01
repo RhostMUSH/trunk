@@ -2227,7 +2227,8 @@ NDECL(do_second)
        ENDLOG
        /* Ok, let's update the player time stats here */
        DESC_SAFEITER_ALL(d) {
-         
+          /* freed-slot safety: d->cold is NULL for freed slots */
+          if (!d->cold) continue;
           if (D_FLAGS(d) & DS_CONNECTED) {
              D_LAST_TIME(d) = D_LAST_TIME(d) + floor(d_timediff);
              d->cold->connected_at = d->cold->connected_at + floor(d_timediff);

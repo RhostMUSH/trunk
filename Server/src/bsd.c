@@ -800,6 +800,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
         */
         if( active_auths > 0 ) {
 	  DESC_SAFEITER_ALL(d) {
+	    /* freed-slot safety: d->cold is NULL for freed slots */
+	    if (!d->cold) continue;
 	    if( (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) &&
 	        (time(NULL) - d->cold->connected_at >= 3) ) {
 		D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
@@ -2887,6 +2889,8 @@ close_sockets(int emergency, char *message)
     DPUSH; /* #17 */
     do_rwho(NOTHING, NOTHING, RWHO_STOP);
     DESC_SAFEITER_ALL(d) {
+	/* freed-slot safety: d->cold is NULL for freed slots */
+	if (!d->cold) continue;
 	if (emergency) {
 
 	    WRITE(D_DESCRIPTOR(d), message, strlen(message));

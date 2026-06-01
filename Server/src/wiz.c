@@ -2162,6 +2162,8 @@ void do_conncheck(dbref player, dbref cause, int key)
     notify(player,unsafe_tprintf("%-23s Port  %-16s Port    Cmds User@Site","Name", "Door Name"));
   }
   DESC_SAFEITER_ALL(d) {
+    /* freed-slot safety: d->cold is NULL for freed slots */
+    if (!d->cold) continue;
     // LENSY: FIX ME
     if ( key & CONNCHECK_ACCT ) {
        if ( d->cold->account_owner > 0 ) {

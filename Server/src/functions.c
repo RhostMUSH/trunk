@@ -25136,6 +25136,8 @@ FUNCTION(fun_account_who)
    }
    i_first = 0;
    DESC_SAFEITER_ALL(d) {
+      /* freed-slot safety: d->cold is NULL for freed slots */
+      if (!d->cold) continue;
       if ( d->cold->account_owner >= 0 ) {
          if ( i_first ) {
             safe_str(sep, buff, bufcx);
@@ -25245,6 +25247,8 @@ FUNCTION(fun_account_boot)
    }
 
    DESC_SAFEITER_ALL(d) {
+      /* freed-slot safety: d->cold is NULL for freed slots */
+      if (!d->cold) continue;
       if ( Good_obj(d->cold->account_owner) && (i_port == D_DESCRIPTOR(d)) ) {
          if ( i_boottype ) {
             shutdownsock(d, R_QUIT);

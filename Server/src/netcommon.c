@@ -842,6 +842,8 @@ do_snoop(dbref player, dbref cause, int key, char *name, char *arg2)
 	}
 	found = 0;
 	DESC_ITER_ALL(d) {
+	    /* freed-slot safety: d->cold is NULL for freed slots */
+	    if (!d->cold) continue;
 	    if (d->cold->snooplist) {
 		if (found == 0)
 		    notify(player, "Snooped Players:");
