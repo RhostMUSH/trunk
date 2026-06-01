@@ -91,7 +91,8 @@ compress(const char *s, int atr)
 	/* tokenize the first characters */
 	for (to = compress_buf; s[0] && s[1]; to++) {
 	  /* Lensy: This looks supremely dodgy to me, but I'll go with it for now */
-	    if ((token = *token_table[(unsigned char)s[0]][(unsigned char)s[1]])) {
+	    if ((unsigned char)s[0] < MAX_CHAR && (unsigned char)s[1] < MAX_CHAR &&
+		(token = *token_table[(unsigned char)s[0]][(unsigned char)s[1]])) {
 		*to = token;
 		s += 2;
 	    } else {

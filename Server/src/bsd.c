@@ -2902,10 +2902,13 @@ close_sockets(int emergency, char *message)
 	} else {
 	    queue_string(d, message);
 	    queue_write(d, "\r\n", 2);
-	    if (!(mudstate_hot.reboot_flag))
+	    if (!(mudstate_hot.reboot_flag)) {
 	      shutdownsock(d, R_GOING_DOWN);
-	    else
+	    } else {
 	      shutdownsock(d, R_REBOOT);
+	    }
+	    /* freed-slot safety: shutdownsock compacts the slot, skip to next */
+	    continue;
 	}
     }
     if ( sock >= 0 ) close(sock);

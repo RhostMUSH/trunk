@@ -7768,7 +7768,7 @@ FUNCTION(fun_totcmds)
       safe_str("-1", buff, bufcx);
    }
    else {
-      buf = atr_get(target, A_TOTCMDS, &aflags, &aowner);
+      buf = atr_get(target, A_TOTCMDS, &aowner, &aflags);
       if (*buf)
          tot_cmds = atoi(buf);
       free_lbuf(buf);
@@ -7903,7 +7903,7 @@ FUNCTION(fun_charin)
                cmd = 0;
                break;
             default:
-               buf = atr_get(target, A_TOTCHARIN, &aflags, &aowner);
+               buf = atr_get(target, A_TOTCHARIN, &aowner, &aflags);
                if (*buf)
                   cmd = atoi(buf);
                free_lbuf(buf);
@@ -7992,7 +7992,7 @@ FUNCTION(fun_charout)
                cmd = 0;
                break;
             default:
-               buf = atr_get(target, A_TOTCHAROUT, &aflags, &aowner);
+               buf = atr_get(target, A_TOTCHAROUT, &aowner, &aflags);
                if (*buf)
                   cmd = atoi(buf);
                free_lbuf(buf);
@@ -8066,7 +8066,7 @@ FUNCTION(fun_cmds)
          }
       } else if ( !Connected(target) && (!Cloak(target) || Wizard(player)) &&
           (!(SCloak(target) && Cloak(target)) || Immortal(player)) ) {
-         buf = atr_get(target, A_LSTCMDS, &aflags, &aowner);
+         buf = atr_get(target, A_LSTCMDS, &aowner, &aflags);
          if (*buf)
             cmd = atoi(buf);
          free_lbuf(buf);
@@ -14790,7 +14790,7 @@ FUNCTION(fun_passwd)
        safe_str("#-1 NOT FOUND", buff, bufcx);
        return;
     }
-    buf = atr_get(target, A_PASS, &aflags, &aowner);
+    buf = atr_get(target, A_PASS, &aowner, &aflags);
     safe_str(buf, buff, bufcx);
     free_lbuf(buf);
 }

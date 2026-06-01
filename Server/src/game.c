@@ -1999,6 +1999,11 @@ dump_database_internal(int panic_dump)
         if ( mudstate_hot.shutdown_flag ) {
            do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
         }
+	free_mbuf(dmpfile);
+	free_mbuf(outdbfile);
+	free_mbuf(tmpfile);
+	free_mbuf(outfn);
+	free_mbuf(prevfile);
 	VOIDRETURN; /* #82 */
     }
 
@@ -2024,6 +2029,11 @@ dump_database_internal(int panic_dump)
             if ( mudstate_hot.shutdown_flag ) {
                do_shutdown(NOTHING, NOTHING, 0, (char *)"Caught signal SIGUSR2");
             }
+	    free_mbuf(dmpfile);
+	    free_mbuf(outdbfile);
+	    free_mbuf(tmpfile);
+	    free_mbuf(outfn);
+	    free_mbuf(prevfile);
 	    VOIDRETURN; /* #82 */
 	} else {
 	    log_perror("SAV", "FAIL", "Opening", tmpfile);

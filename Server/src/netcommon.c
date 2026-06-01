@@ -3362,6 +3362,8 @@ NDECL(check_idle)
 		queue_string(d, "*** Inactivity Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
+		/* freed-slot safety: shutdownsock compacts the slot, skip to next */
+		continue;
             } else if (mudconf.idle_wiz_cloak &&
 		       ( (idletime > d->cold->timeout) && (d->cold->timeout != -1) ) &&
 		       Wizard(D_PLAYER(d)) && (!Dark(D_PLAYER(d)) || !Unfindable(D_PLAYER(d)))) {
@@ -3399,11 +3401,15 @@ NDECL(check_idle)
 		queue_string(d, "*** Login Timeout ***\r\n");
                 process_output(d);
 		shutdownsock(d, R_TIMEOUT);
+		/* freed-slot safety: shutdownsock compacts the slot, skip to next */
+		continue;
 	    } else if ( D_FLAGS(d) & DS_API ) {
                /* Force API disconnecting after d->cold->timeout from connection */
                if ( (idletime > (d->cold->timeout)) || (mudstate_hot.now > (d->cold->connected_at + d->cold->timeout)) ) {
                   process_output(d);
 		  shutdownsock(d, R_API);
+		  /* freed-slot safety: shutdownsock compacts the slot, skip to next */
+		  continue;
                }
             }
 	}

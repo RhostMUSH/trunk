@@ -288,6 +288,7 @@ dddb_init()
     rc = mdbx_txn_commit(txn);
     if (rc != MDBX_SUCCESS) {
         mush_logf("db_init: mdbx_txn_commit failed\n", (char *)0);
+        mdbx_txn_abort(txn);
         mdbx_env_close(env);
         env = NULL;
         return 1;
@@ -317,6 +318,12 @@ int dddb_setfile(char *fil)
 
     if (db_initted)
         return 1;
+
+    /* Free any prior allocation from a previous failed dddb_init attempt. */
+    if (dbfile != (char *)0) {
+	free(dbfile);
+	dbfile = (char *)0;
+    }
 
     xp = (char *)malloc((unsigned)strlen(fil) + 1);
     if (xp == (char *)0)

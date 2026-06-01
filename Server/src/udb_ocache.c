@@ -670,12 +670,18 @@ get_free_entry(CacheLst *sp)
 			       (cp->op)->name,cp->op);
 #endif
 			if ((cp->op)->at_count == 0) {
-  			        if (DB_DEL(&((cp->op)->name), 0))
+  			        if (DB_DEL(&((cp->op)->name), 0)) {
+					objfree(cp->op);
+					cp->op = (Obj *)0;
 					RETURN(CNULL); /* #167 */
+				}
 				cs_dels++;
 			} else {
-				if(DB_PUT(cp->op,&((cp->op)->name)))
+				if(DB_PUT(cp->op,&((cp->op)->name))) {
+					objfree(cp->op);
+					cp->op = (Obj *)0;
 					RETURN(CNULL); /* #167 */
+				}
 				cs_dbwrites++;
 			}
 		} else {
@@ -927,6 +933,8 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 	if(obj->atrs == ATNULL){
 		a = (Attrib *) malloc(sizeof(Attrib));
 		if(a == ATNULL) { /* Fail silently. It's a game. */
+			/* Caller transferred ownership of 'value' to us, free it. */
+			free(value);
 			VOIDRETURN; /* #173 */
                 }
 
@@ -959,7 +967,8 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 
 	if(!a){
 		/* Silently fail. It's just a game. */
-
+		/* Caller transferred ownership of 'value' to us, free it. */
+		free(value);
 		VOIDRETURN; /* #173 */
 	}
 
