@@ -1600,6 +1600,7 @@ new_connection(int sock, int key)
     strcpy(tsite_buff, addroutbuf);
     if ( tsite_buff ) {
        DESC_SAFEITER_ALL(dchk) {
+	  if (!dchk->cold) continue;
           if ( strcmp(tsite_buff, dchk->cold->addr) == 0 )
              maxsitecon++;
           maxtsitecon++;
@@ -1803,6 +1804,8 @@ shutdownsock(DESC * d, int reason)
     if ( D_FLAGS(d) & DS_API ) {
        i_addflags = MF_API;
     }
+
+    if (reason < 0 || reason > R_SU) reason = 0;
 
     if ( ((reason == R_LOGOUT) || (reason == R_SU)) &&
           (site_check_str(d->cold->addr, d->cold->addr_family, mudstate.access_list, 1, 0, H_FORBIDDEN) == H_FORBIDDEN)) {
@@ -2742,6 +2745,9 @@ process_input(DESC * d)
     }
     if (!d->cold->raw_input) {
 	d->cold->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+	if (!d->cold->raw_input) {
+	    RETURN(0); /* #16 */
+	}
 	d->cold->raw_input_at = d->cold->raw_input->cmd;
     }
     p = d->cold->raw_input_at;
@@ -2758,6 +2764,9 @@ process_input(DESC * d)
 		if (p > d->cold->raw_input->cmd) {
 			save_command(d, d->cold->raw_input);
 			d->cold->raw_input = (CBLK *) alloc_lbuf("process_input.raw");
+			if (!d->cold->raw_input) {
+			    RETURN(0); /* #16 */
+			}
 			p = d->cold->raw_input_at = d->cold->raw_input->cmd;
 			pend = d->cold->raw_input->cmd + LBUF_SIZE -
 			sizeof(CBLKHDR) - 1;

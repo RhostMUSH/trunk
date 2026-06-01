@@ -1538,9 +1538,12 @@ void FDECL(olist_init,(OBLOCKMASTER *master))
   (*master).olist_citm = 0;
 }
 
+static const char *file_olist_cleanup_name = NULL;
+
 void file_olist_init(FILE** master, const char *filename)
 {
   *master = fopen(filename,"w+");
+  file_olist_cleanup_name = filename;
 }
 
 /* olist_cleanup: cleanup an object list after use */
@@ -1563,7 +1566,10 @@ void file_olist_cleanup(FILE** master)
 {
   if( !*master ) return;
   fclose(*master);
-  /*unlink("search.tmp");*/
+  if (file_olist_cleanup_name) {
+    unlink(file_olist_cleanup_name);
+    file_olist_cleanup_name = NULL;
+  }
 }
 
 /* olist_add: Add an entry to the object list */

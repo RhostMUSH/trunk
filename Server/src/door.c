@@ -191,7 +191,8 @@ static int addDoor(const char *doorName,
      goto error;
    }
 
-   strcpy(gaDoors[gnDoors]->pName, doorName);
+   strncpy(gaDoors[gnDoors]->pName, doorName, MBUF_SIZE - 1);
+   gaDoors[gnDoors]->pName[MBUF_SIZE - 1] = '\0';
   gaDoors[gnDoors]->switchNum = 0;
   if (pFnOpen == NULL) {
     LOGTEXT("ERR", -1, unsafe_tprintf("%s has a NULL open functions", doorName));
@@ -461,7 +462,10 @@ int process_door_output(DESC * d)
 
 	    cnt = WRITE(d->cold->door_desc, tb->hdr.start,
 			tb->hdr.nchars);
-	    if (cnt < 0) {
+	    if (cnt <= 0) {
+		if (cnt == 0) {
+		    RETURN(0); /* #7 */
+		}
 		if (errno == EWOULDBLOCK) {
 		    RETURN(1); /* #7 */
                 }

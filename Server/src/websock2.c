@@ -111,6 +111,12 @@ complete_handshake(DESC *d, const char *key) {
     char *accept = alloc_lbuf("websock.accept");
     char *buf = alloc_lbuf("websoc.accept_buf");
 
+    if (!accept || !buf) {
+	if (accept) free_lbuf(accept);
+	if (buf) free_lbuf(buf);
+	return 0;
+    }
+
     // Get the accept response key
     memset(accept, '\0', LBUF_SIZE);
     compute_websocket_accept(accept, key);

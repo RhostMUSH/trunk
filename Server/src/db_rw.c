@@ -1007,7 +1007,7 @@ get_atrdefs_discard(FILE * f)
 
     for (;;) {
 	sp = getstring_noalloc(f);	/* flags or endmarker */
-	if (*sp == '\\')
+	if (feof(f) || *sp == '\\')
 	    return;
 	sp = getstring_noalloc(f);	/* object */
 	sp = getstring_noalloc(f);	/* name */

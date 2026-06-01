@@ -493,11 +493,11 @@ mail_init()
 	memset(foldname, 0, sizeof(foldname));
 	memset(fdumpname, 0, sizeof(fdumpname));
 	memset(nukename, 0, sizeof(nukename));
-    sprintf(mailname, "%s/%s.mail", mudconf.data_dir, mudconf.muddb_name);
-    sprintf(dumpname, "%s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
-    sprintf(foldname, "%s/%s.folder", mudconf.data_dir, mudconf.muddb_name);
-    sprintf(fdumpname, "%s/%s.dump.folder", mudconf.data_dir, mudconf.muddb_name);
-    sprintf(nukename, "%s/%s.wipe", mudconf.data_dir, mudconf.muddb_name);
+    snprintf(mailname, sizeof(mailname), "%s/%s.mail", mudconf.data_dir, mudconf.muddb_name);
+    snprintf(dumpname, sizeof(dumpname), "%s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
+    snprintf(foldname, sizeof(foldname), "%s/%s.folder", mudconf.data_dir, mudconf.muddb_name);
+    snprintf(fdumpname, sizeof(fdumpname), "%s/%s.dump.folder", mudconf.data_dir, mudconf.muddb_name);
+    snprintf(nukename, sizeof(nukename), "%s/%s.wipe", mudconf.data_dir, mudconf.muddb_name);
     mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 00664);
     foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 00664);
     mainit();

@@ -106,7 +106,7 @@ fcache_fill(FBLOCK * fp, char ch)
 static int 
 fcache_read(FBLOCK ** cp, char *filename)
 {
-    int n, nmax, nmax2, tchars, fd;
+    int n, nmax, nmax2, tchars, fd = -1;
     char *buff, *buff2;
     char *lbuf1, *lbuf2, *lbuf3;
 #ifdef ZENTY_ANSI
@@ -137,7 +137,7 @@ fcache_read(FBLOCK ** cp, char *filename)
 	log_text(buff);
 	free_mbuf(buff);
 	ENDLOG
-	    tf_close(fd);
+	    if (fd >= 0) tf_close(fd);
 	return -1;
     }
     buff = alloc_lbuf("fcache_read.temp");

@@ -1815,7 +1815,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
     DPUSH; /* #113 */
 
     buff = alloc_lbuf("broadcast_monitor");
-    if ( (inflags & (MF_CONN|MF_DCONN|MF_FAIL|MF_BFAIL|MF_GFAIL|MF_COMPFAIL)) && *(mudconf.nobroadcast_host) ) {
+       if ( site && (inflags & (MF_CONN|MF_DCONN|MF_FAIL|MF_BFAIL|MF_GFAIL|MF_COMPFAIL)) && *(mudconf.nobroadcast_host) ) {
        buff2 = alloc_lbuf("nobroadcast_monitor_chk");
        sprintf(buff2, "%s", mudconf.nobroadcast_host);
        if ( lookup(site, buff2, -1, &i_retvar) ) {

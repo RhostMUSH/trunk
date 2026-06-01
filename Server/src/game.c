@@ -289,6 +289,7 @@ void
 reset_atrcache_commandtrig( void ) {
    ATRCACHE *cp;
 
+   if (!atrcache_head) return;
    for (cp = atrcache_head; cp->next; cp = cp->next) {
       if ( cp->enabled )
          cp->commandtrig = 1;
