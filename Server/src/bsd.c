@@ -727,26 +727,26 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		    FD_SET(D_DESCRIPTOR(d), &input_set);
 		    FD_SET(D_DESCRIPTOR(d), &output_set);
 	        }
-	    }
-	    if (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) {
-                if ( D_FLAGS(d) & DS_API ) {
-                   D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
-                } else {
-                   active_auths++;
-		   if (d->cold->authdescriptor >= maxd)
-		       maxd = d->cold->authdescriptor + 1;
-		   if (D_FLAGS(d) & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
-		       FD_SET(d->cold->authdescriptor, &output_set);
-		   FD_SET(d->cold->authdescriptor, &input_set);
-               }
-	    }
-	    if (D_FLAGS(d) & DS_HAS_DOOR) {
-	      if (d->cold->door_desc >= maxd)
-		maxd = d->cold->door_desc + 1;
-	      if (!d->cold->door_input_head)
-		FD_SET(d->cold->door_desc, &input_set);
-	      if (d->cold->door_output_head)
-		FD_SET(d->cold->door_desc, &output_set);
+	        if (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) {
+                    if ( D_FLAGS(d) & DS_API ) {
+                       D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
+                    } else {
+                       active_auths++;
+		       if (d->cold->authdescriptor >= maxd)
+		           maxd = d->cold->authdescriptor + 1;
+		       if (D_FLAGS(d) & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
+		           FD_SET(d->cold->authdescriptor, &output_set);
+		       FD_SET(d->cold->authdescriptor, &input_set);
+                   }
+	        }
+	        if (D_FLAGS(d) & DS_HAS_DOOR) {
+	          if (d->cold->door_desc >= maxd)
+		    maxd = d->cold->door_desc + 1;
+	          if (!d->cold->door_input_head)
+		    FD_SET(d->cold->door_desc, &input_set);
+	          if (d->cold->door_output_head)
+		    FD_SET(d->cold->door_desc, &output_set);
+	        }
 	    }
 #endif
 	}
@@ -781,6 +781,8 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		log_perror("NET", "FAIL",
 			   "checking for activity, clearing descriptor queues", "select");
 		DESC_ITER_ALL(d) {
+		  if (D_DESCRIPTOR(d) < 0)
+		      continue;
 		  freeqs(d,0);
 		}
 		if (mudstate.scheck > 2) {
@@ -949,6 +951,11 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
 	/* Check for activity on user sockets */
 	DESC_SAFEITER_ALL(d) {
+	    /* Skip input processing for descriptors without a valid socket.
+	     * This covers freed internal-door DESCs and any slot that has
+	     * been cleared but not yet compacted out of the active range. */
+	    if (D_DESCRIPTOR(d) < 0)
+	        continue;
 	    /* Check for Auth */
 
 	    if (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) {
@@ -983,11 +990,6 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		}
 	      }
 	    }
-	    /* Skip input processing for descriptors without a valid socket.
-	     * This covers freed internal-door DESCs and any slot that has
-	     * been cleared but not yet compacted out of the active range. */
-	    if (D_DESCRIPTOR(d) < 0)
-	        continue;
 	    /* Process input from sockets with pending input */
 
 	    check = CheckInput(D_DESCRIPTOR(d));
@@ -1167,6 +1169,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
             if ( (D_FLAGS(d) & DS_API) ) {
 		if ( (d->cold->connected_at + d->cold->timeout) < time(NULL) ) {
 			shutdownsock(d, R_API);
+			continue;
 		}
             }
 
@@ -1180,9 +1183,10 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                 time_t now = time(NULL);
                 if (!d->cold->ws_last_pong)
                     d->cold->ws_last_pong = now;
-                else if (now - d->cold->ws_last_pong > WS_PING_TIMEOUT)
+                else if (now - d->cold->ws_last_pong > WS_PING_TIMEOUT) {
                     shutdownsock(d, R_TIMEOUT);
-                else if (now - d->cold->ws_last_pong > WS_PING_INTERVAL)
+                    continue;
+                } else if (now - d->cold->ws_last_pong > WS_PING_INTERVAL)
                     websocket_send_ping(d);
             }
 #endif

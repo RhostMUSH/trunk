@@ -2239,6 +2239,10 @@ queue_write(DESC * d, const char *b, int n)
         VOIDRETURN;
     }
 
+    if (!d->cold) {
+        VOIDRETURN;
+    }
+
     if (D_OUTPUT_SIZE(d) + n > mudconf.output_limit)
 	process_output(d);
 
@@ -2384,13 +2388,17 @@ queue_string(DESC * d, const char *s)
     VOIDRETURN; /* #119 */
 }
 
-void 
+void
 freeqs(DESC * d, int dooronly)
 {
     TBLOCK *tb, *tnext;
     CBLK *cb, *cnext;
 
     DPUSH; /* #121 */
+
+  if (!d || !d->cold) {
+    VOIDRETURN;
+  }
 
   if (!dooronly) {
     tb = D_OUTPUT_HEAD(d);

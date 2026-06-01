@@ -157,7 +157,7 @@ static int addDoor(const char *doorName,
   int door;
   DPUSH; /* 3 */
   door = findDoor(doorName);
-  if (door > 0) {
+  if (door >= 0) {
     LOGTEXT("ERR", -1, unsafe_tprintf("Name clash when trying to add door: %s/%d", 
 			       doorName, door));
     RETURN(-1); /* 3 */
@@ -346,26 +346,28 @@ static int setup_player(DESC *d, int sock, int doorIdx) {
           close(sock);
           queue_string(d, "Could not allocate door buffer\r\n");
           retval = -1;
+          return retval;
       }
       *(d->cold->door_lbuf) = '\0';
       d->cold->door_mbuf = alloc_mbuf("door_lbuf");
-      if ( (sock >= 0) && d->cold->door_mbuf == NULL ) {
+      if (d->cold->door_mbuf == NULL) {
           close(sock);
-          queue_string(desc_in_use, "Could not allocate door buffer\r\n");
+          queue_string(d, "Could not allocate door buffer\r\n");
           free_lbuf(d->cold->door_lbuf);
           d->cold->door_lbuf = NULL;
           retval = -1;
+          return retval;
       }
 
       if (retval >= 0) {
           *(d->cold->door_mbuf) = '\0';
           d->cold->door_desc = sock;
-          D_FLAGS(d) |= DS_HAS_DOOR;   
+          D_FLAGS(d) |= DS_HAS_DOOR;
           d->cold->door_num = doorIdx;
       /*  process_output(d); */
       }
   }
-  return sock;
+  return retval;
 }
 
 int door_tcp_connect(char *host, char *port, DESC *d, int doorIdx, int i_nonblock)
@@ -887,16 +889,18 @@ void closeDoorWithId(DESC *desc, int d) {
     VOIDRETURN /* 11.5 */
   }
 
-  if (d && gaDoors[d]->pFnCloseDoor) {
+  if (d >= 0 && gaDoors[d]->pFnCloseDoor) {
     if ((gaDoors[d]->pFnCloseDoor)(desc) < 0) {
-      LOGTEXT("ERR", D_PLAYER(desc), 
+      LOGTEXT("ERR", D_PLAYER(desc),
 	      unsafe_tprintf("tried to close a door to %s, but the door did not close cleanly.",
 		      gaDoors[d]->pName));
     }
   }
   shut_door(desc);
   queue_string(desc, "Door connection closed.\r\n");
-  (gaDoors[d]->nConnections)--;
+  if (gaDoors[d]->doorStatus != INTERNAL_e && gaDoors[d]->nConnections > 0) {
+    (gaDoors[d]->nConnections)--;
+  }
   if (gaDoors[d]->doorStatus == INTERNAL_e) {
     gaDoors[d]->doorStatus = OFFLINE_e;
   } else if (!gaDoors[d]->nConnections) {
@@ -921,6 +925,12 @@ void closeDoorWithId(DESC *desc, int d) {
     D_OUTPUT_SIZE(desc) = 0;
     D_OUTPUT_TOT(desc) = 0;
     D_LAST_TIME(desc) = 0;
+    if (desc->cold) {
+      desc->cold->door_input_head = NULL;
+      desc->cold->door_input_tail = NULL;
+      desc->cold->door_output_head = NULL;
+      desc->cold->door_output_tail = NULL;
+    }
     gaDoors[d]->pDescriptor = NULL;
   }
 
