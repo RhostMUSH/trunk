@@ -907,7 +907,20 @@ void closeDoorWithId(DESC *desc, int d) {
   				       gaDoors[d]->pName));
 
   if (gaDoors[d]->pDescriptor && gaDoors[d]->pDescriptor == desc) {
-    free_desc(desc);
+    D_DESCRIPTOR(desc) = -1;
+    D_FLAGS(desc) = 0;
+    D_QUOTA(desc) = 0;
+    D_PLAYER(desc) = 0;
+    D_HOST_INFO(desc) = 0;
+    D_INPUT_HEAD(desc) = NULL;
+    D_INPUT_TAIL(desc) = NULL;
+    D_INPUT_SIZE(desc) = 0;
+    D_INPUT_TOT(desc) = 0;
+    D_OUTPUT_HEAD(desc) = NULL;
+    D_OUTPUT_TAIL(desc) = NULL;
+    D_OUTPUT_SIZE(desc) = 0;
+    D_OUTPUT_TOT(desc) = 0;
+    D_LAST_TIME(desc) = 0;
     gaDoors[d]->pDescriptor = NULL;
   }
 

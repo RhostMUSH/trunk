@@ -982,6 +982,11 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		}
 	      }
 	    }
+	    /* Skip input processing for descriptors without a valid socket.
+	     * This covers freed internal-door DESCs and any slot that has
+	     * been cleared but not yet compacted out of the active range. */
+	    if (D_DESCRIPTOR(d) < 0)
+	        continue;
 	    /* Process input from sockets with pending input */
 
 	    check = CheckInput(D_DESCRIPTOR(d));
