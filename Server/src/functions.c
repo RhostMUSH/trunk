@@ -25089,6 +25089,8 @@ FUNCTION(fun_account_owner)
 
    i_port = atoi(fargs[2]);
    DESC_SAFEITER_ALL(d) {
+      /* freed-slot safety: d->cold is NULL for freed slots */
+      if (!d->cold) continue;
       if ( i_port == D_DESCRIPTOR(d) ) {
          s_buffptr = s_buff = alloc_lbuf("account_owner");
          s_tmp = alloc_lbuf("account_owner2");
@@ -25211,11 +25213,16 @@ FUNCTION(fun_account_su)
             safe_str("#-1 INVALID PASSWORD FOR USER", buff, bufcx);
             return;
          }
-         i_noannounce = mudstate_hot.no_announce;
-         mudstate_hot.no_announce = 1;
-         shutdownsock(d, R_SU);
-         mudstate_hot.no_announce = i_noannounce;
-         sprintf(s_buff, "zz %.100s %.200s", fargs[0], d->cold->account_rawpass);
+          i_noannounce = mudstate_hot.no_announce;
+          mudstate_hot.no_announce = 1;
+          /* Save rawpass before shutdownsock — its compaction swap
+           * will move another slot's cold data into this slot, making
+           * d->cold->account_rawpass stale (or NULL if this was the
+           * last slot). The heap-allocated s_tmp survives the swap. */
+          strcpy(s_tmp, d->cold->account_rawpass);
+          shutdownsock(d, R_SU);
+          mudstate_hot.no_announce = i_noannounce;
+          sprintf(s_buff, "zz %.100s %.200s", fargs[0], s_tmp);
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
          D_LAST_TIME(d) = mudstate_hot.now;

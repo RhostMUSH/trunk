@@ -569,6 +569,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
     /* we may be rebooting, so recalc maxd */
     DESC_ITER_ALL(d) {
+      if (!d->cold) continue;
       if( D_DESCRIPTOR(d) >= maxd ) {
         maxd = D_DESCRIPTOR(d) + 1;
       }
@@ -732,6 +733,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
 	/* Mark sockets that we want to test for change in status */
 	DESC_ITER_ALL(d) {
+	  if (!d->cold) continue;
 #ifdef TLI
 	    if (D_DESCRIPTOR(d) >= 0 && (!D_INPUT_HEAD(d) || D_OUTPUT_HEAD(d))) {
 		fds[D_DESCRIPTOR(d)].fd = D_DESCRIPTOR(d);
@@ -758,9 +760,11 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                        active_auths++;
 		       if (d->cold->authdescriptor >= maxd)
 		           maxd = d->cold->authdescriptor + 1;
-		       if (D_FLAGS(d) & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
+		       if (d->cold->authdescriptor >= 0) {
+		         if (D_FLAGS(d) & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
 		           FD_SET(d->cold->authdescriptor, &output_set);
-		       FD_SET(d->cold->authdescriptor, &input_set);
+		         FD_SET(d->cold->authdescriptor, &input_set);
+		       }
                    }
 	        }
 	        if (D_FLAGS(d) & DS_HAS_DOOR) {
@@ -979,7 +983,9 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	DESC_SAFEITER_ALL(d) {
 	    /* Skip input processing for descriptors without a valid socket.
 	     * This covers freed internal-door DESCs and any slot that has
-	     * been cleared but not yet compacted out of the active range. */
+	     * been cleared but not yet compacted out of the active range.
+	     * Note: D_DESCRIPTOR check catches BOTH freed slots (cold=NULL)
+	     * and internal-door DESCs (cold!=NULL, descriptor=-1). */
 	    if (D_DESCRIPTOR(d) < 0)
 	        continue;
 	    /* Check for Auth */
@@ -2836,7 +2842,7 @@ process_input(DESC * d)
 	    if (p < d->cold->raw_input_at)
 		(d->cold->raw_input_at)--;
         /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
-        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
+        } else if ( ((p+10) < pend) && (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
             sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
             in+=5;
             got+=5;

@@ -3222,6 +3222,7 @@ int validate_ohtab_aliases(dbref player,
     if (cmdp == NULL) {
       cf_log_notfound(player, cmd, label, orig);
       retval = -1;
+      return retval;
     }
     aliasp = ohtab_find(alias, htab);
     if (aliasp == NULL) {

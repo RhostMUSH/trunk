@@ -344,7 +344,7 @@ int telnet_preprocess_input(DESC *d, char *buf, int *got)
     char clean[LBUF_SIZE];
     int clean_len = 0;
 
-    if (!d || !d->cold->telnet || !buf || !got || *got <= 0)
+    if (!d || !d->cold || !d->cold->telnet || !buf || !got || *got <= 0)
         return 0;
 
     /* Set up context for the event handler */

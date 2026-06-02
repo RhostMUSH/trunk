@@ -62,10 +62,14 @@ objfromFILE(FILE *  f)
 
 	/* Now get an array of Attrs */
 
-	a = o->atrs = (Attrib *) malloc(i * sizeof(Attrib));
-	if(!o->atrs){
-		free(o);
-		return((Obj *)0);
+	if (i == 0) {
+		o->atrs = ATNULL;
+	} else {
+		a = o->atrs = (Attrib *) malloc(i * sizeof(Attrib));
+		if(!o->atrs){
+			free(o);
+			return((Obj *)0);
+		}
 	}
 
 	/* Now go get the attrs, one at a time. */

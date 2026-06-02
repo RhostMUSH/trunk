@@ -1094,18 +1094,15 @@ int dump_reboot_db( void )
 
   i_prefix = mkattr("____OUTPUTPREFIX");
   i_suffix = mkattr("____OUTPUTSUFFIX");
-  DESC_ITER_ALL(d) {
-    /* Lensy, bugfix 29/02/04
-     * Doors should NOT be carried through on a reboot, at least not here! */
+  /* Pass 1 — save non-API connections.
+   * Must use SAFEITER (backward) to avoid the forward-iteration compaction
+   * bug: shutdownsock in pass 2 would compact slot-i with slot-last, losing
+   * slot-last's data from the reboot save under forward iteration. */
+  DESC_SAFEITER_ALL(d) {
+    if (!d->cold) continue;
+    if (D_FLAGS(d) & DS_API) continue;
     if (D_FLAGS(d) & DS_HAS_DOOR) {
-      /* Force close the door */
       closeDoorWithId(d, d->cold->door_num);
-    }
-    /* Don't save API data on reboot, and don't attempt to reconnect it */
-    if (D_FLAGS(d) & DS_API) {
-      /* Force close the API */
-      shutdownsock(d, R_API);
-      continue;
     }
     if ( (i_prefix > 0 ) && d->cold->output_prefix && *(d->cold->output_prefix) && Good_chk(D_PLAYER(d)) ) {
        if (!fwrite(d->cold->output_prefix, LBUF_SIZE, 1, suffixfile)) {
@@ -1166,6 +1163,18 @@ int dump_reboot_db( void )
     }
     /* Restore telnet pointer (was nulled for serialization) */
     d->cold->telnet = saved_telnet;
+  }
+
+  /* Pass 2 — close API connections. SAFEITER handles compaction safely:
+   * backward iteration means slot-last is already visited, and the compacted
+   * data at slot-i is safely skipped by the continue below. */
+  DESC_SAFEITER_ALL(d) {
+    if (!d->cold) continue;
+    if (!(D_FLAGS(d) & DS_API)) continue;
+    if (D_FLAGS(d) & DS_HAS_DOOR) {
+      closeDoorWithId(d, d->cold->door_num);
+    }
+    shutdownsock(d, R_API);
   }
 
   fclose(rebootfile);

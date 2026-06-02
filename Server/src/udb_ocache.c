@@ -1027,6 +1027,8 @@ objfree(Obj *o)
 
         DPUSH; /* #175 */
 
+	if (!o)
+	    VOIDRETURN; /* #175 */
 	if(!o->atrs){
 		free(o);
 		VOIDRETURN; /* #175 */
