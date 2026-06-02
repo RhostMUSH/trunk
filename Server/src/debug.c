@@ -56,7 +56,8 @@ Debugmem * shmConnect(int debug_id, int bCreate, int *pShmid) {
   } else {
     if((shm = shmat((*pShmid), NULL, 0)) == (char *) -1) {
       perror("** IPC Error (shmat)");
-      shmdt(shm);
+      /* shmat failed — shm is (char*)-1, do NOT call shmdt on it (UB).
+       * shmctl(IPC_RMID) removes the segment once all detach. */
       shmctl((*pShmid), IPC_RMID, NULL);
       shm = NULL;
       exitCode = 2;

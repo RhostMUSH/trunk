@@ -675,6 +675,7 @@ NDECL(cf_init)
     mudconf.ntfy_nest_lim = 20;
     mudconf.lock_nest_lim = 20;
     mudconf.parent_nest_lim = 10;
+    mudconf.dropto_limit = 10;
     mudconf.cache_trim = 0;
     mudconf.cache_depth = CACHE_DEPTH;
     mudconf.cache_width = CACHE_WIDTH;
@@ -5459,6 +5460,10 @@ CONF conftable[] =
     {(char *) "parent_nest_limit",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.parent_nest_lim, 0, 0, CA_WIZARD,
      (char *) "Maximum nesting allowed on @parents.\r\n"\
+              "                             Default: 10   Value: %d"},
+    {(char *) "dropto_limit",
+     cf_int, CA_GOD | CA_IMMORTAL, &mudconf.dropto_limit, 0, 0, CA_WIZARD,
+     (char *) "Maximum recursion depth for drop-to chains.\r\n"\
               "                             Default: 10   Value: %d"},
     {(char *) "partial_conn",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.partial_conn, 0, 0, CA_PUBLIC,

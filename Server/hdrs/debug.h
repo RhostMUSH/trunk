@@ -25,7 +25,7 @@ extern Debugmem *debugmem;
 
 Debugmem * shmConnect(int debug_id, int create, int *pShmid);
 
-#define INITDEBUG(x) { x->lastdbfetch = -1; x->stacktop = 0; x->stackval = 0; memset(x->last_command, '\0', 70000); }
+#define INITDEBUG(x) { memset(x, 0, sizeof(Debugmem)); x->lastdbfetch = -1; }
 
 #ifndef NODEBUGMONITOR
 #define DPUSH   {if(debugmem && debugmem->stacktop < STACKMAX) { \

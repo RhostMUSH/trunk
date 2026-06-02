@@ -392,22 +392,43 @@ process_sticky_dropto(dbref loc, dbref player)
 {
     dbref dropto, thing, next;
 
+    if (++mudstate.dropto_nest_lev >= mudconf.dropto_limit) {
+        raw_broadcast(0, WIZARD,
+            "WARNING: Dropto recursion limit (%d) reached for room #%d. Check for circular drop-to chains.",
+            mudconf.dropto_limit, loc);
+        STARTLOG(LOG_PROBLEMS, "DROP", "LIMIT")
+            log_text("Dropto recursion limit (");
+            log_number(mudconf.dropto_limit);
+            log_text(") reached for room #");
+            log_number(loc);
+            log_text(". Check for circular drop-to chains.");
+        ENDLOG
+        mudstate.dropto_nest_lev--;
+        return;
+    }
+
     /* Do nothing if checking anything but a sticky room */
 
-    if (!Good_obj(loc) || !Has_dropto(loc) || !Sticky(loc))
+    if (!Good_obj(loc) || !Has_dropto(loc) || !Sticky(loc)) {
+        mudstate.dropto_nest_lev--;
 	return;
+    }
 
     /* Make sure dropto loc is valid */
 
     dropto = Dropto(loc);
-    if ((dropto == NOTHING) || (dropto == loc))
+    if ((dropto == NOTHING) || (dropto == loc)) {
+        mudstate.dropto_nest_lev--;
 	return;
+    }
 
     /* Make sure no players hanging out */
 
     DOLIST(thing, Contents(loc)) {
-	if (Dropper(thing))
+	if (Dropper(thing)) {
+            mudstate.dropto_nest_lev--;
 	    return;
+        }
     }
 
     /* Send everything through the dropto */
@@ -416,6 +437,7 @@ process_sticky_dropto(dbref loc, dbref player)
     SAFE_DOLIST(thing, next, Contents(loc)) {
 	send_dropto(thing, player);
     }
+    mudstate.dropto_nest_lev--;
 }
 
 /* process_dropped_dropto: Check what to do when someone drops an object. */

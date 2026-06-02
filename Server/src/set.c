@@ -715,27 +715,27 @@ void do_unlock(dbref player, dbref cause, int key, char *name)
 
    if ((thing = match_controlled(player, name)) != NOTHING) {
       if ( Good_obj(thing) && (NoMod(thing) && !WizMod(player) && (obj_nomodlevel(thing) > obj_bitlevel(player))) ) {
-         notify_quiet(player, "Permission denied.");
-         if ( custom )
-            free_sbuf(subname);
-         return;
-      }
-      /* Check flags of lock to flags of enactor */
-      if ( atr_get_info(thing, key, &aowner, &aflags) ) {
-         if ( !allowed_to_lock(player, aflags, key) ) {
-            notify_quiet(player, "Permission denied.");
-            if ( custom )
-               free_sbuf(subname);
-            return;
-         }
-      } else {
-         if ( !allowed_to_lock(player, 0, key) ) {
-            notify_quiet(player, "Permission denied.");
-            if ( custom )
-               free_sbuf(subname);
-            return;
-         }
-      }
+	 notify_quiet(player, "Permission denied.");
+	  if ( custom )
+	     free_sbuf(custname);
+	  return;
+       }
+       /* Check flags of lock to flags of enactor */
+       if ( atr_get_info(thing, key, &aowner, &aflags) ) {
+	  if ( !allowed_to_lock(player, aflags, key) ) {
+	     notify_quiet(player, "Permission denied.");
+	     if ( custom )
+	        free_sbuf(custname);
+	     return;
+	  }
+       } else {
+	  if ( !allowed_to_lock(player, 0, key) ) {
+	     notify_quiet(player, "Permission denied.");
+	     if ( custom )
+	        free_sbuf(custname);
+	     return;
+	  }
+       }
 
       atr_clr(thing, key);
       if (!Quiet(player) && !Quiet(thing)) {

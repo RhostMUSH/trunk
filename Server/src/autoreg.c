@@ -98,6 +98,8 @@ int areg_check(char *email, int force)
     keydata.dsize = strlen(email) + 1;
     infodata = dbm_fetch(aregfile,keydata);
     if (infodata.dptr) {
+      if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+          infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
       memcpy(nbuffer,infodata.dptr,infodata.dsize);
       intpt = (int *)nbuffer;
       offset = *(intpt + 1);
@@ -149,6 +151,8 @@ int areg_del_player(dbref delp)
       keydata.dsize = strlen(pt1) + 1;
       infodata = dbm_fetch(aregfile,keydata);
       if (infodata.dptr) {
+        if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+            infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
         memcpy(nbuffer,infodata.dptr,infodata.dsize);
         intpt = (int *)nbuffer;
         for (flags = 0; flags < *(intpt + 1); flags++) {
@@ -197,6 +201,8 @@ void areg_unload(dbref player)
     do {
       infodata = dbm_fetch(aregfile,keydata);
       if (infodata.dptr) {
+        if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+            infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
 	fprintf(dump1,"%s\n",(char *)keydata.dptr);
 	memcpy(nbuffer,infodata.dptr,infodata.dsize);
 	intpt = (int *)nbuffer;
@@ -216,14 +222,16 @@ void areg_unload(dbref player)
   time(&mudstate.aregflat_time);
 }
 
-int mush_getline(char *buf, FILE *fpt)
+int mush_getline(char *buf, size_t maxlen, FILE *fpt)
 {
   char *pt1, in;
+  size_t count = 0;
 
   pt1 = buf;
   in = fgetc(fpt);
-  while (!feof(fpt) && in && (in != '\n')) {
+  while (!feof(fpt) && in && (in != '\n') && count < maxlen - 1) {
     *pt1++ = in;
+    count++;
     in = fgetc(fpt);
   }
   *pt1 = '\0';
@@ -237,7 +245,13 @@ void areg_wipe(dbref player)
 {
   mudstate.autoreg = 0;
   dbm_close(aregfile);
-  system(unsafe_tprintf("rm %s*", aregname));
+  {
+    char rmpath[260];
+    snprintf(rmpath, sizeof(rmpath), "%s.dir", aregname);
+    remove(rmpath);
+    snprintf(rmpath, sizeof(rmpath), "%s.pag", aregname);
+    remove(rmpath);
+  }
   mudstate.autoreg = areg_init();
   notify(player,"Areg: Database wiped.");
 }
@@ -246,7 +260,7 @@ void areg_load(dbref player)
 {
   FILE *dump1;
   int *intpt, x, count;
-  char rbuff1[5000], rbuff2[5000], *pt1, *pt2;
+  char *rbuff1, *rbuff2, *pt1, *pt2;
 
   dump1 = fopen(dumpname, "r");
   if (!dump1) {
@@ -255,21 +269,32 @@ void areg_load(dbref player)
   }
   mudstate.autoreg = 0;
   dbm_close(aregfile);
-  system(unsafe_tprintf("rm %s*", aregname));
+  {
+    char rmpath[260];
+    snprintf(rmpath, sizeof(rmpath), "%s.dir", aregname);
+    remove(rmpath);
+    snprintf(rmpath, sizeof(rmpath), "%s.pag", aregname);
+    remove(rmpath);
+  }
   aregfile = dbm_open(aregname, O_RDWR | O_CREAT, 00664);
   if (!aregfile) {
     notify(player, "Areg: Unable to re-open autoreg data file.");
     return;
   }
+  rbuff1 = alloc_lbuf("areg_load1");
+  rbuff2 = alloc_lbuf("areg_load2");
   intpt = (int *)nbuffer;
-  while (mush_getline(rbuff1,dump1)) {
-    mush_getline(rbuff2,dump1);
+  while (mush_getline(rbuff1, LBUF_SIZE, dump1)) {
+    mush_getline(rbuff2, LBUF_SIZE, dump1);
     pt1 = strchr(rbuff2,'/');
+    if (!pt1) { free_lbuf(rbuff1); free_lbuf(rbuff2); return; }
     *pt1 = '\0';
     *intpt = atoi(rbuff2);
     pt2 = strchr(pt1+1,'/');
+    if (!pt2) { free_lbuf(rbuff1); free_lbuf(rbuff2); return; }
     *pt2 = '\0';
     count = atoi(pt1+1);
+    if (count < 0 || count > maxreg) count = maxreg;
     *(intpt+1) = count;
     pt1 = pt2 + 1;
     for (x = 0; x < count; x++) {
@@ -283,10 +308,14 @@ void areg_load(dbref player)
     keydata.dptr = rbuff1;
     keydata.dsize = strlen(rbuff1) + 1;
     infodata.dptr = nbuffer;
-    infodata.dsize = sizeof(int) * (count + 2);
+    infodata.dsize = sizeof(int) * ((count < maxreg ? count : maxreg) + 2);
+    if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+        infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
     dbm_store(aregfile,keydata,infodata,DBM_REPLACE);
   }
   fclose(dump1);
+  free_lbuf(rbuff1);
+  free_lbuf(rbuff2);
   mudstate.autoreg = 1;
   notify(player,"Areg: Load complete.");
 }
@@ -316,6 +345,8 @@ void areg_list(dbref player, char *email)
     infodata = dbm_fetch(aregfile,keydata);
     if (infodata.dptr) {
       if (!check || (check && !stricmp(keydata.dptr,email))) {
+        if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+            infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
 	memcpy(nbuffer,infodata.dptr,infodata.dsize);
         intpt = (int *)nbuffer;
         tprp_buff = tpr_buff;
@@ -390,10 +421,12 @@ void areg_com_del_email(dbref player, char *email, int key)
     keydata.dptr = email;
     keydata.dsize = strlen(email) + 1;
     infodata = dbm_fetch(aregfile,keydata);
-    if (infodata.dptr) {
-      memcpy(nbuffer,infodata.dptr,infodata.dsize);
-      intpt = (int *)nbuffer;
-      if ((*intpt == mudconf.areg_lim) || (key == AREG_DEL_AEMAIL))
+      if (infodata.dptr) {
+        if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+            infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
+	memcpy(nbuffer,infodata.dptr,infodata.dsize);
+	intpt = (int *)nbuffer;
+	if ((*intpt == mudconf.areg_lim) || (key == AREG_DEL_AEMAIL))
         dbm_delete(aregfile,keydata);
       else {
 	*(intpt + 1) = 0;
@@ -427,6 +460,8 @@ void areg_limit(dbref player, char *email, char *limit)
     infodata = dbm_fetch(aregfile,keydata);
     intpt = (int *)nbuffer;
     if (infodata.dptr) {
+      if (infodata.dsize > NDBMBUFSZ - (nbuffer - bigbuffer))
+          infodata.dsize = NDBMBUFSZ - (nbuffer - bigbuffer);
       memcpy(nbuffer,infodata.dptr,infodata.dsize);
       *intpt = val;
       infodata.dptr = nbuffer;

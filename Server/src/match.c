@@ -16,7 +16,7 @@ static int check_keys = 0;	/* if non-zero, check for keys */
 static dbref last_match = NOTHING;	/* holds result of last match */
 static int match_count = 0;	/* holds total number of inexact matches */
 static dbref match_who = NOTHING;	/* player performing match */
-static const char *match_name = "";	/* name to match */
+static char *match_name = "";	/* name to match */
 static int preferred_type = NOTYPE;	/* preferred type */
 static int local_match = 0;	/* Matched something locally, not by number */
 static int reality_valuechk = 0;        /* Reality level check */
@@ -321,7 +321,7 @@ match_list_altname(dbref first)
     dbref buff_last_match = NOTHING;	/* holds result of last match */
     int buff_match_count = 0;	/* holds total number of inexact matches */
     dbref buff_match_who = NOTHING;	/* player performing match */
-    const char *buff_match_name = "";	/* name to match */
+    char *buff_match_name = "";	/* name to match */
     int buff_preferred_type = NOTYPE;	/* preferred type */
     int buff_local_match = 0;	/* Matched something locally, not by number */
     int buff_reality_valuechk = 0;        /* Reality level check */
@@ -356,7 +356,7 @@ match_list_altname(dbref first)
         pres_match_count = match_count;
         pres_match_who = match_who;
         pres_match_name = alloc_lbuf("pres_match_name");
-        strcpy((char *)pres_match_name, (char *)match_name);
+        strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
         if (!IsRealArg(match_who, first, reality_valuechk)) {
@@ -366,7 +366,7 @@ match_list_altname(dbref first)
           last_match = pres_last_match;
           match_count = pres_match_count;
           match_who = pres_match_who;
-          strcpy((char *)match_name, (char *)pres_match_name);
+          strcpy(match_name, pres_match_name);
           free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
@@ -378,7 +378,7 @@ match_list_altname(dbref first)
         last_match = pres_last_match;
         match_count = pres_match_count;
         match_who = pres_match_who;
-        strcpy((char *)match_name, (char *)pres_match_name);
+        strcpy(match_name, pres_match_name);
         free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
@@ -413,7 +413,7 @@ match_list_altname(dbref first)
                  buff_match_count = match_count;	/* holds total number of inexact matches */
                  buff_match_who = match_who;	/* player performing match */
                  buff_match_name = alloc_lbuf("match_exec");
-                 strcpy((char *)buff_match_name, (char *)match_name);
+                 strcpy(buff_match_name, match_name);
                  buff_preferred_type = preferred_type;	/* preferred type */
                  buff_local_match = local_match;	/* Matched something locally, not by number */
                  buff_reality_valuechk = reality_valuechk;        /* Reality level check */
@@ -429,7 +429,7 @@ match_list_altname(dbref first)
                  last_match = buff_last_match;	/* holds result of last match */
                  match_count = buff_match_count;	/* holds total number of inexact matches */
                  match_who = buff_match_who;	/* player performing match */
-                 strcpy((char *)match_name, (char *)buff_match_name);
+                 strcpy(match_name, buff_match_name);
                  free_lbuf(buff_match_name);
                  preferred_type = buff_preferred_type;	/* preferred type */
                  local_match = buff_local_match;	/* Matched something locally, not by number */
@@ -490,7 +490,7 @@ match_list(dbref first)
         pres_match_count = match_count;
         pres_match_who = match_who;
         pres_match_name = alloc_lbuf("pres_match_name");
-        strcpy((char *)pres_match_name, (char *)match_name);
+        strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
         if (!IsRealArg(match_who, first, reality_valuechk)) {
@@ -500,7 +500,7 @@ match_list(dbref first)
           last_match = pres_last_match;
           match_count = pres_match_count;
           match_who = pres_match_who;
-          strcpy((char *)match_name, (char *)pres_match_name);
+          strcpy(match_name, pres_match_name);
           free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
@@ -512,7 +512,7 @@ match_list(dbref first)
         last_match = pres_last_match;
         match_count = pres_match_count;
         match_who = pres_match_who;
-        strcpy((char *)match_name, (char *)pres_match_name);
+        strcpy(match_name, pres_match_name);
         free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
@@ -631,7 +631,7 @@ match_exit_internal(dbref loc, int pcheck)
         pres_match_count = match_count;
         pres_match_who = match_who;
         pres_match_name = alloc_lbuf("pres_match_name");
-        strcpy((char *)pres_match_name, (char *)match_name);
+        strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
         if (!IsRealArg(match_who, exit, reality_valuechk)) {
@@ -641,7 +641,7 @@ match_exit_internal(dbref loc, int pcheck)
           last_match = pres_last_match;
           match_count = pres_match_count;
           match_who = pres_match_who;
-          strcpy((char *)match_name, (char *)pres_match_name);
+          strcpy(match_name, pres_match_name);
           free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
@@ -653,7 +653,7 @@ match_exit_internal(dbref loc, int pcheck)
         last_match = pres_last_match;
         match_count = pres_match_count;
         match_who = pres_match_who;
-        strcpy((char *)match_name, (char *)pres_match_name);
+        strcpy(match_name, pres_match_name);
         free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
@@ -868,7 +868,7 @@ restore_match_state(MSTATE *mstate)
     last_match = mstate->last_match;
     match_count = mstate->match_count;
     match_who = mstate->match_who;
-    strcpy((char *) match_name, mstate->match_name);
+    strcpy(match_name, mstate->match_name);
     free_lbuf(mstate->match_name);
     preferred_type = mstate->preferred_type;
     local_match = mstate->local_match;

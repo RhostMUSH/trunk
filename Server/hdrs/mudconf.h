@@ -228,6 +228,7 @@ struct confdata {
 	int	ntfy_nest_lim;	/* Max nesting of notifys */
 	int	lock_nest_lim;	/* Max nesting of lock evals */
 	int	parent_nest_lim;/* Max levels of parents */
+	int	dropto_limit;	/* Max dropto recursion depth */
 	int	global_aconn; 	/* Turn on/off global aconnects */
 	int	global_adconn;	/* Turn on/off global adisconnects */
         int     room_aconn;     /* Turn on/off room aconnects */
@@ -826,6 +827,7 @@ struct statedata {
 	char	rollback[LBUF_SIZE];
 	int	breakdolist;
 	int	dolistnest;
+	int	dropto_nest_lev;        /* dropto recursion depth */
         int     shell_program;  /* Shelled out of @program */
         dbref   store_lastcr;   /* Store the last created dbref# for functions */
 	dbref	store_lastx1;	/* Store the last created exit# for dig */

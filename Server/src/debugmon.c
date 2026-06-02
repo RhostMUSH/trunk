@@ -38,9 +38,8 @@ void printdebug( void )
 
 void handle_usr1(int sig)
 {
-   fprintf(stderr, "\n%s: caught SIGUSR1\n", programname);
-   printdebug();
-
+   const char msg[] = "\nCaught SIGUSR1 — see debug state at process exit.\n";
+   write(STDERR_FILENO, msg, sizeof(msg) - 1);
    signal(SIGUSR1, handle_usr1);
 }
 

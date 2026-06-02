@@ -357,35 +357,49 @@ check_mux_password(const char *saved, const char *password)
    char *decoded, *dp;
    char *start, *end;
    int return_chk;
+   char *saved_copy;
 
-   start = (char *) saved;
+   /* Work on a copy — the original 'saved' is const and we need to
+    * null-terminate the algorithm name and salt fields within it. */
+   saved_copy = alloc_lbuf("muxcrypt_copy");
+   strncpy(saved_copy, saved, LBUF_SIZE - 1);
+   saved_copy[LBUF_SIZE - 1] = '\0';
+   start = saved_copy;
 
    /* MUX passwords start with a '$' */
-   if (*start != '$')
+   if (*start != '$') {
+      free_lbuf(saved_copy);
       return 0;
+   }
 
    start++;
    /* The next '$' marks the end of the encryption algo */
    end = strchr(start, '$');
-   if (end == NULL)
+   if (end == NULL) {
+      free_lbuf(saved_copy);
       return 0;
+   }
 
    *end++ = '\0';
 
    md = EVP_get_digestbyname(start);
-   if (!md)
+   if (!md) {
+      free_lbuf(saved_copy);
       return 0;
+   }
 
    start = end;
    /* Up until the next '$' is the salt. After that is the password */
    end = strchr(start, '$');
-   if (end == NULL)
+   if (end == NULL) {
+      free_lbuf(saved_copy);
       return 0;
+   }
 
    *end++ = '\0';
 
    /* 'start' now holds the salt, 'end' the password.
-   * Both are base64-encoded. */
+    * Both are base64-encoded. */
 
    dp = decoded = alloc_lbuf("decode_buffer");
    /* decode the salt */
@@ -411,13 +425,14 @@ check_mux_password(const char *saved, const char *password)
    dp = decoded;
    decode_base64(end, strlen(end), decoded, &dp, 1);
 
-   /* Compare stored to hashed */
-// return_chk = (memcmp(decoded, hash, rlen) == 0);
-   return_chk = (strcmp(decoded, (char *)hash) == 0);
+   /* Compare stored to hashed — use memcmp, NOT strcmp: binary hashes
+    * can contain NUL bytes and strcmp stops at the first one. */
+   return_chk = (memcmp(decoded, hash, rlen) == 0);
    free_lbuf(decoded);
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
    EVP_MD_CTX_free(ctx);
 #endif
+   free_lbuf(saved_copy);
    return (return_chk);
 }
 #else

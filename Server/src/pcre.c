@@ -7733,6 +7733,10 @@ the loop runs just once. */
 
     if (rc != MATCH_MATCH) {
       DPRINTF((">>>> error: returning %d\n", rc));
+      if (using_temporary_offsets) {
+        free(match_block.offset_vector);
+        using_temporary_offsets = FALSE;
+      }
       return rc;
     }
 

@@ -275,9 +275,10 @@ int wild1(char *tstr, char *dstr, int arg, int *pLoopCntr)
 	    /* Found a match!  Fill in all remaining arguments.
 	     * First do the '*'...
 	     */
-	    strncpy(arglist[argpos], datapos,
-		    (dstr - datapos) - numextra);
-	    arglist[argpos][(dstr - datapos) - numextra] = '\0';
+	    { int _len = (int)((dstr - datapos) - numextra);
+	      if (_len < 0) return 1;
+	      strncpy(arglist[argpos], datapos, _len);
+	      if (_len < LBUF_SIZE) arglist[argpos][_len] = '\0'; }
 	    datapos = dstr - numextra;
 	    argpos++;
 	    
@@ -320,9 +321,10 @@ int wild1(char *tstr, char *dstr, int arg, int *pLoopCntr)
   /* Found a match!  Fill in all remaining arguments.
    * First do the '*'...
    */
-  strncpy(arglist[argpos], datapos,
-	  (dstr - datapos) - numextra);
-  arglist[argpos][(dstr - datapos) - numextra] = '\0';
+  { int _len = (int)((dstr - datapos) - numextra);
+    if (_len < 0) return 1;
+    strncpy(arglist[argpos], datapos, _len);
+    if (_len < LBUF_SIZE) arglist[argpos][_len] = '\0'; }
   datapos = dstr - numextra;
   argpos++;
 
