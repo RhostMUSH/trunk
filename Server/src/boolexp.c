@@ -347,9 +347,11 @@ NDECL(parse_boolexp_L)
 
 	/* strip trailing whitespace */
 
-	*p-- = '\0';
-	while (isspace((int)*p))
+	if (p > buf) {
 	    *p-- = '\0';
+	    while (p > buf && isspace((int)*p))
+	        *p-- = '\0';
+	}
 
 	/* check for an attribute */
 
