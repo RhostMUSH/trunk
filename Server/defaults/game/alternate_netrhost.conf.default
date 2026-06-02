@@ -320,6 +320,7 @@ vlimit                    750
 wildmatch_limit           100000
 lock_recursion_limit      20
 notify_recursion_limit    20
+dropto_limit              10
 output_limit              16384
 stack_limit               10000
 nonindxtxt_maxlines       200

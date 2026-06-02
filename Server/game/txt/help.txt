@@ -37006,6 +37006,7 @@
   7 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.4
 & 5.1.3
 & 5.1.2
 & 5.1.1
@@ -37014,6 +37015,15 @@
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.4
+  * Further Audit:
+    - Added config option dropto_limit (default 10) to protect against
+      certain ways of causing an endless dropto-recursion (Ultimately limited
+      by credits/coins and CPU MAX, but still, this will cut things short).
+    - Multiple memory guards in autoreg code, debugmon signal handling
+    - Removal of unnecessary casts in match.c
+    - Switch of "rm" system command in autoreg.c to remove()
 
   5.1.3
   * Audit of lesser-trodden codepaths:

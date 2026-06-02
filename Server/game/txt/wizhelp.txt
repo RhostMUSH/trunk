@@ -7443,11 +7443,10 @@
   create_max_cost          create_min_cost          dark_sleepers          
   default_home             delim_null               descs_are_local        
   dig_cost                 door_file                door_index             
-  down_file                down_motd_message        dump_interval          
-  dump_message             dump_offset              earn_limit             
-  elements_compat          empower_fulltel          enable_tstamps         
-  enforce_added_pronouns   enforce_checksums        enforce_unfindable     
-  enhanced_convtime        error_file 
+  down_file                down_motd_message        dropto_limit
+  dump_interval            dump_message             dump_offset
+  earn_limit               elements_compat          empower_fulltel
+  enable_tstamps           enforce_added_pronouns   enforce_checksums
   
 { 'wizhelp config parameters2' for more }
 { 'wizhelp config parameters reality' for more (reality levels) }
@@ -7456,6 +7455,7 @@
 & CONFIG PARAMETERS2
   Topic: CONFIG PARAMETERS (continued)
   
+  enforce_unfindable        enhanced_convtime         error_file 
   error_index               examine_flags             examine_public_attrs
   examine_restrictive       exec_secure               execscripthome
   execscriptpath            execscript_rawpush        exit_attr_default        
@@ -8619,6 +8619,13 @@
   non-wizard character when logins are disabled.  This message is displayed
   in addition to the contents of the down.txt file.
   See Also: @disable, down_motd_file.
+
+& dropto_limit
+  Config parameter: dropto_limit <num>.  Default: 10
+ 
+  Sets the maximum number of recursive droptos that could be triggered via
+  certain means. Best kept at 10. Violation will send a message to the
+  wizards.
 
 & dump_interval
   Config parameter: dump_interval <amount>.  Default: 3600
