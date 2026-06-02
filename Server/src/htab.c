@@ -52,7 +52,7 @@ int real_hashval(char *str, int hashmask, const char *fileName, int lineNo)
     // This is based on FNV hash -- public domain license
     hash = 0x01000193;
     for (sp = str; *sp; sp++)
-       hash = ( (hash * 0x01000193) ^ (int)*sp ) & 0xffffffff;
+       hash = ( (hash * 0x01000193) ^ (int)tolower(*sp) ) & 0xffffffff;
 
     return (hash & hashmask);
 }
@@ -879,7 +879,7 @@ void real_listset_nametab(dbref player, NAMETAB *ntab, NAMETAB *ntab2, int flagw
        bp2 = buf2 = alloc_lbuf("listset_nametab2");
        while (nt->name) {
 	   if (((flagword2 & nt->flag) != 0) &&
-	       (God(player) || check_access(player, nt->perm2, nt->perm2, 0))) {
+	       (God(player) || check_access(player, nt->perm, nt->perm2, 0))) {
                if ( !got_two )
 	          *bp2++ = '[';
                else

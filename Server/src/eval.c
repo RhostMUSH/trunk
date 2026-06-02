@@ -2472,8 +2472,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                             if ( mudstate_hot.nameofqreg[w] == tolower(*t_bufa) )
                                break;
                          }
-                         i = w;
-		         if ( mudstate_hot.global_regs[i] ) {
+			  i = w;
+		         if ( (i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) && mudstate_hot.global_regs[i] ) {
 #ifdef BANGS
                          
                             if ( regbang_not || regbang_yes ) {
