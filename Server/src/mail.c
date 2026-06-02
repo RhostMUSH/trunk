@@ -4748,6 +4748,7 @@ void
 mail_write(dbref player, int key, char *buf1, char *buf2)
 {
     char *p1, *p2, *p3, *p4, *atrxxx, *atryyy, *tcim, *tcimptr, *tcimptr2, msubj[SUBJLIM+1];
+    int atrxxx_empty;
     char just, *atrtmp, *atrtmpptr, *mailfunkvar, *ztmp, *ztmpptr, *time_tmp;
     char *bcctmp, *bcctmpptr, *bccatr, *tpr_buff, *tprp_buff, *tstrtokr;
     char *s_to, *s_toptr, *s_bcc, *s_bccptr;
@@ -4794,6 +4795,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
     if ( *atrxxx ) {
        chk_dash = 1;
     }
+    atrxxx_empty = (*atrxxx == '\0');
     free_lbuf(atrxxx);
     if ((stricmp(buf1, "+send") == 0) || ((key & M_ALL) && Brandy(player) && 
          ((stricmp(buf1, "--") == 0) || (stricmp(buf1, "-~") == 0)) && chk_dash)) {
@@ -4813,7 +4815,7 @@ mail_write(dbref player, int key, char *buf1, char *buf2)
 	    notify_quiet(player, "Mail: Extra characters ignored.");
 	}
 	write_assemble(player, lbuf6, line);
-	if (*buf2 == '\0' && *atrxxx == '\0' ) {
+	if (*buf2 == '\0' && atrxxx_empty ) {
 	    notify_quiet(player, "MAIL ERROR: No recipient for +send.");
 	} else if (*lbuf6) {
             atrxxx = atr_get(player, A_SAVESENDMAIL, &aowner2, &aflags2);
