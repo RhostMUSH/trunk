@@ -2244,7 +2244,9 @@ utf8toucp(char *myutf)
     
     // Convert UTF-8 Bytes to Unicode Code Point
     if (i_bytecnt == 1) {
-        return myutf;
+        strncpy(tmp, myutf, 2);
+        i_b1 = strtol(tmp, &ptr, 16);
+        sprintf(ucp, "%04x", i_b1);
     } else if (i_bytecnt == 2) {
         strncpy(tmp, myutf, 2);
         i_b1 = strtol(tmp, &ptr, 16);
