@@ -109,7 +109,8 @@ va_dcl
   ret = vsnprintf(buff, length, format, ap);
   va_end(ap);
 
-  buff[end] = '\0';
+  if (end >= 0)
+    buff[end] = '\0';
   
   if (ret < 0) {
      fprintf(stderr, 

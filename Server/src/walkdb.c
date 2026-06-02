@@ -241,11 +241,12 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          saveregname[x] = alloc_sbuf("ulocal_regname");
       }
    }
-   s_rollback = alloc_lbuf("s_rollback_dolist");
-   while (curr && *curr) {
-      if ((x % 25) == 0)
+    s_rollback = alloc_lbuf("s_rollback_dolist");
+    { int iter = 0;
+    while (curr && *curr) {
+      if ((iter % 25) == 0)
          cache_reset(0);
-      x++;
+      iter++;
       while (*curr==delimiter) 
          curr++;
       if (*curr) {
@@ -341,8 +342,9 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
          free_lbuf(buff2);
       }
       cntr++;
-   }
-   free_lbuf(s_rollback);
+    }
+    }
+    free_lbuf(s_rollback);
    if ( i_inline ) {
       if ( desc_in_use != NULL ) {
          mudstate_hot.breakst = i_storebreak;

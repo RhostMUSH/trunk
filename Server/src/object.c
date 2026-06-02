@@ -1759,6 +1759,13 @@ NDECL(void check_dead_refs)
 		  loc = Exits(i);
 		  s_Exits(loc,remove_first(Exits(loc),i));
 		  destroy_obj(NOTHING,i,0);
+		} else if (!Has_contents(targ)) {
+		  Log_header_err(i, Exits(i), targ, 1,
+				 "Destination",
+				 "is not a valid type.  Exit destroyed.");
+		  loc = Exits(i);
+		  s_Exits(loc,remove_first(Exits(loc),i));
+		  destroy_obj(NOTHING,i,0);
 		}
 	      } else if (targ == HOME) {
 		/* null case, HOME is always valid */
@@ -1769,15 +1776,6 @@ NDECL(void check_dead_refs)
 		loc = Exits(i);
 		s_Exits(loc,remove_first(Exits(loc),i));
 		destroy_obj(NOTHING,i,0);
-	      } else {
-		if (!Has_contents(targ)) {
-		    Log_header_err(i, Exits(i), targ, 1,
-				   "Destination",
-				   "is not a valid type.  Exit destroyed.");
-		  loc = Exits(i);
-		  s_Exits(loc,remove_first(Exits(loc),i));
-		  destroy_obj(NOTHING,i,0);
-		}
 	      }
 	    }
 
@@ -2917,8 +2915,9 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                      memset(s_buff, '\0', LBUF_SIZE);
                      split_ansi(strip_ansi(storedtag->tagname), s_buff, outsplit);
 
-                     if (i_personal) {
-                         t_distag = strchr(storedtag->tagname + 3, '_') + 1;
+                      if (i_personal) {
+                          char *p = strchr(storedtag->tagname + 3, '_');
+                          t_distag = p ? p + 1 : storedtag->tagname + 3;
                          if (hashfind(t_distag, &mudstate.objecttag_htab)) {
                              t_warn = 'W';
                          }
