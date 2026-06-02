@@ -224,7 +224,7 @@ D_OBJ	= door.o shs.o mushcrypt.o news.o mail.o mailfix.o debug.o senses.o \
 D_INC	= door.h shs.h news.h mail.h debug.h \
 	  copyright.h flags.h help.h htab.h interface.h match.h functions.h \
 	  command.h rwho_clilib.h  config.h db.h externs.h mudconf.h misc.h \
-	  vattr.h file_c.h fifo.h alloc.h attrs.h levels.h timez.h \
+	  vattr.h file_c.h alloc.h attrs.h levels.h timez.h \
           local.h utils.h pcre.h pcre_extensions.h sha1.h websock2.h telnet_io.h $(DR_HDRS)
 
 D_FLG   = -DMUSH_BUILD_DATE="\"`cat date.txt`\""
