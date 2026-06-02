@@ -920,7 +920,7 @@ int pay_quota(dbref player, dbref who, int cost, int ttype, int pay)
       atr2 = atr_get(who,A_TQUOTA,&owner,&flags);
       if (*atr2) {
 	strcpy(atr1,"G ");
-	strcat(atr1,atr2);
+	strncat(atr1, atr2, LBUF_SIZE - 3);
       }
       else {
 	strcpy(atr1,"G");

@@ -74,7 +74,7 @@ helpindex_read(HASHTAB * htab, char *filename)
     }
 
     hashflush(htab, 0);
-    sprintf(fullFilename, "%s/%s", mudconf.txt_dir, filename);
+    snprintf(fullFilename, sizeof(fullFilename), "%s/%s", mudconf.txt_dir, filename);
     if ((fp = tf_fopen(fullFilename, O_RDONLY)) == NULL) {
 	STARTLOG(LOG_PROBLEMS, "HLP", "RINDX")
 	    p = alloc_lbuf("helpindex_read.LOG");
@@ -195,7 +195,7 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
 	    *p = ToLower((int)*p);
 
     if ( key ) {
-       sprintf(realFilename, "%s/%s", mudconf.txt_dir, filename);
+       snprintf(realFilename, sizeof(realFilename), "%s/%s", mudconf.txt_dir, filename);
        if ((fp = tf_fopen(realFilename, O_RDONLY)) == NULL) {
           notify(player, "Sorry, that function is temporarily unavailable.");
           STARTLOG(LOG_PROBLEMS, "HLP", "OPEN")
@@ -673,7 +673,7 @@ parse_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg2,
    }
    sprintf(filename, "%.128s/%.32s.indx", mudconf.txt_dir, fhelp);
    p_msg = msg = alloc_lbuf("temp_messaging.help");
-   if ( !*msg2 || !msg2 )
+   if ( !msg2 || !*msg2 )
       safe_str("help", msg, &p_msg);
    else
       safe_str(msg2, msg, &p_msg);
@@ -1209,7 +1209,7 @@ do_dynhelp(dbref player, dbref cause, int key, char *fhelp, char *msg)
    dbref it;
    char *line, *in_topic, *p_in_topic, *in_file, *tstrtokr;
 
-   if ( !*msg || !msg ) {
+   if ( !msg || !*msg ) {
       it = player;
    } else {
       line = exec(player, cause, cause, EV_STRIP | EV_FCHECK | EV_EVAL, msg, (char **) NULL, 0, (char **)NULL, 0);
@@ -1383,11 +1383,16 @@ errmsg(dbref player)
 	for (p = line; *p != '\0'; p++)
 	    if ( (*p == '\n') || (*p == '\r') )
 		*p = '\0';
-	if (!first)
-	    strcat(errbuf, "\r\n");
-	else
-	    first = 0;
-	strcat(errbuf, line);
+	{
+	    size_t room = LBUF_SIZE - 1 - strlen(errbuf);
+	    if (!first) {
+		if (room > 2) { strncat(errbuf, "\r\n", room); room -= 2; }
+	    } else {
+		first = 0;
+	    }
+	    if (room > 0)
+		strncat(errbuf, line, room);
+	}
     }
     free_lbuf(line);
     tf_fclose(fp);

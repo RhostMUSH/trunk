@@ -68,7 +68,7 @@ timelocal(struct tm *tp)
     while (tp->tm_mday > (k = mon_size[is_leap(tp->tm_year)][tp->tm_mon])) {
 	tp->tm_mday -= k;
 
-	if (++tp->tm_mon > 12) {
+    if (++tp->tm_mon >= 12) {
 	    tp->tm_year++;
 	    tp->tm_mon -= 12;
 	}
