@@ -36994,7 +36994,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
+  1 - 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
   2 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
   3 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
   4 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
@@ -37006,6 +37006,7 @@
   7 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.9
 & 5.1.8
 & 5.1.7
 & 5.1.6
@@ -37019,6 +37020,12 @@
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.9
+  * Fix for boolean locks causing a buffer mis-read if the first argument in
+    the lock was empty (say, '|#1')
+  * Fix for %q<X> not finding a letter name entry and doing OOB reads.
+  * Fix for @aflag lists showing wrong perms in the see field.
 
   5.1.8
   * Fixed @dolist rollback cache being invalidated by inline, and re-use of a
