@@ -37006,12 +37006,17 @@
   7 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.2
 & 5.1.1
 & 5.1.0
 & changelog latest
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.2
+  * Added more just-in-case guards and safety checks in the telnet code,
+    as well as player descriptors and ocache. SECURE EVERYTHING!
 
   5.1.1
   * Added a crashfix for Telnet negotiation code and certain (dis)connect
