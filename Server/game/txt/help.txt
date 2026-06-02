@@ -37006,6 +37006,7 @@
   7 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.7
 & 5.1.6
 & 5.1.5
 & 5.1.4
@@ -37017,6 +37018,11 @@
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.7
+  * Added overflow checks in help message handling and pay quotas.
+  * Fixed off-by-one in a date check
+  * Protected a not-called UTF8 codepath.
 
   5.1.6
   * Updated asksource.blank to match current asksource.sh
