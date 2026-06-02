@@ -1,4 +1,3 @@
-#!/bin/bash
 ###################################################################
 # Test shell capabilities
 ###################################################################
@@ -99,7 +98,7 @@ LOPTIONS="1 2 3 4 5"
 C_LOPTIONS=$(echo $LOPTIONS|wc -w)
 AOPTIONS="1 2 3"
 C_AOPTIONS=$(echo $AOPTIONS|wc -w)
-DBOPTIONS="1 2 3"
+DBOPTIONS="1 2 3 4"
 C_DBOPTIONS=$(echo $DBOPTIONS|wc -w)
 DCONFIGS="29 30 31 32 33"
 REPEAT=1
@@ -295,6 +294,7 @@ else
    DEFDB[1]=""
 fi
 DEFDB[2]=""
+DEFDB[4]="-DMARIADB"
 
 DEFB[1]=""
 DEFB[2]="\$(DR_DEF)"
@@ -426,6 +426,7 @@ echo "--------------------------------------------------------------------------
 echo "[${MS[1]}]  1. Toggle MySQL On/Off"
 echo "[#]  2. Change MySQL Data"
 echo "[${MS[3]}]  3. Force MySQL even if not detected. (Will not compile if no SQL!)"
+echo "[${MS[4]}]  4. MariaDB Support (uses mariadb/ prefix for headers)"
 echo "------------------------------------------------------------------------------"
 echo "MySQL HostName: ${mysql_host}"
 echo "MySQL UserName: ${mysql_user}"
@@ -2702,11 +2703,15 @@ updatemakefile() {
       echo "# Enable LUA integration for WebAPI" >> ../src/custom.defs
       echo "USELUA = 1" >> ../src/custom.defs
    fi
-   if [ "${MS[1]}" = "X" ]
+   if [ "${MS[1]}" = "X" -o "${MS[4]}" = "X" ]
    then
-      echo "# MySQL compatibility engine" >> ../src/custom.defs
-      echo "Generating Makefile for MySQL generation.  Please wait..."
-      echo "USEMYSQL = 1" >> ../src/custom.defs
+       echo "# MySQL/MariaDB compatibility engine" >> ../src/custom.defs
+       echo "Generating Makefile for MySQL/MariaDB generation.  Please wait..."
+       echo "USEMYSQL = 1" >> ../src/custom.defs
+   fi
+   if [ "${MS[4]}" = "X" ]
+   then
+       echo "USEMARIADB = 1" >> ../src/custom.defs
    fi
 }
 
