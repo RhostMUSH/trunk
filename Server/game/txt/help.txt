@@ -37006,6 +37006,7 @@
   7 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.10
 & 5.1.9
 & 5.1.8
 & 5.1.7
@@ -37020,6 +37021,10 @@
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.0
+  * Crash fix for mail sends - a fix to pool_buffers in an earlier commit
+    *actually* caused a sleeping bad read in mail.c to come to the fore. Heh.
 
   5.1.9
   * Fix for boolean locks causing a buffer mis-read if the first argument in
