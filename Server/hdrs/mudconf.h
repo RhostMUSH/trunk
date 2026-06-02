@@ -664,9 +664,9 @@ struct state_hot {
         time_t  lastnow;                 /* 8B */
         double  nowmsec;                 /* 8B */
         double  lastnowmsec;             /* 8B */
-        int     shutdown_flag;           /* 4B */
-        int     reboot_flag;             /* 4B */
-        int     alarm_triggered;         /* 4B */
+        volatile int     shutdown_flag;           /* 4B — accessed by signal handler */
+        volatile int     reboot_flag;             /* 4B — accessed by signal handler */
+        volatile int     alarm_triggered;         /* 4B — accessed by signal handler */
         double  dump_counter;            /* 8B */
         double  check_counter;           /* 8B */
         double  idle_counter;            /* 8B */
@@ -788,7 +788,7 @@ struct state_hot {
         /* 11. Startup / panic flags (checked everywhere) */
         int     initializing;
         int     dbloading;
-        int     panicking;
+        volatile int     panicking;           /* accessed by signal handler */
         int     logging;
 
         /* 12. Profiling counters (always compiled, every command) */

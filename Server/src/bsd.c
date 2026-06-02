@@ -770,10 +770,12 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	        if (D_FLAGS(d) & DS_HAS_DOOR) {
 	          if (d->cold->door_desc >= maxd)
 		    maxd = d->cold->door_desc + 1;
-	          if (!d->cold->door_input_head)
-		    FD_SET(d->cold->door_desc, &input_set);
-	          if (d->cold->door_output_head)
-		    FD_SET(d->cold->door_desc, &output_set);
+	          if (d->cold->door_desc >= 0) {
+	            if (!d->cold->door_input_head)
+		      FD_SET(d->cold->door_desc, &input_set);
+	            if (d->cold->door_output_head)
+		      FD_SET(d->cold->door_desc, &output_set);
+	          }
 	        }
 	    }
 #endif
@@ -2263,6 +2265,7 @@ start_auth(DESC * d)
           free_lbuf(logbuff);
 	  shutdown(d->cold->authdescriptor, 2);
 	  close(d->cold->authdescriptor);
+          d->cold->authdescriptor = -1;
 	  VOIDRETURN; /* #8 */
         }
     }
@@ -2285,6 +2288,7 @@ check_auth_connect(DESC * d)
         D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
 /* do we really need this next line? */
         close(d->cold->authdescriptor);
+        d->cold->authdescriptor = -1;
     }
     else {
         if( sockerr ) {
@@ -2295,11 +2299,12 @@ check_auth_connect(DESC * d)
               log_text(logbuff);
               free_lbuf(logbuff);
             ENDLOG
-            D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
+	    D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
 /* do we really need this next line? */
-            close(d->cold->authdescriptor);
-        }
-        else {
+	    close(d->cold->authdescriptor);
+            d->cold->authdescriptor = -1;
+	}
+	else {
             D_FLAGS(d) |= DS_NEED_AUTH_WRITE;
         }
     }
@@ -2335,6 +2340,7 @@ write_auth(DESC * d)
 	    D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
 	    shutdown(d->cold->authdescriptor, 2);
 	    close(d->cold->authdescriptor);
+            d->cold->authdescriptor = -1;
 	}
     }
     else {
@@ -2369,9 +2375,11 @@ check_auth(DESC * d)
 	  log_text(logbuff);
 	  free_lbuf(logbuff);
 	ENDLOG
-	D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
-	shutdown(d->cold->authdescriptor, 2);
-	close(d->cold->authdescriptor);
+	    D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
+	    shutdown(d->cold->authdescriptor, 2);
+	    close(d->cold->authdescriptor);
+            d->cold->authdescriptor = -1;
+        d->cold->authdescriptor = -1;
         free_mbuf(buff);
 	VOIDRETURN; /* #10 */
     }
@@ -2415,6 +2423,7 @@ check_auth(DESC * d)
 	    D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
 	    shutdown(d->cold->authdescriptor, 2);
 	    close(d->cold->authdescriptor);
+            d->cold->authdescriptor = -1;
 	    STARTLOG(LOG_NET, "NET", "AUTH")
 		logbuff = alloc_lbuf("check_auth.LOG.prot_err");
 	        sprintf(logbuff,
@@ -3145,7 +3154,7 @@ check_panicking(int sig)
 void 
 log_signal(const char *signame, int sig)
 {
-    static char s_to_i[30];
+    char s_to_i[30];
    
     DPUSH; /* #22 */
     memset(s_to_i, '\0', 30);
@@ -3195,7 +3204,7 @@ sighandler(int sig)
 #endif /* HAVE__SYS_SIGLIST */
 #endif /* HAVE_SYS_SIGLIST */
 
-    char buff[32], *s_crontmp, *s_crontmpwlk;
+    char buff[64], *s_crontmp, *s_crontmpwlk;
     char *flatfilename;
     FILE *f, *f_crontmp;
     char *ptr2;
@@ -3481,6 +3490,7 @@ sighandler(int sig)
 	check_panicking(sig);
 	log_signal(signames[sig], sig);
 	report();
+	sprintf(buff, "Caught signal %s", signames[sig]);
 	do_shutdown(NOTHING, NOTHING, SHUTDN_PANIC, buff);
 
 	/* Either resignal, or clear signal handling and retry the

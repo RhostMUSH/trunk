@@ -85,8 +85,12 @@ void execute_entry(BQUE *queue)
 	    mudstate_hot.curr_enactor = queue->cause;
 	    mudstate_hot.curr_player = player;
             mudstate_hot.curr_pid = queue->pid;
-            strncpy(mudstate.curr_pidcmd, Q_COMM(queue), LBUF_SIZE - 1);
-            mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
+            if (Q_COMM(queue)) {
+                strncpy(mudstate.curr_pidcmd, Q_COMM(queue), LBUF_SIZE - 1);
+                mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
+            } else {
+                mudstate.curr_pidcmd[0] = '\0';
+            }
 	    a_Queue(Owner(player), -1);
 	    queue->player = 0;
 	    pid_table[queue->pid] = 0;
@@ -1361,6 +1365,11 @@ halt_que_all(void)
 	point = mudstate_hot.qsemfirst;
         if ( point->pid == kick_pid ) {
            mudstate_hot.qsemfirst = point->next;
+           if (Q_TEXT(point))
+               free(Q_TEXT(point));
+           Q_TEXT(point) = NULL;
+           free_bque_cold(point->cold);
+           free_qentry(point);
            continue;
         }
 	if (!FreeFlag(Owner(point->player)))

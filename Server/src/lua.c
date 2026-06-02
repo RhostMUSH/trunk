@@ -276,7 +276,7 @@ rhost_parseansi(lua_State *L)
     lua_pop(L, 1); /* pops str */
 
     asciip = ascii = alloc_lbuf("lua_rhost_parseansi_ascii");
-    accentsp = accents = alloc_lbuf("lua_rhost_parseansi_ascii");
+    accentsp = accents = alloc_lbuf("lua_rhost_parseansi_accents");
     utf8p = utf8 = alloc_lbuf("lua_rhost_parseansi_utf8");
 #ifdef ZENTY_ANSI
     parse_ansi(fargs[0], ascii, &asciip, accents, &accentsp, utf8, &utf8p);
@@ -356,6 +356,16 @@ open_lua_interpreter(dbref run_as)
     lua_setfield(lua->state, -2, "print");
     lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "warn");
+    /* Remove pcall/xpcall — they catch luaL_error from the alarm timer hook,
+     * allowing scripts to bypass the 5ms kill switch silently. */
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "pcall");
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "xpcall");
+    /* Remove getmetatable — defense-in-depth; prevents probing metatables
+     * on C-returned objects for sandbox information leaks. */
+    lua_pushnil(lua->state);
+    lua_setfield(lua->state, -2, "getmetatable");
     /* Remove sandbox escape vectors */
     lua_pushnil(lua->state);
     lua_setfield(lua->state, -2, "_G");

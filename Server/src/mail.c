@@ -9747,14 +9747,14 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
             lastwplayer = player;
             lastwflag = key;
             p1 = alloc_lbuf("clobber_mail");
-            sprintf(p1, "rm -f data/%s.mail.* data/%s.folder.* >/dev/null 2>&1", mudconf.muddb_name, mudconf.muddb_name); 
+            sprintf(p1, "rm -f %.900s/%s.mail.* %.900s/%s.folder.* >/dev/null 2>&1", mudconf.data_dir, mudconf.muddb_name, mudconf.data_dir, mudconf.muddb_name); 
             mail_close();
             system(p1);
             mudstate_hot.mail_state = mail_init();
             if ( mudstate_hot.mail_state != 1 ) {
 	       notify_quiet(player, "Mail: Mail was unable to be recovered.  Sorry.");
             } else {
-               sprintf(p1, "data/%s.dump.mail", mudconf.muddb_name);
+               sprintf(p1, "%.900s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
                if ( (fp = fopen(p1, "r")) != NULL ) {
                   fclose(fp);
                   mail_load(player);

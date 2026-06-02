@@ -101,19 +101,19 @@ main(int argc, char *argv[])
         }
     }
     if (!nochk) {
-       sprintf(s_filename, "%.115s.db", argv[1]);
+       snprintf(s_filename, sizeof(s_filename), "%.115s.db", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
           fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);
           exit(1);
        }
-       sprintf(s_filename, "%.115s.dir", argv[1]);
+       snprintf(s_filename, sizeof(s_filename), "%.115s.dir", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
           fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);
           exit(1);
        }
-       sprintf(s_filename, "%.115s.pag", argv[1]);
+       snprintf(s_filename, sizeof(s_filename), "%.115s.pag", argv[1]);
        if ( (f_ptr = fopen(s_filename, "r")) != NULL ) {
           fprintf(stderr, "GDBM file(s) already exist for %s\n", s_filename);
           fclose(f_ptr);

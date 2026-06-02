@@ -28,7 +28,7 @@ static char tempbuff[LBUF_SIZE];
 static char tempbuff2[LBUF_SIZE];
 
 static int ival(char *buff, char **bufcx, int result) {
-   sprintf(tempbuff, "%d", result);
+   snprintf(tempbuff, LBUF_SIZE, "%d", result);
    safe_str(tempbuff, buff, bufcx);
    return 0;
 }
@@ -129,7 +129,7 @@ FUNCTION(local_fun_sqlite_query)
    printf( "Check file access..\n" );
 #endif
 
-   if( access( dbFile, F_OK ) && !access( dbFile, W_OK | R_OK ) ) {
+   if( !access( dbFile, F_OK ) && access( dbFile, W_OK | R_OK ) ) {
       snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS %.*s: %s", LBUF_SIZE - 48, dbFile, strerror( errno ) );
       safe_str( tempbuff, buff, bufcx );
       return;
@@ -145,7 +145,7 @@ FUNCTION(local_fun_sqlite_query)
          safe_str( "#-1 FUNCTION (sqlite_query) COULDN'T ALLOCATE MEMORY FOR A SQLITE OBJECT", buff, bufcx );
          return;
       }
-      sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) COULDN'T INITIALIZE SQLITE: %s", sqlite3_errmsg( sqlite_db ) );
+      snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) COULDN'T INITIALIZE SQLITE: %s", sqlite3_errmsg( sqlite_db ) );
       safe_str( tempbuff, buff, bufcx );
       sqlite3_close( sqlite_db );
       return;
@@ -168,7 +168,7 @@ FUNCTION(local_fun_sqlite_query)
          break;
       }
       if( sqlite3_prepare_v2( sqlite_db, zTail, LBUF_SIZE, &sqlite_stmt, (const char **) &zTail ) != SQLITE_OK ) {
-         sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) FAILED PREPARING STATEMENT: %s", sqlite3_errmsg( sqlite_db ) );
+         snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) FAILED PREPARING STATEMENT: %s", sqlite3_errmsg( sqlite_db ) );
          safe_str( tempbuff, buff, bufcx );
          sqlite3_finalize( sqlite_stmt );
          sqlite3_close( sqlite_db );
@@ -179,7 +179,7 @@ FUNCTION(local_fun_sqlite_query)
       // sqlite3_bind_parameter_count returns the index of the rightmost parameter, 1-indexed.
       // Arguments to bind are 4 and onward (0-indexed)
       if( argCount > (nfargs - argIdx) ) {
-         sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) NOT ENOUGH PARAMETERS (Needed %d more, but only %d remain)", argCount, nfargs - argIdx );
+         snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) NOT ENOUGH PARAMETERS (Needed %d more, but only %d remain)", argCount, nfargs - argIdx );
          safe_str( tempbuff, buff, bufcx );
          sqlite3_finalize( sqlite_stmt );
          sqlite3_close( sqlite_db );
@@ -197,7 +197,7 @@ FUNCTION(local_fun_sqlite_query)
          printf( "       Arg %d..\n", i-3 );
 #endif
          if( sqlite3_bind_text( sqlite_stmt, i-(argIdx-1), fargs[i], -1, SQLITE_TRANSIENT ) != SQLITE_OK ) {
-            sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) FAILED BINDING PARAMETER %d: %s", i-(argIdx-1), sqlite3_errmsg( sqlite_db ) );
+            snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) FAILED BINDING PARAMETER %d: %s", i-(argIdx-1), sqlite3_errmsg( sqlite_db ) );
             safe_str( tempbuff, buff, bufcx );
             sqlite3_finalize( sqlite_stmt );
             sqlite3_close( sqlite_db );
@@ -296,7 +296,7 @@ FUNCTION(local_fun_sqlite_query)
          }
 
          // An error occurred.
-         sprintf( tempbuff, "#-1 FUNCTION (sqlite_query) FAILED WHILE EXECUTING STATEMENT: %s", sqlite3_errmsg( sqlite_db ) );
+         snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) FAILED WHILE EXECUTING STATEMENT: %s", sqlite3_errmsg( sqlite_db ) );
          safe_str( tempbuff, buff, bufcx );
          break;
       }
@@ -318,7 +318,7 @@ void local_sqlite_init(void) {
    if( stat( mudconf.sqlite_db_path, &sb ) == -1 ) {
       getcwd( tempbuff2, LBUF_SIZE - 400 );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
-         sprintf( tempbuff, "stat - unable to read database path '%.*s/%s'", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
+         snprintf( tempbuff, LBUF_SIZE, "stat - unable to read database path '%.*s/%s'", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
          log_text(tempbuff);
       ENDLOG
       return;
@@ -326,7 +326,7 @@ void local_sqlite_init(void) {
 
    if( ~sb.st_mode & S_IFDIR ) {
       getcwd( tempbuff2, LBUF_SIZE - 400 );
-      sprintf( tempbuff, "stat - %.*s/%s is not a directory", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
+      snprintf( tempbuff, LBUF_SIZE, "stat - %.*s/%s is not a directory", LBUF_SIZE - 400, tempbuff2, mudconf.sqlite_db_path );
       STARTLOG(LOG_ALWAYS, "SQL", "FAIL")
          log_text(tempbuff);
       ENDLOG

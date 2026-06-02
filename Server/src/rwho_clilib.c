@@ -73,8 +73,12 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 	password = malloc(strlen(serverpw) + 1);
 	localnam = malloc(strlen(myname) + 1);
 	lcomment = malloc(strlen(comment) + 1);
-	if(password == (char *)0 || localnam == (char *)0 || lcomment == (char *)0)
+	if (!password || !localnam || !lcomment) {
+		free(password);
+		free(localnam);
+		free(lcomment);
 		return(1);
+	}
 	strcpy(password,serverpw);
 	strcpy(localnam,myname);
 	strcpy(lcomment,comment);
@@ -88,17 +92,17 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 	if(*p != '\0') {
 #ifndef	NO_HUGE_RESOLVER_CODE
 		if((hp = gethostbyname(server)) == (struct hostent *)0)
-			return(1);
+			goto cleanup;
 		(void)bcopy(hp->h_addr,(char *)&addr.sin_addr,hp->h_length);
 #else
-		return(1);
+		goto cleanup;
 #endif
 	} else {
 		/* unsigned long	f; */
 		in_addr_t f;
 
 		if((f = inet_addr(server)) == (in_addr_t)-1L)
-			return(1);
+			goto cleanup;
 		(void)bcopy((char *)&f,(char *)&addr.sin_addr,sizeof(f));
 	}
 
@@ -107,35 +111,41 @@ int rwhocli_setup(char *server, int dgramport, char *serverpw,
 
 #ifdef TLI
 	if ((dgramfd = t_open (TLI_UDP, O_RDWR, NULL)) < 0)
-		return (1);
+		goto cleanup;
 	if (t_bind (dgramfd, NULL, NULL) < 0) {
 		t_close (dgramfd);
 		dgramfd = -1;
-		return (1);
+		goto cleanup;
 	}
 	pbuf = (struct t_unitdata *)t_alloc (dgramfd, T_UNITDATA, T_ALL);
 	if (pbuf == NULL) {
 		t_close (dgramfd);
 		dgramfd = -1;
-		return (1);
+		goto cleanup;
 	}
 
 	bcopy(&addr, pbuf->addr.buf, sizeof(struct sockaddr_in));
 	pbuf->addr.len = sizeof (struct sockaddr_in);
 
-	sprintf(pbuf->udata.buf,"U\t%.20s\t%.20s\t%.20s\t%.10d\t0\t%.25s",
+	snprintf(pbuf->udata.buf, sizeof(pbuf->udata.buf), "U\t%.20s\t%.20s\t%.20s\t%.10d\t0\t%.25s",
 		localnam,password,localnam,mudstate_hot.now,comment);
 	pbuf->udata.len = strlen(pbuf->udata.buf);
 	t_sndudata (dgramfd, pbuf);
 #else
 	if((dgramfd = socket(AF_INET,SOCK_DGRAM,0)) < 0)
-		return(1);
+		goto cleanup;
 
-	sprintf(pbuf,"U\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
+	snprintf(pbuf,sizeof(pbuf),"U\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
 		localnam,password,localnam,mudstate_hot.now,comment);
 	sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif
 	return(0);
+
+cleanup:
+	free(password); password = NULL;
+	free(localnam);  localnam = NULL;
+	free(lcomment);  lcomment = NULL;
+	return(1);
 }
 
 /* disable RWHO */
@@ -147,13 +157,13 @@ int NDECL(rwhocli_shutdown)
 
 	if(dgramfd != -1) {
 #ifdef TLI
-		sprintf(pbuf->udata.buf,"D\t%.20s\t%.20s\t%.20s",
+		snprintf(pbuf->udata.buf, sizeof(pbuf->udata.buf), "D\t%.20s\t%.20s\t%.20s",
 			localnam, password,localnam);
 		pbuf->udata.len = strlen(pbuf->udata.buf);
 		t_sndudata (dgramfd, pbuf);
 		t_close(dgramfd);
 #else
-		sprintf(pbuf,"D\t%.20s\t%.20s\t%.20s",
+		snprintf(pbuf, sizeof(pbuf), "D\t%.20s\t%.20s\t%.20s",
 			localnam, password, localnam);
 		sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 		close(dgramfd);
@@ -161,6 +171,7 @@ int NDECL(rwhocli_shutdown)
 		dgramfd = -1;
 		free(password);
 		free(localnam);
+		free(lcomment);
 	}
 	return(0);
 }
@@ -174,12 +185,12 @@ int NDECL(rwhocli_pingalive)
 
 	if(dgramfd != -1) {
 #ifdef TLI
-		sprintf(pbuf->udata.buf,"M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
+		snprintf(pbuf->udata.buf, sizeof(pbuf->udata.buf), "M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
 			localnam, password, localnam, mudstate_hot.now, lcomment);
 		pbuf->udata.len = strlen(pbuf->udata.buf);
 		t_sndudata (dgramfd, pbuf);
 #else
-		sprintf(pbuf,"M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
+		snprintf(pbuf, sizeof(pbuf), "M\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.25s",
 			localnam, password, localnam,mudstate_hot.now, lcomment);
 		sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif
@@ -196,12 +207,12 @@ int rwhocli_userlogin(char *uid, char *name, time_t tim)
 
 	if(dgramfd != -1) {
 #ifdef TLI
-		sprintf(pbuf->udata.buf,"A\t%.20s\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.20s",
+		snprintf(pbuf->udata.buf, sizeof(pbuf->udata.buf), "A\t%.20s\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.20s",
 			localnam, password, localnam, uid, tim, name);
 		pbuf->udata.len = strlen(pbuf->udata.buf);
 		t_sndudata (dgramfd, pbuf);
 #else
-		sprintf(pbuf,"A\t%.20s\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.20s",
+		snprintf(pbuf, sizeof(pbuf), "A\t%.20s\t%.20s\t%.20s\t%.20s\t%.10ld\t0\t%.20s",
 			localnam, password, localnam, uid, tim, name);
 		sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif
@@ -218,12 +229,12 @@ int rwhocli_userlogout(char *uid)
 
 	if(dgramfd != -1) {
 #ifdef TLI
-		sprintf(pbuf->udata.buf,"Z\t%.20s\t%.20s\t%.20s\t%.20s",
+		snprintf(pbuf->udata.buf, sizeof(pbuf->udata.buf), "Z\t%.20s\t%.20s\t%.20s\t%.20s",
 			localnam, password, localnam, uid);
 		pbuf->udata.len = strlen(pbuf->udata.buf);
 		t_sndudata (dgramfd, pbuf);
 #else
-		sprintf(pbuf,"Z\t%.20s\t%.20s\t%.20s\t%.20s",
+		snprintf(pbuf, sizeof(pbuf), "Z\t%.20s\t%.20s\t%.20s\t%.20s",
 			localnam, password, localnam, uid);
 		sendto(dgramfd,pbuf,strlen(pbuf),0,(void *)&addr,sizeof(addr));
 #endif

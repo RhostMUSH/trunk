@@ -203,11 +203,11 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
 	    h += pools[poolnum].pool_size;
             h = QUADALIGN(h);
 	    pf = (POOLFTR *) h;
-	    pools[poolnum].free_head = ph->nxtfree;
 
 	    /* If corrupted header we need to throw away the
 	     * freelist as the freelist pointer may be corrupt.
-	     */
+	     * Check magicnum BEFORE reading nxtfree so we never
+	     * propagate garbage pointers into free_head. */
 
 	    if (ph->magicnum != POOL_MAGICNUM) {
 		pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
@@ -222,6 +222,8 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
 		     pools[poolnum].num_alloc);
 		pools[poolnum].max_alloc =
 		    pools[poolnum].num_alloc;
+	    } else {
+		pools[poolnum].free_head = ph->nxtfree;
 	    }
 	    /* Check for corrupted footer, just report and
 	     * fix it */
@@ -256,6 +258,7 @@ int
 getBufferSize(char *pBuff) 
 {
     POOLHDR *ph;
+    if (!pBuff) return 0;
     ph = (POOLHDR *) (pBuff - sizeof(POOLHDR));
     if (ph->magicnum != POOL_MAGICNUM) {
        return 0;
@@ -273,6 +276,7 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
     POOLHDR *ph;
     POOLFTR *pf;
 
+    if (!buf || !*buf) return;
     ibuf = (int *) *buf;
     h = (char *) ibuf;
     h -= sizeof(POOLHDR);
@@ -326,6 +330,7 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 	pools[poolnum].free_head = ph;
 	pools[poolnum].num_alloc--;
     }
+    *buf = NULL;
 }
 
 static char *
@@ -631,13 +636,14 @@ statsizer(int i_size, char *c_chr) {
 void
 showBlacklistStats(dbref player)
 {
-   int i_blsize, i_ndsize, i_rgsize;
+   int i_blsize, i_ndsize, i_rgsize, i_ngsize;
    double i_diver;
    char *s_buff, c_chr[2];
    
    i_blsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_cnt;
    i_ndsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nodns_cnt;
    i_rgsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_reg_cnt;
+   i_ngsize = (int)sizeof(BLACKLIST) * mudstate.blacklist_nogst_cnt;
 
    s_buff = alloc_mbuf("blacklist_stats");
    strcpy(c_chr, (char *)" ");
@@ -659,13 +665,13 @@ showBlacklistStats(dbref player)
    /* Register list */
    i_diver = statsizer(i_rgsize, c_chr);
    sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
-           (char *)"Regis List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+           (char *)"Regis List", (int)sizeof(BLACKLIST), mudstate.blacklist_reg_cnt, i_rgsize, i_diver, c_chr[0]);
    notify(player, s_buff);
 
    /* NoGuest list */
-   i_diver = statsizer(i_ndsize, c_chr);
+   i_diver = statsizer(i_ngsize, c_chr);
    sprintf(s_buff, "%-18s %-6d %-9d %-12d (%.2f%c)", 
-           (char *)"NoGst List", (int)sizeof(BLACKLIST), mudstate.blacklist_nodns_cnt, i_ndsize, i_diver, c_chr[0]);
+           (char *)"NoGst List", (int)sizeof(BLACKLIST), mudstate.blacklist_nogst_cnt, i_ngsize, i_diver, c_chr[0]);
    notify(player, s_buff);
 
    free_mbuf(s_buff); 
@@ -911,7 +917,6 @@ void do_buff_free(dbref player, dbref cause, int key)
         ph = (POOLHDR *)(pools[x].free_head);
 	if (ph == NULL) 
 	  break;
-	pools[x].free_head = ph->nxtfree;
 	if (ph->magicnum != POOL_MAGICNUM) {
 	  pool_err("BUG", LOG_ALWAYS, x, "buff_free", ph, "Alloc", "corrupted buffer header", 
                    -1, (char *)"");
@@ -921,6 +926,7 @@ void do_buff_free(dbref player, dbref cause, int key)
 	  notify(player,"Corrupted buffer header detected");
 	  break;
 	}
+	pools[x].free_head = ph->nxtfree;
 	free ((char *)ph);
 	pools[x].max_alloc--;
       }

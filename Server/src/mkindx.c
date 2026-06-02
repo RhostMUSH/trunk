@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
                fprintf(stderr, "ERROR: Maximum indexed aliases of 1000 for a single topic reached.");
                fclose(rfp);
                fclose(wfp);
+               exit(1);
             }
 	    ++ntopics;
 	} else {

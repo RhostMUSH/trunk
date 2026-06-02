@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 	exit(-1);
     }
     if ((hfp = fopen(argv[3], "w")) == NULL) {
-	fprintf(stderr, "can't open %s for writing\n", argv[2]);
+	    fprintf(stderr, "can't open %s for writing\n", argv[3]);
 	exit(-1);
     }
     printf("Scanning topics...\n");
@@ -273,13 +273,10 @@ int main(int argc, char *argv[])
       outputstring(hfp, bigtextbuff);
 */
 
-      for (;;) {
-         if ( fgets(bigtextbuff, (MAXTEXTLEN - 1), tfp) == NULL )
-            break;
-         if (bigtextbuff[0] == '&')
-            break;
-         outputstring(hfp, bigtextbuff);
-      }
+      if (fread(bigtextbuff, alltopics[topicidx].len, 1, tfp) != 1)
+         break;
+      bigtextbuff[alltopics[topicidx].len] = '\0';
+      outputstring(hfp, bigtextbuff);
      
       fprintf(hfp, "\t</code>\n"
                    "</div>\n\n");

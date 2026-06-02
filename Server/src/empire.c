@@ -159,9 +159,7 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
     close(sock_req);
     return -1;
   }
-  strcpy(buf,Name(D_PLAYER(d)));
-  strcat(buf,"@");
-  strcat(buf,mudconf.mud_name);
+  snprintf(buf, sizeof(buf), "%.900s@%.900s", Name(D_PLAYER(d)), mudconf.mud_name);
   if (!sendcmd(sock_req, USER, buf)) {
     queue_string(d, "Login to empire server failed (stage 2).\r\n");
     goto abort;
@@ -282,7 +280,8 @@ int empire_from_empsrv(DESC *d, char *text)
 	  break;
 	case C_FLUSH:
 	  d->cold->door_int1 = code;
-	  strcpy(d->cold->door_lbuf, pt2);
+	  strncpy(d->cold->door_lbuf, pt2, LBUF_SIZE - 1);
+	  d->cold->door_lbuf[LBUF_SIZE - 1] = '\0';
 	  empire_prompt(d);
 	  break;
 	case C_EXECUTE:
