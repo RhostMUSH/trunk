@@ -92,6 +92,7 @@ static	char	*dbfile;
 static	int	bsiz;
 static	int	db_initted;
 static	int	last_free;	/* last known or suspected free block */
+static	int	dbfile_allocated;	/* dbfile is malloc'd, not a literal */
 
 #ifdef	HAVE_DBM
 static	int	dbp;
@@ -113,6 +114,7 @@ void
 dddb_var_init()
 {
   dbfile = DEFAULT_DBMCHUNKFILE;
+  dbfile_allocated = 0;
   bsiz = DDDB_BLOCK;
   db_initted = 0;
   last_free = 0;
@@ -208,7 +210,7 @@ dddb_init()
 			mush_logf("db_init index inconsistent\n",(char *)0);
 			return(1);
 		}
-		bcopy(dat.dptr,(char *)&hbuf,sizeof(hbuf));	/* alignment */
+		bcopy(dat.dptr,(char *)&hbuf,dat.dsize < (int)sizeof(hbuf) ? dat.dsize : (int)sizeof(hbuf));	/* alignment */
 
 
 		/* mark it as busy in the bitmap */
@@ -253,6 +255,7 @@ int dddb_setfile(char *fil)
 		return(1);
 	(void)strcpy(xp,fil);
 	dbfile = xp;
+	dbfile_allocated = 1;
 	return(0);
 }
 
@@ -277,10 +280,11 @@ dddb_close()
 		bitm = (char *)0;
 		bm_top = 0;
 	}
-	if(dbfile != (char *)0)  {
+	if(dbfile_allocated)  {
 		free(dbfile);
-		dbfile = (char *)0;
+		dbfile_allocated = 0;
 	}
+	dbfile = (char *)0;
 	db_initted = 0;
 	return(0);
 }
@@ -412,7 +416,7 @@ dddb_get(Objname *nam)
 
 	if(dat.dptr == (char *)0)
 		return((Obj *)0);
-	bcopy(dat.dptr,(char *)&hbuf,sizeof(hbuf));
+	bcopy(dat.dptr,(char *)&hbuf,dat.dsize < (int)sizeof(hbuf) ? dat.dsize : (int)sizeof(hbuf));
 
 	/* seek to location */
 	if(fseek(dbf,(long)hbuf.off,0))
@@ -448,7 +452,7 @@ dddb_put(Obj *obj, Objname *nam)
 
 	if(dat.dptr != (char *)0) {
 
-		bcopy(dat.dptr,(char *)&hbuf,sizeof(hbuf));	/* align */
+		bcopy(dat.dptr,(char *)&hbuf,dat.dsize < (int)sizeof(hbuf) ? dat.dsize : (int)sizeof(hbuf));	/* align */
 
 		if(BLOCKS_NEEDED(nsiz) > BLOCKS_NEEDED(hbuf.siz)) {
 
@@ -554,7 +558,7 @@ dddb_del(Objname *nam)
 	/* not there? */
 	if(dat.dptr == (char *)0)
 		return(0);
-	bcopy(dat.dptr,(char *)&hbuf,sizeof(hbuf));
+	bcopy(dat.dptr,(char *)&hbuf,dat.dsize < (int)sizeof(hbuf) ? dat.dsize : (int)sizeof(hbuf));
 
 	/* drop key from db */
 #ifdef	HAVE_DBM

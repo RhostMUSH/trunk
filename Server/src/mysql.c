@@ -613,6 +613,13 @@ static int sql_query(dbref player,
   /* Check to make sure we got rows back. */
   
   qres = mysql_store_result(mysql_struct);
+  if (!qres) {
+    notify(player, unsafe_tprintf("SQL error storing result: %s", mysql_error(mysql_struct)));
+    if (buff)
+      safe_str("#-1 QUERY ERROR", buff, bp);
+    free_lbuf(tpr_buff);
+    return -1;
+  }
   got_rows = mysql_num_rows(qres);
   if (got_rows == 0) {
 /*  mysql_free_result(qres); */
