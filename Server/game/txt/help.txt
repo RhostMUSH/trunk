@@ -36994,7 +36994,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.1.11
+  1 - 5.1.12, 5.1.11
   2 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
   3 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
   4 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
@@ -37007,11 +37007,16 @@
   8 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.1.12
 & 5.1.11
 & changelog latest
 & changelog newest
 & changelog recent
   Topic: CHANGELOG
+
+  5.1.12
+  * User-defined function names lacked a length check in sprintfs. Switched
+    to snprintf with proper length guards.
 
   5.1.11
   * Fixed (non-crashing) NULL pointer in exit alias display
