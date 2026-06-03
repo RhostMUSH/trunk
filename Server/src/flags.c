@@ -2689,6 +2689,7 @@ decode_flags(dbref player, dbref target, FLAG flagword, FLAG flag2word,
 
     if (!Good_obj(player) || !Good_obj(target)) {
 	strcpy(buf, "#-2 ERROR");
+	free_mbuf(buf2);
 	return buf;
     }
     flagtype = (flagword & TYPE_MASK);
@@ -2792,6 +2793,7 @@ decode_flags_func(dbref player, dbref target, FLAG flagword, FLAG flag2word,
 
     if (!Good_obj(player) || !Good_obj(target)) {
 	strcpy(buf, "#-2 ERROR");
+	free_mbuf(buf2);
 	return;
     }
     flagtype = (flagword & TYPE_MASK);
@@ -3671,16 +3673,16 @@ parse_ansi_name(dbref target, char *ansibuf)
        s = ansitmp;
        while (*s) {
           switch (*s) {
-             case '0': /* Is this hex? */
-                 if ( (*(s+1) == 'x') || (*(s+1) == 'X') ) {
-                    if ( isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
-                       sprintf(ansitmp2, "%s0%c%c%c", (char *)SAFE_CHRST, *(s+1), *(s+2), *(s+3));
-                       safe_str(ansitmp2, buf2, &buf2ptr);
-                       // strcat(buf2, ansitmp2);
-                       s+=3;
-                    }
-                 }
-             case 'h':		/* hilite */
+              case '0': /* Is this hex? */
+                  if ( (*(s+1) == 'x') || (*(s+1) == 'X') ) {
+                     if ( isxdigit(*(s+2)) && isxdigit(*(s+3)) ) {
+                        sprintf(ansitmp2, "%s0%c%c%c", (char *)SAFE_CHRST, *(s+1), *(s+2), *(s+3));
+                        safe_str(ansitmp2, buf2, &buf2ptr);
+                        s+=3;
+                     }
+                  }
+                  break;
+              case 'h':		/* hilite */
                  if ( mudconf.global_ansimask & MASK_HILITE )
                     safe_str(SAFE_ANSI_HILITE, buf2, &buf2ptr);
 	            // strcat(buf2, SAFE_ANSI_HILITE);
@@ -4176,6 +4178,8 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
         if ( is_walkdb && isExit(target) ) {
            if ( (sname_ptr = strchr(sname, ';')) != NULL ) {
               *sname_ptr++ = '\0';
+           } else {
+              sname_ptr = "";
            }
         }
         if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(sname, strip_all_special(ansibuf))) == 0)) ) {
@@ -6802,7 +6806,9 @@ totem_rename(char *totem, char *totemren)
 
   /* Rename the flag -- old name is new alias -- this stops existing aliases from eating their face */
   strcpy(hashp->flagname, ucname);
-  ohtab_repl(lcname, (int *) hashp, &mudstate_hot.flags_htab, 0);
+  if (ohtab_find(lcname, &mudstate_hot.flags_htab)) {
+      ohtab_repl(lcname, (int *) hashp, &mudstate_hot.flags_htab, 0);
+  }
 
   /* Add the new name over the old hash */
   stat = hashadd2(newname, (int *)hashp, &mudstate.totem_htab, 1);
