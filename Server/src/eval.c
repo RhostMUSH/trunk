@@ -3332,7 +3332,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
-                   sprintf(tfunlocal, "%d_%s", Owner(player), tbangc);
+                    snprintf(tfunlocal, sizeof(tfunlocal), "%d_%s", Owner(player), tbangc);
 		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
@@ -3356,7 +3356,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    ufp = NULL;
                 }
                 if ( ufp == NULL ) {
-                   sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
+                    snprintf(tfunlocal, sizeof(tfunlocal), "%d_%s", Owner(player), tbuf);
 		   ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                    if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                       ulfp = NULL;
@@ -3383,7 +3383,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                ufp = NULL;
             }
             if ( ufp == NULL ) {
-                sprintf(tfunlocal, "%d_%s", Owner(player), tbuf);
+                snprintf(tfunlocal, sizeof(tfunlocal), "%d_%s", Owner(player), tbuf);
 		ulfp = (UFUN *) hashfind(tfunlocal, &mudstate.ulfunc_htab);
                 if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                    ulfp = NULL;
