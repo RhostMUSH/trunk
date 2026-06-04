@@ -3660,22 +3660,6 @@ dump_users(DESC * e, char *match, int key)
 
 	    rcount++;
 
-#ifdef ZENTY_ANSI
-            *doingAccentBuf='\0';
-            *doingAnsiBuf='\0';
-            *doingUtfBuf='\0';
-	    doingAnsiBufp = doingAnsiBuf;
-	    doingAccentBufp = doingAccentBuf;
-	    doingUtfBufp = doingUtfBuf;
-	    parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
-            if ( !Accents(D_PLAYER(e)) ) {
-               strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-            }
-	    pDoing = doingAccentBuf;
-#else
-	    pDoing = d->cold->doing;
-#endif
-
 	    if (Cloak(D_PLAYER(d)) && rcount)
 	        rcount--;
             else if ((Dark(D_PLAYER(d)) && !mudconf.who_unfindable && !mudconf.player_dark && rcount && 
@@ -3750,6 +3734,21 @@ dump_users(DESC * e, char *match, int key)
         /* Output phase: iterate sorted entries */
         for (int _wi = 0; _wi < nslots; _wi++) {
             d = &desc_slots[slots[_wi]];
+#ifdef ZENTY_ANSI
+            *doingAccentBuf='\0';
+            *doingAnsiBuf='\0';
+            *doingUtfBuf='\0';
+	    doingAnsiBufp = doingAnsiBuf;
+	    doingAccentBufp = doingAccentBuf;
+	    doingUtfBufp = doingUtfBuf;
+	    parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
+            if ( !Accents(D_PLAYER(e)) ) {
+               strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
+            }
+	    pDoing = doingAccentBuf;
+#else
+	    pDoing = d->cold->doing;
+#endif
 	    if ((D_FLAGS(e) & DS_CONNECTED) &&
 		(Wizard(D_PLAYER(e)) || HasPriv(D_PLAYER(e), D_PLAYER(d), POWER_WIZ_WHO, POWER3, NOTHING)) &&
 		(!DePriv(D_PLAYER(e), D_PLAYER(d), DP_WIZ_WHO, POWER6, NOTHING) || (D_PLAYER(e) == D_PLAYER(d))) &&
