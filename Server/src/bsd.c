@@ -343,7 +343,7 @@ int check_tor_str(const char *addr_str, int addr_family, int i_port) {
    }
    free_lbuf(s_tmp);
    free_sbuf(s_reverselocal);
-   free_sbuf(s_reverseremote);
+   free_mbuf(s_reverseremote);
    free_lbuf(s_tordns);
 
    return i_found;
