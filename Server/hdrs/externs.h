@@ -458,6 +458,7 @@ extern char *   FDECL(encode_utf8, (char *));
 extern char * 	FDECL(utf8toucp, (char *));
 extern char * 	FDECL(ucptoutf8, (char *));
 extern char     FDECL(ucs32toascii, (long));
+extern void     FDECL(list_utf8_table, (dbref));
 
 /* From boolexp.c */
 extern int	FDECL(eval_boolexp, (dbref, dbref, dbref, BOOLEXP *, int));

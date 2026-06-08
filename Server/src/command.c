@@ -8912,6 +8912,7 @@ list_rlevels(dbref player, int i_key)
 #define LIST_VATTRCMDS	33
 #define LIST_TOTEMS	34
 #define LIST_PRONOUNS	35
+#define LIST_UTF8	36
 
 NAMETAB list_names[] =
 {
@@ -8953,6 +8954,7 @@ NAMETAB list_names[] =
     {(char *) "totems", 4, CA_PUBLIC, 0, LIST_TOTEMS},
     {(char *) "pronouns", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
     {(char *) "gender", 4, CA_PUBLIC, 0, LIST_PRONOUNS},
+    {(char *) "utf8", 2, CA_PUBLIC, 0, LIST_UTF8},
     {NULL, 0, 0, 0, 0}};
 
 extern NAMETAB enable_names[];
@@ -9067,6 +9069,9 @@ do_list(dbref player, dbref cause, int extra, char *arg)
 	   break;
        case LIST_PRONOUNS:
            display_pronouns(player, s_ptr2);
+           break;
+       case LIST_UTF8:
+           list_utf8_table(player);
            break;
        case LIST_TOTEMS:
            display_totemtab(player, s_ptr2);

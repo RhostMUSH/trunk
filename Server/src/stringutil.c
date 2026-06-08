@@ -13,6 +13,7 @@
 #include "rhost_utf8.h"
 #include "rhost_ansi.h"
 #include "vattr.h"
+#include <stdlib.h>
 
 int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc);
 extern dbref FDECL(match_thing, (dbref, char *));
@@ -2322,12 +2323,7 @@ ucptoutf8(char *ucp)
     return myutf;
 }
 
-char ucs32toascii(long ucs)
-{
-   // Original code by Polk
-   // Modified to a linear array search for a speedy lookup --Amb
-   int i;
-   long utfcodes[] = { 0x2012, '-', 0x2013, '-', 0x2014, '-',
+static const long utfcodes[] = { 0x2012, '-', 0x2013, '-', 0x2014, '-',
                        0x2500, '-', 0x2501, '-', 0x2502, '|', 0x2503, '|' 
                      , 0x2504, '-', 0x2505, '-', 0x2506, '|', 0x2507, '|'
                      , 0x2508, '-', 0x2509, '-', 0x250A, '|', 0x250B, '|'
@@ -2383,6 +2379,9 @@ char ucs32toascii(long ucs)
                      , 0x0161, 's', 0x00df, 's' /* Sorry Ambrosia */
                      };
 
+char ucs32toascii(long ucs)
+{
+   int i;
    /* ASCII is as ASCII does */
    if(ucs < 128)
        return ucs;
@@ -2394,5 +2393,47 @@ char ucs32toascii(long ucs)
 
    /* Fallback */
    return '?';
+}
+
+static int cmp_utf8(const void *a, const void *b)
+{
+   long ca = *(const long *)a;
+   long cb = *(const long *)b;
+   if (ca < cb) return -1;
+   if (ca > cb) return 1;
+   return 0;
+}
+
+void list_utf8_table(dbref player)
+{
+   int i, count;
+   long *sorted;
+   char *buf, *bp;
+   
+   count = (int)(sizeof(utfcodes)/sizeof(long));
+   sorted = (long *)alloc_lbuf("list_utf8_sort");
+   memcpy(sorted, utfcodes, sizeof(utfcodes));
+   qsort(sorted, count / 2, 2 * sizeof(long), cmp_utf8);
+   buf = bp = alloc_lbuf("list_utf8");
+   safe_str("Unicode Codepoint  →  ASCII Fallback", buf, &bp);
+   notify(player, buf);
+   
+   for (i = 0; i + 5 < count; i += 6) {
+      bp = buf;
+      sprintf(bp, "U+%04lX (%4ld) -> '%c'    U+%04lX (%4ld) -> '%c'    U+%04lX (%4ld) -> '%c'",
+              sorted[i],   sorted[i],   (char)sorted[i+1],
+              sorted[i+2], sorted[i+2], (char)sorted[i+3],
+              sorted[i+4], sorted[i+4], (char)sorted[i+5]);
+      notify(player, buf);
+   }
+   /* leftover entries */
+   for ( ; i < count; i += 2) {
+      bp = buf;
+      sprintf(bp, "U+%04lX (%4ld) -> '%c'", sorted[i], sorted[i], (char)sorted[i+1]);
+      notify(player, buf);
+   }
+   
+   free_lbuf(buf);
+   free_lbuf(sorted);
 }
 #endif
