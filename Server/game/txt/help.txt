@@ -36996,7 +36996,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.2.0
+  1 - 5.2.1, 5.2.0
   2 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
   3 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
   4 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
@@ -37010,12 +37010,16 @@
   9 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.2.1
 & 5.2.0
 & changelog latest
 & changelog newest
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  5.2.1
+  * Updated proxysnarf.txt - Removed a lot of invalid URLs
 
   5.2.0
   * Added '@list utf8' to show a fallback-table of UTF8 -> ASCII conversions.
