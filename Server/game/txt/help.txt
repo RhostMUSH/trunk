@@ -4947,6 +4947,8 @@
     totems          - Lists the name of all the totems. (wildcard supported)
   * pronouns        - Lists all the pronouns recognizes on the mush for
                       gender/@sex (he/she/it/they/xer/zer/ver/etc).  
+    utf8            - list all UTF8 fallback codes, for cases when a player
+                      has no UTF8 flag set.
   
   The information provided by the @list command is definitive, as it reads
   the internal tables to produce the information it displays.  Specifying
@@ -31988,7 +31990,7 @@
   You can not have the UTF8 toggle with the ACCENT toggle enabled.
   Attempting to do so will give you an error message.
    
-  See Also: UNICODE SUPPORT, ACCENT TOGGLE
+  See Also: UNICODE SUPPORT, ACCENT TOGGLE, @list UTF8
   
 & MAILVALIDATE TOGGLE
   Toggle: MAILVALIDATE
@@ -32440,7 +32442,7 @@
   A complete list of unicode characters can be found here: 
   http://unicode.org/charts/
   
-  See Also: UTF8 TOGGLE
+  See Also: UTF8 TOGGLE, @list UTF8
   
 & MUDDIFF
   Topic: MUDDIFF
@@ -36994,18 +36996,31 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
-  2 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
-  3 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
-  4 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
-  5 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
+  1 - 5.2.0
+  2 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
+  3 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
+  4 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
+  5 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
+  6 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
-  6 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
+  7 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
-  7 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+  8 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
-  8 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+  9 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
+
+& 5.2.0
+& changelog latest
+& changelog newest
+& changelog recent
+& changelog 1
+  Topic: CHANGELOG
+
+  5.2.0
+  * Added '@list utf8' to show a fallback-table of UTF8 -> ASCII conversions.
+    Essentially the characters that people see, when they don't have the UTF8
+    toggle set. Issue #136, reported by Warmstarter. 
 
 & 5.1.16
 & 5.1.15
@@ -37013,10 +37028,7 @@
 & 5.1.13
 & 5.1.12
 & 5.1.11
-& changelog latest
-& changelog newest
-& changelog recent
-  Topic: CHANGELOG
+& changelog 2
 
   5.1.16
   * An mbuf was free'd as an sbuf in the tor address checker.
@@ -37055,6 +37067,7 @@
 & 5.1.2
 & 5.1.1
 & 5.1.0
+& changelog 3
 
   5.1.10
   * Crash fix for mail sends - a fix to pool_buffers in an earlier commit
@@ -37133,7 +37146,7 @@
 & 5.0.2
 & 5.0.1
 & 5.0.0
-& changelog 2
+& changelog 4
 
   5.0.10
   * Additional 5-Phase audit across the codebase using M3:
@@ -37233,7 +37246,7 @@
 & 4.27.8
 & 4.27.7
 & 4.27.6
-& changelog 3
+& changelog 5
 
   4.33.0
   * support for more Telnet Negotitation:
@@ -37325,7 +37338,7 @@
 & 4.23.0
 & 4.22.0
 & 4.21.0
-& changelog 4
+& changelog 6
 
   4.27.5
   * Fixed Websocket connections done over Firefox, that have the
@@ -37405,7 +37418,7 @@
 & 4.14.0
 & 4.13.0
 & 4.12.0
-& changelog 5
+& changelog 7
     
   4.20.4 - 09/02/25
   * Search was too passive for totemlist and found first match and not exact
@@ -37490,7 +37503,7 @@
 & 4.5.0
 & 4.4.3
 & 4.4.2
-& changelog 6
+& changelog 8
 
   4.11.0-4.11.2 
   * fix for git
@@ -37561,7 +37574,7 @@
 & 4.3.2
 & 4.3.1
 & 4.3.0
-& changelog 7
+& changelog 9
   
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
