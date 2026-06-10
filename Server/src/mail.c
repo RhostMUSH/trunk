@@ -1061,7 +1061,7 @@ void unparse_al(char *pass, int len, char *rtbuf, int number, int i_key, dbref p
  * comma_mode=1: split on commas, trim whitespace, quotes protect.
  * comma_mode=0: split on whitespace, quotes protect.
  * Returns token count, or 0 for empty. */
-static int tokenize_recipients(char *input, char **tokens, int maxtok)
+int tokenize_recipients(char *input, char **tokens, int maxtok)
 {
    int i, start, ntok, comma_mode, inq;
 
