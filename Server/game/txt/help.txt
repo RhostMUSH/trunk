@@ -30260,16 +30260,20 @@
   (Wizard)  mail/send [@]<address list>=[<obfuscate>subject//]<message>
   
   The address list can contain any number of recipients (up to the mush
-  buffer limit) and can be one of the following:
+  buffer limit) and those recipients can be one of the following:
       A player name  
+      "A player name with spaces"
       A player number prefixed by a dbrief# 
       A mail alias attribute located on the player prefixed by a & 
          (this is just an attribute on yourself with a list of players)
       A global mail alias attribute prefixed by a +. 
       A mail alias attribute location on optional target prefixed by a
          ~ character.  This is evaluated like get_eval().
-  
-  The different elements in the address list need to be separated by spaces. 
+
+  The different elements in the address list need to be separated by
+  spaces or commas. If you use spaces, player names with spaces in them
+  need to be put into quotes. If you use commas, this is not necessary. 
+
   If you include the optional '@', all recipients of a mail message will 
   see the complete list of recipients. (This will show up as a 'CC' list).
   To give an optional subject, enter text you want as a subject then 
@@ -36996,7 +37000,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.2.1, 5.2.0
+  1 - 5.3.0, 5.2.1, 5.2.0
   2 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
   3 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
   4 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
@@ -37010,6 +37014,7 @@
   9 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.3.0
 & 5.2.1
 & 5.2.0
 & changelog latest
@@ -37017,6 +37022,13 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  5.3.0
+  * Added support for playernames with spaces for mail sending. Both these
+    list formats are now valid:
+    name, name, name with spaces, name, name...
+    name name "name with spaces" name name
+    This should help with some Mux compatibilities.
 
   5.2.1
   * Updated proxysnarf.txt - Removed a lot of invalid URLs
