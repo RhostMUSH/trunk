@@ -1845,7 +1845,7 @@ static int page_check (dbref player, dbref target, int num, int length)
 void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 {
   dbref	target, owner, pl_aowner;
-  char	*nbuf, *p1, *p2, buff[50], *dbuff, *dbx, *fbuff, *fbx, *sbuff, sep, *pos1, 
+  char	*nbuf, *p1, *p2, buff[50], *dbuff, *dbx, *fbuff, *fbx, *sbuff, *pos1, 
         *pos2, *pos3, *px, *lbuff, *lbx, *alias_pos1, *alias_px, *pl_alias, *mpg, 
         *t_msg, *t_msgp, *tpr_buff, *tprp_buff, *s_ret_warn, *s_ret_warnptr, *tstrtokr;
   int	flags, port, got, got2, num, nuts, pc, fnum, lnum, *ilist, pl_aflags, 
@@ -1945,7 +1945,6 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		strcpy(sbuff,mpg);
 		free_lbuf(p1);
 		p1 = tname;
-		sep = ' ';
 	} else if (key == PAGE_RETMULTI) {
 		p1 = atr_get(player,A_RETPAGE,&owner,&flags);
 		if (!*p1) {
@@ -1960,7 +1959,6 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		strcpy(sbuff,p1);
 		free_lbuf(p1);
 		p1 = tname;
-		sep = ' ';
 	} else if (key == PAGE_LAST) {
 		p1 = atr_get(player,A_LASTPAGE,&owner,&flags);
 		if (!*p1) {
@@ -1975,24 +1973,12 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		strcpy(sbuff,p1);
 		free_lbuf(p1);
 		p1 = tname;
-		sep = ' ';
 	} else if (key == PAGE_PORT) {
 	  strcpy(sbuff,tname);
 	  p1 = message;
-	  sep = ' ';
 	} else {
 	  strcpy(sbuff,tname);
 	  p1 = message;
-/* Disabled the name_spaces checking.  Enable if you want it */
-	  if (mudconf.name_spaces && 0)
-	    sep = ',';
-	  else {
-	    pos1 = strchr(sbuff,',');
-	    if (pos1 != NULL)
-	      sep = ',';
-	    else
-	      sep = ' ';
-	  }
 	}
 
 	i_p = i_op = -1;
@@ -2039,24 +2025,16 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 	got2 = 0;
 	fnum = 0;
 	lnum = 0;
-	pos1 = sbuff;
 	dbx = dbuff;
 	fbx = fbuff;
 	lbx = lbuff;
-	while (*pos1 && (isspace((int)*pos1) || (*pos1 == sep)))
-	  pos1++;
         tprp_buff = tpr_buff = alloc_lbuf("do_page");
-	while (*pos1) {
-	  pos2 = pos1 + 1;
-	  while (*pos2 && (*pos2 != sep))
-	    pos2++;
-	  pos3 = pos2 - 1;
-	  if (*pos2) 
-	    pos2++;
-	  while (isspace((int)*pos3))
-	    pos3--;
-	  pos3++;
-	  *pos3 = '\0';
+	{
+	    int pgi;
+	    char *pgtokens[256];
+	    int pgntok = tokenize_recipients(sbuff, pgtokens, 256);
+	    for (pgi = 0; pgi < pgntok; pgi++) {
+	    pos1 = pgtokens[pgi];
 	  if (key == PAGE_PORT) {
 	    target = NOTHING;
 	    port = atoi(pos1);
@@ -2068,9 +2046,6 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 	    port = 0;
 	    p2 = strstr(lbuff,pos1);
 	    if (p2 && ((*(p2 + strlen(pos1)) == ',') || !*(p2 + strlen(pos1)))) {
-	      pos1 = pos2;
-	      while (*pos1 && (isspace((int)*pos1) || (*pos1 == sep)))
-		pos1++;
 	      continue;
 	    }
 	    target = lookup_player(player,pos1,1);
@@ -2086,9 +2061,6 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		sprintf(buff,"#%d",target);
 	        p2 = strstr(dbuff,buff);
 	        if (p2 && (isspace((int)*(p2 + strlen(buff))) || !*(p2 + strlen(buff)))) {
-	          pos1 = pos2;
-	          while (*pos1 && (isspace((int)*pos1) || (*pos1 == sep)))
-	            pos1++;
 	          continue;
 	        }
 	        if (page_check(player, target, got2, strlen(p1))) {
@@ -2121,11 +2093,8 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		;
 	  } else if (!*p1) {
 		if (key != PAGE_PORT) {
-/* Players should get their page updated on a return-page */
-/*		  if (key != PAGE_RET) { */
 		    sprintf(buff,"#%d",player);
 		    atr_add_raw(target,A_RETPAGE,buff);
-/*		  } */
 		  num++;
 		}
 		nbuf = alloc_lbuf("do_page");
@@ -2150,10 +2119,8 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		free_lbuf(nbuf);
 	  } else {
 		if (key != PAGE_PORT) {
-/*		  if (key != PAGE_RET) { */
 		    sprintf(buff,"#%d",player);
 		    atr_add_raw(target,A_RETPAGE,buff);
-/*		  } */
 		  num++;
 		}
 	      if (port) {
@@ -2200,9 +2167,7 @@ void do_page(dbref player, dbref cause, int key, char *tname, char *message)
 		}
 	      }
 	  }
-	  pos1 = pos2;
-	  while (*pos1 && (isspace((int)*pos1) || (*pos1 == sep)))
-	    pos1++;
+	  }
 	}
 	free_lbuf(tpr_buff);
 	if (!got)
@@ -2813,8 +2778,8 @@ void do_pemit (dbref player, dbref cause, int key, char *recipient,
 		char *message, char *cargs[], int ncargs)
 {
 dbref	target, loc, aowner, darray[LBUF_SIZE/2];
-char	*buf2, *bp, *recip2, *rcpt, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
-char	*pc1, *tell, *tx, sep1, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *recipient_buff;
+char	*buf2, *bp, *recip2, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
+char	*pc1, *tell, *tx, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *recipient_buff;
 char    *strtok, *strtokr, *strtokbuf;
 char    *p1, *lastw_buf, *lastw_ptr, *whisper_rcpt_buf;
 #ifdef REALITY_LEVELS
@@ -2823,11 +2788,13 @@ char    *pt3, *r_bufr, *s_ptr, *reality_buff;
 int	do_contents, ok_to_do, depth, pemit_flags, port, dobreak, got, cstuff, cntr; 
 int     do_zone, in_zone, aflags, is_zonemaster, noisy, nosub, noansi, noeval, is_rlevelon, i_realitybit;
 int     xxx_x, xxx_y, xxx_z, i_oneeval, i_snufftoofar, i_oemitstr, dcntr, dcntrtmp;
+int     pti, pntok;
+char    *ptokens[256];
 
 ZLISTNODE *z_ptr, *y_ptr;
 
    port = 0;
-   rcpt = NULL;
+
    i_snufftoofar = is_rlevelon = i_realitybit = i_oneeval = i_oemitstr = dcntr = 0;
    xxx_x = xxx_y = xxx_z = 0;
    lastw_buf = whisper_rcpt_buf = NULL;
@@ -2948,7 +2915,6 @@ ZLISTNODE *z_ptr, *y_ptr;
       free_lbuf(reality_buff);
    }
 #endif
-   sep1 = '\0';
    mudstate.pageref = NOTHING;
    if (key & PEMIT_CONTENTS) {
       do_contents = 1;
@@ -3040,21 +3006,16 @@ ZLISTNODE *z_ptr, *y_ptr;
        }
 
     }
+    pti = 0;
+    pntok = 0;
+    if (plist)
+       pntok = tokenize_recipients(recip2, ptokens, 256);
     while (list) {
        ok_to_do = 0;
        mudstate_hot.whisper_state = 1;
       if (plist) {
-         rcpt = recip2;
-         if (!sep1)
-            while ((*rcpt) && (*rcpt != ' ') && (*rcpt != ',')) rcpt++;
-         else
-            while ((*rcpt) && (*rcpt != sep1)) rcpt++;
-         if (*rcpt == '\0')
-            list = 0;
-         else {
-            sep1 = *rcpt;
-            *rcpt = '\0';
-         }
+         if (pti >= pntok) { list = 0; continue; }
+         recip2 = ptokens[pti++];
          if ( !i_oneeval ) {
             if ( !nosub ) {
                buff3 = replace_string(BOUND_VAR,recip2,message, 0);
@@ -3559,11 +3520,6 @@ ZLISTNODE *z_ptr, *y_ptr;
          if (!noeval && !i_oneeval) {	  
             free_lbuf(result);
          }
-      }
-      if (list) {
-         recip2 = rcpt + 1;
-         while (isspace((int)*recip2)) 
-            recip2++;
       }
    }
    if ( lastw_buf && *lastw_buf && (key == PEMIT_WHISPER) ) {
