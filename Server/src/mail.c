@@ -1056,9 +1056,86 @@ void unparse_al(char *pass, int len, char *rtbuf, int number, int i_key, dbref p
   free_sbuf(pt3);
 }
 
+/* Tokenize a mail recipient list.
+ * comma_mode is determined by scanning for any comma outside quotes.
+ * comma_mode=1: split on commas, trim whitespace, quotes protect.
+ * comma_mode=0: split on whitespace, quotes protect.
+ * Returns token count, or 0 for empty. */
+static int tokenize_recipients(char *input, char **tokens, int maxtok)
+{
+   int i, start, ntok, comma_mode, inq;
+
+   /* Phase 1: detect comma_mode (comma outside quotes) */
+   comma_mode = 0;
+   inq = 0;
+   for (i = 0; input[i]; i++) {
+      if (input[i] == '"')
+         inq = !inq;
+      else if (input[i] == ',' && !inq) {
+         comma_mode = 1;
+         break;
+      }
+   }
+
+   /* Phase 2: split */
+   ntok = 0;
+   i = 0;
+   while (input[i] && ntok < maxtok) {
+      while (input[i] && isspace((unsigned char)input[i]))
+         i++;
+      if (!input[i])
+         break;
+
+      if (input[i] == '"') {
+         i++;
+         start = i;
+         while (input[i] && input[i] != '"')
+            i++;
+         tokens[ntok] = input + start;
+         if (input[i])
+            input[i++] = '\0';
+         else
+            input[i] = '\0';
+         ntok++;
+         continue;
+      }
+
+      start = i;
+      if (comma_mode) {
+         while (input[i] && input[i] != ',')
+            i++;
+         /* trim trailing whitespace */
+         while (i > start && isspace((unsigned char)input[i-1]))
+            i--;
+         if (start == i) {
+            /* empty token (consecutive delimiters) — skip and continue */
+            if (input[i])
+               i++;
+            continue;
+         }
+         tokens[ntok] = input + start;
+         if (input[i])
+            input[i++] = '\0';
+         else
+            input[i] = '\0';
+         ntok++;
+      } else {
+         while (input[i] && !isspace((unsigned char)input[i]))
+            i++;
+         tokens[ntok] = input + start;
+         if (input[i])
+            input[i++] = '\0';
+         else
+            input[i] = '\0';
+         ntok++;
+      }
+   }
+   return ntok;
+}
+
 int mail_precheck(dbref player, char *s_input)
 {
-   char *s_retbuff, *s_strtok, *s_strtokr, *s_tbuff, *s_t1;
+   char *s_retbuff, *s_strtok, *s_tbuff, *s_t1;
    int aflags, i_return, i_chk;
    dbref aowner, target;
    ATTR *atr;
@@ -1071,93 +1148,93 @@ int mail_precheck(dbref player, char *s_input)
    s_tbuff = alloc_lbuf("mail_precheck");
    strcpy(s_tbuff, s_input);
 
-   if ( *s_tbuff == '@' ) {
-      s_strtok = strtok_r(s_tbuff+1, " \t,", &s_strtokr);
-   } else {
-      s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
-   }
+   {
+      int ti;
+      char *tokens[256];
+      int ntok = tokenize_recipients(s_tbuff + (*s_tbuff == '@' ? 1 : 0), tokens, 256);
 
-   i_return = i_chk = 0;
-   s_retbuff = alloc_lbuf("mail_precheck2");
-   while ( s_strtok && *s_strtok ) {
-      switch(*s_strtok) {
-         case '+': /* Global static */
-            s_t1 = (char *)mail_alias_function(player, 0, s_strtok+1, NULL);
-            if ( !s_t1 || !*s_t1 ) {
-               sprintf(s_retbuff, "MAIL: Invalid static global alias '%s'.", s_t1);
-               notify(player, s_retbuff);
-               i_return = 1;
-            }
-            free_lbuf(s_t1);
-            break;
-         case '$': /* Global dynamic */
-            if ( Good_chk(mudconf.mail_def_object) ) {
-               sprintf(s_retbuff, "alias.%s", s_strtok+1);
-               atr = atr_str(s_retbuff);
-               if ( atr && (!(atr->flags & AF_MDARK) || Wizard(player)) ) {
-                  s_t1 = atr_get(mudconf.mail_def_object, atr->number, &aowner, &aflags);
-                  if ( !s_t1 || !*s_t1 ) {
+      i_return = i_chk = 0;
+      s_retbuff = alloc_lbuf("mail_precheck2");
+      for (ti = 0; ti < ntok; ti++) {
+         s_strtok = tokens[ti];
+         switch(*s_strtok) {
+            case '+': /* Global static */
+               s_t1 = (char *)mail_alias_function(player, 0, s_strtok+1, NULL);
+               if ( !s_t1 || !*s_t1 ) {
+                  sprintf(s_retbuff, "MAIL: Invalid static global alias '%s'.", s_t1);
+                  notify(player, s_retbuff);
+                  i_return = 1;
+               }
+               free_lbuf(s_t1);
+               break;
+            case '$': /* Global dynamic */
+               if ( Good_chk(mudconf.mail_def_object) ) {
+                  sprintf(s_retbuff, "alias.%s", s_strtok+1);
+                  atr = atr_str(s_retbuff);
+                  if ( atr && (!(atr->flags & AF_MDARK) || Wizard(player)) ) {
+                     s_t1 = atr_get(mudconf.mail_def_object, atr->number, &aowner, &aflags);
+                     if ( !s_t1 || !*s_t1 ) {
+                        sprintf(s_retbuff, "MAIL: Invalid dynamic global alias '%s'.", s_strtok+1);
+                        notify(player, s_retbuff);
+                        i_return = 1;
+                     }
+                     free_lbuf(s_t1);
+                  } else {
                      sprintf(s_retbuff, "MAIL: Invalid dynamic global alias '%s'.", s_strtok+1);
+                     notify(player, s_retbuff);
+                     i_return = 1;
+                  }
+               } else {
+                  if ( !i_chk )
+                     notify(player, "MAIL: No dynamic global aliases configured.");
+                  i_return = 1;
+                  i_chk = 1;
+               }
+               break;
+            case '&': /* Personal static */
+               sprintf(s_retbuff, "%s", s_strtok+1);
+               atr = atr_str(s_retbuff);
+               if ( atr ) {
+                  s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
+                  if ( !s_t1 || !*s_t1 ) {
+                     sprintf(s_retbuff, "MAIL: Invalid static personal alias '%s'.", s_strtok+1);
                      notify(player, s_retbuff);
                      i_return = 1;
                   }
                   free_lbuf(s_t1);
                } else {
-                  sprintf(s_retbuff, "MAIL: Invalid dynamic global alias '%s'.", s_strtok+1);
-                  notify(player, s_retbuff);
-                  i_return = 1;
-               }
-            } else {
-               if ( !i_chk )
-                  notify(player, "MAIL: No dynamic global aliases configured.");
-               i_return = 1;
-               i_chk = 1;
-            }
-            break;
-         case '&': /* Personal static */
-            sprintf(s_retbuff, "%s", s_strtok+1);
-            atr = atr_str(s_retbuff);
-            if ( atr ) {
-               s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
-               if ( !s_t1 || !*s_t1 ) {
                   sprintf(s_retbuff, "MAIL: Invalid static personal alias '%s'.", s_strtok+1);
                   notify(player, s_retbuff);
                   i_return = 1;
                }
-               free_lbuf(s_t1);
-            } else {
-               sprintf(s_retbuff, "MAIL: Invalid static personal alias '%s'.", s_strtok+1);
-               notify(player, s_retbuff);
-               i_return = 1;
-            }
-            break;
-         case '~': /* Personal dynamic */
-            sprintf(s_retbuff, "%s", s_strtok+1);
-            atr = atr_str(s_retbuff);
-            if ( atr ) {
-               s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
-               if ( !s_t1 || !*s_t1 ) {
+               break;
+            case '~': /* Personal dynamic */
+               sprintf(s_retbuff, "%s", s_strtok+1);
+               atr = atr_str(s_retbuff);
+               if ( atr ) {
+                  s_t1 = atr_pget(player, atr->number, &aowner, &aflags);
+                  if ( !s_t1 || !*s_t1 ) {
+                     sprintf(s_retbuff, "MAIL: Invalid dynamic personal alias '%s'.", s_strtok+1);
+                     notify(player, s_retbuff);
+                     i_return = 1;
+                  }
+                  free_lbuf(s_t1);
+               } else {
                   sprintf(s_retbuff, "MAIL: Invalid dynamic personal alias '%s'.", s_strtok+1);
                   notify(player, s_retbuff);
                   i_return = 1;
                }
-               free_lbuf(s_t1);
-            } else {
-               sprintf(s_retbuff, "MAIL: Invalid dynamic personal alias '%s'.", s_strtok+1);
-               notify(player, s_retbuff);
-               i_return = 1;
-            }
-            break;
-         default: /* Assume normal player name, number or alias */
-            target = lookup_player(player, s_strtok, 0);
-            if ( !(Good_chk(target) && isPlayer(target)) ) {
-               sprintf(s_retbuff, "MAIL: Invalid player '%s'.", s_strtok);
-               notify(player, s_retbuff);
-               i_return = 1;
-            }
-            break;
+               break;
+            default: /* Assume normal player name, number or alias */
+               target = lookup_player(player, s_strtok, 0);
+               if ( !(Good_chk(target) && isPlayer(target)) ) {
+                  sprintf(s_retbuff, "MAIL: Invalid player '%s'.", s_strtok);
+                  notify(player, s_retbuff);
+                  i_return = 1;
+               }
+               break;
+         }
       }
-      s_strtok = strtok_r(NULL, " \t,", &s_strtokr);
    }
 
    free_lbuf(s_tbuff);
@@ -1167,7 +1244,7 @@ int mail_precheck(dbref player, char *s_input)
 
 void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
 {
-   char *s_tbuff, *s_strtok, *s_strtokr, *s_t1, *s_t2, *s_t3, *s_b1, *s_b1p,
+   char *s_tbuff, *s_strtok, *s_t1, *s_t2, *s_t3, *s_b1, *s_b1p,
         *s_strpl, *s_strplr, *x_buff, *s_array[2];
    int i_allow, i_mail_inline, i_first, aflags;
    dbref target, aowner;
@@ -1180,15 +1257,16 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
    s_tbuff = alloc_lbuf("parse_tolist");
    strcpy(s_tbuff, s_input);
 
-   if ( *s_tbuff == '@' ) {
-      s_strtok = strtok_r(s_tbuff+1, " \t,", &s_strtokr);
-   } else {
-      s_strtok = strtok_r(s_tbuff, " \t,", &s_strtokr);
-   }
-   s_b1p = s_b1 = alloc_lbuf("parse_tolist");
-   x_buff = alloc_lbuf("parse_tolist");
-   i_first = 0;
-   while ( s_strtok ) {
+   {
+      int ti;
+      char *tokens[256];
+      int ntok = tokenize_recipients(s_tbuff + (*s_tbuff == '@' ? 1 : 0), tokens, 256);
+
+      s_b1p = s_b1 = alloc_lbuf("parse_tolist");
+      x_buff = alloc_lbuf("parse_tolist");
+      i_first = 0;
+      for (ti = 0; ti < ntok; ti++) {
+      s_strtok = tokens[ti];
       i_allow = 1;
       switch(*s_strtok) {
          case '+': /* Global static */
@@ -1502,7 +1580,7 @@ void parse_tolist(dbref player, char *s_input, char *s_out, char **s_outptr)
             }
             break;
       }
-      s_strtok = strtok_r(NULL, " \t,", &s_strtokr);
+      }
    }
    free_lbuf(s_tbuff);
    free_lbuf(s_b1);
@@ -1966,7 +2044,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
 void 
 build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
 {
-   char *strtok_buff, *s_strtokptr, *s_tbuff, *s_tbuffptr, *s_ptr, *s_plratr,
+   char *s_strtokptr, *s_tbuff, *s_tbuffptr, *s_ptr, *s_plratr,
         *tbuff_malias, *s_plratrretval;
    int in_list, anum_tmp, dummy2, did_alloc, i_mail_inline;
    dbref thing_tmp, dummy1, target;
@@ -1974,9 +2052,14 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
    ATTR *attr = NULL;
  
    s_tbuffptr = s_tbuff = alloc_lbuf("build_bcc_list");
-   s_strtokptr = (char *)strtok_r(s_instr, " ", &strtok_buff);
-   i_mail_inline = in_list = did_alloc = 0;
-   while ( s_strtokptr && *s_strtokptr ) {
+   {
+      int bti;
+      char *btokens[256];
+      int bntok = tokenize_recipients(s_instr, btokens, 256);
+
+      i_mail_inline = in_list = did_alloc = 0;
+      for (bti = 0; bti < bntok; bti++) {
+      s_strtokptr = btokens[bti];
       s_ptr = s_strtokptr;
       if ( *s_ptr == '+' ) {
          s_ptr++;
@@ -2099,13 +2182,17 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
          safe_str(s_ptr, s_tbuff, &s_tbuffptr);
          safe_chr(' ', s_tbuff, &s_tbuffptr);
       }
-      s_strtokptr = (char *)strtok_r(NULL, " ", &strtok_buff);
+      }
    }
 
    /* Build out the dbref# lists */
    if ( *s_tbuff ) {
-      s_strtokptr = (char *)strtok_r(s_tbuff, " ", &strtok_buff);
-      while (s_strtokptr) {
+      {
+         int bti2;
+         char *btokens2[256];
+         int bntok2 = tokenize_recipients(s_tbuff, btokens2, 256);
+         for (bti2 = 0; bti2 < bntok2; bti2++) {
+         s_strtokptr = btokens2[bti2];
          target = lookup_player(player, s_strtokptr, 0);
          if ( Good_obj(target) && isPlayer(target) ) {
             if (!in_list)
@@ -2114,7 +2201,7 @@ build_bcc_list(dbref player, char *s_instr, char *s_outstr, char *s_outstrptr)
             safe_chr(' ', s_outstr, &s_outstrptr);
             in_list = 1;
          }
-         s_strtokptr = (char *)strtok_r(NULL, " ", &strtok_buff);
+         }
       }
    }
    free_lbuf(s_tbuff);
@@ -2663,156 +2750,101 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   }
   free_lbuf(bccatr);
 
-  i_nogood = 0;
-  tprp_buff = tpr_buff = alloc_lbuf("mail_send");
-  if ( Good_chk(p2) && MailValid(p2) ) {
-     strcpy(tpr_buff, lbuf3);
-     pt1 = tpr_buff;
-     comma_exists = 0;
-     if ( strchr(tpr_buff, ',') != NULL )
-        comma_exists = 1;
-     while ( !term && *pt1 ) {
-        if ( comma_exists )
-           while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
-        else
-           while (*pt1 && isspace((int)*pt1)) pt1++;
-        if (!*pt1) {
-           if ( i_nogood != 2 )
-              i_nogood = 1;
-           break;
-        }
-        pt2 = pt1+1;
-        if ((sepchar == '\0') || (*pt1 == '#')) {
-           if ( comma_exists )
-              while (*pt2 && (*pt2 != ',')) pt2++;
-           else
-              while (*pt2 && !isspace((int)*pt2) && (*pt2 != ',')) pt2++;
-        } else {
-           while (*pt2 && (*pt2 != sepchar) && (*pt2 != ',')) pt2++;
-        }
-        if (*pt2 && !sepchar) {
-           sepchar = *pt2;
-           term = 0;
-        } else if (*pt2) {
-           term = 0;
-        } else
-           term = 1;
-        *pt2 = '\0';
-        toplay = lookup_player(player,pt1,0);
-        if (toplay == NOTHING) {
-           i_nogood = 1;
-           break;
-        } else {
-           if ( !i_nogood )
-              i_nogood = 2;
-        }
-        pt1 = pt2+1;
-     }
-     if ( i_nogood == 1 ) {
-         notify_quiet(p2,"MAIL ERROR: Bad recipient(s) in send.  Mail not sent per user's toggle.");
-         free_lbuf(bcctmp);
-         free_lbuf(tpr_buff);
-         return 1;
-     }
-  }
-  pt1 = lbuf3;
-  sepchar = '\0';
-  term = 0;
-  comma_exists = 0;
-  if ( strchr(lbuf3, ',') != NULL )
-     comma_exists = 1;
-  while (!term && *pt1) {
-    if ( comma_exists )
-       while ( *pt1 && (isspace((int)*pt1) || (*pt1 == ','))) pt1++;
-    else
-       while (*pt1 && isspace((int)*pt1)) pt1++;
-    if (!*pt1) break;
-    pt2 = pt1+1;
-    if ((sepchar == '\0') || (*pt1 == '#')) {
-      if ( comma_exists )
-         while (*pt2 && (*pt2 != ',')) pt2++;
-      else
-         while (*pt2 && !isspace((int)*pt2) && (*pt2 != ',')) pt2++;
-    } else {
-      while (*pt2 && (*pt2 != sepchar) && (*pt2 != ',')) pt2++;
-    }
-    if (*pt2 && !sepchar) {
-      sepchar = *pt2;
-      term = 0;
-    }
-    else if (*pt2)
-      term = 0;
-    else
-      term = 1;
-    *pt2 = '\0';
-    toplay = lookup_player(player,pt1,0);
-    if (toplay == NOTHING) {
-      notify_quiet(p2,"MAIL ERROR: Bad recipient in send");
-    }
-    else {
-      index = insert_msg(player, &toplay, spt, mpt, isend, atest, &aft, (int *)(lbuf4 + sizeof(int)), 
-                         count * 2, chk_anon, anon_player, chk_anon2, bcctmp);
-      if (index) {
-	count++;
-	*(int *)(lbuf4 + offct) = toplay;
-	offct += sizeof(int);
-	*(int *)(lbuf4 + offct) = (int)index;
-	offct += sizeof(int);
-        tprp_buff = tpr_buff;
-	if (aft) {
-          if ( Wizard(p2) && chk_anon2 )  {
-             if ( mudconf.mail_hidden )
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s%s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon ? "<HIDDEN> " : " "),
-                             (chk_anon2 ? "(Anonymously)" : " ")));
-             else
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon2 ? "(Anonymously)" : " ")));
-          } else {
-             if ( mudconf.mail_hidden && Wizard(p2) )
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s(AutoFor)",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon ? "<HIDDEN> " : " ")));
-             else
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor)",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : Name(toplay))));
-          }
-	} else {
-          if ( Wizard(p2) && chk_anon2 )  {
-             if ( mudconf.mail_hidden )
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s%s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon ? "<HIDDEN> " : " "),
-                             (chk_anon2 ? "(Anonymously)" : " ")));
-             else
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon2 ? "(Anonymously)" : " ")));
-          } else {
-             if ( mudconf.mail_hidden && Wizard(p2) )
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)), 
-                             (chk_anon ? "<HIDDEN>" : " ")));
-             else
-	        notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s",
-                             (chk_anon ? "sent anonymously" : "sent"), 
-                             ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)))));
-          }
-        }
-	if (count == absmaxrcp) term = 1;
+   i_nogood = 0;
+   tprp_buff = tpr_buff = alloc_lbuf("mail_send");
+   if ( Good_chk(p2) && MailValid(p2) ) {
+      strcpy(tpr_buff, lbuf3);
+      {
+         int msi;
+         char *mstokens[256];
+         int msntok = tokenize_recipients(tpr_buff, mstokens, 256);
+         for (msi = 0; msi < msntok; msi++) {
+            toplay = lookup_player(player, mstokens[msi], 0);
+            if (toplay == NOTHING) {
+               i_nogood = 1;
+               break;
+            } else if ( !i_nogood )
+               i_nogood = 2;
+         }
       }
-    }
-    if (!term)
-      pt1 = pt2+1;
+      if ( i_nogood == 1 ) {
+          notify_quiet(p2,"MAIL ERROR: Bad recipient(s) in send.  Mail not sent per user's toggle.");
+          free_lbuf(bcctmp);
+          free_lbuf(tpr_buff);
+          return 1;
+      }
+   }
+  {
+     int msi2;
+     char *mstokens2[256];
+     int msntok2 = tokenize_recipients(lbuf3, mstokens2, 256);
+     for (msi2 = 0; msi2 < msntok2; msi2++) {
+        toplay = lookup_player(player, mstokens2[msi2], 0);
+        if (toplay == NOTHING) {
+           notify_quiet(p2,"MAIL ERROR: Bad recipient in send");
+        } else {
+           index = insert_msg(player, &toplay, spt, mpt, isend, atest, &aft, (int *)(lbuf4 + sizeof(int)),
+                              count * 2, chk_anon, anon_player, chk_anon2, bcctmp);
+           if (index) {
+              count++;
+              *(int *)(lbuf4 + offct) = toplay;
+              offct += sizeof(int);
+              *(int *)(lbuf4 + offct) = (int)index;
+              offct += sizeof(int);
+              tprp_buff = tpr_buff;
+              if (aft) {
+                 if ( Wizard(p2) && chk_anon2 )  {
+                    if ( mudconf.mail_hidden )
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s%s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon ? "<HIDDEN> " : " "),
+                                      (chk_anon2 ? "(Anonymously)" : " ")));
+                    else
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor) %s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon2 ? "(Anonymously)" : " ")));
+                 } else {
+                    if ( mudconf.mail_hidden && Wizard(p2) )
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s(AutoFor)",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon ? "<HIDDEN> " : " ")));
+                    else
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s (AutoFor)",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : Name(toplay))));
+                 }
+              } else {
+                 if ( Wizard(p2) && chk_anon2 )  {
+                    if ( mudconf.mail_hidden )
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s%s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon ? "<HIDDEN> " : " "),
+                                      (chk_anon2 ? "(Anonymously)" : " ")));
+                    else
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon2 ? "(Anonymously)" : " ")));
+                 } else {
+                    if ( mudconf.mail_hidden && Wizard(p2) )
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s %s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)),
+                                      (chk_anon ? "<HIDDEN>" : " ")));
+                    else
+                       notify_quiet(p2,safe_tprintf(tpr_buff, &tprp_buff, "Mail: Message %s to -> %s",
+                                      (chk_anon ? "sent anonymously" : "sent"),
+                                      ((chk_anon2 | (mudconf.mail_hidden & chk_anon)) ? anon_player : (ColorMail(p2) ? ColorName(toplay,1) : Name(toplay)))));
+                 }
+              }
+              if (count == absmaxrcp) break;
+           }
+        }
+     }
   }
   free_lbuf(tpr_buff);
   free_lbuf(bcctmp);
