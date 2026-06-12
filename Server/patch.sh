@@ -34,12 +34,21 @@ else
       exit 1
    fi
    gl_branch="trunk"
-   gl_label="Rhost 4.0+"
-   if [ "$1" = "39" ]
-   then
-      gl_branch="Rhost-3.9"
-      gl_label="Rhost 3.9"
-   fi
+   gl_label="Rhost 5"
+   case $1 in
+	   3)
+		   gl_branch="Rhost-3.9"
+		   gl_label="Rhost 3.9"	      
+		   ;;
+	   4)
+		   gl_branch="Rhost-4.27"
+		   gl_label="Rhost 4.27"
+		   ;;
+	   *)
+		   gl_branch="trunk"
+		   gl_label="Rhost 5"
+		   ;;
+   esac
    echo "Hum.  No source files.  I'll tell git to yoink the source files for you then."
    echo "downloading ${gl_label}..."|tr -d '\012'
    git clone https://github.com/RhostMUSH/${gl_branch} rhost_tmp > /dev/null 2>&1
@@ -67,7 +76,7 @@ else
 fi
 echo "Making a backup of all your files, please wait..."|tr -d '\012'
 lc_date=$(date +%m%d%y%H%M%S)
-tar -czf src_backup_${lc_date}.tgz src/Makefile src/*.c hdrs/*.h game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
+tar --exclude='*.o' -czf src_backup_${lc_date}.tgz src hdrs game/txt/help.txt game/txt/wizhelp.txt > /dev/null 2>&1
 echo "... completed.  Filename is src_backup_${lc_date}.tgz"
 echo "Copying your binary ... just in case.  Backup will be src/netrhost.automate (or bin/netrhost.automate)"
 if [ -f src/netrhost ] 
@@ -102,6 +111,14 @@ else
       cp -f rhost_tmp/Server/src/Makefile src
    fi
    cp -f rhost_tmp/Server/src/*.c src
+   rm -rf src/libtelnet
+   cp -f rhost_tmp/Server/src/libtelnet src/
+   rm -rf src/gdbm
+   cp -f rhost_tmp/Server/src/gdbm src/
+   rm -rf src/qdbm
+   cp -f rhost_tmp/Server/src/qdbm src/
+   rm -rf src/mdbx
+   cp -f rhost_tmp/Server/src/mdbx src/
    cp -f src/local.c.backup src/local.c
    cp -f rhost_tmp/Server/hdrs/*.h hdrs
    cp -f rhost_tmp/Server/bin/asksource* bin
