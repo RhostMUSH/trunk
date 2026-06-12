@@ -256,7 +256,7 @@ void populate_tor_seed(void)
  */
 int check_tor_str(const char *addr_str, int addr_family, int i_port) {
    char *s_reverselocal, *s_reverseremote, *s_tordns, *tortok, *tortokptr,
-        *s_tmp, *s_tok1, *s_tok2, *s_tok3, *s_tok4, *s_tokptr, *s_tmp2,
+        *s_tmp, *s_tok1, *s_tok2, *s_tok3, *s_tok4, *s_tokptr, *s_tmp2 = NULL,
         ipstr[INET6_ADDRSTRLEN + 1];
    int i_found;
    struct addrinfo hints, *res, *p_res;
@@ -275,6 +275,7 @@ int check_tor_str(const char *addr_str, int addr_family, int i_port) {
    strcpy(s_tmp, mudstate.tor_localcache);
    tortok = strtok_r(s_tmp, " \t", &tortokptr);
    i_found = 0;
+   s_tmp2 = alloc_lbuf("check_tor_copy");
    while (tortok) {
       sprintf(s_reverselocal, "%s", tortok);
       if (addr_family == AF_INET6) {
@@ -291,9 +292,9 @@ int check_tor_str(const char *addr_str, int addr_family, int i_port) {
          }
          sprintf(s_reverseremote, "%s", revbuf);
          sprintf(s_tordns, "%s%d.%s.ip6-port.exitlist.torproject.org", s_reverseremote, i_port, s_reverselocal);
-      } else {
-         s_tmp2 = (char *)addr_str;
-         s_tok1 = s_tok2 = s_tok3 = s_tok4 = NULL;
+       } else {
+          strcpy(s_tmp2, addr_str);
+          s_tok1 = s_tok2 = s_tok3 = s_tok4 = NULL;
          s_tok1 = strtok_r(s_tmp2, ".", &s_tokptr);
          if ( s_tok1 ) {
             s_tok2 = strtok_r(NULL, ".", &s_tokptr);
@@ -341,6 +342,8 @@ int check_tor_str(const char *addr_str, int addr_family, int i_port) {
       }
       tortok = strtok_r(NULL, " \t", &tortokptr);
    }
+   if (s_tmp2)
+      free_lbuf(s_tmp2);
    free_lbuf(s_tmp);
    free_sbuf(s_reverselocal);
    free_mbuf(s_reverseremote);
