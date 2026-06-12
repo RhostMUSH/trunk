@@ -226,10 +226,15 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
         break;
 
     case TELNET_EV_WILL:
+        if (ev->neg.telopt == TELNET_TELOPT_TTYPE && d->cold &&
+            d->cold->client_name[0] == '\0') {
+            telnet_ttype_send((telnet_t *)d->cold->telnet);
+        }
+        break;
     case TELNET_EV_WONT:
     case TELNET_EV_DO:
     case TELNET_EV_DONT:
-        /* libtelnet auto-responds per telopts table — nothing to do */
+        /* libtelnet auto-responds per telopts table — everything else */
         break;
 
     case TELNET_EV_ERROR:
@@ -291,7 +296,7 @@ void telnet_init_desc(DESC *d)
         d->cold->term_width = 0;
         d->cold->term_height = 0;
         d->cold->client_caps = 0;
-        telnet_ttype_send((telnet_t *)d->cold->telnet);
+        telnet_negotiate((telnet_t *)d->cold->telnet, TELNET_DO, TELNET_TELOPT_TTYPE);
         unsigned char req[] = { 1, ' ', 'U', 'T', 'F', '-', '8' };
         telnet_subnegotiation((telnet_t *)d->cold->telnet,
                               TELNET_TELOPT_CHARSET, (const char *)req, sizeof(req));
