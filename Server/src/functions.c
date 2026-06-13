@@ -8896,14 +8896,25 @@ FUNCTION(fun_width)
         return;
 
     if (nfargs == 0) {
-        DESC_ITER_CONN(d) {
-            if (D_PLAYER(d) == player) {
-                w = d->cold->term_width;
+        {
+            DESC *best = NULL;
+            int best_idle = -1;
+            DESC_ITER_CONN(d) {
+                if (D_PLAYER(d) == player) {
+                    int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
+                    if (!best || idle < best_idle) {
+                        best = d;
+                        best_idle = idle;
+                    }
+                }
+            }
+            if (best) {
+                w = best->cold->term_width;
                 ival(buff, bufcx, w ? w : 78);
-                return;
+            } else {
+                ival(buff, bufcx, 78);
             }
         }
-        ival(buff, bufcx, 78);
         return;
     }
 
@@ -8987,14 +8998,25 @@ FUNCTION(fun_height)
         return;
 
     if (nfargs == 0) {
-        DESC_ITER_CONN(d) {
-            if (D_PLAYER(d) == player) {
-                h = d->cold->term_height;
+        {
+            DESC *best = NULL;
+            int best_idle = -1;
+            DESC_ITER_CONN(d) {
+                if (D_PLAYER(d) == player) {
+                    int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
+                    if (!best || idle < best_idle) {
+                        best = d;
+                        best_idle = idle;
+                    }
+                }
+            }
+            if (best) {
+                h = best->cold->term_height;
                 ival(buff, bufcx, h ? h : 24);
-                return;
+            } else {
+                ival(buff, bufcx, 24);
             }
         }
-        ival(buff, bufcx, 24);
         return;
     }
 
@@ -9112,13 +9134,24 @@ FUNCTION(fun_terminfo)
         return;
 
     if (nfargs == 0) {
-        DESC_ITER_CONN(d) {
-            if (D_PLAYER(d) == player) {
-                build_terminfo_output(buff, bufcx, d);
-                return;
+        {
+            DESC *best = NULL;
+            int best_idle = -1;
+            DESC_ITER_CONN(d) {
+                if (D_PLAYER(d) == player) {
+                    int idle = (int)(mudstate_hot.now - D_LAST_TIME(d));
+                    if (!best || idle < best_idle) {
+                        best = d;
+                        best_idle = idle;
+                    }
+                }
+            }
+            if (best) {
+                build_terminfo_output(buff, bufcx, best);
+            } else {
+                safe_str("unknown", buff, bufcx);
             }
         }
-        safe_str("unknown", buff, bufcx);
         return;
     }
 
