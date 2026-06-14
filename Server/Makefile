@@ -72,7 +72,9 @@ instructions:
 	@echo
 config:
 	@(cd $(bindir) ; ./asksource.sh)
-default: defaultfiles
+config-ng:
+	@(cd $(bindir) ; ./asksource-ng.sh)
+ default: defaultfiles
 	@(cd $(bindir) ; ./asksource.sh default)
 	@(cd $(srcdir) ; ./do_compile.sh)
 	(cd $(srcdir) ; $(MAKE))
@@ -82,6 +84,8 @@ default: defaultfiles
 	@echo " *******************************************************"
 	@echo 
 confsource: config source
+	@echo
+confsource-ng: config-ng source
 	@echo
 source: defaultfiles
 	@(cd $(srcdir) ; ./do_compile.sh)
