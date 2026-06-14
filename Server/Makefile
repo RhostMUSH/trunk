@@ -27,6 +27,8 @@ instructions:
 	@echo "make confsource"
 	@echo "   This ties 'config' and 'source' together into a single"
 	@echo "   command, for ease of use."
+	@echo "make config-ng and make confsource-ng"
+	@echo "   use a more modern version of the config script."
 	@echo "make default"
 	@echo "   This auto-configures the most commonly used default values"
 	@echo "   If you don't want to use the menu this can get you running"
