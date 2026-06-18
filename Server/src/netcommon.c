@@ -5538,9 +5538,12 @@ do_command(DESC * d, char *command)
     char *arg, *cmdsave, *time_str, *s_rollback, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space, i_timeout, i_do_proxy;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_do_proxy;
     struct SNOOPLISTNODE *node;
+#ifdef HAS_OPENSSL
     struct itimerval itimer;
+    int i_timeout;
+#endif
     DESC *sd, *d2, *dssl;
     NAMETAB *cp;
 
@@ -5575,7 +5578,9 @@ do_command(DESC * d, char *command)
        free_lbuf(s_rollback);
     }
 
+#ifdef HAS_OPENSSL
     i_timeout = 1;
+#endif
     /* snoop on player input -Thorin */
     if (d->cold->snooplist) {
 	for (node = d->cold->snooplist; node; node = node->next) {
