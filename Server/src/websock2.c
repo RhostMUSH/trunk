@@ -213,7 +213,7 @@ websocket_send_pong(DESC *d)
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
 
-    *tb->hdr.end++ = 0x80 | WS_OP_PONG;
+    *tb->hdr.end++ = (unsigned char)(0x80 | WS_OP_PONG);
     *tb->hdr.end++ = 0;
 
     tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
@@ -235,7 +235,7 @@ websocket_send_close(DESC *d, unsigned short code)
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
 
-    *tb->hdr.end++ = 0x80 | WS_OP_CLOSE;
+    *tb->hdr.end++ = (unsigned char)(0x80 | WS_OP_CLOSE);
     *tb->hdr.end++ = 2;
     *tb->hdr.end++ = (code >> 8) & 0xFF;
     *tb->hdr.end++ = code & 0xFF;
@@ -259,7 +259,7 @@ websocket_send_ping(DESC *d)
     tb->hdr.start = tb->data;
     tb->hdr.end = tb->data;
 
-    *tb->hdr.end++ = 0x80 | WS_OP_PING;
+    *tb->hdr.end++ = (unsigned char)(0x80 | WS_OP_PING);
     *tb->hdr.end++ = 0;
 
     tb->hdr.nchars = tb->hdr.end - tb->hdr.start;
