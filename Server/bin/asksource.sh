@@ -1567,7 +1567,7 @@ parse() {
                       lc_value=${lc_conv}
                       echo "New value set to ${lc_conv}.  Hit <RETURN> to continue."
                       DEFS[33]="-DDYN_MAXDESCRIPTORS=${lc_conv}"
-                      lc_opt32="${lc_conv}"
+                      lc_opt33="${lc_conv}"
                       read ANS
                    fi
                    ;;
