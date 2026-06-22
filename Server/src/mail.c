@@ -93,8 +93,8 @@ static char *err_verb[]={"Header Receive Record",
 			 "Header Send Record",
 			 "Message Record",
 			 "Index Send Record",
-			 "Mail Database",
-			 "Mail Database"};
+			 "dump file open failed",
+			 "database open failed"};
 
 /* 4 less to be safe */
 #ifdef LBUF64
@@ -6941,8 +6941,12 @@ void mail_unload(dbref player)
 
   dump1 = fopen(dumpname,"w");
   dump2 = fopen(fdumpname,"w");
-  if (!dump1 || !dump2) {
-    mail_error(player,MERR_DUMP);
+  if (!dump1) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",dumpname,strerror(errno)));
+    return;
+  }
+  if (!dump2) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",fdumpname,strerror(errno)));
     return;
   }
   keydata = dbm_firstkey(mailfile);
@@ -7189,7 +7193,7 @@ void mail_load(dbref player)
 {
   FILE *dump1, *dump2;
   char input, *pt1, *pt2, *pt3;
-  int gen, gen2;
+  int gen, gen2, skip_count = 0;
   short int *spt1;
   int *ipt1, load_error = 0;
 /* needed due to possibly large input lines */
@@ -7215,8 +7219,12 @@ void mail_load(dbref player)
   char hbuf1[192000];
   dump1 = fopen(dumpname, "r");
   dump2 = fopen(fdumpname, "r");
-  if (!dump1 || !dump2) {
-    mail_error(player,MERR_DUMP);
+  if (!dump1) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",dumpname,strerror(errno)));
+    return;
+  }
+  if (!dump2) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",fdumpname,strerror(errno)));
     return;
   }
   mudstate_hot.mail_state = 0;
@@ -7226,8 +7234,12 @@ void mail_load(dbref player)
   remove(foldname);
   mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 00664);
   foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 00664);
-  if (!mailfile || !foldfile) {
-    mail_error(player,MERR_DB);
+  if (!mailfile) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",mailname,strerror(errno)));
+    return;
+  }
+  if (!foldfile) {
+    notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",foldname,strerror(errno)));
     return;
   }
   while (1) {
@@ -7462,6 +7474,8 @@ void mail_load(dbref player)
     }
     if (!load_error)
       dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
+    else
+      skip_count++;
     load_error = 0;
   }
   fclose(dump1);
@@ -7536,11 +7550,16 @@ void mail_load(dbref player)
     }
     if (!load_error)
       dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
+    else
+      skip_count++;
     load_error = 0;
   }
   fclose(dump2);
   mudstate_hot.mail_state = 1; 
-  notify_quiet(player,"Mail: Mail and folder databases loaded");
+  if (skip_count)
+    notify_quiet(player,unsafe_tprintf("Mail: Loaded with %d skipped records (parse errors)",skip_count));
+  else
+    notify_quiet(player,"Mail: Mail and folder databases loaded");
 }
 
 void mail_clean(dbref player)
