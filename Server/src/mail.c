@@ -457,22 +457,22 @@ mail_init()
 {
     int temp;
 
-    bufmaster = (char *)malloc(32*7 + 2*200 + 12*NDBMBUFSZ + (ALLIGN1-1));
+    bufmaster = (char *)malloc(SBUF_SIZE*7 + 2*MBUF_SIZE + 12*NDBMBUFSZ + (ALLIGN1-1));
     if (!bufmaster)
       return 0;
     if (!((pmath1)bufmaster % ALLIGN1))
       sbuf1 = bufmaster;
     else
       sbuf1 = bufmaster+ALLIGN1 - ((pmath1)bufmaster % ALLIGN1);
-    sbuf2 = sbuf1+32;
-    sbuf3 = sbuf2+32;
-    sbuf4 = sbuf3+32;
-    sbuf5 = sbuf4+32;
-    sbuf6 = sbuf5+32;
-    sbuf7 = sbuf6+32;
-    mbuf1 = sbuf7+32;
-    mbuf2 = mbuf1+200;
-    lbuf1 = mbuf2+200;
+    sbuf2 = sbuf1+SBUF_SIZE;
+    sbuf3 = sbuf2+SBUF_SIZE;
+    sbuf4 = sbuf3+SBUF_SIZE;
+    sbuf5 = sbuf4+SBUF_SIZE;
+    sbuf6 = sbuf5+SBUF_SIZE;
+    sbuf7 = sbuf6+SBUF_SIZE;
+    mbuf1 = sbuf7+SBUF_SIZE;
+    mbuf2 = mbuf1+MBUF_SIZE;
+    lbuf1 = mbuf2+MBUF_SIZE;
     lbuf2 = lbuf1+NDBMBUFSZ;
     lbuf3 = lbuf2+NDBMBUFSZ;
     lbuf4 = lbuf3+NDBMBUFSZ;
@@ -722,17 +722,15 @@ mail_proc_err()
 
 void mail_rem_dump()
 {
-  char *tpr_buff, *tprp_buff;
-  
-  tprp_buff = tpr_buff = alloc_lbuf("mail_rem_dump");
-  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",dumpname, dumpname));
-  tprp_buff = tpr_buff;
-  system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",dumpname));
-  tprp_buff = tpr_buff;
-  system(safe_tprintf(tpr_buff, &tprp_buff, "cp -f \"%s\" \"%s.bkup\"",fdumpname, fdumpname));
-  tprp_buff = tpr_buff;
-  system(safe_tprintf(tpr_buff, &tprp_buff, "rm \"%s\"",fdumpname));
-  free_lbuf(tpr_buff);
+    char bkup[LBUF_SIZE];
+    snprintf(bkup, sizeof(bkup), "%s.bkup", dumpname);
+    (void)remove(bkup);
+    (void)rename(dumpname, bkup);
+    (void)remove(dumpname);
+    snprintf(bkup, sizeof(bkup), "%s.bkup", fdumpname);
+    (void)remove(bkup);
+    (void)rename(fdumpname, bkup);
+    (void)remove(fdumpname);
 }
 
 void 
@@ -7124,14 +7122,16 @@ void mail_unload(dbref player)
   time(&mudstate.mailflat_time);
 }
 
-void myfgets(char *buf, FILE *fpt)
+void myfgets(char *buf, size_t maxlen, FILE *fpt)
 {
   char *pt1, in;
+  size_t count = 0;
 
   pt1 = buf;
   in = fgetc(fpt);
-  while (!feof(fpt) && (in) && (in != '\1')) {
+  while (!feof(fpt) && (in) && (in != '\1') && (count < maxlen - 1)) {
     *pt1++ = in;
+    count++;
     in = fgetc(fpt);
   }
   *pt1 = '\0';
@@ -7176,7 +7176,7 @@ void mnuke_read()
       if(feof(nuke1))
          break;
       *buf1 = in1;
-      myfgets(buf1+1,nuke1);
+      myfgets(buf1+1,LBUF_SIZE - 1,nuke1);
       mail_wipe(GOD,buf1);
     }
     mudstate.nuke_status = 0;
@@ -7189,7 +7189,8 @@ void mail_load(dbref player)
 {
   FILE *dump1, *dump2;
   char input, *pt1, *pt2, *pt3;
-  short int gen, gen2, *spt1;
+  int gen, gen2;
+  short int *spt1;
   int *ipt1, load_error = 0;
 /* needed due to possibly large input lines */
 #if 0
@@ -7221,8 +7222,8 @@ void mail_load(dbref player)
   mudstate_hot.mail_state = 0;
   dbm_close(mailfile);
   dbm_close(foldfile);
-  system(unsafe_tprintf("rm \"%s\"*", mailname));
-  system(unsafe_tprintf("rm \"%s\"*", foldname));
+  remove(mailname);
+  remove(foldname);
   mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 00664);
   foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 00664);
   if (!mailfile || !foldfile) {
@@ -7237,7 +7238,7 @@ void mail_load(dbref player)
     input = input - 'A' + 1;
     *(int *)sbuf1 = (int)input;
     keydata.dptr = sbuf1;
-    myfgets(hbuf1,dump1);
+    myfgets(hbuf1,sizeof(hbuf1),dump1);
     switch (input) {
 	case MIND_IRCV:
 	case MIND_ISND:
@@ -7256,7 +7257,7 @@ void mail_load(dbref player)
 	case MIND_WRTL:
 		pt1 = strchr(hbuf1,'/');
 		if (!pt1) {
-		    myfgets(hbuf1,dump1);
+		    myfgets(hbuf1,sizeof(hbuf1),dump1);
 		    continue;
 		}
 		*pt1 = '\0';
@@ -7266,8 +7267,8 @@ void mail_load(dbref player)
 		break;
 	case MIND_GA:
 	case MIND_GAL:
-		strncpy(sbuf1+sizeof(int),hbuf1, 32 - sizeof(int) - 1);
-		sbuf1[31] = '\0';
+		strncpy(sbuf1+sizeof(int),hbuf1, SBUF_SIZE - sizeof(int) - 1);
+		sbuf1[SBUF_SIZE - 1] = '\0';
 		keydata.dsize = 1 + sizeof(int) + strlen(sbuf1+sizeof(int));
 		break;
 	case MIND_ACS:
@@ -7277,7 +7278,7 @@ void mail_load(dbref player)
 	default:
 		load_error = 1;
     }
-    myfgets(hbuf1,dump1);
+    myfgets(hbuf1,sizeof(hbuf1),dump1);
     switch (input) {
 	case MIND_MSG:
 	case MIND_REJM:
@@ -7436,7 +7437,7 @@ void mail_load(dbref player)
 		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*ipt1 = atoi(hbuf1);
-		gen = (short int)*ipt1;
+		gen = *ipt1;
 		if (gen > absmaxacs) gen = absmaxacs;
 		ipt1++;
 		pt1 = pt2+1;
@@ -7472,7 +7473,7 @@ void mail_load(dbref player)
     input = input - 'A' + 1;
     *(int *)sbuf1 = (int)input;
     keydata.dptr = sbuf1;
-    myfgets(hbuf1,dump2);
+    myfgets(hbuf1,sizeof(hbuf1),dump2);
     switch (input) {
 	case FIND_LST:
 	case FIND_CURR:
@@ -7483,20 +7484,20 @@ void mail_load(dbref player)
 	case FIND_BOX:
 		pt1 = strchr(hbuf1,'/');
 		if (!pt1) {
-		    myfgets(hbuf1,dump2);
+		    myfgets(hbuf1,sizeof(hbuf1),dump2);
 		    continue;
 		}
 		*pt1 = '\0';
 		pt1++;
 		*(int *)(sbuf1 + sizeof(int)) = atoi(hbuf1);
-		strncpy(sbuf1 + (sizeof(int) << 1),pt1, 32 - (sizeof(int) << 1) - 1);
-		sbuf1[31] = '\0';
+		strncpy(sbuf1 + (sizeof(int) << 1),pt1, SBUF_SIZE - (sizeof(int) << 1) - 1);
+		sbuf1[SBUF_SIZE - 1] = '\0';
 		keydata.dsize = 1 + (sizeof(int) << 1) + strlen(sbuf1 + (sizeof(int) << 1));
 		break;
 	default:
 		load_error = 1;
     }
-    myfgets(hbuf1,dump2);
+    myfgets(hbuf1,sizeof(hbuf1),dump2);
     switch (input) {
 	case FIND_LST:
 	case FIND_CURR:
@@ -9862,21 +9863,52 @@ do_wmail(dbref player, dbref cause, int key, char *buf1, char *buf2)
             lastwplayer = player;
             lastwflag = key;
             p1 = alloc_lbuf("clobber_mail");
-            sprintf(p1, "rm -f %.900s/%s.mail.* %.900s/%s.folder.* >/dev/null 2>&1", mudconf.data_dir, mudconf.muddb_name, mudconf.data_dir, mudconf.muddb_name); 
             mail_close();
-            system(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.mail", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.folder", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.mail.db", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.mail.pag", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.folder.db", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
+            snprintf(p1, LBUF_SIZE, "%s/%s.folder.pag", mudconf.data_dir, mudconf.muddb_name); (void)remove(p1);
             mudstate_hot.mail_state = mail_init();
             if ( mudstate_hot.mail_state != 1 ) {
 	       notify_quiet(player, "Mail: Mail was unable to be recovered.  Sorry.");
             } else {
-               sprintf(p1, "%.900s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
+               snprintf(p1, LBUF_SIZE, "%.900s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
                if ( (fp = fopen(p1, "r")) != NULL ) {
                   fclose(fp);
                   mail_load(player);
                } else {
-                  sprintf(p1, "cp -f prevflat/%s.dump.* data > /dev/null 2>&1", mudconf.muddb_name);
-                  system(p1);
-                  sprintf(p1, "data/%s.dump.mail", mudconf.muddb_name);
+                   {
+                      int ch;
+                      FILE *sfp, *dfp;
+
+                      /* prevflat/ fallback — copy dump files without shell */
+                      snprintf(p1, LBUF_SIZE, "prevflat/%s.dump.mail", mudconf.muddb_name);
+                      sfp = fopen(p1, "r");
+                      if (sfp) {
+                          snprintf(p1, LBUF_SIZE, "%s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
+                          dfp = fopen(p1, "w");
+                          if (dfp) {
+                              while ((ch = fgetc(sfp)) != EOF) fputc(ch, dfp);
+                              fclose(dfp);
+                          }
+                          fclose(sfp);
+                      }
+
+                      snprintf(p1, LBUF_SIZE, "prevflat/%s.dump.folder", mudconf.muddb_name);
+                      sfp = fopen(p1, "r");
+                      if (sfp) {
+                          snprintf(p1, LBUF_SIZE, "%s/%s.dump.folder", mudconf.data_dir, mudconf.muddb_name);
+                          dfp = fopen(p1, "w");
+                          if (dfp) {
+                              while ((ch = fgetc(sfp)) != EOF) fputc(ch, dfp);
+                              fclose(dfp);
+                          }
+                          fclose(sfp);
+                      }
+                    }
+                   snprintf(p1, LBUF_SIZE, "%s/%s.dump.mail", mudconf.data_dir, mudconf.muddb_name);
                   if ( (fp = fopen(p1, "r")) != NULL ) {
                      fclose(fp);
                      mail_load(player);
