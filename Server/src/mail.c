@@ -93,6 +93,7 @@ static char *err_verb[]={"Header Receive Record",
 			 "Header Send Record",
 			 "Message Record",
 			 "Index Send Record",
+			 "Mail Database",
 			 "Mail Database"};
 
 /* 4 less to be safe */
@@ -7189,7 +7190,7 @@ void mail_load(dbref player)
   FILE *dump1, *dump2;
   char input, *pt1, *pt2, *pt3;
   short int gen, gen2, *spt1;
-  int *ipt1;
+  int *ipt1, load_error = 0;
 /* needed due to possibly large input lines */
 #if 0
   #ifdef LBUF64
@@ -7229,6 +7230,7 @@ void mail_load(dbref player)
     return;
   }
   while (1) {
+    load_error = 0;
     input = fgetc(dump1);
     if(feof(dump1))
        break;
@@ -7253,6 +7255,10 @@ void mail_load(dbref player)
 	case MIND_MSG:
 	case MIND_WRTL:
 		pt1 = strchr(hbuf1,'/');
+		if (!pt1) {
+		    myfgets(hbuf1,dump1);
+		    continue;
+		}
 		*pt1 = '\0';
 		*(int *)(sbuf1 + sizeof(int)) = atoi(hbuf1);
 		*(short int *)(sbuf1 + (sizeof(int) << 1)) = (short int)atoi(pt1+1);
@@ -7260,12 +7266,16 @@ void mail_load(dbref player)
 		break;
 	case MIND_GA:
 	case MIND_GAL:
-		strcpy(sbuf1+sizeof(int),hbuf1);
-		keydata.dsize = 1 + sizeof(int) + strlen(hbuf1);
+		strncpy(sbuf1+sizeof(int),hbuf1, 32 - sizeof(int) - 1);
+		sbuf1[31] = '\0';
+		keydata.dsize = 1 + sizeof(int) + strlen(sbuf1+sizeof(int));
 		break;
 	case MIND_ACS:
 	case MIND_SMAX:
 		keydata.dsize = sizeof(int);
+		break;
+	default:
+		load_error = 1;
     }
     myfgets(hbuf1,dump1);
     switch (input) {
@@ -7294,20 +7304,28 @@ void mail_load(dbref player)
 		pt1 = hbuf1;
 		ipt1 = (int *)lbuf2;
 		pt2=strchr(pt1+1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*ipt1++ = atoi(pt1);
 		pt1 = pt2+1;
 		gen = *(ipt1-1);
+		if (gen > absmaxacs) gen = absmaxacs;
 		for (gen2 = 0; gen2 < gen; gen2++) {
 		  pt2=strchr(pt1+1,'/');
-		  if (pt2) 
+		  if (pt2) {
 		    *pt2 = '\0';
-		  *ipt1++ = atoi(pt1);
-		  pt1 = pt2+1;
+		    *ipt1++ = atoi(pt1);
+		    pt1 = pt2+1;
+		  } else {
+		    *ipt1++ = atoi(pt1);
+		    if (gen2 < gen - 1) { load_error = 1; break; }
+		  }
 		}
-		ipt1 = (int *)lbuf2;
-		infodata.dptr = lbuf2;
-		infodata.dsize = sizeof(int) * (1 + *ipt1);
+		if (!load_error) {
+		  ipt1 = (int *)lbuf2;
+		  infodata.dptr = lbuf2;
+		  infodata.dsize = sizeof(int) * (1 + *ipt1);
+		}
 		break;
 	case MIND_IRCV:
 	case MIND_ISND:
@@ -7315,60 +7333,88 @@ void mail_load(dbref player)
 		spt1 = (short int *)lbuf2;
 		for (gen = 0; gen < 3; gen++) {
 		  pt2=strchr(pt1+1,'/');
-		  *pt2 = '\0';
-		  *spt1++ = (short int)atoi(pt1);
-		  pt1 = pt2+1;
-		}
-		gen = *(spt1-1) + *(spt1-2);
-		for (gen2 = 0; gen2 < gen; gen2++) {
-		  pt2=strchr(pt1+1,'/');
-		  if (pt2) 
+		  if (pt2) {
 		    *pt2 = '\0';
-		  *spt1++ = (short int)atoi(pt1);
-		  pt1 = pt2+1;
+		    *spt1++ = (short int)atoi(pt1);
+		    pt1 = pt2+1;
+		  } else {
+		    *spt1++ = (short int)atoi(pt1);
+		    if (gen < 2) { load_error = 1; break; }
+		  }
 		}
-		spt1 = (short int *)lbuf2;
-		infodata.dptr = lbuf2;
-		infodata.dsize = sizeof(short int) * (3 + *(spt1+1) + *(spt1+2));
+		if (!load_error) {
+		  gen = *(spt1-1) + *(spt1-2);
+		  if (gen > absmaxinx) gen = absmaxinx;
+		}
+		for (gen2 = 0; !load_error && gen2 < gen; gen2++) {
+		  pt2=strchr(pt1+1,'/');
+		  if (pt2) {
+		    *pt2 = '\0';
+		    *spt1++ = (short int)atoi(pt1);
+		    pt1 = pt2+1;
+		  } else {
+		    *spt1++ = (short int)atoi(pt1);
+		    if (gen2 < gen - 1) { load_error = 1; break; }
+		  }
+		}
+		if (!load_error) {
+		  spt1 = (short int *)lbuf2;
+		  infodata.dptr = lbuf2;
+		  infodata.dsize = sizeof(short int) * (3 + *(spt1+1) + *(spt1+2));
+		}
 		break;
 	case MIND_HSND:
 		pt3 = lbuf2;
 		pt1 = hbuf1;
 		pt2 = strchr(pt1+1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = 0;
 		*(int *)pt3 = gen = atoi(pt1);
 		pt3 += sizeof(int);
 		pt1 = pt2+1;
+		if (gen > absmaxrcp) gen = absmaxrcp;
 		for (gen2 = 0; gen2 < gen; gen2++) {
 		  pt2=strchr(pt1+1,'/');
+		  if (!pt2) { load_error = 1; break; }
 		  *pt2 = '\0';
 		  *(int *)pt3 = atoi(pt1);
 		  pt3 += sizeof(int);
 		  pt2++;
 		  pt1=strchr(pt2,'/');
-		  if (pt1) 
+		  if (pt1) {
 		    *pt1 = '\0';
-		  *(int *)pt3 = atoi(pt2);
-		  pt3 += sizeof(int);
-		  pt1++;
+		    *(int *)pt3 = atoi(pt2);
+		    pt3 += sizeof(int);
+		    pt1++;
+		  } else {
+		    *(int *)pt3 = atoi(pt2);
+		    pt3 += sizeof(int);
+		    if (gen2 < gen - 1) { load_error = 1; break; }
+		  }
 		}
-		infodata.dptr = lbuf2;
-		infodata.dsize = pt3-lbuf2;
+		if (!load_error) {
+		  infodata.dptr = lbuf2;
+		  infodata.dsize = pt3-lbuf2;
+		}
 		break;
 	case MIND_HRCV:
 		pt1 = strchr(hbuf1,'/');
+		if (!pt1) { load_error = 1; break; }
 		*pt1 = '\0';
 		*(int *)(lbuf2) = atoi(hbuf1);
 		pt1++;
 		pt2 = strchr(pt1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*(time_t *)(lbuf2+htimeoff) = (time_t)atoi(pt1);
 		pt2++;
 		pt1 = strchr(pt2,'/');
+		if (!pt1) { load_error = 1; break; }
 		*pt1 = '\0';
 		*(short int *)(lbuf2+hindoff) = (short int)atoi(pt2);
 		pt1++;
 		pt2 = strchr(pt1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*(short int *)(lbuf2+hsizeoff) = (short int)atoi(pt1);
 		pt2++;
@@ -7387,25 +7433,39 @@ void mail_load(dbref player)
 	case MIND_ACS:
 		ipt1 = (int *)lbuf2;
 		pt2 = strchr(hbuf1+1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*ipt1 = atoi(hbuf1);
 		gen = (short int)*ipt1;
+		if (gen > absmaxacs) gen = absmaxacs;
 		ipt1++;
 		pt1 = pt2+1;
 		for (gen2 = 0; gen2 < gen; gen2++, ipt1++) {
 		  pt2 = strchr(pt1,'/');
-		  if (pt2)
+		  if (pt2) {
 		    *pt2 = '\0';
-		  *ipt1 = atoi(pt1);
-		  pt1 = pt2+1;
+		    *ipt1 = atoi(pt1);
+		    pt1 = pt2+1;
+		  } else {
+		    *ipt1 = atoi(pt1);
+		    if (gen2 < gen - 1) { load_error = 1; break; }
+		  }
 		}
-		infodata.dptr = lbuf2;
-		infodata.dsize = sizeof(int) * (1 + *(int *)lbuf2);
+		if (!load_error) {
+		  infodata.dptr = lbuf2;
+		  infodata.dsize = sizeof(int) * (1 + *(int *)lbuf2);
+		}
+		break;
+	default:
+		break;
     }
-    dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
+    if (!load_error)
+      dbm_store(mailfile,keydata,infodata,DBM_REPLACE);
+    load_error = 0;
   }
   fclose(dump1);
   while (1) {
+    load_error = 0;
     input = fgetc(dump2);
     if(feof(dump2))
        break;
@@ -7422,11 +7482,19 @@ void mail_load(dbref player)
 		break;
 	case FIND_BOX:
 		pt1 = strchr(hbuf1,'/');
+		if (!pt1) {
+		    myfgets(hbuf1,dump2);
+		    continue;
+		}
 		*pt1 = '\0';
 		pt1++;
 		*(int *)(sbuf1 + sizeof(int)) = atoi(hbuf1);
-		strcpy(sbuf1 + (sizeof(int) << 1),pt1);
-		keydata.dsize = 1 + (sizeof(int) << 1) + strlen(pt1);
+		strncpy(sbuf1 + (sizeof(int) << 1),pt1, 32 - (sizeof(int) << 1) - 1);
+		sbuf1[31] = '\0';
+		keydata.dsize = 1 + (sizeof(int) << 1) + strlen(sbuf1 + (sizeof(int) << 1));
+		break;
+	default:
+		load_error = 1;
     }
     myfgets(hbuf1,dump2);
     switch (input) {
@@ -7440,21 +7508,34 @@ void mail_load(dbref player)
 		pt1 = hbuf1;
 		spt1 = (short int *)lbuf2;
 		pt2=strchr(pt1+1,'/');
+		if (!pt2) { load_error = 1; break; }
 		*pt2 = '\0';
 		*spt1++ = (short int)atoi(pt1);
 		pt1 = pt2+1;
 		gen = *(spt1-1);
+		if (gen > absmaxinx) gen = absmaxinx;
 		for (gen2 = 0; gen2 < gen; gen2++) {
 		  pt2=strchr(pt1+1,'/');
-		  if (pt2) 
+		  if (pt2) {
 		    *pt2 = '\0';
-		  *spt1++ = (short int)atoi(pt1);
-		  pt1 = pt2+1;
+		    *spt1++ = (short int)atoi(pt1);
+		    pt1 = pt2+1;
+		  } else {
+		    *spt1++ = (short int)atoi(pt1);
+		    if (gen2 < gen - 1) { load_error = 1; break; }
+		  }
 		}
-		infodata.dptr = lbuf2;
-		infodata.dsize = sizeof(short int) * (1 + *(short int *)lbuf2);
+		if (!load_error) {
+		  infodata.dptr = lbuf2;
+		  infodata.dsize = sizeof(short int) * (1 + *(short int *)lbuf2);
+		}
+		break;
+	default:
+		break;
     }
-    dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
+    if (!load_error)
+      dbm_store(foldfile,keydata,infodata,DBM_REPLACE);
+    load_error = 0;
   }
   fclose(dump2);
   mudstate_hot.mail_state = 1; 
