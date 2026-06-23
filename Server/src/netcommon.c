@@ -6899,7 +6899,7 @@ do_command(DESC * d, char *command)
             free_lbuf(s_buffer);
             free_lbuf(s_usepass);
             process_output(d);
-            if ((D_FLAGS(d) & DS_API) && (d->cold->timeout == 1) )
+            if ((D_FLAGS(d) & DS_API) && d->cold && (d->cold->timeout == 1) )
                shutdownsock(d, R_API);
             mudstate_hot.debug_cmd = cmdsave;
             if ( chk_perm && cp )
@@ -6967,7 +6967,7 @@ do_command(DESC * d, char *command)
           cp->perm = store_perm;
        RETURN(0); /* #147 */
     }
-    if (cp && !(cp->flag & CMD_NOxFIX)) {
+    if (cp && !(cp->flag & CMD_NOxFIX) && d->cold) {
 	if (d->cold->output_suffix) {
 	    queue_string(d, d->cold->output_suffix);
 	    queue_write(d, "\r\n", 2);
