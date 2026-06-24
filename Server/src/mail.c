@@ -2334,7 +2334,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   	    mpt = buf2;
   	  }
         }
-	if ((strlen(mpt) + strlen(infodata.dptr)) > LBUF_SIZE - 134) {
+	if ((strlen(mpt) + strlen(infodata.dptr)) > NDBMBUFSZ - 142) {
 	  notify_quiet(p2,"MAIL ERROR: Combined reply message too long");
 	  return 1;
 	} else {
@@ -2412,7 +2412,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   	  mpt = buf2;
   	}
       }
-      if ((strlen(mpt) + strlen(infodata.dptr)) > LBUF_SIZE - 210) {
+      if ((strlen(mpt) + strlen(infodata.dptr)) > NDBMBUFSZ - 229) {
 	notify_quiet(p2,"MAIL ERROR: Forwarded message too long");
 	return 1;
       }
@@ -3635,7 +3635,8 @@ void mail_read_func(dbref player, char *buf, dbref wiz, char *s_type, int key, c
        chk_anon = 0;
     }
     if (infodata.dptr) {
-      strcpy(lbuf8,infodata.dptr);
+      strncpy(lbuf8,infodata.dptr,NDBMBUFSZ - 1);
+      lbuf8[NDBMBUFSZ - 1] = '\0';
       for (x = 0; x < 78; x++)
 	*(mbuf2 + x) = '-';
       *(mbuf2 + x) = '\0';
@@ -3943,7 +3944,8 @@ void mail_read(dbref player, char *buf, dbref wiz, int key)
        chk_anon = 0;
     }
     if (infodata.dptr) {
-      strcpy(lbuf8,infodata.dptr);
+      strncpy(lbuf8,infodata.dptr,NDBMBUFSZ - 1);
+      lbuf8[NDBMBUFSZ - 1] = '\0';
       for (x = 0; x < 78; x++)
 	*(mbuf2 + x) = '-';
       *(mbuf2 + x) = '\0';
@@ -6947,12 +6949,14 @@ void mail_unload(dbref player)
   }
   if (!dump2) {
     notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",fdumpname,strerror(errno)));
+    fclose(dump1);
     return;
   }
   keydata = dbm_firstkey(mailfile);
   if (!keydata.dptr) {
     notify_quiet(player,"Mail: No mail data to dump");
     fclose(dump1);
+    fclose(dump2);
   }
   else {
     do {
@@ -6996,16 +7000,16 @@ void mail_unload(dbref player)
 			break;
 	  case MIND_SMAX: fputs("P\1\n",dump1);
 	}
-	memcpy(lbuf12,infodata.dptr,infodata.dsize);
-	switch (*(int *)sbuf7) {
-	  case MIND_MSG:
-	  case MIND_REJM:
-	  case MIND_WRTL:
-	  case MIND_WRTS:
-	  case MIND_GAL:
-		fputs(infodata.dptr,dump1);
-		fputs("\1\n",dump1);
-		break;
+ 	{ size_t cpsz = infodata.dsize; if (cpsz > NDBMBUFSZ) cpsz = NDBMBUFSZ; memcpy(lbuf12,infodata.dptr,cpsz); }
+ 	switch (*(int *)sbuf7) {
+ 	  case MIND_MSG:
+ 	  case MIND_REJM:
+ 	  case MIND_WRTL:
+ 	  case MIND_WRTS:
+ 	  case MIND_GAL:
+ 		fputs(infodata.dptr,dump1);
+ 		fputs("\1\n",dump1);
+ 		break;
 	  case MIND_BSIZE:
 	  case MIND_WRTM:
 	  case MIND_PAGE:
@@ -7099,7 +7103,7 @@ void mail_unload(dbref player)
 			 break;
 	  case FIND_CSHR: fprintf(dump2,"D%d\1\n",*(int *)(sbuf7+sizeof(int)));
 	}
-	memcpy(lbuf12,infodata.dptr,infodata.dsize);
+	{ size_t cpsz = infodata.dsize; if (cpsz > NDBMBUFSZ) cpsz = NDBMBUFSZ; memcpy(lbuf12,infodata.dptr,cpsz); }
 	switch (*(int *)sbuf7) {
 	  case FIND_LST:
 	  case FIND_CURR:
@@ -7225,6 +7229,7 @@ void mail_load(dbref player)
   }
   if (!dump2) {
     notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",fdumpname,strerror(errno)));
+    fclose(dump1);
     return;
   }
   mudstate_hot.mail_state = 0;

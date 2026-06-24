@@ -1635,11 +1635,11 @@ new_connection(int sock, int key)
     strcpy(tsite_buff, addroutbuf);
     if ( tsite_buff ) {
        DESC_SAFEITER_ALL(dchk) {
-	  if (!dchk->cold) continue;
-          if ( strcmp(tsite_buff, dchk->cold->addr) == 0 )
-             maxsitecon++;
-          maxtsitecon++;
-       }
+	  if (D_DESCRIPTOR(dchk) < 0) continue;
+           if ( strcmp(tsite_buff, dchk->cold->addr) == 0 )
+              maxsitecon++;
+           maxtsitecon++;
+        }
     }
 
     strcpy(tchbuff, mudconf.permit_host);
@@ -1972,14 +1972,14 @@ shutdownsock(DESC * d, int reason)
         t_addroutbuf = alloc_lbuf("check_max_sitecons");
         strcpy(t_addroutbuf, addroutbuf);
         if ( t_addroutbuf ) {
-           DESC_SAFEITER_ALL(dchk) {
-	      if (!dchk->cold) continue;
-              if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
-                 if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
-                    i_guestcnt++;
-                 }
-                 i_sitecnt++;
-              }
+            DESC_SAFEITER_ALL(dchk) {
+ 	      if (D_DESCRIPTOR(dchk) < 0) continue;
+               if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
+                  if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
+                     i_guestcnt++;
+                  }
+                  i_sitecnt++;
+               }
            }
         }
         free_lbuf(t_addroutbuf);
@@ -2488,14 +2488,14 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     strcpy(t_addroutbuf, addroutbuf);
     i_sitecnt = i_guestcnt = 0;
     if ( t_addroutbuf ) {
-       DESC_SAFEITER_ALL(dchk) {
-	  if (!dchk->cold) continue;
-          if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
-             if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
-                i_guestcnt++;
-             }
-             i_sitecnt++;
-          }
+        DESC_SAFEITER_ALL(dchk) {
+ 	  if (D_DESCRIPTOR(dchk) < 0) continue;
+           if ( strcmp(t_addroutbuf, dchk->cold->addr) == 0 ) {
+              if ( Good_chk(D_PLAYER(dchk)) && Guest(D_PLAYER(dchk)) ) {
+                 i_guestcnt++;
+              }
+              i_sitecnt++;
+           }
        }
     }
     free_lbuf(t_addroutbuf);

@@ -1739,6 +1739,7 @@ raw_notify(dbref player, const char *msg, int port, int type)
     } else {
       found = 0;
       DESC_SAFEITER_ALL(d) {
+	if (!d->cold) continue;
 	if (D_DESCRIPTOR(d) != port) {
 	  continue;
         }
@@ -3249,6 +3250,7 @@ boot_by_port(int port, int no_god, int who, char *message)
     DPUSH; /* #133 */
     count = 0;
     DESC_SAFEITER_ALL(d) {
+	if (!d->cold) continue;
 	if ((D_DESCRIPTOR(d) == port) && (!no_god || !God(D_PLAYER(d)))) {
 	    if ((D_PLAYER(d) == who) || !DePriv(who, D_PLAYER(d), DP_BOOT, POWER6, NOTHING)) {
 	      if (Controls(who,D_PLAYER(d))) {
@@ -7000,6 +7002,7 @@ NDECL(process_commands)
     do {
 	nprocessed = 0;
 	DESC_SAFEITER_ALL(d) {
+	    if (!d->cold) continue;
 	    if ((D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0) {
 		if ( ((D_QUOTA(d) > 0) || (D_FLAGS(d) & DS_API)) && (t = D_INPUT_HEAD(d))) {
                     if ( !(D_FLAGS(d) & DS_API) ) {
