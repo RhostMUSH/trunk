@@ -10890,7 +10890,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    mudstate.sudo_cntr++;
    old_trainmode=mudstate.trainmode;
 
-   if ( !(key & SUDO_GLOBAL) || (key & INCLUDE_CLEAR) ) {
+   if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {
       for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
          savereg[x] = alloc_lbuf("ulocal_reg");
          saveregname[x] = alloc_sbuf("ulocal_regname");
