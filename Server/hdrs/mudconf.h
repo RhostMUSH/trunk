@@ -668,6 +668,7 @@ struct state_hot {
         volatile int     shutdown_flag;           /* 4B — accessed by signal handler */
         volatile int     reboot_flag;             /* 4B — accessed by signal handler */
         volatile int     alarm_triggered;         /* 4B — accessed by signal handler */
+        volatile int     sig_flags;               /* 4B — deferred signal work bits */
         double  dump_counter;            /* 8B */
         double  check_counter;           /* 8B */
         double  idle_counter;            /* 8B */

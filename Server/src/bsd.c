@@ -496,7 +496,17 @@ int make_socket(int port, char* address)
 
 int maxd;
 
+/* Deferred signal work flags — set atomically in sighandler, cleared in main loop */
+#define SIGF_CRON    0x01   /* SIGUSR1: cron / signal_object / reboot */
+#define SIGF_DUMP    0x02   /* SIGHUP:  flatfile dump */
+#define SIGF_USR2    0x04   /* SIGUSR2: shutdown */
+#define SIGF_TERM    0x08   /* SIGTERM: emergency flatfile + shutdown */
+#define SIGF_QUIT    0x10   /* SIGQUIT: normal shutdown */
 
+/* Forward declarations for deferred signal work */
+static void handle_signal_cron(void);
+static void handle_signal_dump(void);
+static void handle_signal_term(void);
 
 void 
 shovechars(int port, char *address, char *address_v6, int ip_family)
@@ -687,6 +697,22 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	local_tick();
 	if (mudstate_hot.shutdown_flag || mudstate_hot.reboot_flag)
 	    break;
+
+	/* Process deferred signal work (set by async-safe handler above) */
+	if (mudstate_hot.sig_flags) {
+	    int sigf = mudstate_hot.sig_flags;
+	    mudstate_hot.sig_flags = 0;
+	    if (sigf & SIGF_CRON) handle_signal_cron();
+	    if (sigf & SIGF_DUMP) handle_signal_dump();
+	    if (sigf & SIGF_TERM) handle_signal_term();
+	    if (sigf & (SIGF_USR2 | SIGF_QUIT)) {
+		raw_broadcast(0, 0, "Game: Shutting down due to signal.");
+		STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
+		    log_text((char *)"Shutting down due to signal.");
+		ENDLOG
+		mudstate_hot.shutdown_flag = 1;
+	    }
+	}
 
 	/* test for events */
 
@@ -3170,6 +3196,163 @@ log_signal(const char *signame, int sig)
     DPOP; /* #22 */
 }
 
+static void handle_signal_cron(void)
+{
+    log_signal((char *)"SIGUSR1", SIGUSR1);
+
+    if (mudconf.signal_crontab) {
+	char *s_crontmp, *s_wlk;
+	int i_cronchk = 1, i_croncnt = 0, i_crontmp = NOTHING;
+	FILE *f_crontmp;
+
+	f_crontmp = fopen("cron/rhost.cron", "r");
+	if (!f_crontmp) {
+	    STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
+		log_text((char *)"Signal USR1 received with signal_crontab but no crontab file.");
+	    ENDLOG
+	    return;
+	}
+	s_crontmp = alloc_lbuf("do_sigusr1_cron");
+	fgets(s_crontmp, LBUF_SIZE - 1, f_crontmp);
+	if (*s_crontmp) {
+	    if ((*s_crontmp == '#') && isdigit(*(s_crontmp + 1)))
+		i_crontmp = atoi(s_crontmp + 1);
+	    if (i_crontmp == NOTHING) {
+		s_wlk = s_crontmp;
+		while (*s_wlk) {
+		    if ((*s_wlk == '\r') || (*s_wlk == '\n')) { *s_wlk = '\0'; break; }
+		    s_wlk++;
+		}
+		i_crontmp = lookup_player(NOTHING, s_crontmp, 0);
+	    }
+	    if (!Good_chk(i_crontmp)) {
+		i_cronchk = 0;
+	    } else {
+		while (!feof(f_crontmp) && i_cronchk && i_croncnt < 20) {
+		    fgets(s_crontmp, LBUF_SIZE - 1, f_crontmp);
+		    s_wlk = s_crontmp;
+		    while (*s_wlk) {
+			if (!isprint(*s_wlk) && *s_wlk != '\n' && *s_wlk != '\r')
+			    { i_cronchk = 0; break; }
+			s_wlk++;
+		    }
+		    if (i_cronchk) {
+			wait_que(i_crontmp, i_crontmp, 0, NOTHING, s_crontmp,
+				 (char **)NULL, 0,
+				 mudstate_hot.global_regs, mudstate_hot.global_regsname);
+			i_croncnt++;
+		    }
+		}
+	    }
+	}
+	fclose(f_crontmp);
+	if (i_cronchk) {
+	    char *logbuf = alloc_lbuf("sig_cron_log");
+	    sprintf(logbuf, "Signal USR1 crontab executed %d lines.", i_croncnt);
+	    STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
+		log_text(logbuf);
+	    ENDLOG
+	    free_lbuf(logbuf);
+	}
+	free_lbuf(s_crontmp);
+	return;
+    }
+
+    if (Good_chk(mudconf.signal_object)) {
+	ATTR *ptr = atr_str("SIG_USR1");
+	if (ptr) {
+	    int aflags;
+	    dbref aowner;
+	    char *attr_val = atr_get(mudconf.signal_object, ptr->number, &aowner, &aflags);
+	    if (*attr_val) {
+		dbref player = Good_chk(Owner(mudconf.signal_object))
+		    ? Owner(mudconf.signal_object) : 1;
+		if (Good_obj(player)) {
+		    if (mudconf.signal_object_type)
+			did_it(Owner(mudconf.signal_object), mudconf.signal_object, 0, NULL, 0, NULL,
+			       ptr->number, (char **)NULL, 0);
+		    else
+			did_it(Owner(mudconf.signal_object), mudconf.signal_object, ptr->number,
+			       NULL, 0, NULL, 0, (char **)NULL, 0);
+		} else {
+		    STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
+			log_text((char *)"User defined signal handling aborted. player invalid!");
+		    ENDLOG
+		}
+		free_lbuf(attr_val);
+	    } else {
+		free_lbuf(attr_val);
+	    }
+	}
+	return;
+    }
+
+    /* No cron or signal_object configured — perform reboot */
+    alarm_msec(0); alarm_stop();
+    ignore_signals();
+    raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
+    raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");
+    STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
+	log_text((char *)"Reboot due to signal SIGUSR1.");
+    ENDLOG
+    mudstate_hot.reboot_flag = 1;
+}
+
+static void handle_signal_dump(void)
+{
+    char *buf;
+    log_signal((char *)"SIGHUP", SIGHUP);
+    STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+	log_text((char *)"Queueing a flatfile dump of the database.");
+    ENDLOG
+    buf = alloc_lbuf("do_sighup_cron");
+    sprintf(buf, "%s", "@dump/flat netrhost.SIGHUP");
+    wait_que(GOD, GOD, 0, NOTHING, buf, (char **)NULL, 0, (char **)NULL, (char **)NULL);
+    free_lbuf(buf);
+}
+
+static void handle_signal_term(void)
+{
+    char *flatfilename;
+    FILE *f;
+
+    log_signal((char *)"SIGTERM", SIGTERM);
+    ignore_signals();
+    raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGTERM!");
+    raw_broadcast(0, 0, "Game: This might be caused by the hosting server going down.");
+    STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
+	log_text((char *)"Attempting flatfile dump due to signal SIGTERM.");
+    ENDLOG
+
+    flatfilename = alloc_mbuf("dump/flat");
+    sprintf(flatfilename, "%.90s/%.90s.termflat", mudconf.data_dir, mudconf.indb);
+    f = fopen(flatfilename, "w");
+    free_mbuf(flatfilename);
+    if (f) {
+	STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+	    log_text((char *)"Dumping db to flatfile...");
+	ENDLOG
+	db_write(f, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
+	STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+	    log_text((char *)"Dump complete.");
+	ENDLOG
+	fclose(f);
+	time(&mudstate.mushflat_time);
+    } else {
+	STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
+	    log_text((char *)"Unable to open flatfile.");
+	ENDLOG
+    }
+    STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
+	log_text((char *)"SIGTERM flatfile dump complete, exiting...");
+    ENDLOG
+    raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
+    pcache_sync();
+    SYNC;
+    CLOSE;
+    exit(1);
+}
+
 #ifdef HAVE_STRUCT_SIGCONTEXT
 static RETSIGTYPE 
 sighandler(int sig, int code, struct sigcontext *scp)
@@ -3207,14 +3390,7 @@ sighandler(int sig)
 #endif /* HAVE__SYS_SIGLIST */
 #endif /* HAVE_SYS_SIGLIST */
 
-    char buff[64], *s_crontmp, *s_crontmpwlk;
-    char *flatfilename;
-    FILE *f, *f_crontmp;
-    char *ptr2;
-    int aflags, i_cronchk, i_croncnt;
-    ATTR *ptr;
-    dbref player, aowner, i_crontmp;
-    sigset_t sigs;
+    char buff[64];
 
 #ifdef HAVE_UNION_WAIT
     union wait stat;
@@ -3233,9 +3409,6 @@ sighandler(int sig)
        VOIDRETURN; /* #23 */
 #endif
 
-    i_cronchk = i_croncnt = 0;
-    i_crontmp = NOTHING;
-
     switch (sig) {
     case SIGALRM:		/* Timer */
         /* This will allow dispatch() to update the queue */
@@ -3251,221 +3424,28 @@ sighandler(int sig)
 	wait(&stat);
 #endif
 	break;
-    case SIGUSR1:   /* Perform a @reboot. */
-          log_signal(signames[sig], sig);
-          /* User configured signal handling might happen. */
-          if ( mudconf.signal_crontab ) {
-             if ( (f_crontmp = fopen("cron/rhost.cron", "r")) != NULL ) {
-                i_cronchk = 1;
-                if ( feof(f_crontmp) ) {
-                   i_cronchk = 0;
-                } else {
-                   s_crontmp = alloc_lbuf("do_sigusr1_cron");
-                   fgets(s_crontmp, LBUF_SIZE - 1, f_crontmp);
-                   if ( *s_crontmp ) {
-                      if ( (*s_crontmp == '#') && isdigit(*(s_crontmp+1))) {
-                         i_crontmp = atoi(s_crontmp+1);
-                      } 
-                      if ( i_crontmp == NOTHING ) {
-                         s_crontmpwlk = s_crontmp;
-                         while ( *s_crontmpwlk ) {
-                            if ( (*s_crontmpwlk == '\r') || (*s_crontmpwlk == '\n') ) {
-                               *s_crontmpwlk = '\0';
-                               break;
-                            }
-                            s_crontmpwlk++;
-                         }
-                         i_crontmp = lookup_player(NOTHING, s_crontmp, 0);
-                      }
-                      if ( !Good_chk(i_crontmp) ) {
-                         i_cronchk = 0;
-                      } else {
-                         if ( feof(f_crontmp) ) {
-                            i_cronchk = 0;
-                         } else {
-                            fgets(s_crontmp, LBUF_SIZE - 1, f_crontmp);
-                            while ( !feof(f_crontmp) ) {
-                               s_crontmpwlk = s_crontmp;
-                               while ( *s_crontmpwlk ) {
-                                  if ( !isprint(*s_crontmpwlk) && !(*s_crontmpwlk == '\n') &&
-                                       !(*s_crontmpwlk == '\r') ) {
-                                     i_cronchk = 0;
-                                     break;
-                                  }
-                                  s_crontmpwlk++;
-                               }
-                               if ( i_cronchk == 0 )
-                                  break;
-                               if ( i_croncnt < 20 ) {
-                                  wait_que(i_crontmp, i_crontmp, 0, NOTHING, s_crontmp, (char **)NULL, 0,
-                                         mudstate_hot.global_regs, mudstate_hot.global_regsname);
-                               } else {
-                                  STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
-                                     log_text((char *) "Signal USR1 received with signal_crontab: Entries after the 20th command line ignored.");
-                                  ENDLOG
-                                  break;
-                               }
-                               fgets(s_crontmp, LBUF_SIZE -1, f_crontmp);
-                               i_croncnt++;
-                            }
-                         }
-                      }
-                   } else {
-                      i_cronchk = 0;
-                   }
-                   if ( i_cronchk == 0 ) {
-                      STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
-                         log_text((char *) "Signal USR1 received with signal_crontab yet crontab file was corrupt.");
-                      ENDLOG
-                   } else {
-                      STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
-                         sprintf(s_crontmp, "Signal USR1 crontab entry executed.  %d total lines processed.", i_croncnt);
-                         log_text(s_crontmp);
-                      ENDLOG
-                   }
-                   free_lbuf(s_crontmp);
-                }
-                fclose(f_crontmp);
-             } else {
-                STARTLOG(LOG_ALWAYS, "WIZ", "CRON")
-                   log_text((char *) "Signal USR1 received with signal_crontab enabled but no crontab file found.");
-                ENDLOG
-             }
-             sigfillset(&sigs);
-             sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-             break;
-          } 
-          if ( Good_chk(mudconf.signal_object) ) {
-             ptr = atr_str("SIG_USR1");
-             if ( ptr ) {
-                ptr2 = atr_get(mudconf.signal_object, ptr->number, &aowner, &aflags); 
-                if ( *ptr2 ) {
-                   if ( Good_chk(Owner(mudconf.signal_object)) ) 
-                      player = Owner(mudconf.signal_object);
-                   else
-                      player = 1; /* It's so easy being God. */
-                   /* Scream and run away, #1/player is not a valid object! */
-                   if ( !Good_obj(player) ) {
-                      STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
-                         log_text((char *) "User defined signal handling aborted. 'player' is not valid!");
-                      ENDLOG
-                      free_lbuf(ptr2);
-                      break;
-                   }
-                   /* Attribute gotten and has text */
-                   if ( mudconf.signal_object_type ) {
-                      did_it(Owner(mudconf.signal_object), mudconf.signal_object, 0, NULL, 0, NULL,
-                             ptr->number, (char **) NULL, 0);
-                      free_lbuf(ptr2);
-                   } else {
-                      did_it(Owner(mudconf.signal_object), mudconf.signal_object, ptr->number, 
-                             NULL, 0, NULL, 0, (char **) NULL, 0);
-                      free_lbuf(ptr2);
-                   }
-                   sigfillset(&sigs);
-                   sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-                   break;
-                } else {
-                   free_lbuf(ptr2); /* buffer is _always_ allocated from atr_get */
-                   STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
-                      log_text((char *) "Caught signal SIGUSR1, but no SIG_USR1 attribute to execute. Ignoring.");
-                   ENDLOG
-                   sigfillset(&sigs);
-                   sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-                   break;
-                }
-             }
-          }
-          alarm_msec(0); 
-          alarm_stop();
-          ignore_signals();
-          raw_broadcast(0, 0, "Game: Restarting due to signal SIGUSR1.");
-          raw_broadcast(0, 0, "Game: Your connection will pause, but will remain connected.");
-          STARTLOG(LOG_ALWAYS, "WIZ", "RBT")
-            log_text((char *) "Reboot due to signal SIGUSR1.");
-          ENDLOG
-          mudstate_hot.reboot_flag = 1;
-          break;			
-    case SIGHUP:		/* Perform a database dump */
-        log_signal(signames[sig], sig);
-        STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
-           log_text((char *)"Queueing a flatfile dump of the database.");
-        ENDLOG
-        s_crontmp = alloc_lbuf("do_sighup_cron");
-        sprintf(s_crontmp, "%s", "@dump/flat netrhost.SIGHUP");
-        wait_que(GOD, GOD, 0, NOTHING, s_crontmp , (char **)NULL, 0, (char **)NULL, (char **)NULL);
-        free_lbuf(s_crontmp);
-        sigfillset(&sigs);
-        sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-	break;
-    case SIGINT:		/* Log + ignore */
+    case SIGUSR1:
+        mudstate_hot.sig_flags |= SIGF_CRON;
+        break;
+    case SIGHUP:
+        mudstate_hot.sig_flags |= SIGF_DUMP;
+        break;
+    case SIGINT:
 #ifdef SIGSYS
     case SIGSYS:
 #endif
 	log_signal(signames[sig], sig);
 	break;
-    case SIGUSR2:		/* Perform clean shutdown. */
+    case SIGUSR2:
         mudstate.forceusr2 = 1;
-        log_signal(signames[sig], sig);
-        raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGUSR2!");
-        sprintf(buff, "Caught signal %s", signames[sig]);
-        STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
-           log_text((char*) "Shutting down due to signal SIGUSR2.");
-           if ( mudstate.dumpstatechk ) {
-              log_text((char *)"  Waiting for dump to finish.  Passively triggering shutdown.");
-              mudstate_hot.shutdown_flag = 1;
-           }
-        ENDLOG
-        if ( !mudstate_hot.shutdown_flag ) {
-           mudstate.forceusr2 = 0;
-           do_shutdown(NOTHING, NOTHING, 0, buff);
-           mudstate_hot.shutdown_flag = 1;
-        }
+        mudstate_hot.sig_flags |= SIGF_USR2;
         break;
-    case SIGTERM:		/* Attempt flatfile dump before shutdown. */
-        log_signal(signames[sig], sig);
-        ignore_signals();
-        raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGTERM!");
-        raw_broadcast(0, 0, "Game: This might be caused by the hosting server going down.");
-        STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
-           log_text((char*) "Attempting flatfile dump due to signal SIGTERM.");
-        ENDLOG
-        /* We don't actually want to call fork_and_dump at this point, since
-         * fork()ing new processes on a system that might be shutting down
-         * just isn't nice. Not that this is particularly nice either. 
-         */
-        flatfilename = alloc_mbuf("dump/flat");
-        /* mbufs are 200 bytes, buffer needs to be under that always */
-        sprintf(flatfilename, "%.90s/%.90s.termflat", mudconf.data_dir, mudconf.indb);
-        f = fopen(flatfilename, "w");
-        free_mbuf(flatfilename);
-        if (f) {
-           STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
-              log_text((char*) "Dumping db to flatfile...");
-           ENDLOG
-           db_write(f, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
-           STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
-              log_text((char*) "Dump complete.");
-           ENDLOG
-           fclose(f);
-           time(&mudstate.mushflat_time);
-        } else {
-           STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
-              log_text((char*) "Unable to open flatfile.");
-           ENDLOG
-        }
-        STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
-           log_text((char*) "SIGTERM Flatfile dump complete, exiting...");
-        ENDLOG
-        raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
-        DPOP;
-        /* QDBM was giving some weird-ass corruption, this should hopefully fix it */
-        pcache_sync();
-        SYNC;
-        CLOSE;
-        exit(1); /* Brutal. But daddy said I had to go to bed now. */
-        break; 
-    case SIGQUIT:		/* Normal shutdown */
+    case SIGTERM:
+        mudstate_hot.sig_flags |= SIGF_TERM;
+        break;
+    case SIGQUIT:
+        mudstate_hot.sig_flags |= SIGF_QUIT;
+        break;
     case SIGSEGV:               /* SEGV/BUS, we have no idea on the state engine - just drop hard */
     case SIGILL:		/* Panic save + coredump */
     case SIGFPE:
