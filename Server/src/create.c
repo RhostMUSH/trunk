@@ -70,7 +70,7 @@ static void
 open_exit(dbref player, dbref loc, char *direction, char *linkto, int key, char *ansiname, int isansi)
 {
     dbref exit;
-    char *tpr_buff, *tprp_buff, *s_tbuff;
+    char *tpr_buff = NULL, *tprp_buff = NULL, *s_tbuff;
 
     if (!Good_obj(loc)) {
 	return;
