@@ -3609,24 +3609,25 @@ process_command(dbref player, dbref cause, int interactive,
           if ( command[0] == '|' && ((NoShProg(player) && !mudconf.noshell_prog) || 
                (mudconf.noshell_prog && !NoShProg(player))) ) {
              notify(player, "You are not allowed to execute commands from within the @program.");
-             DESC_ITER_CONN(d) {
-                if ( D_PLAYER(d) == player ) {
-                   progatr = atr_get(D_PLAYER(d), A_PROGPROMPTBUF, &aowner, &aflags);
-                   if ( progatr && *progatr ) {
-                      if ( strcmp(progatr, "NULL") != 0 ) {
-                         tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                         queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
-                         free_lbuf(tpr_buff);
-                      }
-                   } else {
-                     tprp_buff = tpr_buff = alloc_lbuf("process_command");
-                     queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
-                     free_lbuf(tpr_buff);
-                   }
-                   free_lbuf(progatr);
-                   break;
-                }
-             }
+              DESC_ITER_CONN(d) {
+                 if (!d->cold) continue;
+                 if ( D_PLAYER(d) == player ) {
+                    progatr = atr_get(D_PLAYER(d), A_PROGPROMPTBUF, &aowner, &aflags);
+                    if ( progatr && *progatr ) {
+                       if ( strcmp(progatr, "NULL") != 0 ) {
+                          tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                          queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s%s%s \377\371", ANSI_HILITE, progatr, ANSI_NORMAL));
+                          free_lbuf(tpr_buff);
+                       }
+                    } else {
+                      tprp_buff = tpr_buff = alloc_lbuf("process_command");
+                      queue_string(d, safe_tprintf(tpr_buff, &tprp_buff, "%s>%s \377\371", ANSI_HILITE, ANSI_NORMAL));
+                      free_lbuf(tpr_buff);
+                    }
+                    free_lbuf(progatr);
+                    break;
+                 }
+              }
           }
           lcbuf = atr_get(player, A_PROGBUFFER, &aowner2, &aflags2);
           memset(arr_prog, 0, sizeof(arr_prog));
@@ -3639,11 +3640,12 @@ process_command(dbref player, dbref cause, int interactive,
           free_lbuf(lcbuf);
           atr_clr(player, A_PROGBUFFER);
           s_Flags4(player, (Flags4(player) & (~INPROGRAM)));
-          DESC_ITER_CONN(d) {
-             if ( D_PLAYER(d) == player ) {
-                queue_string(d, "\377\371");
-             }
-          }
+           DESC_ITER_CONN(d) {
+              if (!d->cold) continue;
+              if ( D_PLAYER(d) == player ) {
+                 queue_string(d, "\377\371");
+              }
+           }
 	  mudstate_hot.debug_cmd = cmdsave;
           getitimer(ITIMER_PROF, &itimer);
           reportcputime(player, &itimer);
@@ -3924,6 +3926,7 @@ process_command(dbref player, dbref cause, int interactive,
                      if ( isPlayer(boot_plr) ) {
                         tchbuff = alloc_mbuf("cpu_regsite");
                         DESC_ITER_CONN(d) {
+                           if (!d->cold) continue;
                            if ( D_PLAYER(d) == boot_plr ) {
                                 sprintf(tchbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
                                 if ( mudconf.cpu_secure_lvl == 4 ) {
@@ -4655,6 +4658,7 @@ process_command(dbref player, dbref cause, int interactive,
                       if ( isPlayer(boot_plr) ) {
                          tchbuff = alloc_mbuf("cpu_regsite");
                          DESC_ITER_CONN(d) {
+                            if (!d->cold) continue;
                             if ( D_PLAYER(d) == boot_plr ) {
                                  sprintf(tchbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
                                  if ( mudconf.cpu_secure_lvl == 4 ) {
@@ -10062,7 +10066,7 @@ void do_goto(dbref player, dbref cause, int key, char *label) {
       mudstate.gotostate = 1;
       memset(mudstate.gotolabel,'\0',16);
       strncpy(mudstate.gotolabel,label,15);
-  }
+   }
 }
 
 void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *cargs[], int ncargs) {
@@ -10494,8 +10498,9 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
    /* Use telnet protocol's GOAHEAD command to show prompt.
     * 
     */
-   tprp_buff = tpr_buff = alloc_lbuf("do_program");
+    tprp_buff = tpr_buff = alloc_lbuf("do_program");
    DESC_ITER_CONN(d) {
+      if (!d->cold) continue;
       if ( D_PLAYER(d) == thing ) {
         progatr = atr_get(it, A_PROGPROMPT, &aowner, &aflags);
         memset(strprompt, 0, sizeof(strprompt));
@@ -10564,6 +10569,7 @@ void do_quitprogram(dbref player, dbref cause, int key, char *name)
    }
    s_Flags4(thing, (Flags4(thing) & (~INPROGRAM)));
    DESC_ITER_CONN(d) {
+      if (!d->cold) continue;
       if ( D_PLAYER(d) == thing ) {
          queue_string(d, "\377\371");
       }
@@ -13158,6 +13164,7 @@ do_progreset(dbref player, dbref cause, int key, char *name)
    }
    if ( !InProgram(target) ) {
       DESC_ITER_CONN(d) {
+         if (!d->cold) continue;
          if ( D_PLAYER(d) == target ) {
             queue_string(d, "\377\371");
             atr_clr(D_PLAYER(d), A_PROGPROMPTBUF);
@@ -13167,12 +13174,13 @@ do_progreset(dbref player, dbref cause, int key, char *name)
    } else {
       if ( i_buff ) {
          tprp_buff = tpr_buff = alloc_lbuf("do_progreset");
-         DESC_ITER_CONN(d) {
-            if ( D_PLAYER(d) == target ) {
-               tprp_buff = tpr_buff;
-               atr_add_raw(target, A_PROGPROMPTBUF, buff);
+          DESC_ITER_CONN(d) {
+             if (!d->cold) continue;
+             if ( D_PLAYER(d) == target ) {
+                tprp_buff = tpr_buff;
+                atr_add_raw(target, A_PROGPROMPTBUF, buff);
 #ifdef ZENTY_ANSI
-              s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
+               s_buffptr = s_buff = alloc_lbuf("parse_ansi_prompt");
               s_buff2ptr = s_buff2 = alloc_lbuf("parse_ansi_prompt2");
               s_buff3ptr = s_buff3 = alloc_lbuf("parse_ansi_prompt3");
               parse_ansi((char *) buff, s_buff, &s_buffptr, s_buff2, &s_buff2ptr, s_buff3, &s_buff3ptr);
