@@ -7143,6 +7143,8 @@ void myfgets(char *buf, size_t maxlen, FILE *fpt)
     in = fgetc(fpt);
   }
   *pt1 = '\0';
+  while (!feof(fpt) && in && in != '\1')
+    in = fgetc(fpt);
   if (in == '\1')
     fgetc(fpt);
 }
