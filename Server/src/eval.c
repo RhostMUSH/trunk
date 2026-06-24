@@ -2546,7 +2546,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                    }
 		   if (!*dstr)
 		       dstr--;
-		   if ((i >= 0) && (i <= 35) &&
+		   if ((i >= 0) && (i < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) &&
 		       mudstate_hot.global_regs[i]) {
 		       safe_str(mudstate_hot.global_regs[i], buff, &bufc);
 		   }
@@ -3417,7 +3417,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
                      ufp = NULL;
                   }
                   if ( ufp == NULL ) {
-                      sprintf(tfunlocal, "%d_%s", Owner(player), tfunbuff);
+                       snprintf(tfunlocal, sizeof(tfunlocal), "%d_%s", Owner(player), tfunbuff);
 		      ulfp = (UFUN *) hashfind((char *)tfunlocal, &mudstate.ulfunc_htab);
                       if ( ulfp && (!Good_chk(ulfp->obj) || (ulfp->orig_owner != Owner(ulfp->obj))) ) {
                          ulfp = NULL;
