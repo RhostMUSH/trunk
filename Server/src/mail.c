@@ -1856,6 +1856,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
     if (*aft) {
       *(mbuf1+hsuboff) = '(';
       strncpy(mbuf1+hsuboff+1,Name(save),22);
+      mbuf1[hsuboff+1+22] = '\0';
       strcat(mbuf1+hsuboff+1,") ");
       strcat(mbuf1+hsuboff+2,subj);
     }
@@ -1865,6 +1866,7 @@ short int insert_msg(dbref player, dbref *toplay, char *subj, char *msg,
   else if (*aft) {
     *(mbuf1+hsuboff) = '(';
     strncpy(mbuf1+hsuboff+1,Name(save),22);
+    mbuf1[hsuboff+1+22] = '\0';
     strcat(mbuf1+hsuboff+1,")");
   }
   *(int *)sbuf1 = MIND_HRCV;
