@@ -1760,12 +1760,14 @@ do_destroy(dbref player, dbref cause, int key, char *what)
           if ( *s_chkattr ) {
              i_array[0] = i_array[2] = 0;
              i_array[4] = i_array[1] = i_array[3] = -2;
-             for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
-                  s_buffptr && (i < LIMIT_MAX);
-                  s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
-                 i_array[i] = atoi(s_buffptr);
-             }
-             if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
+              /* strtok_r mutilates s_chkattr in-place — do not read it as a string after this */
+                      /* strtok_r mutilates s_chkattr in-place — do not read it as a string after this */
+                      for (s_buffptr = (char *) strtok_r(s_chkattr, " ", &tstrtokr), i = 0;
+                           s_buffptr && (i < LIMIT_MAX);
+                           s_buffptr = (char *) strtok_r(NULL, " ", &tstrtokr), i++) {
+                          i_array[i] = atoi(s_buffptr);
+                      }
+                      if ( (i_array[3] != -1) && !((i_array[3] == -2) && ((Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) == -1)) ) {
                 if ( (i_array[2]+1) > (i_array[3] == -2 ? (Wizard(newplayer) ? mudconf.wizmax_dest_limit : mudconf.max_dest_limit) : i_array[3]) ) {
                    notify_quiet(newplayer,"@destruction limit reached.");
                    STARTLOG(LOG_SECURITY, "SEC", "DESTROY")
