@@ -33,6 +33,7 @@ typedef struct pool_footer {
 
 typedef struct pooldata {
     int pool_size;		/* Size in bytes of a buffer */
+    int footer_magic;		/* Per-pool footer magic */
     POOLHDR *free_head;		/* Buffer freelist head */
     POOLHDR *chain_head;	/* Buffer chain head */
     double tot_alloc;		/* Total buffers allocated */
@@ -57,6 +58,7 @@ void
 pool_init(int poolnum, int poolsize)
 {
     pools[poolnum].pool_size = poolsize;
+    pools[poolnum].footer_magic = POOL_MAGICNUM ^ (poolnum + 1);
     pools[poolnum].free_head = NULL;
     pools[poolnum].chain_head = NULL;
     pools[poolnum].max_alloc = 0;
@@ -129,10 +131,10 @@ pool_vfy(int poolnum, const char *tag, int line_num, const char *file_name)
 		pools[poolnum].chain_head = NULL;
 	    return;		/* not safe to continue */
 	}
-	if (pf->magicnum != POOL_MAGICNUM) {
+	if (pf->magicnum != pools[poolnum].footer_magic) {
 	    pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
 		     "Verify", "footer corrupted", line_num, (char *)file_name);
-	    pf->magicnum = POOL_MAGICNUM;
+	    pf->magicnum = pools[poolnum].footer_magic;
 	}
 	if (ph->pool_size != psize) {
 	    pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
@@ -191,7 +193,7 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
 	    ph->nxtfree = NULL;
 	    ph->magicnum = POOL_MAGICNUM;
 	    ph->pool_size = pools[poolnum].pool_size;
-	    pf->magicnum = POOL_MAGICNUM;
+	    pf->magicnum = pools[poolnum].footer_magic;
 	    *p = POOL_MAGICNUM;
 	    pools[poolnum].chain_head = ph;
 	    pools[poolnum].max_alloc++;
@@ -228,10 +230,10 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
 	    /* Check for corrupted footer, just report and
 	     * fix it */
 
-	    if (pf->magicnum != POOL_MAGICNUM) {
+ 	    if (pf->magicnum != pools[poolnum].footer_magic) {
 		pool_err("BUG", LOG_ALWAYS, poolnum, tag, ph,
 			 "Alloc", "corrupted buffer footer", line_num, file_name);
-		pf->magicnum = POOL_MAGICNUM;
+		pf->magicnum = pools[poolnum].footer_magic;
 	    }
 	}
     } while (p == NULL);
@@ -300,18 +302,24 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 	pools[poolnum].tot_alloc--;
 	return;
     }
-    /* Verify the buffer footer.  Don't unlink if damaged, just repair */
-
-    if (pf->magicnum != POOL_MAGICNUM) {
-	pool_err("BUG", LOG_ALWAYS, poolnum, ph->buf_tag, ph, "Free",
-		 "corrupted buffer footer", line_num, file_name);
-	pf->magicnum = POOL_MAGICNUM;
-    }
     /* Verify that we are not trying to free someone else's buffer */
 
     if (ph->pool_size != pools[poolnum].pool_size) {
 	pool_err("BUG", LOG_ALWAYS, poolnum, ph->buf_tag, ph, "Free",
 		 "Attempt to free into a different pool.", line_num, file_name);
+	return;
+    }
+    /* Verify the buffer footer with per-pool magic.
+     * Reject on mismatch — may indicate wrong-pool free for same-sized pools
+     * (e.g. free_lbuf on atrcache buffer). Do not repair — leaking the
+     * buffer is safer than propagating it into the wrong freelist. */
+
+    if (pf->magicnum != pools[poolnum].footer_magic) {
+	pool_err("BUG", LOG_ALWAYS, poolnum, ph->buf_tag, ph, "Free",
+		 "corrupted buffer footer (wrong pool?)", line_num, file_name);
+	pools[poolnum].num_lost++;
+	pools[poolnum].num_alloc--;
+	pools[poolnum].tot_alloc--;
 	return;
     }
     pool_err("DBG", LOG_ALLOCATE, poolnum, ph->buf_tag, ph, "Free",
