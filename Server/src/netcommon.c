@@ -3350,6 +3350,7 @@ NDECL(check_idle)
     DPUSH; /* #137 */
 
     DESC_SAFEITER_ALL(d) {
+	if (!d->cold) continue;
 	if (D_FLAGS(d) & DS_CONNECTED) {
 
 
