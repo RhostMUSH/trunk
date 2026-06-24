@@ -1324,14 +1324,14 @@ POWENT *tp;
 		case POWER_LEVEL_GUILD:	strcpy(lev1,"Guildmaster"); break;
 		case POWER_LEVEL_ARCH:	strcpy(lev1,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev1,"Councilor"); break;
-		default:	strcpy(lev1,"N/A");
+		default:	strcpy(lev1,"N/A"); break;
 	    }
 	    switch ((tp+1)->powerlev) {
 		case POWER_LEVEL_OFF:	strcpy(lev2,"Off"); break;
 		case POWER_LEVEL_GUILD:	strcpy(lev2,"Guildmaster"); break;
 		case POWER_LEVEL_ARCH:	strcpy(lev2,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev2,"Councilor"); break;
-		default:	strcpy(lev2,"N/A");
+		default:	strcpy(lev2,"N/A"); break;
 	    }
             tprp_buff = tpr_buff;
 	    notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-20s %-10s         %-20s %-10s",
@@ -1345,7 +1345,7 @@ POWENT *tp;
 		case POWER_LEVEL_GUILD:	strcpy(lev1,"Guildmaster"); break;
 		case POWER_LEVEL_ARCH:	strcpy(lev1,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev1,"Councilor"); break;
-		default:	strcpy(lev1,"N/A");
+		default:	strcpy(lev1,"N/A"); break;
 	    }
             tprp_buff = tpr_buff = alloc_lbuf("do_power");
 	    notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-20s %-10s",tp->powername,lev1));
@@ -1390,7 +1390,7 @@ POWENT *tp;
 		case POWER_LEVEL_ARCH:	strcpy(lev1,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev1,"Councilor"); break;
 		case POWER_REMOVE:	strcpy(lev1,"Disabled"); break;
-		default:	strcpy(lev1,"N/A");
+		default:	strcpy(lev1,"N/A"); break;
 	    }
 	    switch ((tp+1)->powerlev) {
 		case POWER_LEVEL_OFF:	strcpy(lev2,"Off"); break;
@@ -1398,7 +1398,7 @@ POWENT *tp;
 		case POWER_LEVEL_ARCH:	strcpy(lev2,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev2,"Councilor"); break;
 		case POWER_REMOVE:	strcpy(lev2,"Disabled"); break;
-		default:	strcpy(lev2,"N/A");
+		default:	strcpy(lev2,"N/A"); break;
 	    }
             tprp_buff = tpr_buff;
 	    notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-20s %-10s         %-20s %-10s",
@@ -1413,7 +1413,7 @@ POWENT *tp;
 		case POWER_LEVEL_ARCH:	strcpy(lev1,"Architect"); break;
 		case POWER_LEVEL_COUNC:	strcpy(lev1,"Councilor"); break;
 		case POWER_REMOVE:	strcpy(lev1,"Disabled"); break;
-		default:	strcpy(lev1,"N/A");
+		default:	strcpy(lev1,"N/A"); break;
 	    }
             tprp_buff = tpr_buff = alloc_lbuf("do_depower");
 	    notify(player,safe_tprintf(tpr_buff, &tprp_buff, "%-20s %-10s",tp->powername,lev1));
@@ -1620,7 +1620,7 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
             return;
          }
          s_tsetbuf = alloc_lbuf("do_set_attrib_flags");
-         strcpy(s_tsetbuf, flag);
+         snprintf(s_tsetbuf, LBUF_SIZE, "%s", flag);
          s_tset = strtok_r(s_tsetbuf, " \t", &s_tsetr);
          while ( s_tset ) {
             /* Check for clearing */
@@ -1806,7 +1806,7 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
       /* Go set it */
       set_attr_internal(player, thing, atr, p, key, cause, &val, 0);
       if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
-         strcpy(mudstate_hot.lbuf_buffer, p);
+         snprintf(mudstate_hot.lbuf_buffer, LBUF_SIZE, "%s", p);
       }
       free_lbuf(buff);
       return;
