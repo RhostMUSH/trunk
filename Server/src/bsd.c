@@ -500,13 +500,11 @@ int maxd;
 #define SIGF_CRON    0x01   /* SIGUSR1: cron / signal_object / reboot */
 #define SIGF_DUMP    0x02   /* SIGHUP:  flatfile dump */
 #define SIGF_USR2    0x04   /* SIGUSR2: shutdown */
-#define SIGF_TERM    0x08   /* SIGTERM: emergency flatfile + shutdown */
 #define SIGF_QUIT    0x10   /* SIGQUIT: normal shutdown */
 
 /* Forward declarations for deferred signal work */
 static void handle_signal_cron(void);
 static void handle_signal_dump(void);
-static void handle_signal_term(void);
 
 void 
 shovechars(int port, char *address, char *address_v6, int ip_family)
@@ -704,7 +702,6 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    mudstate_hot.sig_flags = 0;
 	    if (sigf & SIGF_CRON) handle_signal_cron();
 	    if (sigf & SIGF_DUMP) handle_signal_dump();
-	    if (sigf & SIGF_TERM) handle_signal_term();
 	    if (sigf & (SIGF_USR2 | SIGF_QUIT)) {
 		raw_broadcast(0, 0, "Game: Shutting down due to signal.");
 		STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
@@ -3311,48 +3308,6 @@ static void handle_signal_dump(void)
     free_lbuf(buf);
 }
 
-static void handle_signal_term(void)
-{
-    char *flatfilename;
-    FILE *f;
-
-    log_signal((char *)"SIGTERM", SIGTERM);
-    ignore_signals();
-    raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGTERM!");
-    raw_broadcast(0, 0, "Game: This might be caused by the hosting server going down.");
-    STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
-	log_text((char *)"Attempting flatfile dump due to signal SIGTERM.");
-    ENDLOG
-
-    flatfilename = alloc_mbuf("dump/flat");
-    sprintf(flatfilename, "%.90s/%.90s.termflat", mudconf.data_dir, mudconf.indb);
-    f = fopen(flatfilename, "w");
-    free_mbuf(flatfilename);
-    if (f) {
-	STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
-	    log_text((char *)"Dumping db to flatfile...");
-	ENDLOG
-	db_write(f, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
-	STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
-	    log_text((char *)"Dump complete.");
-	ENDLOG
-	fclose(f);
-	time(&mudstate.mushflat_time);
-    } else {
-	STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
-	    log_text((char *)"Unable to open flatfile.");
-	ENDLOG
-    }
-    STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
-	log_text((char *)"SIGTERM flatfile dump complete, exiting...");
-    ENDLOG
-    raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
-    pcache_sync();
-    SYNC;
-    CLOSE;
-    exit(1);
-}
-
 #ifdef HAVE_STRUCT_SIGCONTEXT
 static RETSIGTYPE 
 sighandler(int sig, int code, struct sigcontext *scp)
@@ -3441,8 +3396,47 @@ sighandler(int sig)
         mudstate_hot.sig_flags |= SIGF_USR2;
         break;
     case SIGTERM:
-        mudstate_hot.sig_flags |= SIGF_TERM;
-        break;
+    {
+	char *flatfilename;
+	FILE *f;
+
+	log_signal((char *)"SIGTERM", SIGTERM);
+	ignore_signals();
+	raw_broadcast(0, 0, "Game: Immediately shutting down due to signal SIGTERM!");
+	raw_broadcast(0, 0, "Game: This might be caused by the hosting server going down.");
+	STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
+	    log_text((char *)"Attempting flatfile dump due to signal SIGTERM.");
+	ENDLOG
+
+	flatfilename = alloc_mbuf("dump/flat");
+	sprintf(flatfilename, "%.90s/%.90s.termflat", mudconf.data_dir, mudconf.indb);
+	f = fopen(flatfilename, "w");
+	free_mbuf(flatfilename);
+	if (f) {
+	    STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+		log_text((char *)"Dumping db to flatfile...");
+	    ENDLOG
+	    db_write(f, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
+	    STARTLOG(LOG_DBSAVES, "DMP", "FLAT")
+		log_text((char *)"Dump complete.");
+	    ENDLOG
+	    fclose(f);
+	    time(&mudstate.mushflat_time);
+	} else {
+	    STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
+		log_text((char *)"Unable to open flatfile.");
+	    ENDLOG
+	}
+	STARTLOG(LOG_ALWAYS, "WIZ", "SHTDN")
+	    log_text((char *)"SIGTERM flatfile dump complete, exiting...");
+	ENDLOG
+	raw_broadcast(0, 0, "Game: Emergency dump complete, exiting...");
+	pcache_sync();
+	SYNC;
+	CLOSE;
+	exit(1);
+	break;
+    }
     case SIGQUIT:
         mudstate_hot.sig_flags |= SIGF_QUIT;
         break;

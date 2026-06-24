@@ -1180,6 +1180,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 	case TYPE_EXIT:
 	    if (!Controls(player, loc)) {
 		notify_quiet(player, "Permission denied.");
+		free_lbuf(arg2_noansi);
 		return;
 	    }
 	    cost = mudconf.digcost;
@@ -1192,6 +1193,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 
     clone = create_obj(new_owner, Typeof(thing), Name(thing), Name(thing), cost, 0);
     if (clone == NOTHING) {
+	free_lbuf(arg2_noansi);
 	return;
     }
 
@@ -1317,6 +1319,7 @@ do_clone(dbref player, dbref cause, int key, char *name, char *arg2)
 	    s_Parent(clone, Parent(thing));
         }
 	did_it(player, clone, 0, NULL, 0, NULL, A_ACLONE, (char **) NULL, 0);
+	if (Going(clone)) return; // In case any code gets added here
     } else {
 	if (!(key & CLONE_PARENT) && 
 	    (Controls(player, thing) || Parent_ok(thing))) {
