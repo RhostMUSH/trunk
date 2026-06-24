@@ -1001,10 +1001,11 @@ do_dig(dbref player, dbref cause, int key, char *name,
         if ( (Immortal(player) || HasPriv(player, NOTHING, POWER_USE_FREELIST, POWER5, NOTHING)) && (*args[1] == '#')) {
            exit_tmp = get_free_num(player, args[1]);
            if ( (key & OBJECT_STRICT) && !validate_freematch(mudstate.free_num) ) {
-              if ( !(key & SIDEEFFECT) ) {
-                 notify_quiet(player, "Dbref# (of inbound exit) specified is not a valid free dbref#.");
-              }
-           }
+               if ( !(key & SIDEEFFECT) ) {
+                  notify_quiet(player, "Dbref# (of inbound exit) specified is not a valid free dbref#.");
+               }
+               i_noexit = 1;
+            }
        } else {
            exit_tmp = args[1];
        }
