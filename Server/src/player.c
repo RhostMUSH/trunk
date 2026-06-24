@@ -102,7 +102,7 @@ int	i;
 			info->bad[i].dtm = &nullc;
 	}
 	bp = alloc_lbuf("encrypt_logindata");
-	sprintf(bp, "#%d;%s;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;%s;%s;%s;%s;",
+	snprintf(bp, LBUF_SIZE, "#%d;%s;%s;%s;%s;%s;%s;%s;%s;%d;%d;%s;%s;%s;%s;%s;%s;",
 		info->tot_good,
 		info->good[0].host, info->good[0].dtm,
 		info->good[1].host, info->good[1].dtm,
@@ -1356,7 +1356,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
    */
   strcpy(instr_buff, mudconf.goodmail_host);
   tmp_email_ptr = tmp_email = alloc_mbuf("tmp_email");
-  safe_str(email, tmp_email, &tmp_email_ptr);
+  safe_mb_str(email, tmp_email, &tmp_email_ptr);
   if (mudconf.goodmail_host[0] && lookup(tmp_email, instr_buff, -2, &i_retvar)) {
      allow_through = 1;
   }
