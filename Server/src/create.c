@@ -1632,12 +1632,15 @@ destroy_player(dbref player, dbref victim, int purge)
     halt_que(victim, NOTHING);
     count = chown_all(victim, player, 0);
     /* MMMail Addition for hardcoded mailer */
-    mudstate.nuke_status = 1;
-    areg_del_player(victim);
-    do_mail(victim, victim, M_WRITE, "+forget", NULL);
-    do_wmail(GOD, GOD, WM_WIPE, myitoa(victim), "");
-    mail_rem_dump();
-    mudstate.nuke_status = 0;
+    {
+	int saved_nuke = mudstate.nuke_status;
+	mudstate.nuke_status = 1;
+	areg_del_player(victim);
+	do_mail(victim, victim, M_WRITE, "+forget", NULL);
+	do_wmail(GOD, GOD, WM_WIPE, myitoa(victim), "");
+	mail_rem_dump();
+	mudstate.nuke_status = saved_nuke;
+    }
 
     /* news nuke hook */
     news_player_nuke_hook( player, victim);
@@ -1672,7 +1675,7 @@ do_destroy(dbref player, dbref cause, int key, char *what)
 {
     dbref thing, newplayer, aowner2;
     int aflags2, i_array[LIMIT_MAX], i;
-    char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff, *tprp_buff, *tstrtokr;
+    char *s_chkattr, *s_buffptr, *s_mbuf, *tpr_buff = NULL, *tprp_buff = NULL, *tstrtokr;
 
 
     if (mudstate_hot.remotep != NOTHING) {
