@@ -788,10 +788,11 @@ int get_ind_rec(dbref player, char itype, char *rtbuf, int check, dbref wiz, int
       infodata = dbm_fetch(foldfile,keydata);
       if (!infodata.dptr)
 	return 0;
-      else {
-	memcpy(rtbuf,infodata.dptr,infodata.dsize);
-	return(infodata.dsize);
-      }
+  else {
+    if (infodata.dsize > MBUF_SIZE) return 0;
+    memcpy(rtbuf,infodata.dptr,infodata.dsize);
+    return(infodata.dsize);
+  }
     }
   }
   foldmast = 0;
@@ -4657,6 +4658,7 @@ write_del(dbref player, short int dline, short int num)
 {
     short int count;
 
+    if (num < 1) return;
     for (count = dline; count < num; count++) {
 	*lbuf1 = '\0';
 	*(int *)sbuf1 = MIND_WRTL;

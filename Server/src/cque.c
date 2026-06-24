@@ -92,7 +92,7 @@ void execute_entry(BQUE *queue)
                 mudstate.curr_pidcmd[0] = '\0';
             }
 	    a_Queue(Owner(player), -1);
-	    queue->player = 0;
+	    queue->player = NOTHING;
 	    pid_table[queue->pid] = 0;
 	    if (!Halted(player) || mudstate_hot.force_halt) {
 
