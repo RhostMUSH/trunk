@@ -1664,14 +1664,14 @@ do_date_conv(char *instr, char *outstr)
       } else {
          strcpy(outstr, instr);
       }
-   } else if ( sscanf("%4s-%2s-%2s", str1, str2, str3) == 3) {
+   } else if ( sscanf(instr, "%4s-%2s-%2s", str1, str2, str3) == 3) {
 /* %Y-%m-%d */
       if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, atoi(str1));
       } else {
          strcpy(outstr, instr);
       }
-   } else if ( sscanf("-%4s-%2s-%2s", str1, str2, str3) == 3) {
+   } else if ( sscanf(instr, "-%4s-%2s-%2s", str1, str2, str3) == 3) {
 /* %Y-%m-%d */
       if ( (atoi(str2) <= 12) && (atoi(str2) >= 1) ) {
          sprintf(outstr, "xxx %.3s %d %02d:%02d:%02d %d", s_mon_lst[atoi(str2)-1], atoi(str3), i_hour, i_min, i_sec, (0 - atoi(str1)));

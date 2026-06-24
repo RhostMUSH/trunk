@@ -554,7 +554,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             freezepid->sem = point->sem;
             Q_NARGS(freezepid) = Q_NARGS(point);
             freezepid->pid = time(NULL);
-            Q_SHELLPRG(freezepid) = Q_SHELLPRG(freezepid);
+            Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
             Q_HOOKED(freezepid) = Q_HOOKED(point);
@@ -620,7 +620,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 int 
 thaw_pid(dbref player, int pid, int key)
 {
-    BQUE *trail, *point, *next, *freezepid, *pntr;
+    BQUE *trail, *point, *next, *freezepid = NULL, *pntr;
     int numhalted, a;
     int found;
     int tpid, badpid;
@@ -853,10 +853,12 @@ thaw_pid(dbref player, int pid, int key)
            mudstate_hot.qsemlast = freezepid; 
        }
     } else if ( tpid == -1 && (!(key & THAW_DEL) || badpid)) {
+        if (freezepid) {
 	    if (Q_TEXT(freezepid))
 		free(Q_TEXT(freezepid));
 	    free_bque_cold(freezepid->cold);
 	    free_qentry(freezepid);
+        }
     } else if ( key & THAW_DEL ) {
        numhalted = -1;
     } else if ( badpid ) {
@@ -2580,7 +2582,7 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
 			       tmp->sem,
                                mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
-			       bufp, Q_COMM(tmp)));
+			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
 	    else if (tmp->waittime > 0)
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
@@ -2588,16 +2590,16 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
                                stop_chr,
                                mtimerlen,
 			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
-			       bufp, Q_COMM(tmp)));
+			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
 	    else if (Good_obj(tmp->sem))
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
                                tmp->pid, stop_chr, tmp->sem,
-			       bufp, Q_COMM(tmp)));
+			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
 	    else
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid, stop_chr, bufp, Q_COMM(tmp)));
+                               tmp->pid, stop_chr, bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
 	    bp = bufp;
 	    if (key == PS_LONG) {
 		for (i = 0; i < (Q_NARGS(tmp)); i++) {
