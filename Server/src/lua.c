@@ -61,7 +61,9 @@ lua_stack_to_lbuf(lua_State *L, char *dest, int src_index)
         dest[0] = 0;
         return;
     }
-    strncpy(dest, lua_tolstring(L, src_index, &size), size >= (LBUF_SIZE - 1) ? LBUF_SIZE - 1 : size);
+    size_t copysz = size >= (LBUF_SIZE - 1) ? LBUF_SIZE - 1 : size;
+    strncpy(dest, lua_tolstring(L, src_index, &size), copysz);
+    dest[copysz] = '\0';
 }
 
 static dbref
@@ -155,10 +157,8 @@ rhost_get(lua_State *L)
     atrp = atr_str4(attr);
     if(!atrp) {
         lua_pushliteral(L, "rhost_get: Invalid object or attribute");
-        lua_error(L);
-        lua_pop(L, 1);
-
         free_lbuf(attr);
+        lua_error(L);
         return 0;
     }
 
@@ -171,10 +171,8 @@ rhost_get(lua_State *L)
 
     if(!lua_check_read_perms(run_as, thing, atrp, owner, flags)) {
         lua_pushliteral(L, "rhost_get: Permission Denied");
-        lua_error(L);
-        lua_pop(L, 1);
-
         free_lbuf(attr);
+        lua_error(L);
         return 1;
     }
 
