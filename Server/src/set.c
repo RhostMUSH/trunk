@@ -1675,11 +1675,11 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
             could_hear = Hearer(thing);
             atr_set_flags(thing, atr, aflags);
             if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
+               s_bufit = mudstate_hot.lbuf_buffer;
                if ( *(mudstate_hot.lbuf_buffer) ) {
                   safe_chr(' ', mudstate_hot.lbuf_buffer, &s_bufit);
                   safe_str(s_tset, mudstate_hot.lbuf_buffer, &s_bufit);
                } else {
-                  s_bufit = mudstate_hot.lbuf_buffer;
                   safe_str(s_tset, mudstate_hot.lbuf_buffer, &s_bufit);
                }
             }
