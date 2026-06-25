@@ -63,12 +63,12 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
     case TELNET_EV_DATA:
         /* Clean user text — buffer it for the caller's byte loop */
         if (telnet_ctx.buf && telnet_ctx.len) {
-            n = ev->data.size;
-            if (*telnet_ctx.len + n > telnet_ctx.max)
-                n = telnet_ctx.max - *telnet_ctx.len;
-            if (n > 0) {
-                memcpy(telnet_ctx.buf + *telnet_ctx.len, ev->data.buffer, n);
-                *telnet_ctx.len += n;
+            size_t data_n = ev->data.size;
+            if ((size_t)*telnet_ctx.len + data_n > (size_t)telnet_ctx.max)
+                data_n = (size_t)telnet_ctx.max - (size_t)*telnet_ctx.len;
+            if (data_n > 0) {
+                memcpy(telnet_ctx.buf + *telnet_ctx.len, ev->data.buffer, data_n);
+                *telnet_ctx.len += (int)data_n;
             }
         }
         break;
@@ -77,7 +77,7 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
         /* Library wants to send negotiation data — write directly to socket */
         fd = D_DESCRIPTOR(d);
         if (fd >= 0) {
-            int sent = 0;
+            int sent = 0, retries = 0;
             const char *p = ev->data.buffer;
             size_t remaining = ev->data.size;
             while (remaining > 0) {
@@ -86,7 +86,9 @@ static void on_telnet_event(telnet_t *telnet, telnet_event_t *ev, void *user_dat
                     sent += n;
                     remaining -= n;
                 } else if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                    continue; /* retry immediately — tiny negotiation payload */
+                    if (++retries > 10)
+                        break;
+                    continue;
                 } else {
                     break;
                 }
@@ -366,6 +368,8 @@ int telnet_preprocess_input(DESC *d, char *buf, int *got)
     telnet_ctx.len = NULL;
 
     if (clean_len > 0) {
+        if (clean_len > *got)
+            clean_len = *got;
         memcpy(buf, clean, clean_len);
         *got = clean_len;
         return 1;
