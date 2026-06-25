@@ -1233,54 +1233,54 @@ look_contents(dbref player, dbref loc, const char *contents_name)
 }
 
 void
-prtflags(dbref player, int aflags, char *xbuf, char *xbufp)
+prtflags(dbref player, int aflags, char *xbuf)
 {
-    xbufp = xbuf;
+    char *xp = xbuf;
     if (aflags & AF_LOCK)
-	*xbufp++ = '+';
+	*xp++ = '+';
     if (aflags & AF_NOPROG)
-	*xbufp++ = '$';
+	*xp++ = '$';
     if (aflags & AF_PRIVATE)
-	*xbufp++ = 'I';
+	*xp++ = 'I';
     if (aflags & AF_VISUAL)
-	*xbufp++ = 'V';
+	*xp++ = 'V';
     if (aflags & AF_MDARK)
-        *xbufp++ = 'M';
+        *xp++ = 'M';
     if (aflags & AF_GOD)
-	*xbufp++ = 'G';
+	*xp++ = 'G';
     if (aflags & AF_IMMORTAL)
-	*xbufp++ = 'i';
+	*xp++ = 'i';
     if (aflags & AF_WIZARD)
-	*xbufp++ = 'W';
+	*xp++ = 'W';
     if (aflags & AF_ADMIN)
-	*xbufp++ = 'a';
+	*xp++ = 'a';
     if (aflags & AF_BUILDER)
-	*xbufp++ = 'B';
+	*xp++ = 'B';
     if (aflags & AF_GUILDMASTER)
-	*xbufp++ = 'g';
+	*xp++ = 'g';
     if ((aflags & AF_PINVIS) && Wizard(player))
-	*xbufp++ = 'p';
+	*xp++ = 'p';
     if (aflags & AF_NOCLONE)
-	*xbufp++ = 'N';
+	*xp++ = 'N';
     if (aflags & AF_DARK)
-        *xbufp++ = 'D';
+        *xp++ = 'D';
     if (aflags & AF_NOPARSE)
-        *xbufp++ = 'n';
+        *xp++ = 'n';
     if (aflags & AF_SAFE)
-        *xbufp++ = 's';
+        *xp++ = 's';
     if (aflags & AF_USELOCK)
-        *xbufp++ = 'u';
+        *xp++ = 'u';
     if (aflags & AF_SINGLETHREAD)
-        *xbufp++ = 'S';
+        *xp++ = 'S';
     if (aflags & AF_DEFAULT)
-        *xbufp++ = 'F';
+        *xp++ = 'F';
     if ((aflags & AF_ATRLOCK) && Wizard(player))
-        *xbufp++ = 'l';
+        *xp++ = 'l';
     if ((aflags & AF_LOGGED) && Wizard(player))
-        *xbufp++ = 'm';
+        *xp++ = 'm';
     if (aflags & AF_REGEXP) 
-        *xbufp++ = 'R';
-    *xbufp = '\0';
+        *xp++ = 'R';
+    *xp = '\0';
 }
 
 static void 
@@ -1289,8 +1289,6 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
 {
     char *buf = NULL, *buf2 = NULL, *tpr_buff, *tprp_buff;
     char xbuf[32], ybuf[32], zbuf[32];
-    char *xbufp = NULL, 
-         *ybufp = NULL;
     BOOLEXP *bool;
 
     if (!God(player) && ((ap->flags & AF_GOD) || (aflags & AF_GOD)) && 
@@ -1340,10 +1338,10 @@ view_atr(dbref player, dbref thing, ATTR * ap, char *text,
     /* Generate flags */
 
     memset(xbuf, 0, sizeof(xbuf));
-    prtflags(player, aflags, xbuf, xbufp);
+    prtflags(player, aflags, xbuf);
     if ( mudconf.look_moreflags ) {
        memset(ybuf, 0, sizeof(ybuf));
-       prtflags(player, ap->flags, ybuf, ybufp);
+       prtflags(player, ap->flags, ybuf);
     }
 
     tprp_buff = tpr_buff = alloc_lbuf("view_atr");
