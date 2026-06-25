@@ -466,6 +466,7 @@ cache_get(Aname *nam)
 		cs_dbreads++;
 
 	if ((cp = get_free_entry(sp)) == CNULL) {
+		objfree(ret);
 		RETURN((Attr *)0); /* #165 */
         }
 
@@ -624,14 +625,15 @@ cache_put(Aname *nam, Attr *obj)
 		newobj->at_count = 0;
 	}
 
+	/* Reserve cache entry before modifying the object. */
+	if ((cp = get_free_entry(sp)) == CNULL) {
+		objfree(newobj);
+		RETURN(1); /* #166 */
+        }
+
 	/* Now we got the thing, hang the new version of the attrib on it. */
 
 	set_attrib(nam,newobj,obj);
-
-	/* add it to the cache */
-	if ((cp = get_free_entry(sp)) == CNULL) {
-		RETURN(1); /* #166 */
-        }
 
 	cp->op = newobj;
 
@@ -672,14 +674,14 @@ get_free_entry(CacheLst *sp)
 			if ((cp->op)->at_count == 0) {
   			        if (DB_DEL(&((cp->op)->name), 0)) {
 					objfree(cp->op);
-					cp->op = (Obj *)0;
+					free(cp);
 					RETURN(CNULL); /* #167 */
 				}
 				cs_dels++;
 			} else {
 				if(DB_PUT(cp->op,&((cp->op)->name))) {
 					objfree(cp->op);
-					cp->op = (Obj *)0;
+					free(cp);
 					RETURN(CNULL); /* #167 */
 				}
 				cs_dbwrites++;
@@ -875,6 +877,7 @@ cache_del(Aname *nam)
         }
 
 	if ((cp = get_free_entry(sp)) == CNULL) {
+		objfree(obj);
 		VOIDRETURN; /* #171 */
         }
 
