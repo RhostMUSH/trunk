@@ -87,7 +87,7 @@ void delStruct(mail_t *p) {
     } else {
       pHead = t->pNext;
     }
-    free(p);
+    free(t);
   }
 }
 
@@ -171,12 +171,11 @@ int mailDoorOpen(DESC *d, int nArgs, char *args[], int id) {
     queue_string(d, "Connection to mail server failed.");
   } else {
     mail_t *p = malloc(sizeof(mail_t));
-    queue_string(d, "Connection to mail server suceeded.");
-
     if (!p) {
       queue_string(d, "Count not allocate required memory.");
       goto abort;
     }
+    queue_string(d, "Connection to mail server succeeded.");
     p->player = D_PLAYER(d);
     p->id = id;
     p->status = OK_e;
@@ -264,7 +263,7 @@ int mailDoorInput(DESC *d, char *pText) {
 	
 	l = strlen(n);
 	queue_string(d, unsafe_tprintf("You have %s mail message%s occupying %s bytes.",
-				n, (l > 1) ? "s" : "", (s == '\0') ? "(unknown)" : s));
+				n, (l > 1) ? "s" : "", !*s ? "(unknown)" : s));
 	queue_string(d, "\r\n");
 	sendcmd(d->cold->door_desc, "QUIT\r\n");
 	p->status = DONE_e;
