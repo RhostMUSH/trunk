@@ -2476,7 +2476,7 @@ void viewzonelist( dbref player, dbref thing )
   if (i_numzones <= 20)
      i_numzones = 0;
   else
-     buf2 = alloc_sbuf("viewzonelist.sbuf");
+     buf2 = alloc_lbuf("viewzonelist.sbuf");
   
   for( ptr = cold_db[thing].zonelist; ptr; ptr = ptr->next ) {
     if (!i_numzones) {
@@ -2493,7 +2493,7 @@ void viewzonelist( dbref player, dbref thing )
     }
   }
   if ( i_numzones > 0)
-    free_sbuf(buf2);
+    free_lbuf(buf2);
 
   safe_chr('\0', buf, &cp);
   notify(player, buf);
