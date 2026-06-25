@@ -3992,7 +3992,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                i_found1++;
                continue;
             }
-            sprintf(s_mbname, "%s/%d.img", mudconf.image_dir, thing);
+            snprintf(s_mbname, MBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
             if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
                if ( i_found2 ) {
                   safe_chr(' ', tpr_buff2, &tprp_buff2);
@@ -4052,7 +4052,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          }
          s_mbname = alloc_mbuf("do_snapshot");
          if ( !buff2 || !*buff2 ) {
-            sprintf(s_mbname, "%s/%d.img", mudconf.image_dir, thing);
+            snprintf(s_mbname, MBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
          } else {
              s_pt = buff2;
              i_count = 0;
@@ -4071,7 +4071,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                free_mbuf(s_mbname);
                return;
             } else {
-               sprintf(s_mbname, "%s/%d_%.60s.img", mudconf.image_dir, thing, strip_all_special(buff2));
+	       snprintf(s_mbname, MBUF_SIZE, "%s/%d_%.60s.img", mudconf.image_dir, thing, strip_all_special(buff2));
             }
          }
          if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
@@ -4129,7 +4129,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
                continue;
             } else {
-               sprintf(s_mbname, "%s/%.80s.img", mudconf.image_dir, strip_all_special(s_strtok));
+               snprintf(s_mbname, MBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(s_strtok));
             }
             if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
                if ( i_found2 ) {
@@ -4182,7 +4182,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             return;
          }
          s_mbname = alloc_mbuf("do_snapshot");
-         sprintf(s_mbname, "%s/%.70s.img", mudconf.image_dir, strip_all_special(buff2));
+         snprintf(s_mbname, MBUF_SIZE, "%s/%.70s.img", mudconf.image_dir, strip_all_special(buff2));
          if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
             notify(player, "Filename specified not found.");
             free_mbuf(s_mbname);
@@ -4273,7 +4273,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             free_mbuf(s_mbname);
             return;
          } else {
-            sprintf(s_mbname, "%s/%.80s.img", mudconf.image_dir, strip_all_special(buff1));
+            snprintf(s_mbname, MBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(buff1));
          }
          if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
             notify(player, "Filename specified not found.");
