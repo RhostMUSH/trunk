@@ -748,12 +748,12 @@ destroy_obj(dbref player, dbref obj, int purge)
 		       safe_tprintf(tpr_buff, &tprp_buff, "Destroyed. %s(#%d)",
 			            Name(obj), obj));
 	    } else {
-		tname = alloc_sbuf("destroy_obj");
+		tname = alloc_mbuf("destroy_obj");
 		strcpy(tname, Name(owner));
 		notify(player,
 		       safe_tprintf(tpr_buff, &tprp_buff, "Destroyed. %s's %s(#%d)",
 			            tname, Name(obj), obj));
-		free_sbuf(tname);
+		free_mbuf(tname);
 	    }
             free_lbuf(tpr_buff);
 	} else if (!Quiet(obj)) {
@@ -2473,6 +2473,7 @@ int objecttag_add(char *tag, dbref thing, int i_personal, int i_loader)
   stat = hashadd2(lcname, (int *)newtag, &mudstate.objecttag_htab, 0);
   stat = (stat < 0) ? 0 : 1;
   if(stat == 0) {
+    XFREE(newtag->tagname, "strsave");
     free(newtag);
   } else {
   	// good add to the hash table.  add to our bst.
@@ -2619,6 +2620,7 @@ int objecttag_remove(char *tag)
 
   /* We have to free the XMALLOC hash name */
   XFREE(storedtag->tagname, "strsave");
+  free(storedtag);
 
   hashdelete(lcname, &mudstate.objecttag_htab);
 
@@ -2679,7 +2681,7 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
     BSTNode *node;
 
     buffp = buff = alloc_lbuf("decompile_tags");
-    tbuff = alloc_mbuf("decompile_tags");
+    tbuff = alloc_lbuf("decompile_tags");
     i_first = 0;
 
     for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
@@ -2691,7 +2693,11 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
                 }
                 i_first = 1;
                 if ( storedtag->i_personal ) {
-                    s_tbuff = strchr(storedtag->tagname+3, '_')+1;
+                    s_tbuff = strchr(storedtag->tagname+3, '_');
+                    if (s_tbuff)
+                        s_tbuff++;
+                    else
+                        s_tbuff = storedtag->tagname;
                     sprintf(tbuff, "%s@ltag/add %s=%s", (i_tf ? qualout : (char *)""), s_tbuff, thingname);
                 } else {
                     sprintf(tbuff, "%s@tag/add %s=%s", (i_tf ? qualout : (char *)""), storedtag->tagname, thingname);
@@ -2702,7 +2708,7 @@ void decompile_tags(dbref player, dbref thing, char *thingname, char *qualout, i
     }
 
     noansi_notify(player, buff); 
-    free_mbuf(tbuff);
+    free_lbuf(tbuff);
     free_lbuf(buff);
 }
 
@@ -2758,7 +2764,7 @@ char is_valid_tagname(char *tagname) {
 void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 {
   char *buff, *buffp, *s_hashstr, *tagname, *t_distag, t_warn = ' ';
-  ANSISPLIT outsplit[LBUF_SIZE];
+  ANSISPLIT outsplit;
   TAGENT *storedtag = NULL;
   BSTNode *node = NULL;
   char *s_buff = NULL;
@@ -2913,7 +2919,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 
                      s_buff = alloc_lbuf("objecttag_list");
                      memset(s_buff, '\0', LBUF_SIZE);
-                     split_ansi(strip_ansi(storedtag->tagname), s_buff, outsplit);
+                      split_ansi(strip_ansi(storedtag->tagname), s_buff, &outsplit);
 
                       if (i_personal) {
                           char *p = strchr(storedtag->tagname + 3, '_');
