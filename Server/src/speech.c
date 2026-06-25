@@ -3844,7 +3844,9 @@ void com_send(char *chan, char *mess)
       yyy=atr_get(D_PLAYER(d),A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
-        strcat(yyy," ");
+        if (strlen(yyy) < LBUF_SIZE - 2) {
+            strcat(yyy," ");
+        }
         foo=yyy;
         while(*foo) {
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
@@ -3875,7 +3877,9 @@ void com_who(char *chan, dbref who)
       yyy = atr_get(D_PLAYER(d),A_CHANNEL,&aowner,&aflags);
       if(*yyy) {
         char *ptr;
-        strcat(yyy," ");
+        if (strlen(yyy) < LBUF_SIZE - 2) {
+            strcat(yyy," ");
+        }
         foo=yyy;
         while(*foo) {
           for(ptr=foo;*ptr && *ptr != ' ';ptr++);
