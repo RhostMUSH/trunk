@@ -3974,7 +3974,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          tprp_buff  = tpr_buff  = alloc_lbuf("do_snapshot_unall1");
          tprp_buff2 = tpr_buff2 = alloc_lbuf("do_snapshot_unall2");
          tprp_buff3 = tpr_buff3 = alloc_lbuf("do_snapshot_unall3");
-         s_mbname = alloc_mbuf("do_snapshot_unall");
+         s_mbname = alloc_lbuf("do_snapshot_unall");
          i_found1 = i_found2 = i_found3 = 0;
          notify(player, "@snapshot: Writing image file(s) ...");
          while ( s_strtok ) {
@@ -3992,7 +3992,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                i_found1++;
                continue;
             }
-            snprintf(s_mbname, MBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
+            snprintf(s_mbname, LBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
             if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
                if ( i_found2 ) {
                   safe_chr(' ', tpr_buff2, &tprp_buff2);
@@ -4040,7 +4040,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          free_lbuf(tpr_buff);
          free_lbuf(tpr_buff2);
          free_lbuf(tpr_buff3);
-         free_mbuf(s_mbname);
+         free_lbuf(s_mbname);
       break;
       case SNAPSHOT_UNLOAD:
          init_match(player, buff1, NOTYPE);
@@ -4050,9 +4050,9 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, "Invalid dbref# specified for snapshot.");
             return;
          }
-         s_mbname = alloc_mbuf("do_snapshot");
+         s_mbname = alloc_lbuf("do_snapshot");
          if ( !buff2 || !*buff2 ) {
-            snprintf(s_mbname, MBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
+            snprintf(s_mbname, LBUF_SIZE, "%s/%d.img", mudconf.image_dir, thing);
          } else {
              s_pt = buff2;
              i_count = 0;
@@ -4068,28 +4068,28 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             }
             if ( i_count ) {
                notify(player, "Invalid characters specified in filename.");
-               free_mbuf(s_mbname);
+               free_lbuf(s_mbname);
                return;
             } else {
-	       snprintf(s_mbname, MBUF_SIZE, "%s/%d_%.60s.img", mudconf.image_dir, thing, strip_all_special(buff2));
+	       snprintf(s_mbname, LBUF_SIZE, "%s/%d_%.60s.img", mudconf.image_dir, thing, strip_all_special(buff2));
             }
          }
          if ( !i_over && ((f_snap = fopen(s_mbname, "r")) != NULL) ) {
             notify(player, "Filename already exists.  Please delete it first.");
             fclose(f_snap);
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          }
          if ( (f_snap = fopen(s_mbname, "w")) == NULL ) {
             notify(player, "Unable to open filename specified for snapshot.");
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          }
          tprp_buff = tpr_buff = alloc_lbuf("do_snapshot");
          notify(player, safe_tprintf(tpr_buff, &tprp_buff, "@snapshot: Writing image file %s...", s_mbname));
          remote_write_obj(f_snap, thing, F_MUSH, OUTPUT_VERSION | UNLOAD_OUTFLAGS);
          fclose(f_snap);
-         free_mbuf(s_mbname);
+         free_lbuf(s_mbname);
          free_lbuf(tpr_buff);
          notify(player, "@snapshot: Completed.");
       break;
@@ -4114,7 +4114,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          tprp_buff  = tpr_buff  = alloc_lbuf("do_snapshot_unall1");
          tprp_buff2 = tpr_buff2 = alloc_lbuf("do_snapshot_unall2");
          tprp_buff3 = tpr_buff3 = alloc_lbuf("do_snapshot_unall3");
-         s_mbname = alloc_mbuf("do_snapshot");
+         s_mbname = alloc_lbuf("do_snapshot");
          i_found1 = i_found2 = i_found3 = 0;
          notify(player, "@snapshot: Deleting image file(s) ...");
          while ( s_strtok ) {
@@ -4129,7 +4129,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                s_strtok = strtok_r(NULL, " \t", &s_strtokptr);
                continue;
             } else {
-               snprintf(s_mbname, MBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(s_strtok));
+               snprintf(s_mbname, LBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(s_strtok));
             }
             if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
                if ( i_found2 ) {
@@ -4167,7 +4167,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
          free_lbuf(tpr_buff);
          free_lbuf(tpr_buff2);
          free_lbuf(tpr_buff3);
-         free_mbuf(s_mbname);
+         free_lbuf(s_mbname);
       break;
       case SNAPSHOT_LOAD:
          if ( i_over ) {
@@ -4181,11 +4181,11 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, "Invalid dbref# specified for snapshot.");
             return;
          }
-         s_mbname = alloc_mbuf("do_snapshot");
-         snprintf(s_mbname, MBUF_SIZE, "%s/%.70s.img", mudconf.image_dir, strip_all_special(buff2));
+         s_mbname = alloc_lbuf("do_snapshot");
+         snprintf(s_mbname, LBUF_SIZE, "%s/%.70s.img", mudconf.image_dir, strip_all_special(buff2));
          if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
             notify(player, "Filename specified not found.");
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          }
          i_connect = i_player = 0;
@@ -4238,7 +4238,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
                break;
             case 3:
                notify(player, "@snapshot: Error reading file.  Unrecognized format or file is corrupted.");
-               free_mbuf(s_mbname);
+               free_lbuf(s_mbname);
                free_lbuf(tpr_buff);
                return;
                break;
@@ -4255,7 +4255,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, 
                                  "Notice: %d total attributes were undefined and allocated on object load.", i_flag));
          }
-         free_mbuf(s_mbname);
+         free_lbuf(s_mbname);
          free_lbuf(tpr_buff);
       break;
       case SNAPSHOT_VERIFY:
@@ -4263,21 +4263,21 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, "Invalid switch combination.");
             return;
          }
-         s_mbname = alloc_mbuf("do_snapshot_verify");
+         s_mbname = alloc_lbuf("do_snapshot_verify");
          if ( !buff1 || !*buff1 ) {
             notify(player, "Please specify a file to verify.");
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          } else if ( strstr(buff1, ".img") != NULL ) {
             notify(player, "Please do not specify the .img extension.");
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          } else {
-            snprintf(s_mbname, MBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(buff1));
+            snprintf(s_mbname, LBUF_SIZE, "%s/%.80s.img", mudconf.image_dir, strip_all_special(buff1));
          }
          if ( (f_snap = fopen(s_mbname, "r")) == NULL ) {
             notify(player, "Filename specified not found.");
-            free_mbuf(s_mbname);
+            free_lbuf(s_mbname);
             return;
          }
          tprp_buff = tpr_buff = alloc_lbuf("do_snapshot_verify");
@@ -4287,7 +4287,7 @@ void do_snapshot(dbref player, dbref cause, int key, char *buff1, char *buff2)
             notify(player, safe_tprintf(tpr_buff, &tprp_buff, "Filename %s has been verified clean.", s_mbname));
          }
          fclose(f_snap);
-         free_mbuf(s_mbname);
+         free_lbuf(s_mbname);
          free_lbuf(tpr_buff);
       break;
    }   
