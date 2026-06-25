@@ -92,6 +92,10 @@ main(int argc, char *argv[])
 
     f_ptr = NULL;
     nochk = 0;
+    if ((argc < 2) || (argc > 3)) {
+	usage(argv[0]);
+	exit(1);
+    }
     if (argc == 3) {
 	for (fp = argv[2]; *fp; fp++) {
            if (*fp == 'x') {
@@ -127,10 +131,6 @@ main(int argc, char *argv[])
 
     INITDEBUG(debugmem);
 
-    if ((argc < 2) || (argc > 3)) {
-	usage(argv[0]);
-	exit(1);
-    }
     dddb_var_init();
     cache_var_init();
     cf_init();
@@ -225,7 +225,10 @@ main(int argc, char *argv[])
     }
     /* Go do it */
 
-    db_read(stdin, &db_format, &db_ver, &db_flags);
+    if (db_read(stdin, &db_format, &db_ver, &db_flags) < 0) {
+	fprintf(stderr, "Error reading input database.\n");
+	exit(1);
+    }
     fprintf(stderr, "Input: ");
     info(db_format, db_flags, db_ver);
     val_count();
