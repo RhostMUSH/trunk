@@ -219,15 +219,15 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
           strcpy(s_hbuff2, mudconf.help_separator);
           s_hbuff = exec(GOD, GOD, GOD, EV_FIGNORE | EV_EVAL | EV_NOFCHECK, s_hbuff2,
                          (char **)NULL, 0, (char **)NULL, 0);
-          if ( !*s_hbuff ) {
-             sprintf(s_hbuff2, "%s", (char *)"  ");
-          } else {
-             sprintf(s_hbuff2, "%s", s_hbuff);
-          }
-          free_lbuf(s_hbuff);
-       } else {
-          sprintf(s_hbuff2, "%s", (char *)"  ");
-       }
+           if ( !*s_hbuff ) {
+              snprintf(s_hbuff2, LBUF_SIZE, "%s", (char *)"  ");
+           } else {
+              snprintf(s_hbuff2, LBUF_SIZE, "%s", s_hbuff);
+           }
+           free_lbuf(s_hbuff);
+        } else {
+           snprintf(s_hbuff2, LBUF_SIZE, "%s", (char *)"  ");
+        }
        for (htab_entry = (struct help_entry *) hash_firstentry(htab);
             htab_entry != NULL;
             htab_entry = (struct help_entry *) hash_nextentry(htab)) {
@@ -249,8 +249,9 @@ help_write(dbref player, char *topic, HASHTAB * htab, char *filename, int key)
               free_lbuf(s_buff2);
               free_lbuf(topic_list);
               free_lbuf(s_tmpbuff);
-              tf_fclose(fp);
-              return;
+               free_lbuf(s_hbuff2);
+               tf_fclose(fp);
+               return;
           }
           i_header = 0;
           for (;;) {
