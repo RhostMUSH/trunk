@@ -522,7 +522,7 @@ void do_stats (dbref player, dbref cause, int key, char *name)
             if ( mudstate_hot.freelist >= 0 ) {
                notify(player, unsafe_tprintf("The next free dbref is #%d", mudstate_hot.freelist));
             } else {
-               notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", statinfo.s_total));
+               notify(player, unsafe_tprintf("The next free dbref is #%d (new object)", mudstate_hot.db_top));
             }
             return;
          }
@@ -976,11 +976,13 @@ void do_search_for_players(dbref player, dbref cause, int key, char *arg)
 		switch (Typeof(thing)) {
 			case TYPE_PLAYER:
 				if (Controls(player,thing)) {
-					result = atr_get(thing, A_LAST, &aowner, &aflags);
-					buff = alloc_lbuf("fcache_load");
-					sprintf(buff,"%s(#%d) [%s]:%s",Name(thing),
-												thing,result,Guild(thing));
-					notify(player, buff);
+				result = atr_get(thing, A_LAST, &aowner, &aflags);
+				buff = alloc_lbuf("fcache_load");
+				snprintf(buff, LBUF_SIZE, "%s(#%d) [%.200s]:%s",
+				         Name(thing), thing,
+				         result ? result : "",
+				         Guild(thing) ? Guild(thing) : "");
+				notify(player, buff);
 					free_lbuf(buff);
 					free_lbuf(result);
 				}
@@ -1264,12 +1266,15 @@ FILE* master;
 	if (evc) {
 	  if (!search_setup (player, arg, &searchparm, 1, i_zone)) {
 		mudstate_hot.evalnum--;
+		file_olist_cleanup(&master);
 		return;
 	  }
 	}
 	else {
-	  if (!search_setup (player, arg, &searchparm, 0, i_zone))
+	  if (!search_setup (player, arg, &searchparm, 0, i_zone)) {
+		file_olist_cleanup(&master);
 		return;
+	  }
 	}
 	search_perform (player, cause, &searchparm, &master, i_zone);
 	destitute = 1;
@@ -1280,6 +1285,7 @@ FILE* master;
 		search_mark(player, key, &master);
 		if (evc)
 		  mudstate_hot.evalnum--;
+		file_olist_cleanup(&master);
 		return;
 	}
 
