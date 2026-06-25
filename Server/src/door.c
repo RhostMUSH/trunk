@@ -570,7 +570,8 @@ void save_door(DESC *d, char *info)
   DPUSH; /* #9 */
   if (!d || !d->cold) return;
   qpt = (CBLK *) alloc_lbuf("process_door_input");
-  strcpy(qpt->cmd, info);
+  strncpy(qpt->cmd, info, sizeof(qpt->cmd) - 1);
+  qpt->cmd[sizeof(qpt->cmd) - 1] = '\0';
   qpt->hdr.nxt = NULL;
   if (d->cold->door_input_tail == NULL)
     d->cold->door_input_head = qpt;
@@ -582,26 +583,30 @@ void save_door(DESC *d, char *info)
 
 void queue_door_string(DESC *d, const char *s, int addnl)
 {
-    char *new;
+    char buf[LBUF_SIZE], *new;
     int len;
 
     DPUSH; /* #120 */
 
+    strncpy(buf, s, LBUF_SIZE - 1);
+    buf[LBUF_SIZE - 1] = '\0';
     if (index(s, ESC_CHAR))
-	new = strip_ansi(s);
+	new = strip_ansi(buf);
     else
-	new = (char *) s;
+	new = buf;
     if (new) {
 	len = strlen(new);
 	if (addnl) {
-	  if (len >= LBUF_SIZE-1) {
-	    *(new + LBUF_SIZE - 2) = '\r';
-	    *(new + LBUF_SIZE - 1) = '\n';
-	    *(new + LBUF_SIZE) = '\0';
+	  if (len >= LBUF_SIZE - 2) {
+	    new[LBUF_SIZE - 3] = '\r';
+	    new[LBUF_SIZE - 2] = '\n';
+	    new[LBUF_SIZE - 1] = '\0';
 	    len = LBUF_SIZE - 1;
 	  } else {
-	    strcat(new, "\r\n");
-	    len+=2;
+	    new[len] = '\r';
+	    new[len + 1] = '\n';
+	    new[len + 2] = '\0';
+	    len += 2;
 	  }
 	}
 	queue_door_write(d, new, len);
