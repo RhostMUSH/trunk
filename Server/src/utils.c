@@ -181,6 +181,7 @@ handle_conninfo_read(char *s_target, dbref player, int i_key)
    switch(i_key) {
       case CONN_TIME:
          DESC_ITER_CONN(d) {
+            if (!d->cold) continue;
             if ( D_PLAYER(d) == target ) {
                i_tmp = mudstate_hot.now - d->cold->connected_at;
                i_ctime += (int)i_tmp;
@@ -190,6 +191,7 @@ handle_conninfo_read(char *s_target, dbref player, int i_key)
          break;
       case CONN_LONGEST:
          DESC_ITER_CONN(d) {
+            if (!d->cold) continue;
             if ( D_PLAYER(d) == target ) {
                i_tmp = mudstate_hot.now - d->cold->connected_at;
                if ( i_tmp > i_clong ) {
@@ -204,6 +206,7 @@ handle_conninfo_read(char *s_target, dbref player, int i_key)
          break;
       case CONN_TOTAL:
          DESC_ITER_CONN(d) {
+            if (!d->cold) continue;
             if ( D_PLAYER(d) == target ) {
                i_ctotal++;
             }

@@ -103,11 +103,11 @@ expect(int s, int match, char *buf)
 
 int sendcmd(int s, int cmd, char *arg)
 {
-	char	buf[80];
+	char	buf[LBUF_SIZE];
 	int	cc, len, ret;
 
 	ret = 1;
-	sprintf(buf, "%s %s\n", fnlist[cmd].name, arg != 0 ? arg : (char *)"");
+	snprintf(buf, sizeof(buf), "%s %s\n", fnlist[cmd].name, arg != 0 ? arg : (char *)"");
 	len = strlen(buf);
 	cc = write(s, buf, len);
 	if (cc < 0) {
@@ -208,12 +208,14 @@ int empire_init(DESC *d, int nargs, char *args[], int id)
 
 void empire_prompt(DESC *d)
 {
-  char buf[1024];
+  char *buf;
 
   if (d->cold->door_int1 == C_PROMPT)
     queue_string(d,"\r\n");
-  sprintf(buf,"%s%s\r\n",d->cold->door_mbuf,d->cold->door_lbuf);
-  queue_string(d,buf);
+  buf = alloc_lbuf("empire_prompt");
+  snprintf(buf, LBUF_SIZE, "%s%s\r\n", d->cold->door_mbuf, d->cold->door_lbuf);
+  queue_string(d, buf);
+  free_lbuf(buf);
   process_output(d);
 }
 
@@ -305,7 +307,7 @@ int empire_from_empsrv(DESC *d, char *text)
 	case C_INFORM:
 	  if (*pt2) {
 	    pt2[strlen(pt2)-1] = '\0';
-	    sprintf(d->cold->door_mbuf, "(%s)", pt2+1);
+	    snprintf(d->cold->door_mbuf, MBUF_SIZE, "(%s)", pt2+1);
 	    empire_prompt(d);
 	  }
 	  else
