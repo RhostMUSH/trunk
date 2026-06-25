@@ -3728,7 +3728,7 @@ void do_com(dbref player, dbref cause, int key,
 	const char *arg1, const char *a2)
 {
   char arg2[2048],chan[1000],*ptr, *pbuf, *pbuftmp;
-  static char mess[2000];
+  static char mess[2048];
   int aflags, aflags2;
   dbref aowner, aowner2;
   char *tmp;

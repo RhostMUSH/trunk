@@ -3758,7 +3758,7 @@ build_sweep_check(char *buff, char **bufcx, dbref player, dbref what, int key, i
    int canhear, cancom, isplayer, ispuppet, isconnected, attr, aflags;
    int is_parent, lev;
    char *as, *s_buff, *s;
-   static char s_dbref[20];
+    char s_dbref[20];
    ATTR *ap;
 
    canhear = cancom = isplayer = ispuppet = isconnected = is_parent = 0;
@@ -4025,7 +4025,10 @@ sweep_check(dbref player, dbref what, int key, int is_loc)
 	    what2 = Owner(what);
 	if (Cloak(what2))
 	    safe_str((char *) "cloaked ", buf, &bp);
-	bp[-1] = '\0';
+	if (bp != buf)
+	    bp[-1] = '\0';
+	else
+	    *bp = '\0';
 	if (!Cloak(what2) || (Cloak(what2) &&
 			      ((!Immortal(what2) && (Wizard(player)) && (!SCloak(what2))) || Immortal(player)))) {
             tprp_buff = tpr_buff = alloc_lbuf("sweep_check");
