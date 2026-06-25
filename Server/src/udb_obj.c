@@ -53,7 +53,7 @@ objfromFILE(FILE *  f)
 		return((Obj *)0);
 	}
 
-	if (i < 0) {
+	if (i < 0 || i > 100000) {
 		free(o);
 		return((Obj *)0);
 	}

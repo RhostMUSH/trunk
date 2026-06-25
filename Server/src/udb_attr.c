@@ -55,6 +55,8 @@ attrfromFILE(FILE *  f, int size)
 	/* Get a new attribute struct */
 
 	/* Get a buffer big enough. */
+	if (size < 1)
+		return(ANULL);
 	if((atr = (Attr *)malloc(size+1)) == NULL){
 		free(atr);
 		return(ANULL);

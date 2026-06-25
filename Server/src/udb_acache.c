@@ -201,8 +201,12 @@ cache_trim(CacheLst *sp)
 	Cache *cp;
 
 	while ((sp->count > cdepth) && ((cp = sp->old.tail) != CNULL)) {
-		cp->prv->nxt = CNULL;
-		sp->old.tail = cp->prv;
+		if (cp->prv != CNULL) {
+			cp->prv->nxt = CNULL;
+			sp->old.tail = cp->prv;
+		} else {
+			sp->old.head = sp->old.tail = CNULL;
+		}
 		cache_repl(cp, ANULL);
 		free(cp);
 		sp->count--;

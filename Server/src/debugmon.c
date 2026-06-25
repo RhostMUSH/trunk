@@ -61,7 +61,7 @@ int main( int argc, char *argv[] )
   }
 
   foo = sscanf(argv[1], "%d", &debug_id);
-  if ( foo < 0) {
+  if ( foo != 1) {
     fprintf(stderr, "** debug_id must be an integer, not '%s' **\n", argv[1]);
     exit(1);
   }
