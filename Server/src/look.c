@@ -3623,7 +3623,7 @@ void
 do_entrances(dbref player, dbref cause, int key, char *name)
 {
     dbref thing, i, j;
-    char *exit, *tbuff, *s_target, *message, *tpr_buff, *tprp_buff;
+    char *exit, *tbuff, *s_target, *tpr_buff, *tprp_buff;
     int control_thing, count, low_bound, high_bound,
         i_exit, i_room, i_thing, i_player, i_parent, i_forward, i_chk, i_numzones;
     FWDLIST *fp;
@@ -3649,7 +3649,6 @@ do_entrances(dbref player, dbref cause, int key, char *name)
        notify(player, unsafe_tprintf("You don't have enough %s.", mudconf.many_coins));
        return;
     }
-    message = alloc_lbuf("do_entrances");
     control_thing = Examinable(player, thing);
     count = 0;
     tprp_buff = tpr_buff = alloc_lbuf("do_entrances");
@@ -3742,7 +3741,6 @@ do_entrances(dbref player, dbref cause, int key, char *name)
        }
     }
     free_lbuf(tpr_buff);
-    free_lbuf(message);
     if ( i_numzones > 0 ) {
        if ( ZoneMaster(thing) ) {
           notify(player, unsafe_tprintf("   Zones: Total zones linked to zonemaster: %d", i_numzones));
