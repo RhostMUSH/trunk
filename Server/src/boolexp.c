@@ -341,7 +341,8 @@ NDECL(parse_boolexp_L)
 	buf = alloc_lbuf("parse_boolexp_L");
 	p = buf;
 	while (*parsebuf && (*parsebuf != AND_TOKEN) &&
-	       (*parsebuf != OR_TOKEN) && (*parsebuf != ')')) {
+	       (*parsebuf != OR_TOKEN) && (*parsebuf != ')') &&
+	       (p - buf) < LBUF_SIZE - 1) {
 	    *p++ = *parsebuf++;
 	}
 
@@ -568,11 +569,12 @@ NDECL(parse_boolexp_E)
 BOOLEXP *
 parse_boolexp(dbref player, const char *buf, int internal)
 {
-    strcpy(parsestore, buf);
-    parsebuf = parsestore;
-    parse_player = player;
     if ((buf == NULL) || (*buf == '\0'))
 	return (TRUE_BOOLEXP);
+    strncpy(parsestore, buf, LBUF_SIZE - 1);
+    parsestore[LBUF_SIZE - 1] = '\0';
+    parsebuf = parsestore;
+    parse_player = player;
 #ifndef STANDALONE
     parsing_internal = internal;
 #endif
