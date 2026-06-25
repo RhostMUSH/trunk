@@ -3866,7 +3866,8 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
       }
       xx.user_limit = getref(flatfile);
       line++;
-      strcpy(xx.first_group, getstring_noalloc(flatfile));
+      strncpy(xx.first_group, getstring_noalloc(flatfile), sizeof(xx.first_group) - 1);
+      xx.first_group[sizeof(xx.first_group) - 1] = '\0';
       line++;
       xx.first_user_dbref = getref(flatfile);
       line++;
@@ -3874,9 +3875,11 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
     }
     else if( !strcmp(tag, "GI") ) {
       memset(&gi, 0, sizeof(gi));
-      strcpy(gi.name, getstring_noalloc(flatfile));
+      strncpy(gi.name, getstring_noalloc(flatfile), sizeof(gi.name) - 1);
+      gi.name[sizeof(gi.name) - 1] = '\0';
       line++;
-      strcpy(gi.desc, getstring_noalloc(flatfile));
+      strncpy(gi.desc, getstring_noalloc(flatfile), sizeof(gi.desc) - 1);
+      gi.desc[sizeof(gi.desc) - 1] = '\0';
       line++;
       gi.adder = getref(flatfile);
       line++;
@@ -3888,7 +3891,8 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
         if( admin != -1 ) {
           /* convert admin field to admin lock record */
           memset(&gx, 0, sizeof(gx));
-          strcpy(gx.group_name, gi.name);
+          strncpy(gx.group_name, gi.name, sizeof(gx.group_name) - 1);
+          gx.group_name[sizeof(gx.group_name) - 1] = '\0';
           sprintf(gx.text, "match(#%d,%%#)", admin);
           put_GX(&gx);
         }
@@ -3912,37 +3916,45 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
       line++;
       gi.first_user_dbref = getref(flatfile);
       line++;
-      strcpy(gi.next_group, getstring_noalloc(flatfile));
+      strncpy(gi.next_group, getstring_noalloc(flatfile), sizeof(gi.next_group) - 1);
+      gi.next_group[sizeof(gi.next_group) - 1] = '\0';
       line++;
       put_GI(&gi);
     }
     else if( !strcmp(tag, "GP") ) {
       memset(&gp, 0, sizeof(gp));
-      strcpy(gp.group_name, getstring_noalloc(flatfile));
+      strncpy(gp.group_name, getstring_noalloc(flatfile), sizeof(gp.group_name) - 1);
+      gp.group_name[sizeof(gp.group_name) - 1] = '\0';
       line++;
-      strcpy(gp.text, getstring_noalloc(flatfile));
+      strncpy(gp.text, getstring_noalloc(flatfile), sizeof(gp.text) - 1);
+      gp.text[sizeof(gp.text) - 1] = '\0';
       line++;
       put_GP(&gp);
     }
     else if( !strcmp(tag, "GR") ) {
       memset(&gr, 0, sizeof(gr));
-      strcpy(gr.group_name, getstring_noalloc(flatfile));
+      strncpy(gr.group_name, getstring_noalloc(flatfile), sizeof(gr.group_name) - 1);
+      gr.group_name[sizeof(gr.group_name) - 1] = '\0';
       line++;
-      strcpy(gr.text, getstring_noalloc(flatfile));
+      strncpy(gr.text, getstring_noalloc(flatfile), sizeof(gr.text) - 1);
+      gr.text[sizeof(gr.text) - 1] = '\0';
       line++;
       put_GR(&gr);
     }
     else if( !strcmp(tag, "GX") ) {
       memset(&gx, 0, sizeof(gx));
-      strcpy(gx.group_name, getstring_noalloc(flatfile));
+      strncpy(gx.group_name, getstring_noalloc(flatfile), sizeof(gx.group_name) - 1);
+      gx.group_name[sizeof(gx.group_name) - 1] = '\0';
       line++;
-      strcpy(gx.text, getstring_noalloc(flatfile));
+      strncpy(gx.text, getstring_noalloc(flatfile), sizeof(gx.text) - 1);
+      gx.text[sizeof(gx.text) - 1] = '\0';
       line++;
       put_GX(&gx);
     }
     else if( !strcmp(tag, "GU") ) {
       memset(&gu, 0, sizeof(gu));
-      strcpy(gu.group_name, getstring_noalloc(flatfile));
+      strncpy(gu.group_name, getstring_noalloc(flatfile), sizeof(gu.group_name) - 1);
+      gu.group_name[sizeof(gu.group_name) - 1] = '\0';
       line++;
       gu.user_dbref = getref(flatfile);
       line++;
@@ -3952,13 +3964,16 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
     }
     else if( !strcmp(tag, "GA") ) {
       memset(&ga, 0, sizeof(ga));
-      strcpy(ga.group_name, getstring_noalloc(flatfile));
+      strncpy(ga.group_name, getstring_noalloc(flatfile), sizeof(ga.group_name) - 1);
+      ga.group_name[sizeof(ga.group_name) - 1] = '\0';
       line++;
       ga.seq = getref(flatfile);
       line++;
-      strcpy(ga.title, getstring_noalloc(flatfile));
+      strncpy(ga.title, getstring_noalloc(flatfile), sizeof(ga.title) - 1);
+      ga.title[sizeof(ga.title) - 1] = '\0';
       line++;
-      strcpy(ga.owner_name, getstring_noalloc(flatfile));
+      strncpy(ga.owner_name, getstring_noalloc(flatfile), sizeof(ga.owner_name) - 1);
+      ga.owner_name[sizeof(ga.owner_name) - 1] = '\0';
       line++;
       ga.owner_dbref = getref(flatfile);
       line++;
@@ -3975,11 +3990,13 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
     }
     else if( !strcmp(tag, "GT") ) {
       memset(&gt, 0, sizeof(gt));
-      strcpy(gt.group_name, getstring_noalloc(flatfile));
+      strncpy(gt.group_name, getstring_noalloc(flatfile), sizeof(gt.group_name) - 1);
+      gt.group_name[sizeof(gt.group_name) - 1] = '\0';
       line++;
       gt.seq = getref(flatfile);
       line++;
-      strcpy(gt.text, getstring_noalloc(flatfile));
+      strncpy(gt.text, getstring_noalloc(flatfile), sizeof(gt.text) - 1);
+      gt.text[sizeof(gt.text) - 1] = '\0';
       line++;
       put_GT(&gt);
     }
@@ -3989,11 +4006,14 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
       line++;
       ui.total_posts = getref(flatfile);
       line++;
-      strcpy(ui.first_group, getstring_noalloc(flatfile));
+      strncpy(ui.first_group, getstring_noalloc(flatfile), sizeof(ui.first_group) - 1);
+      ui.first_group[sizeof(ui.first_group) - 1] = '\0';
       line++;
-      strcpy(ui.last_read_group, getstring_noalloc(flatfile));
+      strncpy(ui.last_read_group, getstring_noalloc(flatfile), sizeof(ui.last_read_group) - 1);
+      ui.last_read_group[sizeof(ui.last_read_group) - 1] = '\0';
       line++;
-      strcpy(ui.first_art_group, getstring_noalloc(flatfile));
+      strncpy(ui.first_art_group, getstring_noalloc(flatfile), sizeof(ui.first_art_group) - 1);
+      ui.first_art_group[sizeof(ui.first_art_group) - 1] = '\0';
       line++;
       ui.first_art_seq = getref(flatfile);
       line++;
@@ -4005,11 +4025,13 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
       memset(&ug, 0, sizeof(ug));
       ug.user_dbref = getref(flatfile);
       line++;
-      strcpy(ug.group_name, getstring_noalloc(flatfile));
+      strncpy(ug.group_name, getstring_noalloc(flatfile), sizeof(ug.group_name) - 1);
+      ug.group_name[sizeof(ug.group_name) - 1] = '\0';
       line++;
       ug.seq_marker = getref(flatfile);
       line++;
-      strcpy(ug.next_group, getstring_noalloc(flatfile));
+      strncpy(ug.next_group, getstring_noalloc(flatfile), sizeof(ug.next_group) - 1);
+      ug.next_group[sizeof(ug.next_group) - 1] = '\0';
       line++;
       put_UG(&ug);
     }
@@ -4017,11 +4039,13 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
       memset(&ua, 0, sizeof(ua));
       ua.user_dbref = getref(flatfile);
       line++;
-      strcpy(ua.group_name, getstring_noalloc(flatfile));
+      strncpy(ua.group_name, getstring_noalloc(flatfile), sizeof(ua.group_name) - 1);
+      ua.group_name[sizeof(ua.group_name) - 1] = '\0';
       line++;
       ua.seq = getref(flatfile);
       line++;
-      strcpy(ua.next_art_group, getstring_noalloc(flatfile));
+      strncpy(ua.next_art_group, getstring_noalloc(flatfile), sizeof(ua.next_art_group) - 1);
+      ua.next_art_group[sizeof(ua.next_art_group) - 1] = '\0';
       line++;
       ua.next_art_seq = getref(flatfile);
       line++;
@@ -4316,7 +4340,8 @@ int news_convert_db( int src_ver )
     xx.last_expire_time =   xx_v1.last_expire_time;
     xx.def_article_life =   DEFAULT_EXPIRE_OFFSET;   /* new in v2 */
     xx.user_limit =         xx_v1.user_limit;
-    strcpy( xx.first_group, xx_v1.first_group );
+    strncpy( xx.first_group, xx_v1.first_group, sizeof(xx.first_group) - 1 );
+    xx.first_group[sizeof(xx.first_group) - 1] = '\0';
     xx.first_user_dbref =   xx_v1.first_user_dbref;
     
     put_XX( &xx );
@@ -4329,8 +4354,10 @@ int news_convert_db( int src_ver )
       news_assert_retnonevoid( get_GI_v1( &gi_v1, groupkeyptr ), 0);
 
       memset( &gi, 0, sizeof( gi ) );
-      strcpy( gi.name,        gi_v1.name );
-      strcpy( gi.desc,        gi_v1.desc );
+      strncpy( gi.name,        gi_v1.name, sizeof(gi.name) - 1 );
+      gi.name[sizeof(gi.name) - 1] = '\0';
+      strncpy( gi.desc,        gi_v1.desc, sizeof(gi.desc) - 1 );
+      gi.desc[sizeof(gi.desc) - 1] = '\0';
       gi.adder =              gi_v1.adder;
       
       if( gi_v1.admin != -1 ) {
@@ -4338,7 +4365,8 @@ int news_convert_db( int src_ver )
         NewsGroupAdminLockRec gx;
 
         memset( &gx, 0, sizeof( gx ) );
-        strcpy( gx.group_name, gi_v1.name );
+        strncpy( gx.group_name, gi_v1.name, sizeof(gx.group_name) - 1 );
+        gx.group_name[sizeof(gx.group_name) - 1] = '\0';
         sprintf(gx.text, "match(#%d,%%#)", gi_v1.admin);
 
         put_GX( &gx );
@@ -4351,7 +4379,8 @@ int news_convert_db( int src_ver )
       gi.next_post_seq =      gi_v1.next_post_seq;
       gi.first_seq =          gi_v1.first_seq;
       gi.first_user_dbref =   gi_v1.first_user_dbref;
-      strcpy( gi.next_group,  gi_v1.next_group );
+      strncpy( gi.next_group,  gi_v1.next_group, sizeof(gi.next_group) - 1 );
+      gi.next_group[sizeof(gi.next_group) - 1] = '\0';
 
       put_GI( &gi );
     }
@@ -4386,9 +4415,10 @@ void news_halt(char* fmt, ...)
 
 char* ez_ctime( time_t timemark )
 {
-  static char timebuff[26];
+  static char timebuff[27];
 
-  strcpy(timebuff,ctime(&timemark));
+  strncpy(timebuff,ctime(&timemark), sizeof(timebuff) - 1);
+  timebuff[sizeof(timebuff) - 1] = '\0';
   timebuff[strlen(timebuff) - 1] = '\0';
 
   return timebuff;
