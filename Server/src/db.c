@@ -4611,7 +4611,17 @@ getstring_noalloc(FILE * f)
 	    *p = '\0';
 	    return buf;
 	}
-	safe_chr(c, buf, &p);
+	if (safe_chr(c, buf, &p)) {
+	    STARTLOG(LOG_PROBLEMS, "DB", "TRUNC")
+		log_text("Flatfile line truncated (exceeds LBUF_SIZE)");
+	    ENDLOG
+	    do {
+		lastc = c;
+		c = fgetc(f);
+	    } while (c != EOF && c && !(c == '\n' && lastc != '\r'));
+	    *p = '\0';
+	    return buf;
+	}
     }
 }
 
