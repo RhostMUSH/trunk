@@ -87,9 +87,11 @@ FUNCTION(local_fun_sqlite_query)
 #endif
 
    if( nfargs >= 3 ) {
-      strncpy( colDelimit, fargs[2], LBUF_SIZE );
+      strncpy( colDelimit, fargs[2], LBUF_SIZE - 1 );
+      colDelimit[LBUF_SIZE - 1] = '\0';
       if( nfargs >= 4 ) {
-         strncpy( rowDelimit, fargs[3], LBUF_SIZE );
+         strncpy( rowDelimit, fargs[3], LBUF_SIZE - 1 );
+         rowDelimit[LBUF_SIZE - 1] = '\0';
       }
    } else {
       strcpy( colDelimit, "|" );
@@ -269,8 +271,9 @@ FUNCTION(local_fun_sqlite_query)
 #ifdef DEBUG_SQLITE
                   printf( "                       skipped (null)\n" );
 #endif
-               } else {
-                  strncpy( tempbuff, colPtr, LBUF_SIZE );
+                } else {
+                   strncpy( tempbuff, colPtr, LBUF_SIZE - 1 );
+                   tempbuff[LBUF_SIZE - 1] = '\0';
 #ifdef DEBUG_SQLITE
                   printf( "                       sending column text..\n" );
 #endif

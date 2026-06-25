@@ -118,7 +118,7 @@ obj_from_buf(const char *buf, int bufsiz)
     memcpy(&o->at_count, buf + off, sizeof(int));
     off += sizeof(int);
 
-    if (o->at_count < 0) {
+    if (o->at_count < 0 || o->at_count > 100000) {
         free(o);
         return NULL;
     }
