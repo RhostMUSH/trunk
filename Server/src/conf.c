@@ -2963,9 +2963,10 @@ CF_HAND(cf_pronstring)
                 s_strtok = strtok_r(NULL, " \t", &s_strtokr);
              }
           }
-          if ( retval ) {
-             strcpy((char *) vp, str);
-          }
+           if ( retval ) {
+              strncpy((char *) vp, str, extra);
+              ((char *)vp)[extra] = '\0';
+           }
        }
        free_lbuf(s_buff);
     }
@@ -2991,9 +2992,10 @@ CF_HAND(cf_pronstring)
        } else {
           notify(player, "Syntax expected: sexname1:subj1:obj1:poss1:aposs1 sexname2:subj2:obj2:poss2:aposs2 ...");
        }
-    } else if (!retval) {
-       strcpy((char *) vp, str);
-       // Clearing the value
+     } else if (!retval) {
+        strncpy((char *) vp, str, extra);
+        ((char *)vp)[extra] = '\0';
+        // Clearing the value
     }
     return retval;
 }
@@ -6176,7 +6178,8 @@ cf_set(char *cp, char *ap, dbref player)
 	    }
 	    if (!mudstate_hot.initializing) {
 		buff = alloc_lbuf("cf_set");
-		strcpy(buff, ap);
+		strncpy(buff, ap, LBUF_SIZE - 1);
+		buff[LBUF_SIZE - 1] = '\0';
 	    }
 	    i = ((int (*)(int *, char *, long, long, dbref, char *))tp->interpreter)(tp->loc, ap, tp->extra, tp->extra2, player, cp);
             if ( i != 777) {
@@ -6207,12 +6210,14 @@ cf_set(char *cp, char *ap, dbref player)
 		   default:
 		       log_text((char *) "Strange.");
 		   }
-		   ENDLOG
-		       free_lbuf(buff);
-	       }
-            } else {
+ 		   ENDLOG
+ 	       }
+             } else {
                i = 0;
             }
+	    if (!mudstate_hot.initializing) {
+	       free_lbuf(buff);
+	    }
 	    return i;
 	}
     }
@@ -6243,15 +6248,18 @@ cf_read(char *fn)
     /* Fill in missing DB file names */
 
     if (!*mudconf.outdb) {
-	strcpy(mudconf.outdb, mudconf.indb);
+	strncpy(mudconf.outdb, mudconf.indb, sizeof(mudconf.outdb) - 5);
+	mudconf.outdb[sizeof(mudconf.outdb) - 5] = '\0';
 	strcat(mudconf.outdb, ".out");
     }
     if (!*mudconf.crashdb) {
-	strcpy(mudconf.crashdb, mudconf.indb);
+	strncpy(mudconf.crashdb, mudconf.indb, sizeof(mudconf.crashdb) - 7);
+	mudconf.crashdb[sizeof(mudconf.crashdb) - 7] = '\0';
 	strcat(mudconf.crashdb, ".CRASH");
     }
     if (!*mudconf.gdbm) {
-	strcpy(mudconf.gdbm, mudconf.indb);
+	strncpy(mudconf.gdbm, mudconf.indb, sizeof(mudconf.gdbm) - 6);
+	mudconf.gdbm[sizeof(mudconf.gdbm) - 6] = '\0';
 	strcat(mudconf.gdbm, ".gdbm");
     }
     return retval;
