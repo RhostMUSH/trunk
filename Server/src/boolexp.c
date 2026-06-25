@@ -242,6 +242,7 @@ eval_boolexp_atr(dbref player, dbref thing, dbref from, char *key, int def, int 
 static const char *parsebuf;
 static char parsestore[LBUF_SIZE];
 static dbref parse_player;
+static int boolexp_depth = 0;
 
 static void 
 NDECL(skip_whitespace)
@@ -440,13 +441,19 @@ NDECL(parse_boolexp_F)
     switch (*parsebuf) {
     case NOT_TOKEN:
 	parsebuf++;
+	if (++boolexp_depth > 100) {
+	    boolexp_depth--;
+	    return (TRUE_BOOLEXP);
+	}
 	b2 = alloc_bool("parse_boolexp_F.not");
 	b2->type = BOOLEXP_NOT;
 	if ((b2->sub1 = parse_boolexp_F()) == TRUE_BOOLEXP) {
+	    boolexp_depth--;
 	    free_boolexp(b2);
 	    return (TRUE_BOOLEXP);
-	} else
-	    return (b2);
+	}
+	boolexp_depth--;
+	return (b2);
 	/*NOTREACHED */
 	break;
     case INDIR_TOKEN:
@@ -528,13 +535,20 @@ NDECL(parse_boolexp_T)
 	if (*parsebuf == AND_TOKEN) {
 	    parsebuf++;
 
+	    if (++boolexp_depth > 100) {
+		boolexp_depth--;
+		free_boolexp(b);
+		return TRUE_BOOLEXP;
+	    }
 	    b2 = alloc_bool("parse_boolexp_T");
 	    b2->type = BOOLEXP_AND;
 	    b2->sub1 = b;
 	    if ((b2->sub2 = parse_boolexp_T()) == TRUE_BOOLEXP) {
+		boolexp_depth--;
 		free_boolexp(b2);
 		return TRUE_BOOLEXP;
 	    }
+	    boolexp_depth--;
 	    b = b2;
 	}
     }
@@ -548,6 +562,10 @@ NDECL(parse_boolexp_E)
 {
     BOOLEXP *b, *b2;
 
+    if (++boolexp_depth > 100) {
+	boolexp_depth--;
+	return TRUE_BOOLEXP;
+    }
     if ((b = parse_boolexp_T()) != TRUE_BOOLEXP) {
 	skip_whitespace();
 	if (*parsebuf == OR_TOKEN) {
@@ -558,11 +576,13 @@ NDECL(parse_boolexp_E)
 	    b2->sub1 = b;
 	    if ((b2->sub2 = parse_boolexp_E()) == TRUE_BOOLEXP) {
 		free_boolexp(b2);
+		boolexp_depth--;
 		return TRUE_BOOLEXP;
 	    }
 	    b = b2;
 	}
     }
+    boolexp_depth--;
     return b;
 }
 
