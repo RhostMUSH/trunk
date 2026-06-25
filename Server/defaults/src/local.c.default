@@ -153,7 +153,8 @@ void local_function(char *funcname, char *buff, char **bufcx, dbref player, dbre
       safe_str("This was a test. Function: '", buff, bufcx);
       safe_str(funcname, buff, bufcx);
       safe_str("' First Arg: '", buff, bufcx);
-      safe_str(fargs[0], buff, bufcx);
+      if (nfargs > 0 && fargs[0])
+         safe_str(fargs[0], buff, bufcx);
       safe_chr('\'', buff, bufcx);
    } else {
       safe_str("#-1 NO FUNCTION", buff, bufcx);

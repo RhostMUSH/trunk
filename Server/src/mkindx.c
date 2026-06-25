@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	    for (i = -1, s = topic; *s != '\n' && *s != '\0'; s++) {
 		if (i >= TOPIC_NAME_LEN - 1)
 		    break;
-		if (*s != ' ' || entry[topic_indx].topic[i] != ' ')
+		if (*s != ' ' || (i >= 0 && entry[topic_indx].topic[i] != ' '))
 		    entry[topic_indx].topic[++i] = *s;
 	    }
 	    entry[topic_indx].topic[++i] = '\0';
