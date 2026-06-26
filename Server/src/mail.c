@@ -6961,6 +6961,7 @@ void mail_unload(dbref player)
     notify_quiet(player,"Mail: No mail data to dump");
     fclose(dump1);
     fclose(dump2);
+    return;
   }
   else {
     do {
