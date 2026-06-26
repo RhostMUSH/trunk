@@ -37011,7 +37011,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
+  1 - 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
   2 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
   3 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
   4 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
@@ -37025,8 +37025,10 @@
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
   10 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
-& 5.5.3
 
+& 5.5.5
+& 5.5.4
+& 5.5.3
 & 5.5.2
 & 5.5.1
 & 5.5.0
@@ -37035,6 +37037,33 @@
 & changelog recent
 & changelog 1
   Topic: CHANGELOG
+
+  5.5.5 -- The Number Of The Audit
+  * Infrastructure / Hardening
+    - The Signal handler (wizhelp signal) was handling code in a somewhat
+      unsafe manner. All signals (except SIGTERM) now trigger their payload
+      in the main game loop.
+    - Boolean locks now are limited to a max of 100 boolean operators.
+    - Internal pools of same size can't accidentally be cross-free'd
+    - Player descriptor cold data guards. So many. So very many.
+  * Preemptive Guards
+    - A metric ton of preemptive and proactive guardrails against bad memory
+      accesses. 
+  * Overflow Fixes
+    - An imperial ton of fixes for a lot of edge-case buffer overflows, even
+      theoretial ones.
+  * Other Specific Bugfixes
+    - Potential crashfixes in the @freeze/@thaw set of commands.
+    - More Lua API and Websocket  hardening
+    - Fixed srare-case memory leaks in @sudo and @clone. 
+    - Fixes for ye olde Empire and Mail doors! Never stop polishing ancient
+      cogwheels.
+    - Fix for intsize on Big Endian systems
+    - Fix for local.c argument handling
+    - Leak fixes in the old object cache and the tag system.
+    - Fix for @stat/free showing a wonky 'next free' #dbref if the freelist
+      is empty.
+    - Removed dead convert.c code
 
   5.5.4
   * Fixed an unguarded pointer dereference
