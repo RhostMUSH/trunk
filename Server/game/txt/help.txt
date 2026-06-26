@@ -37011,7 +37011,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
+  1 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
   2 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
   3 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
   4 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
@@ -37026,6 +37026,7 @@
   10 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.5.6
 & 5.5.5
 & 5.5.4
 & 5.5.3
@@ -37038,6 +37039,10 @@
 & changelog 1
   Topic: CHANGELOG
 
+  5.5.6
+  * Fix for wmail/unload crashing when there was no mail to unload. Aw.
+    I really liked '5.5.5'
+ 
   5.5.5 -- The Number Of The Audit
   * Infrastructure / Hardening
     - The Signal handler (wizhelp signal) was handling code in a somewhat
@@ -37064,10 +37069,10 @@
     - Fix for @stat/free showing a wonky 'next free' #dbref if the freelist
       is empty.
     - Removed dead convert.c code
-
+ 
   5.5.4
   * Fixed an unguarded pointer dereference
-
+ 
   5.5.3
   * Added several guards and fixed to the mail flatfile import code:
     - Fixed Striding of mailfields to be dynamic with SBUF size
@@ -37076,17 +37081,17 @@
       int
     - Made file deletes more secure.
     - Multiple cases where the mail import didn't gracefully fail fixed.
-
+ 
   5.5.1
   * Fixed asksourcesh and asksource-ng.sh: Max players were stored in the
     same value as Player Name Length. Thanks, Myrddin!
-
+ 
   5.5.1
   * Fixed compiler warnings for GCC: When USE_OPENSSL was not defined, two
     varibales in do_command were unused.
   * Fixed compiler warnings for Clang: Added an unsigned char cast of
     values into the connection header list.
-
+ 
   5.5.0
   * Added asksource-ng.sh, a version of the asksource.sh script that uses
     an interactive dialog/menu system. Also 'make config-ng' and
@@ -37106,33 +37111,33 @@
   5.4.4
   * Fixed width(), height() and terminfo() to use a player's least idle
     connection, when no argument is supplied to them.
-
+ 
   5.4.3
   * Made out telnet negotiator send out a proper IAC DO TTYPE handshake.
     Tinyfugue (And perhaps some other clients) refused sending client
     info otherwise.
-
+ 
   5.4.2
   * Fixed check_tor to not accidentally cut off ip-addrsses.
-
+ 
   5.4.1
   * Updated patch.sh to actually work with Rhost 5's new/removed sub-
     directories, and also added a choice of Rhost 4.
-
+ 
   5.4.0
   * Added the same support for player list formatting to page, whisper,
     and @pemit/list
-
+ 
   5.3.0
   * Added support for playernames with spaces for mail sending. Both these
     list formats are now valid:
     name, name, name with spaces, name, name...
     name name "name with spaces" name name
     This should help with some Mux compatibilities.
-
+ 
   5.2.1
   * Updated proxysnarf.txt - Removed a lot of invalid URLs
-
+ 
   5.2.0
   * Added '@list utf8' to show a fallback-table of UTF8 -> ASCII conversions.
     Essentially the characters that people see, when they don't have the UTF8
@@ -37148,24 +37153,24 @@
 
   5.1.16
   * An mbuf was free'd as an sbuf in the tor address checker.
-
+ 
   5.1.15
   * Restored intsize.c for the intsize binary. Whoops.
-
+ 
   5.1.14
   * The DOING view had a bug introduced where the @doing of the latest player
     in the internal list showed in ALL player's fields. Fixed!
     Thanks to Wyrd DM for reporting that one.
-
+ 
   5.1.13
   * BIG AUDIT FINISH
     - Added crash-protection against failed mysql writes
     - Added Overrun/NULL checks in udb_ocache.
-
+ 
   5.1.12
   * User-defined function names lacked a length check in sprintfs. Switched
     to snprintf with proper length guards.
-
+ 
   5.1.11
   * Fixed (non-crashing) NULL pointer in exit alias display
   * Properly freeing buf2 in early decode_flags return
@@ -37188,32 +37193,32 @@
   5.1.10
   * Crash fix for mail sends - a fix to pool_buffers in an earlier commit
     *actually* caused a sleeping bad read in mail.c to come to the fore. Heh.
-
+ 
   5.1.9
   * Fix for boolean locks causing a buffer mis-read if the first argument in
     the lock was empty (say, '|#1')
   * Fix for %q<X> not finding a letter name entry and doing OOB reads.
   * Fix for @aflag lists showing wrong perms in the see field.
-
+ 
   5.1.8
   * Fixed @dolist rollback cache being invalidated by inline, and re-use of a
     variable.
   * Fixed unlinked exits being occasionally caught by the invalid exit cleanup
     code.
   * Made tprintf solid against corrupt buffers.
-
+ 
   5.1.7
   * Added overflow checks in help message handling and pay quotas.
   * Fixed off-by-one in a date check
   * Protected a not-called UTF8 codepath.
-
+ 
   5.1.6
   * Updated asksource.blank to match current asksource.sh
-
+ 
   5.1.5
   * Removed a pile of actually unused files from the source, and de-referenced
     them in debug.h
-
+ 
   5.1.4
   * Further Audit:
     - Added config option dropto_limit (default 10) to protect against
@@ -37222,7 +37227,7 @@
     - Multiple memory guards in autoreg code, debugmon signal handling
     - Removal of unnecessary casts in match.c
     - Switch of "rm" system command in autoreg.c to remove()
-
+ 
   5.1.3
   * Audit of lesser-trodden codepaths:
     - Multiple NULL guards added.
@@ -37234,17 +37239,17 @@
     - LUA Sandbox was again hardened a little bit more.
     - Empire and RWHO got fixes! Even the ancient relics need love.
     - SQLite got an snprintf treatment for more secure string handling.
-
+ 
   5.1.2
   * Added more just-in-case guards and safety checks in the telnet code,
     as well as player descriptors and ocache. SECURE EVERYTHING!
-
+ 
   5.1.1
   * Added a crashfix for Telnet negotiation code and certain (dis)connect
     slot re-uses.
   * Added NULL checks to parts of the Websocket code.
   * Diagnostic logging added: TEL/ DSC/ entries in netrthost.gamelog
-
+ 
   5.1.0
   * Added explicit support for MariaDB, additional to Mysql.
     New 'MariaDB' option can be picked in the 'MySQL' section of
@@ -37267,90 +37272,90 @@
   5.0.10
   * Additional 5-Phase audit across the codebase using M3:
     - Dozens of added guards and NULL pointer protections.
-
+ 
   5.0.9
   * Large Audit:
     - Fixed leaks in dbconvert and mailfix code
     - Added various guards against further memory leaks and null
       pointer references throughout the codebase.
     - defense-in-depth guards in empire code, door code, network code.
-
+ 
   5.0.8
   * Another more thorough fix. Proceeded to add more guards for player
     connections.
-
+ 
   5.0.7
   * Added another guard to protect the descriptor code.
-
+ 
   5.0.6
   * Crash fix for some player descriptor code in (sigh) doors.
-
+ 
   5.0.5
   * Command lookups were accidentaly case-insensitive due to internal code
     changes. This caused things like page aliases to malfunction.
-
+ 
   5.0.4
   * Fixed a harmless C11-related compiler warning due to a leftover of the
     Player Descriptor code improvement.
-
+ 
   5.0.3
   * Improved re-negotiation of client width() and height() on @reboot.
-
+ 
   5.0.2
   * Small fix for MDBX on BSD:
     - Patched mdbx.c to guard BSD against the _POSIX_C_SOURCE define, so all
       data types from types.h get correctly used.
     - Added a guard in src/Makefile to add -lpthread on BSD due to MDBX'
       use of pthreads.
-
+ 
   5.0.1
   * Small fix for compiling on BSD
     - Memory access fixes in door.c due to new player descriptor format
     - Preliminary guard: On player disconnects, descriptor slots get zero'd.
-
+ 
   5.0.0
   * Bundles versions 4.28.* to 4.33.* into a new major release:
-
+ 
     - A TON of speed improvements and code optimizations were done under the
       hood, compiler warnings were removed, CPU usage was optimized.
-
+ 
     - Support for MDBX Database backend (Thanks Brazil!) wirth further fixes.
-
+ 
     - GDBM Support removed: Anybody using this ancient DB backend needs to
       @dump/flat their game, upgrade, and import the flatfile.
-
+ 
     - New compile time option in 'make config / make confsource' to set the
       max players that can connect. Required due to code optimizations, in-
       dependent of the max_players @admin config option. Default: 150
-
+ 
     - Full IPv6 support: "ip_family" config option sets type (1 = IPv4,
       2 = IPv6, 3 = both), and ip_address_v6 sets IPv6 address to listen on.
-
+ 
     - IPv6 support for @blacklist, @site, and all *_site options.
-
+ 
     - Truecolor ANSI support: @set TRUECOLOR on a player. uses the same
       %x<R G B> and %x#RRGGBB formats as 256-color ANSI, except accurately.
-
+ 
     - playeransi_permit option: uses values 0-7 ( see help bittype() ) to
       determine which bittype is required to set ANSI colors on any player
       names.
-
+ 
     - wrap() has a third option to make it ansi-aware, just like functions
       like left().
-
+ 
     - printf() was overhauled to properly work with Unicode characters.
-
+ 
     - Telnet NAWS negotiation: New width(), height() and terminfo() functions
       compatible with the MUX implementation. Get a player's client info and
       window sizes.
-
+ 
     - The whisper command now makes use of the MUXPAGE toggle to be
       compatible with MUX: whisper to the last target(s) if no targets were
       specified.
-
+ 
     - Websocket support for the API was improved and standardized with RFC
       6455. The LUAi PI was hardened and simplified.
-
+ 
     - A lot of help file typo fixes.
 
 & 4.33.0
