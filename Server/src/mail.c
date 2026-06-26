@@ -6966,7 +6966,7 @@ void mail_unload(dbref player)
     do {
       infodata = dbm_fetch(mailfile,keydata);
       if (infodata.dptr) {
-	memcpy(sbuf7,keydata.dptr,keydata.dsize);
+	{ size_t cpsz = keydata.dsize; if (cpsz > SBUF_SIZE - 1) cpsz = SBUF_SIZE - 1; memcpy(sbuf7,keydata.dptr,cpsz); sbuf7[cpsz] = '\0'; }
 	switch (*(int *)sbuf7) {
 	  case MIND_IRCV: fprintf(dump1,"A%d\1\n",*(int *)(sbuf7 + sizeof(int)));
 			  break;
@@ -7096,7 +7096,7 @@ void mail_unload(dbref player)
     do {
       infodata = dbm_fetch(foldfile,keydata);
       if (infodata.dptr) {
-	memcpy(sbuf7,keydata.dptr,keydata.dsize);
+	{ size_t cpsz = keydata.dsize; if (cpsz > SBUF_SIZE - 1) cpsz = SBUF_SIZE - 1; memcpy(sbuf7,keydata.dptr,cpsz); sbuf7[cpsz] = '\0'; }
 	switch (*(int *)sbuf7) {
 	  case FIND_LST: fprintf(dump2,"A%d\1\n",*(int *)(sbuf7+sizeof(int)));
 			 break;
