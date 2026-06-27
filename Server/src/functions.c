@@ -63,6 +63,60 @@ char *rindex(const char *, int);
 #ifdef REALITY_LEVELS
 #include "levels.h"
 #endif /* REALITY_LEVELS */
+/* ---------------------------------------------------------------------------
+ * Pooled ANSISPLIT buffers — 8 slots, reused via split_free_buf.
+ * Overflow allocations are tracked and freed at cycle end.
+ * ---------------------------------------------------------------------------
+ */
+#define AS_POOL_SIZE 8
+#define AS_OVERFLOW_SIZE 64
+
+static struct { ANSISPLIT *buf; int in_use; } as_pool[AS_POOL_SIZE];
+static ANSISPLIT *as_overflow[AS_OVERFLOW_SIZE];
+static int         as_overflow_cnt = 0;
+
+static inline ANSISPLIT *split_alloc_buf(void)
+{
+    int i;
+    for (i = 0; i < AS_POOL_SIZE; i++) {
+        if (!as_pool[i].in_use) {
+            as_pool[i].in_use = 1;
+            if (!as_pool[i].buf)
+                as_pool[i].buf = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+            return as_pool[i].buf;
+        }
+    }
+    if (as_overflow_cnt < AS_OVERFLOW_SIZE) {
+        ANSISPLIT *b = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+        as_overflow[as_overflow_cnt++] = b;
+        return b;
+    }
+    return (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+}
+
+void split_free_buf(ANSISPLIT *p)
+{
+    int i;
+    for (i = 0; i < AS_POOL_SIZE; i++) {
+        if (as_pool[i].buf == p) { as_pool[i].in_use = 0; return; }
+    }
+    for (i = 0; i < as_overflow_cnt; i++) {
+        if (as_overflow[i] == p) { free(p); as_overflow[i] = as_overflow[--as_overflow_cnt]; return; }
+    }
+    free(p);
+}
+
+void split_free_bufs(void)
+{
+    int i;
+    for (i = 0; i < AS_POOL_SIZE; i++) {
+        if (as_pool[i].buf) { free(as_pool[i].buf); as_pool[i].buf = NULL; }
+        as_pool[i].in_use = 0;
+    }
+    for (i = 0; i < as_overflow_cnt; i++) { free(as_overflow[i]); as_overflow[i] = NULL; }
+    as_overflow_cnt = 0;
+}
+
 #include "timez.h"
 #ifndef INT_MAX
 #define INT_MAX 2147483647
@@ -4607,10 +4661,13 @@ FUNCTION(fun_columns)
   int count, ncols, remorig, rows, x, y, z, scount, bufcols;
   char *leftstart, *pp, *holdbuff, *hbpt, *pt2, *between;
   char delim, *spacer_sep, *string;
-  ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
+  ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
 
-  if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx))
+  if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
     return;
+   }
 
 
   count = 0;
@@ -4624,16 +4681,22 @@ FUNCTION(fun_columns)
 
   if( maxw < 1 ) {
      safe_str( "#-1 WIDTH MUST BE >= 1", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
 
   if( maxw > (LBUF_SIZE - 1) ) {
      safe_str( "#-1 WIDTH ARGUMENT OUT OF BOUNDS", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
   ncols = atoi(fargs[2]);
   if ((ncols < 1) || (ncols > (LBUF_SIZE-1))) {
      safe_str( "#-1 COLUMNS ARGUMENT OUT OF BOUNDS", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
   if( nfargs >= 4 ) {
@@ -4655,6 +4718,8 @@ FUNCTION(fun_columns)
               winfo.just = JUST_LEFT;
            } else {
               safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
               return;
            }
            break;
@@ -4972,6 +5037,8 @@ FUNCTION(fun_columns)
   }
   free_lbuf(holdbuff);
   free_lbuf(string);
+  split_free_buf(outsplit2);
+  split_free_buf(outsplit);
 }
 
 FUNCTION(fun_wrapcolumns)
@@ -4981,10 +5048,13 @@ FUNCTION(fun_wrapcolumns)
   int count, ncols, remorig, rnorem, rows, x, y, z;
   char *leftstart, *crp, *pp, *expandbuff, *string;
   char *holdbuff, *hbpt, *pt2, *between;
-  ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_bp, *p_sp, *p_leftstart; 
+  ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
 
-  if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 11, buff, bufcx))
+  if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 11, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
+   }
 
   count = 0;
   memset(&winfo, 0, sizeof(winfo));
@@ -4995,16 +5065,22 @@ FUNCTION(fun_wrapcolumns)
 
   if( maxw < 1 ) {
      safe_str( "#-1 WIDTH MUST BE >= 1", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
 
   if( maxw > (LBUF_SIZE - 1) ) {
      safe_str( "#-1 WIDTH ARGUMENT OUT OF BOUNDS", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
   ncols = atoi(fargs[2]);
   if ((ncols < 1) || (ncols > (LBUF_SIZE-1))) {
      safe_str( "#-1 COLUMNS ARGUMENT OUT OF BOUNDS", buff, bufcx );
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
      return;
   }
   if( nfargs >= 4 ) {
@@ -5023,6 +5099,8 @@ FUNCTION(fun_wrapcolumns)
            break;
         default:
            safe_str("#-1 INVALID JUSTIFICATION SPECIFIED", buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
            return;
      }
   }
@@ -5365,6 +5443,8 @@ FUNCTION(fun_wrapcolumns)
   free_lbuf(expandbuff);
   free_lbuf(holdbuff);
   free_lbuf(string);
+  split_free_buf(outsplit2);
+  split_free_buf(outsplit);
 }
 
 /* ---------------------------------------------------------------------------
@@ -5882,10 +5962,12 @@ FUNCTION(fun_shuffle)
 {
     int x, pic, num, numleft;
     char *pt1, *numpt, sep, osep, *outbuff, *s_output;
-    ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
 
-    if (!fn_range_check("SHUFFLE", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("SHUFFLE", nfargs, 1, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     outbuff = alloc_lbuf("fun_shuffle");
@@ -5917,11 +5999,13 @@ FUNCTION(fun_shuffle)
     }
     if (!num) {
        free_lbuf(outbuff);
+    split_free_buf(outsplit);
        return;
     }
     if (num == 1) {
        safe_str(fargs[0], buff, bufcx);
        free_lbuf(outbuff);
+    split_free_buf(outsplit);
        return;
     }
     numleft = num;
@@ -5973,12 +6057,13 @@ FUNCTION(fun_shuffle)
     free_lbuf(s_output);
     free_lbuf(outbuff);
     free(numpt);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_ansipos)
 {
     char *outbuff, *returnbuff, *ptr, *rp, *wp;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
     int i_pos, i_cur; 
     
     outbuff = alloc_lbuf("fun_ansipos");
@@ -5987,6 +6072,7 @@ FUNCTION(fun_ansipos)
        sprintf(outbuff, "#-1 VALUE MUST BE BETWEEN 1 AND %d", LBUF_SIZE);  
        safe_str(outbuff, buff, bufcx);
        free_lbuf(outbuff);
+    split_free_buf(outsplit);
        return;
     }
     initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -6055,13 +6141,14 @@ FUNCTION(fun_ansipos)
     }
     free_sbuf(returnbuff);
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_scramble)
 {
     int x, pic, num, numleft;
     char *numpt, *outbuff, *s_output, *mybuff, *pmybuff;
-    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp;
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     initialize_ansisplitter(outsplit2, LBUF_SIZE);
@@ -6072,11 +6159,15 @@ FUNCTION(fun_scramble)
     num = strlen(outbuff);
     if (!num) {
        free_lbuf(outbuff);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
        return;
     }
     if (num == 1) {
        safe_str(fargs[0], buff, bufcx);
        free_lbuf(outbuff);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
        return;
     }
 
@@ -6108,6 +6199,8 @@ FUNCTION(fun_scramble)
     free_lbuf(s_output);
     free_lbuf(outbuff);
     free(numpt);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_grab)
@@ -7501,18 +7594,24 @@ FUNCTION(fun_tr)
    char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
         *s_inptr, *outbuff, *outarg2, *s_output;
    int i_cntr, i, i_noansi;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2,
+   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2,
              s_splitmap[256], s_splitarg2[LBUF_SIZE];
 
    if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
    if ( !*fargs[0] ) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
    if ( !*fargs[1] || !*fargs[2] ) {
       safe_str(fargs[0], buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
@@ -7523,6 +7622,8 @@ FUNCTION(fun_tr)
    if ( i_cntr > (LBUF_SIZE - 1001) ) {
       free_lbuf(s_instr1);
       safe_str("#-1 INPUT FIND LIST TOO LARGE.", buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
    s_inptr = s_instr2 = alloc_lbuf("fun_tr_str2");
@@ -7531,6 +7632,8 @@ FUNCTION(fun_tr)
       free_lbuf(s_instr1);
       free_lbuf(s_instr2);
       safe_str("#-1 OUTPUT REPLACE LIST TOO LARGE.", buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
@@ -7550,6 +7653,8 @@ FUNCTION(fun_tr)
       free_lbuf(s_instr1);
       free_lbuf(s_instr2);
       safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
@@ -7626,6 +7731,8 @@ FUNCTION(fun_tr)
    free_lbuf(s_holdstr);
    free_lbuf(s_instr1);
    free_lbuf(s_instr2);
+   split_free_buf(outsplit2);
+   split_free_buf(outsplit);
 }
 
 FUNCTION(fun_t)
@@ -9787,10 +9894,11 @@ FUNCTION(fun_foreach)
     ATTR *ap;
     char *atext, *atextbuf, *str, *cp, *bp[2], *result, *cpbuff, *s_output;
     char cbuf[2], cbuf2[12], prev = '\0';
-    ANSISPLIT outsplit[LBUF_SIZE], *p_cp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p_cp;
 
 
     if (!fn_range_check("FOREACH", nfargs, 2, 5, buff, bufcx)) {
+    split_free_buf(outsplit);
         return;
     }
 
@@ -9805,13 +9913,16 @@ FUNCTION(fun_foreach)
     }
 
     if (!ap) {
+    split_free_buf(outsplit);
         return;
     }
     atext = atr_pget(thing, ap->number, &aowner, &aflags);
     if (!atext) {
+    split_free_buf(outsplit);
         return;
     } else if (!*atext || !See_attr(player, thing, ap, aowner, aflags, 0)) {
         free_lbuf(atext);
+    split_free_buf(outsplit);
         return;
     }
 
@@ -9950,6 +10061,7 @@ FUNCTION(fun_foreach)
     free_lbuf(atextbuf);
     free_lbuf(atext);
     free_lbuf(cpbuff);
+    split_free_buf(outsplit);
 }
 
 
@@ -10792,7 +10904,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk, 
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent, i_mux;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
-  ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
+  ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
 
   i_special = i_breakhappen = i_usepadding = 0;
   if( fm->lastval ) {
@@ -12295,6 +12407,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   free_mbuf(s_normalbg);
   free_mbuf(s_accent);
   free_lbuf(s_t);
+  split_free_buf(outsplit);
   if ( i_savejust != -1 )
      fm->leftjust = i_savejust;
 }
@@ -12312,7 +12425,7 @@ FUNCTION(fun_printf)
    int i_outbuff = 0;
    int adjust_padd, start_line;
    char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2, *s_tabdiff;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
+   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2;
    struct timefmt_format fm, fm_array[30];
 
    adjust_padd = start_line = i_tabdiff = 0;
@@ -12320,6 +12433,8 @@ FUNCTION(fun_printf)
       safe_str("#-1 FUNCTION (PRINTF) EXPECTS BETWEEN 2 AND 28 ARGUMENTS [RECEIVED ", buff, bufcx);
       ival(buff, bufcx, nfargs);
       safe_chr(']', buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
@@ -12989,6 +13104,8 @@ FUNCTION(fun_printf)
       for ( i = 0; i < i_arrayval; i++ ) 
          free_lbuf(s_strarray[i]);
       free_lbuf(s_tmpbuff);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
    }
 }
 
@@ -16218,10 +16335,11 @@ FUNCTION(fun_isunicode)
 {
     char *outbuff, *o;
     int i_val;
-    ANSISPLIT outsplit[LBUF_SIZE], *p;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p;
 
     if ( *fargs[0] == '\0' ) {
        ival(buff, bufcx, 0);
+    split_free_buf(outsplit);
        return;
     }
 
@@ -16244,16 +16362,18 @@ FUNCTION(fun_isunicode)
 
     free_lbuf(outbuff);
     ival(buff, bufcx, i_val);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_isutf8)
 {
     char *outbuff, *o;
     int i_val;
-    ANSISPLIT outsplit[LBUF_SIZE], *p;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p;
 
     if ( *fargs[0] == '\0' ) {
        ival(buff, bufcx, 0);
+    split_free_buf(outsplit);
        return;
     }
 
@@ -16276,6 +16396,7 @@ FUNCTION(fun_isutf8)
 
     free_lbuf(outbuff);
     ival(buff, bufcx, i_val);
+    split_free_buf(outsplit);
 }
 
 
@@ -16307,10 +16428,11 @@ FUNCTION(fun_isword)
 {
     char *p, *outbuff;
     int i_val;
-    ANSISPLIT outsplit[LBUF_SIZE], *ops;
+    ANSISPLIT *outsplit = split_alloc_buf(), *ops;
 
     if ( *fargs[0] == '\0' ) {
        ival(buff, bufcx, 0);
+    split_free_buf(outsplit);
        return;
     }
     i_val = 1;
@@ -16331,6 +16453,7 @@ FUNCTION(fun_isword)
     free_lbuf(outbuff);
 
     ival(buff, bufcx, i_val);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_ishidden)
@@ -19239,11 +19362,14 @@ FUNCTION(fun_elementsmux)
    int nwords, cur, bFirst, i_loop, i_len, i_ansiaware;
    char *ptrs[LBUF_SIZE / 2], *s_output, *s_tbuf, *s_tbufptr;
    char *s, *r, *sep, *osep, *outbuff, *osepbuff;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], insplit[LBUF_SIZE], *p_in;
+   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *insplit = split_alloc_buf(), *p_in;
 
    
    /* Fifth argument toggles ansi-aware or not */
    if (!fn_range_check("ELEMENTSMUX", nfargs, 2, 5, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
+    split_free_buf(insplit);
       return;
    }
 
@@ -19343,6 +19469,9 @@ FUNCTION(fun_elementsmux)
    free_lbuf(outbuff);
    free_lbuf(sep);
    free_lbuf(osep);
+   split_free_buf(insplit);
+   split_free_buf(outsplit2);
+   split_free_buf(outsplit);
 }
 
 /* Elements -- does not respect null values */
@@ -19634,10 +19763,12 @@ FUNCTION(fun_left)
 {
     int len, i_noansi;
     char *outbuff, *s_output;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
-    if (!fn_range_check("LEFT", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("LEFT", nfargs, 2, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     i_noansi = 0;
     len = atoi(fargs[1]);
@@ -19652,6 +19783,7 @@ FUNCTION(fun_left)
        i_noansi = 0;
 
     if (len < 1) {
+    split_free_buf(outsplit);
         return;
     } else {
        if ( i_noansi ) {
@@ -19671,6 +19803,7 @@ FUNCTION(fun_left)
           safe_str(s_output, buff, bufcx);
           free_lbuf(s_output);
           free_lbuf(outbuff);
+          split_free_buf(outsplit);
       }
     }
 }
@@ -19684,10 +19817,12 @@ FUNCTION(fun_right)
 {
     int len, i_noansi;
     char *outbuff, *s_output;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
-    if (!fn_range_check("RIGHT", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("RIGHT", nfargs, 2, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     len = atoi(fargs[1]);
     i_noansi = 0;
@@ -19702,6 +19837,7 @@ FUNCTION(fun_right)
        i_noansi = 0;
 
     if (len < 1) {
+    split_free_buf(outsplit);
         return;
     } else {
         if ( i_noansi ) {
@@ -19725,6 +19861,7 @@ FUNCTION(fun_right)
               free_lbuf(s_output);
            }
            free_lbuf(outbuff);
+           split_free_buf(outsplit);
        }
     }
 }
@@ -19738,11 +19875,13 @@ FUNCTION(fun_mid)
 {
     int l, len, i_noansi;
     char *outbuff, *s_output;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
 
-    if (!fn_range_check("MID", nfargs, 3, 4, buff, bufcx))
+    if (!fn_range_check("MID", nfargs, 3, 4, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     i_noansi = 0;
     if ( (nfargs > 3) && *fargs[3] ) {
@@ -19760,6 +19899,7 @@ FUNCTION(fun_mid)
     len = atoi(fargs[2]);
     if ((l < 0) || (len < 0) || (len > LBUF_SIZE-1) || (l > LBUF_SIZE-1)) {
        safe_str( "#-1 OUT OF RANGE", buff, bufcx);
+    split_free_buf(outsplit);
        return;
     }
 
@@ -19784,6 +19924,7 @@ FUNCTION(fun_mid)
        free_lbuf(s_output);
     }
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 /* ---------------------------------------------------------------------------
@@ -19793,16 +19934,19 @@ FUNCTION(fun_mid)
 FUNCTION(fun_first)
 {
     char *s, *first, sep;
-    ANSISPLIT outsplit[LBUF_SIZE], *sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *sp;
     char *outbuff, *retbuff;
 
     /* If we are passed an empty arglist return a null string */
 
     if (nfargs == 0) {
+    split_free_buf(outsplit);
         return;
     }
-    if (!fn_range_check("FIRST", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("FIRST", nfargs, 1, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     sep = ' ';
     if ( (nfargs > 1) && *fargs[1] )
@@ -19830,6 +19974,7 @@ FUNCTION(fun_first)
           free_lbuf(retbuff);
        }
        free_lbuf(outbuff);
+       split_free_buf(outsplit);
     }
 }
 
@@ -23068,13 +23213,15 @@ FUNCTION(fun_extractword)
 {
    int start, len, i_cntr, i_cntr2, first, i_del, i_numwords, i_mod, i_words;
    char *sep, *osep, *pos, *prevpos, *fargbuff, *outbuff;
-   ANSISPLIT outsplit[LBUF_SIZE], *optr, *prevoptr;
+   ANSISPLIT *outsplit = split_alloc_buf(), *optr, *prevoptr;
 
    if (!fn_range_check("EXTRACTWORD", nfargs, 1, 7, buff, bufcx)) {
+    split_free_buf(outsplit);
       return;
    }
 
    if ( !*fargs[0] ) {
+    split_free_buf(outsplit);
       return;
    }
 
@@ -23162,6 +23309,7 @@ FUNCTION(fun_extractword)
       free_lbuf(sep);
       free_lbuf(osep);
       free_lbuf(fargbuff);
+    split_free_buf(outsplit);
       return;
    }
 
@@ -23214,6 +23362,7 @@ FUNCTION(fun_extractword)
    free_lbuf(sep);
    free_lbuf(osep);
    free_lbuf(fargbuff);
+   split_free_buf(outsplit);
 }
 
 FUNCTION(fun_extract)
@@ -23474,11 +23623,12 @@ FUNCTION(fun_version)
 FUNCTION(fun_strlenvis)
 {
    char *s_buff;
-   ANSISPLIT outsplit[LBUF_SIZE];
+   ANSISPLIT *outsplit = split_alloc_buf();
 
 
    if ( !*fargs[0] ) {
       ival(buff, bufcx, 0);
+    split_free_buf(outsplit);
       return;
    }
 
@@ -23487,6 +23637,7 @@ FUNCTION(fun_strlenvis)
    split_ansi(strip_ansi(fargs[0]), s_buff, outsplit);
    ival(buff, bufcx, strlen(s_buff));
    free_lbuf(s_buff);
+   split_free_buf(outsplit);
 }
 
 /*
@@ -23845,7 +23996,7 @@ do_chransi(char *s_arg1, char *s_arg2, char *buff, char **bufcx, int i_type)
 {
    int len, nfound;
    char *outbuff1, *outbuff2, *ob1, *ob2, *s_find;
-   ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], *os1, *os2;
+   ANSISPLIT *outsplit1 = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *os1, *os2;
 
    outbuff1 = alloc_lbuf("fun_numposarg0");
    initialize_ansisplitter(outsplit1, LBUF_SIZE);
@@ -23959,6 +24110,8 @@ do_chransi(char *s_arg1, char *s_arg2, char *buff, char **bufcx, int i_type)
 
    free_lbuf(outbuff1);
    free_lbuf(outbuff2);
+   split_free_buf(outsplit1);
+   split_free_buf(outsplit2);
 }
 
 FUNCTION(fun_andchr)
@@ -26802,7 +26955,7 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
     int i = 1, i_key;
     char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob2, *ob3;
     int gotone = 0;
-    ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], 
+    ANSISPLIT *outsplit1 = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *outsplit3 = split_alloc_buf(), 
               *sp1, *sp2, *sp3, *sp2b;
 
     i_key = 0;
@@ -26871,6 +27024,9 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
           free_lbuf(outbuff1);
           free_lbuf(outbuff2);
           free_lbuf(outbuff3);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
           return;
        }
     } else {
@@ -26897,6 +27053,9 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
                 free_lbuf(outbuff1);
                 free_lbuf(outbuff2);
                 free_lbuf(outbuff3);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
                 return;
              }
           }
@@ -26913,6 +27072,9 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
     free_lbuf(outbuff1);
     free_lbuf(outbuff2);
     free_lbuf(outbuff3);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
     return;
 }
 
@@ -27152,10 +27314,13 @@ FUNCTION(fun_numpos)
 {
      int count, i_key, i_type;
     char *s, *t, *u, *s_in1, *s_in2;
-    ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], *p1, *p2, *p2b;
+    ANSISPLIT *insplit1 = split_alloc_buf(), *insplit2 = split_alloc_buf(), *p1, *p2, *p2b;
 
-    if (!fn_range_check("NUMPOS", nfargs, 2, 4, buff, bufcx))
+    if (!fn_range_check("NUMPOS", nfargs, 2, 4, buff, bufcx)) {
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
       return;
+   }
 
     i_type = i_key = 0;
 
@@ -27188,6 +27353,8 @@ FUNCTION(fun_numpos)
           safe_str((char *)"#-1 LIMIT EXCEEDED", buff, bufcx);
           free_lbuf(s_in1);
           free_lbuf(s_in2);
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
           return;
        }
 
@@ -27261,6 +27428,8 @@ FUNCTION(fun_numpos)
        }
     }
     ival(buff, bufcx, count);
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
     return;
 }
 
@@ -27268,13 +27437,20 @@ FUNCTION(fun_elementpos)
 {
    char *s, *sep, *s_strtok, *s_strtokr, *outbuff, *outbuff2, *outbuff3;
    int i, i_len, i_first;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], *osp, *osp3;
+   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *outsplit3 = split_alloc_buf(), *osp, *osp3;
 
 
-   if (!fn_range_check("ELEMENTPOS", nfargs, 2, 3, buff, bufcx))
+   if (!fn_range_check("ELEMENTPOS", nfargs, 2, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
       return;
+   }
 
    if ( !*fargs[0] || !*fargs[1] ) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
       return;
    }
 
@@ -27284,6 +27460,9 @@ FUNCTION(fun_elementpos)
 
    if ( !*outbuff ) {
       free_lbuf(outbuff);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
       return;
    }
 
@@ -27332,6 +27511,9 @@ FUNCTION(fun_elementpos)
    free_lbuf(outbuff3);
    safe_str(outbuff, buff, bufcx);
    free_lbuf(outbuff);
+   split_free_buf(outsplit3);
+   split_free_buf(outsplit2);
+   split_free_buf(outsplit);
 }
 
 
@@ -27765,7 +27947,7 @@ FUNCTION(fun_ldelete)
 FUNCTION(fun_trreverse)
 {
     char *s_output, *mybuff, *pmybuff;
-    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf();
     int i_icntr, i_max;
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -27786,6 +27968,8 @@ FUNCTION(fun_trreverse)
     free_lbuf(mybuff);
     safe_str(s_output, buff, bufcx);
     free_lbuf(s_output);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
 }
 
 FUNCTION(fun_insert)
@@ -28127,9 +28311,11 @@ FUNCTION(fun_secure)
 FUNCTION(fun_esclist)
 {
     char *s_index, *s, *s2, *s_buff, *s_buffptr, *s_split0, *s_pos, *s_output;
-    ANSISPLIT split0[LBUF_SIZE], split_index[LBUF_SIZE], *p_0, *p_split;
+    ANSISPLIT *split0 = split_alloc_buf(), *split_index = split_alloc_buf(), *p_0, *p_split;
 
     if ( !*fargs[0] || !strchr(fargs[0], '|') ) {
+    split_free_buf(split0);
+    split_free_buf(split_index);
        return;
     }
 
@@ -28177,6 +28363,8 @@ FUNCTION(fun_esclist)
     free_lbuf(s_output);
     free_lbuf(s_index);
     free_lbuf(s_split0);
+    split_free_buf(split0);
+    split_free_buf(split_index);
 
 /* -- Don't need this anymore, this is pre-utf8 handler
     while ( s && *s ) {
@@ -28592,10 +28780,13 @@ FUNCTION(fun_delete)
    char *s, *s2;
    int i, start, nchars, len, i_noansi;
    char *outbuff, *outbuff2, *s_output;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *spl, *spl2;
+   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *spl, *spl2;
 
-   if (!fn_range_check("DELETE", nfargs, 3, 4, buff, bufcx))
+   if (!fn_range_check("DELETE", nfargs, 3, 4, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
+   }
 
    s = fargs[0];
    start = atoi(fargs[1]);
@@ -28603,6 +28794,8 @@ FUNCTION(fun_delete)
    len = strlen(s);
    if ((start >= len) || (nchars <= 0) || (start < 0)) {
       safe_str(s, buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
       return;
    }
 
@@ -28643,6 +28836,8 @@ FUNCTION(fun_delete)
          safe_str(fargs[0], buff, bufcx);
          free_lbuf(outbuff);
          free_lbuf(outbuff2);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
          return;
       }
       s = outbuff;
@@ -28674,6 +28869,8 @@ FUNCTION(fun_delete)
       free_lbuf(s_output);
       free_lbuf(outbuff);
       free_lbuf(outbuff2);
+      split_free_buf(outsplit2);
+      split_free_buf(outsplit);
    }
 }
 
@@ -30218,10 +30415,14 @@ FUNCTION(fun_creplaceansi)
    char *s_in1, *s_in2, *s_out, *s_pos, *s_pin1, *s_pin2, *s_pout, 
         *s_return, *curr_temp, *sop_temp, *s_strtok, *s_strtokr, sep;
    int i_val, i_len, i_cnt, i_range, i_rangecnt;
-   ANSISPLIT insplit1[LBUF_SIZE], insplit2[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in1, *p_in2, *p_out;
+   ANSISPLIT *insplit1 = split_alloc_buf(), *insplit2 = split_alloc_buf(), *outsplit = split_alloc_buf(), *p_in1, *p_in2, *p_out;
 
-   if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
+   if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx)) {
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
+    split_free_buf(outsplit);
        return;
+   }
 
    s_pos = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
    i_val = atoi(s_pos);
@@ -30230,6 +30431,9 @@ FUNCTION(fun_creplaceansi)
       sprintf(curr_temp, "#-1 VALUE MUST BE > 0 < %d", LBUF_SIZE - 1);
       safe_str(curr_temp, buff, bufcx);
       free_mbuf(curr_temp);
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
+    split_free_buf(outsplit);
       return;
    }
    curr_temp = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
@@ -30261,6 +30465,9 @@ FUNCTION(fun_creplaceansi)
          free_lbuf(s_in2);
          free_lbuf(s_out);
          free_lbuf(curr_temp);
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
+    split_free_buf(outsplit);
          return;
       }
 
@@ -30271,6 +30478,9 @@ FUNCTION(fun_creplaceansi)
          free_lbuf(s_out);
          safe_str(curr_temp, buff, bufcx);
          free_lbuf(curr_temp);
+    split_free_buf(insplit1);
+    split_free_buf(insplit2);
+    split_free_buf(outsplit);
          return;
       }
 
@@ -30432,6 +30642,9 @@ FUNCTION(fun_creplaceansi)
 
    safe_str(s_return, buff, bufcx);
    free_lbuf(s_return);
+   split_free_buf(outsplit);
+   split_free_buf(insplit2);
+   split_free_buf(insplit1);
 
 }
 
@@ -31086,16 +31299,21 @@ FUNCTION(fun_array)
    char *s_inptr, *s_outptr, *s_ptr2, *s_input, *s_output, *s_tptr, *s_tmpbuff, sep, *osep;
    int i_width, i_regs, i_regcurr, i_type, i, i_kill, i_counter[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], i_widthexp, i_widthchk, i_widthtmp;
    time_t it_now;
-   ANSISPLIT insplit[LBUF_SIZE], outsplit[LBUF_SIZE], *p_in, *p_out;
+   ANSISPLIT *insplit = split_alloc_buf(), *outsplit = split_alloc_buf(), *p_in, *p_out;
 
-   if (!fn_range_check("ARRAY", nfargs, 3, 6, buff, bufcx))
+   if (!fn_range_check("ARRAY", nfargs, 3, 6, buff, bufcx)) {
+    split_free_buf(insplit);
+    split_free_buf(outsplit);
       return;
+   }
 
    /* insanely dangerous function -- only allow 10 per command */
    it_now = time(NULL);
    if (it_now > (mudstate_hot.now + 5)) {
       mudstate_hot.chkcpu_toggle = 1;
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
+    split_free_buf(insplit);
+    split_free_buf(outsplit);
       return;
    }
 
@@ -31110,6 +31328,8 @@ FUNCTION(fun_array)
       safe_str("#-1 ARRAY REQUIRES BETWEEN 1 AND ", buff, bufcx);
       ival(buff, bufcx, (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST));
       safe_str(" FOR REGISTER COUNT", buff, bufcx);
+    split_free_buf(insplit);
+    split_free_buf(outsplit);
       return;
    }
    if ( *fargs[2] ) {
@@ -31124,6 +31344,8 @@ FUNCTION(fun_array)
       sprintf(s_input, "#-1 ARRAY REQUIRES WIDTH >= 0 AND WIDTH < %d", LBUF_SIZE);
       safe_str(s_input, buff, bufcx);
       free_mbuf(s_input);
+    split_free_buf(insplit);
+    split_free_buf(outsplit);
       return;
    }
    if ( (nfargs > 4) && *fargs[4] ) {
@@ -31383,12 +31605,14 @@ FUNCTION(fun_array)
    free_lbuf(s_input);
    free_lbuf(s_output);
    free_lbuf(osep);
+   split_free_buf(outsplit);
+   split_free_buf(insplit);
 }
 
 FUNCTION(fun_reverse)
 {
     char *s_output, *mybuff, *pmybuff;
-    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf();
     int i_icntr, i_max;
 
     initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -31409,6 +31633,8 @@ FUNCTION(fun_reverse)
     free_lbuf(mybuff);
     safe_str(s_output, buff, bufcx);
     free_lbuf(s_output);
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
 }
 
 FUNCTION(fun_revwords)
@@ -31455,13 +31681,16 @@ FUNCTION(fun_after)
 {
     char *bp, *cp, *mp, *string, *s_output;
     int mlen, i_noansi;
-    ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
 
     if (nfargs == 0) {
+    split_free_buf(outsplit);
         return;
     }
-    if (!fn_range_check("AFTER", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("AFTER", nfargs, 1, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
         return;
+   }
     bp = fargs[0];
     mp = fargs[1];
 
@@ -31507,6 +31736,7 @@ FUNCTION(fun_after)
         if (cp == NULL) {
         /* Not found, return empty string */
            free_lbuf(string);
+    split_free_buf(outsplit);
            return;
         }
 
@@ -31523,6 +31753,7 @@ FUNCTION(fun_after)
                free_lbuf(s_output);
             }
             free_lbuf(string);
+    split_free_buf(outsplit);
             return;
          }
          /* Continue search after found first character */
@@ -31533,6 +31764,7 @@ FUNCTION(fun_after)
     /* Ran off the end without finding it */
 
     free_lbuf(string);
+    split_free_buf(outsplit);
     return;
 }
 
@@ -31540,13 +31772,16 @@ FUNCTION(fun_before)
 {
     char *bp, *cp, *mp, *ip, *string, *s_output;
     int mlen, i_noansi;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     if (nfargs == 0) {
+    split_free_buf(outsplit);
        return;
     }
-    if (!fn_range_check("BEFORE", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("BEFORE", nfargs, 1, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     bp = fargs[0];
     mp = fargs[1];
@@ -31603,6 +31838,7 @@ FUNCTION(fun_before)
               free_lbuf(s_output);
            }
            free_lbuf(string);
+    split_free_buf(outsplit);
            return;
        }
        /* See if what follows is what we are looking for */
@@ -31620,6 +31856,7 @@ FUNCTION(fun_before)
               free_lbuf(s_output);
            }
            free_lbuf(string);
+    split_free_buf(outsplit);
            return;
        }
        /* Continue search after found first character */
@@ -31637,6 +31874,7 @@ FUNCTION(fun_before)
        free_lbuf(s_output);
     }
     free_lbuf(string);
+    split_free_buf(outsplit);
     return;
 }
 
@@ -32012,10 +32250,14 @@ FUNCTION(fun_merge)
 {
     int i_type, i_match;
     char *str, *rep, c, *outbuff1, *outbuff2, *outbuff3, *ob1, *ob2, *ob3;
-    ANSISPLIT outsplit1[LBUF_SIZE], outsplit2[LBUF_SIZE], outsplit3[LBUF_SIZE], *os1, *os2, *os3;
+    ANSISPLIT *outsplit1 = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *outsplit3 = split_alloc_buf(), *os1, *os2, *os3;
 
-    if (!fn_range_check("MERGE", nfargs, 3, 4, buff, bufcx))
+    if (!fn_range_check("MERGE", nfargs, 3, 4, buff, bufcx)) {
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
        return;
+   }
 
     i_match = i_type = 0;
     if ( (nfargs > 3) && *fargs[3] ) {
@@ -32044,6 +32286,9 @@ FUNCTION(fun_merge)
           safe_str("#-1 STRING LENGTHS MUST BE EQUAL", buff, bufcx);
           free_lbuf(outbuff1);
           free_lbuf(outbuff2);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
           return;
        }
 
@@ -32062,6 +32307,9 @@ FUNCTION(fun_merge)
           free_lbuf(outbuff1);
           free_lbuf(outbuff2);
           free_lbuf(outbuff3);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
           return;
        }
 
@@ -32097,10 +32345,16 @@ FUNCTION(fun_merge)
        /* do length checks first */
        if (strlen(fargs[0]) != strlen(fargs[1])) {
           safe_str("#-1 STRING LENGTHS MUST BE EQUAL", buff, bufcx);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
           return;
        }
        if (strlen(fargs[2]) > 1) {
           safe_str("#-1 CHARACTER ARGUMENT MUST BE A SINGLE CHARACTER", buff, bufcx);
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
           return;
        }
        /* find the character to look for. null character is considered
@@ -32121,6 +32375,9 @@ FUNCTION(fun_merge)
              safe_chr(*str, buff, bufcx);
        }
     }
+    split_free_buf(outsplit1);
+    split_free_buf(outsplit2);
+    split_free_buf(outsplit3);
     return;
 }
 
@@ -32172,10 +32429,13 @@ FUNCTION(fun_repeat)
 {
     int times, i, j, over = 0, i_ansi, cntr = 0;
     char *outbuff, *outbuff2, *outbuff2ptr, *s_combine;
-    ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2;
+    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2;
 
-    if (!fn_range_check("REPEAT", nfargs, 2, 3, buff, bufcx))
+    if (!fn_range_check("REPEAT", nfargs, 2, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
+    split_free_buf(outsplit2);
        return;
+   }
 
     i_ansi = 0;
     if ( (nfargs > 2) && *fargs[2] ) {
@@ -32216,12 +32476,14 @@ FUNCTION(fun_repeat)
           free_lbuf(outbuff);
           free_lbuf(outbuff2);
           safe_str(s_combine, buff, bufcx);
-          free_lbuf(s_combine);
-       } else {
-          for (i = 0; i < times && !over; i++)
-              over = safe_str(fargs[0], buff, bufcx);
-       }
-    }
+           free_lbuf(s_combine);
+        } else {
+           for (i = 0; i < times && !over; i++)
+               over = safe_str(fargs[0], buff, bufcx);
+        }
+     }
+     split_free_buf(outsplit2);
+     split_free_buf(outsplit);
 }
 
 /* ---------------------------------------------------------------------------
@@ -33021,7 +33283,7 @@ FUNCTION(fun_citer)
 {
     char *curr, objstring[SBUF_SIZE], *buff3, *result, *cp, sep, *tpr_buff, *tprp_buff, *outbuff, *s_output;
     int first, cntr;
-    ANSISPLIT outsplit[LBUF_SIZE], *p_sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
 
 
     evarargs_preamble("CITER", 3);
@@ -33040,6 +33302,7 @@ FUNCTION(fun_citer)
     p_sp = outsplit;
     if (!*cp) {
        free_lbuf(curr);
+    split_free_buf(outsplit);
        return;
     }
     first = 1;
@@ -36413,23 +36676,37 @@ FUNCTION(fun_ansi)
 FUNCTION(fun_editansi)
 {
 #ifdef ZENTY_ANSI
-   ANSISPLIT search_val[LBUF_SIZE], replace_val[LBUF_SIZE], a_input[LBUF_SIZE];
+   ANSISPLIT *search_val = split_alloc_buf(), *replace_val = split_alloc_buf(), *a_input = split_alloc_buf();
    char *s_input, *s_combine, *s_buff, *s_buffptr, *s_array[3];
    int i_omit1, i_omit2, i_loop;
 #endif
 
 #ifndef ZENTY_ANSI
    safe_str((char *)"#-1 ZENTY ANSI REQUIRED FOR THIS FUNCTION.", buff, bufcx);
+    split_free_buf(search_val);
+    split_free_buf(replace_val);
+    split_free_buf(a_input);
    return;
 #else
-   if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1, (char *)NULL, (char *)NULL)) 
+   if (!fn_range_check_real("EDITANSI", nfargs, 3, MAX_ARGS, buff, bufcx, 1, (char *)NULL, (char *)NULL)) {
+    split_free_buf(search_val);
+    split_free_buf(replace_val);
+    split_free_buf(a_input);
        return;
+   }
 
-   if ( !*fargs[0] )
+   if ( !*fargs[0] ) {
+    split_free_buf(search_val);
+    split_free_buf(replace_val);
+    split_free_buf(a_input);
       return;
+   }
 
    if ( !*fargs[1] || !*fargs[2] ) {
       safe_str(fargs[0], buff, bufcx);
+    split_free_buf(search_val);
+    split_free_buf(replace_val);
+    split_free_buf(a_input);
       return;
    }
 
@@ -36473,6 +36750,9 @@ FUNCTION(fun_editansi)
    free_lbuf(s_buff);
    free_lbuf(s_array[0]);
    free_lbuf(s_array[1]);
+   split_free_buf(a_input);
+   split_free_buf(replace_val);
+   split_free_buf(search_val);
 #endif
 }
 
@@ -37836,12 +38116,15 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
 {
    int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store, i_escape;
    char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
-   ANSISPLIT outsplit[LBUF_SIZE], fillersplit[LBUF_SIZE], retbuff[LBUF_SIZE], *p_in, *p_out;
+   ANSISPLIT *outsplit = split_alloc_buf(), *fillersplit = split_alloc_buf(), *retbuff = split_alloc_buf(), *p_in, *p_out;
 
    i_cut = cut;
 
    if ( !*fargs[1] ) {
       safe_str(fargs[0], buff, bufcx);
+    split_free_buf(outsplit);
+    split_free_buf(fillersplit);
+    split_free_buf(retbuff);
       return;
    }
 
@@ -37863,6 +38146,9 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
       if ( (len >= width) || (width > (LBUF_SIZE -2)) ) {
          safe_str(fargs[0], buff, bufcx);
          free_lbuf(s_outbuff);
+    split_free_buf(outsplit);
+    split_free_buf(fillersplit);
+    split_free_buf(retbuff);
          return;
       }
    }
@@ -39045,7 +39331,7 @@ FUNCTION(fun_r)
 FUNCTION(fun_isnum)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isnum"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39055,12 +39341,13 @@ FUNCTION(fun_isnum)
     safe_str((is_rhonumber(outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_isalnum)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isalnum"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39069,13 +39356,14 @@ FUNCTION(fun_isalnum)
 
     safe_str((isalnum((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
+    split_free_buf(outsplit);
     free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isalpha)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isalpha"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39083,6 +39371,7 @@ FUNCTION(fun_isalpha)
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
     safe_str((isalpha((int)*outbuff) ? "1" : "0"), buff, bufcx);
+    split_free_buf(outsplit);
 
     free_lbuf(outbuff);
 }
@@ -39090,13 +39379,14 @@ FUNCTION(fun_isalpha)
 FUNCTION(fun_isint)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isint"); 
     memset(outbuff, '\0', LBUF_SIZE);
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
+    split_free_buf(outsplit);
     safe_str((is_rhointeger((char *)outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
@@ -39105,12 +39395,13 @@ FUNCTION(fun_isint)
 FUNCTION(fun_isdigit)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isdigit"); 
     memset(outbuff, '\0', LBUF_SIZE);
     initialize_ansisplitter(outsplit, LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+    split_free_buf(outsplit);
 
     safe_str((isdigit((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
@@ -39120,7 +39411,7 @@ FUNCTION(fun_isdigit)
 FUNCTION(fun_islower)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("islower"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39130,12 +39421,13 @@ FUNCTION(fun_islower)
     safe_str((islower((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_ispunct)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("ispunct"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39145,12 +39437,13 @@ FUNCTION(fun_ispunct)
     safe_str((ispunct((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_isspace)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isspace"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39160,12 +39453,13 @@ FUNCTION(fun_isspace)
     safe_str((isspace((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_isupper)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isupper"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39173,12 +39467,13 @@ FUNCTION(fun_isupper)
     split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
 
     safe_str((isupper((int)*outbuff) ? "1" : "0"), buff, bufcx);
+    split_free_buf(outsplit);
 }
 
 FUNCTION(fun_isxdigit)
 {
     char *outbuff;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf();
 
     outbuff = alloc_lbuf("isxdigit"); 
     memset(outbuff, '\0', LBUF_SIZE);
@@ -39188,6 +39483,7 @@ FUNCTION(fun_isxdigit)
     safe_str((isxdigit((int)*outbuff) ? "1" : "0"), buff, bufcx);
 
     free_lbuf(outbuff);
+    split_free_buf(outsplit);
 }
 
 /* ---------------------------------------------------------------------------
@@ -40041,16 +40337,19 @@ FUNCTION(fun_last)
 {
     char sep, *pStart, *pEnd, *p;
     int nLen;
-    ANSISPLIT outsplit[LBUF_SIZE], *sp_Start, *sp_End, *sp;
+    ANSISPLIT *outsplit = split_alloc_buf(), *sp_Start, *sp_End, *sp;
     char *outbuff, *retbuff;
 
 
     if (nfargs <= 0) {
+    split_free_buf(outsplit);
         return;
     }
 
-    if (!fn_range_check("LAST", nfargs, 1, 3, buff, bufcx))
+    if (!fn_range_check("LAST", nfargs, 1, 3, buff, bufcx)) {
+    split_free_buf(outsplit);
        return;
+   }
 
     sep = ' ';
     if ( (nfargs > 1) && *fargs[1] )
@@ -40106,6 +40405,7 @@ FUNCTION(fun_last)
        safe_str(retbuff, buff, bufcx);
        free_lbuf(outbuff);
        free_lbuf(retbuff);
+       split_free_buf(outsplit);
     }
 }
 

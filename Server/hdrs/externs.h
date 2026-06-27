@@ -539,6 +539,7 @@ extern void	FDECL(clone_object, (dbref, dbref));
 extern void	NDECL(init_min_db);
 extern void	NDECL(atr_push);
 extern void	NDECL(atr_pop);
+extern void	NDECL(split_free_bufs);
 extern int	FDECL(atr_head, (dbref, char **));
 extern int	FDECL(atr_next, (char **));
 extern int	FDECL(init_gdbm_db, (char *));

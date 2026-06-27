@@ -684,6 +684,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
         /* Beginning of a new cycle - free unsafe_tprint buffers */
         freeTrackedBuffers();
+        split_free_bufs();
 
 	get_tod(&current_time);
 	last_slice = update_quotas(last_slice, current_time);
