@@ -3386,10 +3386,10 @@ process_command(dbref player, dbref cause, int interactive,
           free_lbuf(lcbuf);
        }
         free_lbuf(spamX);
-    arr_prog = malloc(sizeof(char *) * (LBUF_SIZE/2));
-    targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
      }
-
+     arr_prog = malloc(sizeof(char *) * (LBUF_SIZE/2));
+     targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
+ 
      chklogflg = 0;
     if ( Good_obj(player) && Suspect(player) ) {
        STARTLOG(LOG_SUSPECT, "CMD", "SUS")
