@@ -36,17 +36,26 @@ static int ival(char *buff, char **bufcx, int result) {
 FUNCTION(local_fun_sqlite_query)
 {
    time_t start;
-   char dbFile[LBUF_SIZE], dbFullPath[LBUF_SIZE];
+   char *dbFile, *dbFullPath;
    char * colPtr, *zTail;
    DIR * tmp_dir;
    sqlite3 * sqlite_db;
    sqlite3_stmt * sqlite_stmt;
    regex_t validator;
    unsigned int i, rVal, firstA=1, firstB=1, argIdx, argCount;
-   char colDelimit[LBUF_SIZE], rowDelimit[LBUF_SIZE];
+   char *colDelimit, *rowDelimit;
+
+   dbFile = alloc_lbuf("sqlite_dbFile");
+   dbFullPath = alloc_lbuf("sqlite_dbFullPath");
+   colDelimit = alloc_lbuf("sqlite_colDelimit");
+   rowDelimit = alloc_lbuf("sqlite_rowDelimit");
 
    if ( mudstate_hot.heavy_cpu_lockdown == 1 ) {
       safe_str("#-1 FUNCTION HAS BEEN LOCKED DOWN FOR HEAVY CPU USE.", buff, bufcx);
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
 
@@ -54,6 +63,10 @@ FUNCTION(local_fun_sqlite_query)
       safe_str( "#-1 FUNCTION (sqlite_query) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx );
       ival( buff, bufcx, nfargs );
       safe_chr( ']', buff, bufcx );
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
 
@@ -64,6 +77,10 @@ FUNCTION(local_fun_sqlite_query)
       if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (mudconf.cputimechk * 3)) ) {
          mudstate_hot.heavy_cpu_lockdown = 1;
       }
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
 
@@ -109,6 +126,10 @@ FUNCTION(local_fun_sqlite_query)
       safe_str( fargs[0], buff, bufcx );
       safe_chr( ']', buff, bufcx );
       regfree( &validator );
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
    regfree( &validator );
@@ -121,6 +142,10 @@ FUNCTION(local_fun_sqlite_query)
    if( (tmp_dir = opendir( dbFullPath )) == NULL ) {
       snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS DIRECTORY %.*s: %s", LBUF_SIZE - 64,dbFullPath, strerror( errno ) );
       safe_str( tempbuff, buff, bufcx );
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    } else {
       closedir( tmp_dir );
@@ -134,6 +159,10 @@ FUNCTION(local_fun_sqlite_query)
    if( !access( dbFile, F_OK ) && access( dbFile, W_OK | R_OK ) ) {
       snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) CANNOT ACCESS %.*s: %s", LBUF_SIZE - 48, dbFile, strerror( errno ) );
       safe_str( tempbuff, buff, bufcx );
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
 
@@ -145,11 +174,19 @@ FUNCTION(local_fun_sqlite_query)
    if( sqlite3_open_v2( dbFile, &sqlite_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL ) != SQLITE_OK ) {
       if( sqlite_db == NULL ) {
          safe_str( "#-1 FUNCTION (sqlite_query) COULDN'T ALLOCATE MEMORY FOR A SQLITE OBJECT", buff, bufcx );
+         free_lbuf(dbFile);
+         free_lbuf(dbFullPath);
+         free_lbuf(colDelimit);
+         free_lbuf(rowDelimit);
          return;
       }
       snprintf( tempbuff, LBUF_SIZE, "#-1 FUNCTION (sqlite_query) COULDN'T INITIALIZE SQLITE: %s", sqlite3_errmsg( sqlite_db ) );
       safe_str( tempbuff, buff, bufcx );
       sqlite3_close( sqlite_db );
+      free_lbuf(dbFile);
+      free_lbuf(dbFullPath);
+      free_lbuf(colDelimit);
+      free_lbuf(rowDelimit);
       return;
    }
 
@@ -174,6 +211,10 @@ FUNCTION(local_fun_sqlite_query)
          safe_str( tempbuff, buff, bufcx );
          sqlite3_finalize( sqlite_stmt );
          sqlite3_close( sqlite_db );
+         free_lbuf(dbFile);
+         free_lbuf(dbFullPath);
+         free_lbuf(colDelimit);
+         free_lbuf(rowDelimit);
          return;
       }
 
@@ -185,6 +226,10 @@ FUNCTION(local_fun_sqlite_query)
          safe_str( tempbuff, buff, bufcx );
          sqlite3_finalize( sqlite_stmt );
          sqlite3_close( sqlite_db );
+         free_lbuf(dbFile);
+         free_lbuf(dbFullPath);
+         free_lbuf(colDelimit);
+         free_lbuf(rowDelimit);
          return;
       }
 
@@ -203,6 +248,10 @@ FUNCTION(local_fun_sqlite_query)
             safe_str( tempbuff, buff, bufcx );
             sqlite3_finalize( sqlite_stmt );
             sqlite3_close( sqlite_db );
+            free_lbuf(dbFile);
+            free_lbuf(dbFullPath);
+            free_lbuf(colDelimit);
+            free_lbuf(rowDelimit);
             return;
          }
 #ifdef DEBUG_SQLITE

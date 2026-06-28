@@ -787,11 +787,12 @@ tcache_finish(void)
     char *trace_buffptr, *trace_array[4], *trace_tmp, *trace_tmpptr, *s_xorigbuff;
     int i_trace;
 #endif
-    dbref i_apowner, passtarget, targetlist[LBUF_SIZE], i;
+    dbref i_apowner, passtarget, *targetlist, i;
     ATTR *ap_log;
 
     DPUSH; /* #66 */
 
+    targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
     for (i = 0; i < LBUF_SIZE; i++)
        targetlist[i]=-2000000;
 
@@ -995,6 +996,7 @@ tcache_finish(void)
     free_lbuf(tpr_buff);
     free_lbuf(s_grep);
     free_lbuf(s_grep2);
+    free(targetlist);
     tcache_top = 1;
     tcache_count = 0;
     DPOP; /* #66 */

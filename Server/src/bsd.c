@@ -1351,7 +1351,7 @@ DESC *
 new_connection(int sock, int key)
 {
     int newsock, maxsitecon, maxtsitecon, cur_port, i_retvar = -1;
-    char *buff, *buff1, *cmdsave, tchbuff[LBUF_SIZE], *tsite_buff;
+    char *buff, *buff1, *cmdsave, *tchbuff, *tsite_buff;
     DESC *d, *dchk;
     struct sockaddr_storage addr_storage;
     char ipbuf[INET6_ADDRSTRLEN];
@@ -1473,6 +1473,8 @@ new_connection(int sock, int key)
 	RETURN(0); /* #5 */
     }
 
+    tchbuff = alloc_lbuf("new_connection_tchbuff");
+
     if (addr_storage.ss_family == AF_INET) {
         struct sockaddr_in *sin = (struct sockaddr_in *)&addr_storage;
         cur_port = ntohs(sin->sin_port);
@@ -1488,7 +1490,7 @@ new_connection(int sock, int key)
     }
 #endif /* TLI */
 
-    memset(tchbuff, 0, sizeof(tchbuff));
+    memset(tchbuff, 0, LBUF_SIZE);
 
      if ( mudconf.tor_paranoid ) {
         i_chktor = check_tor_str(ipbuf, addr_family, mudconf.port);
@@ -1562,11 +1564,12 @@ new_connection(int sock, int key)
        shutdown(newsock, 2);
        close(newsock);
        errno = 0;
-       free_lbuf(tsite_buff);
-       RETURN(0);
-    }
+        free_lbuf(tsite_buff);
+        free_lbuf(tchbuff);
+        RETURN(0);
+     }
 
-     if ( i_addflags & MF_API ) {
+      if ( i_addflags & MF_API ) {
         mudstate.api_lastsite_cnt++;
         if ( ((mudstate.last_apicon_attempt + 60) < mudstate_hot.now) || (mudstate.last_apicon_attempt == 0) ) {
            mudstate.last_apicon_attempt = mudstate_hot.now;
@@ -1593,7 +1596,7 @@ new_connection(int sock, int key)
               ENDLOG
            }
            mudstate.api_lastsite_cnt = 0;
-           memset(tchbuff, 0, sizeof(tchbuff));
+           memset(tchbuff, 0, LBUF_SIZE);
         }
         strncpy(mudstate.api_lastsite_ip, ipbuf, sizeof(mudstate.api_lastsite_ip) - 1);
         mudstate.api_lastsite_ip[sizeof(mudstate.api_lastsite_ip) - 1] = '\0';
@@ -1651,7 +1654,7 @@ new_connection(int sock, int key)
               mudstate.cmp_lastsite_cnt = 0;
            }
            mudstate.cmp_lastsite_cnt++;
-           memset(tchbuff, 0, sizeof(tchbuff));
+           memset(tchbuff, 0, LBUF_SIZE);
          }
        }
      }
@@ -1801,6 +1804,7 @@ new_connection(int sock, int key)
     if ( key && d ) {
        D_FLAGS(d) |= DS_API;
     }
+    free_lbuf(tchbuff);
     RETURN(d); /* #5 */
 }
 
@@ -1851,13 +1855,14 @@ static const char *disc_messages[] =
 void 
 shutdownsock(DESC * d, int reason)
 {
-    char *buff, *buff2, all[10], tchbuff[LBUF_SIZE], tsitebuff[1001], *ptsitebuff;
+    char *buff, *buff2, all[10], *tchbuff, tsitebuff[1001], *ptsitebuff;
     char *addroutbuf, *t_addroutbuf, *tstrtokr;
     time_t now;
     int temp1, temp2, sitecntr, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1, i_addflags;
     struct SNOOPLISTNODE *temp;
     DESC *dchk;
 
+    tchbuff = alloc_lbuf("shutdownsock_tchbuff");
     DPUSH; /* #6 */
     i_addflags = 0;
     if ( D_FLAGS(d) & DS_API ) {
@@ -2030,7 +2035,7 @@ shutdownsock(DESC * d, int reason)
             if ( (i_sitemax != -1) && (i_guestcnt < (i_sitemax + 1)) )
                D_HOST_INFO(d) &= ~H_NOGUEST;
 
-        memset(tchbuff, 0, sizeof(tchbuff));
+        memset(tchbuff, 0, LBUF_SIZE);
         strcpy(tchbuff, mudconf.forbid_host);
         if (mudconf.forbid_host[0] && lookup(d->cold->longaddr, tchbuff, i_sitecnt, &i_retvar))
            D_HOST_INFO(d) = D_HOST_INFO(d) | H_FORBIDDEN;
@@ -2172,6 +2177,7 @@ shutdownsock(DESC * d, int reason)
 	ndescriptors--;
 	ndesc_slots--;
     }
+    free_lbuf(tchbuff);
     DPOP; /* #6 */
 }
 
@@ -2472,13 +2478,14 @@ DESC *
 initializesock(int s, const char *ip_str, int addr_family, unsigned short remote_port, char *addr_str, int i_keyflag, int keyval)
 {
     DESC *d, *dchk;
-    char tchbuff[LBUF_SIZE];
+    char *tchbuff;
     char *addroutbuf, *t_addroutbuf;
     int i_nope, i_sitecnt, i_guestcnt, i_sitemax, i_retvar = -1;
     struct in_addr ipv4_addr;
     int is_ipv4 = (addr_family == AF_INET);
 
     DPUSH; /* #11 */
+    tchbuff = alloc_lbuf("initializesock_tchbuff");
 
     i_nope = 0;
     d = alloc_desc("init_sock");
@@ -2548,9 +2555,9 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
         if ( (i_sitemax != -1) && (i_guestcnt < i_sitemax) )
            D_HOST_INFO(d) &= ~H_NOGUEST;
      }
-    memset(tchbuff, 0, sizeof(tchbuff));
-    strcpy(tchbuff, mudconf.forbid_host);
-    if (mudconf.forbid_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
+        memset(tchbuff, 0, LBUF_SIZE);
+        strcpy(tchbuff, mudconf.forbid_host);
+        if (mudconf.forbid_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
        D_HOST_INFO(d) = D_HOST_INFO(d) | H_FORBIDDEN;
     strcpy(tchbuff, mudconf.register_host);
     if (mudconf.register_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar))
@@ -2628,7 +2635,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     memset(d->cold->longaddr, '\0', sizeof(d->cold->longaddr));
     strncpy(d->cold->longaddr, addr_str, sizeof(d->cold->longaddr) - 1);
     if ( !keyval && mudconf.sconnect_reip && mudconf.ssl_welcome )  {
-       memset(tchbuff, 0, sizeof(tchbuff));
+       memset(tchbuff, 0, LBUF_SIZE);
        strcpy(tchbuff, mudconf.sconnect_host);
         if (mudconf.sconnect_host[0] && lookup(addr_str, tchbuff, i_sitecnt, &i_retvar)) {
           i_nope = 1;
@@ -2645,6 +2652,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
         d->cold->timeout = 1;
         D_FLAGS(d) |= DS_API;
     }
+    free_lbuf(tchbuff);
     RETURN(d); /* #11 */
 }
 

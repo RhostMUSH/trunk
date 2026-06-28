@@ -3185,7 +3185,7 @@ void
 process_command(dbref player, dbref cause, int interactive,
 		char *command, char *args[], int nargs, int shellprg, int inhook, int no_space)
 {
-    char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], lst_cmd[LBUF_SIZE], *dx_tmp;
+    char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], *lst_cmd, *dx_tmp;
     int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0, i_hook;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
     char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
@@ -3206,6 +3206,7 @@ process_command(dbref player, dbref cause, int interactive,
 #endif
 
     DPUSH; /* #29 */
+    lst_cmd = alloc_lbuf("process_command_lstcmd");
 
     if (!command)
 	abort();
@@ -3241,11 +3242,13 @@ process_command(dbref player, dbref cause, int interactive,
     if ( mudstate_hot.jumpst > 0 ) {
        mudstate_hot.jumpst--;
        DPOP;
+       free_lbuf(lst_cmd);
        return;
     }
     if ( mudstate.gotostate > 0 ) {
        if ( strncasecmp(command,"@goto/label ",12) ) {
          DPOP;
+         free_lbuf(lst_cmd);
          return;
        }
     }
@@ -3265,7 +3268,7 @@ process_command(dbref player, dbref cause, int interactive,
     succ = i_fndexit = 0;
     cache_reset(0);
     reset_atrcache_commandtrig();
-    memset(lst_cmd, 0, sizeof(lst_cmd));
+    memset(lst_cmd, 0, LBUF_SIZE);
     memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
 #ifndef NODEBUGMONITOR
     memset(debugmem->last_command, 0, sizeof(debugmem->last_command));
@@ -3292,6 +3295,7 @@ process_command(dbref player, dbref cause, int interactive,
         mudstate_hot.debug_cmd = cmdsave;
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
+        free_lbuf(lst_cmd);
 	return;
     }
     /* Make sure player isn't going or halted */
@@ -3308,6 +3312,7 @@ process_command(dbref player, dbref cause, int interactive,
 	mudstate_hot.debug_cmd = cmdsave;
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
+        free_lbuf(lst_cmd);
 	return;
     }
     }
@@ -3362,6 +3367,7 @@ process_command(dbref player, dbref cause, int interactive,
              free_lbuf(spamX);
              DPOP; /* #29 */
              mudstate_hot.no_hook = 0;
+             free_lbuf(lst_cmd);
              return;
           } else if ( time(NULL) < (spamtimeX + 60) ) {
              spamcntX++;
@@ -3656,6 +3662,7 @@ process_command(dbref player, dbref cause, int interactive,
           mudstate.shell_program = 0;
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
+          free_lbuf(lst_cmd);
           return;
        }
     }
@@ -3767,6 +3774,7 @@ process_command(dbref player, dbref cause, int interactive,
           process_error_control(player, prefix_cmds[i], command, no_space);
 	  DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
+          free_lbuf(lst_cmd);
 	  return;
 	}
 	mudstate.write_status = 1;
@@ -4086,6 +4094,7 @@ process_command(dbref player, dbref cause, int interactive,
           setitimer(ITIMER_PROF, &itimer, NULL);
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
+          free_lbuf(lst_cmd);
 	  return;
 	}
         if ( msave ) {
@@ -4124,6 +4133,7 @@ process_command(dbref player, dbref cause, int interactive,
         setitimer(ITIMER_PROF, &itimer, NULL);
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
+        free_lbuf(lst_cmd);
 	return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
@@ -4133,6 +4143,7 @@ process_command(dbref player, dbref cause, int interactive,
 	mudstate_hot.debug_cmd = cmdsave;
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
+        free_lbuf(lst_cmd);
 	return;
     }
     /* Only check for exits if we may use the goto command */
@@ -4248,6 +4259,7 @@ process_command(dbref player, dbref cause, int interactive,
                       setitimer(ITIMER_PROF, &itimer, NULL);
                       DPOP; /* #29 */
                       mudstate_hot.no_hook = 0;
+                      free_lbuf(lst_cmd);
 		      return;
                    }
 	        }
@@ -4339,6 +4351,7 @@ process_command(dbref player, dbref cause, int interactive,
                      setitimer(ITIMER_PROF, &itimer, NULL);
                      DPOP; /* #29 */
                      mudstate_hot.no_hook = 0;
+                     free_lbuf(lst_cmd);
 		     return;
                   }
 	        }
@@ -4352,6 +4365,7 @@ process_command(dbref player, dbref cause, int interactive,
 	        mudstate_hot.exitcheck = 0;
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
+                free_lbuf(lst_cmd);
 	        return;
 	     }
 	     mudstate_hot.exitcheck = 0;
@@ -4816,6 +4830,7 @@ process_command(dbref player, dbref cause, int interactive,
 	mudstate_hot.debug_cmd = cmdsave;
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
+        free_lbuf(lst_cmd);
 	return;
     }
 
@@ -4860,6 +4875,7 @@ process_command(dbref player, dbref cause, int interactive,
                 setitimer(ITIMER_PROF, &itimer, NULL);
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
+                free_lbuf(lst_cmd);
 		return;
 	    }
 	}
@@ -4887,6 +4903,7 @@ process_command(dbref player, dbref cause, int interactive,
                     setitimer(ITIMER_PROF, &itimer, NULL);
                     DPOP; /* #29 */
                     mudstate_hot.no_hook = 0;
+                    free_lbuf(lst_cmd);
 		    return;
 		}
 	    }
@@ -5085,6 +5102,7 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate_hot.debug_cmd = cmdsave;
     DPOP; /* #29 */
     mudstate_hot.no_hook = 0;
+    free_lbuf(lst_cmd);
     return;
 }
 
@@ -5279,12 +5297,13 @@ static void list_vattrcmds(dbref player) {
 
 static void list_cmdtable(dbref player, char *s_command) {
   CMDENT *cmdp;
-  const char *ptrs[LBUF_SIZE / 2];
+  const char **ptrs;
   char *buff, *bp;  
   int nptrs = 0, i;
 
   DPUSH; /* #31 */
 
+  ptrs = malloc(sizeof(const char *) * (LBUF_SIZE / 2));
   buff = alloc_lbuf("list_cmdtable");
   bp = buff;
   *bp = '\0';
@@ -5408,6 +5427,7 @@ static void list_cmdtable(dbref player, char *s_command) {
   }
 
   free_lbuf(buff);
+  free(ptrs);
   VOIDRETURN;  /* #31 */
 }
 

@@ -103,11 +103,12 @@ expect(int s, int match, char *buf)
 
 int sendcmd(int s, int cmd, char *arg)
 {
-	char	buf[LBUF_SIZE];
+	char	*buf;
 	int	cc, len, ret;
 
 	ret = 1;
-	snprintf(buf, sizeof(buf), "%s %s\n", fnlist[cmd].name, arg != 0 ? arg : (char *)"");
+	buf = alloc_lbuf("sendcmd_buf");
+	snprintf(buf, LBUF_SIZE, "%s %s\n", fnlist[cmd].name, arg != 0 ? arg : (char *)"");
 	len = strlen(buf);
 	cc = write(s, buf, len);
 	if (cc < 0) {
@@ -116,6 +117,7 @@ int sendcmd(int s, int cmd, char *arg)
 	if (cc != len) {
 		ret = 0;
 	}
+	free_lbuf(buf);
 	return (ret);
 }
 

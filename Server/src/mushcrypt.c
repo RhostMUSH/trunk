@@ -301,13 +301,15 @@ int
 decode_base64(char *encoded, int len, char *buff, char **bp, int key)
 {
   BIO *bio, *b64, *bmem;
-  char decoded[LBUF_SIZE], *pdec;
+  char *decoded, *pdec;
   int dlen;
 
+  decoded = alloc_lbuf("base64_decode");
   memset(decoded, '\0', LBUF_SIZE);
   b64 = BIO_new(BIO_f_base64());
   if (!b64) {
     safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
+    free_lbuf(decoded);
     return 0;
   }
   BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
@@ -316,6 +318,7 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
   if (!bmem) {
     safe_str((char *)"#-1 ALLOCATION ERROR", buff, bp);
     BIO_free(b64);
+    free_lbuf(decoded);
     return 0;
   }
   //  len = BIO_set_close(bmem, BIO_NOCLOSE); This makes valgrind report a memory leak.
@@ -336,6 +339,7 @@ decode_base64(char *encoded, int len, char *buff, char **bp, int key)
      }
   }
   safe_str(decoded, buff, bp);
+  free_lbuf(decoded);
 
   BIO_free_all(bio);
 

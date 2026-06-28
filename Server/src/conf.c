@@ -1919,7 +1919,7 @@ CF_HAND(cf_dynstring)
 {
    int retval, chkval, addval, first, second, third, i_skip;
    char *buff, *tbuff, *buff2, *tbuff2, *stkbuff, *abuf1, *abuf2, *abuf3, *tabuf2, *tabuf3;
-   char quick_buff[LBUF_SIZE+2], *tstrtokr, *tstval, *tstvalptr, *tstvalstr, *tstvalstrptr, *dup, *dupptr;
+   char *quick_buff, *tstrtokr, *tstval, *tstvalptr, *tstvalstr, *tstvalstrptr, *dup, *dupptr;
 
    if ( str == NULL || !*str ) {
       if ( Good_obj(player) )
@@ -1927,6 +1927,7 @@ CF_HAND(cf_dynstring)
       return -1;
    }
 
+   quick_buff = malloc(LBUF_SIZE + 2);
    chkval = retval = addval = 0;
    if ( strcmp( str, "!ALL" ) == 0 ) {
       if ( Good_obj(player) )
@@ -1996,8 +1997,8 @@ CF_HAND(cf_dynstring)
       tbuff2 = buff2 = alloc_lbuf("cf_dynstring.ALLOC2");
       while (stkbuff) {
          /* This is always 2 chars above max length stkbuff can be */
-         memset(quick_buff, 0, sizeof(quick_buff));
-         sprintf(quick_buff, "*%s*", stkbuff);
+        memset(quick_buff, 0, LBUF_SIZE + 2);
+        sprintf(quick_buff, "*%s*", stkbuff);
          if (!quick_wild(quick_buff,abuf2)) {
             if ( first )
                safe_chr(' ', buff2, &tbuff2);
@@ -2078,6 +2079,7 @@ CF_HAND(cf_dynstring)
    }
    if ( !chkval && !addval  )
       retval = -1;
+   free(quick_buff);
    return retval;
 }
 

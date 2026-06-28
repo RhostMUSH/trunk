@@ -1172,10 +1172,11 @@ static int flagent_comp(const void *s1, const void *s2)
 void display_flagtab2(dbref player, char *buff, char **bufcx)
 {
     char *buf, *bp;
-    const FLAGENT *ptrs[LBUF_SIZE/2];
+    const FLAGENT **ptrs;
     int f_int, nptrs, i;
     FLAGENT *fp;
 
+    ptrs = malloc(sizeof(const FLAGENT *) * (LBUF_SIZE/2));
     bp = buf = alloc_lbuf("display_flagtab");
     f_int = 0;
     nptrs = 0;
@@ -1221,6 +1222,7 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
     *bp = '\0';
     safe_str(buf, buff, bufcx);
     free_lbuf(buf);
+    free(ptrs);
 
 }
 
@@ -1306,6 +1308,7 @@ display_totemfree(dbref player, int tagslot)
    } else {
       if ( (tagslot >= TOTEM_SLOTS) || (tagslot < 0) ) {
          notify_quiet(player, "Invalid slot specified.");
+         free_lbuf(s_buff);
          return;
       } else {
          s_buffptr = s_buff;

@@ -7505,10 +7505,11 @@ list_sites(dbref player, SITE * site_list,
 void
 list_hosts(dbref player, char *hostchrtype, char *hostchrmeth)
 {
-    char *tmp_word, tbuff[LBUF_SIZE], sbuff[SBUF_SIZE], *tpr_buff, *tprp_buff, *tmp_wordptr, *tstrtokr;
+    char *tmp_word, *tbuff, sbuff[SBUF_SIZE], *tpr_buff, *tprp_buff, *tmp_wordptr, *tstrtokr;
     int i_maxcons, i_found;
 
-    memset(tbuff, '\0', sizeof(tbuff));
+    tbuff = alloc_lbuf("list_hosts_buf");
+    memset(tbuff, '\0', LBUF_SIZE);
     memset(sbuff, '\0', sizeof(sbuff));
     strncpy(tbuff, hostchrtype, (LBUF_SIZE > strlen(hostchrtype) ? strlen(hostchrtype) : LBUF_SIZE - 1));
     if ( hostchrtype ) {
@@ -7541,8 +7542,9 @@ list_hosts(dbref player, char *hostchrtype, char *hostchrmeth)
              *tmp_wordptr = '|';
           tmp_word = strtok_r( NULL, " ", &tstrtokr);
        }
-       free_lbuf(tpr_buff);
-    }
+        free_lbuf(tpr_buff);
+     }
+    free_lbuf(tbuff);
 }
 /* ---------------------------------------------------------------------------
  * list_siteinfo: List information about specially-marked sites.

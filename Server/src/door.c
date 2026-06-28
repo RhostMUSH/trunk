@@ -583,11 +583,12 @@ void save_door(DESC *d, char *info)
 
 void queue_door_string(DESC *d, const char *s, int addnl)
 {
-    char buf[LBUF_SIZE], *new;
+    char *buf, *new;
     int len;
 
     DPUSH; /* #120 */
 
+    buf = alloc_lbuf("door_string_buf");
     strncpy(buf, s, LBUF_SIZE - 1);
     buf[LBUF_SIZE - 1] = '\0';
     if (index(s, ESC_CHAR))
@@ -611,6 +612,7 @@ void queue_door_string(DESC *d, const char *s, int addnl)
 	}
 	queue_door_write(d, new, len);
     }
+    free_lbuf(buf);
     VOIDRETURN; /* #120 */
 }
 

@@ -971,13 +971,14 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     char *args[10], *s_logroom, *cpulbuf, *s_aptext, *s_aptextptr, *s_strtokr, *s_pipeattr, *s_pipeattr2, *s_pipebuff, *s_pipebuffptr, *s_tb1, *s_tb2;
     dbref aowner, targetloc, recip, obj, i_apowner, passtarget;
     int i, nargs, aflags, has_neighbors, pass_listen, noansi=0, i_pipetype, i_brokenotify = 0, i_chkcpu;
-    int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, targetlist[LBUF_SIZE];
+    int check_listens, pass_uselock, is_audible, i_apflags, i_aptextvalidate = 0, i_targetlist = 0, *targetlist;
     struct tm *ttm2;
     FWDLIST *fp;
     ATTR *ap_log, *ap_attrpipe;
 
     DPUSH; /* #75 */
 
+    targetlist = malloc(sizeof(int) * LBUF_SIZE);
     for (i=0; i<10; i++ )
        args[i] = NULL;
 
@@ -1672,6 +1673,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
   }
   if (msg_ns)
      free_lbuf(msg_ns);
+  free(targetlist);
   mudstate_hot.ntfy_nest_lev--;
   VOIDRETURN; /* #75 */
 }

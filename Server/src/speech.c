@@ -2777,7 +2777,7 @@ void whisper_pose (dbref player, dbref target, char *message)
 void do_pemit (dbref player, dbref cause, int key, char *recipient, 
 		char *message, char *cargs[], int ncargs)
 {
-dbref	target, loc, aowner, darray[LBUF_SIZE/2];
+dbref	target, loc, aowner, *darray;
 char	*buf2, *bp, *recip2, list, plist, *buff3, *buff4, *result, *pt1, *pt2;
 char	*pc1, *tell, *tx, *pbuf, *pbuftmp, *tpr_buff, *tprp_buff, *recipient_buff;
 char    *strtok, *strtokr, *strtokbuf;
@@ -2803,6 +2803,7 @@ ZLISTNODE *z_ptr, *y_ptr;
       notify(player, "Permission denied.");
       return;
    }
+   darray = malloc(sizeof(dbref) * (LBUF_SIZE / 2));
    /* If NS, strip FPOSE but leave NS -- fall-through on a switch */
    if ( key & PEMIT_FPOSE_NS ) {
       key &=~PEMIT_FPOSE;
@@ -2835,6 +2836,7 @@ ZLISTNODE *z_ptr, *y_ptr;
             if ( !*p1 ) {
                 notify(player, "You have not yet whispered to anyone.");
                 free_lbuf(p1);
+                free(darray);
                 return;
             }
             whisper_rcpt_buf = alloc_lbuf("do_pemit.whisper_last");
@@ -2858,6 +2860,7 @@ ZLISTNODE *z_ptr, *y_ptr;
                     notify(player, "None of your last whispered-to targets still exist.");
                     free_lbuf(whisper_rcpt_buf);
                     whisper_rcpt_buf = NULL;
+                    free(darray);
                     return;
                 }
             }
@@ -2870,10 +2873,12 @@ ZLISTNODE *z_ptr, *y_ptr;
 #ifdef REALITY_LEVELS
     if (  ((key & PEMIT_TOREALITY) && !(key & PEMIT_CONTENTS)) ) {
       notify(player, "Illegal combination of switches.");
+      free(darray);
       return;
    }
    if (  ((key & PEMIT_ONEEVAL) && !(key & PEMIT_LIST)) ) {
       notify(player, "Illegal combination of switches.");
+      free(darray);
       return;
    }
    if ( key & (PEMIT_ONEEVAL) ) {
@@ -3002,6 +3007,7 @@ ZLISTNODE *z_ptr, *y_ptr;
              free_lbuf(lbuff);
           }
           free_lbuf(p1);
+          free(darray);
           return;
        }
 
@@ -3054,8 +3060,10 @@ ZLISTNODE *z_ptr, *y_ptr;
          case PEMIT_FPOSE_NS:
          case PEMIT_FEMIT:
             target = match_affected(player, recip2);
-            if (target == NOTHING) 
+            if (target == NOTHING) {
+               free(darray);
                return;
+            }
             ok_to_do = 1;
             break;
          case PEMIT_PORT:
@@ -3534,6 +3542,7 @@ ZLISTNODE *z_ptr, *y_ptr;
    }
    if (plist)
       free_lbuf(pt1);
+   free(darray);
 }
 
 void com_who(char *chan, dbref who), com_send(char *chan, char *mess);
@@ -3541,7 +3550,7 @@ int getword(char*,char*);
 
 void do_channel(dbref player, dbref cause, int key, char *arg1)
 {
-  char buf[LBUF_SIZE], buf2[LBUF_SIZE], buff2[LBUF_SIZE];
+  char *buf, *buf2, *buff2;
   int aflags;
   dbref aowner;
   char *tmp, *tpr_buff, *tprp_buff, *tstrtokr;
@@ -3555,6 +3564,9 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
     notify(player,"Permission denied.");
     return;
   }
+  buf = alloc_lbuf("channel_buf");
+  buf2 = alloc_lbuf("channel_buf2");
+  buff2 = alloc_lbuf("channel_buff2");
   tmp = arg1;
   buf[0] = '\0';
   while ((*tmp != '\0') && (*tmp != ' '))
@@ -3600,11 +3612,14 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
 		notify(player,"channel 'public'");
 	 }
 	 free_lbuf(tmp);
+	 free_lbuf(buf);
+	 free_lbuf(buf2);
+	 free_lbuf(buff2);
 	 return;
   }
   if(*arg1 == '+') {
-	 char xxx[LBUF_SIZE];
-	 char word[LBUF_SIZE];
+	 char *xxx;
+	 char *word;
 
 	 arg1++;
 	 if(Typeof(player)!=TYPE_PLAYER) {
@@ -3625,6 +3640,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
     }
   
     tmp = atr_get(player,A_CHANNEL,&aowner,&aflags);
+    xxx = alloc_lbuf("channel_plus_xxx");
     strncpy(xxx,tmp,LBUF_SIZE - 1);
     *(xxx + LBUF_SIZE - 1) = '\0';
     free_lbuf(tmp);
@@ -3632,20 +3648,26 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
     for ( chk_ansi = arg1; chk_ansi && *chk_ansi; chk_ansi++ ) {
         if ( !isprint( (int)*chk_ansi )) {
            notify(player, "You can't have that as a channel name!");
+           free_lbuf(xxx);
            return;
         }
     }
     if( *arg1 == ' ' || *arg1 == '\0' ) {
       notify(player, "You can't have that as a channel name!");
+      free_lbuf(xxx);
       return;
     }
     if(strlen(arg1) > 20 ) {
       notify(player, "You can't have channels over 20 characters long.");
+      free_lbuf(xxx);
       return;
     }
+    word = alloc_lbuf("channel_plus_word");
     while(getword(word,xxx)) {
       if(!strcmp(word,arg1)) {
 	notify(player,"You are already on that channel!");
+	free_lbuf(xxx);
+	free_lbuf(word);
 	return;
       }
     }
@@ -3655,6 +3677,7 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
     else {
       if( strlen(arg1) + strlen(tmp) >= LBUF_SIZE - 1 ) {
         notify(player,"Your channel list is too long to add another!");
+        free_lbuf(xxx);
         free_lbuf(tmp);
         return;
       }
@@ -3669,12 +3692,17 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
         sprintf(buf,"%s has joined this channel.",Name(player));
     }
     notify(player,unsafe_tprintf("%s has been added to your channel list.",arg1));
+    free_lbuf(xxx);
+    free_lbuf(word);
+    free_lbuf(buf);
+    free_lbuf(buf2);
+    free_lbuf(buff2);
     return;
   }
 
   if(*arg1 == '-') {
-    char xxx[LBUF_SIZE];
-    char word[LBUF_SIZE];
+    char *xxx;
+    char *word;
     int ck = 0,start=0;
 
     arg1++;
@@ -3690,6 +3718,8 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
     }
     tmp = atr_get(player,A_CHANNEL,&aowner,&aflags);
 
+    xxx = alloc_lbuf("channel_del_xxx");
+    word = alloc_lbuf("channel_del_word");
     xxx[0] = 0;
     while(getword(word,tmp)) {
       if(strcmp(word,arg1)) {
@@ -3702,6 +3732,8 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
  
     if(!ck) {
       notify(player,unsafe_tprintf("You aren't on channel %s.",arg1));
+      free_lbuf(xxx);
+      free_lbuf(word);
       return;
     }
 
@@ -3715,6 +3747,11 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
    
     if (xxx[0]) atr_add(player,A_CHANNEL,xxx,aowner,aflags);
     else atr_clr(player,A_CHANNEL);
+    free_lbuf(xxx);
+    free_lbuf(word);
+    free_lbuf(buf);
+    free_lbuf(buf2);
+    free_lbuf(buff2);
     return;
   }
   notify(player,"Usage:");
@@ -3722,6 +3759,9 @@ void do_channel(dbref player, dbref cause, int key, char *arg1)
   notify(player,"  +channel -<channel>    :deletes a channel");
   notify(player,"  +channel               :lists your channels.");
   notify(player,"For a general chatting channel, try channel 'public'.");
+  free_lbuf(buf);
+  free_lbuf(buf2);
+  free_lbuf(buff2);
 }
 
 void do_com(dbref player, dbref cause, int key, 
@@ -3732,7 +3772,7 @@ void do_com(dbref player, dbref cause, int key,
   int aflags, aflags2;
   dbref aowner, aowner2;
   char *tmp;
-  char tmp_word[LBUF_SIZE];
+  char *tmp_word;
   int failure = 1;
 
   if(Typeof(player)!=TYPE_PLAYER) {
@@ -3769,11 +3809,13 @@ void do_com(dbref player, dbref cause, int key,
     return;
   }
   tmp = atr_get(player,A_CHANNEL,&aowner,&aflags);
+  tmp_word = alloc_lbuf("do_com_tmp_word");
   while( getword(tmp_word, tmp) )
       if(!strcmp(tmp_word,chan)) 
          failure = 0;
   if ( failure && ( !(Wizard(player) && !string_compare(arg2, "who")) ) ) {
     notify(player,"You are not on that channel.");
+    free_lbuf(tmp_word);
     free_lbuf(tmp);
     return;
   }
@@ -3830,6 +3872,7 @@ void do_com(dbref player, dbref cause, int key,
     com_send(chan,mess);
   }
   free_lbuf(tmp);
+  free_lbuf(tmp_word);
 }
 
 void com_send(char *chan, char *mess)

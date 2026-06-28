@@ -313,12 +313,16 @@ char *replace_string_ansi(const char *s_old, const char *new,
 {
    char	*i, *r, *s, *outbuff, *outbuff2, *inbuff, *result, *old;
    int	olen, i_once, i_count, i_olen;
-   ANSISPLIT outsplit[LBUF_SIZE], outsplit2[LBUF_SIZE], *p_sp, *p_sp2, *p_old,
-             insplit[LBUF_SIZE], oldsplit[LBUF_SIZE], *p_ip, *p_sptmp;
+   ANSISPLIT *outsplit, *outsplit2, *p_sp, *p_sp2, *p_old,
+             *insplit, *oldsplit, *p_ip, *p_sptmp;
 
    if (string == NULL) 
       return NULL;
 
+   outsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+   outsplit2 = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+   insplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+   oldsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
    initialize_ansisplitter(outsplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit2, LBUF_SIZE);
    initialize_ansisplitter(insplit, LBUF_SIZE);
@@ -405,6 +409,10 @@ char *replace_string_ansi(const char *s_old, const char *new,
    free_lbuf(outbuff2);
    free_lbuf(inbuff);
    free_lbuf(old);
+   free(outsplit);
+   free(outsplit2);
+   free(insplit);
+   free(oldsplit);
 
    return result;
 }
@@ -1749,13 +1757,14 @@ char *myitoa(int n)
 char 
 *translate_string(const char *str, int type)
 {
-    char old[LBUF_SIZE+1];
+    char *old;
     static char new0[LBUF_SIZE+1];
     char *j, *c, *bp;
     int i, i_keyval;
 
+    old = malloc(LBUF_SIZE + 1);
     memset(new0, 0, sizeof(new0));
-    memset(old, 0, sizeof(old));
+    memset(old, 0, LBUF_SIZE + 1);
     bp = new0;
     strncpy(old, str, LBUF_SIZE);
     i_keyval = 0;
@@ -2023,6 +2032,7 @@ char
     if ( i_keyval != 0 ) 
        safe_str(")]", new0, &bp);
     *bp = '\0';
+    free(old);
     return new0;
 }
 

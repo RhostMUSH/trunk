@@ -7042,7 +7042,7 @@ FUNCTION(fun_vmul)
 FUNCTION(fun_vunit)
 {
    double num, sum;
-   char tbuf[LBUF_SIZE*2], *p1, sep, osep;
+   char *tbuf, *p1, sep, osep;
 
   /* return if a list is empty */
    if (!fargs[0])
@@ -7054,6 +7054,8 @@ FUNCTION(fun_vunit)
   /* return if a list is empty */
    if (!*p1)
       return;
+
+   tbuf = alloc_lbuf("vunit_tbuf");
 
   /* copy the vector, since we have to walk it twice... */
    strncpy(tbuf, p1, (LBUF_SIZE*2)-1);
@@ -7068,13 +7070,14 @@ FUNCTION(fun_vunit)
    sum = sqrt(sum);
 
    if (!sum) {
-    /* zero vector */
+     /* zero vector */
       p1 = tbuf;
       safe_chr('0', buff, bufcx);
       while (split_token(&p1, sep), p1) {
          safe_chr(osep, buff, bufcx);
          safe_chr('0', buff, bufcx);
       }
+      free_lbuf(tbuf);
       return;
    }
   /* now make the unit vector */
@@ -7084,6 +7087,7 @@ FUNCTION(fun_vunit)
       safe_chr(osep, buff, bufcx);
       fval(buff, bufcx, safe_atof(split_token(&p1,sep)) / sum);
    }
+    free_lbuf(tbuf);
 
 }
 
@@ -7594,26 +7598,29 @@ FUNCTION(fun_tr)
    char *s_instr1, *s_instr2, *s_holdstr, *s_ptr, s_chrmap[256], 
         *s_inptr, *outbuff, *outarg2, *s_output;
    int i_cntr, i, i_noansi;
-   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2,
-             s_splitmap[256], s_splitarg2[LBUF_SIZE];
+    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2,
+              *s_splitarg2 = split_alloc_buf(), s_splitmap[256];
 
-   if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
-    split_free_buf(outsplit);
-    split_free_buf(outsplit2);
-      return;
-   }
+    if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
+     split_free_buf(outsplit);
+     split_free_buf(outsplit2);
+     split_free_buf(s_splitarg2);
+       return;
+    }
 
-   if ( !*fargs[0] ) {
-    split_free_buf(outsplit);
-    split_free_buf(outsplit2);
-      return;
-   }
-   if ( !*fargs[1] || !*fargs[2] ) {
-      safe_str(fargs[0], buff, bufcx);
-    split_free_buf(outsplit);
-    split_free_buf(outsplit2);
-      return;
-   }
+    if ( !*fargs[0] ) {
+     split_free_buf(outsplit);
+     split_free_buf(outsplit2);
+     split_free_buf(s_splitarg2);
+       return;
+    }
+    if ( !*fargs[1] || !*fargs[2] ) {
+       safe_str(fargs[0], buff, bufcx);
+     split_free_buf(outsplit);
+     split_free_buf(outsplit2);
+     split_free_buf(s_splitarg2);
+       return;
+    }
 
    i_cntr = 0;
    /* Sanitize the lists */
@@ -7624,6 +7631,7 @@ FUNCTION(fun_tr)
       safe_str("#-1 INPUT FIND LIST TOO LARGE.", buff, bufcx);
     split_free_buf(outsplit);
     split_free_buf(outsplit2);
+    split_free_buf(s_splitarg2);
       return;
    }
    s_inptr = s_instr2 = alloc_lbuf("fun_tr_str2");
@@ -7632,12 +7640,13 @@ FUNCTION(fun_tr)
       free_lbuf(s_instr1);
       free_lbuf(s_instr2);
       safe_str("#-1 OUTPUT REPLACE LIST TOO LARGE.", buff, bufcx);
-    split_free_buf(outsplit);
-    split_free_buf(outsplit2);
-      return;
-   }
+     split_free_buf(outsplit);
+     split_free_buf(outsplit2);
+     split_free_buf(s_splitarg2);
+       return;
+    }
 
-   i_noansi = 0;
+    i_noansi = 0;
    if ( (nfargs > 3) && *fargs[3] )
       i_noansi = atoi(fargs[3]);
 
@@ -7653,12 +7662,13 @@ FUNCTION(fun_tr)
       free_lbuf(s_instr1);
       free_lbuf(s_instr2);
       safe_str("#-1 FIND AND REPLACE LISTS MUST BE OF SAME LENGTH.", buff, bufcx);
-    split_free_buf(outsplit);
-    split_free_buf(outsplit2);
-      return;
-   }
+     split_free_buf(outsplit);
+     split_free_buf(outsplit2);
+     split_free_buf(s_splitarg2);
+       return;
+    }
 
-   s_ptr = s_instr1;
+    s_ptr = s_instr1;
 
    for ( i = 0; i < 256; i++ ) {
       s_chrmap[i] = (char)i;
@@ -7733,6 +7743,7 @@ FUNCTION(fun_tr)
    free_lbuf(s_instr2);
    split_free_buf(outsplit2);
    split_free_buf(outsplit);
+   split_free_buf(s_splitarg2);
 }
 
 FUNCTION(fun_t)
@@ -10898,9 +10909,9 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 {
   int padwidth = 0;
   int currwidth = 0;
-  char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
-       *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, s_padstring[LBUF_SIZE], s_padstring2[LBUF_SIZE], *s, *t, *u, 
-       *s_t, *s_tp, *s_tp2;
+   char padch = ' ', *s_justbuff, *s_pp, *s_padbuf, *s_padbufptr, x1, x2, x3, x4,
+        *s_special, *s_specialptr, *s_normal, *s_normalbg, *s_accent, *s_padstring, *s_padstring2, *s, *t, *u, 
+        *s_t, *s_tp, *s_tp2;
   int idx, idy, i_stripansi, i_nostripansi, i_inansi, i_spacecnt, gapwidth, i_padme, i_padmenow, i_padmecurr, i_chk, 
       center_width, spares, i_breakhappen, i_usepadding, i_savejust, i_lastspace, i_linecnt, i_special, i_indent, i_mux;
   char *outbuff, *s_output, *s_outptr, s_padd[12];
@@ -10918,8 +10929,10 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   s_specialptr = s_special = alloc_mbuf("printf_mbuf_1");
   s_normal = alloc_mbuf("printf_mbuf_2");
   s_accent = alloc_mbuf("printf_mbuf_3");
-  s_normalbg = alloc_mbuf("printf_mbuf_4");
-  memset(s_padstring, '\0', sizeof(s_padstring));
+   s_normalbg = alloc_mbuf("printf_mbuf_4");
+   s_padstring = alloc_lbuf("printf_padstr");
+   s_padstring2 = alloc_lbuf("printf_padstr2");
+   memset(s_padstring, '\0', LBUF_SIZE);
   i_linecnt = i_chk = i_lastspace = spares = 0;
   i_savejust = -1;
 
@@ -10952,7 +10965,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
     idy = idx = i_chk = gapwidth = 0;
     snarfle_special_characters(fmtbuff, s_padstring);
     strcpy(fmtbuff, s_padstring);
-    memset(s_padstring, '\0', sizeof(s_padstring));
+    memset(s_padstring, '\0', LBUF_SIZE);
     if ( fm->forcebreakonreturn ) {
        s = fmtbuff;
        t = s_padstring;
@@ -11117,7 +11130,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
              break;
        }
        strcpy(fmtbuff, s_padstring);
-       memset(s_padstring, '\0', sizeof(s_padstring));
+       memset(s_padstring, '\0', LBUF_SIZE);
     } 
     i_linecnt = 0;
     if ( !(fm->morepadd & 1) ) {
@@ -11148,7 +11161,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
           s++;
        } 
        i_stripansi = printf_visible_width(s_padstring);
-        memset(s_padstring, '\0', sizeof(s_padstring));
+        memset(s_padstring, '\0', LBUF_SIZE);
      } else {
         i_stripansi = printf_visible_width(strip_all_special(fmtbuff));
      }
@@ -12407,6 +12420,8 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
   free_mbuf(s_normalbg);
   free_mbuf(s_accent);
   free_lbuf(s_t);
+  free_lbuf(s_padstring);
+  free_lbuf(s_padstring2);
   split_free_buf(outsplit);
   if ( i_savejust != -1 )
      fm->leftjust = i_savejust;
@@ -14706,7 +14721,7 @@ static char *
 crypt_code(char *code, char *text, int type)
 {
     static char textbuff[LBUF_SIZE];
-    char codebuff[LBUF_SIZE];
+    char *codebuff;
     int start = 32;
     int end = 126;
     int mod = end - start + 1;
@@ -14714,9 +14729,12 @@ crypt_code(char *code, char *text, int type)
 
     if (!text && !*text)
        return ((char *) "");
+    codebuff = alloc_lbuf("crypt_code");
     strcpy(codebuff, crunch_code(code));
-    if (!code || !*code || !*codebuff)
+    if (!code || !*code || !*codebuff) {
+       free_lbuf(codebuff);
        return (text);
+    }
     strcpy(textbuff, "");
 
     p = text;
@@ -14738,6 +14756,7 @@ crypt_code(char *code, char *text, int type)
           q = codebuff;
     }
     *r = '\0';
+    free_lbuf(codebuff);
     return (textbuff);
 }
 
@@ -15500,8 +15519,10 @@ FUNCTION(fun_listfunctions)
 FUNCTION(fun_listcommands)
 {
   CMDENT *cmdp;
-  const char *ptrs[LBUF_SIZE / 2];
+  const char **ptrs;
   int nptrs = 0, i, i_cmdtype;
+
+  ptrs = malloc(sizeof(const char *) * (LBUF_SIZE / 2));
 
   i_cmdtype = 0;
   if ( (nfargs > 0) && *fargs[0] ) {
@@ -15589,6 +15610,7 @@ FUNCTION(fun_listcommands)
         }
      }
   }
+  free(ptrs);
 }
 
 FUNCTION(fun_listnewsgroups)
@@ -18081,7 +18103,7 @@ FUNCTION(fun_zfunldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, **s_xargs,
          *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
@@ -18161,6 +18183,7 @@ FUNCTION(fun_zfunldefault)
       }
     }
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18178,6 +18201,7 @@ FUNCTION(fun_zfunldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18210,7 +18234,7 @@ FUNCTION(fun_zfun2ldefault)
     int aflags, anum, goodzone, x, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, **s_xargs,
          *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
@@ -18295,6 +18319,7 @@ FUNCTION(fun_zfun2ldefault)
       }
     }
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18312,6 +18337,7 @@ FUNCTION(fun_zfun2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18343,7 +18369,7 @@ FUNCTION(fun_zfundefault)
     int aflags, anum, goodzone, chkpass, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *s_fargs0, **s_xargs;
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (ZFUNDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -18415,6 +18441,7 @@ FUNCTION(fun_zfundefault)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18432,6 +18459,7 @@ FUNCTION(fun_zfundefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18455,7 +18483,7 @@ FUNCTION(fun_udefault)
     dbref aowner, thing;
     int aflags, anum, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *s_fargs0, **s_xargs;
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (UDEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -18506,6 +18534,7 @@ FUNCTION(fun_udefault)
 
     /* Evaluate the arguments to the functions */
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ ) 
           s_xargs[i] = NULL;
@@ -18523,6 +18552,7 @@ FUNCTION(fun_udefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18618,7 +18648,7 @@ FUNCTION(fun_zfun2default)
     int aflags, anum, goodzone, i, tval;
     ATTR *ap;
     ZLISTNODE *ptr;
-    char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *s_fargs0, **s_xargs;
 
     if (nfargs < 2) {
         safe_str("#-1 FUNCTION (ZFUN2DEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -18688,6 +18718,7 @@ FUNCTION(fun_zfun2default)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18705,6 +18736,7 @@ FUNCTION(fun_zfun2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18726,7 +18758,7 @@ FUNCTION(fun_u2default)
     dbref aowner, thing;
     int aflags, anum, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *s_fargs0, *s_xargs[LBUF_SIZE/2];
+    char *atext, *result, *pass, *s_fargs0, **s_xargs;
 
     if (nfargs < 2) {
        safe_str("#-1 FUNCTION (U2DEFAULT) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
@@ -18780,6 +18812,7 @@ FUNCTION(fun_u2default)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18797,6 +18830,7 @@ FUNCTION(fun_u2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18913,7 +18947,7 @@ FUNCTION(fun_uldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, **s_xargs,
          *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
@@ -18981,6 +19015,7 @@ FUNCTION(fun_uldefault)
     }
 
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18998,6 +19033,7 @@ FUNCTION(fun_uldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -19239,7 +19275,7 @@ FUNCTION(fun_u2ldefault)
     dbref aowner, thing;
     int aflags, anum, x, chkpass, i, tval;
     ATTR *ap;
-    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, *s_xargs[LBUF_SIZE/2],
+    char *atext, *result, *pass, *pt, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *s_fargs0, **s_xargs,
          *npt, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST];
 
     if (nfargs < 2) {
@@ -19307,6 +19343,7 @@ FUNCTION(fun_u2ldefault)
     }
 
     if ( nfargs > 2 ) {
+    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -19324,6 +19361,7 @@ FUNCTION(fun_u2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
+       free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -19360,7 +19398,7 @@ FUNCTION(fun_u2ldefault)
 FUNCTION(fun_elementsmux)
 {
    int nwords, cur, bFirst, i_loop, i_len, i_ansiaware;
-   char *ptrs[LBUF_SIZE / 2], *s_output, *s_tbuf, *s_tbufptr;
+   char **ptrs, *s_output, *s_tbuf, *s_tbufptr;
    char *s, *r, *sep, *osep, *outbuff, *osepbuff;
    ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *insplit = split_alloc_buf(), *p_in;
 
@@ -19373,6 +19411,7 @@ FUNCTION(fun_elementsmux)
       return;
    }
 
+   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
    sep = alloc_lbuf("fun_elementsmux_sep");
    osep = alloc_lbuf("fun_elementsmux_osep");
    if ( (nfargs > 2) && *fargs[2] )
@@ -19469,6 +19508,7 @@ FUNCTION(fun_elementsmux)
    free_lbuf(outbuff);
    free_lbuf(sep);
    free_lbuf(osep);
+   free(ptrs);
    split_free_buf(insplit);
    split_free_buf(outsplit2);
    split_free_buf(outsplit);
@@ -20510,7 +20550,7 @@ FUNCTION(fun_strfunc)
 {
    FUN *fp;
    UFUN *ufp;
-   char *ptrs[LBUF_SIZE / 2], *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, *retval, *s_attr,
+   char **ptrs, *list, *p, *q, sep, *tpr_buff, *tprp_buff, *strtok, *strtokptr, *retval, *s_attr,
         *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *ptsavereg, *nptsavereg;
    int nitems, tst, i, i_found, aflags, feval, z, is_trace_bkup;
    dbref aowner, i_player;
@@ -20588,6 +20628,7 @@ FUNCTION(fun_strfunc)
    }
 
    list = alloc_lbuf("fun_strfunc");
+   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
 
    /* These will always be the same list and null terminated */
    strcpy(list, fargs[1]);
@@ -20720,6 +20761,7 @@ FUNCTION(fun_strfunc)
       free_lbuf(ptrs[i]);
    }
    free_lbuf(list);
+   free(ptrs);
 }
 
 /* ---------------------------------------------------------------------------
@@ -22984,9 +23026,9 @@ FUNCTION(fun_streq)
 FUNCTION(fun_randextract)
 {
   int *used, nword, numext, got, pos, x, y, z, end, i_sum, i_max, i_loop,
-      ilist[LBUF_SIZE / 2], ilist2[LBUF_SIZE / 2], i_slist, i_nlist, i_weight, i_usable;
+      *ilist, *ilist2, i_slist, i_nlist, i_weight, i_usable;
   char *p1, *p2, sep, te, *b2, osep, *tbuff, *tbuff2,
-       *slist[LBUF_SIZE / 2], *nlist[LBUF_SIZE / 2], *s_use;
+       **slist, **nlist, *s_use;
 
   if (!fn_range_check("RANDEXTRACT", nfargs, 1, 6, buff, bufcx)) {
     return;
@@ -23007,6 +23049,10 @@ FUNCTION(fun_randextract)
   if ((!*fargs[0]) || (numext < 1) || (numext > LBUF_SIZE) || ((te != 'L') && (te != 'R') && (te != 'D')))
     return;
 
+  ilist = malloc(sizeof(int) * (LBUF_SIZE / 2));
+  ilist2 = malloc(sizeof(int) * (LBUF_SIZE / 2));
+  slist = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+  nlist = malloc(sizeof(char *) * (LBUF_SIZE / 2));
   if ((nfargs > 2) && (*fargs[2])) {
     sep = *fargs[2];
   } else {
@@ -23077,8 +23123,13 @@ FUNCTION(fun_randextract)
     while (*p1 && (*p1 == sep))
       p1++;
   }
-  if (!nword)
+  if (!nword) {
+    free(ilist);
+    free(ilist2);
+    free(slist);
+    free(nlist);
     return;
+  }
   got = 0;
   used = NULL;
   switch (te) {
@@ -23207,6 +23258,10 @@ FUNCTION(fun_randextract)
   if (used) {
     free(used);
   }
+  free(ilist);
+  free(ilist2);
+  free(slist);
+  free(nlist);
 }
 
 FUNCTION(fun_extractword)
@@ -24681,21 +24736,25 @@ FUNCTION(fun_mul)
 
 FUNCTION(fun_floor)
 {
-    char tempbuff[LBUF_SIZE/2];
+    char *tempbuff;
 
+    tempbuff = alloc_lbuf("floor");
     sprintf(tempbuff, "%.0f", floor(safe_atof(fargs[0])));
     safe_str(tempbuff, buff, bufcx);
+    free_lbuf(tempbuff);
 }
 FUNCTION(fun_ceil)
 {
-    char tempbuff[LBUF_SIZE/2];
+    char *tempbuff;
+    tempbuff = alloc_lbuf("ceil");
     sprintf(tempbuff, "%.0f", ceil(safe_atof(fargs[0])));
     safe_str(tempbuff, buff, bufcx);
+    free_lbuf(tempbuff);
 }
 FUNCTION(fun_round)
 {
     static char fstr[6];
-    char tempbuff[LBUF_SIZE/2];
+    char *tempbuff;
     int i_val;
 
     i_val = atoi(fargs[1]);
@@ -24704,6 +24763,7 @@ FUNCTION(fun_round)
         sprintf(fstr, "%%.%df", i_val);
     else
         strcpy(fstr, "%.0f");
+    tempbuff = alloc_lbuf("round");
     if ( (i_val < 0) && (i_val > -100) ) {
        i_val = abs(i_val);
        sprintf(tempbuff, fstr, (safe_atof(fargs[0]) / (pow(10,i_val))));
@@ -24719,6 +24779,7 @@ FUNCTION(fun_round)
     }
     else
         safe_str(tempbuff, buff, bufcx);
+    free_lbuf(tempbuff);
 }
 
 FUNCTION(fun_trunc)
@@ -27804,11 +27865,12 @@ sanitize_input_cnt(char *s_base_str, char *s_in_str, char sep, int  *i_len, int 
 FUNCTION(fun_replace)
 {       /* replace a word at position X of a list */
     char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r, *st_tmpptr2;
-    int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
+    int *i_pos, i_tmp, i_len, i_found;
 
     if (!fn_range_check("REPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
+    i_pos = malloc(sizeof(int) * LBUF_SIZE);
     if ( (nfargs > 3) && *fargs[3]) {
        sep = *fargs[3];
     } else {
@@ -27816,9 +27878,10 @@ FUNCTION(fun_replace)
     }
 
     i_len=0;
-    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_REPLACE);
+    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, IF_REPLACE);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
+       free(i_pos);
        return;
     }
 
@@ -27870,16 +27933,18 @@ FUNCTION(fun_replace)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
+    free(i_pos);
 }
 
 FUNCTION(fun_ldelete)
 {       /* delete a word at position X of a list */
     char sep, *st_tmp, *st_tmpptr, *st_mash, st_mashtmp[2], *stok, *stok_r, *st_tmpptr2;
-    int i_pos[LBUF_SIZE], i_tmp, i_len, i_found;
+    int *i_pos, i_tmp, i_len, i_found;
 
     if (!fn_range_check("LDELETE", nfargs, 2, 4, buff, bufcx))
        return;
 
+    i_pos = malloc(sizeof(int) * LBUF_SIZE);
     if ( (nfargs > 2) && *fargs[2]) {
        sep = *fargs[2];
     } else {
@@ -27887,9 +27952,10 @@ FUNCTION(fun_ldelete)
     }
 
     i_len=0;
-    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, IF_DELETE);
+    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, IF_DELETE);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
+       free(i_pos);
        return;
     }
 
@@ -27942,6 +28008,7 @@ FUNCTION(fun_ldelete)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
+    free(i_pos);
 }
 
 FUNCTION(fun_trreverse)
@@ -27975,10 +28042,12 @@ FUNCTION(fun_trreverse)
 FUNCTION(fun_insert)
 {       /* insert a word at position X of a list */
     char sep, *st_tmp, *st_tmpptr, *st_mash, *st_mash2, *st_tmpptr2, st_mashtmp[2], *stok, *stok_r, *pmybuff;
-    int i_pos[LBUF_SIZE], i_tmp, i_len, i_found, i_append, i_flag;
+    int *i_pos, i_tmp, i_len, i_found, i_append, i_flag;
 
     if (!fn_range_check("INSERT", nfargs, 3, 6, buff, bufcx))
        return;
+
+    i_pos = malloc(sizeof(int) * LBUF_SIZE);
 
     if ( (nfargs > 3) && *fargs[3]) {
        sep = *fargs[3];
@@ -28008,9 +28077,10 @@ FUNCTION(fun_insert)
     }
 
     i_len=0;
-    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, (int *)&i_pos, i_flag);
+    i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, i_flag);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
+       free(i_pos);
        return;
     }
 
@@ -28075,6 +28145,7 @@ FUNCTION(fun_insert)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
+    free(i_pos);
 }
 
 /* ---------------------------------------------------------------------------
@@ -28085,14 +28156,17 @@ FUNCTION(fun_remove)
 {
     char *s, *sp, *word;
     char sep;
-    int i, j, first, found, iargs[LBUF_SIZE / 2], nitems0, nitems1;
-    char *sargs0[LBUF_SIZE / 2], *sargs1[LBUF_SIZE / 2], *t_buff, *t_buff2;
+    int i, j, first, found, *iargs, nitems0, nitems1;
+    char **sargs0, **sargs1, *t_buff, *t_buff2;
 
     varargs_preamble("REMOVE", 3);
     if (index(fargs[1], sep)) {
+       iargs = malloc(sizeof(int) * (LBUF_SIZE / 2));
+       sargs0 = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+       sargs1 = malloc(sizeof(char *) * (LBUF_SIZE / 2));
        t_buff = alloc_lbuf("remove_multi");
        t_buff2 = alloc_lbuf("remove_multi2");
-       memset(iargs, 0, sizeof(iargs));
+       memset(iargs, 0, sizeof(int) * (LBUF_SIZE / 2));
        strcpy(t_buff, fargs[0]);
        strcpy(t_buff2, fargs[1]);
        nitems0 = list2arr(sargs0, LBUF_SIZE / 2, t_buff, sep);
@@ -28116,9 +28190,12 @@ FUNCTION(fun_remove)
           safe_str(sargs0[j], buff, bufcx);
           first = 1;
        }
-       free_lbuf(t_buff);
-       free_lbuf(t_buff2);
-    } else {
+        free_lbuf(t_buff);
+        free_lbuf(t_buff2);
+        free(iargs);
+        free(sargs0);
+        free(sargs1);
+     } else {
        s = fargs[0];
        word = fargs[1];
 
@@ -30651,7 +30728,7 @@ FUNCTION(fun_creplaceansi)
 FUNCTION(fun_creplace)
 {
    char *curr, *cp, sep, *sop, *sp, *curr_temp, *sop_temp;
-   int  i_val, i_cntr, exit_val, i_range, i_rangecnt, i_array[LBUF_SIZE];
+   int  i_val, i_cntr, exit_val, i_range, i_rangecnt, *i_array;
    char *s_strtok, *s_strtokr;
 
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx))
@@ -30694,8 +30771,9 @@ FUNCTION(fun_creplace)
          free_lbuf(curr);
          return;
       }
-      memset(i_array, 0, sizeof(i_array));
-      s_strtok = strtok_r(sop, " \t", &s_strtokr);
+       i_array = malloc(sizeof(int) * LBUF_SIZE);
+       memset(i_array, 0, sizeof(int) * LBUF_SIZE);
+       s_strtok = strtok_r(sop, " \t", &s_strtokr);
       while ( s_strtok ) {
          i_range = atoi(s_strtok) - 1;
          if ( (i_range >= 0) && (i_range < LBUF_SIZE) ) {
@@ -30718,6 +30796,7 @@ FUNCTION(fun_creplace)
       free_lbuf(sop);
       safe_str(curr, buff, bufcx);
       free_lbuf(curr);
+      free(i_array);
       return;
    }
    free_lbuf(sop);
@@ -32070,7 +32149,7 @@ int mush_minimum(int a,int b, int c)
 FUNCTION(fun_strdistance)
 {
    char *s_word1, *s_word2, *p_word1, *p_word2, *p_wrd, c_cur, *s_noansibuf, c_lst, c_lst2;
-   int i_dist[LBUF_SIZE], i_dmin, i_lccheck, i_lenword1, i_lenword2, i, j, i_disttmp1, i_disttmp2, k, i_damareu;
+   int *i_dist, i_dmin, i_lccheck, i_lenword1, i_lenword2, i, j, i_disttmp1, i_disttmp2, k, i_damareu;
    
    if (!fn_range_check("STRDISTANCE", nfargs, 2, 4, buff, bufcx)) 
       return;
@@ -32080,6 +32159,7 @@ FUNCTION(fun_strdistance)
       return;
    }
 
+   i_dist = malloc(sizeof(int) * LBUF_SIZE);
    p_word1 = s_word1 = alloc_lbuf("fun_strdistance_word1");
    p_word2 = s_word2 = alloc_lbuf("fun_strdistance_word2");
    i_lccheck = i_damareu = 0;
@@ -32147,6 +32227,7 @@ FUNCTION(fun_strdistance)
    ival(buff, bufcx, i_dist[i_lenword1]); 
    free_lbuf(s_word1);
    free_lbuf(s_word2);
+   free(i_dist);
 }
 
 FUNCTION(fun_zsearch)
@@ -37386,7 +37467,7 @@ FUNCTION(fun_sort)
 {
     int nitems, sort_type, i_reverse, i_array;
     char *list, sep, osep, *s_sort, *s_array[2];
-    char *ptrs[LBUF_SIZE / 2];
+    char **ptrs;
 
     /* If we are passed an empty arglist return a null string */
 
@@ -37396,6 +37477,8 @@ FUNCTION(fun_sort)
 /*  mvarargs_preamble("SORT", 1, 3); */
     if (!fn_range_check("SORT", nfargs, 1, 4, buff, bufcx))
         return;
+
+    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
 
 /*
     if (!delim_check(fargs, nfargs, 3, &sep, buff, bufcx, 0,
@@ -37441,6 +37524,7 @@ FUNCTION(fun_sort)
     do_asort(ptrs, nitems, sort_type, i_reverse);
     arr2list(ptrs, nitems, buff, bufcx, osep);
     free_lbuf(list);
+    free(ptrs);
 }
 
 /* sortby() code borrowed from MUX 2.3
@@ -37564,7 +37648,7 @@ loop:
 
 FUNCTION(fun_sortby)
 {
-    char osep, sep, *atext, *list, *ptrs[LBUF_SIZE / 2];
+    char osep, sep, *atext, *list, **ptrs;
     int anum, nptrs, tval;
     dbref thing, atrowner;
     ATTR *ap;
@@ -37601,6 +37685,7 @@ FUNCTION(fun_sortby)
     ucomp_enactor  = player;
     ucomp_executor = caller;
 
+    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
     list = alloc_lbuf("fun_sortby");
     strcpy(list, fargs[1]);
     nptrs = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
@@ -37612,6 +37697,7 @@ FUNCTION(fun_sortby)
           safe_str("#-1 PERMISSION DENIED", buff, bufcx);
           free_lbuf(list);
           free_lbuf(atext);
+          free(ptrs);
           safer_unufun(tval);
           return;
        } else {
@@ -37623,6 +37709,7 @@ FUNCTION(fun_sortby)
     arr2list(ptrs, nptrs, buff, bufcx, osep);
     free_lbuf(list);
     free_lbuf(atext);
+    free(ptrs);
 }
 
 /*
@@ -37693,10 +37780,12 @@ static void
 handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char osep, int sort_type, int i_reverse)
 {
     char *list1, *list2, *oldp;
-    char *ptrs1[LBUF_SIZE], *ptrs2[LBUF_SIZE];
+    char **ptrs1, **ptrs2;
     char *startpoint = "";
     int i1, i2, n1, n2, val, first, i_cmp;
 
+    ptrs1 = malloc(sizeof(char *) * LBUF_SIZE);
+    ptrs2 = malloc(sizeof(char *) * LBUF_SIZE);
     list1 = alloc_lbuf("fun_setunion.1");
     memset(list1, '\0', LBUF_SIZE);
     strcpy(list1, fargs[0]);
@@ -37844,6 +37933,8 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
     } /* Switch */
     free_lbuf(list1);
     free_lbuf(list2);
+    free(ptrs1);
+    free(ptrs2);
     return;
 }
 
@@ -37971,12 +38062,13 @@ FUNCTION(fun_listinter)
 
 FUNCTION(fun_setunion)
 {
-    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    char sep, osep, *s_buff, *s_buffptr, **s_sorter;
     int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
        return;
 
+    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -38011,17 +38103,19 @@ FUNCTION(fun_setunion)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
+    free(s_sorter);
     return;
 }
 
 FUNCTION(fun_setdiff)
 {
-    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    char sep, osep, *s_buff, *s_buffptr, **s_sorter;
     int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
        return;
 
+    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -38056,17 +38150,19 @@ FUNCTION(fun_setdiff)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
+    free(s_sorter);
     return;
 }
 
 FUNCTION(fun_setinter)
 {
-    char sep, osep, *s_buff, *s_buffptr, *s_sorter[LBUF_SIZE / 2];
+    char sep, osep, *s_buff, *s_buffptr, **s_sorter;
     int sort_type, nitems, i_reverse;
 
     if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
        return;
 
+    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -38101,6 +38197,7 @@ FUNCTION(fun_setinter)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
+    free(s_sorter);
     return;
 }
 
@@ -38296,13 +38393,14 @@ FUNCTION(fun_ansicenter)
 FUNCTION(fun_ljust)
 {
     int spaces, i, i_len, filllen;
-    char filler[LBUF_SIZE], *s, *t, t_buff[8];
+    char *filler, *s, *t, t_buff[8];
 
     if ( !fn_range_check("LJUST", nfargs, 2, 3, buff, bufcx))
        return;
 
+    filler = alloc_lbuf("ljust_filler");
     memset(t_buff, '\0', sizeof(t_buff));
-    memset(filler, '\0', sizeof(filler));
+    memset(filler, '\0', LBUF_SIZE);
     spaces = atoi(fargs[1]);
     s = t = NULL;
     i_len = 0;
@@ -38365,23 +38463,25 @@ FUNCTION(fun_ljust)
                       break;
           }
           safe_str(t_buff, buff, bufcx);
-       } else {
-          safe_chr(filler[i % filllen], buff, bufcx);
-       }
-    }
+        } else {
+           safe_chr(filler[i % filllen], buff, bufcx);
+         }
+      }
+    free_lbuf(filler);
 }
 
 FUNCTION(fun_rjust)
 {
     int spaces, i, filllen;
-    char filler[LBUF_SIZE], t_buff[8], *s, *t;
+    char *filler, t_buff[8], *s, *t;
 
     if ( !fn_range_check("RJUST", nfargs, 2, 3, buff, bufcx))
        return;
 
+    filler = alloc_lbuf("rjust_filler");
     filllen = 1;
     memset(t_buff, '\0', sizeof(t_buff));
-    memset(filler, '\0', sizeof(filler));
+    memset(filler, '\0', LBUF_SIZE);
     s = t = NULL;
 #ifndef ZENTY_ANSI
     if ( s )
@@ -38447,12 +38547,13 @@ FUNCTION(fun_rjust)
        }
     }
     safe_str(fargs[0], buff, bufcx);
+    free_lbuf(filler);
 }
 
 
 FUNCTION(fun_center)
 {
-    char filler[LBUF_SIZE], t_buff[8], *s, *t;
+    char *filler, t_buff[8], *s, *t;
 
     int i, q, len, lead_chrs, trail_chrs, width, filllen;
 
@@ -38466,9 +38567,10 @@ FUNCTION(fun_center)
        return;
     }
 
+    filler = alloc_lbuf("center_filler");
     filllen = 1;
     memset(t_buff, '\0', sizeof(t_buff));
-    memset(filler, '\0', sizeof(filler));
+    memset(filler, '\0', LBUF_SIZE);
     s = t = NULL;
 
 #ifndef ZENTY_ANSI
@@ -38549,6 +38651,7 @@ FUNCTION(fun_center)
        }
        q++;
     }
+    free_lbuf(filler);
 }
 
 /* ---------------------------------------------------------------------------
@@ -39468,6 +39571,7 @@ FUNCTION(fun_isupper)
 
     safe_str((isupper((int)*outbuff) ? "1" : "0"), buff, bufcx);
     split_free_buf(outsplit);
+    free_lbuf(outbuff);
 }
 
 FUNCTION(fun_isxdigit)
@@ -39783,12 +39887,13 @@ FUNCTION(fun_ljc)
 #ifndef ZENTY_ANSI
   int inlen;
 #endif
-  char *tptr, filler[LBUF_SIZE], t_buff[8], *s, *t;
+  char *tptr, *filler, t_buff[8], *s, *t;
 
   if (!fn_range_check("LJC", nfargs, 2, 3, buff, bufcx)) {
      return;
   }
 
+  filler = alloc_lbuf("ljc_filler");
   s = NULL;
 #ifndef ZENTY_ANSI
   inlen = strlen(strip_all_special(fargs[0])) - count_extended(fargs[0]);
@@ -39799,7 +39904,7 @@ FUNCTION(fun_ljc)
 
   /* separator */
   filllen = 1;
-  memset(filler, '\0', sizeof(filler));
+  memset(filler, '\0', LBUF_SIZE);
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   if ( (nfargs > 2) && *fargs[2] ) {
@@ -39837,8 +39942,10 @@ FUNCTION(fun_ljc)
   }
   filllen = strlen(filler);
 
-  if( len <= 0 )
+  if( len <= 0 ) {
+    free_lbuf(filler);
     return;
+  }
 
   if( len > LBUF_SIZE - 1 ) {  /* save us some time if possible */
     len = LBUF_SIZE - 1;
@@ -39920,7 +40027,7 @@ FUNCTION(fun_ljc)
       }
   }
 #endif
-
+    free_lbuf(filler);
 }
 
 
@@ -39975,15 +40082,16 @@ FUNCTION(fun_countspecial)
 FUNCTION(fun_rjc)
 {
   int len, inlen, idx, spaces, filllen;
-  char *tptr, filler[LBUF_SIZE], t_buff[8], *s, *t;
+  char *tptr, *filler, t_buff[8], *s, *t;
 
   if (!fn_range_check("RJC", nfargs, 2, 3, buff, bufcx)) {
      return;
   }
+  filler = alloc_lbuf("rjc_filler");
   inlen = strlen(strip_all_special(fargs[0]));
   len = atoi(fargs[1]);
 
-  memset(filler, '\0', sizeof(filler));
+  memset(filler, '\0', LBUF_SIZE);
   memset(t_buff, '\0', sizeof(t_buff));
   s = t = NULL;
   filllen = 1;
@@ -40028,8 +40136,10 @@ FUNCTION(fun_rjc)
   }
   filllen = strlen(filler);
 
-  if( len <= 0 )
+  if( len <= 0 ) {
+    free_lbuf(filler);
     return;
+  }
 
   if( len > LBUF_SIZE - 1 ) {  /* save us some time if possible */
     len = LBUF_SIZE - 1;
@@ -40114,6 +40224,7 @@ FUNCTION(fun_rjc)
       safe_chr(*tptr++, buff, bufcx);
   }
 #endif
+    free_lbuf(filler);
 }
 
 FUNCTION(fun_vattrcnt)
@@ -40829,7 +40940,7 @@ FUNCTION(fun_link)
 
 FUNCTION(fun_create)
 {
-   char *ptrs[LBUF_SIZE / 2], sep, *myfargs;
+   char **ptrs, sep, *myfargs;
    int nitems, i_key;
    dbref thing;
    CMDENT *cmdp;
@@ -40852,6 +40963,7 @@ FUNCTION(fun_create)
       return;
    }
 
+   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
    myfargs = alloc_lbuf("fun_create");
 
    if ( nfargs < 2 ) {
@@ -40876,7 +40988,7 @@ FUNCTION(fun_create)
 
    switch (sep) {
       case 't' : cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40885,7 +40997,7 @@ FUNCTION(fun_create)
                  do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
       case 'r' : cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
                        cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
                     notify(player, "Permission denied.");
@@ -40895,7 +41007,7 @@ FUNCTION(fun_create)
                  do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'e' : cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
                        cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
                     notify(player, "Permission denied.");
@@ -40905,7 +41017,7 @@ FUNCTION(fun_create)
                  do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'p' : cmdp = (CMDENT *)ohtab_find((char *)"@pcreate", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
                        cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
                     notify(player, "Permission denied.");
@@ -40927,7 +41039,7 @@ FUNCTION(fun_create)
                  }
                  break;
       default:   cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -40937,6 +41049,7 @@ FUNCTION(fun_create)
                  break;
    }
    free_lbuf(myfargs);
+   free(ptrs);
 
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
@@ -40944,31 +41057,34 @@ FUNCTION(fun_create)
 
 FUNCTION(fun_dig)
 {
-   char *ptrs[LBUF_SIZE / 2], fillbuf[LBUF_SIZE+1];
-   int nitems, i_sanitizedbref, i_key;
-   CMDENT *cmdp;
+    char **ptrs, *fillbuf;
+    int nitems, i_sanitizedbref, i_key;
+    CMDENT *cmdp;
 
-   if ( !(mudconf.sideeffects & SIDE_DIG) ) {
-      notify(player, "#-1 FUNCTION DISABLED");
-      return;
-   }
-   if ( !SideFX(player) || Fubar(player) || Slave(player) ||
-         return_bit(player) < mudconf.restrict_sidefx ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-   mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
-   if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
-   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
-         cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-   memset(fillbuf, 0, sizeof(fillbuf));
+    if ( !(mudconf.sideeffects & SIDE_DIG) ) {
+       notify(player, "#-1 FUNCTION DISABLED");
+       return;
+    }
+    if ( !SideFX(player) || Fubar(player) || Slave(player) ||
+          return_bit(player) < mudconf.restrict_sidefx ) {
+       notify(player, "Permission denied.");
+       return;
+    }
+    mudstate.sidefx_currcalls++;
+    cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
+    if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
+          cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
+       notify(player, "Permission denied.");
+       return;
+    }
 
-   if (!fn_range_check("DIG", nfargs, 1, 6, buff, bufcx))
-      return;
+    if (!fn_range_check("DIG", nfargs, 1, 6, buff, bufcx))
+       return;
+
+    fillbuf = alloc_lbuf("dig_fillbuf");
+    memset(fillbuf, 0, LBUF_SIZE + 1);
+    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
    if ( nfargs > 2 ) {
       sprintf(fillbuf, "%.*s,%.*s", ((LBUF_SIZE / 2) - 1), fargs[1], ((LBUF_SIZE / 2) - 1), fargs[2]);
    }
@@ -41001,42 +41117,46 @@ FUNCTION(fun_dig)
       if ( i_sanitizedbref != 1 )
          i_sanitizedbref = 0;
    }
-   do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
-   mudstate.store_loc = -1;
-   if ( mudconf.sidefx_returnval ) {
-      if ( i_sanitizedbref ) {
-         sprintf(fillbuf, "#%d #%d #%d", mudstate.store_lastcr,
-                 mudstate.store_lastx1, mudstate.store_lastx2);
-         safe_str(fillbuf, buff, bufcx);
-      } else
-         dbval(buff, bufcx, mudstate.store_lastcr);
-   }
+    do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
+    mudstate.store_loc = -1;
+    if ( mudconf.sidefx_returnval ) {
+       if ( i_sanitizedbref ) {
+          sprintf(fillbuf, "#%d #%d #%d", mudstate.store_lastcr,
+                  mudstate.store_lastx1, mudstate.store_lastx2);
+          safe_str(fillbuf, buff, bufcx);
+       } else
+          dbval(buff, bufcx, mudstate.store_lastcr);
+    }
+    free(ptrs);
+    free_lbuf(fillbuf);
 }
 
 FUNCTION(fun_open)
 {
-   char *ptrs[LBUF_SIZE / 2];
-   int nitems, i_sanitizedbref, i_key;
-   CMDENT *cmdp;
+    char **ptrs;
+    int nitems, i_sanitizedbref, i_key;
+    CMDENT *cmdp;
 
-   if ( !(mudconf.sideeffects & SIDE_OPEN) ) {
-      notify(player, "#-1 FUNCTION DISABLED");
-      return;
-   }
-   if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx) {
-      notify(player, "Permission denied.");
-      return;
-   }
-   mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
-   if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
-   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
-         cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-   if (!fn_range_check("OPEN", nfargs, 1, 4, buff, bufcx))
-      return;
+    if ( !(mudconf.sideeffects & SIDE_OPEN) ) {
+       notify(player, "#-1 FUNCTION DISABLED");
+       return;
+    }
+    if ( !SideFX(player) || Fubar(player) || Slave(player) || return_bit(player) < mudconf.restrict_sidefx) {
+       notify(player, "Permission denied.");
+       return;
+    }
+    mudstate.sidefx_currcalls++;
+    cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
+    if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
+          cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
+       notify(player, "Permission denied.");
+       return;
+    }
+    if (!fn_range_check("OPEN", nfargs, 1, 4, buff, bufcx))
+       return;
+
+    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
 
    i_key = 0;
    if ( (nfargs > 3) && *fargs[3] ) {
@@ -41056,6 +41176,7 @@ FUNCTION(fun_open)
    }
    do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
+   free(ptrs);
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
 }
@@ -41429,42 +41550,44 @@ FUNCTION(fun_zemit)
 
 FUNCTION(fun_tel)
 {
-   int nitems;
-   char *ptrs[LBUF_SIZE / 2];
-   CMDENT *cmdp;
+    int nitems;
+    char **ptrs;
+    CMDENT *cmdp;
 
-   if ( !(mudconf.sideeffects & SIDE_TEL) ) {
-      notify(player, "#-1 FUNCTION DISABLED");
-      return;
-   }
-   if ( !SideFX(player) || Fubar(player) || return_bit(player) < mudconf.restrict_sidefx ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-   mudstate.sidefx_currcalls++;
-   cmdp = (CMDENT *)ohtab_find((char *)"@teleport", &mudstate_hot.command_htab);
-   if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
-   if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@teleport") ||
-         cmdtest(Owner(player), "@teleport") || zonecmdtest(player, "@teleport") ) {
-      notify(player, "Permission denied.");
-      return;
-   }
-
-   /* Lensy: Add the quiet switch to tel() */
-   if (!fn_range_check("TEL", nfargs, 2, 3, buff, bufcx))
+    if ( !(mudconf.sideeffects & SIDE_TEL) ) {
+       notify(player, "#-1 FUNCTION DISABLED");
        return;
-
-   if (nfargs == 3 && !(*fargs[2] == '0' || *fargs[2] == '1') ) {
-       notify(player, "#-1 INVALID ARG VALUE [QUIET]");
+    }
+    if ( !SideFX(player) || Fubar(player) || return_bit(player) < mudconf.restrict_sidefx ) {
+       notify(player, "Permission denied.");
        return;
-   }
+    }
+    mudstate.sidefx_currcalls++;
+    cmdp = (CMDENT *)ohtab_find((char *)"@teleport", &mudstate_hot.command_htab);
+    if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); return; }
+    if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@teleport") ||
+          cmdtest(Owner(player), "@teleport") || zonecmdtest(player, "@teleport") ) {
+       notify(player, "Permission denied.");
+       return;
+    }
 
-   nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ' ');
+    /* Lensy: Add the quiet switch to tel() */
+    if (!fn_range_check("TEL", nfargs, 2, 3, buff, bufcx))
+        return;
+
+    if (nfargs == 3 && !(*fargs[2] == '0' || *fargs[2] == '1') ) {
+        notify(player, "#-1 INVALID ARG VALUE [QUIET]");
+        return;
+    }
+
+    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ' ');
    do_teleport( player,
                 cause,
                (SIDEEFFECT | TEL_LIST | \
            ((nfargs==3 && *fargs[2] == '1') ? TEL_QUIET : 0 )),
          fargs[0], ptrs, nitems );
+    free(ptrs);
 }
 
 FUNCTION(fun_cluster_wipe)
@@ -44401,11 +44524,15 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
 {
     FUN *fp;
     UFUN *ufp;
-    const char *ptrs[LBUF_SIZE/2], *ptrs2[LBUF_SIZE/2], *ptrs3[LBUF_SIZE/2]; 
-    char *tbuff[LBUF_SIZE/2];
+    const char **ptrs, **ptrs2, **ptrs3; 
+    char **tbuff;
     int f_int, i, j, nptrs, nptrs2, nptrs3;
 
-    memset(tbuff, '\0', sizeof(tbuff));
+    ptrs = malloc(sizeof(const char *) * (LBUF_SIZE/2));
+    ptrs2 = malloc(sizeof(const char *) * (LBUF_SIZE/2));
+    ptrs3 = malloc(sizeof(const char *) * (LBUF_SIZE/2));
+    tbuff = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    memset(tbuff, '\0', sizeof(char *) * (LBUF_SIZE/2));
     f_int = 0;
     if ( !key || (key & 1) ) {
        nptrs = 0;
@@ -44485,6 +44612,10 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
           free_mbuf(tbuff[i]);
        }
     }
+    free(ptrs);
+    free(ptrs2);
+    free(ptrs3);
+    free(tbuff);
 }
 
 void

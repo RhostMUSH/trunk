@@ -348,12 +348,13 @@ void telnet_rebind_desc(DESC *d_new)
  * Returns 1 if clean data remains, 0 if only telnet control bytes. */
 int telnet_preprocess_input(DESC *d, char *buf, int *got)
 {
-    char clean[LBUF_SIZE];
+    char *clean;
     int clean_len = 0;
 
     if (!d || !d->cold || !d->cold->telnet || !buf || !got || *got <= 0)
         return 0;
 
+    clean = alloc_lbuf("telnet_clean");
     /* Set up context for the event handler */
     telnet_ctx.buf = clean;
     telnet_ctx.len = &clean_len;
@@ -372,9 +373,11 @@ int telnet_preprocess_input(DESC *d, char *buf, int *got)
             clean_len = *got;
         memcpy(buf, clean, clean_len);
         *got = clean_len;
+        free_lbuf(clean);
         return 1;
     }
 
     *got = 0;
+    free_lbuf(clean);
     return 0;
 }

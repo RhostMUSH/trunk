@@ -722,15 +722,17 @@ mail_proc_err()
 
 void mail_rem_dump()
 {
-    char bkup[LBUF_SIZE];
-    snprintf(bkup, sizeof(bkup), "%s.bkup", dumpname);
+    char *bkup;
+    bkup = alloc_lbuf("mail_rem_dump_bkup");
+    snprintf(bkup, LBUF_SIZE, "%s.bkup", dumpname);
     (void)remove(bkup);
     (void)rename(dumpname, bkup);
     (void)remove(dumpname);
-    snprintf(bkup, sizeof(bkup), "%s.bkup", fdumpname);
+    snprintf(bkup, LBUF_SIZE, "%s.bkup", fdumpname);
     (void)remove(bkup);
     (void)rename(fdumpname, bkup);
     (void)remove(fdumpname);
+    free_lbuf(bkup);
 }
 
 void 
@@ -6394,7 +6396,7 @@ mail_acheck(dbref player, int key)
     OBLOCKMASTER master;
     int atest, cntr, ca, aflags, i_hidden, i_dchk, i_hchk, i_quick, i_len, i_truelen;
     dbref attrib, aowner, tmpdbnum;
-    ANSISPLIT outsplit[LBUF_SIZE];
+    ANSISPLIT *outsplit;
     char *s_shoveattr, *atr_name_ptr, *tpr_buff, *tprp_buff, *s_exec, *s_to, *s_toptr, *s_outbuff, *s_finalbuf,
          *s_fmt="%-4d %-25.25s    %-*.*s %s%s",
          *s_fmthdr="%-4s %-25.25s    %-*.*s %s%s",
@@ -6402,6 +6404,7 @@ mail_acheck(dbref player, int key)
          *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
 
     cntr = i_quick = 0;
+    outsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
 
     if ( key & M_QUICK ) {
        i_quick = 1;
@@ -6680,11 +6683,12 @@ mail_acheck(dbref player, int key)
     } else {
        notify_quiet(player, "No dynamic aliases defined.");
     }
-    if ( i_quick == 0 ) {
-       notify_quiet(player, "---------------------------------------"\
-                            "---------------------------------------");
-    }
-    notify_quiet(player, "Mail: Done.");
+     if ( i_quick == 0 ) {
+        notify_quiet(player, "---------------------------------------"\
+                             "---------------------------------------");
+     }
+     notify_quiet(player, "Mail: Done.");
+     free(outsplit);
 }
 char *
 mail_alias_function(dbref player, int key, char *buf1, char *buf2)
@@ -7181,8 +7185,9 @@ void mnuke_save(dbref player, char *buf)
 void mnuke_read()
 {
   FILE *nuke1;
-  char buf1[LBUF_SIZE], in1;
+  char *buf1, in1;
 
+  buf1 = alloc_lbuf("mnuke_read_buf1");
   nuke1 = fopen(nukename, "r");
   if (nuke1) {
     mudstate.nuke_status = 1;
@@ -7198,6 +7203,7 @@ void mnuke_read()
     fclose(nuke1);
     remove(nukename);
   }
+  free_lbuf(buf1);
 }
 
 void mail_load(dbref player)
