@@ -319,10 +319,10 @@ char *replace_string_ansi(const char *s_old, const char *new,
    if (string == NULL) 
       return NULL;
 
-   outsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
-   outsplit2 = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
-   insplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
-   oldsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+   outsplit = split_alloc_buf();
+   outsplit2 = split_alloc_buf();
+   insplit = split_alloc_buf();
+   oldsplit = split_alloc_buf();
    initialize_ansisplitter(outsplit, LBUF_SIZE);
    initialize_ansisplitter(outsplit2, LBUF_SIZE);
    initialize_ansisplitter(insplit, LBUF_SIZE);
@@ -409,10 +409,10 @@ char *replace_string_ansi(const char *s_old, const char *new,
    free_lbuf(outbuff2);
    free_lbuf(inbuff);
    free_lbuf(old);
-   free(outsplit);
-   free(outsplit2);
-   free(insplit);
-   free(oldsplit);
+   split_free_buf(outsplit);
+   split_free_buf(outsplit2);
+   split_free_buf(insplit);
+   split_free_buf(oldsplit);
 
    return result;
 }

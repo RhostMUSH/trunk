@@ -1176,7 +1176,7 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
     int f_int, nptrs, i;
     FLAGENT *fp;
 
-    ptrs = malloc(sizeof(const FLAGENT *) * (LBUF_SIZE/2));
+    ptrs = (const FLAGENT **)bigpool_alloc(sizeof(const FLAGENT *) * (LBUF_SIZE/2));
     bp = buf = alloc_lbuf("display_flagtab");
     f_int = 0;
     nptrs = 0;
@@ -1222,7 +1222,7 @@ void display_flagtab2(dbref player, char *buff, char **bufcx)
     *bp = '\0';
     safe_str(buf, buff, bufcx);
     free_lbuf(buf);
-    free(ptrs);
+    bigpool_free(ptrs);
 
 }
 

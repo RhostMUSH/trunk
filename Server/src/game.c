@@ -985,7 +985,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     DPUSH; /* #75 */
 
-    targetlist = malloc(sizeof(int) * LBUF_SIZE);
+    targetlist = (int *)bigpool_alloc(sizeof(int) * LBUF_SIZE);
     for (i=0; i<10; i++ )
        args[i] = NULL;
 
@@ -997,6 +997,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 
     if ( !Good_obj(sender) || (!Good_obj(target) && !port) || !msg || !*msg) {
 	mudstate.pageref = NOTHING;
+	bigpool_free(targetlist);
 	VOIDRETURN; /* #75 */
     }
 
@@ -1005,6 +1006,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
     mudstate_hot.ntfy_nest_lev++;
     if (mudstate_hot.ntfy_nest_lev >= mudconf.ntfy_nest_lim) {
 	mudstate_hot.ntfy_nest_lev--;
+	bigpool_free(targetlist);
 	VOIDRETURN; /* #75 */
     }
     /* Let's optionally log to a file if specified -- Note:  This bypasses spoof output obviously */ 
@@ -1034,10 +1036,11 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                       safe_str((char *)msg, s_pipebuff, &s_pipebuffptr);
                       atr_add_raw(target, ap_attrpipe->number, s_pipebuff);
                       free_lbuf(s_pipebuff);
-                      if ( i_pipetype == 0 ) {
-                         free_lbuf(s_pipeattr);
-                         if ( !Quiet(target) && TogNoisy(target) )
-                            raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
+                       if ( i_pipetype == 0 ) {
+                          free_lbuf(s_pipeattr);
+                          if ( !Quiet(target) && TogNoisy(target) )
+                             raw_notify(target, (char *)"Piping output to attribute.", 0, 1);
+	                 bigpool_free(targetlist);
 	                 mudstate_hot.ntfy_nest_lev--;
 	                 VOIDRETURN; /* #75 */
                       }
@@ -1680,8 +1683,8 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
   }
   if (msg_ns)
      free_lbuf(msg_ns);
-  free(targetlist);
-  mudstate_hot.ntfy_nest_lev--;
+  bigpool_free(targetlist);
+mudstate_hot.ntfy_nest_lev--;
   VOIDRETURN; /* #75 */
 }
 

@@ -3387,8 +3387,8 @@ process_command(dbref player, dbref cause, int interactive,
        }
         free_lbuf(spamX);
      }
-     arr_prog = malloc(sizeof(char *) * (LBUF_SIZE/2));
-     targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
+     arr_prog = (char **)bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
+     targetlist = (dbref *)bigpool_alloc(sizeof(dbref) * LBUF_SIZE);
  
      chklogflg = 0;
     if ( Good_obj(player) && Suspect(player) ) {
@@ -3665,8 +3665,8 @@ process_command(dbref player, dbref cause, int interactive,
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
-          free(arr_prog);
-          free(targetlist);
+          bigpool_free(arr_prog);
+          bigpool_free(targetlist);
           return;
        }
     }
@@ -3779,8 +3779,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
-          free(arr_prog);
-          free(targetlist);
+          bigpool_free(arr_prog);
+          bigpool_free(targetlist);
 	  return;
 	}
 	mudstate.write_status = 1;
@@ -4101,8 +4101,8 @@ process_command(dbref player, dbref cause, int interactive,
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
-          free(arr_prog);
-          free(targetlist);
+          bigpool_free(arr_prog);
+          bigpool_free(targetlist);
 	  return;
 	}
         if ( msave ) {
@@ -4142,8 +4142,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
-        free(arr_prog);
-        free(targetlist);
+        bigpool_free(arr_prog);
+        bigpool_free(targetlist);
 	return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
@@ -4154,8 +4154,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
-        free(arr_prog);
-        free(targetlist);
+        bigpool_free(arr_prog);
+        bigpool_free(targetlist);
 	return;
     }
     /* Only check for exits if we may use the goto command */
@@ -4272,8 +4272,8 @@ process_command(dbref player, dbref cause, int interactive,
                       DPOP; /* #29 */
                       mudstate_hot.no_hook = 0;
                       free_lbuf(lst_cmd);
-                      free(arr_prog);
-                      free(targetlist);
+                      bigpool_free(arr_prog);
+                      bigpool_free(targetlist);
 		      return;
                    }
 	        }
@@ -4366,8 +4366,8 @@ process_command(dbref player, dbref cause, int interactive,
                      DPOP; /* #29 */
                      mudstate_hot.no_hook = 0;
                      free_lbuf(lst_cmd);
-                     free(arr_prog);
-                     free(targetlist);
+                     bigpool_free(arr_prog);
+                     bigpool_free(targetlist);
 		     return;
                   }
 	        }
@@ -4382,8 +4382,8 @@ process_command(dbref player, dbref cause, int interactive,
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
                 free_lbuf(lst_cmd);
-                free(arr_prog);
-                free(targetlist);
+                bigpool_free(arr_prog);
+                bigpool_free(targetlist);
 	        return;
 	     }
 	     mudstate_hot.exitcheck = 0;
@@ -4849,8 +4849,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
-        free(arr_prog);
-        free(targetlist);
+        bigpool_free(arr_prog);
+        bigpool_free(targetlist);
 	return;
     }
 
@@ -4896,8 +4896,8 @@ process_command(dbref player, dbref cause, int interactive,
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
                 free_lbuf(lst_cmd);
-                free(arr_prog);
-                free(targetlist);
+                bigpool_free(arr_prog);
+                bigpool_free(targetlist);
 		return;
 	    }
 	}
@@ -4926,8 +4926,8 @@ process_command(dbref player, dbref cause, int interactive,
                     DPOP; /* #29 */
                     mudstate_hot.no_hook = 0;
                     free_lbuf(lst_cmd);
-                    free(arr_prog);
-                    free(targetlist);
+                    bigpool_free(arr_prog);
+                    bigpool_free(targetlist);
 		    return;
 		}
 	    }
@@ -5127,8 +5127,8 @@ process_command(dbref player, dbref cause, int interactive,
     DPOP; /* #29 */
     mudstate_hot.no_hook = 0;
     free_lbuf(lst_cmd);
-    free(arr_prog);
-    free(targetlist);
+    bigpool_free(arr_prog);
+    bigpool_free(targetlist);
     return;
 }
 
@@ -5329,7 +5329,7 @@ static void list_cmdtable(dbref player, char *s_command) {
 
   DPUSH; /* #31 */
 
-  ptrs = malloc(sizeof(const char *) * (LBUF_SIZE / 2));
+  ptrs = (const char **)bigpool_alloc(sizeof(const char *) * (LBUF_SIZE / 2));
   buff = alloc_lbuf("list_cmdtable");
   bp = buff;
   *bp = '\0';
@@ -5386,8 +5386,9 @@ static void list_cmdtable(dbref player, char *s_command) {
            notify_quiet(player, "Permission denied.");
         }
      }
-     free_lbuf(buff);
-     VOIDRETURN;  /* #31 */
+      free_lbuf(buff);
+      bigpool_free(ptrs);
+      VOIDRETURN;  /* #31 */
   }
 
   safe_str("Commands: ", buff, &bp);
@@ -5453,7 +5454,7 @@ static void list_cmdtable(dbref player, char *s_command) {
   }
 
   free_lbuf(buff);
-  free(ptrs);
+  bigpool_free(ptrs);
   VOIDRETURN;  /* #31 */
 }
 

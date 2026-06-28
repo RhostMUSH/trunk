@@ -84,6 +84,12 @@ extern int      FDECL(getBufferSize, (char *));
 #define alloc_zlistnode(s)	(ZLISTNODE *)pool_alloc(POOL_ZLISTNODE,s,__LINE__,__FILE__)
 #define free_zlistnode(b)	pool_free(POOL_ZLISTNODE,((char **)&(b)),__LINE__,__FILE__)
 
+/* Bigpool: slot-based pool for mmap-sized allocations (>=128KB).
+ * Keeps buffers alive across alloc/free cycles to avoid mmap/munmap churn. */
+#define BIGPOOL_SLOTS 16
+extern void *bigpool_alloc(size_t);
+extern void  bigpool_free(void *);
+
 #else
 
 #define alloc_atrcache(s)	pool_alloc(POOL_ATRCACHE,s,__LINE__,__FILE__)

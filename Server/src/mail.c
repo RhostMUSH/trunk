@@ -6404,7 +6404,7 @@ mail_acheck(dbref player, int key)
          *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
 
     cntr = i_quick = 0;
-    outsplit = malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+    outsplit = split_alloc_buf();
 
     if ( key & M_QUICK ) {
        i_quick = 1;
@@ -6688,7 +6688,7 @@ mail_acheck(dbref player, int key)
                              "---------------------------------------");
      }
      notify_quiet(player, "Mail: Done.");
-     free(outsplit);
+     split_free_buf(outsplit);
 }
 char *
 mail_alias_function(dbref player, int key, char *buf1, char *buf2)

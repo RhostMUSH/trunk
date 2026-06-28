@@ -940,5 +940,41 @@ void do_buff_free(dbref player, dbref cause, int key)
       }
     }
   }
- notify(player,"Buff free: Done");
+  notify(player,"Buff free: Done");
+}
+
+/* ---------------------------------------------------------------------------
+ * Bigpool: slot-based pool for mmap-sized allocations (>=128KB).
+ * Buffers persist across alloc/free cycles to avoid mmap/munmap churn
+ * on hot-path functions like process_command, tcache_finish, notify_check.
+ * Fallthrough malloc handles the unlikely case of >BIGPOOL_SLOTS concurrent
+ * allocations (indicates pathological recursion).
+ * ---------------------------------------------------------------------------
+ */
+
+static struct { void *buf; int in_use; size_t size; } bigpool[BIGPOOL_SLOTS];
+
+void *bigpool_alloc(size_t sz)
+{
+    int i;
+    for (i = 0; i < BIGPOOL_SLOTS; i++) {
+        if (!bigpool[i].in_use) {
+            bigpool[i].in_use = 1;
+            if (!bigpool[i].buf || bigpool[i].size < sz) {
+                bigpool[i].buf = realloc(bigpool[i].buf, sz);
+                bigpool[i].size = sz;
+            }
+            return bigpool[i].buf;
+        }
+    }
+    return malloc(sz);
+}
+
+void bigpool_free(void *p)
+{
+    int i;
+    for (i = 0; i < BIGPOOL_SLOTS; i++) {
+        if (bigpool[i].buf == p) { bigpool[i].in_use = 0; return; }
+    }
+    free(p);
 }
