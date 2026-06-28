@@ -19782,21 +19782,21 @@ FUNCTION(fun_parse)
         if ( (strlen(result) + strlen(buff) ) > LBUF_SIZE )
            size = 1;
         if (!first)
-           safe_str(sop, buff, bufcx);
-        first = 0;
-        safe_str(result, buff, bufcx);
-        free_lbuf(result);
-        cntr++;
-        if (size)
-           break;
-    }
-    free_lbuf(tpr_buff);
-    free_lbuf(curr);
-    free(sop);
-}
+            safe_str(sop, buff, bufcx);
+         first = 0;
+         safe_str(result, buff, bufcx);
+         free_lbuf(result);
+         cntr++;
+         if (size)
+            break;
+     }
+     free_lbuf(tpr_buff);
+     free_lbuf(curr);
+     free(sop);
+ }
 
-/* ---------------------------------------------------------------------------
- * fun_left: Returns first n characters in a string
+ /* ---------------------------------------------------------------------------
+  * fun_left: Returns first n characters in a string
  */
 
 FUNCTION(fun_left)
@@ -33421,15 +33421,16 @@ FUNCTION(fun_citer)
        }
        else if ( !sep )
           safe_chr(' ', buff, bufcx);
-       free_lbuf(result);
-       cntr++;
-    }
-    free_lbuf(tpr_buff);
-    free_lbuf(curr);
-}
+        free_lbuf(result);
+        cntr++;
+     }
+     free_lbuf(tpr_buff);
+     free_lbuf(curr);
+     split_free_buf(outsplit);
+ }
 
-/* ----------------------------------------------------------------
- * fun_list:
+ /* ----------------------------------------------------------------
+  * fun_list:
  * This works just like iter() except it uses notify() to bypass
  * the buffer limitations.
  * Even though this is considered a side-effect it's harmless so
@@ -38351,6 +38352,9 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
    free_lbuf(s_retbuff);
    free_lbuf(s_outbuff);
    free_lbuf(s_filler);
+   split_free_buf(outsplit);
+   split_free_buf(fillersplit);
+   split_free_buf(retbuff);
 }
 
 FUNCTION(fun_ansiljust)
