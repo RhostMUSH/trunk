@@ -15519,7 +15519,7 @@ FUNCTION(fun_listcommands)
   const char **ptrs;
   int nptrs = 0, i, i_cmdtype;
 
-  ptrs = malloc(sizeof(const char *) * (LBUF_SIZE / 2));
+  ptrs = bigpool_alloc(sizeof(const char *) * (LBUF_SIZE / 2));
 
   i_cmdtype = 0;
   if ( (nfargs > 0) && *fargs[0] ) {
@@ -19408,7 +19408,7 @@ FUNCTION(fun_elementsmux)
       return;
    }
 
-   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+   ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
    sep = alloc_lbuf("fun_elementsmux_sep");
    osep = alloc_lbuf("fun_elementsmux_osep");
    if ( (nfargs > 2) && *fargs[2] )
@@ -20631,7 +20631,7 @@ FUNCTION(fun_strfunc)
    }
 
    list = alloc_lbuf("fun_strfunc");
-   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+   ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
 
    /* These will always be the same list and null terminated */
    strcpy(list, fargs[1]);
@@ -23054,8 +23054,8 @@ FUNCTION(fun_randextract)
 
   ilist = malloc(sizeof(int) * (LBUF_SIZE / 2));
   ilist2 = malloc(sizeof(int) * (LBUF_SIZE / 2));
-  slist = malloc(sizeof(char *) * (LBUF_SIZE / 2));
-  nlist = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+  slist = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
+  nlist = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
   if ((nfargs > 2) && (*fargs[2])) {
     sep = *fargs[2];
   } else {
@@ -28165,8 +28165,8 @@ FUNCTION(fun_remove)
     varargs_preamble("REMOVE", 3);
     if (index(fargs[1], sep)) {
        iargs = malloc(sizeof(int) * (LBUF_SIZE / 2));
-       sargs0 = malloc(sizeof(char *) * (LBUF_SIZE / 2));
-       sargs1 = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+       sargs0 = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
+       sargs1 = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
        t_buff = alloc_lbuf("remove_multi");
        t_buff2 = alloc_lbuf("remove_multi2");
        memset(iargs, 0, sizeof(int) * (LBUF_SIZE / 2));
@@ -37485,7 +37485,7 @@ FUNCTION(fun_sort)
     if (!fn_range_check("SORT", nfargs, 1, 4, buff, bufcx))
         return;
 
-    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
 
 /*
     if (!delim_check(fargs, nfargs, 3, &sep, buff, bufcx, 0,
@@ -37692,7 +37692,7 @@ FUNCTION(fun_sortby)
     ucomp_enactor  = player;
     ucomp_executor = caller;
 
-    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
     list = alloc_lbuf("fun_sortby");
     strcpy(list, fargs[1]);
     nptrs = list2arr(ptrs, LBUF_SIZE / 2, list, sep);
@@ -38075,7 +38075,7 @@ FUNCTION(fun_setunion)
     if (!fn_range_check("SETUNION", nfargs, 2, 5, buff, bufcx))
        return;
 
-    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    s_sorter = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -38122,7 +38122,7 @@ FUNCTION(fun_setdiff)
     if (!fn_range_check("SETDIFF", nfargs, 2, 5, buff, bufcx))
        return;
 
-    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    s_sorter = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -38169,7 +38169,7 @@ FUNCTION(fun_setinter)
     if (!fn_range_check("SETINTER", nfargs, 2, 5, buff, bufcx))
        return;
 
-    s_sorter = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    s_sorter = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
     sep = ' ';
     if ( (nfargs > 2) && *fargs[2] )
        sep = *fargs[2];
@@ -40973,7 +40973,7 @@ FUNCTION(fun_create)
       return;
    }
 
-   ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+   ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
    myfargs = alloc_lbuf("fun_create");
 
    if ( nfargs < 2 ) {
@@ -41094,7 +41094,7 @@ FUNCTION(fun_dig)
 
     fillbuf = alloc_lbuf("dig_fillbuf");
     memset(fillbuf, 0, LBUF_SIZE + 1);
-    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
    if ( nfargs > 2 ) {
       sprintf(fillbuf, "%.*s,%.*s", ((LBUF_SIZE / 2) - 1), fargs[1], ((LBUF_SIZE / 2) - 1), fargs[2]);
    }
@@ -41166,7 +41166,7 @@ FUNCTION(fun_open)
     if (!fn_range_check("OPEN", nfargs, 1, 4, buff, bufcx))
        return;
 
-    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
 
    i_key = 0;
    if ( (nfargs > 3) && *fargs[3] ) {
@@ -41590,7 +41590,7 @@ FUNCTION(fun_tel)
         return;
     }
 
-    ptrs = malloc(sizeof(char *) * (LBUF_SIZE / 2));
+    ptrs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE / 2));
     nitems = list2arr(ptrs, LBUF_SIZE / 2, fargs[1], ' ');
    do_teleport( player,
                 cause,
