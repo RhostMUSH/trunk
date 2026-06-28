@@ -6663,15 +6663,16 @@ FUNCTION(fun_entrances)
 FUNCTION(fun_elist)
 {
     char *sep_buf, *curr, *objstring, *result, *cp, *r_munge, *r_store, *s_array[3],
-         *curr_buf, sep, sop[LBUF_SIZE+1], sepfil, *sep_buf2, *sepptr;
+         *curr_buf, sep, *sop, sepfil, *sep_buf2, *sepptr;
     int first, t_words, t_last, cntr, commsep, i_munge;
 
     if (!fn_range_check("ELIST", nfargs, 1, 6, buff, bufcx))
        return;
 
+    sop = malloc(LBUF_SIZE + 1);
     commsep = 0;
     curr_buf = NULL;
-    memset(sop, 0, sizeof(sop));
+    memset(sop, 0, LBUF_SIZE + 1);
     if (nfargs > 1 && *fargs[1] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
@@ -6758,6 +6759,7 @@ FUNCTION(fun_elist)
           free_lbuf(s_array[0]);
           free_lbuf(s_array[1]);
        }
+       free(sop);
        return;
     }
     first = 1;
@@ -6824,6 +6826,7 @@ FUNCTION(fun_elist)
        free_lbuf(r_store);
     }
     free_lbuf(curr);
+    free(sop);
     if ( commsep )
        free_lbuf(sep_buf2);
 }
@@ -7957,12 +7960,13 @@ FUNCTION(fun_charin)
    DESC *d;
    dbref target, aowner;
    int cmd, aflags, i_type, i_loop, i_subval;
-   char *buf, tmp_buff[LBUF_SIZE+1];
+    char *buf, *tmp_buff;
 
-   if (!fn_range_check("CHARIN", nfargs, 1, 3, buff, bufcx)) 
-      return;
+    if (!fn_range_check("CHARIN", nfargs, 1, 3, buff, bufcx)) 
+       return;
 
-   i_type = 0;
+    tmp_buff = malloc(LBUF_SIZE + 1);
+    i_type = 0;
    if ( (nfargs > 1) && *fargs[1] ) {
       i_type = atoi(fargs[1]);
    }
@@ -8035,9 +8039,10 @@ FUNCTION(fun_charin)
          i_type = 0;
       }
 
-      if ( i_type == 0 )
-         ival(buff, bufcx, cmd);
-   }
+       if ( i_type == 0 )
+          ival(buff, bufcx, cmd);
+    }
+    free(tmp_buff);
 }
 
 FUNCTION(fun_charout)
@@ -8045,12 +8050,13 @@ FUNCTION(fun_charout)
    DESC *d;
    dbref target, aowner;
    int cmd, aflags, i_type, i_loop, i_subval;
-   char *buf, tmp_buff[LBUF_SIZE + 1];
+    char *buf, *tmp_buff;
 
-   if (!fn_range_check("CHAROUT", nfargs, 1, 3, buff, bufcx)) 
-      return;
+    if (!fn_range_check("CHAROUT", nfargs, 1, 3, buff, bufcx)) 
+       return;
 
-   i_type = 0;
+    tmp_buff = malloc(LBUF_SIZE + 1);
+    i_type = 0;
    if ( (nfargs > 1) && *fargs[1] ) {
       i_type = atoi(fargs[1]);
    }
@@ -8126,20 +8132,22 @@ FUNCTION(fun_charout)
 
       if ( i_type == 0 )
          ival(buff, bufcx, cmd);
-   }
+    }
+    free(tmp_buff);
 }
-
 
 FUNCTION(fun_cmds)
 {
    DESC *d;
    dbref target, aowner;
    int cmd, aflags, i_type, i_loop, d_type, found;
-   char *buf, tmp_buff[LBUF_SIZE + 1];
+    char *buf, *tmp_buff;
 
-   if (!fn_range_check("CMDS", nfargs, 1, 3, buff, bufcx)) {
-      return;
-   } else if (nfargs >= 2) {
+    if (!fn_range_check("CMDS", nfargs, 1, 3, buff, bufcx)) {
+       return;
+    }
+    tmp_buff = malloc(LBUF_SIZE + 1);
+    if (nfargs >= 2) {
       i_type = atoi(fargs[1]);
    } else {
       i_type = 0;
@@ -8202,6 +8210,7 @@ FUNCTION(fun_cmds)
       if ( !found )
          ival(buff, bufcx, -1);
    }
+    free(tmp_buff);
 }
 
 /* This function derived from the pom.c code by Berkley */
@@ -19730,19 +19739,20 @@ FUNCTION(fun_parent)
 
 FUNCTION(fun_parse)
 {
-    char *sop_buf, *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, sop[LBUF_SIZE + 1];
+    char *sop_buf, *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, *sop;
     char *st_buff, *tpr_buff, *tprp_buff;
     int first, cntr, size;
 
     if (!fn_range_check("PARSE", nfargs, 2, 4, buff, bufcx))
        return;
 
-    memset(sop, 0, sizeof(sop));
+    sop = malloc(LBUF_SIZE + 1);
+    memset(sop, 0, LBUF_SIZE + 1);
 
     if (nfargs > 3 ) {
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
-       strncpy(sop, sop_buf, sizeof(sop)-1);
+       strncpy(sop, sop_buf, LBUF_SIZE);
        if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
           *sop = '\0';
        free_lbuf(sop_buf);
@@ -19767,6 +19777,7 @@ FUNCTION(fun_parse)
     cp = trim_space_sep(cp, sep);
     if (!*cp) {
        free_lbuf(curr);
+       free(sop);
        return;
     }
     first = 1;
@@ -19793,6 +19804,7 @@ FUNCTION(fun_parse)
     }
     free_lbuf(tpr_buff);
     free_lbuf(curr);
+    free(sop);
 }
 
 /* ---------------------------------------------------------------------------
@@ -33144,7 +33156,7 @@ FUNCTION(fun_objeval)
  */
 FUNCTION(fun_iter)
 {
-    char *sop_buf, *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, sop[LBUF_SIZE+1];
+    char *sop_buf, *sep_buf, *curr, *objstring, *buff3, *result, *cp, sep, *sop;
     char *bptr, *st_buff, *tpr_buff, *tprp_buff;
     int first, cntr, i_endloop, i_start, i_dir;
 
@@ -33155,12 +33167,13 @@ FUNCTION(fun_iter)
        safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED", buff, bufcx);
        return;
     }
-    memset(sop, 0, sizeof(sop));
+    sop = malloc(LBUF_SIZE + 1);
+    memset(sop, 0, LBUF_SIZE + 1);
 
     if (nfargs > 3 ) {
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
-       strncpy(sop, sop_buf, sizeof(sop)-1);
+       strncpy(sop, sop_buf, LBUF_SIZE);
        if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
           *sop = '\0';
        free_lbuf(sop_buf);
@@ -33208,6 +33221,7 @@ FUNCTION(fun_iter)
        cp = trim_space_sep(cp, sep);
        if (!*cp) {
           free_lbuf(curr);
+          free(sop);
           return;
        }
     }
@@ -33256,6 +33270,7 @@ FUNCTION(fun_iter)
     free_lbuf(mudstate.iter_arr[mudstate.iter_inum]);
     mudstate.iter_inum--;
     free_lbuf(curr);
+    free(sop);
 }
 
 FUNCTION(fun_inf) 

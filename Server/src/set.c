@@ -1821,7 +1821,8 @@ do_set(dbref player, dbref cause, int key, char *name, char *flag)
 
    /* Set or clear a flag...control checked in flag set */  
    if ( (key & SET_RSET) && (mudstate_hot.lbuf_buffer) ) {
-      strcpy(mudstate_hot.lbuf_buffer, flag);
+      strncpy(mudstate_hot.lbuf_buffer, flag, LBUF_SIZE - 1);
+      mudstate_hot.lbuf_buffer[LBUF_SIZE - 1] = '\0';
    }
    flag_set(thing, player, flag, key);
 }

@@ -434,12 +434,13 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
     dbref aowner, thing2;
     int match, attr, aflags, i, ck, ck2, ck3, loc, attrib2, x, i_cpuslam, 
         do_brk, aflags_set, oldchk, chkwild, i_inparen;
-    char *buff, *s, *s2, *s3, *as, *s_uselock, *atext, *result, buff2[LBUF_SIZE+1];
+    char *buff, *s, *s2, *s3, *as, *s_uselock, *atext, *result, *buff2;
     char *args[10], *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *pt, *cpuslam, *cputext, *cpulbuf,
          *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *npt;
     ATTR *ap, *ap2;
 
     DPUSH; /* #70 */
+    buff2 = malloc(LBUF_SIZE + 1);
 
     /* See if we can do it.  Silently fail if we can't. */
 
@@ -532,7 +533,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
         /* Allow attributes set NO_PARSE to pass in what player types verbatim */
         if ( PCRE_EXEC && ((aflags & AF_REGEXP) || (ap->flags & AF_REGEXP)) ) {
            s3 = buff + 1;
-           memset(buff2, '\0', sizeof(buff2));
+           memset(buff2, '\0', LBUF_SIZE + 1);
            s2 = buff2;
            while ( *s3 ) {
               if ( *s3 == '(' ) 
@@ -685,6 +686,7 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
        RETURN(match); /* #70 */
     }
     /* Should never hit this */
+    free(buff2);
     RETURN(0); /* #70 */
 }
 

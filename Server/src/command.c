@@ -10492,7 +10492,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
 {
    dbref thing, it, aowner;
    int aflags, atr;
-   char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, strprompt[LBUF_SIZE], *tpr_buff, *tprp_buff;
+    char *buf, *attrib, *tmplbuf, *tmplbufptr, *progatr, *strprompt, *tpr_buff, *tprp_buff;
    DESC *d;
 #ifdef ZENTY_ANSI
    char *s_buff, *s_buff2, *s_buff3, *s_buffptr, *s_buff2ptr, *s_buff3ptr;
@@ -10546,6 +10546,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
       return;
    }
 
+   strprompt = alloc_lbuf("program_prompt");
    tmplbufptr = tmplbuf = alloc_lbuf("do_program");
    safe_str(unsafe_tprintf("%d:%s", player, attrib), tmplbuf, &tmplbufptr);
    atr_add_raw(thing, A_PROGBUFFER, tmplbuf);    
@@ -10558,8 +10559,8 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
       if (!d->cold) continue;
       if ( D_PLAYER(d) == thing ) {
         progatr = atr_get(it, A_PROGPROMPT, &aowner, &aflags);
-        memset(strprompt, 0, sizeof(strprompt));
-        strncpy(strprompt, progatr, sizeof(strprompt)-1);
+        memset(strprompt, 0, LBUF_SIZE);
+        strncpy(strprompt, progatr, LBUF_SIZE-1);
         free_lbuf(progatr);
         if ( *strprompt ) {
            if ( strcmp(strprompt, "NULL") != 0 ) {
@@ -10587,6 +10588,7 @@ void do_program(dbref player, dbref cause, int key, char *name, char *command)
       }
    }
    free_lbuf(tpr_buff);
+   free_lbuf(strprompt);
    mudstate.shell_program = 1;
    s_Flags4(thing, (Flags4(thing) | INPROGRAM));
 }
