@@ -65,15 +65,14 @@ char *rindex(const char *, int);
 #endif /* REALITY_LEVELS */
 /* ---------------------------------------------------------------------------
  * Pooled ANSISPLIT buffers — 8 slots, reused via split_free_buf.
- * Overflow allocations are tracked and freed at cycle end.
+ * Current MUSH softcode never uses more than 3 simultaneously, so 8
+ * is a comfortable margin. A bare malloc fallthrough catches any
+ * unexpected exhaustion without tracking overhead.
  * ---------------------------------------------------------------------------
  */
 #define AS_POOL_SIZE 8
-#define AS_OVERFLOW_SIZE 64
 
 static struct { ANSISPLIT *buf; int in_use; } as_pool[AS_POOL_SIZE];
-static ANSISPLIT *as_overflow[AS_OVERFLOW_SIZE];
-static int         as_overflow_cnt = 0;
 
 static inline ANSISPLIT *split_alloc_buf(void)
 {
@@ -86,11 +85,6 @@ static inline ANSISPLIT *split_alloc_buf(void)
             return as_pool[i].buf;
         }
     }
-    if (as_overflow_cnt < AS_OVERFLOW_SIZE) {
-        ANSISPLIT *b = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
-        as_overflow[as_overflow_cnt++] = b;
-        return b;
-    }
     return (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
 }
 
@@ -100,9 +94,6 @@ void split_free_buf(ANSISPLIT *p)
     for (i = 0; i < AS_POOL_SIZE; i++) {
         if (as_pool[i].buf == p) { as_pool[i].in_use = 0; return; }
     }
-    for (i = 0; i < as_overflow_cnt; i++) {
-        if (as_overflow[i] == p) { free(p); as_overflow[i] = as_overflow[--as_overflow_cnt]; return; }
-    }
     free(p);
 }
 
@@ -110,11 +101,8 @@ void split_free_bufs(void)
 {
     int i;
     for (i = 0; i < AS_POOL_SIZE; i++) {
-        if (as_pool[i].buf) { free(as_pool[i].buf); as_pool[i].buf = NULL; }
         as_pool[i].in_use = 0;
     }
-    for (i = 0; i < as_overflow_cnt; i++) { free(as_overflow[i]); as_overflow[i] = NULL; }
-    as_overflow_cnt = 0;
 }
 
 #include "timez.h"
