@@ -792,7 +792,7 @@ tcache_finish(void)
 
     DPUSH; /* #66 */
 
-    targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
+    targetlist = (dbref *)bigpool_alloc(sizeof(dbref) * LBUF_SIZE);
     for (i = 0; i < LBUF_SIZE; i++)
        targetlist[i]=-2000000;
 
@@ -996,7 +996,7 @@ tcache_finish(void)
     free_lbuf(tpr_buff);
     free_lbuf(s_grep);
     free_lbuf(s_grep2);
-    free(targetlist);
+    bigpool_free(targetlist);
     tcache_top = 1;
     tcache_count = 0;
     DPOP; /* #66 */

@@ -74,7 +74,7 @@ char *rindex(const char *, int);
 
 static struct { ANSISPLIT *buf; int in_use; } as_pool[AS_POOL_SIZE];
 
-static inline ANSISPLIT *split_alloc_buf(void)
+ANSISPLIT *split_alloc_buf(void)
 {
     int i;
     for (i = 0; i < AS_POOL_SIZE; i++) {
@@ -15607,7 +15607,7 @@ FUNCTION(fun_listcommands)
         }
      }
   }
-  free(ptrs);
+  bigpool_free(ptrs);
 }
 
 FUNCTION(fun_listnewsgroups)
@@ -18180,7 +18180,7 @@ FUNCTION(fun_zfunldefault)
       }
     }
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18198,7 +18198,7 @@ FUNCTION(fun_zfunldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18316,7 +18316,7 @@ FUNCTION(fun_zfun2ldefault)
       }
     }
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18334,7 +18334,7 @@ FUNCTION(fun_zfun2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18438,7 +18438,7 @@ FUNCTION(fun_zfundefault)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18456,7 +18456,7 @@ FUNCTION(fun_zfundefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18531,7 +18531,7 @@ FUNCTION(fun_udefault)
 
     /* Evaluate the arguments to the functions */
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ ) 
           s_xargs[i] = NULL;
@@ -18549,7 +18549,7 @@ FUNCTION(fun_udefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18715,7 +18715,7 @@ FUNCTION(fun_zfun2default)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18733,7 +18733,7 @@ FUNCTION(fun_zfun2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -18809,7 +18809,7 @@ FUNCTION(fun_u2default)
     /* Evaluate it using the rest of the passed function args */
 
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -18827,7 +18827,7 @@ FUNCTION(fun_u2default)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -19012,7 +19012,7 @@ FUNCTION(fun_uldefault)
     }
 
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -19030,7 +19030,7 @@ FUNCTION(fun_uldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, player, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -19340,7 +19340,7 @@ FUNCTION(fun_u2ldefault)
     }
 
     if ( nfargs > 2 ) {
-    s_xargs = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    s_xargs = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
        /* initialize it */
        for ( i = 0; i < (LBUF_SIZE/2); i++ )
           s_xargs[i] = NULL;
@@ -19358,7 +19358,7 @@ FUNCTION(fun_u2ldefault)
        for ( i = 0; ( (i < (nfargs - 2)) && (i < MAX_ARGS) ); i++) {
           free_lbuf(s_xargs[i]);
        }
-       free(s_xargs);
+       bigpool_free(s_xargs);
     } else {
        tval = safer_ufun(player, thing, thing, (ap ? ap->flags : 0), aflags);
        if ( tval == -2 ) {
@@ -19505,7 +19505,7 @@ FUNCTION(fun_elementsmux)
    free_lbuf(outbuff);
    free_lbuf(sep);
    free_lbuf(osep);
-   free(ptrs);
+   bigpool_free(ptrs);
    split_free_buf(insplit);
    split_free_buf(outsplit2);
    split_free_buf(outsplit);
@@ -20761,7 +20761,7 @@ FUNCTION(fun_strfunc)
       free_lbuf(ptrs[i]);
    }
    free_lbuf(list);
-   free(ptrs);
+   bigpool_free(ptrs);
 }
 
 /* ---------------------------------------------------------------------------
@@ -23126,8 +23126,8 @@ FUNCTION(fun_randextract)
   if (!nword) {
     free(ilist);
     free(ilist2);
-    free(slist);
-    free(nlist);
+    bigpool_free(slist);
+    bigpool_free(nlist);
     return;
   }
   got = 0;
@@ -23260,8 +23260,8 @@ FUNCTION(fun_randextract)
   }
   free(ilist);
   free(ilist2);
-  free(slist);
-  free(nlist);
+  bigpool_free(slist);
+  bigpool_free(nlist);
 }
 
 FUNCTION(fun_extractword)
@@ -27870,7 +27870,7 @@ FUNCTION(fun_replace)
     if (!fn_range_check("REPLACE", nfargs, 3, 5, buff, bufcx))
        return;
 
-    i_pos = malloc(sizeof(int) * LBUF_SIZE);
+    i_pos = bigpool_alloc(sizeof(int) * LBUF_SIZE);
     if ( (nfargs > 3) && *fargs[3]) {
        sep = *fargs[3];
     } else {
@@ -27881,7 +27881,7 @@ FUNCTION(fun_replace)
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, IF_REPLACE);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
-       free(i_pos);
+       bigpool_free(i_pos);
        return;
     }
 
@@ -27933,7 +27933,7 @@ FUNCTION(fun_replace)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
-    free(i_pos);
+    bigpool_free(i_pos);
 }
 
 FUNCTION(fun_ldelete)
@@ -27944,7 +27944,7 @@ FUNCTION(fun_ldelete)
     if (!fn_range_check("LDELETE", nfargs, 2, 4, buff, bufcx))
        return;
 
-    i_pos = malloc(sizeof(int) * LBUF_SIZE);
+    i_pos = bigpool_alloc(sizeof(int) * LBUF_SIZE);
     if ( (nfargs > 2) && *fargs[2]) {
        sep = *fargs[2];
     } else {
@@ -27955,7 +27955,7 @@ FUNCTION(fun_ldelete)
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, IF_DELETE);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
-       free(i_pos);
+       bigpool_free(i_pos);
        return;
     }
 
@@ -28008,7 +28008,7 @@ FUNCTION(fun_ldelete)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
-    free(i_pos);
+    bigpool_free(i_pos);
 }
 
 FUNCTION(fun_trreverse)
@@ -28047,7 +28047,7 @@ FUNCTION(fun_insert)
     if (!fn_range_check("INSERT", nfargs, 3, 6, buff, bufcx))
        return;
 
-    i_pos = malloc(sizeof(int) * LBUF_SIZE);
+    i_pos = bigpool_alloc(sizeof(int) * LBUF_SIZE);
 
     if ( (nfargs > 3) && *fargs[3]) {
        sep = *fargs[3];
@@ -28080,7 +28080,7 @@ FUNCTION(fun_insert)
     i_found = sanitize_input_cnt((char *)fargs[0], (char *)fargs[1], sep, &i_len, i_pos, i_flag);
     if ( !i_found ) {
        safe_str(fargs[0], buff, bufcx);
-       free(i_pos);
+       bigpool_free(i_pos);
        return;
     }
 
@@ -28145,7 +28145,7 @@ FUNCTION(fun_insert)
     safe_str(st_tmp, buff, bufcx);
     free_lbuf(st_tmp);
     free_lbuf(st_mash);
-    free(i_pos);
+    bigpool_free(i_pos);
 }
 
 /* ---------------------------------------------------------------------------
@@ -28193,8 +28193,8 @@ FUNCTION(fun_remove)
         free_lbuf(t_buff);
         free_lbuf(t_buff2);
         free(iargs);
-        free(sargs0);
-        free(sargs1);
+        bigpool_free(sargs0);
+        bigpool_free(sargs1);
      } else {
        s = fargs[0];
        word = fargs[1];
@@ -30771,7 +30771,7 @@ FUNCTION(fun_creplace)
          free_lbuf(curr);
          return;
       }
-       i_array = malloc(sizeof(int) * LBUF_SIZE);
+       i_array = bigpool_alloc(sizeof(int) * LBUF_SIZE);
        memset(i_array, 0, sizeof(int) * LBUF_SIZE);
        s_strtok = strtok_r(sop, " \t", &s_strtokr);
       while ( s_strtok ) {
@@ -30796,7 +30796,7 @@ FUNCTION(fun_creplace)
       free_lbuf(sop);
       safe_str(curr, buff, bufcx);
       free_lbuf(curr);
-      free(i_array);
+      bigpool_free(i_array);
       return;
    }
    free_lbuf(sop);
@@ -32159,7 +32159,7 @@ FUNCTION(fun_strdistance)
       return;
    }
 
-   i_dist = malloc(sizeof(int) * LBUF_SIZE);
+   i_dist = bigpool_alloc(sizeof(int) * LBUF_SIZE);
    p_word1 = s_word1 = alloc_lbuf("fun_strdistance_word1");
    p_word2 = s_word2 = alloc_lbuf("fun_strdistance_word2");
    i_lccheck = i_damareu = 0;
@@ -32227,7 +32227,7 @@ FUNCTION(fun_strdistance)
    ival(buff, bufcx, i_dist[i_lenword1]); 
    free_lbuf(s_word1);
    free_lbuf(s_word2);
-   free(i_dist);
+   bigpool_free(i_dist);
 }
 
 FUNCTION(fun_zsearch)
@@ -37527,7 +37527,7 @@ FUNCTION(fun_sort)
     do_asort(ptrs, nitems, sort_type, i_reverse);
     arr2list(ptrs, nitems, buff, bufcx, osep);
     free_lbuf(list);
-    free(ptrs);
+    bigpool_free(ptrs);
 }
 
 /* sortby() code borrowed from MUX 2.3
@@ -37700,7 +37700,7 @@ FUNCTION(fun_sortby)
           safe_str("#-1 PERMISSION DENIED", buff, bufcx);
           free_lbuf(list);
           free_lbuf(atext);
-          free(ptrs);
+          bigpool_free(ptrs);
           safer_unufun(tval);
           return;
        } else {
@@ -37712,7 +37712,7 @@ FUNCTION(fun_sortby)
     arr2list(ptrs, nptrs, buff, bufcx, osep);
     free_lbuf(list);
     free_lbuf(atext);
-    free(ptrs);
+    bigpool_free(ptrs);
 }
 
 /*
@@ -37787,8 +37787,8 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
     char *startpoint = "";
     int i1, i2, n1, n2, val, first, i_cmp;
 
-    ptrs1 = malloc(sizeof(char *) * LBUF_SIZE);
-    ptrs2 = malloc(sizeof(char *) * LBUF_SIZE);
+    ptrs1 = bigpool_alloc(sizeof(char *) * LBUF_SIZE);
+    ptrs2 = bigpool_alloc(sizeof(char *) * LBUF_SIZE);
     list1 = alloc_lbuf("fun_setunion.1");
     memset(list1, '\0', LBUF_SIZE);
     strcpy(list1, fargs[0]);
@@ -37936,8 +37936,8 @@ handle_sets(char *fargs[], char *buff, char **bufcx, int oper, char sep, char os
     } /* Switch */
     free_lbuf(list1);
     free_lbuf(list2);
-    free(ptrs1);
-    free(ptrs2);
+    bigpool_free(ptrs1);
+    bigpool_free(ptrs2);
     return;
 }
 
@@ -38106,7 +38106,7 @@ FUNCTION(fun_setunion)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
-    free(s_sorter);
+    bigpool_free(s_sorter);
     return;
 }
 
@@ -38153,7 +38153,7 @@ FUNCTION(fun_setdiff)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
-    free(s_sorter);
+    bigpool_free(s_sorter);
     return;
 }
 
@@ -38200,7 +38200,7 @@ FUNCTION(fun_setinter)
     do_asort(s_sorter, nitems, sort_type, i_reverse);
     arr2list(s_sorter, nitems, buff, bufcx, osep);
     free_lbuf(s_buff);
-    free(s_sorter);
+    bigpool_free(s_sorter);
     return;
 }
 
@@ -40991,7 +40991,7 @@ FUNCTION(fun_create)
 
    switch (sep) {
       case 't' : cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); bigpool_free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -41000,7 +41000,7 @@ FUNCTION(fun_create)
                  do_create(player, cause, (SIDEEFFECT|i_key), fargs[0], myfargs);
                  break;
       case 'r' : cmdp = (CMDENT *)ohtab_find((char *)"@dig", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); bigpool_free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@dig") ||
                        cmdtest(Owner(player), "@dig") || zonecmdtest(player, "@dig") ) {
                     notify(player, "Permission denied.");
@@ -41010,7 +41010,7 @@ FUNCTION(fun_create)
                  do_dig(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'e' : cmdp = (CMDENT *)ohtab_find((char *)"@open", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); bigpool_free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@open") ||
                        cmdtest(Owner(player), "@open") || zonecmdtest(player, "@open") ) {
                     notify(player, "Permission denied.");
@@ -41020,7 +41020,7 @@ FUNCTION(fun_create)
                  do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
                  break;
       case 'p' : cmdp = (CMDENT *)ohtab_find((char *)"@pcreate", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); bigpool_free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@pcreate") ||
                        cmdtest(Owner(player), "@pcreate") || zonecmdtest(player, "@pcreate") ) {
                     notify(player, "Permission denied.");
@@ -41042,7 +41042,7 @@ FUNCTION(fun_create)
                  }
                  break;
       default:   cmdp = (CMDENT *)ohtab_find((char *)"@create", &mudstate_hot.command_htab);
-      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); free(ptrs); return; }
+      if (!cmdp) { safe_str("#-1 COMMAND NOT FOUND", buff, bufcx); bigpool_free(ptrs); return; }
                  if ( !check_access(player, cmdp->perms, cmdp->perms2, 0) || cmdtest(player, "@create") ||
                        cmdtest(Owner(player), "@create") || zonecmdtest(player, "@create") ) {
                     notify(player, "Permission denied.");
@@ -41052,7 +41052,7 @@ FUNCTION(fun_create)
                  break;
    }
    free_lbuf(myfargs);
-   free(ptrs);
+   bigpool_free(ptrs);
 
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
@@ -41130,7 +41130,7 @@ FUNCTION(fun_dig)
        } else
           dbval(buff, bufcx, mudstate.store_lastcr);
     }
-    free(ptrs);
+    bigpool_free(ptrs);
     free_lbuf(fillbuf);
 }
 
@@ -41179,7 +41179,7 @@ FUNCTION(fun_open)
    }
    do_open(player, cause, (SIDEEFFECT|i_key), fargs[0], ptrs, nitems);
    mudstate.store_loc = -1;
-   free(ptrs);
+   bigpool_free(ptrs);
    if ( mudconf.sidefx_returnval )
       dbval(buff, bufcx, mudstate.store_lastcr);
 }
@@ -41590,7 +41590,7 @@ FUNCTION(fun_tel)
                (SIDEEFFECT | TEL_LIST | \
            ((nfargs==3 && *fargs[2] == '1') ? TEL_QUIET : 0 )),
          fargs[0], ptrs, nitems );
-    free(ptrs);
+    bigpool_free(ptrs);
 }
 
 FUNCTION(fun_cluster_wipe)
@@ -44531,10 +44531,10 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
     char **tbuff;
     int f_int, i, j, nptrs, nptrs2, nptrs3;
 
-    ptrs = malloc(sizeof(const char *) * (LBUF_SIZE/2));
-    ptrs2 = malloc(sizeof(const char *) * (LBUF_SIZE/2));
-    ptrs3 = malloc(sizeof(const char *) * (LBUF_SIZE/2));
-    tbuff = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    ptrs = bigpool_alloc(sizeof(const char *) * (LBUF_SIZE/2));
+    ptrs2 = bigpool_alloc(sizeof(const char *) * (LBUF_SIZE/2));
+    ptrs3 = bigpool_alloc(sizeof(const char *) * (LBUF_SIZE/2));
+    tbuff = bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
     memset(tbuff, '\0', sizeof(char *) * (LBUF_SIZE/2));
     f_int = 0;
     if ( !key || (key & 1) ) {
@@ -44615,10 +44615,10 @@ void list_functable2(dbref player, char *buff, char **bufcx, int key)
           free_mbuf(tbuff[i]);
        }
     }
-    free(ptrs);
-    free(ptrs2);
-    free(ptrs3);
-    free(tbuff);
+    bigpool_free(ptrs);
+    bigpool_free(ptrs2);
+    bigpool_free(ptrs3);
+    bigpool_free(tbuff);
 }
 
 void
