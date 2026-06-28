@@ -28903,6 +28903,8 @@ FUNCTION(fun_delete)
          while (*s)
               safe_chr(*s++, buff, bufcx);
       }
+      split_free_buf(outsplit);
+      split_free_buf(outsplit2);
    } else {
       outbuff = alloc_lbuf("fun_mid");
       outbuff2 = alloc_lbuf("fun_mid");
@@ -40493,8 +40495,9 @@ FUNCTION(fun_last)
            p--;
        }
    
-       safe_str(p+1, buff, bufcx);
-    } else {
+        safe_str(p+1, buff, bufcx);
+        split_free_buf(outsplit);
+     } else {
        initialize_ansisplitter(outsplit, LBUF_SIZE);
        outbuff = alloc_lbuf("fun_last");
        memset(outbuff, '\0', LBUF_SIZE);
