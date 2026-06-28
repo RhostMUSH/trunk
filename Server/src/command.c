@@ -5386,8 +5386,9 @@ static void list_cmdtable(dbref player, char *s_command) {
            notify_quiet(player, "Permission denied.");
         }
      }
-     free_lbuf(buff);
-     VOIDRETURN;  /* #31 */
+      free_lbuf(buff);
+      bigpool_free(ptrs);
+      VOIDRETURN;  /* #31 */
   }
 
   safe_str("Commands: ", buff, &bp);
