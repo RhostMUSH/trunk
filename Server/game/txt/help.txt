@@ -37011,7 +37011,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.5.8, 5.5.7
+  1 - 5.5.9, 5.5.8, 5.5.7
   2 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
   3 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
   4 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
@@ -37026,6 +37026,7 @@
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
  11 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
+& 5.5.9
 & 5.5.8
 & 5.5.7
 & changelog latest
@@ -37034,9 +37035,14 @@
 & changelog 1
    Topic: CHANGELOG
 
+  5.5.9
+  * Fixed some ANSISPLIT frees causing serious leaks, and converted some
+    more mallocs to the new bigpool.
+  
   5.5.8
   * Changed ansisplitter pools to be re-used instead of being free'd at
     the end of a command. This ensures there is no rapid mmap bloat.
+ 
   5.5.7
   * Big overhaul: A lot of stack-allocated variables are now heap mallocs.
     This prevents huge LBUF sizes from potentially causing stack issues.
