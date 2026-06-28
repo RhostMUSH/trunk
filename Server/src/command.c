@@ -3188,10 +3188,10 @@ process_command(dbref player, dbref cause, int interactive,
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], *lst_cmd, *dx_tmp;
     int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0, i_hook;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
-    char *arr_prog[LBUF_SIZE/2], *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
+    char **arr_prog, *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
     char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff, *tstrtokr;
-    dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, targetlist[LBUF_SIZE], i_apowner;
+    dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, *targetlist, i_apowner;
     CMDENT *cmdp;
     ZLISTNODE *zonelistnodeptr;
     dbref realloc;
@@ -3385,10 +3385,12 @@ process_command(dbref player, dbref cause, int interactive,
           atr_add_raw(spamowner, A_SPAMPROTECT, lcbuf);
           free_lbuf(lcbuf);
        }
-       free_lbuf(spamX);
-    }
+        free_lbuf(spamX);
+    arr_prog = malloc(sizeof(char *) * (LBUF_SIZE/2));
+    targetlist = malloc(sizeof(dbref) * LBUF_SIZE);
+     }
 
-    chklogflg = 0;
+     chklogflg = 0;
     if ( Good_obj(player) && Suspect(player) ) {
        STARTLOG(LOG_SUSPECT, "CMD", "SUS")
           log_name_and_loc(player);
@@ -3636,7 +3638,7 @@ process_command(dbref player, dbref cause, int interactive,
               }
           }
           lcbuf = atr_get(player, A_PROGBUFFER, &aowner2, &aflags2);
-          memset(arr_prog, 0, sizeof(arr_prog));
+          memset(arr_prog, 0, sizeof(char *) * (LBUF_SIZE/2));
 #ifdef PROG_LIKEMUX
           narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, command, '\0');
 #else
@@ -3663,6 +3665,8 @@ process_command(dbref player, dbref cause, int interactive,
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
+          free(arr_prog);
+          free(targetlist);
           return;
        }
     }
@@ -3775,6 +3779,8 @@ process_command(dbref player, dbref cause, int interactive,
 	  DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
+          free(arr_prog);
+          free(targetlist);
 	  return;
 	}
 	mudstate.write_status = 1;
@@ -4095,6 +4101,8 @@ process_command(dbref player, dbref cause, int interactive,
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
+          free(arr_prog);
+          free(targetlist);
 	  return;
 	}
         if ( msave ) {
@@ -4134,6 +4142,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
+        free(arr_prog);
+        free(targetlist);
 	return;
     } else if ((string_compare(command, "home") == 0) && ( Fubar(player) || (cval == 1) ||
                                                            ((cval2 == 0) && (cval != 2)) || 
@@ -4144,6 +4154,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
+        free(arr_prog);
+        free(targetlist);
 	return;
     }
     /* Only check for exits if we may use the goto command */
@@ -4260,6 +4272,8 @@ process_command(dbref player, dbref cause, int interactive,
                       DPOP; /* #29 */
                       mudstate_hot.no_hook = 0;
                       free_lbuf(lst_cmd);
+                      free(arr_prog);
+                      free(targetlist);
 		      return;
                    }
 	        }
@@ -4352,6 +4366,8 @@ process_command(dbref player, dbref cause, int interactive,
                      DPOP; /* #29 */
                      mudstate_hot.no_hook = 0;
                      free_lbuf(lst_cmd);
+                     free(arr_prog);
+                     free(targetlist);
 		     return;
                   }
 	        }
@@ -4366,6 +4382,8 @@ process_command(dbref player, dbref cause, int interactive,
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
                 free_lbuf(lst_cmd);
+                free(arr_prog);
+                free(targetlist);
 	        return;
 	     }
 	     mudstate_hot.exitcheck = 0;
@@ -4831,6 +4849,8 @@ process_command(dbref player, dbref cause, int interactive,
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
+        free(arr_prog);
+        free(targetlist);
 	return;
     }
 
@@ -4876,6 +4896,8 @@ process_command(dbref player, dbref cause, int interactive,
                 DPOP; /* #29 */
                 mudstate_hot.no_hook = 0;
                 free_lbuf(lst_cmd);
+                free(arr_prog);
+                free(targetlist);
 		return;
 	    }
 	}
@@ -4904,6 +4926,8 @@ process_command(dbref player, dbref cause, int interactive,
                     DPOP; /* #29 */
                     mudstate_hot.no_hook = 0;
                     free_lbuf(lst_cmd);
+                    free(arr_prog);
+                    free(targetlist);
 		    return;
 		}
 	    }
@@ -5032,7 +5056,7 @@ process_command(dbref player, dbref cause, int interactive,
         if ( !mudstate.global_error_inside && Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
              !Going(mudconf.global_error_obj) ) {
             if ( *lst_cmd ) {
-               memset(arr_prog, 0, sizeof(arr_prog));
+               memset(arr_prog, 0, sizeof(char *) * (LBUF_SIZE/2));
                if ( InProgram(player) ) {
                   narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, lst_cmd+1, '\0');
                } else {
@@ -5103,6 +5127,8 @@ process_command(dbref player, dbref cause, int interactive,
     DPOP; /* #29 */
     mudstate_hot.no_hook = 0;
     free_lbuf(lst_cmd);
+    free(arr_prog);
+    free(targetlist);
     return;
 }
 
@@ -10180,7 +10206,7 @@ void do_hide(dbref player, dbref cause, int key, char *arg1)
 
 void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
 {
-   char *lcbuf, in_str[40], read_str[LBUF_SIZE], *p_in, *p_out, out_str[LBUF_SIZE];
+   char *lcbuf, in_str[40], *read_str, *p_in, *p_out, *out_str;
    char max_file[160], *chk_valid_str, *tpr_buff, *tprp_buff;
    FILE *f_ptr;
    int t_lines=0, t_pages=0, t_chars=0, page_num=0, chk_prnt=0, 
@@ -10270,24 +10296,28 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
                ENDLOG
             }
             break;
-         case MLOG_READ:
-            memset(in_str, 0, sizeof(in_str));
-            sprintf(in_str, "%.30s.txt", mudconf.manlog_file);
-            if ( (f_ptr = fopen(in_str, "r")) == NULL) {
-               notify(t_player, "Unable to open manual @log file.  @log aborted.");
-               return;
-            } else {
-               while ( !feof(f_ptr) ) {
-                  fgets( read_str, LBUF_SIZE - 1, f_ptr);
-                  if (!feof(f_ptr)) {
-                     t_chars += strlen(read_str);
-                     t_lines++;
-                  }
-                  if (t_lines > 100000 ) {
-                     notify(t_player, "Manual log file too large.  Aborting.");
-                     fclose(f_ptr);
-                     return;
-                  }
+          case MLOG_READ:
+             memset(in_str, 0, sizeof(in_str));
+             sprintf(in_str, "%.30s.txt", mudconf.manlog_file);
+             if ( (f_ptr = fopen(in_str, "r")) == NULL) {
+                notify(t_player, "Unable to open manual @log file.  @log aborted.");
+                return;
+             } else {
+                read_str = alloc_lbuf("log_read");
+                out_str = alloc_lbuf("log_out");
+                while ( !feof(f_ptr) ) {
+                   fgets( read_str, LBUF_SIZE - 1, f_ptr);
+                   if (!feof(f_ptr)) {
+                      t_chars += strlen(read_str);
+                      t_lines++;
+                   }
+                   if (t_lines > 100000 ) {
+                      notify(t_player, "Manual log file too large.  Aborting.");
+                      fclose(f_ptr);
+                      free_lbuf(read_str);
+                      free_lbuf(out_str);
+                      return;
+                   }
                }
                if ( t_lines > 0 ) {
                   t_pages = (t_lines/10)+1;
@@ -10337,21 +10367,24 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
                   if (t_lines == 0)
                      notify(t_player, "Log file is empty.");
                   else
-                     notify(t_player, "There was no valid text for that page.");
-               } else {
-                  notify(t_player, unsafe_tprintf("-------- Page #%d ( %d total page%s) --------", 
-                         page_num, t_pages, t_pages < 2 ? " ": "s " ));
-               }
-               fclose(f_ptr);
+               notify(t_player, "There was no valid text for that page.");
+            } else {
+               notify(t_player, unsafe_tprintf("-------- Page #%d ( %d total page%s) --------", 
+                      page_num, t_pages, t_pages < 2 ? " ": "s " ));
             }
-            break;
-         case MLOG_STATS:
+            fclose(f_ptr);
+         }
+            free_lbuf(read_str);
+            free_lbuf(out_str);
+         break;
+      case MLOG_STATS:
             memset(in_str, 0, sizeof(in_str));
             sprintf(in_str, "%.30s.txt", mudconf.manlog_file);
             if ( (f_ptr = fopen(in_str, "r")) == NULL) {
                notify(t_player, "Unable to open manual @log file.  @log aborted.");
                return;
             } else {
+               read_str = alloc_lbuf("log_read");
                while ( !feof(f_ptr) ) {
                   fgets( read_str, LBUF_SIZE - 1, f_ptr);
                   if (!feof(f_ptr)) {
@@ -10361,6 +10394,7 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
                   if (t_lines > 100000 ) {
                      notify(t_player, "Manual log file too large.  Aborting.");
                      fclose(f_ptr);
+                     free_lbuf(read_str);
                      return;
                   }
                }
@@ -10377,6 +10411,7 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
                }
                fclose(f_ptr);
             }
+            free_lbuf(read_str);
             break;
       }
    } else if ( key & MLOG_FILE ) {
