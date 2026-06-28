@@ -19826,12 +19826,13 @@ FUNCTION(fun_left)
     split_free_buf(outsplit);
         return;
     } else {
-       if ( i_noansi ) {
-          if (len < (LBUF_SIZE - 1)) {
-             fargs[0][len] = '\0';
-          }
-          safe_str(fargs[0], buff, bufcx);
-       } else {
+        if ( i_noansi ) {
+           if (len < (LBUF_SIZE - 1)) {
+              fargs[0][len] = '\0';
+           }
+           safe_str(fargs[0], buff, bufcx);
+           split_free_buf(outsplit);
+        } else {
           outbuff = alloc_lbuf("fun_left");
           memset(outbuff, '\0', LBUF_SIZE);
           initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -19880,14 +19881,15 @@ FUNCTION(fun_right)
     split_free_buf(outsplit);
         return;
     } else {
-        if ( i_noansi ) {
-           len = strlen(fargs[0]) - len;
-           if (len < 1 || len > (LBUF_SIZE - 1) ) {
-              safe_str(fargs[0], buff, bufcx);
-           } else {
-              safe_str(fargs[0] + len, buff, bufcx);
-           }
-        } else {
+         if ( i_noansi ) {
+            len = strlen(fargs[0]) - len;
+            if (len < 1 || len > (LBUF_SIZE - 1) ) {
+               safe_str(fargs[0], buff, bufcx);
+            } else {
+               safe_str(fargs[0] + len, buff, bufcx);
+            }
+            split_free_buf(outsplit);
+         } else {
            outbuff = alloc_lbuf("fun_right");
            memset(outbuff, '\0', LBUF_SIZE);
            initialize_ansisplitter(outsplit, LBUF_SIZE);
@@ -19992,13 +19994,14 @@ FUNCTION(fun_first)
     if ( (nfargs > 1) && *fargs[1] )
        sep = *fargs[1];
 
-    if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
-       s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
-       first = split_token(&s, sep);
-       if (first) {
-           safe_str(first, buff, bufcx);
-       }
-    } else {
+     if ( (nfargs <= 2) || (atoi(fargs[2]) == 0) ) {
+        s = trim_space_sep(fargs[0], sep);  /* leading spaces ... */
+        first = split_token(&s, sep);
+        if (first) {
+            safe_str(first, buff, bufcx);
+        }
+        split_free_buf(outsplit);
+     } else {
        initialize_ansisplitter(outsplit, LBUF_SIZE);
        outbuff = alloc_lbuf("fun_first");
        memset(outbuff, '\0', LBUF_SIZE);
