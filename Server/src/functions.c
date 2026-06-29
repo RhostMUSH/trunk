@@ -13116,9 +13116,9 @@ FUNCTION(fun_printf)
       for ( i = 0; i < i_arrayval; i++ ) 
          free_lbuf(s_strarray[i]);
       free_lbuf(s_tmpbuff);
+    }
     split_free_buf(outsplit);
     split_free_buf(outsplit2);
-   }
 }
 
 #define MUSH_TDAY	30.416667
