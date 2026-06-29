@@ -16,7 +16,12 @@ MDBX_CFLAGS="-O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu
 if [ "${gdbmdir}" = "./mdbx" ]
 then
    cd $gdbmdir
-   CC=${CC:-gcc}
+   if [ -z "${CC}" ]; then
+      if command -v clang >/dev/null 2>&1; then CC=clang
+      elif command -v gcc >/dev/null; then CC=gcc
+      else CC=cc
+      fi
+   fi
    (echo '#define MDBX_BUILD_TIMESTAMP "'$(date +%Y-%m-%dT%H:%M:%S)'"'
     echo '#define MDBX_BUILD_FLAGS "'"${MDBX_CFLAGS}"'"'
     echo '#define MDBX_BUILD_COMPILER "'$(${CC} --version 2>/dev/null | head -1)'"'
