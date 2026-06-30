@@ -4,7 +4,7 @@
 
 #include "copyright.h"
 
-/* PATCHLEVEL_CHANGED 1 */
+/* PATCHLEVEL_CHANGED 0 */
 
 /* RHOST VERSIONING HOWTO:
  * -----------------------
