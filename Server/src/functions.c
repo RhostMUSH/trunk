@@ -10596,7 +10596,7 @@ struct timefmt_format {
   int nocutval;	     /* Don't cut the value off */
   int breakonreturn;	/* Break on return identification */
   char format_padch;	/* Character to pad */
-  char format_padst[LBUF_SIZE]; /* String for padding -- ansi aware */
+  char *format_padst; /* String for padding -- ansi aware */
   int format_padstsize;
   int formatting;
   int forcebreakonreturn;
@@ -11162,15 +11162,15 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
      } else {
         i_stripansi = printf_visible_width(strip_all_special(fmtbuff));
      }
-    if ( (i_stripansi == 0) && (*(fm->format_padst) == '!') ) {
-       fm->format_padstsize = 0;
-       fm->format_padch = ' ';
-    } else if ( *(fm->format_padst) == '!') {
-       snarfle_special_characters(fm->format_padst+1, s_padstring);
-       fm->format_padstsize = strlen(strip_all_special(s_padstring));
-    } else {
-       snarfle_special_characters(fm->format_padst, s_padstring);
-    }
+     if ( fm->format_padst && (i_stripansi == 0) && (*(fm->format_padst) == '!') ) {
+        fm->format_padstsize = 0;
+        fm->format_padch = ' ';
+     } else if ( fm->format_padst && (*(fm->format_padst) == '!') ) {
+        snarfle_special_characters(fm->format_padst+1, s_padstring);
+        fm->format_padstsize = strlen(strip_all_special(s_padstring));
+     } else if ( fm->format_padst ) {
+        snarfle_special_characters(fm->format_padst, s_padstring);
+     }
     i_nostripansi = strlen(fmtbuff);
     /* Do not cut at all */
     if ( (fm->nocutval == 1) && *fmtbuff && ((fm->fieldwidth + morepadd) < i_stripansi) )
@@ -12458,8 +12458,7 @@ FUNCTION(fun_printf)
    i_arrayval = i_totwidth = i = i_loopydo = 0;
  
    fm.format_padch = '\0';
-   memset(fm.format_padst, '\0', sizeof(fm.format_padst));
-   fm.format_padstsize = 0;
+    fm.format_padstsize = 0;
    fm.formatting = 0;
    fm.cutatlength = 0;
    fm.cutatlength_line = 0;
@@ -12544,7 +12543,6 @@ FUNCTION(fun_printf)
             break;
          case '$': /* start of format */
             fm.format_padch = '\0';
-            memset(fm.format_padst, '\0', sizeof(fm.format_padst));
             fm.format_padstsize = 0;
             fm.formatting = 0;
             if( *(pp + 1) == '$' ) { /* eat a '$' and don't process format */
@@ -12600,22 +12598,25 @@ FUNCTION(fun_printf)
                               fmterror = 1;
                               break;
                            }
-                           s_pp = fm.format_padst;
-                           pp++;
-                           while ( *pp && (*pp != ':') ) {
-                              if ( ((*pp == '%') && ((*(pp+1) == 'r') || *(pp+1) == 'R')) ) {
-                                 pp+=2;
-                                 continue;
-                              }
-                              if ( (*pp == '\n') || (*pp == '\r') ) {
-                                 pp++;
-                                 continue;
-                              }
-                              *s_pp = *pp;
-                              s_pp++;
-                              pp++;
-                           }
-#ifndef ZENTY_ANSI
+                            if (!fm.format_padst)
+                                fm.format_padst = alloc_lbuf("printf_fmtpad");
+                            s_pp = fm.format_padst;
+                            pp++;
+                            while ( *pp && (*pp != ':') ) {
+                               if ( ((*pp == '%') && ((*(pp+1) == 'r') || *(pp+1) == 'R')) ) {
+                                  pp+=2;
+                                  continue;
+                               }
+                               if ( (*pp == '\n') || (*pp == '\r') ) {
+                                  pp++;
+                                  continue;
+                               }
+                               *s_pp = *pp;
+                               s_pp++;
+                               pp++;
+                            }
+                            *s_pp = '\0';
+                            #ifndef ZENTY_ANSI
                            s_tmpbuff = alloc_lbuf("fun_printf_tempbuff");
                            memcpy(s_tmpbuff, strip_all_special(fm.format_padst), LBUF_SIZE - 1);
                            memcpy(fm.format_padst, s_tmpbuff, LBUF_SIZE - 1);
@@ -12935,8 +12936,14 @@ FUNCTION(fun_printf)
                                  fm.fieldwidth += fm.doindentpadd;
                               }
                               fm.forcebreakonreturn = 0;
-                              fm_array[i_arrayval] = fm;
-                              i_arrayval++;
+                               fm_array[i_arrayval] = fm;
+                               if (fm.format_padst) {
+                                   fm_array[i_arrayval].format_padst = alloc_lbuf("printf_fmtpad");
+                                   memcpy(fm_array[i_arrayval].format_padst, fm.format_padst, LBUF_SIZE);
+                               } else {
+                                   fm_array[i_arrayval].format_padst = NULL;
+                               }
+                               i_arrayval++;
                               i_loopydo = 1;
                            } else {
                               showfield_printf(fargs[fmtcurrarg], buff, bufcx, &fm, 1, (char *)NULL, (char **)NULL, morepadd, &adjust_padd, &start_line);
@@ -13116,6 +13123,12 @@ FUNCTION(fun_printf)
       for ( i = 0; i < i_arrayval; i++ ) 
          free_lbuf(s_strarray[i]);
       free_lbuf(s_tmpbuff);
+    }
+    if (fm.format_padst)
+        free_lbuf(fm.format_padst);
+    for (i = 0; i < i_arrayval; i++) {
+        if (fm_array[i].format_padst)
+            free_lbuf(fm_array[i].format_padst);
     }
     split_free_buf(outsplit);
     split_free_buf(outsplit2);
