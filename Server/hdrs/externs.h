@@ -539,9 +539,14 @@ extern void	FDECL(clone_object, (dbref, dbref));
 extern void	NDECL(init_min_db);
 extern void	NDECL(atr_push);
 extern void	NDECL(atr_pop);
-extern ANSISPLIT *	split_alloc_buf(void);
+extern ANSISPLIT *	_split_alloc_buf(const char *, const char *, int);
+#define split_alloc_buf()	_split_alloc_buf(__func__, __FILE__, __LINE__)
 extern void		split_free_buf(ANSISPLIT *);
 extern void		NDECL(split_free_bufs);
+extern void	FDECL(show_ansisplit_stats, (dbref, int));
+extern void	FDECL(show_bigpool_stats, (dbref, int));
+extern void	FDECL(show_ansisplit_trace, (dbref, int));
+extern void	FDECL(show_bigpool_trace, (dbref, int));
 extern int	FDECL(atr_head, (dbref, char **));
 extern int	FDECL(atr_next, (char **));
 extern int	FDECL(init_gdbm_db, (char *));

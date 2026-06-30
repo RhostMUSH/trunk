@@ -839,8 +839,10 @@ list_bufstats(dbref player, char *s_key)
        notify(player, "Buffer Stats    Size     InUse     Total          Allocs   Lost      Total Mem");
 #endif
        for (i = 0; i < NUM_POOLS; i++)
-	   list_bufstat(player, i, poolnames[i], i_color);
-    }
+ 	   list_bufstat(player, i, poolnames[i], i_color);
+       show_ansisplit_stats(player, i_color);
+       show_bigpool_stats(player, i_color);
+     }
 
     if ( !s_key || !*s_key || (!strcasecmp(s_key, (char *)"cpu")) ) {
        i_found = 1;
@@ -891,8 +893,17 @@ list_bufstats(dbref player, char *s_key)
 #endif
     }
 
+    if ( !i_found && s_key && *s_key && !strcasecmp(s_key, "ansisplit") ) {
+       i_found = 1;
+       show_ansisplit_stats(player, i_color);
+    }
+    if ( !i_found && s_key && *s_key && !strcasecmp(s_key, "bigpool") ) {
+       i_found = 1;
+       show_bigpool_stats(player, i_color);
+    }
+
     if ( !i_found && s_key && *s_key ) {
-       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, blacklist, attrib, totem, cache, network, db, stack, cpu, or cquick.");
+       notify(player, "Unknown sub-option for ALLOC.  Use one of: quick, ansisplit, bigpool, blacklist, attrib, totem, cache, network, db, stack, cpu, or cquick.");
     }
 }
 
@@ -903,6 +914,8 @@ list_buftrace(dbref player, int key)
 
     for (i = 0; i < NUM_POOLS; i++)
 	pool_trace(player, i, poolnames[i], key);
+    show_ansisplit_trace(player, key);
+    show_bigpool_trace(player, key);
 }
 
 #define BFACT 2
@@ -952,19 +965,54 @@ void do_buff_free(dbref player, dbref cause, int key)
  * ---------------------------------------------------------------------------
  */
 
-static struct { void *buf; int in_use; size_t size; } bigpool[BIGPOOL_SLOTS];
+#define BIGPOOL_OVERFLOW_TRACK 16
 
-void *bigpool_alloc(size_t sz)
+typedef struct {
+    void *buf;
+    int in_use;
+    size_t size;
+    const char *tag;
+    const char *file;
+    int line;
+} BP_SLOT;
+
+static BP_SLOT bigpool[BIGPOOL_SLOTS];
+static BP_SLOT bigpool_overflow[BIGPOOL_OVERFLOW_TRACK];
+
+static int bigpool_peak = 0;
+static double bigpool_tot_allocs = 0;
+
+void *_bigpool_alloc(size_t sz, const char *tag, const char *file, int line)
 {
     int i;
     for (i = 0; i < BIGPOOL_SLOTS; i++) {
         if (!bigpool[i].in_use) {
             bigpool[i].in_use = 1;
+            bigpool[i].tag = tag;
+            bigpool[i].file = file;
+            bigpool[i].line = line;
+            bigpool_tot_allocs++;
+            if (i + 1 > bigpool_peak)
+                bigpool_peak = i + 1;
             if (!bigpool[i].buf || bigpool[i].size < sz) {
                 bigpool[i].buf = realloc(bigpool[i].buf, sz);
                 bigpool[i].size = sz;
             }
             return bigpool[i].buf;
+        }
+    }
+    for (i = 0; i < BIGPOOL_OVERFLOW_TRACK; i++) {
+        if (!bigpool_overflow[i].in_use) {
+            bigpool_overflow[i].buf = malloc(sz);
+            bigpool_overflow[i].size = sz;
+            bigpool_overflow[i].in_use = 1;
+            bigpool_overflow[i].tag = tag;
+            bigpool_overflow[i].file = file;
+            bigpool_overflow[i].line = line;
+            bigpool_tot_allocs++;
+            if (BIGPOOL_SLOTS + i + 1 > bigpool_peak)
+                bigpool_peak = BIGPOOL_SLOTS + i + 1;
+            return bigpool_overflow[i].buf;
         }
     }
     return malloc(sz);
@@ -974,7 +1022,115 @@ void bigpool_free(void *p)
 {
     int i;
     for (i = 0; i < BIGPOOL_SLOTS; i++) {
-        if (bigpool[i].buf == p) { bigpool[i].in_use = 0; return; }
+        if (bigpool[i].buf == p) {
+            bigpool[i].in_use = 0;
+            bigpool[i].tag = NULL;
+            bigpool[i].file = NULL;
+            bigpool[i].line = 0;
+            return;
+        }
+    }
+    for (i = 0; i < BIGPOOL_OVERFLOW_TRACK; i++) {
+        if (bigpool_overflow[i].buf == p) {
+            bigpool_overflow[i].in_use = 0;
+            bigpool_overflow[i].tag = NULL;
+            bigpool_overflow[i].file = NULL;
+            bigpool_overflow[i].line = 0;
+            free(p);
+            return;
+        }
     }
     free(p);
+}
+
+/* ---------------------------------------------------------------------------
+ * Display helpers for @list allocations / @list buffers / @list advbuffers.
+ * ---------------------------------------------------------------------------
+ */
+
+void show_bigpool_stats(dbref player, int i_color)
+{
+    int i, inuse = 0;
+    size_t max_size = 0;
+    double tot_mem = 0;
+
+    for (i = 0; i < BIGPOOL_SLOTS; i++) {
+        if (bigpool[i].in_use) inuse++;
+        tot_mem += bigpool[i].size;
+        if (bigpool[i].size > max_size) max_size = bigpool[i].size;
+    }
+    for (i = 0; i < BIGPOOL_OVERFLOW_TRACK; i++) {
+        if (bigpool_overflow[i].in_use) {
+            inuse++;
+            tot_mem += bigpool_overflow[i].size;
+            if (bigpool_overflow[i].size > max_size) max_size = bigpool_overflow[i].size;
+        }
+    }
+    notify(player, unsafe_tprintf("%-12.12s %7d %9d %9d %15.0f %6d %14.0f",
+        "BigPool", (int)max_size, inuse,
+        (bigpool_peak > BIGPOOL_SLOTS) ? BIGPOOL_SLOTS : (bigpool_peak ? bigpool_peak : BIGPOOL_SLOTS),
+        bigpool_tot_allocs, 0, tot_mem));
+}
+
+void show_bigpool_trace(dbref player, int key)
+{
+    typedef struct tmp_holder { char name[200]; int cnt; struct tmp_holder *next; } THOLD;
+    THOLD *head = NULL, *tp, *tp2;
+    int i, numfree = 0, icount = 0;
+    char buf[250];
+    BP_SLOT *bp;
+
+    notify(player, "----- BigPool -----");
+    for (i = 0; i < BIGPOOL_SLOTS; i++) {
+        bp = &bigpool[i];
+        if (bp->in_use) {
+            if (key)
+                sprintf(buf, "%.90s {%.90s:%d}", bp->tag, bp->file, bp->line);
+            else
+                sprintf(buf, "%.199s", bp->tag);
+            for (tp = head; tp; tp = tp->next) {
+                if (!strcmp(buf, tp->name)) { tp->cnt++; break; }
+            }
+            if (!tp) {
+                tp2 = malloc(sizeof(THOLD));
+                strcpy(tp2->name, buf);
+                tp2->cnt = 1;
+                tp2->next = NULL;
+                if (!head) head = tp2;
+                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+            }
+        } else
+            numfree++;
+    }
+    for (i = 0; i < BIGPOOL_OVERFLOW_TRACK; i++) {
+        bp = &bigpool_overflow[i];
+        if (bp->in_use) {
+            if (key)
+                sprintf(buf, "%.90s {%.90s:%d}", bp->tag, bp->file, bp->line);
+            else
+                sprintf(buf, "%.199s", bp->tag);
+            for (tp = head; tp; tp = tp->next) {
+                if (!strcmp(buf, tp->name)) { tp->cnt++; break; }
+            }
+            if (!tp) {
+                tp2 = malloc(sizeof(THOLD));
+                strcpy(tp2->name, buf);
+                tp2->cnt = 1;
+                tp2->next = NULL;
+                if (!head) head = tp2;
+                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+            }
+        }
+    }
+    for (tp = head; tp; tp = tp->next) {
+        sprintf(buf, "%s  [%d entries]", tp->name, tp->cnt);
+        icount += tp->cnt;
+        notify(player, buf);
+    }
+    while (head) {
+        tp2 = head->next;
+        free(head);
+        head = tp2;
+    }
+    notify(player, unsafe_tprintf("%d free BigPool, %d allocated", numfree, icount));
 }

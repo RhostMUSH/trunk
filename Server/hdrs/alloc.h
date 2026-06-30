@@ -87,7 +87,8 @@ extern int      FDECL(getBufferSize, (char *));
 /* Bigpool: slot-based pool for mmap-sized allocations (>=128KB).
  * Keeps buffers alive across alloc/free cycles to avoid mmap/munmap churn. */
 #define BIGPOOL_SLOTS 16
-extern void *bigpool_alloc(size_t);
+extern void *_bigpool_alloc(size_t, const char *, const char *, int);
+#define bigpool_alloc(sz)	_bigpool_alloc(sz, __func__, __FILE__, __LINE__)
 extern void  bigpool_free(void *);
 
 #else

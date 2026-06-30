@@ -71,18 +71,48 @@ char *rindex(const char *, int);
  * ---------------------------------------------------------------------------
  */
 #define AS_POOL_SIZE 8
+#define AS_OVERFLOW_TRACK 16
 
-static struct { ANSISPLIT *buf; int in_use; } as_pool[AS_POOL_SIZE];
+typedef struct {
+    ANSISPLIT *buf;
+    int in_use;
+    const char *tag;
+    const char *file;
+    int line;
+} AS_SLOT;
 
-ANSISPLIT *split_alloc_buf(void)
+static AS_SLOT as_pool[AS_POOL_SIZE];
+static AS_SLOT as_overflow[AS_OVERFLOW_TRACK];
+
+static int as_peak_used = 0;
+static int as_total_allocs = 0;
+
+ANSISPLIT *_split_alloc_buf(const char *tag, const char *file, int line)
 {
     int i;
     for (i = 0; i < AS_POOL_SIZE; i++) {
         if (!as_pool[i].in_use) {
             as_pool[i].in_use = 1;
+            as_pool[i].tag = tag;
+            as_pool[i].file = file;
+            as_pool[i].line = line;
+            as_total_allocs++;
+            if (i + 1 > as_peak_used)
+                as_peak_used = i + 1;
             if (!as_pool[i].buf)
                 as_pool[i].buf = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
             return as_pool[i].buf;
+        }
+    }
+    for (i = 0; i < AS_OVERFLOW_TRACK; i++) {
+        if (!as_overflow[i].in_use) {
+            as_overflow[i].buf = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+            as_overflow[i].in_use = 1;
+            as_overflow[i].tag = tag;
+            as_overflow[i].file = file;
+            as_overflow[i].line = line;
+            as_total_allocs++;
+            return as_overflow[i].buf;
         }
     }
     return (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
@@ -92,7 +122,23 @@ void split_free_buf(ANSISPLIT *p)
 {
     int i;
     for (i = 0; i < AS_POOL_SIZE; i++) {
-        if (as_pool[i].buf == p) { as_pool[i].in_use = 0; return; }
+        if (as_pool[i].buf == p) {
+            as_pool[i].in_use = 0;
+            as_pool[i].tag = NULL;
+            as_pool[i].file = NULL;
+            as_pool[i].line = 0;
+            return;
+        }
+    }
+    for (i = 0; i < AS_OVERFLOW_TRACK; i++) {
+        if (as_overflow[i].buf == p) {
+            as_overflow[i].in_use = 0;
+            as_overflow[i].tag = NULL;
+            as_overflow[i].file = NULL;
+            as_overflow[i].line = 0;
+            free(p);
+            return;
+        }
     }
     free(p);
 }
@@ -103,6 +149,91 @@ void split_free_bufs(void)
     for (i = 0; i < AS_POOL_SIZE; i++) {
         as_pool[i].in_use = 0;
     }
+}
+
+/* ---------------------------------------------------------------------------
+ * Display helpers for @list allocations / @list buffers / @list advbuffers.
+ * Called from alloc.c's list_bufstats / list_buftrace.
+ * ---------------------------------------------------------------------------
+ */
+
+void show_ansisplit_stats(dbref player, int i_color)
+{
+    int i, inuse = 0, peak = 0;
+    int tot_allocs = as_total_allocs;
+    size_t slot_size = sizeof(ANSISPLIT) * LBUF_SIZE;
+    double tot_mem = (double)(as_peak_used * slot_size);
+
+    for (i = 0; i < AS_POOL_SIZE; i++) {
+        if (as_pool[i].in_use) inuse++;
+        if (as_pool[i].buf) peak++;
+    }
+    if (peak < AS_POOL_SIZE) peak = AS_POOL_SIZE;
+    notify(player, unsafe_tprintf("%-12.12s %7d %9d %9d %15.0f %6d %14.0f",
+        "ANSISplit", (int)slot_size, inuse, peak,
+        (double)tot_allocs, 0, tot_mem));
+}
+
+void show_ansisplit_trace(dbref player, int key)
+{
+    typedef struct tmp_holder { char name[200]; int cnt; struct tmp_holder *next; } THOLD;
+    THOLD *head = NULL, *tp, *tp2;
+    int i, numfree = 0, icount = 0;
+    char buf[250];
+
+    notify(player, "----- ANSISplit Pool -----");
+    for (i = 0; i < AS_POOL_SIZE; i++) {
+        if (as_pool[i].in_use) {
+            if (key)
+                sprintf(buf, "%.90s {%.90s:%d}", as_pool[i].tag,
+                        as_pool[i].file, as_pool[i].line);
+            else
+                sprintf(buf, "%.199s", as_pool[i].tag);
+            for (tp = head; tp; tp = tp->next) {
+                if (!strcmp(buf, tp->name)) { tp->cnt++; break; }
+            }
+            if (!tp) {
+                tp2 = malloc(sizeof(THOLD));
+                strcpy(tp2->name, buf);
+                tp2->cnt = 1;
+                tp2->next = NULL;
+                if (!head) head = tp2;
+                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+            }
+        } else
+            numfree++;
+    }
+    for (i = 0; i < AS_OVERFLOW_TRACK; i++) {
+        if (as_overflow[i].in_use) {
+            if (key)
+                sprintf(buf, "%.90s {%.90s:%d}", as_overflow[i].tag,
+                        as_overflow[i].file, as_overflow[i].line);
+            else
+                sprintf(buf, "%.199s", as_overflow[i].tag);
+            for (tp = head; tp; tp = tp->next) {
+                if (!strcmp(buf, tp->name)) { tp->cnt++; break; }
+            }
+            if (!tp) {
+                tp2 = malloc(sizeof(THOLD));
+                strcpy(tp2->name, buf);
+                tp2->cnt = 1;
+                tp2->next = NULL;
+                if (!head) head = tp2;
+                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+            }
+        }
+    }
+    for (tp = head; tp; tp = tp->next) {
+        sprintf(buf, "%s  [%d entries]", tp->name, tp->cnt);
+        icount += tp->cnt;
+        notify(player, buf);
+    }
+    while (head) {
+        tp2 = head->next;
+        free(head);
+        head = tp2;
+    }
+    notify(player, unsafe_tprintf("%d free ANSISplit, %d allocated", numfree, icount));
 }
 
 #include "timez.h"
