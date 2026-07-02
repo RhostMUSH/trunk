@@ -198,7 +198,11 @@ void show_ansisplit_trace(dbref player, int key)
                 tp2->cnt = 1;
                 tp2->next = NULL;
                 if (!head) head = tp2;
-                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+                else {
+                    for (tp = head; tp->next; tp = tp->next)
+                        ;
+                    tp->next = tp2;
+                }
             }
         } else
             numfree++;
@@ -219,7 +223,11 @@ void show_ansisplit_trace(dbref player, int key)
                 tp2->cnt = 1;
                 tp2->next = NULL;
                 if (!head) head = tp2;
-                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+                else {
+                    for (tp = head; tp->next; tp = tp->next)
+                        ;
+                    tp->next = tp2;
+                }
             }
         }
     }
@@ -39820,8 +39828,9 @@ FUNCTION(fun_isdbref)
 
 FUNCTION(fun_trim)
 {
-    char *p, *lastchar, *q, *sep;
+    char *p, *lastchar, *q, *sep, *plainbuf, *s_output;
     int trim, trim_size;
+    ANSISPLIT *outsplit = NULL;
 
     if (nfargs == 0) {
          return;
@@ -39850,25 +39859,55 @@ FUNCTION(fun_trim)
        sprintf(sep, " ");
     }
     trim_size = strlen(sep);
-    if (trim == 2 || trim == 3) {
-         p = lastchar = fargs[0];
-         while (*p != '\0') {
-             if ( memchr(sep, *p, trim_size) == NULL )
-                  lastchar = p;
-             p++;
-         }
-         *(lastchar + 1) = '\0';
+    if (mudconf.trim_ansiaware) {
+        outsplit = split_alloc_buf();
+        plainbuf = alloc_lbuf("fun_trim_plain");
+        initialize_ansisplitter(outsplit, LBUF_SIZE);
+        split_ansi(strip_ansi(fargs[0]), plainbuf, outsplit);
+        if (trim == 2 || trim == 3) {
+            p = lastchar = plainbuf;
+            while (*p != '\0') {
+                if ( memchr(sep, *p, trim_size) == NULL )
+                    lastchar = p;
+                p++;
+            }
+            *(lastchar + 1) = '\0';
+        }
+        q = plainbuf;
+        if (trim == 1 || trim == 3) {
+            while (*q != '\0') {
+                if ( memchr(sep, *q, trim_size) != NULL )
+                    q++;
+                else
+                    break;
+            }
+        }
+        s_output = rebuild_ansi(q, outsplit + (q - plainbuf), 0);
+        safe_str(s_output, buff, bufcx);
+        free_lbuf(s_output);
+        free_lbuf(plainbuf);
+        split_free_buf(outsplit);
+    } else {
+        if (trim == 2 || trim == 3) {
+            p = lastchar = fargs[0];
+            while (*p != '\0') {
+                if ( memchr(sep, *p, trim_size) == NULL )
+                    lastchar = p;
+                p++;
+            }
+            *(lastchar + 1) = '\0';
+        }
+        q = fargs[0];
+        if (trim == 1 || trim == 3) {
+            while (*q != '\0') {
+                if ( memchr(sep, *q, trim_size) != NULL )
+                    q++;
+                else
+                    break;
+            }
+        }
+        safe_str(q, buff, bufcx);
     }
-    q = fargs[0];
-    if (trim == 1 || trim == 3) {
-         while (*q != '\0') {
-             if ( memchr(sep, *q, trim_size) != NULL )
-                  q++;
-             else
-                  break;
-         }
-    }
-    safe_str(q, buff, bufcx);
     free_lbuf(sep);
 }
 

@@ -1097,7 +1097,11 @@ void show_bigpool_trace(dbref player, int key)
                 tp2->cnt = 1;
                 tp2->next = NULL;
                 if (!head) head = tp2;
-                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+                else {
+                    for (tp = head; tp->next; tp = tp->next)
+                        ;
+                    tp->next = tp2;
+                }
             }
         } else
             numfree++;
@@ -1118,7 +1122,11 @@ void show_bigpool_trace(dbref player, int key)
                 tp2->cnt = 1;
                 tp2->next = NULL;
                 if (!head) head = tp2;
-                else { for (tp = head; tp->next; tp = tp->next); tp->next = tp2; }
+                else {
+                    for (tp = head; tp->next; tp = tp->next)
+                        ;
+                    tp->next = tp2;
+                }
             }
         }
     }

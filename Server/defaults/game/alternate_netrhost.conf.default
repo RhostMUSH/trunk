@@ -501,6 +501,7 @@ help_separator            %b%b
 enforce_added_pronouns    0
 #added_pronouns
 time_paddzero             0
+trim_ansiaware            0
 
 # who/where
 

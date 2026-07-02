@@ -400,6 +400,7 @@ NDECL(cf_init)
     mudconf.ssl_welcome = 0;		/* SSL enforcement of welcome message snuffing */
     mudconf.guest_displaylastsite = 1;	/* Display guest site on connect -- default yes (default behavior) */
     mudconf.force_ansinorm = 0;
+    mudconf.trim_ansiaware = 0;		/* Trim ANSI awareness off by default */
     strcpy(mudconf.string_conn, (char *)"connect");	/* String for the connect command */
     strcpy(mudconf.string_conndark, (char *)"cdark");	/* String for the dark connect */
     strcpy(mudconf.string_connhide, (char *)"chide");	/* String for the hide connect */
@@ -4849,6 +4850,9 @@ CONF conftable[] =
     {(char *) "force_ansinorm",
      cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.force_ansinorm, 0, 0, CA_PUBLIC,
      (char *) "Force ansi normal when ansi detected in use?"},
+    {(char *) "trim_ansiaware",
+     cf_bool, CA_GOD | CA_IMMORTAL, &mudconf.trim_ansiaware, 0, 0, CA_PUBLIC,
+     (char *) "Make trim() ANSI-code-aware?"},
     {(char *) "full_file",
      cf_string, CA_DISABLED, (int *) mudconf.full_file, 32, 0, CA_WIZARD,
      (char *) "File used when site is full."},
