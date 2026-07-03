@@ -112,13 +112,13 @@ else
    fi
    cp -f rhost_tmp/Server/src/*.c src
    rm -rf src/libtelnet
-   cp -f rhost_tmp/Server/src/libtelnet src/
+   cp -rf rhost_tmp/Server/src/libtelnet src/
    rm -rf src/gdbm
-   cp -f rhost_tmp/Server/src/gdbm src/
+   cp -rf rhost_tmp/Server/src/gdbm src/
    rm -rf src/qdbm
-   cp -f rhost_tmp/Server/src/qdbm src/
+   cp -rf rhost_tmp/Server/src/qdbm src/
    rm -rf src/mdbx
-   cp -f rhost_tmp/Server/src/mdbx src/
+   cp -rf rhost_tmp/Server/src/mdbx src/
    cp -f src/local.c.backup src/local.c
    cp -f rhost_tmp/Server/hdrs/*.h hdrs
    cp -f rhost_tmp/Server/bin/asksource* bin
