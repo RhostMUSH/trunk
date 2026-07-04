@@ -68,11 +68,17 @@ typedef struct Obj {
 
 extern Attr *	cache_get(Aname *nam);
 extern int	cache_put(Aname *nam, Attr *obj);
-extern int	cache_check(void);
+extern int	cache_check(Aname *nam);
 extern int	cache_init(int width, int depth);
 extern void	cache_reset(int trim);
 extern int	cache_sync(void);
 extern void	cache_del(Aname *nam);
+
+#ifdef MDBX
+extern int	dddb_read_begin(void);
+extern int	dddb_read_end(void);
+extern int	dddb_get_is_active_read_txn(void);
+#endif
 
 #ifdef CACHE_OBJS
 extern Obj *	FDECL(objfromFILE, (FILE *));

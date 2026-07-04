@@ -39,7 +39,9 @@ static int         db_initted = 0;
 
 static MDBX_env   *env = NULL;
 static MDBX_dbi    dbi;
+static int         bsiz = 256;
 static MDBX_txn   *active_txn = NULL;
+static MDBX_txn   *read_txn = NULL;    /* persistent read txn for main loop */
 
 int
 dddb_init()
@@ -69,7 +71,7 @@ dddb_init()
      */
     snprintf(fnam, sizeof(fnam), "%.250s.mdbx", dbfile);
 
-    rc = mdbx_env_open(env, fnam, MDBX_NOSUBDIR | MDBX_NOTLS, 0600);
+    rc = mdbx_env_open(env, fnam, MDBX_NOSUBDIR | MDBX_NOSTICKYTHREADS, 0600);
     if (rc != MDBX_SUCCESS) {
         mush_logf("db_init: mdbx_env_open failed for ", fnam, "\n", NULL);
         mdbx_env_close(env);
@@ -161,9 +163,44 @@ dddb_txn_abort()
 }
 
 
+int
+dddb_read_begin()
+{
+    if (!db_initted)
+        return 1;
+    if (read_txn)
+        return 0;
+    return mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &read_txn);
+}
+
+int
+dddb_read_end()
+{
+    if (!read_txn)
+        return 0;
+    int rc = mdbx_txn_abort(read_txn);
+    read_txn = NULL;
+    return rc;
+}
+
+int
+dddb_get_is_active_read_txn()
+{
+    return read_txn != NULL;
+}
+
 int dddb_initted()
 {
     return db_initted;
+}
+
+void
+dddb_var_init()
+{
+    db_initted = 0;
+    bsiz = 256;
+    active_txn = NULL;
+    read_txn = NULL;
 }
 
 
@@ -213,33 +250,56 @@ dddb_get(Aname *nam)
     MDBX_val mkey, mval;
     Attr *ret;
     int rc;
+    int local_txn = 0;
 
     if (!db_initted)
         return ANULL;
 
-    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
-    if (rc != MDBX_SUCCESS)
-        return ANULL;
+    if (read_txn) {
+        txn = read_txn;
+    } else {
+        rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
+        if (rc != MDBX_SUCCESS)
+            return ANULL;
+        local_txn = 1;
+    }
 
     mkey.iov_base = (void *)nam;
     mkey.iov_len  = sizeof(Aname);
 
     rc = mdbx_get(txn, dbi, &mkey, &mval);
     if (rc != MDBX_SUCCESS) {
-        mdbx_txn_abort(txn);
+        if (local_txn)
+            mdbx_txn_abort(txn);
         return ANULL;
     }
 
-    /* Copy the data out — the pointer is only valid within the txn. */
+    if (mval.iov_len > 0 &&
+        ((char *)mval.iov_base)[mval.iov_len - 1] == '\0') {
+        /* NUL-terminated — safe for zero-copy from persistent txn */
+        if (local_txn) {
+            /* Fallback txn: must copy */
+            ret = (Attr *)malloc(mval.iov_len);
+            if (!ret) { mdbx_txn_abort(txn); return ANULL; }
+            memcpy(ret, mval.iov_base, mval.iov_len);
+            mdbx_txn_abort(txn);
+            return ret;
+        }
+        return (Attr *)mval.iov_base;
+    }
+
+    /* No NUL terminator (old format) — must copy */
     ret = (Attr *)malloc(mval.iov_len + 1);
     if (ret == ANULL) {
-        mdbx_txn_abort(txn);
+        if (local_txn)
+            mdbx_txn_abort(txn);
         return ANULL;
     }
     memcpy(ret, mval.iov_base, mval.iov_len);
     ret[mval.iov_len] = '\0';
 
-    mdbx_txn_abort(txn);
+    if (local_txn)
+        mdbx_txn_abort(txn);
     return ret;
 }
 
@@ -272,7 +332,7 @@ dddb_put(Attr *obj, Aname *nam)
     mkey.iov_base = (void *)nam;
     mkey.iov_len  = sizeof(Aname);
     mval.iov_base = (void *)obj;
-    mval.iov_len  = nsiz;
+    mval.iov_len  = nsiz + 1;  /* include NUL terminator for zero-copy */
 
     rc = mdbx_put(txn, dbi, &mkey, &mval, 0);
     if (rc != MDBX_SUCCESS) {

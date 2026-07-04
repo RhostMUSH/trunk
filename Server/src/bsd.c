@@ -683,8 +683,12 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
     while (mudstate_hot.shutdown_flag == 0) {
 
         /* Beginning of a new cycle - free unsafe_tprint buffers */
-        freeTrackedBuffers();
-        split_free_bufs();
+	freeTrackedBuffers();
+	split_free_bufs();
+
+#ifdef MDBX
+	dddb_read_begin();
+#endif
 
 	get_tod(&current_time);
 	last_slice = update_quotas(last_slice, current_time);
@@ -712,9 +716,17 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    }
 	}
 
+#ifdef MDBX
+	dddb_read_end();
+#endif
+
 	/* test for events */
 
 	dispatch();
+
+#ifdef MDBX
+	dddb_read_begin();
+#endif
 
 	/* any queued robot commands waiting? */
 
@@ -1253,7 +1265,12 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 #endif
 	}
 	door_checkInternalDoorDescriptors(&input_set, &output_set);
-	
+
+#ifdef MDBX
+	dddb_read_end();
+	cache_sync();
+#endif
+
     }
     DPOPCONDITIONAL; /* #2 */
 }

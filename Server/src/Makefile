@@ -155,15 +155,23 @@ OPTIM = -g
 # When MDBX is selected, use the MDBX chunk files instead of the
 # legacy bitmap/flat-file chunk files.
 ifneq (,$(findstring -DMDBX,$(CUSTDEFS)))
-UDBA_SRC = udb_acache.c udb_mdbx_achunk.c udb_attr.c
-UDBA_OBJ = udb_acache.o udb_mdbx_achunk.o udb_attr.o
+# MDBX: attribute-level caching with direct read-path via persistent txn
+UDBA_SRC = udb_mdbx_acache.c udb_mdbx_achunk.c udb_attr.c
+UDBA_OBJ = udb_mdbx_acache.o udb_mdbx_achunk.o udb_attr.o
 UDBO_SRC = udb_ocache.c udb_mdbx_ochunk.c udb_obj.c
 UDBO_OBJ = udb_ocache.o udb_mdbx_ochunk.o udb_obj.o
+UDB_S = $(UDBA_SRC) $(UDB_SRC)
+UDB_O = $(UDBA_OBJ) $(UDB_OBJ)
+UDB_F = $(UDBA_FLG)
 else
+# QDBM: object-level caching (cache entire Obj structs)
 UDBA_SRC = udb_acache.c udb_achunk.c udb_attr.c
 UDBA_OBJ = udb_acache.o udb_achunk.o udb_attr.o
 UDBO_SRC = udb_ocache.c udb_ochunk.c udb_obj.c
 UDBO_OBJ = udb_ocache.o udb_ochunk.o udb_obj.o
+UDB_S = $(UDBO_SRC) $(UDB_SRC)
+UDB_O = $(UDBO_OBJ) $(UDB_OBJ)
+UDB_F = $(UDBO_FLG)
 endif
 UDBA_FLG = -DCACHE_ATTRS
 UDBO_FLG = -DCACHE_OBJS
@@ -395,15 +403,9 @@ WHO_F	= $(WHO_FLG)
 # Select the level at which you want cacheing to be performed.  Prior releases
 # of MUSH only supported attribute-level cacheing.
 # 
-# ----- Attribute-level cacheing.
-#UDB_S	= $(UDBA_SRC) $(UDB_SRC)
-#UDB_O	= $(UDBA_OBJ) $(UDB_OBJ)
-#UDB_F	= $(UDBA_FLG)
-
-# ----- Object-level cacheing.
-UDB_S	= $(UDBO_SRC) $(UDB_SRC)
-UDB_O	= $(UDBO_OBJ) $(UDB_OBJ)
-UDB_F	= $(UDBO_FLG)
+# ----- Cacheing mode is now selected automatically above:
+#       MDBX builds → attribute-level caching
+#       QDBM builds → object-level caching
 
 # Select the networking support you have.  Currently only BSD networking
 # is supported.

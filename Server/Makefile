@@ -9,6 +9,8 @@ qdbmdir= ./src/qdbm/
 mdbxdir= ./src/mdbx/
 bindir = ./bin
 
+MDBX_CFLAGS = -O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error
+
 CHK = $(shell gmake --version 2>/dev/null|grep -ic "GNU")
 ifeq "$(CHK)" "0"
    MAKE=make
@@ -108,7 +110,6 @@ mdbx:
 	  ) > config.h && \
 	  $(CC) $(MDBX_CFLAGS) -DNDEBUG=1 -DMDBX_CHECKING=-1 '-DMDBX_CONFIG_H="config.h"' -ULIBMDBX_EXPORTS -c mdbx.c -o mdbx-static.o && \
 	  $(AR) rs libmdbx.a mdbx-static.o
-MDBX_CFLAGS = -O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error
 create_oldsrc:
 	@(./bin/make_csrc.sh)
 	@echo ... Done
