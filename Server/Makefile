@@ -106,7 +106,7 @@ mdbx:
 	   echo '#define MDBX_BUILD_COMPILER "$(shell $(CC) --version 2>/dev/null | head -1)"' && \
 	   echo '#define MDBX_BUILD_TARGET "$(shell uname -m)-$(shell uname -s | tr A-Z a-z)"' \
 	  ) > config.h && \
-	  $(CC) $(MDBX_CFLAGS) -DNDEBUG=1 '-DMDBX_CONFIG_H="config.h"' -ULIBMDBX_EXPORTS -c mdbx.c -o mdbx-static.o && \
+	  $(CC) $(MDBX_CFLAGS) -DNDEBUG=1 -DMDBX_CHECKING=-1 '-DMDBX_CONFIG_H="config.h"' -ULIBMDBX_EXPORTS -c mdbx.c -o mdbx-static.o && \
 	  $(AR) rs libmdbx.a mdbx-static.o
 MDBX_CFLAGS = -O2 -g -Wall -ffunction-sections -fPIC -fvisibility=hidden -std=gnu11 -pthread -Wno-error
 create_oldsrc:
