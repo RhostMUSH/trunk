@@ -1,0 +1,29 @@
+diff --git a/Server/src/mdbx/mdbx.c b/Server/src/mdbx/mdbx.c
+index 8b4b0539..b242452a 100644
+--- a/Server/src/mdbx/mdbx.c
++++ b/Server/src/mdbx/mdbx.c
+@@ -16763,7 +16763,7 @@ cdr_t cursor_distance(MDBX_cursor *iter, const MDBX_cursor *end, int level) {
+   const intptr_t outer_diff_level = tree_diff_level(iter, end);
+   if (unlikely(outer_diff_level < MDBX_RESULT_TRUE)) {
+   beyond_end:
+-    tdr.err = ENODATA;
++    tdr.err = MDBX_ENODATA;
+     return tdr;
+   }
+ 
+@@ -17002,13 +17002,13 @@ int cursor_distribute(const MDBX_cursor *begin, const MDBX_cursor *end, MDBX_cur
+                       int level) {
+   const intptr_t outer_diff_level = tree_diff_level(begin, end);
+   if (unlikely(outer_diff_level < MDBX_RESULT_TRUE))
+-    return ENODATA;
++    return MDBX_ENODATA;
+ 
+   const intptr_t inner_diff_level = (outer_diff_level > MDBX_RESULT_TRUE || !inner_pointed(begin))
+                                         ? MDBX_RESULT_TRUE
+                                         : tree_diff_level(&begin->subcur->cursor, &end->subcur->cursor);
+   if (outer_diff_level == MDBX_RESULT_TRUE && unlikely(inner_diff_level < MDBX_RESULT_TRUE))
+-    return ENODATA;
++    return MDBX_ENODATA;
+ 
+   if (unlikely(level < outer_diff_level))
+     return MDBX_RESULT_TRUE;
