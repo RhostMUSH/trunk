@@ -53,7 +53,7 @@ int	cs_objects;
 /* Write buffer — open-addressing hash table for in-flight writes     */
 /* ------------------------------------------------------------------ */
 
-#define WBUF_SIZE 256
+#define WBUF_SIZE 1024
 
 typedef struct {
     Aname   key;

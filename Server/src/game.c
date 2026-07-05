@@ -2163,22 +2163,33 @@ fork_and_dump(int key, char *msg)
   if (!key || (key & DUMP_TEXT))
     pcache_sync();
 
+#ifdef MDBX
+  dddb_read_end();
+#endif
   SYNC;
   DPOP; /* #85 */
   if (!key || (key & DUMP_STRUCT)) {
 #ifndef VMS
     if (mudconf.fork_dump) {
+#ifdef MDBX
+      child = fork();   /* vfork unsafe with MDBX */
+#else
       if (mudconf.fork_vfork) {
 	child = vfork();
       } else {
 	child = fork();
       }
+#endif
     } else {
       child = 0;
     }
 #else
     child = 0;
 #endif	/* VMS */
+
+#ifdef MDBX
+    dddb_read_begin();
+#endif
 
     if (child == 0) {
       dump_database_internal(0);

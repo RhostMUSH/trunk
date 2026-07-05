@@ -716,17 +716,9 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    }
 	}
 
-#ifdef MDBX
-	dddb_read_end();
-#endif
-
 	/* test for events */
 
 	dispatch();
-
-#ifdef MDBX
-	dddb_read_begin();
-#endif
 
 	/* any queued robot commands waiting? */
 
