@@ -2192,7 +2192,15 @@ fork_and_dump(int key, char *msg)
 #endif
 
     if (child == 0) {
+#ifdef MDBX
+      if (mudconf.fork_dump)
+        dddb_read_begin();
+#endif
       dump_database_internal(0);
+#ifdef MDBX
+      if (mudconf.fork_dump)
+        dddb_read_end();
+#endif
 
       if (mudconf.fork_dump)
         _exit(0);
