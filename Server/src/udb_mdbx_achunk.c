@@ -43,6 +43,18 @@ static int         bsiz = 256;
 static MDBX_txn   *active_txn = NULL;
 static MDBX_txn   *read_txn = NULL;    /* persistent read txn for main loop */
 
+/* Lightweight read cache: accelerates repeated attribute lookups within
+ * the same read txn by caching B-tree leaf page IDs.
+ * 1000 entries × 40 bytes = 40 KB. */
+#define READ_CACHE_SIZE 1000
+
+typedef struct {
+    Aname              key;
+    MDBX_cache_entry_t entry;
+} ReadCacheSlot;
+
+static ReadCacheSlot read_cache[READ_CACHE_SIZE];
+
 int
 dddb_init()
 {
@@ -106,6 +118,7 @@ dddb_init()
     }
 
     db_initted = 1;
+    memset(read_cache, 0, sizeof(read_cache));
     return 0;
 }
 
@@ -170,6 +183,7 @@ dddb_read_begin()
         return 1;
     if (read_txn)
         return 0;
+    memset(read_cache, 0, sizeof(read_cache));
     return mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &read_txn);
 }
 
@@ -257,17 +271,38 @@ dddb_get(Aname *nam)
 
     if (read_txn) {
         txn = read_txn;
+
+        /* Hash the key to find a read cache slot */
+        unsigned int idx = (nam->object ^ nam->attrnum) % READ_CACHE_SIZE;
+        ReadCacheSlot *slot = &read_cache[idx];
+
+        mkey.iov_base = (void *)nam;
+        mkey.iov_len  = sizeof(Aname);
+
+        if (slot->entry.trunk_txnid != 0 &&
+            slot->key.object == nam->object &&
+            slot->key.attrnum == nam->attrnum) {
+            /* Existing slot for this key — use cached B-tree info */
+            MDBX_cache_result_t cres = mdbx_cache_get(txn, dbi, &mkey, &mval, &slot->entry);
+            rc = (int)cres.errcode;
+        } else {
+            /* New key — initialize cache entry */
+            slot->key = *nam;
+            mdbx_cache_init(&slot->entry);
+            MDBX_cache_result_t cres = mdbx_cache_get(txn, dbi, &mkey, &mval, &slot->entry);
+            rc = (int)cres.errcode;
+        }
     } else {
         rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
         if (rc != MDBX_SUCCESS)
             return ANULL;
         local_txn = 1;
+
+        mkey.iov_base = (void *)nam;
+        mkey.iov_len  = sizeof(Aname);
+
+        rc = mdbx_get(txn, dbi, &mkey, &mval);
     }
-
-    mkey.iov_base = (void *)nam;
-    mkey.iov_len  = sizeof(Aname);
-
-    rc = mdbx_get(txn, dbi, &mkey, &mval);
     if (rc != MDBX_SUCCESS) {
         if (local_txn)
             mdbx_txn_abort(txn);
