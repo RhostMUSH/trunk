@@ -86,7 +86,9 @@
 #endif /* _NO_CRT_STDIO_INLINE */
 
 #elif !defined(_POSIX_C_SOURCE)
+#if !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__)
 #define _POSIX_C_SOURCE 200809L
+#endif
 #endif /* Windows */
 
 #ifdef __cplusplus
