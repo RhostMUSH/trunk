@@ -27312,6 +27312,7 @@
     You say "Trim Rules!---"
   
   See Also: center(), ljust(), rjust(), ljc(), rjc(), s(), printf()
+            wizhelp trim_ansiaware
   
 & CENTER()
   Function: center(<string>,<width>[,<fill>])
@@ -37011,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.7.1, 5.7.0
+  1 - 5.8.0, 5.7.1, 5.7.0
   2 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
   3 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
   4 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
@@ -37028,6 +37029,7 @@
  12 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
 
+& 5.8.0
 & 5.7.1
 & 5.7.0
 & changelog latest
@@ -37035,13 +37037,26 @@
 & changelog recent
 & changelog 1
    Topic: CHANGELOG
+
+  5.8.0
+  * Switched the MDBX backend to attribute- instead of object caching, and
+    changed the code to directly utilize MDBX's caching functionality -
+    Rhost now directly accesses MDBX instead of going throug Rhost's own
+    read caching code.
+  
+  * The write cache is replaced by a minimal write buffer when the MDBX
+    backend is chosen.
+  
+    IF YOU HAVE BEEN USING MDBX BEFORE, YOU NEED TO RE-IMPORT THE FLATFILE..
+  
+  * Fix: Added missing trim_ansiaware helpfile entry.
  
   5.7.1
   * Fixed patch.sh to properly copy the qdbm/mdbx/libtelnet/gdbm dirs again.
  
   5.7.0
   * Added a config option trim_ansiaware, to make trim() ansi-aware globally.
- 
+   
 & 5.6.0
 & 5.5.15
 & 5.5.14
