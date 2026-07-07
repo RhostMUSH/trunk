@@ -144,7 +144,7 @@ extern void	FDECL(list_functable2, (dbref, char*, char**, int));
     			 player, cause, caller, cargs, ncargs, 0))                 \
 		return;                                                 \
 	if (nfargs < xnargs)                                            \
-                strcpy(osep, sep);              \
+                { strncpy(osep, sep, LBUF_SIZE - 1); osep[LBUF_SIZE - 1] = '\0'; }              \
 	else if (!delim_check_multi(fargs, nfargs, xnargs, osep, buff, bufcx, 0,    \
     		 player, cause, caller, cargs, ncargs, 1))                         \
 		return;
@@ -156,7 +156,7 @@ extern void	FDECL(list_functable2, (dbref, char*, char**, int));
     			 player, cause, caller, cargs, ncargs, 0))                 \
 		return;                                                 \
 	if (nfargs < xnargs)                                            \
-                strcpy(osep, sep);             \
+                { strncpy(osep, sep, LBUF_SIZE - 1); osep[LBUF_SIZE - 1] = '\0'; }             \
 	else if (!delim_check_multi(fargs, nfargs, xnargs, osep, buff, bufcx, 1,    \
     		 player, cause, caller, cargs, ncargs, 1))                         \
 		return;
