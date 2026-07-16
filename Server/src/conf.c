@@ -4162,9 +4162,27 @@ CF_HAND2(cf_site)
     if (is_ipv6) {
        memset(&site->address, 0, sizeof(site->address));
        memset(&site->mask, 0, sizeof(site->mask));
+        /* Pre-parse IPv6 address and mask for hot-path use */
+        if (inet_pton(AF_INET6, site->address_str, &site->address6) != 1)
+            memset(&site->address6, 0, sizeof(site->address6));
+        if (site->mask_str[0] == '/') {
+            /* CIDR notation — build binary mask from prefix */
+            int prefix = site->cidr_prefix;
+            memset(&site->mask6, 0, sizeof(site->mask6));
+            if (prefix > 0) {
+                memset(&site->mask6, 0xFF, prefix / 8);
+                if (prefix % 8 > 0)
+                    site->mask6.s6_addr[prefix / 8] =
+                        (unsigned char)(0xFF << (8 - prefix % 8));
+            }
+        } else if (inet_pton(AF_INET6, site->mask_str, &site->mask6) != 1) {
+            memset(&site->mask6, 0, sizeof(site->mask6));
+        }
     } else {
        site->address.s_addr = addr_num.s_addr;
        site->mask.s_addr = mask_num.s_addr;
+       memset(&site->address6, 0, sizeof(site->address6));
+       memset(&site->mask6, 0, sizeof(site->mask6));
     }
     site->flag = extra;
     site->next = NULL;

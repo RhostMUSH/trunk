@@ -587,6 +587,8 @@ struct site_data {
 	struct site_data *next;		/* Next site in chain */
 	struct in_addr address;		/* Host or network address (IPv4 compat) */
 	struct in_addr mask;		/* Mask to apply before comparing (IPv4 compat) */
+	struct in6_addr address6;	/* Host or network address (IPv6 pre-parsed) */
+	struct in6_addr mask6;		/* Mask for IPv6 (pre-parsed binary) */
 	int	flag;			/* Value to return on match */
 	int	key;			/* Auto sited or not? */
 	int	maxcon;			/* Maximum connections allowed from site */
@@ -633,6 +635,8 @@ struct blacklist_list {
 	char	s_site[46];
         struct	in_addr	site_addr;
 	struct	in_addr mask_addr;
+	struct	in6_addr site_addr6;    /* IPv6 address (pre-parsed binary) */
+	struct	in6_addr mask_addr6;    /* IPv6 mask (pre-parsed binary) */
 	struct	blacklist_list	*next;
 	char site_addr_str[INET6_ADDRSTRLEN + 1];
 	char mask_addr_str[INET6_ADDRSTRLEN + 1];

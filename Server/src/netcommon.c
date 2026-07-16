@@ -7176,26 +7176,8 @@ blacklist_check_str(const char *addr_str, int addr_family, int i_type)
        }
 
       if (effective_family == AF_INET6) {
-         if (inet_pton(AF_INET6, b_host->site_addr_str, &site6) != 1) {
-            b_host = b_host->next;
-            continue;
-         }
-         if (strchr(b_host->mask_addr_str, '/') != NULL) {
-            int prefix = atoi(b_host->mask_addr_str + 1);
-            memset(&mask6, 0, sizeof(mask6));
-            if (prefix > 0) {
-               int full_bytes = prefix / 8;
-               int remaining_bits = prefix % 8;
-               memset(&mask6, 0xFF, full_bytes);
-               if (remaining_bits > 0)
-                  mask6.s6_addr[full_bytes] = (unsigned char)(0xFF << (8 - remaining_bits));
-            }
-         } else {
-            if (inet_pton(AF_INET6, b_host->mask_addr_str, &mask6) != 1) {
-               b_host = b_host->next;
-               continue;
-            }
-         }
+         site6 = b_host->site_addr6;
+         mask6 = b_host->mask_addr6;
          {
             int i;
             int match = 1;
@@ -7305,22 +7287,8 @@ site_check_str(const char *addr_str, int addr_family, SITE *site_list, int stop,
           continue;
 
       if (effective_family == AF_INET6) {
-         if (inet_pton(AF_INET6, this->address_str, &site6) != 1)
-            continue;
-         if (strchr(this->mask_str, '/') != NULL) {
-            int prefix = atoi(this->mask_str + 1);
-            memset(&mask6, 0, sizeof(mask6));
-            if (prefix > 0) {
-               int full_bytes = prefix / 8;
-               int remaining_bits = prefix % 8;
-               memset(&mask6, 0xFF, full_bytes);
-               if (remaining_bits > 0)
-                  mask6.s6_addr[full_bytes] = (unsigned char)(0xFF << (8 - remaining_bits));
-            }
-         } else {
-            if (inet_pton(AF_INET6, this->mask_str, &mask6) != 1)
-               continue;
-         }
+         site6 = this->address6;
+         mask6 = this->mask6;
          {
             int i;
             int match = 1;

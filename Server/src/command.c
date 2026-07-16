@@ -13699,39 +13699,47 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
                 }
                 i_maskcnt++;
              }
-             if (is_ipv6_load) {
-                struct in6_addr addr6_tmp;
-                if ( inet_pton(AF_INET6, s_addrip, &addr6_tmp) != 1 ) {
-                   i_invalid++;
-                   continue;
-                }
-             } else {
-                if ( !inet_aton(s_addrip, &in_tempaddr) ) {
-                   i_invalid++;
-                   continue;
-                }
-             }
-             b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
-             sprintf(b_lst_ptr->s_site, "%.45s", strip_returntab(s_addrip,2));
-             b_lst_ptr->addr_family = is_ipv6_load ? AF_INET6 : AF_INET;
-             if (is_ipv6_load) {
-                memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
-                memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
-                strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
-                b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
-                if (s_addrmask && *s_addrmask) {
-                   if (*s_addrmask == '/') {
-                      snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", load_cidr_prefix);
-                      b_lst_ptr->cidr_prefix = load_cidr_prefix;
-                   } else {
-                      strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
-                      b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
-                      b_lst_ptr->cidr_prefix = 128;
-                   }
-                } else {
-                   strcpy(b_lst_ptr->mask_addr_str, "/128");
-                   b_lst_ptr->cidr_prefix = 128;
-                }
+              if (is_ipv6_load) {
+                 struct in6_addr addr6_tmp;
+                 if ( inet_pton(AF_INET6, s_addrip, &addr6_tmp) != 1 ) {
+                    i_invalid++;
+                    continue;
+                 }
+              } else {
+                 if ( !inet_aton(s_addrip, &in_tempaddr) ) {
+                    i_invalid++;
+                    continue;
+                 }
+              }
+              b_lst_ptr = (BLACKLIST *) malloc(sizeof(BLACKLIST));
+              sprintf(b_lst_ptr->s_site, "%.45s", strip_returntab(s_addrip,2));
+              b_lst_ptr->addr_family = is_ipv6_load ? AF_INET6 : AF_INET;
+              if (is_ipv6_load) {
+                 memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
+                 memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
+                 memset(&b_lst_ptr->mask_addr6, 0, sizeof(b_lst_ptr->mask_addr6));
+                 inet_pton(AF_INET6, s_addrip, &b_lst_ptr->site_addr6);
+                 strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+                 b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+                 if (s_addrmask && *s_addrmask) {
+                    if (*s_addrmask == '/') {
+                       snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", load_cidr_prefix);
+                       b_lst_ptr->cidr_prefix = load_cidr_prefix;
+                       memset(&b_lst_ptr->mask_addr6, 0xFF, load_cidr_prefix / 8);
+                       if (load_cidr_prefix % 8 > 0)
+                           b_lst_ptr->mask_addr6.s6_addr[load_cidr_prefix / 8] =
+                               (unsigned char)(0xFF << (8 - load_cidr_prefix % 8));
+                    } else {
+                       strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                       b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                       b_lst_ptr->cidr_prefix = 128;
+                       inet_pton(AF_INET6, s_addrmask, &b_lst_ptr->mask_addr6);
+                    }
+                 } else {
+                    strcpy(b_lst_ptr->mask_addr_str, "/128");
+                    b_lst_ptr->cidr_prefix = 128;
+                    memset(&b_lst_ptr->mask_addr6, 0xFF, 16);
+                 }
              } else {
                 b_lst_ptr->site_addr = in_tempaddr;
                 b_lst_ptr->mask_addr = in_tempaddr2;
@@ -13881,21 +13889,29 @@ do_blacklist(dbref player, dbref cause, int key, char *name)
           sprintf(b_lst_ptr->s_site, "%.45s", strip_returntab(s_addrip,2));
           b_lst_ptr->addr_family = is_ipv6_add ? AF_INET6 : AF_INET;
           b_lst_ptr->cidr_prefix = cidr_prefix_add;
-          if (is_ipv6_add) {
-             memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
-             memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
-             strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
-             b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
-             if (s_addrmask && *s_addrmask) {
-                if (*s_addrmask == '/') {
-                   snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", cidr_prefix_add);
-                } else {
-                   strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
-                   b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
-                }
-             } else {
-                strcpy(b_lst_ptr->mask_addr_str, "/128");
-             }
+           if (is_ipv6_add) {
+              memset(&b_lst_ptr->site_addr, 0, sizeof(b_lst_ptr->site_addr));
+              memset(&b_lst_ptr->mask_addr, 0, sizeof(b_lst_ptr->mask_addr));
+              memset(&b_lst_ptr->mask_addr6, 0, sizeof(b_lst_ptr->mask_addr6));
+              inet_pton(AF_INET6, s_addrip, &b_lst_ptr->site_addr6);
+              strncpy(b_lst_ptr->site_addr_str, s_addrip, sizeof(b_lst_ptr->site_addr_str) - 1);
+              b_lst_ptr->site_addr_str[sizeof(b_lst_ptr->site_addr_str) - 1] = '\0';
+              if (s_addrmask && *s_addrmask) {
+                 if (*s_addrmask == '/') {
+                    snprintf(b_lst_ptr->mask_addr_str, sizeof(b_lst_ptr->mask_addr_str), "/%d", cidr_prefix_add);
+                    memset(&b_lst_ptr->mask_addr6, 0xFF, cidr_prefix_add / 8);
+                    if (cidr_prefix_add % 8 > 0)
+                        b_lst_ptr->mask_addr6.s6_addr[cidr_prefix_add / 8] =
+                            (unsigned char)(0xFF << (8 - cidr_prefix_add % 8));
+                 } else {
+                    strncpy(b_lst_ptr->mask_addr_str, s_addrmask, sizeof(b_lst_ptr->mask_addr_str) - 1);
+                    b_lst_ptr->mask_addr_str[sizeof(b_lst_ptr->mask_addr_str) - 1] = '\0';
+                    inet_pton(AF_INET6, s_addrmask, &b_lst_ptr->mask_addr6);
+                 }
+              } else {
+                 strcpy(b_lst_ptr->mask_addr_str, "/128");
+                 memset(&b_lst_ptr->mask_addr6, 0xFF, 16);
+              }
           } else {
              b_lst_ptr->site_addr = in_tempaddr;
              b_lst_ptr->mask_addr = in_tempaddr2;
