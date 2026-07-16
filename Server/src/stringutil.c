@@ -1497,12 +1497,24 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
           s_ptr->i_truecolor |= (s_ptr-1)->i_truecolor & TC_BG_SET;
        else
           (s_ptr-1)->i_truecolor &= ~TC_BG_SET;
-       s_ptr->i_fgr = (s_ptr-1)->i_fgr;
-       s_ptr->i_fgg = (s_ptr-1)->i_fgg;
-       s_ptr->i_fgb = (s_ptr-1)->i_fgb;
-       s_ptr->i_bgr = (s_ptr-1)->i_bgr;
-       s_ptr->i_bgg = (s_ptr-1)->i_bgg;
-       s_ptr->i_bgb = (s_ptr-1)->i_bgb;
+        if ( i_tc1 ) {
+           s_ptr->i_fgr = (s_ptr-1)->i_fgr;
+           s_ptr->i_fgg = (s_ptr-1)->i_fgg;
+           s_ptr->i_fgb = (s_ptr-1)->i_fgb;
+        } else {
+           (s_ptr-1)->i_fgr = 0;
+           (s_ptr-1)->i_fgg = 0;
+           (s_ptr-1)->i_fgb = 0;
+        }
+        if ( i_tc2 ) {
+           s_ptr->i_bgr = (s_ptr-1)->i_bgr;
+           s_ptr->i_bgg = (s_ptr-1)->i_bgg;
+           s_ptr->i_bgb = (s_ptr-1)->i_bgb;
+        } else {
+           (s_ptr-1)->i_bgr = 0;
+           (s_ptr-1)->i_bgg = 0;
+           (s_ptr-1)->i_bgb = 0;
+        }
        s_inptr++;
       s_outptr++;
    }
