@@ -33527,8 +33527,9 @@ FUNCTION(fun_citer)
     ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
 
 
+    sep = ' ';
     evarargs_preamble("CITER", 3);
-    if ( (nfargs >= 3) && !*fargs[2] )
+    if ( (nfargs >= 3) && *fargs[2] )
        sep = *fargs[2];
 
     outbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
