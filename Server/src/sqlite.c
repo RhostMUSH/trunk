@@ -358,8 +358,12 @@ FUNCTION(local_fun_sqlite_query)
 
       sqlite3_finalize( sqlite_stmt );
    }
-   sqlite3_close( sqlite_db );
-   return;
+    sqlite3_close( sqlite_db );
+    free_lbuf(dbFile);
+    free_lbuf(dbFullPath);
+    free_lbuf(colDelimit);
+    free_lbuf(rowDelimit);
+    return;
 }
 
 void local_sqlite_init(void) {
