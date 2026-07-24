@@ -3735,7 +3735,7 @@ int string_count(char* src, int numchars)
                                ||   ((src[idx+1] == SAFE_CHR3) || (src[idx+1] == SAFE_UCHR3))
 #endif
 )) {
-            if ( isAnsi[(int) src[idx+2]] ) {
+            if ( isAnsi[(unsigned char) src[idx+2]] ) {
                idx+=2;
                continue;
             }
@@ -4496,7 +4496,7 @@ int seek_next_real_char(char* leftstart, int* i_haveansi, int* i_inansi) {
          || (*(pp+1) == SAFE_CHR3 ) || (*(pp+1) == SAFE_UCHR3 )
    #endif
       ) {
-         if ( isAnsi[(int) *(pp+2)] || (*(pp+2) == 'h') ) {
+         if ( isAnsi[(unsigned char) *(pp+2)] || (*(pp+2) == 'h') ) {
             *i_haveansi=1;
             *i_inansi=1;
             if ( *(pp+2) == 'n' ) {
@@ -6242,7 +6242,7 @@ FUNCTION(fun_ansipos)
                          *wp++ = *rp++;
                       if (*rp == '>')
                          *wp++ = *rp++;
-                   } else if (isAnsi[(int)*rp]) {
+                   } else if (isAnsi[(unsigned char)*rp]) {
                       /* 16-color: %xn, %xr, etc. (3 chars total) */
                       *wp++ = *rp++;
                    }
@@ -10978,7 +10978,7 @@ int printf_lookahead(char *s_string)
           ||   (*(s+1) == SAFE_CHR3) || (*(s+1) == SAFE_UCHR3 )
 #endif
       )) {
-         if ( isAnsi[(int) *(s+2)] ) {
+         if ( isAnsi[(unsigned char) *(s+2)] ) {
             s+=3;
             continue;
          }
@@ -11225,7 +11225,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                           ||   (*(s+1) == SAFE_CHR3) || (*(s+1) == SAFE_UCHR3 )
 #endif
 )) {
-             if ( isAnsi[(int) *(s+2)] ) {
+             if ( isAnsi[(unsigned char) *(s+2)] ) {
                 *t++ = *s++;
                 *t++ = *s++;
                 *t++ = *s++;
@@ -11389,7 +11389,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                    ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-                   ) && isAnsi[(int) *(s_pp+2)]) ||
+                   ) && isAnsi[(unsigned char) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  safe_chr(*s_pp, buff, bufcx);
                  safe_chr(*(s_pp+1), buff, bufcx);
@@ -11482,7 +11482,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                    ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && isAnsi[(int) *(s_pp+2)]) ||
+) && isAnsi[(unsigned char) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  
                  safe_chr(*s_pp, buff, bufcx);
@@ -11607,7 +11607,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                                 ||   (*(fmtbuff+1) == SAFE_CHR3) || (*(fmtbuff+1) == SAFE_UCHR3)
 #endif
 )) {
-            if ( isAnsi[(int) *(fmtbuff+2)] ) {
+            if ( isAnsi[(unsigned char) *(fmtbuff+2)] ) {
                safe_chr( *fmtbuff, buff, bufcx );
                safe_chr( *(fmtbuff+1), buff, bufcx );
                safe_chr( *(fmtbuff+2), buff, bufcx );
@@ -11708,7 +11708,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                        ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && isAnsi[(int) *(s_pp+2)]) ||
+) && isAnsi[(unsigned char) *(s_pp+2)]) ||
                        ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                      if ( *(s_pp+1) == 'f' ) {
                         memset(s_accent, '\0', MBUF_SIZE);
@@ -12039,7 +12039,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
                                         ||   (*(fmtbuff+1) == SAFE_CHR3) || (*(fmtbuff+1) == SAFE_UCHR3)
 #endif
 )) {
-             if ( isAnsi[(int) *(fmtbuff+2)] ) {
+             if ( isAnsi[(unsigned char) *(fmtbuff+2)] ) {
                 safe_chr( *fmtbuff, shold, sholdptr );
                 safe_chr( *(fmtbuff+1), shold, sholdptr );
                 safe_chr( *(fmtbuff+2), shold, sholdptr );
@@ -12105,7 +12105,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                    ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && isAnsi[(int) *(s_pp+2)]) ||
+) && isAnsi[(unsigned char) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  if ( *(s_pp+1) == 'f' ) {
                     memset(s_accent, '\0', MBUF_SIZE);
@@ -12335,7 +12335,7 @@ void showfield_printf(char *fmtbuff, char *buff, char **bufcx, struct timefmt_fo
 #ifdef SAFE_CHR3
                                    ||   (*(s_pp+1) == SAFE_CHR3) || (*(s_pp+1) == SAFE_UCHR3)
 #endif
-) && isAnsi[(int) *(s_pp+2)]) ||
+) && isAnsi[(unsigned char) *(s_pp+2)]) ||
                    ((*s_pp == '%') && (*(s_pp+1) == 'f') && isprint(*(s_pp+2))) ) {
                  if ( *(s_pp+1) == 'f' ) {
                     memset(s_accent, '\0', MBUF_SIZE);
@@ -13141,7 +13141,7 @@ FUNCTION(fun_printf)
                if ( (*pp == '\n') || (*pp == '\r') )
                   i_totwidth = 0;
 #ifdef ZENTY_ANSI
-               if ( *pp == '%' && ((((*(pp+1) == 'c') || (*(pp+1) == 'x')) && (isAnsi[(int) *(pp+2)])) ||
+               if ( *pp == '%' && ((((*(pp+1) == 'c') || (*(pp+1) == 'x')) && (isAnsi[(unsigned char) *(pp+2)])) ||
                                     ((*(pp+1) == 'f') && isprint(*(pp+2)))) ) {
                   i_totwidth-=3;
                }
@@ -14192,7 +14192,7 @@ FUNCTION(fun_template)
            safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* % */
            safe_chr(*(pt[i]+1), s_newstr, &s_newstrptr);  /* c/x/m */
            pt[i]+=2;  /* remove % and c/x */
-           if ( isAnsi[(int) *(pt[i])] ) {
+           if ( isAnsi[(unsigned char) *(pt[i])] ) {
               safe_chr(*pt[i], s_newstr, &s_newstrptr);	/* ansi letter */
               pt[i]+=1;
            } else if ( (*(pt[i]) == '0') && ((*(pt[i]+1) == 'x') || (*(pt[i]+1) == 'X')) &&
@@ -30154,7 +30154,7 @@ FUNCTION(fun_lcstr)
                           ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) *(ap+2)] ) {
+           if ( isAnsi[(unsigned char) *(ap+2)] ) {
               safe_chr(*ap, buff, bufcx);
               safe_chr(*(ap+1), buff, bufcx);
               safe_chr(*(ap+2), buff, bufcx);
@@ -30208,7 +30208,7 @@ FUNCTION(fun_ucstr)
                           ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-           if ( isAnsi[(int) *(ap+2)] ) {
+           if ( isAnsi[(unsigned char) *(ap+2)] ) {
               safe_chr(*ap, buff, bufcx);
               safe_chr(*(ap+1), buff, bufcx);
               safe_chr(*(ap+2), buff, bufcx);
@@ -30262,7 +30262,7 @@ FUNCTION(fun_capstr)
                             ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-             if ( isAnsi[(int) *(ap+2)] ) {
+             if ( isAnsi[(unsigned char) *(ap+2)] ) {
                 safe_chr(*ap, buff, bufcx);
                 safe_chr(*(ap+1), buff, bufcx);
                 safe_chr(*(ap+2), buff, bufcx);
@@ -30383,7 +30383,7 @@ FUNCTION(fun_caplist)
                                    ||  ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-                   if ( isAnsi[(int) *(ap+2)] ) {
+                   if ( isAnsi[(unsigned char) *(ap+2)] ) {
                       safe_chr(*ap, buff, bufcx);
                       safe_chr(*(ap+1), buff, bufcx);
                       safe_chr(*(ap+2), buff, bufcx);
@@ -30500,7 +30500,7 @@ FUNCTION(fun_caplist)
                                ||   ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-                if ( isAnsi[(int) *(ap+2)] ) {
+                if ( isAnsi[(unsigned char) *(ap+2)] ) {
                    safe_chr(*ap, buff, bufcx);
                    safe_chr(*(ap+1), buff, bufcx);
                    safe_chr(*(ap+2), buff, bufcx);
@@ -30591,7 +30591,7 @@ FUNCTION(fun_caplist)
                                ||    ((*(ap+1) == SAFE_CHR3) || (*(ap+1) == SAFE_UCHR3))
 #endif
 )) {
-                 if ( isAnsi[(int) *(ap+2)] ) {
+                 if ( isAnsi[(unsigned char) *(ap+2)] ) {
                     safe_chr(*ap, buff, bufcx);
                     safe_chr(*(ap+1), buff, bufcx);
                     safe_chr(*(ap+2), buff, bufcx);
@@ -37017,7 +37017,7 @@ FUNCTION(fun_stripansi)
                           ||   ((*(cp+1) == SAFE_CHR3) || (*(cp+1) == SAFE_UCHR3))
 #endif
 )) {
-            if ( isAnsi[(int) *(cp+2)] ) {
+            if ( isAnsi[(unsigned char) *(cp+2)] ) {
                cp+=3;
                continue;
             }
@@ -40163,7 +40163,7 @@ FUNCTION(fun_ljc)
                          || (*(tptr+1) == SAFE_CHR3)
 #endif
 )) {
-         if ( isAnsi[(int) *(tptr+2)] ) {
+         if ( isAnsi[(unsigned char) *(tptr+2)] ) {
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr, buff, bufcx);
@@ -40383,7 +40383,7 @@ FUNCTION(fun_rjc)
                          || (*(tptr+1) == SAFE_CHR3)
 #endif
 )) {
-         if ( isAnsi[(int) *(tptr+2)] ) {
+         if ( isAnsi[(unsigned char) *(tptr+2)] ) {
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr++, buff, bufcx);
             safe_chr(*tptr, buff, bufcx);

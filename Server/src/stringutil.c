@@ -1079,7 +1079,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
        }
        if ( (i_ansi != 1) && (i_ansi != 3) ) {
          if ( s_ptr->c_fgansi && ((i_ansi == -1) || (s_ptr->c_fgansi != s_last.c_fgansi)) ) {
-            if ( isAnsi[(int) (s_ptr->c_fgansi)] ) {
+            if ( isAnsi[(unsigned char) (s_ptr->c_fgansi)] ) {
                safe_chr('%', s_buffer, &s_buffptr);
                safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
                safe_chr(s_ptr->c_fgansi, s_buffer, &s_buffptr);
@@ -1089,7 +1089,7 @@ rebuild_ansi(char *s_input, ANSISPLIT *s_split, int i_key) {
       }
       if ( (i_ansi != 2) && (i_ansi != 3) ) {
          if ( s_ptr->c_bgansi && ((i_ansi == -1) || (s_ptr->c_bgansi != s_last.c_bgansi)) ) {
-            if ( isAnsi[(int) (s_ptr->c_bgansi)] ) {
+            if ( isAnsi[(unsigned char) (s_ptr->c_bgansi)] ) {
                safe_chr('%', s_buffer, &s_buffptr);
                safe_chr(SAFE_CHR, s_buffer, &s_buffptr);
                safe_chr(s_ptr->c_bgansi, s_buffer, &s_buffptr);
@@ -1304,7 +1304,7 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
 #endif
 )) {
          /* 8 bit color */
-         if ( isAnsi[(int) *(s_inptr+2)] ) {
+         if ( isAnsi[(unsigned char) *(s_inptr+2)] ) {
             switch (*(s_inptr+2)) {
                case 'f':
                case 'F': s_ptr->i_special |= SPLIT_FLASH;
