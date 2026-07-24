@@ -319,22 +319,18 @@ char *replace_string_ansi(const char *s_old, const char *new,
    if (string == NULL) 
       return NULL;
 
-   outsplit = split_alloc_buf();
-   outsplit2 = split_alloc_buf();
-   insplit = split_alloc_buf();
-   oldsplit = split_alloc_buf();
-   initialize_ansisplitter(outsplit, LBUF_SIZE);
-   initialize_ansisplitter(outsplit2, LBUF_SIZE);
-   initialize_ansisplitter(insplit, LBUF_SIZE);
-   initialize_ansisplitter(oldsplit, LBUF_SIZE);
-   outbuff = alloc_lbuf("replace_string_ansi");
-   outbuff2 = alloc_lbuf("replace_string_ansi2");
-   inbuff = alloc_lbuf("replace_string_ansi3");
-   old = alloc_lbuf("replace_string_ansi4");
-   memset(outbuff, '\0', LBUF_SIZE);
-   memset(outbuff2, '\0', LBUF_SIZE);
-   memset(inbuff, '\0', LBUF_SIZE);
-   memset(old, '\0', LBUF_SIZE);
+    outsplit = split_alloc_buf();
+    outsplit2 = split_alloc_buf();
+    insplit = split_alloc_buf();
+    oldsplit = split_alloc_buf();
+    initialize_ansisplitter(outsplit, 1);
+    initialize_ansisplitter(outsplit2, 1);
+    initialize_ansisplitter(insplit, 1);
+    initialize_ansisplitter(oldsplit, 1);
+    outbuff = alloc_lbuf("replace_string_ansi");
+    outbuff2 = alloc_lbuf("replace_string_ansi2");
+    inbuff = alloc_lbuf("replace_string_ansi3");
+    old = alloc_lbuf("replace_string_ansi4");
    split_ansi(strip_ansi(string), outbuff, outsplit);
    split_ansi(strip_ansi(new), inbuff, insplit);
    split_ansi(strip_ansi(s_old), old, oldsplit);
@@ -1288,7 +1284,20 @@ split_ansi(char *s_input, char *s_output, ANSISPLIT *s_split) {
           s_ptr->i_fgr = s_ptr2->i_fgr; s_ptr->i_fgg = s_ptr2->i_fgg; s_ptr->i_fgb = s_ptr2->i_fgb;
           s_ptr->i_bgr = s_ptr2->i_bgr; s_ptr->i_bgg = s_ptr2->i_bgg; s_ptr->i_bgb = s_ptr2->i_bgb;
           s_ptr++;
-         
+
+          /* Inherit all fields from the entry initialized at line 1277 */
+          strcpy(s_ptr->s_fghex, (s_ptr-1)->s_fghex);
+          strcpy(s_ptr->s_bghex, (s_ptr-1)->s_bghex);
+          s_ptr->i_special = (s_ptr-1)->i_special;
+          s_ptr->c_accent  = (s_ptr-1)->c_accent;
+          s_ptr->c_fgansi  = (s_ptr-1)->c_fgansi;
+          s_ptr->c_bgansi  = (s_ptr-1)->c_bgansi;
+          s_ptr->i_ascii8  = (s_ptr-1)->i_ascii8;
+          s_ptr->i_utf8    = (s_ptr-1)->i_utf8;
+          s_ptr->i_truecolor = (s_ptr-1)->i_truecolor;
+          s_ptr->i_fgr = (s_ptr-1)->i_fgr; s_ptr->i_fgg = (s_ptr-1)->i_fgg; s_ptr->i_fgb = (s_ptr-1)->i_fgb;
+          s_ptr->i_bgr = (s_ptr-1)->i_bgr; s_ptr->i_bgg = (s_ptr-1)->i_bgg; s_ptr->i_bgb = (s_ptr-1)->i_bgb;
+
          continue;
       }
       if ( i_escaped ) {
