@@ -4405,7 +4405,7 @@ FUNCTION(fun_nslookup)
    }
    memset(hostname, '\0', sizeof(hostname));
    memset(ipstr, '\0', sizeof(ipstr));
-   mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+   mudstate_hot.heavy_cpu_tmark2 = rhost_time();
 
    p_chk = fargs[0];
    while ( *p_chk ) {
@@ -4434,7 +4434,7 @@ FUNCTION(fun_nslookup)
       hints.ai_family = AF_INET;
       if ((getaddrinfo(fargs[0], NULL, &hints, &res)) != 0) {
          safe_str("#-1 INVALID HOSTNAME", buff, bufcx);
-         mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+         mudstate_hot.heavy_cpu_tmark2 = rhost_time();
          if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + 5) ) {
             mudstate_hot.chkcpu_toggle = 1;
             if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
@@ -4456,7 +4456,7 @@ FUNCTION(fun_nslookup)
       }
       freeaddrinfo(res);
    }
-   mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+   mudstate_hot.heavy_cpu_tmark2 = rhost_time();
    if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + 5) ) {
       mudstate_hot.chkcpu_toggle = 1;
       if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (i_timechk * 3)) ) {
@@ -14284,7 +14284,7 @@ FUNCTION(fun_msecstz)
     if (!fn_range_check("MSECSTZ", nfargs, 1, 2, buff, bufcx))
        return;
 
-    i_now = time(NULL);
+    i_now = rhost_time();
     localtime_r(&i_now, &lt);
 
     i_tz = 0;
@@ -14396,7 +14396,7 @@ FUNCTION(fun_secstz)
     if (!fn_range_check("SECSTZ", nfargs, 1, 2, buff, bufcx))
        return;
 
-    i_now = time(NULL);
+    i_now = rhost_time();
     localtime_r(&i_now, &lt);
     offset = 0;
     i_enforce = 0;
@@ -21137,7 +21137,7 @@ FUNCTION(fun_execscript)
       return;
    }
 
-   i_now = time(NULL);
+   i_now = rhost_time();
    if ( mudconf.cputimechk < 5 )
       i_count = 5;
    else
@@ -21810,7 +21810,7 @@ FUNCTION(fun_listtzones)
                setenv("TZ", (char *)"localtime", 1);
             }
 
-            i_now = time(NULL);
+            i_now = rhost_time();
             localtime_r(&i_now, &lt);
 
             ival(buff, bufcx, (int)lt.tm_gmtoff);
@@ -26895,14 +26895,14 @@ FUNCTION(fun_zlcon)
    for ( i_loop = 1; i_loop < nfargs; i_loop++ ) {
      s_array[i_loop] = fargs[i_loop];
    }
-   now1 = time(NULL);
+   now1 = rhost_time();
    s_name = alloc_sbuf("zlcon_name");
    i_mux = mudconf.mux_lcon_compat;
    mudconf.mux_lcon_compat = 1;
    for ( zptr = cold_db[zmaster].zonelist; zptr; zptr = zptr->next ) {
       sprintf(s_name, "#%d", zptr->object);
       s_array[0] = s_name;
-      now2 = time(NULL);
+      now2 = rhost_time();
       if ( now2 > (now1 + 10) ) {
          i_first = 2;
          break;
@@ -31544,7 +31544,7 @@ FUNCTION(fun_array)
    }
 
    /* insanely dangerous function -- only allow 10 per command */
-   it_now = time(NULL);
+   it_now = rhost_time();
    if (it_now > (mudstate_hot.now + 5)) {
       mudstate_hot.chkcpu_toggle = 1;
       safe_str("#-1 HEAVY CPU RECURSION LIMIT EXCEEDED", buff, bufcx);
@@ -41862,7 +41862,7 @@ FUNCTION(fun_cluster_wipe)
       return;
    }
 
-   endtme = time(NULL);
+   endtme = rhost_time();
    starttme = mudstate_hot.chkcpu_stopper;
    if ( endtme < starttme )
       endtme = starttme;
@@ -41878,7 +41878,7 @@ FUNCTION(fun_cluster_wipe)
    s_strtok = strtok_r(s_return, " ", &s_strtokptr);
 
    while ( s_strtok ) {
-      endtme = time(NULL);
+      endtme = rhost_time();
       if ( endtme < starttme )
          endtme = starttme;
       if ( mudstate_hot.chkcpu_toggle || ((endtme - starttme) > timechk) ) {

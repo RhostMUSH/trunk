@@ -555,6 +555,20 @@ rhost_cpu_cs(void)
     return (ts.tv_sec * 1000000LL + ts.tv_nsec / 1000) / 10000;
 }
 
+#ifdef __linux__
+/* Linux: time() is vDSO (~18ns), clock_gettime is slightly slower. */
+#define rhost_time() time(NULL)
+#else
+/* FreeBSD/other: time() is a syscall (~100ns), clock_gettime is vDSO (~30ns). */
+static inline time_t
+rhost_time(void)
+{
+    struct timespec _ts;
+    clock_gettime(CLOCK_REALTIME, &_ts);
+    return _ts.tv_sec;
+}
+#endif
+
 extern void	FDECL(show_ansisplit_stats, (dbref, int));
 extern void	FDECL(show_bigpool_stats, (dbref, int));
 extern void	FDECL(show_ansisplit_trace, (dbref, int));

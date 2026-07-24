@@ -3872,7 +3872,7 @@ cpumushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
    char *s_bob;
 
    chk_stop = mudstate_hot.chkcpu_stopper;
-   mudstate_hot.chkcpu_stopper = time(NULL);
+   mudstate_hot.chkcpu_stopper = rhost_time();
    s_bob = mushexec(player, cause, caller, eval, dstr, cargs, ncargs, regargs, nregargs, i_line, s_file);
    mudstate_hot.chkcpu_stopper = chk_stop;
    return(s_bob);

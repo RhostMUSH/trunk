@@ -2400,7 +2400,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
               (hook_type & HOOK_INCLUDE) && (( hook_type & HOOK_BEFORE) || (hook_type & HOOK_AFTER)) ) {
             result = alloc_lbuf("hook_result_fake");
             sprintf(result, "%s", (char *)"0");
-            i_now = time(NULL);
+            i_now = rhost_time();
             no_hook = mudstate_hot.no_hook;
             mudstate_hot.no_hook = 1;
             atextptr = atext;
@@ -2417,7 +2417,7 @@ process_hook(dbref player, dbref thing, char *s_uselock, ATTR *hk_ap2, int save_
                   cp = parse_to(&atextptr, ';', 0);
                   if (cp && *cp && !mudstate_hot.breakst && !mudstate_hot.chkcpu_toggle) {
                      process_command(thing, player, 0, cp, (char **)NULL, 0, 0, 1, no_space);
-                     if ( time(NULL) > (i_now + 5) ) {
+                     if ( rhost_time() > (i_now + 5) ) {
                          notify(player, "@hook:  Aborted for high utilization.");
                          mudstate_hot.chkcpu_toggle=1;
                          mudstate_hot.breakst=1;
@@ -2530,7 +2530,7 @@ process_error_control(dbref player, CMDENT *cmdp, char *s_command, int no_space)
        hk_ap2 = atr_str(s_uselock);
        chk_stop = mudstate_hot.chkcpu_stopper;
        chk_tog  = mudstate_hot.chkcpu_toggle;
-       mudstate_hot.chkcpu_stopper = time(NULL);
+       mudstate_hot.chkcpu_stopper = rhost_time();
        mudstate_hot.chkcpu_toggle = 0;
        mudstate_hot.chkcpu_locktog = 0;
        process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, s_command, no_space);
@@ -2737,7 +2737,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        hk_ap2 = atr_str(s_uselock);
        chk_stop = mudstate_hot.chkcpu_stopper;
        chk_tog  = mudstate_hot.chkcpu_toggle;
-       mudstate_hot.chkcpu_stopper = time(NULL);
+       mudstate_hot.chkcpu_stopper = rhost_time();
        mudstate_hot.chkcpu_toggle = 0;
        mudstate_hot.chkcpu_locktog = 0;
        process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, origcmd, no_space);
@@ -2938,7 +2938,7 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
        hk_ap2 = atr_str(s_uselock);
        chk_stop = mudstate_hot.chkcpu_stopper;
        chk_tog  = mudstate_hot.chkcpu_toggle;
-       mudstate_hot.chkcpu_stopper = time(NULL);
+       mudstate_hot.chkcpu_stopper = rhost_time();
        mudstate_hot.chkcpu_toggle = 0;
        mudstate_hot.chkcpu_locktog = 0;
        process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, origcmd, no_space);
@@ -3205,9 +3205,9 @@ process_command(dbref player, dbref cause, int interactive,
 
     /* For all valid commands we must initialize the timers */
     mudstate_hot.heavy_cpu_recurse = 0;
-    mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+    mudstate_hot.heavy_cpu_tmark1 = rhost_time();
     mudstate_hot.chkcpu_toggle = 0;
-    mudstate_hot.chkcpu_stopper = time(NULL);
+    mudstate_hot.chkcpu_stopper = mudstate_hot.heavy_cpu_tmark1;
     mudstate_hot.chkcpu_locktog = 0;
     mudstate_hot.stack_val = 0;
     mudstate_hot.stack_toggle = 0;
@@ -3322,10 +3322,10 @@ process_command(dbref player, dbref cause, int interactive,
              else
                 spamcntX = 1;
           } else {
-             spamtimeX = time(NULL);
+             spamtimeX = rhost_time();
              spamcntX = 1;
           }
-          if ( (time(NULL) < (spamtimeX + 60)) && (spamcntX >= mudconf.spam_limit) ) {
+          if ( (rhost_time() < (spamtimeX + 60)) && (spamcntX >= mudconf.spam_limit) ) {
              if ( player != spamowner ) {
                      tprp_buff = tpr_buff = alloc_lbuf("process_command");
 		     notify(spamowner, safe_tprintf(tpr_buff, &tprp_buff, "%s",mudconf.spam_objmsg));
@@ -3357,10 +3357,10 @@ process_command(dbref player, dbref cause, int interactive,
              mudstate_hot.no_hook = 0;
              free_lbuf(lst_cmd);
              return;
-          } else if ( time(NULL) < (spamtimeX + 60) ) {
+          } else if ( rhost_time() < (spamtimeX + 60) ) {
              spamcntX++;
           } else {
-             spamtimeX = time(NULL);
+             spamtimeX = rhost_time();
              spamcntX = 1;
           }
           lcbuf = alloc_lbuf("spam_command_protect");
@@ -3369,7 +3369,7 @@ process_command(dbref player, dbref cause, int interactive,
           free_lbuf(lcbuf);
        } else {
           lcbuf = alloc_lbuf("spam_command_protect");
-          sprintf(lcbuf, "%d %d", (int)time(NULL), 1);
+          sprintf(lcbuf, "%d %d", (int)rhost_time(), 1);
           atr_add_raw(spamowner, A_SPAMPROTECT, lcbuf);
           free_lbuf(lcbuf);
        }
@@ -3751,7 +3751,7 @@ process_command(dbref player, dbref cause, int interactive,
 	 hk_ap2 = atr_str(s_uselock);
          chk_stop = mudstate_hot.chkcpu_stopper;
          chk_tog  = mudstate_hot.chkcpu_toggle;
-         mudstate_hot.chkcpu_stopper = time(NULL);
+         mudstate_hot.chkcpu_stopper = rhost_time();
          mudstate_hot.chkcpu_toggle = 0;
          mudstate_hot.chkcpu_locktog = 0;
          hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, prefix_cmds[i]->hookmask, lst_cmd, no_space);
@@ -3782,7 +3782,7 @@ process_command(dbref player, dbref cause, int interactive,
 	  msave = NULL;
         chk_stop = mudstate_hot.chkcpu_stopper;
         chk_tog  = mudstate_hot.chkcpu_toggle;
-        mudstate_hot.chkcpu_stopper = time(NULL);
+        mudstate_hot.chkcpu_stopper = rhost_time();
         mudstate_hot.chkcpu_toggle = 0;
         mudstate_hot.chkcpu_locktog = 0;
 	process_cmdent(prefix_cmds[i], NULL, player, cause,
@@ -4197,7 +4197,7 @@ process_command(dbref player, dbref cause, int interactive,
                       hk_ap2 = atr_str(s_uselock);
                       chk_stop = mudstate_hot.chkcpu_stopper;
                       chk_tog  = mudstate_hot.chkcpu_toggle;
-                      mudstate_hot.chkcpu_stopper = time(NULL);
+                      mudstate_hot.chkcpu_stopper = rhost_time();
                       mudstate_hot.chkcpu_toggle = 0;
                       mudstate_hot.chkcpu_locktog = 0;
                       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask, lst_cmd, no_space);
@@ -4224,7 +4224,7 @@ process_command(dbref player, dbref cause, int interactive,
 		         hk_ap2 = atr_str(s_uselock);
 		         chk_stop = mudstate_hot.chkcpu_stopper;
 		         chk_tog  = mudstate_hot.chkcpu_toggle;
-		         mudstate_hot.chkcpu_stopper = time(NULL);
+		         mudstate_hot.chkcpu_stopper = rhost_time();
 		         mudstate_hot.chkcpu_toggle = 0;
                          mudstate_hot.chkcpu_locktog = 0;
 		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask, lst_cmd, no_space);
@@ -4241,7 +4241,7 @@ process_command(dbref player, dbref cause, int interactive,
 		         hk_ap2 = atr_str(s_uselock);
 		         chk_stop = mudstate_hot.chkcpu_stopper;
 		         chk_tog  = mudstate_hot.chkcpu_toggle;
-		         mudstate_hot.chkcpu_stopper = time(NULL);
+		         mudstate_hot.chkcpu_stopper = rhost_time();
 		         mudstate_hot.chkcpu_toggle = 0;
                          mudstate_hot.chkcpu_locktog = 0;
 		         hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask, lst_cmd, no_space);
@@ -4294,7 +4294,7 @@ process_command(dbref player, dbref cause, int interactive,
                       hk_ap2 = atr_str(s_uselock);
 		      chk_stop = mudstate_hot.chkcpu_stopper;
 		      chk_tog  = mudstate_hot.chkcpu_toggle;
-                      mudstate_hot.chkcpu_stopper = time(NULL);
+                      mudstate_hot.chkcpu_stopper = rhost_time();
                       mudstate_hot.chkcpu_toggle = 0;
                       hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, goto_cmdp->hookmask, lst_cmd, no_space);
                       mudstate_hot.chkcpu_locktog = 0;
@@ -4316,7 +4316,7 @@ process_command(dbref player, dbref cause, int interactive,
 		      hk_ap2 = atr_str(s_uselock);
 		      chk_stop = mudstate_hot.chkcpu_stopper;
 		      chk_tog  = mudstate_hot.chkcpu_toggle;
-		      mudstate_hot.chkcpu_stopper = time(NULL);
+		      mudstate_hot.chkcpu_stopper = rhost_time();
 		      mudstate_hot.chkcpu_toggle = 0;
                       mudstate_hot.chkcpu_locktog = 0;
 		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask, lst_cmd, no_space);
@@ -4333,7 +4333,7 @@ process_command(dbref player, dbref cause, int interactive,
 		      hk_ap2 = atr_str(s_uselock);
 		      chk_stop = mudstate_hot.chkcpu_stopper;
 		      chk_tog  = mudstate_hot.chkcpu_toggle;
-		      mudstate_hot.chkcpu_stopper = time(NULL);
+		      mudstate_hot.chkcpu_stopper = rhost_time();
 		      mudstate_hot.chkcpu_toggle = 0;
                       mudstate_hot.chkcpu_locktog = 0;
 		      hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, goto_cmdp->hookmask, lst_cmd, no_space);
@@ -4520,7 +4520,7 @@ process_command(dbref player, dbref cause, int interactive,
          hk_ap2 = atr_str(s_uselock);
          chk_stop = mudstate_hot.chkcpu_stopper;
          chk_tog  = mudstate_hot.chkcpu_toggle;
-         mudstate_hot.chkcpu_stopper = time(NULL);
+         mudstate_hot.chkcpu_stopper = rhost_time();
          mudstate_hot.chkcpu_toggle = 0;
          mudstate_hot.chkcpu_locktog = 0;
          hk_retval = process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 1, cmdp->hookmask, lst_cmd, no_space);
@@ -4537,7 +4537,7 @@ process_command(dbref player, dbref cause, int interactive,
         igcheck(player,cmdp->perms)) && (cval != 2) && (cval2 != 2) ) {
         chk_stop = mudstate_hot.chkcpu_stopper;
         chk_tog  = mudstate_hot.chkcpu_toggle;
-        mudstate_hot.chkcpu_stopper = time(NULL);
+        mudstate_hot.chkcpu_stopper = rhost_time();
         mudstate_hot.chkcpu_toggle = 0;
         mudstate_hot.chkcpu_locktog = 0;
         if ( cval2 > 0 ) {
@@ -5070,7 +5070,7 @@ process_command(dbref player, dbref cause, int interactive,
                            process_command(mudconf.global_error_obj, cause, cause, lcbuf_temp, arr_prog, narg_prog, 0, mudstate_hot.no_hook, no_space);
                         }
                      }
-                     if ( time(NULL) > (i_now + 5) ) {
+                     if ( rhost_time() > (i_now + 5) ) {
                         notify(player, "global handler:  Aborted for high utilization.");
                         mudstate_hot.breakst=1;
                         mudstate_hot.chkcpu_toggle=1;
@@ -9979,7 +9979,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
           if ( mudstate_hot.chkcpu_inline ) {
              i_now = mudstate_hot.now;
           } else {
-             i_now = time(NULL);
+             i_now = rhost_time();
           }
           mudstate_hot.chkcpu_inline = 1;
           i_orig = mudstate_hot.chkcpu_toggle;
@@ -9993,7 +9993,7 @@ void do_assert(dbref player, dbref cause, int key, char *arg1, char *arg2, char 
                    process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                 }
              }
-             if ( time(NULL) > (i_now + 5) ) {
+             if ( rhost_time() > (i_now + 5) ) {
                 notify(player, "@assert:  Aborted for high utilization.");
                 mudstate_hot.breakst=1;
                 mudstate_hot.chkcpu_toggle=1;
@@ -10048,7 +10048,7 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
           if ( mudstate_hot.chkcpu_inline ) {
              i_now = mudstate_hot.now;
           } else {
-             i_now = time(NULL);
+             i_now = rhost_time();
           }
           mudstate_hot.chkcpu_inline = 1;
           i_orig = mudstate_hot.chkcpu_toggle;
@@ -10062,7 +10062,7 @@ void do_jump(dbref player, dbref cause, int key, char *arg1, char *arg2, char *c
                    process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                 }
              }
-             if ( time(NULL) > (i_now + 5) ) {
+             if ( rhost_time() > (i_now + 5) ) {
                 notify(player, "@jump:  Aborted for high utilization.");
                 mudstate_hot.breakst=1;
                 mudstate_hot.chkcpu_toggle=1;
@@ -10135,7 +10135,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
           if ( mudstate_hot.chkcpu_inline ) {
              i_now = mudstate_hot.now;
           } else {
-             i_now = time(NULL);
+             i_now = rhost_time();
           }
           mudstate_hot.chkcpu_inline = 1;
           i_hook = mudstate_hot.no_hook;
@@ -10148,7 +10148,7 @@ void do_break(dbref player, dbref cause, int key, char *arg1, char *arg2, char *
                    process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                 }
              }
-             if ( time(NULL) > (i_now + 5) ) {
+             if ( rhost_time() > (i_now + 5) ) {
                 notify(player, "@break:  Aborted for high utilization.");
                 mudstate_hot.breakst=1;
                 mudstate_hot.chkcpu_toggle=1;
@@ -10795,7 +10795,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          if ( mudstate_hot.chkcpu_inline ) {
             i_now = mudstate_hot.now;
          } else {
-            i_now = time(NULL);
+            i_now = rhost_time();
          }
          i_chkinline = mudstate_hot.chkcpu_inline;
          mudstate_hot.chkcpu_inline = 1;
@@ -10808,7 +10808,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                } else {
                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                }
-               if ( time(NULL) > (i_now + 5) ) {
+               if ( rhost_time() > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate_hot.breakst=1;
                    mudstate_hot.chkcpu_toggle=1;
@@ -10824,7 +10824,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
          if ( mudstate_hot.chkcpu_inline ) {
             i_now = mudstate_hot.now;
          } else {
-            i_now = time(NULL);
+            i_now = rhost_time();
          }
          if ( mys ) {
             strcpy(mudstate.rollback, mys);
@@ -10841,7 +10841,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
                } else {
                   process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                }
-               if ( time(NULL) > (i_now + 5) ) {
+               if ( rhost_time() > (i_now + 5) ) {
                    notify(player, "@skip:  Aborted for high utilization.");
                    mudstate_hot.breakst=1;
                    mudstate_hot.chkcpu_toggle=1;
@@ -10858,7 +10858,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
       if ( mudstate_hot.chkcpu_inline ) {
          i_now = mudstate_hot.now;
       } else {
-         i_now = time(NULL);
+         i_now = rhost_time();
       }
       if ( mys ) {
          strcpy(mudstate.rollback, mys);
@@ -10875,7 +10875,7 @@ void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], 
             } else {
                process_command(player, cause, 0, cp, cargs, ncargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
             }
-            if ( time(NULL) > (i_now + 5) ) {
+            if ( rhost_time() > (i_now + 5) ) {
                 notify(player, "@skip:  Aborted for high utilization.");
                 mudstate_hot.breakst=1;
                 mudstate_hot.chkcpu_toggle=1;
@@ -10976,7 +10976,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
    if ( mudstate_hot.chkcpu_inline ) {
       i_now = mudstate_hot.now;
    } else {
-      i_now = time(NULL);
+      i_now = rhost_time();
    }
    mudstate_hot.chkcpu_inline = 1;
    i_hook = mudstate_hot.no_hook;
@@ -10988,7 +10988,7 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
          } else {
             process_command(target, target, 0, cp, args, nargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
          }
-         if ( time(NULL) > (i_now + 5) ) {
+         if ( rhost_time() > (i_now + 5) ) {
             notify(player, "@sudo:  Aborted for high utilization.");
             mudstate_hot.breakst=1;
             mudstate_hot.chkcpu_toggle=1;
@@ -13090,7 +13090,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                s_strtok = strtok_r(s_text, " ", &s_strtokptr);
                i_lowball = 0;
                s_instr = alloc_lbuf("cluster_wipe");
-               endtme = time(NULL);
+               endtme = rhost_time();
                starttme = mudstate_hot.chkcpu_stopper;
                if ( endtme < starttme )
                   endtme = starttme;
@@ -13108,7 +13108,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                if ( i_owner )
                   i_owner = WIPE_OWNER;
                while ( s_strtok ) {
-                  endtme = time(NULL);
+                  endtme = rhost_time();
                   if ( mudstate_hot.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
                       mudstate_hot.chkcpu_toggle = 1;
                   }

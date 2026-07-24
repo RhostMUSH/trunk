@@ -144,7 +144,7 @@ complete_handshake(DESC *d, const char *key) {
 
     /* Set initial state */
     d->cold->checksum[0] = 4;
-    d->cold->ws_last_pong = time(NULL);
+    d->cold->ws_last_pong = rhost_time();
 }
 
 /* Abort an invalid handshake request */
@@ -435,7 +435,7 @@ process_websocket_frame(DESC *d, char *tbuf1, int got, int bufsiz)
 	  websocket_send_pong(d);
 	  break;
 	case WS_OP_PONG:
-	  d->cold->ws_last_pong = time(NULL);
+	  d->cold->ws_last_pong = rhost_time();
 	  break;
 	}
       }
@@ -459,7 +459,7 @@ process_websocket_frame(DESC *d, char *tbuf1, int got, int bufsiz)
 	  websocket_send_pong(d);
 	  break;
 	case WS_OP_PONG:
-	  d->cold->ws_last_pong = time(NULL);
+	  d->cold->ws_last_pong = rhost_time();
 	  break;
 	}
       }

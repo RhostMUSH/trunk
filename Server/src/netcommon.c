@@ -1906,7 +1906,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
                 }
 		queue_string(d, buff);
                 if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
-                   t = time(NULL);
+                   t = rhost_time();
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
 	           queue_string(d, buff);
@@ -1930,7 +1930,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		  sprintf(buff, " | Port: %d, Site: %s, Char/Email: %s", succ, site, reason);
 		queue_string(d, buff);
                 if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
-                   t = time(NULL);
+                   t = rhost_time();
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
 	           queue_string(d, buff);
@@ -1999,7 +1999,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
             }
 	    if (!(inflags & (MF_SITE | MF_STATS))) {
                 if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
-                   t = time(NULL);
+                   t = rhost_time();
                    tp = localtime(&t);
                    sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
 	           queue_string(d, buff);
@@ -2024,7 +2024,7 @@ broadcast_monitor(dbref player, int inflags, char *type,
 		queue_string(d, buff);
 	    }
             if ( Toggles(D_PLAYER(d)) & TOG_MONITOR_TIME ) {
-               t = time(NULL);
+               t = rhost_time();
                tp = localtime(&t);
                sprintf(buff, " [%02d:%02d:%02d]", tp->tm_hour, tp->tm_min, tp->tm_sec );
 	       queue_string(d, buff);
@@ -2327,7 +2327,7 @@ queue_write(DESC * d, const char *b, int n)
        }
        mudstate.daily_bytesin = 0;
        mudstate.daily_bytesout = n;
-       mudstate.reset_daily_bytes = time(NULL);
+       mudstate.reset_daily_bytes = rhost_time();
     } else {
        mudstate.daily_bytesout += n;
     }
@@ -5405,7 +5405,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                   hk_ap2 = atr_str(s_uselock);
                   chk_stop = mudstate_hot.chkcpu_stopper;
                   chk_tog  = mudstate_hot.chkcpu_toggle;
-                  mudstate_hot.chkcpu_stopper = time(NULL);
+                  mudstate_hot.chkcpu_stopper = rhost_time();
                   mudstate_hot.chkcpu_toggle = 0;
                   mudstate_hot.chkcpu_locktog = 0;
                   process_hook(player, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
@@ -5449,7 +5449,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      hk_ap2 = atr_str(s_uselock);
                      chk_stop = mudstate_hot.chkcpu_stopper;
                      chk_tog  = mudstate_hot.chkcpu_toggle;
-                     mudstate_hot.chkcpu_stopper = time(NULL);
+                     mudstate_hot.chkcpu_stopper = rhost_time();
                      mudstate_hot.chkcpu_toggle = 0;
                      mudstate_hot.chkcpu_locktog = 0;
                      process_hook(victim, mudconf.hook_obj, s_uselock, hk_ap2, 0, cmdp->hookmask, (char *)NULL);
@@ -6287,9 +6287,9 @@ do_command(DESC * d, char *command)
              */
             /* For all valid commands we must initialize the timers */
             mudstate_hot.heavy_cpu_recurse = 0;
-            mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+            mudstate_hot.heavy_cpu_tmark1 = rhost_time();
             mudstate_hot.chkcpu_toggle = 0;
-            mudstate_hot.chkcpu_stopper = time(NULL);
+            mudstate_hot.chkcpu_stopper = rhost_time();
             mudstate_hot.chkcpu_locktog = 0;
             mudstate_hot.stack_val = 0;
             mudstate_hot.stack_toggle = 0;
@@ -6747,9 +6747,9 @@ do_command(DESC * d, char *command)
              */
             /* For all valid commands we must initialize the timers */
             mudstate_hot.heavy_cpu_recurse = 0;
-            mudstate_hot.heavy_cpu_tmark1 = time(NULL);
+            mudstate_hot.heavy_cpu_tmark1 = rhost_time();
             mudstate_hot.chkcpu_toggle = 0;
-            mudstate_hot.chkcpu_stopper = time(NULL);
+            mudstate_hot.chkcpu_stopper = rhost_time();
             mudstate_hot.chkcpu_locktog = 0;
             mudstate_hot.stack_val = 0;
             mudstate_hot.stack_toggle = 0;

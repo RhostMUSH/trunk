@@ -489,7 +489,7 @@ int make_socket(int port, char* address)
 }
 
 #ifndef HAVE_GETTIMEOFDAY
-#define get_tod(x)	{ (x)->tv_sec = time(NULL); (x)->tv_usec = 0; }
+#define get_tod(x)	{ (x)->tv_sec = rhost_time(); (x)->tv_usec = 0; }
 #else
 #define get_tod(x)	gettimeofday(x, (struct timezone *)0)
 #endif
@@ -864,7 +864,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	    /* freed-slot safety: d->cold is NULL for freed slots */
 	    if (!d->cold) continue;
 	    if( (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) &&
-	        (time(NULL) - d->cold->connected_at >= 3) ) {
+	        (rhost_time() - d->cold->connected_at >= 3) ) {
 		D_FLAGS(d) &= ~DS_AUTH_IN_PROGRESS;
 		logbuff = alloc_mbuf("shovechars.LOG.authtimeout");
                 sprintf(logbuff, "%s %s", d->cold->addr, (d->cold->addr_family == AF_INET6) ? "/128" : "255.255.255.255");
@@ -1232,7 +1232,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 
             /* Force API disconnect if timeon greater than timeout value */
             if ( (D_FLAGS(d) & DS_API) ) {
-		if ( (d->cold->connected_at + d->cold->timeout) < time(NULL) ) {
+		if ( (d->cold->connected_at + d->cold->timeout) < rhost_time() ) {
 			shutdownsock(d, R_API);
 			continue;
 		}
@@ -1245,7 +1245,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                     shutdownsock(d, R_WEBSOCKETS);
                     continue;
                 }
-                time_t now = time(NULL);
+                time_t now = rhost_time();
                 if (!d->cold->ws_last_pong)
                     d->cold->ws_last_pong = now;
                 else if (now - d->cold->ws_last_pong > WS_PING_TIMEOUT) {
@@ -2092,7 +2092,7 @@ shutdownsock(DESC * d, int reason)
            }
            mudstate.daily_bytesout = 0;
            mudstate.daily_bytesin = D_INPUT_SIZE(d);
-           mudstate.reset_daily_bytes = time(NULL);
+           mudstate.reset_daily_bytes = rhost_time();
         } else {
            mudstate.daily_bytesin += D_INPUT_SIZE(d);
         }
@@ -2979,7 +2979,7 @@ process_input(DESC * d)
           }
           mudstate.daily_bytesout = 0;
           mudstate.daily_bytesin = got;
-          mudstate.reset_daily_bytes = time(NULL);
+          mudstate.reset_daily_bytes = rhost_time();
        } else {
           mudstate.daily_bytesin += got;
        }

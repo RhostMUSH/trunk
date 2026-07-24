@@ -37,7 +37,7 @@ static int ival(char *buff, char **bufcx, int result) {
 static int sqlite_timeout_cb(void *arg)
 {
     time_t *start = (time_t *)arg;
-    if ((time(NULL) - *start) > mudconf.sqlite_query_limit)
+    if ((rhost_time() - *start) > mudconf.sqlite_query_limit)
         return 1;
     return 0;
 }
@@ -93,7 +93,7 @@ FUNCTION(local_fun_sqlite_query)
       return;
    }
 
-   mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+   mudstate_hot.heavy_cpu_tmark2 = rhost_time();
 #ifdef DEBUG_SQLITE
    printf( "Construct file paths..\n" );
 #endif
