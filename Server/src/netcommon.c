@@ -5544,7 +5544,6 @@ do_command(DESC * d, char *command)
         maxsitecon, i_retvar, i_valid, aflags, no_space, i_do_proxy;
     struct SNOOPLISTNODE *node;
 #ifdef HAS_OPENSSL
-    struct itimerval itimer;
     int i_timeout;
 #endif
     DESC *sd, *d2, *dssl;
@@ -6306,11 +6305,7 @@ do_command(DESC * d, char *command)
             mudstate.allocsin = 0;
             mudstate.allocsout = 0;
             mudstate.attribfetchcount = 0;
-            itimer.it_interval.tv_sec = 0;
-            itimer.it_interval.tv_usec = 0;
-            itimer.it_value.tv_usec = 0;
-            itimer.it_value.tv_sec = 1000;
-            setitimer(ITIMER_PROF, &itimer, NULL);
+            mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 /* End of the profile/cpu chunk */
 
             s_snarfing = alloc_lbuf("cmd_get");
@@ -6770,11 +6765,7 @@ do_command(DESC * d, char *command)
             mudstate.allocsin = 0;
             mudstate.allocsout = 0;
             mudstate.attribfetchcount = 0;
-            itimer.it_interval.tv_sec = 0;
-            itimer.it_interval.tv_usec = 0;
-            itimer.it_value.tv_usec = 0;
-            itimer.it_value.tv_sec = 1000;
-            setitimer(ITIMER_PROF, &itimer, NULL);
+            mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 /* End of the profile/cpu chunk */
 
             s_snarfing = alloc_lbuf("cmd_post");

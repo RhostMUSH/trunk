@@ -543,6 +543,18 @@ extern ANSISPLIT *	_split_alloc_buf(const char *, const char *, int);
 #define split_alloc_buf()	_split_alloc_buf(__func__, __FILE__, __LINE__)
 extern void		split_free_buf(ANSISPLIT *);
 extern void		NDECL(split_free_bufs);
+
+#include <time.h>
+/* Returns process CPU time in centiseconds (1 cs = 10ms) via
+ * clock_gettime (vDSO on modern Linux/FreeBSD — no syscall). */
+static inline long long
+rhost_cpu_cs(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    return (ts.tv_sec * 1000000LL + ts.tv_nsec / 1000) / 10000;
+}
+
 extern void	FDECL(show_ansisplit_stats, (dbref, int));
 extern void	FDECL(show_bigpool_stats, (dbref, int));
 extern void	FDECL(show_ansisplit_trace, (dbref, int));

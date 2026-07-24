@@ -720,6 +720,7 @@ struct state_hot {
         int     chkcpu_inline;           /* 4B */
         char    chkcpu_inlinestr[SBUF_SIZE]; /* 32/64B */
         int     chkcpu_locktog;          /* 4B */
+        long long cpu_checkpoint_cs;    /* 8B — CPU centiseconds at last checkpoint */
 
         /* 6. Hook / command dispatch (every command) */
         int     no_hook;                 /* 4B */

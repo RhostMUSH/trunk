@@ -2952,27 +2952,17 @@ process_cmdent(CMDENT * cmdp, char *switchp, dbref player,
     return;
 }
 
-void reportcputime(dbref player, struct itimerval *itimer)
+void reportcputime(dbref player, int elapsed_cs)
 {
-  unsigned long hundstart;
-  unsigned long hundend;
-  unsigned long hundinterval;
   char *tpr_buff, *tprp_buff;
 
   DPUSH; /* #28 */
 
   if( CpuTime(player) ) {
-    hundstart = 1000 * 100;
-    hundend = itimer->it_value.tv_sec * 100 + 
-              itimer->it_value.tv_usec / 10000;
-    if ( hundend > hundstart )
-       hundinterval = 0;
-    else
-       hundinterval = hundstart - hundend; 
     tprp_buff = tpr_buff = alloc_lbuf("reportcputime");
-    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "[CPU: %2ld.%02ld  EVALS: %4d  FUNCS: %4d  ATRFETCH: %4d  ALLOCS: %4d]",
-                                      hundinterval / 100,
-                                      hundinterval % 100,
+    notify_quiet(player, safe_tprintf(tpr_buff, &tprp_buff, "[CPU: %2d.%02d  EVALS: %4d  FUNCS: %4d  ATRFETCH: %4d  ALLOCS: %4d]",
+                                      elapsed_cs / 100,
+                                      elapsed_cs % 100,
                                       mudstate_hot.evalcount,
                                       mudstate_hot.funccount,
                                       mudstate.attribfetchcount,
@@ -3198,7 +3188,6 @@ process_command(dbref player, dbref cause, int interactive,
     CMDENT cmd_local;
     ZLISTNODE *zonelistnodeptr;
     dbref realloc;
-    struct itimerval itimer;
     DESC *d;
     ATTR *hk_ap2, *ap_log;
     time_t chk_stop, i_now;
@@ -3234,11 +3223,7 @@ process_command(dbref player, dbref cause, int interactive,
     mudstate.allocsin = 0;
     mudstate.allocsout = 0;
     mudstate.attribfetchcount = 0;
-    itimer.it_interval.tv_sec = 0;
-    itimer.it_interval.tv_usec = 0;
-    itimer.it_value.tv_usec = 0;
-    itimer.it_value.tv_sec = 1000;
-    setitimer(ITIMER_PROF, &itimer, NULL);
+    mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 
 //  if ( !mudstate.rollbackstate )
        mudstate.rollbackcnt++;
@@ -3660,12 +3645,12 @@ process_command(dbref player, dbref cause, int interactive,
               }
            }
 	  mudstate_hot.debug_cmd = cmdsave;
-          getitimer(ITIMER_PROF, &itimer);
-          reportcputime(player, &itimer);
-//        itimer.it_value.tv_sec = 0;
-          itimer.it_value.tv_sec = 1000;
-          itimer.it_value.tv_usec = 0;
-          setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
           mudstate.shell_program = 0;
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
@@ -4097,12 +4082,12 @@ process_command(dbref player, dbref cause, int interactive,
 	  if (msave)
 	    free_lbuf(msave);
 	  mudstate_hot.debug_cmd = cmdsave;
-          getitimer(ITIMER_PROF, &itimer);
-          reportcputime(player, &itimer);
-//        itimer.it_value.tv_sec = 0;
-          itimer.it_value.tv_sec = 1000;
-          itimer.it_value.tv_usec = 0;
-          setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
           DPOP; /* #29 */
           mudstate_hot.no_hook = 0;
           free_lbuf(lst_cmd);
@@ -4138,12 +4123,12 @@ process_command(dbref player, dbref cause, int interactive,
 	!No_tel(player)) {
 	do_move(player, cause, 0, "home");
 	mudstate_hot.debug_cmd = cmdsave;
-        getitimer(ITIMER_PROF, &itimer);
-        reportcputime(player, &itimer);
-//      itimer.it_value.tv_sec = 0;
-        itimer.it_value.tv_sec = 1000;
-        itimer.it_value.tv_usec = 0;
-        setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
         free_lbuf(lst_cmd);
@@ -4268,12 +4253,12 @@ process_command(dbref player, dbref cause, int interactive,
                    if ( !do_ignore_exit ) {
 		      mudstate_hot.debug_cmd = cmdsave;
 		      mudstate_hot.exitcheck = 0;
-                      getitimer(ITIMER_PROF, &itimer);
-                      reportcputime(player, &itimer);
-//                    itimer.it_value.tv_sec = 0;
-                      itimer.it_value.tv_sec = 1000;
-                      itimer.it_value.tv_usec = 0;
-                      setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
                       DPOP; /* #29 */
                       mudstate_hot.no_hook = 0;
                       free_lbuf(lst_cmd);
@@ -4362,12 +4347,12 @@ process_command(dbref player, dbref cause, int interactive,
                   if ( !do_ignore_exit ) {
 		     mudstate_hot.debug_cmd = cmdsave;
 		     mudstate_hot.exitcheck = 0;
-                     getitimer(ITIMER_PROF, &itimer);
-                     reportcputime(player, &itimer);
-//                   itimer.it_value.tv_sec = 0;
-                     itimer.it_value.tv_sec = 1000;
-                     itimer.it_value.tv_usec = 0;
-                     setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
                      DPOP; /* #29 */
                      mudstate_hot.no_hook = 0;
                      free_lbuf(lst_cmd);
@@ -4852,12 +4837,12 @@ process_command(dbref player, dbref cause, int interactive,
         }
         free_lbuf(lcbuf);
 
-        getitimer(ITIMER_PROF, &itimer);
-        reportcputime(player, &itimer);
-//      itimer.it_value.tv_sec = 0;
-        itimer.it_value.tv_sec = 1000;
-        itimer.it_value.tv_usec = 0;
-        setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
 	mudstate_hot.debug_cmd = cmdsave;
         DPOP; /* #29 */
         mudstate_hot.no_hook = 0;
@@ -4867,9 +4852,6 @@ process_command(dbref player, dbref cause, int interactive,
 	return;
     }
 
-    itimer.it_interval.tv_sec = 0;
-    itimer.it_interval.tv_usec = 0;
-    setitimer(ITIMER_PROF, &itimer, NULL);
 
     /* Check for enter and leave aliases, user-defined commands on the
      * player, other objects where the player is, on objects in the
@@ -4900,15 +4882,12 @@ process_command(dbref player, dbref cause, int interactive,
 		  notify(player, "Permission denied.");
 		else
 		  do_leave(player, player, 0);
-                getitimer(ITIMER_PROF, &itimer);
-                reportcputime(player, &itimer);
-//              itimer.it_value.tv_sec = 0;
-                itimer.it_value.tv_sec = 1000;
-                itimer.it_value.tv_usec = 0;
-                setitimer(ITIMER_PROF, &itimer, NULL);
-                DPOP; /* #29 */
-                mudstate_hot.no_hook = 0;
-                free_lbuf(lst_cmd);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
                 bigpool_free(arr_prog);
                 bigpool_free(targetlist);
 		return;
@@ -4930,15 +4909,12 @@ process_command(dbref player, dbref cause, int interactive,
 		      notify(player, "Permission denied.");
 		    else
 		      do_enter_internal(player, pcexit, 0);
-                    getitimer(ITIMER_PROF, &itimer);
-                    reportcputime(player, &itimer);
-//                  itimer.it_value.tv_sec = 0;
-                    itimer.it_value.tv_sec = 1000;
-                    itimer.it_value.tv_usec = 0;
-                    setitimer(ITIMER_PROF, &itimer, NULL);
-                    DPOP; /* #29 */
-                    mudstate_hot.no_hook = 0;
-                    free_lbuf(lst_cmd);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
                     bigpool_free(arr_prog);
                     bigpool_free(targetlist);
 		    return;
@@ -5132,12 +5108,12 @@ process_command(dbref player, dbref cause, int interactive,
 	   ENDLOG
         }
     }
-    getitimer(ITIMER_PROF, &itimer);
-    reportcputime(player, &itimer);
-//  itimer.it_value.tv_sec = 0;
-    itimer.it_value.tv_sec = 1000;
-    itimer.it_value.tv_usec = 0;
-    setitimer(ITIMER_PROF, &itimer, NULL);
+{
+    long long _cs = rhost_cpu_cs();
+    int _elapsed = (int)(_cs - mudstate_hot.cpu_checkpoint_cs);
+    mudstate_hot.cpu_checkpoint_cs = _cs;
+    reportcputime(player, _elapsed);
+}
     mudstate_hot.debug_cmd = cmdsave;
     DPOP; /* #29 */
     mudstate_hot.no_hook = 0;
@@ -10665,7 +10641,7 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
 {
    char *s_rollback;
    int i_rollback, i_jump, i_hook;
-   struct itimerval itimer;
+   long long saved_cs;
 
    if ( mudstate.train_cntr > 0 ) {
       notify(player, "Too many idle commands nested.");
@@ -10676,26 +10652,27 @@ void do_idle(dbref player, dbref cause, int key, char *string, char *args[], int
       if ( (*string == '@') && (*(string+1) == '@') ) {
          notify_quiet(player, string+2);
       } else {
-         mudstate.train_cntr++;
-         getitimer(ITIMER_PROF, &itimer);
-         s_rollback = alloc_lbuf("s_rollback_idle");
-         strcpy(s_rollback, mudstate.rollback);
-         i_jump = mudstate_hot.jumpst;
-         i_rollback = mudstate.rollbackcnt;
-         strcpy(mudstate.rollback, string);
-         i_hook = mudstate_hot.no_hook;
-         if ( i_hook ) {
-            process_command(player, cause, 1, string, args, nargs, 0, 1, mudstate_hot.no_space_compress);
-         } else {
-            process_command(player, cause, 1, string, args, nargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
-         }
-         mudstate_hot.no_hook = i_hook;
-         mudstate_hot.jumpst = i_jump;
-         mudstate.rollbackcnt = i_rollback;
-         strcpy(mudstate.rollback, s_rollback);
-         free_lbuf(s_rollback);
-         setitimer(ITIMER_PROF, &itimer, NULL); 
-         mudstate.train_cntr--;
+          mudstate.train_cntr++;
+          s_rollback = alloc_lbuf("s_rollback_idle");
+          saved_cs = mudstate_hot.cpu_checkpoint_cs;
+          mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
+          strcpy(s_rollback, mudstate.rollback);
+          i_jump = mudstate_hot.jumpst;
+          i_rollback = mudstate.rollbackcnt;
+          strcpy(mudstate.rollback, string);
+          i_hook = mudstate_hot.no_hook;
+          if ( i_hook ) {
+             process_command(player, cause, 1, string, args, nargs, 0, 1, mudstate_hot.no_space_compress);
+          } else {
+             process_command(player, cause, 1, string, args, nargs, 0, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
+          }
+          mudstate_hot.no_hook = i_hook;
+          mudstate_hot.jumpst = i_jump;
+          mudstate.rollbackcnt = i_rollback;
+          strcpy(mudstate.rollback, s_rollback);
+          free_lbuf(s_rollback);
+          mudstate_hot.cpu_checkpoint_cs = saved_cs;
+          mudstate.train_cntr--;
       }
    } else if ( !Wizard(player) && string && *string ) {
       if ( (*string == '@') && (*(string+1) == '@') ) {
@@ -10711,7 +10688,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    dbref loc, obj;
    char *newstring, *newstringptr, *pupbuff, *pupbuffptr, *tpr_buff, *tprp_buff, *s_rollback;
    int i_jump, i_rollback, i_hook;
-   struct itimerval itimer;
+   long long saved_cs;
 
    if ( mudstate.train_cntr >= 2 ) {
       notify(player, "Too many train commands nested [2 levels allowed].");
@@ -10744,8 +10721,9 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
 
    free_lbuf(newstring);
    mudstate.train_cntr++;
-   getitimer(ITIMER_PROF, &itimer);
    s_rollback = alloc_lbuf("s_rollback_train");
+   saved_cs = mudstate_hot.cpu_checkpoint_cs;
+   mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
    strcpy(s_rollback, mudstate.rollback);
    i_jump = mudstate_hot.jumpst;
    i_rollback = mudstate.rollbackcnt;
@@ -10764,7 +10742,7 @@ void do_train(dbref player, dbref cause, int key, char *string, char *args[], in
    mudstate_hot.jumpst = i_jump;
    strcpy(mudstate.rollback, s_rollback);
    free_lbuf(s_rollback);
-   setitimer(ITIMER_PROF, &itimer, NULL); 
+   mudstate_hot.cpu_checkpoint_cs = saved_cs;
    mudstate.train_cntr--;
 }
 void do_skip(dbref player, dbref cause, int key, char *s_boolian, char *args[], int nargs, char *cargs[], int ncargs)
@@ -11056,7 +11034,7 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
    dbref loc;
    char *s_rollback, *s_stringptr;
    int i_rollback, i_jump, i_nospace, i_train, i_hook;
-   struct itimerval itimer;
+   long long saved_cs;
 
    if ( (key & PREPARSE_RAW) && !mudconf.raw_formatting ) {
       notify(player, "The } feature is not enabled.");
@@ -11119,8 +11097,9 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
       i_train = 1;
    }
    mudstate.train_cntr++;
-   getitimer(ITIMER_PROF, &itimer);
    s_rollback = alloc_lbuf("s_rollback_nocmd");
+   saved_cs = mudstate_hot.cpu_checkpoint_cs;
+   mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
    strcpy(s_rollback, mudstate.rollback);
    i_jump = mudstate_hot.jumpst;
    i_rollback = mudstate.rollbackcnt;
@@ -11137,7 +11116,7 @@ void do_noparsecmd(dbref player, dbref cause, int key, char *string, char *args[
    mudstate.rollbackcnt = i_rollback;
    strcpy(mudstate.rollback, s_rollback);
    free_lbuf(s_rollback);
-   setitimer(ITIMER_PROF, &itimer, NULL); 
+   mudstate_hot.cpu_checkpoint_cs = saved_cs;
    if ( i_nospace ) {
       mudstate_hot.no_space_compress = 0;
       mudstate.train_cntr--;

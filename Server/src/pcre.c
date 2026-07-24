@@ -5711,7 +5711,7 @@ i, and fc and c, can be the same variables. */
   eptrblock newptrb;
 #endif
 
-  endtme = time(NULL);
+  { struct timespec _ts; clock_gettime(CLOCK_REALTIME, &_ts); endtme = _ts.tv_sec; }
   starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
@@ -7455,21 +7455,12 @@ pcre_exec(const pcre * external_re, const pcre_extra * extra_data,
 
 /* CPU checks */
   time_t endtme, starttme;
-  struct itimerval cpuchk;
   double timechk, intervalchk;
-  static unsigned long tstart, tend, tinterval;
+  static unsigned long tinterval;
 
+  tinterval = rhost_cpu_cs() - mudstate_hot.cpu_checkpoint_cs;
 
-  tstart = 1000 * 100;
-  getitimer(ITIMER_PROF, &cpuchk);
-  tend = (cpuchk.it_value.tv_sec * 100) + (cpuchk.it_value.tv_usec / 10000);
-
-  if ( tend <= tstart )
-     tinterval = tstart - tend;
-  else
-     tinterval = 0;
-
-  endtme = time(NULL);
+  { struct timespec _ts; clock_gettime(CLOCK_REALTIME, &_ts); endtme = _ts.tv_sec; }
   starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
