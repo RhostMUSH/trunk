@@ -1799,14 +1799,23 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     if ( mudconf.func_nest_lim > 300 )
        mudconf.func_nest_lim = 300;
     tstart = 1000 * 100;
-    getitimer(ITIMER_PROF, &cpuchk);
-    tend = (cpuchk.it_value.tv_sec * 100) + (cpuchk.it_value.tv_usec / 10000);
-
-    if ( tend <= tstart )
-       tinterval = tstart - tend;
-    else
-       tinterval = 0;
-    endtme = time(NULL);
+    /* Sample timer every 64th invocation to avoid syscall overhead.
+     * Between samples, tinterval=0 makes the CPU check always pass,
+     * and mudstate_hot.now (updated each server tick) is used instead
+     * of time(NULL).  chkcpu_toggle is still checked every call, so
+     * once the limit is hit, lock-out is immediate on the next call. */
+    if ((mudstate_hot.evalcount & 0x3F) == 0) {
+        getitimer(ITIMER_PROF, &cpuchk);
+        tend = (cpuchk.it_value.tv_sec * 100) + (cpuchk.it_value.tv_usec / 10000);
+        if ( tend <= tstart )
+           tinterval = tstart - tend;
+        else
+           tinterval = 0;
+        endtme = time(NULL);
+    } else {
+        tinterval = 0;
+        endtme = mudstate_hot.now;
+    }
     starttme = mudstate_hot.chkcpu_stopper;
     if ( endtme < starttme ) 
        endtme = starttme;
