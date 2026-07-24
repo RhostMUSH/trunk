@@ -1797,15 +1797,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     if ( mudconf.func_nest_lim > 300 )
        mudconf.func_nest_lim = 300;
-    /* Sample CPU profiler every 64th invocation to avoid syscall overhead.
-     * Wall clock uses clock_gettime (vDSO on Linux/BSD, no syscall).
-     * chkcpu_toggle is checked every call, so once the limit is hit,
-     * lock-out is immediate on the next call. */
+    /* Wall clock and CPU profiler on every call — both are vDSO (no syscall). */
     { struct timespec _ts; clock_gettime(CLOCK_REALTIME, &_ts); endtme = _ts.tv_sec; }
-    if ((mudstate_hot.evalcount & 0x3F) == 0)
-        tinterval = rhost_cpu_cs() - mudstate_hot.cpu_checkpoint_cs;
-    else
-        tinterval = 0;
+    tinterval = rhost_cpu_cs() - mudstate_hot.cpu_checkpoint_cs;
     starttme = mudstate_hot.chkcpu_stopper;
     if ( endtme < starttme ) 
        endtme = starttme;
