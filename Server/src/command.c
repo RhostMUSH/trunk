@@ -3190,10 +3190,10 @@ process_command(dbref player, dbref cause, int interactive,
     char *p, *q, *arg, *lcbuf, *slashp, *cmdsave, *msave, check2[2], *lst_cmd, *dx_tmp;
     int succ, aflags, i, cval, sflag, cval2, chklogflg, aflags2, narg_prog, i_trace, i_retvar = -1, i_targetchk = 0, i_hook;
     int boot_plr, do_ignore_exit, hk_retval, aflagsX, spamtimeX, spamcntX, xkey, chk_tog, i_fndexit, i_targetlist, i_apflags;
-    char **arr_prog, *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
+    char **arr_prog = NULL, *progatr, *cpulbuf, *lcbuf_temp, *s_uselock, *swichk_ptr, swichk_buff[80], *swichk_tok;
     char *lcbuf_temp_ptr, *log_indiv, *log_indiv_ptr, *cut_str_log, *cut_str_logptr, *tchbuff, *spamX, *spamXptr;
     char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff, *tstrtokr;
-    dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, *targetlist, i_apowner;
+    dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, *targetlist = NULL, i_apowner;
     CMDENT *cmdp;
     CMDENT cmd_local;
     ZLISTNODE *zonelistnodeptr;
@@ -3390,8 +3390,6 @@ process_command(dbref player, dbref cause, int interactive,
        }
         free_lbuf(spamX);
      }
-     arr_prog = (char **)bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
-     targetlist = (dbref *)bigpool_alloc(sizeof(dbref) * LBUF_SIZE);
  
      chklogflg = 0;
     if ( Good_obj(player) && Suspect(player) ) {
@@ -3539,11 +3537,13 @@ process_command(dbref player, dbref cause, int interactive,
             if ( ap_log ) {
                s_aptext = atr_get(player, ap_log->number, &i_apowner, &i_apflags);
                if ( s_aptext && *s_aptext ) {
-                  s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
-                  tbuff = alloc_lbuf("bounce_on_command");
-                  i_targetlist = 0;
-                  for (i = 0; i < LBUF_SIZE; i++) 
-                     targetlist[i] = -2000000;
+                   s_aptextptr = strtok_r(s_aptext, " ", &s_strtokr);
+                   tbuff = alloc_lbuf("bounce_on_command");
+                   if (!targetlist)
+                       targetlist = (dbref *)bigpool_alloc(sizeof(dbref) * LBUF_SIZE);
+                   i_targetlist = 0;
+                   for (i = 0; i < LBUF_SIZE; i++) 
+                      targetlist[i] = -2000000;
                   while ( s_aptextptr ) {
                      passtarget = match_thing_quiet(player, s_aptextptr);
                      i_targetchk = 0;
@@ -3640,10 +3640,12 @@ process_command(dbref player, dbref cause, int interactive,
                  }
               }
           }
-          lcbuf = atr_get(player, A_PROGBUFFER, &aowner2, &aflags2);
-          memset(arr_prog, 0, sizeof(char *) * (LBUF_SIZE/2));
+           lcbuf = atr_get(player, A_PROGBUFFER, &aowner2, &aflags2);
+           if (!arr_prog)
+               arr_prog = (char **)bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
+           memset(arr_prog, 0, sizeof(char *) * (LBUF_SIZE/2));
 #ifdef PROG_LIKEMUX
-          narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, command, '\0');
+           narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, command, '\0');
 #else
           narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, command, ',');
 #endif
@@ -5067,6 +5069,8 @@ process_command(dbref player, dbref cause, int interactive,
         if ( !mudstate.global_error_inside && Good_obj(mudconf.global_error_obj) && !Recover(mudconf.global_error_obj) &&
              !Going(mudconf.global_error_obj) ) {
             if ( *lst_cmd ) {
+               if (!arr_prog)
+                   arr_prog = (char **)bigpool_alloc(sizeof(char *) * (LBUF_SIZE/2));
                memset(arr_prog, 0, sizeof(char *) * (LBUF_SIZE/2));
                if ( InProgram(player) ) {
                   narg_prog = newlist2arr(arr_prog, LBUF_SIZE/2, lst_cmd+1, '\0');
