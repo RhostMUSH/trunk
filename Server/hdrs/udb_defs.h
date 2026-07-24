@@ -45,7 +45,6 @@ typedef	char	*mall_t;
 #define	DB_SYNC()	dddb_sync()
 #define	DB_GET(n)	dddb_get(n)
 #define	DB_PUT(o,n)	dddb_put(o,n)
-#define	DB_CHECK(s)	dddb_check(s)
 
 #ifdef CACHE_OBJS
 #define	DB_DEL(n,f)	  dddb_del((Objname *)n)

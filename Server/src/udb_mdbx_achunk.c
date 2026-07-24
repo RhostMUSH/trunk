@@ -390,30 +390,6 @@ dddb_put(Attr *obj, Aname *nam)
 
 
 int
-dddb_check(Aname *nam)
-{
-    MDBX_txn *txn;
-    MDBX_val mkey, mval;
-    int rc;
-
-    if (!db_initted)
-        return 0;
-
-    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
-    if (rc != MDBX_SUCCESS)
-        return 0;
-
-    mkey.iov_base = (void *)nam;
-    mkey.iov_len  = sizeof(Aname);
-
-    rc = mdbx_get(txn, dbi, &mkey, &mval);
-    mdbx_txn_abort(txn);
-
-    return (rc == MDBX_SUCCESS) ? 1 : 0;
-}
-
-
-int
 dddb_del(Aname *nam, int flg)
 {
     MDBX_txn *txn;

@@ -23,7 +23,6 @@
 /* extern declarations from the MDBX attribute backend */
 extern Attr *		dddb_get(Aname *nam);
 extern int		dddb_put(Attr *obj, Aname *nam);
-extern int		dddb_check(Aname *nam);
 extern int		dddb_del(Aname *nam, int flg);
 extern int		dddb_txn_begin(void);
 extern int		dddb_txn_commit(void);
@@ -184,19 +183,6 @@ cache_del(Aname *nam)
     if (e->value)
         free(e->value);
     e->value = NULL;   /* NULL = deleted marker */
-}
-
-int
-cache_check(Aname *nam)
-{
-    if (nam == NNULL)
-        return 0;
-
-    WBEntry *e = wbuf_lookup(nam);
-    if (e)
-        return 1;   /* in write buffer (even if value is NULL/deleted) */
-
-    return dddb_check(nam);
 }
 
 int

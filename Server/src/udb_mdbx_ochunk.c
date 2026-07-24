@@ -450,30 +450,6 @@ dddb_put(Obj *obj, Objname *nam)
  * which is inconsistent with all other operations that key on sizeof(Objname).
  * In the MDBX backend all records are keyed by Objname, so we treat the
  * pointer as an Objname* to match.  The char* signature is retained for
- * API compatibility with the cache layer declaration.
- */
-int
-dddb_check(char *nam)
-{
-    MDBX_txn *txn;
-    MDBX_val mkey, mval;
-    int rc;
-
-    if (!db_initted)
-        return 0;
-
-    rc = mdbx_txn_begin(env, NULL, MDBX_TXN_RDONLY, &txn);
-    if (rc != MDBX_SUCCESS)
-        return 0;
-
-    mkey.iov_base = (void *)nam;
-    mkey.iov_len  = sizeof(Objname);
-
-    rc = mdbx_get(txn, dbi, &mkey, &mval);
-    mdbx_txn_abort(txn);
-
-    return (rc == MDBX_SUCCESS) ? 1 : 0;
-}
 
 
 int

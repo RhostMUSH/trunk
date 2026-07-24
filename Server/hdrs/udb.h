@@ -68,7 +68,6 @@ typedef struct Obj {
 
 extern Attr *	cache_get(Aname *nam);
 extern int	cache_put(Aname *nam, Attr *obj);
-extern int	cache_check(Aname *nam);
 extern int	cache_init(int width, int depth);
 extern void	cache_reset(int trim);
 extern int	cache_sync(void);

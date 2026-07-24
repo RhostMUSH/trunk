@@ -517,29 +517,6 @@ printf("%s offset %d size %d\n",nam,hbuf.off,hbuf.siz);
 
 
 int
-dddb_check(char *nam)
-{
-
-	if(!db_initted)
-		return(0);
-
-	key.dptr = nam;
-	key.dsize = sizeof(Objname);
-#ifdef	HAVE_DBM
-	dat = fetch(key);
-#else
-	dat = dbm_fetch(dbp,key);
-#endif
-
-	if(dat.dptr == (char *)0)
-		return(0);
-	return(1);
-}
-
-
-
-
-int
 dddb_del(Objname *nam)
 {
 

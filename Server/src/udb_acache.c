@@ -21,7 +21,6 @@
 
 extern unsigned int	FDECL(attr_hash, (Aname *, int));
 extern int		FDECL(attrfree, (Attr *));
-extern int		FDECL(dddb_check, (Aname *));
 extern int		FDECL(dddb_del, (Aname *, int));
 extern Attr *		FDECL(dddb_get, (Aname *));
 extern int		FDECL(dddb_put, (Attr *, Aname *));
@@ -675,44 +674,6 @@ CacheLst *sp;
 		return(1);
 
 	return(0);
-}
-
-/*
-probe the cache and the database (if needed) for the existence of an
-object. return nonzero if the object is in cache or database
-*/
-int cache_check(Aname *nam)
-{
-	Cache	*cp;
-	CacheLst *sp;
-	int	hv = 0;
-
-	if(nam == NNULL || !cache_initted)
-		return(0);
-
-	cs_checks++;
-
-	hv = attr_hash(nam, cwidth);
-	sp = &sys_c[hv];
-
-	for(cp = sp->active.head; cp != CNULL; cp = cp->nxt)
-		if(NAMECMP(cp,nam))
-			return(1);
-
-	for(cp = sp->mactive.head; cp != CNULL; cp = cp->nxt)
-		if(NAMECMP(cp,nam))
-			return(1);
-
-	for(cp = sp->old.head; cp != CNULL; cp = cp->nxt)
-		if(NAMECMP(cp,nam))
-			return(1);
-
-	for(cp = sp->mold.head; cp != CNULL; cp = cp->nxt)
-		if(NAMECMP(cp,nam))
-			return(1);
-
-	/* no ? */
-	return(DB_CHECK(nam));
 }
 
 /*
