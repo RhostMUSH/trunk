@@ -273,7 +273,7 @@ websocket_send_ping(DESC *d)
 }
 
 int
-process_websocket_frame(DESC *d, char *tbuf1, int got)
+process_websocket_frame(DESC *d, char *tbuf1, int got, int bufsiz)
 {
   char mask[1 + 4 + 1 + 1];
   unsigned char state, type, err;
@@ -467,8 +467,9 @@ process_websocket_frame(DESC *d, char *tbuf1, int got)
     }
   }
 
-  /* Add a \n to the end to terminate the command */
-  *wp++ = '\n';
+  /* Add a \n to the end to terminate the command, if room */
+  if (wp - tbuf1 < bufsiz - 1)
+      *wp++ = '\n';
 
   /* Preserve state. */
   mask[0] = state;

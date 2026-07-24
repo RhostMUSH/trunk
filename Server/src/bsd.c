@@ -2837,7 +2837,7 @@ process_input(DESC * d)
     if (D_FLAGS(d) & DS_WEBSOCKETS) {
         /* Process using WebSockets framing. */
         got2 = got;
-        got = in = process_websocket_frame(d, buf, got2);
+        got = in = process_websocket_frame(d, buf, got2, (int)sizeof(buf));
         if (d->cold->ws_closing) {
             mudstate_hot.debug_cmd = cmdsave;
             RETURN(1);
@@ -2895,7 +2895,7 @@ process_input(DESC * d)
 	    if (p < d->cold->raw_input_at)
 		(d->cold->raw_input_at)--;
         /* Display char 255  -- no need for accent_extend as it's handled in eval.c */
-        } else if ( ((p+10) < pend) && (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
+        } else if ( ((p+10) < pend) && (((int)(unsigned char)*q) == 255) && (q+1) < qend && *(q+1) && (((int)(unsigned char)*(q+1)) == 255) ) {
             sprintf(qfind, "%c<%3d>", '%', (int)(unsigned char)*q);
             in+=5;
             got+=5;
@@ -2905,12 +2905,12 @@ process_input(DESC * d)
             }
             q++;
         /* This is telnet negotiation -- we eat telnet negotiation */
-        } else if ( (((int)(unsigned char)*q) == 255) && *(q+1) && (((int)(unsigned char)*(q+1)) != 255) ) {
+        } else if ( (((int)(unsigned char)*q) == 255) && (q+1) < qend && *(q+1) && (((int)(unsigned char)*(q+1)) != 255) ) {
            q++;
         /* Else let's print printables -- This is ASCII-7 [0-128] */
   	} else if (p < pend && ((*q == '\n') || (isascii((int)*q) && isprint((int)*q))) ) {
 	    *p++ = *q;
-        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && *(q+3) && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
+        } else if ( ((p+13) < pend) && (q+3) < qend && IS_4BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2)) && IS_CBYTE(*(q+3))) {
             sprintf(tmpbuf, "%02x%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2), (int)(unsigned char)*(q+3));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
@@ -2923,7 +2923,7 @@ process_input(DESC * d)
                while ( *qf ) {
                   *p++ = *qf++;
                }
-        } else if ( ((p+13) < pend) && *q && *(q+1) && *(q+2) && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
+        } else if ( ((p+13) < pend) && (q+2) < qend && IS_3BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1)) && IS_CBYTE(*(q+2))) {
             sprintf(tmpbuf, "%02x%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1), (int)(unsigned char)*(q+2));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);
@@ -2936,7 +2936,7 @@ process_input(DESC * d)
             while (*qf) {
                 *p++ = *qf++;
             }   
-        } else if ( ((p+13) < pend) && *q && *(q+1) && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
+        } else if ( ((p+13) < pend) && (q+1) < qend && IS_2BYTE((int)(unsigned char)*q) && IS_CBYTE(*(q+1))) {
             sprintf(tmpbuf, "%02x%02x", (int)(unsigned char)*q, (int)(unsigned char)*(q+1));
             tmpptr = encode_utf8(tmpbuf);
             sprintf(qfind, "%s", tmpptr);

@@ -3193,6 +3193,7 @@ process_command(dbref player, dbref cause, int interactive,
     char *tpr_buff, *tprp_buff, *s_aptext, *s_aptextptr, *s_strtokr, *tbuff, *tstrtokr;
     dbref pcexit, aowner, aowner2, aownerX, spamowner, passtarget, *targetlist, i_apowner;
     CMDENT *cmdp;
+    CMDENT cmd_local;
     ZLISTNODE *zonelistnodeptr;
     dbref realloc;
     struct itimerval itimer;
@@ -4463,6 +4464,14 @@ process_command(dbref player, dbref cause, int interactive,
     /* Check for a builtin command (or an alias of a builtin command) */
     //cmdp = (CMDENT *) ohtab_find(lcbuf, &mudstate_hot.command_htab);
     cmdp = lookup_command(lcbuf);
+    /* Copy to stack: lookup_command() may return a pointer to its own
+     * static CMDENT for aliases, which can be overwritten if hook
+     * execution triggers a recursive process_command() call (e.g.,
+     * B@A/A@B hooks).  Each recursive frame gets its own copy. */
+    if (cmdp) {
+        cmd_local = *cmdp;
+        cmdp = &cmd_local;
+    }
 
     cval = cval2 = 0;
     /* If command is checked to ignore NONMATCHING switches, fall through */

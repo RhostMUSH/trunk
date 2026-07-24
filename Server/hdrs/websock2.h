@@ -48,7 +48,7 @@ extern int FDECL(process_output, (DESC * d));
 extern int validate_websocket_key(char *);
 extern void complete_handshake(DESC *, const char *);
 extern void websocket_write(DESC *, const char *, int);
-extern int process_websocket_frame(DESC *, char *, int);
+extern int process_websocket_frame(DESC *, char *, int, int);
 extern void websocket_send_close(DESC *, unsigned short);
 extern void websocket_send_ping(DESC *);
 
