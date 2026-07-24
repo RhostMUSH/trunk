@@ -17,6 +17,7 @@ typedef struct match_state MSTATE;
       char *match_name;
       int preferred_type;
       int local_match;
+      int reality_valuechk;
   };
 
 /* Match functions

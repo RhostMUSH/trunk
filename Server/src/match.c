@@ -857,6 +857,7 @@ save_match_state(MSTATE *mstate)
     strcpy(mstate->match_name, match_name);
     mstate->preferred_type = preferred_type;
     mstate->local_match = local_match;
+    mstate->reality_valuechk = reality_valuechk;
 }
 
 void
@@ -872,6 +873,7 @@ restore_match_state(MSTATE *mstate)
     free_lbuf(mstate->match_name);
     preferred_type = mstate->preferred_type;
     local_match = mstate->local_match;
+    reality_valuechk = mstate->reality_valuechk;
 }
 
 dbref
