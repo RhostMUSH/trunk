@@ -2700,15 +2700,8 @@ process_output(DESC * d)
                       }
                       retry_cnt++;
                    }
-                }
-                if ( !retry_success ) {
-                   if ( errno == 11 ) {
-                   /* It's a timeout, let's wait for a few milliseconds and try again */
-/*                    usleep(10); */
-                      nanosleep((struct timespec[]){{0, 100000000}}, NULL);
-	              cnt = WRITE(D_DESCRIPTOR(d), tb->hdr.start, tb->hdr.nchars);
-                   }
-                   if ( cnt < 0 ) {
+                 }
+                 if ( cnt < 0 ) {
                       if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != D_PLAYER(d)) ) {
                          STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
                             memset(s_savebuff, '\0', sizeof(s_savebuff));
@@ -2720,9 +2713,8 @@ process_output(DESC * d)
                          ENDLOG
                          mudstate.last_network_owner = D_PLAYER(d);
                       }
-                      RETURN(1);
-                   }
-                }
+                       RETURN(1);
+                     }
 #if 0 /* original code here */
   		if (errno == EWOULDBLOCK) {
   		    RETURN(1); /* #12 */
