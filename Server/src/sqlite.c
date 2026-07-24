@@ -33,6 +33,15 @@ static int ival(char *buff, char **bufcx, int result) {
    return 0;
 }
 
+/* Progress callback for sqlite3_progress_handler — aborts long-running queries */
+static int sqlite_timeout_cb(void *arg)
+{
+    time_t *start = (time_t *)arg;
+    if ((time(NULL) - *start) > mudconf.sqlite_query_limit)
+        return 1;
+    return 0;
+}
+
 FUNCTION(local_fun_sqlite_query)
 {
    time_t start;
@@ -192,14 +201,22 @@ FUNCTION(local_fun_sqlite_query)
 
    sqlite3_exec(sqlite_db, (char *)"PRAGMA foreign_keys = on", 0, (void *)NULL, (char **)NULL);
 
+   argIdx = 4;
+   zTail = fargs[1];
+   start = time( NULL );
+
+   /* Set busy timeout: SQLite retries internally for 100ms before
+    * returning SQLITE_BUSY, avoiding the need for a spin-loop. */
+   sqlite3_busy_timeout(sqlite_db, 100);
+
+   /* Register progress handler: called every ~250 VM instructions.
+    * Aborts the current sqlite3_step() if query_limit is exceeded. */
+   sqlite3_progress_handler(sqlite_db, 250, sqlite_timeout_cb, &start);
+
 #ifdef DEBUG_SQLITE
    printf( "Done\n" );
    printf( "Prepare statement..\n" );
 #endif
-
-   argIdx = 4;
-   zTail = fargs[1];
-   start = time( NULL );
 
    while( zTail[0] != '\0' ) {
       if( ( time( NULL ) - start ) > mudconf.sqlite_query_limit ) {
@@ -270,13 +287,14 @@ FUNCTION(local_fun_sqlite_query)
             safe_str( "#-1 FUNCTION (sqlite_query) EXCEEDED QUERY LIMIT", buff, bufcx );
             break;
          }
-         rVal = sqlite3_step( sqlite_stmt );
-         if( rVal == SQLITE_BUSY ) {
+          rVal = sqlite3_step( sqlite_stmt );
+          if( rVal == SQLITE_BUSY ) {
 #ifdef DEBUG_SQLITE
-            printf( "       busy..\n" );
+             printf( "       busy..\n" );
 #endif
-            continue;
-         }
+             usleep(10000);  /* 10ms — yield before retry */
+             continue;
+          }
          if( rVal == SQLITE_ROW ) {
 #ifdef DEBUG_SQLITE
             printf( "       row ready..\n" );
