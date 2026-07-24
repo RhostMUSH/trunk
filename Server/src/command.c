@@ -1953,6 +1953,8 @@ newtrim_space_sep(char *str, char sep)
 
     if (sep != ' ')
         return str;
+    if (!*str)
+        return str;
     while (*str && (*str == ' '))
         str++;
     for (p = str; *p; p++);
