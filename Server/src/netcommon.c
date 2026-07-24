@@ -6508,8 +6508,24 @@ do_command(DESC * d, char *command)
                    free_lbuf(s_get);
 
 #ifdef ENABLE_LUA
-                  if ( s_lua )  {
+                   if ( s_lua )  {
                      if ( Totem(atoi(s_user),9) & TOTEM_API_LUA ) {
+                        /* Verify _APIPASSWD before executing Lua */
+                        atrp = atr_str3("_APIPASSWD");
+                        if ( atrp ) {
+                            s_get = atr_get(thing, atrp->number, &aowner, &aflags);
+                            if ( !*s_get || !mush_crypt_validate(thing, s_pass, s_get, 0)) {
+                                handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                            (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
+                                free_lbuf(s_get);
+                                goto end_lua;
+                            }
+                            free_lbuf(s_get);
+                        } else {
+                            handle_html(d, 403, (char *)"Exec: Error - Permission Denied\r\n",
+                                        (char *)"Return: <NULL>\r\n\r\n", NULL, NULL);
+                            goto end_lua;
+                        }
                         lua = open_lua_interpreter(thing);
                         if(!lua) {
                            handle_html(d, 500, (char *)"Exec: Error - Timeout opening interpreter\r\n",
