@@ -259,8 +259,14 @@ init_atrcache( void ) {
 
    cpnext = NULL;
    for ( i_cnt = 0; i_cnt < mudconf.atrcachemax; i_cnt++ ) {
-      cp = (ATRCACHE *) malloc(sizeof(ATRCACHE));
-      cp->name = NULL;
+       cp = (ATRCACHE *) malloc(sizeof(ATRCACHE));
+       if (!cp) {
+           STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+               log_text("init_atrcache: malloc failed");
+           ENDLOG
+           abort();
+       }
+       cp->name = NULL;
       cp->s_cache = NULL;
       cp->s_cachebuild = NULL;
       cp->i_interval=3600;
@@ -441,6 +447,12 @@ atr_match1(dbref thing, dbref parent, dbref player, char type,
 
     DPUSH; /* #70 */
     buff2 = malloc(LBUF_SIZE + 1);
+    if (!buff2) {
+        STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+            log_text("atr_match1: malloc failed");
+        ENDLOG
+        abort();
+    }
 
     /* See if we can do it.  Silently fail if we can't. */
 
