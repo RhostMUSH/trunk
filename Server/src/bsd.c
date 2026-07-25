@@ -488,11 +488,13 @@ int make_socket(int port, char* address)
     RETURN(s); /* #1 */
 }
 
-#ifndef HAVE_GETTIMEOFDAY
-#define get_tod(x)	{ (x)->tv_sec = rhost_time(); (x)->tv_usec = 0; }
-#else
-#define get_tod(x)	gettimeofday(x, (struct timezone *)0)
-#endif
+#define get_tod(x)                                           \
+    do {                                                     \
+        struct timespec _ts;                                 \
+        clock_gettime(CLOCK_MONOTONIC, &_ts);                \
+        (x)->tv_sec = _ts.tv_sec;                            \
+        (x)->tv_usec = (int)(_ts.tv_nsec / 1000);            \
+    } while (0)
 
 int maxd;
 
