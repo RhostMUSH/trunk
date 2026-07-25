@@ -1053,10 +1053,13 @@ void door_registerInternalDoorDescriptors(fd_set *input_set,
   int i;
   for (i = 0 ; i < gnDoors ; i++) {
     if (gaDoors[i]->doorStatus == INTERNAL_e) {
-      FD_SET(gaDoors[i]->pDescriptor->cold->door_desc, input_set);
-      FD_SET(gaDoors[i]->pDescriptor->cold->door_desc, output_set);
-      if (gaDoors[i]->pDescriptor->cold->door_desc >= *maxd)
-	(*maxd) = gaDoors[i]->pDescriptor->cold->door_desc + 1;
+      int door_fd = gaDoors[i]->pDescriptor->cold->door_desc;
+      if (door_fd >= 0 && door_fd < FD_SETSIZE) {
+        FD_SET(door_fd, input_set);
+        FD_SET(door_fd, output_set);
+      }
+      if (door_fd >= *maxd)
+	(*maxd) = door_fd + 1;
     }
   }
 }

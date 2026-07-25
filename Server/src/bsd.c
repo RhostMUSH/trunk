@@ -775,7 +775,7 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 		    fds[D_DESCRIPTOR(d)].events |= POLLOUT;
 	    }
 #else
-	    if (D_DESCRIPTOR(d) >= 0) {
+	    if (D_DESCRIPTOR(d) >= 0 && D_DESCRIPTOR(d) < FD_SETSIZE) {
 	        if (!D_INPUT_HEAD(d) && (D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0)
 		    FD_SET(D_DESCRIPTOR(d), &input_set);
 	        if (D_OUTPUT_HEAD(d))
@@ -791,17 +791,17 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
                        active_auths++;
 		       if (d->cold->authdescriptor >= maxd)
 		           maxd = d->cold->authdescriptor + 1;
-		       if (d->cold->authdescriptor >= 0) {
+		       if (d->cold->authdescriptor >= 0 && d->cold->authdescriptor < FD_SETSIZE) {
 		         if (D_FLAGS(d) & (DS_NEED_AUTH_WRITE|DS_AUTH_CONNECTING))
 		           FD_SET(d->cold->authdescriptor, &output_set);
 		         FD_SET(d->cold->authdescriptor, &input_set);
 		       }
-                   }
+                    }
 	        }
 	        if (D_FLAGS(d) & DS_HAS_DOOR) {
 	          if (d->cold->door_desc >= maxd)
 		    maxd = d->cold->door_desc + 1;
-	          if (d->cold->door_desc >= 0) {
+	          if (d->cold->door_desc >= 0 && d->cold->door_desc < FD_SETSIZE) {
 	            if (!d->cold->door_input_head)
 		      FD_SET(d->cold->door_desc, &input_set);
 	            if (d->cold->door_output_head)
