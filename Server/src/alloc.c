@@ -995,7 +995,14 @@ void *_bigpool_alloc(size_t sz, const char *tag, const char *file, int line)
             if (i + 1 > bigpool_peak)
                 bigpool_peak = i + 1;
             if (!bigpool[i].buf || bigpool[i].size < sz) {
-                bigpool[i].buf = realloc(bigpool[i].buf, sz);
+                void *tmp = realloc(bigpool[i].buf, sz);
+                if (!tmp) {
+                    STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+                        log_text("bigpool_alloc: realloc failed");
+                    ENDLOG
+                    abort();
+                }
+                bigpool[i].buf = tmp;
                 bigpool[i].size = sz;
             }
             return bigpool[i].buf;
@@ -1004,6 +1011,12 @@ void *_bigpool_alloc(size_t sz, const char *tag, const char *file, int line)
     for (i = 0; i < BIGPOOL_OVERFLOW_TRACK; i++) {
         if (!bigpool_overflow[i].in_use) {
             bigpool_overflow[i].buf = malloc(sz);
+            if (!bigpool_overflow[i].buf) {
+                STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+                    log_text("bigpool_alloc: overflow malloc failed");
+                ENDLOG
+                abort();
+            }
             bigpool_overflow[i].size = sz;
             bigpool_overflow[i].in_use = 1;
             bigpool_overflow[i].tag = tag;
@@ -1015,7 +1028,14 @@ void *_bigpool_alloc(size_t sz, const char *tag, const char *file, int line)
             return bigpool_overflow[i].buf;
         }
     }
-    return malloc(sz);
+    void *tmp = malloc(sz);
+    if (!tmp) {
+        STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+            log_text("bigpool_alloc: fallthrough malloc failed");
+        ENDLOG
+        abort();
+    }
+    return tmp;
 }
 
 void bigpool_free(void *p)

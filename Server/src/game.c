@@ -2300,6 +2300,8 @@ FDECL(load_game, (int rebooting))
 #endif	/* VMS */
     if (compressed == 0) {
 	if ((f = tf_fopen(infile, O_RDONLY)) == NULL) {
+	    free_mbuf(infile);
+	    free_mbuf(newfile);
 	    RETURN(-1); /* #86 */
         }
     }
@@ -2314,6 +2316,16 @@ FDECL(load_game, (int rebooting))
 	    log_text((char *) "Error loading ");
 	log_text(infile);
 	ENDLOG
+	free_mbuf(infile);
+	free_mbuf(newfile);
+#ifndef VMS
+	if (compressed)
+	    tf_pclose(f);
+	else
+	    tf_fclose(f);
+#else
+	tf_fclose(f);
+#endif
 	RETURN(-1); /* #86 */
     }
     STARTLOG(LOG_STARTUP, "INI", "LOAD")

@@ -99,14 +99,27 @@ ANSISPLIT *_split_alloc_buf(const char *tag, const char *file, int line)
             as_total_allocs++;
             if (i + 1 > as_peak_used)
                 as_peak_used = i + 1;
-            if (!as_pool[i].buf)
+            if (!as_pool[i].buf) {
                 as_pool[i].buf = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+                if (!as_pool[i].buf) {
+                    STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+                        log_text("split_alloc_buf: pool malloc failed");
+                    ENDLOG
+                    abort();
+                }
+            }
             return as_pool[i].buf;
         }
     }
     for (i = 0; i < AS_OVERFLOW_TRACK; i++) {
         if (!as_overflow[i].in_use) {
             as_overflow[i].buf = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+            if (!as_overflow[i].buf) {
+                STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+                    log_text("split_alloc_buf: overflow malloc failed");
+                ENDLOG
+                abort();
+            }
             as_overflow[i].in_use = 1;
             as_overflow[i].tag = tag;
             as_overflow[i].file = file;
@@ -115,7 +128,14 @@ ANSISPLIT *_split_alloc_buf(const char *tag, const char *file, int line)
             return as_overflow[i].buf;
         }
     }
-    return (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+    ANSISPLIT *tmp = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * LBUF_SIZE);
+    if (!tmp) {
+        STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+            log_text("split_alloc_buf: fallthrough malloc failed");
+        ENDLOG
+        abort();
+    }
+    return tmp;
 }
 
 void split_free_buf(ANSISPLIT *p)
