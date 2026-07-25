@@ -145,10 +145,10 @@ void do_teleport(dbref player, dbref cause, int key, char *slist,
       arg1 = slist;
    }
 
-   i_time = time(NULL);
+   i_time = rhost_time();
    i_abort = 0;
    while (con && arg1 && ((dcount < nargs) || (nargs == 1))) {
-      i_timechk = time(NULL);
+      i_timechk = rhost_time();
       /* We allow twice the time check on this */
       if ( (key & TEL_LIST) && (i_timechk > (i_time + (mudconf.cputimechk * 2))) ) {
          notify(player, "@tel/list exceeded the timeout limit");

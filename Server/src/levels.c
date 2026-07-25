@@ -636,7 +636,7 @@ ATTR 	*tst_glb, *format_atr;
 	/* message to player */
 
         chk_stop = mudstate_hot.chkcpu_stopper;
-        mudstate_hot.chkcpu_stopper = time(NULL);
+        mudstate_hot.chkcpu_stopper = rhost_time();
         chkoldstate = mudstate_hot.chkcpu_toggle;
 	cpustopper = 0;
         i_didsave = did_allocate_buff = 0;

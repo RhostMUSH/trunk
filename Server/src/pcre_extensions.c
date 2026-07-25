@@ -340,7 +340,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
   safe_str(strip_ansi(abuf), postbuf, &postp);
   free_lbuf(abuf);
 
-  t_now = time(NULL);
+  t_now = rhost_time();
   for (i = 1; i < nfargs - 1; i += 2) {
     if ( mudstate_hot.chkcpu_toggle )
        break;
@@ -398,7 +398,7 @@ do_regedit(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
       continue;
     }
     do {
-      t_later = time(NULL);
+      t_later = rhost_time();
       /* Copy up to the start of the matched area */
       if ( t_later > (t_now + 5) ) {
          mudstate_hot.chkcpu_toggle = 1;

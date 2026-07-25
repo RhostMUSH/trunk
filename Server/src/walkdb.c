@@ -279,7 +279,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
             if ( mudstate_hot.chkcpu_inline ) {
                i_now = mudstate_hot.now;
             } else {
-               i_now = time(NULL);
+               i_now = rhost_time();
             }
             buff3 = replace_string(BOUND_VAR, objstring, buff2, 0);
             buff3tok = buff3;
@@ -303,7 +303,7 @@ void do_dolist (dbref player, dbref cause, int key, char *list,
                      process_command(player, cause, 0, buff3ptr, cargs, ncargs, InProgram(player), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                   }
                }
-               if ( mudstate_hot.chkcpu_toggle || (time(NULL) > (i_now + 3)) ) {
+               if ( mudstate_hot.chkcpu_toggle || (rhost_time() > (i_now + 3)) ) {
                    if ( !mudstate.breakdolist ) {
                       notify(player, unsafe_tprintf("@dolist/inline:  Aborted for high utilization [nest level %d].", mudstate.dolistnest));
                    }

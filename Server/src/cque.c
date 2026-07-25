@@ -473,7 +473,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
             Q_NARGS(freezepid) = Q_NARGS(point);
-            freezepid->pid = time(NULL);
+            freezepid->pid = rhost_time();
             Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
@@ -553,7 +553,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             freezepid->cause = point->cause;
             freezepid->sem = point->sem;
             Q_NARGS(freezepid) = Q_NARGS(point);
-            freezepid->pid = time(NULL);
+            freezepid->pid = rhost_time();
             Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
@@ -897,7 +897,7 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
                               pid, mtimerlen, (point->waittime - time_ng(NULL))));
                found = 2;
             } else if ( key == 1 ) {
-               if ( (point->waittime + newwait) < (time(NULL) + 10) ) 
+               if ( (point->waittime + newwait) < (rhost_time() + 10) ) 
                   return -1;
                point->waittime += newwait;
                notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
@@ -981,7 +981,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             } else {
                Q_COMM(rewait) = NULL;
             }
-            rewait->waittime = time(NULL) + newwait;
+            rewait->waittime = rhost_time() + newwait;
             for (a = 0; a < NUM_ENV_VARS; a++) {
                 if ( Q_ENV(point)[a] )
                    Q_ENV(rewait)[a] = Q_TEXT(rewait) + (Q_ENV(point)[a] - Q_TEXT(point));
@@ -1056,7 +1056,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             } else {
                Q_COMM(rewait) = NULL;
             }
-            rewait->waittime = time(NULL) + newwait;
+            rewait->waittime = rhost_time() + newwait;
             for (a = 0; a < NUM_ENV_VARS; a++) {
                 if ( Q_ENV(point)[a] )
                    Q_ENV(rewait)[a] = Q_TEXT(rewait) + (Q_ENV(point)[a] - Q_TEXT(point));

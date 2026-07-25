@@ -444,7 +444,7 @@ NDECL(cf_init)
     mudstate.daily_bytesout = 0;	/* Bytes total out for current day */
     mudstate.avg_bytesin = 0;		/* Bytes total in avg */
     mudstate.avg_bytesout = 0;		/* Bytes total out avg */
-    mudstate.reset_daily_bytes = time(NULL); /* Reset marker for daily totals */
+    mudstate.reset_daily_bytes = rhost_time(); /* Reset marker for daily totals */
     mudstate_hot.posesay_dbref = -1;	/* Dbref# of person doing @emit/say/pose */
     mudstate_hot.posesay_fluff = 0;		/* Pose and say fluff */
     mudstate_hot.no_hook = 0;		/* Do not process hooks */
@@ -510,7 +510,7 @@ NDECL(cf_init)
     mudstate_hot.chkcpu_inline = 0;
     memset(mudstate_hot.chkcpu_inlinestr, '\0', SBUF_SIZE);
     mudstate_hot.chkcpu_locktog = 0;
-    mudstate_hot.chkcpu_stopper = time(NULL);
+    mudstate_hot.chkcpu_stopper = rhost_time();
     mudstate.sidefx_currcalls = 0; /* Counter for sideeffects called */
     mudstate_hot.curr_percentsubs = 0; /* Counter for substitutions called */
     mudstate_hot.cntr_reset = time_ng(NULL);
@@ -819,8 +819,8 @@ NDECL(cf_init)
     mudstate.new_vattr = 0;
     mudstate.last_cmd_timestamp = 0;
     mudstate_hot.heavy_cpu_recurse = 0;
-    mudstate_hot.heavy_cpu_tmark1 = time(NULL);
-    mudstate_hot.heavy_cpu_tmark2 = time(NULL);
+    mudstate_hot.heavy_cpu_tmark1 = rhost_time();
+    mudstate_hot.heavy_cpu_tmark2 = mudstate_hot.heavy_cpu_tmark1;
     mudstate_hot.heavy_cpu_lockdown = 0;
     mudstate.max_logins_allowed = 0;
     mudstate.iter_inum = -1;

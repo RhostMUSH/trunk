@@ -2225,7 +2225,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
   static char anon_player[17];
   time_t now1, now2;
 
-  now1 = time(NULL);
+  now1 = rhost_time();
   i_mail_inline = comma_exists = 0;
   spt = mpt = NULL;
   memset(anon_player, 0, sizeof(anon_player));
@@ -2563,7 +2563,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
         term = 0;
       else
         term = 1;
-      now2 = time(NULL);
+      now2 = rhost_time();
       if ( now2 > (now1 + mudconf.cputimechk) ) {
 	  notify_quiet(p2,"MAIL WARNING: Alias recursion exceeded.");
           if ( pt1 && *pt1 ) {

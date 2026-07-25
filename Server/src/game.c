@@ -707,7 +707,7 @@ verify_checksum(dbref thing)
 
 
    /* If CPU time hit or time exceeded just bypass checksum checks */
-   t_tme = time(NULL);
+   t_tme = rhost_time();
    if ( mudstate_hot.chkcpu_toggle || ((mudstate_hot.now + 5) <= t_tme )) {
       return 1;
    }
@@ -1413,7 +1413,7 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
 	if ((key & MSG_ME) && pass_listen && pass_uselock) {
 	    if ( (mudstate_hot.ahear_lastplr == target) &&
                  (mudstate_hot.ahear_count >= mudconf.ahear_maxcount) && 
-	         ((mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) > time(NULL)) ) {
+	         ((mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) > rhost_time()) ) {
                if ( mudstate_hot.ahear_count == mudconf.ahear_maxcount ) {
                   cpulbuf = alloc_lbuf("log_uselock_attrib");
                   sprintf(cpulbuf, "RUNAWAY PROCESS (A*HEAR) by #%d(#%d) [%d/%ds]",

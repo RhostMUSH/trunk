@@ -665,7 +665,7 @@ move_exit(dbref player, dbref exit, int divest, const char *failmsg,
        if ( *atext ) {
           chk_stop = mudstate_hot.chkcpu_stopper;
           chk_tog = mudstate_hot.chkcpu_toggle;
-          mudstate_hot.chkcpu_stopper = time(NULL);
+          mudstate_hot.chkcpu_stopper = rhost_time();
           mudstate_hot.chkcpu_toggle = 0;
           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {
              savereg[x] = alloc_lbuf("ulocal_reg_moveexit");

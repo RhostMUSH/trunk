@@ -1751,7 +1751,7 @@ static void page_return (dbref player, dbref target, const char *tag,
    if (*str) {
       chk_stop = mudstate_hot.chkcpu_stopper;
       chk_tog  = mudstate_hot.chkcpu_toggle;
-      mudstate_hot.chkcpu_stopper = time(NULL);
+      mudstate_hot.chkcpu_stopper = rhost_time();
       mudstate_hot.chkcpu_toggle = 0;
       s_pagebuff[1] = NULL;
       if ( s_pagestr && *s_pagestr ) {
@@ -1763,7 +1763,7 @@ static void page_return (dbref player, dbref target, const char *tag,
       }
       str2 = cpuexec(target, player, player, EV_FCHECK|EV_EVAL|EV_TOP, str,
                      s_pagebuff, i_pagebuff, (char **)NULL, 0);
-      t = time(NULL);
+      t = rhost_time();
       tp = localtime(&t);
       if (*str2) {
          tprp_buff = tpr_buff = alloc_lbuf("page_return");

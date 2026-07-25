@@ -3036,7 +3036,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
    if ( mudstate_hot.chkcpu_inline ) {
       i_now = mudstate_hot.now;
    } else {
-      i_now = time(NULL);
+      i_now = rhost_time();
    }
    mudstate_hot.chkcpu_inline = 1;
    while ( !mudstate_hot.chkcpu_toggle && (i_count > 0) ) {
@@ -3068,7 +3068,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
                process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
             }
          }
-         if ( time(NULL) > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
+         if ( rhost_time() > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
             notify(player, "@rollback:  Aborted for high utilization.");
             mudstate_hot.breakst=1;
             mudstate_hot.chkcpu_toggle =1;
@@ -3296,7 +3296,7 @@ void do_include(dbref player, dbref cause, int key, char *main_string,
    if ( mudstate_hot.chkcpu_inline ) {
       i_now = mudstate_hot.now;
    } else {
-      i_now = time(NULL);
+      i_now = rhost_time();
    }
    s_rollback = alloc_lbuf("s_rollback_include");
    strcpy(s_rollback, mudstate.rollback);
@@ -3323,7 +3323,7 @@ void do_include(dbref player, dbref cause, int key, char *main_string,
          if ( key & INCLUDE_IBREAK )
             mudstate_hot.breakst = i_savebreak;
       }
-      if ( time(NULL) > (i_now + 5) ) {
+      if ( rhost_time() > (i_now + 5) ) {
          notify(player, "@include:  Aborted for high utilization.");
          mudstate_hot.breakst=1;
          break;

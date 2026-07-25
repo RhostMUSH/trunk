@@ -1466,7 +1466,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	attr = atr_num(ca);
 	if (!attr)
 	    continue;
-        endtme = time(NULL);
+        endtme = rhost_time();
         if ( endtme < mudstate_hot.chkcpu_stopper )
            endtme = mudstate_hot.chkcpu_stopper;
         if ( mudstate_hot.chkcpu_toggle || ((endtme - mudstate_hot.chkcpu_stopper) > timechk) ) {
@@ -2281,7 +2281,7 @@ look_in(dbref player, dbref cause, dbref loc, int key)
     } else {
        chk_stop = mudstate_hot.chkcpu_stopper;
        chk_tog = mudstate_hot.chkcpu_toggle;
-       mudstate_hot.chkcpu_stopper = time(NULL);
+       mudstate_hot.chkcpu_stopper = rhost_time();
        mudstate_hot.chkcpu_toggle = 0;
        if ( mudconf.formats_are_local ) {
           for (x = 0; x < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); x++) {

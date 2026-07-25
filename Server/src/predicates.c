@@ -2361,7 +2361,7 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
 	}
 
         chk_stop = mudstate_hot.chkcpu_stopper;
-        mudstate_hot.chkcpu_stopper = time(NULL);
+        mudstate_hot.chkcpu_stopper = rhost_time();
         chkoldstate = mudstate_hot.chkcpu_toggle;
 	cpustopper = 0;
         did_allocate_buff = 0;
@@ -2700,9 +2700,9 @@ void did_it(dbref player, dbref thing, int what, const char *def, int owhat,
                         if ( (awhat == A_AHEAR) || (awhat == A_AAHEAR) || (awhat == A_AMHEAR) ) {
                            mudstate_hot.ahear_count++;
                            mudstate_hot.ahear_lastplr = thing;
-                           if ( (mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) < time(NULL) ) {
+                           if ( (mudstate_hot.ahear_currtime + mudconf.ahear_maxtime) < rhost_time() ) {
                               mudstate_hot.ahear_count = 0;
-                              mudstate_hot.ahear_currtime = time(NULL);
+                              mudstate_hot.ahear_currtime = rhost_time();
                            }
                         }
 			charges = atr_pget(thing, A_CHARGES, &aowner, &aflags);
