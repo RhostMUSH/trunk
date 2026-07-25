@@ -726,7 +726,15 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	timeout.tv_sec = floor(next);
 	timeout.tv_usec = floor(1000000 * fmod(next,(double)mudconf.mtimer / 10.0));
 	next_slice = msec_add(last_slice, mudconf.timeslice);
-	timeval_sub(next_slice, current_time);
+	/* Cap select() timeout so we never sleep past the next timeslice */
+	{
+	    struct timeval rem = timeval_sub(next_slice, current_time);
+	    if (rem.tv_sec < 0)
+		timeout.tv_sec = timeout.tv_usec = 0;
+	    else if (rem.tv_sec < timeout.tv_sec ||
+		     (rem.tv_sec == timeout.tv_sec && rem.tv_usec < timeout.tv_usec))
+		timeout = rem;
+	}
 
 #ifdef TLI
 	for (i = 0; i < maxfds; i++)
