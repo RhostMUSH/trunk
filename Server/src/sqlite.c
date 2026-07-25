@@ -103,9 +103,12 @@ FUNCTION(local_fun_sqlite_query)
     * fargs[0] - LBUF_SIZE - (200 hardlimit)
     * forced free 72 chars
     */
-   getcwd( tempbuff, LBUF_SIZE - 400 );
-   snprintf( dbFullPath, LBUF_SIZE, "%.*s/%s", LBUF_SIZE - 400, tempbuff, mudconf.sqlite_db_path );
-   snprintf( dbFile, LBUF_SIZE, "%.*s/%s/%.200s.sqlite", LBUF_SIZE - 400, tempbuff, mudconf.sqlite_db_path, fargs[0] );
+   /* Cache getcwd — CWD never changes at runtime */
+   static char sqlite_cached_cwd[LBUF_SIZE] = {0};
+   if (!sqlite_cached_cwd[0])
+       getcwd(sqlite_cached_cwd, LBUF_SIZE - 400);
+   snprintf( dbFullPath, LBUF_SIZE, "%.*s/%s", LBUF_SIZE - 400, sqlite_cached_cwd, mudconf.sqlite_db_path );
+   snprintf( dbFile, LBUF_SIZE, "%.*s/%s/%.200s.sqlite", LBUF_SIZE - 400, sqlite_cached_cwd, mudconf.sqlite_db_path, fargs[0] );
 
 #ifdef DEBUG_SQLITE
    printf( "Done\n" );
@@ -203,7 +206,7 @@ FUNCTION(local_fun_sqlite_query)
 
    argIdx = 4;
    zTail = fargs[1];
-   start = time( NULL );
+   start = rhost_time();
 
    /* Set busy timeout: SQLite retries internally for 100ms before
     * returning SQLITE_BUSY, avoiding the need for a spin-loop. */
@@ -219,7 +222,7 @@ FUNCTION(local_fun_sqlite_query)
 #endif
 
    while( zTail[0] != '\0' ) {
-      if( ( time( NULL ) - start ) > mudconf.sqlite_query_limit ) {
+      if( ( rhost_time() - start ) > mudconf.sqlite_query_limit ) {
          safe_str( "#-1 FUNCTION (sqlite_query) EXCEEDED QUERY LIMIT", buff, bufcx );
          break;
       }
@@ -283,7 +286,7 @@ FUNCTION(local_fun_sqlite_query)
 #endif
 
       while(1) {
-         if( ( time( NULL ) - start ) > mudconf.sqlite_query_limit ) {
+         if( ( rhost_time() - start ) > mudconf.sqlite_query_limit ) {
             safe_str( "#-1 FUNCTION (sqlite_query) EXCEEDED QUERY LIMIT", buff, bufcx );
             break;
          }

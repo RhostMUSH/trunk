@@ -1677,7 +1677,7 @@ do_date_conv(char *instr, char *outstr)
    str6 = alloc_lbuf("conv5");
    str7 = alloc_lbuf("conv5");
 
-   time(&tt);
+   tt = rhost_time();
    tbuff = (char *) ctime(&tt);
    tbuff[strlen(tbuff) - 1] = '\0';
    /* Populate date information */

@@ -2252,7 +2252,7 @@ DESC	*d;
         }
         break;
      default:              /* default behavior */
-        time(&now);
+        now = rhost_time();
         DESC_ITER_CONN(d) {
           if (D_PLAYER(d) == player) {
             if (!count || (now - D_LAST_TIME(d)) < dtime) {

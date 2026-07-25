@@ -3441,7 +3441,7 @@ sighandler(int sig)
 		log_text((char *)"Dump complete.");
 	    ENDLOG
 	    fclose(f);
-	    time(&mudstate.mushflat_time);
+	    mudstate.mushflat_time = rhost_time();
 	} else {
 	    STARTLOG(LOG_PROBLEMS, "DMP", "FLAT")
 		log_text((char *)"Unable to open flatfile.");

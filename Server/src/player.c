@@ -310,7 +310,7 @@ int totfail, newfail, totsucc;
 	d = (DESC *)d2;
 	host = d->cold->longaddr;
 	userid = d->cold->userid;
-	time(&tt);
+	tt = rhost_time();
 	time_str = ctime(&tt);
 	time_str[strlen(time_str) - 1] = '\0';
 
@@ -326,7 +326,7 @@ int totfail, newfail, totsucc;
 		record_login(player, 0, time_str, host, &totsucc, &totfail, &newfail);
 		return NOTHING;
 	} 
-	time(&tt);
+	tt = rhost_time();
 	time_str = ctime(&tt);
 	time_str[strlen(time_str) - 1] = '\0';
 
@@ -1436,7 +1436,7 @@ int reg_internal(char *name, char *email, char *dum, int key, char *buff2, char 
     code = 1;
   } else {
     move_object(player, mudconf.start_room);
-    time(&now);
+    now = rhost_time();
     sprintf(buff,"Email: %.1000s, Site: %.1000s, Id: %.1000s, Time: %s",email,d->cold->longaddr,d->cold->userid,ctime(&now));
     *(buff + strlen(buff) -1) = '\0';
     atr_add_raw(player, A_AUTOREG, buff);
@@ -1570,7 +1570,7 @@ void do_register(dbref player, dbref cause, int key, char *name, char *email)
        i_ansi = 1;
        key &= ~REGISTER_ANSI;
     }
-    time(&now);
+    now = rhost_time();
     dtime = 0;
     p2 = player;
     e = NULL;

@@ -219,7 +219,7 @@ void areg_unload(dbref player)
   }
   fclose(dump1);
   notify(player, "Areg: Dump complete.");
-  time(&mudstate.aregflat_time);
+  mudstate.aregflat_time = rhost_time();
 }
 
 int mush_getline(char *buf, size_t maxlen, FILE *fpt)
@@ -385,7 +385,7 @@ void areg_com_add(dbref player, char *newp, char *email, int key)
     areg_add(email,target);
     buff1 = atr_get(target,A_AUTOREG,&owner,&force);
     if (!*buff1) {
-      time(&now);
+      now = rhost_time();
       sprintf(buff1,"Email: %s, Site: , Id: , Time: %s",email,ctime(&now));
       *(buff1 + strlen(buff1) - 1) = '\0';
       atr_add_raw(target,A_AUTOREG,buff1);

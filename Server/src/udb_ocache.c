@@ -252,7 +252,7 @@ cache_init(int width, int depth)
 	/* mark caching system live */
 	cache_initted++;
 
-	time(&cs_ltime);
+	cs_ltime = rhost_time();
 
 	RETURN(0); /* #162 */
 }

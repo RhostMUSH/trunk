@@ -194,7 +194,7 @@ void start_news_system( void )
   struct stat st;
   int statretval;
 
-  time(&now);
+  now = rhost_time();
 
   sprintf(news_db_name, 
 	  "%s/%s.news", mudconf.data_dir, mudconf.muddb_name);
@@ -696,7 +696,7 @@ void news_post(dbref player, dbref cause, int key, char *buf1, char *buf2)
   int tempseq;
   char *tempgroupkeyptr;
 
-  time(&now);
+  now = rhost_time();
 
   /* check for player */
   if( !isPlayer(player) ) {
@@ -944,7 +944,7 @@ void news_repost(dbref player, dbref cause, int key, char *buf1, char *buf2)
   
   int seqkey;
 
-  time(&now);
+  now = rhost_time();
 
   /* check for player */
   if( !isPlayer(player) ) {
@@ -2324,7 +2324,7 @@ void news_extend(dbref player, dbref cause, int key, char *buf1, char *buf2)
   int extendval;
   time_t now;
 
-  time(&now);
+  now = rhost_time();
 
   grouptok = buf1;
   seqtok = strchr(buf1, '/');
@@ -2670,7 +2670,7 @@ void news_groupadd(dbref player, dbref cause, int key, char *buf1, char *buf2)
   time_t now;
   int found = 0;
 
-  time(&now);
+  now = rhost_time();
 
   /* check for player */
   if( !isPlayer(player) ) {
@@ -3506,7 +3506,7 @@ void news_expire(dbref player, dbref cause, int key, char *buf1, char *buf2)
 
   int ga_count = 0;
   
-  time(&now);
+  now = rhost_time();
 
   if( *buf1 ||
       *buf2 ) {
@@ -3743,7 +3743,7 @@ void newsdb_unload(dbref player, dbref cause, int key, char *buf1, char *buf2)
   ENDLOG
 
   notify(player, "News: Done.");
-  time(&mudstate.newsflat_time);
+  mudstate.newsflat_time = rhost_time();
 }
 
 void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)

@@ -7136,7 +7136,7 @@ void mail_unload(dbref player)
     fclose(dump2);
   }
   notify_quiet(player,"Mail: Mail and folder databases unloaded");
-  time(&mudstate.mailflat_time);
+  mudstate.mailflat_time = rhost_time();
 }
 
 void myfgets(char *buf, size_t maxlen, FILE *fpt)

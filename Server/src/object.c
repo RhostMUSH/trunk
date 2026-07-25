@@ -575,7 +575,7 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
     }
 
     if (objtype == TYPE_PLAYER) {
-	time(&tt);
+	tt = rhost_time();
 	buff = (char *) ctime(&tt);
 	buff[strlen(buff) - 1] = '\0';
 	atr_add_raw(obj, A_LAST, buff);
@@ -591,7 +591,7 @@ create_obj(dbref player, int objtype, char *name, char *ansiname, int cost, int 
 	atr_add_raw(obj, A_RQUOTA, "0");
     }
     if ( mudconf.enable_tstamps && !NoTimestamp(obj) ) {
-       i_time = time(&tt);
+       i_time = tt = rhost_time();
        buff = (char *) ctime(&tt);
        buff[strlen(buff) - 1] = '\0';
        atr_add_raw(obj, A_CREATED_TIME, buff);

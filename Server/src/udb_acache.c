@@ -188,7 +188,7 @@ static const char *ncmsg = "cache_init: cannot allocate cache: ";
 	/* mark caching system live */
 	cache_initted++;
 
-	time(&cs_ltime);
+	cs_ltime = rhost_time();
 
 	return(0);
 }

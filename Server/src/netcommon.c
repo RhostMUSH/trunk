@@ -2689,7 +2689,7 @@ announce_connect(dbref player, DESC * d, int dc)
     if (mudconf.rwho_transmit && (mudconf.control_flags & CF_RWHO_XMIT)) {
 	sprintf(buf, "%d@%s", player, mudconf.mud_name);
 	sprintf(tbuf, "%s(%s)", Name(player), Guild(player));
-	rwhocli_userlogin(buf, tbuf, time((time_t *) 0));
+	rwhocli_userlogin(buf, tbuf, rhost_time());
     }
 #endif
     num = 0;
@@ -3499,7 +3499,7 @@ dump_users(DESC * e, char *match, int key)
           }
        }
     }
-    time(&now);
+    now = rhost_time();
 
     if (key == CMD_SESSION) {
         if ( i_attrpipe ) {
@@ -4076,7 +4076,7 @@ do_mudwho(dbref player, dbref cause, int key, char *name, char *mud)
 
     DPUSH; /* #140 */
 
-    time(&now);
+    now = rhost_time();
     players = 0;
 #ifdef PARIS
       notify(player,
@@ -4130,7 +4130,7 @@ do_uptime(dbref player, dbref cause, int key)
 
   DPUSH; /* #141 */
   
-  time(&now);
+  now = rhost_time();
 
   buff = alloc_mbuf("uptime");
   s_uptime = alloc_mbuf("uptime_sys");
@@ -4256,7 +4256,7 @@ do_doing(dbref player, dbref cause, int key, char *arg)
 	  }
 	}
 	else {
-	  time(&now);
+	  now = rhost_time();
 	  gotone = 0;
 	  dtime = 0;
 	  DESC_ITER_PLAYER(player, d) {
@@ -5158,7 +5158,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                free_lbuf(buff);
             ENDLOG
             D_FLAGS(d) |= DS_CONNECTED;
-            d->cold->connected_at = time(0);
+            d->cold->connected_at = rhost_time();
             D_PLAYER(d) = player;
             mudstate.recordcurrconn++;
             if ( mudstate.recordcurrconn > mudstate.recordconn ) {
@@ -5383,7 +5383,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
             move_object(player, mudconf.start_room);
             D_FLAGS(d) |= DS_CONNECTED;
-            d->cold->connected_at = time(0);
+            d->cold->connected_at = rhost_time();
             D_PLAYER(d) = player;
             mudstate.recordcurrconn++;
             if ( mudstate.recordcurrconn > mudstate.recordconn ) {

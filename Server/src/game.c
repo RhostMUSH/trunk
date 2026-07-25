@@ -2243,7 +2243,7 @@ fork_and_dump(int key, char *msg)
             log_text((char*)"Dump complete.");
           ENDLOG
           fclose(f);
-          time(&mudstate.mushflat_time);
+          mudstate.mushflat_time = rhost_time();
           /* This is broke, I don't know why yet */
            reset_signals(); /* All done, resume signal handling. */
         }
@@ -2813,12 +2813,12 @@ main(int argc, char *argv[])
 
     tf_init();
     mindb = 0;			/* Are we creating a new db? */
-    time(&mudstate.start_time);
-    time(&mudstate.reboot_time);
-    time(&mudstate.mushflat_time);
-    time(&mudstate.aregflat_time);
-    time(&mudstate.newsflat_time);
-    time(&mudstate.mailflat_time);
+    mudstate.start_time = rhost_time();
+    mudstate.reboot_time = rhost_time();
+    mudstate.mushflat_time = rhost_time();
+    mudstate.aregflat_time = rhost_time();
+    mudstate.newsflat_time = rhost_time();
+    mudstate.mailflat_time = rhost_time();
 
     pool_init(POOL_LBUF, LBUF_SIZE);
     pool_init(POOL_MBUF, MBUF_SIZE);

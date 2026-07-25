@@ -1395,7 +1395,7 @@ do_pcreate(dbref player, dbref cause, int key, char *name, char *pass)
     }
     name2 = strip_all_special(name3);
     if ( key & PCRE_REG ) {
-       time(&now);
+       now = rhost_time();
        dtime = 0;
        e = NULL;
        goodplayer = NOTHING;

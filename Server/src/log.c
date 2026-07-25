@@ -66,13 +66,13 @@ close_logfile( void )
    struct tm *tp;
    time_t now;
 
-   time((time_t *) (&now));
-   tp = localtime((time_t *) (&now));
-   sprintf(mudstate.buffer, "./oldlogs/%.200s.%02d%02d%02d%02d%02d%02d",
-           mudconf.logdb_name,
-           (tp->tm_year % 100), tp->tm_mon + 1,
-           tp->tm_mday, tp->tm_hour,
-           tp->tm_min, tp->tm_sec);
+    now = rhost_time();
+    tp = localtime(&now);
+    sprintf(mudstate.buffer, "./oldlogs/%.200s.%02d%02d%02d%02d%02d%02d",
+            mudconf.logdb_name,
+            (tp->tm_year % 100), tp->tm_mon + 1,
+            tp->tm_mday, tp->tm_hour,
+            tp->tm_min, tp->tm_sec);
 
    /* Backup the old filename */
 #endif
@@ -94,8 +94,8 @@ init_logfile( void )
    struct tm *tp;
    time_t now;
 
-   time((time_t *) (&now));
-   tp = localtime((time_t *) (&now));
+   now = rhost_time();
+   tp = localtime(&now);
    sprintf(mudstate.buffer, "./oldlogs/%.200s.%02d%02d%02d%02d%02d%02d",
            mudconf.logdb_name,
            (tp->tm_year % 100), tp->tm_mon + 1,
@@ -108,8 +108,8 @@ init_logfile( void )
    }
 
    if ((mudconf.log_info & LOGOPT_TIMESTAMP) != 0) {
-      time((time_t *) (&now));
-      tp = localtime((time_t *) (&now));
+      now = rhost_time();
+      tp = localtime(&now);
       sprintf(mudstate.buffer, "%02d%d%d%d%d.%d%d%d%d%d%d ",
               (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
               (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),
@@ -155,8 +155,8 @@ start_log(const char *primary, const char *secondary)
 	/* Format the timestamp */
 
 	if ((mudconf.log_info & LOGOPT_TIMESTAMP) != 0) {
-	    time((time_t *) (&now));
-	    tp = localtime((time_t *) (&now));
+	    now = rhost_time();
+	    tp = localtime(&now);
 	    sprintf(mudstate.buffer, "%02d%d%d%d%d.%d%d%d%d%d%d ",
 		    (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
 		    (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),

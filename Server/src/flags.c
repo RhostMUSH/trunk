@@ -134,7 +134,7 @@ fh_unfind_bit(dbref target, dbref player, FLAG flag, int fflags, int reset)
 	if (mudconf.rwho_transmit && (mudconf.control_flags & CF_RWHO_XMIT)) {
 	    sprintf(buf, "%d@%.100s", target, mudconf.mud_name);
 	    sprintf(tbuf, "%.30s(%.30s)", Name(target), Guild(target));
-	    rwhocli_userlogin(buf, tbuf, time((time_t *) 0));
+	    rwhocli_userlogin(buf, tbuf, rhost_time());
 	}
     } else {
 	if (mudconf.rwho_transmit &&

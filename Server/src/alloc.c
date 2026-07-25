@@ -799,7 +799,7 @@ showCPUStats(dbref player)
    char *s_buff, *buff;
 
    end = clock();
-   time(&now);
+   now = rhost_time();
 
    buff = alloc_mbuf("showCPUStats_mbuf");
    strcpy(buff, tf_1(now - mudstate.reboot_time));

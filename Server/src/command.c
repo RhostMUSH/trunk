@@ -8530,7 +8530,7 @@ list_db_stats(dbref player)
     DPUSH; /* #52 */
     notify(player,
 	   unsafe_tprintf("DB Cache Stats   Writes       Reads  (over %d seconds)",
-		   time(0) - cs_ltime));
+		   rhost_time() - cs_ltime));
     notify(player, unsafe_tprintf("Calls      %12d%12d", cs_writes, cs_reads));
     notify(player, unsafe_tprintf("Cache Hits %12d%12d  (%d in active cache)",
 			   cs_whits, cs_rhits, cs_ahits));
@@ -10267,9 +10267,9 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
                          strlen(arg1)-3900) );
                if ( index(arg1, ESC_CHAR ) )
                   notify(t_player, "Ansi was detected in @log and was stripped.");
-               lcbuf = alloc_lbuf("process_command.LOG.manual");
-               time(&tt);
-               tp = localtime((time_t *) (&tt));
+                lcbuf = alloc_lbuf("process_command.LOG.manual");
+                tt = rhost_time();
+                tp = localtime((time_t *) (&tt));
                sprintf(lcbuf, "%02d%d%d%d%d.%d%d%d%d%d%d : [%.30s(#%d)] : %.3900s",
                        (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
                        (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),
@@ -10441,7 +10441,7 @@ void do_log(dbref player, dbref cause, int key, char *arg1, char *arg2)
  */
          lcbuf = alloc_lbuf("process_command.LOG.file_manual");
          /* Cut off at 3900 to save the poor little lbuf */
-         time(&tt);
+         tt = rhost_time();
          tp = localtime((time_t *) (&tt));
          sprintf(lcbuf, "%02d%d%d%d%d.%d%d%d%d%d%d : [%.30s(#%d)] : %.3900s %s",
                  (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
@@ -15179,9 +15179,9 @@ do_logrotate(dbref player, dbref cause, int key) {
            free_lbuf(s_tprbuff);
            break;
       default:
-           time((time_t *) (&now));
-           tp = localtime((time_t *) (&now));
-           notify(player, "@logrotate: Rotating old log file...");
+            now = rhost_time();
+            tp = localtime(&now);
+            notify(player, "@logrotate: Rotating old log file...");
            sprintf(mudstate.buffer, "./oldlogs/%.200s.%02d%02d%02d%02d%02d%02d",
                    mudconf.logdb_name,
                    (tp->tm_year % 100), tp->tm_mon + 1,

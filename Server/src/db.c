@@ -3356,7 +3356,7 @@ atr_add(dbref thing, int atr, char *buff, dbref owner, int flags)
     time_t tt;
 
     if ( mudconf.enable_tstamps && !NoTimestamp(thing) ) {
-       time(&tt);
+       tt = rhost_time();
        bufr = (char *) ctime(&tt);
        bufr[strlen(bufr) - 1] = '\0';
        atr_add_raw(thing, A_MODIFY_TIME, bufr);
