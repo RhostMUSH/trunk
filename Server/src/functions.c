@@ -21170,13 +21170,25 @@ FUNCTION(fun_execscript)
    }
 
    i_alttimeout = 0;
-   if ( stat("/usr/bin/timeout", &st_buf) == -1 ) {
-      if ( stat("../bin/timeout", &st_buf) == -1 ) {
-         safe_str("#-1 /usr/bin/timeout nor local timeout not available.  No safty net for pipe execution.", buff, bufcx);
-         free_lbuf(s_combine);
-         return;
-      }
-      i_alttimeout = 1;
+   {
+       static int timeout_bin_cached = 0;
+       static int timeout_bin_alt = 0;
+       if (!timeout_bin_cached) {
+           struct stat _st;
+           if (stat("/usr/bin/timeout", &_st) == 0) {
+               timeout_bin_alt = 0;
+               timeout_bin_cached = 1;
+           } else if (stat("../bin/timeout", &_st) == 0) {
+               timeout_bin_alt = 1;
+               timeout_bin_cached = 1;
+           }
+       }
+       if (!timeout_bin_cached) {
+           safe_str("#-1 /usr/bin/timeout nor local timeout not available.  No safty net for pipe execution.", buff, bufcx);
+           free_lbuf(s_combine);
+           return;
+       }
+       i_alttimeout = timeout_bin_alt;
    }
 
    if ( !*(mudconf.execscripthome) || 
