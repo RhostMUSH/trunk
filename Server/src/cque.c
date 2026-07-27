@@ -260,7 +260,7 @@ halt_que(dbref player, dbref object)
 	    else
 		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -281,7 +281,7 @@ halt_que(dbref player, dbref object)
 		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -360,7 +360,7 @@ ind_pid_func(dbref player, int pid, int func)
 	    else
 		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -396,7 +396,7 @@ ind_pid_func(dbref player, int pid, int func)
 		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -435,7 +435,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             freezepid = alloc_qentry("freeze_pid.qblock");
             freezepid->cold = alloc_bque_cold("freeze_pid.cold");
             if (Q_TEXT(point)) {
-               Q_TEXT(freezepid) = alloc_lbuf("cque_qtext");
+               Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
                Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
                memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
@@ -489,7 +489,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 	    else
 		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -516,7 +516,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             freezepid = alloc_qentry("freeze_pid.qblock");
             freezepid->cold = alloc_bque_cold("freeze_pid.cold");
             if (Q_TEXT(point)) {
-               Q_TEXT(freezepid) = alloc_lbuf("cque_qtext");
+               Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
                Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
                memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
@@ -572,7 +572,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -647,7 +647,7 @@ thaw_pid(dbref player, int pid, int key)
                freezepid = alloc_qentry("thaw_pid.qblock");
                freezepid->cold = alloc_bque_cold("thaw_pid.cold");
                if (Q_TEXT(point)) {
-                  Q_TEXT(freezepid) = alloc_lbuf("cque_qtext");
+                  Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
                   Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
                   memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
                } else {
@@ -695,7 +695,7 @@ thaw_pid(dbref player, int pid, int key)
 	    else
 		mudstate_hot.fqwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -727,7 +727,7 @@ thaw_pid(dbref player, int pid, int key)
                freezepid = alloc_qentry("thaw_pid.qblock");
                freezepid->cold = alloc_bque_cold("thaw_pid.cold");
                if (Q_TEXT(point)) {
-                  Q_TEXT(freezepid) = alloc_lbuf("cque_qtext");
+                  Q_TEXT(freezepid) = (char *) malloc(Q_TEXT_LEN(point));
                   Q_TEXT_LEN(freezepid) = Q_TEXT_LEN(point);
                   memcpy((char *)Q_TEXT(freezepid), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
                } else {
@@ -782,7 +782,7 @@ thaw_pid(dbref player, int pid, int key)
 		mudstate_hot.fqsemlast = trail;
 	    add_to(point->sem, 1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -855,7 +855,7 @@ thaw_pid(dbref player, int pid, int key)
     } else if ( tpid == -1 && (!(key & THAW_DEL) || badpid)) {
         if (freezepid) {
 	    if (Q_TEXT(freezepid))
-		free_lbuf(Q_TEXT(freezepid));
+		free(Q_TEXT(freezepid));
 	    free_bque_cold(freezepid->cold);
 	    free_qentry(freezepid);
         }
@@ -968,7 +968,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             rewait = alloc_qentry("wait_que_pid.qblock");
             rewait->cold = alloc_bque_cold("wait_que_pid.cold");
             if (Q_TEXT(point)) {
-               Q_TEXT(rewait) = alloc_lbuf("cque_qtext");
+               Q_TEXT(rewait) = (char *) malloc(Q_TEXT_LEN(point));
                Q_TEXT_LEN(rewait) = Q_TEXT_LEN(point);
                memcpy((char *)Q_TEXT(rewait), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
@@ -1016,7 +1016,7 @@ wait_que_pid(dbref player, int pid, int newwait)
 	    else
 		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1043,7 +1043,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             rewait = alloc_qentry("wait_que_pid.qblock");
             rewait->cold = alloc_bque_cold("wait_que_pid.cold");
             if (Q_TEXT(point)) {
-               Q_TEXT(rewait) = alloc_lbuf("cque_qtext");
+               Q_TEXT(rewait) = (char *) malloc(Q_TEXT_LEN(point));
                Q_TEXT_LEN(rewait) = Q_TEXT_LEN(point);
                memcpy((char *)Q_TEXT(rewait), (char *)Q_TEXT(point), Q_TEXT_LEN(point));
             } else {
@@ -1093,7 +1093,7 @@ wait_que_pid(dbref player, int pid, int newwait)
 	    if (point == mudstate_hot.qsemlast)
 		mudstate_hot.qsemlast = trail;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1224,7 +1224,7 @@ halt_que_pid(dbref player, int pid, int key)
 	    else
 		mudstate_hot.qwait = next = point->next;
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1274,7 +1274,7 @@ halt_que_pid(dbref player, int pid, int key)
 		mudstate_hot.qsemlast = trail;
 	    add_to(point->sem, -1, A_SEMAPHORE);
 	    if (Q_TEXT(point))
-		free_lbuf(Q_TEXT(point));
+		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
 	    free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1352,7 +1352,7 @@ halt_que_all(void)
 	a_Queue(Owner(point->player), -1);
 	next = point->next;
 	if (Q_TEXT(point))
-	    free_lbuf(Q_TEXT(point));
+	    free(Q_TEXT(point));
         Q_TEXT(point)=NULL;
 	free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1368,7 +1368,7 @@ halt_que_all(void)
         if ( point->pid == kick_pid ) {
            mudstate_hot.qsemfirst = point->next;
            if (Q_TEXT(point))
-               free_lbuf(Q_TEXT(point));
+               free(Q_TEXT(point));
            Q_TEXT(point) = NULL;
            free_bque_cold(point->cold);
            free_qentry(point);
@@ -1380,7 +1380,7 @@ halt_que_all(void)
 	next = point->next;
 	add_to(point->sem, -1, A_SEMAPHORE);
 	if (Q_TEXT(point))
-	    free_lbuf(Q_TEXT(point));
+	    free(Q_TEXT(point));
         Q_TEXT(point)=NULL;
 	free_bque_cold(point->cold);
 	    free_qentry(point);
@@ -1545,7 +1545,7 @@ nfy_que(dbref sem, int key, int count, int pid_val)
 		    a_Queue(Owner(point->player), -1);
 		  }
 		    if (Q_TEXT(point))
-			free_lbuf(Q_TEXT(point));
+			free(Q_TEXT(point));
                     Q_TEXT(point)=NULL;
 		    pid_table[point->pid] = 0;
 		    free_bque_cold(point->cold);
@@ -1758,8 +1758,10 @@ setup_que(dbref player, dbref cause, char *command,
 	Q_SCRNAME(tmp)[a] = NULL;
     }
 
-    tptr = Q_TEXT(tmp) = alloc_lbuf("setup_que.text");
+    tptr = Q_TEXT(tmp) = (char *) malloc(tlen);
     Q_TEXT_LEN(tmp) = tlen;
+    if (!tptr)
+	abort();
 
     if (command) {
 	strcpy(tptr, command);
@@ -2296,7 +2298,7 @@ do_top(int ncmds)
 	if (!mudstate_hot.qfirst)
 	    mudstate_hot.qlast = NULL;
 	if (Q_TEXT(tmp))
-	    free_lbuf(Q_TEXT(tmp));
+	    free(Q_TEXT(tmp));
 	free_bque_cold(tmp->cold);
 	    free_qentry(tmp);
         mudstate_hot.curr_cmd = (char *) "";
