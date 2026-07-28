@@ -2240,32 +2240,16 @@ char * trim_space_sep(char *str, char sep)
 /* Safe atof() function */
 double safe_atof(char *input)
 {
-   static char safe_buff[301];
-   char *safe_buffptr;
-   int i_vert, i_vert2;
+    char *end;
+    long val;
 
-   memset(safe_buff, 0, sizeof(safe_buff));
-   safe_buffptr = strchr(input, 'e');
-   if ( safe_buffptr == NULL )
-      safe_buffptr = strchr(input, 'E');
-   if ( safe_buffptr != NULL ) {
-      i_vert = i_vert2 = 0;
-      i_vert2 = strlen(input) - strlen(safe_buffptr+1);
-      if ( i_vert2 > 90 )
-         i_vert2 = 90;
-      i_vert = atoi(safe_buffptr+1);
-      strncpy(safe_buff, input, i_vert2);
-      if ( i_vert > 300 ) {
-         strcat(safe_buff, "300");
-      } else if ( i_vert < -300 ) {
-         strcat(safe_buff, "-300");
-      } else {
-         strncat(safe_buff, safe_buffptr+1, 4);
-      }
-   } else {
-      strncpy(safe_buff, input, 100);
-   }
-   return(atof(safe_buff));
+    val = strtol(input, &end, 10);
+    while (isspace((unsigned char)*end))
+        end++;
+    if (*end == '\0')
+        return (double)val;
+
+    return strtod(input, &end);
 }
 /* Soundex functionality */
 /* Borrowed from PENN with permission */
@@ -10517,15 +10501,24 @@ FUNCTION(fun_rand)
 
 FUNCTION(fun_abs)
 {
-    double num;
-
-    num = safe_atof(fargs[0]);
-    if (num == 0.0) {
-       safe_str("0", buff, bufcx);
-    } else if (num < 0.0) {
-       fval(buff, bufcx, -num);
-    } else {
-       fval(buff, bufcx, num);
+    {
+        char *end;
+        long val = strtol(fargs[0], &end, 10);
+        while (isspace((unsigned char)*end)) end++;
+        if (*end == '\0') {
+            ival(buff, bufcx, val < 0 ? -val : val);
+            return;
+        }
+    }
+    {
+        double num = safe_atof(fargs[0]);
+        if (num == 0.0) {
+            safe_str("0", buff, bufcx);
+        } else if (num < 0.0) {
+            fval(buff, bufcx, -num);
+        } else {
+            fval(buff, bufcx, num);
+        }
     }
 }
 
@@ -10568,15 +10561,29 @@ FUNCTION(fun_strip)
 
 FUNCTION(fun_sign)
 {
-    double num;
-
-    num = safe_atof(fargs[0]);
-    if (num < 0)
-       safe_str("-1", buff, bufcx);
-    else if (num > 0)
-       safe_str("1", buff, bufcx);
-    else
-       safe_str("0", buff, bufcx);
+    {
+        char *end;
+        long val = strtol(fargs[0], &end, 10);
+        while (isspace((unsigned char)*end)) end++;
+        if (*end == '\0') {
+            if (val < 0)
+                safe_str("-1", buff, bufcx);
+            else if (val > 0)
+                safe_str("1", buff, bufcx);
+            else
+                safe_str("0", buff, bufcx);
+            return;
+        }
+    }
+    {
+        double num = safe_atof(fargs[0]);
+        if (num < 0)
+            safe_str("-1", buff, bufcx);
+        else if (num > 0)
+            safe_str("1", buff, bufcx);
+        else
+            safe_str("0", buff, bufcx);
+    }
 }
 
 /* ---------------------------------------------------------------------------
@@ -23738,9 +23745,13 @@ xlate_double(char *arg)
        temp2++;
     if (!*temp2)
        return 0;
-    if (is_float2(temp2))
-       return safe_atof(temp2);
-    return 1;
+     {
+        char *chk;
+        double d = strtod(temp2, &chk);
+        if (*chk == '\0')
+            return d;
+     }
+     return 1;
 }
 
 int
@@ -24048,7 +24059,25 @@ FUNCTION(fun_gt)
        safe_chr(']', buff, bufcx);
        return;
     }
-  
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if (!(i_ret = (vals[i-1] > vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
+    }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
        if ( !(i_ret = (safe_atof(fargs[i-1]) > safe_atof(fargs[i]))) )
@@ -24066,6 +24095,25 @@ FUNCTION(fun_gte)
        ival(buff, bufcx, nfargs);
        safe_chr(']', buff, bufcx);
        return;
+    }
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if (!(i_ret = (vals[i-1] >= vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
     }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
@@ -24085,6 +24133,25 @@ FUNCTION(fun_lt)
        safe_chr(']', buff, bufcx);
        return;
     }
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if (!(i_ret = (vals[i-1] < vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
+    }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
        if ( !(i_ret = (safe_atof(fargs[i-1]) < safe_atof(fargs[i]))) )
@@ -24102,6 +24169,25 @@ FUNCTION(fun_lte)
        ival(buff, bufcx, nfargs);
        safe_chr(']', buff, bufcx);
        return;
+    }
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if (!(i_ret = (vals[i-1] <= vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
     }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
@@ -24121,6 +24207,25 @@ FUNCTION(fun_eq)
        safe_chr(']', buff, bufcx);
        return;
     }
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if (!(i_ret = (vals[i-1] == vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
+    }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
        if ( !(i_ret = (safe_atof(fargs[i-1]) == safe_atof(fargs[i]))) )
@@ -24138,6 +24243,25 @@ FUNCTION(fun_neq)
        ival(buff, bufcx, nfargs);
        safe_chr(']', buff, bufcx);
        return;
+    }
+    {
+        long vals[MAX_ARGS];
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            vals[i] = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+        }
+        if (i == nfargs) {
+            i_ret = 0;
+            for (i = 1; i < nfargs; i++) {
+                if ((i_ret = (vals[i-1] != vals[i])))
+                    break;
+            }
+            ival(buff, bufcx, i_ret);
+            return;
+        }
     }
     i_ret = 0;
     for (i=1; i < nfargs; i++) {
@@ -24859,84 +24983,147 @@ FUNCTION(fun_avg)
 
 FUNCTION(fun_add)
 {
-    double sum;
-    int i, got_one;
+    int i;
 
-    sum = 0;
-    for (i = 0, got_one = 0; i < nfargs; i++) {
-        sum = sum + safe_atof(fargs[i]);
-        if (i > 0)
-            got_one = 1;
+    if (nfargs < 2) {
+        safe_str("#-1 FUNCTION (ADD) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+        ival(buff, bufcx, nfargs);
+        safe_chr(']', buff, bufcx);
+        return;
     }
-    if (!got_one) {
-       safe_str("#-1 FUNCTION (ADD) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
-       ival(buff, bufcx, nfargs);
-       safe_chr(']', buff, bufcx);
-    } else
-       fval(buff, bufcx, sum);
-    return;
+    {
+        long sum = 0;
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            long val = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+            sum += val;
+        }
+        if (i == nfargs) {
+            ival(buff, bufcx, sum);
+            return;
+        }
+    }
+    {
+        double sum = 0;
+        for (i = 0; i < nfargs; i++)
+            sum += safe_atof(fargs[i]);
+        fval(buff, bufcx, sum);
+    }
 }
 
 FUNCTION(fun_sub)
 {
-    double sum;
-    int got_one, i;
+    int i;
 
-    sum = 0;
-    for (i = 0, got_one = 0; i < nfargs; i++) {
-        if ( i == 0 )
-           sum = safe_atof(fargs[i]);
-        else
-           sum = sum - safe_atof(fargs[i]);
-        if (i > 0)
-            got_one = 1;
+    if (nfargs < 2) {
+        safe_str("#-1 FUNCTION (SUB) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+        ival(buff, bufcx, nfargs);
+        safe_chr(']', buff, bufcx);
+        return;
     }
-    if (!got_one) {
-       safe_str("#-1 FUNCTION (SUB) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
-       ival(buff, bufcx, nfargs);
-       safe_chr(']', buff, bufcx);
-    } else
-       fval(buff, bufcx, sum);
-
-/*  fval(buff, bufcx, safe_atof(fargs[0]) - safe_atof(fargs[1])); */
+    {
+        long sum = 0;
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            long val = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+            if (i == 0)
+                sum = val;
+            else
+                sum -= val;
+        }
+        if (i == nfargs) {
+            ival(buff, bufcx, sum);
+            return;
+        }
+    }
+    {
+        double sum = 0;
+        for (i = 0; i < nfargs; i++) {
+            if (i == 0)
+                sum = safe_atof(fargs[i]);
+            else
+                sum -= safe_atof(fargs[i]);
+        }
+        fval(buff, bufcx, sum);
+    }
 }
 
 FUNCTION(fun_mul)
 {
-    int i, got_one;
-    double prod;
+    int i;
 
-    prod = 1;
-    for (i = 0, got_one = 0; i < nfargs; i++) {
-       prod = prod * safe_atof(fargs[i]);
-       if (i > 0)
-           got_one = 1;
+    if (nfargs < 2) {
+        safe_str("#-1 FUNCTION (MUL) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
+        ival(buff, bufcx, nfargs);
+        safe_chr(']', buff, bufcx);
+        return;
     }
-    if (!got_one) {
-       safe_str("#-1 FUNCTION (MUL) EXPECTS 2 OR MORE ARGUMENTS [RECEIVED ", buff, bufcx);
-       ival(buff, bufcx, nfargs);
-       safe_chr(']', buff, bufcx);
-    } else
-       fval(buff, bufcx, prod);
-    return;
+    {
+        long prod = 1;
+        for (i = 0; i < nfargs; i++) {
+            char *end;
+            long val = strtol(fargs[i], &end, 10);
+            while (isspace((unsigned char)*end)) end++;
+            if (*end != '\0')
+                break;
+            prod *= val;
+        }
+        if (i == nfargs) {
+            ival(buff, bufcx, prod);
+            return;
+        }
+    }
+    {
+        double prod = 1;
+        for (i = 0; i < nfargs; i++)
+            prod *= safe_atof(fargs[i]);
+        fval(buff, bufcx, prod);
+    }
 }
 
 FUNCTION(fun_floor)
 {
-    char *tempbuff;
-
-    tempbuff = alloc_lbuf("floor");
-    sprintf(tempbuff, "%.0f", floor(safe_atof(fargs[0])));
-    safe_str(tempbuff, buff, bufcx);
-    free_lbuf(tempbuff);
+    {
+        char *end;
+        long val = strtol(fargs[0], &end, 10);
+        while (isspace((unsigned char)*end)) end++;
+        if (*end == '\0') {
+            ival(buff, bufcx, val);
+            return;
+        }
+    }
+    {
+        char *tempbuff;
+        tempbuff = alloc_lbuf("floor");
+        sprintf(tempbuff, "%.0f", floor(safe_atof(fargs[0])));
+        safe_str(tempbuff, buff, bufcx);
+        free_lbuf(tempbuff);
+    }
 }
 FUNCTION(fun_ceil)
 {
-    char *tempbuff;
-    tempbuff = alloc_lbuf("ceil");
-    sprintf(tempbuff, "%.0f", ceil(safe_atof(fargs[0])));
-    safe_str(tempbuff, buff, bufcx);
-    free_lbuf(tempbuff);
+    {
+        char *end;
+        long val = strtol(fargs[0], &end, 10);
+        while (isspace((unsigned char)*end)) end++;
+        if (*end == '\0') {
+            ival(buff, bufcx, val);
+            return;
+        }
+    }
+    {
+        char *tempbuff;
+        tempbuff = alloc_lbuf("ceil");
+        sprintf(tempbuff, "%.0f", ceil(safe_atof(fargs[0])));
+        safe_str(tempbuff, buff, bufcx);
+        free_lbuf(tempbuff);
+    }
 }
 FUNCTION(fun_round)
 {
