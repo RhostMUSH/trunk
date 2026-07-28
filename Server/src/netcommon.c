@@ -2376,27 +2376,44 @@ queue_write(DESC * d, const char *b, int n)
 void 
 queue_string(DESC * d, const char *s)
 {
-    char *new;
+    char *new = (char *)s;
+    int has_ansi;
 
     DPUSH; /* #119 */
 
-    if ( !d )
+    if ( !d || !s )
        VOIDRETURN;
-    new = (char *) s;
-    if (new && (!D_PLAYER(d) || !ShowAnsi(D_PLAYER(d))) && index(new, ESC_CHAR))
-        new = strip_ansi(new);
-    else if (new && !ShowAnsiTrueColor(D_PLAYER(d)) && index(new, ESC_CHAR))
+
+    if (!D_PLAYER(d) || !ShowAnsi(D_PLAYER(d))) {
+        if (index(new, ESC_CHAR))
+            new = strip_ansi(new);
+        queue_write(d, new, strlen(new));
+        VOIDRETURN;
+    }
+
+    has_ansi = index(new, ESC_CHAR) != NULL;
+
+    if (has_ansi && !ShowAnsiTrueColor(D_PLAYER(d))) {
         new = strip_ansi_truecolor(new);
-    if (new && !ShowAnsiXterm(D_PLAYER(d)) && index(new, ESC_CHAR))
+        has_ansi = index(new, ESC_CHAR) != NULL;
+    }
+    if (has_ansi && !ShowAnsiXterm(D_PLAYER(d))) {
         new = strip_ansi_xterm(new);
-    if (new && !ShowAnsiColor(D_PLAYER(d)) && index(new, ESC_CHAR))
+        has_ansi = index(new, ESC_CHAR) != NULL;
+    }
+    if (has_ansi && !ShowAnsiColor(D_PLAYER(d))) {
         new = strip_ansi_color(new);
-    if (NoFlash(D_PLAYER(d)) && index(new, ESC_CHAR))
-	new = strip_ansi_flash(new);
-    if (NoUnderline(D_PLAYER(d)) && index(new, ESC_CHAR))
-	new = strip_ansi_underline(new);
-    if (new)
-	queue_write(d, new, strlen(new));
+        has_ansi = index(new, ESC_CHAR) != NULL;
+    }
+    if (has_ansi && NoFlash(D_PLAYER(d))) {
+        new = strip_ansi_flash(new);
+        has_ansi = index(new, ESC_CHAR) != NULL;
+    }
+    if (has_ansi && NoUnderline(D_PLAYER(d))) {
+        new = strip_ansi_underline(new);
+    }
+
+    queue_write(d, new, strlen(new));
     VOIDRETURN; /* #119 */
 }
 
