@@ -165,17 +165,46 @@ double mush_pivot_time_t (const time_t * now, double *_t)
     return t;
 }
 
+/* Count of numbers in [from, to-1] divisible by d */
+static long long div_count(long long from, long long to, long long d)
+{
+    long long first, rem;
+    if (from >= to) return 0;
+    rem = from % d;
+    first = from;
+    if (rem)
+        first += (rem > 0 ? d - rem : -rem);
+    if (first >= to) return 0;
+    return (to - 1 - first) / d + 1;
+}
+
+/* Number of leap years (proleptic Gregorian) in [from, to-1] */
+static long long leap_count(long long from, long long to)
+{
+    if (from >= to) return 0;
+    return div_count(from, to, 4)
+         - div_count(from, to, 100)
+         + div_count(from, to, 400);
+}
+
+/* Days in a given calendar year (1970 = year 1970) */
+static long long days_in_year(long long y)
+{
+    return LEAP_CHECK(y - 1900) ? 366 : 365;
+}
+
 static struct tm *_mush_gmtime64_r (const time_t * now, double *_t, struct tm *p)
 {
-    int v_tm_sec, v_tm_min, v_tm_hour, v_tm_mon, v_tm_wday, v_tm_tday;
+    int v_tm_sec, v_tm_min, v_tm_hour, v_tm_mon, v_tm_wday;
+    long long v_tm_tday;
     int leap;
     double t;
-    long m;
+    long long m;
     t = mush_pivot_time_t (now, _t);
-    if ( t > 182000000000000.0 )
-       t = 182000000000000.0;
-    if ( t < -182000000000000.0 )
-       t = -182000000000000.0;
+    if ( t > 6.7e16 )
+       t = 6.7e16;
+    if ( t < -6.7e16 )
+       t = -6.7e16;
     v_tm_sec = fmod(t,60);
     t /= 60;
     v_tm_min = fmod(t,60);
@@ -188,34 +217,66 @@ static struct tm *_mush_gmtime64_r (const time_t * now, double *_t, struct tm *p
     WRAP (v_tm_hour, v_tm_tday, 24);
     if ((v_tm_wday = (v_tm_tday + 4) % 7) < 0)
         v_tm_wday += 7;
-    m = (long) v_tm_tday;
+    m = (long long) v_tm_tday;
+
     if (m >= 0) {
-        p->tm_year = 70;
-        leap = LEAP_CHECK (p->tm_year);
-        while (m >= (long) days[leap + 2][12]) {
-            m -= (long) days[leap + 2][12];
-            p->tm_year++;
-            leap = LEAP_CHECK (p->tm_year);
+        long long year = 1970 + (long long)((double)m / 365.2425);
+        if (year < 1970) year = 1970;
+
+        long long leaps = leap_count(1970, year);
+        long long days_to_year = (year - 1970) * 365 + leaps;
+
+        while (1) {
+            long long dys = days_in_year(year);
+            if (days_to_year + dys <= m) {
+                days_to_year += dys;
+                year++;
+            } else break;
         }
+        while (days_to_year > m && year > 1970) {
+            year--;
+            days_to_year -= days_in_year(year);
+        }
+
+        p->tm_year = year - 1900;
+        leap = LEAP_CHECK(p->tm_year);
+        m = m - days_to_year;
+    } else {
+        long long year = 1970 + (long long)((double)m / 365.2425) - 1;
+
+        long long leaps = leap_count(year, 1970);
+        long long days_to_year = (year - 1970) * 365 - leaps;
+
+        while (1) {
+            long long dys = days_in_year(year);
+            if (days_to_year + dys <= m) {
+                days_to_year += dys;
+                year++;
+            } else break;
+        }
+        while (days_to_year > m) {
+            year--;
+            days_to_year -= days_in_year(year);
+        }
+
+        p->tm_year = year - 1900;
+        leap = LEAP_CHECK(p->tm_year);
+        m = m - days_to_year;
+    }
+
+    if (m >= 0) {
         v_tm_mon = 0;
-        while (m >= (long) days[leap][v_tm_mon]) {
-            m -= (long) days[leap][v_tm_mon];
+        while (m >= (long long) days[leap][v_tm_mon]) {
+            m -= (long long) days[leap][v_tm_mon];
             v_tm_mon++;
         }
     } else {
-        p->tm_year = 69;
-        leap = LEAP_CHECK (p->tm_year);
-        while (m < (long) -days[leap + 2][12]) {
-            m += (long) days[leap + 2][12];
-            p->tm_year--;
-            leap = LEAP_CHECK (p->tm_year);
-        }
         v_tm_mon = 11;
-        while (m < (long) -days[leap][v_tm_mon]) {
-            m += (long) days[leap][v_tm_mon];
+        while (m < (long long) -days[leap][v_tm_mon]) {
+            m += (long long) days[leap][v_tm_mon];
             v_tm_mon--;
         }
-        m += (long) days[leap][v_tm_mon];
+        m += (long long) days[leap][v_tm_mon];
     }
     p->tm_mday = (int) m + 1;
     p->tm_yday = days[leap + 2][v_tm_mon] + m;
