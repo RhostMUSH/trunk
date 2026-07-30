@@ -3744,11 +3744,13 @@ dump_users(DESC * e, char *match, int key)
 	    doingAnsiBufp = doingAnsiBuf;
 	    doingAccentBufp = doingAccentBuf;
 	    doingUtfBufp = doingUtfBuf;
-	    parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
-            if ( !Accents(D_PLAYER(e)) ) {
-               strcpy(doingAccentBuf, strip_safe_accents(doingAnsiBuf));
-            }
-	    pDoing = doingAccentBuf;
+ 	    parse_ansi(d->cold->doing, doingAnsiBuf, &doingAnsiBufp, doingAccentBuf, &doingAccentBufp, doingUtfBuf, &doingUtfBufp);
+            if ( UTF8(D_PLAYER(e)) || (Accents(D_PLAYER(e)) && (e->cold->client_caps & CLIENT_CAP_UNICODE)) )
+                pDoing = doingUtfBuf;
+            else if ( Accents(D_PLAYER(e)) )
+                pDoing = doingAccentBuf;
+            else
+                pDoing = strip_safe_accents(doingAnsiBuf);
 #else
 	    pDoing = d->cold->doing;
 #endif
