@@ -1682,28 +1682,38 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                     break;
                 }
             }
-        } else {
+         } else {
             if ( accent_toggle ) {
                ch1 = AccentCombo1[(int)*string];
                if ( ch1 > 0 ) {
                   ch = AccentCombo3[(int)(ch1 - 1)][(int)ch2];
-                  if ( !mux_isprint[(int)ch] ) 
+                  if ( !mux_isprint[(int)ch] ) {
                      safe_chr(*string, buff2, &bufc2);
-                  else {
-                     if ( ((int)ch == 253) || ((int)ch == 255))
+                     safe_chr(*string, buff_utf, &bufc_utf);
+                  } else {
+                     if ( ((int)ch == 253) || ((int)ch == 255)) {
                         safe_chr('y', buff2, &bufc2);
-                     else
+                        safe_chr('y', buff_utf, &bufc_utf);
+                     } else {
                         safe_chr(ch, buff2, &bufc2);
+                        if ( (unsigned char)ch >= 0x80 ) {
+                           safe_chr(0xC0 | ((unsigned char)ch >> 6), buff_utf, &bufc_utf);
+                           safe_chr(0x80 | ((unsigned char)ch & 0x3F), buff_utf, &bufc_utf);
+                        } else {
+                           safe_chr(ch, buff_utf, &bufc_utf);
+                        }
+                     }
                   }
                } else {
                   safe_chr(*string, buff2, &bufc2);
+                  safe_chr(*string, buff_utf, &bufc_utf);
                }
             } else {
                safe_chr(*string, buff2, &bufc2);
+               safe_chr(*string, buff_utf, &bufc_utf);
             }
             safe_chr(*string, buff, &bufc);
-            safe_chr(*string, buff_utf, &bufc_utf);
-        }
+         }
         if ( *string )
            string++;
     }

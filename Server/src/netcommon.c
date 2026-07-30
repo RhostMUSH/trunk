@@ -2115,12 +2115,12 @@ raw_broadcast(va_alist)
            if ( i_nowalls && (Flags2(D_PLAYER(d)) & NO_WALLS) ) 
               continue;
 #ifdef ZENTY_ANSI
-		   if ( UTF8(D_PLAYER(d)) )
-			  queue_string(d, msg_utf);
-           else if ( Accents(D_PLAYER(d) ) )
-              queue_string(d, msg_ns2);
+ 		   if ( UTF8(D_PLAYER(d)) || (Accents(D_PLAYER(d)) && (d->cold->client_caps & CLIENT_CAP_UNICODE)) )
+ 			  queue_string(d, msg_utf);
+           else if ( Accents(D_PLAYER(d)) )
+               queue_string(d, msg_ns2);
            else
-	      queue_string(d, strip_safe_accents(message));
+ 	      queue_string(d, strip_safe_accents(message));
 #else	   
 	   queue_string(d, buff);
 #endif	   
@@ -3563,7 +3563,7 @@ dump_users(DESC * e, char *match, int key)
            parse_ansi(mudstate.ng_doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
 		   *mp_utf = '\0';
-		   if ( UTF8(D_PLAYER(e)) ) {
+		   if ( UTF8(D_PLAYER(e)) || (Accents(D_PLAYER(e)) && (e->cold->client_caps & CLIENT_CAP_UNICODE)) ) {
                 if (i_attrpipe) {
                    safe_str(msg_utf, atext, &atextptr);
                 }
@@ -3571,7 +3571,7 @@ dump_users(DESC * e, char *match, int key)
                     queue_string(e, msg_utf);   
                 }			  
            } else if ( Accents(D_PLAYER(e)) ) {
-	          if (i_attrpipe) {
+ 	          if (i_attrpipe) {
                    safe_str(msg_ns2, atext, &atextptr);
                 }
                 if (i_pipetype) {
@@ -3582,7 +3582,7 @@ dump_users(DESC * e, char *match, int key)
                  safe_str(strip_safe_accents(abuf), atext, &atextptr);
               } 
               if ( i_pipetype ) {
-	             queue_string(e, strip_safe_accents(abuf));
+ 	             queue_string(e, strip_safe_accents(abuf));
               }
            }
 		   free_lbuf(msg_utf);
@@ -3605,22 +3605,22 @@ dump_users(DESC * e, char *match, int key)
            parse_ansi(mudstate.doing_hdr, abuf, &abufp, msg_ns2, &mp2, msg_utf, &mp_utf);
            *mp2 = '\0';
 		   *mp_utf = '\0';
-		   if ( UTF8(D_PLAYER(e)) ) {
+		   if ( UTF8(D_PLAYER(e)) || (Accents(D_PLAYER(e)) && (e->cold->client_caps & CLIENT_CAP_UNICODE)) ) {
 			  if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_utf),
                           atext, &atextptr);
               } 
               if ( i_pipetype ) {
-	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+ 	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                               mudstate.guild_hdr, msg_utf));
               }
            } else if ( Accents(D_PLAYER(e)) ) {
-	          if ( i_attrpipe ) {
+ 	          if ( i_attrpipe ) {
                  safe_str(safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", mudstate.guild_hdr, msg_ns2),
                           atext, &atextptr);
               } 
               if ( i_pipetype ) {
-	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
+ 	         queue_string(e, safe_tprintf(tpr_buff, &tprp_buff, "%-11s %s", 
                               mudstate.guild_hdr, msg_ns2));
               }
            } else {
