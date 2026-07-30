@@ -1131,13 +1131,18 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
            *mp = '\0';
            *mp2 = '\0';
            *mp_utf = '\0';
-           if ( !port ) {
-              if ( UTF8(target) ) {
-                 memcpy(msg_ns, msg_utf, LBUF_SIZE);
-              } else if ( Accents(target) ) {
-                 memcpy(msg_ns, msg_ns2, LBUF_SIZE);
-              } 
-           }
+            if ( !port ) {
+               if ( UTF8(target) ) {
+                  memcpy(msg_ns, msg_utf, LBUF_SIZE);
+               } else if ( Accents(target) ) {
+                  int use_utf8 = 0;
+                  DESC *dt, *dnext;
+                  DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                     if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                  }
+                  memcpy(msg_ns, use_utf8 ? msg_utf : msg_ns2, LBUF_SIZE);
+               } 
+            }
        } else
 #endif
            safe_str((char *) msg, msg_ns, &mp);
@@ -1233,26 +1238,31 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
                     
                     if ( UTF8(target) ) {
-                       raw_notify(target, vap[2], port, 1);
-                    } else if ( Accents(target) ) {
-                       raw_notify(target, vap[1], port, 1);
-                    } else {
-                       raw_notify(target, vap[0], port, 1);
-                    }
-                    free_lbuf(vap[0]);
-                    free_lbuf(vap[1]);
-                    free_lbuf(vap[2]);
+                        raw_notify(target, vap[2], port, 1);
+                     } else if ( Accents(target) ) {
+                        int use_utf8 = 0;
+                        DESC *dt, *dnext;
+                        DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                           if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                        }
+                        raw_notify(target, use_utf8 ? vap[2] : vap[1], port, 1);
+                     } else {
+                        raw_notify(target, vap[0], port, 1);
+                     }
+                     free_lbuf(vap[0]);
+                     free_lbuf(vap[1]);
+                     free_lbuf(vap[2]);
 #else
-                    raw_notify(target, s_pipebuffptr, port, 1);
+                     raw_notify(target, s_pipebuffptr, port, 1);
 #endif
-                 }
-                 free_lbuf(s_pipebuffptr);
-                 free_lbuf(s_pipeattr2);
-              }
-              free_lbuf(s_pipeattr);
-           }
-        }
-	if (key & MSG_ME) {
+                  }
+                  free_lbuf(s_pipebuffptr);
+                  free_lbuf(s_pipeattr2);
+               }
+               free_lbuf(s_pipeattr);
+            }
+         }
+         if (key & MSG_ME) {
            if ( mudstate_hot.emit_substitute ) {
               s_tbuff = alloc_sbuf("emit_substitute");
               sprintf(s_tbuff, "#%d", target);
@@ -1337,26 +1347,31 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                     parse_ansi((char *) s_pipebuffptr, vap[0], &pvap[0], vap[1], &pvap[1], vap[2], &pvap[2]);
 
                     if ( UTF8(target) ) {
-                       raw_notify(target, vap[2], port, 1);
-                    } else if ( Accents(target) ) {
-                       raw_notify(target, vap[1], port, 1);
-                    } else {
-                       raw_notify(target, vap[0], port, 1);
-                    }
-                    free_lbuf(vap[0]);
-                    free_lbuf(vap[1]);
-                    free_lbuf(vap[2]);
+                        raw_notify(target, vap[2], port, 1);
+                     } else if ( Accents(target) ) {
+                        int use_utf8 = 0;
+                        DESC *dt, *dnext;
+                        DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                           if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                        }
+                        raw_notify(target, use_utf8 ? vap[2] : vap[1], port, 1);
+                     } else {
+                        raw_notify(target, vap[0], port, 1);
+                     }
+                     free_lbuf(vap[0]);
+                     free_lbuf(vap[1]);
+                     free_lbuf(vap[2]);
 #else
-                    raw_notify(target, s_pipebuffptr, port, 1);
+                     raw_notify(target, s_pipebuffptr, port, 1);
 #endif
-                 }
-                 free_lbuf(s_pipebuffptr);
-                 free_lbuf(s_pipeattr2);
-              }
-              free_lbuf(s_pipeattr);
-           }
-        }
-        mudstate_hot.chkcpu_toggle = i_chkcpu;
+                  }
+                  free_lbuf(s_pipebuffptr);
+                  free_lbuf(s_pipeattr2);
+               }
+               free_lbuf(s_pipeattr);
+            }
+         }
+         mudstate_hot.chkcpu_toggle = i_chkcpu;
 	if (!mudconf.player_listen)
 	    check_listens = 0;
     case TYPE_THING:
