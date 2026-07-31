@@ -119,8 +119,8 @@ sub_override_process(int i_include, char *s_include, char *s_chr, char *buff, ch
    ATTR *sub_ap;
    int sub_aflags;
    dbref sub_aowner;
-   char *s_buf, *sub_txt, *sub_buf, *s_array[2];
-   static char s_buff[10];
+    char *s_buf, *sub_txt, *sub_buf, *s_array[2];
+    char s_buff[10];
 
    if ( Good_obj(mudconf.hook_obj) && (mudconf.sub_override & i_include) && !(mudstate_hot.sub_overridestate & i_include) ) {
       s_buf = alloc_sbuf("sub_override_process");
@@ -1761,7 +1761,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
     char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr, *s_tmparray[3], s_funclim[32];
-    static char tfunbuff[33], tfunlocal[100], s_chr[10];
+    static char tfunbuff[33], tfunlocal[100];
+    char s_chr[10];
     dbref aowner, twhere, sub_aowner;
     int at_space, nfargs, gender, i, j, alldone, aflags, feval, sub_aflags, i_start, i_type, inum_val, i_last_chr;
     int is_trace, is_trace_bkup, is_top, save_count, x, y, z, sub_delim, sub_cntr, sub_value, sub_valuecnt;
