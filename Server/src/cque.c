@@ -2150,6 +2150,12 @@ NDECL(do_second)
     if ((mudconf.control_flags & CF_DEQUEUE) == 0)
 	return;
 
+    /* O(1) fast path: with all three queues empty, the qlfirst splice,
+     * wait-queue walk, semaphore walk, and clock-skew compensation below
+     * are all no-ops. */
+    if (!mudstate_hot.qlfirst && !mudstate_hot.qwait && !mudstate_hot.qsemfirst)
+	return;
+
     switch(mudconf.mtimer) {
        case 1000: mtimerlen = 3;
           break;
