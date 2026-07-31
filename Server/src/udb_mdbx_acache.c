@@ -191,8 +191,15 @@ cache_sync(void)
     if (wbuf_count == 0)
         return 0;
 
-    if (dddb_txn_begin())
+    /* Close any active read txn before writing, reopen after so the
+     * flush is visible to a fresh snapshot. No-op in the main loop's
+     * steady path where the read txn is reused across idle iterations. */
+    dddb_read_end();
+
+    if (dddb_txn_begin()) {
+        dddb_read_begin();
         return 1;
+    }
 
     for (int i = 0; i < WBUF_SIZE; i++) {
         WBEntry *e = &wbuf[i];
@@ -210,7 +217,12 @@ cache_sync(void)
     }
     wbuf_count = 0;
 
-    return dddb_txn_commit();
+    if (dddb_txn_commit()) {
+        dddb_read_begin();
+        return 1;
+    }
+    dddb_read_begin();
+    return 0;
 }
 
 void

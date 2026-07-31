@@ -1269,7 +1269,6 @@ shovechars(int port, char *address, char *address_v6, int ip_family)
 	door_checkInternalDoorDescriptors(&input_set, &output_set);
 
 #ifdef MDBX
-	dddb_read_end();
 	cache_sync();
 #endif
 

@@ -1136,10 +1136,11 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                   memcpy(msg_ns, msg_utf, LBUF_SIZE);
                } else if ( Accents(target) ) {
                   int use_utf8 = 0;
-                  DESC *dt, *dnext;
-                  DESC_SAFEITER_PLAYER(target, dt, dnext) {
-                     if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
-                  }
+                   DESC *dt, *dnext;
+                   DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                      (void)dnext;
+                      if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                   }
                   memcpy(msg_ns, use_utf8 ? msg_utf : msg_ns2, LBUF_SIZE);
                } 
             }
@@ -1241,10 +1242,11 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                         raw_notify(target, vap[2], port, 1);
                      } else if ( Accents(target) ) {
                         int use_utf8 = 0;
-                        DESC *dt, *dnext;
-                        DESC_SAFEITER_PLAYER(target, dt, dnext) {
-                           if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
-                        }
+                         DESC *dt, *dnext;
+                         DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                            (void)dnext;
+                            if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                         }
                         raw_notify(target, use_utf8 ? vap[2] : vap[1], port, 1);
                      } else {
                         raw_notify(target, vap[0], port, 1);
@@ -1350,10 +1352,11 @@ notify_check(dbref target, dbref sender, const char *msg, int port, int key, int
                         raw_notify(target, vap[2], port, 1);
                      } else if ( Accents(target) ) {
                         int use_utf8 = 0;
-                        DESC *dt, *dnext;
-                        DESC_SAFEITER_PLAYER(target, dt, dnext) {
-                           if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
-                        }
+                         DESC *dt, *dnext;
+                         DESC_SAFEITER_PLAYER(target, dt, dnext) {
+                            (void)dnext;
+                            if (dt->cold->client_caps & CLIENT_CAP_UNICODE) { use_utf8 = 1; break; }
+                         }
                         raw_notify(target, use_utf8 ? vap[2] : vap[1], port, 1);
                      } else {
                         raw_notify(target, vap[0], port, 1);
@@ -3030,6 +3033,9 @@ main(int argc, char *argv[])
     }
 
     /* Do a consistency check and set up the freelist */
+#ifdef MDBX
+    dddb_read_begin(); /* persistent read txn for startup DB walks */
+#endif
     do_dbck(NOTHING, NOTHING, 0);
 
     /* Reset all the hash stats */
@@ -3113,6 +3119,9 @@ main(int argc, char *argv[])
         exit(1);
       }
     }
+#ifdef MDBX
+    dddb_read_end(); /* close startup txn before shovechars */
+#endif
     local_startup();
     /* --- main mush loop --- */
     shovechars(mudconf.port, mudconf.ip_address, mudconf.ip_address_v6, mudconf.ip_family);
