@@ -1636,13 +1636,16 @@ update_quotas(struct timeval last, struct timeval current)
                /* Cleanup the flag */
                D_FLAGS(d) &= ~DS_CMDQUOTA;
             }
-	    D_QUOTA(d) += mudconf.cmd_quota_incr * nslices;
-            if ( Good_chk(D_PLAYER(d)) && Wizard(D_PLAYER(d)) ) {
-	       if (D_QUOTA(d) > mudconf.wizcmd_quota_max)
-		   D_QUOTA(d) = mudconf.wizcmd_quota_max;
+ 	    D_QUOTA(d) += mudconf.cmd_quota_incr * nslices;
+            if ( D_FLAGS(d) & DS_API ) {
+ 	       if (D_QUOTA(d) > mudconf.wizqueuemax)
+ 		   D_QUOTA(d) = mudconf.wizqueuemax;
+            } else if ( Good_chk(D_PLAYER(d)) && Wizard(D_PLAYER(d)) ) {
+ 	       if (D_QUOTA(d) > mudconf.wizcmd_quota_max)
+ 		   D_QUOTA(d) = mudconf.wizcmd_quota_max;
             } else {
-	       if (D_QUOTA(d) > mudconf.cmd_quota_max)
-		   D_QUOTA(d) = mudconf.cmd_quota_max;
+ 	       if (D_QUOTA(d) > mudconf.cmd_quota_max)
+ 		   D_QUOTA(d) = mudconf.cmd_quota_max;
             }
 	}
     }
@@ -7031,10 +7034,8 @@ NDECL(process_commands)
 	DESC_SAFEITER_ALL(d) {
 	    if (!d->cold) continue;
 	    if ((D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0) {
-		if ( ((D_QUOTA(d) > 0) || (D_FLAGS(d) & DS_API)) && (t = D_INPUT_HEAD(d))) {
-                    if ( !(D_FLAGS(d) & DS_API) ) {
-		       D_QUOTA(d)--;
-                    }
+		if ( (D_QUOTA(d) > 0) && (t = D_INPUT_HEAD(d))) {
+		    D_QUOTA(d)--;
 		    nprocessed++;
 		    D_INPUT_HEAD(d) = (CBLK *) t->hdr.nxt;
 		    if (!D_INPUT_HEAD(d))

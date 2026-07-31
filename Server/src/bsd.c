@@ -2638,7 +2638,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     d->cold->input_lost = 0;
     d->cold->raw_input = NULL;
     d->cold->raw_input_at = NULL;
-    D_QUOTA(d) = mudconf.cmd_quota_max;
+    D_QUOTA(d) = (keyval) ? mudconf.wizqueuemax : mudconf.cmd_quota_max;
     D_LAST_TIME(d) = 0;
     d->cold->snooplist = NULL;
     d->cold->logged = 0;
