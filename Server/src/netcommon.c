@@ -161,7 +161,15 @@ void FDECL(dump_rusers, (DESC * call_by));
 
 #endif
 
-/* These functions only strip RAW ansi.  Leave this as it is or shit breaks */
+/* These functions only strip RAW ansi.  Leave this as it is or shit breaks
+ *
+ * NOTE: every function in this family (strip_ansi2 ... strip_returntab)
+ * returns a pointer into its OWN shared static buffer. The result is valid
+ * only until the NEXT call to that SAME function. Calling a function twice
+ * in one expression, or holding one result across a second call to the same
+ * function, clobbers the first result. Cross-family nesting (e.g.
+ * strip_returntab(strip_ansi(x),3)) is safe — different functions use
+ * different buffers. */
 extern char *
 strip_ansi2(const char *raw)
 {

@@ -1012,6 +1012,9 @@ Name(dbref thing)
 
 #ifndef STANDALONE
 
+/* Returns a pointer into strip_all_special()'s shared static buffer.
+ * Valid only until the next call to strip_all_special() (or Guild()).
+ * Do not hold the result across any strip-family call. */
 INLINE char *
 Guild(dbref thing)
 {

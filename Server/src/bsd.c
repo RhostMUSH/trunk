@@ -2678,8 +2678,8 @@ int
 process_output(DESC * d)
 {
     TBLOCK *tb, *save;
-    int cnt, retry_cnt, retry_success;
-    char *cmdsave, s_savebuff[80];
+    int cnt;
+    char *cmdsave;
 
     DPUSH; /* #12 */
 
@@ -2687,7 +2687,6 @@ process_output(DESC * d)
     mudstate_hot.debug_cmd = (char *) "< process_output >";
 
     tb = D_OUTPUT_HEAD(d);
-    retry_cnt = retry_success = 0;
     while (tb != NULL) {
 	while (tb->hdr.nchars > 0) {
 
@@ -2695,42 +2694,18 @@ process_output(DESC * d)
 			tb->hdr.nchars);
 	    if (cnt < 0) {
 		mudstate_hot.debug_cmd = cmdsave;
-                if ( (errno == EWOULDBLOCK) || (errno == EAGAIN) ) {
-                   while ( retry_cnt < 10 ) {
-	              cnt = WRITE(D_DESCRIPTOR(d), tb->hdr.start, tb->hdr.nchars);
-                      if ( (cnt < 0) && !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
-                         retry_cnt = 20;
-                         retry_success = 1;
-                      } else if ( (cnt >= 0) ) {
-                         retry_cnt = 20;
-                         retry_success = 1;
-                      } else if ( !((errno == EWOULDBLOCK) || (errno == EAGAIN)) ) {
-                         retry_cnt = 20;
-                      }
-                      retry_cnt++;
-                   }
-                 }
-                 if ( cnt < 0 ) {
-                      if ( (mudconf.log_network_errors > 0) && (mudstate.last_network_owner != D_PLAYER(d)) ) {
-                         STARTLOG(LOG_ALWAYS, "WIZ", "ERR")
-                            memset(s_savebuff, '\0', sizeof(s_savebuff));
-                            log_text((char *) "WARNING: Failed socket write to descriptor past 10 times ");
-                            sprintf(s_savebuff, "[port %d/player #%d/error %d] ", D_DESCRIPTOR(d), D_PLAYER(d),
-                                    errno);
-                            log_text(s_savebuff);
-                            log_text((char *)strerror(errno));
-                         ENDLOG
-                         mudstate.last_network_owner = D_PLAYER(d);
-                      }
-                       RETURN(1);
-                     }
-#if 0 /* original code here */
-  		if (errno == EWOULDBLOCK) {
-  		    RETURN(1); /* #12 */
-                }
-#endif
-                if ( cnt < 0 )
-		   RETURN(0); /* #12 */
+		if (errno == EINTR) {
+		    continue; /* signal interrupted the write; retry now */
+		}
+		if ((errno == EWOULDBLOCK) || (errno == EAGAIN) ||
+		    (errno == ENOBUFS) || (errno == ENOMEM)) {
+		    /* Buffer full (slow client) or transient kernel resource
+		     * pressure. select()/poll() re-arms writability when space
+		     * frees up — defer, don't busy-spin. */
+		    RETURN(1); /* #12 */
+		}
+		/* Terminal error (EPIPE/ECONNRESET/EBADF): teardown via caller. */
+		RETURN(0); /* #12 */
 	    }
 	    D_OUTPUT_SIZE(d) -= cnt;
 	    tb->hdr.nchars -= cnt;
