@@ -244,7 +244,8 @@ pool_alloc(int poolnum, const char *tag, int line_num, char *file_name)
     pools[poolnum].tot_alloc++;
     pools[poolnum].num_alloc++;
 
-    pool_err("DBG", LOG_ALLOCATE, poolnum, tag, ph, "Alloc", "buffer", line_num, file_name);
+    if (LOG_ALLOCATE & mudconf.log_options)
+        pool_err("DBG", LOG_ALLOCATE, poolnum, tag, ph, "Alloc", "buffer", line_num, file_name);
 
     /* If the buffer was modified after it was last freed, log it. */
 
@@ -322,8 +323,9 @@ pool_free(int poolnum, char **buf, int line_num, char *file_name)
 	pools[poolnum].tot_alloc--;
 	return;
     }
-    pool_err("DBG", LOG_ALLOCATE, poolnum, ph->buf_tag, ph, "Free",
-	     "buffer", line_num, file_name);
+    if (LOG_ALLOCATE & mudconf.log_options)
+        pool_err("DBG", LOG_ALLOCATE, poolnum, ph->buf_tag, ph, "Free",
+                 "buffer", line_num, file_name);
 
     /* Make sure we aren't freeing an already free buffer.  If we are,
      * log an error, otherwise update the pool header and stats 
