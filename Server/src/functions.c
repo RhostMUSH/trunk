@@ -6813,7 +6813,6 @@ FUNCTION(fun_elist)
     sop = malloc(LBUF_SIZE + 1);
     commsep = 0;
     curr_buf = NULL;
-    memset(sop, 0, LBUF_SIZE + 1);
     if (nfargs > 1 && *fargs[1] ) {
        sep_buf = exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[1], cargs, ncargs, (char **)NULL, 0);
@@ -19926,12 +19925,12 @@ FUNCTION(fun_parse)
        return;
 
     sop = malloc(LBUF_SIZE + 1);
-    memset(sop, 0, LBUF_SIZE + 1);
 
     if (nfargs > 3 ) {
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
        strncpy(sop, sop_buf, LBUF_SIZE);
+       sop[LBUF_SIZE] = '\0';
        if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
           *sop = '\0';
        free_lbuf(sop_buf);
@@ -33558,12 +33557,12 @@ FUNCTION(fun_iter)
        return;
     }
     sop = malloc(LBUF_SIZE + 1);
-    memset(sop, 0, LBUF_SIZE + 1);
 
     if (nfargs > 3 ) {
        sop_buf=exec(player, cause, caller,
           EV_STRIP | EV_FCHECK | EV_EVAL, fargs[3], cargs, ncargs, (char **)NULL, 0);
        strncpy(sop, sop_buf, LBUF_SIZE);
+       sop[LBUF_SIZE] = '\0';
        if ( mudconf.delim_null && (strcmp(sop, (char *)"@@") == 0) )
           *sop = '\0';
        free_lbuf(sop_buf);
