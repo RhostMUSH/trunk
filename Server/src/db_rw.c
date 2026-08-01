@@ -936,7 +936,7 @@ unscraw_foreign(int db_format, int db_version, int db_flags)
 	    }
 	    efo_convert();
 	}
-	if ((db_version <= 5) && (db_flags & V_GDBM)) {
+	if ((db_version <= 5) && (db_flags & V_ATTRSEXT)) {
 
 	    /* Check for FORWARDLIST attribute */
 
@@ -953,7 +953,7 @@ unscraw_foreign(int db_format, int db_version, int db_flags)
 
 		atr_clr(i, A_QUEUEMAX);
 
-		if (db_flags & V_GDBM) {
+		if (db_flags & V_ATTRSEXT) {
 
 		    /* HAS_LISTEN now tracks LISTEN attr */
 
@@ -1124,7 +1124,7 @@ db_read(FILE * f, int *db_format, int *db_version, int *db_flags)
 
 		    /* Otherwise extract feature flags */
 
-		    if (g_version & V_GDBM) {
+		    if (g_version & V_ATTRSEXT) {
 			read_attribs = 0;
 			read_name = !(g_version & V_ATRNAME);
 		    }
@@ -1566,7 +1566,7 @@ db_write_object(FILE * f, dbref i, int db_format, int flags, int key)
     }
     /* write the attribute list */
 
-    if (!(flags & V_GDBM)) {
+    if (!(flags & V_ATTRSEXT)) {
 	for (ca = atr_head(i, &as); ca; ca = atr_next(&as)) {
 	    save = 0;
 #ifndef STANDALONE

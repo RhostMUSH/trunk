@@ -12,8 +12,6 @@
  *		conjunction with the above, but why?
  * ATR_NAME:	Define if you want name to be stored as an attribute on the
  *		object rather than in the object structure.
- * USE_GDBM:	Define if you plan on using the disk based database scheme.
- *		The code will not work if this is not #defined.
  * rcheck:	Define if you are a) using the gnu_malloc package, and b)
  *		want to enable its memory range checking features.  Useful for
  *		helping to track memory leaks.
@@ -26,7 +24,6 @@
 
 /* #define TEST_MALLOC */		/* Keep track of block allocs */
 /* #define MSTATS */			/* Gnu-malloc stats */
-#define USE_GDBM			/* Store text in disk-based db */
 /* #define rcheck */			/* Gnu memory range checking */
 
 #ifdef DYN_MAXPLAYERNAME		/* Override max length player names */
@@ -89,11 +86,11 @@
  */
 
 #define MANDFLAGS	(V_LINK|V_PARENT|V_XFLAGS)	/* Everyone has these */
-#define OFLAGS1		(V_GDBM|V_ATRKEY)	/* GDBM has these */
+#define OFLAGS1		(V_ATTRSEXT|V_ATRKEY)	/* attrs external — MDBX/QDBM dumps */
 
 #define OFLAGS2		(V_ATRNAME|V_ATRMONEY)
 
-#define OUTPUT_VERSION	7			/* Version 6 */
+#define OUTPUT_VERSION	7			/* Version 7 */
 #define OUTPUT_FLAGS	(MANDFLAGS|OFLAGS1|OFLAGS2)
 						/* format for dumps */
 #define UNLOAD_VERSION	7			/* version for export */
