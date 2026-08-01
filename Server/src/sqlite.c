@@ -79,11 +79,11 @@ FUNCTION(local_fun_sqlite_query)
       return;
    }
 
-   if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + mudconf.cputimechk) ) {
+   if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + rhost_cputimechk()) ) {
       safe_str("#-1 HEAVY CPU LIMIT ON PROTECTED FUNCTION EXCEEDED", buff, bufcx);
       mudstate_hot.chkcpu_toggle = 1;
       mudstate_hot.heavy_cpu_recurse = mudconf.heavy_cpu_max + 1;
-      if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (mudconf.cputimechk * 3)) ) {
+      if ( mudstate_hot.heavy_cpu_tmark2 > (mudstate_hot.heavy_cpu_tmark1 + (rhost_cputimechk() * 3)) ) {
          mudstate_hot.heavy_cpu_lockdown = 1;
       }
       free_lbuf(dbFile);

@@ -123,8 +123,30 @@ int quick_wild_internal(char *tstr, char *dstr, int *pLoopCntr)
 	return 0;
 }
 
+/* Count '*' runs (groups of consecutive '*') in a wildmatch pattern. Each run
+ * drives one recursion level in wild1/quick_wild_internal, so this bounds the
+ * C-stack depth. Escaped '\*' is literal and not counted. */
+static int
+wild_star_runs(const char *tstr)
+{
+    int runs = 0;
+    if (!tstr) return 0;
+    while (*tstr) {
+        if (*tstr == '\\') {
+            if (tstr[1]) tstr++;
+        } else if (*tstr == '*') {
+            runs++;
+            while (tstr[1] == '*') tstr++;
+        }
+        tstr++;
+    }
+    return runs;
+}
+
 int quick_wild(char *tstr, char *dstr) {
   int loopCntr = 0;
+  if (wild_star_runs(tstr) > mudconf.wilddepth_lim)
+    return 0;
   return quick_wild_internal(tstr, dstr, &loopCntr);
 }
 
@@ -362,6 +384,10 @@ int wild(char *tstr, char *dstr, char *args[], int nargs)
 	/* Initialize the return array. */
 
 	for (i=0; i<nargs; i++) args[i] = NULL;
+
+	/* Stack-depth guard: a pattern with too many '*' runs recurses too deep. */
+	if (wild_star_runs(tstr) > mudconf.wilddepth_lim)
+	   return 0;
 
 	/* Do fast match. */
 

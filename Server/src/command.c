@@ -7276,11 +7276,9 @@ list_options_config(dbref player)
                mudstate_hot.idle_counter - now, mudstate_hot.rwho_counter - now,
                mudstate_hot.vattr_counter);
        notify(player, buff);
-       sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds",
-             //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-             (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
-             //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
-             (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
+       sprintf(buff, "CPU Watchdogs:  CPU Time...%d secs  Elapsed Time...%d seconds",
+             rhost_cpuintervalchk(),
+             rhost_cputimechk() );
 
        notify(player, buff);
        sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
@@ -8200,11 +8198,9 @@ list_options(dbref player)
             mudstate_hot.vattr_counter);
     notify(player, buff);
     memset(buff, 0, MBUF_SIZE);
-    sprintf(buff, "CPU Watchdogs:  CPU...%d%%  Elapsed Time...%d seconds", 
-           //(mudconf.cpuintervalchk < 10 ? 10 : (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk)),
-           //(mudconf.cputimechk < 10 ? 10 : (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk)) );
-           (mudconf.cpuintervalchk > 100 ? 100 : mudconf.cpuintervalchk),
-           (mudconf.cputimechk > 3600 ? 3600 : mudconf.cputimechk) );
+    sprintf(buff, "CPU Watchdogs:  CPU Time...%d secs  Elapsed Time...%d seconds", 
+           rhost_cpuintervalchk(),
+           rhost_cputimechk() );
     notify(player, buff);
     sprintf(buff, "                Security...Level %d  Max Sequential Slams...%d",
           (((mudconf.cpu_secure_lvl < 0) || (mudconf.cpu_secure_lvl > 5)) ? 0 : mudconf.cpu_secure_lvl),
@@ -13094,12 +13090,7 @@ void do_cluster(dbref player, dbref cause, int key, char *name, char *args[], in
                starttme = mudstate_hot.chkcpu_stopper;
                if ( endtme < starttme )
                   endtme = starttme;
-               if ( mudconf.cputimechk < 10 )
-                  timechk = 10;
-               else if ( mudconf.cputimechk > 3600 )
-                  timechk = 3600;
-               else
-                  timechk = mudconf.cputimechk;
+               timechk = rhost_cputimechk();
                i_totobjs = 0;
                if ( i_regexp ) 
                   i_regexp = WIPE_REGEXP;

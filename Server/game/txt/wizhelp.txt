@@ -7612,13 +7612,13 @@
   unowned_safe              user_attr_flags           validate_host
   vattr_command             vattr_interval            vattr_limit_checkwiz
   vercustomstr              vlimit                    wait_cost
-  wall_cost                 whereis_notify            wizmax_dest_limit
-  wizmax_vattr_limit        who_default               who_unfindable
-  who_showwiz               who_wizlevel              who_whowiztype
-  whohost_size              wiz_override              wiz_uselock
-  wizard_help_file          wizard_help_index         wizard_motd_file
-  wizard_motd_message       wizard_queue_limit        wizcommand_quota_max
-  zone_parents
+  wall_cost                 whereis_notify            who_default
+  who_unfindable            who_showwiz               who_wizlevel
+  who_whowiztype            whohost_size              wildmatch_limit
+  wilddepth_limit           wizmax_dest_limit         wizmax_vattr_limit
+  wiz_override              wiz_uselock               wizard_help_file
+  wizard_help_index         wizard_motd_file          wizard_motd_message
+  wizard_queue_limit        wizcommand_quota_max      zone_parents
   
 { 'wizhelp config parameters reality' for more (reality levels) }
 { 'wizhelp config parameters mysql' for more (mysql params) }
@@ -13420,6 +13420,26 @@
   Sets the condition if the targeted player gets notified if someone did
   a @whereis on them.  Note, that cloaked wizards do not give a message to
   players who can not normally see them.
+
+& wildmatch_limit
+  Config parameter: wildmatch_limit <amount>. Default: 100000
+
+  This config parameter determines the *length* of the matched string that
+  a wildcard pattern (*'s) can match. This is a sane default that should
+  never run into problems (as it is larger than LBUF size) and should not
+  be changed.
+ 
+  See also: wilddepth_limit
+
+& wilddepth_limit
+  Config parameter: wildmatch_limit <amount>. Default: 50
+
+  This config parameter determines the *amount* of wildcards you can have
+  in a string (The amount of *'s) and should NOT be increased - any case
+  where you need to have more than 50 wildcards in a string is rather
+  theroretical, and this setting prevents memory issues.
+ 
+  See also: wildmatch_limit
 
 & who_comment
   Config parameter: who_comment <yes/no>.  Default: yes

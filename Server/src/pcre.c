@@ -5711,18 +5711,17 @@ i, and fc and c, can be the same variables. */
   eptrblock newptrb;
 #endif
 
+  if ( mudstate_hot.chkcpu_toggle ) {
+      mudstate_hot.chkcpu_toggle = 1;
+      RRETURN(PCRE_ERROR_MATCHLIMIT);
+  }
   { struct timespec _ts; clock_gettime(CLOCK_REALTIME, &_ts); endtme = _ts.tv_sec; }
   starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
 
-  if ( mudconf.cputimechk < 10 )
-     timechk = 10;
-  else if ( mudconf.cputimechk > 3600 )
-     timechk = 3600;
-  else
-     timechk = mudconf.cputimechk;
-  if ( mudstate_hot.chkcpu_toggle || ((endtme - starttme) > timechk) ) {
+  timechk = rhost_cputimechk();
+  if ( (endtme - starttme) > timechk ) {
       mudstate_hot.chkcpu_toggle = 1;
       RRETURN(PCRE_ERROR_MATCHLIMIT);
   }
@@ -7458,28 +7457,27 @@ pcre_exec(const pcre * external_re, const pcre_extra * extra_data,
   double timechk, intervalchk;
   static unsigned long tinterval;
 
-  tinterval = rhost_cpu_cs() - mudstate_hot.cpu_checkpoint_cs;
+  /* chkcpu_toggle is a sticky abort latch — once set, abort immediately. */
+  if ( mudstate_hot.chkcpu_toggle ) {
+      mudstate_hot.chkcpu_toggle = 1;
+      return PCRE_ERROR_BADOPTION;
+  }
 
   { struct timespec _ts; clock_gettime(CLOCK_REALTIME, &_ts); endtme = _ts.tv_sec; }
   starttme = mudstate_hot.chkcpu_stopper;
   if ( endtme < starttme )
      endtme = starttme;
 
-  if ( mudconf.cputimechk < 10 )
-     timechk = 10;
-  else if ( mudconf.cputimechk > 3600 )
-     timechk = 3600;
-  else
-     timechk = mudconf.cputimechk;
-  if ( mudconf.cpuintervalchk < 10 )
-     intervalchk = 10;
-  else if ( mudconf.cpuintervalchk > 100 )
-     intervalchk = 100;
-  else
-     intervalchk = mudconf.cpuintervalchk;
-  if ( mudstate_hot.chkcpu_toggle || (((endtme - starttme) > timechk) && ((tinterval/100) > intervalchk)) ) {
-      mudstate_hot.chkcpu_toggle = 1;
-      return PCRE_ERROR_BADOPTION;
+  timechk = rhost_cputimechk();
+  intervalchk = rhost_cpuintervalchk();
+  if ( (endtme - starttme) > timechk ) {
+      /* CPU clock (CLOCK_PROCESS_CPUTIME_ID) is a real syscall (~100-1000ns);
+       * read it only when the wall gate can still make the abort true. */
+      tinterval = rhost_cpu_cs() - mudstate_hot.cpu_checkpoint_cs;
+      if ( (tinterval/100) > intervalchk ) {
+          mudstate_hot.chkcpu_toggle = 1;
+          return PCRE_ERROR_BADOPTION;
+      }
   }
 
 /* Plausibility checks */

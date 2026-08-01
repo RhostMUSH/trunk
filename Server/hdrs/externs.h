@@ -546,7 +546,8 @@ extern void		NDECL(split_free_bufs);
 
 #include <time.h>
 /* Returns process CPU time in centiseconds (1 cs = 10ms) via
- * clock_gettime (vDSO on modern Linux/FreeBSD — no syscall). */
+ * clock_gettime(CLOCK_PROCESS_CPUTIME_ID) — a real syscall on Linux/FreeBSD
+ * (NOT accelerated by the vDSO), roughly 100-1000ns per call. */
 static inline long long
 rhost_cpu_cs(void)
 {

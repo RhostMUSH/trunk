@@ -1457,11 +1457,7 @@ grep_internal(dbref player, dbref thing, char *wcheck, char *watr, int i_key)
 	go3 = 1;
     }
     bp = retbuff;
-    timechk = mudconf.cputimechk;
-    if ( mudconf.cputimechk < 10 )
-       timechk = 10;
-    if ( mudconf.cputimechk > 3600 )
-       timechk = 3600;
+    timechk = rhost_cputimechk();
     for (ca = atr_head(thing, &as); ca; ca = atr_next(&as)) {
 	attr = atr_num(ca);
 	if (!attr)

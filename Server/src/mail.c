@@ -2564,7 +2564,7 @@ int mail_send(dbref p2, int key, char *buf1, char *buf2, char *subpass)
       else
         term = 1;
       now2 = rhost_time();
-      if ( now2 > (now1 + mudconf.cputimechk) ) {
+      if ( now2 > (now1 + rhost_cputimechk()) ) {
 	  notify_quiet(p2,"MAIL WARNING: Alias recursion exceeded.");
           if ( pt1 && *pt1 ) {
              broadcast_monitor(p2, MF_CPU, "MAIL ALIAS RECURSION REACHED", pt1, NULL, p2, 0, 0, NULL);

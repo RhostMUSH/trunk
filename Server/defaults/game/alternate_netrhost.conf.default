@@ -318,6 +318,7 @@ vattr_limit_checkwiz      0
 wizmax_vattr_limit        1000000
 vlimit                    750
 wildmatch_limit           100000
+wilddepth_limit           50
 lock_recursion_limit      20
 notify_recursion_limit    20
 dropto_limit              10

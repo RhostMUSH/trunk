@@ -4398,8 +4398,8 @@ FUNCTION(fun_nslookup)
        mudstate_hot.heavy_cpu_recurse += 1;
    }
 
-   if ( mudconf.cputimechk < i_timechk )
-      i_timechk = mudconf.cputimechk;
+   if ( rhost_cputimechk() < i_timechk )
+      i_timechk = rhost_cputimechk();
    /* insanely dangerous function -- only allow 5 per command */
    if ( mudstate_hot.heavy_cpu_recurse > mudconf.heavy_cpu_max ) {
       mudstate_hot.chkcpu_toggle = 1;
@@ -21176,10 +21176,7 @@ FUNCTION(fun_execscript)
    }
 
    i_now = rhost_time();
-   if ( mudconf.cputimechk < 5 )
-      i_count = 5;
-   else
-      i_count = mudconf.cputimechk;
+   i_count = 5; /* DNS lookups should complete within 5 seconds */
 
    if ( i_now > (mudstate_hot.now + i_count) ) {
       mudstate_hot.chkcpu_toggle = 1;
@@ -42110,12 +42107,7 @@ FUNCTION(fun_cluster_wipe)
    starttme = mudstate_hot.chkcpu_stopper;
    if ( endtme < starttme )
       endtme = starttme;
-   if ( mudconf.cputimechk < 10 )
-      timechk = 10;
-   else if ( mudconf.cputimechk > 3600 )
-      timechk = 3600;
-   else
-      timechk = mudconf.cputimechk;
+   timechk = rhost_cputimechk();
 
    attr = atr_str("_CLUSTER");
    s_return = atr_get(target, attr->number, &aowner, &aflags);

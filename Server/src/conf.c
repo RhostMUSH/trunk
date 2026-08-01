@@ -673,6 +673,7 @@ NDECL(cf_init)
     mudconf.func_nest_lim = 50;
     mudconf.func_invk_lim = 2500;
     mudconf.wildmatch_lim = 100000;
+    mudconf.wilddepth_lim = 50;
     mudconf.ntfy_nest_lim = 20;
     mudconf.lock_nest_lim = 20;
     mudconf.parent_nest_lim = 10;
@@ -740,10 +741,10 @@ NDECL(cf_init)
      * 3 - auto-halt enactor, set fubar, and set NOCONNECT and boot
      */
     mudconf.cpu_secure_lvl = 0;
-    /* 80% cpu usage - range 50-100 */
-    mudconf.cpuintervalchk = 80;
-    /* One minute - range 60-3600 */
-    mudconf.cputimechk = 60;
+    /* 15 seconds CPU usage - range 0-60 */
+    mudconf.cpuintervalchk = 15;
+    /* 30 seconds wall time - range 2-60 */
+    mudconf.cputimechk = 30;
 /* End CPU information */
     /* Default mail object */
     mudconf.mail_def_object = -1;
@@ -4545,12 +4546,12 @@ CONF conftable[] =
 #endif
     {(char *) "cpuintervalchk",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.cpuintervalchk, 0, 0, CA_WIZARD,
-     (char *) "Define percentage before cpu-enforcement.\r\n"\
-              "                             Default: 80   Value: %d"},
+     (char *) "Define CPU time in seconds before cpu-enforcement.\r\n"\
+              "                             Default: 15   Value: %d"},
     {(char *) "cputimechk",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.cputimechk, 0, 0, CA_WIZARD,
      (char *) "Define time in seconds before cpu-enforcement.\r\n"\
-              "                             Default: 60   Value: %d"},
+              "                             Default: 30   Value: %d"},
     {(char *) "lastsite_paranoia",
      cf_int, CA_GOD | CA_IMMORTAL, &mudconf.lastsite_paranoia, 0, 0, CA_WIZARD,
      (char *) "Define DoS site paranoia level (0, 1, 2).\r\n"\
@@ -4900,6 +4901,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.wildmatch_lim, 0, 0, CA_WIZARD,
      (char *) "Ceiling on wildmatch recursion (DoS).\r\n"\
               "        -- 0 is all wizards  Default: 100000   Value: %d"},
+    {(char *) "wilddepth_limit",
+     cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.wilddepth_lim, 0, 0, CA_WIZARD,
+     (char *) "Max '*' runs in a wildmatch pattern (recursion-depth stack guard).\r\n"\
+              "        Default: 50   Value: %d"},
     {(char *) "gconf_file",
      cf_string, CA_DISABLED, (int *) mudconf.gconf_file, 32, 0, CA_WIZARD,
      (char *) "File for guest from bad sites."},

@@ -225,6 +225,7 @@ struct confdata {
 	int	func_nest_lim;	/* Max nesting of functions */
 	int	func_invk_lim;	/* Max funcs invoked by a command */
         int     wildmatch_lim;    /* Ceiling on the wildmatching recursion */
+        int     wilddepth_lim;    /* Max '*' runs in a wildmatch pattern (stack depth guard) */
 	int	ntfy_nest_lim;	/* Max nesting of notifys */
 	int	lock_nest_lim;	/* Max nesting of lock evals */
 	int	parent_nest_lim;/* Max levels of parents */
@@ -289,8 +290,8 @@ struct confdata {
 	int	raw_formatting; /* Allow raw input formatting */
 	int	enforce_checksums; /* Enforce checksums on command matching */
 	int     restrict_sidefx; /* Restrict setting side-effects to bitlevel (0 default/any) */
-        int     cpuintervalchk; /* CPU level to check for overflowing CPU processes */
-        int     cputimechk;     /* Time notification of time elapses from start of command */
+        int     cpuintervalchk; /* CPU time (seconds) to check for overflowing CPU processes */
+        int     cputimechk;     /* Wall time (seconds) before cpu-enforcement */
         int     mail_tolist;	/* have the '@' in mail be the default */
         int     mail_default;   /* Switch 'mail' from mail/quick to mail/status */
         int     login_to_prog;  /* When you log in you're still in a program (if 1) */
@@ -1000,6 +1001,33 @@ struct statedata {
 
 extern STATEDATA mudstate;
 extern struct state_hot mudstate_hot;
+
+#ifndef STANDALONE
+/* Clamped CPU-enforcement config: cputimechk = wall seconds [2,60],
+ * cpuintervalchk = CPU seconds [0,60]. Every consumer uses these so the
+ * configured value is enforced consistently.
+ *
+ * cputimechk is floored at cpuintervalchk: single-threaded, a command
+ * cannot accrue cpuintervalchk seconds of CPU in fewer wall seconds, so a
+ * wall window below the CPU budget would be silently ignored. */
+static inline int rhost_cpuintervalchk(void)
+{
+    int v = mudconf.cpuintervalchk;
+    return (v < 0) ? 0 : (v > 60 ? 60 : v);
+}
+static inline int rhost_cputimechk(void)
+{
+    int v = mudconf.cputimechk;
+    int ci = rhost_cpuintervalchk();
+    if (v < 2)
+	v = 2;
+    if (v > 60)
+	v = 60;
+    if (v < ci)
+	v = ci;
+    return v;
+}
+#endif /* STANDALONE */
 
 /* Configuration parameter handler definition */
 

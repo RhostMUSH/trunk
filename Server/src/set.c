@@ -3068,7 +3068,7 @@ void do_rollback(dbref player, dbref cause, int key, char *in_string,
                process_command(player, cause, 0, cp, s_eval, 10, InProgram(player), mudstate_hot.no_hook, mudstate_hot.no_space_compress);
             }
          }
-         if ( rhost_time() > (i_now + ((mudconf.cputimechk > 5) ? 5 : mudconf.cputimechk)) ) {
+         if ( rhost_time() > (i_now + ((rhost_cputimechk() > 5) ? 5 : rhost_cputimechk())) ) {
             notify(player, "@rollback:  Aborted for high utilization.");
             mudstate_hot.breakst=1;
             mudstate_hot.chkcpu_toggle =1;
