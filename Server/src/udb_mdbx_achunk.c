@@ -45,8 +45,8 @@ static MDBX_txn   *read_txn = NULL;    /* persistent read txn for main loop */
 
 /* Lightweight read cache: accelerates repeated attribute lookups within
  * the same read txn by caching B-tree leaf page IDs.
- * 1000 entries × 40 bytes = 40 KB. */
-#define READ_CACHE_SIZE 1000
+ * 8192 entries × 40 bytes = 320 KB. */
+#define READ_CACHE_SIZE 8192
 
 typedef struct {
     Aname              key;
