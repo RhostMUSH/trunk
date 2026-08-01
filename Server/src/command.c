@@ -10941,6 +10941,11 @@ void do_sudo(dbref player, dbref cause, int key, char *s_player, char *s_command
       mudstate_hot.force_halt = 0;
 
    mudstate.sudo_cntr++;
+   if (mudstate.sudo_cntr > (mudconf.sudo_nest_lim < 1 ? 1 : mudconf.sudo_nest_lim)) {
+      mudstate.sudo_cntr--;
+      notify(player, "#-1 SUDO NEST LIMIT REACHED");
+      return;
+   }
    old_trainmode=mudstate.trainmode;
 
    if ( !(key & SUDO_GLOBAL) || (key & SUDO_CLEAR) ) {

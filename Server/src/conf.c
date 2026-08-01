@@ -674,6 +674,7 @@ NDECL(cf_init)
     mudconf.func_invk_lim = 2500;
     mudconf.wildmatch_lim = 100000;
     mudconf.wilddepth_lim = 50;
+    mudconf.sudo_nest_lim = 3;
     mudconf.ntfy_nest_lim = 20;
     mudconf.lock_nest_lim = 20;
     mudconf.parent_nest_lim = 10;
@@ -4905,6 +4906,10 @@ CONF conftable[] =
      cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.wilddepth_lim, 0, 0, CA_WIZARD,
      (char *) "Max '*' runs in a wildmatch pattern (recursion-depth stack guard).\r\n"\
               "        Default: 50   Value: %d"},
+    {(char *) "sudo_nest_limit",
+     cf_int, CA_GOD | CA_IMMORTAL, (int *) &mudconf.sudo_nest_lim, 0, 0, CA_WIZARD,
+     (char *) "Max @sudo nesting depth (stack guard, minimum 1).\r\n"\
+              "        Default: 3   Value: %d"},
     {(char *) "gconf_file",
      cf_string, CA_DISABLED, (int *) mudconf.gconf_file, 32, 0, CA_WIZARD,
      (char *) "File for guest from bad sites."},

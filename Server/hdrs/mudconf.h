@@ -226,6 +226,7 @@ struct confdata {
 	int	func_invk_lim;	/* Max funcs invoked by a command */
         int     wildmatch_lim;    /* Ceiling on the wildmatching recursion */
         int     wilddepth_lim;    /* Max '*' runs in a wildmatch pattern (stack depth guard) */
+        int     sudo_nest_lim;    /* Max @sudo nesting depth (stack guard, min 1) */
 	int	ntfy_nest_lim;	/* Max nesting of notifys */
 	int	lock_nest_lim;	/* Max nesting of lock evals */
 	int	parent_nest_lim;/* Max levels of parents */
