@@ -274,8 +274,8 @@ retry_limit               3
 queue_active_chunk        1
 queue_idle_chunk          3
 cpu_secure_lvl            0
-cpuintervalchk            80
-cputimechk                60
+cpuintervalchk            15
+cputimechk                30
 heavy_cpu_max             50
 max_cpu_cycles            3
 max_lastsite_cnt          20

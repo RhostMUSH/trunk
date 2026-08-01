@@ -8506,28 +8506,76 @@
   See Also: max_cpu_cycle, cpuintervalchk, cputimechk, cpu
 
 & cpuintervalchk
-  Config parameter: cpuintervalchk <value>.  Default: 80 (percent)
+  Config parameter: cpuintervalchk <value>.  Default: 15 seconds
   
   Specifies the cpu load that should be set as the ceiling that a mush
-  'process' can take up.  If it exceeds the cpu and exceeds the cputimechk
-  value, the job is auto-aborted and the cpu returned to normal.  Valid range 
-  is 10-100%.  It's generally wise to not exceed 90, nor is it wise to go much
-  below 20.  For high-end machines, a range of 30-50 should be sufficient.
-  
+  command can take up. This refers to the load of a SINGLE CORE, since
+  Rhost is single-threaded.
+
+  If a command runs longer than <cputimechk> seconds, Rhost starts checking
+  if the command has used <cpuintervalchk> or more seconds of full CPU
+  usage since the very command start. If cpuintervalchk gets reached, the
+  command gets aborted, and the cpu_secure_lvl config option kicks in.
+  Internally, cpuintervalchk determines the mimimum for both values.
+  The lax defaults are cputimechk = 30, cpuintervalchk = 15.
+
+  Simple examples:
+
+  cputimechk = 10
+  cpuintervalchk = 0
+  Result: Command always get aborted after 10 seconds, because it always
+          used up more than 0s of CPU time.
+
+  cputimechk = 1 (set to 5, since it cannot be smaller than cpuintervalchk)
+  cpuintervalchk = 5
+  Result: After FIVE seconds, Rhost starts checking. It would abort:
+          After 5 seconds of 100% CPU usage (5s CPU time in 5s), or
+          After 10 seconds of 50% CPU usage, (5s CPU time in 10s), or
+          After 20 seconds of 25% CPU usage, or...
+          (Realistically, no low-CPU command should take up a lot of time)
+
+  cputimechk = 30 (default)
+  cpuintervalchk = 15 (default)
+  Result: After 30 seconds, Rhost starts checking. It would abort:
+          After 30 seconds of 50-100% CPU usage (15s CPU time in 30s), or
+          After 60 seconds of 25% CPU usage (15s CPU time in 60s), or...
+
   See Also:  cputimechk, cpu_secure_lvl, max_cpu_cycle, cpu
 
 & cputimechk
   Config parameter: cputimechk <value>.  Default: 60 (seconds)
   
-  Specifies the time (in seconds) that a job can be at the CPU level
-  specified by cpuintervalchk before the mush 'job' is aborted.  The valid
-  range is between 10 and 3600 seconds (10 seconds to 1 hour).  It is generally
-  wise not to go too high on this value unless you plan to run high-load
-  functionality (like cleaning out mailboxes via brandy mailer *iew*)
-  It is also good to not go too low on this value if you have a relatively
-  slow cpu as most jobs won't work.  60 should work for slower end
-  machines while 30 or less on higher end machines.
-  
+  Specifies the time (in seconds) after which Rhost starts checking the CPU
+  usage according to the cpuintervalchk setting.
+
+  If a command runs longer than <cputimechk> seconds, Rhost starts checking
+  if the command has used <cpuintervalchk> or more seconds of full CPU
+  usage since the very command start. If cpuintervalchk gets reached, the
+  command gets aborted, and the cpu_secure_lvl config option kicks in.
+  Internally, cpuintervalchk determines the mimimum for both values.
+  The lax defaults are cputimechk = 30, cpuintervalchk = 15.
+
+  Simple examples:
+
+  cputimechk = 10
+  cpuintervalchk = 0
+  Result: Command always get aborted after 10 seconds, because it always
+          used up more than 0s of CPU time.
+
+  cputimechk = 1 (set to 5, since it cannot be smaller than cpuintervalchk)
+  cpuintervalchk = 5
+  Result: After FIVE seconds, Rhost starts checking. It would abort:
+          After 5 seconds of 100% CPU usage (5s CPU time in 5s), or
+          After 10 seconds of 50% CPU usage, (5s CPU time in 10s), or
+          After 20 seconds of 25% CPU usage, or...
+          (Realistically, no low-CPU command should take up a lot of time)
+
+  cputimechk = 30 (default)
+  cpuintervalchk = 15 (default)
+  Result: After 30 seconds, Rhost starts checking. It would abort:
+          After 30 seconds of 50-100% CPU usage (15s CPU time in 30s), or
+          After 60 seconds of 25% CPU usage (15s CPU time in 60s), or...
+
   See Also: cpuintervalchk, cpu_secure_lvl, max_cpu_cycle, cpu
   
 & crash_database
