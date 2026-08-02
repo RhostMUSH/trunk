@@ -37012,22 +37012,54 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
-  2 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
-  3 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
-  4 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
-  5 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
-  6 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
-  7 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
-  8 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
-  9 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
+  1 - 5.9.0
+  2 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
+  3 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
+  4 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
+  5 - 5.4.4, 5.4.3, 5.4.2, 5.4.1, 5.4.0, 5.3.0, 5.2.1, 5.2.0
+  6 - 5.1.16, 5.1.15, 5.1.14, 5.1.13, 5.1.12, 5.1.11
+  7 - 5.1.10, 5.1.9, 5.1.8, 5.1.7, 5.1.6, 5.1.5, 5.1.3, 5.1.1, 5.1.0
+  8 - 5.0.10, 5.0.9, 5.0.6, 5.0.5, 5.0.4, 5.0.3, 5.0.2, 5.0.1, 5.0.0
+  9 - 4.33.0, 4.32.0, 4.31.0, 4.30.0, 4.29.0, 4.28.0, 4.27.8, 4.27.7, 4.27.6
+ 10 - 4.27.5, 4.27.4, 4.27.3, 4.27.2, 4,27.1, 4.27.0, 4.26.0, 4.25.0, 4.24.2,
       4.24.1, 4.24.0, 4.23.2, 4.23.1, 4.23.0, 4.22.0, 4.21.0
- 10 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
+ 11 - 4.20.4, 4.20.3, 4.20.2, 4.20.1, 4.20.0, 4.19.0, 4.18.0, 4.17.0, 4.16.0, 
       4.15.0, 4.14.0, 4.13.0, 4.12.0
- 11 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
+ 12 - 4.11.2, 4.11.1, 4.11.0, 4.10.0, 4.9.0, 4.8.0, 4.7.1, 4.7.0, 4.6.2, 
       4.6.1, 4.6.0, 4.5.3, 4.5.2, 4.5.1, 4.5.0, 4.4.3, 4.4.2 
- 12 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
+ 13 - 4.4.1, 4.4.0, 4.3.9, 4.3.8, 4.3.7, 4.3.6, 4.3.5, 4.3.4, 4.3.3, 4.3.2, 
       4.3.1, 4.3.0
+
+& 5.9.0
+& changelog latest
+& changelog newest
+& changelog recent
+& changelog 1
+   Topic: CHANGELOG
+ 
+  5.9.0
+  * New config option sudo_nest_limit, defaults to 3. Determines the maximum
+    amount of @sudo nesting that can be done.
+  * New config option wildnest_limit, defaults to 50. Determines the maximum
+    amount of * wildcards possible in a string. Generous!
+  * The math and timefmt functions (add(), sub(), div(), timefmt etc..) now
+    can use 64bit numbers, even on 32bit systems. Long numbers ahoy!
+  * Increased MDBX read cache to 8192, this should speed up attribut-read
+    intensive MUSHCode.
+  * Optimized the CPU-checking code - things should be faster now. Also, the
+    helpfiles for cputimechk and cpuintervalchk got re-vamped to clarify just
+    how the CPU-checker works. The new defaults for cputimechk and
+    cpuintervalchk respectively are 30 and 15.
+  * nslookup timeouts were set to a static 5 seconds
+  * Sped up register handling with @function/preserve
+  * The API queue now has a queue limit that matches wizard_queue_limit
+  * The MDBX reader is now more persistent
+  * A lot of code optimizations for speedups in internal time tracking
+  * Removed old GDBM code references
+  * Fixed stacked substitution-overrides working properly
+  * Nested locks should now properly keep their reality checks
+  * Made the Websocket API more solid
+  * Made sqlite properly time-out if a query takes too long.
 
 & 5.8.6
 & 5.8.5
@@ -37038,11 +37070,7 @@
 & 5.8.0
 & 5.7.1
 & 5.7.0
-& changelog latest
-& changelog newest
-& changelog recent
-& changelog 1
-   Topic: CHANGELOG
+& changelog 2
 
   5.8.6
   * Fix for UTF8-connection accents, in DOING/WHO
@@ -37094,7 +37122,7 @@
 & 5.5.9
 & 5.5.8
 & 5.5.7
-& changelog 2
+& changelog 3
   5.6.0
   * Added the ANSISPLIT and BigPool pools to @list allocations, buffers and
     advbuffers.
@@ -37140,7 +37168,7 @@
 & 5.5.2
 & 5.5.1
 & 5.5.0
-& changelog 3
+& changelog 4
   5.5.6
   * Fix for wmail/unload crashing when there was no mail to unload. Aw.
     I really liked '5.5.5'
@@ -37208,7 +37236,7 @@
 & 5.3.0
 & 5.2.1
 & 5.2.0
-& changelog 4
+& changelog 5
 
   5.4.4
   * Fixed width(), height() and terminfo() to use a player's least idle
@@ -37251,7 +37279,7 @@
 & 5.1.13
 & 5.1.12
 & 5.1.11
-& changelog 5
+& changelog 6
 
   5.1.16
   * An mbuf was free'd as an sbuf in the tor address checker.
@@ -37290,7 +37318,7 @@
 & 5.1.2
 & 5.1.1
 & 5.1.0
-& changelog 6
+& changelog 7
 
   5.1.10
   * Crash fix for mail sends - a fix to pool_buffers in an earlier commit
@@ -37369,7 +37397,7 @@
 & 5.0.2
 & 5.0.1
 & 5.0.0
-& changelog 7
+& changelog 8
 
   5.0.10
   * Additional 5-Phase audit across the codebase using M3:
@@ -37469,7 +37497,7 @@
 & 4.27.8
 & 4.27.7
 & 4.27.6
-& changelog 8
+& changelog 9
 
   4.33.0
   * support for more Telnet Negotitation:
@@ -37561,7 +37589,7 @@
 & 4.23.0
 & 4.22.0
 & 4.21.0
-& changelog 9
+& changelog 10
 
   4.27.5
   * Fixed Websocket connections done over Firefox, that have the
@@ -37641,7 +37669,7 @@
 & 4.14.0
 & 4.13.0
 & 4.12.0
-& changelog 10
+& changelog 11
     
   4.20.4 - 09/02/25
   * Search was too passive for totemlist and found first match and not exact
@@ -37726,7 +37754,7 @@
 & 4.5.0
 & 4.4.3
 & 4.4.2
-& changelog 11
+& changelog 12
 
   4.11.0-4.11.2 
   * fix for git
@@ -37797,7 +37825,7 @@
 & 4.3.2
 & 4.3.1
 & 4.3.0
-& changelog 12
+& changelog 13
   
   4.4.0 to 4.4.1 - 07/06/24
   * Fix for the ipv4math() function. the Calculations for the IPv4 octets
