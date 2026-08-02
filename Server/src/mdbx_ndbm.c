@@ -34,7 +34,11 @@
  * These are intentionally generous — MDBX only allocates pages as needed.
  */
 #define MDBX_NDBM_SIZE_LOWER   (1L << 20)        /*   1 MB  minimum */
+#if UINTPTR_MAX == 0xffffffffu
+#define MDBX_NDBM_SIZE_UPPER   (256L << 20)      /* 256 MB on 32-bit (fits VA space) */
+#else
 #define MDBX_NDBM_SIZE_UPPER   (1L << 30)        /*   1 GB  maximum */
+#endif
 #define MDBX_NDBM_GROWTH_STEP  (16L << 20)       /*  16 MB  growth  */
 #define MDBX_NDBM_SHRINK_THR   (256L << 20)      /* 256 MB  shrink  */
 #define MDBX_NDBM_PAGESIZE     (-1)              /* let mdbx choose */

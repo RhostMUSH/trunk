@@ -30,7 +30,11 @@ extern void FDECL(log_db_err, (int, int, const char *));
 
 /* Geometry defaults */
 #define ACHUNK_SIZE_LOWER   (1L << 20)        /*   1 MB  */
+#if UINTPTR_MAX == 0xffffffffu
+#define ACHUNK_SIZE_UPPER   (1L << 30)        /*   1 GB on 32-bit */
+#else
 #define ACHUNK_SIZE_UPPER   (2L << 30)        /*   2 GB  */
+#endif
 #define ACHUNK_GROWTH_STEP  (16L << 20)       /*  16 MB  */
 #define ACHUNK_SHRINK_THR   (256L << 20)      /* 256 MB  */
 

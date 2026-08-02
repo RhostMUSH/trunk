@@ -34,7 +34,11 @@ extern void mush_logf(const char *fmt, ...);
 
 /* Geometry defaults */
 #define OCHUNK_SIZE_LOWER   (1L << 20)        /*   1 MB  */
+#if UINTPTR_MAX == 0xffffffffu
+#define OCHUNK_SIZE_UPPER   (1L << 30)        /*   1 GB on 32-bit */
+#else
 #define OCHUNK_SIZE_UPPER   (2L << 30)        /*   2 GB  */
+#endif
 #define OCHUNK_GROWTH_STEP  (16L << 20)       /*  16 MB  */
 #define OCHUNK_SHRINK_THR   (256L << 20)      /* 256 MB  */
 
