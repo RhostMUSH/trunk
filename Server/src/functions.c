@@ -14830,8 +14830,15 @@ check_read_perms2(dbref player, dbref thing, ATTR * attr,
     if ( thing == GOING || thing == AMBIGUOUS || !Good_obj(thing))
         return 0;
     see_it = See_attr(player, thing, attr, aowner, aflags, 0);
-    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
-       return 1;
+    /* Align with check_read_perms: nearby/Examinable still respect
+     * AF_INTERNAL / AF_DARK / AF_MDARK (audit F-0040 / #257). */
+    if (Examinable(player, thing) || nearby(player, thing)) {
+        if ((attr->flags & AF_INTERNAL) ||
+            ((attr->flags & AF_DARK) && !Immortal(player)) ||
+            ((attr->flags & AF_MDARK) && !Wizard(player)))
+           return 0;
+        return 1;
+    }
     /* For any object, we can read its visible attributes, EXCEPT
      * for descs, which are only visible if read_rem_desc is on.
      */
@@ -14868,8 +14875,13 @@ check_readlock_perms(dbref player, dbref thing, ATTR * attr,
     } else {
        see_it = See_attr(player, thing, attr, aowner, aflags, 0);
     }
-    if ((Examinable(player, thing) || nearby(player, thing))) /* && see_it) */
-       return 1;
+    if (Examinable(player, thing) || nearby(player, thing)) {
+        if ((attr->flags & AF_INTERNAL) ||
+            ((attr->flags & AF_DARK) && !Immortal(player)) ||
+            ((attr->flags & AF_MDARK) && !Wizard(player)))
+           return 0;
+        return 1;
+    }
     /* For any object, we can read its visible attributes, EXCEPT
      * for descs, which are only visible if read_rem_desc is on.
      */
