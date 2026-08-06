@@ -5717,11 +5717,15 @@ do_command(DESC * d, char *command)
              log_text("[HACKING] ");
              log_text(s_rollback);
           ENDLOG
-          /* We're disabling the SSL handler at this point as it's been compromised */
+          /*
+           * Double negotiate: boot this descriptor only.
+           * Do not clear mudconf.sconnect_reip — that disabled SSL
+           * re-IP for the whole process until conf reload/restart and
+           * degraded site ACLs/logs for everyone (audit F-0024 / #260).
+           */
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
-             log_text("SSL handler [sconnect_reip] has been disabled as secret [sconnect_cmd] was guessed");
+             log_text("SSL double-negotiate from allowed host; booting descriptor (sconnect_reip left enabled)");
           ENDLOG
-          mudconf.sconnect_reip = 0;
           shutdownsock(d, R_BOOT);
           free_lbuf(s_rollback);
           RETURN(0); /* #147 */

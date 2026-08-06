@@ -30,6 +30,11 @@ sconnect_host wildcards    -- This allows wildcarded sites (one or more)
                               as 'localhost' to you.  You can verify this
                               by checking your /etc/hosts file.
 
+SECURITY: Peers matching sconnect_host can rewrite the client IP seen by
+the mush (site lists, logs, bans). Keep this list minimal — typically
+only localhost / 127.0.0.1 / ::1 for local stunnel. Broad wildcards
+("*") are an open invitation to IP spoofing of site policy.
+
 Note: the sconnect_host is optional.  If you do not specify it, it will
       default to two values:  'localhost' and '127.0.0.1'.
   
