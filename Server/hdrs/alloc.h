@@ -116,6 +116,12 @@ extern void  bigpool_free(void *);
 #define free_zlistnode(b)	if (b) free(b)
 #endif
 
+/*
+ * Buffer-append helpers (see stringutil.c):
+ *   safe_copy_str / safe_str: partial ok; returns *remaining* src length
+ *     (not a 0/1 overflow flag — that is safe_copy_chr).
+ *   safe_copy_strmax / safe_strmax: all-or-nothing; 0 if would not fully fit.
+ */
 #define	safe_str(s,b,p)		safe_copy_str(s,b,p,(LBUF_SIZE-2))
 #define safe_strmax(s,b,p)	safe_copy_strmax(s,b,p,(LBUF_SIZE-8))
 #define	safe_chr(c,b,p)		safe_copy_chr(c,b,p,(LBUF_SIZE-2))

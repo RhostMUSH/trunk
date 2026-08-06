@@ -1660,6 +1660,12 @@ int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc)
     return nLen;
 }
 
+/*
+ * safe_copy_str: copy src into buff starting at *bufp, stopping at max
+ * offset from buff. Advances *bufp. Returns length of *remaining*
+ * uncopied source (0 if fully copied) — NOT a boolean overflow flag
+ * (unlike safe_copy_chr). Callers that ignore the return silently truncate.
+ */
 int safe_copy_str(char *src, char *buff, char **bufp, int max)
 {
 char	*tp;
@@ -1674,20 +1680,32 @@ char	*tp;
 	return strlen(src);
 }
 
+/*
+ * safe_copy_strmax: all-or-nothing copy — if src does not fully fit in
+ * the remaining room to 'max', copy nothing and return 0. On success
+ * return 0 (historical remainder-after-full-copy). Does not scan past
+ * avail+1 of src (avoids full strlen on huge sources with no room).
+ */
 int safe_copy_strmax(char *src, char *buff, char **bufp, int max)
 {
 char	*tp;
-int	left;
+int	avail, n;
+
 	tp = *bufp;
 	if (src == NULL) return 0;
-        left = (buff + max) - tp - strlen(src);
-	if ( left < 1 )
-           return 0;
-	while (*src && ((tp - buff) < max))
-		*tp++ = *src++;
-	*tp = '\0';
-	*bufp = tp;
-	return strlen(src);
+	avail = max - (int)(tp - buff);
+	if (avail < 1)
+	   return 0;
+	for (n = 0; src[n]; n++) {
+	   if (n >= avail)
+	      return 0;	/* will not fully fit — do not partial-copy */
+	}
+	/* n == strlen(src) and n <= avail */
+	if (n > 0)
+	   memcpy(tp, src, n);
+	tp[n] = '\0';
+	*bufp = tp + n;
+	return 0;
 }
 
 int safe_copy_chr(char src, char *buff, char **bufp, int max)

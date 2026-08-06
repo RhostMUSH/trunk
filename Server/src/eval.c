@@ -1756,7 +1756,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #define NFARGS 30
 #endif
 
-    char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
+    char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, *dstr_ansi, sub_char;
     char *buff, *bufc, *tstr, tbuf_stack[SBUF_SIZE], *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
@@ -1794,6 +1794,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     DPUSH; /* #67 */
 		
+    dstr_ansi = NULL;
     i_ansinorm = 0;
     i_start = feval = sub_delim = sub_cntr = sub_value = sub_valuecnt = 0;
     inumext = prefeval = preeval = i_capansi = 0;
@@ -1904,8 +1905,15 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	   strcpy(s_label, t_label[LABEL_MAX - 1]);
         }
     }
+    /*
+     * Never strcpy over caller's dstr with strip_ansi()'s static buffer —
+     * that can corrupt atr_get_raw / cache pointers and other shared data
+     * (audit F-0015 / #258). Work on a private LBUF when ANSI is present.
+     */
     if (index(dstr, ESC_CHAR)) {
-	strcpy(dstr, strip_ansi(dstr));
+	dstr_ansi = alloc_lbuf("mushexec.ansi");
+	strcpy(dstr_ansi, strip_ansi(dstr));
+	dstr = dstr_ansi;
     }
 
 /* Debugging only
@@ -3884,6 +3892,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
        safe_str(ANSI_NORMAL, buff, &bufc);
 #endif
     }
+    if (dstr_ansi)
+	free_lbuf(dstr_ansi);
     RETURN(buff); /* #67 */
 }
 
