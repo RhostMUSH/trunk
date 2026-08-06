@@ -5,6 +5,9 @@ Admin toggles to configure the WHO, various things you're used to, etc is in the
 'netrhost.conf' file.  descriptions Notes in the autoconf.h file is in the 
 README.AUTOCONF file.
 
+For intentional design surfaces (hash-as-password login, EVAL locks,
+$ pre-eval, EXECSCRIPT/doors, dual conf defaults, etc.) see README.TRUST-MODEL.
+
 
 1)  Note on bits, their levels, and things they do
 	IMMORTAL - They can do anything.  Treat this as #1 and only give to

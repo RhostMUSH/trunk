@@ -1,0 +1,100 @@
+RhostMUSH — trust model & intentional design surfaces
+=====================================================
+
+This note is for game owners and staff. It documents long-standing
+behavior that is **by design** (or by traditional MUSH architecture),
+not accidental bugs. Treat Immortal/Wizard bits and host integrations
+as host-level trust.
+
+Related: SSL/stunnel also see README.SSL and Server/stunnel/README.
+
+
+1. Password hash accepted as password (migration / tooling)
+----------------------------------------------------------
+
+Login validation can accept the **stored password field** (the hash
+string itself) as a successful password, then re-hash that string.
+
+This is intentional for account migration, offline tooling, and
+owner-driven recovery patterns used by many Rhost games. It is **not**
+treated as a "security hole" to remove without an explicit design
+change and compatibility plan.
+
+Operational guidance:
+
+  * Protect DB dumps, backups, and A_PASS attributes like credentials.
+  * Do not grant low-trust softcode the ability to read password attrs.
+  * If you need strict "hash never equals password" policy, that is a
+    future conf/compat switch — discuss with maintainers before changing
+    production games that rely on this.
+
+
+2. Softcode runs in "predicate" and travel paths
+------------------------------------------------
+
+These features intentionally evaluate softcode:
+
+  * **EVAL locks** — lock checks can run softcode as the lock object
+    with the passer as enactor (side effects, CPU, surprise).
+  * **$commands** — the command line is evaluated **before** pattern
+    match so chained `$` softcode works; side-effect functions can
+    fire even when no pattern matches if sideeffects are enabled.
+  * **VariableExit** — EXITTO is evaluated at travel time for dynamic
+    destinations.
+  * **mail_def_object** — softcode hooks on mail paths for +mail wrappers.
+  * **Dynhelp DYN_PARSE / SUBEVAL** — help text can be softcode for the
+    reader; trust = who may edit dynhelp sources.
+
+Prefer const/attr locks and static exits for hard security barriers.
+Keep sideeffects conservative for low-trust builders.
+
+
+3. Host boundary (Immortal / optional integrations)
+---------------------------------------------------
+
+These leave the softcode sandbox when enabled. Ops should treat them as
+"host-adjacent":
+
+  * **EXECSCRIPT** — Immortal + sideeffects; runs host scripts under the
+    mush UID. Leave the bit off unless required; least-privilege user;
+    lock down scripts/.
+  * **Doors** (`door_tcp_connect`) — outbound TCP for inter-MUSH/etc.
+    Never pass player-controlled host:port without an allowlist; OS
+    egress filter recommended.
+  * **Sample scripts** (e.g. web.sh) — free-form args can be SSRF/egress.
+    Do not ship open samples on production with EXECSCRIPT open.
+  * **MySQL / SQLite / Lua** (optional compile-in) — wizard SQL is a full
+    client; conf may hold DB passwords; shared MySQL connection is
+    process-global. Lua can bridge into softcode via rhost.strfunc.
+
+
+4. Persistence / conf defaults (ops)
+------------------------------------
+
+  * **QDBM** path has no real transactions (stubs). Use flat dump
+    discipline, monitor disk, see README.DBISCORRUPT.
+  * **fork_dump** default is off with strong warnings — leave off on
+    fragile backends unless you know your platform.
+  * **Dual config layers**: `cf_init()` historical defaults vs
+    `netrhost.conf.default` recommended overlay. When you say
+    "default is X", specify which layer.
+  * **sconnect_host** must stay tight (usually loopback only). Any
+    matching peer can assert client IPs — see README.SSL.
+
+
+5. Immortal / Royalty
+---------------------
+
+As README.1ST says: Immortal is host-level trust. Royalty is full
+wizard. Do not hand these out lightly. Softcode running as Immortal is
+effectively co-admin of the process.
+
+
+See also
+--------
+
+  README.SSL          SSL / sconnect / PROXY
+  README.MYSQL        MySQL integration
+  README.MODULES      optional modules
+  README.DBISCORRUPT  corruption narratives
+  README.1ST          bit hierarchy basics

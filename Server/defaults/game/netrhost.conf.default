@@ -39,6 +39,8 @@ gdbm_database	netrhost.gdbm
 # This is generally wise to keep as it is.  No, it is.  Really.
 # Some OS's will not handle forked dumps to gdbm well (ie: possible corruption)
 # Dump times are very fast anyway, so you shouldn't need forked dumps.
+# QDBM/GDBM paths have no real transactions; forked dump raises corruption risk.
+# See readme/README.DBISCORRUPT and readme/README.TRUST-MODEL.
 fork_dump no
 #
 # Comment these out (or set to empty strings) to remove dump notification
