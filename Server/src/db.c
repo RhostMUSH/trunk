@@ -3317,11 +3317,33 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	return;
     }
     if ((a = (Attr *) malloc(strlen(buff) + 1)) == (char *) 0) {
+	/* Log so staff can see silent attr loss under memory pressure */
+	STARTLOG(LOG_ALWAYS, "BUG", "ATRADD")
+	    log_text((char *) "atr_add_raw: malloc failed for attribute ");
+	    log_number(atr);
+	    log_text((char *) " on #");
+	    log_number(thing);
+	ENDLOG
 	return;
     }
     strcpy(a, buff);
 
-    STORE(&okey, a);
+    /*
+     * STORE (cache_put) can fail before taking ownership of a
+     * (NULL args, malloc for new Obj, get_free_entry). Never al_add
+     * on failure — that desyncs A_LIST from UDB/cache data.
+     */
+    if (STORE(&okey, a) != 0) {
+	free(a);
+	STARTLOG(LOG_ALWAYS, "BUG", "ATRADD")
+	    log_text((char *) "atr_add_raw: STORE/cache_put failed for attribute ");
+	    log_number(atr);
+	    log_text((char *) " on #");
+	    log_number(thing);
+	    log_text((char *) " (A_LIST not updated)");
+	ENDLOG
+	return;
+    }
     al_add(thing, atr);
     switch (atr) {
     case A_STARTUP:
