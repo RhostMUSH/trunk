@@ -2764,7 +2764,7 @@ char is_valid_tagname(char *tagname) {
 void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 {
   char *buff, *buffp, *s_hashstr, *tagname, *t_distag, t_warn = ' ';
-  ANSISPLIT outsplit;
+  ANSISPLIT *outsplit = NULL;
   TAGENT *storedtag = NULL;
   BSTNode *node = NULL;
   char *s_buff = NULL;
@@ -2900,6 +2900,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
            *buff = '\0';
 
            // display the requested tags
+           outsplit = split_alloc_buf();
            for (node = bst_next_node(tag_tree, NULL); node; node = bst_next_node(tag_tree, node)) {
               storedtag = (TAGENT *)node->data;
               if(storedtag) {
@@ -2919,7 +2920,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
 
                      s_buff = alloc_lbuf("objecttag_list");
                      memset(s_buff, '\0', LBUF_SIZE);
-                      split_ansi(strip_ansi(storedtag->tagname), s_buff, &outsplit);
+                      split_ansi(strip_ansi(storedtag->tagname), s_buff, outsplit);
 
                       if (i_personal) {
                           char *p = strchr(storedtag->tagname + 3, '_');
@@ -2940,6 +2941,7 @@ void do_tag(dbref player, dbref cause, int key, char *s_tagname, char *target)
                  }
               }
            }
+           split_free_buf(outsplit);
 
            if ( i_personal )  {
               if ( !*tagname ) {
