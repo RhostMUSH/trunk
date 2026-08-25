@@ -30,17 +30,18 @@ static char *
 munge_space_for_match(char *name)
 {
     static char buffer[LBUF_SIZE];
-    char *p, *q;
+    char *p, *q, *qend;
 
     p = name;
     q = buffer;
+    qend = buffer + LBUF_SIZE - 1;
     while (isspace((int)*p))
 	p++;			/* remove initial spaces */
-    while (*p) {
-	while (*p && !isspace((int)*p))
+    while (*p && (q < qend)) {
+	while (*p && !isspace((int)*p) && (q < qend))
 	    *q++ = *p++;
 	while (*p && isspace((int)*++p));
-	if (*p)
+	if (*p && (q < qend))
 	    *q++ = ' ';
     }
     *q = '\0';			/* remove terminal spaces and terminate

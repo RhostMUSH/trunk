@@ -1698,7 +1698,9 @@ setup_que(dbref player, dbref cause, char *command,
 	}
 	if (tpid > last_pid) {
 	  notify(Owner(player), "Unable to queue command.");
-	  halt_que_all();
+	  STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
+	      log_text("setup_que: pid_table exhausted; queue request dropped.");
+	  ENDLOG
 	  return NULL;
 	}
       }
@@ -1710,7 +1712,9 @@ setup_que(dbref player, dbref cause, char *command,
       }
       if (tpid > MUMAXPID) {
 	notify(Owner(player), "Unable to queue command.");
-	halt_que_all();
+	STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
+	    log_text("setup_que: pid_table exhausted; queue request dropped.");
+	ENDLOG
 	return NULL;
       }
     }

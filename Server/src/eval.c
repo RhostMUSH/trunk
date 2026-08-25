@@ -1757,7 +1757,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 #endif
 
     char *fargs[NFARGS], *sub_txt, *sub_buf, *sub_txt2, *sub_buf2, *orig_dstr, sub_char;
-    char *buff, *bufc, *tstr, tbuf_stack[SBUF_SIZE], *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label;
+    char *buff, *bufc, *tstr, tbuf_stack[SBUF_SIZE], *tbuf, *tbufc, *savepos, *atr_gotten, *savestr, *s_label, *dstr_copy = NULL;
     char savec, ch, *ptsavereg, *savereg[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], *t_bufa, *t_bufb, *t_bufc, c_last_chr,
          *nptsavereg, *saveregname[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST], c_allargs;
     char *trace_array[3], *trace_buff, *trace_buffptr, *s_nameptr, *s_tmparray[3], s_funclim[32];
@@ -1905,7 +1905,9 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
         }
     }
     if (index(dstr, ESC_CHAR)) {
-	strcpy(dstr, strip_ansi(dstr));
+	dstr_copy = alloc_lbuf("exec.strip");
+	strcpy(dstr_copy, strip_ansi(dstr));
+	dstr = dstr_copy;
     }
 
 /* Debugging only
@@ -3884,6 +3886,8 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
        safe_str(ANSI_NORMAL, buff, &bufc);
 #endif
     }
+    if (dstr_copy)
+	free_lbuf(dstr_copy);
     RETURN(buff); /* #67 */
 }
 

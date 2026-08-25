@@ -213,7 +213,7 @@ void start_news_system( void )
       return;
     }
     else { /* no db file exists */
-      ndb = dbm_open(news_db_name, O_RDWR | O_CREAT, 00664);
+      ndb = dbm_open(news_db_name, O_RDWR | O_CREAT, 0660);
 
       if( !ndb ) {
         STARTLOG(LOG_STARTUP, "INI", "ERROR")
@@ -276,7 +276,7 @@ void start_news_system( void )
     }
   }
   else { /* db exists */
-    ndb = dbm_open(news_db_name, O_RDWR, 00664);
+    ndb = dbm_open(news_db_name, O_RDWR, 0660);
 
     if( !ndb ) {
       STARTLOG(LOG_STARTUP, "INI", "ERROR")
@@ -3804,7 +3804,7 @@ void newsdb_load(dbref player, dbref cause, int key, char *buf1, char *buf2)
   /* re-enable the system */
   news_internal_failure = 0;
 
-  ndb = dbm_open(news_db_name, O_RDWR | O_CREAT, 00664);
+  ndb = dbm_open(news_db_name, O_RDWR | O_CREAT, 0660);
 
   if( !ndb ) {
     news_system_active = 0;

@@ -499,8 +499,8 @@ mail_init()
     snprintf(foldname, sizeof(foldname), "%s/%s.folder", mudconf.data_dir, mudconf.muddb_name);
     snprintf(fdumpname, sizeof(fdumpname), "%s/%s.dump.folder", mudconf.data_dir, mudconf.muddb_name);
     snprintf(nukename, sizeof(nukename), "%s/%s.wipe", mudconf.data_dir, mudconf.muddb_name);
-    mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 00664);
-    foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 00664);
+    mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 0660);
+    foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 0660);
     mainit();
     tomask = 1;
     tomask <<= ((sizeof(short int) << 3) - 1);
@@ -7250,8 +7250,8 @@ void mail_load(dbref player)
   dbm_close(foldfile);
   remove(mailname);
   remove(foldname);
-  mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 00664);
-  foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 00664);
+  mailfile = dbm_open(mailname, O_RDWR | O_CREAT, 0660);
+  foldfile = dbm_open(foldname, O_RDWR | O_CREAT, 0660);
   if (!mailfile) {
     notify_quiet(player,unsafe_tprintf("MAIL ERROR: Could not open %s: %s",mailname,strerror(errno)));
     return;

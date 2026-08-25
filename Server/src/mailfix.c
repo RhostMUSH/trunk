@@ -2872,10 +2872,10 @@ openmaildb(char *prefix)
 
     strcpy(nbuf, prefix);
     strcat(nbuf, ".mail");
-    mailfile = dbm_open(nbuf, O_RDWR | O_CREAT, 00664);
+    mailfile = dbm_open(nbuf, O_RDWR | O_CREAT, 0660);
     strcpy(nbuf, prefix);
     strcat(nbuf, ".folder");
-    foldfile = dbm_open(nbuf, O_RDWR | O_CREAT, 00664);
+    foldfile = dbm_open(nbuf, O_RDWR | O_CREAT, 0660);
     if (!mailfile || !foldfile)
 	return -1;
     else

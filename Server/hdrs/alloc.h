@@ -117,7 +117,7 @@ extern void  bigpool_free(void *);
 #endif
 
 #define	safe_str(s,b,p)		safe_copy_str(s,b,p,(LBUF_SIZE-2))
-#define safe_strmax(s,b,p)	safe_copy_strmax(s,b,p,(LBUF_SIZE-8))
+#define safe_strmax(s,b,p)	safe_copy_strmax(s,b,p,(LBUF_SIZE-8)) /* returns bytes copied, 0 = empty/no room */
 #define	safe_chr(c,b,p)		safe_copy_chr(c,b,p,(LBUF_SIZE-2))
 #define	safe_sb_str(s,b,p)	safe_copy_str(s,b,p,(SBUF_SIZE-2))
 #define	safe_sb_chr(c,b,p)	safe_copy_chr(c,b,p,(SBUF_SIZE-2))

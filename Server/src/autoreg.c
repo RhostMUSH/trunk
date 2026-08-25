@@ -60,7 +60,7 @@ int areg_init()
   sprintf(aregname, "%s/%s.areg", mudconf.data_dir, mudconf.muddb_name);
   sprintf(dumpname, "%s.dump", aregname);
 
-  aregfile = dbm_open(aregname, O_RDWR | O_CREAT, 00664);
+  aregfile = dbm_open(aregname, O_RDWR | O_CREAT, 0660);
   if (aregfile == NULL)
     rtemp = 0;
   else
@@ -276,7 +276,7 @@ void areg_load(dbref player)
     snprintf(rmpath, sizeof(rmpath), "%s.pag", aregname);
     remove(rmpath);
   }
-  aregfile = dbm_open(aregname, O_RDWR | O_CREAT, 00664);
+  aregfile = dbm_open(aregname, O_RDWR | O_CREAT, 0660);
   if (!aregfile) {
     notify(player, "Areg: Unable to re-open autoreg data file.");
     return;

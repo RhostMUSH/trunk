@@ -1676,9 +1676,9 @@ char	*tp;
 
 int safe_copy_strmax(char *src, char *buff, char **bufp, int max)
 {
-char	*tp;
+char	*tp, *tp0;
 int	left;
-	tp = *bufp;
+	tp0 = tp = *bufp;
 	if (src == NULL) return 0;
         left = (buff + max) - tp - strlen(src);
 	if ( left < 1 )
@@ -1687,7 +1687,7 @@ int	left;
 		*tp++ = *src++;
 	*tp = '\0';
 	*bufp = tp;
-	return strlen(src);
+	return (int)(tp - tp0);
 }
 
 int safe_copy_chr(char src, char *buff, char **bufp, int max)
