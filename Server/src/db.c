@@ -3317,11 +3317,21 @@ atr_add_raw(dbref thing, int atr, char *buff)
 	return;
     }
     if ((a = (Attr *) malloc(strlen(buff) + 1)) == (char *) 0) {
+	STARTLOG(LOG_ALWAYS, "MEMORY", "ALLOCATION")
+	    log_text("atr_add_raw: Unable to allocate memory for attribute value.  Attribute write dropped.");
+	ENDLOG
 	return;
     }
     strcpy(a, buff);
 
-    STORE(&okey, a);
+    if (STORE(&okey, a)) {
+	/* cache_put failed; ownership of a remains with us */
+	free(a);
+	STARTLOG(LOG_ALWAYS, "MEMORY", "STORE")
+	    log_text("atr_add_raw: cache_put failed to store attribute.  A_LIST not updated.");
+	ENDLOG
+	return;
+    }
     al_add(thing, atr);
     switch (atr) {
     case A_STARTUP:
@@ -3403,7 +3413,10 @@ atr_set_flags(dbref thing, int atr, dbref flags)
  */
 
 // Global LBUF size static buffer for large LBUF -> small LBUF conversion.
-Attr tmp_lbuf[LBUF_SIZE];
+// HARD RULE: the pointer returned for an oversized attribute is valid only
+// until the next atr_get_raw() call. Callers must copy it immediately and
+// must never hold it across another fetch or combine two oversized results.
+static Attr tmp_lbuf[LBUF_SIZE];
 //
 char *
 atr_get_raw(dbref thing, int atr)

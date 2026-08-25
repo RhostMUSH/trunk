@@ -111,7 +111,7 @@ static int cache_write(Cache *cp);
 static void cache_clean(CacheLst *sp);
 
 static Attr *get_attrib(Aname *anam, Obj *obj);
-static void set_attrib(Aname *anam, Obj *obj, Attr *value);
+static int set_attrib(Aname *anam, Obj *obj, Attr *value);
 static void del_attrib(Aname *anam, Obj *obj);
 static void	FDECL(objfree, (Obj *));
 
@@ -539,7 +539,7 @@ cache_put(Aname *nam, Attr *obj)
 
 			/* Right object, set the attribute */
 
-			set_attrib(nam,cp->op,obj);
+			if (set_attrib(nam, cp->op, obj)) RETURN(1); /* #166 */
 
 #ifdef	CACHE_DEBUG
 			printf("cache_put object %d, attr %d -- %d\n",
@@ -558,7 +558,7 @@ cache_put(Aname *nam, Attr *obj)
 
 			/* Right object, set the attribute */
 
-			set_attrib(nam,cp->op,obj);
+			if (set_attrib(nam, cp->op, obj)) RETURN(1); /* #166 */
 
 #ifdef	CACHE_DEBUG
 			printf("cache_put object %d,attr %d -- %d\n",
@@ -575,7 +575,7 @@ cache_put(Aname *nam, Attr *obj)
 
 			/* Right obj. Set the attrib. */
 
-			set_attrib(nam,cp->op,obj);
+			if (set_attrib(nam, cp->op, obj)) RETURN(1); /* #166 */
 
 #ifdef	CACHE_DEBUG
 			printf("cache_put object %d, attr %d -- %d\n",
@@ -594,7 +594,7 @@ cache_put(Aname *nam, Attr *obj)
 
 			/* Right object. Set the attribute. */
 
-			set_attrib(nam,cp->op,obj);
+			if (set_attrib(nam, cp->op, obj)) RETURN(1); /* #166 */
 
 #ifdef	CACHE_DEBUG
 			printf("cache_put %d,%d %d\n",
@@ -633,7 +633,10 @@ cache_put(Aname *nam, Attr *obj)
 
 	/* Now we got the thing, hang the new version of the attrib on it. */
 
-	set_attrib(nam,newobj,obj);
+	if (set_attrib(nam, newobj, obj)) {
+		objfree(newobj);
+		RETURN(1); /* #166 */
+        }
 
 	cp->op = newobj;
 
@@ -922,7 +925,7 @@ get_attrib(Aname *anam, Obj *obj)
 	RETURN((Attr *)0); /* Not found */ /* #172 */
 }
 
-static void
+static int
 set_attrib(Aname *anam, Obj *obj, Attr *value)
 {
 	int	i;
@@ -935,10 +938,9 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 
 	if(obj->atrs == ATNULL){
 		a = (Attrib *) malloc(sizeof(Attrib));
-		if(a == ATNULL) { /* Fail silently. It's a game. */
-			/* Caller transferred ownership of 'value' to us, free it. */
-			free(value);
-			VOIDRETURN; /* #173 */
+		if(a == ATNULL) {
+			/* Failure.  Ownership of 'value' stays with the caller. */
+			RETURN(1); /* #173 */
                 }
 
 		obj->atrs = a;
@@ -946,7 +948,7 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 		a[0].attrnum = anam->attrnum;
 		a[0].data = (char *) value;
 		a[0].size = ATTR_SIZE(value);
-		VOIDRETURN; /* #173 */
+		RETURN(0); /* #173 */
 	}
 
 
@@ -960,7 +962,7 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 			free(a[i].data);
 			a[i].data = (char *) value;
 			a[i].size = ATTR_SIZE(value);
-			VOIDRETURN; /* #173 */
+			RETURN(0); /* #173 */
 		}
 	}
 
@@ -969,10 +971,8 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 	a = (Attrib *) realloc(obj->atrs, (obj->at_count + 1) * sizeof(Attrib));
 
 	if(!a){
-		/* Silently fail. It's just a game. */
-		/* Caller transferred ownership of 'value' to us, free it. */
-		free(value);
-		VOIDRETURN; /* #173 */
+		/* Failure.  Ownership of 'value' stays with the caller. */
+		RETURN(1); /* #173 */
 	}
 
 	a[obj->at_count].data = value;
@@ -980,7 +980,7 @@ set_attrib(Aname *anam, Obj *obj, Attr *value)
 	a[obj->at_count].size = ATTR_SIZE(value);
 	obj->at_count = obj->at_count + 1;
 	obj->atrs = a;
-        VOIDRETURN; /* #173 */
+        RETURN(0); /* #173 */
 }
 
 static void
