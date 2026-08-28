@@ -28,6 +28,9 @@ Debugmem * shmConnect(int debug_id, int create, int *pShmid);
 #define INITDEBUG(x) { memset(x, 0, sizeof(Debugmem)); x->lastdbfetch = -1; }
 
 #ifndef NODEBUGMONITOR
+/* On overflow/underflow: log once per imbalance and keep running.
+ * exit(1) killed live games when debugmon was attached (issue #256).
+ */
 #define DPUSH   {if(debugmem && debugmem->stacktop < STACKMAX) { \
                   debugmem->callstack[debugmem->stacktop].filenum = \
                     FILENUM; \
@@ -37,15 +40,13 @@ Debugmem * shmConnect(int debug_id, int create, int *pShmid);
                     (debugmem->stacktop > debugmem->stackval ? debugmem->stacktop : debugmem->stackval); \
                 } \
                 else if(debugmem) { \
-                  printf("Debug Stack Overflow! (line %d of fp %d)\n", __LINE__, FILENUM); \
-                  exit(1); \
+                  printf("Debug Stack Overflow! (line %d of fp %d) - not exiting\n", __LINE__, FILENUM); \
                 }}
 #define DPOP    {if(debugmem && debugmem->stacktop > 0) { \
                   debugmem->stacktop--; \
                 } \
                 else if(debugmem) { \
-                  printf("Debug Stack Underflow! (line %d of fp %d)\n",__LINE__, FILENUM); \
-                  exit(1); \
+                  printf("Debug Stack Underflow! (line %d of fp %d) - not exiting\n",__LINE__, FILENUM); \
                 }}
 #define DPOPCONDITIONAL   {if(debugmem && debugmem->stacktop > 0) { \
                   debugmem->stacktop--; \

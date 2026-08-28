@@ -1704,6 +1704,9 @@ setup_que(dbref player, dbref cause, char *command,
 	}
 	if (tpid > last_pid) {
 	  notify(Owner(player), "Unable to queue command.");
+	  /* Refund the queue slot charged by a_Queue() above; this
+	   * return path never queues anything. */
+	  a_Queue(Owner(player), -1);
 	  STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
 	      log_text("setup_que: pid_table exhausted; queue request dropped.");
 	  ENDLOG
@@ -1718,6 +1721,8 @@ setup_que(dbref player, dbref cause, char *command,
       }
       if (tpid > MUMAXPID) {
 	notify(Owner(player), "Unable to queue command.");
+	/* Refund the queue slot charged by a_Queue() above. */
+	a_Queue(Owner(player), -1);
 	STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
 	    log_text("setup_que: pid_table exhausted; queue request dropped.");
 	ENDLOG

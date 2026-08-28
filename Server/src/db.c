@@ -3412,16 +3412,28 @@ atr_set_flags(dbref thing, int atr, dbref flags)
  * atr_get_raw, atr_get_str, atr_get: Get an attribute from the database.
  */
 
-// Global LBUF size static buffer for large LBUF -> small LBUF conversion.
-// HARD RULE: the pointer returned for an oversized attribute is valid only
-// until the next atr_get_raw() call. Callers must copy it immediately and
-// must never hold it across another fetch or combine two oversized results.
-static Attr tmp_lbuf[LBUF_SIZE];
-//
+/*
+ * Truncation buffers for attributes longer than this binary's LBUF_SIZE
+ * (for example a flatfile written by a larger-LBUF build).
+ *
+ * A single static buffer meant that two live oversized results could not
+ * coexist: any nested or successive atr_get_raw() clobbered the pointer the
+ * previous caller was still holding.  Rotating over a small pool gives each
+ * of the last TMP_LBUF_POOL fetches its own storage.
+ *
+ * HARD RULE (unchanged, just relaxed): the returned pointer is only valid
+ * until TMP_LBUF_POOL further oversized fetches have happened.  Callers
+ * should still copy it immediately rather than rely on the depth.
+ */
+#define TMP_LBUF_POOL 4
+static Attr tmp_lbuf_pool[TMP_LBUF_POOL][LBUF_SIZE];
+static int tmp_lbuf_idx = 0;
+
 char *
 atr_get_raw(dbref thing, int atr)
 {
     Attr *a;
+    Attr *dst;
     Aname okey;
 
 #ifndef STANDALONE
@@ -3435,9 +3447,11 @@ atr_get_raw(dbref thing, int atr)
       {
         if (atr == A_LIST)
             return a;
-        memset(tmp_lbuf, '\0', LBUF_SIZE);
-        strncpy(tmp_lbuf,a,LBUF_SIZE-1);
-        return tmp_lbuf;
+        dst = tmp_lbuf_pool[tmp_lbuf_idx];
+        tmp_lbuf_idx = (tmp_lbuf_idx + 1) % TMP_LBUF_POOL;
+        memset(dst, '\0', LBUF_SIZE);
+        strncpy(dst, a, LBUF_SIZE - 1);
+        return dst;
       }
     return a;
 }
