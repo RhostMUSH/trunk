@@ -25869,6 +25869,9 @@ FUNCTION(fun_account_su)
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
          D_LAST_TIME(d) = mudstate_hot.now;
+         /* Clear password material from temporary buffers */
+         memset(s_tmp, '\0', LBUF_SIZE);
+         memset(s_buff, '\0', LBUF_SIZE);
          free_lbuf(s_buff);
          free_lbuf(s_tmp);
          free_lbuf(s_tmp2);
@@ -25970,6 +25973,7 @@ FUNCTION(fun_account_login)
          } else {
             ival(buff, bufcx, 0);
          }
+         memset(s_buff, '\0', LBUF_SIZE);
          free_lbuf(s_buff);
          return;
       }

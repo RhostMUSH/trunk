@@ -1136,7 +1136,11 @@ int dump_reboot_db( void )
     }
     /* Null telnet pointer before writing cold struct (stale across processes) */
     void *saved_telnet = d->cold->telnet;
+    char saved_rawpass[sizeof(d->cold->account_rawpass)];
     d->cold->telnet = NULL;
+    /* Do not persist plaintext account passwords across reboot */
+    memcpy(saved_rawpass, d->cold->account_rawpass, sizeof(saved_rawpass));
+    memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
     /* Write hot fields individually (SoA format v4) */
     if( !fwrite(&D_DESCRIPTOR(d), sizeof(int), 1, rebootfile) ||
         !fwrite(&D_FLAGS(d), sizeof(int), 1, rebootfile) ||
@@ -1154,6 +1158,8 @@ int dump_reboot_db( void )
         !fwrite(&D_LAST_TIME(d), sizeof(time_t), 1, rebootfile) ||
         !fwrite(d->cold, sizeof(DESC_COLD), 1, rebootfile) ) {
       d->cold->telnet = saved_telnet;
+      memcpy(d->cold->account_rawpass, saved_rawpass, sizeof(saved_rawpass));
+      memset(saved_rawpass, '\0', sizeof(saved_rawpass));
       STARTLOG(LOG_PROBLEMS, "RBT", "DUMP")
         log_text((char *) "Error writing to reboot file.");
       ENDLOG
@@ -1169,8 +1175,10 @@ int dump_reboot_db( void )
         fclose(slnptr->sfile);
       }
     }
-    /* Restore telnet pointer (was nulled for serialization) */
+    /* Restore telnet pointer and in-process rawpass (was redacted for dump) */
     d->cold->telnet = saved_telnet;
+    memcpy(d->cold->account_rawpass, saved_rawpass, sizeof(saved_rawpass));
+    memset(saved_rawpass, '\0', sizeof(saved_rawpass));
   }
 
   /* Pass 2 — close API connections. SAFEITER handles compaction safely:
