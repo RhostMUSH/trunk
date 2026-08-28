@@ -5711,17 +5711,17 @@ do_command(DESC * d, char *command)
           queue_string(d, "SSL attempt to negotiate twice.\r\n");
           process_output(d);
           sprintf(s_rollback, "%.50s -> %.50s {%s} ", addroutbuf, arg, arg);
-          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [HACKING]", NULL, s_rollback,
+          broadcast_monitor(NOTHING, MF_CONN | MF_SITE, "SCONNECT PROXY [DOUBLE-NEGOTIATE]", NULL, s_rollback,
                             D_DESCRIPTOR(d), 0, d->cold->remote_port, NULL);
           STARTLOG(LOG_ALWAYS, "NET", "SSL");
-             log_text("[HACKING] ");
+             log_text("[DOUBLE-NEGOTIATE] ");
              log_text(s_rollback);
           ENDLOG
-          /* We're disabling the SSL handler at this point as it's been compromised */
-          STARTLOG(LOG_ALWAYS, "NET", "SSL");
-             log_text("SSL handler [sconnect_reip] has been disabled as secret [sconnect_cmd] was guessed");
-          ENDLOG
-          mudconf.sconnect_reip = 0;
+          /* Boot the offending connection only; do NOT disable sconnect_reip globally.
+           * A double-negotiate is a protocol violation (stray PROXY / second secret),
+           * not evidence the secret was guessed — a real guess uses a fresh
+           * connection. A global disable would let one misbehaving client turn off
+           * re-IP for the entire game. sconnect_host + blacklist/TOR remain the guard. */
           shutdownsock(d, R_BOOT);
           free_lbuf(s_rollback);
           RETURN(0); /* #147 */
