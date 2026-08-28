@@ -94,7 +94,7 @@ void execute_entry(BQUE *queue)
 	    a_Queue(Owner(player), -1);
 	    queue->player = NOTHING;
 	    pid_table[queue->pid] = 0;
-	    if (!Halted(player) || mudstate_hot.force_halt) {
+	    if (!Halted(player) || queue->allow_halted) {
 
 		/* Load scratch args */
 
@@ -477,6 +477,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
+            freezepid->allow_halted = point->allow_halted;
             Q_HOOKED(freezepid) = Q_HOOKED(point);
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
@@ -557,6 +558,7 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
             Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
             freezepid->stop_bool = point->stop_bool;
             freezepid->stop_bool_val = point->stop_bool_val;
+            freezepid->allow_halted = point->allow_halted;
             Q_HOOKED(freezepid) = Q_HOOKED(point);
             if ( Good_obj(point->player) )
                freezepid->plr_type = Typeof(point->player);
@@ -687,6 +689,7 @@ thaw_pid(dbref player, int pid, int key)
                Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
+               freezepid->allow_halted = point->allow_halted;
                Q_HOOKED(freezepid) = Q_HOOKED(point);
             }
 	    numhalted++;
@@ -771,6 +774,7 @@ thaw_pid(dbref player, int pid, int key)
                Q_SHELLPRG(freezepid) = Q_SHELLPRG(point);
                freezepid->stop_bool = point->stop_bool;
                freezepid->stop_bool_val = point->stop_bool_val;
+               freezepid->allow_halted = point->allow_halted;
                Q_HOOKED(freezepid) = Q_HOOKED(point);
             }
 	    numhalted++;
@@ -1009,6 +1013,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             Q_SHELLPRG(rewait) = Q_SHELLPRG(point);
             rewait->stop_bool = point->stop_bool;
             rewait->stop_bool_val = newwait;
+            rewait->allow_halted = point->allow_halted;
 	    numhalted++;
 	    pid_table[point->pid] = 0;
 	    if (trail)
@@ -1084,6 +1089,7 @@ wait_que_pid(dbref player, int pid, int newwait)
             Q_SHELLPRG(rewait) = Q_SHELLPRG(point);
             rewait->stop_bool = point->stop_bool;
             rewait->stop_bool_val = newwait;
+            rewait->allow_halted = point->allow_halted;
 	    pid_table[point->pid] = 0;
 	    numhalted++;
 	    if (trail)
@@ -1811,6 +1817,7 @@ setup_que(dbref player, dbref cause, char *command,
     Q_NARGS(tmp) = nargs;
     tmp->stop_bool = 0;
     tmp->stop_bool_val = 0;
+    tmp->allow_halted = (Halted(player) && mudstate_hot.force_halt) ? 1 : 0;
     Q_HOOKED(tmp) = mudstate_hot.no_hook;
     if ( InProgram(player) )
        Q_SHELLPRG(tmp) = 1;

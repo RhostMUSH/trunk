@@ -138,6 +138,7 @@ struct bque {
 	int	stop_bool;
 	double	stop_bool_val;
 	int	plr_type;
+	int	allow_halted;
 	BQUE_COLD *cold;
 };
 
