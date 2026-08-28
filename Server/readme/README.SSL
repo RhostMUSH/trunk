@@ -69,6 +69,15 @@ sconnect_host wildcards -- This allows wildcarded sites (one or more) to allow
                            You can verify this by checking your /etc/hosts 
                            file.
 
+SECURITY (critical): Any TCP peer that matches sconnect_host can assert an
+arbitrary client IP via the sconnect secret command or HAProxy-style PROXY
+lines. That rewrites site checks, logs, and bans for that connection.
+Keep sconnect_host as tight as possible -- almost always only the stunnel
+host (localhost / 127.0.0.1 / ::1). Do NOT use broad wildcards such as
+'*' or open network ranges unless you fully trust every host that can
+reach the mush port from those addresses. Prefer local stunnel on the
+same machine so the peer is always loopback.
+
 Note: the sconnect_host is optional.  If you do not specify it, it will
       default to two values:  'localhost' and '127.0.0.1'.
   

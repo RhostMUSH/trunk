@@ -731,6 +731,9 @@ include rhost_ingame.conf
 ##### - This is the optional host(s) you wish to set to be allowable to issue the sconnect_cmd
 #       on port connects.  By default it uses 'localhost'.  It accepts multiple sites and 
 #       wildcards such as '*' and '?'.
+#       SECURITY: any matching peer can assert an arbitrary client IP (site checks / logs).
+#       Keep this tight (localhost / 127.0.0.1 / ::1 for local stunnel). Avoid '*' and open
+#       network wildcards unless every host that can reach the port is fully trusted.
 # sconnect_host localhost*
 #
 ##### - Disable connect commands on connect screen.  Add them to combine.

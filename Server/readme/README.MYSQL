@@ -75,7 +75,7 @@ the following files:
 Trust / ops notes
 -----------------
 Wizard SQL is a full MySQL client under the mush process. Conf may hold
-DB passwords — keep rhost_mysql.conf and netrhost.conf unreadable by
+DB passwords -- keep rhost_mysql.conf and netrhost.conf unreadable by
 untrusted local users. Prefer least-privilege DB accounts. The MySQL
 connection is process-global (shared). Treat Immortal + SQL as
 host-adjacent. See also README.TRUST-MODEL.
