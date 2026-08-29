@@ -25868,10 +25868,11 @@ FUNCTION(fun_account_su)
           sprintf(s_buff, "zz %.100s %.200s", fargs[0], s_tmp);
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-         D_LAST_TIME(d) = mudstate_hot.now;
-         free_lbuf(s_buff);
-         free_lbuf(s_tmp);
-         free_lbuf(s_tmp2);
+D_LAST_TIME(d) = mudstate_hot.now;
+          free_lbuf(s_buff);
+          memset(s_tmp, '\0', strlen(s_tmp));
+          free_lbuf(s_tmp);
+          free_lbuf(s_tmp2);
          return;
       }
    }  
@@ -25965,9 +25966,10 @@ FUNCTION(fun_account_login)
          }
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-         if ( D_FLAGS(d) & DS_CONNECTED ) {
+if ( D_FLAGS(d) & DS_CONNECTED ) {
+            memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
             ival(buff, bufcx, 1);
-         } else {
+          } else {
             ival(buff, bufcx, 0);
          }
          free_lbuf(s_buff);
