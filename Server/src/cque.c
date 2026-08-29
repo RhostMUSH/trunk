@@ -1707,6 +1707,7 @@ setup_que(dbref player, dbref cause, char *command,
 	  STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
 	      log_text("setup_que: pid_table exhausted; queue request dropped.");
 	  ENDLOG
+	  a_Queue(Owner(player), -1);
 	  return NULL;
 	}
       }
@@ -1721,6 +1722,7 @@ setup_que(dbref player, dbref cause, char *command,
 	STARTLOG(LOG_ALWAYS, "QUEUE", "PIDEXHAUST")
 	    log_text("setup_que: pid_table exhausted; queue request dropped.");
 	ENDLOG
+	a_Queue(Owner(player), -1);
 	return NULL;
       }
     }

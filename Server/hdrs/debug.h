@@ -28,6 +28,11 @@ Debugmem * shmConnect(int debug_id, int create, int *pShmid);
 #define INITDEBUG(x) { memset(x, 0, sizeof(Debugmem)); x->lastdbfetch = -1; }
 
 #ifndef NODEBUGMONITOR
+/* DPUSH/DPOP overflow/underflow intentionally HARD-STOP via exit(1): an
+ * immediate imbalance signal after development work. This is the debug
+ * monitor (debugmem != NULL) facility only; production builds may define
+ * NODEBUGMONITOR to compile these out. Deliberate per maintainer decision
+ * (audit #256, 2026-08); do not soften to log-and-continue without review. */
 #define DPUSH   {if(debugmem && debugmem->stacktop < STACKMAX) { \
                   debugmem->callstack[debugmem->stacktop].filenum = \
                     FILENUM; \
