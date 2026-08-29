@@ -37012,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.9.2, 5.9.1, 5.9.0
+  1 - 5.10.0, 5.9.2, 5.9.1, 5.9.0
   2 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
   3 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
   4 - 5.5.6, 5.5.5, 5.5.4, 5.5.3, 5.5.2, 5.5.1, 5.5.0
@@ -37038,7 +37038,41 @@
 & changelog recent
 & changelog 1
    Topic: CHANGELOG
-  
+ 
+  5.10.0
+  * Big audit with the help of Brazil@TinyMUX! Thanks :)
+    - #249: atr_add_raw now checks the STORE/cache_put return and only updates
+      A_LIST on success, fixing an A_LIST/DB desync and a leak on write failure.
+    - #250: atr_add_raw logs (MEMORY/ALLOCATION) when attribute allocation
+      fails instead of silently dropping the write.
+    - #251: QDBM set_attrib returns success/failure and propagates it through
+      cache_put, so OOM no longer reports a successful write.
+    - #253: PID-table exhaustion no longer calls halt_que_all() (which wiped
+      every queue in the game); the single request is dropped with a log, and
+      the owner's queue slot is refunded.
+    - #254: munge_space_for_match clamps its copy to the static buffer,
+      preventing an oversized input from overrunning it.
+    - #255: atr_get_raw oversized-attribute truncation now uses a 4-deep
+      rotating buffer pool.
+    - #258: mushexec no longer mutates the caller's eval buffer in place — it
+      ANSI-strips into a private copy.
+    - #259: ops doc — sconnect_host wildcard matching and the "keep it tight"
+      warning documented in README.TRUSTBOUNDARIES.
+    - #260: a stray second SSL/PROXY negotiate now boots the offender and alerts
+      staff but no longer disables sconnect_reip game-wide; Alert label renamed
+      to [DOUBLE-NEGOTIATE].
+    - #261: mail/news/autoreg/mailfix NDBM files created with mode 0660 (was
+      0664, group-writable / world-readable)
+    - #262: plaintext account_rawpass is zeroed immediately after successful
+      account SU/logon (and the transient SU copy), limiting its lifetime in
+      memory/core dumps.
+    - #263: safe_copy_strmax now returns the actual number of bytes copied
+      instead of always 0; contract documented on the safe_strmax macro.
+    - #264–#267: Docs cluster — new Server/readme/README.TRUSTBOUNDARIES
+      covering intentional design surfaces, host egress/EXECSCRIPT/doors/
+      scripts/SQL/Lua, and DB backends/fork_dump/config defaults, plus a
+      fork_dump+QDBM startup warning and a README.1ST pointer.
+   
   5.9.2
   * Fixed a crash in @tag/list related to the ansisplitter
  
