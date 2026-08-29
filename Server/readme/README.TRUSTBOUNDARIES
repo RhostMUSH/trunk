@@ -1,0 +1,114 @@
+----------------------------------------------------------------------------
+README.TRUSTBOUNDARIES
+Trust model, intentional design, and host-boundary notes for RhostMUSH
+----------------------------------------------------------------------------
+
+This file documents behaviors that are intentional design or host-adjacent
+trust boundaries, so operators and builders don't mistake them for bugs.
+Nothing here is treated as a vulnerability; each section explains the
+behavior, why it exists, and how to keep it safe.
+
+1. INTENTIONAL DESIGN SURFACES
+2. HOST EGRESS / HOST-ADJACENT FEATURES
+3. SCONNECT / PROXY RE-IP
+4. DATABASE BACKENDS AND CONFIG DEFAULTS
+
+----------------------------------------------------------------------------
+1. INTENTIONAL DESIGN SURFACES
+----------------------------------------------------------------------------
+These are long-standing, intentional MUSH behaviors. Game owners often want
+them. They are documented here so new ops/builders are not surprised, not
+flagged as security holes.
+
+- Hash-as-password login (mush_crypt accepts the stored hash string as a
+  valid password via a strcmp fallback). Intentional for account-migration
+  and wizard tooling. This is NOT a CVE. Restrict who can read password
+  attributes and treat password-attribute access as credential access.
+
+- EVAL locks: lock attributes run softcode during lock/could_doit checks.
+  Classic MUSH behavior; sidefx and CPU limits still apply. For hard
+  barriers use const/attr locks rather than eval locks.
+
+- $command pre-eval: the full command line is evaluated before the pattern
+  match (this is what enables chained '$' commands). Side effects can fire
+  before a match; do not put side-effect code ahead of a '$' pattern you
+  expect to gate.
+
+- VariableExit: EXITTO is evaluated at travel time. Intentional dynamic
+  exits; only place EXITTO on high-trust objects.
+
+- mail_def_object softcode: mail paths evaluate softcode from the configured
+  mail_def_object (+mail wrappers). Trust = who can edit that object's
+  attributes.
+
+- Dynhelp: DYN_PARSE / SUBEVAL evaluate help content as softcode. Trust =
+  who can edit dynhelp sources.
+
+----------------------------------------------------------------------------
+2. HOST EGRESS / HOST-ADJACENT FEATURES
+----------------------------------------------------------------------------
+The following leave the softcode sandbox and can touch the host. Do not
+enable casually.
+
+- EXECSCRIPT: requires CA_IMMORTAL and the SIDE_EXECSCRIPT sidefx rank.
+  Spawns host scripts under the game scripts path. Path sanitization is not
+  script safety. Ops: leave the sideeffects bit off unless required, run the
+  mush under a least-privilege user, and audit who holds Immortal+SIDEFX.
+
+- @door / door_tcp_connect: outbound TCP to host:port from the mush UID.
+  Never pass player-controlled host:port values; consider an allowlist and
+  an OS-level egress filter.
+
+- Sample scripts: several shipped scripts take free-form arguments. For
+  example Server/game/scripts/web.sh runs `lynx --dump "http://$@"` - an
+  HTTP SSRF and a credential leak via the process list. Remove or lock down
+  sample scripts in production and use argument allowlists.
+
+- Wizard SQL (MySQL/MariaDB): a full database client; the DB password lives
+  in the config. The MySQL connection is a shared process-global connection
+  (concurrency/state surprises). Use least-privilege DB users and do NOT put
+  production DB passwords in world-readable config.
+
+- SQLite: SQLITE_QUERY gives wizard SQL; files are created under the
+  configured area. Keep that path locked down.
+
+- Lua: softcode-supplied Lua runs in a partial sandbox; rhost.strfunc bridges
+  back into softcode functions (a two-way trust boundary). If you enable
+  SQL/Lua, treat Immortal + SQL/Lua as host-adjacent. Disable unused
+  integrations at compile/conf time.
+
+----------------------------------------------------------------------------
+3. SCONNECT / PROXY RE-IP
+----------------------------------------------------------------------------
+sconnect_reip / sconnect_cmd / sconnect_host implement SSL/PROXY client-IP
+rewriting. See README.SSL for setup.
+
+- sconnect_host is matched with WILDCARDS (lookup -> quick_wild) against the
+  connecting peer. The default is "localhost 127.0.0.1". A broad pattern
+  (e.g. '*' or a wide subnet) lets any matching peer rewrite the perceived
+  client IP, degrading @site, bans, ACLs, and &LASTIP/&LASTSITE. List only
+  the exact proxy host(s) - ideally the single stunnel/haproxy machine.
+
+- Behavior note: a second PROXY/sconnect_cmd on an already-SSL connection is
+  treated as a protocol violation. That socket is booted and logged as
+  "SCONNECT PROXY [DOUBLE-NEGOTIATE]"; it does NOT disable sconnect_reip for
+  the whole game.
+
+----------------------------------------------------------------------------
+4. DATABASE BACKENDS AND CONFIG DEFAULTS
+----------------------------------------------------------------------------
+- QDBM has no real transactions: dddb_txn_begin/commit/abort are stubbed
+  (return 0). A kill or ENOSPC during dirty writeback can leave the index or
+  chunk inconsistent. Ops: keep flat-dump discipline, monitor disk, and see
+  README.DBISCORRUPT. MDBX is the transactional backend.
+
+- fork_dump: default 0 (off). The forked-dump path exists; on non-MDBX
+  (QDBM) backends it historically risks corruption. Keep it off unless you
+  know why you need it. Under MDBX the fork child opens its own read
+  transaction, which is the supported configuration.
+
+- Dual config defaults: cf_init() carries the historical built-in defaults
+  (e.g. port 6250), while netrhost.conf / alternate_netrhost.conf overlay
+  recommended values (e.g. port 4201). This is 27+ years of compatibility -
+  do not unify the layers. When stating "the default is X", say which layer
+  you mean.

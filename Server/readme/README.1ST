@@ -56,3 +56,5 @@ README.AUTOCONF file.
 9)  load the file softfunctions into the mush once it's set up.  This are 
         @functions that will alias the functions that PENN, MUX, and TinyMUSH have
         that is either named differently or we don't have for one reason or another.
+
+See also README.TRUSTBOUNDARIES for the trust model / host-boundary notes.

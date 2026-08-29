@@ -3123,6 +3123,16 @@ main(int argc, char *argv[])
     dddb_read_end(); /* close startup txn before shovechars */
 #endif
     local_startup();
+#ifndef MDBX
+    /* QDBM backend: warn if fork_dump is enabled (non-transactional storage). */
+    if (mudconf.fork_dump) {
+        STARTLOG(LOG_ALWAYS, "INI", "FORKDUMP")
+            log_text("fork_dump is enabled on a non-transactional (QDBM) backend. "
+                     "Fork-dumping may corrupt the index/chunk on kill or ENOSPC. "
+                     "Recommend fork_dump 0 and flat dumps.");
+        ENDLOG
+    }
+#endif
     /* --- main mush loop --- */
     shovechars(mudconf.port, mudconf.ip_address, mudconf.ip_address_v6, mudconf.ip_family);
     /* --- end main mush loop --- */
