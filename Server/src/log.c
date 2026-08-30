@@ -87,6 +87,21 @@ close_logfile( void )
 #endif
 }
 
+static char log_tsbuf[32];
+static time_t log_lastsec = 0;
+
+static void
+fmt_log_timestamp(char *dest, struct tm *tp)
+{
+    sprintf(dest, "%02d%d%d%d%d.%d%d%d%d%d%d ",
+            (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
+            (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),
+            (tp->tm_mday % 10),
+            (tp->tm_hour / 10), (tp->tm_hour % 10),
+            (tp->tm_min / 10), (tp->tm_min % 10),
+            (tp->tm_sec / 10), (tp->tm_sec % 10));
+}
+
 void
 init_logfile( void )
 {
@@ -110,13 +125,7 @@ init_logfile( void )
    if ((mudconf.log_info & LOGOPT_TIMESTAMP) != 0) {
       now = rhost_time();
       tp = localtime(&now);
-      sprintf(mudstate.buffer, "%02d%d%d%d%d.%d%d%d%d%d%d ",
-              (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
-              (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),
-              (tp->tm_mday % 10),
-              (tp->tm_hour / 10), (tp->tm_hour % 10),
-              (tp->tm_min / 10), (tp->tm_min % 10),
-              (tp->tm_sec / 10), (tp->tm_sec % 10));
+      fmt_log_timestamp(mudstate.buffer, tp);
    } else {
       mudstate.buffer[0] = '\0';
    }
@@ -156,25 +165,22 @@ start_log(const char *primary, const char *secondary)
 
 	if ((mudconf.log_info & LOGOPT_TIMESTAMP) != 0) {
 	    now = rhost_time();
-	    tp = localtime(&now);
-	    sprintf(mudstate.buffer, "%02d%d%d%d%d.%d%d%d%d%d%d ",
-		    (tp->tm_year % 100), (((tp->tm_mon) + 1) / 10),
-		    (((tp->tm_mon) + 1) % 10), (tp->tm_mday / 10),
-		    (tp->tm_mday % 10),
-		    (tp->tm_hour / 10), (tp->tm_hour % 10),
-		    (tp->tm_min / 10), (tp->tm_min % 10),
-		    (tp->tm_sec / 10), (tp->tm_sec % 10));
+	    if (now != log_lastsec) {
+		log_lastsec = now;
+		tp = localtime(&now);
+		fmt_log_timestamp(log_tsbuf, tp);
+	    }
 	} else {
-	    mudstate.buffer[0] = '\0';
+	    log_tsbuf[0] = '\0';
 	}
 #ifndef STANDALONE
 	/* Write the header to the log */
 
 	if (secondary && *secondary)
-	    fprintf(f_foo, "%s%s %3s/%-5s: ", mudstate.buffer,
+	    fprintf(f_foo, "%s%s %3s/%-5s: ", log_tsbuf,
 		    mudconf.mud_name, primary, secondary);
 	else
-	    fprintf(f_foo, "%s%s %-9s: ", mudstate.buffer,
+	    fprintf(f_foo, "%s%s %-9s: ", log_tsbuf,
 		    mudconf.mud_name, primary);
 #endif
 	/* If a recursive call, log it and return indicating no log */
@@ -241,6 +247,7 @@ void
 log_text(char *text)
 {
     FILE *f_foo;
+    size_t len;
 
     if ( mudstate.f_logfile_name )
        f_foo = mudstate.f_logfile_name;
@@ -249,13 +256,16 @@ log_text(char *text)
 
     if (!text) text = "(null)";
     /* Write only 3900 characters.  Notify if it was cut off */
-    if ( strlen(text) > 3900 )
+    len = strlen(text);
+    if ( len > 3900 ) {
+       fwrite(text, 1, 3900, f_foo);
        if ( index(text,ESC_CHAR) )
-          fprintf(f_foo, "%.3900s%s [overflow cut]", text, ANSI_NORMAL);
+          fprintf(f_foo, "%s [overflow cut]", ANSI_NORMAL);
        else
-          fprintf(f_foo, "%.3900s [overflow cut]", text);
-    else
-       fprintf(f_foo, "%.3900s", text);
+          fprintf(f_foo, " [overflow cut]");
+    } else {
+       fwrite(text, 1, len, f_foo);
+    }
 }
 
 void 
