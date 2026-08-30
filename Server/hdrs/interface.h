@@ -340,22 +340,22 @@ extern int ndescriptors;    /* total open FDs: main + doors + auth */
 extern int ndesc_slots;     /* entries in desc_slots array only */
 
 #define DESC_ITER_PLAYER(p,d) \
-	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++) \
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], 1); _di++) \
 	    if (D_PLAYER(d) == (p))
 #define DESC_ITER_CONN(d) \
-	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++) \
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], 1); _di++) \
 	    if (D_FLAGS(d) & DS_CONNECTED)
 #define DESC_ITER_ALL(d) \
-	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di++)
+	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], 1); _di++)
 
 #define DESC_SAFEITER_PLAYER(p,d,n) \
-	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, (n) = d, 1); _di--) \
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (n) = d, 1); _di--) \
 	    if (D_PLAYER(d) == (p))
 #define DESC_SAFEITER_CONN(d) \
-	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--) \
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], 1); _di--) \
 	    if (D_FLAGS(d) & DS_CONNECTED)
 #define DESC_SAFEITER_ALL(d) \
-	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], (d)->slot_index = _di, 1); _di--)
+	for (int _di = ndesc_slots - 1; _di >= 0 && ((d) = &desc_slots[_di], 1); _di--)
 
 #define MALLOC(result, type, number, where) do { \
 	if (!((result)=(type *) XMALLOC (((number) * sizeof (type)), where))) \
