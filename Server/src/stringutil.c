@@ -1666,28 +1666,22 @@ char	*tp;
 
 	tp = *bufp;
 	if (src == NULL) return 0;
-	while (*src && ((tp - buff) < max))
-		*tp++ = *src++;
-	*tp = '\0';
-/*	*(buff + max) = '\0'; */
-	*bufp = tp;
-	return strlen(src);
+	{ int room = max - (int)(tp - buff); if (room < 0) room = 0;
+	  int n = 0; while (n < room && src[n]) n++;
+	  memcpy(tp, src, n); tp += n; *tp = '\0'; *bufp = tp;
+	  return strlen(src + n); }
 }
 
 int safe_copy_strmax(char *src, char *buff, char **bufp, int max)
 {
 char	*tp, *tp0;
-int	left;
 	tp0 = tp = *bufp;
 	if (src == NULL) return 0;
-        left = (buff + max) - tp - strlen(src);
-	if ( left < 1 )
-           return 0;
-	while (*src && ((tp - buff) < max))
-		*tp++ = *src++;
-	*tp = '\0';
-	*bufp = tp;
-	return (int)(tp - tp0);
+	{ int room = (int)((buff + max) - tp); if (room < 0) room = 0;
+	  int n = 0; while (n < room && src[n]) n++;
+	  if (n >= room) return 0;
+	  memcpy(tp, src, n); tp += n; *tp = '\0'; *bufp = tp;
+	  return (int)(tp - tp0); }
 }
 
 int safe_copy_chr(char src, char *buff, char **bufp, int max)
