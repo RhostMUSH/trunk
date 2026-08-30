@@ -86,8 +86,10 @@ void execute_entry(BQUE *queue)
 	    mudstate_hot.curr_player = player;
             mudstate_hot.curr_pid = queue->pid;
             if (Q_COMM(queue)) {
-                strncpy(mudstate.curr_pidcmd, Q_COMM(queue), LBUF_SIZE - 1);
-                mudstate.curr_pidcmd[LBUF_SIZE-1] = '\0';
+                int n = strlen(Q_COMM(queue));
+                if (n > LBUF_SIZE - 1) n = LBUF_SIZE - 1;
+                memcpy(mudstate.curr_pidcmd, Q_COMM(queue), n);
+                mudstate.curr_pidcmd[n] = '\0';
             } else {
                 mudstate.curr_pidcmd[0] = '\0';
             }
@@ -126,9 +128,12 @@ void execute_entry(BQUE *queue)
     		if ( !mudstate.rollbackstate ) {
 		   mudstate.rollbackcnt = 0;
        		   if ( command ) {
-		      strncpy(mudstate.rollback, command, LBUF_SIZE);
+		      int n = strlen(command);
+		      if (n > LBUF_SIZE - 1) n = LBUF_SIZE - 1;
+		      memcpy(mudstate.rollback, command, n);
+		      mudstate.rollback[n] = '\0';
        		   } else {
-		      memset(mudstate.rollback, '\0', LBUF_SIZE);
+		      mudstate.rollback[0] = '\0';
        		   }
     		}
 		i_nospace = mudstate_hot.no_space_compress;

@@ -3440,8 +3440,8 @@ atr_get_raw(dbref thing, int atr)
         if (atr == A_LIST)
             return a;
         tmp_lbuf_idx = (tmp_lbuf_idx + 1) % TMP_LBUF_POOL;
-        memset(tmp_lbuf[tmp_lbuf_idx], '\0', LBUF_SIZE);
-        strncpy(tmp_lbuf[tmp_lbuf_idx], a, LBUF_SIZE-1);
+        memcpy(tmp_lbuf[tmp_lbuf_idx], a, LBUF_SIZE-1);
+        tmp_lbuf[tmp_lbuf_idx][LBUF_SIZE-1] = '\0';
         return tmp_lbuf[tmp_lbuf_idx];
       }
     return a;
