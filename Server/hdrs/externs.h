@@ -22,7 +22,8 @@
   #endif /* __GNUC__ */
 #endif /* _DB_C */
 
-#define	ToLower(s) (isupper(s) ? tolower(s) : (s))
+extern const unsigned char lowertab[256];
+#define	ToLower(s) (lowertab[(unsigned char)(s)])
 #define	ToUpper(s) (islower(s) ? toupper(s) : (s))
 #define DOING_SIZE 32	/* @doing and @doing/header size */
 #define isValidAttrStartChar(c) (isalpha((int)c) || (c == '_') || (c == '~') || (c == '#') || (c == '.') || (c == '+'))
