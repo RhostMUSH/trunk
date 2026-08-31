@@ -786,6 +786,7 @@ struct state_hot {
         BQUE    *fqwait;
         BQUE    *fqsemfirst;
         BQUE    *fqsemlast;
+        int     stop_pending;           /* # stopped (stop_bool) entries on qwait */
 
         /* 10. Hot hash table headers (every lookup) */
         OHTAB command_htab;

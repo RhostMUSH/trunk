@@ -264,6 +264,8 @@ halt_que(dbref player, dbref object)
 		trail->next = next = point->next;
 	    else
 		mudstate_hot.qwait = next = point->next;
+	    if (point->stop_bool)
+		mudstate_hot.stop_pending--;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -364,6 +366,8 @@ ind_pid_func(dbref player, int pid, int func)
 		trail->next = next = point->next;
 	    else
 		mudstate_hot.qwait = next = point->next;
+	    if (point->stop_bool)
+		mudstate_hot.stop_pending--;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -494,6 +498,8 @@ HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
 		trail->next = next = point->next;
 	    else
 		mudstate_hot.qwait = next = point->next;
+	    if (point->stop_bool)
+		mudstate_hot.stop_pending--;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -853,6 +859,8 @@ thaw_pid(dbref player, int pid, int key)
                trail->next = freezepid;
            else
                mudstate_hot.qwait = freezepid;
+           if (freezepid->stop_bool)
+               mudstate_hot.stop_pending++;
        } else {
            freezepid->next = NULL;
            if (mudstate_hot.qsemlast != NULL)
@@ -1234,6 +1242,7 @@ halt_que_pid(dbref player, int pid, int key)
                      point->stop_bool_val = point->waittime - mudstate_hot.nowmsec;
                   else
                      point->stop_bool_val = 0;
+                  mudstate_hot.stop_pending++;
                   numhalted++;
                } else if ( (key == 2 ) && (point->stop_bool == 1) ) {
                   point->stop_bool = 0;
@@ -1252,6 +1261,7 @@ halt_que_pid(dbref player, int pid, int key)
                      itrail->next = point;
                   else
                      mudstate_hot.qwait = point;
+                  mudstate_hot.stop_pending--;
                   numhalted++;
                } else {
                   numhalted = -1;
@@ -1265,6 +1275,8 @@ halt_que_pid(dbref player, int pid, int key)
 		trail->next = next = point->next;
 	    else
 		mudstate_hot.qwait = next = point->next;
+	    if (point->stop_bool)
+		mudstate_hot.stop_pending--;
 	    if (Q_TEXT(point))
 		free(Q_TEXT(point));
             Q_TEXT(point)=NULL;
@@ -1431,6 +1443,7 @@ halt_que_all(void)
     }
     mudstate_hot.qsemlast = NULL;
     init_pid_table();
+    mudstate_hot.stop_pending = 0;
 
     return numhalted;
 }
@@ -2169,12 +2182,22 @@ NDECL(que_next)
      */
 
     min = 1000;
-    for (point = mudstate_hot.qwait; point; point = point->next) {
-	this = point->waittime - mudstate_hot.nowmsec;
-	if (this <= 0.2)
-	    return 0.1;
-	if (this < min)
-	    min = this;
+    if (mudstate_hot.stop_pending == 0) {
+	if (mudstate_hot.qwait) {
+	    this = mudstate_hot.qwait->waittime - mudstate_hot.nowmsec;
+	    if (this <= 0.2)
+		return 0.1;
+	    if (this < min)
+		min = this;
+	}
+    } else {
+	for (point = mudstate_hot.qwait; point; point = point->next) {
+	    this = point->waittime - mudstate_hot.nowmsec;
+	    if (this <= 0.2)
+		return 0.1;
+	    if (this < min)
+		min = this;
+	}
     }
 
     for (point = mudstate_hot.qsemfirst; point; point = point->next) {
@@ -2200,6 +2223,7 @@ NDECL(do_second)
     DESC *d;
     char *cmdsave, *cpulbuf;
     int i_offset, mtimerlen;
+    int fastwalk;
     double d_timediff;
 
     /* move contents of low priority queue onto end of normal one
@@ -2247,6 +2271,7 @@ NDECL(do_second)
 
     i_offset = 0;
     d_timediff = (int)mudstate_hot.nowmsec - (int)mudstate_hot.lastnowmsec;
+    fastwalk = (mudstate_hot.stop_pending == 0) && !((d_timediff > 300) || (d_timediff < -300));
     for (point = mudstate_hot.qwait, trail = NULL; point ; point = next) {
         /* We'll raise offsets to 5 minutes now before it wigs out */
         if ( (d_timediff > 300) || (d_timediff < -300) ) {
@@ -2261,9 +2286,14 @@ NDECL(do_second)
               trail->next = next = point->next;
            else
 	      mudstate_hot.qwait = next = point->next;
+	   if (point->stop_bool)
+	      mudstate_hot.stop_pending--;
 	   give_que(point);
-        } else
+        } else {
+           if (fastwalk)
+              break;
            next = (trail = point)->next;
+        }
     }
 
     /* Check the semaphore queue for expired timed-waits */
