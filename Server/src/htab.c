@@ -164,7 +164,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
 	      htab->hits++;
 	      if (numchecks > htab->max_scan)
 		htab->max_scan = numchecks;
-	      htab->checks += (double)numchecks;
+	      htab->checks += numchecks;
 	      htab->last_entry = hptr;
 	      return hptr->data;
 	    } 
@@ -172,7 +172,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
 	    htab->hits++;
 	    if (numchecks > htab->max_scan)
 	      htab->max_scan = numchecks;
-	    htab->checks += (double)numchecks;
+	    htab->checks += numchecks;
 	    htab->last_entry = hptr;	    
 	    return hptr->data;
 	  }
@@ -180,7 +180,7 @@ int * real_hashfind2(char *str, HASHTAB * htab, int bNeedOriginal, const char *f
     }
     if (numchecks > htab->max_scan)
 	htab->max_scan = numchecks;
-    htab->checks += (double)numchecks;
+    htab->checks += numchecks;
     return NULL;
 }
 
@@ -425,7 +425,7 @@ char * real_hashinfo(const char *tab_name, HASHTAB * htab, const char *fileName,
 //  sprintf(buff, "%-14.14s %6d %8d %5d %5d %8.2g %8.2g %8.2g %8d",
     sprintf(buff, s_format,
 	    tab_name, htab->hashsize, htab->entries, htab->deletes,
-	    htab->nulls, htab->scans, htab->hits, htab->checks,
+	    htab->nulls, (double)htab->scans, (double)htab->hits, (double)htab->checks,
 	    htab->max_scan);
 
     free_mbuf(s_format);
@@ -550,13 +550,13 @@ int * real_nhashfind(int val, NHSHTAB * htab, const char *fileName, int lineNo)
 	    htab->hits++;
 	    if (numchecks > htab->max_scan)
 		htab->max_scan = numchecks;
-	    htab->checks += (double)numchecks;
+	    htab->checks += numchecks;
 	    return hptr->data;
 	}
     }
     if (numchecks > htab->max_scan)
 	htab->max_scan = numchecks;
-    htab->checks += (double)numchecks;
+    htab->checks += numchecks;
     return NULL;
 }
 
@@ -1055,7 +1055,7 @@ int *real_ohtab_find(const char *str, OHTAB *htab, const char *fileName, int lin
             htab->hits++;
             if (numchecks > htab->max_scan)
                 htab->max_scan = numchecks;
-            htab->checks += (double)numchecks;
+            htab->checks += numchecks;
             htab->last_entry = &htab->slot[hval];
             return htab->slot[hval].data;
         }
@@ -1064,7 +1064,7 @@ int *real_ohtab_find(const char *str, OHTAB *htab, const char *fileName, int lin
 
     if (numchecks > htab->max_scan)
         htab->max_scan = numchecks;
-    htab->checks += (double)numchecks;
+    htab->checks += numchecks;
     return NULL;
 }
 
@@ -1289,7 +1289,7 @@ char *real_ohtab_info(const char *tab_name, OHTAB *htab, const char *fileName, i
     sprintf(buff, s_format,
             tab_name, htab->hashsize, htab->entries,
             htab->tombstones, htab->nulls,
-            htab->scans, htab->hits, htab->checks,
+            (double)htab->scans, (double)htab->hits, (double)htab->checks,
             htab->max_scan);
 
     free_mbuf(s_format);
