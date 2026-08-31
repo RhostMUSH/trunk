@@ -36,10 +36,10 @@ typedef struct pooldata {
     int footer_magic;		/* Per-pool footer magic */
     POOLHDR *free_head;		/* Buffer freelist head */
     POOLHDR *chain_head;	/* Buffer chain head */
-    double tot_alloc;		/* Total buffers allocated */
-    double num_alloc;		/* Number of buffers currently allocated */
-    double max_alloc;		/* Max # buffers allocated at one time */
-    double num_lost;		/* Buffers lost due to corruption */
+    unsigned long long tot_alloc;		/* Total buffers allocated */
+    unsigned long long num_alloc;		/* Number of buffers currently allocated */
+    unsigned long long max_alloc;		/* Max # buffers allocated at one time */
+    unsigned long long num_lost;		/* Buffers lost due to corruption */
 } POOL;
 
 POOL pools[NUM_POOLS];
@@ -418,9 +418,9 @@ pool_stats(int poolnum, const char *text, int i_color)
 
     if ( strcmp(text, "Lbufs") == 0 ) {
 #ifndef NO_GLOBAL_REGBACKUP
-       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2); 
+       i_check = (double)((long long)pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)); 
 #else
-       i_check = pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1); 
+       i_check = (double)((long long)pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)); 
 #endif
        if ( i_color ) {
           strcpy(s_norm, ANSI_GREEN);
@@ -434,19 +434,19 @@ pool_stats(int poolnum, const char *text, int i_color)
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
                s_warn, i_check, s_norm,
 	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
-               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2),
-	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size);
+               (double)((long long)pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)),
+	       (double)pools[poolnum].tot_alloc, (double)pools[poolnum].num_lost,
+               (double)(((long long)pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2)) * pools[poolnum].pool_size));
 #else
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
                s_warn, i_check, s_norm,
 	       // pools[poolnum].num_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 2), 
-               pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1),
-	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-               (pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)) * pools[poolnum].pool_size);
+               (double)((long long)pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)),
+	       (double)pools[poolnum].tot_alloc, (double)pools[poolnum].num_lost,
+               (double)(((long long)pools[poolnum].max_alloc - ((MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST) * 1)) * pools[poolnum].pool_size));
 #endif
     } else if ( strcmp(text, "Mbufs") == 0 ) {
-       i_check = pools[poolnum].num_alloc - global_timezone_max; 
+       i_check = (double)((long long)pools[poolnum].num_alloc - global_timezone_max); 
        if ( i_color ) {
           strcpy(s_norm, ANSI_GREEN);
           if ( i_check > 150 ) {
@@ -458,11 +458,11 @@ pool_stats(int poolnum, const char *text, int i_color)
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
                s_warn, i_check, s_norm,
 	       // pools[poolnum].num_alloc - global_timezone_max, 
-               pools[poolnum].max_alloc - global_timezone_max,
-	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-               (pools[poolnum].max_alloc - global_timezone_max) * pools[poolnum].pool_size);
+               (double)((long long)pools[poolnum].max_alloc - global_timezone_max),
+	       (double)pools[poolnum].tot_alloc, (double)pools[poolnum].num_lost,
+               (double)(((long long)pools[poolnum].max_alloc - global_timezone_max) * pools[poolnum].pool_size));
     } else if ( strcmp(text, "Sbufs") == 0 ) {
-       i_check = pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); 
+       i_check = (double)((long long)pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)); 
        if ( i_color ) {
           strcpy(s_norm, ANSI_GREEN);
           if ( i_check > 50 ) {
@@ -474,14 +474,14 @@ pool_stats(int poolnum, const char *text, int i_color)
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
                s_warn, i_check, s_norm,
 	       // pools[poolnum].num_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST), 
-               pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST),
-	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-               (pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) * pools[poolnum].pool_size);
+               (double)((long long)pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)),
+	       (double)pools[poolnum].tot_alloc, (double)pools[poolnum].num_lost,
+               (double)(((long long)pools[poolnum].max_alloc - (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST)) * pools[poolnum].pool_size));
     } else {
        sprintf(buf, format_str, text, pools[poolnum].pool_size,
-	       s_warn, pools[poolnum].num_alloc, s_norm, pools[poolnum].max_alloc,
-	       pools[poolnum].tot_alloc, pools[poolnum].num_lost,
-               pools[poolnum].max_alloc * pools[poolnum].pool_size);
+	       s_warn, (double)pools[poolnum].num_alloc, s_norm, (double)pools[poolnum].max_alloc,
+	       (double)pools[poolnum].tot_alloc, (double)pools[poolnum].num_lost,
+               (double)(pools[poolnum].max_alloc * pools[poolnum].pool_size));
     }
     return buf;
 }
