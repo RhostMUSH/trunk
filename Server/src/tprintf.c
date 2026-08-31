@@ -196,7 +196,6 @@ char *getTrackedBuffer(void) {
 
 void freeTrackedBuffers(void) {
   tprintf_list_t *pList = &bufferList;
-  tprintf_list_t *pCurrentList = NULL;
   int nFreed = 0;
   int i;
 
@@ -207,26 +206,10 @@ void freeTrackedBuffers(void) {
       free_lbuf(pList->pBuff[i]);
       nFreed++;
     }
-    pList->nInUse -= i;
-    RHOSTassert(pList->nInUse == 0);
+    pList->nInUse = 0;
 
     pList = pList->pNext;
-
-    /* First time through loop, this will be null
-     * - so we never try free initial element.
-     */
-    if (pCurrentList != NULL) {
-      free(pCurrentList);
-    } else {
-      /* Although we don't free the initial element,
-       * we do need to reset it's next ptr.
-       * Otherwise say hello to my friend Mr. Coredump.
-       */
-      bufferList.pNext = NULL; 
-    }
-    pCurrentList = pList;
-
-  };
+  }
 
   if ( nFreed > 0 ) {
     bufferStats.cummulativeLength += nFreed;

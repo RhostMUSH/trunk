@@ -3399,7 +3399,6 @@ process_command(dbref player, dbref cause, int interactive,
        i_loc = NOTHING;
     if ( Good_obj(i_loc) && !Recover(i_loc) && !Going(i_loc) && LogRoomEnh(i_loc) ) {
        s_logroom = alloc_mbuf("log_room");
-       memset(s_logroom, '\0', MBUF_SIZE);
        sprintf(s_logroom, "%.128s/room_%d", mudconf.roomlog_path, i_loc);
        do_log(player, cause, (MLOG_FILE|MLOG_ROOM), s_logroom, (char *)command);
        free_mbuf(s_logroom);
