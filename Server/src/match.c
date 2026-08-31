@@ -322,7 +322,7 @@ match_list_altname(dbref first)
     dbref buff_last_match = NOTHING;	/* holds result of last match */
     int buff_match_count = 0;	/* holds total number of inexact matches */
     dbref buff_match_who = NOTHING;	/* player performing match */
-    char *buff_match_name = "";	/* name to match */
+    char *buff_match_name = NULL;	/* name to match */
     int buff_preferred_type = NOTYPE;	/* preferred type */
     int buff_local_match = 0;	/* Matched something locally, not by number */
     int buff_reality_valuechk = 0;        /* Reality level check */
@@ -348,6 +348,9 @@ match_list_altname(dbref first)
     if (!Good_obj(absolute))
 	absolute = NOTHING;
 
+#ifdef REALITY_LEVELS
+    pres_match_name = alloc_lbuf("pres_match_name");
+#endif
     DOLIST(first, first) {
 #ifdef REALITY_LEVELS
         pres_exact_match = exact_match;
@@ -356,7 +359,6 @@ match_list_altname(dbref first)
         pres_last_match = last_match;
         pres_match_count = match_count;
         pres_match_who = match_who;
-        pres_match_name = alloc_lbuf("pres_match_name");
         strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
@@ -368,7 +370,6 @@ match_list_altname(dbref first)
           match_count = pres_match_count;
           match_who = pres_match_who;
           strcpy(match_name, pres_match_name);
-          free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
           continue; 
@@ -380,7 +381,6 @@ match_list_altname(dbref first)
         match_count = pres_match_count;
         match_who = pres_match_who;
         strcpy(match_name, pres_match_name);
-        free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
 #endif /* REALITY_LEVELS */
@@ -392,6 +392,10 @@ match_list_altname(dbref first)
 	    exact_match = first;
 	    have_exact = 1;
 	    local_match = 1;
+	    free_lbuf(buff_match_name);
+#ifdef REALITY_LEVELS
+	    free_lbuf(pres_match_name);
+#endif
 	    return;
 	}
 	/* Warning: make sure there are no other calls to Name()
@@ -413,7 +417,7 @@ match_list_altname(dbref first)
                  buff_last_match = last_match;	/* holds result of last match */
                  buff_match_count = match_count;	/* holds total number of inexact matches */
                  buff_match_who = match_who;	/* player performing match */
-                 buff_match_name = alloc_lbuf("match_exec");
+                 if (!buff_match_name) buff_match_name = alloc_lbuf("match_exec");
                  strcpy(buff_match_name, match_name);
                  buff_preferred_type = preferred_type;	/* preferred type */
                  buff_local_match = local_match;	/* Matched something locally, not by number */
@@ -431,7 +435,6 @@ match_list_altname(dbref first)
                  match_count = buff_match_count;	/* holds total number of inexact matches */
                  match_who = buff_match_who;	/* player performing match */
                  strcpy(match_name, buff_match_name);
-                 free_lbuf(buff_match_name);
                  preferred_type = buff_preferred_type;	/* preferred type */
                  local_match = buff_local_match;	/* Matched something locally, not by number */
                  reality_valuechk = buff_reality_valuechk;        /* Reality level check */
@@ -454,6 +457,10 @@ match_list_altname(dbref first)
 	}
         free_lbuf(namebuf);
     }
+#ifdef REALITY_LEVELS
+    free_lbuf(pres_match_name);
+#endif
+    free_lbuf(buff_match_name);
 }
 
 static void
@@ -482,6 +489,9 @@ match_list(dbref first)
     if (!Good_obj(absolute))
 	absolute = NOTHING;
 
+#ifdef REALITY_LEVELS
+    pres_match_name = alloc_lbuf("pres_match_name");
+#endif
     DOLIST(first, first) {
 #ifdef REALITY_LEVELS
         pres_exact_match = exact_match;
@@ -490,7 +500,6 @@ match_list(dbref first)
         pres_last_match = last_match;
         pres_match_count = match_count;
         pres_match_who = match_who;
-        pres_match_name = alloc_lbuf("pres_match_name");
         strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
@@ -502,7 +511,6 @@ match_list(dbref first)
           match_count = pres_match_count;
           match_who = pres_match_who;
           strcpy(match_name, pres_match_name);
-          free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
           continue;
@@ -514,7 +522,6 @@ match_list(dbref first)
         match_count = pres_match_count;
         match_who = pres_match_who;
         strcpy(match_name, pres_match_name);
-        free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
 #endif /* REALITY_LEVELS */
@@ -526,6 +533,9 @@ match_list(dbref first)
 	    exact_match = first;
 	    have_exact = 1;
 	    local_match = 1;
+#ifdef REALITY_LEVELS
+	    free_lbuf(pres_match_name);
+#endif
 	    return;
 	}
 	/* Warning: make sure there are no other calls to Name()
@@ -546,6 +556,9 @@ match_list(dbref first)
 	    local_match = 1;
 	}
     }
+#ifdef REALITY_LEVELS
+    free_lbuf(pres_match_name);
+#endif
 }
 
 void
@@ -621,6 +634,9 @@ match_exit_internal(dbref loc, int pcheck)
     if (!Good_obj(absolute) || !controls(match_who, absolute))
 	absolute = NOTHING;
 
+#ifdef REALITY_LEVELS
+    pres_match_name = alloc_lbuf("pres_match_name");
+#endif
     DOLIST(exit, Exits(loc)) {
 	if (pcheck && (Flags3(exit) & PRIVATE))
 	    continue;
@@ -631,7 +647,6 @@ match_exit_internal(dbref loc, int pcheck)
         pres_last_match = last_match;
         pres_match_count = match_count;
         pres_match_who = match_who;
-        pres_match_name = alloc_lbuf("pres_match_name");
         strcpy(pres_match_name, match_name);
         pres_preferred_type = preferred_type;
         pres_local_match = local_match;
@@ -643,7 +658,6 @@ match_exit_internal(dbref loc, int pcheck)
           match_count = pres_match_count;
           match_who = pres_match_who;
           strcpy(match_name, pres_match_name);
-          free_lbuf(pres_match_name);
           preferred_type = pres_preferred_type;
           local_match = pres_local_match;
           continue;
@@ -655,13 +669,15 @@ match_exit_internal(dbref loc, int pcheck)
         match_count = pres_match_count;
         match_who = pres_match_who;
         strcpy(match_name, pres_match_name);
-        free_lbuf(pres_match_name);
         preferred_type = pres_preferred_type;
         local_match = pres_local_match;
 #endif /* REALITY_LEVELS */ 
 	if (exit == absolute) {
 	    exact_match = exit;
 	    local_match = 1;
+#ifdef REALITY_LEVELS
+	    free_lbuf(pres_match_name);
+#endif
 	    return;
 	}
 	if (matches_exit_from_list((char *) match_name, Name(exit))) {
@@ -669,6 +685,9 @@ match_exit_internal(dbref loc, int pcheck)
 	    local_match = 1;
 	}
     }
+#ifdef REALITY_LEVELS
+    free_lbuf(pres_match_name);
+#endif
 }
 
 void
