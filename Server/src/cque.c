@@ -1666,6 +1666,10 @@ setup_que(dbref player, dbref cause, char *command,
     BQUE *tmp;
     char *tptr;
     int tpid;
+    int cmd_len = 0;
+    int arg_len[NUM_ENV_VARS] = {0};
+    int sarg_len[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST] = {0};
+    int sargname_len[MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST] = {0};
 
     /* Can we run commands at all? */
 
@@ -1737,24 +1741,32 @@ setup_que(dbref player, dbref cause, char *command,
     /* Calculate the length of the save string */
 
     tlen = 0;
-    if (command)
-	tlen = strlen(command) + 1;
+    if (command) {
+	cmd_len = strlen(command) + 1;
+	tlen = cmd_len;
+    }
     if (nargs > NUM_ENV_VARS)
 	nargs = NUM_ENV_VARS;
     for (a = 0; a < nargs; a++) {
-	if (args[a])
-	    tlen += (strlen(args[a]) + 1);
+	if (args[a]) {
+	    arg_len[a] = strlen(args[a]) + 1;
+	    tlen += arg_len[a];
+	}
     }
     if (sargs) {
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-	    if (sargs[a])
-		tlen += (strlen(sargs[a]) + 1);
+	    if (sargs[a]) {
+		sarg_len[a] = strlen(sargs[a]) + 1;
+		tlen += sarg_len[a];
+	    }
 	}
     }
     if ( sargsname ) {
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
-	    if (sargsname[a])
-		tlen += (strlen(sargsname[a]) + 1);
+	    if (sargsname[a]) {
+		sargname_len[a] = strlen(sargsname[a]) + 1;
+		tlen += sargname_len[a];
+	    }
 	}
     }
     /* Create the queue entry and load the save string */
@@ -1781,32 +1793,32 @@ setup_que(dbref player, dbref cause, char *command,
 	abort();
 
     if (command) {
-	strcpy(tptr, command);
+	memcpy(tptr, command, cmd_len);
 	Q_COMM(tmp) = tptr;
-	tptr += (strlen(command) + 1);
+	tptr += cmd_len;
     }
     for (a = 0; a < nargs; a++) {
 	if (args[a]) {
-	    strcpy(tptr, args[a]);
+	    memcpy(tptr, args[a], arg_len[a]);
 	    Q_ENV(tmp)[a] = tptr;
-	    tptr += (strlen(args[a]) + 1);
+	    tptr += arg_len[a];
 	}
     }
     if (sargs) {
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargs[a]) {
-		strcpy(tptr, sargs[a]);
+		memcpy(tptr, sargs[a], sarg_len[a]);
 		Q_SCR(tmp)[a] = tptr;
-		tptr += (strlen(sargs[a]) + 1);
+		tptr += sarg_len[a];
 	    }
 	}
     }
     if ( sargsname ) {
 	for (a = 0; a < (MAX_GLOBAL_REGS + MAX_GLOBAL_BOOST); a++) {
 	    if (sargsname[a]) {
-		strcpy(tptr, sargsname[a]);
+		memcpy(tptr, sargsname[a], sargname_len[a]);
 		Q_SCRNAME(tmp)[a] = tptr;
-		tptr += (strlen(sargsname[a]) + 1);
+		tptr += sargname_len[a];
 	    }
 	}
     }
