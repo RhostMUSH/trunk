@@ -879,7 +879,7 @@ thaw_pid(dbref player, int pid, int key)
 int
 wait_que_pidnew(dbref player, int pid, double newwait, int key)
 {
-   BQUE *point;
+   BQUE *point, *trail, *next, *tmp;
    int found, mtimerlen;
 
    switch(mudconf.mtimer) {
@@ -893,34 +893,50 @@ wait_que_pidnew(dbref player, int pid, double newwait, int key)
          break;
    }
    found = 0;
-   for (point = mudstate_hot.qwait; point; point = point->next) {
-      if (point->pid == pid) {
-         if (Immortal(player) || Controls(player,Owner(point->player)) ||
-             HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
-            point->stop_bool_val = newwait;
-            if ( key == -1 ) {
-               if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
-                  return -1;
-               point->waittime -= newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
-                              pid, mtimerlen, (point->waittime - time_ng(NULL))));
-               found = 2;
-            } else if ( key == 1 ) {
-               if ( (point->waittime + newwait) < (rhost_time() + 10) ) 
-                  return -1;
-               point->waittime += newwait;
-               notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
-                              pid, mtimerlen, (point->waittime - time_ng(NULL))));
-               found = 2;
-            } else {
-               point->waittime = time_ng(NULL) + newwait;
-               found = 1;
-            }
-            break;
-         }
-      }
-   }
-   if (!found) {
+    for (point = mudstate_hot.qwait, trail = NULL; point; point = next) {
+       next = point->next;
+       if (point->pid == pid) {
+          if (Immortal(player) || Controls(player,Owner(point->player)) ||
+              HasPriv(player, Owner(point->player), POWER_HALT_QUEUE, POWER4, NOTHING)) {
+             point->stop_bool_val = newwait;
+             if ( key == -1 ) {
+                if ( (point->waittime - newwait) < (time_ng(NULL) + 10) ) 
+                   return -1;
+                point->waittime -= newwait;
+                notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                               pid, mtimerlen, (point->waittime - time_ng(NULL))));
+                found = 2;
+             } else if ( key == 1 ) {
+                if ( (point->waittime + newwait) < (rhost_time() + 10) ) 
+                   return -1;
+                point->waittime += newwait;
+                notify(player, unsafe_tprintf("PID %d has been re-waited with new time of %.*f",
+                               pid, mtimerlen, (point->waittime - time_ng(NULL))));
+                found = 2;
+             } else {
+                point->waittime = time_ng(NULL) + newwait;
+                found = 1;
+             }
+             if (trail != NULL)
+                trail->next = next;
+             else
+                mudstate_hot.qwait = next;
+             tmp = mudstate_hot.qwait;
+             trail = NULL;
+             while (tmp && tmp->waittime <= point->waittime) {
+                trail = tmp;
+                tmp = tmp->next;
+             }
+             point->next = tmp;
+             if (trail != NULL)
+                trail->next = point;
+             else
+                mudstate_hot.qwait = point;
+             break;
+          }
+       }
+    }
+    if (!found) {
       for (point = mudstate_hot.qsemfirst; point; point = point->next) {
          if ( (point->pid == pid) && (point->pid != kick_pid) ) {
             if (Immortal(player) || Controls(player,Owner(point->player)) ||
@@ -1153,7 +1169,7 @@ wait_que_pid(dbref player, int pid, int newwait)
 int 
 halt_que_pid(dbref player, int pid, int key)
 {
-    BQUE *trail, *point, *next;
+    BQUE *trail, *point, *next, *scan, *itrail;
     int numhalted;
     int found;
     dbref psave;
@@ -1221,6 +1237,21 @@ halt_que_pid(dbref player, int pid, int key)
                   numhalted++;
                } else if ( (key == 2 ) && (point->stop_bool == 1) ) {
                   point->stop_bool = 0;
+                  if (trail != NULL)
+                     trail->next = point->next;
+                  else
+                     mudstate_hot.qwait = point->next;
+                  scan = mudstate_hot.qwait;
+                  itrail = NULL;
+                  while (scan && scan->waittime <= point->waittime) {
+                     itrail = scan;
+                     scan = scan->next;
+                  }
+                  point->next = scan;
+                  if (itrail != NULL)
+                     itrail->next = point;
+                  else
+                     mudstate_hot.qwait = point;
                   numhalted++;
                } else {
                   numhalted = -1;
@@ -2554,14 +2585,91 @@ show_que_func(dbref player, char *target, int key, char s_type, char *buff, char
    }
 }
 
+static int
+show_que_cmp(const void *p1, const void *p2)
+{
+    const BQUE *q1 = *(const BQUE * const *)p1;
+    const BQUE *q2 = *(const BQUE * const *)p2;
+    double t1 = q1->waittime, t2 = q2->waittime;
+
+    if (t1 == 0)
+	t1 = 1e300;
+    if (t2 == 0)
+	t2 = 1e300;
+    if (t1 < t2)
+	return -1;
+    if (t1 > t2)
+	return 1;
+    return 0;
+}
+
+static void
+show_que_disp(dbref player, int key, BQUE *tmp, int sw_type, int mtimerlen,
+	      char *tpr_buff, char **tprp_buff)
+{
+    char *bp, *bufp, stop_chr;
+    int i;
+
+    bufp = unparse_object2(player, tmp->player, 0);
+    *tprp_buff = tpr_buff;
+    if ( tmp->stop_bool )
+       stop_chr = 'S';
+    else
+       stop_chr = ' ';
+    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
+	notify(player,
+	       safe_tprintf(tpr_buff, tprp_buff, "(%s: %-6d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+			   tmp->pid, stop_chr, tmp->sem, mtimerlen,
+			   sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
+			   bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
+    else if (tmp->waittime > 0)
+	notify(player,
+	       safe_tprintf(tpr_buff, tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
+			   tmp->pid, stop_chr, mtimerlen,
+			   sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
+			   bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
+    else if (Good_obj(tmp->sem))
+	notify(player,
+	       safe_tprintf(tpr_buff, tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
+			   tmp->pid, stop_chr, tmp->sem,
+			   bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
+    else
+	notify(player,
+	       safe_tprintf(tpr_buff, tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
+			   tmp->pid, stop_chr, bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
+    bp = bufp;
+    if (key == PS_LONG) {
+	for (i = 0; i < (Q_NARGS(tmp)); i++) {
+	    if (Q_ENV(tmp)[i] != NULL) {
+		safe_str((char *) "; Arg",
+			 bufp, &bp);
+		safe_chr(i + '0', bufp, &bp);
+		safe_str((char *) "='",
+			 bufp, &bp);
+		safe_str(Q_ENV(tmp)[i],
+			 bufp, &bp);
+		safe_chr('\'', bufp, &bp);
+	    }
+	}
+	*bp = '\0';
+	bp = unparse_object2(player, tmp->cause, 0);
+	*tprp_buff = tpr_buff;
+	notify(player, safe_tprintf(tpr_buff, tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", Q_BITWISE(tmp), bp, bufp));
+	free_lbuf(bp);
+    }
+    free_lbuf(bufp);
+}
+
 static void 
 show_que(dbref player, int key, BQUE * queue, int *qtot,
 	 int *qent, int *qdel,
 	 dbref player_targ, dbref obj_targ, const char *header, int sw_type)
 {
     BQUE *tmp;
-    char *bp, *bufp, *tpr_buff, *tprp_buff, stop_chr;
-    int i, check, mtimerlen;
+    BQUE **arr;
+    char *tpr_buff, *tprp_buff;
+    int check, mtimerlen;
+    int sortit, ncap, idx;
 
     switch(mudconf.mtimer) {
        case 1000: mtimerlen = 3;
@@ -2577,6 +2685,9 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
     *qent = 0;
     *qdel = 0;
     key = key & ~PS_FREEZE;
+    sortit = ((queue == mudstate_hot.qwait) || (queue == mudstate_hot.qsemfirst)) && (key != PS_SUMM);
+    ncap = 0;
+    arr = NULL;
     tprp_buff = tpr_buff = alloc_lbuf("show_que");
     for (tmp = queue; tmp; tmp = tmp->next) {
 	(*qtot)++;
@@ -2598,68 +2709,39 @@ show_que(dbref player, int key, BQUE * queue, int *qtot,
         }
 	if (check) {
 	    (*qent)++;
+	    if (sortit) {
+		if (*qent > ncap) {
+		    ncap = (ncap == 0) ? 16 : ncap * 2;
+		    if (ncap < *qent)
+			ncap = *qent;
+		    arr = (BQUE **) realloc(arr, (size_t) ncap * sizeof(BQUE *));
+		    if (arr == NULL)
+			abort();
+		}
+		arr[*qent - 1] = tmp;
+	    }
 	    if (key == PS_SUMM)
 		continue;
-	    if (*qent == 1) {
-                tprp_buff = tpr_buff;
-		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "----- %s Queue -----", header));
-            }
-	    bufp = unparse_object2(player, tmp->player, 0);
-            tprp_buff = tpr_buff;
-            if ( tmp->stop_bool )
-               stop_chr = 'S';
-            else
-               stop_chr = ' ';
-	    if ((tmp->waittime > 0) && (Good_obj(tmp->sem)))
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d/%.*f]%s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid,
-                               stop_chr,
-			       tmp->sem,
-                               mtimerlen,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
-			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
-	    else if (tmp->waittime > 0)
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [%.*f]%s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid,
-                               stop_chr,
-                               mtimerlen,
-			       sw_type ? tmp->waittime - tmp->pid : tmp->waittime - mudstate_hot.nowmsec,
-			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
-	    else if (Good_obj(tmp->sem))
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c [#%d]%s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid, stop_chr, tmp->sem,
-			       bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
-	    else
-		notify(player,
-		       safe_tprintf(tpr_buff, &tprp_buff, "(%s: %-6d) %c %s:%s", sw_type ? "FTIME" : "PID",
-                               tmp->pid, stop_chr, bufp, Q_COMM(tmp) ? Q_COMM(tmp) : ""));
-	    bp = bufp;
-	    if (key == PS_LONG) {
-		for (i = 0; i < (Q_NARGS(tmp)); i++) {
-		    if (Q_ENV(tmp)[i] != NULL) {
-			safe_str((char *) "; Arg",
-				 bufp, &bp);
-			safe_chr(i + '0', bufp, &bp);
-			safe_str((char *) "='",
-				 bufp, &bp);
-			safe_str(Q_ENV(tmp)[i],
-				 bufp, &bp);
-			safe_chr('\'', bufp, &bp);
-		    }
-		}
-		*bp = '\0';
-		bp = unparse_object2(player, tmp->cause, 0);
-                tprp_buff = tpr_buff;
-		notify(player, safe_tprintf(tpr_buff, &tprp_buff, "   [ParseFlags: 0x%08X]   Enactor: %s%s", Q_BITWISE(tmp), bp, bufp));
-		free_lbuf(bp);
+	    if (sortit == 0) {
+		if (*qent == 1) {
+                    tprp_buff = tpr_buff;
+		    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "----- %s Queue -----", header));
+                }
+		show_que_disp(player, key, tmp, sw_type, mtimerlen, tpr_buff, &tprp_buff);
 	    }
-	    free_lbuf(bufp);
 	} else if (tmp->player == NOTHING) {
 	    (*qdel)++;
 	}
+    }
+    if (sortit) {
+	if (*qent > 0) {
+	    tprp_buff = tpr_buff;
+	    notify(player, safe_tprintf(tpr_buff, &tprp_buff, "----- %s Queue -----", header));
+	    qsort(arr, (size_t) *qent, sizeof(BQUE *), show_que_cmp);
+	    for (idx = 0; idx < *qent; idx++)
+		show_que_disp(player, key, arr[idx], sw_type, mtimerlen, tpr_buff, &tprp_buff);
+	}
+	free(arr);
     }
     free_lbuf(tpr_buff);
     return;
