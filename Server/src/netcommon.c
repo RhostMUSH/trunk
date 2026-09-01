@@ -613,7 +613,7 @@ char *ansi_translate_fg[257]={
    ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, ANSI_WHITE_H, (char *)NULL,
 };
 
-static char *
+char *
 strip_ansi_xterm(const char *raw)
 {
     static char buf[LBUF_SIZE];
@@ -680,7 +680,7 @@ strip_ansi_xterm(const char *raw)
     RETURN(buf); /* #104 */
 }
 
-static char *
+char *
 strip_ansi_truecolor(const char *raw)
 {
     static char buf[LBUF_SIZE];

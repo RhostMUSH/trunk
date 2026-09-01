@@ -121,6 +121,8 @@ extern void	VDECL(raw_broadcast, (dbref,int, char *, ...));
 extern void	VDECL(raw_broadcast2, (int, char *, ...));
 extern char *	FDECL(strip_ansi, (const char *));
 extern char *	FDECL(strip_ansi2, (const char *));
+extern char *	FDECL(strip_ansi_truecolor, (const char *));
+extern char *	FDECL(strip_ansi_xterm, (const char *));
 #ifdef ZENTY_ANSI
 extern char *   FDECL(strip_safe_ansi, (const char *));
 extern char *   FDECL(strip_safe_accents, (const char *));

@@ -11,6 +11,49 @@
 #include "alloc.h"
 
 typedef struct filecache_hdr FCACHE;
+
+/* Downsample truecolor escapes to the connecting client's capability
+ * (MTTS-advertised).  d==NULL or unadvertised capability -> basic 16-color.
+ * Returns text unchanged, or a static buffer from strip_ansi_* --
+ * callers must not free it, and must consume it before the next call. */
+static char *
+fc_banner_downsample(DESC *d, char *text)
+{
+    if (d && d->cold && (d->cold->client_caps & CLIENT_CAP_TRUECOLOR))
+        return text;
+    text = strip_ansi_truecolor(text);
+    if (d && d->cold && (d->cold->client_caps & CLIENT_CAP_256COLOR))
+        return text;
+    return strip_ansi_xterm(text);
+}
+
+/* Send cached banner text via the player-aware ANSI path (post-login) or
+ * the downsample-then-raw path (pre-login). */
+static void
+fc_dump_write(DESC *d, char *text)
+{
+    if (D_PLAYER(d)) {
+        queue_string(d, text);
+    } else {
+        text = fc_banner_downsample(d, text);
+        queue_write(d, text, strlen(text));
+    }
+}
+
+/* Raw-socket write loop (pre-login site banners). */
+static void
+fc_raw_write(int fd, const char *text)
+{
+    const char *start = text;
+    int remaining = strlen(text);
+    while (remaining > 0) {
+        int cnt = WRITE(fd, start, remaining);
+        if (cnt < 0)
+            break;
+        remaining -= cnt;
+        start += cnt;
+    }
+}
 typedef struct filecache_block_hdr FBLKHDR;
 typedef struct filecache_block FBLOCK;
 
@@ -313,16 +356,7 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
 #else
                 strcpy(lbuf1, retbuff);
 #endif
-                start = lbuf1;
-                remaining = strlen(lbuf1);
-	        while (remaining > 0) {
-	           cnt = WRITE(fd, start, remaining);
-	           if (cnt < 0) {
-		       break;
-                   }
-	           remaining -= cnt;
-	           start += cnt;
-	        }
+                fc_raw_write(fd, fc_banner_downsample(NULL, lbuf1));
                 free_lbuf(lbuf1);
                 free_lbuf(lbuf2);
                 free_lbuf(lbuf3);
@@ -350,21 +384,17 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
 	     }
              free_lbuf(lbuf1);
           } else {
-             fp = fcache[num].fileblock;
-             while (fp != NULL) {
-	         start = fp->data;
-	         remaining = fp->hdr.nchars;
-	         while (remaining > 0) {
-	             cnt = WRITE(fd, start, remaining);
-	             if (cnt < 0)
-		         return;
-	             remaining -= cnt;
-	             start += cnt;
-	         }
-	         fp = fp->hdr.nxt;
-             }
-          }
-       }
+              fp = fcache[num].fileblock;
+              lbuf1 = alloc_lbuf("fcache_rawdump.fileblock");
+              while (fp != NULL) {
+ 	         memcpy(lbuf1, fp->data, fp->hdr.nchars);
+ 	         lbuf1[fp->hdr.nchars] = '\0';
+                 fc_raw_write(fd, fc_banner_downsample(NULL, lbuf1));
+ 	         fp = fp->hdr.nxt;
+              }
+              free_lbuf(lbuf1);
+           }
+        }
     } else {
        if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
           lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
@@ -381,18 +411,14 @@ fcache_rawdump(int fd, int num, const char *host, char *s_site)
           free_lbuf(lbuf1);
        } else {
           fp = fcache[num].fileblock;
+          lbuf1 = alloc_lbuf("fcache_rawdump.fileblock");
           while (fp != NULL) {
-	      start = fp->data;
-	      remaining = fp->hdr.nchars;
-	      while (remaining > 0) {
-	          cnt = WRITE(fd, start, remaining);
-	          if (cnt < 0)
-		      return;
-	          remaining -= cnt;
-	          start += cnt;
-	      }
-	      fp = fp->hdr.nxt;
+ 	      memcpy(lbuf1, fp->data, fp->hdr.nchars);
+ 	      lbuf1[fp->hdr.nchars] = '\0';
+              fc_raw_write(fd, fc_banner_downsample(NULL, lbuf1));
+ 	      fp = fp->hdr.nxt;
           }
+          free_lbuf(lbuf1);
        }
     }
     return;
@@ -474,8 +500,7 @@ fcache_dump(DESC * d, int num, char *s_site)
 #else
                 strcpy(lbuf1, retbuff);
 #endif
-                i_length = strlen(lbuf1);
-                queue_write(d, lbuf1, i_length);
+                fc_dump_write(d, lbuf1);
 /*
                 queue_write(d, "\r\n", 2);
 */
@@ -501,14 +526,18 @@ fcache_dump(DESC * d, int num, char *s_site)
              queue_write(d, "\r\n", 2);
 */
              free_lbuf(lbuf1);
-          } else {
-             fp = fcache[num].fileblock;
-             while (fp != NULL) {
-  	         queue_write(d, fp->data, fp->hdr.nchars);
-	         fp = fp->hdr.nxt;
-             }
-          }
-       }
+           } else {
+              fp = fcache[num].fileblock;
+              lbuf1 = alloc_lbuf("fcache_dump.fileblock");
+              while (fp != NULL) {
+  	         memcpy(lbuf1, fp->data, fp->hdr.nchars);
+ 	         lbuf1[fp->hdr.nchars] = '\0';
+                 fc_dump_write(d, lbuf1);
+ 	         fp = fp->hdr.nxt;
+              }
+              free_lbuf(lbuf1);
+           }
+        }
     } else {
        if ( s_site && *s_site && (strcmp(s_site, (char *)"SITE_FORBIDAPI") == 0) ) {
           lbuf1 = alloc_lbuf("SITE_FORBIDAPI");
@@ -520,14 +549,18 @@ fcache_dump(DESC * d, int num, char *s_site)
 */
           free_lbuf(lbuf1);
        } else {
-          fp = fcache[num].fileblock;
+           fp = fcache[num].fileblock;
+           lbuf1 = alloc_lbuf("fcache_dump.fileblock");
 
-          while (fp != NULL) {
-  	      queue_write(d, fp->data, fp->hdr.nchars);
-	      fp = fp->hdr.nxt;
-          }
-       }
-    }
+           while (fp != NULL) {
+  	      memcpy(lbuf1, fp->data, fp->hdr.nchars);
+ 	      lbuf1[fp->hdr.nchars] = '\0';
+              fc_dump_write(d, lbuf1);
+ 	      fp = fp->hdr.nxt;
+           }
+           free_lbuf(lbuf1);
+        }
+     }
 }
 
 void 
