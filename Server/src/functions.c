@@ -1550,7 +1550,8 @@ extern char * gen_password(int, dbref, int);
 int
 down_ansi(int i_r, int i_g, int i_b) 
 {
-   int i_tohex, i_r2, i_g2, i_b2, rgb_diff, rgb_diff2;
+   int i_tohex, i_r2, i_g2, i_b2;
+   long rgb_diff, rgb_diff2;
    MUXANSI  *cx;
 
    if ( i_r < 0 ) i_r = 0;
@@ -1560,13 +1561,18 @@ down_ansi(int i_r, int i_g, int i_b)
    if ( i_b < 0 ) i_b = 0;
    if ( i_b > 255 ) i_b = 255;
 
-   rgb_diff = rgb_diff2 = 1000;
+   rgb_diff = rgb_diff2 = 1000000;
    for (cx = mux_namecolors; cx->s_hex; cx++) {
       if(cx->i_dec < 16)
          continue;
 
       sscanf(cx->s_hex, "%2x%2x%2x", &i_r2, &i_g2, &i_b2);
-      rgb_diff = abs(i_r2 - i_r) + abs(i_g2 - i_g) + abs(i_b2 - i_b);
+      {
+         long i_dr = i_r2 - i_r;
+         long i_dg = i_g2 - i_g;
+         long i_db = i_b2 - i_b;
+         rgb_diff = i_dr*i_dr + i_dg*i_dg + i_db*i_db;
+      }
 
       if ( rgb_diff < rgb_diff2 ) {
          rgb_diff2 = rgb_diff;
