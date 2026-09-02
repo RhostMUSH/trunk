@@ -37012,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.11.0
+  1 - 5.11.1, 5.11.0
   2 - 5.10.0, 5.9.2, 5.9.1, 5.9.0
   3 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
   4 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
@@ -37035,8 +37035,13 @@
 & changelog newest
 & changelog recent
 & changelog 1
+& 5.11.1
 & 5.11.0
    Topic: CHANGELOG
+  
+  5.11.1
+  * ANSI conversions from Truecolor to 256-color, and from 256-color to 16-color
+    now use euclidian distance calculations, making them more accurate.
   
   5.11.0
   * Implemented several internal speedups in key code spots: Queueing, buffer
