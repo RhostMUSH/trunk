@@ -8361,7 +8361,7 @@ void mail_recall(dbref player, char *buf1, char *buf2, int key, int later1, int 
 	  unparse_to_2(chkplayer2,*spt1,lbuf9, &plrdb);
         if ( do_chk ) {
            if ( chkplayer == NOTHING || !Good_obj(chkplayer) ||
-                (strstr(lbuf9, Name(chkplayer)) == NULL) )
+                (strstr(strip_all_special(lbuf9), Name(chkplayer)) == NULL) )
               continue;
         }
 	if (*lbuf9) {
