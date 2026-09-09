@@ -16,7 +16,7 @@
   
   You may use the /search switch for content.  Eg: wizhelp/search *mail*
   
-  Command syntax help is available by issuing /syntax. Eg: @emit/syntax
+  Command syntax help is available by issuing /syntax.  Eg: @emit/syntax
   
   The multi-tier bit order can be seen with 'help control'
   
