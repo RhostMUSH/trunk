@@ -283,17 +283,22 @@ dddb_get(Aname *nam)
         mkey.iov_base = (void *)nam;
         mkey.iov_len  = sizeof(Aname);
 
+        /* RhostMUSH is single-threaded (no threads; fork() gives the dump
+         * child a private COW copy), so use the single-threaded variant and
+         * skip mdbx_cache_get()'s atomic read/compare/write-back machinery.
+         * Revert to mdbx_cache_get() if the server ever gains threads that
+         * share a cache entry. */
         if (slot->entry.trunk_txnid != 0 &&
             slot->key.object == nam->object &&
             slot->key.attrnum == nam->attrnum) {
             /* Existing slot for this key — use cached B-tree info */
-            MDBX_cache_result_t cres = mdbx_cache_get(txn, dbi, &mkey, &mval, &slot->entry);
+            MDBX_cache_result_t cres = mdbx_cache_get_SingleThreaded(txn, dbi, &mkey, &mval, &slot->entry);
             rc = (int)cres.errcode;
         } else {
             /* New key — initialize cache entry */
             slot->key = *nam;
             mdbx_cache_init(&slot->entry);
-            MDBX_cache_result_t cres = mdbx_cache_get(txn, dbi, &mkey, &mval, &slot->entry);
+            MDBX_cache_result_t cres = mdbx_cache_get_SingleThreaded(txn, dbi, &mkey, &mval, &slot->entry);
             rc = (int)cres.errcode;
         }
     } else {
