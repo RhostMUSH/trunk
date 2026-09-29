@@ -336,12 +336,13 @@ parse_to(char **dstr, char delim, int eval)
  * mushexec() reproduces an argument byte-for-byte as long as it contains none
  * of the characters the evaluator treats specially, carries no raw ANSI escape
  * (which the evaluator strips), and space compression would not alter it.  A
- * few global abort/lookup states must also fall back so the evaluator's abort
- * latches and trace output are preserved.  Returns 1 only when a real cpuexec
+ * few global abort states must also fall back so the evaluator's abort
+ * latches are preserved.  Trace bookkeeping for such an argument is handled
+ * separately by exec_trace_verbatim().  Returns 1 only when a real cpuexec
  * frame would do nothing but copy the text.
  */
 static int
-arg_is_verbatim(const char *s, dbref player, int eval)
+arg_is_verbatim(const char *s)
 {
     int compress_spaces;
     unsigned char c;
@@ -361,11 +362,6 @@ arg_is_verbatim(const char *s, dbref player, int eval)
     if (mudstate_hot.curr_percentsubs >= mudconf.max_percentsubs)
         return 0;
 
-    /* Tracing records one line per frame; skipping it would lose output. */
-    if ((Trace(player) || (mudstate_hot.trace_nest_lev > 0)) &&
-        !(eval & EV_NOTRACE) && !mudstate.notrace)
-        return 0;
-
     compress_spaces = (mudconf.space_compress && !mudstate_hot.no_space_compress);
 
     for (; *s; s++) {
@@ -382,6 +378,8 @@ arg_is_verbatim(const char *s, dbref player, int eval)
     }
     return 1;
 }
+
+static void exec_trace_verbatim(dbref player, int eval);
 
 /* ---------------------------------------------------------------------------
  * parse_arglist: Parse a line into an argument list contained in lbufs.
@@ -450,7 +448,8 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
              * ESC scan, per-char safe_chr, ...).  If the argument cannot be
              * transformed, make the freeable copy the caller expects directly.
              */
-            if (arg_is_verbatim(tstr, player, eval)) {
+            if (arg_is_verbatim(tstr)) {
+                exec_trace_verbatim(player, eval);
                 fargs[arg] = alloc_lbuf("parse_arglist.lit");
                 strcpy(fargs[arg], tstr);
             } else {
@@ -1798,6 +1797,46 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
 
 char t_label[LABEL_MAX][SBUF_SIZE] = {{0}};
 int i_label[LABEL_MAX], i_label_lev = 0;
+
+/*
+ * exec_trace_verbatim: reproduce the trace bookkeeping mushexec() would
+ * perform for an argument that evaluates to itself.
+ *
+ * tcache_add() stores an entry only when orig != result; for a verbatim
+ * argument it merely frees its scratch buffers, so no trace line is lost.
+ * Only the trace state machine therefore needs reproducing: the
+ * tcache_empty()/tcache_finish() transitions and the over-limit notice.
+ * This lets parse_arglist() skip the full evaluator frame for literal
+ * arguments even while tracing.
+ */
+static void
+exec_trace_verbatim(dbref player, int eval)
+{
+    int is_trace, is_top, save_count;
+    char *tbuf;
+
+    is_trace = (Trace(player) ||
+                ((mudstate_hot.trace_nest_lev > 0) && i_label_lev)) &&
+               !(eval & EV_NOTRACE);
+    if (mudstate.notrace)
+        is_trace = 0;
+    if (!is_trace)
+        return;
+
+    is_top = tcache_empty();
+
+    /* tcache_add(player, orig, result) with orig == result stores nothing
+     * and leaves tcache_count unchanged, so save_count is already current. */
+    save_count = tcache_count - mudconf.trace_limit;
+    if (is_top || !mudconf.trace_topdown)
+        tcache_finish();
+    if (is_top && (save_count > 0)) {
+        tbuf = alloc_mbuf("exec.trace_diag");
+        sprintf(tbuf, "%d lines of trace output discarded.", save_count);
+        notify(player, tbuf);
+        free_mbuf(tbuf);
+    }
+}
 
 void
 add_trace_label(char *label) {
