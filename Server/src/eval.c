@@ -331,6 +331,59 @@ parse_to(char **dstr, char delim, int eval)
 }
 
 /* ---------------------------------------------------------------------------
+ * arg_is_verbatim: Can a full evaluator frame be skipped for this argument?
+ *
+ * mushexec() reproduces an argument byte-for-byte as long as it contains none
+ * of the characters the evaluator treats specially, carries no raw ANSI escape
+ * (which the evaluator strips), and space compression would not alter it.  A
+ * few global abort/lookup states must also fall back so the evaluator's abort
+ * latches and trace output are preserved.  Returns 1 only when a real cpuexec
+ * frame would do nothing but copy the text.
+ */
+static int
+arg_is_verbatim(const char *s, dbref player, int eval)
+{
+    int compress_spaces;
+    unsigned char c;
+
+    if (!s)
+        return 0;
+
+    /* Evaluator abort latches - let the real frame set/act on them. */
+    if (mudstate_hot.chkcpu_toggle)
+        return 0;
+    if (mudstate_hot.stack_val > mudconf.stack_limit)
+        return 0;
+    if (mudstate.sidefx_currcalls >= mudconf.sidefx_maxcalls)
+        return 0;
+
+    /* Percent-substitution budget exhausted: mushexec would drop the text. */
+    if (mudstate_hot.curr_percentsubs >= mudconf.max_percentsubs)
+        return 0;
+
+    /* Tracing records one line per frame; skipping it would lose output. */
+    if ((Trace(player) || (mudstate_hot.trace_nest_lev > 0)) &&
+        !(eval & EV_NOTRACE) && !mudstate.notrace)
+        return 0;
+
+    compress_spaces = (mudconf.space_compress && !mudstate_hot.no_space_compress);
+
+    for (; *s; s++) {
+        c = (unsigned char)*s;
+
+        /* Top-level mushexec switch cases, plus raw ANSI (stripped). */
+        if (c == '%' || c == '[' || c == '{' || c == '(' || c == '\\' ||
+            c == ESC_CHAR)
+            return 0;
+
+        /* Space compression is on by default; a space may be collapsed. */
+        if (c == ' ' && compress_spaces)
+            return 0;
+    }
+    return 1;
+}
+
+/* ---------------------------------------------------------------------------
  * parse_arglist: Parse a line into an argument list contained in lbufs.
  * A pointer is returned to whatever follows the final delimiter.
  * If the arglist is unterminated, a NULL is returned.  The original arglist 
@@ -389,10 +442,23 @@ parse_arglist(dbref player, dbref cause, dbref caller, char *dstr,
             }
         }
 	if (eval & EV_EVAL) {
-            mudstate.trace_indent++;
-	    fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK, tstr,
-			         cargs, ncargs, regargs, nregargs);
-            mudstate.trace_indent--;
+            /*
+             * Literal fast path.  A large fraction of function arguments are
+             * plain literals (numbers, dbrefs, bare words).  mushexec() would
+             * reproduce such an argument byte-for-byte, but only after paying
+             * for a full evaluation frame (lbuf alloc, sprintf, clock reads,
+             * ESC scan, per-char safe_chr, ...).  If the argument cannot be
+             * transformed, make the freeable copy the caller expects directly.
+             */
+            if (arg_is_verbatim(tstr, player, eval)) {
+                fargs[arg] = alloc_lbuf("parse_arglist.lit");
+                strcpy(fargs[arg], tstr);
+            } else {
+                mudstate.trace_indent++;
+                fargs[arg] = cpuexec(player, cause, caller, eval | EV_FCHECK, tstr,
+                                     cargs, ncargs, regargs, nregargs);
+                mudstate.trace_indent--;
+            }
 	} else {
             if (  (i_type & 1) == 1 ) {
                mychar = mycharptr = alloc_lbuf("no_eval_parse_arglist");

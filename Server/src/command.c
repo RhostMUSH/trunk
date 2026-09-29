@@ -3191,6 +3191,7 @@ process_command(dbref player, dbref cause, int interactive,
     DESC *d;
     ATTR *hk_ap2, *ap_log;
     time_t chk_stop, i_now;
+    size_t clen;
 #ifdef ENH_LOGROOM
     char *s_logroom;
     int i_loc;
@@ -3256,10 +3257,17 @@ process_command(dbref player, dbref cause, int interactive,
     succ = i_fndexit = 0;
     cache_reset(0);
     reset_atrcache_commandtrig();
-    memset(lst_cmd, 0, LBUF_SIZE);
-    memset(mudstate.last_command, 0, sizeof(mudstate.last_command));
+    /*
+     * These buffers are fully (re)written by the bounded copy when the
+     * leading whitespace is trimmed below.  Nothing reads them in between,
+     * and every consumer only ever treats them as NUL-terminated strings, so
+     * a single NUL preserves the observable state at a tiny fraction of the
+     * former cost (was ~135KB of zeroing per command: 32K + 32K + 70K).
+     */
+    lst_cmd[0] = '\0';
+    mudstate.last_command[0] = '\0';
 #ifndef NODEBUGMONITOR
-    memset(debugmem->last_command, 0, sizeof(debugmem->last_command));
+    debugmem->last_command[0] = '\0';
 #endif
     *(check2 + 1) = '\0';
 
@@ -3562,10 +3570,23 @@ process_command(dbref player, dbref cause, int interactive,
     while (*command && isspace((int)*command))
        command++;
 
-    strncpy(lst_cmd, command, LBUF_SIZE - 1);
-    strncpy(mudstate.last_command, command, LBUF_SIZE - 1);
+    /*
+     * Bounded copy instead of strncpy.  strncpy zero-pads to LBUF_SIZE-1,
+     * forcing a full 32KB write per command for what is almost always a short
+     * string (and 70KB into debugmem).  All three buffers are only ever read
+     * as NUL-terminated strings, so copying exactly the command bytes (capped,
+     * explicitly terminated) is observably identical.
+     */
+    clen = strlen(command);
+    if (clen > LBUF_SIZE - 1)
+        clen = LBUF_SIZE - 1;
+    memcpy(lst_cmd, command, clen);
+    lst_cmd[clen] = '\0';
+    memcpy(mudstate.last_command, command, clen);
+    mudstate.last_command[clen] = '\0';
 #ifndef NODEBUGMONITOR
-    strncpy(debugmem->last_command, command, LBUF_SIZE - 1);
+    memcpy(debugmem->last_command, command, clen);
+    debugmem->last_command[clen] = '\0';
     debugmem->last_player = player;
 #endif
     mudstate_hot.debug_cmd = command;
