@@ -1850,6 +1850,14 @@ void
 purge_trace_label() {
 }
 
+/* Characters mushexec's main loop treats specially (its top-level switch
+ * cases), plus 0x1A, which safe_copy_chr() silently drops.  Every other byte
+ * is copied verbatim and can be handled with a bulk copy. */
+static const unsigned char exec_special[256] = {
+    [' '] = 1, ['\\'] = 1, ['['] = 1, ['{'] = 1, ['%'] = 1,
+    ['('] = 1, ['\032'] = 1
+};
+
 char *
 mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
      char *cargs[], int ncargs, char *regargs[], int nregargs, int i_line, char *s_file)
@@ -2021,7 +2029,30 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 
     memset(tfunlocal, '\0', sizeof(tfunlocal));
     while (*dstr && !alldone) {
-      if ( mudstate_hot.curr_percentsubs < mudconf.max_percentsubs )
+      if ( mudstate_hot.curr_percentsubs < mudconf.max_percentsubs ) {
+	/* Fast path: copy a run of mundane characters in one go.  The
+	 * special set matches the switch cases below, plus 0x1A which
+	 * safe_copy_chr() drops. */
+	char *runp = dstr;
+	while (*runp && !exec_special[(unsigned char)*runp])
+	    runp++;
+	if (runp != dstr) {
+	    size_t run = (size_t)(runp - dstr);
+	    int room = (LBUF_SIZE - 2) - (int)(bufc - buff);
+	    size_t ncopy;
+	    if (room < 0)
+		room = 0;
+	    ncopy = (run < (size_t)room) ? run : (size_t)room;
+	    if (ncopy > 0) {
+		memcpy(bufc, dstr, ncopy);
+		bufc += ncopy;
+		*bufc = '\0';
+	    }
+	    dstr = runp;
+	    i_start += (int)run;
+	    at_space = 0;
+	    continue;
+	}
 	switch (*dstr) {
 	case ' ':
 	    /* A space.  Add a space if not compressing or if
@@ -3951,6 +3982,7 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
 	    at_space = 0;
 	    safe_chr(*dstr, buff, &bufc);
 	}
+      }
 	dstr++;
         i_start++;
     }
