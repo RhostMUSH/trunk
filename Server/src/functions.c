@@ -4842,7 +4842,7 @@ FUNCTION(fun_columns)
   int count, ncols, remorig, rows, x, y, z, scount, bufcols;
   char *leftstart, *pp, *holdbuff, *hbpt, *pt2, *between;
   char delim, *spacer_sep, *string;
-  ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
+  ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
 
   if (!fn_range_check("COLUMNS", nfargs, 3, 13, buff, bufcx)) {
     split_free_buf(outsplit);
@@ -4937,7 +4937,6 @@ FUNCTION(fun_columns)
      }
   }
 
-  initialize_ansisplitter(outsplit, LBUF_SIZE);
   initialize_ansisplitter(outsplit2, LBUF_SIZE);
   string = alloc_lbuf("fun_columns_String");
   memset(string, '\0', LBUF_SIZE);
@@ -19619,7 +19618,7 @@ FUNCTION(fun_elementsmux)
    int nwords, cur, bFirst, i_loop, i_len, i_ansiaware;
    char **ptrs, *s_output, *s_tbuf, *s_tbufptr;
    char *s, *r, *sep, *osep, *outbuff, *osepbuff;
-   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *insplit = split_alloc_buf(), *p_in;
+   ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *outsplit2 = split_alloc_buf(), *insplit = split_alloc_buf(), *p_in;
 
    
    /* Fifth argument toggles ansi-aware or not */
@@ -19655,7 +19654,6 @@ FUNCTION(fun_elementsmux)
 
    outbuff = alloc_lbuf("fun_elementsmuxout");
    if ( i_ansiaware ) {
-      initialize_ansisplitter(outsplit, LBUF_SIZE);
       initialize_ansisplitter(outsplit2, LBUF_SIZE);
       initialize_ansisplitter(insplit, LBUF_SIZE);
       s_tbufptr = s_tbuf = alloc_lbuf("fun_elementsmuxansi");
@@ -24402,15 +24400,13 @@ do_chransi(char *s_arg1, char *s_arg2, char *buff, char **bufcx, int i_type)
 {
    int len, nfound;
    char *outbuff1, *outbuff2, *ob1, *ob2, *s_find;
-   ANSISPLIT *outsplit1 = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *os1, *os2;
+   ANSISPLIT *outsplit1 = split_alloc_for(s_arg1), *outsplit2 = split_alloc_for(s_arg2), *os1, *os2;
 
    outbuff1 = alloc_lbuf("fun_numposarg0");
-   initialize_ansisplitter(outsplit1, LBUF_SIZE);
    memset(outbuff1, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(s_arg1), outbuff1, outsplit1);
 
    outbuff2 = alloc_lbuf("fun_numposarg1");
-   initialize_ansisplitter(outsplit2, LBUF_SIZE);
    memset(outbuff2, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(s_arg2), outbuff2, outsplit2);
 
@@ -27464,7 +27460,7 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
     int i = 1, i_key;
     char *t, *u, *outbuff1, *outbuff2, *outbuff3, *ob2, *ob3;
     int gotone = 0;
-    ANSISPLIT *outsplit1 = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *outsplit3 = split_alloc_buf(), 
+    ANSISPLIT *outsplit1 = split_alloc_for(fargs[0]), *outsplit2 = split_alloc_for(fargs[1]), *outsplit3 = split_alloc_buf(), 
               *sp1, *sp2, *sp3, *sp2b;
 
     i_key = 0;
@@ -27472,13 +27468,11 @@ do_pos_ansi( char *buff, char **bufcx, char **fargs, int nfargs, int i_type )
        i_key = atoi(fargs[2]);
     }
 
-    initialize_ansisplitter(outsplit1, LBUF_SIZE);
     outbuff1 = alloc_lbuf("do_pos_ansi1");
     memset(outbuff1, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[0]), outbuff1, outsplit1);
     sp1 = outsplit1;
 
-    initialize_ansisplitter(outsplit2, LBUF_SIZE);
     outbuff2 = alloc_lbuf("do_pos_ansi2");
     memset(outbuff2, '\0', LBUF_SIZE);
     split_ansi(strip_ansi(fargs[1]), outbuff2, outsplit2);
@@ -28833,7 +28827,7 @@ FUNCTION(fun_secure)
 FUNCTION(fun_esclist)
 {
     char *s_index, *s, *s2, *s_buff, *s_buffptr, *s_split0, *s_pos, *s_output;
-    ANSISPLIT *split0 = split_alloc_buf(), *split_index = split_alloc_buf(), *p_0, *p_split;
+    ANSISPLIT *split0 = split_alloc_for(fargs[0]), *split_index = split_alloc_buf(), *p_0, *p_split;
 
     if ( !*fargs[0] || !strchr(fargs[0], '|') ) {
     split_free_buf(split0);
@@ -28845,7 +28839,6 @@ FUNCTION(fun_esclist)
     memset(s_index, '\0', LBUF_SIZE);
     s2 = s_index;
 
-    initialize_ansisplitter(split0, LBUF_SIZE);
     initialize_ansisplitter(split_index, LBUF_SIZE);
     s_split0 = alloc_lbuf("fun_esclist_ansi");
     split_ansi(strip_ansi(fargs[0]), s_split0, split0);
@@ -38663,7 +38656,7 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
 {
    int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store, i_escape;
    char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
-   ANSISPLIT *outsplit = split_alloc_buf(), *fillersplit = split_alloc_buf(), *retbuff = split_alloc_buf(), *p_in, *p_out;
+   ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *fillersplit = split_alloc_buf(), *retbuff = split_alloc_buf(), *p_in, *p_out;
 
    i_cut = cut;
 
@@ -38680,7 +38673,6 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
    }
 
    /* Handle arg0 */
-   initialize_ansisplitter(outsplit, LBUF_SIZE);
    s_outbuff = alloc_lbuf("fun_ljust");
    memset(s_outbuff, '\0', LBUF_SIZE);
    split_ansi(strip_ansi(fargs[0]), s_outbuff, outsplit);
