@@ -545,6 +545,7 @@ extern void	NDECL(atr_pop);
 extern ANSISPLIT *	_split_alloc_buf(const char *, const char *, int);
 #define split_alloc_buf()	_split_alloc_buf(__func__, __FILE__, __LINE__)
 extern ANSISPLIT *	FDECL(split_alloc_buf_n, (int));
+extern ANSISPLIT *	FDECL(split_alloc_for, (const char *));
 extern void		split_free_buf(ANSISPLIT *);
 extern void		NDECL(split_free_bufs);
 
