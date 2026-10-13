@@ -25711,7 +25711,7 @@ FUNCTION(fun_account_owner)
 	 /* freed-slot safety: d->cold is NULL for freed slots */
 	 if (!d->cold) continue;
          if ( i_port == D_DESCRIPTOR(d) ) {
-            if ( d->cold->account_owner < 0 ) {
+            if ( !Good_obj(d->cold->account_owner) ) {
                safe_str("#-1 YOU ARE ALREADY LOGGED OFF", buff, bufcx);
             } else {
                d->cold->account_owner = NOTHING;
@@ -25797,7 +25797,7 @@ FUNCTION(fun_account_who)
    DESC_SAFEITER_ALL(d) {
       /* freed-slot safety: d->cold is NULL for freed slots */
       if (!d->cold) continue;
-      if ( d->cold->account_owner >= 0 ) {
+      if ( Good_obj(d->cold->account_owner) ) {
          if ( i_first ) {
             safe_str(sep, buff, bufcx);
          }
@@ -25838,13 +25838,17 @@ FUNCTION(fun_account_su)
    i_attr = attr->number;
 
    DESC_SAFEITER_ALL(d) {
+      int i_slot;
       /* freed-slot safety: d->cold is NULL for freed slots */
       if (!d->cold) continue;
       if ( i_port == D_DESCRIPTOR(d) ) {
-         if ( d->cold->account_owner < 0 ) {
+         if ( !Good_obj(d->cold->account_owner) ) {
             safe_str("#-1 NO ACCOUNT INFORMATION", buff, bufcx);
             return;
          }
+         /* Remember the slot index: a teardown below may compact the
+          * descriptor array via swap-with-last, invalidating d. */
+         i_slot = (int)(d - desc_slots);
          s_buffptr = s_buff = alloc_lbuf("account_su");
          s_tmp = alloc_lbuf("account_su2");
          s_tmp2 = alloc_lbuf("account_su3");
@@ -25864,13 +25868,24 @@ FUNCTION(fun_account_su)
          }
           i_noannounce = mudstate_hot.no_announce;
           mudstate_hot.no_announce = 1;
-          /* Save rawpass before shutdownsock — its compaction swap
-           * will move another slot's cold data into this slot, making
-           * d->cold->account_rawpass stale (or NULL if this was the
-           * last slot). The heap-allocated s_tmp survives the swap. */
+          /* Save rawpass on the heap before any teardown moves cold data. */
           strcpy(s_tmp, d->cold->account_rawpass);
-          shutdownsock(d, R_SU);
+          /* Only release an already-connected character.  For a not-yet-
+           * connected connection (the pre-login account screen)
+           * shutdownsock() rewrites R_SU -> R_QUIT and frees + swap-compacts
+           * the slot, invalidating d; there is nothing to release there. */
+          if (D_FLAGS(d) & DS_CONNECTED)
+             shutdownsock(d, R_SU);
           mudstate_hot.no_announce = i_noannounce;
+          /* Defensive: re-resolve the slot in case a teardown compacted it. */
+          d = &desc_slots[i_slot];
+          if (!d->cold) {
+             free_lbuf(s_buff);
+             free_lbuf(s_tmp);
+             free_lbuf(s_tmp2);
+             safe_str("#-1 DESCRIPTOR LOST", buff, bufcx);
+             return;
+          }
           sprintf(s_buff, "zz %.100s %.200s", fargs[0], s_tmp);
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
@@ -25961,9 +25976,14 @@ FUNCTION(fun_account_login)
    i_attr = attr->number;
    i_port = atoi(fargs[2]);
    DESC_SAFEITER_ALL(d) {
+      int i_slot;
       /* freed-slot safety: d->cold is NULL for freed slots */
       if (!d->cold) continue;
       if ( (i_port == D_DESCRIPTOR(d)) && !(D_FLAGS(d) & DS_CONNECTED) ) {
+         /* Remember the slot index: check_connect_ex() may free + swap-
+          * compact the slot on a failed login (retry exhaustion ->
+          * shutdownsock(R_BADLOGIN)), invalidating d. */
+         i_slot = (int)(d - desc_slots);
          s_buff = alloc_lbuf("fun_account_login");
          if ( nfargs > 3 ) {
              sprintf(s_buff, "zz %.100s %.200s", fargs[0], fargs[3]);
@@ -25972,7 +25992,11 @@ FUNCTION(fun_account_login)
          }
          if (check_connect_ex(d, s_buff, 1, i_attr))
             ;
-if ( D_FLAGS(d) & DS_CONNECTED ) {
+/* check_connect_ex() may have compacted the slot on failure.  Ports are
+ * unique among live connections, so re-resolve and confirm identity before
+ * touching cold data. */
+d = &desc_slots[i_slot];
+if ( d->cold && (D_DESCRIPTOR(d) == i_port) && (D_FLAGS(d) & DS_CONNECTED) ) {
             memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
             ival(buff, bufcx, 1);
           } else {
@@ -43560,7 +43584,7 @@ FUN flist[] =
     {"ABS", fun_abs, 1, 0, CA_PUBLIC, CA_NO_CODE},
     {"ACCENT", fun_accent, 2, 0, CA_PUBLIC, 0},
     {"ACOS", fun_acos, 1, FN_VARARGS, CA_PUBLIC, CA_NO_CODE},
-    {"ACCOUNt_BOOT", fun_account_boot, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
+    {"ACCOUNT_BOOT", fun_account_boot, 1, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_LOGIN", fun_account_login, 3, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_OWNER", fun_account_owner, 2, FN_VARARGS, CA_IMMORTAL, CA_NO_CODE},
     {"ACCOUNT_SU", fun_account_su, 3, 0, CA_IMMORTAL, CA_NO_CODE},

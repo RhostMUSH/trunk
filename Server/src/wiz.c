@@ -2164,9 +2164,8 @@ void do_conncheck(dbref player, dbref cause, int key)
   DESC_SAFEITER_ALL(d) {
     /* freed-slot safety: d->cold is NULL for freed slots */
     if (!d->cold) continue;
-    // LENSY: FIX ME
     if ( key & CONNCHECK_ACCT ) {
-       if ( d->cold->account_owner > 0 ) {
+       if ( Good_obj(d->cold->account_owner) ) {
           sprintf(buff2, "%-15.15s #%d", Name(d->cold->account_owner), d->cold->account_owner);
        } else {
          strcpy(buff2, "NONE");
