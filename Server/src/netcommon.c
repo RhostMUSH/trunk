@@ -544,52 +544,92 @@ strip_ansi_color(const char *raw)
 }
 
 /* Downconvert a 256-color index to the nearest basic 16-color escape.
+ *
  * i_bg: 0 = foreground (8 normal + 8 bright), 1 = background (8 normal).
- * Manhattan RGB distance against the xterm base-16 palette. */
-static void
-ansi_256_to_16(int i_idx, int i_bg, char *s_out)
-{
-    static const int i_cube[6] = {0, 95, 135, 175, 215, 255};
-    static const unsigned char i_base[16][3] = {
-        {0, 0, 0}, {128, 0, 0}, {0, 128, 0}, {128, 128, 0},
-        {0, 0, 128}, {128, 0, 128}, {0, 128, 128}, {192, 192, 192},
-        {128, 128, 128}, {255, 0, 0}, {0, 255, 0}, {255, 255, 0},
-        {0, 0, 255}, {255, 0, 255}, {0, 255, 255}, {255, 255, 255}};
-    int i_r, i_g, i_b, i_n, i_best;
-    long i_bd;
+ *
+ * The result depends only on the index (0..255), so the entire mapping is
+ * precomputed instead of recomputed per escape.  ansi256_fg_sel/bg_sel[]
+ * select the nearest of the 16/8 base colors (Euclidean RGB distance against
+ * the xterm base-16 palette, ties -> lower entry) and ansi16_fg/bg[] hold the
+ * escape strings (bright foregrounds use the historical "3X;1" form).  The
+ * selection tables were generated from the previous on-the-fly computation and
+ * verified equal for all 256 indices x { fg, bg }. */
+static const unsigned char ansi256_fg_sel[256] = {
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0,  4,  4,  4,
+    12, 12,  2,  6,  6,  6,  6, 12,  2,  6,  6,  6,  6, 14,  2,  6,  6,  6, 14, 14,
+    10,  6,  6, 14, 14, 14, 10, 10, 14, 14, 14, 14,  1,  5,  5,  5,  5, 12,  3,  8,
+     8,  8,  8, 12,  3,  8,  8,  8,  8,  7,  3,  8,  8,  8,  7,  7,  3,  8,  8,  7,
+     7, 14, 10, 10,  7,  7, 14, 14,  1,  5,  5,  5,  5, 13,  3,  8,  8,  8,  8,  7,
+     3,  8,  8,  8,  7,  7,  3,  8,  8,  7,  7,  7,  3,  8,  7,  7,  7,  7, 11,  7,
+     7,  7,  7,  7,  1,  5,  5,  5, 13, 13,  3,  8,  8,  8,  7,  7,  3,  8,  8,  7,
+     7,  7,  3,  8,  7,  7,  7,  7, 11,  7,  7,  7,  7,  7, 11,  7,  7,  7,  7, 15,
+     9,  5,  5, 13, 13, 13,  3,  8,  8,  7,  7, 13,  3,  8,  7,  7,  7,  7, 11,  7,
+     7,  7,  7,  7, 11,  7,  7,  7,  7, 15, 11, 11,  7,  7, 15, 15,  9,  9, 13, 13,
+    13, 13,  9,  9,  7,  7, 13, 13, 11,  7,  7,  7,  7,  7, 11,  7,  7,  7,  7, 15,
+    11, 11,  7,  7, 15, 15, 11, 11,  7, 15, 15, 15,  0,  0,  0,  0,  0,  0,  8,  8,
+     8,  8,  8,  8,  8,  8,  8,  8,  7,  7,  7,  7,  7,  7, 15, 15
+};
+static const unsigned char ansi256_bg_sel[256] = {
+     0,  1,  2,  3,  4,  5,  6,  7,  7,  1,  2,  3,  4,  5,  6,  7,  0,  4,  4,  4,
+     4,  4,  2,  6,  6,  6,  6,  6,  2,  6,  6,  6,  6,  6,  2,  6,  6,  6,  6,  6,
+     2,  6,  6,  6,  6,  6,  2,  6,  6,  6,  6,  6,  1,  5,  5,  5,  5,  5,  3,  3,
+     5,  5,  5,  7,  3,  3,  6,  6,  7,  7,  3,  3,  6,  7,  7,  7,  3,  3,  7,  7,
+     7,  7,  3,  7,  7,  7,  7,  7,  1,  5,  5,  5,  5,  5,  3,  3,  5,  5,  7,  7,
+     3,  3,  7,  7,  7,  7,  3,  3,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  3,  7,
+     7,  7,  7,  7,  1,  5,  5,  5,  5,  5,  3,  3,  5,  7,  7,  7,  3,  3,  7,  7,
+     7,  7,  3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,
+     1,  5,  5,  5,  5,  5,  3,  3,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  3,  7,
+     7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  1,  5,  5,  5,
+     5,  5,  3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,
+     3,  7,  7,  7,  7,  7,  3,  7,  7,  7,  7,  7,  0,  0,  0,  0,  0,  0,  3,  3,
+     3,  3,  3,  3,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7
+};
+static const char *ansi16_fg[16] = {
+    "\x1B[30m", "\x1B[31m", "\x1B[32m", "\x1B[33m",
+    "\x1B[34m", "\x1B[35m", "\x1B[36m", "\x1B[37m",
+    "\x1B[30;1m", "\x1B[31;1m", "\x1B[32;1m", "\x1B[33;1m",
+    "\x1B[34;1m", "\x1B[35;1m", "\x1B[36;1m", "\x1B[37;1m"
+};
+static const char *ansi16_bg[8] = {
+    "\x1B[40m", "\x1B[41m", "\x1B[42m", "\x1B[43m",
+    "\x1B[44m", "\x1B[45m", "\x1B[46m", "\x1B[47m"
+};
 
+static const char *
+ansi_256_to_16(int i_idx, int i_bg)
+{
     if (i_idx < 0) i_idx = 0;
     if (i_idx > 255) i_idx = 255;
-    if (i_idx < 16) {
-        i_r = i_base[i_idx][0]; i_g = i_base[i_idx][1]; i_b = i_base[i_idx][2];
-    } else if (i_idx < 232) {
-        int i_lev = i_idx - 16;
-        i_r = i_cube[i_lev / 36];
-        i_g = i_cube[(i_lev % 36) / 6];
-        i_b = i_cube[i_lev % 6];
-    } else {
-        int i_gray = 8 + (i_idx - 232) * 10;
-        i_r = i_g = i_b = i_gray;
+    return i_bg ? ansi16_bg[ansi256_bg_sel[i_idx]]
+                : ansi16_fg[ansi256_fg_sel[i_idx]];
+}
+
+/* Parse a leading decimal integer exactly like the previous
+ * sscanf(p, "%d", &v) (skip whitespace, optional sign, then digits).
+ * Returns -1 when no digits are present.  The sole caller accepts only
+ * 0..255, so saturated large values and any negative collapse to the same
+ * rejected outcome the old sscanf produced. */
+static int
+ansi_parse_index(const char *p)
+{
+    int i_v = 0, i_dig = 0;
+
+    while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\v'
+           || *p == '\f' || *p == '\r')
+        p++;
+    if (*p == '-')
+        return -1;
+    if (*p == '+')
+        p++;
+    while (isdigit((int)*p)) {
+        if (i_v <= 256)
+            i_v = i_v * 10 + (*p - '0');
+        i_dig = 1;
+        p++;
     }
-    i_best = 0;
-    i_bd = LONG_MAX;
-    for (i_n = 0; i_n < (i_bg ? 8 : 16); i_n++) {
-        long i_dr = i_r - i_base[i_n][0];
-        long i_dg = i_g - i_base[i_n][1];
-        long i_db = i_b - i_base[i_n][2];
-        long i_d = i_dr*i_dr + i_dg*i_dg + i_db*i_db;
-        if (i_d < i_bd) {
-            i_bd = i_d;
-            i_best = i_n;
-        }
-    }
-    if (i_bg) {
-        sprintf(s_out, "\x1B[%dm", 40 + i_best);
-    } else if (i_best < 8) {
-        sprintf(s_out, "\x1B[%dm", 30 + i_best);
-    } else {
-        sprintf(s_out, "\x1B[%d;1m", 30 + i_best - 8);
-    }
+    if (!i_dig)
+        return -1;
+    return (i_v > 255) ? 256 : i_v;
 }
 
 char *
@@ -598,8 +638,7 @@ strip_ansi_xterm(const char *raw)
     static char buf[LBUF_SIZE];
     char *p = (char *) raw;
     char *q = buf;
-    char *r;
-    char s_16[16];
+    const char *r;
     int i_chk, i_type, i_chk2;
 
     DPUSH; /* #104 */
@@ -632,11 +671,9 @@ strip_ansi_xterm(const char *raw)
                       if ( *p == ';' )
                          i_chk++;
                       if ( i_chk == 2 ) {
-                         i_chk2 = -1;
-                         sscanf( p+1, "%d", &i_chk2);
+                         i_chk2 = ansi_parse_index(p + 1);
                          if ( (i_chk2 >= 0) && (i_chk2 < 256) ) {
-                            ansi_256_to_16(i_chk2, i_type, s_16);
-                            r = s_16;
+                            r = ansi_256_to_16(i_chk2, i_type);
                             while ( r && *r ) {
  	                      *q++ = *r++;
                             }
