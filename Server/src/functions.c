@@ -5245,7 +5245,7 @@ FUNCTION(fun_wrapcolumns)
   int count, ncols, remorig, rnorem, rows, x, y, z;
   char *leftstart, *crp, *pp, *expandbuff, *string;
   char *holdbuff, *hbpt, *pt2, *between;
-  ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
+  ANSISPLIT *outsplit = NULL, *outsplit2 = split_alloc_buf(), *p_bp, *p_sp, *p_leftstart; 
 
   if (!fn_range_check("WRAPCOLUMNS", nfargs, 3, 11, buff, bufcx)) {
     split_free_buf(outsplit);
@@ -5322,7 +5322,6 @@ FUNCTION(fun_wrapcolumns)
 
   /* setup phase done */
 
-  initialize_ansisplitter(outsplit, LBUF_SIZE);
   initialize_ansisplitter(outsplit2, LBUF_SIZE);
 
   string = alloc_lbuf("fun_wrapcolumns");
@@ -5332,6 +5331,8 @@ FUNCTION(fun_wrapcolumns)
   hbpt = holdbuff;
 
   tab_expand( string, strip_ansi(fargs[0]) );
+  /* tab_expand() GROWS the string (tabs -> spaces), so size from `string`. */
+  outsplit = split_alloc_for(string);
   expandbuff = alloc_lbuf("fun_wrapcolumns_String");
   memset(expandbuff, '\0', LBUF_SIZE);
   split_ansi(string, expandbuff, outsplit);
@@ -12668,7 +12669,7 @@ FUNCTION(fun_printf)
    int i_outbuff = 0;
    int adjust_padd, start_line;
    char *s_strarray[30], *s_strptr, *s_tmpbuff, *outbuff, *outbuff2, *o_p1, *o_p2, *s_tabdiff;
-   ANSISPLIT *outsplit = split_alloc_buf(), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2;
+   ANSISPLIT *outsplit = NULL, *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2;
    struct timefmt_format fm, fm_array[30];
 
    adjust_padd = start_line = i_tabdiff = 0;
@@ -12855,7 +12856,13 @@ FUNCTION(fun_printf)
 #endif
                            fm.format_padstsize = strlen(strip_all_special(fm.format_padst));
                            fm.format_padch=(char)*(fm.format_padst);
-                           initialize_ansisplitter(outsplit, LBUF_SIZE);
+                           /* This case can run once per ':' in the format
+                            * string, so free the previous iteration's buffer
+                            * before re-allocating (free(NULL) is a no-op).
+                            * fm.format_padst is passed unstripped to
+                            * split_ansi() below, so size from it directly. */
+                           split_free_buf(outsplit);
+                           outsplit = split_alloc_for(fm.format_padst);
                            initialize_ansisplitter(outsplit2, LBUF_SIZE);
                            outbuff = alloc_lbuf("fun_printf_ansi");
                            outbuff2 = alloc_lbuf("fun_printf_ansi2");
@@ -30951,7 +30958,7 @@ FUNCTION(fun_creplaceansi)
    char *s_in1, *s_in2, *s_out, *s_pos, *s_pin1, *s_pin2, *s_pout, 
         *s_return, *curr_temp, *sop_temp, *s_strtok, *s_strtokr, sep;
    int i_val, i_len, i_cnt, i_range, i_rangecnt;
-   ANSISPLIT *insplit1 = split_alloc_buf(), *insplit2 = split_alloc_buf(), *outsplit = split_alloc_buf(), *p_in1, *p_in2, *p_out;
+   ANSISPLIT *insplit1 = NULL, *insplit2 = NULL, *outsplit = split_alloc_buf(), *p_in1, *p_in2, *p_out;
 
    if (!fn_range_check("CREPLACE", nfargs, 3, 5, buff, bufcx)) {
     split_free_buf(insplit1);
@@ -30983,8 +30990,10 @@ FUNCTION(fun_creplaceansi)
    memset(s_in2, '\0', LBUF_SIZE);
    memset(s_out, '\0', LBUF_SIZE);
 
-   initialize_ansisplitter(insplit1, LBUF_SIZE);
-   initialize_ansisplitter(insplit2, LBUF_SIZE);
+   /* insplit1/2 split the exec() results (curr_temp/sop_temp); size from those
+    * (not from fargs[]).  outsplit is the output/clone destination -> LBUF. */
+   insplit1 = split_alloc_for(curr_temp);
+   insplit2 = split_alloc_for(sop_temp);
    initialize_ansisplitter(outsplit, LBUF_SIZE);
 
    split_ansi(strip_ansi(curr_temp), s_in1, insplit1);
