@@ -1598,12 +1598,48 @@ extern int count_mux_ansi(char *);
 extern void build_sweep(dbref, dbref, dbref, int, char *, char *, char **, char *);
 extern char * gen_password(int, dbref, int);
 
-int
-down_ansi(int i_r, int i_g, int i_b) 
+/* Nearest xterm color-cube level (0..5) for a single channel value v (0..255).
+ * Writes the squared channel distance to *pi_dist.  Ties resolve to the lower
+ * level, which is also the lower palette index. */
+static int
+down_cube_level(int v, int *pi_dist)
 {
-   int i_tohex, i_r2, i_g2, i_b2;
-   long rgb_diff, rgb_diff2;
-   MUXANSI  *cx;
+   static const int i_cube[6] = { 0, 95, 135, 175, 215, 255 };
+   int i, i_best = 0, i_bd;
+
+   i_bd = (i_cube[0] - v) * (i_cube[0] - v);
+   for ( i = 1; i < 6; i++ ) {
+      int i_d = (i_cube[i] - v) * (i_cube[i] - v);
+      if ( i_d < i_bd ) {
+         i_bd = i_d;
+         i_best = i;
+      }
+   }
+   *pi_dist = i_bd;
+   return i_best;
+}
+
+/* Downconvert a TrueColor RGB triple to the nearest xterm-256 palette index.
+ *
+ * This is an O(1) equivalent of the previous brute-force scan of
+ * mux_namecolors[] (which is the standard xterm palette): indices 16..231 are
+ * the 6x6x6 color cube with channel levels {0,95,135,175,215,255} and indices
+ * 232..255 are the grayscale ramp 8+10k.  The equivalence to the old scan was
+ * verified exhaustively for all 256^3 possible inputs.
+ *
+ *   - Squared RGB distance is separable per channel, so the nearest cube point
+ *     is the per-channel nearest level (tie -> lower level).  The cube index
+ *     16+36R+6G+B is R-major, so "lower level" is also "lower index".
+ *   - The grayscale term is 3g^2-2gS+const with S=r+g+b, convex in k, so the
+ *     discrete minimum lies at round((S-24)/30) +/- 1; ties -> lower k.
+ *   - Cube indices (16..231) precede gray indices (232..255), so a cube wins an
+ *     exact cross-family tie (the old scan used a strict '<').
+ */
+int
+down_ansi(int i_r, int i_g, int i_b)
+{
+   int i, i_dr, i_dg, i_db, i_lr, i_lg, i_lb, i_dcube, i_s, i_k, i_k0;
+   int i_gv, i_d, i_dgray, i_cube_idx, i_gray_idx;
 
    if ( i_r < 0 ) i_r = 0;
    if ( i_r > 255 ) i_r = 255;
@@ -1612,29 +1648,36 @@ down_ansi(int i_r, int i_g, int i_b)
    if ( i_b < 0 ) i_b = 0;
    if ( i_b > 255 ) i_b = 255;
 
-   rgb_diff = rgb_diff2 = 1000000;
-   for (cx = mux_namecolors; cx->s_hex; cx++) {
-      if(cx->i_dec < 16)
+   i_lr = down_cube_level(i_r, &i_dr);
+   i_lg = down_cube_level(i_g, &i_dg);
+   i_lb = down_cube_level(i_b, &i_db);
+   i_dcube = i_dr + i_dg + i_db;
+   i_cube_idx = 16 + 36 * i_lr + 6 * i_lg + i_lb;
+
+   i_s  = i_r + i_g + i_b;
+   i_k0 = (i_s - 24 + 15) / 30;
+   if ( i_k0 < 0 ) i_k0 = 0;
+   if ( i_k0 > 23 ) i_k0 = 23;
+
+   /* Scan the window in ascending k so that, on an exact tie, the lowest
+    * (lowest-index) gray wins -- matching the old scan's strict '<'.  A
+    * sentinel seed guarantees the first valid candidate is always taken. */
+   i_k = i_k0;
+   i_dgray = 1000000;
+   for ( i = i_k0 - 1; i <= i_k0 + 1; i++ ) {
+      if ( i < 0 || i > 23 )
          continue;
-
-      sscanf(cx->s_hex, "%2x%2x%2x", &i_r2, &i_g2, &i_b2);
-      {
-         long i_dr = i_r2 - i_r;
-         long i_dg = i_g2 - i_g;
-         long i_db = i_b2 - i_b;
-         rgb_diff = i_dr*i_dr + i_dg*i_dg + i_db*i_db;
-      }
-
-      if ( rgb_diff < rgb_diff2 ) {
-         rgb_diff2 = rgb_diff;
-         i_tohex = cx->i_dec;
-
-         /* Exact match -- break out */
-         if ( rgb_diff2 == 0 )
-            break;
+      i_gv = 8 + 10 * i;
+      i_d = (i_r - i_gv) * (i_r - i_gv) + (i_g - i_gv) * (i_g - i_gv)
+          + (i_b - i_gv) * (i_b - i_gv);
+      if ( i_d < i_dgray ) {
+         i_dgray = i_d;
+         i_k = i;
       }
    }
-   return i_tohex;
+   i_gray_idx = 232 + i_k;
+
+   return ( i_dcube <= i_dgray ) ? i_cube_idx : i_gray_idx;
 }
 
 int do_convtime(char *, struct tm *);
