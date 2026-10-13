@@ -1504,532 +1504,157 @@ NDECL(init_attrtab)
  * atr_str: Look up an attribute by name.
  */
 
-ATTR *
-atr_str_cluster(char *s)
+/* ---------------------------------------------------------------------------
+ * atr_str_lookup: shared implementation for the atr_str* family.
+ *
+ * ohtab_find() is already case-insensitive (real_hashval() lowercases each
+ * byte and the probe uses strcasecmp()) and does not modify its key, so the
+ * predefined-attribute lookup runs directly on the caller's string.  Only
+ * vattr_find(), which upper-cases its argument in place via fixcase(), needs
+ * a copy.  The scan is bounded to MBUF_SIZE to match the old lowercasing
+ * loop; names that long cannot match a real attribute anyway.
+ *
+ * Each caller supplies its own static ATTR (preserving the existing
+ * cross-call aliasing behaviour) and its allocation tag.
+ */
+
+static ATTR *
+atr_str_lookup(const char *s, ATTR *out, const char *tag)
 {
-    char *buff, *p, *q;
     ATTR *a;
     VATTR *va;
-    static ATTR tattr;
+    char *buff = NULL;
+    size_t n;
 
-    /* Convert the buffer name to lowercase */
+    for (n = 0; n < MBUF_SIZE && s[n]; n++)
+	;
 
-    buff = alloc_mbuf("atr_str_objid");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
+    if (n < MBUF_SIZE) {
+	a = (ATTR *) ohtab_find(s, &mudstate_hot.attr_name_htab);
+    } else {
+	buff = alloc_mbuf(tag);
+	memcpy(buff, s, MBUF_SIZE - 1);
+	buff[MBUF_SIZE - 1] = '\0';
+	a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
+    }
     if (a != NULL) {
-	free_mbuf(buff);
+	if (buff != NULL)
+	    free_mbuf(buff);
 	return a;
     }
+
     /* Nope, look for a user attribute */
 
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
+    if (mudstate_hot.nolookie) {
+	if (buff != NULL)
+	    free_mbuf(buff);
+	return NULL;
+    }
+
+    if (buff == NULL) {
+	buff = alloc_mbuf(tag);
+	memcpy(buff, s, n);
+	buff[n] = '\0';
+    }
+    va = (VATTR *) vattr_find(buff);
     free_mbuf(buff);
 
-    /* If we got one, load tattr and return a pointer to it. */
+    /* If we got one, load the caller's ATTR and return a pointer to it. */
 
     if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
+	out->name = va->name;
+	out->number = va->number;
+	out->flags = va->flags;
+	out->check = NULL;
+	return out;
     }
     /* All failed, return NULL */
 
     return NULL;
+}
+
+ATTR *
+atr_str_cluster(char *s)
+{
+    static ATTR tattr;
+    return atr_str_lookup(s, &tattr, "atr_str_objid");
 }
 
 ATTR *
 atr_str_objid(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str_objid");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str_objid");
 }
 
 ATTR *
 atr_str_exec(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str_exec");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str_exec");
 }
 
 ATTR *
 atr_str_atrpeval(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str_atrpeval");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str_atrpeval");
 }
 
 ATTR *
 atr_str_parseatr(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str_parseatr");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str_parseatr");
 }
 
 ATTR *
 atr_str_notify(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str_notify");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str_notify");
 }
 
 ATTR *
 atr_str_mtch(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str4");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str4");
 }
 
 ATTR *
 atr_str4(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str4");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str4");
 }
 
 ATTR *
 atr_str3(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str3");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str3");
 }
 
 ATTR *
 atr_str2(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str2");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str2");
 }
 
 ATTR *
 atr_str(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr.name = va->name;
-	tattr.number = va->number;
-	tattr.flags = va->flags;
-	tattr.check = NULL;
-	return &tattr;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr, "atr_str");
 }
 
 ATTR *
 atr_str_bool(char *s)
 {
-    char *buff, *p, *q;
-    ATTR *a;
-    VATTR *va;
     static ATTR tattr2;
-
-    /* Convert the buffer name to lowercase */
-
-    buff = alloc_mbuf("atr_str");
-    for (p = buff, q = s; *q && ((p - buff) < (MBUF_SIZE - 1)); p++, q++)
-	*p = ToLower((int)*q);
-    *p = '\0';
-
-    /* Look for a predefined attribute */
-
-    a = (ATTR *) ohtab_find(buff, &mudstate_hot.attr_name_htab);
-    if (a != NULL) {
-	free_mbuf(buff);
-	return a;
-    }
-    /* Nope, look for a user attribute */
-
-    if ( mudstate_hot.nolookie )
-       va = NULL;
-    else
-       va = (VATTR *) vattr_find(buff);
-    free_mbuf(buff);
-
-    /* If we got one, load tattr2 and return a pointer to it. */
-
-    if (va != NULL) {
-	tattr2.name = va->name;
-	tattr2.number = va->number;
-	tattr2.flags = va->flags;
-	tattr2.check = NULL;
-	return &tattr2;
-    }
-    /* All failed, return NULL */
-
-    return NULL;
+    return atr_str_lookup(s, &tattr2, "atr_str");
 }
 
 #else /* STANDALONE */
