@@ -6404,7 +6404,7 @@ mail_acheck(dbref player, int key)
          *s_dynfmt="%-4d %-25.25s    %-*.*s %s%s"; 
 
     cntr = i_quick = 0;
-    outsplit = split_alloc_buf();
+    outsplit = NULL;      /* allocated below, sized to s_shoveattr */
 
     if ( key & M_QUICK ) {
        i_quick = 1;
@@ -6562,7 +6562,12 @@ mail_acheck(dbref player, int key)
                          }
                       }
                       memset(s_outbuff, '\0', LBUF_SIZE);
-                      initialize_ansisplitter(outsplit, LBUF_SIZE);
+                      /* This block can run once per mail alias (while/for
+                       * loops above), so free the previous iteration's buffer
+                       * first - free(NULL) is a no-op.  split_ansi() consumes
+                       * strip_ansi(s_shoveattr), never longer than s_shoveattr. */
+                      split_free_buf(outsplit);
+                      outsplit = split_alloc_for(s_shoveattr);
                       split_ansi(strip_ansi(s_shoveattr), s_outbuff, outsplit);
                       *(s_outbuff+35) = '\0';
                       s_finalbuf = rebuild_ansi(s_outbuff, outsplit, 0);
