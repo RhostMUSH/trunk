@@ -17,6 +17,8 @@ char *index(const char *, int);
 #endif
 #endif
 
+#include <limits.h>
+
 #include "copyright.h"
 #include "autoconf.h"
 
@@ -570,7 +572,7 @@ ansi_256_to_16(int i_idx, int i_bg, char *s_out)
         i_r = i_g = i_b = i_gray;
     }
     i_best = 0;
-    i_bd = 1L << 60;
+    i_bd = LONG_MAX;
     for (i_n = 0; i_n < (i_bg ? 8 : 16); i_n++) {
         long i_dr = i_r - i_base[i_n][0];
         long i_dg = i_g - i_base[i_n][1];
