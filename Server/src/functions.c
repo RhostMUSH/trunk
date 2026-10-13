@@ -138,6 +138,27 @@ ANSISPLIT *_split_alloc_buf(const char *tag, const char *file, int line)
     return tmp;
 }
 
+/* Right-sized ANSISPLIT array of i_entries entries.  Use where the string to
+ * be split is known, so a full LBUF_SIZE array (1.44 MB) need not be
+ * allocated + zeroed per call.  Free with split_free_buf() (which free()s
+ * anything not in the pool/overflow). */
+ANSISPLIT *split_alloc_buf_n(int i_entries)
+{
+    ANSISPLIT *p;
+
+    if (i_entries < 1)
+        i_entries = 1;
+    p = (ANSISPLIT *)malloc(sizeof(ANSISPLIT) * (size_t)i_entries);
+    if (!p) {
+        STARTLOG(LOG_ALWAYS, "MEM", "FATAL")
+            log_text("split_alloc_buf_n: malloc failed");
+        ENDLOG
+        abort();
+    }
+    as_total_allocs++;
+    return p;
+}
+
 void split_free_buf(ANSISPLIT *p)
 {
     int i;
@@ -33796,8 +33817,8 @@ FUNCTION(fun_ilev)
 FUNCTION(fun_citer)
 {
     char *curr, objstring[SBUF_SIZE], *buff3, *result, *cp, sep, *tpr_buff, *tprp_buff, *outbuff, *s_output;
-    int first, cntr;
-    ANSISPLIT *outsplit = split_alloc_buf(), *p_sp;
+    int first, cntr, i_splitlen;
+    ANSISPLIT *outsplit, *p_sp;
 
 
     sep = ' ';
@@ -33807,7 +33828,12 @@ FUNCTION(fun_citer)
 
     outbuff = exec(player, cause, caller, EV_STRIP | EV_FCHECK | EV_EVAL, fargs[0], cargs, ncargs, (char **)NULL, 0);
 
-    initialize_ansisplitter(outsplit, LBUF_SIZE);
+    /* split_ansi() writes at most strlen(input)+1 entries, so size the
+     * splitter to the string rather than allocating + zeroing a full
+     * LBUF_SIZE array (1.44 MB) - important because citer() can nest. */
+    i_splitlen = outbuff ? (int)strlen(outbuff) + 1 : 1;
+    outsplit = split_alloc_buf_n(i_splitlen);
+    initialize_ansisplitter(outsplit, i_splitlen);
     curr = alloc_lbuf("fun_citer2");
 
     split_ansi(strip_ansi(outbuff), curr, outsplit);

@@ -950,24 +950,13 @@ void clone_ansisplitter(ANSISPLIT *a_split, ANSISPLIT *b_split) {
 }
 
 void initialize_ansisplitter(ANSISPLIT *a_split, int i_size) {
-   int i;
-   ANSISPLIT *p_bp;
-
-   p_bp = a_split;
-   for ( i=0; i < i_size; i++) {
-      memset(p_bp->s_fghex, '\0', 5);
-      memset(p_bp->s_bghex, '\0', 5);
-      p_bp->i_special = 0;
-      p_bp->i_ascii8 = 0;
-      p_bp->i_utf8 = 0;
-      p_bp->c_accent = '\0';
-      p_bp->c_fgansi = '\0';
-      p_bp->c_bgansi = '\0';
-      p_bp->i_truecolor = 0;
-      p_bp->i_fgr = 0; p_bp->i_fgg = 0; p_bp->i_fgb = 0;
-      p_bp->i_bgr = 0; p_bp->i_bgg = 0; p_bp->i_bgb = 0;
-      p_bp++;
-   }
+   /* Every field of an ANSISPLIT is set to zero, so a single memset over the
+    * whole array is equivalent to the old per-field loop (which did two
+    * 5-byte memsets plus ~13 scalar stores per entry) and lets libc use its
+    * vectorized path.  Struct padding is also zeroed, but is never read. */
+   if ((a_split == NULL) || (i_size <= 0))
+      return;
+   memset(a_split, 0, (size_t)i_size * sizeof(ANSISPLIT));
 }
 
 char *
