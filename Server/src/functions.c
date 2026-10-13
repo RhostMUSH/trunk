@@ -160,9 +160,23 @@ ANSISPLIT *split_alloc_buf_n(int i_entries)
 }
 
 /* Allocate AND zero a split array sized for the string that will be split
- * into it.  split_ansi() emits at most one entry per output character and
- * output length <= input length, so strlen(s)+1 entries always suffice.
- * NULL-safe.  Free with split_free_buf(). */
+ * into it.  Free with split_free_buf().  NULL-safe.
+ *
+ * Sizing invariant (BYTE-oriented): split_ansi() advances one ANSISPLIT entry
+ * per output BYTE and never writes more entries than the input has bytes, so
+ * strlen(s)+1 entries always suffice.  strlen() counts bytes, which matches
+ * split_ansi()'s byte-wise walk -- multi-byte UTF-8 is copied/emitted one byte
+ * at a time (2 input bytes -> 2 entries), while the wide codes (%<uXXXX...>,
+ * %<NNN>) consume many input bytes but emit a single entry, so they only
+ * reduce the count.  The usual producer, strip_ansi(), only strips and never
+ * expands, so strlen(the original argument)+1 is a safe upper bound.
+ *
+ * ALWAYS size by byte length, never by character count.
+ *
+ * PRECONDITION: only use the result for an array that is written by a SINGLE
+ * split_ansi() and then only read.  Do NOT use it for output-builder arrays
+ * (split_ansi() is not their only writer) or for inputs that can grow in
+ * bytes (e.g. exec() results, tab_expand()). */
 ANSISPLIT *split_alloc_for(const char *s_to_split)
 {
     int n = (int)(s_to_split ? strlen(s_to_split) : 0) + 1;
@@ -175,6 +189,9 @@ ANSISPLIT *split_alloc_for(const char *s_to_split)
 void split_free_buf(ANSISPLIT *p)
 {
     int i;
+
+    if (p == NULL)          /* e.g. a split buffer allocated only on some paths */
+        return;
     for (i = 0; i < AS_POOL_SIZE; i++) {
         if (as_pool[i].buf == p) {
             as_pool[i].in_use = 0;
@@ -7778,7 +7795,7 @@ FUNCTION(fun_tr)
         *s_inptr, *outbuff, *outarg2, *s_output;
    int i_cntr, i, i_noansi;
     ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2,
-              *s_splitarg2 = split_alloc_buf(), s_splitmap[256];
+              *s_splitarg2 = NULL, s_splitmap[256];
 
     if (!fn_range_check("TR", nfargs, 3, 4, buff, bufcx)) {
      split_free_buf(outsplit);
@@ -7855,7 +7872,10 @@ FUNCTION(fun_tr)
 
    if ( !i_noansi ) {
       initialize_ansisplitter(outsplit2, LBUF_SIZE);
-      initialize_ansisplitter(s_splitarg2, LBUF_SIZE);
+      /* process_tr() EXPANDS ranges (e.g. "a-z"), so size s_splitarg2 from the
+       * actual result, not from fargs[2].  NULL-inited above so the early
+       * error-path split_free_buf(s_splitarg2) is a no-op. */
+      s_splitarg2 = split_alloc_for(s_instr2);
       initialize_ansisplitter(s_splitmap, 256);
       outbuff = alloc_lbuf("fun_tr");
       outarg2 = alloc_lbuf("fun_tr2");
@@ -38656,7 +38676,7 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
 {
    int width, len, filllen, trail_chrs, lead_chrs, i, i_offset, q, i_cut, i_store, i_escape;
    char *s_filler, *s_outbuff, *s_retbuff, *s_in, *s_out, *s_finalbuff;
-   ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *fillersplit = split_alloc_buf(), *retbuff = split_alloc_buf(), *p_in, *p_out;
+   ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *fillersplit = split_alloc_buf_n((fargs[2] ? (int)strlen(fargs[2]) : 0) + 2), *retbuff = split_alloc_buf(), *p_in, *p_out;
 
    i_cut = cut;
 
@@ -38697,7 +38717,9 @@ handle_ansijust(char *buff, char **bufcx, dbref player, dbref cause, dbref calle
 
    s_filler = alloc_lbuf("fun_ljustfill");
    memset(s_filler, '\0', LBUF_SIZE);
-   initialize_ansisplitter(fillersplit, LBUF_SIZE);
+   /* fillersplit is split with strip_ansi(fargs[2]) OR the literal " ", so
+    * size for the longer of the two (fargs[2] may be empty -> need 2). */
+   initialize_ansisplitter(fillersplit, (fargs[2] ? (int)strlen(fargs[2]) : 0) + 2);
    if ( (nfargs > 2) && *fargs[2] ) {
       /* Handle arg2 */
       split_ansi(strip_ansi(fargs[2]), s_filler, fillersplit);
