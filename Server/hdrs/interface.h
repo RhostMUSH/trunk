@@ -240,6 +240,13 @@ struct desc_cold {
     char    client_name[64];    /* TTYPE terminal type, e.g. "Mudlet" */
     char    client_name_first[64]; /* first TTYPE response in cycle for end-of-list detection */
     int     client_caps;        /* bitmask: 0x01 = unicode detected */
+
+    /* Deferred-teardown request: set by shutdownsock() when a teardown is
+     * asked for while a nested account connect is in progress
+     * (i_login_nest > 0).  process_commands() performs the real teardown once
+     * no frame holds this DESC.  0 = none, else an R_* reason.  Lives in the
+     * cold struct so it travels with the descriptor across swap-compaction. */
+    int     pending_close;
 };
 
 /* Client capability flags */
@@ -278,6 +285,7 @@ struct descriptor_data {
 extern DESC desc_slots[MAX_DESCRIPTORS];
 extern DESC_COLD desc_cold[MAX_DESCRIPTORS];
 extern DESC *desc_in_use;
+extern int i_login_nest;   /* nested account-connect depth; deferred-teardown barrier */
 
 /* from the net interface */
 

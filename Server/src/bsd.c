@@ -92,6 +92,7 @@ DESC desc_slots[MAX_DESCRIPTORS];
 DESC_COLD desc_cold[MAX_DESCRIPTORS];
 struct desc_hot_arrays desc_hot;
 DESC *desc_in_use = NULL;
+int i_login_nest = 0;   /* nested account-connect depth; deferred-teardown barrier */
 
 DESC *_alloc_desc(const char *tag) {
     for (int i = 0; i < MAX_DESCRIPTORS; i++) {
@@ -140,6 +141,9 @@ void _free_desc(DESC *d) {
         D_OUTPUT_HEAD(d) = NULL; D_OUTPUT_TAIL(d) = NULL;
         D_OUTPUT_SIZE(d) = 0; D_OUTPUT_TOT(d) = 0;
         D_LAST_TIME(d) = 0;
+        /* The "command in progress" descriptor must not be left dangling. */
+        if (desc_in_use == d) desc_in_use = NULL;
+        if (d->cold) d->cold->pending_close = 0;
         d->cold = NULL;
     }
 }
@@ -1897,6 +1901,20 @@ shutdownsock(DESC * d, int reason)
         }
     }
 
+    /* A nested account connect (check_connect_ex -> check_connect, reached
+     * through connect-screen softcode) can request a teardown while frames
+     * above us still hold this DESC.  Defer the graceful teardowns: record
+     * the reason and let process_commands() perform the real teardown once
+     * nothing holds d.  Non-graceful reasons (R_SOCKDIED / R_TIMEOUT / R_API /
+     * R_WEBSOCKETS / R_HACKER / ...) always act immediately. */
+    if ( i_login_nest > 0 &&
+         (reason == R_QUIT || reason == R_SU || reason == R_LOGOUT ||
+          reason == R_BADLOGIN || reason == R_BOOT) ) {
+        d->cold->pending_close = reason;
+        free_lbuf(tchbuff);
+        VOIDRETURN; /* #6 */
+    }
+
     if (D_FLAGS(d) & DS_CONNECTED) {
 
         handle_conninfo_write(d, D_PLAYER(d), CONN_ALL); /* Write A_CONNINFO */
@@ -2175,6 +2193,9 @@ shutdownsock(DESC * d, int reason)
 		desc_slots[last].cold = &desc_cold[last];
 		desc_slots[i].slot_index = i;
 		desc_slots[last].slot_index = last;
+		/* A live desc moved into slot i keeps its identity; re-point the
+		 * "command in progress" pointer to its new home. */
+		if (desc_in_use == &desc_slots[last]) desc_in_use = &desc_slots[i];
 		desc_hot.descriptor[last] = -1;
 		/* The cold data we just moved into slot i contains a live
 		 * telnet pointer whose ud field still points to &desc_slots[last].
@@ -2646,6 +2667,7 @@ initializesock(int s, const char *ip_str, int addr_family, unsigned short remote
     d->cold->ws_frame_len = 0;
     d->cold->account_owner = NOTHING;
     memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
+    d->cold->pending_close = 0;
 
     *d->cold->userid = '\0';
     memset(d->cold->addr, 0, sizeof(d->cold->addr));

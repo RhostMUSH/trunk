@@ -1123,6 +1123,8 @@ int dump_reboot_db( void )
   DESC_SAFEITER_ALL(d) {
     if (!d->cold) continue;
     if (D_FLAGS(d) & DS_API) continue;
+    /* A descriptor awaiting a deferred teardown must not be persisted. */
+    if (d->cold->pending_close) continue;
     if (D_FLAGS(d) & DS_HAS_DOOR) {
       closeDoorWithId(d, d->cold->door_num);
     }
@@ -4693,7 +4695,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
         buff2[10], cchk[SBUF_SIZE], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
    int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size, i_chk,
        ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow,
-       i_slot, i_port, i_handled;
+       i_slot, i_port, i_handled, i_desc_gone;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
@@ -5133,6 +5135,12 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      sprintf(sarray[3], "#%d", NOTHING);
                   else
                      sprintf(sarray[3], "#%d", player);
+                  /* The cpuexec() below runs the SITE_NOCONNECT / SITE_NOPOSSESS
+                   * attribute; that softcode may tear this descriptor down.
+                   * Remember where we were so we can re-resolve afterwards. */
+                  i_slot = (int)(d - desc_slots);
+                  i_port = D_DESCRIPTOR(d);
+                  i_desc_gone = 0;
                   if ( i_atr == -1 ) {
                      buff3 = cpuexec(mudconf.file_object, mudconf.file_object, mudconf.file_object, 
                                      EV_STRIP | EV_FCHECK | EV_EVAL, buff, sarray, 4, (char **)NULL, 0);
@@ -5164,7 +5172,12 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                         mudstate_hot.chkcpu_toggle = 0;
                      }
                   }
-                  if ( buff3 && *buff3 ) {
+                  /* cpuexec() may have torn this descriptor down.  Re-resolve
+                   * and confirm it is still ours before touching d again. */
+                  d = &desc_slots[i_slot];
+                  if ( !d->cold || (D_DESCRIPTOR(d) != i_port) )
+                     i_desc_gone = 1;
+                  if ( !i_desc_gone && buff3 && *buff3 ) {
 #ifdef ZENTY_ANSI
                      lbuf1ptr = lbuf1 = alloc_lbuf("noconnect_ansi1");
                      lbuf2ptr = lbuf2 = alloc_lbuf("noconnect_ansi2");
@@ -5179,7 +5192,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      queue_string(d, buff3);
                      queue_string(d, "\r\n");
 #endif
-                  } else {
+                  } else if ( !i_desc_gone ) {
                      queue_string(d, connect_fail);
                   }
                   free_lbuf(buff3);
@@ -5194,6 +5207,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
             } else {
                queue_string(d, connect_fail);
             }
+            if ( !i_desc_gone ) {
             STARTLOG(LOG_LOGIN | LOG_SECURITY, "CON", "BAD")
                buff = alloc_lbuf("check_conn.LOG.bad");
                sprintf(buff, "[%d/%s] Failed connect to '%s'",
@@ -5201,7 +5215,8 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                log_text(buff);
                free_lbuf(buff);
             ENDLOG
-            if ( --(d->cold->retries_left) <= 0 ) {
+            }
+            if ( !i_desc_gone && --(d->cold->retries_left) <= 0 ) {
                free_mbuf(command);
                free_mbuf(user);
                free_mbuf(password);
@@ -5586,7 +5601,13 @@ check_connect_ex(DESC * d, char *msg, int key, int i_attr)
    
    i_override = mudstate.account_subsys_inuse;
    mudstate.account_subsys_inuse = 1;
+   /* Raise the teardown barrier: this is the only path that enters a nested
+    * check_connect() from inside softcode.  A teardown requested there is
+    * deferred (shutdownsock -> pending_close) and flushed by process_commands
+    * once no frame still holds this DESC. */
+   i_login_nest++;
    i_return = check_connect(d, msg, key, i_attr);
+   i_login_nest--;
    mudstate.account_subsys_inuse = i_override;
    return(i_return);
 }
@@ -5618,7 +5639,8 @@ do_command(DESC * d, char *command)
     char *arg, *cmdsave, *time_str, *s_rollback, *addroutbuf, *addrsav,
          *s_sitetmp, *s_sitebuff, *haproxy_srcip, *haproxy_rest;
     int retval, cval, gotone, store_perm, chk_perm, i_rollback, i_jump,
-        maxsitecon, i_retvar, i_valid, aflags, no_space, i_do_proxy;
+        maxsitecon, i_retvar, i_valid, aflags, no_space, i_do_proxy,
+        i_slot, i_port;
     struct SNOOPLISTNODE *node;
 #ifdef HAS_OPENSSL
     int i_timeout;
@@ -6199,6 +6221,8 @@ do_command(DESC * d, char *command)
                if ( *command == '}' ) {
                   mudstate_hot.no_space_compress = 1;
                }
+	       i_slot = (int)(d - desc_slots);
+	       i_port = D_DESCRIPTOR(d);
 	       process_command(D_PLAYER(d), D_PLAYER(d), 1,
 			       command, (char **) NULL, 0, mudstate.shell_program, mudstate_hot.no_hook, mudstate_hot.no_space_compress);
                mudstate_hot.no_space_compress = no_space;
@@ -6207,15 +6231,24 @@ do_command(DESC * d, char *command)
                strcpy(mudstate.rollback, s_rollback);
                free_lbuf(s_rollback);
                mudstate_hot.curr_cmd = (char *) "";
-	       if (d->cold->output_suffix) {
-		   queue_string(d, d->cold->output_suffix);
-		   queue_write(d, "\r\n", 2);
+	       /* process_command() ran the command's softcode, which may have
+	        * torn this descriptor down (e.g. @boot of the acting port).
+	        * Re-resolve and confirm identity before touching d again.  A
+	        * surviving second descriptor of the same player still receives
+	        * the command output through notify(), so nothing player-level is
+	        * lost by skipping this per-descriptor work. */
+	       d = &desc_slots[i_slot];
+	       if ( d->cold && (D_DESCRIPTOR(d) == i_port) ) {
+	          if (d->cold->output_suffix) {
+		     queue_string(d, d->cold->output_suffix);
+		     queue_write(d, "\r\n", 2);
+	          }
+	          process_output(d);
 	       }
 	       mudstate_hot.debug_cmd = cmdsave;
 	       if ( chk_perm && cp ) {
 	         cp->perm = store_perm;
                }
-               process_output(d);
 	       RETURN(1); /* #147 */
 	   } else {
 	       mudstate_hot.debug_cmd = cmdsave;
@@ -7070,7 +7103,7 @@ do_command(DESC * d, char *command)
 void 
 NDECL(process_commands)
 {
-    int nprocessed, aflags2, i;
+    int nprocessed, aflags2, i, i_pending_reason;
     DESC *d;
     CBLK *t;
     char *cmdsave, *progatr;
@@ -7088,6 +7121,15 @@ NDECL(process_commands)
 	nprocessed = 0;
 	DESC_SAFEITER_ALL(d) {
 	    if (!d->cold) continue;
+	    /* Perform a teardown that was deferred while a nested account connect
+	     * held this DESC (see shutdownsock).  Safe here: no frame above us
+	     * holds d and i_login_nest is 0. */
+	    if ( d->cold->pending_close ) {
+		i_pending_reason = d->cold->pending_close;
+		d->cold->pending_close = 0;
+		shutdownsock(d, i_pending_reason);
+		continue;
+	    }
 	    if ((D_FLAGS(d) & DS_AUTH_IN_PROGRESS) == 0) {
 		if ( (D_QUOTA(d) > 0) && (t = D_INPUT_HEAD(d))) {
 		    D_QUOTA(d)--;
