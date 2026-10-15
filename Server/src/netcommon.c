@@ -4474,8 +4474,14 @@ softcode_trigger(DESC *d, const char *msg) {
 #ifdef ZENTY_ANSI
     char *lbuf1ptr, *lbuf1, *lbuf2ptr, *lbuf2, *lbuf3ptr, *lbuf3;
 #endif
-    int aflags, i_found;
+    int aflags, i_found, i_slot, i_port;
     dbref aowner;
+
+    /* Remember which descriptor we are running for: the softcode below may
+     * invoke the account functions -> a nested check_connect -> shutdownsock(),
+     * which frees and swap-compacts this slot and invalidates d. */
+    i_slot = (int)(d - desc_slots);
+    i_port = D_DESCRIPTOR(d);
 
     if ( !Good_chk(mudconf.file_object) ) {
        return(0);
@@ -4590,6 +4596,18 @@ softcode_trigger(DESC *d, const char *msg) {
              break;
           }
 
+          /* The RUN_xxx softcode may have run the account functions -> a nested
+           * check_connect -> shutdownsock(), freeing and swap-compacting this
+           * descriptor.  Re-resolve and confirm it is still ours before writing
+           * output to it (otherwise we would emit to a freed slot or to a
+           * different, still-live connection). */
+          d = &desc_slots[i_slot];
+          if ( !d->cold || (D_DESCRIPTOR(d) != i_port) ) {
+             i_found = 1;
+             free_lbuf(s_buff);
+             break;
+          }
+
 #ifdef ZENTY_ANSI
           lbuf1 = alloc_lbuf("fcache_dump3");
           lbuf2 = alloc_lbuf("fcache_dump4");
@@ -4674,7 +4692,8 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
    char *command, *user, *password, *buff, *cmdsave, *buff3, *addroutbuf, *tsite_buff, *s_god,  
         buff2[10], cchk[SBUF_SIZE], *in_tchr, tchar_buffer[600], *tstrtokr, *s_uselock, *sarray[5];
    int aflags, nplayers, comptest, gnum, bittemp, bitcmp, postest, overf, dc, tchar_num, is_guest, i_return, i_size, i_chk,
-       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow;
+       ok_to_login, i_sitemax, postestcnt, i_atr, chk_tog, guest_randomize[32], guest_bits[32], guest_randcount, i_allow,
+       i_slot, i_port, i_handled;
 #ifdef ZENTY_ANSI
    char *lbuf1, *lbuf1ptr, *lbuf2, *lbuf2ptr, *lbuf3, *lbuf3ptr;
 #endif
@@ -5527,12 +5546,26 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
          }
       }
    } else {
-      if ( !softcode_trigger(d, msg) ) {
-         welcome_user(d);
-         i_return = 0;
-      }
-      if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) ) {
-         d->cold->command_count++;
+      /* softcode_trigger() runs arbitrary softcode which may invoke the
+       * account functions -> a nested check_connect() -> shutdownsock().
+       * That frees and swap-compacts this descriptor, invalidating d: if it
+       * was the last slot d->cold becomes NULL, otherwise d now names a
+       * different (live) connection.  Remember where we were, then re-resolve
+       * and confirm identity before touching d again.  (Without this, the
+       * d->cold->command_count deref below NULL-faults - the LOGOUT+account
+       * relogin crash.) */
+      i_slot = (int)(d - desc_slots);
+      i_port = D_DESCRIPTOR(d);
+      i_handled = softcode_trigger(d, msg);
+      d = &desc_slots[i_slot];
+      if ( d->cold && (D_DESCRIPTOR(d) == i_port) ) {
+         if ( !i_handled ) {
+            welcome_user(d);
+            i_return = 0;
+         }
+         if ( Good_obj(D_PLAYER(d)) && !TogHideIdle(D_PLAYER(d)) ) {
+            d->cold->command_count++;
+         }
       }
    }
    free_mbuf(command);

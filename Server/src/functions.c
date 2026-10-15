@@ -26082,8 +26082,15 @@ FUNCTION(fun_account_login)
  * unique among live connections, so re-resolve and confirm identity before
  * touching cold data. */
 d = &desc_slots[i_slot];
+/* Do NOT clear d->cold->account_rawpass here.  The account subsystem keeps the
+ * account session alive across a character logon and relies on the stored
+ * account password so the post-LOGOUT "choose a character" screen
+ * (FN_CONNECT -> 3-arg account_login) can re-authenticate without re-prompting.
+ * Clearing it on every successful logon (94e2ba05 / #262 edit #2) broke that
+ * flow and is what made the LOGOUT+relogin crash reachable.  The field is
+ * cleared only when the account logs off (account_owner(port,logoff)) or the
+ * descriptor is freed. */
 if ( d->cold && (D_DESCRIPTOR(d) == i_port) && (D_FLAGS(d) & DS_CONNECTED) ) {
-            memset(d->cold->account_rawpass, '\0', sizeof(d->cold->account_rawpass));
             ival(buff, bufcx, 1);
           } else {
             ival(buff, bufcx, 0);
