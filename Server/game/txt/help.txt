@@ -37012,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.11.2, 5.11.1, 5.11.0
+  1 - 5.12.0, 5.11.2, 5.11.1, 5.11.0
   2 - 5.10.0, 5.9.2, 5.9.1, 5.9.0
   3 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
   4 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
@@ -37035,10 +37035,49 @@
 & changelog newest
 & changelog recent
 & changelog 1
+& 5.12.0
 & 5.11.2
 & 5.11.1
 & 5.11.0
    Topic: CHANGELOG
+
+  5.12.0
+    PERFORMANCE IMPROVEMENTS
+
+  * command/last_command/debug→last_command buffers: removed redundant
+    zeroing/copying; no-eval fast path for literal arguments.
+  * TRACE: fast path for the literal-argument case.
+  * mushexec: bulk-copy runs of plain characters instead of per-character
+    check-and-copy.
+  * MDBX: use the single-threaded read path.
+  * attribute lookups: removed per-lookup upper/lowercase work.
+  * ANSI split buffer sized below LBUF_SIZE when the input length is known
+    (citer); initialize_ansisplitter reduced to a single memset.
+  * ANSI input buffers right-sized in 26 string functions (left, right, mid,
+    first, after, before, last, trim, ansipos, strlenvis, is*, shuffle,
+    extractword).
+  * ANSI input buffers right-sized: tr, foreach, numpos, scramble, repeat,
+    reverse, trreverse, delete, array, editansi.
+  * ANSI input buffers right-sized: andchr, xorchr, orchr, notchr, columns,
+    elementsmux, esclist, setinter, moneyname.
+  * split_alloc_for NULL-safe no-op path; dynamic input allocation for
+    setinter and tr.
+  * ANSI input buffers: creplace, creplaceansi, wrapcolumns, printf.
+  * ANSI input buffers: mail_acheck.
+  * truecolor→256 ANSI: O(1) nearest-colour (removes ~240 sscanf per escape).
+  * 256→16 ANSI: 256-entry lookup table + manual parse (removes per-escape
+    loop/sscanf/sprintf).
+
+    FIXES
+
+  * ANSI 256→16 downscaling fixed on 32-bit systems.
+  * accounting subsystem fixed for the new player-descriptor (SoA) layout.
+  * account LOGOUT + re-login crash: stop clearing the stored account password
+    on each login.
+  * descriptor robustness: deferred descriptor teardowns (pending_close /
+    i_login_nest, flushed in process_commands); softcode-triggered teardowns
+    re-validate the descriptor by slot+port (do_command tail, check_connect
+    message path); desc_in_use cleared/re-pointed on free and compaction.  
   
   5.11.2
   * Ansified player names could cause failed lookups when people using mail
