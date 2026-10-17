@@ -4709,6 +4709,10 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
    bittemp = bitcmp = i_chk = 0;
    i_allow = i_return = 1;
+   /* Only set true inside the "message attribute" block below; the failed-login
+    * LOG and retry decrement after it read it unconditionally, so it must start
+    * defined.  (clang -Wsometimes-uninitialized caught the uninitialized read.) */
+   i_desc_gone = 0;
    cmdsave = mudstate_hot.debug_cmd;
    mudstate_hot.debug_cmd = (char *) "< check_connect >";
 
