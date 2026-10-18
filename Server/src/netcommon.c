@@ -2444,6 +2444,39 @@ queue_string(DESC * d, const char *s)
     VOIDRETURN; /* #119 */
 }
 
+/* Free a descriptor's queued input (CBLK list) and its partial-line
+ * accumulation buffer (raw_input), but NOT the output queue.  shutdownsock()'s
+ * LOGOUT/SU path needs this: the connection is kept and the output queue must
+ * survive (welcome_user() queues onto it), while input from the previous
+ * session must not be dispatched at the login screen. */
+void
+free_input_queue(DESC * d)
+{
+    CBLK *cb, *cnext;
+
+    DPUSH; /* #120.5 */
+
+    if (!d || !d->cold) {
+	VOIDRETURN;
+    }
+
+    cb = D_INPUT_HEAD(d);
+    while (cb) {
+	cnext = (CBLK *) cb->hdr.nxt;
+	free_lbuf(cb);
+	cb = cnext;
+    }
+    D_INPUT_HEAD(d) = NULL;
+    D_INPUT_TAIL(d) = NULL;
+
+    if (d->cold->raw_input)
+	free_lbuf(d->cold->raw_input);
+    d->cold->raw_input = NULL;
+    d->cold->raw_input_at = NULL;
+
+    VOIDRETURN; /* #120.5 */
+}
+
 void
 freeqs(DESC * d, int dooronly)
 {
@@ -2466,19 +2499,7 @@ freeqs(DESC * d, int dooronly)
     D_OUTPUT_HEAD(d) = NULL;
     D_OUTPUT_TAIL(d) = NULL;
 
-    cb = D_INPUT_HEAD(d);
-    while (cb) {
-	cnext = (CBLK *) cb->hdr.nxt;
-	free_lbuf(cb);
-	cb = cnext;
-    }
-    D_INPUT_HEAD(d) = NULL;
-    D_INPUT_TAIL(d) = NULL;
-
-    if (d->cold->raw_input)
-	free_lbuf(d->cold->raw_input);
-    d->cold->raw_input = NULL;
-    d->cold->raw_input_at = NULL;
+    free_input_queue(d);
   }
 
   cb = d->cold->door_input_head;
@@ -5088,6 +5109,12 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
 
             atr = NULL;
             i_atr = -1;
+            /* buff is freed below when an attr is found, but is only (re)filled
+             * on some paths.  Make ownership explicit: start it NULL, clear it
+             * after every free, and guard the final free.  This keeps the free
+             * safe by construction -- independent of free_lbuf()'s NULL
+             * tolerance and of the pool-vs-malloc allocator variant. */
+            buff = NULL;
             if ( Good_chk(player) && (Flags3(player) & NOCONNECT) ) {
                i_atr = mkattr("_NOCONNECT_MSG");
                if ( i_atr > 0 ) {
@@ -5097,6 +5124,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      buff = atr_get(player, atr->number, &aowner, &aflags);
                      if ( !buff || !*buff ) {
                         free_lbuf(buff);
+                        buff = NULL;
                         i_atr = -1;
                      }
                   }
@@ -5110,6 +5138,7 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                      buff = atr_get(player, atr->number, &aowner, &aflags);
                      if ( !buff || !*buff ) {
                         free_lbuf(buff);
+                        buff = NULL;
                         i_atr = -1;
                      }
                   }
@@ -5207,7 +5236,11 @@ check_connect(DESC * d, const char *msg, int key, int i_attr)
                } else {
                   queue_string(d, connect_fail);
                }
-               free_lbuf(buff);
+               /* Guard the free: buff is owned by this block, but don't depend
+                * on free_lbuf()'s NULL tolerance or on the allocator variant.
+                * (The same variable may already have been freed above and then
+                * re-fetched; this keeps every free a single, owned free.) */
+               if ( buff ) free_lbuf(buff);
             } else {
                queue_string(d, connect_fail);
             }

@@ -2197,7 +2197,8 @@ void do_conncheck(dbref player, dbref cause, int key)
 void do_selfboot(dbref player, dbref cause, int key, char *name)
 {
 time_t	dtime, now;
-int	port, count, count2;
+int	port, count, count2, nports, i;
+int	ports[MAX_DESCRIPTORS];
 char    *tbuf;
 DESC	*d;
 
@@ -2234,11 +2235,13 @@ DESC	*d;
           
            DESC_ITER_CONN(d) {
              if ( (D_PLAYER(d) == player) && (D_DESCRIPTOR(d) == port) ) {
-                if ( count2 > 1 )
-	           boot_by_port(D_DESCRIPTOR(d),!God(player),player,NULL);
                 count++;
              }
            }
+           /* Boot AFTER the iteration: boot_by_port() frees + swap-compacts the
+            * descriptor array, which corrupts a forward DESC_ITER_CONN. */
+           if ( (count > 0) && (count2 > 1) )
+              boot_by_port(port, !God(player), player, NULL);
            if ( count > 0 ) {
               if ( count2 <= 1 ) {
                  notify(player, "You can't boot your only connection.");
@@ -2252,19 +2255,24 @@ DESC	*d;
         break;
      default:              /* default behavior */
         now = rhost_time();
+        nports = 0;
         DESC_ITER_CONN(d) {
           if (D_PLAYER(d) == player) {
             if (!count || (now - D_LAST_TIME(d)) < dtime) {
 	      if (count)
-	        boot_by_port(port,!God(player),player,NULL);
+	        ports[nports++] = port;
 	      dtime = now - D_LAST_TIME(d);
 	      port = D_DESCRIPTOR(d);
             } else {
-	      boot_by_port(D_DESCRIPTOR(d),!God(player),player,NULL);
+	      ports[nports++] = D_DESCRIPTOR(d);
             }
             count++;
           }
         }
+        /* Boot AFTER the iteration: boot_by_port() frees + swap-compacts the
+         * descriptor array, which corrupts a forward DESC_ITER_CONN. */
+        for (i = 0; i < nports; i++)
+           boot_by_port(ports[i], !God(player), player, NULL);
         if (count < 2) {
           notify(player,"You only have 1 connection.");
         } else {

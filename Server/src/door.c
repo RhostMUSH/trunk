@@ -220,6 +220,9 @@ static int addDoor(const char *doorName,
     }
     gaDoors[gnDoors]->doorStatus = INTERNAL_e;
     D_PLAYER(gaDoors[gnDoors]->pDescriptor) = SYSTEM;
+    /* Mark the slot in-use-but-socketless so _alloc_desc() (which only takes
+     * DESC_SLOT_FREE slots) cannot hand it to a new connection. */
+    D_DESCRIPTOR(gaDoors[gnDoors]->pDescriptor) = DESC_SLOT_INTERNAL;
   }
 
   // Check LOC is a room
@@ -937,20 +940,6 @@ void closeDoorWithId(DESC *desc, int d) {
   				       gaDoors[d]->pName));
 
   if (gaDoors[d]->pDescriptor && gaDoors[d]->pDescriptor == desc) {
-    D_DESCRIPTOR(desc) = -1;
-    D_FLAGS(desc) = 0;
-    D_QUOTA(desc) = 0;
-    D_PLAYER(desc) = 0;
-    D_HOST_INFO(desc) = 0;
-    D_INPUT_HEAD(desc) = NULL;
-    D_INPUT_TAIL(desc) = NULL;
-    D_INPUT_SIZE(desc) = 0;
-    D_INPUT_TOT(desc) = 0;
-    D_OUTPUT_HEAD(desc) = NULL;
-    D_OUTPUT_TAIL(desc) = NULL;
-    D_OUTPUT_SIZE(desc) = 0;
-    D_OUTPUT_TOT(desc) = 0;
-    D_LAST_TIME(desc) = 0;
     if (desc->cold) {
       desc->cold->door_input_head = NULL;
       desc->cold->door_input_tail = NULL;
@@ -958,6 +947,11 @@ void closeDoorWithId(DESC *desc, int d) {
       desc->cold->door_output_tail = NULL;
     }
     gaDoors[d]->pDescriptor = NULL;
+    /* Fully release the slot.  The previous hand-rolled reset left cold != NULL
+     * and ndesc_slots unchanged, i.e. a "zombie" slot that looked free to
+     * _alloc_desc() while still being iterated as in-use.  free_desc() resets
+     * every hot field AND nulls cold, matching _free_desc()'s contract. */
+    free_desc(desc);
   }
 
   VOIDRETURN; /* #11.5*/

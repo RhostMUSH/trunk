@@ -96,7 +96,9 @@ int i_login_nest = 0;   /* nested account-connect depth; deferred-teardown barri
 
 DESC *_alloc_desc(const char *tag) {
     for (int i = 0; i < MAX_DESCRIPTORS; i++) {
-        if (desc_hot.descriptor[i] < 0) {
+        /* Only a truly-free slot is allocatable; internal-door slots hold
+         * DESC_SLOT_INTERNAL and must not be reused. */
+        if (desc_hot.descriptor[i] == DESC_SLOT_FREE) {
             DESC *d = &desc_slots[i];
             d->slot_index = i;
             d->cold = &desc_cold[i];
@@ -2137,6 +2139,12 @@ shutdownsock(DESC * d, int reason)
 	}
 	d->cold->snooplist = NULL;
 	d->cold->logged = 0;
+        /* Discard input from the previous session: queued commands and any
+         * partial line must not be dispatched at the login screen.  The output
+         * queue is intentionally kept (welcome_user() below appends to it).
+         * Placed after the byte accounting above, which reads D_INPUT_SIZE. */
+        free_input_queue(d);
+        D_INPUT_SIZE(d) = 0;
         if ( !mudstate_hot.no_announce ) {
 	   welcome_user(d);
         }

@@ -320,6 +320,7 @@ extern void	FDECL(clearstrings, (DESC *));
 extern void	FDECL(queue_write, (DESC *, const char *, int));
 extern void	FDECL(queue_string, (DESC *, const char *));
 extern void	FDECL(freeqs, (DESC *, int));
+extern void	FDECL(free_input_queue, (DESC *));
 extern void	FDECL(welcome_user, (DESC *));
 extern void	FDECL(save_command, (DESC *, CBLK *));
 extern void	FDECL(announce_disconnect, (dbref, DESC *, const char *));
@@ -346,6 +347,13 @@ extern void _free_desc(DESC *);
 
 extern int ndescriptors;    /* total open FDs: main + doors + auth */
 extern int ndesc_slots;     /* entries in desc_slots array only */
+
+/* desc_hot.descriptor[] sentinels.  A slot is allocatable ONLY when it holds
+ * DESC_SLOT_FREE.  Internal-door pseudo-descriptors (door.c) have no socket,
+ * so they use DESC_SLOT_INTERNAL to keep _alloc_desc() from handing their slot
+ * to a new connection.  Real sockets always have descriptor >= 0. */
+#define DESC_SLOT_FREE      (-1)
+#define DESC_SLOT_INTERNAL  (-2)
 
 #define DESC_ITER_PLAYER(p,d) \
 	for (int _di = 0; _di < ndesc_slots && ((d) = &desc_slots[_di], 1); _di++) \
