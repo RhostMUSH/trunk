@@ -37012,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.13.0, 5.12.2, 5.12.1, 5.12.0, 5.11.2, 5.11.1, 5.11.0
+  1 - 5.13.1, 5.13.0, 5.12.2, 5.12.1, 5.12.0, 5.11.2, 5.11.1, 5.11.0
   2 - 5.10.0, 5.9.2, 5.9.1, 5.9.0
   3 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
   4 - 5.6.0, 5.5.15, 5.5.14, 5.5.13, 5.5.12, 5.5.11, 5.5.10, 5.5.9, 5.5.8, 5.5.7
@@ -37035,6 +37035,7 @@
 & changelog newest
 & changelog recent
 & changelog 1
+& 5.13.1
 & 5.13.0
 & 5.12.2
 & 5.12.1
@@ -37043,6 +37044,10 @@
 & 5.11.1
 & 5.11.0
    Topic: CHANGELOG
+
+  5.13.1
+  * Pinned the C Standard to Gnu99 in the makefile in order to support all our
+    OSes and compilers.
 
   5.13.0
   * Added an internal fast-path for some ANSI removal functions
