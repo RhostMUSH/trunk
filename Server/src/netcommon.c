@@ -471,6 +471,12 @@ strip_ansi_flash(const char *raw)
     char *q = buf;
    
     DPUSH; /* #102 */
+    /* Fast path: this only removes the \x1B[5m sequence; everything else is
+     * copied verbatim, so when it is absent the result equals the input and the
+     * full char-by-char copy below can be skipped.  strstr() is vectorized and
+     * far cheaper than that loop. */
+    if ( raw && strstr(raw, "\x1B[5m") == NULL )
+        RETURN((char *)raw); /* #102 */
     while (p && *p) {
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
@@ -495,6 +501,9 @@ strip_ansi_underline(const char *raw)
     char *q = buf;
    
     DPUSH; /* #103 */
+    /* Fast path: only removes the \x1B[4m sequence (see strip_ansi_flash). */
+    if ( raw && strstr(raw, "\x1B[4m") == NULL )
+        RETURN((char *)raw); /* #103 */
     while (p && *p) {
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
@@ -646,6 +655,14 @@ strip_ansi_xterm(const char *raw)
     i_chk = i_type = 0;
     r = NULL;
 
+    /* Fast path: this only rewrites \x1B[38... / \x1B[48... sequences (passing
+     * ;2; through, downconverting ;5;); everything else is copied verbatim, so
+     * when neither signature is present the result equals the input and the
+     * full char-by-char copy below can be skipped.  strstr() is vectorized and
+     * far cheaper than that loop. */
+    if ( raw && strstr(raw, "\x1B[38") == NULL && strstr(raw, "\x1B[48") == NULL )
+        RETURN((char *)raw); /* #104 */
+
     while (p && *p) {
 	if (*p != ESC_CHAR) {
 	    *q++ = *p++;
@@ -703,6 +720,13 @@ strip_ansi_truecolor(const char *raw)
     int i_r, i_g, i_b, i_type, i_256;
 
     DPUSH; /* #106 */
+
+    /* Fast path: this only rewrites \x1B[38;2;... / \x1B[48;2;... sequences;
+     * everything else is copied verbatim, so when neither signature is present
+     * the result equals the input and the full char-by-char copy below can be
+     * skipped.  strstr() is vectorized and far cheaper than that loop. */
+    if ( raw && strstr(raw, "\x1B[38;2;") == NULL && strstr(raw, "\x1B[48;2;") == NULL )
+        RETURN((char *)raw); /* #106 */
 
     while (p && *p) {
         if (*p != ESC_CHAR) {
