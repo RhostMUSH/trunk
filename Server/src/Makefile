@@ -428,7 +428,12 @@ endif
 
 
 DEBUG	= $(OPTIM)
-ALLCFLAGS = $(CFLAGS) $(DEBUG) $(DEFS) $(MOREDEFS) $(D_FLG) $(WHO_F) $(RWHO_F) $(RLIM_F) $(UDB_F) -I$(incdir) -Ilibtelnet $(CRYPT_SCHEME) $(CYGWIN) $(LUADEFS)
+# Pin the C dialect.  The command and config tables store handlers in
+# unprototyped function pointers (void (*)()), which is legal through C17 but
+# an error in C23, where () means (void).  gnu99 keeps the intended semantics
+# and is accepted by every compiler we support, including OpenBSD's base
+# GCC 4.2.1.  Placed last so it also overrides any -std in $(CFLAGS).
+ALLCFLAGS = $(CFLAGS) $(DEBUG) $(DEFS) $(MOREDEFS) $(D_FLG) $(WHO_F) $(RWHO_F) $(RLIM_F) $(UDB_F) -I$(incdir) -Ilibtelnet $(CRYPT_SCHEME) $(CYGWIN) $(LUADEFS) -std=gnu99
 
 # Auxiliary source files: only used by offline utilities.
 # This one is for NON-html auto help creation
