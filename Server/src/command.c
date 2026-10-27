@@ -2965,8 +2965,8 @@ void reportcputime(dbref player, int elapsed_cs)
                                       elapsed_cs % 100,
                                       mudstate_hot.evalcount,
                                       mudstate_hot.funccount,
-                                      mudstate.attribfetchcount,
-                                      mudstate.allocsin
+                                      mudstate_hot.attribfetchcount,
+                                      mudstate_hot.allocsin
                                      ));
     free_lbuf(tpr_buff);
   }
@@ -3221,9 +3221,9 @@ process_command(dbref player, dbref cause, int interactive,
     /* profiling */
     mudstate_hot.evalcount = 0;
     mudstate_hot.funccount = 0;
-    mudstate.allocsin = 0;
-    mudstate.allocsout = 0;
-    mudstate.attribfetchcount = 0;
+    mudstate_hot.allocsin = 0;
+    mudstate_hot.allocsout = 0;
+    mudstate_hot.attribfetchcount = 0;
     mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 
 //  if ( !mudstate.rollbackstate )

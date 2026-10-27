@@ -3054,7 +3054,7 @@ atr_get_raw(dbref thing, int atr)
     Aname okey;
 
 #ifndef STANDALONE
-    mudstate.attribfetchcount++;
+    mudstate_hot.attribfetchcount++;
 #endif
 
     makekey(thing, atr, &okey);

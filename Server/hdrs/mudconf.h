@@ -703,6 +703,9 @@ struct state_hot {
         /* 4. Eval context (every function call) */
         int     evalcount;               /* 4B */
         int     funccount;               /* 4B */
+        int     allocsin;                /* 4B — profiling counts, reset */
+        int     allocsout;               /* 4B   per command (reportcputime) */
+        int     attribfetchcount;        /* 4B */
         int     evalnum;                 /* 4B */
         int     func_nest_lev;           /* 4B */
         int     func_invk_ctr;           /* 4B */
@@ -844,9 +847,6 @@ struct statedata {
 	dbref	store_lastx2;	/* Store the previous created exit# for dig */
 	dbref	store_loc;	/* Store target location for open/dig */
         dbref   store_passwd;	/* Store the password foodoo */
-	int	allocsin;
-	int	allocsout;
-        int     attribfetchcount;
 	int	adminexec;	/* issuing @admin/exec in-game */
 	int	quiet_match;	/* Snuff noisy match results */
 	clock_t	clock_mush;	/* The CPU usage the mush has used since last restart */

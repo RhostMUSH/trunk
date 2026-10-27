@@ -6473,9 +6473,9 @@ do_command(DESC * d, char *command)
             /* profiling */
             mudstate_hot.evalcount = 0;
             mudstate_hot.funccount = 0;
-            mudstate.allocsin = 0;
-            mudstate.allocsout = 0;
-            mudstate.attribfetchcount = 0;
+            mudstate_hot.allocsin = 0;
+            mudstate_hot.allocsout = 0;
+            mudstate_hot.attribfetchcount = 0;
             mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 /* End of the profile/cpu chunk */
 
@@ -6933,9 +6933,9 @@ do_command(DESC * d, char *command)
             /* profiling */
             mudstate_hot.evalcount = 0;
             mudstate_hot.funccount = 0;
-            mudstate.allocsin = 0;
-            mudstate.allocsout = 0;
-            mudstate.attribfetchcount = 0;
+            mudstate_hot.allocsin = 0;
+            mudstate_hot.allocsout = 0;
+            mudstate_hot.attribfetchcount = 0;
             mudstate_hot.cpu_checkpoint_cs = rhost_cpu_cs();
 /* End of the profile/cpu chunk */
 
