@@ -20069,7 +20069,7 @@ FUNCTION(fun_parse)
         result = exec(player, cause, caller,
                       EV_STRIP | EV_FCHECK | EV_EVAL, buff3, cargs, ncargs, (char **)NULL, 0);
         free_lbuf(buff3);
-        if ( (strlen(result) + strlen(buff) ) > LBUF_SIZE )
+        if ( (strlen(result) + (size_t)(*bufcx - buff)) > (size_t)LBUF_SIZE )
            size = 1;
         if (!first)
             safe_str(sop, buff, bufcx);
@@ -33022,7 +33022,7 @@ FUNCTION(fun_splice)
 
 FUNCTION(fun_repeat)
 {
-    int times, i, j, over = 0, i_ansi, cntr = 0;
+    int times, i, j, over = 0, i_ansi, cntr = 0, outlen = 0;
     char *outbuff, *outbuff2, *outbuff2ptr, *s_combine;
     ANSISPLIT *outsplit = split_alloc_for(fargs[0]), *outsplit2 = split_alloc_buf(), *p_sp, *p_sp2;
 
@@ -33050,12 +33050,13 @@ FUNCTION(fun_repeat)
           memset(outbuff2, '\0', LBUF_SIZE);
           initialize_ansisplitter(outsplit2, LBUF_SIZE);
           split_ansi(strip_ansi(fargs[0]), outbuff, outsplit);
+          outlen = (int)strlen(outbuff);
           outbuff2ptr = outbuff2;
           p_sp2 = outsplit2;
           for (i = 0; i < times && !over; i++) {
              over = safe_str(outbuff, outbuff2, &outbuff2ptr);   
              p_sp = outsplit;
-             for ( j = 0; j < strlen(outbuff); j++ ) {
+             for ( j = 0; j < outlen; j++ ) {
                 if ( !p_sp || (cntr > (LBUF_SIZE - 2)) ) {
                    over = 1;
                    break;
@@ -35898,7 +35899,7 @@ FUNCTION(fun_squish)
       for (i = 0; i < i_count; i++ ) {
          safe_chr(*t_ptr, buff, bufcx);
       }
-      if ( strlen(buff) > (LBUF_SIZE - 40) ) {
+      if ( (size_t)(*bufcx - buff) > (size_t)(LBUF_SIZE - 40) ) {
         return;
       }
       t_ptr++;
