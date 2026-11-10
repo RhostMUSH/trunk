@@ -4161,6 +4161,8 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
 #endif
 
     ansi_ok = 0;
+    sname = NULL;
+    sname_ptr = NULL;
     buf = alloc_lbuf("unparse_object_ansi_c");
     memset(ansitmp, 0, sizeof(ansitmp));
 
@@ -4175,17 +4177,19 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
     } else {
 #ifdef ZENTY_ANSI
         ansibuf = atr_get(target, A_ANSINAME, &aowner, &aflags);
-        sname = alloc_lbuf("unparse_object_ansi_name");
-        strcpy(sname, Name(target));
-        sname_ptr = NULL;
+        /* The prominent-name copy is only needed for the walkdb exit display
+         * (which splits "name;alias").  Elsewhere the compare below can use
+         * Name(target) directly, so the 32KB lbuf is skipped. */
         if ( is_walkdb && isExit(target) ) {
+           sname = alloc_lbuf("unparse_object_ansi_name");
+           strcpy(sname, Name(target));
            if ( (sname_ptr = strchr(sname, ';')) != NULL ) {
               *sname_ptr++ = '\0';
            } else {
               sname_ptr = "";
            }
         }
-        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(sname, strip_all_special(ansibuf))) == 0)) ) {
+        if ( !(ExtAnsi(target) && ((ansi_ok = strcmp(sname ? sname : Name(target), strip_all_special(ansibuf))) == 0)) ) {
            if ( !Accents(player) )
               buf2 = parse_ansi_name(target, strip_safe_accents(ansibuf));
            else
@@ -4341,7 +4345,7 @@ unparse_object_ansi(dbref player, dbref target, int obey_myopic, int is_walkdb)
 	}
        free_lbuf(ansibuf);
        free_lbuf(buf2);    
-       free_lbuf(sname);
+       if (sname) free_lbuf(sname);
     }
     if ( Good_obj(target) && isRoom(target) && NoName(target) && !Wizard(player) )
        memset(buf, 0, LBUF_SIZE);

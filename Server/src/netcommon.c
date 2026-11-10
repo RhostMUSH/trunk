@@ -2394,7 +2394,7 @@ queue_write(DESC * d, const char *b, int n)
 	left = LBUF_SIZE - sizeof(TBLKHDR) - (tp->hdr.end - (char *) tp);
 
 	if (n <= left) {
-	    strncpy(tp->hdr.end, b, n);
+	    memcpy(tp->hdr.end, b, n);
 	    tp->hdr.end += n;
 	    tp->hdr.nchars += n;
 	    n = 0;
@@ -2405,7 +2405,7 @@ queue_write(DESC * d, const char *b, int n)
 	     */
 
 	    if (left > 0) {
-		strncpy(tp->hdr.end, b, left);
+		memcpy(tp->hdr.end, b, left);
 		tp->hdr.end += left;
 		tp->hdr.nchars += left;
 		b += left;

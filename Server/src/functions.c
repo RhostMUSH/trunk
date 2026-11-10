@@ -20748,6 +20748,29 @@ FUNCTION(fun_con)
     return;
 }
 
+/* Guard for direct fp->fun() dispatch.  Mirrors the dispatcher's checks so a
+ * direct call cannot skip the function permission table or its limits. */
+static int fn_direct_dispatch_ok(dbref player, int perms, int perms2, char *buff, char **bufcx)
+{
+   if ( !check_access(player, perms, perms2, 0) &&
+        !((perms & 0x00007F00) && (mudstate_hot.func_ignore && mudstate_hot.func_bypass)) ) {
+      if ( mudstate_hot.func_ignore )
+         safe_str("#-1 INVALID FUNCTION", buff, bufcx);
+      else
+         safe_str("#-1 PERMISSION DENIED", buff, bufcx);
+      return 0;
+   }
+   if ( mudstate_hot.func_nest_lev >= mudconf.func_nest_lim ) {
+      safe_str("#-1 FUNCTION RECURSION LIMIT EXCEEDED", buff, bufcx);
+      return 0;
+   }
+   if ( mudstate_hot.func_invk_ctr >= mudconf.func_invk_lim ) {
+      safe_str("#-1 FUNCTION INVOCATION LIMIT EXCEEDED", buff, bufcx);
+      return 0;
+   }
+   return 1;
+}
+
 FUNCTION(fun_passthrough)
 {
    FUN *fp;
@@ -20769,7 +20792,9 @@ FUNCTION(fun_passthrough)
       strcpy(s_null, fargs[3]);
    }
 
-   for ( i_loop = 0; i_loop < 999; i_loop++) {
+   /* Initialise every slot, not just the 999 that can be passed: callees
+    * such as setqm()/nameqm() read fargs[i+1] and may touch fargs[nfargs]. */
+   for ( i_loop = 0; i_loop < 1000; i_loop++) {
       s_args[i_loop] = s_null;
    }
 
@@ -20795,6 +20820,11 @@ FUNCTION(fun_passthrough)
          break;
       }
    }
+   /* s_args has 1000 entries and only 0..998 are initialised: keep the
+    * inherited count inside the array (ncargs can exceed it, e.g. the
+    * arr_prog/@program path).  This is a buffer bound, not an argument cap. */
+   if ( i_chk > 999 )
+      i_chk = 999;
 
    for ( i_loop = 0; i_loop < i_chk; i_loop++ ) {
       s_args[i_loop] = cargs[i_loop];
@@ -20823,14 +20853,16 @@ FUNCTION(fun_passthrough)
       free_lbuf(s_buff);
    }
    fp = (FUN *) ohtab_find(fargs[0], &mudstate_hot.func_htab);
-   if ( fp ) {
-      if ( !stricmp((char *)fp->name, "passthrough") ) {
-         safe_str("#-1 RECURSIVE CALLING PASSTHROUGH", buff, bufcx);
-      } else {
-         fp->fun(buff, bufcx, player, cause, caller, s_args, (i_force ? i_max : i_chk), (char **)NULL, 0);
-      }
-   } else {
+   if ( !fp ) {
       safe_str("#-1 INVALID FUNCTION", buff, bufcx);
+   } else if ( !stricmp((char *)fp->name, "passthrough") ) {
+      safe_str("#-1 RECURSIVE CALLING PASSTHROUGH", buff, bufcx);
+   } else if ( fn_direct_dispatch_ok(player, fp->perms, fp->perms2, buff, bufcx) ) {
+      mudstate_hot.func_nest_lev++;
+      mudstate_hot.func_invk_ctr++;
+      fp->fun(buff, bufcx, player, cause, caller, s_args,
+              (i_force ? i_max : i_chk), (char **)NULL, 0);
+      mudstate_hot.func_nest_lev--;
    }
    free_lbuf(s_null);
 }
@@ -20944,7 +20976,10 @@ FUNCTION(fun_strfunc)
 
    if ( fp && ((nitems == fp->nargs) || (nitems == -fp->nargs) ||
                (fp->flags & FN_VARARGS)) ) {
+      mudstate_hot.func_nest_lev++;
+      mudstate_hot.func_invk_ctr++;
       fp->fun(buff, bufcx, player, cause, caller, ptrs, nitems, cargs, ncargs);
+      mudstate_hot.func_nest_lev--;
    } else if ( ufp ) {
       i_player = player;
       if (ufp->flags & FN_PRIV) {
@@ -24161,6 +24196,8 @@ FUNCTION(fun_gt)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -24199,6 +24236,8 @@ FUNCTION(fun_gte)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -24237,6 +24276,8 @@ FUNCTION(fun_lt)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -24275,6 +24316,8 @@ FUNCTION(fun_lte)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -24313,6 +24356,8 @@ FUNCTION(fun_eq)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -24351,6 +24396,8 @@ FUNCTION(fun_neq)
        safe_chr(']', buff, bufcx);
        return;
     }
+    if ( nfargs > MAX_ARGS )
+        nfargs = MAX_ARGS;   /* passthrough()/strfunc() can exceed the parser cap */
     {
         long long vals[MAX_ARGS];
         for (i = 0; i < nfargs; i++) {
@@ -43151,6 +43198,12 @@ do_cluster_u(char *buff, char **bufcx, dbref player, dbref cause, dbref caller,
        safe_chr(']', buff, bufcx);
        return;
     }
+    /* xargs below is MAX_ARG entries; passthrough()/strfunc() can hand us
+     * more arguments than that, so bound the count before it is copied and
+     * before it is forwarded to the u/ulocal/default family. */
+    if ( nfargs > MAX_ARG )
+       nfargs = MAX_ARG;
+
     /* Two possibilities for the first arg: <obj>/<attr> and <attr>. */
 
     i_bypass = 0;

@@ -755,7 +755,8 @@ char	*temp, *tp;
 dbref lookup_player (dbref doer, char *name, int check_who)
 {
    dbref p;
-   char *temp, *tp;
+   char *temp, *tp, *src;
+   char foldbuf[128];
 
    if (!string_compare(name, "me"))
       return doer;
@@ -792,17 +793,25 @@ dbref lookup_player (dbref doer, char *name, int check_who)
       }
       return p;
    }
-   tp = temp = alloc_lbuf("lookup_player");
-   if (*name == '*') {
-      safe_str(name+1, temp, &tp);
-   } else {
-      safe_str(name, temp, &tp);
-   }
+   src = (*name == '*') ? name + 1 : name;
+   tp = temp = foldbuf;
+   while (*src && (tp - foldbuf) < ((int)sizeof(foldbuf) - 1))
+      *tp++ = ToLower((int)*src++);
    *tp = '\0';
-   for (tp=temp; *tp; tp++)
-      *tp = ToLower((int)*tp);
+   if (*src) {
+      /* Aliases are not length-limited (do_alias stores A_ALIAS verbatim) and
+       * load_player_names() imports Name()/A_ALIAS straight from the DB, so
+       * keys longer than foldbuf are legitimate: fall back to the lbuf path
+       * instead of silently truncating the lookup key. */
+      tp = temp = alloc_lbuf("lookup_player");
+      safe_str((*name == '*') ? name + 1 : name, temp, &tp);
+      *tp = '\0';
+      for (tp = temp; *tp; tp++)
+         *tp = ToLower((int)*tp);
+   }
    p = (pmath2)hashfind(temp, &mudstate_hot.player_htab);
-   free_lbuf(temp);
+   if (temp != foldbuf)
+      free_lbuf(temp);
    if (!p) {
       if (check_who)
          p = find_connected_name(doer, name);

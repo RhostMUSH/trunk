@@ -1577,7 +1577,7 @@ ATTR *
 atr_str_cluster(char *s)
 {
     static ATTR tattr;
-    return atr_str_lookup(s, &tattr, "atr_str_objid");
+    return atr_str_lookup(s, &tattr, "atr_str_cluster");
 }
 
 ATTR *
@@ -1619,7 +1619,7 @@ ATTR *
 atr_str_mtch(char *s)
 {
     static ATTR tattr;
-    return atr_str_lookup(s, &tattr, "atr_str4");
+    return atr_str_lookup(s, &tattr, "atr_str_mtch");
 }
 
 ATTR *

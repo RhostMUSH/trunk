@@ -1673,13 +1673,19 @@ int safe_copy_buf(const char *src, int nLen, char *buff, char **bufc)
 int safe_copy_str(char *src, char *buff, char **bufp, int max)
 {
 char	*tp;
+int	room;
+size_t	n;
 
 	tp = *bufp;
 	if (src == NULL) return 0;
-	{ int room = max - (int)(tp - buff); if (room < 0) room = 0;
-	  int n = 0; while (n < room && src[n]) n++;
-	  memcpy(tp, src, n); tp += n; *tp = '\0'; *bufp = tp;
-	  return strlen(src + n); }
+	room = max - (int)(tp - buff);
+	if (room < 0) room = 0;
+	n = strnlen(src, (size_t)room);
+	memcpy(tp, src, n);
+	tp += n;
+	*tp = '\0';
+	*bufp = tp;
+	return (n == (size_t)room) ? (int)strlen(src + n) : 0;
 }
 
 int safe_copy_strmax(char *src, char *buff, char **bufp, int max)

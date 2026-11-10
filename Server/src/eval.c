@@ -1304,11 +1304,13 @@ void parse_ansi(char *string, char *buff, char **bufptr, char *buff2, char **buf
                 safe_chr('%', buff_utf, &bufc_utf);
                 safe_chr(*string, buff_utf, &bufc_utf);
             } else if ( *string == '<' ) {
+                size_t l8;
                 string++;
-                if ( ((*string == 'u') || (*string == 'U')) && 
-                     (((strlen(string)) > 5 && (*(string+5) == '>')) 
-                       || ((strlen(string) > 6) && (*(string+6) == '>')) 
-                       || ((strlen(string) > 7) && (*(string+7) == '>')))) {
+                l8 = strnlen(string, 8);
+                if ( ((*string == 'u') || (*string == 'U')) &&
+                     ((l8 > 5 && (*(string+5) == '>'))
+                       || (l8 > 6 && (*(string+6) == '>'))
+                       || (l8 > 7 && (*(string+7) == '>')))) {
                     string++;
                     i_utfcnt = 0;
 
@@ -2027,7 +2029,6 @@ mushexec(dbref player, dbref cause, dbref caller, int eval, char *dstr,
    fprintf(stderr, "EXECValue: %s\n", dstr);
 */
 
-    memset(tfunlocal, '\0', sizeof(tfunlocal));
     while (*dstr && !alldone) {
       if ( mudstate_hot.curr_percentsubs < mudconf.max_percentsubs ) {
 	/* Fast path: copy a run of mundane characters in one go.  The
