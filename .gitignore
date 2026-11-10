@@ -15,6 +15,7 @@
 *.sqlite
 *.swp
 *.tar
+*.toggle
 *.tmp
 *.tgz
 *.zip

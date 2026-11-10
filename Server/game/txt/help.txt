@@ -37012,7 +37012,7 @@
   
   Current Changelogs:
   -------------------
-  1 - 5.14.0
+  1 - 5.14.0, 5.14.1
   2 - 5.13.1, 5.13.0, 5.12.2, 5.12.1, 5.12.0, 5.11.2, 5.11.1, 5.11.0
   3 - 5.10.0, 5.9.2, 5.9.1, 5.9.0
   4 - 5.8.6, 5.8.5, 5.8.4, 5.8.3 5.8.2, 5.8.1, 5.8.0, 5.7.1, 5.7.0
@@ -37036,10 +37036,14 @@
 & changelog newest
 & changelog recent
 & changelog 1
+& 5.14.1
 & 5.14.0
   
    Topic: CHANGELOG
   
+  5.14.1
+  * Removed accidentally committed usesql.toggle
+
   5.14.0
   * permission fix in passthrough()
   * properly initialize passthrough() args
