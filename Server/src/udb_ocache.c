@@ -22,6 +22,7 @@
 #include	"autoconf.h"
 #include	"udb_defs.h"
 #include	"mudconf.h"
+#include        "externs.h"
 #include        "debug.h"
 
 #define  FILENUM UDB_OCACHE_C
